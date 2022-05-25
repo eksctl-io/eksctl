@@ -1,9 +1,11 @@
 package eks
 
 import (
+	"context"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
@@ -19,7 +21,7 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fargate_client.go . FargateClient
 type FargateClient interface {
-	CreateProfile(profile *api.FargateProfile, waitForCreation bool) error
+	CreateProfile(ctx context.Context, profile *api.FargateProfile, waitForCreation bool) error
 }
 
 type fargateProfilesTask struct {
@@ -27,31 +29,39 @@ type fargateProfilesTask struct {
 	clusterProvider *ClusterProvider
 	spec            *api.ClusterConfig
 	manager         FargateClient
+	ctx             context.Context
 }
 
-func (fpt *fargateProfilesTask) Describe() string { return fpt.info }
+func (t *fargateProfilesTask) Describe() string { return t.info }
 
-func (fpt *fargateProfilesTask) Do(errCh chan error) error {
+func (t *fargateProfilesTask) Do(errCh chan error) error {
 	defer close(errCh)
-	if err := DoCreateFargateProfiles(fpt.spec, fpt.manager); err != nil {
+	if err := DoCreateFargateProfiles(t.ctx, t.spec, t.manager); err != nil {
 		return err
 	}
 
-	// Add delay after cluster creation to handle a race condition
-	time.Sleep(30 * time.Second)
+	// Add delay after cluster creation to handle a race condition.
+	timer := time.NewTimer(30 * time.Second)
+	select {
+	case <-timer.C:
 
-	clientSet, err := fpt.clusterProvider.NewStdClientSet(fpt.spec)
+	case <-t.ctx.Done():
+		timer.Stop()
+		return t.ctx.Err()
+	}
+
+	clientSet, err := t.clusterProvider.NewStdClientSet(t.spec)
 	if err != nil {
 		return errors.Wrap(err, "failed to get ClientSet")
 	}
-	if err := ScheduleCoreDNSOnFargateIfRelevant(fpt.spec, fpt.clusterProvider, clientSet); err != nil {
+	if err := ScheduleCoreDNSOnFargateIfRelevant(t.spec, t.clusterProvider, clientSet); err != nil {
 		return errors.Wrap(err, "failed to schedule core-dns on fargate")
 	}
 	return nil
 }
 
 // DoCreateFargateProfiles creates fargate profiles as specified in the config
-func DoCreateFargateProfiles(config *api.ClusterConfig, fargateClient FargateClient) error {
+func DoCreateFargateProfiles(ctx context.Context, config *api.ClusterConfig, fargateClient FargateClient) error {
 	clusterName := config.Metadata.Name
 	for _, profile := range config.FargateProfiles {
 		logger.Info("creating Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
@@ -66,13 +76,13 @@ func DoCreateFargateProfiles(config *api.ClusterConfig, fargateClient FargateCli
 		//
 		// In the case that a ResourceInUseException is thrown on a profile which was
 		// created on an earlier call, we do not error but continue to the next one
-		var e *eks.ResourceInUseException
-		err := fargateClient.CreateProfile(profile, true)
+		var inUseErr *ekstypes.ResourceInUseException
+		err := fargateClient.CreateProfile(ctx, profile, true)
 		switch {
 		case err == nil:
 			logger.Info("created Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
-		case errors.As(err, &e):
-			logger.Info("Either Fargate profile %q already exists on EKS cluster %q or another profile is being created/deleted, no action taken", profile.Name, clusterName)
+		case errors.As(err, &inUseErr):
+			logger.Info("either Fargate profile %q already exists on EKS cluster %q or another profile is being created/deleted, no action taken", profile.Name, clusterName)
 		case fargate.IsUnauthorizedError(err):
 			return errors.Wrapf(err, "either account is not authorized to use Fargate or region %s is not supported", config.Metadata.Region)
 		default:
@@ -93,7 +103,7 @@ func ScheduleCoreDNSOnFargateIfRelevant(config *api.ClusterConfig, ctl *ClusterP
 				return err
 			}
 			retryPolicy := &retry.TimingOutExponentialBackoff{
-				Timeout:  ctl.Provider.WaitTimeout(),
+				Timeout:  ctl.AWSProvider.WaitTimeout(),
 				TimeUnit: time.Second,
 			}
 			if err := coredns.WaitForScheduleOnFargate(clientSet, retryPolicy); err != nil {

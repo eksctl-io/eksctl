@@ -7,6 +7,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -65,7 +66,8 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, options IAMServiceAccountOptions)
 		logger.Writer = os.Stderr
 	}
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -77,7 +79,7 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, options IAMServiceAccountOptions)
 
 	stackManager := ctl.NewStackManager(cfg)
 	irsaManager := irsa.New(cfg.Metadata.Name, stackManager, nil, nil)
-	serviceAccounts, err := irsaManager.Get(context.TODO(), options.GetOptions)
+	serviceAccounts, err := irsaManager.Get(ctx, options.GetOptions)
 
 	if err != nil {
 		return err

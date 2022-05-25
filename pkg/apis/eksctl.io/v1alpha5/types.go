@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -130,6 +130,9 @@ const (
 
 	// RegionAPSouthEast2 represents the Asia-Pacific South East Region Sydney
 	RegionAPSouthEast2 = "ap-southeast-2"
+
+	// RegionAPSouthEast3 represents the Asia-Pacific South East Region Jakarta
+	RegionAPSouthEast3 = "ap-southeast-3"
 
 	// RegionAPSouth1 represents the Asia-Pacific South Region Mumbai
 	RegionAPSouth1 = "ap-south-1"
@@ -288,6 +291,9 @@ const (
 
 	// eksResourceAccountUSGovEast1 defines the AWS EKS account ID that provides node resources in us-gov-east-1
 	eksResourceAccountUSGovEast1 = "151742754352"
+
+	// eksResourceAccountAPSouthEast3 defines the AWS EKS account ID that provides node resources in ap-southeast-3
+	eksResourceAccountAPSouthEast3 = "296578399912"
 )
 
 // Values for `VolumeType`
@@ -340,8 +346,8 @@ const (
 
 // supported version of Karpenter
 const (
-	supportedKarpenterVersion      = "0.6"
-	supportedKarpenterVersionMinor = 6
+	supportedKarpenterVersion      = "0.9"
+	supportedKarpenterVersionMinor = 9
 )
 
 var (
@@ -392,7 +398,7 @@ func IsDisabled(v *bool) bool { return v != nil && !*v }
 // IsSetAndNonEmptyString will only return true if s is not nil and not empty
 func IsSetAndNonEmptyString(s *string) bool { return s != nil && *s != "" }
 
-// IsSetAndNonEmptyString will only return true if s is not nil and not empty
+// IsEmpty will only return true if s is not nil and not empty
 func IsEmpty(s *string) bool { return !IsSetAndNonEmptyString(s) }
 
 // SupportedRegions are the regions where EKS is available
@@ -414,6 +420,7 @@ func SupportedRegions() []string {
 		RegionAPNorthEast3,
 		RegionAPSouthEast1,
 		RegionAPSouthEast2,
+		RegionAPSouthEast3,
 		RegionAPSouth1,
 		RegionAPEast1,
 		RegionMESouth1,
@@ -549,6 +556,8 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountAFSouth1
 	case RegionEUSouth1:
 		return eksResourceAccountEUSouth1
+	case RegionAPSouthEast3:
+		return eksResourceAccountAPSouthEast3
 	default:
 		return eksResourceAccountStandard
 	}
@@ -651,7 +660,7 @@ type ClusterProvider interface {
 	CloudFormationRoleARN() string
 	CloudFormationDisableRollback() bool
 	ASG() awsapi.ASG
-	EKS() eksiface.EKSAPI
+	EKS() awsapi.EKS
 	SSM() awsapi.SSM
 	CloudTrail() awsapi.CloudTrail
 	CloudWatchLogs() awsapi.CloudWatchLogs
@@ -732,6 +741,11 @@ type ClusterConfig struct {
 
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
+
+	// LocalZones specifies a list of local zones where the subnets should be created.
+	// Only self-managed nodegroups can be launched in local zones. These subnets are not passed to EKS.
+	// +optional
+	LocalZones []string `json:"localZones,omitempty"`
 
 	// See [CloudWatch support](/usage/cloudwatch-cluster-logging/)
 	// +optional
@@ -846,7 +860,7 @@ func (c *ClusterConfig) IPv6Enabled() bool {
 }
 
 // SetClusterStatus populates ClusterStatus using *eks.Cluster.
-func (c *ClusterConfig) SetClusterStatus(cluster *eks.Cluster) error {
+func (c *ClusterConfig) SetClusterStatus(cluster *ekstypes.Cluster) error {
 	if networkConfig := cluster.KubernetesNetworkConfig; networkConfig != nil && networkConfig.ServiceIpv4Cidr != nil {
 		c.Status.KubernetesNetworkConfig = &KubernetesNetworkConfig{
 			ServiceIPv4CIDR: *networkConfig.ServiceIpv4Cidr,
@@ -1005,6 +1019,11 @@ type NodeGroup struct {
 	// MaxInstanceLifetime defines the maximum amount of time in seconds an instance stays alive.
 	// +optional
 	MaxInstanceLifetime *int `json:"maxInstanceLifetime,omitempty"`
+
+	// LocalZones specifies a list of local zones where the nodegroup should be launched.
+	// The cluster should have been created with all of the local zones specified in this field.
+	// +optional
+	LocalZones []string `json:"localZones,omitempty"`
 }
 
 // GetContainerRuntime returns the container runtime.

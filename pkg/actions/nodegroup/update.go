@@ -1,29 +1,33 @@
 package nodegroup
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/managed"
 )
 
-func (m *Manager) Update() error {
+func (m *Manager) Update(ctx context.Context) error {
 	for _, ng := range m.cfg.ManagedNodeGroups {
-		if err := m.updateNodegroup(ng); err != nil {
+		if err := m.updateNodegroup(ctx, ng); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (m *Manager) updateNodegroup(ng *api.ManagedNodeGroup) error {
+func (m *Manager) updateNodegroup(ctx context.Context, ng *api.ManagedNodeGroup) error {
 	logger.Info("checking that nodegroup %s is a managed nodegroup", ng.Name)
 
-	_, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+	_, err := m.ctl.AWSProvider.EKS().DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
 		ClusterName:   &m.cfg.Metadata.Name,
 		NodegroupName: &ng.Name,
 	})
@@ -44,7 +48,7 @@ func (m *Manager) updateNodegroup(ng *api.ManagedNodeGroup) error {
 		return err
 	}
 
-	_, err = m.ctl.Provider.EKS().UpdateNodegroupConfig(&eks.UpdateNodegroupConfigInput{
+	_, err = m.ctl.AWSProvider.EKS().UpdateNodegroupConfig(ctx, &eks.UpdateNodegroupConfigInput{
 		UpdateConfig:  updateConfig,
 		ClusterName:   &m.cfg.Metadata.Name,
 		NodegroupName: &ng.Name,
@@ -57,16 +61,16 @@ func (m *Manager) updateNodegroup(ng *api.ManagedNodeGroup) error {
 	return nil
 }
 
-func updateUpdateConfig(ng *api.ManagedNodeGroup) (*eks.NodegroupUpdateConfig, error) {
+func updateUpdateConfig(ng *api.ManagedNodeGroup) (*ekstypes.NodegroupUpdateConfig, error) {
 	logger.Info("updating nodegroup %s's UpdateConfig", ng.Name)
-	updateConfig := &eks.NodegroupUpdateConfig{}
+	updateConfig := &ekstypes.NodegroupUpdateConfig{}
 
 	if ng.UpdateConfig.MaxUnavailable != nil {
-		updateConfig.MaxUnavailable = aws.Int64(int64(*ng.UpdateConfig.MaxUnavailable))
+		updateConfig.MaxUnavailable = aws.Int32(int32(*ng.UpdateConfig.MaxUnavailable))
 	}
 
 	if ng.UpdateConfig.MaxUnavailablePercentage != nil {
-		updateConfig.MaxUnavailablePercentage = aws.Int64(int64(*ng.UpdateConfig.MaxUnavailablePercentage))
+		updateConfig.MaxUnavailablePercentage = aws.Int32(int32(*ng.UpdateConfig.MaxUnavailablePercentage))
 	}
 
 	return updateConfig, nil

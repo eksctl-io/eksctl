@@ -78,7 +78,8 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -92,12 +93,12 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 		return err
 	}
 
-	oidc, err := ctl.NewOpenIDConnectManager(cfg)
+	oidc, err := ctl.NewOpenIDConnectManager(ctx, cfg)
 	if err != nil {
 		return err
 	}
 
-	providerExists, err := oidc.CheckProviderExists(context.TODO())
+	providerExists, err := oidc.CheckProviderExists(ctx)
 	if err != nil {
 		return err
 	}
@@ -108,7 +109,7 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 	}
 	stackManager := ctl.NewStackManager(cfg)
 
-	if err := saFilter.SetExcludeExistingFilter(context.TODO(), stackManager, clientSet, cfg.IAM.ServiceAccounts, overrideExistingServiceAccounts); err != nil {
+	if err := saFilter.SetExcludeExistingFilter(ctx, stackManager, clientSet, cfg.IAM.ServiceAccounts, overrideExistingServiceAccounts); err != nil {
 		return err
 	}
 

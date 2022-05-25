@@ -4,12 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-
-	"github.com/weaveworks/eksctl/pkg/awsapi"
-
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
@@ -65,12 +59,13 @@ type managedNodeGroupTagsToASGPropagationTask struct {
 	info            string
 	nodeGroup       *api.ManagedNodeGroup
 	stackCollection *StackCollection
+	ctx             context.Context
 }
 
 func (t *managedNodeGroupTagsToASGPropagationTask) Describe() string { return t.info }
 
 func (t *managedNodeGroupTagsToASGPropagationTask) Do(errorCh chan error) error {
-	return t.stackCollection.propagateManagedNodeGroupTagsToASGTask(errorCh, t.nodeGroup)
+	return t.stackCollection.propagateManagedNodeGroupTagsToASGTask(t.ctx, errorCh, t.nodeGroup)
 }
 
 type clusterCompatTask struct {
@@ -153,32 +148,4 @@ func (t *kubernetesTask) Do(errs chan error) error {
 	err = t.call(clientSet, t.objectMeta)
 	close(errs)
 	return err
-}
-
-type AssignIpv6AddressOnCreationTask struct {
-	EC2API        awsapi.EC2
-	Context       context.Context
-	ClusterConfig *api.ClusterConfig
-}
-
-func (t *AssignIpv6AddressOnCreationTask) Describe() string {
-	return "set AssignIpv6AddressOnCreation to true for public subnets"
-}
-
-func (t *AssignIpv6AddressOnCreationTask) Do(errs chan error) error {
-	defer close(errs)
-	if t.ClusterConfig.VPC.Subnets.Public != nil {
-		for _, subnet := range t.ClusterConfig.VPC.Subnets.Public.WithIDs() {
-			_, err := t.EC2API.ModifySubnetAttribute(t.Context, &ec2.ModifySubnetAttributeInput{
-				AssignIpv6AddressOnCreation: &ec2types.AttributeBooleanValue{
-					Value: aws.Bool(true),
-				},
-				SubnetId: aws.String(subnet),
-			})
-			if err != nil {
-				return fmt.Errorf("failed to update public subnet %q: %v", subnet, err)
-			}
-		}
-	}
-	return nil
 }

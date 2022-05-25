@@ -15,9 +15,9 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/eks"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/aws"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
@@ -25,7 +25,7 @@ import (
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -41,57 +41,47 @@ func TestVPC(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
+var (
+	stackName  string
+	ng1        = "ng-1"
+	mng1       = "mng-1"
+	ctl        api.ClusterProvider
+	configFile *os.File
+	cfg        *api.ClusterConfig
+)
+
+var _ = BeforeSuite(func() {
+	stackName = fmt.Sprintf("eksctl-%s", params.ClusterName)
+	cfg = &api.ClusterConfig{
+		TypeMeta: api.ClusterConfigTypeMeta(),
+		Metadata: &api.ClusterMeta{
+			Name:   params.ClusterName,
+			Region: params.Region,
+		},
+	}
+
+	var err error
+	configFile, err = ioutil.TempFile("", "")
+	Expect(err).NotTo(HaveOccurred())
+
+	clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
+	Expect(err).NotTo(HaveOccurred())
+	ctl = clusterProvider.AWSProvider
+	cfg.VPC = createVPC(stackName, ctl)
+
+	configData, err := json.Marshal(&cfg)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(ioutil.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
+	cmd := params.EksctlCreateCmd.
+		WithArgs(
+			"cluster",
+			"--config-file", configFile.Name(),
+			"--verbose", "2",
+		).WithoutArg("--region", params.Region)
+	Expect(cmd).To(RunSuccessfully())
+})
+
 var _ = Describe("(Integration) [using existing VPC]", func() {
-	var (
-		stackName  string
-		ng1        = "ng-1"
-		mng1       = "mng-1"
-		ctl        api.ClusterProvider
-		configFile *os.File
-		cfg        *api.ClusterConfig
-	)
-
-	BeforeSuite(func() {
-		stackName = fmt.Sprintf("eksctl-%s", params.ClusterName)
-		cfg = &api.ClusterConfig{
-			TypeMeta: api.ClusterConfigTypeMeta(),
-			Metadata: &api.ClusterMeta{
-				Name:   params.ClusterName,
-				Region: params.Region,
-			},
-		}
-
-		var err error
-		configFile, err = ioutil.TempFile("", "")
-		Expect(err).NotTo(HaveOccurred())
-
-		clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
-		Expect(err).NotTo(HaveOccurred())
-		ctl = clusterProvider.Provider
-		cfg.VPC = createVPC(stackName, ctl)
-
-		configData, err := json.Marshal(&cfg)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(ioutil.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
-		cmd := params.EksctlCreateCmd.
-			WithArgs(
-				"cluster",
-				"--config-file", configFile.Name(),
-				"--verbose", "2",
-			).WithoutArg("--region", params.Region)
-		Expect(cmd).To(RunSuccessfully())
-	})
-
-	AfterSuite(func() {
-		cmd := params.EksctlDeleteClusterCmd.
-			WithArgs(
-				"--config-file", configFile.Name(),
-				"--wait",
-			).WithoutArg("--region", params.Region)
-		Expect(cmd).To(RunSuccessfully())
-		deleteStack(stackName, ctl)
-		Expect(os.RemoveAll(configFile.Name())).To(Succeed())
-	})
 
 	It("supports creating managed and unmanaged nodegroups in the existing VPC", func() {
 		cfg.NodeGroups = []*api.NodeGroup{{
@@ -217,3 +207,14 @@ func deleteStack(stackName string, ctl api.ClusterProvider) {
 	_, err := ctl.CloudFormation().DeleteStack(context.TODO(), deleteStackInput)
 	Expect(err).NotTo(HaveOccurred())
 }
+
+var _ = AfterSuite(func() {
+	cmd := params.EksctlDeleteClusterCmd.
+		WithArgs(
+			"--config-file", configFile.Name(),
+			"--wait",
+		).WithoutArg("--region", params.Region)
+	Expect(cmd).To(RunSuccessfully())
+	deleteStack(stackName, ctl)
+	Expect(os.RemoveAll(configFile.Name())).To(Succeed())
+})

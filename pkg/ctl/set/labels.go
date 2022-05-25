@@ -51,12 +51,13 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 		return err
 	}
 	cfg := cmd.ClusterConfig
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
 
-	service := managed.NewService(ctl.Provider.EKS(), ctl.Provider.EC2(), manager.NewStackCollection(ctl.Provider, cfg), cfg.Metadata.Name)
+	service := managed.NewService(ctl.AWSProvider.EKS(), ctl.AWSProvider.EC2(), manager.NewStackCollection(ctl.AWSProvider, cfg), cfg.Metadata.Name)
 
 	if options.nodeGroupName == "" && cmd.ClusterConfigFile != "" {
 		logger.Info("setting label(s) on %d nodegroup(s) in cluster %s", len(cfg.ManagedNodeGroups), cmd.ClusterConfig.Metadata)
@@ -64,8 +65,7 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 		logger.Info("setting label(s) on nodegroup %s in cluster %s", options.nodeGroupName, cmd.ClusterConfig.Metadata)
 	}
 
-	manager := label.New(cfg.Metadata.Name, service, ctl.Provider.EKS())
-	ctx := context.TODO()
+	manager := label.New(cfg.Metadata.Name, service, ctl.AWSProvider.EKS())
 	// when there is no config file provided
 	if cmd.ClusterConfigFile == "" {
 		if err := manager.Set(ctx, options.nodeGroupName, options.labels); err != nil {

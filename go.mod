@@ -8,21 +8,23 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.4-0.20220124212200-2aee60ac608e
-	github.com/aws/aws-sdk-go v1.43.43
-	github.com/aws/aws-sdk-go-v2 v1.16.2
-	github.com/aws/aws-sdk-go-v2/config v1.15.3
-	github.com/aws/aws-sdk-go-v2/credentials v1.11.2
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.22.4
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.20.3
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.15.5
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.4
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.35.1
-	github.com/aws/aws-sdk-go-v2/service/eks v1.20.4
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.3
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.3
-	github.com/aws/aws-sdk-go-v2/service/iam v1.18.3
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.24.1
-	github.com/aws/aws-sdk-go-v2/service/sts v1.16.3
+	github.com/aws/aws-sdk-go v1.44.15
+	github.com/aws/aws-sdk-go-v2 v1.16.4
+	github.com/aws/aws-sdk-go-v2/config v1.15.6
+	github.com/aws/aws-sdk-go-v2/credentials v1.12.1
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.1
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.20.5
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.0
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.5
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.5
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.43.0
+	github.com/aws/aws-sdk-go-v2/service/eks v1.20.7
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.4
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.4
+	github.com/aws/aws-sdk-go-v2/service/iam v1.18.5
+	github.com/aws/aws-sdk-go-v2/service/kms v1.17.1
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.16.5
 	github.com/aws/smithy-go v1.11.2
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
@@ -47,18 +49,18 @@ require (
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
-	github.com/onsi/ginkgo v1.16.5
+	github.com/onsi/ginkgo/v2 v2.1.4
 	github.com/onsi/gomega v1.19.0
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/otiai10/copy v1.7.0
-	github.com/pelletier/go-toml v1.9.4
+	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-password v0.2.0
 	github.com/spf13/afero v1.8.2
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.1
-	github.com/tidwall/gjson v1.14.0
+	github.com/tidwall/gjson v1.14.1
 	github.com/tidwall/sjson v1.2.4
 	github.com/tj/assert v0.0.3
 	github.com/vburenin/ifacemaker v1.2.1-0.20220402060045-b2018d8549dc
@@ -135,13 +137,12 @@ require (
 	github.com/ashanbrown/forbidigo v1.3.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
 	github.com/atc0005/go-teams-notify/v2 v2.6.1 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.3 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.9 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.3 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.10 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/kms v1.11.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.11.3 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.4 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.11 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.11 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.11.4 // indirect
 	github.com/awslabs/goformation/v4 v4.15.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
@@ -289,7 +290,6 @@ require (
 	github.com/jmoiron/sqlx v1.3.4 // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a // indirect
 	github.com/julz/importas v0.1.0 // indirect
 	github.com/kevinburke/rest v0.0.0-20210106114233-22cd0577e450 // indirect
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
@@ -309,10 +309,9 @@ require (
 	github.com/leonklingele/grouper v1.1.0 // indirect
 	github.com/lib/pq v1.10.4 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
-	github.com/lunixbochs/vtclean v0.0.0-20180621232353-2d01aacdc34a // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mailru/easyjson v0.7.0 // indirect
-	github.com/manifoldco/promptui v0.8.0 // indirect
+	github.com/manifoldco/promptui v0.9.0 // indirect
 	github.com/maratori/testpackage v1.0.1 // indirect
 	github.com/matoous/godox v0.0.0-20210227103229-6504466cf951 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
@@ -345,7 +344,6 @@ require (
 	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354 // indirect
 	github.com/nishanths/exhaustive v0.7.11 // indirect
 	github.com/nishanths/predeclared v0.2.1 // indirect
-	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
@@ -437,7 +435,7 @@ require (
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
-	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
+	golang.org/x/sys v0.0.0-20220502124256-b6088ccd6cba // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
@@ -455,7 +453,6 @@ require (
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/mail.v2 v2.3.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
-	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	honnef.co/go/tools v0.2.2 // indirect

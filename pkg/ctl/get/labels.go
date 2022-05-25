@@ -49,14 +49,15 @@ func getLabels(cmd *cmdutils.Cmd, nodeGroupName string) error {
 	}
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
 
-	service := managed.NewService(ctl.Provider.EKS(), ctl.Provider.EC2(), manager.NewStackCollection(ctl.Provider, cfg), cfg.Metadata.Name)
-	manager := label.New(cfg.Metadata.Name, service, ctl.Provider.EKS())
-	labels, err := manager.Get(context.TODO(), nodeGroupName)
+	service := managed.NewService(ctl.AWSProvider.EKS(), ctl.AWSProvider.EC2(), manager.NewStackCollection(ctl.AWSProvider, cfg), cfg.Metadata.Name)
+	manager := label.New(cfg.Metadata.Name, service, ctl.AWSProvider.EKS())
+	labels, err := manager.Get(ctx, nodeGroupName)
 	if err != nil {
 		return err
 	}

@@ -36,38 +36,34 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(ctx context.Cont
 		},
 	)
 
-	if c.spec.IPv6Enabled() {
-		taskTree.Append(
-			&AssignIpv6AddressOnCreationTask{
-				ClusterConfig: c.spec,
-				EC2API:        c.ec2API,
-				Context:       ctx,
-			},
-		)
-	}
-
 	appendNodeGroupTasksTo := func(taskTree *tasks.TaskTree) {
 		vpcImporter := vpc.NewStackConfigImporter(c.MakeClusterStackName())
-		nodeGroupTasks := c.NewUnmanagedNodeGroupTask(ctx, nodeGroups, false, vpcImporter)
-		managedNodeGroupTasks := c.NewManagedNodeGroupTask(ctx, managedNodeGroups, false, vpcImporter)
-		if managedNodeGroupTasks.Len() > 0 {
-			nodeGroupTasks.Append(managedNodeGroupTasks.Tasks...)
+		nodeGroupTasks := &tasks.TaskTree{
+			Parallel:  true,
+			IsSubTask: true,
+		}
+		if unmanagedNodeGroupTasks := c.NewUnmanagedNodeGroupTask(ctx, nodeGroups, false, vpcImporter); unmanagedNodeGroupTasks.Len() > 0 {
+			unmanagedNodeGroupTasks.IsSubTask = true
+			nodeGroupTasks.Append(unmanagedNodeGroupTasks)
+		}
+		if managedNodeGroupTasks := c.NewManagedNodeGroupTask(ctx, managedNodeGroups, false, vpcImporter); managedNodeGroupTasks.Len() > 0 {
+			managedNodeGroupTasks.IsSubTask = true
+			nodeGroupTasks.Append(managedNodeGroupTasks)
 		}
 
 		if nodeGroupTasks.Len() > 0 {
-			nodeGroupTasks.IsSubTask = true
 			taskTree.Append(nodeGroupTasks)
 		}
 	}
 
 	if len(postClusterCreationTasks) > 0 {
-		postClusterCreationTaskTree := tasks.TaskTree{
+		postClusterCreationTaskTree := &tasks.TaskTree{
 			Parallel:  false,
 			IsSubTask: true,
 		}
 		postClusterCreationTaskTree.Append(postClusterCreationTasks...)
-		appendNodeGroupTasksTo(&postClusterCreationTaskTree)
-		taskTree.Append(&postClusterCreationTaskTree)
+		appendNodeGroupTasksTo(postClusterCreationTaskTree)
+		taskTree.Append(postClusterCreationTaskTree)
 	} else {
 		appendNodeGroupTasksTo(&taskTree)
 	}
@@ -98,7 +94,13 @@ func (c *StackCollection) NewUnmanagedNodeGroupTask(ctx context.Context, nodeGro
 func (c *StackCollection) NewManagedNodeGroupTask(ctx context.Context, nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 	for _, ng := range nodeGroups {
-		taskTree.Append(&managedNodeGroupTask{
+		// Disable parallelisation if any tags propagation is done
+		// since nodegroup must be created to propagate tags to its ASGs.
+		subTask := &tasks.TaskTree{
+			Parallel:  false,
+			IsSubTask: true,
+		}
+		subTask.Append(&managedNodeGroupTask{
 			stackCollection:   c,
 			nodeGroup:         ng,
 			forceAddCNIPolicy: forceAddCNIPolicy,
@@ -107,15 +109,14 @@ func (c *StackCollection) NewManagedNodeGroupTask(ctx context.Context, nodeGroup
 			ctx:               ctx,
 		})
 		if api.IsEnabled(ng.PropagateASGTags) {
-			// disable parallelisation if any tags propagation is done
-			// since nodegroup must be created to propagate tags to its ASGs
-			taskTree.Parallel = false
-			taskTree.Append(&managedNodeGroupTagsToASGPropagationTask{
+			subTask.Append(&managedNodeGroupTagsToASGPropagationTask{
 				stackCollection: c,
 				nodeGroup:       ng,
 				info:            fmt.Sprintf("propagate tags to ASG for managed nodegroup %q", ng.Name),
+				ctx:             ctx,
 			})
 		}
+		taskTree.Append(subTask)
 	}
 	return taskTree
 }

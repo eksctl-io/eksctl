@@ -4,15 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
-	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/kris-nova/logger"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/utils/waiters"
-
-	"github.com/aws/aws-sdk-go/aws"
-
-	"github.com/aws/aws-sdk-go/service/eks"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -39,7 +38,7 @@ func (m *Manager) Scale(ctx context.Context, ng *api.NodeGroupBase) error {
 	if isUnmanagedNodegroup {
 		err = m.scaleUnmanagedNodeGroup(ctx, ng, stackInfo)
 	} else {
-		err = m.scaleManagedNodeGroup(ng)
+		err = m.scaleManagedNodeGroup(ctx, ng)
 	}
 
 	if err != nil {
@@ -78,7 +77,7 @@ func (m *Manager) scaleUnmanagedNodeGroup(ctx context.Context, ng *api.NodeGroup
 		input.DesiredCapacity = aws.Int32(int32(*ng.DesiredCapacity))
 	}
 
-	_, err := m.ctl.Provider.ASG().UpdateAutoScalingGroup(ctx, input)
+	_, err := m.ctl.AWSProvider.ASG().UpdateAutoScalingGroup(ctx, input)
 	if err != nil {
 		return err
 	}
@@ -87,22 +86,22 @@ func (m *Manager) scaleUnmanagedNodeGroup(ctx context.Context, ng *api.NodeGroup
 	return nil
 }
 
-func (m *Manager) scaleManagedNodeGroup(ng *api.NodeGroupBase) error {
-	scalingConfig := &eks.NodegroupScalingConfig{}
+func (m *Manager) scaleManagedNodeGroup(ctx context.Context, ng *api.NodeGroupBase) error {
+	scalingConfig := &ekstypes.NodegroupScalingConfig{}
 
 	if ng.MaxSize != nil {
-		scalingConfig.MaxSize = aws.Int64(int64(*ng.MaxSize))
+		scalingConfig.MaxSize = aws.Int32(int32(*ng.MaxSize))
 	}
 
 	if ng.MinSize != nil {
-		scalingConfig.MinSize = aws.Int64(int64(*ng.MinSize))
+		scalingConfig.MinSize = aws.Int32(int32(*ng.MinSize))
 	}
 
 	if ng.DesiredCapacity != nil {
-		scalingConfig.DesiredSize = aws.Int64(int64(*ng.DesiredCapacity))
+		scalingConfig.DesiredSize = aws.Int32(int32(*ng.DesiredCapacity))
 	}
 
-	_, err := m.ctl.Provider.EKS().UpdateNodegroupConfig(&eks.UpdateNodegroupConfigInput{
+	_, err := m.ctl.AWSProvider.EKS().UpdateNodegroupConfig(ctx, &eks.UpdateNodegroupConfigInput{
 		ScalingConfig: scalingConfig,
 		ClusterName:   &m.cfg.Metadata.Name,
 		NodegroupName: &ng.Name,
@@ -112,29 +111,16 @@ func (m *Manager) scaleManagedNodeGroup(ng *api.NodeGroupBase) error {
 		return err
 	}
 
-	newRequest := func() *request.Request {
-		input := &eks.DescribeNodegroupInput{
-			ClusterName:   &m.cfg.Metadata.Name,
-			NodegroupName: &ng.Name,
-		}
-		req, _ := m.ctl.Provider.EKS().DescribeNodegroupRequest(input)
-		return req
-	}
+	logger.Info("waiting for scaling of nodegroup %q to complete", ng.Name)
 
-	msg := fmt.Sprintf("waiting for scaling of nodegroup %q to complete", ng.Name)
-
-	acceptors := waiters.MakeAcceptors(
-		"Nodegroup.Status",
-		eks.NodegroupStatusActive,
-		[]string{
-			eks.NodegroupStatusDegraded,
-		},
-	)
-
-	err = m.wait(ng.Name, msg, acceptors, newRequest, m.ctl.Provider.WaitTimeout(), nil)
-	if err != nil {
+	waiter := eks.NewNodegroupActiveWaiter(m.ctl.AWSProvider.EKS())
+	if err := waiter.Wait(ctx, &eks.DescribeNodegroupInput{
+		ClusterName:   &m.cfg.Metadata.Name,
+		NodegroupName: &ng.Name,
+	}, m.ctl.AWSProvider.WaitTimeout()); err != nil {
 		return err
 	}
+
 	logger.Info("nodegroup successfully scaled")
 	return nil
 }

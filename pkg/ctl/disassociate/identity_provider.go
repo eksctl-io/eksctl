@@ -1,6 +1,7 @@
 package disassociate
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -73,7 +74,8 @@ func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, cliProvidedIDP cliProvide
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -86,22 +88,22 @@ func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, cliProvidedIDP cliProvide
 
 	manager := identityproviders.NewManager(
 		*cfg.Metadata,
-		ctl.Provider.EKS(),
+		ctl.AWSProvider.EKS(),
 	)
 
 	options := identityproviders.DisassociateIdentityProvidersOptions{
 		Providers: providers,
 	}
 	if cmd.Wait {
-		options.WaitTimeout = &timeout
+		options.WaitTimeout = timeout
 	}
 
-	return manager.Disassociate(options)
+	return manager.Disassociate(ctx, options)
 }
 
 func cliToProviders(cfg *api.ClusterConfig, cliProvidedIDP cliProvidedIDP) []identityproviders.DisassociateIdentityProvider {
 	if cliProvidedIDP.Name == "" {
-		providers := []identityproviders.DisassociateIdentityProvider{}
+		var providers []identityproviders.DisassociateIdentityProvider
 		for _, generalIDP := range cfg.IdentityProviders {
 			var provider identityproviders.DisassociateIdentityProvider
 			switch idP := (generalIDP.Inner).(type) {

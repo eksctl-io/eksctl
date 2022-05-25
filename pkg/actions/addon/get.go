@@ -1,15 +1,19 @@
 package addon
 
 import (
+	"context"
 	"fmt"
 	"strings"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 
 	"github.com/blang/semver"
 
 	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 )
 
 type Summary struct {
@@ -18,12 +22,18 @@ type Summary struct {
 	NewerVersion string
 	IAMRole      string
 	Status       string
-	Issues       []string
+	Issues       []Issue
 }
 
-func (a *Manager) Get(addon *api.Addon) (Summary, error) {
+type Issue struct {
+	Code        string
+	Message     string
+	ResourceIDs []string
+}
+
+func (a *Manager) Get(ctx context.Context, addon *api.Addon) (Summary, error) {
 	logger.Debug("addon: %v", addon)
-	output, err := a.eksAPI.DescribeAddon(&eks.DescribeAddonInput{
+	output, err := a.eksAPI.DescribeAddon(ctx, &eks.DescribeAddonInput{
 		ClusterName: &a.clusterConfig.Metadata.Name,
 		AddonName:   &addon.Name,
 	})
@@ -32,11 +42,15 @@ func (a *Manager) Get(addon *api.Addon) (Summary, error) {
 		return Summary{}, fmt.Errorf("failed to get addon %q: %v", addon.Name, err)
 	}
 
-	var issues []string
+	var issues []Issue
 
 	if output.Addon.Health != nil && output.Addon.Health.Issues != nil {
 		for _, issue := range output.Addon.Health.Issues {
-			issues = append(issues, issue.String())
+			issues = append(issues, Issue{
+				Code:        string(issue.Code),
+				Message:     aws.ToString(issue.Message),
+				ResourceIDs: issue.ResourceIds,
+			})
 		}
 	}
 	serviceAccountRoleARN := ""
@@ -48,7 +62,7 @@ func (a *Manager) Get(addon *api.Addon) (Summary, error) {
 		addon.Version = *output.Addon.AddonVersion
 	}
 
-	newerVersion, err := a.findNewerVersions(addon)
+	newerVersion, err := a.findNewerVersions(ctx, addon)
 	if err != nil {
 		return Summary{}, err
 	}
@@ -57,15 +71,15 @@ func (a *Manager) Get(addon *api.Addon) (Summary, error) {
 		Name:         *output.Addon.AddonName,
 		Version:      *output.Addon.AddonVersion,
 		IAMRole:      serviceAccountRoleARN,
-		Status:       *output.Addon.Status,
+		Status:       string(output.Addon.Status),
 		NewerVersion: newerVersion,
 		Issues:       issues,
 	}, nil
 }
 
-func (a *Manager) GetAll() ([]Summary, error) {
+func (a *Manager) GetAll(ctx context.Context) ([]Summary, error) {
 	logger.Info("getting all addons")
-	output, err := a.eksAPI.ListAddons(&eks.ListAddonsInput{
+	output, err := a.eksAPI.ListAddons(ctx, &eks.ListAddonsInput{
 		ClusterName: &a.clusterConfig.Metadata.Name,
 	})
 	if err != nil {
@@ -74,7 +88,7 @@ func (a *Manager) GetAll() ([]Summary, error) {
 
 	var summaries []Summary
 	for _, addon := range output.Addons {
-		summary, err := a.Get(&api.Addon{Name: *addon})
+		summary, err := a.Get(ctx, &api.Addon{Name: addon})
 		if err != nil {
 			return nil, err
 		}
@@ -83,7 +97,7 @@ func (a *Manager) GetAll() ([]Summary, error) {
 	return summaries, nil
 }
 
-func (a *Manager) findNewerVersions(addon *api.Addon) (string, error) {
+func (a *Manager) findNewerVersions(ctx context.Context, addon *api.Addon) (string, error) {
 	var newerVersions []string
 	currentVersion, err := semver.Parse(strings.TrimPrefix(addon.Version, "v"))
 	if err != nil {
@@ -94,7 +108,7 @@ func (a *Manager) findNewerVersions(addon *api.Addon) (string, error) {
 	currentVersion.Build = []string{}
 	currentVersion.Pre = []semver.PRVersion{}
 
-	versions, err := a.describeVersions(addon)
+	versions, err := a.describeVersions(ctx, addon)
 	if err != nil {
 		return "", err
 	}

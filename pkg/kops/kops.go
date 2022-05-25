@@ -73,22 +73,12 @@ func (k *Wrapper) UseVPC(ctx context.Context, ec2API awsapi.EC2, spec *api.Clust
 		}
 	}
 
-	for _, s := range []struct {
-		subnets  []ec2types.Subnet
-		topology api.SubnetTopology
-	}{
-		{
-			subnets:  publicSubnets,
-			topology: api.SubnetTopologyPublic,
-		},
-		{
-			subnets:  privateSubnets,
-			topology: api.SubnetTopologyPrivate,
-		},
-	} {
-		if err := vpc.ImportSubnets(ctx, ec2API, spec, s.topology, s.subnets); err != nil {
-			return err
-		}
+	if err := vpc.ImportSubnets(ctx, ec2API, spec, spec.VPC.Subnets.Private, privateSubnets); err != nil {
+		return err
+	}
+
+	if err := vpc.ImportSubnets(ctx, ec2API, spec, spec.VPC.Subnets.Public, publicSubnets); err != nil {
+		return err
 	}
 
 	logger.Debug("subnets = %#v", spec.VPC.Subnets)

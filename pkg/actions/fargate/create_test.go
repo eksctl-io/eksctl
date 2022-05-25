@@ -3,11 +3,12 @@ package fargate_test
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	"k8s.io/client-go/kubernetes"
@@ -50,10 +51,10 @@ var _ = Describe("Fargate", func() {
 
 		clusterName = "my-cluster"
 		cfg.Metadata.Name = clusterName
-		ctl := &eks.ClusterProvider{Provider: mockProvider, Status: &eks.ProviderStatus{
+		ctl := &eks.ClusterProvider{AWSProvider: mockProvider, Status: &eks.ProviderStatus{
 			ClusterInfo: &eks.ClusterInfo{
-				Cluster: &awseks.Cluster{
-					Status:  aws.String(awseks.ClusterStatusActive),
+				Cluster: &ekstypes.Cluster{
+					Status:  ekstypes.ClusterStatusActive,
 					Version: aws.String("1.21"),
 				},
 			},
@@ -65,11 +66,11 @@ var _ = Describe("Fargate", func() {
 			return fakeClientSet, nil
 		})
 
-		mockProvider.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+		mockProvider.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 			Expect(*input.Name).To(Equal(clusterName))
 			return true
 		})).Return(&awseks.DescribeClusterOutput{
-			Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
+			Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive),
 		}, nil)
 	})
 
@@ -102,10 +103,10 @@ var _ = Describe("Fargate", func() {
 						return nil
 					}
 
-					mockProvider.MockEKS().On("CreateFargateProfile", &awseks.CreateFargateProfileInput{
+					mockProvider.MockEKS().On("CreateFargateProfile", mock.Anything, &awseks.CreateFargateProfileInput{
 						PodExecutionRoleArn: aws.String("fargate-role-arn"),
 						ClusterName:         &clusterName,
-						Selectors: []*awseks.FargateProfileSelector{
+						Selectors: []ekstypes.FargateProfileSelector{
 							{
 								Namespace: aws.String("default"),
 							},
@@ -113,12 +114,12 @@ var _ = Describe("Fargate", func() {
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(nil, nil)
 
-					mockProvider.MockEKS().On("DescribeFargateProfile", &awseks.DescribeFargateProfileInput{
+					mockProvider.MockEKS().On("DescribeFargateProfile", mock.Anything, &awseks.DescribeFargateProfileInput{
 						ClusterName:        &clusterName,
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(&awseks.DescribeFargateProfileOutput{
-						FargateProfile: &awseks.FargateProfile{
-							Status: aws.String(awseks.FargateProfileStatusActive),
+						FargateProfile: &ekstypes.FargateProfile{
+							Status: ekstypes.FargateProfileStatusActive,
 						},
 					}, nil)
 				})
@@ -161,10 +162,10 @@ var _ = Describe("Fargate", func() {
 						return nil
 					}
 
-					mockProvider.MockEKS().On("CreateFargateProfile", &awseks.CreateFargateProfileInput{
+					mockProvider.MockEKS().On("CreateFargateProfile", mock.Anything, &awseks.CreateFargateProfileInput{
 						PodExecutionRoleArn: aws.String("fargate-existing-role-arn"),
 						ClusterName:         &clusterName,
-						Selectors: []*awseks.FargateProfileSelector{
+						Selectors: []ekstypes.FargateProfileSelector{
 							{
 								Namespace: aws.String("default"),
 							},
@@ -172,12 +173,12 @@ var _ = Describe("Fargate", func() {
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(nil, nil)
 
-					mockProvider.MockEKS().On("DescribeFargateProfile", &awseks.DescribeFargateProfileInput{
+					mockProvider.MockEKS().On("DescribeFargateProfile", mock.Anything, &awseks.DescribeFargateProfileInput{
 						ClusterName:        &clusterName,
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(&awseks.DescribeFargateProfileOutput{
-						FargateProfile: &awseks.FargateProfile{
-							Status: aws.String(awseks.FargateProfileStatusActive),
+						FargateProfile: &ekstypes.FargateProfile{
+							Status: ekstypes.FargateProfileStatusActive,
 						},
 					}, nil)
 				})
@@ -220,10 +221,10 @@ var _ = Describe("Fargate", func() {
 						return nil
 					}
 
-					mockProvider.MockEKS().On("CreateFargateProfile", &awseks.CreateFargateProfileInput{
+					mockProvider.MockEKS().On("CreateFargateProfile", mock.Anything, &awseks.CreateFargateProfileInput{
 						PodExecutionRoleArn: aws.String("fargate-role-arn"),
 						ClusterName:         &clusterName,
-						Selectors: []*awseks.FargateProfileSelector{
+						Selectors: []ekstypes.FargateProfileSelector{
 							{
 								Namespace: aws.String("default"),
 							},
@@ -231,12 +232,12 @@ var _ = Describe("Fargate", func() {
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(nil, nil)
 
-					mockProvider.MockEKS().On("DescribeFargateProfile", &awseks.DescribeFargateProfileInput{
+					mockProvider.MockEKS().On("DescribeFargateProfile", mock.Anything, &awseks.DescribeFargateProfileInput{
 						ClusterName:        &clusterName,
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(&awseks.DescribeFargateProfileOutput{
-						FargateProfile: &awseks.FargateProfile{
-							Status: aws.String(awseks.FargateProfileStatusActive),
+						FargateProfile: &ekstypes.FargateProfile{
+							Status: ekstypes.FargateProfileStatusActive,
 						},
 					}, nil)
 				})

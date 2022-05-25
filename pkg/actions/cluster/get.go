@@ -5,9 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -41,7 +39,7 @@ var (
 
 func GetClusters(ctx context.Context, provider api.ClusterProvider, listAllRegions bool, chunkSize int) ([]Description, error) {
 	if !listAllRegions {
-		return listClusters(ctx, provider, int64(chunkSize))
+		return listClusters(ctx, provider, int32(chunkSize))
 	}
 
 	var clusters []Description
@@ -71,7 +69,7 @@ func GetClusters(ctx context.Context, provider api.ClusterProvider, listAllRegio
 			continue
 		}
 
-		newClusters, err := listClusters(ctx, ctl.Provider, int64(chunkSize))
+		newClusters, err := listClusters(ctx, ctl.AWSProvider, int32(chunkSize))
 		if err != nil {
 			logger.Critical("error listing clusters in %q region: %v", region, err)
 			continue
@@ -83,7 +81,7 @@ func GetClusters(ctx context.Context, provider api.ClusterProvider, listAllRegio
 	return clusters, nil
 }
 
-func listClusters(ctx context.Context, provider api.ClusterProvider, chunkSize int64) ([]Description, error) {
+func listClusters(ctx context.Context, provider api.ClusterProvider, chunkSize int32) ([]Description, error) {
 	var allClusters []Description
 
 	spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: ""}}
@@ -93,15 +91,17 @@ func listClusters(ctx context.Context, provider api.ClusterProvider, chunkSize i
 		return nil, fmt.Errorf("failed to list cluster stacks in region %q: %w", provider.Region(), err)
 	}
 
-	token := ""
-	for {
-		clusters, nextToken, err := getClustersRequest(provider, chunkSize, token)
+	paginator := awseks.NewListClustersPaginator(provider.EKS(), &awseks.ListClustersInput{
+		MaxResults: &chunkSize,
+		Include:    []string{"all"},
+	})
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to list clusters in region %q: %w", provider.Region(), err)
 		}
-
-		for _, clusterName := range clusters {
-			hasClusterStack, err := stackManager.HasClusterStackFromList(ctx, allStacks, *clusterName)
+		for _, clusterName := range output.Clusters {
+			hasClusterStack, err := stackManager.HasClusterStackFromList(ctx, allStacks, clusterName)
 			managed := eksctlCreatedFalse
 			if err != nil {
 				managed = eksctlCreatedUnknown
@@ -110,33 +110,12 @@ func listClusters(ctx context.Context, provider api.ClusterProvider, chunkSize i
 				managed = eksctlCreatedTrue
 			}
 			allClusters = append(allClusters, Description{
-				Name:   *clusterName,
+				Name:   clusterName,
 				Region: provider.Region(),
 				Owned:  managed,
 			})
 		}
-
-		if api.IsSetAndNonEmptyString(nextToken) {
-			token = *nextToken
-		} else {
-			break
-		}
 	}
 
 	return allClusters, nil
-}
-
-func getClustersRequest(provider api.ClusterProvider, chunkSize int64, nextToken string) ([]*string, *string, error) {
-	input := &awseks.ListClustersInput{
-		MaxResults: &chunkSize,
-		Include:    aws.StringSlice([]string{"all"}),
-	}
-	if nextToken != "" {
-		input = input.SetNextToken(nextToken)
-	}
-	output, err := provider.EKS().ListClusters(input)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to list clusters in region %q: %w", provider.Region(), err)
-	}
-	return output.Clusters, output.NextToken, nil
 }

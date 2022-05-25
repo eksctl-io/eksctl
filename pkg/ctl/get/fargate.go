@@ -1,11 +1,13 @@
 package get
 
 import (
+	"context"
 	"os"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/fargate"
@@ -63,27 +65,28 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 		logger.Writer = os.Stderr
 	}
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
 
 	clusterName := cmd.ClusterConfig.Metadata.Name
-	manager := fargate.NewFromProvider(clusterName, ctl.Provider, ctl.NewStackManager(cmd.ClusterConfig))
+	manager := fargate.NewFromProvider(clusterName, ctl.AWSProvider, ctl.NewStackManager(cmd.ClusterConfig))
 
 	logger.Debug("getting EKS cluster %q's Fargate profile(s)", clusterName)
-	profiles, err := getProfiles(&manager, options.ProfileName)
+	profiles, err := getProfiles(ctx, &manager, options.ProfileName)
 	if err != nil {
 		return err
 	}
 	return fargate.PrintProfiles(profiles, os.Stdout, options.output)
 }
 
-func getProfiles(manager *fargate.Client, name string) ([]*api.FargateProfile, error) {
+func getProfiles(ctx context.Context, manager *fargate.Client, name string) ([]*api.FargateProfile, error) {
 	if name == "" {
-		return manager.ReadProfiles()
+		return manager.ReadProfiles(ctx)
 	}
-	profile, err := manager.ReadProfile(name)
+	profile, err := manager.ReadProfile(ctx, name)
 	if err != nil {
 		return nil, err
 	}

@@ -5,16 +5,16 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	asTypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/awstesting"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
+
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
@@ -156,7 +156,7 @@ var _ = Describe("StackCollection", func() {
 			p.MockCloudFormation().On("DescribeChangeSet", mock.Anything, mock.Anything, mock.Anything).Return(describeChangeSetNoChange, nil)
 
 			sm := NewStackCollection(p, api.NewClusterConfig())
-			err := sm.UpdateStack(context.TODO(), UpdateStackOptions{
+			err := sm.UpdateStack(context.Background(), UpdateStackOptions{
 				StackName:     stackName,
 				ChangeSetName: changeSetName,
 				Description:   "description",
@@ -189,7 +189,7 @@ var _ = Describe("StackCollection", func() {
 			p.MockCloudFormation().On("DescribeChangeSet", mock.Anything, mock.Anything, mock.Anything).Return(describeChangeSetNoChange, nil)
 
 			sm := NewStackCollection(p, api.NewClusterConfig())
-			err := sm.UpdateStack(context.TODO(), UpdateStackOptions{
+			err := sm.UpdateStack(context.Background(), UpdateStackOptions{
 				Stack: &Stack{
 					StackName: &stackName,
 				},
@@ -242,7 +242,7 @@ var _ = Describe("StackCollection", func() {
 		spec.Metadata.Name = clusterName
 		spec.Metadata.Tags = map[string]string{"meta": "data"}
 		sm := NewStackCollection(p, spec)
-		err := sm.UpdateStack(context.TODO(), UpdateStackOptions{
+		err := sm.UpdateStack(context.Background(), UpdateStackOptions{
 			StackName:     stackName,
 			ChangeSetName: changeSetName,
 			Description:   "description",
@@ -301,7 +301,7 @@ var _ = Describe("StackCollection", func() {
 			spec.Metadata.Name = clusterName
 			spec.Metadata.Tags = map[string]string{"meta": "data"}
 			sm := NewStackCollection(p, spec)
-			err := sm.UpdateStack(context.TODO(), UpdateStackOptions{
+			err := sm.UpdateStack(context.Background(), UpdateStackOptions{
 				StackName:     stackName,
 				ChangeSetName: changeSetName,
 				Description:   "description",
@@ -356,7 +356,7 @@ var _ = Describe("StackCollection", func() {
 			p.MockCloudFormation().On("DescribeStacks", mock.Anything, &cfn.DescribeStacksInput{StackName: stackName}).Return(out, nil)
 
 			s := NewStackCollection(p, clusterConfig)
-			hasClusterStack, err := s.HasClusterStackFromList(context.TODO(), []string{
+			hasClusterStack, err := s.HasClusterStackFromList(context.Background(), []string{
 				"eksctl-test-cluster",
 				*stackName,
 			}, clusterConfig.Metadata.Name)
@@ -415,7 +415,7 @@ var _ = Describe("StackCollection", func() {
 				},
 			}, nil)
 			sm := NewStackCollection(p, cfg)
-			stack, err := sm.GetClusterStackIfExists(context.TODO())
+			stack, err := sm.GetClusterStackIfExists(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(stack).NotTo(BeNil())
 		})
@@ -425,7 +425,7 @@ var _ = Describe("StackCollection", func() {
 				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cfn.ListStacksOutput{}, nil)
 				cfg.Metadata.Name = "not-this"
 				sm := NewStackCollection(p, cfg)
-				stack, err := sm.GetClusterStackIfExists(context.TODO())
+				stack, err := sm.GetClusterStackIfExists(context.Background())
 				Expect(err).NotTo(HaveOccurred())
 				Expect(stack).To(BeNil())
 			})
@@ -435,7 +435,7 @@ var _ = Describe("StackCollection", func() {
 			It("errors", func() {
 				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(nil, errors.New("nope"))
 				sm := NewStackCollection(p, cfg)
-				_, err := sm.GetClusterStackIfExists(context.TODO())
+				_, err := sm.GetClusterStackIfExists(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("nope")))
 			})
 		})

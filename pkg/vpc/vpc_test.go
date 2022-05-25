@@ -2,7 +2,6 @@ package vpc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 
@@ -10,9 +9,11 @@ import (
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/pkg/errors"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
 	. "github.com/stretchr/testify/mock"
@@ -28,7 +29,9 @@ import (
 type setSubnetsCase struct {
 	vpc               *api.ClusterVPC
 	availabilityZones []string
-	error             error
+	localZones        []string
+
+	error error
 }
 
 type importVPCCase struct {
@@ -50,8 +53,11 @@ func describeImportVPCCase(desc string) func(importVPCCase) string {
 }
 
 type useFromClusterCase struct {
-	cfg          *api.ClusterConfig
-	stack        *cfntypes.Stack
+	cfg     *api.ClusterConfig
+	stack   *cfntypes.Stack
+	mockEC2 func(*mocksv2.EC2)
+
+	expectedVPC  *api.ClusterVPC
 	errorMatcher types.GomegaMatcher
 }
 
@@ -81,11 +87,13 @@ type selectSubnetsCase struct {
 	expectIDs        []string
 }
 
-func newFakeClusterWithEndpoints(private, public bool, name string) *eks.Cluster {
-	cluster := NewFakeCluster(name, eks.ClusterStatusActive)
-	vpcCfgReq := eks.VpcConfigResponse{}
-	vpcCfgReq.SetEndpointPrivateAccess(private).SetEndpointPublicAccess(public)
-	cluster.SetResourcesVpcConfig(&vpcCfgReq)
+func newFakeClusterWithEndpoints(private, public bool, name string) *ekstypes.Cluster {
+	cluster := NewFakeCluster(name, ekstypes.ClusterStatusActive)
+	vpcCfgReq := &ekstypes.VpcConfigResponse{
+		EndpointPrivateAccess: private,
+		EndpointPublicAccess:  public,
+	}
+	cluster.ResourcesVpcConfig = vpcCfgReq
 	return cluster
 }
 
@@ -158,7 +166,7 @@ var _ = Describe("VPC", func() {
 
 	DescribeTable("Set subnets",
 		func(subnetsCase setSubnetsCase) {
-			err := SetSubnets(subnetsCase.vpc, subnetsCase.availabilityZones)
+			err := SetSubnets(subnetsCase.vpc, subnetsCase.availabilityZones, subnetsCase.localZones)
 			if subnetsCase.error != nil {
 				Expect(err).To(MatchError(subnetsCase.error.Error()))
 			} else {
@@ -199,12 +207,11 @@ var _ = Describe("VPC", func() {
 					},
 				},
 			},
-			error: fmt.Errorf("Unexpected IP address type: <nil>"),
+			error: fmt.Errorf("unexpected IP address type: <nil>"),
 		}),
 		Entry("VPC with valid number of subnets", setSubnetsCase{
 			vpc:               api.NewClusterVPC(false),
 			availabilityZones: []string{"1", "2", "3", "4", "5", "6", "7", "8"},
-			error:             nil,
 		}),
 		Entry("VPC with invalid number of subnets", setSubnetsCase{
 			vpc:               api.NewClusterVPC(false),
@@ -215,31 +222,327 @@ var _ = Describe("VPC", func() {
 			vpc:               api.NewClusterVPC(false),
 			availabilityZones: []string{"1", "2", "3"},
 		}),
+		Entry("VPC with AZs and local zones", setSubnetsCase{
+			vpc:               api.NewClusterVPC(false),
+			availabilityZones: []string{"us-west-2a", "us-west-2b"},
+			localZones:        []string{"us-west-2-lax-1a", "us-west-lax-1b"},
+		}),
+	)
+
+	type setSubnetsEntry struct {
+		availabilityZones []string
+		localZones        []string
+
+		expectedSubnets          *api.ClusterSubnets
+		expectedLocalZoneSubnets *api.ClusterSubnets
+	}
+
+	DescribeTable("SetSubnets CIDR assignment", func(e setSubnetsEntry) {
+		vpc := api.NewClusterVPC(false)
+		err := SetSubnets(vpc, e.availabilityZones, e.localZones)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(vpc.Subnets).To(Equal(e.expectedSubnets))
+		Expect(vpc.LocalZoneSubnets).To(Equal(e.expectedLocalZoneSubnets))
+
+	},
+		Entry("both availabilityZones and localZones are set", setSubnetsEntry{
+			availabilityZones: []string{"us-west-2a", "us-west-2b", "us-west-2c"},
+			localZones:        []string{"us-west-2-lax-1a", "us-west-2-lax-1b"},
+
+			expectedSubnets: &api.ClusterSubnets{
+				Public: api.AZSubnetMapping{
+					"us-west-2a": api.AZSubnetSpec{
+						AZ:        "us-west-2a",
+						CIDR:      ipnet.MustParseCIDR("192.168.0.0/20"),
+						CIDRIndex: 0,
+					},
+					"us-west-2b": api.AZSubnetSpec{
+						AZ:        "us-west-2b",
+						CIDR:      ipnet.MustParseCIDR("192.168.16.0/20"),
+						CIDRIndex: 1,
+					},
+					"us-west-2c": api.AZSubnetSpec{
+						AZ:        "us-west-2c",
+						CIDR:      ipnet.MustParseCIDR("192.168.32.0/20"),
+						CIDRIndex: 2,
+					},
+				},
+				Private: api.AZSubnetMapping{
+					"us-west-2a": api.AZSubnetSpec{
+						AZ:        "us-west-2a",
+						CIDR:      ipnet.MustParseCIDR("192.168.80.0/20"),
+						CIDRIndex: 5,
+					},
+					"us-west-2b": api.AZSubnetSpec{
+						AZ:        "us-west-2b",
+						CIDR:      ipnet.MustParseCIDR("192.168.96.0/20"),
+						CIDRIndex: 6,
+					},
+					"us-west-2c": api.AZSubnetSpec{
+						AZ:        "us-west-2c",
+						CIDR:      ipnet.MustParseCIDR("192.168.112.0/20"),
+						CIDRIndex: 7,
+					},
+				},
+			},
+
+			expectedLocalZoneSubnets: &api.ClusterSubnets{
+				Public: api.AZSubnetMapping{
+					"us-west-2-lax-1a": api.AZSubnetSpec{
+						AZ:        "us-west-2-lax-1a",
+						CIDR:      ipnet.MustParseCIDR("192.168.48.0/20"),
+						CIDRIndex: 3,
+					},
+					"us-west-2-lax-1b": api.AZSubnetSpec{
+						AZ:        "us-west-2-lax-1b",
+						CIDR:      ipnet.MustParseCIDR("192.168.64.0/20"),
+						CIDRIndex: 4,
+					},
+				},
+				Private: api.AZSubnetMapping{
+					"us-west-2-lax-1a": api.AZSubnetSpec{
+						AZ:        "us-west-2-lax-1a",
+						CIDR:      ipnet.MustParseCIDR("192.168.128.0/20"),
+						CIDRIndex: 8,
+					},
+					"us-west-2-lax-1b": api.AZSubnetSpec{
+						AZ:        "us-west-2-lax-1b",
+						CIDR:      ipnet.MustParseCIDR("192.168.144.0/20"),
+						CIDRIndex: 9,
+					},
+				},
+			},
+		}),
+
+		Entry("only availabilityZones is set", setSubnetsEntry{
+			availabilityZones: []string{"us-west-2a", "us-west-2b", "us-west-2c"},
+
+			expectedSubnets: &api.ClusterSubnets{
+				Public: api.AZSubnetMapping{
+					"us-west-2a": api.AZSubnetSpec{
+						AZ:        "us-west-2a",
+						CIDR:      ipnet.MustParseCIDR("192.168.0.0/19"),
+						CIDRIndex: 0,
+					},
+					"us-west-2b": api.AZSubnetSpec{
+						AZ:        "us-west-2b",
+						CIDR:      ipnet.MustParseCIDR("192.168.32.0/19"),
+						CIDRIndex: 1,
+					},
+					"us-west-2c": api.AZSubnetSpec{
+						AZ:        "us-west-2c",
+						CIDR:      ipnet.MustParseCIDR("192.168.64.0/19"),
+						CIDRIndex: 2,
+					},
+				},
+				Private: api.AZSubnetMapping{
+					"us-west-2a": api.AZSubnetSpec{
+						AZ:        "us-west-2a",
+						CIDR:      ipnet.MustParseCIDR("192.168.96.0/19"),
+						CIDRIndex: 3,
+					},
+					"us-west-2b": api.AZSubnetSpec{
+						AZ:        "us-west-2b",
+						CIDR:      ipnet.MustParseCIDR("192.168.128.0/19"),
+						CIDRIndex: 4,
+					},
+					"us-west-2c": api.AZSubnetSpec{
+						AZ:        "us-west-2c",
+						CIDR:      ipnet.MustParseCIDR("192.168.160.0/19"),
+						CIDRIndex: 5,
+					},
+				},
+			},
+
+			expectedLocalZoneSubnets: &api.ClusterSubnets{
+				Public:  api.NewAZSubnetMapping(),
+				Private: api.NewAZSubnetMapping(),
+			},
+		}),
 	)
 
 	DescribeTable("Use from Cluster",
 		func(clusterCase useFromClusterCase) {
 			p := mockprovider.NewMockProvider()
 			cluster := newFakeClusterWithEndpoints(true, true, "dummy cluster")
-			mockResultFn := func(_ *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
-				return &eks.DescribeClusterOutput{Cluster: cluster}
-			}
 
-			p.MockEKS().On("DescribeCluster", MatchedBy(func(input *eks.DescribeClusterInput) bool {
+			p.MockEKS().On("DescribeCluster", Anything, MatchedBy(func(input *eks.DescribeClusterInput) bool {
 				return input != nil
-			})).Return(mockResultFn, nil)
+			})).Return(&eks.DescribeClusterOutput{Cluster: cluster}, nil)
 
+			if clusterCase.mockEC2 != nil {
+				clusterCase.mockEC2(p.MockEC2())
+			}
 			err := UseFromClusterStack(context.Background(), p, clusterCase.stack, clusterCase.cfg)
 			if clusterCase.errorMatcher != nil {
 				Expect(err.Error()).To(clusterCase.errorMatcher)
 			} else {
 				Expect(err).NotTo(HaveOccurred())
+				Expect(clusterCase.cfg.VPC).To(Equal(clusterCase.expectedVPC))
 			}
 		},
-		Entry("No output", useFromClusterCase{
+		Entry("no output", useFromClusterCase{
 			cfg:          api.NewClusterConfig(),
 			stack:        &cfntypes.Stack{},
 			errorMatcher: MatchRegexp(`no output "(?:VPC|SecurityGroup)"`),
+		}),
+
+		Entry("outputs for subnets in availability zones", useFromClusterCase{
+			cfg: api.NewClusterConfig(),
+			stack: &cfntypes.Stack{
+				Outputs: []cfntypes.Output{
+					{
+						OutputKey:   aws.String("VPC"),
+						OutputValue: aws.String("vpc-123"),
+					},
+					{
+						OutputKey:   aws.String("SecurityGroup"),
+						OutputValue: aws.String("sg-123"),
+					},
+					{
+						OutputKey:   aws.String("SubnetsPublic"),
+						OutputValue: aws.String("subnet-1"),
+					},
+				},
+			},
+			expectedVPC: &api.ClusterVPC{
+				Network: api.Network{
+					ID:   "vpc-123",
+					CIDR: ipnet.MustParseCIDR("192.168.0.0/20"),
+				},
+				SecurityGroup: "sg-123",
+				Subnets: &api.ClusterSubnets{
+					Public: api.AZSubnetMapping{
+						"us-west-2a": api.AZSubnetSpec{
+							ID:   "subnet-1",
+							AZ:   "us-west-2a",
+							CIDR: ipnet.MustParseCIDR("192.168.0.0/20"),
+						},
+					},
+					Private: api.NewAZSubnetMapping(),
+				},
+				LocalZoneSubnets: &api.ClusterSubnets{
+					Private: api.NewAZSubnetMapping(),
+					Public:  api.NewAZSubnetMapping(),
+				},
+				ManageSharedNodeSecurityGroupRules: aws.Bool(true),
+				AutoAllocateIPv6:                   aws.Bool(false),
+				NAT: &api.ClusterNAT{
+					Gateway: aws.String("Single"),
+				},
+				ClusterEndpoints: &api.ClusterEndpoints{
+					PublicAccess:  aws.Bool(true),
+					PrivateAccess: aws.Bool(true),
+				},
+			},
+
+			mockEC2: func(ec2Mock *mocksv2.EC2) {
+				ec2Mock.On("DescribeSubnets", Anything, Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
+					return &ec2.DescribeSubnetsOutput{
+						Subnets: []ec2types.Subnet{
+							{
+								SubnetId:         aws.String(input.SubnetIds[0]),
+								AvailabilityZone: aws.String("us-west-2a"),
+								VpcId:            aws.String("vpc-123"),
+								CidrBlock:        aws.String("192.168.0.0/20"),
+							},
+						},
+					}
+				}, nil).On("DescribeVpcs", Anything, Anything).Return(&ec2.DescribeVpcsOutput{
+					Vpcs: []ec2types.Vpc{
+						{
+							VpcId:     aws.String("vpc-123"),
+							CidrBlock: aws.String("192.168.0.0/20"),
+						},
+					},
+				}, nil)
+			},
+		}),
+
+		Entry("outputs for subnets in availability zones and local zones", useFromClusterCase{
+			cfg: api.NewClusterConfig(),
+			stack: &cfntypes.Stack{
+				Outputs: []cfntypes.Output{
+					{
+						OutputKey:   aws.String("VPC"),
+						OutputValue: aws.String("vpc-123"),
+					},
+					{
+						OutputKey:   aws.String("SecurityGroup"),
+						OutputValue: aws.String("sg-123"),
+					},
+					{
+						OutputKey:   aws.String("SubnetsPublic"),
+						OutputValue: aws.String("subnet-1"),
+					},
+					{
+						OutputKey:   aws.String("SubnetsLocalZonePrivate"),
+						OutputValue: aws.String("subnet-lz1"),
+					},
+				},
+			},
+			expectedVPC: &api.ClusterVPC{
+				Network: api.Network{
+					ID:   "vpc-123",
+					CIDR: ipnet.MustParseCIDR("192.168.0.0/20"),
+				},
+				SecurityGroup: "sg-123",
+				Subnets: &api.ClusterSubnets{
+					Public: api.AZSubnetMapping{
+						"us-west-2a": api.AZSubnetSpec{
+							ID:   "subnet-1",
+							AZ:   "us-west-2a",
+							CIDR: ipnet.MustParseCIDR("192.168.0.0/20"),
+						},
+					},
+					Private: api.NewAZSubnetMapping(),
+				},
+				LocalZoneSubnets: &api.ClusterSubnets{
+					Public: api.NewAZSubnetMapping(),
+					Private: api.AZSubnetMapping{
+						"us-west-2-lax-1a": api.AZSubnetSpec{
+							ID:   "subnet-lz1",
+							AZ:   "us-west-2-lax-1a",
+							CIDR: ipnet.MustParseCIDR("192.168.0.16/20"),
+						},
+					},
+				},
+				ManageSharedNodeSecurityGroupRules: aws.Bool(true),
+				AutoAllocateIPv6:                   aws.Bool(false),
+				NAT: &api.ClusterNAT{
+					Gateway: aws.String("Disable"),
+				},
+				ClusterEndpoints: &api.ClusterEndpoints{
+					PublicAccess:  aws.Bool(true),
+					PrivateAccess: aws.Bool(true),
+				},
+			},
+
+			mockEC2: func(ec2Mock *mocksv2.EC2) {
+				ec2Mock.On("DescribeSubnets", Anything, Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
+					subnet := ec2types.Subnet{
+						SubnetId: aws.String(input.SubnetIds[0]),
+						VpcId:    aws.String("vpc-123"),
+					}
+					if input.SubnetIds[0] == "subnet-lz1" {
+						subnet.AvailabilityZone = aws.String("us-west-2-lax-1a")
+						subnet.CidrBlock = aws.String("192.168.0.16/20")
+					} else {
+						subnet.AvailabilityZone = aws.String("us-west-2a")
+						subnet.CidrBlock = aws.String("192.168.0.0/20")
+					}
+					return &ec2.DescribeSubnetsOutput{
+						Subnets: []ec2types.Subnet{subnet},
+					}
+				}, nil).On("DescribeVpcs", Anything, Anything).Return(&ec2.DescribeVpcsOutput{
+					Vpcs: []ec2types.Vpc{
+						{
+							VpcId:     aws.String("vpc-123"),
+							CidrBlock: aws.String("192.168.0.0/20"),
+						},
+					},
+				}, nil)
+			},
 		}),
 	)
 
@@ -425,17 +728,13 @@ var _ = Describe("VPC", func() {
 	DescribeTable("can set cluster endpoint configuration on VPC from running Cluster",
 		func(e endpointAccessCase) {
 			p := mockprovider.NewMockProvider()
-			p.MockEKS()
 			cluster := newFakeClusterWithEndpoints(e.private, e.public, e.clusterName)
-			mockResultFn := func(_ *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
-				return &eks.DescribeClusterOutput{Cluster: cluster}
-			}
 
-			p.MockEKS().On("DescribeCluster", MatchedBy(func(input *eks.DescribeClusterInput) bool {
+			p.MockEKS().On("DescribeCluster", Anything, MatchedBy(func(input *eks.DescribeClusterInput) bool {
 				return input != nil
-			})).Return(mockResultFn, e.error)
+			})).Return(&eks.DescribeClusterOutput{Cluster: cluster}, e.error)
 
-			err := UseEndpointAccessFromCluster(p, e.cfg)
+			err := UseEndpointAccessFromCluster(context.Background(), p, e.cfg)
 			if e.error != nil {
 				Expect(err).To(MatchError(e.error.Error()))
 			} else {
@@ -470,7 +769,7 @@ var _ = Describe("VPC", func() {
 			clusterName: "notFoundCluster",
 			private:     false,
 			public:      false,
-			error:       errors.New(eks.ErrCodeResourceNotFoundException),
+			error:       &ekstypes.ResourceNotFoundException{},
 		}),
 		Entry("Nil Cluster endpoint from config", endpointAccessCase{
 			cfg: &api.ClusterConfig{
@@ -928,30 +1227,21 @@ var _ = Describe("VPC", func() {
 
 	DescribeTable("select subnets",
 		func(e selectSubnetsCase) {
-			ids, err := SelectNodeGroupSubnets(context.Background(), e.nodegroupAZs, e.nodegroupSubnets, e.subnets, nil, "")
+			ids, err := selectNodeGroupZoneSubnets(e.nodegroupAZs, e.subnets)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(ids).To(ConsistOf(e.expectIDs))
 		},
 		Entry("one subnet", selectSubnetsCase{
-			nodegroupSubnets: []string{"a"},
+			nodegroupAZs: []string{"a"},
 			subnets: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 				"a": {
 					ID: "id-1",
-					AZ: "us-east-1a",
+					AZ: "a",
 				},
 			}),
 			expectIDs: []string{"id-1"},
 		}),
-		Entry("one subnet by id", selectSubnetsCase{
-			nodegroupSubnets: []string{"id-1"},
-			subnets: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
-				"a": {
-					ID: "id-1",
-					AZ: "us-east-1a",
-				},
-			}),
-			expectIDs: []string{"id-1"},
-		}),
+
 		Entry("one AZ", selectSubnetsCase{
 			nodegroupAZs: []string{"us-east-1a"},
 			subnets: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
@@ -968,73 +1258,4 @@ var _ = Describe("VPC", func() {
 		}),
 	)
 
-	Context("the user provides an optional subnet id", func() {
-		var (
-			subnetID string
-			mockEC2  *mocksv2.EC2
-			vpcID    string
-			az       string
-			azMap    map[string]api.AZSubnetSpec
-		)
-		BeforeEach(func() {
-			subnetID = "user-defined-id"
-			vpcID = "vpc-id"
-			mockEC2 = &mocksv2.EC2{}
-			az = "us-east-1a"
-			azMap = map[string]api.AZSubnetSpec{
-				"a": {
-					ID: "id-1",
-					AZ: az,
-				},
-				"b": {
-					ID: "id-2",
-					AZ: az,
-				},
-			}
-		})
-		When("the provided subnet exists", func() {
-			It("gets information about the subnet and returns it if it exists", func() {
-				mockEC2.On("DescribeSubnets", Anything, &ec2.DescribeSubnetsInput{
-					SubnetIds: []string{subnetID},
-				}).Return(&ec2.DescribeSubnetsOutput{
-					Subnets: []ec2types.Subnet{
-						{
-							SubnetId: &subnetID,
-							VpcId:    &vpcID,
-						},
-					},
-				}, nil)
-				ids, err := SelectNodeGroupSubnets(context.Background(), []string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(ids).To(ConsistOf("id-1", "id-2", subnetID))
-			})
-		})
-
-		When("the provided subnet doesn't exist", func() {
-			It("returns a proper error", func() {
-				mockEC2.On("DescribeSubnets", Anything, &ec2.DescribeSubnetsInput{
-					SubnetIds: []string{subnetID},
-				}).Return(nil, errors.New("nope"))
-				_, err := SelectNodeGroupSubnets(context.Background(), []string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
-				Expect(err).To(MatchError(ContainSubstring("nope")))
-			})
-		})
-
-		When("the provided subnet is not part of the cluster's VPC", func() {
-			It("returns a proper error", func() {
-				mockEC2.On("DescribeSubnets", Anything, &ec2.DescribeSubnetsInput{
-					SubnetIds: []string{subnetID},
-				}).Return(&ec2.DescribeSubnetsOutput{
-					Subnets: []ec2types.Subnet{
-						{
-							SubnetId: &subnetID,
-							VpcId:    aws.String("different-vpc-id"),
-						},
-					},
-				}, nil)
-				_, err := SelectNodeGroupSubnets(context.Background(), []string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
-				Expect(err).To(MatchError(ContainSubstring("subnet with id \"user-defined-id\" is not in the attached vpc with id \"vpc-id\"")))
-			})
-		})
-	})
 })

@@ -9,7 +9,7 @@ import (
 
 	"github.com/aws/smithy-go"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
@@ -26,7 +26,7 @@ var _ = Describe("ssh public key", func() {
 		keyName            = "eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"
 		ed25519KeyName     = "eksctl-sshtestcluster-nodegroup-ng1-HvE7+gmH78VS53+iPuRDh/gKjVo26OzYU/qOnJWAgyk"
 		rsaFingerprint     = "f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"
-		ed25519Fingerprint = "HvE7+gmH78VS53+iPuRDh/gKjVo26OzYU/qOnJWAgyk"
+		ed25519Fingerprint = "HvE7+gmH78VS53+iPuRDh/gKjVo26OzYU/qOnJWAgyk="
 		mockEC2            *mocksv2.EC2
 	)
 
@@ -61,6 +61,17 @@ var _ = Describe("ssh public key", func() {
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"))
+			mockEC2.AssertNotCalled(GinkgoT(), "ImportKeyPair", mock.Anything, mock.Anything)
+		})
+
+		It("should not import key that already exists in EC2", func() {
+			mockDescribeKeyPairs(mockEC2, map[string]string{keyName: ed25519Fingerprint})
+			mockImportKeyPairError(mockEC2, errors.New("the key shouldn't be imported in this test"))
+
+			keyName, err := LoadKeyFromFile(context.Background(), "assets/id_ed25519_tests1.pub", clusterName, ngName, mockEC2)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-HvE7+gmH78VS53+iPuRDh/gKjVo26OzYU/qOnJWAgyk"))
 			mockEC2.AssertNotCalled(GinkgoT(), "ImportKeyPair", mock.Anything, mock.Anything)
 		})
 

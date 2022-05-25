@@ -1,21 +1,22 @@
 package fargate
 
 import (
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
-	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 // Client wraps around an EKS API client to expose high-level methods.
 type Client struct {
 	clusterName  string
-	api          eksiface.EKSAPI
+	api          awsapi.EKS
 	retryPolicy  retry.Policy
 	stackManager manager.StackManager
 }
@@ -27,7 +28,7 @@ func NewFromProvider(clusterName string, provider api.ClusterProvider, stackMana
 
 // NewWithRetryPolicy returns a new Fargate client configured with the
 // provided retry policy for blocking/waiting operations.
-func NewWithRetryPolicy(clusterName string, api eksiface.EKSAPI, retryPolicy retry.Policy, stackManager manager.StackManager) Client {
+func NewWithRetryPolicy(clusterName string, api awsapi.EKS, retryPolicy retry.Policy, stackManager manager.StackManager) Client {
 	return Client{
 		clusterName:  clusterName,
 		api:          api,
@@ -36,7 +37,7 @@ func NewWithRetryPolicy(clusterName string, api eksiface.EKSAPI, retryPolicy ret
 	}
 }
 
-func describeRequest(clusterName string, profileName string) *eks.DescribeFargateProfileInput {
+func describeRequest(clusterName, profileName string) *eks.DescribeFargateProfileInput {
 	request := &eks.DescribeFargateProfileInput{
 		ClusterName:        &clusterName,
 		FargateProfileName: &profileName,
@@ -45,12 +46,12 @@ func describeRequest(clusterName string, profileName string) *eks.DescribeFargat
 	return request
 }
 
-func toSelectors(in []*eks.FargateProfileSelector) []api.FargateProfileSelector {
+func toSelectors(in []ekstypes.FargateProfileSelector) []api.FargateProfileSelector {
 	out := make([]api.FargateProfileSelector, len(in))
 	for i, selector := range in {
 		out[i] = api.FargateProfileSelector{
 			Namespace: *selector.Namespace,
-			Labels:    strings.ToValuesMap(selector.Labels),
+			Labels:    selector.Labels,
 		}
 	}
 	return out
@@ -60,10 +61,6 @@ func toSelectors(in []*eks.FargateProfileSelector) []api.FargateProfileSelector 
 // Unauthorized errors are of the form:
 //   AccessDeniedException: Account <account> is not authorized to use this service
 func IsUnauthorizedError(err error) bool {
-	awsErr, ok := errors.Cause(err).(awserr.Error)
-	if !ok {
-		return false
-	}
-
-	return awsErr.Code() == "AccessDeniedException"
+	var accessDeniedErr *ekstypes.AccessDeniedException
+	return errors.As(err, &accessDeniedErr)
 }

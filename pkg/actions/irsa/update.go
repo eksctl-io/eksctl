@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
 	"github.com/tidwall/gjson"
 
@@ -65,7 +65,7 @@ func (a *Manager) UpdateIAMServiceAccounts(ctx context.Context, iamServiceAccoun
 // getRoleNameFromStackTemplate returns the role if the initial stack's template contained it.
 // That means it was defined upon creation, and we need to re-use that same name.
 func (a *Manager) getRoleNameFromStackTemplate(ctx context.Context, stack *manager.Stack) (string, error) {
-	template, err := a.stackManager.GetStackTemplate(ctx, aws.StringValue(stack.StackName))
+	template, err := a.stackManager.GetStackTemplate(ctx, aws.ToString(stack.StackName))
 	if err != nil {
 		return "", fmt.Errorf("failed to get stack template: %w", err)
 	}

@@ -1,14 +1,17 @@
 package addon_test
 
 import (
+	"context"
 	"fmt"
-	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -26,21 +29,21 @@ var _ = Describe("Get", func() {
 		manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 			Version: "1.18",
 			Name:    "my-cluster",
-		}}, mockProvider.EKS(), nil, false, nil, nil, 5*time.Minute)
+		}}, mockProvider.EKS(), nil, false, nil, nil)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Describe("Get", func() {
 		It("returns an addon", func() {
-			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything).Run(func(args mock.Arguments) {
-				Expect(args).To(HaveLen(1))
-				Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
 			}).Return(&awseks.DescribeAddonVersionsOutput{
-				Addons: []*awseks.AddonInfo{
+				Addons: []ekstypes.AddonInfo{
 					{
 						AddonName: aws.String("my-addon"),
 						Type:      aws.String("type"),
-						AddonVersions: []*awseks.AddonVersionInfo{
+						AddonVersions: []ekstypes.AddonVersionInfo{
 							{
 								AddonVersion: aws.String("1.0.0"),
 							},
@@ -56,29 +59,29 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			mockProvider.MockEKS().On("DescribeAddon", mock.Anything).Run(func(args mock.Arguments) {
-				Expect(args).To(HaveLen(1))
-				Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
-				describeAddonInput = args[0].(*awseks.DescribeAddonInput)
+			mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
+				describeAddonInput = args[1].(*awseks.DescribeAddonInput)
 			}).Return(&awseks.DescribeAddonOutput{
-				Addon: &awseks.Addon{
+				Addon: &ekstypes.Addon{
 					AddonName:             aws.String("my-addon"),
 					AddonVersion:          aws.String("v1.0.0"),
 					ServiceAccountRoleArn: aws.String("foo"),
-					Status:                aws.String("created"),
-					Health: &awseks.AddonHealth{
-						Issues: []*awseks.AddonIssue{
+					Status:                "created",
+					Health: &ekstypes.AddonHealth{
+						Issues: []ekstypes.AddonIssue{
 							{
-								Code:        aws.String("1"),
+								Code:        "1",
 								Message:     aws.String("foo"),
-								ResourceIds: aws.StringSlice([]string{"id-1"}),
+								ResourceIds: []string{"id-1"},
 							},
 						},
 					},
 				},
 			}, nil)
 
-			summary, err := manager.Get(&api.Addon{
+			summary, err := manager.Get(context.Background(), &api.Addon{
 				Name: "my-addon",
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -88,7 +91,13 @@ var _ = Describe("Get", func() {
 				NewerVersion: "v1.1.0,1.2.0",
 				IAMRole:      "foo",
 				Status:       "created",
-				Issues:       []string{"{\n  Code: \"1\",\n  Message: \"foo\",\n  ResourceIds: [\"id-1\"]\n}"},
+				Issues: []addon.Issue{
+					{
+						Code:        "1",
+						Message:     "foo",
+						ResourceIDs: []string{"id-1"},
+					},
+				},
 			}))
 
 			Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -97,13 +106,13 @@ var _ = Describe("Get", func() {
 
 		When("it fails to get the addon", func() {
 			It("returns an error", func() {
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(1))
-					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
-					describeAddonInput = args[0].(*awseks.DescribeAddonInput)
+				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
+					describeAddonInput = args[1].(*awseks.DescribeAddonInput)
 				}).Return(nil, fmt.Errorf("foo"))
 
-				_, err := manager.Get(&api.Addon{
+				_, err := manager.Get(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 				Expect(err).To(MatchError(`failed to get addon "my-addon": foo`))
@@ -116,15 +125,15 @@ var _ = Describe("Get", func() {
 	Describe("GetAll", func() {
 		var listAddonsInput *awseks.ListAddonsInput
 		It("returns an addon", func() {
-			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything).Run(func(args mock.Arguments) {
-				Expect(args).To(HaveLen(1))
-				Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
 			}).Return(&awseks.DescribeAddonVersionsOutput{
-				Addons: []*awseks.AddonInfo{
+				Addons: []ekstypes.AddonInfo{
 					{
 						AddonName: aws.String("my-addon"),
 						Type:      aws.String("type"),
-						AddonVersions: []*awseks.AddonVersionInfo{
+						AddonVersions: []ekstypes.AddonVersionInfo{
 							{
 								AddonVersion: aws.String("1.0.0"),
 							},
@@ -140,28 +149,28 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			mockProvider.MockEKS().On("ListAddons", mock.Anything).Run(func(args mock.Arguments) {
-				Expect(args).To(HaveLen(1))
-				Expect(args[0]).To(BeAssignableToTypeOf(&awseks.ListAddonsInput{}))
-				listAddonsInput = args[0].(*awseks.ListAddonsInput)
+			mockProvider.MockEKS().On("ListAddons", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.ListAddonsInput{}))
+				listAddonsInput = args[1].(*awseks.ListAddonsInput)
 			}).Return(&awseks.ListAddonsOutput{
-				Addons: aws.StringSlice([]string{"my-addon"}),
+				Addons: []string{"my-addon"},
 			}, nil)
 
-			mockProvider.MockEKS().On("DescribeAddon", mock.Anything).Run(func(args mock.Arguments) {
-				Expect(args).To(HaveLen(1))
-				Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
-				describeAddonInput = args[0].(*awseks.DescribeAddonInput)
+			mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
+				describeAddonInput = args[1].(*awseks.DescribeAddonInput)
 			}).Return(&awseks.DescribeAddonOutput{
-				Addon: &awseks.Addon{
+				Addon: &ekstypes.Addon{
 					AddonName:             aws.String("my-addon"),
 					AddonVersion:          aws.String("1.0.0"),
 					ServiceAccountRoleArn: aws.String("foo"),
-					Status:                aws.String("created"),
+					Status:                "created",
 				},
 			}, nil)
 
-			summary, err := manager.GetAll()
+			summary, err := manager.GetAll(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(summary).To(Equal([]addon.Summary{
 				{
@@ -180,21 +189,21 @@ var _ = Describe("Get", func() {
 
 		When("it fails to get the addon", func() {
 			It("returns an error", func() {
-				mockProvider.MockEKS().On("ListAddons", mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(1))
-					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.ListAddonsInput{}))
-					listAddonsInput = args[0].(*awseks.ListAddonsInput)
+				mockProvider.MockEKS().On("ListAddons", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.ListAddonsInput{}))
+					listAddonsInput = args[1].(*awseks.ListAddonsInput)
 				}).Return(&awseks.ListAddonsOutput{
-					Addons: aws.StringSlice([]string{"my-addon"}),
+					Addons: []string{"my-addon"},
 				}, nil)
 
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(1))
-					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
-					describeAddonInput = args[0].(*awseks.DescribeAddonInput)
+				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
+					describeAddonInput = args[1].(*awseks.DescribeAddonInput)
 				}).Return(nil, fmt.Errorf("foo"))
 
-				_, err := manager.GetAll()
+				_, err := manager.GetAll(context.Background())
 				Expect(err).To(MatchError(`failed to get addon "my-addon": foo`))
 				Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
 				Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
@@ -205,15 +214,15 @@ var _ = Describe("Get", func() {
 
 		When("it fails to list addons", func() {
 			It("returns an error", func() {
-				mockProvider.MockEKS().On("ListAddons", mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(1))
-					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.ListAddonsInput{}))
-					listAddonsInput = args[0].(*awseks.ListAddonsInput)
+				mockProvider.MockEKS().On("ListAddons", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.ListAddonsInput{}))
+					listAddonsInput = args[1].(*awseks.ListAddonsInput)
 				}).Return(&awseks.ListAddonsOutput{
-					Addons: aws.StringSlice([]string{"my-addon"}),
+					Addons: []string{"my-addon"},
 				}, fmt.Errorf("foo"))
 
-				_, err := manager.GetAll()
+				_, err := manager.GetAll(context.Background())
 				Expect(err).To(MatchError(`failed to list addons: foo`))
 				Expect(*listAddonsInput.ClusterName).To(Equal("my-cluster"))
 			})

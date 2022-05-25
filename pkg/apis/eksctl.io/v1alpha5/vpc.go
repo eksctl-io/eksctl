@@ -6,7 +6,7 @@ import (
 	"net"
 	"reflect"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
@@ -34,7 +34,7 @@ const (
 type AZSubnetMapping map[string]AZSubnetSpec
 
 func NewAZSubnetMapping() AZSubnetMapping {
-	return AZSubnetMapping(make(map[string]AZSubnetSpec))
+	return make(map[string]AZSubnetSpec)
 }
 
 func AZSubnetMappingFromMap(m map[string]AZSubnetSpec) AZSubnetMapping {
@@ -45,7 +45,7 @@ func AZSubnetMappingFromMap(m map[string]AZSubnetSpec) AZSubnetMapping {
 			m[k] = v
 		}
 	}
-	return AZSubnetMapping(m)
+	return m
 }
 
 func (m *AZSubnetMapping) Set(name string, spec AZSubnetSpec) {
@@ -135,6 +135,11 @@ type (
 		// VPCs](/usage/vpc-networking/#use-existing-vpc-other-custom-configuration).
 		// +optional
 		Subnets *ClusterSubnets `json:"subnets,omitempty"`
+
+		// LocalZoneSubnets represents subnets in local zones.
+		// This field is used internally and is not part of the ClusterConfig schema.
+		LocalZoneSubnets *ClusterSubnets `json:"-"`
+
 		// for additional CIDR associations, e.g. a CIDR for
 		// private subnets or any ad-hoc subnets
 		// +optional
@@ -171,16 +176,21 @@ type (
 		Private AZSubnetMapping `json:"private,omitempty"`
 		Public  AZSubnetMapping `json:"public,omitempty"`
 	}
+
 	// SubnetTopology can be SubnetTopologyPrivate or SubnetTopologyPublic
 	SubnetTopology string
 	AZSubnetSpec   struct {
 		// +optional
 		ID string `json:"id,omitempty"`
-		// AZ can be omitted if the key is an AZ
+		// AZ is the zone name for this subnet, it can either be an availability zone name
+		// or a local zone name.
+		// AZ can be omitted if the key is an AZ.
 		// +optional
 		AZ string `json:"az,omitempty"`
 		// +optional
 		CIDR *ipnet.IPNet `json:"cidr,omitempty"`
+
+		CIDRIndex int `json:"-"`
 	}
 	// Network holds ID and CIDR
 	Network struct {
@@ -213,7 +223,7 @@ const (
 	MinRequiredAvailabilityZones = MinRequiredSubnets
 	// RecommendedSubnets is the recommended number of subnets
 	RecommendedSubnets = 3
-	// recommendedAvailabilityZones defines the default number of required availability zones
+	// RecommendedAvailabilityZones defines the default number of required availability zones
 	RecommendedAvailabilityZones = RecommendedSubnets
 	// SubnetTopologyPrivate represents privately-routed subnets
 	SubnetTopologyPrivate SubnetTopology = "Private"
@@ -240,25 +250,8 @@ func DefaultCIDR() ipnet.IPNet {
 }
 
 // ImportSubnet loads a given subnet into cluster config
-func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr string) error {
-	if c.VPC.Subnets == nil {
-		c.VPC.Subnets = &ClusterSubnets{
-			Private: NewAZSubnetMapping(),
-			Public:  NewAZSubnetMapping(),
-		}
-	}
-
-	var subnetMapping AZSubnetMapping
-	switch topology {
-	case SubnetTopologyPrivate:
-		subnetMapping = c.VPC.Subnets.Private
-	case SubnetTopologyPublic:
-		subnetMapping = c.VPC.Subnets.Public
-	default:
-		panic(fmt.Sprintf("unexpected subnet topology: %s", topology))
-	}
-
-	if err := doImportSubnet(subnetMapping, az, subnetID, cidr); err != nil {
+func (c *ClusterConfig) ImportSubnet(subnetMapping AZSubnetMapping, zone, subnetID, cidr string) error {
+	if err := doImportSubnet(subnetMapping, zone, subnetID, cidr); err != nil {
 		return errors.Wrapf(err, "couldn't import subnet %s", subnetID)
 	}
 	return nil
@@ -336,7 +329,7 @@ func (c *ClusterConfig) SubnetInfo() string {
 
 // HasAnySubnets checks if any subnets were set
 func (c *ClusterConfig) HasAnySubnets() bool {
-	return c.VPC.Subnets != nil && len(c.VPC.Subnets.Private)+len(c.VPC.Subnets.Public) != 0
+	return c.VPC.Subnets != nil && (len(c.VPC.Subnets.Private) > 0 || len(c.VPC.Subnets.Public) > 0)
 }
 
 // HasSufficientPrivateSubnets validates if there is a sufficient
@@ -407,8 +400,8 @@ func EndpointsEqual(a, b ClusterEndpoints) bool {
 //HasClusterEndpointAccess determines if endpoint access was configured in config file or not
 func (c *ClusterConfig) HasClusterEndpointAccess() bool {
 	if c.VPC != nil && c.VPC.ClusterEndpoints != nil {
-		hasPublicAccess := aws.BoolValue(c.VPC.ClusterEndpoints.PublicAccess)
-		hasPrivateAccess := aws.BoolValue(c.VPC.ClusterEndpoints.PrivateAccess)
+		hasPublicAccess := aws.ToBool(c.VPC.ClusterEndpoints.PublicAccess)
+		hasPrivateAccess := aws.ToBool(c.VPC.ClusterEndpoints.PrivateAccess)
 		return hasPublicAccess || hasPrivateAccess
 	}
 	return true

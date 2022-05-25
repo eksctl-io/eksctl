@@ -12,7 +12,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"

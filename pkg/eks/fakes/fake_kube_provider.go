@@ -2,30 +2,15 @@
 package fakes
 
 import (
-	"context"
 	"sync"
 
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	kubernetesa "k8s.io/client-go/kubernetes"
 )
 
 type FakeKubeProvider struct {
-	LoadClusterIntoSpecFromStackStub        func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error
-	loadClusterIntoSpecFromStackMutex       sync.RWMutex
-	loadClusterIntoSpecFromStackArgsForCall []struct {
-		arg1 context.Context
-		arg2 *v1alpha5.ClusterConfig
-		arg3 manager.StackManager
-	}
-	loadClusterIntoSpecFromStackReturns struct {
-		result1 error
-	}
-	loadClusterIntoSpecFromStackReturnsOnCall map[int]struct {
-		result1 error
-	}
 	NewRawClientStub        func(*v1alpha5.ClusterConfig) (*kubernetes.RawClient, error)
 	newRawClientMutex       sync.RWMutex
 	newRawClientArgsForCall []struct {
@@ -37,6 +22,19 @@ type FakeKubeProvider struct {
 	}
 	newRawClientReturnsOnCall map[int]struct {
 		result1 *kubernetes.RawClient
+		result2 error
+	}
+	NewStdClientSetStub        func(*v1alpha5.ClusterConfig) (*kubernetesa.Clientset, error)
+	newStdClientSetMutex       sync.RWMutex
+	newStdClientSetArgsForCall []struct {
+		arg1 *v1alpha5.ClusterConfig
+	}
+	newStdClientSetReturns struct {
+		result1 *kubernetesa.Clientset
+		result2 error
+	}
+	newStdClientSetReturnsOnCall map[int]struct {
+		result1 *kubernetesa.Clientset
 		result2 error
 	}
 	ServerVersionStub        func(*kubernetes.RawClient) (string, error)
@@ -52,108 +50,8 @@ type FakeKubeProvider struct {
 		result1 string
 		result2 error
 	}
-	UpdateAuthConfigMapStub        func([]*v1alpha5.NodeGroup, kubernetesa.Interface) error
-	updateAuthConfigMapMutex       sync.RWMutex
-	updateAuthConfigMapArgsForCall []struct {
-		arg1 []*v1alpha5.NodeGroup
-		arg2 kubernetesa.Interface
-	}
-	updateAuthConfigMapReturns struct {
-		result1 error
-	}
-	updateAuthConfigMapReturnsOnCall map[int]struct {
-		result1 error
-	}
-	ValidateClusterForCompatibilityStub        func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error
-	validateClusterForCompatibilityMutex       sync.RWMutex
-	validateClusterForCompatibilityArgsForCall []struct {
-		arg1 context.Context
-		arg2 *v1alpha5.ClusterConfig
-		arg3 manager.StackManager
-	}
-	validateClusterForCompatibilityReturns struct {
-		result1 error
-	}
-	validateClusterForCompatibilityReturnsOnCall map[int]struct {
-		result1 error
-	}
-	WaitForNodesStub        func(kubernetesa.Interface, eks.KubeNodeGroup) error
-	waitForNodesMutex       sync.RWMutex
-	waitForNodesArgsForCall []struct {
-		arg1 kubernetesa.Interface
-		arg2 eks.KubeNodeGroup
-	}
-	waitForNodesReturns struct {
-		result1 error
-	}
-	waitForNodesReturnsOnCall map[int]struct {
-		result1 error
-	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
-}
-
-func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStack(arg1 context.Context, arg2 *v1alpha5.ClusterConfig, arg3 manager.StackManager) error {
-	fake.loadClusterIntoSpecFromStackMutex.Lock()
-	ret, specificReturn := fake.loadClusterIntoSpecFromStackReturnsOnCall[len(fake.loadClusterIntoSpecFromStackArgsForCall)]
-	fake.loadClusterIntoSpecFromStackArgsForCall = append(fake.loadClusterIntoSpecFromStackArgsForCall, struct {
-		arg1 context.Context
-		arg2 *v1alpha5.ClusterConfig
-		arg3 manager.StackManager
-	}{arg1, arg2, arg3})
-	stub := fake.LoadClusterIntoSpecFromStackStub
-	fakeReturns := fake.loadClusterIntoSpecFromStackReturns
-	fake.recordInvocation("LoadClusterIntoSpecFromStack", []interface{}{arg1, arg2, arg3})
-	fake.loadClusterIntoSpecFromStackMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackCallCount() int {
-	fake.loadClusterIntoSpecFromStackMutex.RLock()
-	defer fake.loadClusterIntoSpecFromStackMutex.RUnlock()
-	return len(fake.loadClusterIntoSpecFromStackArgsForCall)
-}
-
-func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackCalls(stub func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error) {
-	fake.loadClusterIntoSpecFromStackMutex.Lock()
-	defer fake.loadClusterIntoSpecFromStackMutex.Unlock()
-	fake.LoadClusterIntoSpecFromStackStub = stub
-}
-
-func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackArgsForCall(i int) (context.Context, *v1alpha5.ClusterConfig, manager.StackManager) {
-	fake.loadClusterIntoSpecFromStackMutex.RLock()
-	defer fake.loadClusterIntoSpecFromStackMutex.RUnlock()
-	argsForCall := fake.loadClusterIntoSpecFromStackArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackReturns(result1 error) {
-	fake.loadClusterIntoSpecFromStackMutex.Lock()
-	defer fake.loadClusterIntoSpecFromStackMutex.Unlock()
-	fake.LoadClusterIntoSpecFromStackStub = nil
-	fake.loadClusterIntoSpecFromStackReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackReturnsOnCall(i int, result1 error) {
-	fake.loadClusterIntoSpecFromStackMutex.Lock()
-	defer fake.loadClusterIntoSpecFromStackMutex.Unlock()
-	fake.LoadClusterIntoSpecFromStackStub = nil
-	if fake.loadClusterIntoSpecFromStackReturnsOnCall == nil {
-		fake.loadClusterIntoSpecFromStackReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.loadClusterIntoSpecFromStackReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
 }
 
 func (fake *FakeKubeProvider) NewRawClient(arg1 *v1alpha5.ClusterConfig) (*kubernetes.RawClient, error) {
@@ -216,6 +114,70 @@ func (fake *FakeKubeProvider) NewRawClientReturnsOnCall(i int, result1 *kubernet
 	}
 	fake.newRawClientReturnsOnCall[i] = struct {
 		result1 *kubernetes.RawClient
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKubeProvider) NewStdClientSet(arg1 *v1alpha5.ClusterConfig) (*kubernetesa.Clientset, error) {
+	fake.newStdClientSetMutex.Lock()
+	ret, specificReturn := fake.newStdClientSetReturnsOnCall[len(fake.newStdClientSetArgsForCall)]
+	fake.newStdClientSetArgsForCall = append(fake.newStdClientSetArgsForCall, struct {
+		arg1 *v1alpha5.ClusterConfig
+	}{arg1})
+	stub := fake.NewStdClientSetStub
+	fakeReturns := fake.newStdClientSetReturns
+	fake.recordInvocation("NewStdClientSet", []interface{}{arg1})
+	fake.newStdClientSetMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKubeProvider) NewStdClientSetCallCount() int {
+	fake.newStdClientSetMutex.RLock()
+	defer fake.newStdClientSetMutex.RUnlock()
+	return len(fake.newStdClientSetArgsForCall)
+}
+
+func (fake *FakeKubeProvider) NewStdClientSetCalls(stub func(*v1alpha5.ClusterConfig) (*kubernetesa.Clientset, error)) {
+	fake.newStdClientSetMutex.Lock()
+	defer fake.newStdClientSetMutex.Unlock()
+	fake.NewStdClientSetStub = stub
+}
+
+func (fake *FakeKubeProvider) NewStdClientSetArgsForCall(i int) *v1alpha5.ClusterConfig {
+	fake.newStdClientSetMutex.RLock()
+	defer fake.newStdClientSetMutex.RUnlock()
+	argsForCall := fake.newStdClientSetArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeKubeProvider) NewStdClientSetReturns(result1 *kubernetesa.Clientset, result2 error) {
+	fake.newStdClientSetMutex.Lock()
+	defer fake.newStdClientSetMutex.Unlock()
+	fake.NewStdClientSetStub = nil
+	fake.newStdClientSetReturns = struct {
+		result1 *kubernetesa.Clientset
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKubeProvider) NewStdClientSetReturnsOnCall(i int, result1 *kubernetesa.Clientset, result2 error) {
+	fake.newStdClientSetMutex.Lock()
+	defer fake.newStdClientSetMutex.Unlock()
+	fake.NewStdClientSetStub = nil
+	if fake.newStdClientSetReturnsOnCall == nil {
+		fake.newStdClientSetReturnsOnCall = make(map[int]struct {
+			result1 *kubernetesa.Clientset
+			result2 error
+		})
+	}
+	fake.newStdClientSetReturnsOnCall[i] = struct {
+		result1 *kubernetesa.Clientset
 		result2 error
 	}{result1, result2}
 }
@@ -284,213 +246,15 @@ func (fake *FakeKubeProvider) ServerVersionReturnsOnCall(i int, result1 string, 
 	}{result1, result2}
 }
 
-func (fake *FakeKubeProvider) UpdateAuthConfigMap(arg1 []*v1alpha5.NodeGroup, arg2 kubernetesa.Interface) error {
-	var arg1Copy []*v1alpha5.NodeGroup
-	if arg1 != nil {
-		arg1Copy = make([]*v1alpha5.NodeGroup, len(arg1))
-		copy(arg1Copy, arg1)
-	}
-	fake.updateAuthConfigMapMutex.Lock()
-	ret, specificReturn := fake.updateAuthConfigMapReturnsOnCall[len(fake.updateAuthConfigMapArgsForCall)]
-	fake.updateAuthConfigMapArgsForCall = append(fake.updateAuthConfigMapArgsForCall, struct {
-		arg1 []*v1alpha5.NodeGroup
-		arg2 kubernetesa.Interface
-	}{arg1Copy, arg2})
-	stub := fake.UpdateAuthConfigMapStub
-	fakeReturns := fake.updateAuthConfigMapReturns
-	fake.recordInvocation("UpdateAuthConfigMap", []interface{}{arg1Copy, arg2})
-	fake.updateAuthConfigMapMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeKubeProvider) UpdateAuthConfigMapCallCount() int {
-	fake.updateAuthConfigMapMutex.RLock()
-	defer fake.updateAuthConfigMapMutex.RUnlock()
-	return len(fake.updateAuthConfigMapArgsForCall)
-}
-
-func (fake *FakeKubeProvider) UpdateAuthConfigMapCalls(stub func([]*v1alpha5.NodeGroup, kubernetesa.Interface) error) {
-	fake.updateAuthConfigMapMutex.Lock()
-	defer fake.updateAuthConfigMapMutex.Unlock()
-	fake.UpdateAuthConfigMapStub = stub
-}
-
-func (fake *FakeKubeProvider) UpdateAuthConfigMapArgsForCall(i int) ([]*v1alpha5.NodeGroup, kubernetesa.Interface) {
-	fake.updateAuthConfigMapMutex.RLock()
-	defer fake.updateAuthConfigMapMutex.RUnlock()
-	argsForCall := fake.updateAuthConfigMapArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeKubeProvider) UpdateAuthConfigMapReturns(result1 error) {
-	fake.updateAuthConfigMapMutex.Lock()
-	defer fake.updateAuthConfigMapMutex.Unlock()
-	fake.UpdateAuthConfigMapStub = nil
-	fake.updateAuthConfigMapReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeKubeProvider) UpdateAuthConfigMapReturnsOnCall(i int, result1 error) {
-	fake.updateAuthConfigMapMutex.Lock()
-	defer fake.updateAuthConfigMapMutex.Unlock()
-	fake.UpdateAuthConfigMapStub = nil
-	if fake.updateAuthConfigMapReturnsOnCall == nil {
-		fake.updateAuthConfigMapReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.updateAuthConfigMapReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeKubeProvider) ValidateClusterForCompatibility(arg1 context.Context, arg2 *v1alpha5.ClusterConfig, arg3 manager.StackManager) error {
-	fake.validateClusterForCompatibilityMutex.Lock()
-	ret, specificReturn := fake.validateClusterForCompatibilityReturnsOnCall[len(fake.validateClusterForCompatibilityArgsForCall)]
-	fake.validateClusterForCompatibilityArgsForCall = append(fake.validateClusterForCompatibilityArgsForCall, struct {
-		arg1 context.Context
-		arg2 *v1alpha5.ClusterConfig
-		arg3 manager.StackManager
-	}{arg1, arg2, arg3})
-	stub := fake.ValidateClusterForCompatibilityStub
-	fakeReturns := fake.validateClusterForCompatibilityReturns
-	fake.recordInvocation("ValidateClusterForCompatibility", []interface{}{arg1, arg2, arg3})
-	fake.validateClusterForCompatibilityMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeKubeProvider) ValidateClusterForCompatibilityCallCount() int {
-	fake.validateClusterForCompatibilityMutex.RLock()
-	defer fake.validateClusterForCompatibilityMutex.RUnlock()
-	return len(fake.validateClusterForCompatibilityArgsForCall)
-}
-
-func (fake *FakeKubeProvider) ValidateClusterForCompatibilityCalls(stub func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error) {
-	fake.validateClusterForCompatibilityMutex.Lock()
-	defer fake.validateClusterForCompatibilityMutex.Unlock()
-	fake.ValidateClusterForCompatibilityStub = stub
-}
-
-func (fake *FakeKubeProvider) ValidateClusterForCompatibilityArgsForCall(i int) (context.Context, *v1alpha5.ClusterConfig, manager.StackManager) {
-	fake.validateClusterForCompatibilityMutex.RLock()
-	defer fake.validateClusterForCompatibilityMutex.RUnlock()
-	argsForCall := fake.validateClusterForCompatibilityArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeKubeProvider) ValidateClusterForCompatibilityReturns(result1 error) {
-	fake.validateClusterForCompatibilityMutex.Lock()
-	defer fake.validateClusterForCompatibilityMutex.Unlock()
-	fake.ValidateClusterForCompatibilityStub = nil
-	fake.validateClusterForCompatibilityReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeKubeProvider) ValidateClusterForCompatibilityReturnsOnCall(i int, result1 error) {
-	fake.validateClusterForCompatibilityMutex.Lock()
-	defer fake.validateClusterForCompatibilityMutex.Unlock()
-	fake.ValidateClusterForCompatibilityStub = nil
-	if fake.validateClusterForCompatibilityReturnsOnCall == nil {
-		fake.validateClusterForCompatibilityReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.validateClusterForCompatibilityReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeKubeProvider) WaitForNodes(arg1 kubernetesa.Interface, arg2 eks.KubeNodeGroup) error {
-	fake.waitForNodesMutex.Lock()
-	ret, specificReturn := fake.waitForNodesReturnsOnCall[len(fake.waitForNodesArgsForCall)]
-	fake.waitForNodesArgsForCall = append(fake.waitForNodesArgsForCall, struct {
-		arg1 kubernetesa.Interface
-		arg2 eks.KubeNodeGroup
-	}{arg1, arg2})
-	stub := fake.WaitForNodesStub
-	fakeReturns := fake.waitForNodesReturns
-	fake.recordInvocation("WaitForNodes", []interface{}{arg1, arg2})
-	fake.waitForNodesMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeKubeProvider) WaitForNodesCallCount() int {
-	fake.waitForNodesMutex.RLock()
-	defer fake.waitForNodesMutex.RUnlock()
-	return len(fake.waitForNodesArgsForCall)
-}
-
-func (fake *FakeKubeProvider) WaitForNodesCalls(stub func(kubernetesa.Interface, eks.KubeNodeGroup) error) {
-	fake.waitForNodesMutex.Lock()
-	defer fake.waitForNodesMutex.Unlock()
-	fake.WaitForNodesStub = stub
-}
-
-func (fake *FakeKubeProvider) WaitForNodesArgsForCall(i int) (kubernetesa.Interface, eks.KubeNodeGroup) {
-	fake.waitForNodesMutex.RLock()
-	defer fake.waitForNodesMutex.RUnlock()
-	argsForCall := fake.waitForNodesArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeKubeProvider) WaitForNodesReturns(result1 error) {
-	fake.waitForNodesMutex.Lock()
-	defer fake.waitForNodesMutex.Unlock()
-	fake.WaitForNodesStub = nil
-	fake.waitForNodesReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeKubeProvider) WaitForNodesReturnsOnCall(i int, result1 error) {
-	fake.waitForNodesMutex.Lock()
-	defer fake.waitForNodesMutex.Unlock()
-	fake.WaitForNodesStub = nil
-	if fake.waitForNodesReturnsOnCall == nil {
-		fake.waitForNodesReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.waitForNodesReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeKubeProvider) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.loadClusterIntoSpecFromStackMutex.RLock()
-	defer fake.loadClusterIntoSpecFromStackMutex.RUnlock()
 	fake.newRawClientMutex.RLock()
 	defer fake.newRawClientMutex.RUnlock()
+	fake.newStdClientSetMutex.RLock()
+	defer fake.newStdClientSetMutex.RUnlock()
 	fake.serverVersionMutex.RLock()
 	defer fake.serverVersionMutex.RUnlock()
-	fake.updateAuthConfigMapMutex.RLock()
-	defer fake.updateAuthConfigMapMutex.RUnlock()
-	fake.validateClusterForCompatibilityMutex.RLock()
-	defer fake.validateClusterForCompatibilityMutex.RUnlock()
-	fake.waitForNodesMutex.RLock()
-	defer fake.waitForNodesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

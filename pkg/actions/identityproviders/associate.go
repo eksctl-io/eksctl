@@ -1,23 +1,26 @@
 package identityproviders
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks/waiter"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
 type AssociateIdentityProvidersOptions struct {
 	Providers   []api.IdentityProvider
-	WaitTimeout *time.Duration
+	WaitTimeout time.Duration
 }
 
-func (m *Manager) Associate(options AssociateIdentityProvidersOptions) error {
+func (m *Manager) Associate(ctx context.Context, options AssociateIdentityProvidersOptions) error {
 	taskTree := tasks.TaskTree{
 		Parallel: true,
 	}
@@ -28,14 +31,20 @@ func (m *Manager) Associate(options AssociateIdentityProvidersOptions) error {
 			taskTree.Append(&tasks.GenericTask{
 				Description: fmt.Sprintf("associate %s", idP.Name),
 				Doer: func() error {
-					update, err := m.associateOIDC(*idP)
+					update, err := m.associateOIDC(ctx, *idP)
 					if err != nil {
 						return err
 					}
 
 					logger.Info("started associating identity provider %s", idP.Name)
-					if options.WaitTimeout != nil {
-						if err := m.waitForUpdate(update, *options.WaitTimeout); err != nil {
+					if options.WaitTimeout > 0 {
+						updateWaiter := waiter.NewUpdateWaiter(m.eksAPI, func(options *waiter.UpdateWaiterOptions) {
+							options.RetryAttemptLogMessage = "waiting for update %q in cluster %q to succeed"
+						})
+						if err := updateWaiter.Wait(ctx, &eks.DescribeUpdateInput{
+							Name:     aws.String(m.metadata.Name),
+							UpdateId: update.Id,
+						}, options.WaitTimeout); err != nil {
 							return err
 						}
 					}
@@ -58,8 +67,8 @@ func (m *Manager) Associate(options AssociateIdentityProvidersOptions) error {
 	return nil
 }
 
-func (m *Manager) associateOIDC(idP api.OIDCIdentityProvider) (eks.Update, error) {
-	oidc := &eks.OidcIdentityProviderConfigRequest{
+func (m *Manager) associateOIDC(ctx context.Context, idP api.OIDCIdentityProvider) (ekstypes.Update, error) {
+	oidc := &ekstypes.OidcIdentityProviderConfigRequest{
 		ClientId:                   aws.String(idP.ClientID),
 		IssuerUrl:                  aws.String(idP.IssuerURL),
 		IdentityProviderConfigName: aws.String(idP.Name),
@@ -71,7 +80,7 @@ func (m *Manager) associateOIDC(idP api.OIDCIdentityProvider) (eks.Update, error
 		oidc.GroupsPrefix = aws.String(idP.GroupsPrefix)
 	}
 	if len(idP.RequiredClaims) > 0 {
-		oidc.RequiredClaims = aws.StringMap(idP.RequiredClaims)
+		oidc.RequiredClaims = idP.RequiredClaims
 	}
 	if idP.UsernameClaim != "" {
 		oidc.UsernameClaim = aws.String(idP.UsernameClaim)
@@ -84,12 +93,12 @@ func (m *Manager) associateOIDC(idP api.OIDCIdentityProvider) (eks.Update, error
 		Oidc:        oidc,
 	}
 	if len(idP.Tags) > 0 {
-		input.Tags = aws.StringMap(idP.Tags)
+		input.Tags = idP.Tags
 	}
 
-	update, err := m.eksAPI.AssociateIdentityProviderConfig(&input)
+	update, err := m.eksAPI.AssociateIdentityProviderConfig(ctx, &input)
 	if err != nil {
-		return eks.Update{}, err
+		return ekstypes.Update{}, err
 	}
 	logger.Debug("identity provider associate update: %v", *update.Update)
 

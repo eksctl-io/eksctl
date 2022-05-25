@@ -14,7 +14,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 
 	"github.com/weaveworks/eksctl/integration/runner"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -247,7 +247,7 @@ func (p *Params) attemptSettingUserID() {
 		return
 	}
 
-	out, err := clusterProvider.Provider.STS().GetCallerIdentity(context.TODO(), &sts.GetCallerIdentityInput{})
+	out, err := clusterProvider.AWSProvider.STS().GetCallerIdentity(context.TODO(), &sts.GetCallerIdentityInput{})
 	if err != nil {
 		fmt.Fprintf(GinkgoWriter, msg, err)
 		return

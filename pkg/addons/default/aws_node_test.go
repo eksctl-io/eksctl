@@ -3,7 +3,7 @@ package defaultaddons_test
 import (
 	"context"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	da "github.com/weaveworks/eksctl/pkg/addons/default"
@@ -35,7 +35,7 @@ var _ = Describe("AWS Node", func() {
 			input.ControlPlaneVersion = "1.15.0"
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(input)
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), input)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeFalse())
 		})
@@ -44,7 +44,7 @@ var _ = Describe("AWS Node", func() {
 			loadSamples(rawClient, "testdata/sample-1.16-eksbuild.1.json")
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(input)
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), input)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})
@@ -53,7 +53,7 @@ var _ = Describe("AWS Node", func() {
 			loadSamples(rawClient, "testdata/sample-1.16-v1.7.json")
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(input)
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), input)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})
@@ -65,7 +65,7 @@ var _ = Describe("AWS Node", func() {
 			loadSamples(rawClient, "testdata/sample-1.15.json")
 
 			var err error
-			preUpdateAwsNode, err = rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+			preUpdateAwsNode, err = rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.AWSNode, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -73,10 +73,10 @@ var _ = Describe("AWS Node", func() {
 			It("updates it", func() {
 				input.Region = "us-east-1"
 
-				_, err := da.UpdateAWSNode(input, false)
+				_, err := da.UpdateAWSNode(context.Background(), input, false)
 				Expect(err).NotTo(HaveOccurred())
 
-				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.AWSNode, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
@@ -93,10 +93,10 @@ var _ = Describe("AWS Node", func() {
 			It("updates it and uses the amazonaws.com.cn address", func() {
 				input.Region = "cn-northwest-1"
 
-				_, err := da.UpdateAWSNode(input, false)
+				_, err := da.UpdateAWSNode(context.Background(), input, false)
 				Expect(err).NotTo(HaveOccurred())
 
-				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.AWSNode, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
@@ -112,11 +112,11 @@ var _ = Describe("AWS Node", func() {
 		When("dry run is true", func() {
 			When("it needs an update", func() {
 				It("returns true", func() {
-					needsUpdate, err := da.UpdateAWSNode(input, true)
+					needsUpdate, err := da.UpdateAWSNode(context.Background(), input, true)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(needsUpdate).To(BeTrue())
 
-					awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+					awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.AWSNode, metav1.GetOptions{})
 					Expect(err).NotTo(HaveOccurred())
 					//should be unchanged
 					Expect(awsNode.Spec).To(Equal(preUpdateAwsNode.Spec))
@@ -130,16 +130,16 @@ var _ = Describe("AWS Node", func() {
 					loadSamples(rawClient, "assets/aws-node.yaml")
 
 					var err error
-					preUpdateAwsNode, err = rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+					preUpdateAwsNode, err = rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.AWSNode, metav1.GetOptions{})
 					Expect(err).NotTo(HaveOccurred())
 				})
 
 				It("returns false", func() {
-					needsUpdate, err := da.UpdateAWSNode(input, true)
+					needsUpdate, err := da.UpdateAWSNode(context.Background(), input, true)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(needsUpdate).To(BeFalse())
 
-					awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+					awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.AWSNode, metav1.GetOptions{})
 					Expect(err).NotTo(HaveOccurred())
 					//should be unchanged
 					Expect(awsNode.Spec).To(Equal(preUpdateAwsNode.Spec))

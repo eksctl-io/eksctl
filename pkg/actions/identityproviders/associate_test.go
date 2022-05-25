@@ -1,26 +1,31 @@
 package identityproviders_test
 
 import (
+	"context"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/eks/mocks"
-	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 var _ = Describe("Associate", func() {
-	var eksAPI mocks.EKSAPI
+	var eksAPI *mocksv2.EKS
 	BeforeEach(func() {
-		eksAPI = mocks.EKSAPI{}
-		eksAPI.On("AssociateIdentityProviderConfig", &eks.AssociateIdentityProviderConfigInput{
-			ClusterName: aws.String(""),
-			Oidc: &eks.OidcIdentityProviderConfigRequest{
+		eksAPI = &mocksv2.EKS{}
+		eksAPI.On("AssociateIdentityProviderConfig", mock.Anything, &eks.AssociateIdentityProviderConfigInput{
+			ClusterName: aws.String("idp-test"),
+			Oidc: &ekstypes.OidcIdentityProviderConfigRequest{
 				IdentityProviderConfigName: aws.String("pool-1"),
 				IssuerUrl:                  aws.String("url"),
 				ClientId:                   aws.String("id"),
@@ -28,19 +33,21 @@ var _ = Describe("Associate", func() {
 				UsernamePrefix:             aws.String("usernamePrefix"),
 				GroupsClaim:                aws.String("groupsClaim"),
 				GroupsPrefix:               aws.String("groupsPrefix"),
-				RequiredClaims:             aws.StringMap(map[string]string{"permission": "true"}),
+				RequiredClaims:             map[string]string{"permission": "true"},
 			},
-			Tags: aws.StringMap(map[string]string{"department": "a"}),
+			Tags: map[string]string{"department": "a"},
 		}).Return(&eks.AssociateIdentityProviderConfigOutput{
-			Update: &eks.Update{
+			Update: &ekstypes.Update{
 				Id:   aws.String("1"),
-				Type: aws.String("AssociateIdentityProviderConfig"),
+				Type: ekstypes.UpdateTypeAssociateIdentityProviderConfig,
 			},
 		}, nil)
 	})
 	It("associates with all providers", func() {
-		manager := identityproviders.NewManager(api.ClusterMeta{}, &eksAPI)
-		err := manager.Associate(identityproviders.AssociateIdentityProvidersOptions{
+		manager := identityproviders.NewManager(api.ClusterMeta{
+			Name: "idp-test",
+		}, eksAPI)
+		err := manager.Associate(context.Background(), identityproviders.AssociateIdentityProvidersOptions{
 			Providers: []api.IdentityProvider{
 				{Inner: &api.OIDCIdentityProvider{
 					Name:           "pool-1",
@@ -59,26 +66,24 @@ var _ = Describe("Associate", func() {
 		eksAPI.AssertExpectations(GinkgoT())
 	})
 	It("associates with all providers and waits", func() {
-		manager := identityproviders.NewManager(api.ClusterMeta{}, &eksAPI)
-		client := mockprovider.NewMockAWSClient()
-		updateInput := eks.DescribeUpdateInput{
+		manager := identityproviders.NewManager(api.ClusterMeta{
+			Name: "idp-test",
+		}, eksAPI)
+		updateInput := &eks.DescribeUpdateInput{
 			UpdateId: aws.String("1"),
-			Name:     aws.String(""),
+			Name:     aws.String("idp-test"),
 		}
-		updateOutput := eks.DescribeUpdateOutput{
-			Update: &eks.Update{
-				Status: aws.String(eks.UpdateStatusSuccessful),
-				Type:   aws.String("AssociateIdentityProviderConfig"),
+		updateOutput := &eks.DescribeUpdateOutput{
+			Update: &ekstypes.Update{
+				Status: ekstypes.UpdateStatusSuccessful,
+				Type:   ekstypes.UpdateTypeAssociateIdentityProviderConfig,
 			},
 		}
-		eksAPI.On("DescribeUpdateRequest", &updateInput).Return(
-			client.MockRequestForGivenOutput(&updateInput, &updateOutput), &updateOutput,
-		)
-		wait := 1 * time.Minute
-		err := manager.Associate(identityproviders.AssociateIdentityProvidersOptions{
-			WaitTimeout: &wait,
+		eksAPI.On("DescribeUpdate", mock.Anything, updateInput, mock.Anything).Return(updateOutput, nil)
+		err := manager.Associate(context.Background(), identityproviders.AssociateIdentityProvidersOptions{
+			WaitTimeout: 1 * time.Minute,
 			Providers: []api.IdentityProvider{
-				api.IdentityProvider{Inner: &api.OIDCIdentityProvider{
+				{Inner: &api.OIDCIdentityProvider{
 					Name:           "pool-1",
 					IssuerURL:      "url",
 					ClientID:       "id",

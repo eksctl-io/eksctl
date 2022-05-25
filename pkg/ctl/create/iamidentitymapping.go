@@ -1,6 +1,7 @@
 package create
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -74,7 +75,8 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}

@@ -1,35 +1,25 @@
 package cmdutils
 
 import (
-	"github.com/pkg/errors"
+	"context"
+
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 // KubernetesClientAndConfigFrom returns a Kubernetes client set and REST
 // configuration object for the currently configured cluster.
-func KubernetesClientAndConfigFrom(cmd *Cmd) (*kubernetes.Clientset, *rest.Config, error) {
-	ctl, err := cmd.NewProviderForExistingCluster()
+func KubernetesClientAndConfigFrom(cmd *Cmd) (*kubernetes.Clientset, error) {
+	ctl, err := cmd.NewProviderForExistingCluster(context.TODO())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	cfg := cmd.ClusterConfig
 	if ok, err := ctl.CanOperate(cfg); !ok {
-		return nil, nil, err
+		return nil, err
 	}
-	kubernetesClientConfigs, err := ctl.NewClient(cfg)
+	k8sClientSet, err := ctl.NewStdClientSet(cfg)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	k8sConfig := kubernetesClientConfigs.Config
-	k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "cannot create Kubernetes client configuration")
-	}
-	k8sClientSet, err := kubernetes.NewForConfig(k8sRestConfig)
-	if err != nil {
-		return nil, nil, errors.Errorf("cannot create Kubernetes client set: %s", err)
-	}
-	return k8sClientSet, k8sRestConfig, nil
+	return k8sClientSet, nil
 }

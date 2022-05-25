@@ -65,7 +65,8 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction boo
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 	printer := printers.NewJSONPrinter()
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		if !force {
 			return err
@@ -84,7 +85,6 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction boo
 		return err
 	}
 
-	ctx := context.TODO()
 	cluster, err := cluster.New(ctx, cfg, ctl)
 	if err != nil {
 		return err
@@ -92,5 +92,5 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction boo
 
 	// ProviderConfig.WaitTimeout is not respected by cluster.Delete, which means the operation will never time out.
 	// When this is fixed, a deadline-based Context can be used here.
-	return cluster.Delete(context.TODO(), time.Second*20, podEvictionWaitPeriod, cmd.Wait, force, disableNodegroupEviction, parallel)
+	return cluster.Delete(ctx, 20*time.Second, podEvictionWaitPeriod, cmd.Wait, force, disableNodegroupEviction, parallel)
 }

@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"net"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
 
 	"github.com/kris-nova/logger"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
@@ -74,10 +75,10 @@ var _ = Describe("Create", func() {
 			fakeStackManager = &fakes.FakeStackManager{}
 			fakeKarpenterInstaller = &karpenterfakes.FakeChartInstaller{}
 			ctl = &eks.ClusterProvider{
-				Provider: p,
+				AWSProvider: p,
 				Status: &eks.ProviderStatus{
 					ClusterInfo: &eks.ClusterInfo{
-						Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
+						Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive),
 					},
 				},
 			}
@@ -124,7 +125,7 @@ var _ = Describe("Create", func() {
 				p = mockprovider.NewMockProvider()
 				p.MockEC2().On("CreateTags", mock.Anything, mock.Anything).Return(nil, errors.New("nope"))
 				ctl = &eks.ClusterProvider{
-					Provider: p,
+					AWSProvider: p,
 					Status: &eks.ProviderStatus{
 						ClusterInfo: &eks.ClusterInfo{
 							Cluster: testutils.NewFakeCluster(clusterName, ""),

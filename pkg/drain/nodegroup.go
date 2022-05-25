@@ -16,6 +16,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/eks"
 
 	cmap "github.com/orcaman/concurrent-map"
@@ -41,14 +42,13 @@ type NodeGroupDrainer struct {
 	clientSet             kubernetes.Interface
 	evictor               Evictor
 	ng                    eks.KubeNodeGroup
-	waitTimeout           time.Duration
 	nodeDrainWaitPeriod   time.Duration
 	podEvictionWaitPeriod time.Duration
 	undo                  bool
 	parallel              int
 }
 
-func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout, maxGracePeriod, nodeDrainWaitPeriod time.Duration, podEvictionWaitPeriod time.Duration, undo, disableEviction bool, parallel int) NodeGroupDrainer {
+func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, maxGracePeriod, nodeDrainWaitPeriod time.Duration, podEvictionWaitPeriod time.Duration, undo, disableEviction bool, parallel int) NodeGroupDrainer {
 	ignoreDaemonSets := []metav1.ObjectMeta{
 		{
 			Namespace: "kube-system",
@@ -79,7 +79,6 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, w
 		evictor:               evictor.New(clientSet, maxGracePeriod, ignoreDaemonSets, disableEviction),
 		clientSet:             clientSet,
 		ng:                    ng,
-		waitTimeout:           waitTimeout,
 		nodeDrainWaitPeriod:   nodeDrainWaitPeriod,
 		podEvictionWaitPeriod: podEvictionWaitPeriod,
 		undo:                  undo,
@@ -88,7 +87,7 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, w
 }
 
 // Drain drains a nodegroup
-func (n *NodeGroupDrainer) Drain() error {
+func (n *NodeGroupDrainer) Drain(ctx context.Context) error {
 	if err := n.evictor.CanUseEvictions(); err != nil {
 		return errors.Wrap(err, "checking if cluster implements policy API")
 	}
@@ -110,8 +109,6 @@ func (n *NodeGroupDrainer) Drain() error {
 	}
 
 	drainedNodes := cmap.New()
-	ctx, cancel := context.WithTimeout(context.TODO(), n.waitTimeout)
-	defer cancel()
 
 	parallelLimit := int64(n.parallel)
 	sem := semaphore.NewWeighted(parallelLimit)
@@ -124,7 +121,7 @@ func (n *NodeGroupDrainer) Drain() error {
 		case <-ctx.Done():
 			//need to use a different context
 			waitForAllRoutinesToFinish(context.TODO(), sem, parallelLimit)
-			return fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", n.waitTimeout, n.ng.NameString())
+			return fmt.Errorf("timed out waiting for nodegroup %q to be drained", n.ng.NameString())
 		default:
 			if evictErr != nil {
 				return evictErr
@@ -192,11 +189,10 @@ func waitForAllRoutinesToFinish(ctx context.Context, sem *semaphore.Weighted, si
 }
 
 func mapToList(m map[string]interface{}) []string {
-	list := []string{}
+	var list []string
 	for key := range m {
 		list = append(list, key)
 	}
-
 	return list
 }
 
@@ -225,7 +221,7 @@ func (n *NodeGroupDrainer) evictPods(ctx context.Context, node string) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("timed out (after %s) waiting for node %q to be drained", n.waitTimeout, node)
+			return fmt.Errorf("timed out waiting for node %q to be drained", node)
 		default:
 			list, errs := n.evictor.GetPodsForEviction(node)
 			if len(errs) > 0 {

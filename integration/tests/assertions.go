@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
+	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
 	. "github.com/onsi/gomega"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -60,10 +60,10 @@ func AssertNodeVolumes(kubeConfig, region, nodeGroupName, volumeName string) {
 		)
 		instanceIDs = append(instanceIDs, id)
 	}
-	awsSession := matchers.NewSession(region)
-	ec2 := awsec2.New(awsSession)
-	instances, err := ec2.DescribeInstances(&awsec2.DescribeInstancesInput{
-		InstanceIds: aws.StringSlice(instanceIDs),
+	cfg := matchers.NewConfig(region)
+	ec2 := awsec2.NewFromConfig(cfg)
+	instances, err := ec2.DescribeInstances(context.Background(), &awsec2.DescribeInstancesInput{
+		InstanceIds: instanceIDs,
 	})
 	Expect(err).NotTo(HaveOccurred())
 	for _, res := range instances.Reservations {

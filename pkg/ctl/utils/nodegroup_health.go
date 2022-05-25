@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -40,7 +42,8 @@ func nodeGroupHealthCmd(cmd *cmdutils.Cmd) {
 func getNodeGroupHealth(cmd *cmdutils.Cmd, nodeGroupName string) error {
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -60,13 +63,13 @@ func getNodeGroupHealth(cmd *cmdutils.Cmd, nodeGroupName string) error {
 		return cmdutils.ErrMustBeSet("name")
 	}
 
-	if err := ctl.RefreshClusterStatus(cfg); err != nil {
+	if err := ctl.RefreshClusterStatus(ctx, cfg); err != nil {
 		return err
 	}
 
-	stackCollection := manager.NewStackCollection(ctl.Provider, cfg)
-	managedService := managed.NewService(ctl.Provider.EKS(), ctl.Provider.EC2(), stackCollection, cfg.Metadata.Name)
-	healthIssues, err := managedService.GetHealth(nodeGroupName)
+	stackCollection := manager.NewStackCollection(ctl.AWSProvider, cfg)
+	managedService := managed.NewService(ctl.AWSProvider.EKS(), ctl.AWSProvider.EC2(), stackCollection, cfg.Metadata.Name)
+	healthIssues, err := managedService.GetHealth(ctx, nodeGroupName)
 	if err != nil {
 		return err
 	}

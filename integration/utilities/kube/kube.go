@@ -6,7 +6,7 @@ package kube
 import (
 	harness "github.com/dlespiau/kube-test-harness"
 	"github.com/dlespiau/kube-test-harness/logger"
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 )
 
 type tHelper struct{ ginkgo.GinkgoTInterface }

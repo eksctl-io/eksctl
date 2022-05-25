@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
@@ -46,11 +46,11 @@ var _ = Describe("Get", func() {
 		When("it succeeds", func() {
 			BeforeEach(func() {
 
-				intialProvider.MockEKS().On("ListClusters", &awseks.ListClustersInput{
-					MaxResults: aws.Int64(100),
-					Include:    aws.StringSlice([]string{"all"}),
+				intialProvider.MockEKS().On("ListClusters", mock.Anything, &awseks.ListClustersInput{
+					MaxResults: aws.Int32(100),
+					Include:    []string{"all"},
 				}).Return(&awseks.ListClustersOutput{
-					Clusters: aws.StringSlice([]string{"cluster1", "cluster2", "cluster3"}),
+					Clusters: []string{"cluster1", "cluster2", "cluster3"},
 				}, nil)
 
 				stackManager.ListClusterStackNamesReturns(nil, nil)
@@ -107,9 +107,9 @@ var _ = Describe("Get", func() {
 
 		When("ListClusters errors", func() {
 			BeforeEach(func() {
-				intialProvider.MockEKS().On("ListClusters", &awseks.ListClustersInput{
-					MaxResults: aws.Int64(100),
-					Include:    aws.StringSlice([]string{"all"}),
+				intialProvider.MockEKS().On("ListClusters", mock.Anything, &awseks.ListClustersInput{
+					MaxResults: aws.Int32(100),
+					Include:    []string{"all"},
 				}).Return(nil, fmt.Errorf("foo"))
 			})
 
@@ -142,8 +142,8 @@ var _ = Describe("Get", func() {
 
 		When("it succeeds", func() {
 			BeforeEach(func() {
-				awsProvider.ReturnsOnCall(0, &eks.ClusterProvider{Provider: providerRegion1}, nil)
-				awsProvider.ReturnsOnCall(1, &eks.ClusterProvider{Provider: providerRegion2}, nil)
+				awsProvider.ReturnsOnCall(0, &eks.ClusterProvider{AWSProvider: providerRegion1}, nil)
+				awsProvider.ReturnsOnCall(1, &eks.ClusterProvider{AWSProvider: providerRegion2}, nil)
 				intialProvider.MockEC2().On("DescribeRegions", mock.Anything, &ec2.DescribeRegionsInput{}).Return(&ec2.DescribeRegionsOutput{
 					Regions: []ec2types.Region{
 						{
@@ -155,18 +155,18 @@ var _ = Describe("Get", func() {
 					},
 				}, nil)
 
-				providerRegion1.MockEKS().On("ListClusters", &awseks.ListClustersInput{
-					MaxResults: aws.Int64(100),
-					Include:    aws.StringSlice([]string{"all"}),
+				providerRegion1.MockEKS().On("ListClusters", mock.Anything, &awseks.ListClustersInput{
+					MaxResults: aws.Int32(100),
+					Include:    []string{"all"},
 				}).Return(&awseks.ListClustersOutput{
-					Clusters: aws.StringSlice([]string{"cluster1"}),
+					Clusters: []string{"cluster1"},
 				}, nil)
 
-				providerRegion2.MockEKS().On("ListClusters", &awseks.ListClustersInput{
-					MaxResults: aws.Int64(100),
-					Include:    aws.StringSlice([]string{"all"}),
+				providerRegion2.MockEKS().On("ListClusters", mock.Anything, &awseks.ListClustersInput{
+					MaxResults: aws.Int32(100),
+					Include:    []string{"all"},
 				}).Return(&awseks.ListClustersOutput{
-					Clusters: aws.StringSlice([]string{"cluster2"}),
+					Clusters: []string{"cluster2"},
 				}, nil)
 
 				stackManagerRegion1.ListClusterStackNamesReturns(nil, nil)
@@ -226,7 +226,7 @@ var _ = Describe("Get", func() {
 
 		When("error occurs in a region", func() {
 			BeforeEach(func() {
-				awsProvider.ReturnsOnCall(0, &eks.ClusterProvider{Provider: providerRegion1}, nil)
+				awsProvider.ReturnsOnCall(0, &eks.ClusterProvider{AWSProvider: providerRegion1}, nil)
 				awsProvider.ReturnsOnCall(1, nil, fmt.Errorf("foo"))
 				intialProvider.MockEC2().On("DescribeRegions", mock.Anything, &ec2.DescribeRegionsInput{}).Return(&ec2.DescribeRegionsOutput{
 					Regions: []ec2types.Region{
@@ -239,11 +239,11 @@ var _ = Describe("Get", func() {
 					},
 				}, nil)
 
-				providerRegion1.MockEKS().On("ListClusters", &awseks.ListClustersInput{
-					MaxResults: aws.Int64(100),
-					Include:    aws.StringSlice([]string{"all"}),
+				providerRegion1.MockEKS().On("ListClusters", mock.Anything, &awseks.ListClustersInput{
+					MaxResults: aws.Int32(100),
+					Include:    []string{"all"},
 				}).Return(&awseks.ListClustersOutput{
-					Clusters: aws.StringSlice([]string{"cluster1"}),
+					Clusters: []string{"cluster1"},
 				}, nil)
 
 				stackManagerRegion1.ListClusterStackNamesReturns(nil, nil)

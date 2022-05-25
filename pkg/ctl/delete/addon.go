@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -46,14 +48,15 @@ func deleteAddon(cmd *cmdutils.Cmd, preserve bool) error {
 		return err
 	}
 
-	clusterProvider, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	clusterProvider, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
 
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
 
-	output, err := clusterProvider.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+	output, err := clusterProvider.AWSProvider.EKS().DescribeCluster(ctx, &awseks.DescribeClusterInput{
 		Name: &cmd.ClusterConfig.Metadata.Name,
 	})
 
@@ -64,15 +67,15 @@ func deleteAddon(cmd *cmdutils.Cmd, preserve bool) error {
 	logger.Info("Kubernetes version %q in use by cluster %q", *output.Cluster.Version, cmd.ClusterConfig.Metadata.Name)
 	cmd.ClusterConfig.Metadata.Version = *output.Cluster.Version
 
-	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.Provider.EKS(), stackManager, *cmd.ClusterConfig.IAM.WithOIDC, nil, nil, cmd.ProviderConfig.WaitTimeout)
+	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.AWSProvider.EKS(), stackManager, *cmd.ClusterConfig.IAM.WithOIDC, nil, nil)
 
 	if err != nil {
 		return err
 	}
 
 	if preserve {
-		return addonManager.DeleteWithPreserve(cmd.ClusterConfig.Addons[0])
+		return addonManager.DeleteWithPreserve(ctx, cmd.ClusterConfig.Addons[0])
 	}
 
-	return addonManager.Delete(context.TODO(), cmd.ClusterConfig.Addons[0])
+	return addonManager.Delete(ctx, cmd.ClusterConfig.Addons[0])
 }

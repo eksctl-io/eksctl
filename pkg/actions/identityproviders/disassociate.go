@@ -1,20 +1,24 @@
 package identityproviders
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks/waiter"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
 type DisassociateIdentityProvidersOptions struct {
 	Providers   []DisassociateIdentityProvider
-	WaitTimeout *time.Duration
+	WaitTimeout time.Duration
 }
 
 type DisassociateIdentityProvider struct {
@@ -22,7 +26,7 @@ type DisassociateIdentityProvider struct {
 	Type api.IdentityProviderType
 }
 
-func (m *Manager) Disassociate(options DisassociateIdentityProvidersOptions) error {
+func (m *Manager) Disassociate(ctx context.Context, options DisassociateIdentityProvidersOptions) error {
 	taskTree := tasks.TaskTree{
 		Parallel: true,
 	}
@@ -31,7 +35,7 @@ func (m *Manager) Disassociate(options DisassociateIdentityProvidersOptions) err
 		taskTree.Append(&tasks.GenericTask{
 			Description: fmt.Sprintf("disassociate %s", idP.Name),
 			Doer: func() error {
-				idPConfig := eks.IdentityProviderConfig{
+				idPConfig := ekstypes.IdentityProviderConfig{
 					Name: aws.String(idP.Name),
 					Type: aws.String(string(idP.Type)),
 				}
@@ -39,11 +43,11 @@ func (m *Manager) Disassociate(options DisassociateIdentityProvidersOptions) err
 					ClusterName:            aws.String(m.metadata.Name),
 					IdentityProviderConfig: &idPConfig,
 				}
-				idPDescription, err := m.eksAPI.DescribeIdentityProviderConfig(&describeInput)
+				idPDescription, err := m.eksAPI.DescribeIdentityProviderConfig(ctx, &describeInput)
 				if err != nil {
 					return err
 				}
-				if aws.StringValue(idPDescription.IdentityProviderConfig.Oidc.Status) == "DELETING" {
+				if idPDescription.IdentityProviderConfig.Oidc.Status == ekstypes.ConfigStatusDeleting {
 					logger.Warning("provider already deleting")
 					return nil
 				}
@@ -53,7 +57,7 @@ func (m *Manager) Disassociate(options DisassociateIdentityProvidersOptions) err
 					IdentityProviderConfig: &idPConfig,
 				}
 
-				update, err := m.eksAPI.DisassociateIdentityProviderConfig(&disassociateInput)
+				update, err := m.eksAPI.DisassociateIdentityProviderConfig(ctx, &disassociateInput)
 				if err != nil {
 					return err
 				}
@@ -61,8 +65,14 @@ func (m *Manager) Disassociate(options DisassociateIdentityProvidersOptions) err
 
 				logger.Info("started disassociating identity provider %s", idP.Name)
 
-				if options.WaitTimeout != nil {
-					if err := m.waitForUpdate(*update.Update, *options.WaitTimeout); err != nil {
+				if options.WaitTimeout > 0 {
+					updateWaiter := waiter.NewUpdateWaiter(m.eksAPI, func(options *waiter.UpdateWaiterOptions) {
+						options.RetryAttemptLogMessage = "waiting for update %q in cluster %q to succeed"
+					})
+					if err := updateWaiter.Wait(ctx, &eks.DescribeUpdateInput{
+						Name:     aws.String(m.metadata.Name),
+						UpdateId: update.Update.Id,
+					}, options.WaitTimeout); err != nil {
 						return err
 					}
 				}

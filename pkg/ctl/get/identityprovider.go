@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"os"
 
 	"github.com/kris-nova/logger"
@@ -50,7 +51,8 @@ func doGetIdentityProvider(cmd *cmdutils.Cmd, params getCmdParams, name string) 
 		logger.Writer = os.Stderr
 	}
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -62,12 +64,10 @@ func doGetIdentityProvider(cmd *cmdutils.Cmd, params getCmdParams, name string) 
 
 	manager := identityproviders.NewManager(
 		*cfg.Metadata,
-		ctl.Provider.EKS(),
+		ctl.AWSProvider.EKS(),
 	)
 
-	summaries, err := manager.Get(
-		identityproviders.GetIdentityProvidersOptions{Name: name},
-	)
+	summaries, err := manager.Get(ctx, identityproviders.GetIdentityProvidersOptions{Name: name})
 	if err != nil {
 		return err
 	}
@@ -78,13 +78,13 @@ func doGetIdentityProvider(cmd *cmdutils.Cmd, params getCmdParams, name string) 
 	}
 
 	if params.output == printers.TableType {
-		addIdentityProviderTableColumns(printer.(*printers.TablePrinter), len(summaries))
+		addIdentityProviderTableColumns(printer.(*printers.TablePrinter))
 	}
 
 	return printer.PrintObjWithKind("identity provider summary", summaries, os.Stdout)
 }
 
-func addIdentityProviderTableColumns(printer *printers.TablePrinter, num int) {
+func addIdentityProviderTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("NAME", func(s identityproviders.Summary) string {
 		return s.Name
 	})

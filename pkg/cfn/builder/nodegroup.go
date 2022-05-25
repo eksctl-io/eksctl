@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/pkg/errors"
+
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
@@ -235,7 +237,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) err
 		LaunchTemplateData: launchTemplateData,
 	})
 
-	vpcZoneIdentifier, err := AssignSubnets(ctx, n.spec.NodeGroupBase, n.vpcImporter, n.clusterSpec, n.ec2API)
+	vpcZoneIdentifier, err := AssignSubnets(ctx, n.spec, n.vpcImporter, n.clusterSpec, n.ec2API)
 	if err != nil {
 		return err
 	}
@@ -328,34 +330,24 @@ func generateNodeName(ng *api.NodeGroupBase, meta *api.ClusterMeta) string {
 	return strings.Join(nameParts, "")
 }
 
-// AssignSubnets subnets based on the specified availability zones
-func AssignSubnets(ctx context.Context, spec *api.NodeGroupBase, vpcImporter vpc.Importer, clusterSpec *api.ClusterConfig, ec2API awsapi.EC2) (*gfnt.Value, error) {
+// AssignSubnets assigns subnets based on the availability zones, local zones and subnet IDs in the specified nodegroup.
+func AssignSubnets(ctx context.Context, np api.NodePool, vpcImporter vpc.Importer, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2) (*gfnt.Value, error) {
 	// Currently, goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 
-	if len(spec.AvailabilityZones) > 0 || len(spec.Subnets) > 0 || api.IsEnabled(spec.EFAEnabled) {
-		subnets := clusterSpec.VPC.Subnets.Public
-		typ := "public"
-		if spec.PrivateNetworking {
-			subnets = clusterSpec.VPC.Subnets.Private
-			typ = "private"
+	ng := np.BaseNodeGroup()
+	if nodeGroup, ok := np.(*api.NodeGroup); (!ok || len(nodeGroup.LocalZones) == 0) && len(ng.AvailabilityZones) == 0 && len(ng.Subnets) == 0 {
+		if ng.PrivateNetworking {
+			return vpcImporter.SubnetsPrivate(), nil
 		}
-		subnetIDs, err := vpc.SelectNodeGroupSubnets(ctx, spec.AvailabilityZones, spec.Subnets, subnets, ec2API, clusterSpec.VPC.ID)
-		if api.IsEnabled(spec.EFAEnabled) && len(subnetIDs) > 1 {
-			subnetIDs = []string{subnetIDs[0]}
-			logger.Info("EFA requires all nodes be in a single subnet, arbitrarily choosing one: %s", subnetIDs)
-		}
-		return gfnt.NewStringSlice(subnetIDs...), errors.Wrapf(err, "couldn't find %s subnets", typ)
+		return vpcImporter.SubnetsPublic(), nil
 	}
 
-	var subnets *gfnt.Value
-	if spec.PrivateNetworking {
-		subnets = vpcImporter.SubnetsPrivate()
-	} else {
-		subnets = vpcImporter.SubnetsPublic()
+	subnetIDs, err := vpc.SelectNodeGroupSubnets(ctx, np, clusterConfig, ec2API)
+	if err != nil {
+		return nil, err
 	}
-
-	return subnets, nil
+	return gfnt.NewStringSlice(subnetIDs...), nil
 }
 
 // GetAllOutputs collects all outputs of the nodegroup

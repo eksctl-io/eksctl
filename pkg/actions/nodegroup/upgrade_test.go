@@ -3,14 +3,16 @@ package nodegroup_test
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/stretchr/testify/mock"
 	"k8s.io/client-go/kubernetes/fake"
 
@@ -41,7 +43,7 @@ var _ = Describe("Upgrade", func() {
 		cfg.Metadata.Name = clusterName
 		p = mockprovider.NewMockProvider()
 		fakeClientSet = fake.NewSimpleClientset()
-		m = nodegroup.New(cfg, &eks.ClusterProvider{Provider: p}, fakeClientSet)
+		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, fakeClientSet, nil)
 
 		fakeStackManager = new(fakes.FakeStackManager)
 		m.SetStackManager(fakeStackManager)
@@ -56,28 +58,28 @@ var _ = Describe("Upgrade", func() {
 	When("the nodegroup does not have a stack", func() {
 		When("launchTemplate Id is set", func() {
 			BeforeEach(func() {
-				p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+				p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 					ClusterName:   aws.String(clusterName),
 					NodegroupName: aws.String(ngName),
 				}).Return(&awseks.DescribeNodegroupOutput{
-					Nodegroup: &awseks.Nodegroup{
+					Nodegroup: &ekstypes.Nodegroup{
 						NodegroupName: aws.String(ngName),
 						ClusterName:   aws.String(clusterName),
-						Status:        aws.String("my-status"),
-						AmiType:       aws.String("ami-type"),
+						Status:        "my-status",
+						AmiType:       "ami-type",
 						Version:       aws.String("1.20"),
-						LaunchTemplate: &awseks.LaunchTemplateSpecification{
+						LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
 							Id: aws.String("id-123"),
 						},
 					},
 				}, nil)
 
-				p.MockEKS().On("UpdateNodegroupVersion", &awseks.UpdateNodegroupVersionInput{
+				p.MockEKS().On("UpdateNodegroupVersion", mock.Anything, &awseks.UpdateNodegroupVersionInput{
 					NodegroupName: aws.String(ngName),
 					ClusterName:   aws.String(clusterName),
-					Force:         aws.Bool(false),
+					Force:         false,
 					Version:       aws.String("1.21"),
-					LaunchTemplate: &awseks.LaunchTemplateSpecification{
+					LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
 						Id:      aws.String("id-123"),
 						Version: aws.String("v2"),
 					},
@@ -90,30 +92,30 @@ var _ = Describe("Upgrade", func() {
 			})
 		})
 
-		When("launchTemplate Name is set", func() {
+		When("launchTemplate name is set", func() {
 			BeforeEach(func() {
-				p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+				p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 					ClusterName:   aws.String(clusterName),
 					NodegroupName: aws.String(ngName),
 				}).Return(&awseks.DescribeNodegroupOutput{
-					Nodegroup: &awseks.Nodegroup{
+					Nodegroup: &ekstypes.Nodegroup{
 						NodegroupName: aws.String(ngName),
 						ClusterName:   aws.String(clusterName),
-						Status:        aws.String("my-status"),
-						AmiType:       aws.String("AL2_x86_64"),
+						Status:        "my-status",
+						AmiType:       ekstypes.AMITypesAl2X8664,
 						Version:       aws.String("1.20"),
-						LaunchTemplate: &awseks.LaunchTemplateSpecification{
+						LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
 							Name: aws.String("lt"),
 						},
 					},
 				}, nil)
 
-				p.MockEKS().On("UpdateNodegroupVersion", &awseks.UpdateNodegroupVersionInput{
+				p.MockEKS().On("UpdateNodegroupVersion", mock.Anything, &awseks.UpdateNodegroupVersionInput{
 					NodegroupName: aws.String(ngName),
 					ClusterName:   aws.String(clusterName),
-					Force:         aws.Bool(false),
+					Force:         false,
 					Version:       aws.String("1.21"),
-					LaunchTemplate: &awseks.LaunchTemplateSpecification{
+					LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
 						Name:    aws.String("lt"),
 						Version: aws.String("v2"),
 					},
@@ -146,15 +148,15 @@ var _ = Describe("Upgrade", func() {
 
 					fakeStackManager.UpdateNodeGroupStackReturns(nil)
 
-					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+					p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
 						NodegroupName: aws.String(ngName),
 					}).Return(&awseks.DescribeNodegroupOutput{
-						Nodegroup: &awseks.Nodegroup{
+						Nodegroup: &ekstypes.Nodegroup{
 							NodegroupName:  aws.String(ngName),
 							ClusterName:    aws.String(clusterName),
-							Status:         aws.String("my-status"),
-							AmiType:        aws.String("AL2_x86_64"),
+							Status:         "my-status",
+							AmiType:        ekstypes.AMITypesAl2X8664,
 							Version:        aws.String("1.20"),
 							ReleaseVersion: aws.String("1.20-20201212"),
 						},
@@ -208,15 +210,15 @@ var _ = Describe("Upgrade", func() {
 
 					fakeStackManager.UpdateNodeGroupStackReturns(nil)
 
-					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+					p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
 						NodegroupName: aws.String(ngName),
 					}).Return(&awseks.DescribeNodegroupOutput{
-						Nodegroup: &awseks.Nodegroup{
+						Nodegroup: &ekstypes.Nodegroup{
 							NodegroupName:  aws.String(ngName),
 							ClusterName:    aws.String(clusterName),
-							Status:         aws.String("my-status"),
-							AmiType:        aws.String("AL2_x86_64_GPU"),
+							Status:         "my-status",
+							AmiType:        ekstypes.AMITypesAl2X8664Gpu,
 							Version:        aws.String("1.20"),
 							ReleaseVersion: aws.String("1.20-20201212"),
 						},
@@ -264,15 +266,15 @@ var _ = Describe("Upgrade", func() {
 
 					fakeStackManager.UpdateNodeGroupStackReturns(nil)
 
-					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+					p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
 						NodegroupName: aws.String(ngName),
 					}).Return(&awseks.DescribeNodegroupOutput{
-						Nodegroup: &awseks.Nodegroup{
+						Nodegroup: &ekstypes.Nodegroup{
 							NodegroupName:  aws.String(ngName),
 							ClusterName:    aws.String(clusterName),
-							Status:         aws.String("my-status"),
-							AmiType:        aws.String("BOTTLEROCKET_x86_64"),
+							Status:         "my-status",
+							AmiType:        ekstypes.AMITypesBottlerocketX8664,
 							Version:        aws.String("1.20"),
 							ReleaseVersion: aws.String("1.20-20201212"),
 						},

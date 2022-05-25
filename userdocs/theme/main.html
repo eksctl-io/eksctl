@@ -1,14 +1,7 @@
 {% extends "base.html" %}
 
 {% block announce %}
-eksctl now creates managed nodegroups when a config file isn't specified.  <a class="md-button md-button--primary" href="/usage/managed-nodegroups-announcement">Read more</a>
-eksctl now requires supplying an `overrideBootstrapCommand` for unmanaged nodegroups when using a custom AMI. <a class="md-button md-button--primary" href="/usage/nodegroup-override-announcement">Read more</a>
+<p> eksctl now requires supplying an overrideBootstrapCommand for unmanaged nodegroups when using a custom AMI. <a class="md-button md-button--primary" href="/announcements/nodegroup-override-announcement">Read more</a></p>
 {% endblock %}
 
-{% set extracopyright %}
 
-<div class="md-footer-copyright__highlight">
-Copyright &copy; {{ build_date_utc.strftime('%Y') }} Weaveworks
-</div>
-
-{% endset %}

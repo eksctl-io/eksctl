@@ -1,12 +1,15 @@
 package nodegroup
 
 import (
-	"errors"
+	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -38,32 +41,32 @@ var _ = Describe("Update", func() {
 	})
 
 	It("fails for unmanaged nodegroups", func() {
-		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+		p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 			ClusterName:   &clusterName,
 			NodegroupName: &ngName,
-		}).Return(nil, awserr.New(awseks.ErrCodeResourceNotFoundException, "test-err", errors.New("err")))
+		}).Return(nil, &ekstypes.ResourceNotFoundException{})
 
-		m = New(cfg, &eks.ClusterProvider{Provider: p}, nil)
-		err := m.Update()
+		m = New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil, nil)
+		err := m.Update(context.Background())
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(MatchError(ContainSubstring("could not find managed nodegroup with name \"my-ng\"")))
 	})
 
 	It("[happy path] successfully updates a nodegroup with updateConfig and maxUnavailable", func() {
-		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+		p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 			ClusterName:   &clusterName,
 			NodegroupName: &ngName,
 		}).Return(&awseks.DescribeNodegroupOutput{
-			Nodegroup: &awseks.Nodegroup{
-				UpdateConfig: &awseks.NodegroupUpdateConfig{
-					MaxUnavailable: aws.Int64(4),
+			Nodegroup: &ekstypes.Nodegroup{
+				UpdateConfig: &ekstypes.NodegroupUpdateConfig{
+					MaxUnavailable: aws.Int32(4),
 				},
 			},
 		}, nil)
 
-		p.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
-			UpdateConfig: &awseks.NodegroupUpdateConfig{
-				MaxUnavailable: aws.Int64(6),
+		p.MockEKS().On("UpdateNodegroupConfig", mock.Anything, &awseks.UpdateNodegroupConfigInput{
+			UpdateConfig: &ekstypes.NodegroupUpdateConfig{
+				MaxUnavailable: aws.Int32(6),
 			},
 			ClusterName:   &clusterName,
 			NodegroupName: &ngName,
@@ -73,45 +76,45 @@ var _ = Describe("Update", func() {
 			MaxUnavailable: aws.Int(6),
 		}
 
-		m = New(cfg, &eks.ClusterProvider{Provider: p}, nil)
-		err := m.Update()
+		m = New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil, nil)
+		err := m.Update(context.Background())
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("[happy path] successfully updates multiple nodegroups with updateConfig and maxUnavailable", func() {
-		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+		p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 			ClusterName:   &clusterName,
 			NodegroupName: &ngName,
 		}).Return(&awseks.DescribeNodegroupOutput{
-			Nodegroup: &awseks.Nodegroup{
-				UpdateConfig: &awseks.NodegroupUpdateConfig{
-					MaxUnavailable: aws.Int64(4),
+			Nodegroup: &ekstypes.Nodegroup{
+				UpdateConfig: &ekstypes.NodegroupUpdateConfig{
+					MaxUnavailable: aws.Int32(4),
 				},
 			},
 		}, nil)
 
-		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+		p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 			ClusterName:   &clusterName,
 			NodegroupName: aws.String("ng-2"),
 		}).Return(&awseks.DescribeNodegroupOutput{
-			Nodegroup: &awseks.Nodegroup{
-				UpdateConfig: &awseks.NodegroupUpdateConfig{
-					MaxUnavailable: aws.Int64(4),
+			Nodegroup: &ekstypes.Nodegroup{
+				UpdateConfig: &ekstypes.NodegroupUpdateConfig{
+					MaxUnavailable: aws.Int32(4),
 				},
 			},
 		}, nil)
 
-		p.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
-			UpdateConfig: &awseks.NodegroupUpdateConfig{
-				MaxUnavailable: aws.Int64(6),
+		p.MockEKS().On("UpdateNodegroupConfig", mock.Anything, &awseks.UpdateNodegroupConfigInput{
+			UpdateConfig: &ekstypes.NodegroupUpdateConfig{
+				MaxUnavailable: aws.Int32(6),
 			},
 			ClusterName:   &clusterName,
 			NodegroupName: &ngName,
 		}).Return(nil, nil)
 
-		p.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
-			UpdateConfig: &awseks.NodegroupUpdateConfig{
-				MaxUnavailable: aws.Int64(6),
+		p.MockEKS().On("UpdateNodegroupConfig", mock.Anything, &awseks.UpdateNodegroupConfigInput{
+			UpdateConfig: &ekstypes.NodegroupUpdateConfig{
+				MaxUnavailable: aws.Int32(6),
 			},
 			ClusterName:   &clusterName,
 			NodegroupName: aws.String("ng-2"),
@@ -132,8 +135,8 @@ var _ = Describe("Update", func() {
 
 		cfg.ManagedNodeGroups = append(cfg.ManagedNodeGroups, newNg)
 
-		m = New(cfg, &eks.ClusterProvider{Provider: p}, nil)
-		err := m.Update()
+		m = New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil, nil)
+		err := m.Update(context.Background())
 		Expect(err).NotTo(HaveOccurred())
 	})
 })

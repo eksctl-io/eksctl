@@ -8,8 +8,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awscredentials "github.com/aws/aws-sdk-go/aws/credentials"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
+
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
@@ -73,7 +73,7 @@ var _ = Describe("FileCacheV2", func() {
 		}
 		Expect(err).NotTo(HaveOccurred())
 
-		_, err = f.Retrieve(context.TODO())
+		_, err = f.Retrieve(context.Background())
 		if e.expectedRetrieveErr != "" {
 			Expect(err).To(MatchError(ContainSubstring(e.expectedRetrieveErr)))
 			return

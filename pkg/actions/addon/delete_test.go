@@ -3,15 +3,18 @@ package addon_test
 import (
 	"context"
 	"fmt"
-	"time"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/smithy-go"
-	. "github.com/onsi/ginkgo"
+	"github.com/stretchr/testify/mock"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
@@ -38,19 +41,19 @@ var _ = Describe("Delete", func() {
 			manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 				Version: "1.18",
 				Name:    "my-cluster",
-			}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil, 5*time.Minute)
+			}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("deletes all associated stacks and addons", func() {
-			mockProvider.MockEKS().On("DeleteAddon", &awseks.DeleteAddonInput{
+			mockProvider.MockEKS().On("DeleteAddon", mock.Anything, &awseks.DeleteAddonInput{
 				AddonName:   aws.String("my-addon"),
 				ClusterName: aws.String("my-cluster"),
 			}).Return(&awseks.DeleteAddonOutput{}, nil)
 
 			fakeStackManager.DescribeStackReturns(&types.Stack{StackName: aws.String("eksctl-my-cluster-addon-my-addon")}, nil)
 
-			err := manager.Delete(context.TODO(), &api.Addon{
+			err := manager.Delete(context.Background(), &api.Addon{
 				Name: "my-addon",
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -62,12 +65,12 @@ var _ = Describe("Delete", func() {
 
 		When("delete addon fails", func() {
 			It("returns an error", func() {
-				mockProvider.MockEKS().On("DeleteAddon", &awseks.DeleteAddonInput{
+				mockProvider.MockEKS().On("DeleteAddon", mock.Anything, &awseks.DeleteAddonInput{
 					AddonName:   aws.String("my-addon"),
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, fmt.Errorf("foo"))
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -77,14 +80,14 @@ var _ = Describe("Delete", func() {
 
 		When("list stacks fails", func() {
 			It("only deletes the addon", func() {
-				mockProvider.MockEKS().On("DeleteAddon", &awseks.DeleteAddonInput{
+				mockProvider.MockEKS().On("DeleteAddon", mock.Anything, &awseks.DeleteAddonInput{
 					AddonName:   aws.String("my-addon"),
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, nil)
 
 				fakeStackManager.DescribeStackReturns(nil, fmt.Errorf("foo"))
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -94,7 +97,7 @@ var _ = Describe("Delete", func() {
 
 		When("delete stack fails", func() {
 			It("returns an error", func() {
-				mockProvider.MockEKS().On("DeleteAddon", &awseks.DeleteAddonInput{
+				mockProvider.MockEKS().On("DeleteAddon", mock.Anything, &awseks.DeleteAddonInput{
 					AddonName:   aws.String("my-addon"),
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, nil)
@@ -104,7 +107,7 @@ var _ = Describe("Delete", func() {
 					StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
 				}, nil)
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -117,7 +120,7 @@ var _ = Describe("Delete", func() {
 
 		When("no stack exists", func() {
 			It("only deletes the addon", func() {
-				mockProvider.MockEKS().On("DeleteAddon", &awseks.DeleteAddonInput{
+				mockProvider.MockEKS().On("DeleteAddon", mock.Anything, &awseks.DeleteAddonInput{
 					AddonName:   aws.String("my-addon"),
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, nil)
@@ -126,7 +129,7 @@ var _ = Describe("Delete", func() {
 					Err: fmt.Errorf("ValidationError"),
 				}, "nope"))
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -138,14 +141,14 @@ var _ = Describe("Delete", func() {
 
 		When("when no addon exists, but the stack does", func() {
 			It("only deletes the stack", func() {
-				mockProvider.MockEKS().On("DeleteAddon", &awseks.DeleteAddonInput{
+				mockProvider.MockEKS().On("DeleteAddon", mock.Anything, &awseks.DeleteAddonInput{
 					AddonName:   aws.String("my-addon"),
 					ClusterName: aws.String("my-cluster"),
-				}).Return(&awseks.DeleteAddonOutput{}, awserr.New(awseks.ErrCodeResourceNotFoundException, "", nil))
+				}).Return(&awseks.DeleteAddonOutput{}, &ekstypes.ResourceNotFoundException{})
 
 				fakeStackManager.DescribeStackReturns(&types.Stack{StackName: aws.String("eksctl-my-cluster-addon-my-addon")}, nil)
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -159,15 +162,15 @@ var _ = Describe("Delete", func() {
 
 		When("when no addon exists or stack exists", func() {
 			It("errors", func() {
-				mockProvider.MockEKS().On("DeleteAddon", &awseks.DeleteAddonInput{
+				mockProvider.MockEKS().On("DeleteAddon", mock.Anything, &awseks.DeleteAddonInput{
 					AddonName:   aws.String("my-addon"),
 					ClusterName: aws.String("my-cluster"),
-				}).Return(&awseks.DeleteAddonOutput{}, awserr.New(awseks.ErrCodeResourceNotFoundException, "", nil))
+				}).Return(&awseks.DeleteAddonOutput{}, &ekstypes.ResourceNotFoundException{})
 
 				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(&smithy.OperationError{
 					Err: fmt.Errorf("ValidationError"),
 				}, "nope"))
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -187,18 +190,18 @@ var _ = Describe("Delete", func() {
 			manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 				Version: "1.18",
 				Name:    "my-cluster",
-			}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil, 5*time.Minute)
+			}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("deletes the addon but preserves the resources", func() {
-			mockProvider.MockEKS().On("DeleteAddon", &awseks.DeleteAddonInput{
+			mockProvider.MockEKS().On("DeleteAddon", mock.Anything, &awseks.DeleteAddonInput{
 				AddonName:   aws.String("my-addon"),
 				ClusterName: aws.String("my-cluster"),
-				Preserve:    aws.Bool(true),
+				Preserve:    true,
 			}).Return(&awseks.DeleteAddonOutput{}, nil)
 
-			err := manager.DeleteWithPreserve(&api.Addon{
+			err := manager.DeleteWithPreserve(context.Background(), &api.Addon{
 				Name: "my-addon",
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -206,13 +209,13 @@ var _ = Describe("Delete", func() {
 
 		When("delete addon fails", func() {
 			It("returns an error", func() {
-				mockProvider.MockEKS().On("DeleteAddon", &awseks.DeleteAddonInput{
+				mockProvider.MockEKS().On("DeleteAddon", mock.Anything, &awseks.DeleteAddonInput{
 					AddonName:   aws.String("my-addon"),
 					ClusterName: aws.String("my-cluster"),
-					Preserve:    aws.Bool(true),
+					Preserve:    true,
 				}).Return(&awseks.DeleteAddonOutput{}, fmt.Errorf("foo"))
 
-				err := manager.DeleteWithPreserve(&api.Addon{
+				err := manager.DeleteWithPreserve(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 

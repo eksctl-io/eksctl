@@ -1,9 +1,9 @@
 package eks_test
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	. "github.com/onsi/ginkgo/v2"
+
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/fakes"

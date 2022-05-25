@@ -7,15 +7,21 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/smithy-go"
+	"github.com/pkg/errors"
+
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/stretchr/testify/mock"
 
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -67,11 +73,11 @@ var _ = Describe("EKS Connector", func() {
 		mockProvider := mockprovider.NewMockProvider()
 
 		mockDescribeCluster(mockProvider, cc.cluster.Name)
-		mockProvider.MockEKS().On("RegisterCluster", mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
-			return *input.Name == cc.cluster.Name && *input.ConnectorConfig.Provider == strings.ToUpper(cc.cluster.Provider)
+		mockProvider.MockEKS().On("RegisterCluster", mock.Anything, mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
+			return *input.Name == cc.cluster.Name && string(input.ConnectorConfig.Provider) == strings.ToUpper(cc.cluster.Provider)
 		})).Return(&eks.RegisterClusterOutput{
-			Cluster: &eks.Cluster{
-				ConnectorConfig: &eks.ConnectorConfigResponse{
+			Cluster: &ekstypes.Cluster{
+				ConnectorConfig: &ekstypes.ConnectorConfigResponse{
 					ActivationId:     aws.String("activation-id-123"),
 					ActivationCode:   aws.String("activation-code-123"),
 					ActivationExpiry: aws.Time(time.Now()),
@@ -95,7 +101,7 @@ var _ = Describe("EKS Connector", func() {
 			ManifestTemplate: manifestTemplate,
 		}
 
-		resourceList, err := c.RegisterCluster(context.TODO(), cc.cluster)
+		resourceList, err := c.RegisterCluster(context.Background(), cc.cluster)
 		if cc.expectedErr != "" {
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring(cc.expectedErr)))
@@ -162,17 +168,17 @@ var _ = Describe("EKS Connector", func() {
 			mockProvider := mockprovider.NewMockProvider()
 
 			mockDescribeCluster(mockProvider, cluster.Name)
-			mockProvider.MockEKS().On("RegisterCluster", mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
+			mockProvider.MockEKS().On("RegisterCluster", mock.Anything, mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
 				return *input.Name == cluster.Name
-			})).Return(nil, &eks.InvalidRequestException{
-				Message_: aws.String("Cluster Management role arn:aws:iam::12345:role/aws-service-role/eks-connector.amazonaws.com/AWSServiceRoleForAmazonEKSConnector is not available"),
+			})).Return(nil, &smithy.OperationError{
+				Err: errors.New("Cluster Management role arn:aws:iam::12345:role/aws-service-role/eks-connector.amazonaws.com/AWSServiceRoleForAmazonEKSConnector is not available"),
 			})
 			mockProvider.MockIAM().On("DeleteRole").Return(&iam.DeleteRoleOutput{}, nil)
 
 			c := &connector.EKSConnector{
 				Provider: mockProvider,
 			}
-			_, err := c.RegisterCluster(context.TODO(), cluster)
+			_, err := c.RegisterCluster(context.Background(), cluster)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring("SLR for EKS Connector does not exist; please run `aws iam create-service-linked-role --aws-service-name eks-connector.amazonaws.com` first")))
 		})
@@ -186,10 +192,10 @@ var _ = Describe("EKS Connector", func() {
 			mockProvider := mockprovider.NewMockProvider()
 
 			mockDescribeCluster(mockProvider, cluster.Name)
-			mockProvider.MockEKS().On("RegisterCluster", mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
+			mockProvider.MockEKS().On("RegisterCluster", mock.Anything, mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
 				return *input.Name == cluster.Name
-			})).Return(nil, &eks.InvalidRequestException{
-				Message_: aws.String("test"),
+			})).Return(nil, &ekstypes.InvalidRequestException{
+				Message: aws.String("test"),
 			})
 
 			mockIAM(mockProvider, cluster.Name)
@@ -205,16 +211,16 @@ var _ = Describe("EKS Connector", func() {
 			c := &connector.EKSConnector{
 				Provider: mockProvider,
 			}
-			_, err := c.RegisterCluster(context.TODO(), cluster)
+			_, err := c.RegisterCluster(context.Background(), cluster)
 			Expect(err).To(HaveOccurred())
 		})
 	})
 })
 
 func mockDescribeCluster(mockProvider *mockprovider.MockProvider, clusterName string) {
-	mockProvider.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
+	mockProvider.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
 		return *input.Name == clusterName
-	})).Return(nil, &eks.ResourceNotFoundException{
+	})).Return(nil, &ekstypes.ResourceNotFoundException{
 		ClusterName: aws.String(clusterName),
 	})
 }

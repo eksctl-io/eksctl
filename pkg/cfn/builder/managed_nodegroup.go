@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/aws-sdk-go/service/eks"
+
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/weaveworks/eksctl/pkg/awsapi"
-
-	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/pkg/errors"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
@@ -16,6 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -69,7 +70,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 		nodeRole = gfnt.NewString(NormalizeARN(m.nodeGroup.IAM.InstanceRoleARN))
 	}
 
-	subnets, err := AssignSubnets(ctx, m.nodeGroup.NodeGroupBase, m.vpcImporter, m.clusterConfig, m.ec2API)
+	subnets, err := AssignSubnets(ctx, m.nodeGroup, m.vpcImporter, m.clusterConfig, m.ec2API)
 	if err != nil {
 		return err
 	}
@@ -130,7 +131,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 	instanceTypes := m.nodeGroup.InstanceTypeList()
 
 	makeAMIType := func() *gfnt.Value {
-		return gfnt.NewString(getAMIType(m.nodeGroup, selectManagedInstanceType(m.nodeGroup)))
+		return gfnt.NewString(string(getAMIType(m.nodeGroup, selectManagedInstanceType(m.nodeGroup))))
 	}
 
 	var launchTemplate *gfneks.Nodegroup_LaunchTemplateSpecification
@@ -155,7 +156,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 			if launchTemplateData.InstanceType == "" {
 				managedResource.AmiType = makeAMIType()
 			} else {
-				managedResource.AmiType = gfnt.NewString(getAMIType(m.nodeGroup, string(launchTemplateData.InstanceType)))
+				managedResource.AmiType = gfnt.NewString(string(getAMIType(m.nodeGroup, string(launchTemplateData.InstanceType))))
 			}
 		}
 
@@ -189,14 +190,14 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 func mapTaints(taints []api.NodeGroupTaint) ([]gfneks.Nodegroup_Taint, error) {
 	var ret []gfneks.Nodegroup_Taint
 
-	mapEffect := func(effect corev1.TaintEffect) string {
+	mapEffect := func(effect corev1.TaintEffect) ekstypes.TaintEffect {
 		switch effect {
 		case corev1.TaintEffectNoSchedule:
-			return eks.TaintEffectNoSchedule
+			return ekstypes.TaintEffectNoSchedule
 		case corev1.TaintEffectPreferNoSchedule:
-			return eks.TaintEffectPreferNoSchedule
+			return ekstypes.TaintEffectPreferNoSchedule
 		case corev1.TaintEffectNoExecute:
-			return eks.TaintEffectNoExecute
+			return ekstypes.TaintEffectNoExecute
 		default:
 			return ""
 		}
@@ -210,7 +211,7 @@ func mapTaints(taints []api.NodeGroupTaint) ([]gfneks.Nodegroup_Taint, error) {
 		ret = append(ret, gfneks.Nodegroup_Taint{
 			Key:    gfnt.NewString(t.Key),
 			Value:  gfnt.NewString(t.Value),
-			Effect: gfnt.NewString(effect),
+			Effect: gfnt.NewString(string(effect)),
 		})
 	}
 	return ret, nil
@@ -263,20 +264,20 @@ func validateLaunchTemplate(launchTemplateData *ec2types.ResponseLaunchTemplateD
 	return nil
 }
 
-func getAMIType(ng *api.ManagedNodeGroup, instanceType string) string {
+func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes {
 	amiTypeMapping := map[string]struct {
-		X86    string
+		X86x64 string
 		X86GPU string
 		ARM    string
 		ARMGPU string
 	}{
 		api.NodeImageFamilyAmazonLinux2: {
-			X86:    eks.AMITypesAl2X8664,
+			X86x64: eks.AMITypesAl2X8664,
 			X86GPU: eks.AMITypesAl2X8664Gpu,
 			ARM:    eks.AMITypesAl2Arm64,
 		},
 		api.NodeImageFamilyBottlerocket: {
-			X86: eks.AMITypesBottlerocketX8664,
+			X86x64: eks.AMITypesBottlerocketX8664,
 			//TODO reference aws-sdk-go variable when published
 			X86GPU: "BOTTLEROCKET_x86_64_NVIDIA",
 			ARM:    eks.AMITypesBottlerocketArm64,
@@ -286,7 +287,7 @@ func getAMIType(ng *api.ManagedNodeGroup, instanceType string) string {
 
 	amiType, ok := amiTypeMapping[ng.AMIFamily]
 	if !ok {
-		return eks.AMITypesCustom
+		return ekstypes.AMITypesCustom
 	}
 
 	switch {

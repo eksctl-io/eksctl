@@ -4,11 +4,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
@@ -32,8 +33,8 @@ type drainerMockOwned struct {
 	mock.Mock
 }
 
-func (drainer *drainerMockOwned) Drain(input *nodegroup.DrainInput) error {
-	args := drainer.Called(input)
+func (d *drainerMockOwned) Drain(ctx context.Context, input *nodegroup.DrainInput) error {
+	args := d.Called(input)
 	return args.Error(0)
 }
 
@@ -57,29 +58,29 @@ var _ = Describe("Delete", func() {
 		fakeStackManager = new(fakes.FakeStackManager)
 		ranDeleteDeprecatedTasks = false
 		ranDeleteClusterTasks = false
-		ctl = &eks.ClusterProvider{Provider: p, Status: &eks.ProviderStatus{}}
+		ctl = &eks.ClusterProvider{AWSProvider: p, Status: &eks.ProviderStatus{}}
 	})
 
 	Context("when the cluster is operable", func() {
 		It("deletes the cluster", func() {
 			//mocks are in order of being called
-			p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+			p.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 				Expect(*input.Name).To(Equal(clusterName))
 				return true
 			})).Return(&awseks.DescribeClusterOutput{
-				Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
+				Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive),
 			}, nil)
 
-			p.MockEKS().On("ListFargateProfiles", &awseks.ListFargateProfilesInput{
+			p.MockEKS().On("ListFargateProfiles", mock.Anything, &awseks.ListFargateProfilesInput{
 				ClusterName: strings.Pointer(clusterName),
-			}).Once().Return(&awseks.ListFargateProfilesOutput{FargateProfileNames: aws.StringSlice([]string{"fargate-1"})}, nil)
+			}).Once().Return(&awseks.ListFargateProfilesOutput{FargateProfileNames: []string{"fargate-1"}}, nil)
 
-			p.MockEKS().On("DeleteFargateProfile", &awseks.DeleteFargateProfileInput{
+			p.MockEKS().On("DeleteFargateProfile", mock.Anything, &awseks.DeleteFargateProfileInput{
 				ClusterName:        aws.String(clusterName),
 				FargateProfileName: aws.String("fargate-1"),
 			}).Once().Return(&awseks.DeleteFargateProfileOutput{}, nil)
 
-			p.MockEKS().On("ListFargateProfiles", &awseks.ListFargateProfilesInput{
+			p.MockEKS().On("ListFargateProfiles", mock.Anything, &awseks.ListFargateProfilesInput{
 				ClusterName: strings.Pointer(clusterName),
 			}).Once().Return(&awseks.ListFargateProfilesOutput{}, nil)
 
@@ -129,30 +130,30 @@ var _ = Describe("Delete", func() {
 			It("ignoring nodes draining error", func() {
 				ctl.Status = &eks.ProviderStatus{
 					ClusterInfo: &eks.ClusterInfo{
-						Cluster: &awseks.Cluster{
-							Status:  aws.String(awseks.ClusterStatusActive),
+						Cluster: &ekstypes.Cluster{
+							Status:  ekstypes.ClusterStatusActive,
 							Version: aws.String("1.21"),
 						},
 					},
 				}
 				//mocks are in order of being called
-				p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+				p.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 					Expect(*input.Name).To(Equal(clusterName))
 					return true
 				})).Return(&awseks.DescribeClusterOutput{
-					Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
+					Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive),
 				}, nil)
 
-				p.MockEKS().On("ListFargateProfiles", &awseks.ListFargateProfilesInput{
+				p.MockEKS().On("ListFargateProfiles", mock.Anything, &awseks.ListFargateProfilesInput{
 					ClusterName: strings.Pointer(clusterName),
-				}).Once().Return(&awseks.ListFargateProfilesOutput{FargateProfileNames: aws.StringSlice([]string{})}, nil)
+				}).Once().Return(&awseks.ListFargateProfilesOutput{FargateProfileNames: []string{}}, nil)
 
-				p.MockEKS().On("DeleteFargateProfile", &awseks.DeleteFargateProfileInput{
+				p.MockEKS().On("DeleteFargateProfile", mock.Anything, &awseks.DeleteFargateProfileInput{
 					ClusterName:        aws.String(clusterName),
 					FargateProfileName: aws.String("fargate-1"),
 				}).Once().Return(&awseks.DeleteFargateProfileOutput{}, nil)
 
-				p.MockEKS().On("ListFargateProfiles", &awseks.ListFargateProfilesInput{
+				p.MockEKS().On("ListFargateProfiles", mock.Anything, &awseks.ListFargateProfilesInput{
 					ClusterName: strings.Pointer(clusterName),
 				}).Once().Return(&awseks.ListFargateProfilesOutput{}, nil)
 
@@ -179,7 +180,7 @@ var _ = Describe("Delete", func() {
 
 				mockedDrainInput := &nodegroup.DrainInput{
 					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
-					MaxGracePeriod: ctl.Provider.WaitTimeout(),
+					MaxGracePeriod: ctl.AWSProvider.WaitTimeout(),
 					Parallel:       1,
 				}
 
@@ -202,23 +203,23 @@ var _ = Describe("Delete", func() {
 		When("force flag is set to false", func() {
 			It("nodes draining error thrown", func() {
 				//mocks are in order of being called
-				p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+				p.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 					Expect(*input.Name).To(Equal(clusterName))
 					return true
 				})).Return(&awseks.DescribeClusterOutput{
-					Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
+					Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive),
 				}, nil)
 
-				p.MockEKS().On("ListFargateProfiles", &awseks.ListFargateProfilesInput{
+				p.MockEKS().On("ListFargateProfiles", mock.Anything, &awseks.ListFargateProfilesInput{
 					ClusterName: strings.Pointer(clusterName),
-				}).Once().Return(&awseks.ListFargateProfilesOutput{FargateProfileNames: aws.StringSlice([]string{})}, nil)
+				}).Once().Return(&awseks.ListFargateProfilesOutput{FargateProfileNames: []string{}}, nil)
 
-				p.MockEKS().On("DeleteFargateProfile", &awseks.DeleteFargateProfileInput{
+				p.MockEKS().On("DeleteFargateProfile", mock.Anything, &awseks.DeleteFargateProfileInput{
 					ClusterName:        aws.String(clusterName),
 					FargateProfileName: aws.String("fargate-1"),
 				}).Once().Return(&awseks.DeleteFargateProfileOutput{}, nil)
 
-				p.MockEKS().On("ListFargateProfiles", &awseks.ListFargateProfilesInput{
+				p.MockEKS().On("ListFargateProfiles", mock.Anything, &awseks.ListFargateProfilesInput{
 					ClusterName: strings.Pointer(clusterName),
 				}).Once().Return(&awseks.ListFargateProfilesOutput{}, nil)
 
@@ -244,13 +245,13 @@ var _ = Describe("Delete", func() {
 
 				mockedDrainInput := &nodegroup.DrainInput{
 					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
-					MaxGracePeriod: ctl.Provider.WaitTimeout(),
+					MaxGracePeriod: ctl.AWSProvider.WaitTimeout(),
 					Parallel:       1,
 				}
 				ctl.Status = &eks.ProviderStatus{
 					ClusterInfo: &eks.ClusterInfo{
-						Cluster: &awseks.Cluster{
-							Status:  aws.String(awseks.ClusterStatusActive),
+						Cluster: &ekstypes.Cluster{
+							Status:  ekstypes.ClusterStatusActive,
 							Version: aws.String("1.21"),
 						},
 					},
@@ -276,11 +277,11 @@ var _ = Describe("Delete", func() {
 	Context("when the cluster is inoperable", func() {
 		It("deletes the cluster without trying to query kubernetes", func() {
 			//mocks are in order of being called
-			p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+			p.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 				Expect(*input.Name).To(Equal(clusterName))
 				return true
 			})).Return(&awseks.DescribeClusterOutput{
-				Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusFailed),
+				Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusFailed),
 			}, nil)
 
 			fakeStackManager.DeleteTasksForDeprecatedStacksReturns(&tasks.TaskTree{

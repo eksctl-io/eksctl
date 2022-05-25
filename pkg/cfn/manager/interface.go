@@ -3,11 +3,12 @@ package manager
 import (
 	"context"
 
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	asgtypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	cttypes "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -83,7 +84,7 @@ type StackManager interface {
 	NewClusterCompatTask(ctx context.Context) tasks.Task
 	NewManagedNodeGroupTask(ctx context.Context, nodeGroups []*v1alpha5.ManagedNodeGroup, forceAddCNIPolicy bool, importer vpc.Importer) *tasks.TaskTree
 	NewTaskToDeleteAddonIAM(ctx context.Context, wait bool) (*tasks.TaskTree, error)
-	NewTaskToDeleteUnownedNodeGroup(clusterName, nodegroup string, eksAPI eksiface.EKSAPI, waitCondition *DeleteWaitCondition) tasks.Task
+	NewTaskToDeleteUnownedNodeGroup(ctx context.Context, clusterName, nodegroup string, eksAPI awsapi.EKS, waitCondition *DeleteWaitCondition) tasks.Task
 	NewTasksToCreateClusterWithNodeGroups(ctx context.Context, nodeGroups []*v1alpha5.NodeGroup, managedNodeGroups []*v1alpha5.ManagedNodeGroup, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree
 	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*v1alpha5.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *tasks.TaskTree
 	NewTasksToDeleteClusterWithNodeGroups(ctx context.Context, stack *Stack, stacks []NodeGroupStack, deleteOIDCProvider bool, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error)

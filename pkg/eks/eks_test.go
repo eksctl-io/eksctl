@@ -3,14 +3,17 @@ package eks_test
 import (
 	"context"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/kris-nova/logger"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/stretchr/testify/mock"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -29,7 +32,7 @@ var _ = Describe("EKS API wrapper", func() {
 		var (
 			clusterName string
 			err         error
-			cluster     *awseks.Cluster
+			cluster     *ekstypes.Cluster
 		)
 
 		When("the cluster is ready", func() {
@@ -39,13 +42,13 @@ var _ = Describe("EKS API wrapper", func() {
 				p = mockprovider.NewMockProvider()
 
 				c = &ClusterProvider{
-					Provider: p,
+					AWSProvider: p,
 				}
 
-				p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+				p.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 					return *input.Name == clusterName
 				})).Return(&awseks.DescribeClusterOutput{
-					Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
+					Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive),
 				}, nil)
 			})
 
@@ -63,7 +66,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				It("should return the cluster", func() {
-					Expect(cluster).To(Equal(testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive)))
+					Expect(cluster).To(Equal(testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive)))
 				})
 
 				It("should have called AWS EKS service once", func() {
@@ -119,7 +122,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				It("should return the cluster", func() {
-					Expect(cluster).To(Equal(testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive)))
+					Expect(cluster).To(Equal(testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive)))
 				})
 
 				It("should have called AWS EKS service once", func() {
@@ -140,13 +143,13 @@ var _ = Describe("EKS API wrapper", func() {
 				p = mockprovider.NewMockProvider()
 
 				c = &ClusterProvider{
-					Provider: p,
+					AWSProvider: p,
 				}
 
-				p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+				p.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 					return *input.Name == clusterName
 				})).Return(&awseks.DescribeClusterOutput{
-					Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusDeleting),
+					Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusDeleting),
 				}, nil)
 			})
 
@@ -181,31 +184,31 @@ var _ = Describe("EKS API wrapper", func() {
 		BeforeEach(func() {
 			p := mockprovider.NewMockProvider()
 			ctl = &ClusterProvider{
-				Provider: p,
-				Status:   &ProviderStatus{},
+				AWSProvider: p,
+				Status:      &ProviderStatus{},
 			}
 
 			cfg = api.NewClusterConfig()
 
 			describeClusterOutput := &awseks.DescribeClusterOutput{
-				Cluster: testutils.NewFakeCluster("testcluster", awseks.ClusterStatusActive),
+				Cluster: testutils.NewFakeCluster("testcluster", ekstypes.ClusterStatusActive),
 			}
 
 			describeClusterOutput.Cluster.Version = aws.String(api.Version1_21)
 
-			describeClusterOutput.Cluster.Identity = &awseks.Identity{
-				Oidc: &awseks.OIDC{
+			describeClusterOutput.Cluster.Identity = &ekstypes.Identity{
+				Oidc: &ekstypes.OIDC{
 					Issuer: &issuer,
 				},
 			}
 
-			p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+			p.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 				return true
 			})).Return(describeClusterOutput, nil)
 		})
 
 		It("should get cluster, cache status and construct OIDC manager", func() {
-			err = ctl.RefreshClusterStatus(cfg)
+			err = ctl.RefreshClusterStatus(context.Background(), cfg)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(cfg.Status.Endpoint).To(Equal("https://localhost/"))
@@ -213,7 +216,7 @@ var _ = Describe("EKS API wrapper", func() {
 
 			Expect(ctl.ControlPlaneVersion()).To(Equal(api.Version1_21))
 
-			_, err := ctl.NewOpenIDConnectManager(cfg)
+			_, err := ctl.NewOpenIDConnectManager(context.Background(), cfg)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})

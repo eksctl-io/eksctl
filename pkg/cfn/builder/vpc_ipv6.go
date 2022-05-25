@@ -45,9 +45,9 @@ func (v *IPv6VPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Value, *
 
 	v.addIpv6CidrBlock()
 
-	addSubnetOutput := func(subnetRefs []*gfnt.Value, topology api.SubnetTopology, outputName string) {
+	addSubnetOutput := func(subnetRefs []*gfnt.Value, subnetMapping api.AZSubnetMapping, outputName string) {
 		v.rs.defineJoinedOutput(outputName, subnetRefs, true, func(value string) error {
-			return vpc.ImportSubnetsFromIDList(ctx, v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
+			return vpc.ImportSubnetsFromIDList(ctx, v.ec2API, v.clusterConfig, subnetMapping, strings.Split(value, ","))
 		})
 	}
 
@@ -72,7 +72,7 @@ func (v *IPv6VPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Value, *
 			SubnetId:     subnet,
 		})
 	}
-	addSubnetOutput(privateSubnetResourceRefs, api.SubnetTopologyPrivate, outputs.ClusterSubnetsPrivate)
+	addSubnetOutput(privateSubnetResourceRefs, v.clusterConfig.VPC.Subnets.Private, outputs.ClusterSubnetsPrivate)
 
 	if v.isFullyPrivate() {
 		return vpcResourceRef, &SubnetDetails{
@@ -151,7 +151,7 @@ func (v *IPv6VPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Value, *
 			RouteTableId:               gfnt.MakeRef(PrivateRouteTableKey + azFormatted),
 		})
 	}
-	addSubnetOutput(publicSubnetResourceRefs, api.SubnetTopologyPublic, outputs.ClusterSubnetsPublic)
+	addSubnetOutput(publicSubnetResourceRefs, v.clusterConfig.VPC.Subnets.Public, outputs.ClusterSubnetsPublic)
 
 	return vpcResourceRef, &SubnetDetails{
 		Private: privateSubnets,
@@ -185,7 +185,6 @@ func (v *IPv6VPCResourceSet) isFullyPrivate() bool {
 }
 
 func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartitions int, private bool) *gfnt.Value {
-	var assignIpv6AddressOnCreation *gfnt.Value
 	subnetKey := PublicSubnetKey + azFormatted
 	mapPublicIPOnLaunch := gfnt.True()
 	elbTagKey := "kubernetes.io/role/elb"
@@ -193,7 +192,6 @@ func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartiti
 	if private {
 		subnetKey = PrivateSubnetKey + azFormatted
 		mapPublicIPOnLaunch = nil
-		assignIpv6AddressOnCreation = gfnt.True()
 		elbTagKey = "kubernetes.io/role/internal-elb"
 	}
 
@@ -203,7 +201,7 @@ func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartiti
 		CidrBlock:                   gfnt.MakeFnSelect(gfnt.NewInteger(i), getSubnetIPv4CIDRBlock(cidrPartitions, v.clusterConfig.VPC.Network.CIDR)),
 		Ipv6CidrBlock:               gfnt.MakeFnSelect(gfnt.NewInteger(i), getSubnetIPv6CIDRBlock(cidrPartitions)),
 		MapPublicIpOnLaunch:         mapPublicIPOnLaunch,
-		AssignIpv6AddressOnCreation: assignIpv6AddressOnCreation,
+		AssignIpv6AddressOnCreation: gfnt.True(),
 		VpcId:                       gfnt.MakeRef(VPCResourceKey),
 		Tags: []cloudformation.Tag{{
 			Key:   gfnt.NewString(elbTagKey),

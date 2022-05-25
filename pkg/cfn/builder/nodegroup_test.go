@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
@@ -1255,139 +1255,12 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 		})
 	})
 
-	Describe("AssignSubnets", func() {
-		var ngBase *api.NodeGroupBase
-		BeforeEach(func() {
-			ngBase = ng.NodeGroupBase
-			fakeVPCImporter.SubnetsPublicReturns(gfnt.NewString("subnet-1"))
-		})
-
-		It("returns public subnets", func() {
-			subnets, err := builder.AssignSubnets(context.Background(), ngBase, fakeVPCImporter, cfg, nil)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(subnets).To(Equal(gfnt.NewString("subnet-1")))
-		})
-
-		It("returns subnets if they exist and were defined by ID only", func() {
-			mockEC2 = &mocksv2.EC2{}
-			mockEC2.On("DescribeSubnets", mock.Anything, &ec2.DescribeSubnetsInput{
-				SubnetIds: []string{"fake-id"},
-			}).Return(&ec2.DescribeSubnetsOutput{
-				Subnets: []ec2types.Subnet{
-					{
-						SubnetId: aws.String("fake-id"),
-						VpcId:    aws.String(cfg.VPC.ID),
-					},
-				},
-			}, nil)
-			ngBase := ngBase.DeepCopy()
-			ngBase.Subnets = []string{"fake-id"}
-			subnets, err := builder.AssignSubnets(context.Background(), ngBase, fakeVPCImporter, cfg, mockEC2)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(subnets).To(Equal(gfnt.NewStringSlice("fake-id")))
-		})
-
-		It("returns an error if the given subnet is not part of the cluster's VPC", func() {
-			mockEC2 = &mocksv2.EC2{}
-			mockEC2.On("DescribeSubnets", mock.Anything, &ec2.DescribeSubnetsInput{
-				SubnetIds: []string{"fake-id"},
-			}).Return(&ec2.DescribeSubnetsOutput{
-				Subnets: []ec2types.Subnet{
-					{
-						SubnetId: aws.String("fake-id"),
-						VpcId:    aws.String("invalid-vpc-id"),
-					},
-				},
-			}, nil)
-			ngBase := ngBase.DeepCopy()
-			ngBase.Subnets = []string{"fake-id"}
-			_, err := builder.AssignSubnets(context.Background(), ngBase, fakeVPCImporter, cfg, mockEC2)
-			Expect(err).To(MatchError(ContainSubstring("subnet with id \"fake-id\" is not in the attached vpc with id \"\"")))
-		})
-
-		It("returns an error if ec2 api returns an error", func() {
-			mockEC2 = &mocksv2.EC2{}
-			mockEC2.On("DescribeSubnets", mock.Anything, &ec2.DescribeSubnetsInput{
-				SubnetIds: []string{"fake-id"},
-			}).Return(nil, errors.New("nope"))
-			ngBase := ngBase.DeepCopy()
-			ngBase.Subnets = []string{"fake-id"}
-			_, err := builder.AssignSubnets(context.Background(), ngBase, fakeVPCImporter, cfg, mockEC2)
-			Expect(err).To(MatchError(ContainSubstring("nope")))
-		})
-
-		Context("when private networking is enabled", func() {
-			BeforeEach(func() {
-				fakeVPCImporter.SubnetsPrivateReturns(gfnt.NewString("subnet-2"))
-				ngBase.PrivateNetworking = true
-			})
-
-			It("returns private subnets", func() {
-				subnets, err := builder.AssignSubnets(context.Background(), ngBase, fakeVPCImporter, cfg, nil)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(subnets).To(Equal(gfnt.NewString("subnet-2")))
-			})
-		})
-
-		Context("when AvailabilityZones are set", func() {
-			BeforeEach(func() {
-				ngBase.Subnets = []string{publicSubnet1, publicSubnet2}
-				cfg.AvailabilityZones = []string{"us-west-2a", "us-west-2b"}
-			})
-
-			It("maps subnets to azs", func() {
-				subnets, err := builder.AssignSubnets(context.Background(), ngBase, fakeVPCImporter, cfg, nil)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(subnets).To(Equal(gfnt.NewStringSlice(publicSubnet1, publicSubnet2)))
-			})
-
-			Context("private networking is enabled", func() {
-				BeforeEach(func() {
-					ngBase.Subnets = []string{privateSubnet1, privateSubnet2}
-					ngBase.PrivateNetworking = true
-				})
-
-				It("maps private subnets to azs", func() {
-					subnets, err := builder.AssignSubnets(context.Background(), ngBase, fakeVPCImporter, cfg, nil)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(subnets).To(Equal(gfnt.NewStringSlice(privateSubnet1, privateSubnet2)))
-				})
-			})
-
-			Context("selecting subnets per az fails", func() {
-				BeforeEach(func() {
-					ngBase.Subnets = []string{"not-a-thing"}
-				})
-
-				It("returns the error", func() {
-					mockEC2 = &mocksv2.EC2{}
-					mockEC2.On("DescribeSubnets", mock.Anything, &ec2.DescribeSubnetsInput{
-						SubnetIds: []string{"not-a-thing"},
-					}).Return(nil, errors.New("nope"))
-					_, err := builder.AssignSubnets(context.Background(), ngBase, fakeVPCImporter, cfg, mockEC2)
-					Expect(err).To(MatchError(ContainSubstring("couldn't find public subnets")))
-				})
-			})
-		})
-
-		Context("when EFA is enabled and > 1 subnets are set", func() {
-			BeforeEach(func() {
-				ngBase.Subnets = []string{publicSubnet1, publicSubnet2}
-				ngBase.EFAEnabled = aws.Bool(true)
-			})
-
-			It("choses only the first subnet", func() {
-				subnets, err := builder.AssignSubnets(context.Background(), ngBase, fakeVPCImporter, cfg, nil)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(subnets).To(Equal(gfnt.NewStringSlice(publicSubnet1)))
-			})
-		})
-	})
 })
 
 func newClusterAndNodeGroup() (*api.ClusterConfig, *api.NodeGroup) {
 	cfg := api.NewClusterConfig()
 	cfg.Metadata.Name = "bonsai"
+	cfg.Metadata.Region = "us-west-2"
 	ng := cfg.NewNodeGroup()
 	ng.Name = "ng-abcd1234"
 	ng.VolumeType = new(string)

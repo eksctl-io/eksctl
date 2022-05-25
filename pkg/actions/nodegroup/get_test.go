@@ -5,18 +5,25 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	asgtypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	cftypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/stretchr/testify/mock"
+	"github.com/pkg/errors"
+
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/smithy-go"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	"github.com/stretchr/testify/mock"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -43,55 +50,53 @@ var _ = Describe("Get", func() {
 		cfg.Metadata.Name = clusterName
 		p = mockprovider.NewMockProvider()
 		fakeClientSet = fake.NewSimpleClientset()
-		m = nodegroup.New(cfg, &eks.ClusterProvider{Provider: p}, fakeClientSet)
+		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, fakeClientSet, nil)
 		fakeStackManager = new(fakes.FakeStackManager)
 		m.SetStackManager(fakeStackManager)
 	})
 
 	Describe("GetAll", func() {
 		BeforeEach(func() {
-			p.MockEKS().On("ListNodegroups", &awseks.ListNodegroupsInput{
+			p.MockEKS().On("ListNodegroups", mock.Anything, &awseks.ListNodegroupsInput{
 				ClusterName: aws.String(clusterName),
 			}).Run(func(args mock.Arguments) {
-				Expect(args).To(HaveLen(1))
-				Expect(args[0]).To(BeAssignableToTypeOf(&awseks.ListNodegroupsInput{
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.ListNodegroupsInput{
 					ClusterName: aws.String(clusterName),
 				}))
 			}).Return(&awseks.ListNodegroupsOutput{
-				Nodegroups: []*string{
-					aws.String(ngName),
-				},
+				Nodegroups: []string{ngName},
 			}, nil)
 		})
 
 		Context("when getting managed nodegroups", func() {
 			When("a nodegroup is associated to a CF Stack", func() {
 				BeforeEach(func() {
-					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+					p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
 						NodegroupName: aws.String(ngName),
 					}).Run(func(args mock.Arguments) {
-						Expect(args).To(HaveLen(1))
-						Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
 							ClusterName:   aws.String(clusterName),
 							NodegroupName: aws.String(ngName),
 						}))
 					}).Return(&awseks.DescribeNodegroupOutput{
-						Nodegroup: &awseks.Nodegroup{
+						Nodegroup: &ekstypes.Nodegroup{
 							NodegroupName: aws.String(ngName),
 							ClusterName:   aws.String(clusterName),
-							Status:        aws.String("my-status"),
-							ScalingConfig: &awseks.NodegroupScalingConfig{
-								DesiredSize: aws.Int64(2),
-								MaxSize:     aws.Int64(4),
-								MinSize:     aws.Int64(0),
+							Status:        "my-status",
+							ScalingConfig: &ekstypes.NodegroupScalingConfig{
+								DesiredSize: aws.Int32(2),
+								MaxSize:     aws.Int32(4),
+								MinSize:     aws.Int32(0),
 							},
-							InstanceTypes: []*string{},
-							AmiType:       aws.String("ami-type"),
+							InstanceTypes: []string{},
+							AmiType:       "ami-type",
 							CreatedAt:     &t,
 							NodeRole:      aws.String("node-role"),
-							Resources: &awseks.NodegroupResources{
-								AutoScalingGroups: []*awseks.AutoScalingGroup{
+							Resources: &ekstypes.NodegroupResources{
+								AutoScalingGroups: []ekstypes.AutoScalingGroup{
 									{
 										Name: aws.String("asg-name"),
 									},
@@ -133,31 +138,31 @@ var _ = Describe("Get", func() {
 
 			When("a nodegroup is not associated to a CF Stack", func() {
 				BeforeEach(func() {
-					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+					p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
 						NodegroupName: aws.String(ngName),
 					}).Run(func(args mock.Arguments) {
-						Expect(args).To(HaveLen(1))
-						Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
 							ClusterName:   aws.String(clusterName),
 							NodegroupName: aws.String(ngName),
 						}))
 					}).Return(&awseks.DescribeNodegroupOutput{
-						Nodegroup: &awseks.Nodegroup{
+						Nodegroup: &ekstypes.Nodegroup{
 							NodegroupName: aws.String(ngName),
 							ClusterName:   aws.String(clusterName),
-							Status:        aws.String("my-status"),
-							ScalingConfig: &awseks.NodegroupScalingConfig{
-								DesiredSize: aws.Int64(2),
-								MaxSize:     aws.Int64(4),
-								MinSize:     aws.Int64(0),
+							Status:        "my-status",
+							ScalingConfig: &ekstypes.NodegroupScalingConfig{
+								DesiredSize: aws.Int32(2),
+								MaxSize:     aws.Int32(4),
+								MinSize:     aws.Int32(0),
 							},
-							InstanceTypes: []*string{},
-							AmiType:       aws.String("ami-type"),
+							InstanceTypes: []string{},
+							AmiType:       "ami-type",
 							CreatedAt:     &t,
 							NodeRole:      aws.String("node-role"),
-							Resources: &awseks.NodegroupResources{
-								AutoScalingGroups: []*awseks.AutoScalingGroup{
+							Resources: &ekstypes.NodegroupResources{
+								AutoScalingGroups: []ekstypes.AutoScalingGroup{
 									{
 										Name: aws.String("asg-name"),
 									},
@@ -197,38 +202,38 @@ var _ = Describe("Get", func() {
 
 			When("a nodegroup is associated with a launch template", func() {
 				BeforeEach(func() {
-					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+					p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
 						NodegroupName: aws.String(ngName),
 					}).Run(func(args mock.Arguments) {
-						Expect(args).To(HaveLen(1))
-						Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
 							ClusterName:   aws.String(clusterName),
 							NodegroupName: aws.String(ngName),
 						}))
 					}).Return(&awseks.DescribeNodegroupOutput{
-						Nodegroup: &awseks.Nodegroup{
+						Nodegroup: &ekstypes.Nodegroup{
 							NodegroupName: aws.String(ngName),
 							ClusterName:   aws.String(clusterName),
-							Status:        aws.String("my-status"),
-							ScalingConfig: &awseks.NodegroupScalingConfig{
-								DesiredSize: aws.Int64(2),
-								MaxSize:     aws.Int64(4),
-								MinSize:     aws.Int64(0),
+							Status:        "my-status",
+							ScalingConfig: &ekstypes.NodegroupScalingConfig{
+								DesiredSize: aws.Int32(2),
+								MaxSize:     aws.Int32(4),
+								MinSize:     aws.Int32(0),
 							},
-							InstanceTypes: []*string{},
-							AmiType:       aws.String("ami-type"),
+							InstanceTypes: []string{},
+							AmiType:       "ami-type",
 							CreatedAt:     &t,
 							NodeRole:      aws.String("node-role"),
-							Resources: &awseks.NodegroupResources{
-								AutoScalingGroups: []*awseks.AutoScalingGroup{
+							Resources: &ekstypes.NodegroupResources{
+								AutoScalingGroups: []ekstypes.AutoScalingGroup{
 									{
 										Name: aws.String("asg-name"),
 									},
 								},
 							},
 							Version: aws.String("1.18"),
-							LaunchTemplate: &awseks.LaunchTemplateSpecification{
+							LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
 								Id:      aws.String("4"),
 								Version: aws.String("5"),
 							},
@@ -276,32 +281,32 @@ var _ = Describe("Get", func() {
 
 			When("a nodegroup has a custom AMI", func() {
 				BeforeEach(func() {
-					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+					p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
 						NodegroupName: aws.String(ngName),
 					}).Run(func(args mock.Arguments) {
-						Expect(args).To(HaveLen(1))
-						Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
 							ClusterName:   aws.String(clusterName),
 							NodegroupName: aws.String(ngName),
 						}))
 					}).Return(&awseks.DescribeNodegroupOutput{
-						Nodegroup: &awseks.Nodegroup{
+						Nodegroup: &ekstypes.Nodegroup{
 							NodegroupName: aws.String(ngName),
 							ClusterName:   aws.String(clusterName),
-							Status:        aws.String("my-status"),
-							ScalingConfig: &awseks.NodegroupScalingConfig{
-								DesiredSize: aws.Int64(2),
-								MaxSize:     aws.Int64(4),
-								MinSize:     aws.Int64(0),
+							Status:        "my-status",
+							ScalingConfig: &ekstypes.NodegroupScalingConfig{
+								DesiredSize: aws.Int32(2),
+								MaxSize:     aws.Int32(4),
+								MinSize:     aws.Int32(0),
 							},
-							InstanceTypes:  aws.StringSlice([]string{"m5.xlarge"}),
-							AmiType:        aws.String("CUSTOM"),
+							InstanceTypes:  []string{"m5.xlarge"},
+							AmiType:        "CUSTOM",
 							CreatedAt:      &t,
 							NodeRole:       aws.String("node-role"),
 							ReleaseVersion: aws.String("ami-custom"),
-							Resources: &awseks.NodegroupResources{
-								AutoScalingGroups: []*awseks.AutoScalingGroup{
+							Resources: &ekstypes.NodegroupResources{
+								AutoScalingGroups: []ekstypes.AutoScalingGroup{
 									{
 										Name: aws.String("asg-1"),
 									},
@@ -382,7 +387,7 @@ var _ = Describe("Get", func() {
 								Value: aws.String(clusterName),
 							},
 						},
-						StackStatus:  cftypes.StackStatus("CREATE_COMPLETE"),
+						StackStatus:  "CREATE_COMPLETE",
 						CreationTime: aws.Time(creationTime),
 					},
 				}, nil)
@@ -394,7 +399,7 @@ var _ = Describe("Get", func() {
 					MaxSize:         aws.Int32(100),
 				}, nil)
 
-				_, _ = fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
+				_, _ = fakeClientSet.CoreV1().Nodes().Create(context.Background(), &corev1.Node{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
 							"alpha.eksctl.io/nodegroup-name": unmanagedNodegroupName,
@@ -409,31 +414,31 @@ var _ = Describe("Get", func() {
 				fakeStackManager.GetNodeGroupNameReturns(unmanagedNodegroupName)
 
 				//managed nodegroup
-				p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+				p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 					ClusterName:   aws.String(clusterName),
 					NodegroupName: aws.String(ngName),
 				}).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(1))
-					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
 						NodegroupName: aws.String(ngName),
 					}))
 				}).Return(&awseks.DescribeNodegroupOutput{
-					Nodegroup: &awseks.Nodegroup{
+					Nodegroup: &ekstypes.Nodegroup{
 						NodegroupName: aws.String(ngName),
 						ClusterName:   aws.String(clusterName),
-						Status:        aws.String("my-status"),
-						ScalingConfig: &awseks.NodegroupScalingConfig{
-							DesiredSize: aws.Int64(2),
-							MaxSize:     aws.Int64(4),
-							MinSize:     aws.Int64(0),
+						Status:        "my-status",
+						ScalingConfig: &ekstypes.NodegroupScalingConfig{
+							DesiredSize: aws.Int32(2),
+							MaxSize:     aws.Int32(4),
+							MinSize:     aws.Int32(0),
 						},
-						InstanceTypes: []*string{},
-						AmiType:       aws.String("ami-type"),
+						InstanceTypes: []string{},
+						AmiType:       "ami-type",
 						CreatedAt:     &t,
 						NodeRole:      aws.String("node-role"),
-						Resources: &awseks.NodegroupResources{
-							AutoScalingGroups: []*awseks.AutoScalingGroup{
+						Resources: &ekstypes.NodegroupResources{
+							AutoScalingGroups: []ekstypes.AutoScalingGroup{
 								{
 									Name: aws.String("asg-name"),
 								},
@@ -508,31 +513,31 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+			p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 				ClusterName:   aws.String(clusterName),
 				NodegroupName: aws.String(ngName),
 			}).Run(func(args mock.Arguments) {
-				Expect(args).To(HaveLen(1))
-				Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
 					ClusterName:   aws.String(clusterName),
 					NodegroupName: aws.String(ngName),
 				}))
 			}).Return(&awseks.DescribeNodegroupOutput{
-				Nodegroup: &awseks.Nodegroup{
+				Nodegroup: &ekstypes.Nodegroup{
 					NodegroupName: aws.String(ngName),
 					ClusterName:   aws.String(clusterName),
-					Status:        aws.String("my-status"),
-					ScalingConfig: &awseks.NodegroupScalingConfig{
-						DesiredSize: aws.Int64(2),
-						MaxSize:     aws.Int64(4),
-						MinSize:     aws.Int64(0),
+					Status:        "my-status",
+					ScalingConfig: &ekstypes.NodegroupScalingConfig{
+						DesiredSize: aws.Int32(2),
+						MaxSize:     aws.Int32(4),
+						MinSize:     aws.Int32(0),
 					},
-					InstanceTypes: aws.StringSlice([]string{"m5.xlarge"}),
-					AmiType:       aws.String("ami-type"),
+					InstanceTypes: []string{"m5.xlarge"},
+					AmiType:       "ami-type",
 					CreatedAt:     &t,
 					NodeRole:      aws.String("node-role"),
-					Resources: &awseks.NodegroupResources{
-						AutoScalingGroups: []*awseks.AutoScalingGroup{
+					Resources: &ekstypes.NodegroupResources{
+						AutoScalingGroups: []ekstypes.AutoScalingGroup{
 							{
 								Name: aws.String("asg-1"),
 							},
@@ -566,6 +571,32 @@ var _ = Describe("Get", func() {
 				Version:              "1.18",
 				NodeGroupType:        api.NodeGroupTypeManaged,
 			}))
+		})
+		When("there is no associated stack to the nodegroup", func() {
+			It("returns a summary of the node group without a StackName", func() {
+				fakeStackManager.DescribeNodeGroupStackReturns(nil, errors.Wrap(&smithy.OperationError{
+					Err: fmt.Errorf("ValidationError"),
+				}, "nope"))
+				summary, err := m.Get(context.Background(), ngName)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(*summary).To(Equal(nodegroup.Summary{
+					StackName:            "",
+					Cluster:              clusterName,
+					Name:                 ngName,
+					Status:               "my-status",
+					MaxSize:              4,
+					MinSize:              0,
+					DesiredCapacity:      2,
+					InstanceType:         "m5.xlarge",
+					ImageID:              "ami-type",
+					CreationTime:         t,
+					NodeInstanceRoleARN:  "node-role",
+					AutoScalingGroupName: "asg-1,asg-2",
+					Version:              "1.18",
+					NodeGroupType:        api.NodeGroupTypeManaged,
+				}))
+			})
 		})
 	})
 })

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 )
@@ -15,16 +15,16 @@ func (c *Client) DeleteProfile(ctx context.Context, name string, waitForDeletion
 	if name == "" {
 		return errors.New("invalid Fargate profile name: empty")
 	}
-	out, err := c.api.DeleteFargateProfile(deleteRequest(c.clusterName, name))
+	out, err := c.api.DeleteFargateProfile(ctx, deleteRequest(c.clusterName, name))
 	logger.Debug("Fargate profile: delete request: received: %#v", out)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Fargate profile %q", name)
 	}
 	if waitForDeletion {
-		return c.waitForDeletion(name)
+		return c.waitForDeletion(ctx, name)
 	}
 
-	profiles, err := c.api.ListFargateProfiles(&eks.ListFargateProfilesInput{
+	profiles, err := c.api.ListFargateProfiles(ctx, &eks.ListFargateProfilesInput{
 		ClusterName: &c.clusterName,
 	})
 
@@ -34,7 +34,7 @@ func (c *Client) DeleteProfile(ctx context.Context, name string, waitForDeletion
 
 	//If waitForDeletion is false then the profile might still exist until deletion finishes
 	if len(profiles.FargateProfileNames) == 0 ||
-		(len(profiles.FargateProfileNames) == 1 && *profiles.FargateProfileNames[0] == name) {
+		(len(profiles.FargateProfileNames) == 1 && profiles.FargateProfileNames[0] == name) {
 		stack, err := c.stackManager.GetFargateStack(ctx)
 		if err != nil {
 			logger.Debug("failed to fetch fargate stack to delete, skipping deletion")
@@ -53,18 +53,25 @@ func (c *Client) DeleteProfile(ctx context.Context, name string, waitForDeletion
 	return nil
 }
 
-func (c *Client) waitForDeletion(name string) error {
+func (c *Client) waitForDeletion(ctx context.Context, name string) error {
 	// Clone this client's policy to ensure this method is re-entrant/thread-safe:
 	retryPolicy := c.retryPolicy.Clone()
 	for !retryPolicy.Done() {
-		names, err := c.ListProfiles()
+		names, err := c.ListProfiles(ctx)
 		if err != nil {
 			return err
 		}
 		if !contains(names, name) {
 			return nil
 		}
-		time.Sleep(retryPolicy.Duration())
+
+		timer := time.NewTimer(retryPolicy.Duration())
+		select {
+		case <-timer.C:
+
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
 	return fmt.Errorf("timed out while waiting for Fargate profile %q's deletion", name)
 }
@@ -78,9 +85,9 @@ func deleteRequest(clusterName string, profileName string) *eks.DeleteFargatePro
 	return request
 }
 
-func contains(array []*string, target string) bool {
+func contains(array []string, target string) bool {
 	for _, value := range array {
-		if value != nil && *value == target {
+		if value == target {
 			return true
 		}
 	}

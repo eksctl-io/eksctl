@@ -1,8 +1,7 @@
 package create
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -100,14 +99,6 @@ var _ = Describe("create cluster", func() {
 				args:  []string{"cluster", "--invalid", "dummy"},
 				error: "unknown flag: --invalid",
 			}),
-			Entry("with --name option with invalid characters that are rejected by cloudformation", invalidParamsCase{
-				args:  []string{"test-k8_cluster01"},
-				error: "validation for test-k8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
-			}),
-			Entry("with cluster name argument with invalid characters that are rejected by cloudformation", invalidParamsCase{
-				args:  []string{"--name", "eksctl-testing-k_8_cluster01"},
-				error: "validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
-			}),
 		)
 	})
 
@@ -179,14 +170,6 @@ var _ = Describe("create cluster", func() {
 			Entry("with invalid flags", invalidParamsCase{
 				args:  []string{"cluster", "--invalid", "dummy"},
 				error: "unknown flag: --invalid",
-			}),
-			Entry("with --name option with invalid characters that are rejected by cloudformation", invalidParamsCase{
-				args:  []string{"test-k8_cluster01"},
-				error: "validation for test-k8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
-			}),
-			Entry("with cluster name argument with invalid characters that are rejected by cloudformation", invalidParamsCase{
-				args:  []string{"--name", "eksctl-testing-k_8_cluster01"},
-				error: "validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
 			}),
 			Entry("with enableSsm disabled", invalidParamsCase{
 				args:  []string{"--name=test", "--enable-ssm=false"},

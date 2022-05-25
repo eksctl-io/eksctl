@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+
 	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
@@ -55,7 +57,8 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		logger.Writer = os.Stderr
 	}
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -71,13 +74,14 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 	}
 
 	var summaries []*nodegroup.Summary
+	manager := nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
 	if ng.Name == "" {
-		summaries, err = nodegroup.New(cfg, ctl, clientSet).GetAll(context.Background())
+		summaries, err = manager.GetAll(ctx)
 		if err != nil {
 			return err
 		}
 	} else {
-		summary, err := nodegroup.New(cfg, ctl, clientSet).Get(context.Background(), ng.Name)
+		summary, err := manager.Get(ctx, ng.Name)
 		if err != nil {
 			return err
 		}

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
@@ -33,27 +33,22 @@ func TestLabels(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var _ = Describe("Labels", func() {
-	var (
-		mng1 string
-	)
-	BeforeSuite(func() {
-		cmd := params.EksctlCreateCmd.
-			WithArgs(
-				"cluster",
-				"--config-file=-",
-				"--verbose=4",
-			).
-			WithoutArg("--region", params.Region).
-			WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/managed-nodegroup-with-labels.yaml"))
-		Expect(cmd).To(RunSuccessfully())
-		// corresponds to the label name in the cluster config file
-		mng1 = "mng-1"
-	})
+var _ = BeforeSuite(func() {
+	cmd := params.EksctlCreateCmd.
+		WithArgs(
+			"cluster",
+			"--config-file=-",
+			"--verbose=4",
+		).
+		WithoutArg("--region", params.Region).
+		WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/managed-nodegroup-with-labels.yaml"))
+	Expect(cmd).To(RunSuccessfully())
 
-	AfterSuite(func() {
-		params.DeleteClusters()
-	})
+})
+
+var _ = Describe("Labels", func() {
+	// corresponds to the label name in the cluster config file
+	const mng1 = "mng-1"
 
 	It("supports labels", func() {
 		By("getting existing labels")
@@ -98,4 +93,8 @@ var _ = Describe("Labels", func() {
 			)
 		Expect(cmd).To(RunSuccessfully())
 	})
+})
+
+var _ = AfterSuite(func() {
+	params.DeleteClusters()
 })

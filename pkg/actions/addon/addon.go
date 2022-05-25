@@ -7,13 +7,12 @@ import (
 	"strings"
 	"time"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	kubeclient "k8s.io/client-go/kubernetes"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -25,15 +24,14 @@ import (
 
 type Manager struct {
 	clusterConfig *api.ClusterConfig
-	eksAPI        eksiface.EKSAPI
+	eksAPI        awsapi.EKS
 	withOIDC      bool
 	oidcManager   *iamoidc.OpenIDConnectManager
 	stackManager  manager.StackManager
 	clientSet     kubeclient.Interface
-	timeout       time.Duration
 }
 
-func New(clusterConfig *api.ClusterConfig, eksAPI eksiface.EKSAPI, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface, timeout time.Duration) (*Manager, error) {
+func New(clusterConfig *api.ClusterConfig, eksAPI awsapi.EKS, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) (*Manager, error) {
 	return &Manager{
 		clusterConfig: clusterConfig,
 		eksAPI:        eksAPI,
@@ -41,47 +39,39 @@ func New(clusterConfig *api.ClusterConfig, eksAPI eksiface.EKSAPI, stackManager 
 		oidcManager:   oidcManager,
 		stackManager:  stackManager,
 		clientSet:     clientSet,
-		timeout:       timeout,
 	}, nil
 }
 
-func (a *Manager) waitForAddonToBeActive(addon *api.Addon) error {
-	var out *awseks.DescribeAddonOutput
-	operation := func() (bool, error) {
-		var err error
-		out, err = a.eksAPI.DescribeAddon(&awseks.DescribeAddonInput{
-			ClusterName: &a.clusterConfig.Metadata.Name,
-			AddonName:   &addon.Name,
-		})
-		if err != nil {
-			return false, err
-		}
-		if *out.Addon.Status == awseks.AddonStatusActive {
-			return true, nil
-		}
-		return false, nil
+func (a *Manager) waitForAddonToBeActive(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
+	activeWaiter := eks.NewAddonActiveWaiter(a.eksAPI)
+	input := &eks.DescribeAddonInput{
+		ClusterName: &a.clusterConfig.Metadata.Name,
+		AddonName:   &addon.Name,
 	}
-
-	w := waiter.Waiter{
-		Operation: operation,
-		NextDelay: func(_ int) time.Duration {
-			return a.timeout / 10
-		},
-	}
-
-	err := w.WaitWithTimeout(a.timeout)
-	if err != nil {
-		if err == context.DeadlineExceeded {
-			return errors.Errorf("timed out waiting for addon %q to become active, status: %q", addon.Name, *out.Addon.Status)
+	if err := activeWaiter.Wait(ctx, input, waitTimeout); err != nil {
+		getAddonStatus := func() string {
+			output, describeErr := a.eksAPI.DescribeAddon(ctx, input)
+			if describeErr != nil {
+				return describeErr.Error()
+			}
+			return string(output.Addon.Status)
 		}
-		return err
+
+		switch {
+		case strings.Contains(err.Error(), "exceeded max wait time"):
+			return fmt.Errorf("timed out waiting for addon %q to become active, status: %q", addon.Name, getAddonStatus())
+		case strings.Contains(err.Error(), "waiter state transitioned to Failure"):
+			return fmt.Errorf("addon status transitioned to %q", getAddonStatus())
+		default:
+			return err
+		}
 	}
 	logger.Info("addon %q active", addon.Name)
 	return nil
 }
 
-func (a *Manager) getLatestMatchingVersion(addon *api.Addon) (string, error) {
-	addonInfos, err := a.describeVersions(addon)
+func (a *Manager) getLatestMatchingVersion(ctx context.Context, addon *api.Addon) (string, error) {
+	addonInfos, err := a.describeVersions(ctx, addon)
 	if err != nil {
 		return "", err
 	}

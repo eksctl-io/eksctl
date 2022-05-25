@@ -3,9 +3,10 @@ package eks_test
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -17,7 +18,8 @@ import (
 
 var _ = Describe("eks auth helpers", func() {
 	var (
-		ctl *ClusterProvider
+		ctl          *ClusterProvider
+		kubeProvider *KubernetesProvider
 	)
 
 	Describe("construct client configs", func() {
@@ -27,10 +29,18 @@ var _ = Describe("eks auth helpers", func() {
 			BeforeEach(func() {
 
 				p := mockprovider.NewMockProvider()
+				kubeProvider = &KubernetesProvider{
+					WaitTimeout: 1 * time.Second,
+					RoleARN:     "role",
+					Signer:      p.STSPresigner(),
+				}
 
 				ctl = &ClusterProvider{
-					Provider: p,
-					Status:   &ProviderStatus{},
+					AWSProvider: p,
+					Status: &ProviderStatus{
+						IAMRoleARN: "eksctl",
+					},
+					KubeProvider: kubeProvider,
 				}
 
 			})
@@ -48,7 +58,7 @@ var _ = Describe("eks auth helpers", func() {
 				}
 
 				testAuthenticatorConfig := func(roleARN string) {
-					clientConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), roleARN, ctl.Provider.Profile())
+					clientConfig := kubeconfig.NewForKubectl(cfg, GetUsername(ctl.Status.IAMRoleARN), roleARN, ctl.AWSProvider.Profile())
 					Expect(clientConfig).To(Not(BeNil()))
 					ctx := clientConfig.CurrentContext
 					cluster := strings.Split(ctx, "@")[1]
@@ -109,11 +119,11 @@ var _ = Describe("eks auth helpers", func() {
 				})
 
 				It("should create config with embedded token", func() {
-					mockPresigner := ctl.Provider.STSPresigner().(*fakes.FakeSTSPresigner)
+					mockPresigner := ctl.AWSProvider.STSPresigner().(*fakes.FakeSTSPresigner)
 					mockPresigner.PresignGetCallerIdentityReturns(&v4.PresignedHTTPRequest{
 						URL: "https://example.com",
 					}, nil)
-					client, err := ctl.NewClient(cfg)
+					client, err := kubeProvider.NewClient(cfg)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(client.Config.AuthInfos[client.Config.CurrentContext].Token).To(HavePrefix("k8s-aws-v1."))
 				})

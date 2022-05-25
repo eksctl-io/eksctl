@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
@@ -48,7 +49,7 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn, account string, all bool
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctl, err := cmd.NewProviderForExistingCluster(context.Background())
 	if err != nil {
 		return err
 	}

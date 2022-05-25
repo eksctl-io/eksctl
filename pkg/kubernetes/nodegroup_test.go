@@ -3,13 +3,14 @@ package kubernetes
 import (
 	"context"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
+
 	. "github.com/onsi/gomega"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 var _ = Describe("NodeGroup", func() {
@@ -45,7 +46,7 @@ var _ = Describe("NodeGroup", func() {
 
 			Entry("[happy path] returns correct version", ngEntry{
 				mockCalls: func(c *fake.Clientset) {
-					_, err := c.CoreV1().Nodes().Create(context.TODO(), &v1.Node{
+					_, err := c.CoreV1().Nodes().Create(context.Background(), &v1.Node{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: "test-node",
 							Labels: map[string]string{
@@ -65,7 +66,7 @@ var _ = Describe("NodeGroup", func() {
 
 			Entry("[happy path] returns correct version with version trimming", ngEntry{
 				mockCalls: func(c *fake.Clientset) {
-					_, err := c.CoreV1().Nodes().Create(context.TODO(), &v1.Node{
+					_, err := c.CoreV1().Nodes().Create(context.Background(), &v1.Node{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: "test-node",
 							Labels: map[string]string{
@@ -85,7 +86,7 @@ var _ = Describe("NodeGroup", func() {
 
 			Entry("fails to list nodes returns empty version", ngEntry{
 				mockCalls: func(c *fake.Clientset) {
-					_, err := c.CoreV1().Nodes().Create(context.TODO(), &v1.Node{
+					_, err := c.CoreV1().Nodes().Create(context.Background(), &v1.Node{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: "test-node",
 						},

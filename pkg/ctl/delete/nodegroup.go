@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 
 	"github.com/kris-nova/logger"
@@ -80,7 +82,8 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -95,18 +98,17 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-	ctx := context.TODO()
 
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
 		if onlyMissing {
-			err = ngFilter.SetOnlyRemote(ctx, ctl.Provider.EKS(), stackManager, cfg)
+			err = ngFilter.SetOnlyRemote(ctx, ctl.AWSProvider.EKS(), stackManager, cfg)
 			if err != nil {
 				return err
 			}
 		}
 	} else {
-		err := cmdutils.PopulateNodegroup(ctx, stackManager, ng.Name, cfg, ctl.Provider)
+		err := cmdutils.PopulateNodegroup(ctx, stackManager, ng.Name, cfg, ctl.AWSProvider)
 		if err != nil {
 			return err
 		}
@@ -128,7 +130,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	}
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
-	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet)
+	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
 	if deleteNodeGroupDrain {
 		cmdutils.LogIntendedAction(cmd.Plan, "drain %d nodegroup(s) in cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
@@ -140,7 +142,9 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 			DisableEviction:       disableEviction,
 			Parallel:              parallel,
 		}
-		err := nodeGroupManager.Drain(drainInput)
+		ctx, cancel := context.WithTimeout(ctx, cmd.ProviderConfig.WaitTimeout)
+		defer cancel()
+		err := nodeGroupManager.Drain(ctx, drainInput)
 		if err != nil {
 			logger.Warning("error occurred during drain, to skip drain use '--drain=false' flag")
 			return err
@@ -149,7 +153,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
-	err = nodeGroupManager.Delete(context.TODO(), cfg.NodeGroups, cfg.ManagedNodeGroups, cmd.Wait, cmd.Plan)
+	err = nodeGroupManager.Delete(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, cmd.Wait, cmd.Plan)
 	if err != nil {
 		return err
 	}

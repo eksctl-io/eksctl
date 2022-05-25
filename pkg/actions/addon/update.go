@@ -3,9 +3,11 @@ package addon
 import (
 	"context"
 	"fmt"
+	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/google/uuid"
 	"github.com/kris-nova/logger"
 
@@ -13,22 +15,21 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
-func (a *Manager) Update(ctx context.Context, addon *api.Addon, wait bool) error {
+func (a *Manager) Update(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
 	logger.Debug("addon: %v", addon)
 
 	updateAddonInput := &eks.UpdateAddonInput{
 		AddonName:   &addon.Name,
 		ClusterName: &a.clusterConfig.Metadata.Name,
-		//ResolveConflicts: 		"enum":["OVERWRITE","NONE"]
 	}
 
 	if addon.Force {
-		updateAddonInput.ResolveConflicts = aws.String("overwrite")
+		updateAddonInput.ResolveConflicts = ekstypes.ResolveConflictsOverwrite
 		logger.Debug("setting resolve conflicts to overwrite")
 
 	}
 
-	summary, err := a.Get(addon)
+	summary, err := a.Get(ctx, addon)
 	if err != nil {
 		return err
 	}
@@ -40,7 +41,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, wait bool) error
 
 		updateAddonInput.AddonVersion = &summary.Version
 	} else {
-		version, err := a.getLatestMatchingVersion(addon)
+		version, err := a.getLatestMatchingVersion(ctx, addon)
 		if err != nil {
 			return fmt.Errorf("failed to fetch addon version: %w", err)
 		}
@@ -69,17 +70,17 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, wait bool) error
 	}
 
 	logger.Info("updating addon")
-	logger.Debug(updateAddonInput.String())
+	logger.Debug("%+v", updateAddonInput)
 
-	output, err := a.eksAPI.UpdateAddon(updateAddonInput)
+	output, err := a.eksAPI.UpdateAddon(ctx, updateAddonInput)
 	if err != nil {
 		return fmt.Errorf("failed to update addon %q: %v", addon.Name, err)
 	}
 	if output != nil {
-		logger.Debug(output.String())
+		logger.Debug("%+v", output.Update)
 	}
-	if wait {
-		return a.waitForAddonToBeActive(addon)
+	if waitTimeout > 0 {
+		return a.waitForAddonToBeActive(ctx, addon, waitTimeout)
 	}
 	return nil
 }

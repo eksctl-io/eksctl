@@ -11,10 +11,13 @@ import (
 	"path"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	"github.com/pkg/errors"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/weaveworks/eksctl/integration/runner"
@@ -87,14 +90,15 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 
 			By("applying the generated EKS Connector manifests to the EKS cluster")
 
-			rawClient := getRawClient(params.ClusterName, params.Region)
+			ctx := context.Background()
+			rawClient := getRawClient(ctx, params.ClusterName, params.Region)
 			for _, f := range resourcePaths {
 				bytes, err := os.ReadFile(f)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(rawClient.CreateOrReplace(bytes, false)).To(Succeed())
 			}
 
-			provider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, &api.ClusterConfig{
+			provider, err := eks.New(ctx, &api.ProviderConfig{Region: params.Region}, &api.ClusterConfig{
 				TypeMeta: api.ClusterConfigTypeMeta(),
 				Metadata: &api.ClusterMeta{
 					Name:   params.ClusterName,
@@ -108,9 +112,9 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 				Name: aws.String(connectedClusterName),
 			}
 			Eventually(func() string {
-				connectedCluster, err := provider.Provider.EKS().DescribeCluster(describeClusterInput)
+				connectedCluster, err := provider.AWSProvider.EKS().DescribeCluster(ctx, describeClusterInput)
 				Expect(err).NotTo(HaveOccurred())
-				return *connectedCluster.Cluster.Status
+				return string(connectedCluster.Cluster.Status)
 			}, "5m", "8s").Should(Equal("ACTIVE"))
 
 			cmd = params.EksctlGetCmd.WithArgs("clusters", "-n", connectedClusterName)
@@ -134,10 +138,10 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 				WithArgs("--name", connectedClusterName)
 			Expect(cmd).To(RunSuccessfully())
 
-			_, err = provider.Provider.EKS().DescribeCluster(describeClusterInput)
+			_, err = provider.AWSProvider.EKS().DescribeCluster(ctx, describeClusterInput)
 			Expect(err).To(HaveOccurred())
-			awsErr, ok := err.(awserr.Error)
-			Expect(ok && awsErr.Code() == awseks.ErrCodeResourceNotFoundException).To(BeTrue())
+			var notFoundErr *ekstypes.ResourceNotFoundException
+			Expect(errors.As(err, &notFoundErr)).To(BeTrue())
 		})
 	})
 })
@@ -166,7 +170,7 @@ var _ = AfterSuite(func() {
 	deregisterCluster()
 })
 
-func getRawClient(clusterName, region string) *kubewrapper.RawClient {
+func getRawClient(ctx context.Context, clusterName, region string) *kubewrapper.RawClient {
 	cfg := &api.ClusterConfig{
 		Metadata: &api.ClusterMeta{
 			Name:   clusterName,
@@ -176,7 +180,7 @@ func getRawClient(clusterName, region string) *kubewrapper.RawClient {
 	ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: region}, cfg)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = ctl.RefreshClusterStatus(cfg)
+	err = ctl.RefreshClusterStatus(ctx, cfg)
 	Expect(err).ShouldNot(HaveOccurred())
 	rawClient, err := ctl.NewRawClient(cfg)
 	Expect(err).NotTo(HaveOccurred())

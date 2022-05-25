@@ -3,15 +3,16 @@ package flux_test
 import (
 	"context"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/actions/flux"
-	"github.com/weaveworks/eksctl/pkg/actions/flux/fakes"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
+
+	"github.com/weaveworks/eksctl/pkg/actions/flux"
+	"github.com/weaveworks/eksctl/pkg/actions/flux/fakes"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 var _ = Describe("Gitops", func() {
@@ -63,7 +64,7 @@ var _ = Describe("Gitops", func() {
 
 	Context("Flux v1 components are already installed", func() {
 		BeforeEach(func() {
-			_, err := fakeClientSet.AppsV1().Deployments("flux-system").Create(context.TODO(), &v1.Deployment{
+			_, err := fakeClientSet.AppsV1().Deployments("flux-system").Create(context.Background(), &v1.Deployment{
 				ObjectMeta: metav1.ObjectMeta{Name: "flux"}},
 				metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())

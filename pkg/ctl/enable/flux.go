@@ -1,6 +1,7 @@
 package enable
 
 import (
+	"context"
 	"os"
 
 	"github.com/kris-nova/logger"
@@ -10,6 +11,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
@@ -50,7 +52,7 @@ func flux2Install(cmd *cmdutils.Cmd) error {
 	logger.Info("will install Flux v2 components on cluster %s", cmd.ClusterConfig.Metadata.Name)
 
 	if kubeconfAndContextNotSet(cmd.ClusterConfig.GitOps.Flux.Flags) {
-		ctl, err := cmd.NewProviderForExistingCluster()
+		ctl, err := cmd.NewProviderForExistingCluster(context.TODO())
 		if err != nil {
 			return err
 		}
@@ -68,14 +70,14 @@ func flux2Install(cmd *cmdutils.Cmd) error {
 			}
 		}()
 		logger.Debug("writing temporary kubeconfig to %s", kubeCfgPath.Name())
-		kubectlConfig := kubeconfig.NewForKubectl(cmd.ClusterConfig, ctl.GetUsername(), "", ctl.Provider.Profile())
+		kubectlConfig := kubeconfig.NewForKubectl(cmd.ClusterConfig, eks.GetUsername(ctl.Status.IAMRoleARN), "", ctl.AWSProvider.Profile())
 		if _, err := kubeconfig.Write(kubeCfgPath.Name(), *kubectlConfig, true); err != nil {
 			return err
 		}
 		cmd.ClusterConfig.GitOps.Flux.Flags["kubeconfig"] = kubeCfgPath.Name()
 	}
 
-	k8sClientSet, _, err := cmdutils.KubernetesClientAndConfigFrom(cmd)
+	k8sClientSet, err := cmdutils.KubernetesClientAndConfigFrom(cmd)
 	if err != nil {
 		return err
 	}

@@ -66,7 +66,8 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -80,12 +81,12 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	oidc, err := ctl.NewOpenIDConnectManager(cfg)
+	oidc, err := ctl.NewOpenIDConnectManager(ctx, cfg)
 	if err != nil {
 		return err
 	}
 
-	providerExists, err := oidc.CheckProviderExists(context.TODO())
+	providerExists, err := oidc.CheckProviderExists(ctx)
 	if err != nil {
 		return err
 	}
@@ -100,10 +101,10 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	existingIAMStacks, err := stackManager.ListStacksMatching(context.TODO(), "eksctl-.*-addon-iamserviceaccount")
+	existingIAMStacks, err := stackManager.ListStacksMatching(ctx, "eksctl-.*-addon-iamserviceaccount")
 	if err != nil {
 		return err
 	}
 
-	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(context.TODO(), cfg.IAM.ServiceAccounts, existingIAMStacks, cmd.Plan)
+	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(ctx, cfg.IAM.ServiceAccounts, existingIAMStacks, cmd.Plan)
 }

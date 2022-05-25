@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -39,7 +41,8 @@ func doUpdateKubeProxy(cmd *cmdutils.Cmd) error {
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -58,11 +61,11 @@ func doUpdateKubeProxy(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	updateRequired, err := defaultaddons.UpdateKubeProxy(defaultaddons.AddonInput{
+	updateRequired, err := defaultaddons.UpdateKubeProxy(ctx, defaultaddons.AddonInput{
 		RawClient:           rawClient,
 		ControlPlaneVersion: kubernetesVersion,
 		Region:              meta.Region,
-		EKSAPI:              ctl.Provider.EKS(),
+		EKSAPI:              ctl.AWSProvider.EKS(),
 	}, cmd.Plan)
 	if err != nil {
 		return err

@@ -66,7 +66,7 @@ type createAddonTask struct {
 func (t *createAddonTask) Describe() string { return t.info }
 
 func (t *createAddonTask) Do(errorCh chan error) error {
-	oidc, err := t.clusterProvider.NewOpenIDConnectManager(t.cfg)
+	oidc, err := t.clusterProvider.NewOpenIDConnectManager(t.ctx, t.cfg)
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 	if err != nil {
 		return err
 	}
-	addonManager, err := New(t.cfg, t.clusterProvider.Provider.EKS(), stackManager, oidcProviderExists, oidc, clientSet, t.timeout)
+	addonManager, err := New(t.cfg, t.clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, clientSet)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		if t.forceAll {
 			a.Force = true
 		}
-		err := addonManager.Create(context.TODO(), a, t.wait)
+		err := addonManager.Create(t.ctx, a, t.timeout)
 		if err != nil {
 			go func() {
 				errorCh <- err

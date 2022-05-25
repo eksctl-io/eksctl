@@ -189,6 +189,19 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 			args = append(args, "--region", clusterMeta.Region)
 		}
 	}
+	// If the alpha API version is selected, check the kubectl version
+	// If kubectl 1.24.0 or above is detected, override with the beta API version
+	// kubectl 1.24.0 removes the alpha API version, so it will never work
+	// Therefore as a best effort try the beta version even if it might not work
+	if execConfig.APIVersion == alphaAPIVersion {
+		if kubectlVersion := getKubectlVersion(); kubectlVersion != "" {
+			// Silently ignore errors because kubectl is not required to run eksctl
+			compareVersions, err := utils.CompareVersions(kubectlVersion, "1.24.0")
+			if err == nil && compareVersions >= 0 {
+				execConfig.APIVersion = betaAPIVersion
+			}
+		}
+	}
 	if roleARN != "" {
 		args = append(args, roleARNFlag, roleARN)
 	}
@@ -236,6 +249,41 @@ func getAWSIAMAuthenticatorVersion() (string, error) {
 		return "", fmt.Errorf("failed to parse version information: %w", err)
 	}
 	return parsedVersion.Version, nil
+}
+
+/* KubectlVersionFormat is the format used by kubectl version --format=json, example output:
+{
+  "clientVersion": {
+    "major": "1",
+    "minor": "23",
+    "gitVersion": "v1.23.6",
+    "gitCommit": "ad3338546da947756e8a88aa6822e9c11e7eac22",
+    "gitTreeState": "archive",
+    "buildDate": "2022-04-29T06:39:16Z",
+    "goVersion": "go1.18.1",
+    "compiler": "gc",
+    "platform": "linux/amd64"
+  }
+} */
+type KubectlVersionData struct {
+	Version string `json:"gitVersion"`
+}
+
+type KubectlVersionFormat struct {
+	ClientVersion KubectlVersionData `json:"clientVersion"`
+}
+
+func getKubectlVersion() string {
+	cmd := execCommand("kubectl", "version", "--client", "--output=json")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	var parsedVersion KubectlVersionFormat
+	if err := json.Unmarshal(output, &parsedVersion); err != nil {
+		return ""
+	}
+	return strings.TrimLeft(parsedVersion.ClientVersion.Version, "v")
 }
 
 func lockFileName(filePath string) string {

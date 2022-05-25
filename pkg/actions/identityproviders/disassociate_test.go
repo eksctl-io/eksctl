@@ -1,53 +1,59 @@
 package identityproviders_test
 
 import (
+	"context"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	"github.com/stretchr/testify/mock"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/eks/mocks"
-	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
 )
 
 var _ = Describe("Disassociate", func() {
-	var eksAPI mocks.EKSAPI
+	var eksAPI mocksv2.EKS
 	BeforeEach(func() {
-		eksAPI = mocks.EKSAPI{}
-		eksAPI.On("DescribeIdentityProviderConfig", &eks.DescribeIdentityProviderConfigInput{
-			ClusterName: aws.String(""),
-			IdentityProviderConfig: &eks.IdentityProviderConfig{
+		eksAPI = mocksv2.EKS{}
+		eksAPI.On("DescribeIdentityProviderConfig", mock.Anything, &eks.DescribeIdentityProviderConfigInput{
+			ClusterName: aws.String("idp-test"),
+			IdentityProviderConfig: &ekstypes.IdentityProviderConfig{
 				Name: aws.String("pool-1"),
 				Type: aws.String("oidc"),
 			},
 		}).Return(&eks.DescribeIdentityProviderConfigOutput{
-			IdentityProviderConfig: &eks.IdentityProviderConfigResponse{
-				Oidc: &eks.OidcIdentityProviderConfig{
+			IdentityProviderConfig: &ekstypes.IdentityProviderConfigResponse{
+				Oidc: &ekstypes.OidcIdentityProviderConfig{
 					IdentityProviderConfigName: aws.String("pool-1"),
-					Status:                     aws.String(eks.ConfigStatusActive),
+					Status:                     ekstypes.ConfigStatusActive,
 				},
 			},
 		}, nil)
-		eksAPI.On("DisassociateIdentityProviderConfig", &eks.DisassociateIdentityProviderConfigInput{
-			ClusterName: aws.String(""),
-			IdentityProviderConfig: &eks.IdentityProviderConfig{
+		eksAPI.On("DisassociateIdentityProviderConfig", mock.Anything, &eks.DisassociateIdentityProviderConfigInput{
+			ClusterName: aws.String("idp-test"),
+			IdentityProviderConfig: &ekstypes.IdentityProviderConfig{
 				Name: aws.String("pool-1"),
 				Type: aws.String("oidc"),
 			},
 		}).Return(&eks.DisassociateIdentityProviderConfigOutput{
-			Update: &eks.Update{
+			Update: &ekstypes.Update{
 				Id:   aws.String("1"),
-				Type: aws.String("DisassociateIdentityProviderConfig"),
+				Type: ekstypes.UpdateTypeDisassociateIdentityProviderConfig,
 			},
 		}, nil)
 	})
 	It("disassociates from all providers", func() {
-		manager := identityproviders.NewManager(api.ClusterMeta{}, &eksAPI)
-		err := manager.Disassociate(identityproviders.DisassociateIdentityProvidersOptions{
+		manager := identityproviders.NewManager(api.ClusterMeta{
+			Name: "idp-test",
+		}, &eksAPI)
+		err := manager.Disassociate(context.Background(), identityproviders.DisassociateIdentityProvidersOptions{
 			Providers: []identityproviders.DisassociateIdentityProvider{
 				{
 					Name: "pool-1",
@@ -59,24 +65,22 @@ var _ = Describe("Disassociate", func() {
 		eksAPI.AssertExpectations(GinkgoT())
 	})
 	It("disassociates from all providers and waits", func() {
-		manager := identityproviders.NewManager(api.ClusterMeta{}, &eksAPI)
-		client := mockprovider.NewMockAWSClient()
-		updateInput := eks.DescribeUpdateInput{
+		manager := identityproviders.NewManager(api.ClusterMeta{
+			Name: "idp-test",
+		}, &eksAPI)
+		updateInput := &eks.DescribeUpdateInput{
 			UpdateId: aws.String("1"),
-			Name:     aws.String(""),
+			Name:     aws.String("idp-test"),
 		}
-		updateOutput := eks.DescribeUpdateOutput{
-			Update: &eks.Update{
-				Status: aws.String(eks.UpdateStatusSuccessful),
-				Type:   aws.String("DisassociateIdentityProviderConfig"),
+		updateOutput := &eks.DescribeUpdateOutput{
+			Update: &ekstypes.Update{
+				Status: ekstypes.UpdateStatusSuccessful,
+				Type:   ekstypes.UpdateTypeDisassociateIdentityProviderConfig,
 			},
 		}
-		eksAPI.On("DescribeUpdateRequest", &updateInput).Return(
-			client.MockRequestForGivenOutput(&updateInput, &updateOutput), &updateOutput,
-		)
-		wait := 1 * time.Minute
-		err := manager.Disassociate(identityproviders.DisassociateIdentityProvidersOptions{
-			WaitTimeout: &wait,
+		eksAPI.On("DescribeUpdate", mock.Anything, updateInput, mock.Anything).Return(updateOutput, nil)
+		err := manager.Disassociate(context.Background(), identityproviders.DisassociateIdentityProvidersOptions{
+			WaitTimeout: 1 * time.Minute,
 			Providers: []identityproviders.DisassociateIdentityProvider{
 				{
 					Name: "pool-1",

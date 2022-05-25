@@ -11,16 +11,16 @@ import (
 	"testing"
 	"time"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
-	. "github.com/onsi/gomega"
 )
 
 var params *tests.Params
@@ -108,9 +108,9 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 					return
 				}
 				Expect(cmd).Should(RunSuccessfully())
-				awsSession := NewSession(params.Region)
+				awsSession := NewConfig(params.Region)
 				Eventually(awsSession, timeOutSeconds, pollInterval).Should(
-					HaveExistingCluster(clName, awseks.ClusterStatusActive, params.Version))
+					HaveExistingCluster(clName, string(ekstypes.ClusterStatusActive), params.Version))
 			} else if e.Type == updateCluster {
 				utilsCmd := params.EksctlUtilsCmd.
 					WithTimeout(timeOutSeconds*time.Second).
@@ -152,9 +152,9 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 					"--name", clName,
 				)
 				Expect(deleteCmd).Should(RunSuccessfully())
-				awsSession := NewSession(params.Region)
+				awsSession := NewConfig(params.Region)
 				Eventually(awsSession, timeOutSeconds, pollInterval).
-					ShouldNot(HaveExistingCluster(clName, awseks.ClusterStatusActive, params.Version))
+					ShouldNot(HaveExistingCluster(clName, string(ekstypes.ClusterStatusActive), params.Version))
 			}
 		},
 		Entry("Create cluster1, Private=false, Public=true, should succeed", endpointAccessCase{

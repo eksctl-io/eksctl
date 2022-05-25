@@ -8,17 +8,15 @@ import (
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/bytequantity"
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 // MaxInstanceTypes is the maximum number of instance types you can specify in
@@ -32,18 +30,6 @@ const maxInstanceTypes = 40
 type InstanceSelector interface {
 	// Filter returns a set of instance types matching the specified instance selector filters
 	Filter(selector.Filters) ([]string, error)
-}
-
-//counterfeiter:generate -o fakes/fake_nodegroup_initialiser.go . NodeGroupInitialiser
-// NodeGroupInitialiser is an interface that provides helpers for nodegroup creation.
-type NodeGroupInitialiser interface {
-	Normalize(ctx context.Context, nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error
-	ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error
-	NewAWSSelectorSession(provider api.ClusterProvider)
-	ValidateLegacySubnetsForNodeGroups(ctx context.Context, spec *api.ClusterConfig, provider api.ClusterProvider) error
-	DoesAWSNodeUseIRSA(ctx context.Context, provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error)
-	DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) error
-	ValidateExistingNodeGroupsForCompatibility(ctx context.Context, cfg *api.ClusterConfig, stackManager manager.StackManager) error
 }
 
 // A NodeGroupService provides helpers for nodegroup creation
@@ -214,12 +200,8 @@ func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	return instanceTypes, nil
 }
 
-func (m *NodeGroupService) ValidateLegacySubnetsForNodeGroups(ctx context.Context, spec *api.ClusterConfig, provider api.ClusterProvider) error {
-	return vpc.ValidateLegacySubnetsForNodeGroups(ctx, spec, provider)
-}
-
 // DoAllNodegroupStackTasks iterates over nodegroup tasks and returns any errors.
-func (m *NodeGroupService) DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) error {
+func DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) error {
 	logger.Info(taskTree.Describe())
 	errs := taskTree.DoAllSync()
 	if len(errs) > 0 {
@@ -237,7 +219,7 @@ func (m *NodeGroupService) DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, re
 
 // ValidateExistingNodeGroupsForCompatibility looks at each of the existing nodegroups and
 // validates configuration, if it find issues it logs messages
-func (m *NodeGroupService) ValidateExistingNodeGroupsForCompatibility(ctx context.Context, cfg *api.ClusterConfig, stackManager manager.StackManager) error {
+func ValidateExistingNodeGroupsForCompatibility(ctx context.Context, cfg *api.ClusterConfig, stackManager manager.StackManager) error {
 	infoByNodeGroup, err := stackManager.DescribeNodeGroupStacksAndResources(ctx)
 	if err != nil {
 		return errors.Wrap(err, "getting resources for all nodegroup stacks")
@@ -247,7 +229,7 @@ func (m *NodeGroupService) ValidateExistingNodeGroupsForCompatibility(ctx contex
 	}
 
 	logger.Info("checking security group configuration for all nodegroups")
-	incompatibleNodeGroups := []string{}
+	var incompatibleNodeGroups []string
 	for ng, info := range infoByNodeGroup {
 		if stackManager.StackStatusIsNotTransitional(info.Stack) {
 			isCompatible, err := isNodeGroupCompatible(ng, info)
@@ -263,14 +245,13 @@ func (m *NodeGroupService) ValidateExistingNodeGroupsForCompatibility(ctx contex
 		}
 	}
 
-	numIncompatibleNodeGroups := len(incompatibleNodeGroups)
-	if numIncompatibleNodeGroups == 0 {
+	if len(incompatibleNodeGroups) == 0 {
 		logger.Info("all nodegroups have up-to-date cloudformation templates")
 		return nil
 	}
 
 	logger.Critical("found %d nodegroup(s) (%s) without shared security group, cluster networking maybe be broken",
-		numIncompatibleNodeGroups, strings.Join(incompatibleNodeGroups, ", "))
+		len(incompatibleNodeGroups), strings.Join(incompatibleNodeGroups, ", "))
 	logger.Critical("it's recommended to create new nodegroups, then delete old ones")
 	if cfg.VPC.SharedNodeSecurityGroup != "" {
 		logger.Critical("as a temporary fix, you can patch the configuration and add each of these nodegroup(s) to %q",

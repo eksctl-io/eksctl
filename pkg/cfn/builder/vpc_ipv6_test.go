@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -25,6 +25,10 @@ var _ = Describe("IPv6 VPC builder", func() {
 		cfg = api.NewClusterConfig()
 		cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
 		cfg.AvailabilityZones = []string{azA, azB}
+		cfg.VPC.Subnets = &api.ClusterSubnets{
+			Public:  api.NewAZSubnetMapping(),
+			Private: api.NewAZSubnetMapping(),
+		}
 	})
 
 	It("creates the ipv6 VPC and its resources", func() {
@@ -259,9 +263,9 @@ var _ = Describe("IPv6 VPC builder", func() {
 			assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock, expectedFnIPv6CIDR, cidrBlockIndex)
 		}
 		assertSubnetSet(azA, builder.PublicSubnetKey+azAFormatted, "kubernetes.io/role/elb", float64(0), true)
-		Expect(vpcTemplate.Resources[builder.PublicSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(BeNil())
+		Expect(*vpcTemplate.Resources[builder.PublicSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
 		assertSubnetSet(azB, builder.PublicSubnetKey+azBFormatted, "kubernetes.io/role/elb", float64(1), true)
-		Expect(vpcTemplate.Resources[builder.PublicSubnetKey+azBFormatted].Properties.AssignIpv6AddressOnCreation).To(BeNil())
+		Expect(*vpcTemplate.Resources[builder.PublicSubnetKey+azBFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
 
 		assertSubnetSet(azA, builder.PrivateSubnetKey+azAFormatted, "kubernetes.io/role/internal-elb", float64(2), false)
 		Expect(*vpcTemplate.Resources[builder.PrivateSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
@@ -341,6 +345,10 @@ var _ = Describe("IPv6 VPC builder", func() {
 			cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
 			cfg.AvailabilityZones = []string{azA, azB}
 			cfg.VPC.Network.CIDR = ipnet.MustParseCIDR("10.1.0.0/20")
+			cfg.VPC.Subnets = &api.ClusterSubnets{
+				Public:  api.NewAZSubnetMapping(),
+				Private: api.NewAZSubnetMapping(),
+			}
 		})
 		It("calculates the correct cidr blocks for the subnets", func() {
 			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
@@ -389,9 +397,9 @@ var _ = Describe("IPv6 VPC builder", func() {
 				assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock, expectedFnIPv6CIDR, cidrBlockIndex)
 			}
 			assertSubnetSet(azA, builder.PublicSubnetKey+azAFormatted, "kubernetes.io/role/elb", float64(0), true)
-			Expect(vpcTemplate.Resources[builder.PublicSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(BeNil())
+			Expect(*vpcTemplate.Resources[builder.PublicSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
 			assertSubnetSet(azB, builder.PublicSubnetKey+azBFormatted, "kubernetes.io/role/elb", float64(1), true)
-			Expect(vpcTemplate.Resources[builder.PublicSubnetKey+azBFormatted].Properties.AssignIpv6AddressOnCreation).To(BeNil())
+			Expect(*vpcTemplate.Resources[builder.PublicSubnetKey+azBFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
 
 			assertSubnetSet(azA, builder.PrivateSubnetKey+azAFormatted, "kubernetes.io/role/internal-elb", float64(2), false)
 			Expect(*vpcTemplate.Resources[builder.PrivateSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))

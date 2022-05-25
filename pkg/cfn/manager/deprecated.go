@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/kris-nova/logger"
+
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
 func deprecatedStackSuffices() []string {
@@ -25,7 +26,7 @@ func fmtDeprecatedStacksRegexForCluster(name string) string {
 	return fmt.Sprintf(ourStackRegexFmt, name, strings.Join(deprecatedStackSuffices(), "|"))
 }
 
-// DeleteTasksForDeprecatedStacks all deprecated stacks
+// DeleteTasksForDeprecatedStacks deletes all deprecated stacks.
 func (c *StackCollection) DeleteTasksForDeprecatedStacks(ctx context.Context) (*tasks.TaskTree, error) {
 	stacks, err := c.ListStacksMatching(ctx, fmtDeprecatedStacksRegexForCluster(c.spec.Metadata.Name))
 	if err != nil {
@@ -38,39 +39,24 @@ func (c *StackCollection) DeleteTasksForDeprecatedStacks(ctx context.Context) (*
 	deleteControlPlaneTask := &tasks.TaskWithoutParams{
 		Info: fmt.Sprintf("delete control plane %q", c.spec.Metadata.Name),
 		Call: func(errs chan error) error {
-			_, err := c.eksAPI.DescribeCluster(&eks.DescribeClusterInput{
+			describeClusterInput := &eks.DescribeClusterInput{
+				Name: &c.spec.Metadata.Name,
+			}
+			_, err := c.eksAPI.DescribeCluster(ctx, describeClusterInput)
+			if err != nil {
+				return err
+			}
+
+			_, err = c.eksAPI.DeleteCluster(ctx, &eks.DeleteClusterInput{
 				Name: &c.spec.Metadata.Name,
 			})
 			if err != nil {
 				return err
 			}
 
-			_, err = c.eksAPI.DeleteCluster(&eks.DeleteClusterInput{
-				Name: &c.spec.Metadata.Name,
-			})
-			if err != nil {
-				return err
-			}
-
-			newRequest := func() *request.Request {
-				input := &eks.DescribeClusterInput{
-					Name: &c.spec.Metadata.Name,
-				}
-				req, _ := c.eksAPI.DescribeClusterRequest(input)
-				return req
-			}
-
-			msg := fmt.Sprintf("waiting for control plane %q to be deleted", c.spec.Metadata.Name)
-
-			acceptors := waiters.MakeAcceptors(
-				"Cluster.Status",
-				eks.ClusterStatusDeleting,
-				[]string{
-					eks.ClusterStatusFailed,
-				},
-			)
-
-			return waiters.Wait(c.spec.Metadata.Name, msg, acceptors, newRequest, c.waitTimeout, nil)
+			logger.Info("waiting for control plane %q to be deleted", c.spec.Metadata.Name)
+			waiter := eks.NewClusterDeletedWaiter(c.eksAPI)
+			return waiter.Wait(ctx, describeClusterInput, c.waitTimeout)
 		},
 	}
 

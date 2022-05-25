@@ -4,22 +4,21 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/eksctl/pkg/awsapi"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
 // A Service provides methods for managing managed nodegroups
 type Service struct {
-	eksAPI                eksiface.EKSAPI
+	eksAPI                awsapi.EKS
 	launchTemplateFetcher *builder.LaunchTemplateFetcher
 	clusterName           string
 	stackCollection       manager.StackManager
@@ -36,7 +35,7 @@ const (
 	labelsPath = "Resources.ManagedNodeGroup.Properties.Labels"
 )
 
-func NewService(eksAPI eksiface.EKSAPI, ec2API awsapi.EC2,
+func NewService(eksAPI awsapi.EKS, ec2API awsapi.EC2,
 	stackCollection manager.StackManager, clusterName string) *Service {
 	return &Service{
 		eksAPI:                eksAPI,
@@ -47,13 +46,13 @@ func NewService(eksAPI eksiface.EKSAPI, ec2API awsapi.EC2,
 }
 
 // GetHealth fetches the health status for a nodegroup
-func (m *Service) GetHealth(nodeGroupName string) ([]HealthIssue, error) {
+func (m *Service) GetHealth(ctx context.Context, nodeGroupName string) ([]HealthIssue, error) {
 	input := &eks.DescribeNodegroupInput{
 		ClusterName:   &m.clusterName,
 		NodegroupName: &nodeGroupName,
 	}
 
-	output, err := m.eksAPI.DescribeNodegroup(input)
+	output, err := m.eksAPI.DescribeNodegroup(ctx, input)
 	if err != nil {
 		if IsNotFound(err) {
 			return nil, errors.Wrapf(err, "could not find a managed nodegroup with name %q", nodeGroupName)
@@ -71,7 +70,7 @@ func (m *Service) GetHealth(nodeGroupName string) ([]HealthIssue, error) {
 	for _, issue := range health.Issues {
 		healthIssues = append(healthIssues, HealthIssue{
 			Message: *issue.Message,
-			Code:    *issue.Code,
+			Code:    string(issue.Code),
 		})
 	}
 
@@ -120,8 +119,8 @@ func (m *Service) GetLabels(ctx context.Context, nodeGroupName string) (map[stri
 }
 
 func IsNotFound(err error) bool {
-	awsError, ok := err.(awserr.Error)
-	return ok && awsError.Code() == eks.ErrCodeResourceNotFoundException
+	var notFoundErr *ekstypes.ResourceNotFoundException
+	return errors.As(err, &notFoundErr)
 }
 
 // TODO switch to using goformation types

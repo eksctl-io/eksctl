@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/kris-nova/logger"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -31,11 +31,11 @@ func (i *Installer) Create(ctx context.Context) error {
 	}
 	instanceProfileName := fmt.Sprintf("eksctl-%s-%s", builder.KarpenterNodeInstanceProfile, i.Config.Metadata.Name)
 	if i.Config.Karpenter.DefaultInstanceProfile != nil {
-		instanceProfileName = aws.StringValue(i.Config.Karpenter.DefaultInstanceProfile)
+		instanceProfileName = aws.ToString(i.Config.Karpenter.DefaultInstanceProfile)
 	}
 
 	// Create IAM roles
-	taskTree := newTasksToInstallKarpenterIAMRoles(ctx, i.Config, i.StackManager, i.CTL.Provider.EC2(), instanceProfileName)
+	taskTree := newTasksToInstallKarpenterIAMRoles(ctx, i.Config, i.StackManager, i.CTL.AWSProvider.EC2(), instanceProfileName)
 	if err := doTasks(taskTree); err != nil {
 		return err
 	}

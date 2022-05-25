@@ -10,15 +10,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	harness "github.com/dlespiau/kube-test-harness"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
-	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
-	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+
+	harness "github.com/dlespiau/kube-test-harness"
+
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
@@ -26,11 +31,8 @@ import (
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (
@@ -55,10 +57,29 @@ func TestManaged(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
+const initialAl2Nodegroup = "al2-1"
+
+var _ = BeforeSuite(func() {
+	fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
+
+	cmd := params.EksctlCreateCmd.WithArgs(
+		"cluster",
+		"--verbose", "4",
+		"--name", params.ClusterName,
+		"--tags", "alpha.eksctl.io/description=eksctl integration test",
+		"--managed",
+		"--nodegroup-name", initialAl2Nodegroup,
+		"--node-labels", "ng-name="+initialAl2Nodegroup,
+		"--nodes", "2",
+		"--version", params.Version,
+		"--kubeconfig", params.KubeconfigPath,
+	)
+	Expect(cmd).To(RunSuccessfully())
+})
+
 var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 	const (
-		initialAl2Nodegroup   = "al2-1"
 		bottlerocketNodegroup = "bottlerocket-1"
 		ubuntuNodegroup       = "ubuntu-1"
 		newPublicNodeGroup    = "ng-public-1"
@@ -74,24 +95,6 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 	}
 
 	defaultTimeout := 20 * time.Minute
-
-	BeforeSuite(func() {
-		fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
-
-		cmd := params.EksctlCreateCmd.WithArgs(
-			"cluster",
-			"--verbose", "4",
-			"--name", params.ClusterName,
-			"--tags", "alpha.eksctl.io/description=eksctl integration test",
-			"--managed",
-			"--nodegroup-name", initialAl2Nodegroup,
-			"--node-labels", "ng-name="+initialAl2Nodegroup,
-			"--nodes", "2",
-			"--version", params.Version,
-			"--kubeconfig", params.KubeconfigPath,
-		)
-		Expect(cmd).To(RunSuccessfully())
-	})
 
 	type managedCLIEntry struct {
 		createArgs []string
@@ -227,9 +230,9 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		})
 
 		It("should have created an EKS cluster and 4 CloudFormation stacks", func() {
-			awsSession := NewSession(params.Region)
+			awsSession := NewConfig(params.Region)
 
-			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, params.Version))
+			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, string(ekstypes.ClusterStatusActive), params.Version))
 
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initialAl2Nodegroup)))
@@ -528,15 +531,16 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					WithStdin(clusterutils.Reader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 
-				clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, clusterConfig)
+				ctx := context.Background()
+				clusterProvider, err := eks.New(ctx, &api.ProviderConfig{Region: params.Region}, clusterConfig)
 				Expect(err).NotTo(HaveOccurred())
-				ctl := clusterProvider.Provider
-				out, err := ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
+				ctl := clusterProvider.AWSProvider
+				out, err := ctl.EKS().DescribeNodegroup(ctx, &awseks.DescribeNodegroupInput{
 					ClusterName:   &params.ClusterName,
 					NodegroupName: aws.String("update-config-ng"),
 				})
 				Expect(err).NotTo(HaveOccurred())
-				Eventually(out.Nodegroup.UpdateConfig.MaxUnavailable).Should(Equal(aws.Int64(2)))
+				Eventually(out.Nodegroup.UpdateConfig.MaxUnavailable).Should(Equal(aws.Int32(2)))
 
 				By("and updating the nodegroup's UpdateConfig")
 				clusterConfig.ManagedNodeGroups[0].Spot = true
@@ -557,12 +561,12 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					ContainElement(ContainSubstring("unchanged fields for nodegroup update-config-ng: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: Spot")),
 				))
 
-				out, err = ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
+				out, err = ctl.EKS().DescribeNodegroup(ctx, &awseks.DescribeNodegroupInput{
 					ClusterName:   &params.ClusterName,
 					NodegroupName: aws.String("update-config-ng"),
 				})
 				Expect(err).NotTo(HaveOccurred())
-				Eventually(out.Nodegroup.UpdateConfig.MaxUnavailable).Should(Equal(aws.Int64(1)))
+				Eventually(out.Nodegroup.UpdateConfig.MaxUnavailable).Should(Equal(aws.Int32(1)))
 			})
 		})
 

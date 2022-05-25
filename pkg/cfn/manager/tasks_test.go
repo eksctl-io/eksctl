@@ -5,8 +5,10 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
-	. "github.com/onsi/ginkgo"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
@@ -117,11 +119,15 @@ var _ = Describe("StackCollection Tasks", func() {
 				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), makeManagedNodeGroups("m1", "m2"))
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
-    4 parallel sub-tasks: { 
-        create nodegroup "bar",
-        create nodegroup "foo",
-        create managed nodegroup "m1",
-        create managed nodegroup "m2",
+    2 parallel sub-tasks: { 
+        2 parallel sub-tasks: { 
+            create nodegroup "bar",
+            create nodegroup "foo",
+        },
+        2 parallel sub-tasks: { 
+            create managed nodegroup "m1",
+            create managed nodegroup "m2",
+        },
     } 
 }
 `))
@@ -130,13 +136,21 @@ var _ = Describe("StackCollection Tasks", func() {
 				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), makeManagedNodeGroupsWithPropagatedTags("m1", "m2"))
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
-    6 parallel sub-tasks: { 
-        create nodegroup "bar",
-        create nodegroup "foo",
-        create managed nodegroup "m1",
-        propagate tags to ASG for managed nodegroup "m1",
-        create managed nodegroup "m2",
-        propagate tags to ASG for managed nodegroup "m2",
+    2 parallel sub-tasks: { 
+        2 parallel sub-tasks: { 
+            create nodegroup "bar",
+            create nodegroup "foo",
+        },
+        2 parallel sub-tasks: { 
+            2 sequential sub-tasks: { 
+                create managed nodegroup "m1",
+                propagate tags to ASG for managed nodegroup "m1",
+            },
+            2 sequential sub-tasks: { 
+                create managed nodegroup "m2",
+                propagate tags to ASG for managed nodegroup "m2",
+            },
+        },
     } 
 }
 `))
@@ -163,23 +177,6 @@ var _ = Describe("StackCollection Tasks", func() {
 }
 `))
 			}
-		})
-
-		When("IPFamily is set to ipv6", func() {
-			BeforeEach(func() {
-				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
-			})
-			It("appends the AssignIpv6AddressOnCreation task to occur after the cluster creation", func() {
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), nil)
-				Expect(tasks.Describe()).To(Equal(`
-3 sequential tasks: { create cluster control plane "test-cluster", set AssignIpv6AddressOnCreation to true for public subnets, 
-    2 parallel sub-tasks: { 
-        create nodegroup "bar",
-        create nodegroup "foo",
-    } 
-}
-`))
-			})
 		})
 	})
 

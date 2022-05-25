@@ -7,6 +7,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/fargate"
@@ -52,19 +53,20 @@ func configureDeleteFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.Options {
 }
 
 func doDeleteFargateProfile(cmd *cmdutils.Cmd, opts *fargate.Options) error {
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
 
 	clusterName := cmd.ClusterConfig.Metadata.Name
-	manager := fargate.NewFromProvider(clusterName, ctl.Provider, ctl.NewStackManager(cmd.ClusterConfig))
+	manager := fargate.NewFromProvider(clusterName, ctl.AWSProvider, ctl.NewStackManager(cmd.ClusterConfig))
 	if cmd.Wait {
 		logger.Info(deletingFargateProfileMsg(clusterName, opts.ProfileName))
 	} else {
 		logger.Debug(deletingFargateProfileMsg(clusterName, opts.ProfileName))
 	}
-	if err := manager.DeleteProfile(context.TODO(), opts.ProfileName, cmd.Wait); err != nil {
+	if err := manager.DeleteProfile(ctx, opts.ProfileName, cmd.Wait); err != nil {
 		return err
 	}
 	logger.Info("deleted Fargate profile %q on EKS cluster %q", opts.ProfileName, clusterName)

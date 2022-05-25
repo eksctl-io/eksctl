@@ -14,9 +14,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/smithy-go"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	cttypes "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -72,7 +71,7 @@ type ChangeSet = cloudformation.DescribeChangeSetOutput
 type StackCollection struct {
 	cloudformationAPI awsapi.CloudFormation
 	ec2API            awsapi.EC2
-	eksAPI            eksiface.EKSAPI
+	eksAPI            awsapi.EKS
 	iamAPI            awsapi.IAM
 	cloudTrailAPI     awsapi.CloudTrail
 	asgAPI            awsapi.ASG
@@ -245,7 +244,7 @@ func (c *StackCollection) PropagateManagedNodeGroupTagsToASG(ngName string, ngTa
 	go func() {
 		defer close(errCh)
 		// build the input tags for all ASGs attached to the managed nodegroup
-		asgTags := []asTypes.Tag{}
+		var asgTags []asTypes.Tag
 
 		for _, asgName := range asgNames {
 			// skip directly if not tags are required to be created
@@ -315,7 +314,7 @@ func (c *StackCollection) checkASGTagsNumber(ngName, asgName string, propagatedT
 	for ngTagKey := range propagatedTags {
 		for _, asgTag := range asgTags {
 			// decrease the unique tag key count if there is a match
-			if aws.StringValue(asgTag.Key) == ngTagKey {
+			if aws.ToString(asgTag.Key) == ngTagKey {
 				uniqueTagKeyCount--
 				break
 			}
