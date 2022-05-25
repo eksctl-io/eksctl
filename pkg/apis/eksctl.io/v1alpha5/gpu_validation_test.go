@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
-
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -95,10 +94,6 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:       api.NodeImageFamilyBottlerocket,
 			gpuInstanceType: "g4dn.xlarge",
 		}),
-		Entry("Bottlerocket nvidia arm", gpuInstanceEntry{
-			amiFamily:       api.NodeImageFamilyBottlerocket,
-			gpuInstanceType: "g5g.xlarge",
-		}),
 		Entry("Ubuntu2004", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyUbuntu2004,
 			gpuInstanceType:      "g4dn.xlarge",
@@ -125,4 +120,15 @@ var _ = Describe("GPU instance support", func() {
 			expectUnsupportedErr: true,
 		}),
 	)
+	Describe("arm gpu", func() {
+		When("arm gpu instance is request for unmanaged nodegroups", func() {
+			It("errors", func() {
+				ng := api.NewNodeGroup()
+				ng.InstanceType = "g5g.xlarge"
+				ng.AMIFamily = api.NodeImageFamilyBottlerocket
+				err := api.ValidateNodeGroup(0, ng)
+				Expect(err).To(MatchError(ContainSubstring("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily Bottlerocket")))
+			})
+		})
+	})
 })
