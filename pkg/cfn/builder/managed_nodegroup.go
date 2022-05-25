@@ -4,11 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/aws/aws-sdk-go/service/eks"
-
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/pkg/errors"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
@@ -272,16 +269,15 @@ func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes
 		ARMGPU string
 	}{
 		api.NodeImageFamilyAmazonLinux2: {
-			X86x64: eks.AMITypesAl2X8664,
-			X86GPU: eks.AMITypesAl2X8664Gpu,
-			ARM:    eks.AMITypesAl2Arm64,
+			X86x64: string(ekstypes.AMITypesAl2X8664),
+			X86GPU: string(ekstypes.AMITypesAl2X8664Gpu),
+			ARM:    string(ekstypes.AMITypesAl2Arm64),
 		},
 		api.NodeImageFamilyBottlerocket: {
-			X86x64: eks.AMITypesBottlerocketX8664,
-			//TODO reference aws-sdk-go variable when published
-			X86GPU: "BOTTLEROCKET_x86_64_NVIDIA",
-			ARM:    eks.AMITypesBottlerocketArm64,
-			ARMGPU: "BOTTLEROCKET_ARM_64_NVIDIA",
+			X86x64: string(ekstypes.AMITypesBottlerocketX8664),
+			X86GPU: string(ekstypes.AMITypesBottlerocketX8664Nvidia),
+			ARM:    string(ekstypes.AMITypesBottlerocketArm64),
+			ARMGPU: string(ekstypes.AMITypesBottlerocketArm64Nvidia),
 		},
 	}
 
