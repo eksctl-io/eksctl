@@ -5,28 +5,25 @@ package unowned
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/eks"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 var params *tests.Params
@@ -42,12 +39,11 @@ func TestVPC(t *testing.T) {
 }
 
 var (
-	stackName  string
-	ng1        = "ng-1"
-	mng1       = "mng-1"
-	ctl        api.ClusterProvider
-	configFile *os.File
-	cfg        *api.ClusterConfig
+	stackName string
+	ng1       = "ng-1"
+	mng1      = "mng-1"
+	ctl       api.ClusterProvider
+	cfg       *api.ClusterConfig
 )
 
 var _ = BeforeSuite(func() {
@@ -60,24 +56,20 @@ var _ = BeforeSuite(func() {
 		},
 	}
 
-	var err error
-	configFile, err = ioutil.TempFile("", "")
-	Expect(err).NotTo(HaveOccurred())
-
-	clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
+	clusterProvider, err := eks.New(context.Background(), &api.ProviderConfig{Region: params.Region}, cfg)
 	Expect(err).NotTo(HaveOccurred())
 	ctl = clusterProvider.AWSProvider
 	cfg.VPC = createVPC(stackName, ctl)
 
-	configData, err := json.Marshal(&cfg)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(ioutil.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
 	cmd := params.EksctlCreateCmd.
 		WithArgs(
 			"cluster",
-			"--config-file", configFile.Name(),
+			"--config-file", "-",
 			"--verbose", "2",
-		).WithoutArg("--region", params.Region)
+		).
+		WithoutArg("--region", params.Region).
+		WithStdin(clusterutils.Reader(cfg))
+
 	Expect(cmd).To(RunSuccessfully())
 })
 
@@ -95,18 +87,15 @@ var _ = Describe("(Integration) [using existing VPC]", func() {
 			}},
 		}
 
-		By("writing the config file")
-		configData, err := json.Marshal(&cfg)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(ioutil.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
-
 		By("creating the nodegroups")
 		cmd := params.EksctlCreateCmd.
 			WithArgs(
 				"nodegroup",
-				"--config-file", configFile.Name(),
+				"--config-file", "-",
 				"--verbose", "2",
-			).WithoutArg("--region", params.Region)
+			).
+			WithoutArg("--region", params.Region).
+			WithStdin(clusterutils.Reader(cfg))
 		Expect(cmd).To(RunSuccessfully())
 
 		By("checking the cluster is created with the corret VPC/subnets")
@@ -168,7 +157,7 @@ func createVPCStackAndGetOutputs(stackName string, ctl api.ClusterProvider) ([]s
 	createStackInput.TemplateBody = aws.String(string(templateBody))
 	createStackInput.Capabilities = []types.Capability{types.CapabilityCapabilityIam, types.CapabilityCapabilityNamedIam}
 
-	_, err = ctl.CloudFormation().CreateStack(context.TODO(), createStackInput)
+	_, err = ctl.CloudFormation().CreateStack(context.Background(), createStackInput)
 	Expect(err).NotTo(HaveOccurred())
 
 	var describeStackOut *cfn.DescribeStacksOutput
@@ -204,17 +193,18 @@ func deleteStack(stackName string, ctl api.ClusterProvider) {
 		StackName: &stackName,
 	}
 
-	_, err := ctl.CloudFormation().DeleteStack(context.TODO(), deleteStackInput)
+	_, err := ctl.CloudFormation().DeleteStack(context.Background(), deleteStackInput)
 	Expect(err).NotTo(HaveOccurred())
 }
 
 var _ = AfterSuite(func() {
 	cmd := params.EksctlDeleteClusterCmd.
 		WithArgs(
-			"--config-file", configFile.Name(),
+			"--config-file", "-",
 			"--wait",
-		).WithoutArg("--region", params.Region)
+		).
+		WithoutArg("--region", params.Region).
+		WithStdin(clusterutils.Reader(cfg))
 	Expect(cmd).To(RunSuccessfully())
 	deleteStack(stackName, ctl)
-	Expect(os.RemoveAll(configFile.Name())).To(Succeed())
 })
