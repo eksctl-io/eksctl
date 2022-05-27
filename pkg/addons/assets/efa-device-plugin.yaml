@@ -52,6 +52,7 @@ spec:
                       - r5dn.24xlarge
                       - r5n.24xlarge
                       - p4d.24xlarge
+                      - p4de.24xlarge
               - matchExpressions:
                   - key: "node.kubernetes.io/instance-type"
                     operator: In
@@ -68,6 +69,7 @@ spec:
                       - r5dn.24xlarge
                       - r5n.24xlarge
                       - p4d.24xlarge
+                      - p4de.24xlarge
       hostNetwork: true
       containers:
         - image: "%s.dkr.ecr.%s.%s/eks/aws-efa-k8s-device-plugin:v0.3.3"
