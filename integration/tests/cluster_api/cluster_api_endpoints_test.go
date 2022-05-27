@@ -5,9 +5,7 @@
 package cluster_api
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -19,6 +17,7 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
@@ -81,28 +80,17 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 			setEndpointConfig(cfg, e.Private, e.Public)
 			setMetadata(cfg, clName, params.Region)
 
-			// create and populate config file from clusterconfig
-			bytes, err := json.Marshal(cfg)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(len(bytes)).NotTo(BeZero())
-			tmpfile, err := os.CreateTemp("", "clusterendpointtests")
-			Expect(err).NotTo(HaveOccurred())
-
-			defer os.Remove(tmpfile.Name())
-
-			_, err = tmpfile.Write(bytes)
-			Expect(err).NotTo(HaveOccurred())
-			err = tmpfile.Close()
-			Expect(err).NotTo(HaveOccurred())
-
 			// create cluster with config file
 			if e.Type == createCluster {
 				cmd := params.EksctlCreateCmd.WithArgs(
 					"cluster",
 					"--verbose", "2",
-					"--config-file", tmpfile.Name(),
+					"--config-file", "-",
 					"--without-nodegroup",
-				).WithoutArg("--region", params.Region)
+				).
+					WithoutArg("--region", params.Region).
+					WithStdin(clusterutils.Reader(cfg))
+
 				if e.Fails {
 					Expect(cmd).ShouldNot(RunSuccessfully())
 					return

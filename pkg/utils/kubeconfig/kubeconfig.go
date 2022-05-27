@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/gofrs/flock"
@@ -31,6 +32,10 @@ const (
 	RecommendedConfigPathEnvVar = clientcmd.RecommendedConfigPathEnvVar
 	// AWSIAMAuthenticatorMinimumBetaVersion this is the minimum version at which aws-iam-authenticator uses v1beta1 as APIVersion
 	AWSIAMAuthenticatorMinimumBetaVersion = "0.5.3"
+	// AWSCLIv1MinimumBetaVersion this is the minimum version at which aws-cli v1 uses v1beta1 as APIVersion
+	AWSCLIv1MinimumBetaVersion = "1.23.9"
+	// AWSCLIv2MinimumBetaVersion this is the minimum version at which aws-cli v2 uses v1beta1 as APIVersion
+	AWSCLIv2MinimumBetaVersion = "2.6.3"
 
 	alphaAPIVersion = "client.authentication.k8s.io/v1alpha1"
 	betaAPIVersion  = "client.authentication.k8s.io/v1beta1"
@@ -183,6 +188,12 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 			})
 		}
 	case AWSEKSAuthenticator:
+		// if [aws-cli v1/aws-cli v2] is above or equal to [v1.23.9/v2.6.3] respectively, we change the APIVersion to v1beta1.
+		if awsCLIIsBetaVersion, err := awsCliIsAboveVersion(); err != nil {
+			logger.Warning("failed to determine authenticator version, leaving API version as default v1alpha1: %v", err)
+		} else if awsCLIIsBetaVersion {
+			execConfig.APIVersion = betaAPIVersion
+		}
 		args = []string{"eks", "get-token", "--cluster-name", clusterMeta.Name}
 		roleARNFlag = "--role-arn"
 		if clusterMeta.Region != "" {
@@ -224,6 +235,41 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 // {"Version":"0.5.5","Commit":"85e50980d9d916ae95882176c18f14ae145f916f"}
 type AWSAuthenticatorVersionFormat struct {
 	Version string `json:"Version"`
+}
+
+func awsCliIsAboveVersion() (bool, error) {
+	awsCliVersion := getAWSCLIVersion()
+	compareVersions, err := utils.CompareVersions(awsCliVersion, "2.0.0")
+	if err != nil {
+		return false, fmt.Errorf("failed to parse versions: %w", err)
+	}
+	// AWS CLI provides beta in two separate major versions. One for v1 and one for v2.
+	// Being above a single version doesn't necessarily mean that we are in the clear.
+	// Thus, first check which major version we are dealing with, then check if beta is
+	// supported for that major version.
+	if compareVersions < 0 {
+		compareVersions, err = utils.CompareVersions(awsCliVersion, AWSCLIv1MinimumBetaVersion)
+	} else {
+		compareVersions, err = utils.CompareVersions(awsCliVersion, AWSCLIv2MinimumBetaVersion)
+	}
+	if err != nil {
+		return false, fmt.Errorf("failed to parse versions: %w", err)
+	}
+	return compareVersions >= 0, nil
+}
+
+func getAWSCLIVersion() string {
+	cmd := execCommand("aws", "--version")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	r := regexp.MustCompile("aws-cli/([\\d.]*)")
+	matches := r.FindStringSubmatch(string(output))
+	if len(matches) != 2 {
+		return ""
+	}
+	return matches[1]
 }
 
 func authenticatorIsAboveVersion(version string) (bool, error) {
