@@ -178,26 +178,12 @@ func (c *StackCollection) CreateStack(ctx context.Context, stackName string, res
 
 // createClusterStack creates the cluster stack
 func (c *StackCollection) createClusterStack(ctx context.Context, stackName string, resourceSet builder.ResourceSetReader, errCh chan error) error {
-	// Do a preliminary check, so we don't end up waiting for nothing.
-	stack, err := c.DescribeStack(ctx, &types.Stack{
-		StackName: &stackName,
-	})
-	if err != nil && !IsStackDoesNotExistError(err) {
-		return err
-	}
-	if stack != nil {
-		switch stack.StackStatus {
-		case types.StackStatusCreateComplete, types.StackStatusDeleteComplete:
-			close(errCh) // no need to wait on this task anymore
-			return nil
-		}
-	}
-
 	// Unlike with `createNodeGroupTask`, all tags are already set for the cluster stack
-	stack, err = c.createStackRequest(ctx, stackName, resourceSet, nil, nil)
+	stack, err := c.createStackRequest(ctx, stackName, resourceSet, nil, nil)
 	if err != nil {
 		return err
 	}
+
 	go func() {
 		defer close(errCh)
 		troubleshoot := func() {
