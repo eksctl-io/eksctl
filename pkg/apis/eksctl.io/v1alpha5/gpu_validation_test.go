@@ -120,7 +120,7 @@ var _ = Describe("GPU instance support", func() {
 			expectUnsupportedErr: true,
 		}),
 	)
-	Describe("arm gpu", func() {
+	Describe("ARM GPU", func() {
 		When("arm gpu instance is request for unmanaged nodegroups", func() {
 			It("errors", func() {
 				ng := api.NewNodeGroup()
