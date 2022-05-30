@@ -121,7 +121,7 @@ var _ = Describe("GPU instance support", func() {
 		}),
 	)
 	Describe("ARM GPU", func() {
-		When("arm gpu instance is request for unmanaged nodegroups", func() {
+		When("ARM GPU instance is request for unmanaged nodegroups", func() {
 			It("errors", func() {
 				ng := api.NewNodeGroup()
 				ng.InstanceType = "g5g.xlarge"
