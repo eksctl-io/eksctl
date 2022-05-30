@@ -87,7 +87,7 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, m
 }
 
 // Drain drains a nodegroup
-func (n *NodeGroupDrainer) Drain(ctx context.Context) error {
+func (n *NodeGroupDrainer) Drain(ctx context.Context, sem *semaphore.Weighted) error {
 	if err := n.evictor.CanUseEvictions(); err != nil {
 		return errors.Wrap(err, "checking if cluster implements policy API")
 	}
@@ -110,17 +110,12 @@ func (n *NodeGroupDrainer) Drain(ctx context.Context) error {
 
 	drainedNodes := cmap.New()
 
-	parallelLimit := int64(n.parallel)
-	sem := semaphore.NewWeighted(parallelLimit)
-	logger.Info("starting parallel draining, max in-flight of %d", parallelLimit)
 	var evictErr error
 	// loop until all nodes are drained to handle accidental scale-up
 	// or any other changes in the ASG
 	for {
 		select {
 		case <-ctx.Done():
-			//need to use a different context
-			waitForAllRoutinesToFinish(context.TODO(), sem, parallelLimit)
 			return fmt.Errorf("timed out waiting for nodegroup %q to be drained", n.ng.NameString())
 		default:
 			if evictErr != nil {
@@ -141,7 +136,6 @@ func (n *NodeGroupDrainer) Drain(ctx context.Context) error {
 			}
 
 			if newPendingNodes.Len() == 0 {
-				waitForAllRoutinesToFinish(ctx, sem, parallelLimit)
 				logger.Success("drained all nodes: %v", mapToList(drainedNodes.Items()))
 				return nil // no new nodes were seen
 			}
@@ -179,12 +173,6 @@ func (n *NodeGroupDrainer) Drain(ctx context.Context) error {
 			// context timeout or something else.  This lets us log timout errors consistently
 			evictErr = g.Wait()
 		}
-	}
-}
-
-func waitForAllRoutinesToFinish(ctx context.Context, sem *semaphore.Weighted, size int64) {
-	if err := sem.Acquire(ctx, size); err != nil {
-		logger.Critical("failed to acquire semaphore while waiting for all routines to finish: %w", err)
 	}
 }
 

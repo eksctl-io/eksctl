@@ -135,6 +135,27 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 		},
 		expectedAMIType: "BOTTLEROCKET_ARM_64",
 	}),
+	Entry("Bottlerocket ARM GPU instance type", amiTypeEntry{
+		nodeGroup: &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         "test",
+				AMIFamily:    api.NodeImageFamilyBottlerocket,
+				InstanceType: "g5g.xlarge",
+			},
+		},
+		expectedAMIType: "BOTTLEROCKET_ARM_64_NVIDIA",
+	}),
+
+	Entry("Bottlerocket x86 Nvidia GPU instance type", amiTypeEntry{
+		nodeGroup: &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         "test",
+				AMIFamily:    api.NodeImageFamilyBottlerocket,
+				InstanceType: "g4dn.xlarge",
+			},
+		},
+		expectedAMIType: "BOTTLEROCKET_x86_64_NVIDIA",
+	}),
 
 	Entry("non-native Ubuntu", amiTypeEntry{
 		nodeGroup: &api.ManagedNodeGroup{
