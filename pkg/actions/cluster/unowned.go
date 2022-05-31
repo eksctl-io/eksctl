@@ -110,7 +110,7 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval, podEvictionWa
 		return err
 	}
 
-	if err := c.deleteIAMAndOIDC(ctx, wait, clusterOperable, clientSet); err != nil {
+	if err := c.deleteIAMAndOIDC(ctx, wait, clusterOperable, clientSet, force); err != nil {
 		if err != nil {
 			if force {
 				logger.Warning("error occurred during deletion: %v", err)
@@ -161,26 +161,15 @@ func (c *UnownedCluster) checkClusterExists(ctx context.Context, clusterName str
 	return nil
 }
 
-func (c *UnownedCluster) deleteIAMAndOIDC(ctx context.Context, wait bool, clusterOperable bool, clientSet kubernetes.Interface) error {
-	var oidc *iamoidc.OpenIDConnectManager
-	oidcSupported := true
-
-	if clusterOperable {
-		var err error
-		oidc, err = c.ctl.NewOpenIDConnectManager(ctx, c.cfg)
-		if err != nil {
-			if _, ok := err.(*eks.UnsupportedOIDCError); !ok {
-				return err
-			}
-			oidcSupported = false
-		}
-	}
-
+func (c *UnownedCluster) deleteIAMAndOIDC(ctx context.Context, wait bool, clusterOperable bool, clientSet kubernetes.Interface, force bool) error {
 	tasksTree := &tasks.TaskTree{Parallel: false}
 
-	if clusterOperable && oidcSupported {
+	if clusterOperable {
 		clientSetGetter := kubernetes.NewCachedClientSet(clientSet)
-		serviceAccountAndOIDCTasks, err := c.stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx, oidc, clientSetGetter)
+		newOIDCManager := func() (*iamoidc.OpenIDConnectManager, error) {
+			return c.ctl.NewOpenIDConnectManager(ctx, c.cfg)
+		}
+		serviceAccountAndOIDCTasks, err := c.stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx, newOIDCManager, c.ctl.Status.ClusterInfo.Cluster, clientSetGetter, force)
 		if err != nil {
 			return err
 		}
@@ -191,14 +180,14 @@ func (c *UnownedCluster) deleteIAMAndOIDC(ctx context.Context, wait bool, cluste
 		}
 	}
 
-	deleteAddonIAMtasks, err := c.stackManager.NewTaskToDeleteAddonIAM(ctx, wait)
+	deleteAddonIAMTasks, err := c.stackManager.NewTaskToDeleteAddonIAM(ctx, wait)
 	if err != nil {
 		return err
 	}
 
-	if deleteAddonIAMtasks.Len() > 0 {
-		deleteAddonIAMtasks.IsSubTask = true
-		tasksTree.Append(deleteAddonIAMtasks)
+	if deleteAddonIAMTasks.Len() > 0 {
+		deleteAddonIAMTasks.IsSubTask = true
+		tasksTree.Append(deleteAddonIAMTasks)
 	}
 
 	if tasksTree.Len() == 0 {
@@ -277,7 +266,7 @@ func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(ctx context.Context,
 		}
 
 		if isUnowned() {
-			// if a managed ng does not have a stack, we queue if for deletion via api
+			// if a managed ng does not have a stack, we queue it for deletion via api
 			tasks.Append(c.stackManager.NewTaskToDeleteUnownedNodeGroup(ctx, clusterName, n, eksAPI, c.waitForUnownedNgsDeletion(ctx, waitInterval)))
 		}
 	}
