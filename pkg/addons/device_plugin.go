@@ -133,7 +133,6 @@ func NewNeuronDevicePlugin(rawClient kubernetes.RawClientInterface, region strin
 		rawClient: rawClient,
 		region:    region,
 		planMode:  planMode,
-		spec:      spec,
 	}
 }
 
@@ -142,7 +141,6 @@ type NeuronDevicePlugin struct {
 	rawClient kubernetes.RawClientInterface
 	region    string
 	planMode  bool
-	spec      *api.ClusterConfig
 }
 
 func (n *NeuronDevicePlugin) RawClient() kubernetes.RawClientInterface {
@@ -261,7 +259,6 @@ type EFADevicePlugin struct {
 	rawClient kubernetes.RawClientInterface
 	region    string
 	planMode  bool
-	spec      *api.ClusterConfig
 }
 
 func (n *EFADevicePlugin) RawClient() kubernetes.RawClientInterface {
@@ -291,7 +288,6 @@ func NewEFADevicePlugin(rawClient kubernetes.RawClientInterface, region string, 
 		rawClient: rawClient,
 		region:    region,
 		planMode:  planMode,
-		spec:      spec,
 	}
 }
 
