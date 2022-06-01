@@ -213,7 +213,14 @@ func (m MockProvider) MockConfigProvider() client.ConfigProvider {
 }
 
 func (m MockProvider) Session() *session.Session {
-	panic("not implemented")
+	client := awstesting.NewClient(&aws.Config{
+		Region: &ProviderConfig.Region,
+	})
+	s, err := session.NewSession(&client.Config)
+	if err != nil {
+		panic(err)
+	}
+	return s
 }
 
 func NewMockAWSClient() *MockAWSClient {

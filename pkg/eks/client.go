@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -18,6 +19,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	"github.com/weaveworks/eksctl/pkg/credentials"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -124,6 +126,38 @@ func (c *KubernetesProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper
 // ServerVersion will use discovery API to fetch version of Kubernetes control plane
 func (c *KubernetesProvider) ServerVersion(rawClient *kubewrapper.RawClient) (string, error) {
 	return rawClient.ServerVersion()
+}
+
+// WaitForControlPlane waits till the control plane is ready
+func (c *KubernetesProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *kubewrapper.RawClient, waitTimeout time.Duration) error {
+	successCount := 0
+	operation := func() (bool, error) {
+		_, err := c.ServerVersion(clientSet)
+		if err == nil {
+			if successCount >= 5 {
+				return true, nil
+			}
+			successCount++
+			return false, nil
+		}
+		logger.Debug("control plane not ready yet – %s", err.Error())
+		return false, nil
+	}
+
+	w := waiter.Waiter{
+		Operation: operation,
+		NextDelay: func(_ int) time.Duration {
+			return 20 * time.Second
+		},
+	}
+
+	if err := w.WaitWithTimeout(waitTimeout); err != nil {
+		if err == context.DeadlineExceeded {
+			return errors.Errorf("timed out waiting for control plane %q after %s", meta.Name, waitTimeout)
+		}
+		return err
+	}
+	return nil
 }
 
 // UpdateAuthConfigMap creates or adds a nodegroup IAM role in the auth ConfigMap for the given nodegroup.

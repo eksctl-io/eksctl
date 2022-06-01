@@ -183,6 +183,7 @@ func (c *StackCollection) createClusterStack(ctx context.Context, stackName stri
 	if err != nil {
 		return err
 	}
+
 	go func() {
 		defer close(errCh)
 		troubleshoot := func() {
