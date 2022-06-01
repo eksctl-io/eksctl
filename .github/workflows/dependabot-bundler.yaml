@@ -26,4 +26,4 @@ jobs:
           go install github.com/Skarlso/dependabot-bundler@v0.0.10
       - name: Run Dependabot Bundler
         run: |
-          dependabot-bundler --token ${{ secrets.GITHUB_TOKEN }} --repo eksctl --owner weaveworks --labels skip-release-notes
+          dependabot-bundler --token ${{ secrets.GITHUB_TOKEN }} --repo eksctl --owner weaveworks --labels skip-release-notes,dependencies
