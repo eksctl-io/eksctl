@@ -381,6 +381,8 @@ github.com/aws/aws-sdk-go v1.38.49/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2z
 github.com/aws/aws-sdk-go v1.40.34/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
 github.com/aws/aws-sdk-go v1.44.15 h1:z02BVeV6k7hZMfWEQmKh3X23s3F9PBHFCcIVfNlut7A=
 github.com/aws/aws-sdk-go v1.44.15/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
+github.com/aws/aws-sdk-go v1.44.24 h1:3nOkwJBJLiGBmJKWp3z0utyXuBkxyGkRRwWjrTItJaY=
+github.com/aws/aws-sdk-go v1.44.24/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
 github.com/aws/aws-sdk-go-v2 v0.18.0/go.mod h1:JWVYvqSMppoMJC0x5wdwiImzgXTI9FuZwxzkQq9wy+g=
 github.com/aws/aws-sdk-go-v2 v1.9.0/go.mod h1:cK/D0BBs0b/oWPIcX/Z/obahJK1TT7IPVjy53i/mX/4=
 github.com/aws/aws-sdk-go-v2 v1.16.3/go.mod h1:ytwTPBG6fXTZLxxeeCCWj2/EMYp/xDUgX+OET6TLNNU=
@@ -424,12 +426,16 @@ github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.7 h1:Jj6PiTa/cZfoa0iPF
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.7/go.mod h1:21u3hbkLTcsbjH5fyXQc8NKJrq0zsuUH0Aan00i85Hk=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.5 h1:3Vese5V6X3Mt2oR4nAPGWGgyRcRnfAF6wy/kibXfQAk=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.5/go.mod h1:k1bjVVQIn8G0YNH4ixxferJWyzFClFa2DidiMwpT3ik=
+github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.16.0 h1:yDTRedvgic7XxncR9uGw+0VKPVZsyh32cYte5OT3DtY=
+github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.16.0/go.mod h1:k1bjVVQIn8G0YNH4ixxferJWyzFClFa2DidiMwpT3ik=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.45.0 h1:LxCklDNKY9bynYMaDetR/zAh9kbkdSkrEzfq4L4Lhdw=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.45.0/go.mod h1:b2SVOmsP7A9VlTpfkJAVbU3d+TQfD76x9IUNbvynAbM=
 github.com/aws/aws-sdk-go-v2/service/eks v1.21.1 h1:CYRfUZNq2krWxqLE1ntvy40uVT/I6X1PniNHrE/W3ps=
 github.com/aws/aws-sdk-go-v2/service/eks v1.21.1/go.mod h1:kLodo8S0UEoVEd3mHTKtGnAhCT2uvCUM/Jjfr3og1yI=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.4 h1:vpGKxT9NBdQuXBUYfzKWV93NIU0lGg9rjtrVoQ/Iols=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.4/go.mod h1:NyDTeVqx/5iD/x2jXOjLdiof6JJ7hjVcImTGoZ1hBPk=
+github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.5 h1:VWVDqUz2P9qQ4oarjkq3kfpn2KSkYNoosS2zWGM3luI=
+github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.5/go.mod h1:vM0U7a/Exi1ziX/u9QCSuevrPgmH+qbhwDi81CfEHTw=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.4 h1:ZBYifRGfN3dOKzvk0+XJiUKOFzqoJddYqCVsN5quCh4=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.4/go.mod h1:9wKR88sRRyxrUAw5iVSDTfcCz90BLEFcAiyzP4v39uY=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.5 h1:OR1FrOPrNISfOeYGXN3Tlj35meOpYkW0gdXQ2jvu4U0=
@@ -1413,6 +1419,8 @@ github.com/hashicorp/go-version v1.2.0/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09
 github.com/hashicorp/go-version v1.2.1/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09ZGVZPK5anwXA=
 github.com/hashicorp/go-version v1.4.0 h1:aAQzgqIrRKRa7w75CKpbBxYsmUoPjzVm1W59ca1L0J4=
 github.com/hashicorp/go-version v1.4.0/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09ZGVZPK5anwXA=
+github.com/hashicorp/go-version v1.5.0 h1:O293SZ2Eg+AAYijkVK3jR786Am1bhDEh2GHT0tIVE5E=
+github.com/hashicorp/go-version v1.5.0/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09ZGVZPK5anwXA=
 github.com/hashicorp/go.net v0.0.1/go.mod h1:hjKkEWcCURg++eb33jQU7oqQcI9XDCnUzHA0oac0k90=
 github.com/hashicorp/golang-lru v0.0.0-20180201235237-0fb14efe8c47/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=

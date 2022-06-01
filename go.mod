@@ -8,7 +8,7 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.4-0.20220124212200-2aee60ac608e
-	github.com/aws/aws-sdk-go v1.44.15
+	github.com/aws/aws-sdk-go v1.44.24
 	github.com/aws/aws-sdk-go-v2 v1.16.4
 	github.com/aws/aws-sdk-go-v2/config v1.15.9
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.4
@@ -16,10 +16,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.21.0
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.1
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.7
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.5
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.16.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.45.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.21.1
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.4
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.5
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.5
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.5
 	github.com/aws/aws-sdk-go-v2/service/kms v1.17.2
@@ -42,7 +42,7 @@ require (
 	github.com/golangci/golangci-lint v1.45.2
 	github.com/google/uuid v1.3.0
 	github.com/goreleaser/goreleaser v1.6.1
-	github.com/hashicorp/go-version v1.4.0
+	github.com/hashicorp/go-version v1.5.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kris-nova/logger v0.2.1
 	github.com/kris-nova/lolgopher v0.0.0-20210112022122-73f0047e8b65
