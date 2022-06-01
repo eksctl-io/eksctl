@@ -5,41 +5,32 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	cftypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-
-	"k8s.io/apimachinery/pkg/runtime"
-	core "k8s.io/client-go/testing"
-
-	"k8s.io/client-go/kubernetes/fake"
-
-	"github.com/weaveworks/eksctl/pkg/vpc"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	cftypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/stretchr/testify/mock"
-
-	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/fake"
+	core "k8s.io/client-go/testing"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	utilFakes "github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter/fakes"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/fakes"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 type ngEntry struct {
