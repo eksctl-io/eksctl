@@ -1,0 +1,20 @@
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: taints-1
+  region: us-west-1
+
+nodeGroups:
+  - name: ng1-public
+    instanceType: m5.xlarge
+    minSize: 2
+    maxSize: 8
+    taints:
+      - key: your.domain.com/db
+        value: "true"
+        effect: NoSchedule
+      - key: your.domain.com/production
+        value: "true"
+        effect: NoExecute
