@@ -2,22 +2,23 @@ package addons
 
 import (
 	"context"
+	// For go:embed
+	_ "embed"
 	"fmt"
 	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/utils/instance"
 
 	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	clientappsv1 "k8s.io/client-go/kubernetes/typed/apps/v1"
-
-	// For go:embed
-	_ "embed"
 )
 
 //go:embed assets/efa-device-plugin.yaml
@@ -29,7 +30,7 @@ var neuronDevicePluginYaml []byte
 //go:embed assets/nvidia-device-plugin.yaml
 var nvidiaDevicePluginYaml []byte
 
-func useRegionalImage(spec *v1.PodTemplateSpec, region string, account string) error {
+func useRegionalImage(spec *corev1.PodTemplateSpec, region string, account string) error {
 	imageFormat := spec.Spec.Containers[0].Image
 	dnsSuffix, err := awsDNSSuffixForRegion(region)
 	if err != nil {
@@ -72,13 +73,14 @@ func watchDaemonSetReady(dsClientSet clientappsv1.DaemonSetInterface, dsName str
 	}
 }
 
-type MkDevicePlugin func(rawClient kubernetes.RawClientInterface, region string, planMode bool) DevicePlugin
+type MkDevicePlugin func(rawClient kubernetes.RawClientInterface, region string, planMode bool, spec *api.ClusterConfig) DevicePlugin
 
 type DevicePlugin interface {
 	RawClient() kubernetes.RawClientInterface
 	PlanMode() bool
 	Manifest() []byte
-	SetImage(t *v1.PodTemplateSpec) error
+	SetImage(t *corev1.PodTemplateSpec) error
+	SetTolerations(t *corev1.PodTemplateSpec) error
 	Deploy() error
 }
 
@@ -103,7 +105,9 @@ func applyDevicePlugin(dp DevicePlugin) error {
 			if err := dp.SetImage(&daemonSet.Spec.Template); err != nil {
 				return errors.Wrap(err, "setting image of device plugin daemonset")
 			}
-
+			if err := dp.SetTolerations(&daemonSet.Spec.Template); err != nil {
+				return errors.Wrap(err, "adding tolerations to device plugin daemonset")
+			}
 			msg, err := rawResource.CreateOrReplace(dp.PlanMode())
 			if err != nil {
 				return errors.Wrap(err, "calling create or replace on raw device plugin daemonset")
@@ -124,11 +128,11 @@ func applyDevicePlugin(dp DevicePlugin) error {
 }
 
 // NewNeuronDevicePlugin creates a new NeuronDevicePlugin
-func NewNeuronDevicePlugin(rawClient kubernetes.RawClientInterface, region string, planMode bool) DevicePlugin {
+func NewNeuronDevicePlugin(rawClient kubernetes.RawClientInterface, region string, planMode bool, spec *api.ClusterConfig) DevicePlugin {
 	return &NeuronDevicePlugin{
-		rawClient,
-		region,
-		planMode,
+		rawClient: rawClient,
+		region:    region,
+		planMode:  planMode,
 	}
 }
 
@@ -151,7 +155,11 @@ func (n *NeuronDevicePlugin) Manifest() []byte {
 	return neuronDevicePluginYaml
 }
 
-func (n *NeuronDevicePlugin) SetImage(t *v1.PodTemplateSpec) error {
+func (n *NeuronDevicePlugin) SetImage(t *corev1.PodTemplateSpec) error {
+	return nil
+}
+
+func (n *NeuronDevicePlugin) SetTolerations(t *corev1.PodTemplateSpec) error {
 	return nil
 }
 
@@ -161,11 +169,12 @@ func (n *NeuronDevicePlugin) Deploy() error {
 }
 
 // NewNvidiaDevicePlugin creates a new NvidiaDevicePlugin
-func NewNvidiaDevicePlugin(rawClient kubernetes.RawClientInterface, region string, planMode bool) DevicePlugin {
+func NewNvidiaDevicePlugin(rawClient kubernetes.RawClientInterface, region string, planMode bool, spec *api.ClusterConfig) DevicePlugin {
 	return &NvidiaDevicePlugin{
-		rawClient,
-		region,
-		planMode,
+		rawClient: rawClient,
+		region:    region,
+		planMode:  planMode,
+		spec:      spec,
 	}
 }
 
@@ -174,6 +183,7 @@ type NvidiaDevicePlugin struct {
 	rawClient kubernetes.RawClientInterface
 	region    string
 	planMode  bool
+	spec      *api.ClusterConfig
 }
 
 func (n *NvidiaDevicePlugin) RawClient() kubernetes.RawClientInterface {
@@ -184,7 +194,7 @@ func (n *NvidiaDevicePlugin) PlanMode() bool {
 	return n.planMode
 }
 
-func (n *NvidiaDevicePlugin) SetImage(t *v1.PodTemplateSpec) error {
+func (n *NvidiaDevicePlugin) SetImage(t *corev1.PodTemplateSpec) error {
 	return nil
 }
 
@@ -195,6 +205,53 @@ func (n *NvidiaDevicePlugin) Manifest() []byte {
 // Deploy deploys the Nvidia device plugin to the specified cluster
 func (n *NvidiaDevicePlugin) Deploy() error {
 	return applyDevicePlugin(n)
+}
+
+// SetTolerations sets given tolerations on the DaemonSet if they don't already exist.
+// We check the taints on each node which is an NVIDIA instance type and apply
+// tolerations for all the taints defined on the node.
+func (n *NvidiaDevicePlugin) SetTolerations(spec *corev1.PodTemplateSpec) error {
+	contains := func(list []corev1.Toleration, key string) bool {
+		for _, t := range list {
+			if t.Key == key {
+				return true
+			}
+		}
+		return false
+	}
+	// don't duplicate taints from other nodes or overwrite them with
+	// different values ( shouldn't happen in general... )
+	taints := make(map[string]api.NodeGroupTaint)
+	for _, ng := range n.spec.NodeGroups {
+		if api.HasInstanceType(ng, instance.IsNvidiaInstanceType) &&
+			ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2 {
+			for _, taint := range ng.Taints {
+				if _, ok := taints[taint.Key]; !ok {
+					taints[taint.Key] = taint
+				}
+			}
+		}
+	}
+	for _, ng := range n.spec.ManagedNodeGroups {
+		if api.HasInstanceTypeManaged(ng, instance.IsNvidiaInstanceType) &&
+			ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2 {
+			for _, taint := range ng.Taints {
+				if _, ok := taints[taint.Key]; !ok {
+					taints[taint.Key] = taint
+				}
+			}
+		}
+	}
+	for _, t := range taints {
+		// only add toleration if it doesn't already exist. In that case, we don't overwrite it.
+		if !contains(spec.Spec.Tolerations, t.Key) {
+			spec.Spec.Tolerations = append(spec.Spec.Tolerations, corev1.Toleration{
+				Key:   t.Key,
+				Value: t.Value,
+			})
+		}
+	}
+	return nil
 }
 
 // A EFADevicePlugin deploys the EFA Device Plugin to a cluster
@@ -216,17 +273,21 @@ func (n *EFADevicePlugin) Manifest() []byte {
 	return efaDevicePluginYaml
 }
 
-func (n *EFADevicePlugin) SetImage(t *v1.PodTemplateSpec) error {
+func (n *EFADevicePlugin) SetImage(t *corev1.PodTemplateSpec) error {
 	account := api.EKSResourceAccountID(n.region)
 	return useRegionalImage(t, n.region, account)
 }
 
+func (n *EFADevicePlugin) SetTolerations(spec *corev1.PodTemplateSpec) error {
+	return nil
+}
+
 // NewEFADevicePlugin creates a new EFADevicePlugin
-func NewEFADevicePlugin(rawClient kubernetes.RawClientInterface, region string, planMode bool) DevicePlugin {
+func NewEFADevicePlugin(rawClient kubernetes.RawClientInterface, region string, planMode bool, spec *api.ClusterConfig) DevicePlugin {
 	return &EFADevicePlugin{
-		rawClient,
-		region,
-		planMode,
+		rawClient: rawClient,
+		region:    region,
+		planMode:  planMode,
 	}
 }
 
