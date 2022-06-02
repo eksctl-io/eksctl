@@ -36,15 +36,13 @@ check_current_branch "${release_branch}"
 ensure_up_to_date "${release_branch}" || echo "${release_branch} not found in origin, will push new branch upstream."
 
 # Update eksctl version to release-candidate
-rc_version=$(release_generate release-candidate)
-m="Tag ${rc_version} release candidate"
+latest_reachable_tag=$(git describe --tags --abbrev=0)
+pre_release_id=$(release_generate next-pre-release-id "${latest_reachable_tag}")
+full_version="${candidate_for_version}-${pre_release_id}"
+m="Tag ${full_version} release candidate"
 
-commit "${m}" "${release_notes_file}"
 
-tag_version_and_latest "${m}" "${rc_version}"
-
-# Make PR to release branch
-make_pr "${release_branch}"
+tag_and_push_release "${full_version}" "${m}"
 
 # Make PR to update default branch if necessary
 git checkout "${default_branch}"
