@@ -30,6 +30,7 @@ nav:
             - usage/nodegroup-upgrade.md
             - usage/nodegroup-with-custom-subnet.md
             - usage/nodegroup-customize-dns.md
+            - usage/nodegroup-taints.md
             - usage/eks-managed-nodes.md
             - usage/launch-template-support.md
             - usage/instance-selector.md
@@ -79,7 +80,7 @@ extra:
       property: G-EQKYCQY5Q
 
 theme:
-    name: 'material' 
+    name: 'material'
     custom_dir: 'theme'
     favicon: 'assets/images/favicon.png'
     logo: 'assets/images/logo.png'
@@ -87,14 +88,14 @@ theme:
         text: 'Montserrat'
         code: 'Roboto Mono'
     palette:
-      - media: "(prefers-color-scheme: light)" 
+      - media: "(prefers-color-scheme: light)"
         scheme: default
         toggle:
           icon: fontawesome/solid/moon
           name: Switch to dark mode
         primary: white
         accent: blue
-      - media: "(prefers-color-scheme: dark)" 
+      - media: "(prefers-color-scheme: dark)"
         scheme: slate
         toggle:
           icon: material/weather-sunny
