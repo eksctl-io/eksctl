@@ -645,7 +645,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
-	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyBottlerocket {
+	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyBottlerocket && !IsWindowsImage(ng.AMIFamily) {
 		return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI (%[1]s.ami)", path)
 	}
 
@@ -679,6 +679,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 
 		if ng.KubeletExtraConfig != nil {
 			return fieldNotSupported("kubeletExtraConfig")
+		}
+
+		if IsWindowsImage(ng.AMIFamily) && ng.OverrideBootstrapCommand != nil {
+			return fieldNotSupported("overrideBootstrapCommand")
 		}
 
 		if ng.AMIFamily == NodeImageFamilyBottlerocket {
@@ -885,11 +889,6 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 
 	if err := validateNodeGroupBase(ng, path); err != nil {
 		return err
-	}
-
-	if instanceutils.IsNvidiaInstanceType(SelectInstanceType(ng)) && ng.AMIFamily == NodeImageFamilyBottlerocket {
-		logger.Info("Bottlerocket GPU support is for unmanaged nodegroups only. If you're using CLI flags pass --managed=false")
-		return errors.Errorf("NVIDIA GPU instance types are not supported for managed nodegroups with AMIFamily %s", ng.AMIFamily)
 	}
 
 	if ng.IAM != nil {

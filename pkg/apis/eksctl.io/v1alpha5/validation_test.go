@@ -146,6 +146,23 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0.AMIFamily = api.NodeImageFamilyBottlerocket
 			Expect(api.ValidateNodeGroup(0, ng0)).To(Succeed())
 		})
+		It("should not require overrideBootstrapCommand if ami is set and type is Windows", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMI = "ami-1234"
+			ng0.AMIFamily = api.NodeImageFamilyWindowsServer2019CoreContainer
+			Expect(api.ValidateNodeGroup(0, ng0)).To(Succeed())
+		})
+		It("should throw an error if overrideBootstrapCommand is set and type is Windows", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMI = "ami-1234"
+			ng0.AMIFamily = api.NodeImageFamilyWindowsServer2019CoreContainer
+			ng0.OverrideBootstrapCommand = aws.String("echo 'yo'")
+			Expect(api.ValidateNodeGroup(0, ng0)).To(MatchError(ContainSubstring("overrideBootstrapCommand is not supported for WindowsServer2019CoreContainer nodegroups")))
+		})
 		It("should accept ami with a overrideBootstrapCommand set", func() {
 			cfg := api.NewClusterConfig()
 			ng0 := cfg.NewNodeGroup()
@@ -1418,14 +1435,14 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			It("fails in case of arm-gpu distribution instance type", func() {
 				ng.InstanceType = "mixed"
-				ng.InstancesDistribution.InstanceTypes = []string{"r6g.medium"}
+				ng.InstancesDistribution.InstanceTypes = []string{"g5g.medium"}
 				ng.AMIFamily = api.NodeImageFamilyAmazonLinux2
 				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).To(MatchError("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily AmazonLinux2"))
 			})
 
 			It("fails in case of arm-gpu instance type", func() {
-				ng.InstanceType = "r6g.medium"
+				ng.InstanceType = "g5g.medium"
 				ng.InstancesDistribution.InstanceTypes = nil
 				ng.AMIFamily = api.NodeImageFamilyAmazonLinux2
 				err := api.ValidateNodeGroup(0, ng)

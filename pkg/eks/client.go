@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
@@ -17,6 +19,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	"github.com/weaveworks/eksctl/pkg/credentials"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -125,6 +128,38 @@ func (c *KubernetesProvider) ServerVersion(rawClient *kubewrapper.RawClient) (st
 	return rawClient.ServerVersion()
 }
 
+// WaitForControlPlane waits till the control plane is ready
+func (c *KubernetesProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *kubewrapper.RawClient, waitTimeout time.Duration) error {
+	successCount := 0
+	operation := func() (bool, error) {
+		_, err := c.ServerVersion(clientSet)
+		if err == nil {
+			if successCount >= 5 {
+				return true, nil
+			}
+			successCount++
+			return false, nil
+		}
+		logger.Debug("control plane not ready yet – %s", err.Error())
+		return false, nil
+	}
+
+	w := waiter.Waiter{
+		Operation: operation,
+		NextDelay: func(_ int) time.Duration {
+			return 20 * time.Second
+		},
+	}
+
+	if err := w.WaitWithTimeout(waitTimeout); err != nil {
+		if err == context.DeadlineExceeded {
+			return errors.Errorf("timed out waiting for control plane %q after %s", meta.Name, waitTimeout)
+		}
+		return err
+	}
+	return nil
+}
+
 // UpdateAuthConfigMap creates or adds a nodegroup IAM role in the auth ConfigMap for the given nodegroup.
 func UpdateAuthConfigMap(ctx context.Context, nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error {
 	for _, ng := range nodeGroups {
@@ -169,6 +204,15 @@ func WaitForNodes(ctx context.Context, clientSet kubernetes.Interface, ng KubeNo
 				logger.Debug("the watcher channel was closed... stop processing events from it")
 				return fmt.Errorf("the watcher channel for the nodes was closed by Kubernetes due to an unknown error")
 			}
+			if event.Type == watch.Error {
+				logger.Debug("received an error event type from watcher: %+v", event.Object)
+				msg := "unexpected error event type from node watcher"
+				if statusErr, ok := event.Object.(*metav1.Status); ok {
+					return fmt.Errorf("%s: %s", msg, statusErr.String())
+				}
+				return fmt.Errorf("%s: %+v", msg, event.Object)
+			}
+
 			if event.Object != nil && event.Type != watch.Deleted {
 				if node, ok := event.Object.(*corev1.Node); ok {
 					if isNodeReady(node) {

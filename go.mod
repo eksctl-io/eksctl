@@ -8,23 +8,23 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.4-0.20220124212200-2aee60ac608e
-	github.com/aws/aws-sdk-go v1.44.15
-	github.com/aws/aws-sdk-go-v2 v1.16.3
-	github.com/aws/aws-sdk-go-v2/config v1.15.6
-	github.com/aws/aws-sdk-go-v2/credentials v1.12.1
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.1
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.20.4
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.0
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.5
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.4
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.43.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.20.7
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.4
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.4
-	github.com/aws/aws-sdk-go-v2/service/iam v1.18.4
-	github.com/aws/aws-sdk-go-v2/service/kms v1.17.1
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.0
-	github.com/aws/aws-sdk-go-v2/service/sts v1.16.5
+	github.com/aws/aws-sdk-go v1.44.24
+	github.com/aws/aws-sdk-go-v2 v1.16.4
+	github.com/aws/aws-sdk-go-v2/config v1.15.9
+	github.com/aws/aws-sdk-go-v2/credentials v1.12.4
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.2
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.21.0
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.1
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.7
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.16.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.45.0
+	github.com/aws/aws-sdk-go-v2/service/eks v1.21.1
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.5
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.5
+	github.com/aws/aws-sdk-go-v2/service/iam v1.18.5
+	github.com/aws/aws-sdk-go-v2/service/kms v1.17.2
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.1
+	github.com/aws/aws-sdk-go-v2/service/sts v1.16.6
 	github.com/aws/smithy-go v1.11.2
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
@@ -42,7 +42,7 @@ require (
 	github.com/golangci/golangci-lint v1.45.2
 	github.com/google/uuid v1.3.0
 	github.com/goreleaser/goreleaser v1.6.1
-	github.com/hashicorp/go-version v1.4.0
+	github.com/hashicorp/go-version v1.5.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kris-nova/logger v0.2.1
 	github.com/kris-nova/lolgopher v0.0.0-20210112022122-73f0047e8b65
@@ -137,12 +137,12 @@ require (
 	github.com/ashanbrown/forbidigo v1.3.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
 	github.com/atc0005/go-teams-notify/v2 v2.6.1 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.4 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.10 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.4 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.11 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.11.4 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.11 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.12 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.11.7 // indirect
 	github.com/awslabs/goformation/v4 v4.15.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect

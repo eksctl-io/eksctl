@@ -6,7 +6,6 @@ package unowned_clusters
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -27,6 +26,7 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
@@ -49,7 +49,6 @@ var (
 	version                    = "1.20"
 	upgradeVersion             = "1.21"
 	ctl                        api.ClusterProvider
-	configFile                 *os.File
 	cfg                        *api.ClusterConfig
 )
 
@@ -67,11 +66,8 @@ var _ = BeforeSuite(func() {
 		},
 	}
 
-	var err error
-	configFile, err = os.CreateTemp("", "")
-	Expect(err).NotTo(HaveOccurred())
 	if !params.SkipCreate {
-		clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
+		clusterProvider, err := eks.New(context.Background(), &api.ProviderConfig{Region: params.Region}, cfg)
 		Expect(err).NotTo(HaveOccurred())
 		ctl = clusterProvider.AWSProvider
 		cfg.VPC = createClusterWithNodeGroup(context.Background(), params.ClusterName, stackName, mng1, version, ctl)
@@ -92,15 +88,13 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				Name: mng2,
 			}},
 		}
-		// write config file so that the nodegroup creates have access to the vpc spec
-		configData, err := json.Marshal(&cfg)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(os.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
+
 		cmd := params.EksctlCreateNodegroupCmd.
 			WithArgs(
-				"--config-file", configFile.Name(),
+				"--config-file", "-",
 				"--verbose", "2",
-			)
+			).
+			WithStdin(clusterutils.Reader(cfg))
 		Expect(cmd).To(RunSuccessfully())
 	})
 
@@ -431,7 +425,7 @@ func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []st
 	createStackInput.TemplateBody = aws.String(string(templateBody))
 	createStackInput.Capabilities = []types.Capability{types.CapabilityCapabilityIam, types.CapabilityCapabilityNamedIam}
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	_, err = ctl.CloudFormation().CreateStack(ctx, createStackInput)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -471,7 +465,7 @@ func deleteStack(stackName string, ctl api.ClusterProvider) {
 		StackName: &stackName,
 	}
 
-	_, err := ctl.CloudFormation().DeleteStack(context.TODO(), deleteStackInput)
+	_, err := ctl.CloudFormation().DeleteStack(context.Background(), deleteStackInput)
 	Expect(err).NotTo(HaveOccurred())
 }
 
@@ -479,6 +473,4 @@ var _ = AfterSuite(func() {
 	if !params.SkipCreate && !params.SkipDelete {
 		deleteStack(stackName, ctl)
 	}
-	Expect(os.RemoveAll(configFile.Name())).To(Succeed())
-
 })

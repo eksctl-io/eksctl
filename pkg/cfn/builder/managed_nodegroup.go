@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/pkg/errors"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
@@ -266,17 +264,20 @@ func validateLaunchTemplate(launchTemplateData *ec2types.ResponseLaunchTemplateD
 func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes {
 	amiTypeMapping := map[string]struct {
 		X86x64 ekstypes.AMITypes
-		GPU    ekstypes.AMITypes
+		X86GPU ekstypes.AMITypes
 		ARM    ekstypes.AMITypes
+		ARMGPU ekstypes.AMITypes
 	}{
 		api.NodeImageFamilyAmazonLinux2: {
 			X86x64: ekstypes.AMITypesAl2X8664,
-			GPU:    ekstypes.AMITypesAl2X8664Gpu,
+			X86GPU: ekstypes.AMITypesAl2X8664Gpu,
 			ARM:    ekstypes.AMITypesAl2Arm64,
 		},
 		api.NodeImageFamilyBottlerocket: {
 			X86x64: ekstypes.AMITypesBottlerocketX8664,
+			X86GPU: ekstypes.AMITypesBottlerocketX8664Nvidia,
 			ARM:    ekstypes.AMITypesBottlerocketArm64,
+			ARMGPU: ekstypes.AMITypesBottlerocketArm64Nvidia,
 		},
 	}
 
@@ -286,8 +287,11 @@ func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes
 	}
 
 	switch {
+
+	case instanceutils.IsGPUInstanceType(instanceType) && instanceutils.IsARMInstanceType(instanceType):
+		return amiType.ARMGPU
 	case instanceutils.IsGPUInstanceType(instanceType):
-		return amiType.GPU
+		return amiType.X86GPU
 	case instanceutils.IsARMInstanceType(instanceType):
 		return amiType.ARM
 	default:

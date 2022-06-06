@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/gofrs/flock"
@@ -31,6 +32,10 @@ const (
 	RecommendedConfigPathEnvVar = clientcmd.RecommendedConfigPathEnvVar
 	// AWSIAMAuthenticatorMinimumBetaVersion this is the minimum version at which aws-iam-authenticator uses v1beta1 as APIVersion
 	AWSIAMAuthenticatorMinimumBetaVersion = "0.5.3"
+	// AWSCLIv1MinimumBetaVersion this is the minimum version at which aws-cli v1 uses v1beta1 as APIVersion
+	AWSCLIv1MinimumBetaVersion = "1.23.9"
+	// AWSCLIv2MinimumBetaVersion this is the minimum version at which aws-cli v2 uses v1beta1 as APIVersion
+	AWSCLIv2MinimumBetaVersion = "2.6.3"
 
 	alphaAPIVersion = "client.authentication.k8s.io/v1alpha1"
 	betaAPIVersion  = "client.authentication.k8s.io/v1beta1"
@@ -183,10 +188,29 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 			})
 		}
 	case AWSEKSAuthenticator:
+		// if [aws-cli v1/aws-cli v2] is above or equal to [v1.23.9/v2.6.3] respectively, we change the APIVersion to v1beta1.
+		if awsCLIIsBetaVersion, err := awsCliIsAboveVersion(); err != nil {
+			logger.Warning("failed to determine authenticator version, leaving API version as default v1alpha1: %v", err)
+		} else if awsCLIIsBetaVersion {
+			execConfig.APIVersion = betaAPIVersion
+		}
 		args = []string{"eks", "get-token", "--cluster-name", clusterMeta.Name}
 		roleARNFlag = "--role-arn"
 		if clusterMeta.Region != "" {
 			args = append(args, "--region", clusterMeta.Region)
+		}
+	}
+	// If the alpha API version is selected, check the kubectl version
+	// If kubectl 1.24.0 or above is detected, override with the beta API version
+	// kubectl 1.24.0 removes the alpha API version, so it will never work
+	// Therefore as a best effort try the beta version even if it might not work
+	if execConfig.APIVersion == alphaAPIVersion {
+		if kubectlVersion := getKubectlVersion(); kubectlVersion != "" {
+			// Silently ignore errors because kubectl is not required to run eksctl
+			compareVersions, err := utils.CompareVersions(kubectlVersion, "1.24.0")
+			if err == nil && compareVersions >= 0 {
+				execConfig.APIVersion = betaAPIVersion
+			}
 		}
 	}
 	if roleARN != "" {
@@ -213,6 +237,41 @@ type AWSAuthenticatorVersionFormat struct {
 	Version string `json:"Version"`
 }
 
+func awsCliIsAboveVersion() (bool, error) {
+	awsCliVersion := getAWSCLIVersion()
+	compareVersions, err := utils.CompareVersions(awsCliVersion, "2.0.0")
+	if err != nil {
+		return false, fmt.Errorf("failed to parse versions: %w", err)
+	}
+	// AWS CLI provides beta in two separate major versions. One for v1 and one for v2.
+	// Being above a single version doesn't necessarily mean that we are in the clear.
+	// Thus, first check which major version we are dealing with, then check if beta is
+	// supported for that major version.
+	if compareVersions < 0 {
+		compareVersions, err = utils.CompareVersions(awsCliVersion, AWSCLIv1MinimumBetaVersion)
+	} else {
+		compareVersions, err = utils.CompareVersions(awsCliVersion, AWSCLIv2MinimumBetaVersion)
+	}
+	if err != nil {
+		return false, fmt.Errorf("failed to parse versions: %w", err)
+	}
+	return compareVersions >= 0, nil
+}
+
+func getAWSCLIVersion() string {
+	cmd := execCommand("aws", "--version")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	r := regexp.MustCompile("aws-cli/([\\d.]*)")
+	matches := r.FindStringSubmatch(string(output))
+	if len(matches) != 2 {
+		return ""
+	}
+	return matches[1]
+}
+
 func authenticatorIsAboveVersion(version string) (bool, error) {
 	authenticatorVersion, err := getAWSIAMAuthenticatorVersion()
 	if err != nil {
@@ -236,6 +295,41 @@ func getAWSIAMAuthenticatorVersion() (string, error) {
 		return "", fmt.Errorf("failed to parse version information: %w", err)
 	}
 	return parsedVersion.Version, nil
+}
+
+/* KubectlVersionFormat is the format used by kubectl version --format=json, example output:
+{
+  "clientVersion": {
+    "major": "1",
+    "minor": "23",
+    "gitVersion": "v1.23.6",
+    "gitCommit": "ad3338546da947756e8a88aa6822e9c11e7eac22",
+    "gitTreeState": "archive",
+    "buildDate": "2022-04-29T06:39:16Z",
+    "goVersion": "go1.18.1",
+    "compiler": "gc",
+    "platform": "linux/amd64"
+  }
+} */
+type KubectlVersionData struct {
+	Version string `json:"gitVersion"`
+}
+
+type KubectlVersionFormat struct {
+	ClientVersion KubectlVersionData `json:"clientVersion"`
+}
+
+func getKubectlVersion() string {
+	cmd := execCommand("kubectl", "version", "--client", "--output=json")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	var parsedVersion KubectlVersionFormat
+	if err := json.Unmarshal(output, &parsedVersion); err != nil {
+		return ""
+	}
+	return strings.TrimLeft(parsedVersion.ClientVersion.Version, "v")
 }
 
 func lockFileName(filePath string) string {

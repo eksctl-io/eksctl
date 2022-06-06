@@ -128,7 +128,7 @@ func (n *devicePluginTask) Do(errCh chan error) error {
 	if err != nil {
 		return err
 	}
-	devicePlugin := n.mkPlugin(rawClient, n.clusterProvider.AWSProvider.Region(), false)
+	devicePlugin := n.mkPlugin(rawClient, n.clusterProvider.AWSProvider.Region(), false, n.spec)
 	if err := devicePlugin.Deploy(); err != nil {
 		return errors.Wrap(err, "error installing device plugin")
 	}
@@ -229,11 +229,11 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 	newTasks.Append(&tasks.GenericTask{
 		Description: "wait for control plane to become ready",
 		Doer: func() error {
-			clientSet, err := c.NewStdClientSet(cfg)
+			clientSet, err := c.NewRawClient(cfg)
 			if err != nil {
 				return errors.Wrap(err, "error creating Clientset")
 			}
-			if err := c.WaitForControlPlane(cfg.Metadata, clientSet); err != nil {
+			if err := c.KubeProvider.WaitForControlPlane(cfg.Metadata, clientSet, c.AWSProvider.WaitTimeout()); err != nil {
 				return err
 			}
 			return c.RefreshClusterStatus(ctx, cfg)
