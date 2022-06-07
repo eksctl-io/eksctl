@@ -8,7 +8,7 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.4-0.20220124212200-2aee60ac608e
-	github.com/aws/aws-sdk-go v1.44.24
+	github.com/aws/aws-sdk-go v1.44.28
 	github.com/aws/aws-sdk-go-v2 v1.16.4
 	github.com/aws/aws-sdk-go-v2/config v1.15.9
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.4
@@ -16,7 +16,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.21.0
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.1
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.7
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.16.0
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.17.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.45.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.21.1
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.5
@@ -31,7 +31,7 @@ require (
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/cenk/backoff v2.2.1+incompatible
 	github.com/cloudflare/cfssl v1.6.1
-	github.com/dave/dst v0.26.2
+	github.com/dave/dst v0.27.0
 	github.com/dave/jennifer v1.5.0
 	github.com/dlespiau/kube-test-harness v0.0.0-20200915102055-a03579200ae8
 	github.com/evanphx/json-patch/v5 v5.6.0
@@ -59,7 +59,7 @@ require (
 	github.com/spf13/afero v1.8.2
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 	github.com/tidwall/gjson v1.14.1
 	github.com/tidwall/sjson v1.2.4
 	github.com/tj/assert v0.0.3
@@ -386,7 +386,7 @@ require (
 	github.com/spf13/viper v1.10.1 // indirect
 	github.com/spotinst/spotinst-sdk-go v1.85.0 // indirect
 	github.com/ssgreg/nlreturn/v2 v2.2.1 // indirect
-	github.com/stretchr/objx v0.2.0 // indirect
+	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/sylvia7788/contextcheck v1.0.4 // indirect
 	github.com/tdakkota/asciicheck v0.1.1 // indirect
@@ -454,7 +454,7 @@ require (
 	gopkg.in/mail.v2 v2.3.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.2.2 // indirect
 	k8s.io/apiserver v0.23.5 // indirect
 	k8s.io/component-base v0.22.5 // indirect
