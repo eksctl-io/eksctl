@@ -2,8 +2,7 @@ name: Publish docs
 
 on:
   release:
-    types:
-      - published
+    types: [published]
 jobs:
   publish-docs:
     name: Publish docs to Netlify
@@ -11,10 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v3
         with:
-          fetch-depth: 0          
+          fetch-depth: 0
       - name: Trigger Netlify deployment
         run: make publish-docs
-        env:
-          NETLIFY_BUILD_HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
