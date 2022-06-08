@@ -214,6 +214,9 @@ const (
 	// ClusterNameTag defines the tag of the cluster name
 	ClusterNameTag = "alpha.eksctl.io/cluster-name"
 
+	// ClusterOIDCEnabledTag determines whether OIDC is enabled or not.
+	ClusterOIDCEnabledTag = "alpha.eksctl.io/cluster-oidc-enabled"
+
 	// OldClusterNameTag defines the tag of the cluster name
 	OldClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 
