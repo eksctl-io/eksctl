@@ -156,15 +156,6 @@ func (c *ClusterProvider) ControlPlaneVPCInfo() ekstypes.VpcConfigResponse {
 	return *c.Status.ClusterInfo.Cluster.ResourcesVpcConfig
 }
 
-// UnsupportedOIDCError represents an unsupported OIDC error
-type UnsupportedOIDCError struct {
-	msg string
-}
-
-func (u *UnsupportedOIDCError) Error() string {
-	return u.msg
-}
-
 // NewOpenIDConnectManager returns OpenIDConnectManager
 func (c *ClusterProvider) NewOpenIDConnectManager(ctx context.Context, spec *api.ClusterConfig) (*iamoidc.OpenIDConnectManager, error) {
 	if _, err := c.CanOperateWithRefresh(ctx, spec); err != nil {
@@ -172,7 +163,7 @@ func (c *ClusterProvider) NewOpenIDConnectManager(ctx context.Context, spec *api
 	}
 
 	if c.Status.ClusterInfo.Cluster == nil || c.Status.ClusterInfo.Cluster.Identity == nil || c.Status.ClusterInfo.Cluster.Identity.Oidc == nil || c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer == nil {
-		return nil, &UnsupportedOIDCError{"unknown OIDC issuer URL"}
+		return nil, &iamoidc.UnsupportedOIDCError{Message: "unknown OIDC issuer URL"}
 	}
 
 	parsedARN, err := arn.Parse(spec.Status.ARN)

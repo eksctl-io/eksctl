@@ -2,6 +2,11 @@ package utils
 
 import (
 	"context"
+	"fmt"
+
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
@@ -74,6 +79,10 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 				return err
 			}
 			logger.Success("created IAM Open ID Connect provider for cluster %q in %q", meta.Name, meta.Region)
+
+			if err := addOIDCTag(ctx, ctl.AWSProvider, ctl.Status.ClusterInfo.Cluster); err != nil {
+				return err
+			}
 		}
 	} else {
 		logger.Info("IAM Open ID Connect provider is already associated with cluster %q in %q", meta.Name, meta.Region)
@@ -81,5 +90,17 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 
 	cmdutils.LogPlanModeWarning(cmd.Plan && !providerExists)
 
+	return nil
+}
+
+func addOIDCTag(ctx context.Context, provider api.ClusterProvider, cluster *ekstypes.Cluster) error {
+	if _, err := provider.EKS().TagResource(ctx, &eks.TagResourceInput{
+		ResourceArn: cluster.Arn,
+		Tags: map[string]string{
+			api.ClusterOIDCEnabledTag: "true",
+		},
+	}); err != nil {
+		return fmt.Errorf("error tagging EKS cluster with OIDC tag: %w", err)
+	}
 	return nil
 }

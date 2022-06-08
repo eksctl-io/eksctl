@@ -1,0 +1,45 @@
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: taints-1
+  region: us-west-1
+
+# Unmanaged nodegroups with and without taints.
+nodeGroups:
+  - name: ng1-public
+    instanceType: m5.xlarge
+    minSize: 2
+    maxSize: 8
+    taints:
+      - key: your.domain.com/db
+        value: "true"
+        effect: NoSchedule
+      - key: your.domain.com/production
+        value: "true"
+        effect: NoExecute
+  - name: ng2-private
+    instanceType: m5.xlarge
+    minSize: 2
+    maxSize: 8
+    privateNetworking: true
+    taints:
+      - key: your.domain.com/sensitive-information
+        value: "true"
+        effect: NoSchedule
+  - name: ng3-public
+    instanceType: m5.xlarge
+    minSize: 2
+    maxSize: 8
+
+# Managed nodegroups with taints.
+managedNodeGroups:
+  - name: mng1-public
+    taints:
+      - key: your.domain.com/memory-pressure
+        value: "true"
+        effect: PreferNoSchedule
+      - key: your.domain.com/needs-auth
+        value: "true"
+        effect: NoExecute

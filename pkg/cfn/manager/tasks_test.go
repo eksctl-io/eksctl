@@ -4,7 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/smithy-go"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -13,6 +17,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 )
@@ -215,6 +220,102 @@ var _ = Describe("StackCollection Tasks", func() {
 			})
 		})
 	})
+
+	type oidcEntry struct {
+		mockProvider func(*mockprovider.MockProvider)
+		cluster      *ekstypes.Cluster
+
+		expectedErr string
+	}
+
+	DescribeTable("NewTasksToDeleteOIDCProviderWithIAMServiceAccounts with missing IAM permissions", func(e oidcEntry) {
+		p = mockprovider.NewMockProvider()
+		newOIDCManager := func() (*iamoidc.OpenIDConnectManager, error) {
+			return iamoidc.NewOpenIDConnectManager(p.IAM(), "123", "https://example.com", "aws", nil)
+		}
+		e.mockProvider(p)
+		p.MockIAM().On("GetOpenIDConnectProvider", mock.Anything, mock.Anything).Return(nil, &smithy.GenericAPIError{
+			Code:    "AccessDenied",
+			Message: "access denied",
+		})
+
+		stackManager = NewStackCollection(p, cfg)
+		_, err := stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(context.Background(), newOIDCManager, e.cluster, nil, false)
+		if e.expectedErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
+		} else {
+			Expect(err).NotTo(HaveOccurred())
+		}
+	},
+		Entry("an OIDC provider is associated with the cluster", oidcEntry{
+			mockProvider: func(p *mockprovider.MockProvider) {
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+					StackSummaries: []cfntypes.StackSummary{},
+				}, nil)
+			},
+			cluster: &ekstypes.Cluster{
+				Tags: map[string]string{
+					"alpha.eksctl.io/cluster-oidc-enabled": "true",
+				},
+			},
+
+			expectedErr: "IAM permissions are required to delete OIDC provider",
+		}),
+
+		Entry("cluster has IAM service accounts", oidcEntry{
+			mockProvider: func(p *mockprovider.MockProvider) {
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+					StackSummaries: []cfntypes.StackSummary{
+						{
+							StackName: aws.String("eksctl-test-cluster-addon-iamserviceaccount-test"),
+						},
+					},
+				}, nil)
+				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.Anything).Return(&cloudformation.DescribeStacksOutput{
+					Stacks: []cfntypes.Stack{
+						{
+							StackName: aws.String("eksctl-test-cluster-iamserviceaccount-test"),
+							Tags: []cfntypes.Tag{
+								{
+									Key:   aws.String("alpha.eksctl.io/iamserviceaccount-name"),
+									Value: aws.String("default/test"),
+								},
+							},
+						},
+					},
+				}, nil)
+			},
+			cluster: &ekstypes.Cluster{
+				Tags: map[string]string{},
+			},
+
+			expectedErr: "found 1 IAM service account(s); IAM permissions are required to delete OIDC provider",
+		}),
+
+		Entry("OIDC provider and service accounts do not exist for the cluster", oidcEntry{
+			mockProvider: func(p *mockprovider.MockProvider) {
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+					StackSummaries: []cfntypes.StackSummary{},
+				}, nil)
+			},
+			cluster: &ekstypes.Cluster{
+				Tags: map[string]string{},
+			},
+		}),
+
+		Entry("OIDC provider definitely does not exist for the cluster", oidcEntry{
+			mockProvider: func(p *mockprovider.MockProvider) {
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+					StackSummaries: []cfntypes.StackSummary{},
+				}, nil)
+			},
+			cluster: &ekstypes.Cluster{
+				Tags: map[string]string{
+					"alpha.eksctl.io/cluster-oidc-enabled": "false",
+				},
+			},
+		}),
+	)
 })
 
 func makeNodeGroups(names ...string) []*api.NodeGroup {
