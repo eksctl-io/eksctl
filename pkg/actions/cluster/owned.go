@@ -67,11 +67,6 @@ func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
 }
 
 func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
-	var (
-		clientSet kubernetes.Interface
-		oidc      *iamoidc.OpenIDConnectManager
-	)
-
 	clusterOperable, err := c.ctl.CanOperate(c.cfg)
 	if err != nil {
 		logger.Debug("failed to check if cluster is operable: %v", err)
@@ -83,7 +78,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 		return err
 	}
 
-	oidcSupported := true
+	var clientSet kubernetes.Interface
 	if clusterOperable {
 		var err error
 		clientSet, err = c.newClientSet()
@@ -93,18 +88,6 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 			} else {
 				return err
 			}
-		}
-
-		oidc, err = c.ctl.NewOpenIDConnectManager(ctx, c.cfg)
-		if err != nil {
-			if _, ok := err.(*eks.UnsupportedOIDCError); !ok {
-				if force {
-					logger.Warning("error occurred during deletion: %v", err)
-				} else {
-					return err
-				}
-			}
-			oidcSupported = false
 		}
 
 		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
@@ -129,8 +112,10 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 		}
 	}
 
-	deleteOIDCProvider := clusterOperable && oidcSupported
-	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
+	newOIDCManager := func() (*iamoidc.OpenIDConnectManager, error) {
+		return c.ctl.NewOpenIDConnectManager(ctx, c.cfg)
+	}
+	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, clusterOperable, newOIDCManager, c.ctl.Status.ClusterInfo.Cluster, kubernetes.NewCachedClientSet(clientSet), wait, force, func(errs chan error, _ string) error {
 		logger.Info("trying to cleanup dangling network interfaces")
 		if err := c.ctl.LoadClusterVPC(ctx, c.cfg, c.stackManager); err != nil {
 			return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)

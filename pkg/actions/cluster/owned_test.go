@@ -58,7 +58,11 @@ var _ = Describe("Delete", func() {
 		fakeStackManager = new(fakes.FakeStackManager)
 		ranDeleteDeprecatedTasks = false
 		ranDeleteClusterTasks = false
-		ctl = &eks.ClusterProvider{AWSProvider: p, Status: &eks.ProviderStatus{}}
+		ctl = &eks.ClusterProvider{AWSProvider: p, Status: &eks.ProviderStatus{
+			ClusterInfo: &eks.ClusterInfo{
+				Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive),
+			},
+		}}
 	})
 
 	Context("when the cluster is operable", func() {
@@ -114,8 +118,13 @@ var _ = Describe("Delete", func() {
 			c.SetNewClientSet(func() (kubernetes.Interface, error) {
 				return fakeClientSet, nil
 			})
+			c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
+				mockedDrainer := &drainerMockOwned{}
+				mockedDrainer.On("Drain", mock.Anything).Return(nil)
+				return mockedDrainer
+			})
 
-			err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
+			err := c.Delete(context.Background(), time.Microsecond, 0, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
@@ -190,7 +199,7 @@ var _ = Describe("Delete", func() {
 					return mockedDrainer
 				})
 
-				err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, true, false, 1)
+				err := c.Delete(context.Background(), time.Microsecond, 0, false, true, false, 1)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 				Expect(ranDeleteDeprecatedTasks).To(BeFalse())
@@ -284,6 +293,10 @@ var _ = Describe("Delete", func() {
 				Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusFailed),
 			}, nil)
 
+			p.MockEKS().On("ListFargateProfiles", mock.Anything, &awseks.ListFargateProfilesInput{
+				ClusterName: strings.Pointer(clusterName),
+			}).Once().Return(&awseks.ListFargateProfilesOutput{FargateProfileNames: []string{}}, nil)
+
 			fakeStackManager.DeleteTasksForDeprecatedStacksReturns(&tasks.TaskTree{
 				Tasks: []tasks.Task{&tasks.GenericTask{Doer: func() error {
 					ranDeleteDeprecatedTasks = true
@@ -303,6 +316,14 @@ var _ = Describe("Delete", func() {
 			}, nil)
 
 			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+			c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
+				mockedDrainer := &drainerMockOwned{}
+				mockedDrainer.On("Drain", mock.Anything).Return(nil)
+				return mockedDrainer
+			})
+			c.SetNewClientSet(func() (kubernetes.Interface, error) {
+				return fake.NewSimpleClientset(), nil
+			})
 
 			err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())

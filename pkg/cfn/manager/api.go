@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -178,8 +179,10 @@ func (c *StackCollection) CreateStack(ctx context.Context, stackName string, res
 
 // createClusterStack creates the cluster stack
 func (c *StackCollection) createClusterStack(ctx context.Context, stackName string, resourceSet builder.ResourceSetReader, errCh chan error) error {
-	// Unlike with `createNodeGroupTask`, all tags are already set for the cluster stack
-	stack, err := c.createStackRequest(ctx, stackName, resourceSet, nil, nil)
+	clusterTags := map[string]string{
+		api.ClusterOIDCEnabledTag: strconv.FormatBool(api.IsEnabled(c.spec.IAM.WithOIDC)),
+	}
+	stack, err := c.createStackRequest(ctx, stackName, resourceSet, clusterTags, nil)
 	if err != nil {
 		return err
 	}
