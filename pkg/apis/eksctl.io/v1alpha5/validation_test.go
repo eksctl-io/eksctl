@@ -128,6 +128,17 @@ var _ = Describe("ClusterConfig validation", func() {
 			err = api.ValidateNodeGroup(0, ng0)
 			Expect(err).NotTo(HaveOccurred())
 		})
+
+		It("containerd cannot be set together with overrideBootstrapCommand", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
+			ng0.OverrideBootstrapCommand = aws.String("bootstrap command")
+			err := api.ValidateNodeGroup(0, ng0)
+			Expect(err).To(MatchError(ContainSubstring("overrideBootstrapCommand overwrites container runtime setting; please use --container-runtime in the bootsrap script instead")))
+		})
 	})
 
 	Describe("nodeGroups[*].ami validation", func() {
