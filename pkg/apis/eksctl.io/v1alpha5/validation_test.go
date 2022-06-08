@@ -137,7 +137,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
 			ng0.OverrideBootstrapCommand = aws.String("bootstrap command")
 			err := api.ValidateNodeGroup(0, ng0)
-			Expect(err).To(MatchError(ContainSubstring("overrideBootstrapCommand overwrites container runtime setting; please use --container-runtime in the boostrap script instead")))
+			Expect(err).To(MatchError(ContainSubstring("overrideBootstrapCommand overwrites container runtime setting; please use --container-runtime in the bootsrap script instead")))
 		})
 	})
 

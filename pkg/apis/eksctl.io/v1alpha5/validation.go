@@ -730,7 +730,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 			return fmt.Errorf("only %s, %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD, ContainerRuntimeDockerForWindows)
 		}
 		if ng.OverrideBootstrapCommand != nil {
-			return fmt.Errorf("overrideBootstrapCommand overwrites container runtime setting; please use --container-runtime in the boostrap script instead")
+			return fmt.Errorf("overrideBootstrapCommand overwrites container runtime setting; please use --container-runtime in the bootsrap script instead")
 		}
 	}
 
