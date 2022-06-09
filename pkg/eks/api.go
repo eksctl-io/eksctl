@@ -38,6 +38,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	ekscreds "github.com/weaveworks/eksctl/pkg/credentials"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/version"
@@ -357,6 +358,83 @@ func SetAvailabilityZones(ctx context.Context, spec *api.ClusterConfig, given []
 
 	logger.Info("setting availability zones to %v", zones)
 	spec.AvailabilityZones = zones
+
+	return nil
+}
+
+// CheckInstanceAvailability verifies that if any instances are provided in any node groups
+// that those instances are available in the selected AZs.
+func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2API awsapi.EC2) error {
+	logger.Debug("determining instance availability in zones")
+
+	// This map will use either globally configured AZs or, if set, the AZ defined by the nodegroup.
+	// map["c2.large"]=[]string{"us-west-1a", "us-west-1b"}
+	instanceMap := make(map[string][]string)
+	instances := make([]string, 0)
+
+	pool := cmdutils.ToNodePools(spec)
+	for _, ng := range pool {
+		for _, i := range ng.InstanceTypeList() {
+			instances = append(instances, i)
+			if len(ng.BaseNodeGroup().AvailabilityZones) > 0 {
+				instanceMap[i] = ng.BaseNodeGroup().AvailabilityZones
+			} else {
+				instanceMap[i] = spec.AvailabilityZones
+			}
+		}
+	}
+
+	// Do an early exit if we don't have anything.
+	if len(instances) == 0 {
+		// nothing to do
+		return nil
+	}
+
+	var instanceTypeOfferings []ec2types.InstanceTypeOffering
+	p := ec2.NewDescribeInstanceTypeOfferingsPaginator(ec2API, &ec2.DescribeInstanceTypeOfferingsInput{
+		Filters: []ec2types.Filter{
+			{
+				Name:   aws.String("instance-type"),
+				Values: instances,
+			},
+		},
+		LocationType: ec2types.LocationTypeAvailabilityZone,
+		MaxResults:   aws.Int32(100),
+	})
+	for p.HasMorePages() {
+		output, err := p.NextPage(ctx)
+		if err != nil {
+			return fmt.Errorf("unable to list offerings for instance types %w", err)
+		}
+		instanceTypeOfferings = append(instanceTypeOfferings, output.InstanceTypeOfferings...)
+	}
+	// construct a map so instance types can easily be checked
+	// map["c2.large"]["us-east-1a"]=struct{}{}
+	offers := make(map[string]map[string]struct{})
+	for _, offer := range instanceTypeOfferings {
+		if _, ok := offers[string(offer.InstanceType)]; !ok {
+			offers[string(offer.InstanceType)] = map[string]struct{}{
+				aws.StringValue(offer.Location): {},
+			}
+		} else {
+			offers[string(offer.InstanceType)][aws.StringValue(offer.Location)] = struct{}{}
+		}
+	}
+	// check if the instance type is available in at least one of the offered zones
+	for k, v := range instanceMap {
+		available := false
+		if zones, ok := offers[k]; ok {
+			for _, az := range v {
+				if _, ok := zones[az]; ok {
+					available = true
+					break
+				}
+			}
+		}
+		if !available {
+			return fmt.Errorf("instance type %s is not available in any of the provided zones", k)
+		}
+	}
 
 	return nil
 }

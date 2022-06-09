@@ -463,6 +463,10 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 			return err
 		}
 
+		if err := eks.CheckInstanceAvailability(ctx, cfg, ctl.AWSProvider.EC2()); err != nil {
+			return err
+		}
+
 		if len(cfg.LocalZones) > 0 {
 			if err := eks.ValidateLocalZones(ctx, ctl.AWSProvider.EC2(), cfg.LocalZones, ctl.AWSProvider.Region()); err != nil {
 				return err
