@@ -46,7 +46,7 @@ WORKDIR /src
 ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org,direct
 
 # The authenticator is a runtime dependency, so it needs to be in /out
-ENV AWS_IAM_AUTH_VERSION 0.5.2
+ENV AWS_IAM_AUTH_VERSION 0.5.7
 RUN curl --silent --location "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_IAM_AUTH_VERSION}/aws-iam-authenticator_${AWS_IAM_AUTH_VERSION}_linux_amd64" --output /out/usr/local/bin/aws-iam-authenticator \
     && chmod +x /out/usr/local/bin/aws-iam-authenticator
 COPY .requirements install-build-deps.sh go.mod go.sum /src/
