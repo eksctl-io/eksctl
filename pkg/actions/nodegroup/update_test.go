@@ -47,7 +47,7 @@ var _ = Describe("Update", func() {
 		}).Return(nil, &ekstypes.ResourceNotFoundException{})
 
 		m = New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil, nil)
-		err := m.Update(context.Background())
+		err := m.Update(context.Background(), false)
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(MatchError(ContainSubstring("could not find managed nodegroup with name \"my-ng\"")))
 	})
@@ -77,7 +77,7 @@ var _ = Describe("Update", func() {
 		}
 
 		m = New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil, nil)
-		err := m.Update(context.Background())
+		err := m.Update(context.Background(), false)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -136,7 +136,7 @@ var _ = Describe("Update", func() {
 		cfg.ManagedNodeGroups = append(cfg.ManagedNodeGroups, newNg)
 
 		m = New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil, nil)
-		err := m.Update(context.Background())
+		err := m.Update(context.Background(), false)
 		Expect(err).NotTo(HaveOccurred())
 	})
 })
