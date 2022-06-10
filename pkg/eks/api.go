@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
@@ -38,7 +39,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	ekscreds "github.com/weaveworks/eksctl/pkg/credentials"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/version"
@@ -368,18 +368,21 @@ func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2
 	logger.Debug("determining instance availability in zones")
 
 	// This map will use either globally configured AZs or, if set, the AZ defined by the nodegroup.
-	// map["c2.large"]=[]string{"us-west-1a", "us-west-1b"}
-	instanceMap := make(map[string][]string)
+	// map["ng-1"]["c2.large"]=[]string{"us-west-1a", "us-west-1b"}
+	instanceMap := make(map[string]map[string][]string)
 	instances := make([]string, 0)
 
-	pool := cmdutils.ToNodePools(spec)
+	pool := ToNodePools(spec)
 	for _, ng := range pool {
+		if _, ok := instanceMap[ng.BaseNodeGroup().Name]; !ok {
+			instanceMap[ng.BaseNodeGroup().Name] = make(map[string][]string)
+		}
 		for _, i := range ng.InstanceTypeList() {
 			instances = append(instances, i)
 			if len(ng.BaseNodeGroup().AvailabilityZones) > 0 {
-				instanceMap[i] = ng.BaseNodeGroup().AvailabilityZones
+				instanceMap[ng.BaseNodeGroup().Name][i] = ng.BaseNodeGroup().AvailabilityZones
 			} else {
-				instanceMap[i] = spec.AvailabilityZones
+				instanceMap[ng.BaseNodeGroup().Name][i] = spec.AvailabilityZones
 			}
 		}
 	}
@@ -421,22 +424,42 @@ func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2
 		}
 	}
 	// check if the instance type is available in at least one of the offered zones
+	// per nodegroup.
 	for k, v := range instanceMap {
-		available := false
-		if zones, ok := offers[k]; ok {
-			for _, az := range v {
-				if _, ok := zones[az]; ok {
-					available = true
-					break
+		var (
+			notAvailableIn []string
+			available      bool
+		)
+		for instance, azs := range v {
+			if zones, ok := offers[instance]; ok {
+				for _, az := range azs {
+					if _, ok := zones[az]; ok {
+						available = true
+						break
+					} else {
+						notAvailableIn = append(notAvailableIn, az)
+					}
 				}
 			}
-		}
-		if !available {
-			return fmt.Errorf("instance type %s is not available in any of the provided zones", k)
+			if !available {
+				return fmt.Errorf("none of the provided azs %q support instance type %s in nodegroup %s", strings.Join(notAvailableIn, ","), instance, k)
+			}
 		}
 	}
 
 	return nil
+}
+
+// ToNodePools combines managed and self-managed nodegroups and returns a slice of api.NodePool
+func ToNodePools(clusterConfig *api.ClusterConfig) []api.NodePool {
+	var nodePools []api.NodePool
+	for _, ng := range clusterConfig.NodeGroups {
+		nodePools = append(nodePools, ng)
+	}
+	for _, ng := range clusterConfig.ManagedNodeGroups {
+		nodePools = append(nodePools, ng)
+	}
+	return nodePools
 }
 
 // ValidateLocalZones validates that the specified local zones exist.

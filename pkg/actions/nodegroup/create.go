@@ -62,7 +62,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		}
 	}
 
-	nodePools := cmdutils.ToNodePools(cfg)
+	nodePools := eks.ToNodePools(cfg)
 
 	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, m.instanceSelector)
 	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {

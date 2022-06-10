@@ -258,3 +258,239 @@ var _ = Describe("Setting Availability Zones", func() {
 		})
 	})
 })
+
+var _ = Describe("CheckInstanceAvailability", func() {
+	var (
+		provider *mockprovider.MockProvider
+		cfg      *api.ClusterConfig
+	)
+
+	BeforeEach(func() {
+		cfg = api.NewClusterConfig()
+		provider = mockprovider.NewMockProvider()
+		provider.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, &ec2.DescribeInstanceTypeOfferingsInput{
+			Filters: []ec2types.Filter{
+				{
+					Name:   aws.String("instance-type"),
+					Values: []string{"t2.nano"},
+				},
+			},
+			LocationType: ec2types.LocationTypeAvailabilityZone,
+			MaxResults:   aws.Int32(100),
+		}).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+			InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
+				{
+					InstanceType: "t2.nano",
+					Location:     aws.String("dummy-zone-1a"),
+					LocationType: "availability-zone",
+				},
+			},
+		}, nil)
+	})
+
+	When("instance not available in nodegroup AZ", func() {
+		It("errors", func() {
+			cfg.NodeGroups = []*api.NodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:              "ng-1",
+						InstanceType:      "t2.nano",
+						AvailabilityZones: []string{"dummy-zone-1b"},
+					},
+				},
+			}
+			err := eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())
+			Expect(err).To(MatchError("none of the provided azs \"dummy-zone-1b\" support instance type t2.nano in nodegroup ng-1"))
+		})
+	})
+	When("uses instance distribution", func() {
+		When("azs aren't supported", func() {
+			It("errors", func() {
+				cfg.NodeGroups = []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:              "ng-1",
+							AvailabilityZones: []string{"dummy-zone-1b"},
+						},
+						InstancesDistribution: &api.NodeGroupInstancesDistribution{
+							InstanceTypes: []string{"t2.nano"},
+						},
+					},
+				}
+				err := eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())
+				Expect(err).To(MatchError("none of the provided azs \"dummy-zone-1b\" support instance type t2.nano in nodegroup ng-1"))
+			})
+		})
+	})
+	When("instance available in nodegroup AZ", func() {
+		It("allows the usage of the instance", func() {
+			cfg.NodeGroups = []*api.NodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:              "ng-1",
+						AvailabilityZones: []string{"dummy-zone-1a"},
+					},
+					InstancesDistribution: &api.NodeGroupInstancesDistribution{
+						InstanceTypes: []string{"t2.nano"},
+					},
+				},
+			}
+			Expect(eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())).To(Succeed())
+		})
+	})
+	When("instance not available in any of the global AZs", func() {
+		It("errors", func() {
+			cfg.AvailabilityZones = []string{"dummy-zone-1b"}
+			cfg.NodeGroups = []*api.NodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name: "ng-1",
+					},
+					InstancesDistribution: &api.NodeGroupInstancesDistribution{
+						InstanceTypes: []string{"t2.nano"},
+					},
+				},
+			}
+			err := eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())
+			Expect(err).To(MatchError("none of the provided azs \"dummy-zone-1b\" support instance type t2.nano in nodegroup ng-1"))
+		})
+	})
+	When("az is overridden by local nodegroup's AZ", func() {
+		It("uses the az defined in the nodegroup", func() {
+			cfg.AvailabilityZones = []string{"dummy-zone-1b"}
+			cfg.NodeGroups = []*api.NodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:              "ng-1",
+						AvailabilityZones: []string{"dummy-zone-1a"},
+					},
+					InstancesDistribution: &api.NodeGroupInstancesDistribution{
+						InstanceTypes: []string{"t2.nano"},
+					},
+				},
+			}
+			Expect(eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())).To(Succeed())
+		})
+	})
+	When("more than one azs are available and more than one azs are returned", func() {
+		When("one of the instances doesn't support any AZs", func() {
+			It("errors", func() {
+				provider.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, &ec2.DescribeInstanceTypeOfferingsInput{
+					Filters: []ec2types.Filter{
+						{
+							Name:   aws.String("instance-type"),
+							Values: []string{"t2.nano", "t2.micro", "t2.large"},
+						},
+					},
+					LocationType: ec2types.LocationTypeAvailabilityZone,
+					MaxResults:   aws.Int32(100),
+				}).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+					InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
+						{
+							InstanceType: "t2.nano",
+							Location:     aws.String("dummy-zone-1a"),
+							LocationType: "availability-zone",
+						},
+						{
+							InstanceType: "t2.micro",
+							Location:     aws.String("dummy-zone-1b"),
+							LocationType: "availability-zone",
+						},
+						{
+							InstanceType: "t2.large",
+							Location:     aws.String("dummy-zone-1c"),
+							LocationType: "availability-zone",
+						},
+					},
+				}, nil)
+				cfg.NodeGroups = []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:              "ng-1",
+							AvailabilityZones: []string{"dummy-zone-1a", "dummy-zone-1b"},
+							InstanceType:      "t2.large",
+						},
+						InstancesDistribution: &api.NodeGroupInstancesDistribution{
+							InstanceTypes: []string{"t2.nano", "t2.micro"},
+						},
+					},
+				}
+				cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:              "mng-1",
+							AvailabilityZones: []string{"dummy-zone-1a", "dummy-zone-1b"},
+							InstanceType:      "t2.large",
+						},
+					},
+				}
+				err := eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())
+				Expect(err).To(MatchError("none of the provided azs \"dummy-zone-1a,dummy-zone-1b\" support instance type t2.large in nodegroup mng-1"))
+			})
+		})
+		When("all instances are available in at least one of the provided AZs", func() {
+			It("allows the selection", func() {
+				provider.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, &ec2.DescribeInstanceTypeOfferingsInput{
+					Filters: []ec2types.Filter{
+						{
+							Name:   aws.String("instance-type"),
+							Values: []string{"t2.nano", "t2.micro", "t2.large"},
+						},
+					},
+					LocationType: ec2types.LocationTypeAvailabilityZone,
+					MaxResults:   aws.Int32(100),
+				}).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+					InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
+						{
+							InstanceType: "t2.nano",
+							Location:     aws.String("dummy-zone-1a"),
+							LocationType: "availability-zone",
+						},
+						{
+							InstanceType: "t2.nano",
+							Location:     aws.String("dummy-zone-1b"),
+							LocationType: "availability-zone",
+						},
+						{
+							InstanceType: "t2.micro",
+							Location:     aws.String("dummy-zone-1b"),
+							LocationType: "availability-zone",
+						},
+						{
+							InstanceType: "t2.large",
+							Location:     aws.String("dummy-zone-1a"),
+							LocationType: "availability-zone",
+						},
+						{
+							InstanceType: "t2.large",
+							Location:     aws.String("dummy-zone-1c"),
+							LocationType: "availability-zone",
+						},
+					},
+				}, nil)
+				cfg.NodeGroups = []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:              "ng-1",
+							AvailabilityZones: []string{"dummy-zone-1a", "dummy-zone-1b"},
+							InstanceType:      "t2.large",
+						},
+						InstancesDistribution: &api.NodeGroupInstancesDistribution{
+							InstanceTypes: []string{"t2.nano", "t2.micro"},
+						},
+					},
+				}
+				cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:              "mng-1",
+							AvailabilityZones: []string{"dummy-zone-1a", "dummy-zone-1b"},
+							InstanceType:      "t2.large",
+						},
+					},
+				}
+				Expect(eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())).To(Succeed())
+			})
+		})
+	})
+})
