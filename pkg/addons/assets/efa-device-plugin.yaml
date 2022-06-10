@@ -41,35 +41,115 @@ spec:
                     operator: In
                     values:
                       - c5n.18xlarge
+                      - c5n.9xlarge
                       - c5n.metal
+                      - c6a.32xlarge
+                      - c6a.48xlarge
+                      - c6a.metal
+                      - c6gn.16xlarge
+                      - c6i.32xlarge
+                      - c6i.metal
+                      - c6id.32xlarge
+                      - c6id.metal
+                      - dl1.24xlarge
+                      - g4dn.12xlarge
+                      - g4dn.8xlarge
                       - g4dn.metal
+                      - g5.48xlarge
+                      - hpc6a.48xlarge
+                      - i3en.12xlarge
                       - i3en.24xlarge
                       - i3en.metal
+                      - i4i.32xlarge
+                      - i4i.metal
+                      - im4gn.16xlarge
                       - inf1.24xlarge
                       - m5dn.24xlarge
+                      - m5dn.metal
                       - m5n.24xlarge
+                      - m5n.metal
+                      - m5zn.12xlarge
+                      - m5zn.metal
+                      - m6a.32xlarge
+                      - m6a.48xlarge
+                      - m6a.metal
+                      - m6i.32xlarge
+                      - m6i.metal
+                      - m6id.32xlarge
+                      - m6id.metal
                       - p3dn.24xlarge
-                      - r5dn.24xlarge
-                      - r5n.24xlarge
                       - p4d.24xlarge
                       - p4de.24xlarge
+                      - r5dn.24xlarge
+                      - r5dn.metal
+                      - r5n.24xlarge
+                      - r5n.metal
+                      - r6i.32xlarge
+                      - r6i.metal
+                      - vt1.24xlarge
+                      - x2idn.32xlarge
+                      - x2idn.metal
+                      - x2iedn.32xlarge
+                      - x2iedn.metal
+                      - x2iezn.12xlarge
+                      - x2iezn.metal
               - matchExpressions:
                   - key: "node.kubernetes.io/instance-type"
                     operator: In
                     values:
                       - c5n.18xlarge
+                      - c5n.9xlarge
                       - c5n.metal
+                      - c6a.32xlarge
+                      - c6a.48xlarge
+                      - c6a.metal
+                      - c6gn.16xlarge
+                      - c6i.32xlarge
+                      - c6i.metal
+                      - c6id.32xlarge
+                      - c6id.metal
+                      - dl1.24xlarge
+                      - g4dn.12xlarge
+                      - g4dn.8xlarge
                       - g4dn.metal
+                      - g5.48xlarge
+                      - hpc6a.48xlarge
+                      - i3en.12xlarge
                       - i3en.24xlarge
                       - i3en.metal
+                      - i4i.32xlarge
+                      - i4i.metal
+                      - im4gn.16xlarge
                       - inf1.24xlarge
                       - m5dn.24xlarge
+                      - m5dn.metal
                       - m5n.24xlarge
+                      - m5n.metal
+                      - m5zn.12xlarge
+                      - m5zn.metal
+                      - m6a.32xlarge
+                      - m6a.48xlarge
+                      - m6a.metal
+                      - m6i.32xlarge
+                      - m6i.metal
+                      - m6id.32xlarge
+                      - m6id.metal
                       - p3dn.24xlarge
-                      - r5dn.24xlarge
-                      - r5n.24xlarge
                       - p4d.24xlarge
                       - p4de.24xlarge
+                      - r5dn.24xlarge
+                      - r5dn.metal
+                      - r5n.24xlarge
+                      - r5n.metal
+                      - r6i.32xlarge
+                      - r6i.metal
+                      - vt1.24xlarge
+                      - x2idn.32xlarge
+                      - x2idn.metal
+                      - x2iedn.32xlarge
+                      - x2iedn.metal
+                      - x2iezn.12xlarge
+                      - x2iezn.metal
       hostNetwork: true
       containers:
         - image: "%s.dkr.ecr.%s.%s/eks/aws-efa-k8s-device-plugin:v0.3.3"
