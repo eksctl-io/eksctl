@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	cloudtrail "github.com/aws/aws-sdk-go/service/cloudtrail"
+	cloudtrail "github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 
 	context "context"
 
