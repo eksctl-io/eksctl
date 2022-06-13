@@ -105,6 +105,11 @@ func doEnableLogging(cmd *cmdutils.Cmd, logTypesToEnable []string, logTypesToDis
 		cmdutils.LogIntendedAction(cmd.Plan, "update CloudWatch logging for cluster %q in %q (%s & %s)",
 			meta.Name, meta.Region, describeTypesToEnable, describeTypesToDisable,
 		)
+		if period := cfg.CloudWatch.ClusterLogging.LogRetentionInDays; period > 0 {
+			cmdutils.LogIntendedAction(cmd.Plan, "update CloudWatch logging for log retention period set to %d",
+				period,
+			)
+		}
 		if !cmd.Plan {
 			if err := ctl.UpdateClusterConfigForLogging(ctx, cfg); err != nil {
 				return err
