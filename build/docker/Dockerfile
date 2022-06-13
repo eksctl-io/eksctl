@@ -41,15 +41,16 @@ ENV GITHUB_CLI_VERSION 1.14.0
 RUN curl --silent --location "https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz" \
     | tar xvz -C /out/usr/local/bin --strip-components=2 gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh && gh --version
 
-# Remaining dependencies are controlled by go.mod
 WORKDIR /src
-ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org,direct
 
-# The authenticator is a runtime dependency, so it needs to be in /out
-ENV AWS_IAM_AUTH_VERSION 0.5.2
+# The authenticator is a runtime dependency.
+ENV AWS_IAM_AUTH_VERSION 0.5.7
 RUN curl --silent --location "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_IAM_AUTH_VERSION}/aws-iam-authenticator_${AWS_IAM_AUTH_VERSION}_linux_amd64" --output /out/usr/local/bin/aws-iam-authenticator \
     && chmod +x /out/usr/local/bin/aws-iam-authenticator
 COPY .requirements install-build-deps.sh go.mod go.sum /src/
+
+# Remaining dependencies are controlled by go.mod
+ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org,direct
 
 # Install all build tools dependencies
 RUN ./install-build-deps.sh
