@@ -278,42 +278,6 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 	return nil
 }
 
-func (c *ClusterConfig) unsupportedVPCCNIAddonVersion() (bool, error) {
-	for _, addon := range c.Addons {
-		if addon.Name == VPCCNIAddon {
-			if addon.Version == "" {
-				return false, nil
-			}
-			if addon.Version == "latest" {
-				return false, nil
-			}
-
-			return versionLessThan(addon.Version, minimumVPCCNIVersionForIPv6)
-		}
-	}
-	return false, nil
-}
-
-func versionLessThan(v1, v2 string) (bool, error) {
-	v1Version, err := parseVersion(v1)
-	if err != nil {
-		return false, err
-	}
-	v2Version, err := parseVersion(v2)
-	if err != nil {
-		return false, err
-	}
-	return v1Version.LessThan(v2Version), nil
-}
-
-func parseVersion(v string) (*version.Version, error) {
-	version, err := version.NewVersion(v)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse version %q: %w", v, err)
-	}
-	return version, nil
-}
-
 func (c *ClusterConfig) ipv6CidrsValid() error {
 	if c.VPC.IPv6Cidr == "" && c.VPC.IPv6Pool == "" {
 		return nil
@@ -410,15 +374,6 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 	case strings.ToLower(IPV6Family):
 		if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
 			return fmt.Errorf("the default core addons must be defined for IPv6; missing addon(s): %s", strings.Join(missing, ", "))
-		}
-
-		unsupportedVersion, err := c.unsupportedVPCCNIAddonVersion()
-		if err != nil {
-			return err
-		}
-
-		if unsupportedVersion {
-			return fmt.Errorf("%s version must be at least version %s for IPv6", VPCCNIAddon, minimumVPCCNIVersionForIPv6)
 		}
 
 		if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
