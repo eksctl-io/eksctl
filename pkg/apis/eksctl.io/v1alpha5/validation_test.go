@@ -967,6 +967,23 @@ var _ = Describe("ClusterConfig validation", func() {
 				})
 
 				When("the vpc-cni version is configured", func() {
+					When("the version of the vpc-cni is too low", func() {
+						It("returns an error", func() {
+							cfg.Metadata.Version = api.Version1_22
+							cfg.IAM = &api.ClusterIAM{
+								WithOIDC: api.Enabled(),
+							}
+							cfg.Addons = append(cfg.Addons,
+								&api.Addon{Name: api.KubeProxyAddon},
+								&api.Addon{Name: api.CoreDNSAddon},
+								&api.Addon{Name: api.VPCCNIAddon, Version: "1.9.0"},
+							)
+							cfg.VPC.NAT = nil
+							err = api.ValidateClusterConfig(cfg)
+							Expect(err).To(MatchError(ContainSubstring("vpc-cni version must be at least version 1.10.0 for IPv6")))
+						})
+					})
+
 					When("the version of the vpc-cni is supported", func() {
 						It("does not error", func() {
 							cfg.Metadata.Version = api.Version1_22
@@ -1015,6 +1032,23 @@ var _ = Describe("ClusterConfig validation", func() {
 							cfg.VPC.NAT = nil
 							err = cfg.ValidateVPCConfig()
 							Expect(err).NotTo(HaveOccurred())
+						})
+					})
+
+					When("the version of the vpc-cni is invalid", func() {
+						It("it returns an error", func() {
+							cfg.Metadata.Version = api.Version1_22
+							cfg.IAM = &api.ClusterIAM{
+								WithOIDC: api.Enabled(),
+							}
+							cfg.Addons = append(cfg.Addons,
+								&api.Addon{Name: api.KubeProxyAddon},
+								&api.Addon{Name: api.CoreDNSAddon},
+								&api.Addon{Name: api.VPCCNIAddon, Version: "1.invalid!semver"},
+							)
+							cfg.VPC.NAT = nil
+							err = api.ValidateClusterConfig(cfg)
+							Expect(err).To(MatchError(ContainSubstring("failed to parse version")))
 						})
 					})
 				})
