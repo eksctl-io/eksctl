@@ -13,7 +13,7 @@ func init() {
 	awsNodeParts := strings.Split(awsNode, "---\n")
 	nonCRDs := []string{}
 	for _, part := range awsNodeParts {
-		if strings.Contains(part, ": \"CustomResourceDefinition\"") {
+		if strings.Contains(part, ": CustomResourceDefinition") {
 			continue
 		}
 		nonCRDs = append(nonCRDs, part)

@@ -184,7 +184,7 @@ func (a *Manager) patchAWSNodeDaemonSet(ctx context.Context) error {
 
 	if a.clusterConfig.IPv6Enabled() {
 		// Add ENABLE_IPV6 = true and ENABLE_PREFIX_DELEGATION = true
-		_, err = daemonSets.Patch(ctx, "aws-node", types.MergePatchType, []byte(`{
+		_, err = daemonSets.Patch(ctx, "aws-node", types.StrategicMergePatchType, []byte(`{
 	"spec": {
 		"template": {
 			"spec": {
