@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -105,6 +105,17 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(ctx context.Context, cfg
 	logger.Success("configured CloudWatch logging for cluster %q in %q (%s & %s)",
 		cfg.Metadata.Name, cfg.Metadata.Region, describeEnabledTypes, describeDisabledTypes,
 	)
+
+	if logRetentionInDays := cfg.CloudWatch.ClusterLogging.LogRetentionInDays; logRetentionInDays > 0 {
+		if _, err := c.AWSProvider.CloudWatchLogs().PutRetentionPolicy(ctx, &cloudwatchlogs.PutRetentionPolicyInput{
+			// The format for log group name is documented here: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html
+			LogGroupName:    aws.String(fmt.Sprintf("/aws/eks/%s/cluster", cfg.Metadata.Name)),
+			RetentionInDays: aws.Int32(int32(logRetentionInDays)),
+		}); err != nil {
+			return fmt.Errorf("error updating log retention settings: %w", err)
+		}
+		logger.Success("configured CloudWatch log retention to %d days for CloudWatch logging", logRetentionInDays)
+	}
 	return nil
 }
 
