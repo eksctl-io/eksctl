@@ -19,6 +19,8 @@ runs:
     - name: Setup git config
       shell: bash
       run: |
+        ls -l
+        pwd
         git config user.name "${{ inputs.name }}"
         git config user.email "${{ inputs.email }}"
     - name: Log in with GH CLI
