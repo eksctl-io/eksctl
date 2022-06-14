@@ -216,6 +216,9 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		if err := importSubnets(cfg.VPC.Subnets.Private, params.Subnets[api.SubnetTopologyPrivate]); err != nil {
 			return err
 		}
+		if params.DryRun {
+			cfg.AvailabilityZones = nil
+		}
 	}
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
 	kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
