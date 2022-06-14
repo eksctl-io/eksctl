@@ -199,7 +199,7 @@ This section defines two fields. `MaxUnavailable` and `MaxUnavailablePercentage`
 the update, thus downtime shouldn't be expected.
 
 The command `update nodegroup` should be used with a config file using the `--config-file` flag. The nodegroup should
-contain an `nodeGroup.updateConfig` section. More on the field can be found [here](https://eksctl.io/usage/schema/#nodeGroups-updateConfig).
+contain an `nodeGroup.updateConfig` section. More information can be found [here](https://eksctl.io/usage/schema/#nodeGroups-updateConfig).
 
 ## Nodegroup Health issues
 EKS Managed Nodegroups automatically checks the configuration of your nodegroup and nodes for health issues and reports
