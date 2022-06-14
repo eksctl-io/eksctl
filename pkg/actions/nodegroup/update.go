@@ -40,7 +40,7 @@ func (m *Manager) updateNodegroup(ctx context.Context, ng *api.ManagedNodeGroup)
 	}
 
 	if ng.UpdateConfig == nil {
-		return fmt.Errorf("the submitted config does not contain any changes for nodegroup %s", ng.Name)
+		return fmt.Errorf("the submitted config does not contain an 'updateConfig' field for nodegroup %s", ng.Name)
 	}
 
 	updateConfig, err := updateUpdateConfig(ng)
