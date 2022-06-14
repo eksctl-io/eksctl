@@ -2,14 +2,14 @@ package eks_test
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
 	"github.com/stretchr/testify/mock"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -34,10 +34,12 @@ var _ = Describe("EKS API wrapper", func() {
 			err error
 
 			sentClusterLogging []ekstypes.LogSetup
+
+			p *mockprovider.MockProvider
 		)
 
 		BeforeEach(func() {
-			p := mockprovider.NewMockProvider()
+			p = mockprovider.NewMockProvider()
 			ctl = &ClusterProvider{
 				AWSProvider: p,
 				Status:      &ProviderStatus{},
@@ -164,6 +166,18 @@ var _ = Describe("EKS API wrapper", func() {
 
 			Expect(sentClusterLogging[1].Types).NotTo(BeEmpty())
 			Expect(sentClusterLogging[1].Types).To(Equal([]ekstypes.LogType{"api", "audit", "scheduler"}))
+		})
+		It("should update logRetentionInDays in case if it's greater than 0", func() {
+			p.MockCloudWatchLogs().On("PutRetentionPolicy", mock.Anything, &cloudwatchlogs.PutRetentionPolicyInput{
+				LogGroupName:    aws.String(fmt.Sprintf("/aws/eks/%s/cluster", cfg.Metadata.Name)),
+				RetentionInDays: aws.Int32(int32(30)),
+			}).Return(&cloudwatchlogs.PutRetentionPolicyOutput{}, nil)
+			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"authenticator"}
+			cfg.CloudWatch.ClusterLogging.LogRetentionInDays = 30
+
+			api.SetClusterConfigDefaults(cfg)
+			Expect(api.ValidateClusterConfig(cfg)).To(Succeed())
+			Expect(ctl.UpdateClusterConfigForLogging(context.Background(), cfg)).To(Succeed())
 		})
 	})
 })
