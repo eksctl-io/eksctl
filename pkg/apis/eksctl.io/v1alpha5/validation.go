@@ -439,7 +439,7 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 
 // NoAccess returns true if neither public are private cluster endpoint access is enabled and false otherwise
 func noAccess(ces *ClusterEndpoints) bool {
-	return !(*ces.PublicAccess || *ces.PrivateAccess)
+	return !(IsEnabled(ces.PublicAccess) || IsEnabled(ces.PrivateAccess))
 }
 
 // PrivateOnly returns true if public cluster endpoint access is disabled and private cluster endpoint access is enabled, and false otherwise

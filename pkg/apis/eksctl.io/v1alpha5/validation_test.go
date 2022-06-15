@@ -714,6 +714,18 @@ var _ = Describe("ClusterConfig validation", func() {
 					err := api.ValidateClusterConfig(cfg)
 					Expect(err).To(MatchError(api.ErrClusterEndpointNoAccess))
 				})
+
+				It("should error on private=false, public=nil", func() {
+					cfg.VPC.ClusterEndpoints = &api.ClusterEndpoints{PrivateAccess: api.Disabled()}
+					err := api.ValidateClusterConfig(cfg)
+					Expect(err).To(MatchError(api.ErrClusterEndpointNoAccess))
+				})
+
+				It("should error on private=nil, public=false", func() {
+					cfg.VPC.ClusterEndpoints = &api.ClusterEndpoints{PublicAccess: api.Disabled()}
+					err := api.ValidateClusterConfig(cfg)
+					Expect(err).To(MatchError(api.ErrClusterEndpointNoAccess))
+				})
 			})
 		})
 	})
