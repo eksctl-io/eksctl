@@ -14,6 +14,7 @@ jobs:
         with:
           token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
           fetch-depth: 0
+          set-safe-directory: '$GITHUB_WORKSPACE'
       - name: Cache go-build and mod
         uses: actions/cache@v3
         with:
