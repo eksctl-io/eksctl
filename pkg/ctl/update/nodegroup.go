@@ -31,6 +31,7 @@ func updateNodeGroupCmd(cmd *cmdutils.Cmd) {
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddWaitFlag(fs, &cmd.Wait, "wait for update to finish")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
@@ -56,5 +57,5 @@ func updateNodegroup(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	return nodegroup.New(cmd.ClusterConfig, ctl, nil, selector.New(ctl.AWSProvider.Session())).Update(ctx)
+	return nodegroup.New(cmd.ClusterConfig, ctl, nil, selector.New(ctl.AWSProvider.Session())).Update(ctx, cmd.Wait)
 }
