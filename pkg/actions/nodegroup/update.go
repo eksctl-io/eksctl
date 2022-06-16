@@ -60,7 +60,7 @@ func (m *Manager) updateNodegroup(ctx context.Context, ng *api.ManagedNodeGroup,
 	}
 
 	if wait {
-		if status, err := waiter.WaitForNodegroupUpdate(string(output.Update.Status), m.ctl.AWSProvider.EKS(), m.ctl.AWSProvider.WaitTimeout(), func(attempts int) time.Duration {
+		if status, err := waiter.WaitForNodegroupUpdate(ctx, string(output.Update.Status), m.ctl.AWSProvider.EKS(), m.ctl.AWSProvider.WaitTimeout(), func(attempts int) time.Duration {
 			return 30 * time.Second
 		}); err != nil {
 			return fmt.Errorf("failed to wait for nodegroup %s to update; last observed status was %s with error: %w", ng.Name, status, err)

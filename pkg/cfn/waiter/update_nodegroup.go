@@ -15,7 +15,7 @@ import (
 
 // WaitForNodegroupUpdate waits for an update to finish. Once it's done it returns the final status.
 // If the status was not Successful it will also return an error.
-func WaitForNodegroupUpdate(updateID string, api awsapi.EKS, timeout time.Duration, nextDelay NextDelay) (string, error) {
+func WaitForNodegroupUpdate(ctx context.Context, updateID string, api awsapi.EKS, timeout time.Duration, nextDelay NextDelay) (string, error) {
 	var lastStatus string
 	waiter := &Waiter{
 		NextDelay: nextDelay,
@@ -24,7 +24,7 @@ func WaitForNodegroupUpdate(updateID string, api awsapi.EKS, timeout time.Durati
 				err     error
 				success bool
 			)
-			lastStatus, success, err = describeUpdateStatus(context.Background(), updateID, api)
+			lastStatus, success, err = describeUpdateStatus(ctx, updateID, api)
 			return success, err
 		},
 	}

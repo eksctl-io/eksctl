@@ -1,6 +1,7 @@
 package waiter
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -24,7 +25,7 @@ var _ = Describe("WaitForNodegroupUpdate", func() {
 				Status: ekstypes.UpdateStatusSuccessful,
 			},
 		}, nil)
-		status, err := WaitForNodegroupUpdate("update-1", eksAPI, 35*time.Second, func(attempts int) time.Duration {
+		status, err := WaitForNodegroupUpdate(context.TODO(), "update-1", eksAPI, 35*time.Second, func(attempts int) time.Duration {
 			return 1 * time.Nanosecond
 		})
 		Expect(status).To(Equal(string(ekstypes.UpdateStatusSuccessful)))
@@ -40,7 +41,7 @@ var _ = Describe("WaitForNodegroupUpdate", func() {
 					Status: ekstypes.UpdateStatusFailed,
 				},
 			}, errors.New("nope"))
-			status, err := WaitForNodegroupUpdate("update-1", eksAPI, 35*time.Second, func(attempts int) time.Duration {
+			status, err := WaitForNodegroupUpdate(context.TODO(), "update-1", eksAPI, 35*time.Second, func(attempts int) time.Duration {
 				return 1 * time.Nanosecond
 			})
 			Expect(status).To(BeEmpty())
@@ -57,7 +58,7 @@ var _ = Describe("WaitForNodegroupUpdate", func() {
 					Status: ekstypes.UpdateStatusFailed,
 				},
 			}, nil)
-			status, err := WaitForNodegroupUpdate("update-1", eksAPI, 35*time.Second, func(attempts int) time.Duration {
+			status, err := WaitForNodegroupUpdate(context.TODO(), "update-1", eksAPI, 35*time.Second, func(attempts int) time.Duration {
 				return 1 * time.Nanosecond
 			})
 			Expect(status).To(Equal(string(ekstypes.UpdateStatusFailed)))
