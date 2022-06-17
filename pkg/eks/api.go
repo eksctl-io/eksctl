@@ -41,6 +41,7 @@ import (
 	ekscreds "github.com/weaveworks/eksctl/pkg/credentials"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/utils/nodes"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
 
@@ -375,7 +376,7 @@ func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2
 	instanceMap := make(map[string]map[string][]string)
 	instances := make([]string, 0)
 
-	pool := ToNodePools(spec)
+	pool := nodes.ToNodePools(spec)
 	for _, ng := range pool {
 		if _, ok := instanceMap[ng.BaseNodeGroup().Name]; !ok {
 			instanceMap[ng.BaseNodeGroup().Name] = make(map[string][]string)
@@ -451,18 +452,6 @@ func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2
 	}
 
 	return nil
-}
-
-// ToNodePools combines managed and self-managed nodegroups and returns a slice of api.NodePool
-func ToNodePools(clusterConfig *api.ClusterConfig) []api.NodePool {
-	var nodePools []api.NodePool
-	for _, ng := range clusterConfig.NodeGroups {
-		nodePools = append(nodePools, ng)
-	}
-	for _, ng := range clusterConfig.ManagedNodeGroups {
-		nodePools = append(nodePools, ng)
-	}
-	return nodePools
 }
 
 // ValidateLocalZones validates that the specified local zones exist.

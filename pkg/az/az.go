@@ -14,6 +14,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
+	"github.com/weaveworks/eksctl/pkg/utils/nodes"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
@@ -92,13 +93,7 @@ func filterBasedOnAvailability(ctx context.Context, zones []string, spec *api.Cl
 	)
 
 	// can't import eks because of a cycle.
-	var nodePools []api.NodePool
-	for _, ng := range spec.NodeGroups {
-		nodePools = append(nodePools, ng)
-	}
-	for _, ng := range spec.ManagedNodeGroups {
-		nodePools = append(nodePools, ng)
-	}
+	nodePools := nodes.ToNodePools(spec)
 	for _, ng := range nodePools {
 		for _, i := range ng.InstanceTypeList() {
 			if _, ok := instances[i]; !ok {
