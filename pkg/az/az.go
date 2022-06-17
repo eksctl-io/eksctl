@@ -92,7 +92,6 @@ func filterBasedOnAvailability(ctx context.Context, zones []string, spec *api.Cl
 		instances    = make(map[string]struct{}, 0)
 	)
 
-	// can't import eks because of a cycle.
 	nodePools := nodes.ToNodePools(spec)
 	for _, ng := range nodePools {
 		for _, i := range ng.InstanceTypeList() {
