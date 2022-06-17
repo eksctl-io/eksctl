@@ -6,7 +6,6 @@ DIR="${BASH_SOURCE%/*}"
 . "${DIR}/tag-common.sh"
 
 
-check_prereqs
 check_origin
 
 release_branch=$(release_branch)
