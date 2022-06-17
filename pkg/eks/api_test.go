@@ -173,15 +173,17 @@ var _ = Describe("Setting Availability Zones", func() {
 	When("the AZs were set as CLI params", func() {
 		When("the given params contain enough AZs", func() {
 			It("sets them as the AZs to be used", func() {
-				err := eks.SetAvailabilityZones(context.Background(), cfg, []string{"us-east-2a", "us-east-2b"}, provider.EC2(), "")
+				userProvider, err := eks.SetAvailabilityZones(context.Background(), cfg, []string{"us-east-2a", "us-east-2b"}, provider.EC2(), "")
 				Expect(err).NotTo(HaveOccurred())
+				Expect(userProvider).To(BeTrue())
 			})
 		})
 
 		When("the given params contain too few AZs", func() {
 			It("returns an error", func() {
-				err := eks.SetAvailabilityZones(context.Background(), cfg, []string{"us-east-2a"}, provider.EC2(), "")
+				userProvider, err := eks.SetAvailabilityZones(context.Background(), cfg, []string{"us-east-2a"}, provider.EC2(), "")
 				Expect(err).To(MatchError("only 1 zone(s) specified [us-east-2a], 2 are required (can be non-unique)"))
+				Expect(userProvider).To(BeFalse())
 			})
 		})
 	})
@@ -190,16 +192,18 @@ var _ = Describe("Setting Availability Zones", func() {
 		When("the config file contains enough AZs", func() {
 			It("sets them as the AZs to be used", func() {
 				cfg.AvailabilityZones = []string{"us-east-2a", "us-east-2b"}
-				err := eks.SetAvailabilityZones(context.Background(), cfg, []string{}, provider.EC2(), "")
+				userProvider, err := eks.SetAvailabilityZones(context.Background(), cfg, []string{}, provider.EC2(), "")
 				Expect(err).NotTo(HaveOccurred())
+				Expect(userProvider).To(BeTrue())
 			})
 		})
 
 		When("the config file contains too few AZs", func() {
 			It("returns an error", func() {
 				cfg.AvailabilityZones = []string{"us-east-2a"}
-				err := eks.SetAvailabilityZones(context.Background(), cfg, []string{}, provider.EC2(), "")
+				userProvider, err := eks.SetAvailabilityZones(context.Background(), cfg, []string{}, provider.EC2(), "")
 				Expect(err).To(MatchError("only 1 zone(s) specified [us-east-2a], 2 are required (can be non-unique)"))
+				Expect(userProvider).To(BeFalse())
 			})
 		})
 	})
@@ -220,8 +224,9 @@ var _ = Describe("Setting Availability Zones", func() {
 						Values: []string{string(ec2types.LocationTypeAvailabilityZone)},
 					}},
 				}).Return(&ec2.DescribeAvailabilityZonesOutput{}, fmt.Errorf("err"))
-				err := eks.SetAvailabilityZones(context.Background(), cfg, []string{}, provider.EC2(), region)
+				userProvider, err := eks.SetAvailabilityZones(context.Background(), cfg, []string{}, provider.EC2(), region)
 				Expect(err).To(MatchError("getting availability zones: error getting availability zones for region us-east-2: err"))
+				Expect(userProvider).To(BeFalse())
 			})
 		})
 
@@ -252,8 +257,9 @@ var _ = Describe("Setting Availability Zones", func() {
 							ZoneId:    aws.String("id"),
 						}},
 				}, nil)
-				err := eks.SetAvailabilityZones(context.Background(), cfg, []string{}, provider.EC2(), region)
+				userProvider, err := eks.SetAvailabilityZones(context.Background(), cfg, []string{}, provider.EC2(), region)
 				Expect(err).NotTo(HaveOccurred())
+				Expect(userProvider).To(BeFalse())
 			})
 		})
 	})

@@ -334,32 +334,35 @@ func ResolveAMI(ctx context.Context, provider api.ClusterProvider, version strin
 }
 
 // SetAvailabilityZones sets the given (or chooses) the availability zones
-func SetAvailabilityZones(ctx context.Context, spec *api.ClusterConfig, given []string, ec2API awsapi.EC2, region string) error {
+// Returns whether azs were set randomly or provided by a user.
+// CheckInstanceAvailability is only run if azs were provided by the user. Random
+// selection already performs this check and makes sure AZs support all given instances.
+func SetAvailabilityZones(ctx context.Context, spec *api.ClusterConfig, given []string, ec2API awsapi.EC2, region string) (bool, error) {
 	if count := len(given); count != 0 {
 		if count < api.MinRequiredAvailabilityZones {
-			return api.ErrTooFewAvailabilityZones(given)
+			return false, api.ErrTooFewAvailabilityZones(given)
 		}
 		spec.AvailabilityZones = given
-		return nil
+		return true, nil
 	}
 
 	if count := len(spec.AvailabilityZones); count != 0 {
 		if count < api.MinRequiredAvailabilityZones {
-			return api.ErrTooFewAvailabilityZones(spec.AvailabilityZones)
+			return false, api.ErrTooFewAvailabilityZones(spec.AvailabilityZones)
 		}
-		return nil
+		return true, nil
 	}
 
 	logger.Debug("determining availability zones")
-	zones, err := az.GetAvailabilityZones(ctx, ec2API, region)
+	zones, err := az.GetAvailabilityZones(ctx, ec2API, region, spec)
 	if err != nil {
-		return errors.Wrap(err, "getting availability zones")
+		return false, errors.Wrap(err, "getting availability zones")
 	}
 
 	logger.Info("setting availability zones to %v", zones)
 	spec.AvailabilityZones = zones
 
-	return nil
+	return false, nil
 }
 
 // CheckInstanceAvailability verifies that if any instances are provided in any node groups

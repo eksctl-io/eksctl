@@ -462,12 +462,16 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
 	if !subnetsGiven && params.KopsClusterNameForVPC == "" {
-		if err := eks.SetAvailabilityZones(ctx, cfg, params.AvailabilityZones, ctl.AWSProvider.EC2(), ctl.AWSProvider.Region()); err != nil {
+		userProvidedAzs, err := eks.SetAvailabilityZones(ctx, cfg, params.AvailabilityZones, ctl.AWSProvider.EC2(), ctl.AWSProvider.Region())
+		if err != nil {
 			return err
 		}
 
-		if err := eks.CheckInstanceAvailability(ctx, cfg, ctl.AWSProvider.EC2()); err != nil {
-			return err
+		// If the availability zones were provided at random, we already did this check.
+		if userProvidedAzs {
+			if err := eks.CheckInstanceAvailability(ctx, cfg, ctl.AWSProvider.EC2()); err != nil {
+				return err
+			}
 		}
 
 		if len(cfg.LocalZones) > 0 {
