@@ -15,15 +15,15 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.3
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.21.1
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.2
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.7
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.8
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.17.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.45.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.21.2
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.5
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.6
-	github.com/aws/aws-sdk-go-v2/service/iam v1.18.5
-	github.com/aws/aws-sdk-go-v2/service/kms v1.17.2
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.1
+	github.com/aws/aws-sdk-go-v2/service/iam v1.18.7
+	github.com/aws/aws-sdk-go-v2/service/kms v1.17.3
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.2
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.7
 	github.com/aws/smithy-go v1.11.3
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
@@ -71,7 +71,7 @@ require (
 	github.com/xgfone/netaddr v0.5.1
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/tools v0.1.10
+	golang.org/x/tools v0.1.11
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.8.2
@@ -432,7 +432,7 @@ require (
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.19.0 // indirect
 	gocloud.dev v0.24.0 // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
+	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sys v0.0.0-20220502124256-b6088ccd6cba // indirect
