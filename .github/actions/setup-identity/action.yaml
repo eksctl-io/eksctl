@@ -16,9 +16,11 @@ outputs: {}
 runs:
   using: "composite"
   steps:
+    # add safe.directory is repeated here because it doesn't propagate over the checkout action
     - name: Setup git config
       shell: bash
       run: |
+        git config --global --add safe.directory '/__w/eksctl/eksctl'
         git config user.name "${{ inputs.name }}"
         git config user.email "${{ inputs.email }}"
     - name: Log in with GH CLI
