@@ -16,7 +16,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
-	"github.com/weaveworks/eksctl/pkg/utils/nodes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 
@@ -63,7 +62,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		}
 	}
 
-	nodePools := nodes.ToNodePools(cfg)
+	nodePools := cmdutils.ToNodePools(cfg)
 
 	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, m.instanceSelector)
 	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
