@@ -341,10 +341,10 @@ const (
 
 // Values for core addons
 const (
+	minimumVPCCNIVersionForIPv6 = "1.10.0"
 	VPCCNIAddon                 = "vpc-cni"
 	KubeProxyAddon              = "kube-proxy"
 	CoreDNSAddon                = "coredns"
-	minimumVPCCNIVersionForIPv6 = "1.10.0"
 )
 
 // supported version of Karpenter

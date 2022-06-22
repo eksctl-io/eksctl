@@ -182,6 +182,41 @@ func (a *Manager) patchAWSNodeDaemonSet(ctx context.Context) error {
 		return nil
 	}
 
+	if a.clusterConfig.IPv6Enabled() {
+		// Add ENABLE_IPV6 = true and ENABLE_PREFIX_DELEGATION = true
+		_, err = daemonSets.Patch(ctx, "aws-node", types.StrategicMergePatchType, []byte(`{
+	"spec": {
+		"template": {
+			"spec": {
+				"containers": [{
+					"env": [{
+						"name": "ENABLE_IPV6",
+						"value": "true"
+					}, {
+						"name": "ENABLE_PREFIX_DELEGATION",
+						"value": "true"
+					}],
+					"name": "aws-node"
+				}]
+			}
+		}
+	}
+}
+`), metav1.PatchOptions{})
+		if err != nil {
+			return errors.Wrap(err, "failed to patch daemon set")
+		}
+		// update the daemonset so the next patch can work.
+		sa, err = daemonSets.Get(ctx, "aws-node", metav1.GetOptions{})
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				logger.Debug("could not find aws-node daemon set, skipping patching")
+				return nil
+			}
+			return err
+		}
+	}
+
 	_, err = daemonSets.Patch(ctx, "aws-node", types.JSONPatchType, []byte(fmt.Sprintf(`[{"op": "remove", "path": "/metadata/managedFields/%d"}]`, managerIndex)), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to patch daemon set")

@@ -5,23 +5,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-
-	"github.com/stretchr/testify/mock"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 

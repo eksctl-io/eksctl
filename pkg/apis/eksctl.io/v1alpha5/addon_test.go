@@ -3,6 +3,7 @@ package v1alpha5_test
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
