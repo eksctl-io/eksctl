@@ -127,7 +127,7 @@ func filterBasedOnAvailability(ctx context.Context, zones []string, spec *api.Cl
 	}
 	output, err := ec2API.DescribeInstanceTypeOfferings(ctx, input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to list offerings for instance types %w", err)
+		return nil, fmt.Errorf("unable to list offerings for instance types: %w", err)
 	}
 
 	// zoneToInstanceMap['us-west-1b']['t2.small']=struct{}{}
