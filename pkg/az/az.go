@@ -82,7 +82,6 @@ func getZones(ctx context.Context, ec2API awsapi.EC2, region string, spec *api.C
 	}
 
 	filteredZones := filterZones(region, output.AvailabilityZones)
-
 	return filterBasedOnAvailability(ctx, filteredZones, spec, ec2API)
 }
 
