@@ -374,7 +374,7 @@ func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2
 	// This map will use either globally configured AZs or, if set, the AZ defined by the nodegroup.
 	// map["ng-1"]["c2.large"]=[]string{"us-west-1a", "us-west-1b"}
 	instanceMap := make(map[string]map[string][]string)
-	instances := make([]string, 0)
+	instances := make(map[string]struct{})
 
 	pool := nodes.ToNodePools(spec)
 	for _, ng := range pool {
@@ -382,7 +382,10 @@ func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2
 			instanceMap[ng.BaseNodeGroup().Name] = make(map[string][]string)
 		}
 		for _, i := range ng.InstanceTypeList() {
-			instances = append(instances, i)
+			if i == "mixed" {
+				continue
+			}
+			instances[i] = struct{}{}
 			if len(ng.BaseNodeGroup().AvailabilityZones) > 0 {
 				instanceMap[ng.BaseNodeGroup().Name][i] = ng.BaseNodeGroup().AvailabilityZones
 			} else {
@@ -397,12 +400,18 @@ func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2
 		return nil
 	}
 
-	var instanceTypeOfferings []ec2types.InstanceTypeOffering
+	var (
+		instanceTypeOfferings []ec2types.InstanceTypeOffering
+		instanceList          []string
+	)
+	for k := range instances {
+		instanceList = append(instanceList, k)
+	}
 	p := ec2.NewDescribeInstanceTypeOfferingsPaginator(ec2API, &ec2.DescribeInstanceTypeOfferingsInput{
 		Filters: []ec2types.Filter{
 			{
 				Name:   aws.String("instance-type"),
-				Values: instances,
+				Values: instanceList,
 			},
 		},
 		LocationType: ec2types.LocationTypeAvailabilityZone,

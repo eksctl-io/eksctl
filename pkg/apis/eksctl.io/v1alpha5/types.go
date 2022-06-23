@@ -1529,6 +1529,9 @@ func (m *ManagedNodeGroup) InstanceTypeList() []string {
 	if len(m.InstanceTypes) > 0 {
 		return m.InstanceTypes
 	}
+	if m.InstanceType != "" {
+		return []string{m.InstanceType}
+	}
 	return nil
 }
 

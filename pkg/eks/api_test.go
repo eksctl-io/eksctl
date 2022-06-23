@@ -344,6 +344,39 @@ var _ = Describe("CheckInstanceAvailability", func() {
 			Expect(eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())).To(Succeed())
 		})
 	})
+	When("mixed instances are used", func() {
+		It("allows the usage of the instance", func() {
+			cfg.NodeGroups = []*api.NodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:              "ng-1",
+						AvailabilityZones: []string{"dummy-zone-1a"},
+						InstanceType:      "mixed",
+					},
+					InstancesDistribution: &api.NodeGroupInstancesDistribution{
+						InstanceTypes: []string{"t2.nano"},
+					},
+				},
+			}
+			Expect(eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())).To(Succeed())
+		})
+	})
+	When("instance available in nodegroup AZ", func() {
+		It("list is deduplicated", func() {
+			cfg.NodeGroups = []*api.NodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:              "ng-1",
+						AvailabilityZones: []string{"dummy-zone-1a"},
+					},
+					InstancesDistribution: &api.NodeGroupInstancesDistribution{
+						InstanceTypes: []string{"t2.nano", "t2.nano"},
+					},
+				},
+			}
+			Expect(eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())).To(Succeed())
+		})
+	})
 	When("instance not available in any of the global AZs", func() {
 		It("errors", func() {
 			cfg.AvailabilityZones = []string{"dummy-zone-1b"}
