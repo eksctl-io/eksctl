@@ -98,7 +98,9 @@ nodeGroups:
     # if the new instance got spun up in another AZ.
     availabilityZones: ["us-east-1a"]
     taints:
-      spotInstance: "true:PreferNoSchedule"
+      - key: spotInstance
+        value: "true"
+        effect: PreferNoSchedule
     tags:
       k8s.io/cluster-autoscaler/node-template/label/lifecycle: Ec2Spot
       k8s.io/cluster-autoscaler/node-template/label/aws.amazon.com/spot: "true"
@@ -132,7 +134,9 @@ nodeGroups:
     # if the new instance got spun up in another AZ.
     availabilityZones: ["us-east-1a"]
     taints:
-      spotInstance: "true:PreferNoSchedule"
+      - key: spotInstance
+        value: "true"
+        effect: PreferNoSchedule
     tags:
       k8s.io/cluster-autoscaler/node-template/label/lifecycle: Ec2Spot
       k8s.io/cluster-autoscaler/node-template/label/aws.amazon.com/spot: "true"
@@ -166,7 +170,9 @@ nodeGroups:
     # if the new instance got spun up in another AZ.
     availabilityZones: ["us-east-1a"]
     taints:
-      spotInstance: "true:PreferNoSchedule"
+      - key: spotInstance
+        value: "true"
+        effect: PreferNoSchedule
     tags:
       k8s.io/cluster-autoscaler/node-template/label/lifecycle: Ec2Spot
       k8s.io/cluster-autoscaler/node-template/label/aws.amazon.com/spot: "true"
@@ -197,7 +203,9 @@ nodeGroups:
       gpu-count: "8"
     availabilityZones: ["us-east-1a"]
     taints:
-      spotInstance: "true:PreferNoSchedule"
+      - key: spotInstance
+        value: "true"
+        effect: PreferNoSchedule
     tags:
       k8s.io/cluster-autoscaler/node-template/label/lifecycle: Ec2Spot
       k8s.io/cluster-autoscaler/node-template/label/aws.amazon.com/spot: "true"
