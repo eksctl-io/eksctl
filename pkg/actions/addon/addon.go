@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/hashicorp/go-version"
@@ -43,6 +44,12 @@ func New(clusterConfig *api.ClusterConfig, eksAPI awsapi.EKS, stackManager manag
 }
 
 func (a *Manager) waitForAddonToBeActive(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
+	pool := cmdutils.ToNodePools(a.clusterConfig)
+	// We don't wait for coredns if there are no nodegroups. It will get into degraded state
+	// and recover once nodegroups are added.
+	if len(pool) == 0 && addon.Name == api.CoreDNSAddon {
+		return nil
+	}
 	activeWaiter := eks.NewAddonActiveWaiter(a.eksAPI)
 	input := &eks.DescribeAddonInput{
 		ClusterName: &a.clusterConfig.Metadata.Name,
