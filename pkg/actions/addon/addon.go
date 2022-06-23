@@ -7,20 +7,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/awsapi"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
-
 	kubeclient "k8s.io/client-go/kubernetes"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
-	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
 
 type Manager struct {
@@ -44,10 +39,9 @@ func New(clusterConfig *api.ClusterConfig, eksAPI awsapi.EKS, stackManager manag
 }
 
 func (a *Manager) waitForAddonToBeActive(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
-	pool := cmdutils.ToNodePools(a.clusterConfig)
 	// We don't wait for coredns if there are no nodegroups. It will get into degraded state
 	// and recover once nodegroups are added.
-	if len(pool) == 0 && addon.Name == api.CoreDNSAddon {
+	if addon.Name == api.CoreDNSAddon && (len(a.clusterConfig.NodeGroups) > 0 || len(a.clusterConfig.ManagedNodeGroups) > 0) {
 		return nil
 	}
 	activeWaiter := eks.NewAddonActiveWaiter(a.eksAPI)
