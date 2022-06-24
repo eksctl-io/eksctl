@@ -94,6 +94,40 @@
       "description": "holds the EKS addon configuration",
       "x-intellij-html-description": "holds the EKS addon configuration"
     },
+    "CapacityReservation": {
+      "properties": {
+        "capacityReservationPreference": {
+          "type": "string"
+        },
+        "capacityReservationTarget": {
+          "$ref": "#/definitions/CapacityReservationTarget"
+        }
+      },
+      "preferredOrder": [
+        "capacityReservationPreference",
+        "capacityReservationTarget"
+      ],
+      "additionalProperties": false,
+      "description": "defines reservation policy for a nodegroup",
+      "x-intellij-html-description": "defines reservation policy for a nodegroup"
+    },
+    "CapacityReservationTarget": {
+      "properties": {
+        "capacityReservationId": {
+          "type": "string"
+        },
+        "capacityReservationResourceGroupARN": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "capacityReservationId",
+        "capacityReservationResourceGroupARN"
+      ],
+      "additionalProperties": false,
+      "description": "defines reservation target details",
+      "x-intellij-html-description": "defines reservation target details"
+    },
     "ClusterCloudWatch": {
       "properties": {
         "clusterLogging": {
@@ -982,6 +1016,11 @@
           "description": "specifies settings for Bottlerocket nodes",
           "x-intellij-html-description": "specifies settings for Bottlerocket nodes"
         },
+        "capacityReservation": {
+          "$ref": "#/definitions/CapacityReservation",
+          "description": "defines reservation policy for a nodegroup",
+          "x-intellij-html-description": "defines reservation policy for a nodegroup"
+        },
         "desiredCapacity": {
           "type": "integer"
         },
@@ -1213,6 +1252,7 @@
         "instanceSelector",
         "bottlerocket",
         "enableDetailedMonitoring",
+        "capacityReservation",
         "instanceTypes",
         "spot",
         "taints",
@@ -1307,6 +1347,11 @@
           "$ref": "#/definitions/NodeGroupBottlerocket",
           "description": "specifies settings for Bottlerocket nodes",
           "x-intellij-html-description": "specifies settings for Bottlerocket nodes"
+        },
+        "capacityReservation": {
+          "$ref": "#/definitions/CapacityReservation",
+          "description": "defines reservation policy for a nodegroup",
+          "x-intellij-html-description": "defines reservation policy for a nodegroup"
         },
         "classicLoadBalancerNames": {
           "items": {
@@ -1570,6 +1615,7 @@
         "instanceSelector",
         "bottlerocket",
         "enableDetailedMonitoring",
+        "capacityReservation",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",

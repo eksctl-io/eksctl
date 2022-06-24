@@ -1431,6 +1431,21 @@ type NodeGroupBase struct {
 	// Enable EC2 detailed monitoring
 	// +optional
 	EnableDetailedMonitoring *bool `json:"enableDetailedMonitoring,omitempty"`
+
+	// CapacityReservation defines reservation policy for a nodegroup
+	CapacityReservation *CapacityReservation `json:"capacityReservation,omitempty"`
+}
+
+// CapacityReservation defines reservation policy for a nodegroup
+type CapacityReservation struct {
+	CapacityReservationPreference *string                    `json:"capacityReservationPreference,omitempty"`
+	CapacityReservationTarget     *CapacityReservationTarget `json:"capacityReservationTarget,omitempty"`
+}
+
+// CapacityReservationTarget defines reservation target details
+type CapacityReservationTarget struct {
+	CapacityReservationID               *string `json:"capacityReservationId,omitempty"`
+	CapacityReservationResourceGroupARN *string `json:"capacityReservationResourceGroupARN,omitempty"`
 }
 
 // Placement specifies placement group information

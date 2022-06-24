@@ -160,10 +160,21 @@ type LaunchTemplateData struct {
 	CreditSpecification *struct {
 		CPUCredits string
 	}
-	MetadataOptions   MetadataOptions
-	TagSpecifications []TagSpecification
-	Placement         Placement
-	KeyName           string
+	MetadataOptions                  MetadataOptions
+	TagSpecifications                []TagSpecification
+	Placement                        Placement
+	KeyName                          string
+	CapacityReservationSpecification *CapacityReservationSpecification
+}
+
+type CapacityReservationSpecification struct {
+	CapacityReservationPreference *string
+	CapacityReservationTarget     *CapacityReservationTarget
+}
+
+type CapacityReservationTarget struct {
+	CapacityReservationID               *string
+	CapacityReservationResourceGroupARN *string
 }
 
 type Placement struct {

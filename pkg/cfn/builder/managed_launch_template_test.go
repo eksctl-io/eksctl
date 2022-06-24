@@ -330,6 +330,39 @@ API_SERVER_URL=https://test.com
 			},
 			resourcesFilename: "bottlerocket_volume.json",
 		}),
+
+		Entry("CapacityReservation is set", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "capacity-test",
+					AMIFamily:    api.NodeImageFamilyBottlerocket,
+					InstanceType: "m5.xlarge",
+					VolumeSize:   aws.Int(142),
+					CapacityReservation: &api.CapacityReservation{
+						CapacityReservationPreference: aws.String("open"),
+						CapacityReservationTarget: &api.CapacityReservationTarget{
+							CapacityReservationID:               aws.String("res-id"),
+							CapacityReservationResourceGroupARN: aws.String("group-arn"),
+						},
+					},
+				},
+			},
+			resourcesFilename: "launch_template_with_capacity_reservation.json",
+		}),
+		Entry("Partially set CapacityReservation is set", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "capacity-test",
+					AMIFamily:    api.NodeImageFamilyBottlerocket,
+					InstanceType: "m5.xlarge",
+					VolumeSize:   aws.Int(142),
+					CapacityReservation: &api.CapacityReservation{
+						CapacityReservationPreference: aws.String("open"),
+					},
+				},
+			},
+			resourcesFilename: "launch_template_with_capacity_reservation_partially_set.json",
+		}),
 	)
 })
 
