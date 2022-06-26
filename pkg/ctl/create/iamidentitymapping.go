@@ -17,16 +17,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/iam"
 )
 
-type iamIdentityMappingOptions struct {
-	ARN             string
-	Username        string
-	Groups          []string
-	Account         string
-	ServiceName     string
-	Namespace       string
-	NoDuplicateArns bool
-}
-
 func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
@@ -40,7 +30,7 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		`),
 	)
 
-	var options iamIdentityMappingOptions
+	var options api.IAMIdentityMapping
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
@@ -64,11 +54,36 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
-func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOptions) error {
+func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options api.IAMIdentityMapping) error {
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
 
+	if cmd.ClusterConfigFile != "" {
+		for _, mapping := range cmd.ClusterConfig.IAMIdentityMappings {
+			err := mapping.Validate()
+			if err != nil {
+				return err
+			}
+			err = createIAMIdentityMapping(cmd, *mapping)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		err := options.Validate()
+		if err != nil {
+			return err
+		}
+		err = createIAMIdentityMapping(cmd, options)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func createIAMIdentityMapping(cmd *cmdutils.Cmd, options api.IAMIdentityMapping) error {
 	cfg := cmd.ClusterConfig
 
 	if cfg.Metadata.Name == "" {
@@ -89,26 +104,12 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 		return err
 	}
 
-	hasARNOptions := func() bool {
-		return !(options.ARN == "" && options.Username == "" && len(options.Groups) == 0)
-	}
-
-	validateNonServiceOptions := func() error {
-		if options.Namespace != "" {
-			return errors.New("--namespace is only valid with --service-name")
-		}
-		return nil
-	}
-
 	acm, err := authconfigmap.NewFromClientSet(clientSet)
 	if err != nil {
 		return err
 	}
 
 	if options.ServiceName != "" {
-		if hasARNOptions() {
-			return errors.New("cannot use --arn, --username, and --groups with --service-name")
-		}
 		rawClient, err := ctl.NewRawClient(cfg)
 		if err != nil {
 			return err
@@ -122,9 +123,6 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 	}
 
 	if options.Account == "" {
-		if err := validateNonServiceOptions(); err != nil {
-			return err
-		}
 		id, err := iam.NewIdentity(options.ARN, options.Username, options.Groups)
 		if err != nil {
 			return err
@@ -137,11 +135,11 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 		}
 
 		createdArn := id.ARN() // The call to Valid above makes sure this cannot error
+		logger.Info("checking arn %s against entries in the configmap", id.ARN())
 		for _, identity := range identities {
 			arn := identity.ARN()
-
 			if options.NoDuplicateArns && iam.CompareIdentity(id, identity) {
-				logger.Warning("found existing mapping that matches the one being created, quitting.")
+				logger.Warning("found existing mapping that matches the one being created, skipping.")
 				return nil
 			}
 
@@ -158,15 +156,10 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 		if err := acm.AddIdentity(id); err != nil {
 			return err
 		}
-	} else if hasARNOptions() {
-		if err := validateNonServiceOptions(); err != nil {
-			return err
-		}
+	} else {
 		if err := acm.AddAccount(options.Account); err != nil {
 			return err
 		}
-	} else {
-		return errors.New("account can only be set alone")
 	}
 	return acm.Save()
 }
