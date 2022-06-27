@@ -441,8 +441,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 					return err
 				}
 			}
-			return nil
-
 		}
 
 		if cfg.PrivateCluster.Enabled {
