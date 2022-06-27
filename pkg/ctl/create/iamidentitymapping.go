@@ -69,12 +69,10 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options api.IAMIdentityMappin
 			}
 		}
 	} else {
-		err := options.Validate()
-		if err != nil {
+		if err := options.Validate(); err != nil {
 			return err
 		}
-		err = createIAMIdentityMapping(cmd, options)
-		if err != nil {
+		if err := createIAMIdentityMapping(cmd, options); err != nil {
 			return err
 		}
 	}
