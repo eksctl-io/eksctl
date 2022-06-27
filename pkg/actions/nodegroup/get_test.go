@@ -122,9 +122,9 @@ var _ = Describe("Get", func() {
 						Cluster:              clusterName,
 						Name:                 ngName,
 						Status:               "my-status",
-						MaxSize:              4,
-						MinSize:              0,
-						DesiredCapacity:      2,
+						MaxSize:              aws.Int32(4),
+						MinSize:              aws.Int32(0),
+						DesiredCapacity:      aws.Int32(2),
 						InstanceType:         "-",
 						ImageID:              "ami-type",
 						CreationTime:         t,
@@ -186,9 +186,9 @@ var _ = Describe("Get", func() {
 						Cluster:              clusterName,
 						Name:                 ngName,
 						Status:               "my-status",
-						MaxSize:              4,
-						MinSize:              0,
-						DesiredCapacity:      2,
+						MaxSize:              aws.Int32(4),
+						MinSize:              aws.Int32(0),
+						DesiredCapacity:      aws.Int32(2),
 						InstanceType:         "-",
 						ImageID:              "ami-type",
 						CreationTime:         t,
@@ -265,9 +265,9 @@ var _ = Describe("Get", func() {
 						Cluster:              clusterName,
 						Name:                 ngName,
 						Status:               "my-status",
-						MaxSize:              4,
-						MinSize:              0,
-						DesiredCapacity:      2,
+						MaxSize:              aws.Int32(4),
+						MinSize:              aws.Int32(0),
+						DesiredCapacity:      aws.Int32(2),
 						InstanceType:         "big",
 						ImageID:              "ami-type",
 						CreationTime:         t,
@@ -335,9 +335,9 @@ var _ = Describe("Get", func() {
 						Cluster:              clusterName,
 						Name:                 ngName,
 						Status:               "my-status",
-						MaxSize:              4,
-						MinSize:              0,
-						DesiredCapacity:      2,
+						MaxSize:              aws.Int32(4),
+						MinSize:              aws.Int32(0),
+						DesiredCapacity:      aws.Int32(2),
 						InstanceType:         "m5.xlarge",
 						ImageID:              "ami-custom",
 						CreationTime:         t,
@@ -465,9 +465,9 @@ var _ = Describe("Get", func() {
 					Name:                 unmanagedNodegroupName,
 					Status:               "CREATE_COMPLETE",
 					AutoScalingGroupName: "asg",
-					MaxSize:              100,
-					DesiredCapacity:      50,
-					MinSize:              1,
+					MaxSize:              aws.Int32(100),
+					MinSize:              aws.Int32(1),
+					DesiredCapacity:      aws.Int32(50),
 					Version:              "1.21.1",
 					CreationTime:         creationTime,
 					NodeGroupType:        api.NodeGroupTypeUnmanaged,
@@ -478,9 +478,9 @@ var _ = Describe("Get", func() {
 					Cluster:              clusterName,
 					Name:                 ngName,
 					Status:               "my-status",
-					MaxSize:              4,
-					MinSize:              0,
-					DesiredCapacity:      2,
+					MaxSize:              aws.Int32(4),
+					MinSize:              aws.Int32(0),
+					DesiredCapacity:      aws.Int32(2),
 					InstanceType:         "-",
 					ImageID:              "ami-type",
 					CreationTime:         t,
@@ -489,6 +489,44 @@ var _ = Describe("Get", func() {
 					Version:              "1.18",
 					NodeGroupType:        api.NodeGroupTypeManaged,
 				}))
+			})
+
+			When("a nodegroup is in an invalid state", func() {
+				BeforeEach(func() {
+					fakeStackManager.GetUnmanagedNodeGroupAutoScalingGroupNameReturns("", fmt.Errorf("some error"))
+				})
+				It("returns the nodegroups with partial summmary for the invalid one", func() {
+					summaries, err := m.GetAll(context.Background())
+					Expect(err).NotTo(HaveOccurred())
+					Expect(summaries).To(HaveLen(2))
+
+					unmanagedSummary := *summaries[0]
+					Expect(unmanagedSummary).To(Equal(nodegroup.Summary{
+						StackName:     unmanagedStackName,
+						Cluster:       clusterName,
+						Name:          unmanagedNodegroupName,
+						Status:        "CREATE_COMPLETE",
+						CreationTime:  creationTime,
+						NodeGroupType: api.NodeGroupTypeUnmanaged,
+					}))
+
+					Expect(*summaries[1]).To(Equal(nodegroup.Summary{
+						StackName:            stackName,
+						Cluster:              clusterName,
+						Name:                 ngName,
+						Status:               "my-status",
+						MaxSize:              aws.Int32(4),
+						MinSize:              aws.Int32(0),
+						DesiredCapacity:      aws.Int32(2),
+						InstanceType:         "-",
+						ImageID:              "ami-type",
+						CreationTime:         t,
+						NodeInstanceRoleARN:  "node-role",
+						AutoScalingGroupName: "asg-name",
+						Version:              "1.18",
+						NodeGroupType:        api.NodeGroupTypeManaged,
+					}))
+				})
 			})
 		})
 	})
@@ -560,9 +598,9 @@ var _ = Describe("Get", func() {
 				Cluster:              clusterName,
 				Name:                 ngName,
 				Status:               "my-status",
-				MaxSize:              4,
-				MinSize:              0,
-				DesiredCapacity:      2,
+				MaxSize:              aws.Int32(4),
+				MinSize:              aws.Int32(0),
+				DesiredCapacity:      aws.Int32(2),
 				InstanceType:         "m5.xlarge",
 				ImageID:              "ami-type",
 				CreationTime:         t,
@@ -585,9 +623,9 @@ var _ = Describe("Get", func() {
 					Cluster:              clusterName,
 					Name:                 ngName,
 					Status:               "my-status",
-					MaxSize:              4,
-					MinSize:              0,
-					DesiredCapacity:      2,
+					MaxSize:              aws.Int32(4),
+					MinSize:              aws.Int32(0),
+					DesiredCapacity:      aws.Int32(2),
 					InstanceType:         "m5.xlarge",
 					ImageID:              "ami-type",
 					CreationTime:         t,

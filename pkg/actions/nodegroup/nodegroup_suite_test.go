@@ -1,7 +1,7 @@
 package nodegroup_test
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -35,7 +35,7 @@ var _ = BeforeSuite(func() {
 })
 
 func mustReadFile(path string) string {
-	bytes, err := ioutil.ReadFile(path)
+	bytes, err := os.ReadFile(path)
 	Expect(err).NotTo(HaveOccurred())
 	return strings.Trim(string(bytes), "\n")
 }

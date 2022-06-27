@@ -78,7 +78,7 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 	if ng.Name == "" {
 		summaries, err = manager.GetAll(ctx)
 		if err != nil {
-			return err
+			logger.Warning("getting all nodegroups: %v", err)
 		}
 	} else {
 		summary, err := manager.Get(ctx, ng.Name)
@@ -123,13 +123,13 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 		return s.CreationTime.Format(time.RFC3339)
 	})
 	printer.AddColumn("MIN SIZE", func(s *nodegroup.Summary) string {
-		return strconv.Itoa(s.MinSize)
+		return formatInt32Ptr(s.MinSize)
 	})
 	printer.AddColumn("MAX SIZE", func(s *nodegroup.Summary) string {
-		return strconv.Itoa(s.MaxSize)
+		return formatInt32Ptr(s.MaxSize)
 	})
 	printer.AddColumn("DESIRED CAPACITY", func(s *nodegroup.Summary) string {
-		return strconv.Itoa(s.DesiredCapacity)
+		return formatInt32Ptr(s.DesiredCapacity)
 	})
 	printer.AddColumn("INSTANCE TYPE", func(s *nodegroup.Summary) string {
 		return s.InstanceType
@@ -143,4 +143,11 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("TYPE", func(s *nodegroup.Summary) api.NodeGroupType {
 		return s.NodeGroupType
 	})
+}
+
+func formatInt32Ptr(i *int32) string {
+	if i == nil {
+		return ""
+	}
+	return strconv.FormatInt(int64(*i), 10)
 }

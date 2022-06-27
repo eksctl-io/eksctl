@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/hashicorp/go-multierror"
 
 	"github.com/kris-nova/logger"
 	"github.com/tidwall/gjson"
@@ -33,9 +34,9 @@ type Summary struct {
 	Cluster              string
 	Name                 string
 	Status               string
-	MaxSize              int
-	MinSize              int
-	DesiredCapacity      int
+	MaxSize              *int32
+	MinSize              *int32
+	DesiredCapacity      *int32
 	InstanceType         string
 	ImageID              string
 	CreationTime         time.Time
@@ -46,17 +47,10 @@ type Summary struct {
 }
 
 func (m *Manager) GetAll(ctx context.Context) ([]*Summary, error) {
-	unmanagedSummaries, err := m.getUnmanagedSummaries(ctx)
-	if err != nil {
-		return nil, err
-	}
+	unmanagedSummaries, uerr := m.getUnmanagedSummaries(ctx)
+	managedSummaries, merr := m.getManagedSummaries(ctx)
 
-	managedSummaries, err := m.getManagedSummaries(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return append(unmanagedSummaries, managedSummaries...), nil
+	return append(unmanagedSummaries, managedSummaries...), multierror.Append(uerr, merr).ErrorOrNil()
 }
 
 func (m *Manager) Get(ctx context.Context, name string) (*Summary, error) {
@@ -84,7 +78,7 @@ func (m *Manager) getManagedSummaries(ctx context.Context) ([]*Summary, error) {
 	for _, ngName := range managedNodeGroups.Nodegroups {
 		summary, err := m.getManagedSummary(ctx, ngName)
 		if err != nil {
-			return nil, err
+			logger.Warning("error getting summary for nodegroup %s: %v", ngName, err)
 		}
 		summaries = append(summaries, summary)
 	}
@@ -103,7 +97,7 @@ func (m *Manager) getUnmanagedSummaries(ctx context.Context) ([]*Summary, error)
 	for _, s := range stacks {
 		summary, err := m.unmanagedStackToSummary(ctx, s)
 		if err != nil {
-			return nil, err
+			logger.Warning("error getting summary for stack %s: %v", *s.StackName, err)
 		}
 		if summary != nil {
 			summaries = append(summaries, summary)
@@ -140,29 +134,29 @@ func (m *Manager) unmanagedStackToSummary(ctx context.Context, s *manager.Stack)
 	summary, err := m.mapStackToNodeGroupSummary(ctx, s, ngPaths)
 
 	if err != nil {
-		return nil, fmt.Errorf("mapping stack to nodegroup summary: %w", err)
+		return summary, fmt.Errorf("mapping stack to nodegroup summary: %w", err)
 	}
 	summary.NodeGroupType = api.NodeGroupTypeUnmanaged
 
 	asgName, err := m.stackManager.GetUnmanagedNodeGroupAutoScalingGroupName(ctx, s)
 	if err != nil {
-		return nil, fmt.Errorf("getting autoscalinggroupname: %w", err)
+		return summary, fmt.Errorf("getting autoscalinggroupname: %w", err)
 	}
 
 	summary.AutoScalingGroupName = asgName
 
 	scalingGroup, err := m.stackManager.GetAutoScalingGroupDesiredCapacity(ctx, asgName)
 	if err != nil {
-		return nil, fmt.Errorf("getting autoscalinggroup desired capacity: %w", err)
+		return summary, fmt.Errorf("getting autoscalinggroup desired capacity: %w", err)
 	}
-	summary.DesiredCapacity = int(*scalingGroup.DesiredCapacity)
-	summary.MinSize = int(*scalingGroup.MinSize)
-	summary.MaxSize = int(*scalingGroup.MaxSize)
+	summary.DesiredCapacity = scalingGroup.DesiredCapacity
+	summary.MinSize = scalingGroup.MinSize
+	summary.MaxSize = scalingGroup.MaxSize
 
-	if summary.DesiredCapacity > 0 {
+	if *summary.DesiredCapacity > 0 {
 		summary.Version, err = kubewrapper.GetNodegroupKubernetesVersion(m.clientSet.CoreV1().Nodes(), summary.Name)
 		if err != nil {
-			return nil, fmt.Errorf("getting nodegroup's kubernetes version: %w", err)
+			return summary, fmt.Errorf("getting nodegroup's kubernetes version: %w", err)
 		}
 	}
 
@@ -222,16 +216,13 @@ func (m *Manager) mapStackToNodeGroupSummary(ctx context.Context, stack *manager
 	}
 
 	summary := &Summary{
-		StackName:       *stack.StackName,
-		Cluster:         getClusterNameTag(stack),
-		Name:            m.stackManager.GetNodeGroupName(stack),
-		Status:          string(stack.StackStatus),
-		MaxSize:         int(gjson.Get(template, ngPaths.MaxSize).Int()),
-		MinSize:         int(gjson.Get(template, ngPaths.MinSize).Int()),
-		DesiredCapacity: int(gjson.Get(template, ngPaths.DesiredCapacity).Int()),
-		InstanceType:    gjson.Get(template, ngPaths.InstanceType).String(),
-		ImageID:         gjson.Get(template, imageIDPath).String(),
-		CreationTime:    *stack.CreationTime,
+		StackName:    *stack.StackName,
+		Cluster:      getClusterNameTag(stack),
+		Name:         m.stackManager.GetNodeGroupName(stack),
+		Status:       string(stack.StackStatus),
+		InstanceType: gjson.Get(template, ngPaths.InstanceType).String(),
+		ImageID:      gjson.Get(template, imageIDPath).String(),
+		CreationTime: *stack.CreationTime,
 	}
 
 	nodeGroupType, err := manager.GetNodeGroupType(stack.Tags)
@@ -281,7 +272,7 @@ func (m *Manager) getManagedSummary(ctx context.Context, nodeGroupName string) (
 	})
 
 	if err != nil {
-		return nil, err
+		return &Summary{Name: nodeGroupName}, err
 	}
 
 	ng := describeOutput.Nodegroup
@@ -306,9 +297,9 @@ func (m *Manager) getManagedSummary(ctx context.Context, nodeGroupName string) (
 		Name:                 *ng.NodegroupName,
 		Cluster:              *ng.ClusterName,
 		Status:               string(ng.Status),
-		MaxSize:              int(*ng.ScalingConfig.MaxSize),
-		MinSize:              int(*ng.ScalingConfig.MinSize),
-		DesiredCapacity:      int(*ng.ScalingConfig.DesiredSize),
+		MaxSize:              ng.ScalingConfig.MaxSize,
+		MinSize:              ng.ScalingConfig.MinSize,
+		DesiredCapacity:      ng.ScalingConfig.DesiredSize,
 		InstanceType:         m.getInstanceTypes(ctx, ng),
 		ImageID:              imageID,
 		CreationTime:         *ng.CreatedAt,
