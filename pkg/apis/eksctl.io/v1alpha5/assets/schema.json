@@ -184,6 +184,12 @@
         "iam": {
           "$ref": "#/definitions/ClusterIAM"
         },
+        "iamIdentityMappings": {
+          "items": {
+            "$ref": "#/definitions/IAMIdentityMapping"
+          },
+          "type": "array"
+        },
         "identityProviders": {
           "items": {
             "$ref": "#/definitions/IdentityProvider"
@@ -249,6 +255,7 @@
         "metadata",
         "kubernetesNetworkConfig",
         "iam",
+        "iamIdentityMappings",
         "identityProviders",
         "vpc",
         "addons",
@@ -779,6 +786,47 @@
       "additionalProperties": false,
       "description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types",
       "x-intellij-html-description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types"
+    },
+    "IAMIdentityMapping": {
+      "properties": {
+        "account": {
+          "type": "string"
+        },
+        "arn": {
+          "type": "string"
+        },
+        "group": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "noDuplicateArns": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "serviceName": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "arn",
+        "username",
+        "group",
+        "account",
+        "serviceName",
+        "namespace",
+        "noDuplicateArns"
+      ],
+      "additionalProperties": false,
+      "description": "contains IAM accounts, users, roles and services that will be added to the aws-auth configmap to enable access to the cluster",
+      "x-intellij-html-description": "contains IAM accounts, users, roles and services that will be added to the aws-auth configmap to enable access to the cluster"
     },
     "IdentityProvider": {
       "required": [
