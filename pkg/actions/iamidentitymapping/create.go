@@ -47,7 +47,7 @@ func (m *Manager) Create(ctx context.Context, mapping *api.IAMIdentityMapping) e
 		}
 
 		createdArn := id.ARN() // The call to Valid above makes sure this cannot error
-		logger.Info("checking arn %s against entries in the configmap", id.ARN())
+		logger.Info("checking arn %s against entries in the auth ConfigMap", id.ARN())
 		for _, identity := range identities {
 			arn := identity.ARN()
 			if mapping.NoDuplicateArns && iam.CompareIdentity(id, identity) {

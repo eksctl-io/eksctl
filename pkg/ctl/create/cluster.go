@@ -426,7 +426,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		}
 
 		if len(cfg.IAMIdentityMappings) > 0 {
-			logger.Info("IAMIdentityMappings configuration detected, updating the aws-auth configmap")
+			logger.Info("iamIdentityMappings configuration detected, updating the auth ConfigMap")
 
 			m, err := mappingactions.New(cfg, clientSet, ctl, cmd.ProviderConfig.Region)
 			if err != nil {
