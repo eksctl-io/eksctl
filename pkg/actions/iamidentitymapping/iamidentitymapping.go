@@ -22,4 +22,3 @@ func New(clusterConfig *api.ClusterConfig, clientSet kubeclient.Interface, clust
 		region:          region,
 	}, nil
 }
-
