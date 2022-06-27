@@ -61,12 +61,10 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options api.IAMIdentityMappin
 
 	if cmd.ClusterConfigFile != "" {
 		for _, mapping := range cmd.ClusterConfig.IAMIdentityMappings {
-			err := mapping.Validate()
-			if err != nil {
-				return err
+			if err := mapping.Validate(); err != nil {
+			    return err
 			}
-			err = createIAMIdentityMapping(cmd, *mapping)
-			if err != nil {
+			if err := createIAMIdentityMapping(cmd, *mapping); err != nil {
 				return err
 			}
 		}
