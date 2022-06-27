@@ -20,8 +20,8 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
-	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	mappingactions "github.com/weaveworks/eksctl/pkg/actions/iamidentitymapping"
+	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -432,7 +432,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			if err != nil {
 				return err
 			}
-		
+
 			for _, mapping := range cfg.IAMIdentityMappings {
 				if err := mapping.Validate(); err != nil {
 					return err
