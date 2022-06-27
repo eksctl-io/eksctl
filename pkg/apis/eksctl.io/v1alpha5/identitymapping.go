@@ -18,7 +18,19 @@ type IAMIdentityMapping struct {
 }
 
 func (im *IAMIdentityMapping) hasARNOptions() bool {
-	return (im.ARN != "" && im.Username != "" && len(im.Groups) == 0)
+	return (im.hasARN() && im.hasUsername() && im.hasGroups())
+}
+
+func (im *IAMIdentityMapping) hasARN() bool {
+	return im.ARN != ""
+}
+
+func (im *IAMIdentityMapping) hasUsername() bool {
+	return im.Username != ""
+}
+
+func (im *IAMIdentityMapping) hasGroups() bool {
+	return len(im.Groups) > 0
 }
 
 func (im *IAMIdentityMapping) Validate() error {
@@ -36,8 +48,7 @@ func (im *IAMIdentityMapping) Validate() error {
 		}
 	}
 
-	if im.Account != "" && (im.hasARNOptions() || im.ServiceName != "" || im.Namespace != "") {
-
+	if im.Account != "" && (im.hasARN() || im.hasUsername() || im.hasGroups() || im.ServiceName != "" || im.Namespace != "") {
 		return errors.New("account cannot be configured with any other options")
 	}
 
