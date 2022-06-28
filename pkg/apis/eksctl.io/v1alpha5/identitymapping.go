@@ -14,11 +14,11 @@ type IAMIdentityMapping struct {
 	Account         string   `json:"account,omitempty"`
 	ServiceName     string   `json:"serviceName,omitempty"`
 	Namespace       string   `json:"namespace,omitempty"`
-	NoDuplicateArns bool     `json:"noDuplicateArns,omitempty"`
+	NoDuplicateARNs bool     `json:"noDuplicateARNs,omitempty"`
 }
 
 func (im *IAMIdentityMapping) hasARNOptions() bool {
-	return (im.hasARN() && im.hasUsername() && im.hasGroups())
+	return im.hasARN() && im.hasUsername() && im.hasGroups()
 }
 
 func (im *IAMIdentityMapping) hasARN() bool {
