@@ -33,6 +33,7 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg.IAMIdentityMappings = []*api.IAMIdentityMapping{{}}
 	cmd.FlagSetGroup.InFlagSet("IAMIdentityMapping", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.IAMIdentityMappings[0].Account, "account", "", "Account ID to automatically map to its username")
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &cfg.IAMIdentityMappings[0].ARN, "create")
 		fs.StringVar(&cfg.IAMIdentityMappings[0].Username, "username", "", "User name within Kubernetes to map to IAM role")
 		fs.StringSliceVar(&cfg.IAMIdentityMappings[0].Groups, "group", []string{}, "Groups within Kubernetes to which IAM role is mapped")
 		fs.StringVar(&cfg.IAMIdentityMappings[0].ServiceName, "service-name", "", "Service name; valid value: emr-containers")
@@ -41,7 +42,6 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &cfg.IAMIdentityMappings[0].ARN, "create")
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
