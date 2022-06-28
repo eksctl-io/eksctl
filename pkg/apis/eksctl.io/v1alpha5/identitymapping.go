@@ -10,7 +10,7 @@ type IAMIdentityMapping struct {
 	// +optional
 	ARN             string   `json:"arn,omitempty"`
 	Username        string   `json:"username,omitempty"`
-	Groups          []string `json:"group,omitempty"`
+	Groups          []string `json:"groups,omitempty"`
 	Account         string   `json:"account,omitempty"`
 	ServiceName     string   `json:"serviceName,omitempty"`
 	Namespace       string   `json:"namespace,omitempty"`
