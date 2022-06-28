@@ -795,7 +795,7 @@
         "arn": {
           "type": "string"
         },
-        "group": {
+        "groups": {
           "items": {
             "type": "string"
           },
@@ -818,7 +818,7 @@
       "preferredOrder": [
         "arn",
         "username",
-        "group",
+        "groups",
         "account",
         "serviceName",
         "namespace",
