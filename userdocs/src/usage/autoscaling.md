@@ -26,7 +26,9 @@ nodeGroups:
     labels:
       my-cool-label: pizza
     taints:
-      feaster: "true:NoSchedule"
+      key: feaster
+      value: "true"
+      effect: NoSchedule
 ```
 
 You would need to add the following ASG tags:
