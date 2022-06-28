@@ -11,12 +11,13 @@ iamIdentityMappings:
     groups:
       - system:masters
     username: admin
-    noDuplicateArns: true # prevents shadowing of ARNs
+    noDuplicateARNs: true # prevents shadowing of ARNs
 
   - arn: arn:aws:iam::000000000000:user/myUser
     username: myUser
-    noDuplicateArns: true # prevents shadowing of ARNs
+    noDuplicateARNs: true # prevents shadowing of ARNs
 
+  # This will fail if present during cluster creation as the namespace needs to exist
   - serviceName: emr-containers
     namespace: emr # serviceName requires namespace
 

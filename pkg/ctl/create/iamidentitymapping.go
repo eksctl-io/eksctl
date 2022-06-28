@@ -30,15 +30,16 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		return doCreateIAMIdentityMapping(cmd)
 	}
 
-	cfg.IAMIdentityMappings = []*api.IAMIdentityMapping{{}}
+	var identityMapping api.IAMIdentityMapping
+	cfg.IAMIdentityMappings = []*api.IAMIdentityMapping{&identityMapping}
 	cmd.FlagSetGroup.InFlagSet("IAMIdentityMapping", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.IAMIdentityMappings[0].Account, "account", "", "Account ID to automatically map to its username")
-		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &cfg.IAMIdentityMappings[0].ARN, "create")
-		fs.StringVar(&cfg.IAMIdentityMappings[0].Username, "username", "", "User name within Kubernetes to map to IAM role")
-		fs.StringSliceVar(&cfg.IAMIdentityMappings[0].Groups, "group", []string{}, "Groups within Kubernetes to which IAM role is mapped")
-		fs.StringVar(&cfg.IAMIdentityMappings[0].ServiceName, "service-name", "", "Service name; valid value: emr-containers")
-		fs.StringVar(&cfg.IAMIdentityMappings[0].Namespace, "namespace", "", "Namespace in which to create RBAC resources (only valid with --service-name)")
-		fs.BoolVar(&cfg.IAMIdentityMappings[0].NoDuplicateArns, "no-duplicate-arns", false, "Throw error when an aws_auth record already exists with the given arn.")
+		fs.StringVar(&identityMapping.Account, "account", "", "Account ID to automatically map to its username")
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &identityMapping.ARN, "create")
+		fs.StringVar(&identityMapping.Username, "username", "", "User name within Kubernetes to map to IAM role")
+		fs.StringSliceVar(&identityMapping.Groups, "group", []string{}, "Groups within Kubernetes to which IAM role is mapped")
+		fs.StringVar(&identityMapping.ServiceName, "service-name", "", "Service name; valid value: emr-containers")
+		fs.StringVar(&identityMapping.Namespace, "namespace", "", "Namespace in which to create RBAC resources (only valid with --service-name)")
+		fs.BoolVar(&identityMapping.NoDuplicateARNs, "no-duplicate-arns", false, "Throw error when an aws-auth record already exists with the given ARN")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {

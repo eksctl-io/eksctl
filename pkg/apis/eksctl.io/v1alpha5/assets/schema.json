@@ -804,7 +804,7 @@
         "namespace": {
           "type": "string"
         },
-        "noDuplicateArns": {
+        "noDuplicateARNs": {
           "type": "boolean",
           "default": "false"
         },
@@ -822,7 +822,7 @@
         "account",
         "serviceName",
         "namespace",
-        "noDuplicateArns"
+        "noDuplicateARNs"
       ],
       "additionalProperties": false,
       "description": "contains IAM accounts, users, roles and services that will be added to the aws-auth configmap to enable access to the cluster",

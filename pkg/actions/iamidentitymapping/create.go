@@ -50,12 +50,12 @@ func (m *Manager) Create(ctx context.Context, mapping *api.IAMIdentityMapping) e
 		logger.Info("checking arn %s against entries in the auth ConfigMap", id.ARN())
 		for _, identity := range identities {
 			arn := identity.ARN()
-			if mapping.NoDuplicateArns && iam.CompareIdentity(id, identity) {
+			if mapping.NoDuplicateARNs && iam.CompareIdentity(id, identity) {
 				logger.Warning("found existing mapping that matches the one being created, skipping.")
 				return nil
 			}
 
-			if createdArn == arn && mapping.NoDuplicateArns {
+			if createdArn == arn && mapping.NoDuplicateARNs {
 				return fmt.Errorf("found existing mapping with the same arn %q and shadowing is disabled", createdArn)
 			}
 
