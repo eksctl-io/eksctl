@@ -6,23 +6,29 @@ package dry_run
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/pkg/errors"
-
+	"github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
+
+	_ "embed"
 )
 
 var params *tests.Params
@@ -33,7 +39,7 @@ func init() {
 	// No cleanup required for dry-run clusters
 	params = tests.NewParams("dry-run")
 	if err := api.Register(); err != nil {
-		panic(errors.Wrap(err, "unexpected error registering API scheme"))
+		panic(fmt.Errorf("unexpected error registering API scheme: %w", err))
 	}
 }
 
@@ -151,6 +157,9 @@ vpc:
   nat:
     gateway: Single
 `
+
+//go:embed assets/cloudformation-vpc.yaml
+var cfnVPCTemplate string
 
 var _ = Describe("(Integration) [Dry-Run test]", func() {
 	parseOutput := func(output []byte) (*api.ClusterConfig, *api.ClusterConfig) {
@@ -387,6 +396,130 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				).
 				WithoutArg("--region", params.Region).
 				WithStdin(bytes.NewReader(output))
+			Expect(cmd).To(RunSuccessfully())
+		})
+	})
+
+	Describe("`create cluster` with --dry-run and custom subnets", func() {
+		stackName := aws.String(params.ClusterName)
+
+		var vpcConfig struct {
+			vpcID          string
+			publicSubnets  []string
+			privateSubnets []string
+		}
+
+		BeforeEach(func() {
+			By("creating a VPC and two public and private subnets")
+			cfn := cloudformation.NewFromConfig(matchers.NewConfig(params.Region))
+			ctx := context.Background()
+			_, err := cfn.CreateStack(ctx, &cloudformation.CreateStackInput{
+				StackName:    aws.String(params.ClusterName),
+				TemplateBody: aws.String(cfnVPCTemplate),
+				Parameters: []cfntypes.Parameter{
+					{
+						ParameterKey:   aws.String("EnvironmentName"),
+						ParameterValue: aws.String(params.ClusterName),
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			DeferCleanup(func() error {
+				_, err := cfn.DeleteStack(ctx, &cloudformation.DeleteStackInput{
+					StackName: stackName,
+				})
+				if err != nil {
+					return fmt.Errorf("unexpected error deleting stack: %w", err)
+				}
+				return nil
+			})
+
+			By("waiting for the stack to be created successfully")
+			waiter := cloudformation.NewStackCreateCompleteWaiter(cfn)
+			output, err := waiter.WaitForOutput(ctx, &cloudformation.DescribeStacksInput{
+				StackName: stackName,
+			}, 10*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output.Stacks).To(HaveLen(1))
+
+			for _, output := range output.Stacks[0].Outputs {
+				switch *output.OutputKey {
+				case "VpcId":
+					vpcConfig.vpcID = *output.OutputValue
+				case "PublicSubnets":
+					vpcConfig.publicSubnets = strings.Split(*output.OutputValue, ",")
+				case "PrivateSubnets":
+					vpcConfig.privateSubnets = strings.Split(*output.OutputValue, ",")
+				}
+			}
+			Expect(vpcConfig.vpcID != "" && len(vpcConfig.publicSubnets) == 2 && len(vpcConfig.privateSubnets) == 2).To(BeTrue(), "expected to find output values for VPC, and public and private subnets")
+		})
+
+		It("should generate config that works with `create cluster`", func() {
+			By("creating a cluster with --dry-run and custom subnets")
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"cluster",
+					"--dry-run",
+					"--version", eksVersion,
+					"--name",
+					params.ClusterName,
+					"--nodegroup-name", "ng-default",
+					"--vpc-private-subnets", strings.Join(vpcConfig.privateSubnets, ","),
+					"--vpc-public-subnets", strings.Join(vpcConfig.publicSubnets, ","),
+				)
+
+			session := cmd.Run()
+			Expect(session.ExitCode()).To(Equal(0))
+
+			output := session.Buffer().Contents()
+			assertDryRun(output, func(c, _ *api.ClusterConfig) {
+				c.Metadata.Version = eksVersion
+				c.NodeGroups = nil
+				c.AvailabilityZones = nil
+				c.VPC.NAT = &api.ClusterNAT{
+					Gateway: aws.String("Disable"),
+				}
+				c.VPC.CIDR = ipnet.MustParseCIDR("10.192.0.0/16")
+				c.VPC.ID = vpcConfig.vpcID
+				c.VPC.Subnets = &api.ClusterSubnets{
+					Private: api.AZSubnetMapping{
+						"us-west-2a": api.AZSubnetSpec{
+							ID:   vpcConfig.privateSubnets[0],
+							CIDR: ipnet.MustParseCIDR("10.192.20.0/24"),
+							AZ:   "us-west-2a",
+						},
+						"us-west-2b": api.AZSubnetSpec{
+							ID:   vpcConfig.privateSubnets[1],
+							CIDR: ipnet.MustParseCIDR("10.192.21.0/24"),
+							AZ:   "us-west-2b",
+						},
+					},
+					Public: api.AZSubnetMapping{
+						"us-west-2a": api.AZSubnetSpec{
+							ID:   vpcConfig.publicSubnets[0],
+							CIDR: ipnet.MustParseCIDR("10.192.10.0/24"),
+							AZ:   "us-west-2a",
+						},
+						"us-west-2b": api.AZSubnetSpec{
+							ID:   vpcConfig.publicSubnets[1],
+							CIDR: ipnet.MustParseCIDR("10.192.11.0/24"),
+							AZ:   "us-west-2b",
+						},
+					},
+				}
+			})
+
+			By("ensuring that passing the generated config to dry-run works")
+			cmd = params.EksctlCreateCmd.
+				WithArgs(
+					"cluster",
+					"--config-file=-",
+					"--dry-run",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(output))
+
 			Expect(cmd).To(RunSuccessfully())
 		})
 	})
