@@ -28,7 +28,8 @@ type Addon struct {
 	// Each tag consists of a key and an optional value, both of which you define.
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
-	// Force applies the add-on to overwrite an existing add-on
+	// Force overwrites an existing self-managed add-on with an EKS managed add-on.
+	// Force is intended to be used when migrating an existing self-managed add-on to an EKS managed add-on.
 	Force bool `json:"-"`
 }
 
