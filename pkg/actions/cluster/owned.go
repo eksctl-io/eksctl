@@ -163,7 +163,10 @@ func (c *OwnedCluster) deleteKarpenterStackIfExists(ctx context.Context) error {
 
 	if stack != nil {
 		logger.Info("deleting karpenter stack")
-		return c.stackManager.DeleteStackSync(ctx, stack)
+		return c.stackManager.DeleteStack(ctx, manager.DeleteStackOptions{
+			Stack: stack,
+			Wait:  true,
+		})
 	}
 
 	return nil

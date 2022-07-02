@@ -29,7 +29,7 @@ type NewOIDCManager func() (*iamoidc.OpenIDConnectManager, error)
 func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(ctx context.Context, clusterStack *Stack, nodeGroupStacks []NodeGroupStack, clusterOperable bool, newOIDCManager NewOIDCManager, cluster *ekstypes.Cluster, clientSetGetter kubernetes.ClientSetGetter, wait, force bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
 	taskTree := &tasks.TaskTree{Parallel: false}
 
-	nodeGroupTasks, err := c.NewTasksToDeleteNodeGroups(nodeGroupStacks, deleteAll, true, cleanup)
+	nodeGroupTasks, err := c.NewTasksToDeleteNodeGroups(ctx, nodeGroupStacks, deleteAll, true, cleanup)
 
 	if err != nil {
 		return nil, err
@@ -66,25 +66,19 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(ctx context.Cont
 	}
 
 	info := fmt.Sprintf("delete cluster control plane %q", c.spec.Metadata.Name)
-	if wait {
-		taskTree.Append(&taskWithStackSpec{
-			info:  info,
-			stack: clusterStack,
-			call:  c.DeleteStackBySpecSync,
-		})
-	} else {
-		taskTree.Append(&asyncTaskWithStackSpec{
-			info:  info,
-			stack: clusterStack,
-			call:  c.DeleteStackBySpec,
-		})
-	}
+	taskTree.Append(&deleteStackTask{
+		info:            info,
+		stack:           clusterStack,
+		stackCollection: c,
+		ctx:             ctx,
+		wait:            wait,
+	})
 
 	return taskTree, nil
 }
 
 // NewTasksToDeleteNodeGroups defines tasks required to delete all of the nodegroups
-func (c *StackCollection) NewTasksToDeleteNodeGroups(nodeGroupStacks []NodeGroupStack, shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
+func (c *StackCollection) NewTasksToDeleteNodeGroups(ctx context.Context, nodeGroupStacks []NodeGroupStack, shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
 	taskTree := &tasks.TaskTree{Parallel: true}
 
 	for _, s := range nodeGroupStacks {
@@ -100,19 +94,14 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(nodeGroupStacks []NodeGroup
 			})
 		}
 		info := fmt.Sprintf("delete nodegroup %q", s.NodeGroupName)
-		if wait {
-			taskTree.Append(&taskWithStackSpec{
-				info:  info,
-				stack: s.Stack,
-				call:  c.DeleteStackBySpecSync,
-			})
-		} else {
-			taskTree.Append(&asyncTaskWithStackSpec{
-				info:  info,
-				stack: s.Stack,
-				call:  c.DeleteStackBySpec,
-			})
-		}
+		taskTree.Append(&deleteStackTask{
+			info:            info,
+			stack:           s.Stack,
+			stackCollection: c,
+			ctx:             ctx,
+			wait:            wait,
+		})
+
 	}
 
 	return taskTree, nil
@@ -282,19 +271,13 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(ctx context.Context
 
 		if s, ok := stacksMap[serviceAccount]; ok {
 			info := fmt.Sprintf("delete IAM role for serviceaccount %q", serviceAccount)
-			if wait {
-				saTasks.Append(&taskWithStackSpec{
-					info:  info,
-					stack: s,
-					call:  c.DeleteStackBySpecSync,
-				})
-			} else {
-				saTasks.Append(&asyncTaskWithStackSpec{
-					info:  info,
-					stack: s,
-					call:  c.DeleteStackBySpec,
-				})
-			}
+			saTasks.Append(&deleteStackTask{
+				info:            info,
+				stack:           s,
+				stackCollection: c,
+				ctx:             ctx,
+				wait:            wait,
+			})
 		}
 
 		meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(serviceAccount)
@@ -336,19 +319,13 @@ func (c *StackCollection) NewTaskToDeleteAddonIAM(ctx context.Context, wait bool
 			Parallel:  false,
 			IsSubTask: true,
 		}
-		if wait {
-			deleteStackTasks.Append(&taskWithStackSpec{
-				info:  info,
-				stack: s,
-				call:  c.DeleteStackBySpecSync,
-			})
-		} else {
-			deleteStackTasks.Append(&asyncTaskWithStackSpec{
-				info:  info,
-				stack: s,
-				call:  c.DeleteStackBySpec,
-			})
-		}
+		deleteStackTasks.Append(&deleteStackTask{
+			info:            info,
+			stack:           s,
+			stackCollection: c,
+			ctx:             ctx,
+			wait:            wait,
+		})
 		taskTree.Append(deleteStackTasks)
 	}
 	return taskTree, nil

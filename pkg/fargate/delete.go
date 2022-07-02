@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
 // DeleteProfile drains and delete the Fargate profile with the provided name.
@@ -45,8 +46,7 @@ func (c *Client) DeleteProfile(ctx context.Context, name string, waitForDeletion
 			logger.Info("no fargate stack to delete")
 		} else {
 			logger.Info("deleting unused fargate role")
-			_, err = c.stackManager.DeleteStackBySpec(ctx, stack)
-			return err
+			return c.stackManager.DeleteStack(ctx, manager.DeleteStackOptions{Stack: stack})
 		}
 	}
 

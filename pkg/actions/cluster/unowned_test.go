@@ -119,7 +119,7 @@ var _ = Describe("Delete", func() {
 			p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
 			fakeStackManager.GetFargateStackReturns(&types.Stack{StackName: aws.String("fargate-role")}, nil)
-			fakeStackManager.DeleteStackBySpecReturns(nil, nil)
+			fakeStackManager.DeleteStackReturns(nil)
 
 			p.MockEKS().On("ListNodegroups", mock.Anything, mock.Anything).Return(&awseks.ListNodegroupsOutput{
 				Nodegroups: []string{"ng-1", "ng-2"},
@@ -160,9 +160,11 @@ var _ = Describe("Delete", func() {
 			Expect(unownedDeleteCallCount).To(Equal(1))
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
-			Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
-			_, stack := fakeStackManager.DeleteStackBySpecArgsForCall(0)
-			Expect(*stack.StackName).To(Equal("fargate-role"))
+			Expect(fakeStackManager.DeleteStackCallCount()).To(Equal(1))
+			_, options := fakeStackManager.DeleteStackArgsForCall(0)
+			Expect(options.Wait).To(BeFalse())
+			Expect(options.ErrCh).To(BeNil())
+			Expect(*options.Stack.StackName).To(Equal("fargate-role"))
 		})
 
 		When("force flag is set to true", func() {
@@ -208,7 +210,7 @@ var _ = Describe("Delete", func() {
 				p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
 				fakeStackManager.GetFargateStackReturns(nil, nil)
-				fakeStackManager.DeleteStackBySpecReturns(nil, nil)
+				fakeStackManager.DeleteStackReturns(nil)
 
 				p.MockEKS().On("ListNodegroups", mock.Anything, mock.Anything).Return(&awseks.ListNodegroupsOutput{
 					Nodegroups: []string{"ng-1", "ng-2"},
@@ -263,7 +265,7 @@ var _ = Describe("Delete", func() {
 				Expect(unownedDeleteCallCount).To(Equal(0))
 				Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 				Expect(ranDeleteDeprecatedTasks).To(BeFalse())
-				Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(0))
+				Expect(fakeStackManager.DeleteStackCallCount()).To(Equal(0))
 				mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 			})
 		})
@@ -311,7 +313,7 @@ var _ = Describe("Delete", func() {
 				p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
 				fakeStackManager.GetFargateStackReturns(nil, nil)
-				fakeStackManager.DeleteStackBySpecReturns(nil, nil)
+				fakeStackManager.DeleteStackReturns(nil)
 
 				p.MockEKS().On("ListNodegroups", mock.Anything, mock.Anything).Return(&awseks.ListNodegroupsOutput{
 					Nodegroups: []string{"ng-1", "ng-2"},
@@ -366,7 +368,7 @@ var _ = Describe("Delete", func() {
 				Expect(unownedDeleteCallCount).To(Equal(0))
 				Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(0))
 				Expect(ranDeleteDeprecatedTasks).To(BeFalse())
-				Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(0))
+				Expect(fakeStackManager.DeleteStackCallCount()).To(Equal(0))
 				mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 			})
 		})

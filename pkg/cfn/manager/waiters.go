@@ -94,7 +94,7 @@ func (c *StackCollection) waitUntilStackIsCreated(ctx context.Context, i *Stack,
 	errs <- nil
 }
 
-func (c *StackCollection) doWaitUntilStackIsDeleted(ctx context.Context, i *Stack) error {
+func (c *StackCollection) waitUntilStackIsDeleted(ctx context.Context, i *Stack) error {
 	setCustomRetryer := func(o *cloudformation.StackDeleteCompleteWaiterOptions) {
 		defaultRetryer := o.Retryable
 		o.Retryable = func(ctx context.Context, in *cloudformation.DescribeStacksInput, out *cloudformation.DescribeStacksOutput, err error) (bool, error) {
@@ -107,16 +107,6 @@ func (c *StackCollection) doWaitUntilStackIsDeleted(ctx context.Context, i *Stac
 	return waiter.Wait(ctx, &cloudformation.DescribeStacksInput{
 		StackName: i.StackName,
 	}, c.waitTimeout, setCustomRetryer)
-}
-
-func (c *StackCollection) waitUntilStackIsDeleted(ctx context.Context, i *Stack, errs chan error) {
-	defer close(errs)
-
-	if err := c.doWaitUntilStackIsDeleted(ctx, i); err != nil {
-		errs <- err
-		return
-	}
-	errs <- nil
 }
 
 func (c *StackCollection) doWaitUntilStackIsUpdated(ctx context.Context, i *Stack) error {

@@ -58,9 +58,11 @@ var _ = Describe("Delete", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
-			_, stack := fakeStackManager.DeleteStackBySpecArgsForCall(0)
-			Expect(*stack.StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
+			Expect(fakeStackManager.DeleteStackCallCount()).To(Equal(1))
+			_, options := fakeStackManager.DeleteStackArgsForCall(0)
+			Expect(options.Wait).To(BeFalse())
+			Expect(options.ErrCh).To(BeNil())
+			Expect(*options.Stack.StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
 		})
 
 		When("delete addon fails", func() {
@@ -102,7 +104,7 @@ var _ = Describe("Delete", func() {
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, nil)
 
-				fakeStackManager.DeleteStackBySpecReturns(nil, fmt.Errorf("foo"))
+				fakeStackManager.DeleteStackReturns(fmt.Errorf("foo"))
 				fakeStackManager.DescribeStackReturns(&types.Stack{
 					StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
 				}, nil)
@@ -112,9 +114,11 @@ var _ = Describe("Delete", func() {
 				})
 
 				Expect(err).To(MatchError(`failed to delete cloudformation stack "eksctl-my-cluster-addon-my-addon": foo`))
-				Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
-				_, stack := fakeStackManager.DeleteStackBySpecArgsForCall(0)
-				Expect(*stack.StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
+				Expect(fakeStackManager.DeleteStackCallCount()).To(Equal(1))
+				_, options := fakeStackManager.DeleteStackArgsForCall(0)
+				Expect(options.Wait).To(BeFalse())
+				Expect(options.ErrCh).To(BeNil())
+				Expect(*options.Stack.StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
 			})
 		})
 
@@ -135,7 +139,7 @@ var _ = Describe("Delete", func() {
 
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(0))
+				Expect(fakeStackManager.DeleteStackCallCount()).To(Equal(0))
 			})
 		})
 
@@ -154,9 +158,11 @@ var _ = Describe("Delete", func() {
 
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
-				_, stack := fakeStackManager.DeleteStackBySpecArgsForCall(0)
-				Expect(*stack.StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
+				Expect(fakeStackManager.DeleteStackCallCount()).To(Equal(1))
+				_, options := fakeStackManager.DeleteStackArgsForCall(0)
+				Expect(options.Wait).To(BeFalse())
+				Expect(options.ErrCh).To(BeNil())
+				Expect(*options.Stack.StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
 			})
 		})
 
@@ -175,7 +181,7 @@ var _ = Describe("Delete", func() {
 				})
 
 				Expect(err).To(MatchError("could not find addon or associated IAM stack to delete"))
-				Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(0))
+				Expect(fakeStackManager.DeleteStackCallCount()).To(Equal(0))
 			})
 		})
 	})

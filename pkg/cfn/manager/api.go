@@ -552,8 +552,34 @@ func defaultStackStatusFilter() []types.StackStatus {
 	return allNonDeletedStackStatuses()
 }
 
-// DeleteStackBySpec sends a request to delete the stack
-func (c *StackCollection) DeleteStackBySpec(ctx context.Context, s *Stack) (*Stack, error) {
+// DeleteStack sends a request to delete the stack.
+// If Wait is true, it waits until status is DELETE_COMPLETE;
+// If ErrCh is given, any errors will be written to it, assume completion when nil is written,
+// do not expect more than one error value on the channel, it's closed immediately after it is written to.
+// Wait and ErrCh are mutually exclusive
+func (c *StackCollection) DeleteStack(ctx context.Context, options DeleteStackOptions) error {
+	if _, err := c.doDeleteStack(ctx, options.Stack); err != nil {
+		return err
+	}
+
+	if options.Wait {
+		logger.Info("waiting for stack %q to get deleted", *options.Stack.StackName)
+		return c.waitUntilStackIsDeleted(ctx, options.Stack)
+	}
+
+	if options.ErrCh != nil {
+		logger.Info("waiting for stack %q to get deleted", *options.Stack.StackName)
+		go func() {
+			options.ErrCh <- c.waitUntilStackIsDeleted(ctx, options.Stack)
+			close(options.ErrCh)
+		}()
+	}
+
+	return nil
+}
+
+// doDeleteStack sends a request to delete the stack
+func (c *StackCollection) doDeleteStack(ctx context.Context, s *Stack) (*Stack, error) {
 	if !matchesCluster(c.spec.Metadata.Name, s.Tags) {
 		return nil, fmt.Errorf("cannot delete stack %q as it doesn't bear our %q, %q tags", *s.StackName,
 			fmt.Sprintf("%s:%s", api.OldClusterNameTag, c.spec.Metadata.Name),
@@ -585,33 +611,6 @@ func matchesCluster(clusterName string, tags []types.Tag) bool {
 		}
 	}
 	return false
-}
-
-// DeleteStackBySpecSync sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
-// any errors will be written to errs channel, assume completion when nil is written, do not expect
-// more then one error value on the channel, it's closed immediately after it is written to
-func (c *StackCollection) DeleteStackBySpecSync(ctx context.Context, s *Stack, errs chan error) error {
-	i, err := c.DeleteStackBySpec(ctx, s)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("waiting for stack %q to get deleted", *i.StackName)
-
-	go c.waitUntilStackIsDeleted(ctx, i, errs)
-
-	return nil
-}
-
-// DeleteStackSync sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
-func (c *StackCollection) DeleteStackSync(ctx context.Context, s *Stack) error {
-	i, err := c.DeleteStackBySpec(ctx, s)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("waiting for stack %q to get deleted", *i.StackName)
-	return c.doWaitUntilStackIsDeleted(ctx, s)
 }
 
 func fmtStacksRegexForCluster(name string) string {

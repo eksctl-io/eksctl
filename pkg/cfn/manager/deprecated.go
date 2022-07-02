@@ -74,9 +74,10 @@ func (c *StackCollection) DeleteTasksForDeprecatedStacks(ctx context.Context) (*
 				if suffix == "-ControlPlane" && !cpStackFound {
 					taskTree.Append(deleteControlPlaneTask)
 				} else {
-					taskTree.Append(&taskWithStackSpec{
-						stack: s,
-						call:  c.DeleteStackBySpecSync,
+					taskTree.Append(&deleteStackTask{
+						stack:           s,
+						stackCollection: c,
+						ctx:             ctx,
 					})
 				}
 			}

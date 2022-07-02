@@ -140,8 +140,7 @@ func (c *UnownedCluster) deleteFargateRoleIfExists(ctx context.Context) error {
 
 	if stack != nil {
 		logger.Info("deleting fargate role")
-		_, err = c.stackManager.DeleteStackBySpec(ctx, stack)
-		return err
+		return c.stackManager.DeleteStack(ctx, manager.DeleteStackOptions{Stack: stack})
 	}
 
 	logger.Debug("no fargate role found")
@@ -250,7 +249,7 @@ func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(ctx context.Context,
 	}
 
 	// we kill every nodegroup with a stack the standard way. wait is always true
-	tasks, err := c.stackManager.NewTasksToDeleteNodeGroups(allStacks, func(_ string) bool { return true }, true, nil)
+	tasks, err := c.stackManager.NewTasksToDeleteNodeGroups(ctx, allStacks, func(_ string) bool { return true }, true, nil)
 	if err != nil {
 		return err
 	}

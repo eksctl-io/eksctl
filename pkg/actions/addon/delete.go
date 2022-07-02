@@ -39,7 +39,7 @@ func (a *Manager) Delete(ctx context.Context, addon *api.Addon) error {
 	}
 	if stack != nil {
 		logger.Info("deleting associated IAM stacks")
-		if _, err = a.stackManager.DeleteStackBySpec(ctx, stack); err != nil {
+		if err = a.stackManager.DeleteStack(ctx, manager.DeleteStackOptions{Stack: stack}); err != nil {
 			return fmt.Errorf("failed to delete cloudformation stack %q: %v", a.makeAddonName(addon.Name), err)
 		}
 	} else {

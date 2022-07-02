@@ -163,9 +163,11 @@ var _ = Describe("fargate", func() {
 				err := client.DeleteProfile(context.Background(), profileName, waitForDeletion)
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(fakeStackManager.GetFargateStackCallCount()).To(Equal(1))
-				Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
-				_, stack := fakeStackManager.DeleteStackBySpecArgsForCall(0)
-				Expect(*stack.StackName).To(Equal("my-fargate-profile"))
+				Expect(fakeStackManager.DeleteStackCallCount()).To(Equal(1))
+				_, options := fakeStackManager.DeleteStackArgsForCall(0)
+				Expect(options.Wait).To(BeFalse())
+				Expect(options.ErrCh).To(BeNil())
+				Expect(*options.Stack.StackName).To(Equal("my-fargate-profile"))
 			})
 
 			It("fails by wrapping the root error with some additional context for clarity", func() {

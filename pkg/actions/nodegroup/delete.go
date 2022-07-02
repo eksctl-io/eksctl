@@ -41,7 +41,7 @@ func (m *Manager) Delete(ctx context.Context, nodeGroups []*api.NodeGroup, manag
 		return false
 	}
 
-	deleteTasks, err := m.stackManager.NewTasksToDeleteNodeGroups(stacks, shouldDelete, wait, nil)
+	deleteTasks, err := m.stackManager.NewTasksToDeleteNodeGroups(ctx, stacks, shouldDelete, wait, nil)
 	if err != nil {
 		return err
 	}
