@@ -306,7 +306,7 @@ var _ = Describe("CheckInstanceAvailability", func() {
 				},
 			}
 			err := eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())
-			Expect(err).To(MatchError("none of the provided azs \"dummy-zone-1b\" support instance type t2.nano in nodegroup ng-1"))
+			Expect(err).To(MatchError(`none of the provided AZs "dummy-zone-1b" support instance type t2.nano in nodegroup ng-1`))
 		})
 	})
 	When("uses instance distribution", func() {
@@ -324,7 +324,7 @@ var _ = Describe("CheckInstanceAvailability", func() {
 					},
 				}
 				err := eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())
-				Expect(err).To(MatchError("none of the provided azs \"dummy-zone-1b\" support instance type t2.nano in nodegroup ng-1"))
+				Expect(err).To(MatchError(`none of the provided AZs "dummy-zone-1b" support instance type t2.nano in nodegroup ng-1`))
 			})
 		})
 	})
@@ -391,7 +391,7 @@ var _ = Describe("CheckInstanceAvailability", func() {
 				},
 			}
 			err := eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())
-			Expect(err).To(MatchError("none of the provided azs \"dummy-zone-1b\" support instance type t2.nano in nodegroup ng-1"))
+			Expect(err).To(MatchError(`none of the provided AZs "dummy-zone-1b" support instance type t2.nano in nodegroup ng-1`))
 		})
 	})
 	When("az is overridden by local nodegroup's AZ", func() {
@@ -411,14 +411,14 @@ var _ = Describe("CheckInstanceAvailability", func() {
 			Expect(eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())).To(Succeed())
 		})
 	})
-	When("more than one azs are available and more than one azs are returned", func() {
+	When("more than one AZ is available and more than one AZ is returned", func() {
 		When("one of the instances doesn't support any AZs", func() {
 			It("errors", func() {
 				provider.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, &ec2.DescribeInstanceTypeOfferingsInput{
 					Filters: []ec2types.Filter{
 						{
 							Name:   aws.String("instance-type"),
-							Values: []string{"t2.nano", "t2.micro", "t2.large"},
+							Values: []string{"t2.large", "t2.micro", "t2.nano"},
 						},
 					},
 					LocationType: ec2types.LocationTypeAvailabilityZone,
@@ -464,7 +464,7 @@ var _ = Describe("CheckInstanceAvailability", func() {
 					},
 				}
 				err := eks.CheckInstanceAvailability(context.Background(), cfg, provider.EC2())
-				Expect(err).To(MatchError("none of the provided azs \"dummy-zone-1a,dummy-zone-1b\" support instance type t2.large in nodegroup mng-1"))
+				Expect(err).To(MatchError(`none of the provided AZs "dummy-zone-1a,dummy-zone-1b" support instance type t2.large in nodegroup mng-1`))
 			})
 		})
 		When("all instances are available in at least one of the provided AZs", func() {
@@ -473,7 +473,7 @@ var _ = Describe("CheckInstanceAvailability", func() {
 					Filters: []ec2types.Filter{
 						{
 							Name:   aws.String("instance-type"),
-							Values: []string{"t2.nano", "t2.micro", "t2.large"},
+							Values: []string{"t2.large", "t2.micro", "t2.nano"},
 						},
 					},
 					LocationType: ec2types.LocationTypeAvailabilityZone,

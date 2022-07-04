@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
@@ -374,44 +376,39 @@ func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2
 	// This map will use either globally configured AZs or, if set, the AZ defined by the nodegroup.
 	// map["ng-1"]["c2.large"]=[]string{"us-west-1a", "us-west-1b"}
 	instanceMap := make(map[string]map[string][]string)
-	instances := make(map[string]struct{})
+	uniqueInstances := sets.NewString()
 
 	pool := nodes.ToNodePools(spec)
 	for _, ng := range pool {
 		if _, ok := instanceMap[ng.BaseNodeGroup().Name]; !ok {
 			instanceMap[ng.BaseNodeGroup().Name] = make(map[string][]string)
 		}
-		for _, i := range ng.InstanceTypeList() {
-			if i == "mixed" {
+		for _, instanceType := range ng.InstanceTypeList() {
+			if instanceType == "mixed" {
 				continue
 			}
-			instances[i] = struct{}{}
+			uniqueInstances.Insert(instanceType)
 			if len(ng.BaseNodeGroup().AvailabilityZones) > 0 {
-				instanceMap[ng.BaseNodeGroup().Name][i] = ng.BaseNodeGroup().AvailabilityZones
+				instanceMap[ng.BaseNodeGroup().Name][instanceType] = ng.BaseNodeGroup().AvailabilityZones
 			} else {
-				instanceMap[ng.BaseNodeGroup().Name][i] = spec.AvailabilityZones
+				instanceMap[ng.BaseNodeGroup().Name][instanceType] = spec.AvailabilityZones
 			}
 		}
 	}
 
 	// Do an early exit if we don't have anything.
-	if len(instances) == 0 {
+	if uniqueInstances.Len() == 0 {
 		// nothing to do
 		return nil
 	}
 
-	var (
-		instanceTypeOfferings []ec2types.InstanceTypeOffering
-		instanceList          []string
-	)
-	for k := range instances {
-		instanceList = append(instanceList, k)
-	}
+	var instanceTypeOfferings []ec2types.InstanceTypeOffering
+
 	p := ec2.NewDescribeInstanceTypeOfferingsPaginator(ec2API, &ec2.DescribeInstanceTypeOfferingsInput{
 		Filters: []ec2types.Filter{
 			{
 				Name:   aws.String("instance-type"),
-				Values: instanceList,
+				Values: uniqueInstances.List(),
 			},
 		},
 		LocationType: ec2types.LocationTypeAvailabilityZone,
@@ -455,7 +452,7 @@ func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2
 				}
 			}
 			if !available {
-				return fmt.Errorf("none of the provided azs %q support instance type %s in nodegroup %s", strings.Join(notAvailableIn, ","), instance, k)
+				return fmt.Errorf("none of the provided AZs %q support instance type %s in nodegroup %s", strings.Join(notAvailableIn, ","), instance, k)
 			}
 		}
 	}
