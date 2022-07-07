@@ -756,17 +756,6 @@ type FakeStackManager struct {
 	refreshFargatePodExecutionRoleARNReturnsOnCall map[int]struct {
 		result1 error
 	}
-	StackStatusIsNotReadyStub        func(*types.Stack) bool
-	stackStatusIsNotReadyMutex       sync.RWMutex
-	stackStatusIsNotReadyArgsForCall []struct {
-		arg1 *types.Stack
-	}
-	stackStatusIsNotReadyReturns struct {
-		result1 bool
-	}
-	stackStatusIsNotReadyReturnsOnCall map[int]struct {
-		result1 bool
-	}
 	StackStatusIsNotTransitionalStub        func(*types.Stack) bool
 	stackStatusIsNotTransitionalMutex       sync.RWMutex
 	stackStatusIsNotTransitionalArgsForCall []struct {
@@ -4321,67 +4310,6 @@ func (fake *FakeStackManager) RefreshFargatePodExecutionRoleARNReturnsOnCall(i i
 	}{result1}
 }
 
-func (fake *FakeStackManager) StackStatusIsNotReady(arg1 *types.Stack) bool {
-	fake.stackStatusIsNotReadyMutex.Lock()
-	ret, specificReturn := fake.stackStatusIsNotReadyReturnsOnCall[len(fake.stackStatusIsNotReadyArgsForCall)]
-	fake.stackStatusIsNotReadyArgsForCall = append(fake.stackStatusIsNotReadyArgsForCall, struct {
-		arg1 *types.Stack
-	}{arg1})
-	stub := fake.StackStatusIsNotReadyStub
-	fakeReturns := fake.stackStatusIsNotReadyReturns
-	fake.recordInvocation("StackStatusIsNotReady", []interface{}{arg1})
-	fake.stackStatusIsNotReadyMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeStackManager) StackStatusIsNotReadyCallCount() int {
-	fake.stackStatusIsNotReadyMutex.RLock()
-	defer fake.stackStatusIsNotReadyMutex.RUnlock()
-	return len(fake.stackStatusIsNotReadyArgsForCall)
-}
-
-func (fake *FakeStackManager) StackStatusIsNotReadyCalls(stub func(*types.Stack) bool) {
-	fake.stackStatusIsNotReadyMutex.Lock()
-	defer fake.stackStatusIsNotReadyMutex.Unlock()
-	fake.StackStatusIsNotReadyStub = stub
-}
-
-func (fake *FakeStackManager) StackStatusIsNotReadyArgsForCall(i int) *types.Stack {
-	fake.stackStatusIsNotReadyMutex.RLock()
-	defer fake.stackStatusIsNotReadyMutex.RUnlock()
-	argsForCall := fake.stackStatusIsNotReadyArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeStackManager) StackStatusIsNotReadyReturns(result1 bool) {
-	fake.stackStatusIsNotReadyMutex.Lock()
-	defer fake.stackStatusIsNotReadyMutex.Unlock()
-	fake.StackStatusIsNotReadyStub = nil
-	fake.stackStatusIsNotReadyReturns = struct {
-		result1 bool
-	}{result1}
-}
-
-func (fake *FakeStackManager) StackStatusIsNotReadyReturnsOnCall(i int, result1 bool) {
-	fake.stackStatusIsNotReadyMutex.Lock()
-	defer fake.stackStatusIsNotReadyMutex.Unlock()
-	fake.StackStatusIsNotReadyStub = nil
-	if fake.stackStatusIsNotReadyReturnsOnCall == nil {
-		fake.stackStatusIsNotReadyReturnsOnCall = make(map[int]struct {
-			result1 bool
-		})
-	}
-	fake.stackStatusIsNotReadyReturnsOnCall[i] = struct {
-		result1 bool
-	}{result1}
-}
-
 func (fake *FakeStackManager) StackStatusIsNotTransitional(arg1 *types.Stack) bool {
 	fake.stackStatusIsNotTransitionalMutex.Lock()
 	ret, specificReturn := fake.stackStatusIsNotTransitionalReturnsOnCall[len(fake.stackStatusIsNotTransitionalArgsForCall)]
@@ -4680,8 +4608,6 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.propagateManagedNodeGroupTagsToASGMutex.RUnlock()
 	fake.refreshFargatePodExecutionRoleARNMutex.RLock()
 	defer fake.refreshFargatePodExecutionRoleARNMutex.RUnlock()
-	fake.stackStatusIsNotReadyMutex.RLock()
-	defer fake.stackStatusIsNotReadyMutex.RUnlock()
 	fake.stackStatusIsNotTransitionalMutex.RLock()
 	defer fake.stackStatusIsNotTransitionalMutex.RUnlock()
 	fake.updateNodeGroupStackMutex.RLock()
