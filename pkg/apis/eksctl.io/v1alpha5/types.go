@@ -1041,7 +1041,10 @@ func (n *NodeGroup) InstanceTypeList() []string {
 	if HasMixedInstances(n) {
 		return n.InstancesDistribution.InstanceTypes
 	}
-	return []string{n.InstanceType}
+	if n.InstanceType != "" {
+		return []string{n.InstanceType}
+	}
+	return nil
 }
 
 // NGTaints implements NodePool
@@ -1268,6 +1271,9 @@ type NodePool interface {
 
 	// NGTaints returns the taints to apply for this nodegroup
 	NGTaints() []NodeGroupTaint
+
+	// InstanceTypeList returns a list of instances that are configured for that nodegroup
+	InstanceTypeList() []string
 }
 
 // VolumeMapping Additional Volume Configurations
@@ -1523,7 +1529,10 @@ func (m *ManagedNodeGroup) InstanceTypeList() []string {
 	if len(m.InstanceTypes) > 0 {
 		return m.InstanceTypes
 	}
-	return []string{m.InstanceType}
+	if m.InstanceType != "" {
+		return []string{m.InstanceType}
+	}
+	return nil
 }
 
 func (m *ManagedNodeGroup) ListOptions() metav1.ListOptions {
