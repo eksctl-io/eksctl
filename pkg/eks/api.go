@@ -24,8 +24,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -78,7 +76,6 @@ type KubeProvider interface {
 type ProviderServices struct {
 	spec *api.ProviderConfig
 	asg  awsapi.ASG
-	cfn  cloudformationiface.CloudFormationAPI
 
 	cloudtrail     awsapi.CloudTrail
 	cloudwatchlogs awsapi.CloudWatchLogs
@@ -175,7 +172,6 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 	}
 
 	provider.session = s
-	provider.cfn = cloudformation.New(s)
 
 	cfg, err := newV2Config(spec, c.AWSProvider.Region(), credentialsCacheFilePath)
 	if err != nil {
@@ -193,12 +189,6 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 	provider.asg = autoscaling.NewFromConfig(cfg)
 	provider.cloudwatchlogs = cloudwatchlogs.NewFromConfig(cfg)
 	provider.cloudtrail = cloudtrail.NewFromConfig(cfg)
-
-	// override sessions if any custom endpoints specified
-	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
-		logger.Debug("Setting CloudFormation endpoint to %s", endpoint)
-		provider.cfn = cloudformation.New(s, s.Config.Copy().WithEndpoint(endpoint))
-	}
 
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
 		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)
