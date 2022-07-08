@@ -11,5 +11,5 @@ check_origin
 release_branch=$(release_branch)
 
 git switch docs
-git merge "${release_branch}"
+git merge --no-edit "origin/${release_branch}"
 git push origin docs
