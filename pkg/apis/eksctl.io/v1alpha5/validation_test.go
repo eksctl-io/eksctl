@@ -128,6 +128,17 @@ var _ = Describe("ClusterConfig validation", func() {
 			err = api.ValidateNodeGroup(0, ng0)
 			Expect(err).NotTo(HaveOccurred())
 		})
+
+		It("containerd cannot be set together with overrideBootstrapCommand", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
+			ng0.OverrideBootstrapCommand = aws.String("bootstrap command")
+			err := api.ValidateNodeGroup(0, ng0)
+			Expect(err).To(MatchError(ContainSubstring("overrideBootstrapCommand overwrites container runtime setting; please use --container-runtime in the bootsrap script instead")))
+		})
 	})
 
 	Describe("nodeGroups[*].ami validation", func() {
@@ -700,6 +711,18 @@ var _ = Describe("ClusterConfig validation", func() {
 
 				It("should error on private=false, public=false", func() {
 					cfg.VPC.ClusterEndpoints = &api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Disabled()}
+					err := api.ValidateClusterConfig(cfg)
+					Expect(err).To(MatchError(api.ErrClusterEndpointNoAccess))
+				})
+
+				It("should error on private=false, public=nil", func() {
+					cfg.VPC.ClusterEndpoints = &api.ClusterEndpoints{PrivateAccess: api.Disabled()}
+					err := api.ValidateClusterConfig(cfg)
+					Expect(err).To(MatchError(api.ErrClusterEndpointNoAccess))
+				})
+
+				It("should error on private=nil, public=false", func() {
+					cfg.VPC.ClusterEndpoints = &api.ClusterEndpoints{PublicAccess: api.Disabled()}
 					err := api.ValidateClusterConfig(cfg)
 					Expect(err).To(MatchError(api.ErrClusterEndpointNoAccess))
 				})

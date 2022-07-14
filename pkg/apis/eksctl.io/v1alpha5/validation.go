@@ -439,7 +439,7 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 
 // NoAccess returns true if neither public are private cluster endpoint access is enabled and false otherwise
 func noAccess(ces *ClusterEndpoints) bool {
-	return !(*ces.PublicAccess || *ces.PrivateAccess)
+	return !(IsEnabled(ces.PublicAccess) || IsEnabled(ces.PrivateAccess))
 }
 
 // PrivateOnly returns true if public cluster endpoint access is disabled and private cluster endpoint access is enabled, and false otherwise
@@ -728,6 +728,9 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD && *ng.ContainerRuntime != ContainerRuntimeDockerForWindows {
 			return fmt.Errorf("only %s, %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD, ContainerRuntimeDockerForWindows)
+		}
+		if ng.OverrideBootstrapCommand != nil {
+			return fmt.Errorf("overrideBootstrapCommand overwrites container runtime setting; please use --container-runtime in the bootsrap script instead")
 		}
 	}
 

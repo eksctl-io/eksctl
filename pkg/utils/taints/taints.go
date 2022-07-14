@@ -65,6 +65,12 @@ func validateTaintEffect(effect corev1.TaintEffect) error {
 	case corev1.TaintEffectNoSchedule, corev1.TaintEffectPreferNoSchedule, corev1.TaintEffectNoExecute:
 		return nil
 	default:
-		return fmt.Errorf("invalid taint effect: %v, unsupported taint effect", effect)
+		return fmt.Errorf(
+			"invalid taint effect: %v, unsupported taint effect. Valid taint effects are: %s, %s and %s",
+			effect,
+			corev1.TaintEffectNoSchedule,
+			corev1.TaintEffectNoExecute,
+			corev1.TaintEffectPreferNoSchedule,
+		)
 	}
 }

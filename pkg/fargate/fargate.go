@@ -3,6 +3,7 @@ package fargate
 import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -61,6 +62,6 @@ func toSelectors(in []ekstypes.FargateProfileSelector) []api.FargateProfileSelec
 // Unauthorized errors are of the form:
 //   AccessDeniedException: Account <account> is not authorized to use this service
 func IsUnauthorizedError(err error) bool {
-	var accessDeniedErr *ekstypes.AccessDeniedException
-	return errors.As(err, &accessDeniedErr)
+	var apiErr smithy.APIError
+	return errors.As(err, &apiErr) && apiErr.ErrorCode() == "AccessDeniedException"
 }

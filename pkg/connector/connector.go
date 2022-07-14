@@ -7,21 +7,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/smithy-go"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-
 	awsarn "github.com/aws/aws-sdk-go/aws/arn"
-
+	"github.com/aws/smithy-go"
 	"github.com/cenk/backoff"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"sigs.k8s.io/aws-iam-authenticator/pkg/arn"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -108,7 +104,7 @@ func (c *EKSConnector) createManifests(ctx context.Context, cluster *ekstypes.Cl
 	}
 
 	connectorResources := c.parseConnectorTemplate(cluster)
-	roleARN, err := arn.Canonicalize(*stsOutput.Arn)
+	roleARN, err := Canonicalize(*stsOutput.Arn)
 	if err != nil {
 		return nil, errors.Wrap(err, "error canonicalizing IAM role ARN")
 	}

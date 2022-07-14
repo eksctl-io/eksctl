@@ -3,6 +3,7 @@ package nodegroup
 import (
 	"context"
 	"fmt"
+	"time"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
@@ -12,19 +13,20 @@ import (
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	"github.com/weaveworks/eksctl/pkg/managed"
 )
 
-func (m *Manager) Update(ctx context.Context) error {
+func (m *Manager) Update(ctx context.Context, wait bool) error {
 	for _, ng := range m.cfg.ManagedNodeGroups {
-		if err := m.updateNodegroup(ctx, ng); err != nil {
+		if err := m.updateNodegroup(ctx, ng, wait); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (m *Manager) updateNodegroup(ctx context.Context, ng *api.ManagedNodeGroup) error {
+func (m *Manager) updateNodegroup(ctx context.Context, ng *api.ManagedNodeGroup, wait bool) error {
 	logger.Info("checking that nodegroup %s is a managed nodegroup", ng.Name)
 
 	_, err := m.ctl.AWSProvider.EKS().DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
@@ -40,7 +42,7 @@ func (m *Manager) updateNodegroup(ctx context.Context, ng *api.ManagedNodeGroup)
 	}
 
 	if ng.UpdateConfig == nil {
-		return fmt.Errorf("the submitted config does not contain any changes for nodegroup %s", ng.Name)
+		return fmt.Errorf("the submitted config does not contain an 'updateConfig' field for nodegroup %s", ng.Name)
 	}
 
 	updateConfig, err := updateUpdateConfig(ng)
@@ -48,13 +50,21 @@ func (m *Manager) updateNodegroup(ctx context.Context, ng *api.ManagedNodeGroup)
 		return err
 	}
 
-	_, err = m.ctl.AWSProvider.EKS().UpdateNodegroupConfig(ctx, &eks.UpdateNodegroupConfigInput{
+	output, err := m.ctl.AWSProvider.EKS().UpdateNodegroupConfig(ctx, &eks.UpdateNodegroupConfigInput{
 		UpdateConfig:  updateConfig,
 		ClusterName:   &m.cfg.Metadata.Name,
 		NodegroupName: &ng.Name,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to update nodegroup %s: %w", ng.Name, err)
+	}
+
+	if wait {
+		if status, err := waiter.WaitForNodegroupUpdate(ctx, string(output.Update.Status), m.ctl.AWSProvider.EKS(), m.ctl.AWSProvider.WaitTimeout(), func(attempts int) time.Duration {
+			return 30 * time.Second
+		}); err != nil {
+			return fmt.Errorf("failed to wait for nodegroup %s to update; last observed status was %s with error: %w", ng.Name, status, err)
+		}
 	}
 
 	logger.Info("nodegroup %s successfully updated", ng.Name)

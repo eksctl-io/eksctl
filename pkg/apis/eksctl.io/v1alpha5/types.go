@@ -214,6 +214,9 @@ const (
 	// ClusterNameTag defines the tag of the cluster name
 	ClusterNameTag = "alpha.eksctl.io/cluster-name"
 
+	// ClusterOIDCEnabledTag determines whether OIDC is enabled or not.
+	ClusterOIDCEnabledTag = "alpha.eksctl.io/cluster-oidc-enabled"
+
 	// OldClusterNameTag defines the tag of the cluster name
 	OldClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 
@@ -338,10 +341,10 @@ const (
 
 // Values for core addons
 const (
+	minimumVPCCNIVersionForIPv6 = "1.10.0"
 	VPCCNIAddon                 = "vpc-cni"
 	KubeProxyAddon              = "kube-proxy"
 	CoreDNSAddon                = "coredns"
-	minimumVPCCNIVersionForIPv6 = "1.10.0"
 )
 
 // supported version of Karpenter
@@ -1038,7 +1041,10 @@ func (n *NodeGroup) InstanceTypeList() []string {
 	if HasMixedInstances(n) {
 		return n.InstancesDistribution.InstanceTypes
 	}
-	return []string{n.InstanceType}
+	if n.InstanceType != "" {
+		return []string{n.InstanceType}
+	}
+	return nil
 }
 
 // NGTaints implements NodePool
@@ -1265,6 +1271,9 @@ type NodePool interface {
 
 	// NGTaints returns the taints to apply for this nodegroup
 	NGTaints() []NodeGroupTaint
+
+	// InstanceTypeList returns a list of instances that are configured for that nodegroup
+	InstanceTypeList() []string
 }
 
 // VolumeMapping Additional Volume Configurations
@@ -1520,7 +1529,10 @@ func (m *ManagedNodeGroup) InstanceTypeList() []string {
 	if len(m.InstanceTypes) > 0 {
 		return m.InstanceTypes
 	}
-	return []string{m.InstanceType}
+	if m.InstanceType != "" {
+		return []string{m.InstanceType}
+	}
+	return nil
 }
 
 func (m *ManagedNodeGroup) ListOptions() metav1.ListOptions {
