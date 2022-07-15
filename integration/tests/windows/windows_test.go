@@ -85,7 +85,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		d := kubeTest.CreateDeploymentFromFile("default", fmt.Sprintf("../../data/%s", workload))
-		kubeTest.WaitForDeploymentReady(d, 30*time.Minute)
+		kubeTest.WaitForDeploymentReady(d, 45*time.Minute)
 	}
 
 	Context("When creating a cluster with Windows nodegroups", func() {
