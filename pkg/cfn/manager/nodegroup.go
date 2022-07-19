@@ -215,6 +215,9 @@ func (c *StackCollection) GetUnmanagedNodeGroupAutoScalingGroupName(ctx context.
 	if err != nil {
 		return "", err
 	}
+	if res.StackResourceDetail.PhysicalResourceId == nil {
+		return "", fmt.Errorf("%q resource of stack %q has no physical resource id", *input.LogicalResourceId, *res.StackResourceDetail.LogicalResourceId)
+	}
 	return *res.StackResourceDetail.PhysicalResourceId, nil
 }
 
