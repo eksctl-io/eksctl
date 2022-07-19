@@ -102,22 +102,18 @@ var _ = Describe("GPU instance support", func() {
 		Entry("Windows2004", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyWindowsServer2004CoreContainer,
 			gpuInstanceType:      "p2.xlarge",
-			expectUnsupportedErr: true,
 		}),
 		Entry("Windows2019Core", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyWindowsServer2019CoreContainer,
 			gpuInstanceType:      "g3.8xlarge",
-			expectUnsupportedErr: true,
 		}),
 		Entry("Windows2019Full", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyWindowsServer2019FullContainer,
 			gpuInstanceType:      "p3.2xlarge",
-			expectUnsupportedErr: true,
 		}),
 		Entry("Windows20H2Core", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyWindowsServer20H2CoreContainer,
 			gpuInstanceType:      "g4dn.xlarge",
-			expectUnsupportedErr: true,
 		}),
 	)
 	Describe("ARM GPU", func() {
