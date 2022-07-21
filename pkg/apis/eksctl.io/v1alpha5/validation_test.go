@@ -2057,7 +2057,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
-	Describe("nodeGroups[*].capacityReservation validation", func() {
+	Describe("Capacity Reservation validation", func() {
 		var (
 			cfg *api.ClusterConfig
 			ng  *api.NodeGroup
@@ -2102,6 +2102,20 @@ var _ = Describe("ClusterConfig validation", func() {
 				It("returns an error", func() {
 					ng.CapacityReservation = &api.CapacityReservation{CapacityReservationPreference: aws.String("err")}
 					Expect(api.ValidateNodeGroup(0, ng)).To(MatchError(ContainSubstring(`accepted values include "open" and "none"; got "err"`)))
+				})
+			})
+		})
+
+		When("CapacityReservationTarget is set", func() {
+			When("when both CapacityReservationID and CapacityReservationResourceGroupARN are set", func() {
+				It("returns an error", func() {
+					ng.CapacityReservation = &api.CapacityReservation{
+						CapacityReservationTarget: &api.CapacityReservationTarget{
+							CapacityReservationID:               aws.String("id"),
+							CapacityReservationResourceGroupARN: aws.String("arn"),
+						},
+					}
+					Expect(api.ValidateNodeGroup(0, ng)).To(MatchError(ContainSubstring("only one of CapacityReservationID or CapacityReservationResourceGroupARN may be specified at a time")))
 				})
 			})
 		})

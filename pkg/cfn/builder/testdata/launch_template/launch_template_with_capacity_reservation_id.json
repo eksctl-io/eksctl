@@ -16,8 +16,7 @@
                 ],
                 "CapacityReservationSpecification":{
                     "CapacityReservationTarget":{
-                        "CapacityReservationId":"res-id",
-                        "CapacityReservationResourceGroupArn":"group-arn"
+                        "CapacityReservationId":"res-id"
                     }
                 },
                 "MetadataOptions":{

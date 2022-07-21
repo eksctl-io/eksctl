@@ -1448,7 +1448,7 @@ type CapacityReservation struct {
 	// CapacityReservationPreference defines a nodegroup's Capacity Reservation preferences (either 'open' or 'none')
 	CapacityReservationPreference *string `json:"capacityReservationPreference,omitempty"`
 
-	// CapacityReservationTarget defines a nodegroup's target Capacity Reservation or Capacity Reservation group
+	// CapacityReservationTarget defines a nodegroup's target Capacity Reservation or Capacity Reservation group (not both at the same time).
 	CapacityReservationTarget *CapacityReservationTarget `json:"capacityReservationTarget,omitempty"`
 }
 

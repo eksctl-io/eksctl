@@ -103,8 +103,8 @@
         },
         "capacityReservationTarget": {
           "$ref": "#/definitions/CapacityReservationTarget",
-          "description": "defines a nodegroup's target Capacity Reservation or Capacity Reservation group",
-          "x-intellij-html-description": "defines a nodegroup's target Capacity Reservation or Capacity Reservation group"
+          "description": "defines a nodegroup's target Capacity Reservation or Capacity Reservation group (not both at the same time).",
+          "x-intellij-html-description": "defines a nodegroup's target Capacity Reservation or Capacity Reservation group (not both at the same time)."
         }
       },
       "preferredOrder": [
