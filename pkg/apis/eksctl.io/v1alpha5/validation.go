@@ -744,6 +744,16 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		return errors.New("cannot specify both localZones and availabilityZones")
 	}
 
+	if ng.CapacityReservation != nil && ng.CapacityReservation.CapacityReservationPreference != nil {
+		if ng.CapacityReservation.CapacityReservationTarget != nil {
+			return errors.New("only one of CapacityReservationPreference or CapacityReservationTarget may be specified at a time")
+		}
+
+		if *ng.CapacityReservation.CapacityReservationPreference != OpenCapacityReservation && *ng.CapacityReservation.CapacityReservationPreference != NoneCapacityReservation {
+			return fmt.Errorf(`accepted values include "open" and "none"; got "%s"`, *ng.CapacityReservation.CapacityReservationPreference)
+		}
+	}
+
 	return nil
 }
 

@@ -675,26 +675,8 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				Expect(properties.LaunchTemplateData.TagSpecifications[2].Tags[0].Value).To(Equal("bonsai-ng-abcd1234-Node"))
 			})
 
-			Context("capacity reservation", func() {
-				BeforeEach(func() {
-					ng.AMI = "ami-123"
-					fakeBootstrapper.UserDataReturns("lovely data right here", nil)
-					ng.CapacityReservation = &api.CapacityReservation{
-						CapacityReservationPreference: aws.String("open"),
-						CapacityReservationTarget: &api.CapacityReservationTarget{
-							CapacityReservationID:               aws.String("res-id"),
-							CapacityReservationResourceGroupARN: aws.String("group-arn"),
-						},
-					}
-				})
-
-				It("creates a LaunchTemplate adding capacity reservations to it", func() {
-					properties := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties
-					Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationPreference).To(Equal(aws.String("open")))
-					Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationTarget.CapacityReservationID).To(Equal(aws.String("res-id")))
-					Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationTarget.CapacityReservationResourceGroupARN).To(Equal(aws.String("group-arn")))
-				})
-				When("capacity is partially defined", func() {
+			Context("Capacity Reservation", func() {
+				When("Capacity Reservation Preference is defined", func() {
 					BeforeEach(func() {
 						ng.AMI = "ami-123"
 						fakeBootstrapper.UserDataReturns("lovely data right here", nil)
@@ -702,13 +684,15 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 							CapacityReservationPreference: aws.String("open"),
 						}
 					})
-					It("creates a LaunchTemplate adding capacity reservations to it", func() {
+
+					It("creates a LaunchTemplate adding Capacity Reservation Preference to it", func() {
 						properties := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties
-						Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationPreference).To(Equal(aws.String("open")))
+						Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationPreference).To(Equal(aws.String(api.OpenCapacityReservation)))
 						Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationTarget).To(BeNil())
 					})
 				})
-				When("capacity target is partially defined", func() {
+
+				When("Capacity Reservation Target is defined", func() {
 					BeforeEach(func() {
 						ng.AMI = "ami-123"
 						fakeBootstrapper.UserDataReturns("lovely data right here", nil)
@@ -718,7 +702,8 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 							},
 						}
 					})
-					It("creates a LaunchTemplate adding capacity reservations to it", func() {
+
+					It("creates a LaunchTemplate adding Capacity Reservations Target ID and Group ARN to it", func() {
 						properties := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties
 						Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationPreference).To(BeNil())
 						Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationTarget.CapacityReservationID).To(BeNil())

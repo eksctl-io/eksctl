@@ -331,7 +331,7 @@ API_SERVER_URL=https://test.com
 			resourcesFilename: "bottlerocket_volume.json",
 		}),
 
-		Entry("CapacityReservation is set", &mngCase{
+		Entry("CapacityReservationTarget is set", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
 					Name:         "capacity-test",
@@ -339,7 +339,6 @@ API_SERVER_URL=https://test.com
 					InstanceType: "m5.xlarge",
 					VolumeSize:   aws.Int(142),
 					CapacityReservation: &api.CapacityReservation{
-						CapacityReservationPreference: aws.String("open"),
 						CapacityReservationTarget: &api.CapacityReservationTarget{
 							CapacityReservationID:               aws.String("res-id"),
 							CapacityReservationResourceGroupARN: aws.String("group-arn"),
@@ -347,9 +346,9 @@ API_SERVER_URL=https://test.com
 					},
 				},
 			},
-			resourcesFilename: "launch_template_with_capacity_reservation.json",
+			resourcesFilename: "launch_template_with_capacity_reservation_target.json",
 		}),
-		Entry("Partially set CapacityReservation is set", &mngCase{
+		Entry("CapacityReservationPreference is set", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
 					Name:         "capacity-test",
@@ -361,7 +360,7 @@ API_SERVER_URL=https://test.com
 					},
 				},
 			},
-			resourcesFilename: "launch_template_with_capacity_reservation_partially_set.json",
+			resourcesFilename: "launch_template_with_capacity_reservation_preference.json",
 		}),
 	)
 })

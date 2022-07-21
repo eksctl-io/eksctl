@@ -97,10 +97,14 @@
     "CapacityReservation": {
       "properties": {
         "capacityReservationPreference": {
-          "type": "string"
+          "type": "string",
+          "description": "defines a nodegroup's Capacity Reservation preferences (either 'open' or 'none')",
+          "x-intellij-html-description": "defines a nodegroup's Capacity Reservation preferences (either 'open' or 'none')"
         },
         "capacityReservationTarget": {
-          "$ref": "#/definitions/CapacityReservationTarget"
+          "$ref": "#/definitions/CapacityReservationTarget",
+          "description": "defines a nodegroup's target Capacity Reservation or Capacity Reservation group",
+          "x-intellij-html-description": "defines a nodegroup's target Capacity Reservation or Capacity Reservation group"
         }
       },
       "preferredOrder": [
@@ -108,12 +112,12 @@
         "capacityReservationTarget"
       ],
       "additionalProperties": false,
-      "description": "defines reservation policy for a nodegroup",
-      "x-intellij-html-description": "defines reservation policy for a nodegroup"
+      "description": "defines a nodegroup's Capacity Reservation targeting option",
+      "x-intellij-html-description": "defines a nodegroup's Capacity Reservation targeting option"
     },
     "CapacityReservationTarget": {
       "properties": {
-        "capacityReservationId": {
+        "capacityReservationID": {
           "type": "string"
         },
         "capacityReservationResourceGroupARN": {
@@ -121,12 +125,10 @@
         }
       },
       "preferredOrder": [
-        "capacityReservationId",
+        "capacityReservationID",
         "capacityReservationResourceGroupARN"
       ],
-      "additionalProperties": false,
-      "description": "defines reservation target details",
-      "x-intellij-html-description": "defines reservation target details"
+      "additionalProperties": false
     },
     "ClusterCloudWatch": {
       "properties": {

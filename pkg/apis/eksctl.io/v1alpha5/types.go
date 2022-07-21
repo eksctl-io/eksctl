@@ -353,6 +353,12 @@ const (
 	supportedKarpenterVersionMinor = 9
 )
 
+// Values for Capacity Reservation Preference
+const (
+	OpenCapacityReservation = "open"
+	NoneCapacityReservation = "none"
+)
+
 var (
 	// DefaultIPFamily defines the default IP family to use when creating a new VPC and cluster.
 	DefaultIPFamily = IPV4Family
@@ -1436,15 +1442,18 @@ type NodeGroupBase struct {
 	CapacityReservation *CapacityReservation `json:"capacityReservation,omitempty"`
 }
 
-// CapacityReservation defines reservation policy for a nodegroup
+// CapacityReservation defines a nodegroup's Capacity Reservation targeting option
+// +optional
 type CapacityReservation struct {
-	CapacityReservationPreference *string                    `json:"capacityReservationPreference,omitempty"`
-	CapacityReservationTarget     *CapacityReservationTarget `json:"capacityReservationTarget,omitempty"`
+	// CapacityReservationPreference defines a nodegroup's Capacity Reservation preferences (either 'open' or 'none')
+	CapacityReservationPreference *string `json:"capacityReservationPreference,omitempty"`
+
+	// CapacityReservationTarget defines a nodegroup's target Capacity Reservation or Capacity Reservation group
+	CapacityReservationTarget *CapacityReservationTarget `json:"capacityReservationTarget,omitempty"`
 }
 
-// CapacityReservationTarget defines reservation target details
 type CapacityReservationTarget struct {
-	CapacityReservationID               *string `json:"capacityReservationId,omitempty"`
+	CapacityReservationID               *string `json:"capacityReservationID,omitempty"`
 	CapacityReservationResourceGroupARN *string `json:"capacityReservationResourceGroupARN,omitempty"`
 }
 
