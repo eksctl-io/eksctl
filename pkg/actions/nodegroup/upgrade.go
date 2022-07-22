@@ -76,6 +76,16 @@ func (m *Manager) Upgrade(ctx context.Context, options UpgradeOptions) error {
 		return err
 	}
 
+	switch nodegroupOutput.Nodegroup.Status {
+	case ekstypes.NodegroupStatusActive:
+
+	case ekstypes.NodegroupStatusUpdating:
+		return errors.New("nodegroup is currently being updated, please retry the command after the existing update is complete")
+
+	default:
+		return fmt.Errorf("nodegroup must be in %q state when upgrading a nodegroup; got state %q", ekstypes.NodegroupStatusActive, nodegroupOutput.Nodegroup.Status)
+	}
+
 	if hasStack != nil {
 		options.Stack = hasStack
 		return m.upgradeUsingStack(ctx, options, nodegroupOutput.Nodegroup)

@@ -30,8 +30,8 @@ import (
 )
 
 const (
-	k8sUpdatePollInterval = "2s"
-	k8sUpdatePollTimeout  = "3m"
+	k8sUpdatePollInterval = "30s"
+	k8sUpdatePollTimeout  = "10m"
 )
 
 var (
