@@ -32,12 +32,12 @@ var _ = Describe("KubeProxy", func() {
 			input = da.AddonInput{
 				Region:              "eu-west-1",
 				EKSAPI:              mockProvider.EKS(),
-				ControlPlaneVersion: "1.19.1",
+				ControlPlaneVersion: "1.20.1",
 			}
 
 			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 				AddonName:         aws.String("kube-proxy"),
-				KubernetesVersion: aws.String("1.19"),
+				KubernetesVersion: aws.String("1.20"),
 			}).Return(&awseks.DescribeAddonVersionsOutput{
 				Addons: []ekstypes.AddonInfo{
 					{
@@ -75,7 +75,7 @@ var _ = Describe("KubeProxy", func() {
 
 		When("when its up-to-date", func() {
 			BeforeEach(func() {
-				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.19.json")
+				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.20.json")
 				input.RawClient = rawClient
 				clientSet = rawClient.ClientSet()
 			})
@@ -117,14 +117,14 @@ var _ = Describe("KubeProxy", func() {
 
 	Context("UpdateKubeProxyImageTag", func() {
 		BeforeEach(func() {
-			rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.19.json")
+			rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.20.json")
 			clientSet = rawClient.ClientSet()
 			mockProvider = mockprovider.NewMockProvider()
 			input = da.AddonInput{
 				RawClient:           rawClient,
 				Region:              "eu-west-1",
 				EKSAPI:              mockProvider.EKS(),
-				ControlPlaneVersion: "1.19.1",
+				ControlPlaneVersion: "1.20.1",
 			}
 		})
 
@@ -133,7 +133,7 @@ var _ = Describe("KubeProxy", func() {
 				input.RawClient = testutils.NewFakeRawClientWithSamples("testdata/sample-old-kube-proxy-amd.json")
 				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 					AddonName:         aws.String("kube-proxy"),
-					KubernetesVersion: aws.String("1.19"),
+					KubernetesVersion: aws.String("1.20"),
 				}).Return(&awseks.DescribeAddonVersionsOutput{
 					Addons: []ekstypes.AddonInfo{
 						{
@@ -164,7 +164,7 @@ var _ = Describe("KubeProxy", func() {
 			BeforeEach(func() {
 				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 					AddonName:         aws.String("kube-proxy"),
-					KubernetesVersion: aws.String("1.19"),
+					KubernetesVersion: aws.String("1.20"),
 				}).Return(&awseks.DescribeAddonVersionsOutput{
 					Addons: []ekstypes.AddonInfo{
 						{
@@ -175,10 +175,10 @@ var _ = Describe("KubeProxy", func() {
 								},
 								{
 									//latest, unordered list to ensure we sort correctly
-									AddonVersion: aws.String("v1.19.1-eksbuild.2"),
+									AddonVersion: aws.String("v1.20.1-eksbuild.2"),
 								},
 								{
-									AddonVersion: aws.String("v1.19.1-eksbuild.1"),
+									AddonVersion: aws.String("v1.20.1-eksbuild.1"),
 								},
 							},
 						},
@@ -189,7 +189,7 @@ var _ = Describe("KubeProxy", func() {
 			It("uses the image version from the EKS api", func() {
 				_, err := da.UpdateKubeProxy(context.Background(), input, false)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(kubeProxyImage(clientSet)).To(Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.19.1-eksbuild.2"))
+				Expect(kubeProxyImage(clientSet)).To(Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.20.1-eksbuild.2"))
 				Expect(kubeProxyNodeSelectorValues(clientSet)).To(ConsistOf("amd64", "arm64"))
 			})
 		})
@@ -198,7 +198,7 @@ var _ = Describe("KubeProxy", func() {
 			BeforeEach(func() {
 				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 					AddonName:         aws.String("kube-proxy"),
-					KubernetesVersion: aws.String("1.19"),
+					KubernetesVersion: aws.String("1.20"),
 				}).Return(&awseks.DescribeAddonVersionsOutput{
 					Addons: []ekstypes.AddonInfo{
 						{
@@ -224,7 +224,7 @@ var _ = Describe("KubeProxy", func() {
 			It("uses the default cluster version", func() {
 				_, err := da.UpdateKubeProxy(context.Background(), input, false)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(kubeProxyImage(clientSet)).To(Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.19.1-eksbuild.1"))
+				Expect(kubeProxyImage(clientSet)).To(Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.20.1-eksbuild.1"))
 			})
 		})
 
@@ -232,7 +232,7 @@ var _ = Describe("KubeProxy", func() {
 			BeforeEach(func() {
 				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 					AddonName:         aws.String("kube-proxy"),
-					KubernetesVersion: aws.String("1.19"),
+					KubernetesVersion: aws.String("1.20"),
 				}).Return(&awseks.DescribeAddonVersionsOutput{
 					Addons: []ekstypes.AddonInfo{
 						{
@@ -253,7 +253,7 @@ var _ = Describe("KubeProxy", func() {
 			BeforeEach(func() {
 				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 					AddonName:         aws.String("kube-proxy"),
-					KubernetesVersion: aws.String("1.19"),
+					KubernetesVersion: aws.String("1.20"),
 				}).Return(&awseks.DescribeAddonVersionsOutput{
 					Addons: []ekstypes.AddonInfo{
 						{
@@ -278,7 +278,7 @@ var _ = Describe("KubeProxy", func() {
 			BeforeEach(func() {
 				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 					AddonName:         aws.String("kube-proxy"),
-					KubernetesVersion: aws.String("1.19"),
+					KubernetesVersion: aws.String("1.20"),
 				}).Return(&awseks.DescribeAddonVersionsOutput{}, fmt.Errorf("foo"))
 			})
 
