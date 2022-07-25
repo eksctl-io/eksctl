@@ -132,6 +132,57 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return err
 	}
 
+	if cfg.Outpost != nil {
+		if cfg.Outpost.ControlPlaneOutpostARN == "" {
+			return errors.New("outpost.controlPlaneOutpostARN is required for Outposts")
+		}
+
+		parsed, err := arn.Parse(cfg.Outpost.ControlPlaneOutpostARN)
+		if err != nil {
+			return fmt.Errorf("invalid Outpost ARN: %w", err)
+		}
+		if parsed.Service != "outposts" {
+			return fmt.Errorf("invalid Outpost ARN: %q", cfg.Outpost.ControlPlaneOutpostARN)
+		}
+
+		if cfg.IsFullyPrivate() {
+			return errors.New("fully-private cluster (privateCluster.enabled) is not supported for Outposts")
+		}
+		if len(cfg.ManagedNodeGroups) > 0 {
+			return errors.New("Managed Nodegroups are not supported on Outposts")
+		}
+		if len(cfg.Addons) > 0 {
+			return errors.New("Addons are not supported on Outposts")
+		}
+		if len(cfg.IdentityProviders) > 0 {
+			return errors.New("Identity Providers are not supported on Outposts")
+		}
+		if len(cfg.FargateProfiles) > 0 {
+			return errors.New("Fargate is not supported on Outposts")
+		}
+		if cfg.Karpenter != nil {
+			return errors.New("Karpenter is not supported on Outposts")
+		}
+		if cfg.SecretsEncryption != nil && cfg.SecretsEncryption.KeyARN != "" {
+			return errors.New("KMS encryption is not supported on Outposts")
+		}
+		if len(cfg.AvailabilityZones) > 0 {
+			return errors.New("cannot specify availabilityZones on Outposts; the AZ defaults to the Outpost AZ")
+		}
+		if len(cfg.LocalZones) > 0 {
+			return errors.New("Local Zones are not supported on Outposts")
+		}
+		if cfg.IPv6Enabled() {
+			return errors.New("IPv6 is not supported on Outposts")
+		}
+		if cfg.GitOps != nil {
+			return errors.New("GitOps is not supported on Outposts")
+		}
+		if cfg.IAM != nil && IsEnabled(cfg.IAM.WithOIDC) {
+			return errors.New("iam.withOIDC is not supported on Outposts")
+		}
+	}
+
 	if err := cfg.ValidateVPCConfig(); err != nil {
 		return err
 	}
@@ -773,6 +824,12 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		return errors.New("cannot specify both localZones and availabilityZones")
 	}
 
+	if ng.OutpostARN != "" {
+		if _, err := arn.Parse(ng.OutpostARN); err != nil {
+			return fmt.Errorf("invalid Outpost ARN: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -935,6 +992,10 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		if ng.IAM.InstanceProfileARN != "" {
 			return errNotSupported("instanceProfileARN")
 		}
+	}
+
+	if ng.OutpostARN != "" {
+		return errors.New("Outposts is not supported for managed nodegroups")
 	}
 
 	// TODO fix error messages to not use CLI flags

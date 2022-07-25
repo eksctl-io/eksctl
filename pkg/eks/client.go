@@ -71,7 +71,11 @@ func (c *Client) new(spec *api.ClusterConfig) (*Client, error) {
 }
 
 func (c *Client) useEmbeddedToken(spec *api.ClusterConfig) error {
-	tok, err := c.Generator.GetWithSTS(context.TODO(), spec.Metadata.Name)
+	clusterID := spec.Status.ID
+	if clusterID == "" {
+		clusterID = spec.Metadata.Name
+	}
+	tok, err := c.Generator.GetWithSTS(context.TODO(), clusterID)
 	if err != nil {
 		return errors.Wrap(err, "could not get token")
 	}

@@ -30,6 +30,7 @@ const (
 	iamPolicyAmazonSSMManagedInstanceCore        = "AmazonSSMManagedInstanceCore"
 
 	iamPolicyAmazonEKSFargatePodExecutionRolePolicy = "AmazonEKSFargatePodExecutionRolePolicy"
+	iamLocalClusterPolicyName                       = "local-cluster"
 )
 
 const (
@@ -80,19 +81,36 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 
 	c.rs.withIAM = true
 
-	managedPolicyArns := []string{
-		iamPolicyAmazonEKSClusterPolicy,
-	}
+	var managedPolicyARNs []string
+
 	if !api.IsDisabled(c.spec.IAM.VPCResourceControllerPolicy) {
-		managedPolicyArns = append(managedPolicyArns, iamPolicyAmazonEKSVPCResourceController)
+		managedPolicyARNs = append(managedPolicyARNs, iamPolicyAmazonEKSVPCResourceController)
 	}
 
-	role := &gfniam.Role{
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
-			MakeServiceRef("EKS"),
-		),
-		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyArns...)...),
+	var role *gfniam.Role
+	if c.spec.IsControlPlaneOnOutposts() {
+		role = &gfniam.Role{
+			AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
+				MakeServiceRef("EC2"),
+			),
+			ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyARNs...)...),
+			Policies: []gfniam.Role_Policy{
+				{
+					PolicyDocument: gfnt.NewString(getLocalClusterPolicyDocument()),
+					PolicyName:     gfnt.NewString(iamLocalClusterPolicyName),
+				},
+			},
+		}
+	} else {
+		managedPolicyARNs = append(managedPolicyARNs, iamPolicyAmazonEKSClusterPolicy)
+		role = &gfniam.Role{
+			AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
+				MakeServiceRef("EKS"),
+			),
+			ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyARNs...)...),
+		}
 	}
+
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRolePermissionsBoundary) {
 		role.PermissionsBoundary = gfnt.NewString(*c.spec.IAM.ServiceRolePermissionsBoundary)
 	}

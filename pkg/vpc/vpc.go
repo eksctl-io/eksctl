@@ -25,36 +25,37 @@ import (
 // SetSubnets defines CIDRs for each of the subnets,
 // it must be called after SetAvailabilityZones.
 func SetSubnets(vpc *api.ClusterVPC, availabilityZones, localZones []string) error {
-	var err error
+	if err := validateVPCCIDR(vpc); err != nil {
+		return err
+	}
 
-	if vpc.CIDR == nil {
-		cidr := api.DefaultCIDR()
-		vpc.CIDR = &cidr
-	}
-	prefix, _ := vpc.CIDR.Mask.Size()
-	if prefix < 16 || prefix > 24 {
-		return errors.New("VPC CIDR prefix must be between /16 and /24")
-	}
 	zonesTotal := len(availabilityZones) + len(localZones)
+	subnetsTotal := zonesTotal * 2
+	maskSize, _ := vpc.CIDR.IPNet.Mask.Size()
 
-	var zoneCIDRs []*net.IPNet
-
-	switch subnetsTotal := zonesTotal * 2; {
+	var (
+		subnetSize    int
+		networkLength int
+	)
+	switch {
+	case subnetsTotal == 2:
+		subnetSize = 2
+		networkLength = maskSize + 3
 	case subnetsTotal <= 8:
-		zoneCIDRs, err = SplitInto8(&vpc.CIDR.IPNet)
-		if err != nil {
-			return err
-		}
-		logger.Debug("VPC CIDR (%s) was divided into 8 subnets %v", vpc.CIDR.String(), zoneCIDRs)
+		subnetSize = 8
+		networkLength = maskSize + 3
 	case subnetsTotal <= 16:
-		zoneCIDRs, err = SplitInto16(&vpc.CIDR.IPNet)
-		if err != nil {
-			return err
-		}
-		logger.Debug("VPC CIDR (%s) was divided into 16 subnets %v", vpc.CIDR.String(), zoneCIDRs)
+		subnetSize = 16
+		networkLength = maskSize + 4
 	default:
 		return fmt.Errorf("cannot create more than 16 subnets, %d requested", subnetsTotal)
 	}
+	zoneCIDRs, err := SplitInto(&vpc.CIDR.IPNet, subnetSize, networkLength)
+	if err != nil {
+		return err
+	}
+
+	logger.Debug("VPC CIDR (%s) was divided into %d subnets %v", vpc.CIDR.String(), len(zoneCIDRs), zoneCIDRs)
 
 	vpc.Subnets = &api.ClusterSubnets{
 		Private: api.NewAZSubnetMapping(),
@@ -93,51 +94,38 @@ func SetSubnets(vpc *api.ClusterVPC, availabilityZones, localZones []string) err
 	return nil
 }
 
-func SplitInto16(parent *net.IPNet) ([]*net.IPNet, error) {
-	networkLength, _ := parent.Mask.Size()
-	networkLength += 4
-
-	var subnets []*net.IPNet
-	for i := 0; i < 16; i++ {
-		ip4 := parent.IP.To4()
-		if ip4 != nil {
-			n := binary.BigEndian.Uint32(ip4)
-			n += uint32(i) << uint(32-networkLength)
-			subnetIP := make(net.IP, len(ip4))
-			binary.BigEndian.PutUint32(subnetIP, n)
-
-			subnets = append(subnets, &net.IPNet{
-				IP:   subnetIP,
-				Mask: net.CIDRMask(networkLength, 32),
-			})
-		} else {
-			return nil, fmt.Errorf("Unexpected IP address type: %s", parent)
-		}
+func validateVPCCIDR(vpc *api.ClusterVPC) error {
+	if vpc.CIDR == nil {
+		cidr := api.DefaultCIDR()
+		vpc.CIDR = &cidr
 	}
 
-	return subnets, nil
+	if prefix, _ := vpc.CIDR.Mask.Size(); prefix < 16 || prefix > 24 {
+		return errors.New("VPC CIDR prefix must be between /16 and /24")
+	}
+	return nil
 }
 
-func SplitInto8(parent *net.IPNet) ([]*net.IPNet, error) {
-	networkLength, _ := parent.Mask.Size()
-	networkLength += 3
-
+func SplitInto(parent *net.IPNet, size, networkLength int) ([]*net.IPNet, error) {
+	if networkLength < 16 || networkLength > 28 {
+		return nil, errors.New("CIDR block size must be between a /16 netmask and /28 netmask")
+	}
 	var subnets []*net.IPNet
-	for i := 0; i < 8; i++ {
+	for i := 0; i < size; i++ {
 		ip4 := parent.IP.To4()
-		if ip4 != nil {
-			n := binary.BigEndian.Uint32(ip4)
-			n += uint32(i) << uint(32-networkLength)
-			subnetIP := make(net.IP, len(ip4))
-			binary.BigEndian.PutUint32(subnetIP, n)
-
-			subnets = append(subnets, &net.IPNet{
-				IP:   subnetIP,
-				Mask: net.CIDRMask(networkLength, 32),
-			})
-		} else {
+		if ip4 == nil {
 			return nil, fmt.Errorf("unexpected IP address type: %s", parent)
 		}
+
+		n := binary.BigEndian.Uint32(ip4)
+		n += uint32(i) << uint(32-networkLength)
+		subnetIP := make(net.IP, len(ip4))
+		binary.BigEndian.PutUint32(subnetIP, n)
+
+		subnets = append(subnets, &net.IPNet{
+			IP:   subnetIP,
+			Mask: net.CIDRMask(networkLength, 32),
+		})
 	}
 
 	return subnets, nil
@@ -656,7 +644,7 @@ func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig 
 			}
 		}
 
-		subnetsFromIDs, err := selectNodeGroupSubnetsFromIDs(ctx, ng.Subnets, subnetMapping, clusterConfig.VPC.ID, ec2API, func(zone string) error {
+		subnetsFromIDs, err := selectNodeGroupSubnetsFromIDs(ctx, ng.Subnets, subnetMapping, clusterConfig, ec2API, func(zone string) error {
 			zoneType, ok := zoneTypeMapping[zone]
 			if !ok {
 				return fmt.Errorf("unexpected error finding zone type for zone %q", zone)
@@ -702,7 +690,7 @@ func selectNodeGroupZoneSubnets(nodeGroupZones []string, subnetMapping api.AZSub
 	return subnetIDs, nil
 }
 
-func selectNodeGroupSubnetsFromIDs(ctx context.Context, subnetIDs []string, subnetMapping api.AZSubnetMapping, vpcID string, ec2API awsapi.EC2, validateSubnetZone func(zone string) error) ([]string, error) {
+func selectNodeGroupSubnetsFromIDs(ctx context.Context, subnetIDs []string, subnetMapping api.AZSubnetMapping, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2, validateSubnetZone func(zone string) error) ([]string, error) {
 	var selectedSubnetIDs []string
 	for _, subnetName := range subnetIDs {
 		var subnetID string
@@ -721,15 +709,30 @@ func selectNodeGroupSubnetsFromIDs(ctx context.Context, subnetIDs []string, subn
 			if err != nil {
 				return nil, err
 			}
-			if subnet.VpcId != nil && *subnet.VpcId != vpcID {
-				return nil, fmt.Errorf("subnet with ID %q is not in the attached VPC with ID %q", *subnet.SubnetId, vpcID)
+			if subnet.VpcId != nil && *subnet.VpcId != clusterConfig.VPC.ID {
+				return nil, fmt.Errorf("subnet with ID %q is not in the attached VPC with ID %q", *subnet.SubnetId, clusterConfig.VPC.ID)
 			}
 			if err := validateSubnetZone(*subnet.AvailabilityZone); err != nil {
 				return nil, err
+			}
+			if clusterConfig.IsControlPlaneOnOutposts() {
+				if err := validateSubnetOnOutposts(subnet, clusterConfig.Outpost.ControlPlaneOutpostARN); err != nil {
+					return nil, err
+				}
 			}
 			subnetID = *subnet.SubnetId
 		}
 		selectedSubnetIDs = append(selectedSubnetIDs, subnetID)
 	}
 	return selectedSubnetIDs, nil
+}
+
+func validateSubnetOnOutposts(subnet ec2types.Subnet, controlPlaneOutpostARN string) error {
+	if subnet.OutpostArn == nil {
+		return fmt.Errorf("subnet %q is not on Outposts", *subnet.SubnetId)
+	}
+	if *subnet.OutpostArn != controlPlaneOutpostARN {
+		return fmt.Errorf("subnet %q is in a different Outpost ARN (%q) than the control plane (%q)", *subnet.SubnetId, *subnet.OutpostArn, controlPlaneOutpostARN)
+	}
+	return nil
 }

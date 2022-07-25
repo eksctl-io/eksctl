@@ -54,8 +54,10 @@ func NewClusterResourceSet(ec2API awsapi.EC2, region string, spec *api.ClusterCo
 
 // AddAllResources adds all the information about the cluster to the resource set
 func (c *ClusterResourceSet) AddAllResources(ctx context.Context) error {
-	if err := c.spec.HasSufficientSubnets(); err != nil {
-		return err
+	if !c.spec.IsControlPlaneOnOutposts() {
+		if err := c.spec.HasSufficientSubnets(); err != nil {
+			return err
+		}
 	}
 
 	vpcID, subnetDetails, err := c.vpcResourceSet.CreateTemplate(ctx)
@@ -270,6 +272,13 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		RoleArn:            serviceRoleARN,
 		Tags:               makeCFNTags(c.spec),
 		Version:            gfnt.NewString(c.spec.Metadata.Version),
+	}
+
+	if c.spec.IsControlPlaneOnOutposts() {
+		cluster.OutpostConfig = &gfneks.OutpostConfig{
+			OutpostARNs:              gfnt.NewStringSlice(c.spec.Outpost.ControlPlaneOutpostARN),
+			ControlPlaneInstanceType: gfnt.NewString(c.spec.Outpost.ControlPlaneInstanceType),
+		}
 	}
 
 	kubernetesNetworkConfig := &gfneks.Cluster_KubernetesNetworkConfig{}

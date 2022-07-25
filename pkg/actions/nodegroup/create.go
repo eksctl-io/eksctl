@@ -10,18 +10,18 @@ import (
 	"github.com/pkg/errors"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/outposts"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 	"github.com/weaveworks/eksctl/pkg/utils/nodes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 // CreateOpts controls specific steps of node group creation
@@ -65,13 +65,21 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 
 	nodePools := nodes.ToNodePools(cfg)
 
-	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, m.instanceSelector)
+	var outpostsService *outposts.Service
+	if cfg.IsControlPlaneOnOutposts() {
+		outpostsService = &outposts.Service{
+			OutpostsAPI: ctl.AWSProvider.Outposts(),
+			EC2API:      ctl.AWSProvider.EC2(),
+			OutpostID:   cfg.Outpost.ControlPlaneOutpostARN,
+		}
+	}
+	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, m.instanceSelector, outpostsService)
 	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
 	}
 
 	if !options.DryRun {
-		if err := nodeGroupService.Normalize(ctx, nodePools, cfg.Metadata); err != nil {
+		if err := nodeGroupService.Normalize(ctx, nodePools, cfg); err != nil {
 			return err
 		}
 	}

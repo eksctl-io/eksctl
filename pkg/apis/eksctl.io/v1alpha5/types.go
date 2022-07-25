@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
@@ -16,7 +18,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -619,6 +620,7 @@ type ClusterStatus struct {
 	CertificateAuthorityData []byte                   `json:"certificateAuthorityData,omitempty"`
 	ARN                      string                   `json:"arn,omitempty"`
 	KubernetesNetworkConfig  *KubernetesNetworkConfig `json:"-"`
+	ID                       string                   `json:"-"`
 
 	StackName     string        `json:"stackName,omitempty"`
 	EKSCTLCreated EKSCTLCreated `json:"eksctlCreated,omitempty"`
@@ -670,6 +672,16 @@ func (c ClusterConfig) HasNodes() bool {
 	return false
 }
 
+// IsFullyPrivate returns true if this is a fully-private cluster.
+func (c *ClusterConfig) IsFullyPrivate() bool {
+	return c.PrivateCluster != nil && c.PrivateCluster.Enabled
+}
+
+// IsControlPlaneOnOutposts returns true if the control plane is on Outposts.
+func (c *ClusterConfig) IsControlPlaneOnOutposts() bool {
+	return c.Outpost != nil && c.Outpost.ControlPlaneOutpostARN != ""
+}
+
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
 	CloudFormation() awsapi.CloudFormation
@@ -692,6 +704,7 @@ type ClusterProvider interface {
 	STS() awsapi.STS
 	STSPresigner() STSPresigner
 	EC2() awsapi.EC2
+	Outposts() awsapi.Outposts
 }
 
 // STSPresigner defines the method to pre-sign GetCallerIdentity requests to add a proper header required by EKS for
@@ -782,9 +795,21 @@ type ClusterConfig struct {
 	// Karpenter specific configuration options.
 	// +optional
 	Karpenter *Karpenter `json:"karpenter,omitempty"`
+
+	// Outpost specifies the Outpost configuration.
+	// +optional
+	Outpost *Outpost `json:"outpost,omitempty"`
 }
 
-// Karpenter provides configuration opti
+// Outpost holds the Outpost configuration.
+type Outpost struct {
+	// ControlPlaneOutpostARN specifies the Outpost ARN in which the control plane should be created.
+	ControlPlaneOutpostARN string `json:"controlPlaneOutpostARN"`
+	// ControlPlaneInstanceType specifies the instance type to use for creating the control plane instances.
+	ControlPlaneInstanceType string `json:"controlPlaneInstanceType"`
+}
+
+// Karpenter provides configuration options
 type Karpenter struct {
 	// Version defines the Karpenter version to install
 	// +required
@@ -878,20 +903,36 @@ func (c *ClusterConfig) IPv6Enabled() bool {
 	return c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.IPv6Enabled()
 }
 
-// SetClusterStatus populates ClusterStatus using *eks.Cluster.
-func (c *ClusterConfig) SetClusterStatus(cluster *ekstypes.Cluster) error {
+// SetClusterState updates the cluster state and populates the ClusterStatus using *eks.Cluster.
+func (c *ClusterConfig) SetClusterState(cluster *ekstypes.Cluster) error {
 	if networkConfig := cluster.KubernetesNetworkConfig; networkConfig != nil && networkConfig.ServiceIpv4Cidr != nil {
 		c.Status.KubernetesNetworkConfig = &KubernetesNetworkConfig{
 			ServiceIPv4CIDR: *networkConfig.ServiceIpv4Cidr,
 		}
+		c.KubernetesNetworkConfig = &KubernetesNetworkConfig{
+			ServiceIPv4CIDR: aws.ToString(cluster.KubernetesNetworkConfig.ServiceIpv4Cidr),
+		}
 	}
 	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
 	if err != nil {
-		return errors.Wrap(err, "decoding certificate authority data")
+		return fmt.Errorf("decoding certificate authority data: %w", err)
 	}
 	c.Status.Endpoint = *cluster.Endpoint
 	c.Status.CertificateAuthorityData = data
 	c.Status.ARN = *cluster.Arn
+	if cluster.OutpostConfig != nil {
+		outpost := cluster.OutpostConfig
+		if len(outpost.OutpostArns) != 1 {
+			return fmt.Errorf("expected cluster to be associated with only one Outpost; got %v", outpost.OutpostArns)
+		}
+		c.Outpost = &Outpost{
+			ControlPlaneOutpostARN:   outpost.OutpostArns[0],
+			ControlPlaneInstanceType: *outpost.ControlPlaneInstanceType,
+		}
+	}
+	if cluster.Id != nil {
+		c.Status.ID = *cluster.Id
+	}
 	return nil
 }
 
@@ -900,7 +941,6 @@ func NewNodeGroup() *NodeGroup {
 	return &NodeGroup{
 		NodeGroupBase: &NodeGroupBase{
 			PrivateNetworking: false,
-			InstanceType:      DefaultNodeType,
 			VolumeSize:        &DefaultNodeVolumeSize,
 			IAM: &NodeGroupIAM{
 				WithAddonPolicies: NodeGroupIAMAddonPolicies{
@@ -1102,8 +1142,6 @@ type Flux struct {
 // FluxFlags is a map of string for passing arbitrary flags to Flux bootstrap
 type FluxFlags map[string]string
 
-// Operator groups all configuration options related to the operator used to
-// keep the cluster and the Git repository in sync.
 // HasGitOpsFluxConfigured returns true if gitops.flux configuration is not nil
 func (c *ClusterConfig) HasGitOpsFluxConfigured() bool {
 	return c.GitOps != nil && c.GitOps.Flux != nil
@@ -1450,6 +1488,10 @@ type NodeGroupBase struct {
 
 	// CapacityReservation defines reservation policy for a nodegroup
 	CapacityReservation *CapacityReservation `json:"capacityReservation,omitempty"`
+
+	// OutpostARN specifies the Outpost ARN in which the nodegroup should be created.
+	// +optional
+	OutpostARN string `json:"outpostARN,omitempty"`
 }
 
 // CapacityReservation defines a nodegroup's Capacity Reservation targeting option
@@ -1717,7 +1759,7 @@ func (t *taintsWrapper) UnmarshalJSON(data []byte) error {
 	dec := json.NewDecoder(bytes.NewReader(data))
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&ngTaints); err != nil {
-		return errors.Wrap(err, "taints must be a {string: string} or a [{key, value, effect}]")
+		return fmt.Errorf("taints must be a {string: string} or a [{key, value, effect}]: %w", err)
 	}
 	*t = ngTaints
 	return nil

@@ -546,8 +546,5 @@ func (c *ClusterProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec
 	if err := c.LoadClusterVPC(ctx, spec, stackManager); err != nil {
 		return err
 	}
-	if err := c.RefreshClusterStatus(ctx, spec); err != nil {
-		return err
-	}
-	return c.loadClusterKubernetesNetworkConfig(spec)
+	return c.RefreshClusterStatus(ctx, spec)
 }

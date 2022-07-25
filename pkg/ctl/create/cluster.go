@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -29,6 +31,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/outposts"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
@@ -171,8 +174,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
-	// if it's a private only cluster warn the user
-	if api.PrivateOnly(cfg.VPC.ClusterEndpoints) {
+	// If it's a private-only cluster warn the user.
+	if api.PrivateOnly(cfg.VPC.ClusterEndpoints) && !cfg.IsControlPlaneOnOutposts() {
 		logger.Warning(api.ErrClusterEndpointPrivateOnly.Error())
 	}
 
@@ -242,11 +245,42 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		eks.LogWindowsCompatibility(kubeNodeGroups, cfg.Metadata)
 	}
 
+	var outpostsService *outposts.Service
+
+	if cfg.IsControlPlaneOnOutposts() {
+		outpostsService = &outposts.Service{
+			OutpostsAPI: ctl.AWSProvider.Outposts(),
+			EC2API:      ctl.AWSProvider.EC2(),
+			OutpostID:   cfg.Outpost.ControlPlaneOutpostARN,
+		}
+		outpost, err := outpostsService.GetOutpost(ctx)
+		if err != nil {
+			return fmt.Errorf("error getting Outpost details: %w", err)
+		}
+		if !params.DryRun {
+			cfg.AvailabilityZones = []string{aws.ToString(outpost.AvailabilityZone)}
+		}
+
+		if controlPlaneInstanceType := cfg.Outpost.ControlPlaneInstanceType; controlPlaneInstanceType == "" {
+			smallestInstanceType, err := outpostsService.GetSmallestInstanceType(ctx)
+			if err != nil {
+				return fmt.Errorf("error getting smallest instance type for the control plane: %w", err)
+			}
+			cfg.Outpost.ControlPlaneInstanceType = smallestInstanceType
+		} else if err := outpostsService.ValidateInstanceType(ctx, controlPlaneInstanceType); err != nil {
+			return fmt.Errorf("error validating instance type for Outpost: %w", err)
+		}
+
+		if !cfg.HasAnySubnets() && len(kubeNodeGroups) > 0 {
+			return errors.New("cannot create nodegroups on Outposts when the VPC is created by eksctl as it will not have connectivity to the API server; please rerun the command with `--without-nodegroup` and run `eksctl create nodegroup` after associating the VPC with a local gateway and ensuring connectivity to the API server")
+		}
+	}
+
 	if err := createOrImportVPC(ctx, cmd, cfg, params, ctl); err != nil {
 		return err
 	}
 
-	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, selector.New(ctl.AWSProvider.Session()))
+	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, selector.New(ctl.AWSProvider.Session()), outpostsService)
 	nodePools := nodes.ToNodePools(cfg)
 	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
@@ -256,7 +290,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return cmdutils.PrintDryRunConfig(cfg, os.Stdout)
 	}
 
-	if err := nodeGroupService.Normalize(ctx, nodePools, cfg.Metadata); err != nil {
+	if err := nodeGroupService.Normalize(ctx, nodePools, cfg); err != nil {
 		return err
 	}
 
@@ -385,7 +419,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				for _, err := range errs {
 					logger.Critical("%s\n", err.Error())
 				}
-				return fmt.Errorf("failed to create addons")
+				return errors.New("failed to create addons")
 			}
 		}
 
@@ -463,33 +497,39 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
 	if !subnetsGiven && params.KopsClusterNameForVPC == "" {
-		userProvidedAzs, err := eks.SetAvailabilityZones(ctx, cfg, params.AvailabilityZones, ctl.AWSProvider.EC2(), ctl.AWSProvider.Region())
-		if err != nil {
-			return err
-		}
-
-		// If the availability zones were provided at random, we already did this check.
-		if userProvidedAzs {
-			if err := eks.CheckInstanceAvailability(ctx, cfg, ctl.AWSProvider.EC2()); err != nil {
+		if !cfg.IsControlPlaneOnOutposts() {
+			userProvidedAZs, err := eks.SetAvailabilityZones(ctx, cfg, params.AvailabilityZones, ctl.AWSProvider.EC2(), ctl.AWSProvider.Region())
+			if err != nil {
 				return err
 			}
-		}
 
-		if len(cfg.LocalZones) > 0 {
-			if err := eks.ValidateLocalZones(ctx, ctl.AWSProvider.EC2(), cfg.LocalZones, ctl.AWSProvider.Region()); err != nil {
-				return err
+			// If the availability zones were provided at random, we already did this check.
+			if userProvidedAZs {
+				if err := eks.CheckInstanceAvailability(ctx, cfg, ctl.AWSProvider.EC2()); err != nil {
+					return err
+				}
+			}
+
+			if len(cfg.LocalZones) > 0 {
+				if err := eks.ValidateLocalZones(ctx, ctl.AWSProvider.EC2(), cfg.LocalZones, ctl.AWSProvider.Region()); err != nil {
+					return err
+				}
+			}
+
+			// Skip setting subnets
+			// The default subnet config set by SetSubnets will fail validation on a subsequent run of `create cluster`
+			// because those fields indicate usage of pre-existing VPC and subnets
+			// default: create dedicated VPC
+			if params.DryRun {
+				return nil
 			}
 		}
-
-		// Skip setting subnets
-		// The default subnet config set by SetSubnets will fail validation on a subsequent run of `create cluster`
-		// because those fields indicate usage of pre-existing VPC and subnets
-		// default: create dedicated VPC
-		if params.DryRun {
-			return nil
-		}
-
 		return vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones, cfg.LocalZones)
+	}
+
+	if cfg.IsControlPlaneOnOutposts() {
+		// TODO: remove validation after adding support for specifying pre-existing subnets with Outposts.
+		return errors.New("cannot specify subnets or --vpc-from-kops-cluster when creating a cluster on Outposts")
 	}
 
 	if params.KopsClusterNameForVPC != "" {

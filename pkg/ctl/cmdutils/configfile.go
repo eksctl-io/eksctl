@@ -248,16 +248,33 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			*clusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
 		}
 
-		if clusterConfig.PrivateCluster != nil && clusterConfig.PrivateCluster.Enabled {
-			if clusterEndpoints := clusterConfig.VPC.ClusterEndpoints; clusterEndpoints != nil && (clusterEndpoints.PublicAccess != nil || clusterEndpoints.PrivateAccess != nil) {
+		hasEndpointAccess := func() bool {
+			clusterEndpoints := clusterConfig.VPC.ClusterEndpoints
+			return clusterEndpoints != nil && (clusterEndpoints.PublicAccess != nil || clusterEndpoints.PrivateAccess != nil)
+		}
+
+		if clusterConfig.IsFullyPrivate() {
+			if hasEndpointAccess() {
 				return errors.New("vpc.clusterEndpoints cannot be set for a fully-private cluster (privateCluster.enabled) as the endpoint access defaults to private-only")
 			}
 		}
-
-		api.SetClusterEndpointAccessDefaults(clusterConfig.VPC)
-
-		if err := clusterConfig.ValidateClusterEndpointConfig(); err != nil {
-			return err
+		if clusterConfig.IsControlPlaneOnOutposts() {
+			if hasEndpointAccess() {
+				clusterEndpoints := clusterConfig.VPC.ClusterEndpoints
+				const msg = "the cluster defaults to private-endpoint-only access"
+				if api.IsEnabled(clusterEndpoints.PublicAccess) {
+					return fmt.Errorf("clusterEndpoints.publicAccess cannot be enabled for a cluster on Outposts; %s", msg)
+				}
+				if api.IsDisabled(clusterEndpoints.PrivateAccess) {
+					return fmt.Errorf("clusterEndpoints.privateAccess cannot be disabled for a cluster on Outposts; %s", msg)
+				}
+			}
+			clusterConfig.VPC.ClusterEndpoints = &api.ClusterEndpoints{
+				PrivateAccess: api.Enabled(),
+				PublicAccess:  api.Disabled(),
+			}
+		} else {
+			api.SetClusterEndpointAccessDefaults(clusterConfig.VPC)
 		}
 
 		if clusterConfig.HasAnySubnets() && len(clusterConfig.AvailabilityZones) != 0 {

@@ -72,7 +72,7 @@ func (v *IPv4VPCResourceSet) addResources() error {
 		EnableDnsHostnames: gfnt.True(),
 	})
 
-	if v.isFullyPrivate() {
+	if v.clusterConfig.IsFullyPrivate() {
 		v.noNAT()
 		v.subnetDetails.Private = v.addSubnets(nil, api.SubnetTopologyPrivate, vpc.Subnets.Private)
 		return nil
@@ -186,13 +186,9 @@ func (v *IPv4VPCResourceSet) addOutputs(ctx context.Context) {
 		addSubnetOutput(subnetAZs, clusterVPC.LocalZoneSubnets.Public, outputs.ClusterSubnetsPublicLocal)
 	}
 
-	if v.isFullyPrivate() {
+	if v.clusterConfig.IsFullyPrivate() {
 		v.rs.defineOutputWithoutCollector(outputs.ClusterFullyPrivate, true, true)
 	}
-}
-
-func (v *IPv4VPCResourceSet) isFullyPrivate() bool {
-	return v.clusterConfig.PrivateCluster.Enabled
 }
 
 // RenderJSON returns the rendered JSON
@@ -212,6 +208,9 @@ func (v *IPv4VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTo
 			AvailabilityZone: gfnt.NewString(az),
 			CidrBlock:        gfnt.NewString(s.CIDR.String()),
 			VpcId:            v.vpcID,
+		}
+		if v.clusterConfig.IsControlPlaneOnOutposts() {
+			subnet.OutpostArn = gfnt.NewString(v.clusterConfig.Outpost.ControlPlaneOutpostARN)
 		}
 
 		switch topology {

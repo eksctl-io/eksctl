@@ -68,7 +68,7 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 // IAM SAs that need to be explicitly deleted.
 func IAMServiceAccountsWithImplicitServiceAccounts(cfg *ClusterConfig) []*ClusterIAMServiceAccount {
 	serviceAccounts := cfg.IAM.ServiceAccounts
-	if IsEnabled(cfg.IAM.WithOIDC) && !vpccniAddonSpecified(cfg) {
+	if IsEnabled(cfg.IAM.WithOIDC) && !vpcCNIAddonSpecified(cfg) {
 		var found bool
 		for _, sa := range cfg.IAM.ServiceAccounts {
 			found = found || (sa.Name == AWSNodeMeta.Name && sa.Namespace == AWSNodeMeta.Namespace)
@@ -86,7 +86,7 @@ func IAMServiceAccountsWithImplicitServiceAccounts(cfg *ClusterConfig) []*Cluste
 	return serviceAccounts
 }
 
-func vpccniAddonSpecified(cfg *ClusterConfig) bool {
+func vpcCNIAddonSpecified(cfg *ClusterConfig) bool {
 	for _, a := range cfg.Addons {
 		if strings.ToLower(a.Name) == "vpc-cni" {
 			return true
@@ -98,13 +98,6 @@ func vpccniAddonSpecified(cfg *ClusterConfig) bool {
 // SetNodeGroupDefaults will set defaults for a given nodegroup
 func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	setNodeGroupBaseDefaults(ng.NodeGroupBase, meta)
-	if ng.InstanceType == "" {
-		if HasMixedInstances(ng) || !ng.InstanceSelector.IsZero() {
-			ng.InstanceType = "mixed"
-		} else {
-			ng.InstanceType = DefaultNodeType
-		}
-	}
 
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = DefaultNodeImageFamily
@@ -128,9 +121,6 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
 	setNodeGroupBaseDefaults(ng.NodeGroupBase, meta)
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = NodeImageFamilyAmazonLinux2
-	}
-	if ng.LaunchTemplate == nil && ng.InstanceType == "" && len(ng.InstanceTypes) == 0 && ng.InstanceSelector.IsZero() {
-		ng.InstanceType = DefaultNodeType
 	}
 
 	if ng.Tags == nil {
@@ -324,16 +314,18 @@ func DefaultClusterNAT() *ClusterNAT {
 
 // SetClusterEndpointAccessDefaults sets the default values for cluster endpoint access
 func SetClusterEndpointAccessDefaults(vpc *ClusterVPC) {
+	endpointAccess := ClusterEndpointAccessDefaults()
 	if vpc.ClusterEndpoints == nil {
-		vpc.ClusterEndpoints = ClusterEndpointAccessDefaults()
+		vpc.ClusterEndpoints = endpointAccess
+		return
 	}
 
 	if vpc.ClusterEndpoints.PublicAccess == nil {
-		vpc.ClusterEndpoints.PublicAccess = ClusterEndpointAccessDefaults().PublicAccess
+		vpc.ClusterEndpoints.PublicAccess = endpointAccess.PublicAccess
 	}
 
 	if vpc.ClusterEndpoints.PrivateAccess == nil {
-		vpc.ClusterEndpoints.PrivateAccess = ClusterEndpointAccessDefaults().PrivateAccess
+		vpc.ClusterEndpoints.PrivateAccess = endpointAccess.PrivateAccess
 	}
 }
 

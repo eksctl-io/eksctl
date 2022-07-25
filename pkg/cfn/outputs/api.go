@@ -39,10 +39,9 @@ const (
 	// outputs to indicate configuration attributes that may have critical effect
 	// on critical effect on forward-compatibility with respect to overall functionality
 	// and integrity, e.g. networking
-	NodeGroupFeaturePrivateNetworking     = "FeaturePrivateNetworking"
-	NodeGroupFeatureSharedSecurityGroup   = "FeatureSharedSecurityGroup"
-	NodeGroupFeatureLocalSecurityGroup    = "FeatureLocalSecurityGroup"
-	NodeGroupFeaturePrivateEndpointAccess = "FeaturePrivateEndpointAccess"
+	NodeGroupFeaturePrivateNetworking   = "FeaturePrivateNetworking"
+	NodeGroupFeatureSharedSecurityGroup = "FeatureSharedSecurityGroup"
+	NodeGroupFeatureLocalSecurityGroup  = "FeatureLocalSecurityGroup"
 
 	// outputs from Fargate stack:
 	FargatePodExecutionRoleARN = "FargatePodExecutionRoleARN"
