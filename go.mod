@@ -23,7 +23,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.6
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.9
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.0
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.1
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.4
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.9
 	github.com/aws/smithy-go v1.12.0
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
