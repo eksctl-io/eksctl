@@ -407,8 +407,8 @@ github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.8/go.mod h1:ZIV8GYoC6WLB
 github.com/aws/aws-sdk-go-v2/internal/ini v1.2.2/go.mod h1:BQV0agm+JEhqR+2RT5e1XTFIDcAAV0eW6z2trp+iduw=
 github.com/aws/aws-sdk-go-v2/internal/ini v1.3.15 h1:QquxR7NH3ULBsKC+NoTpilzbKKS+5AELfNREInbhvas=
 github.com/aws/aws-sdk-go-v2/internal/ini v1.3.15/go.mod h1:Tkrthp/0sNBShQQsamR7j/zY4p19tVTAs+nnqhH6R3c=
-github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.3 h1:mR+mdSbTVt2eeId9bmhCaEqDMHaI3XwYEhIyGEvEdEY=
-github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.3/go.mod h1:nRKT7NqQlQDQZvyByoPg+VlIL8kfzCTZm4p7KUqRe2I=
+github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.5 h1:bOzF892bRTvBgcN3qgZ4KZZCAp8Gl7pWUxivVeJlR/0=
+github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.5/go.mod h1:H2ypPMVcL1PZUx7tT+VOP2qKHHmuX9yQdCMGK4y1Vdk=
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.21.1 h1:8Ltm+vbe+YoJPuu2tkuFwanEkWQwiB1PaU2RZ9sCtNI=
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.21.1/go.mod h1:K6RFOdIbPKZSuFxV0dhOQp1sstd79T9P3AnRAR1H+04=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.4 h1:2u/QhW/f9KLH0QPDXX+1MvZmSfM5QKsr1gCXCe+AIZI=
