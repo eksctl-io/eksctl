@@ -675,6 +675,64 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				Expect(properties.LaunchTemplateData.TagSpecifications[2].Tags[0].Value).To(Equal("bonsai-ng-abcd1234-Node"))
 			})
 
+			Context("Capacity Reservation", func() {
+				When("Capacity Reservation Preference is defined", func() {
+					BeforeEach(func() {
+						ng.AMI = "ami-123"
+						fakeBootstrapper.UserDataReturns("lovely data right here", nil)
+						ng.CapacityReservation = &api.CapacityReservation{
+							CapacityReservationPreference: aws.String("open"),
+						}
+					})
+
+					It("creates a LaunchTemplate adding Capacity Reservation Preference to it", func() {
+						properties := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties
+						Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationPreference).To(Equal(aws.String(api.OpenCapacityReservation)))
+						Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationTarget).To(BeNil())
+					})
+				})
+
+				When("Capacity Reservation Target is defined", func() {
+					BeforeEach(func() {
+						ng.AMI = "ami-123"
+						fakeBootstrapper.UserDataReturns("lovely data right here", nil)
+					})
+
+					When("Capacity Reservation Target ID is defined", func() {
+						BeforeEach(func() {
+							ng.CapacityReservation = &api.CapacityReservation{
+								CapacityReservationTarget: &api.CapacityReservationTarget{
+									CapacityReservationID: aws.String("id"),
+								},
+							}
+						})
+
+						It("creates a LaunchTemplate adding Capacity Reservation ID to it", func() {
+							properties := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties
+							Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationPreference).To(BeNil())
+							Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationTarget.CapacityReservationID).To(Equal(aws.String("id")))
+							Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationTarget.CapacityReservationResourceGroupARN).To(BeNil())
+						})
+					})
+
+					When("Capacity Reservation Resource Group ARN is defined", func() {
+						BeforeEach(func() {
+							ng.CapacityReservation = &api.CapacityReservation{
+								CapacityReservationTarget: &api.CapacityReservationTarget{
+									CapacityReservationResourceGroupARN: aws.String("group-arn"),
+								},
+							}
+						})
+
+						It("creates a LaunchTemplate adding Capacity Reservation Resource Group ARN to it", func() {
+							properties := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties
+							Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationPreference).To(BeNil())
+							Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationTarget.CapacityReservationID).To(BeNil())
+							Expect(properties.LaunchTemplateData.CapacityReservationSpecification.CapacityReservationTarget.CapacityReservationResourceGroupARN).To(Equal(aws.String("group-arn")))
+						})
+					})
+				})
+			})
 			Context("creating userdata fails", func() {
 				BeforeEach(func() {
 					fakeBootstrapper.UserDataReturns("", errors.New("this is fine"))
