@@ -2056,6 +2056,70 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 		})
 	})
+
+	Describe("Capacity Reservation validation", func() {
+		var (
+			cfg *api.ClusterConfig
+			ng  *api.NodeGroup
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			ng = cfg.NewNodeGroup()
+			ng.Name = "ng"
+		})
+
+		When("both CapacityReservationPreference and CapacityReservationTarget are set", func() {
+			It("returns an error", func() {
+				ng.CapacityReservation = &api.CapacityReservation{
+					CapacityReservationPreference: aws.String("open"),
+					CapacityReservationTarget: &api.CapacityReservationTarget{
+						CapacityReservationID:               aws.String("id"),
+						CapacityReservationResourceGroupARN: aws.String("arn"),
+					},
+				}
+
+				Expect(api.ValidateNodeGroup(0, ng)).To(MatchError(ContainSubstring("only one of CapacityReservationPreference or CapacityReservationTarget may be specified at a time")))
+			})
+		})
+
+		When("CapacityReservationPreference is set", func() {
+			When("it is set to 'open'", func() {
+				It("does not fail", func() {
+					ng.CapacityReservation = &api.CapacityReservation{CapacityReservationPreference: aws.String("open")}
+					Expect(api.ValidateNodeGroup(0, ng)).To(Succeed())
+				})
+			})
+
+			When("it is set to 'none'", func() {
+				It("does not fail", func() {
+					ng.CapacityReservation = &api.CapacityReservation{CapacityReservationPreference: aws.String("none")}
+					Expect(api.ValidateNodeGroup(0, ng)).To(Succeed())
+				})
+			})
+
+			When("it is set to something other than 'open' or 'none'", func() {
+				It("returns an error", func() {
+					ng.CapacityReservation = &api.CapacityReservation{CapacityReservationPreference: aws.String("err")}
+					Expect(api.ValidateNodeGroup(0, ng)).To(MatchError(ContainSubstring(`accepted values include "open" and "none"; got "err"`)))
+				})
+			})
+		})
+
+		When("CapacityReservationTarget is set", func() {
+			When("when both CapacityReservationID and CapacityReservationResourceGroupARN are set", func() {
+				It("returns an error", func() {
+					ng.CapacityReservation = &api.CapacityReservation{
+						CapacityReservationTarget: &api.CapacityReservationTarget{
+							CapacityReservationID:               aws.String("id"),
+							CapacityReservationResourceGroupARN: aws.String("arn"),
+						},
+					}
+					Expect(api.ValidateNodeGroup(0, ng)).To(MatchError(ContainSubstring("only one of CapacityReservationID or CapacityReservationResourceGroupARN may be specified at a time")))
+				})
+			})
+		})
+	})
 })
 
 func newInt(value int) *int {
