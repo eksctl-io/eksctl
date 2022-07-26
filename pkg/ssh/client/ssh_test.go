@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
@@ -114,7 +115,7 @@ var _ = Describe("ssh public key", func() {
 		When("they key is invalid", func() {
 			It("errors", func() {
 				_, err := LoadKeyFromFile(context.Background(), "assets/invalid.pub", clusterName, ngName, mockEC2)
-				Expect(err).To(MatchError(ContainSubstring("parsing key \"assets/invalid.pub\"")))
+				Expect(err).To(MatchError(ContainSubstring("parsing key")))
 			})
 		})
 	})
@@ -135,6 +136,28 @@ var _ = Describe("ssh public key", func() {
 					KeyName:           &keyName,
 					PublicKeyMaterial: []byte(rsaKey),
 				})
+		})
+
+		It("should load a key of type ed25519", func() {
+			mockDescribeKeyPairs(mockEC2, make(map[string]string))
+			mockImportKeyPair(mockEC2, ed25519KeyName, ed25519Fingerprint, ed25519Key)
+
+			keyName, err := LoadKeyByContent(context.Background(), &ed25519Key, clusterName, ngName, mockEC2)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-HvE7+gmH78VS53+iPuRDh/gKjVo26OzYU/qOnJWAgyk"))
+			mockEC2.AssertCalled(GinkgoT(),
+				"ImportKeyPair",
+				mock.Anything,
+				&ec2.ImportKeyPairInput{
+					KeyName:           &ed25519KeyName,
+					PublicKeyMaterial: []byte(ed25519Key),
+				})
+		})
+
+		It("errors when the key is invalid", func() {
+			_, err := LoadKeyByContent(context.Background(), aws.String("invalid-key"), clusterName, ngName, mockEC2)
+			Expect(err).To(MatchError(ContainSubstring("parsing key")))
 		})
 
 		It("should not import key that already exists in EC2", func() {
