@@ -672,6 +672,24 @@ func (c ClusterConfig) HasNodes() bool {
 	return false
 }
 
+// ID returns the cluster ID.
+func (c *ClusterConfig) ID() string {
+	if c.Status != nil && c.Status.ID != "" {
+		return c.Status.ID
+	}
+	return c.Metadata.Name
+}
+
+// Meta returns the cluster metadata.
+func (c *ClusterConfig) Meta() *ClusterMeta {
+	return c.Metadata
+}
+
+// GetStatus returns the cluster status.
+func (c *ClusterConfig) GetStatus() *ClusterStatus {
+	return c.Status
+}
+
 // IsFullyPrivate returns true if this is a fully-private cluster.
 func (c *ClusterConfig) IsFullyPrivate() bool {
 	return c.PrivateCluster != nil && c.PrivateCluster.Enabled
