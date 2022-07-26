@@ -4,7 +4,10 @@ import (
 	"context"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/kris-nova/logger"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -179,7 +182,14 @@ func (f *NodeGroupFilter) findAllNodeGroups(ctx context.Context, eksAPI awsapi.E
 	})
 
 	if err != nil {
-		return nil, nil, err
+		// TODO: temporary error.
+		var ce *ekstypes.ClientException
+		if errors.As(err, &ce) && strings.Contains(ce.ErrorMessage(), "This operation is not supported for EKS clusters") {
+			logger.Debug("ignoring temporary error: %v", err)
+			allNodeGroups = &eks.ListNodegroupsOutput{}
+		} else {
+			return nil, nil, err
+		}
 	}
 
 	nodeGroupsWithStacksSet := sets.NewString()
