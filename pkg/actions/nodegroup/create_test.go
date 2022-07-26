@@ -239,17 +239,19 @@ func newClusterConfig() *api.ClusterConfig {
 		PrivateCluster: &api.PrivateCluster{},
 		NodeGroups: []*api.NodeGroup{{
 			NodeGroupBase: &api.NodeGroupBase{
-				Name:      "my-ng",
-				AMIFamily: api.NodeImageFamilyAmazonLinux2,
-				AMI:       "ami-123",
-				SSH:       &api.NodeGroupSSH{Allow: api.Disabled()},
+				Name:             "my-ng",
+				AMIFamily:        api.NodeImageFamilyAmazonLinux2,
+				AMI:              "ami-123",
+				SSH:              &api.NodeGroupSSH{Allow: api.Disabled()},
+				InstanceSelector: &api.InstanceSelector{},
 			}},
 		},
 		ManagedNodeGroups: []*api.ManagedNodeGroup{{
 			NodeGroupBase: &api.NodeGroupBase{
-				Name:      "my-ng",
-				AMIFamily: api.NodeImageFamilyAmazonLinux2,
-				SSH:       &api.NodeGroupSSH{Allow: api.Disabled()},
+				Name:             "my-ng",
+				AMIFamily:        api.NodeImageFamilyAmazonLinux2,
+				SSH:              &api.NodeGroupSSH{Allow: api.Disabled()},
+				InstanceSelector: &api.InstanceSelector{},
 			}},
 		},
 	}

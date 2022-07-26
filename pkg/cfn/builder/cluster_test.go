@@ -280,8 +280,7 @@ var _ = Describe("Cluster Template Builder", func() {
 
 		It("should add the correct policies and references to the ServiceRole ARN", func() {
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(HaveLen(2))
-			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns[0]).To(Equal(makePolicyARNRef("AmazonEKSClusterPolicy")))
-			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns[1]).To(Equal(makePolicyARNRef("AmazonEKSVPCResourceController")))
+			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(ContainElements(makePolicyARNRef("AmazonEKSClusterPolicy"), makePolicyARNRef("AmazonEKSVPCResourceController")))
 
 			cwPolicy := clusterTemplate.Resources["PolicyCloudWatchMetrics"].Properties
 			Expect(isRefTo(cwPolicy.Roles[0], "ServiceRole")).To(BeTrue())

@@ -59,6 +59,7 @@ var _ = Describe("Instance Selector Validation", func() {
 		Entry("instancesDistribution without instanceTypes and instanceSelector", &instanceSelectorCase{
 			ng: &NodeGroup{
 				NodeGroupBase: &NodeGroupBase{
+					InstanceType:     "m5.large",
 					InstanceSelector: &InstanceSelector{},
 				},
 				InstancesDistribution: &NodeGroupInstancesDistribution{},

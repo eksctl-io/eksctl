@@ -125,7 +125,7 @@ var _ = Describe("VPC", func() {
 				Mask: []byte{255, 255, 0, 0},
 			}
 
-			subnets, err := SplitInto16(&input)
+			subnets, err := SplitInto(&input, 16, 20)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(subnets).To(HaveLen(16))
 			for i, subnet := range subnets {
@@ -154,11 +154,25 @@ var _ = Describe("VPC", func() {
 				Mask: []byte{255, 255, 0, 0},
 			}
 
-			subnets, err := SplitInto8(&input)
+			subnets, err := SplitInto(&input, 8, 19)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(subnets).To(HaveLen(8))
 			for i, subnet := range subnets {
 				Expect(subnet.String()).To(Equal(expected[i]))
+			}
+
+		})
+	})
+
+	Describe("SplitInto with an invalid CIDR block size", func() {
+		It("should return an error if the block size is invalid", func() {
+			blockSizes := []int{29, 15}
+			for _, s := range blockSizes {
+				_, err := SplitInto(&net.IPNet{
+					IP:   []byte{192, 168, 0, 0},
+					Mask: []byte{255, 255, 0, 0},
+				}, 8, s)
+				Expect(err).To(MatchError(ContainSubstring("CIDR block size must be between a /16 netmask and /28 netmask")))
 			}
 
 		})
@@ -226,6 +240,10 @@ var _ = Describe("VPC", func() {
 			vpc:               api.NewClusterVPC(false),
 			availabilityZones: []string{"us-west-2a", "us-west-2b"},
 			localZones:        []string{"us-west-2-lax-1a", "us-west-lax-1b"},
+		}),
+		Entry("VPC with a single AZ (Outposts)", setSubnetsCase{
+			vpc:               api.NewClusterVPC(false),
+			availabilityZones: []string{"us-west-2a"},
 		}),
 	)
 
@@ -350,6 +368,32 @@ var _ = Describe("VPC", func() {
 						AZ:        "us-west-2c",
 						CIDR:      ipnet.MustParseCIDR("192.168.160.0/19"),
 						CIDRIndex: 5,
+					},
+				},
+			},
+
+			expectedLocalZoneSubnets: &api.ClusterSubnets{
+				Public:  api.NewAZSubnetMapping(),
+				Private: api.NewAZSubnetMapping(),
+			},
+		}),
+
+		Entry("control plane on Outposts", setSubnetsEntry{
+			availabilityZones: []string{"us-west-2a"},
+
+			expectedSubnets: &api.ClusterSubnets{
+				Public: api.AZSubnetMapping{
+					"us-west-2a": api.AZSubnetSpec{
+						AZ:        "us-west-2a",
+						CIDR:      ipnet.MustParseCIDR("192.168.0.0/19"),
+						CIDRIndex: 0,
+					},
+				},
+				Private: api.AZSubnetMapping{
+					"us-west-2a": api.AZSubnetSpec{
+						AZ:        "us-west-2a",
+						CIDR:      ipnet.MustParseCIDR("192.168.32.0/19"),
+						CIDRIndex: 1,
 					},
 				},
 			},
