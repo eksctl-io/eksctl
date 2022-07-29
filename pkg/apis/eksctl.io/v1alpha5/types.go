@@ -380,7 +380,8 @@ var (
 	// DefaultNodeSSHPublicKeyPath is the default path to SSH public key
 	DefaultNodeSSHPublicKeyPath = "~/.ssh/id_rsa.pub"
 
-	// DefaultNodeVolumeType defines the default root volume type to use
+	// DefaultNodeVolumeType defines the default root volume type to use for
+	// non-Outpost clusters.
 	DefaultNodeVolumeType = NodeVolumeTypeGP3
 
 	// DefaultNodeVolumeSize defines the default root volume size

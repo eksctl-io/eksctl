@@ -42,7 +42,7 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 	}
 
 	for i, ng := range c.ClusterConfig.NodeGroups {
-		if err := api.ValidateNodeGroup(i, ng); err != nil {
+		if err := api.ValidateNodeGroup(i, ng, c.ClusterConfig.IsControlPlaneOnOutposts()); err != nil {
 			if c.Validate {
 				return nil, err
 			}
@@ -50,11 +50,11 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 		}
 		// defaulting of nodegroup currently depends on validation;
 		// that may change, but at present that's how it's meant to work
-		api.SetNodeGroupDefaults(ng, c.ClusterConfig.Metadata)
+		api.SetNodeGroupDefaults(ng, c.ClusterConfig.Metadata, c.ClusterConfig.IsControlPlaneOnOutposts())
 	}
 
 	for i, ng := range c.ClusterConfig.ManagedNodeGroups {
-		api.SetManagedNodeGroupDefaults(ng, c.ClusterConfig.Metadata)
+		api.SetManagedNodeGroupDefaults(ng, c.ClusterConfig.Metadata, c.ClusterConfig.IsControlPlaneOnOutposts())
 		if err := api.ValidateManagedNodeGroup(i, ng); err != nil {
 			return nil, err
 		}

@@ -40,7 +40,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 	DescribeTable("Add resources", func(m *mngCase) {
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = "lt"
-		api.SetManagedNodeGroupDefaults(m.ng, clusterConfig.Metadata)
+		api.SetManagedNodeGroupDefaults(m.ng, clusterConfig.Metadata, false)
 		Expect(api.ValidateManagedNodeGroup(0, m.ng)).To(Succeed())
 
 		provider := mockprovider.NewMockProvider()

@@ -96,15 +96,15 @@ func vpcCNIAddonSpecified(cfg *ClusterConfig) bool {
 }
 
 // SetNodeGroupDefaults will set defaults for a given nodegroup
-func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
+func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta, controlPlaneOnOutposts bool) {
 	setNodeGroupBaseDefaults(ng.NodeGroupBase, meta)
 
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = DefaultNodeImageFamily
 	}
 
-	setVolumeDefaults(ng.NodeGroupBase, nil)
-	setDefaultsForAdditionalVolumes(ng.NodeGroupBase)
+	setVolumeDefaults(ng.NodeGroupBase, controlPlaneOnOutposts, nil)
+	setDefaultsForAdditionalVolumes(ng.NodeGroupBase, controlPlaneOnOutposts)
 
 	if ng.SecurityGroups.WithLocal == nil {
 		ng.SecurityGroups.WithLocal = Enabled()
@@ -117,7 +117,7 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
-func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
+func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta, controlPlaneOnOutposts bool) {
 	setNodeGroupBaseDefaults(ng.NodeGroupBase, meta)
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = NodeImageFamilyAmazonLinux2
@@ -129,8 +129,8 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
 	ng.Tags[NodeGroupNameTag] = ng.Name
 	ng.Tags[NodeGroupTypeTag] = string(NodeGroupTypeManaged)
 
-	setVolumeDefaults(ng.NodeGroupBase, ng.LaunchTemplate)
-	setDefaultsForAdditionalVolumes(ng.NodeGroupBase)
+	setVolumeDefaults(ng.NodeGroupBase, controlPlaneOnOutposts, ng.LaunchTemplate)
+	setDefaultsForAdditionalVolumes(ng.NodeGroupBase, controlPlaneOnOutposts)
 }
 
 func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
@@ -172,34 +172,38 @@ func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 	}
 }
 
-func setVolumeDefaults(ng *NodeGroupBase, template *LaunchTemplate) {
+func setVolumeDefaults(ng *NodeGroupBase, controlPlaneOnOutposts bool, template *LaunchTemplate) {
 	if ng.VolumeType == nil {
-		ng.VolumeType = &DefaultNodeVolumeType
+		ng.VolumeType = aws.String(getDefaultVolumeType(controlPlaneOnOutposts))
 	}
 	if ng.VolumeSize == nil && template == nil {
 		ng.VolumeSize = &DefaultNodeVolumeSize
 	}
-	if *ng.VolumeType == NodeVolumeTypeGP3 {
+
+	switch *ng.VolumeType {
+	case NodeVolumeTypeGP3:
 		if ng.VolumeIOPS == nil {
 			ng.VolumeIOPS = aws.Int(DefaultNodeVolumeGP3IOPS)
 		}
 		if ng.VolumeThroughput == nil {
 			ng.VolumeThroughput = aws.Int(DefaultNodeVolumeThroughput)
 		}
+	case NodeVolumeTypeIO1:
+		if ng.VolumeIOPS == nil {
+			ng.VolumeIOPS = aws.Int(DefaultNodeVolumeIO1IOPS)
+		}
 	}
-	if *ng.VolumeType == NodeVolumeTypeIO1 && ng.VolumeIOPS == nil {
-		ng.VolumeIOPS = aws.Int(DefaultNodeVolumeIO1IOPS)
-	}
+
 	if ng.AMIFamily == NodeImageFamilyBottlerocket && !IsSetAndNonEmptyString(ng.VolumeName) {
 		ng.AdditionalEncryptedVolume = bottlerocketOSDisk
 		ng.VolumeName = aws.String(bottlerocketDataDisk)
 	}
 }
 
-func setDefaultsForAdditionalVolumes(ng *NodeGroupBase) {
+func setDefaultsForAdditionalVolumes(ng *NodeGroupBase, controlPlaneOnOutposts bool) {
 	for i, av := range ng.AdditionalVolumes {
 		if av.VolumeType == nil {
-			ng.AdditionalVolumes[i].VolumeType = &DefaultNodeVolumeType
+			ng.AdditionalVolumes[i].VolumeType = aws.String(getDefaultVolumeType(controlPlaneOnOutposts))
 		}
 		if av.VolumeSize == nil {
 			ng.AdditionalVolumes[i].VolumeSize = &DefaultNodeVolumeSize
@@ -216,6 +220,13 @@ func setDefaultsForAdditionalVolumes(ng *NodeGroupBase) {
 			ng.AdditionalVolumes[i].VolumeIOPS = aws.Int(DefaultNodeVolumeIO1IOPS)
 		}
 	}
+}
+
+func getDefaultVolumeType(controlPlaneOnOutposts bool) string {
+	if controlPlaneOnOutposts {
+		return NodeVolumeTypeGP2
+	}
+	return DefaultNodeVolumeType
 }
 
 func setContainerRuntimeDefault(ng *NodeGroup) {

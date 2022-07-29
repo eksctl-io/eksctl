@@ -507,7 +507,7 @@ func PrivateOnly(ces *ClusterEndpoints) bool {
 	return !*ces.PublicAccess && *ces.PrivateAccess
 }
 
-func validateNodeGroupBase(np NodePool, path string) error {
+func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool) error {
 	ng := np.BaseNodeGroup()
 	if ng.VolumeSize == nil {
 		errCantSet := func(field string) error {
@@ -524,7 +524,7 @@ func validateNodeGroupBase(np NodePool, path string) error {
 		}
 	}
 
-	if err := validateVolumeOpts(ng, path); err != nil {
+	if err := validateVolumeOpts(ng, path, controlPlaneOnOutposts); err != nil {
 		return err
 	}
 
@@ -609,20 +609,25 @@ func validateNodeGroupBase(np NodePool, path string) error {
 	return nil
 }
 
-func validateVolumeOpts(ng *NodeGroupBase, path string) error {
+func validateVolumeOpts(ng *NodeGroupBase, path string, controlPlaneOnOutposts bool) error {
 	if ng.VolumeType != nil {
-		if ng.VolumeIOPS != nil && !(*ng.VolumeType == NodeVolumeTypeIO1 || *ng.VolumeType == NodeVolumeTypeGP3) {
+		volumeType := *ng.VolumeType
+		if ng.VolumeIOPS != nil && !(volumeType == NodeVolumeTypeIO1 || volumeType == NodeVolumeTypeGP3) {
 			return fmt.Errorf("%s.volumeIOPS is only supported for %s and %s volume types", path, NodeVolumeTypeIO1, NodeVolumeTypeGP3)
 		}
 
-		if *ng.VolumeType == NodeVolumeTypeIO1 {
+		if volumeType == NodeVolumeTypeIO1 {
 			if ng.VolumeIOPS != nil && !(*ng.VolumeIOPS >= MinIO1Iops && *ng.VolumeIOPS <= MaxIO1Iops) {
 				return fmt.Errorf("value for %s.volumeIOPS must be within range %d-%d", path, MinIO1Iops, MaxIO1Iops)
 			}
 		}
 
-		if ng.VolumeThroughput != nil && *ng.VolumeType != NodeVolumeTypeGP3 {
+		if ng.VolumeThroughput != nil && volumeType != NodeVolumeTypeGP3 {
 			return fmt.Errorf("%s.volumeThroughput is only supported for %s volume type", path, NodeVolumeTypeGP3)
+		}
+
+		if controlPlaneOnOutposts && volumeType != NodeVolumeTypeGP2 {
+			return fmt.Errorf("cannot set %q for %s.volumeType; only %q volume types are supported on Outposts", volumeType, path, NodeVolumeTypeGP2)
 		}
 	}
 
@@ -694,10 +699,10 @@ func validateNodeGroupName(name string) error {
 }
 
 // ValidateNodeGroup checks compatible fields of a given nodegroup
-func ValidateNodeGroup(i int, ng *NodeGroup) error {
+func ValidateNodeGroup(i int, ng *NodeGroup, controlPlaneOnOutposts bool) error {
 	normalizeAMIFamily(ng.BaseNodeGroup())
 	path := fmt.Sprintf("nodeGroups[%d]", i)
-	if err := validateNodeGroupBase(ng, path); err != nil {
+	if err := validateNodeGroupBase(ng, path, controlPlaneOnOutposts); err != nil {
 		return err
 	}
 
@@ -976,7 +981,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 
 	path := fmt.Sprintf("managedNodeGroups[%d]", index)
 
-	if err := validateNodeGroupBase(ng, path); err != nil {
+	if err := validateNodeGroupBase(ng, path, false); err != nil {
 		return err
 	}
 
