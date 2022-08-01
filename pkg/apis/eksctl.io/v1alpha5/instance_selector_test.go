@@ -12,8 +12,9 @@ type instanceSelectorCase struct {
 
 var _ = Describe("Instance Selector Validation", func() {
 	DescribeTable("Supported and unsupported field combinations", func(n *instanceSelectorCase) {
-		SetNodeGroupDefaults(n.ng, &ClusterMeta{Name: "cluster"}, false)
-		err := ValidateNodeGroup(0, n.ng, false)
+		cfg := NewClusterConfig()
+		SetNodeGroupDefaults(n.ng, &ClusterMeta{Name: "cluster"}, cfg.IsControlPlaneOnOutposts())
+		err := ValidateNodeGroup(0, n.ng, cfg)
 		if n.errMsg == "" {
 			Expect(err).NotTo(HaveOccurred())
 			return

@@ -701,6 +701,11 @@ func (c *ClusterConfig) IsControlPlaneOnOutposts() bool {
 	return c.Outpost != nil && c.Outpost.ControlPlaneOutpostARN != ""
 }
 
+// GetOutpost returns the Outpost info.
+func (c *ClusterConfig) GetOutpost() *Outpost {
+	return c.Outpost
+}
+
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
 	CloudFormation() awsapi.CloudFormation
@@ -826,6 +831,15 @@ type Outpost struct {
 	ControlPlaneOutpostARN string `json:"controlPlaneOutpostARN"`
 	// ControlPlaneInstanceType specifies the instance type to use for creating the control plane instances.
 	ControlPlaneInstanceType string `json:"controlPlaneInstanceType"`
+}
+
+// OutpostInfo describes the Outpost info.
+type OutpostInfo interface {
+	// IsControlPlaneOnOutposts returns true if the control plane is on Outposts.
+	IsControlPlaneOnOutposts() bool
+
+	// GetOutpost returns the Outpost info.
+	GetOutpost() *Outpost
 }
 
 // Karpenter provides configuration options

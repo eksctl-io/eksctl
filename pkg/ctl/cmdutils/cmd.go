@@ -42,7 +42,7 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 	}
 
 	for i, ng := range c.ClusterConfig.NodeGroups {
-		if err := api.ValidateNodeGroup(i, ng, c.ClusterConfig.IsControlPlaneOnOutposts()); err != nil {
+		if err := api.ValidateNodeGroup(i, ng, c.ClusterConfig); err != nil {
 			if c.Validate {
 				return nil, err
 			}

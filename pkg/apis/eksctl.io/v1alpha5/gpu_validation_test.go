@@ -57,7 +57,7 @@ var _ = Describe("GPU instance support", func() {
 		ng := api.NewNodeGroup()
 		ng.InstanceType = e.gpuInstanceType
 		ng.AMIFamily = e.amiFamily
-		assertValidationError(e, api.ValidateNodeGroup(0, ng, false))
+		assertValidationError(e, api.ValidateNodeGroup(0, ng, api.NewClusterConfig()))
 
 	},
 		Entry("AL2", gpuInstanceEntry{
@@ -107,7 +107,7 @@ var _ = Describe("GPU instance support", func() {
 				ng := api.NewNodeGroup()
 				ng.InstanceType = "g5g.xlarge"
 				ng.AMIFamily = api.NodeImageFamilyBottlerocket
-				err := api.ValidateNodeGroup(0, ng, false)
+				err := api.ValidateNodeGroup(0, ng, api.NewClusterConfig())
 				Expect(err).To(MatchError(ContainSubstring("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily Bottlerocket")))
 			})
 		})

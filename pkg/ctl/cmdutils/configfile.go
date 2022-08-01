@@ -259,6 +259,9 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			}
 		}
 		if clusterConfig.IsControlPlaneOnOutposts() {
+			if len(clusterConfig.ManagedNodeGroups) > 0 {
+				return errors.New("Managed Nodegroups are not supported on Outposts")
+			}
 			if hasEndpointAccess() {
 				clusterEndpoints := clusterConfig.VPC.ClusterEndpoints
 				const msg = "the cluster defaults to private-endpoint-only access"

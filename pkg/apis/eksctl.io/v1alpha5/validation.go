@@ -137,19 +137,15 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 			return errors.New("outpost.controlPlaneOutpostARN is required for Outposts")
 		}
 
-		parsed, err := arn.Parse(cfg.Outpost.ControlPlaneOutpostARN)
-		if err != nil {
-			return fmt.Errorf("invalid Outpost ARN: %w", err)
-		}
-		if parsed.Service != "outposts" {
-			return fmt.Errorf("invalid Outpost ARN: %q", cfg.Outpost.ControlPlaneOutpostARN)
+		if err := validateOutpostARN(cfg.Outpost.ControlPlaneOutpostARN); err != nil {
+			return err
 		}
 
 		if cfg.IsFullyPrivate() {
 			return errors.New("fully-private cluster (privateCluster.enabled) is not supported for Outposts")
 		}
-		if len(cfg.ManagedNodeGroups) > 0 {
-			return errors.New("Managed Nodegroups are not supported on Outposts")
+		if cfg.IPv6Enabled() {
+			return errors.New("IPv6 is not supported on Outposts")
 		}
 		if len(cfg.Addons) > 0 {
 			return errors.New("Addons are not supported on Outposts")
@@ -166,14 +162,12 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		if cfg.SecretsEncryption != nil && cfg.SecretsEncryption.KeyARN != "" {
 			return errors.New("KMS encryption is not supported on Outposts")
 		}
+		const zonesErr = "cannot specify %s on Outposts; the AZ defaults to the Outpost AZ"
 		if len(cfg.AvailabilityZones) > 0 {
-			return errors.New("cannot specify availabilityZones on Outposts; the AZ defaults to the Outpost AZ")
+			return fmt.Errorf(zonesErr, "availabilityZones")
 		}
 		if len(cfg.LocalZones) > 0 {
-			return errors.New("Local Zones are not supported on Outposts")
-		}
-		if cfg.IPv6Enabled() {
-			return errors.New("IPv6 is not supported on Outposts")
+			return fmt.Errorf(zonesErr, "localZones")
 		}
 		if cfg.GitOps != nil {
 			return errors.New("GitOps is not supported on Outposts")
@@ -699,10 +693,10 @@ func validateNodeGroupName(name string) error {
 }
 
 // ValidateNodeGroup checks compatible fields of a given nodegroup
-func ValidateNodeGroup(i int, ng *NodeGroup, controlPlaneOnOutposts bool) error {
+func ValidateNodeGroup(i int, ng *NodeGroup, outpostInfo OutpostInfo) error {
 	normalizeAMIFamily(ng.BaseNodeGroup())
 	path := fmt.Sprintf("nodeGroups[%d]", i)
-	if err := validateNodeGroupBase(ng, path, controlPlaneOnOutposts); err != nil {
+	if err := validateNodeGroupBase(ng, path, outpostInfo.IsControlPlaneOnOutposts()); err != nil {
 		return err
 	}
 
@@ -830,11 +824,35 @@ func ValidateNodeGroup(i int, ng *NodeGroup, controlPlaneOnOutposts bool) error 
 	}
 
 	if ng.OutpostARN != "" {
-		if _, err := arn.Parse(ng.OutpostARN); err != nil {
-			return fmt.Errorf("invalid Outpost ARN: %w", err)
+		if err := validateOutpostARN(ng.OutpostARN); err != nil {
+			return err
+		}
+		if outpostInfo.IsControlPlaneOnOutposts() && ng.OutpostARN != outpostInfo.GetOutpost().ControlPlaneOutpostARN {
+			return fmt.Errorf("nodeGroup.outpostARN must either be empty or match the control plane's Outpost ARN (%q != %q)", ng.OutpostARN, outpostInfo.GetOutpost().ControlPlaneOutpostARN)
 		}
 	}
 
+	if outpostInfo.IsControlPlaneOnOutposts() || ng.OutpostARN != "" {
+		const msg = "%s cannot be specified for a nodegroup on Outposts; the AZ defaults to the Outpost AZ"
+		if len(ng.AvailabilityZones) > 0 {
+			return fmt.Errorf(msg, "availabilityZones")
+		}
+		if len(ng.LocalZones) > 0 {
+			return fmt.Errorf(msg, "localZones")
+		}
+	}
+
+	return nil
+}
+
+func validateOutpostARN(val string) error {
+	parsed, err := arn.Parse(val)
+	if err != nil {
+		return fmt.Errorf("invalid Outpost ARN: %w", err)
+	}
+	if parsed.Service != "outposts" {
+		return fmt.Errorf("invalid Outpost ARN: %q", val)
+	}
 	return nil
 }
 
