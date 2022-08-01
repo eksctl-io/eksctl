@@ -53,7 +53,7 @@ func PopulateNodegroupFromStack(nodeGroupType api.NodeGroupType, nodeGroupName s
 	return nil
 }
 
-// PopulateUnmanagedNodegroup populates the unmanaged nodegroup field of a ClucterConfig.
+// PopulateUnmanagedNodegroup populates the unmanaged nodegroup field of a ClusterConfig.
 func PopulateUnmanagedNodegroup(nodeGroupName string, cfg *api.ClusterConfig) {
 	cfg.NodeGroups = append(cfg.NodeGroups, &api.NodeGroup{
 		NodeGroupBase: &api.NodeGroupBase{

@@ -134,7 +134,7 @@ func deleteDeprecatedStacks(ctx context.Context, stackManager manager.StackManag
 		if errs := tasks.DoAllSync(); len(errs) > 0 {
 			return true, handleErrors(errs, "deprecated stacks")
 		}
-		logger.Success("deleted all %s deperecated stacks", count)
+		logger.Success("deleted all %s deprecated stacks", count)
 		return true, nil
 	}
 	return false, nil

@@ -63,7 +63,7 @@ for the time-being, `eksctl` will not attempt to retrieve or guess these values.
 may change in the future as we learn more about how people are using this command on non eksctl-created clusters.
 
 This means that in order to create nodegroups or managed nodegroups on a cluster which was
-not created by `eksctl`, a config file containing VPC details must be provided. At a minumum:
+not created by `eksctl`, a config file containing VPC details must be provided. At a minimum:
 
 ```yaml
 ---
