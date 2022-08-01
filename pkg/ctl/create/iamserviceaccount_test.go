@@ -51,11 +51,11 @@ var _ = Describe("create iamserviceaccount", func() {
 		}),
 		Entry("with --attach-role-arn and --role-name", invalidParamsCase{
 			args:  []string{"iamserviceaccount", "--cluster", "clusterName", "serviceAccountName", "--role-name", "foo", "--attach-role-arn", "123"},
-			error: "cannot provde --role-name or --role-only when --attach-role-arn is configured",
+			error: "cannot provide --role-name or --role-only when --attach-role-arn is configured",
 		}),
 		Entry("with --attach-policy-role and --role-only", invalidParamsCase{
 			args:  []string{"iamserviceaccount", "--cluster", "clusterName", "serviceAccountName", "--role-only", "--attach-role-arn", "123"},
-			error: "cannot provde --role-name or --role-only when --attach-role-arn is configured",
+			error: "cannot provide --role-name or --role-only when --attach-role-arn is configured",
 		}),
 		Entry("with --attach-role-arn and --attach-policy-arns", invalidParamsCase{
 			args:  []string{"iamserviceaccount", "--cluster", "clusterName", "serviceAccountName", "--attach-policy-arn", "123", "--attach-role-arn", "123"},
