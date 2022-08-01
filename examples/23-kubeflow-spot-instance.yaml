@@ -29,7 +29,7 @@ metadata:
 
 # Add all possible AZs to ensure nodes can be spun up in any AZ later on. 
 # THIS CAN'T BE CHANGED LATER. YOU WILL HAVE TO CREATE A NEW CLUSTER TO ADD NEW AZ SUPPORT.
-# This list applies to the whole clustr and isn't specific to nodegroups
+# This list applies to the whole cluster and isn't specific to nodegroups
 availabilityZones: ["us-east-1a", "us-east-1b",  "us-east-1d",  "us-east-1f"]
 
 nodeGroups:

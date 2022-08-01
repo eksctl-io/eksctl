@@ -12,7 +12,7 @@ You can specify what addons you want and what policies (if required) to attach t
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 metadata:
-  name: exmaple-cluster
+  name: example-cluster
   region: us-west-2
   version: "1.19"
 
