@@ -41,7 +41,7 @@ func New(clusterConfig *api.ClusterConfig, eksAPI awsapi.EKS, stackManager manag
 func (a *Manager) waitForAddonToBeActive(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
 	// We don't wait for coredns if there are no nodegroups. It will get into degraded state
 	// and recover once nodegroups are added.
-	if addon.Name == api.CoreDNSAddon && (len(a.clusterConfig.NodeGroups) > 0 || len(a.clusterConfig.ManagedNodeGroups) > 0) {
+	if addon.Name == api.CoreDNSAddon && !a.clusterConfig.HasNodes() {
 		return nil
 	}
 	activeWaiter := eks.NewAddonActiveWaiter(a.eksAPI)
