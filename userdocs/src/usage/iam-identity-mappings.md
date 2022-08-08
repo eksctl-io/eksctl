@@ -37,11 +37,11 @@ iamIdentityMappings:
     groups:
       - system:masters
     username: admin
-    noDuplicateArns: true # prevents shadowing of ARNs
+    noDuplicateARNs: true # prevents shadowing of ARNs
 
   - arn: arn:aws:iam::000000000000:user/myUser
     username: myUser
-    noDuplicateArns: true # prevents shadowing of ARNs
+    noDuplicateARNs: true # prevents shadowing of ARNs
 
   - serviceName: emr-containers
     namespace: emr # serviceName requires namespace
