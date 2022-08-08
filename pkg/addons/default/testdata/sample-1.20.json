@@ -37,14 +37,14 @@
                     {
                       "matchExpressions": [
                         {
-                          "key": "beta.kubernetes.io/os",
+                          "key": "kubernetes.io/os",
                           "operator": "In",
                           "values": [
                             "linux"
                           ]
                         },
                         {
-                          "key": "beta.kubernetes.io/arch",
+                          "key": "kubernetes.io/arch",
                           "operator": "In",
                           "values": [
                             "amd64"
@@ -70,7 +70,7 @@
                   "--v=2",
                   "--config=/var/lib/kube-proxy-config/config"
                 ],
-                "image": "602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.16.8",
+                "image": "602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.20.1-eksbuild.1",
                 "imagePullPolicy": "IfNotPresent",
                 "name": "kube-proxy",
                 "resources": {
@@ -287,14 +287,14 @@
                     {
                       "matchExpressions": [
                         {
-                          "key": "beta.kubernetes.io/os",
+                          "key": "kubernetes.io/os",
                           "operator": "In",
                           "values": [
                             "linux"
                           ]
                         },
                         {
-                          "key": "beta.kubernetes.io/arch",
+                          "key": "kubernetes.io/arch",
                           "operator": "In",
                           "values": [
                             "amd64"
