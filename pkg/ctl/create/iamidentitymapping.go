@@ -78,7 +78,12 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	m, err := mappingactions.New(cfg, clientSet, ctl, cmd.ProviderConfig.Region)
+	rawClient, err := ctl.NewRawClient(cfg)
+	if err != nil {
+		return err
+	}
+
+	m, err := mappingactions.New(cfg, clientSet, rawClient, cmd.ProviderConfig.Region)
 	if err != nil {
 		return err
 	}

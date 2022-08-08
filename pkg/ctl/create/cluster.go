@@ -20,7 +20,6 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
-	mappingactions "github.com/weaveworks/eksctl/pkg/actions/iamidentitymapping"
 	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -423,24 +422,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		if err := kubectl.CheckAllCommands(params.KubeconfigPath, params.SetContext, kubeconfigContextName, env); err != nil {
 			logger.Critical("%s\n", err.Error())
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
-		}
-
-		if len(cfg.IAMIdentityMappings) > 0 {
-			logger.Info("iamIdentityMappings configuration detected, updating the auth ConfigMap")
-
-			m, err := mappingactions.New(cfg, clientSet, ctl, cmd.ProviderConfig.Region)
-			if err != nil {
-				return err
-			}
-
-			for _, mapping := range cfg.IAMIdentityMappings {
-				if err := mapping.Validate(); err != nil {
-					return err
-				}
-				if err := m.Create(ctx, mapping); err != nil {
-					return err
-				}
-			}
 		}
 
 		if cfg.PrivateCluster.Enabled {

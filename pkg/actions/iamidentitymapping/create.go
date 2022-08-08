@@ -21,16 +21,11 @@ func (m *Manager) Create(ctx context.Context, mapping *api.IAMIdentityMapping) e
 	}
 
 	if mapping.ServiceName != "" {
-
-		rawClient, err := m.clusterProvider.NewRawClient(m.clusterConfig)
-		if err != nil {
-			return err
-		}
 		parsedARN, err := arn.Parse(m.clusterConfig.Status.ARN)
 		if err != nil {
 			return errors.Wrap(err, "error parsing cluster ARN")
 		}
-		sa := authconfigmap.NewServiceAccess(rawClient, acm, parsedARN.AccountID)
+		sa := authconfigmap.NewServiceAccess(m.rawClient, acm, parsedARN.AccountID)
 		return sa.Grant(mapping.ServiceName, mapping.Namespace, api.Partition(m.region))
 	}
 
