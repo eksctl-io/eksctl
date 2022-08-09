@@ -313,17 +313,6 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 		})
 	}
 
-	if cfg.IsFargateEnabled() {
-		manager := fargate.NewFromProvider(cfg.Metadata.Name, c.AWSProvider, c.NewStackManager(cfg))
-		newTasks.Append(&fargateProfilesTask{
-			info:            "create fargate profiles",
-			spec:            cfg,
-			clusterProvider: c,
-			manager:         &manager,
-			ctx:             ctx,
-		})
-	}
-
 	if cfg.HasWindowsNodeGroup() {
 		newTasks.Append(&WindowsIPAMTask{
 			Info: "enable Windows IP address management",
