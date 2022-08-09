@@ -204,16 +204,20 @@ var _ = Describe("create cluster", func() {
 	})
 
 	type createClusterEntry struct {
-		mockProvider        func(*mockprovider.MockProvider)
 		updateClusterConfig func(*api.ClusterConfig)
 		updateClusterParams func(*cmdutils.CreateClusterCmdParams)
+		updateMocks         func(*mockprovider.MockProvider)
+		mockOutposts        bool
 
 		expectedErr string
 	}
 
 	DescribeTable("doCreateCluster", func(ce createClusterEntry) {
 		p := mockprovider.NewMockProvider()
-		defaultProviderMocks(p, defaultOutput)
+		defaultProviderMocks(p, defaultOutput, ce.mockOutposts)
+		if ce.updateMocks != nil {
+			ce.updateMocks(p)
+		}
 		fk := &fakes.FakeKubeProvider{}
 		clientset := kubefake.NewSimpleClientset()
 		client, err := kubernetes.NewRawClient(clientset, &restclient.Config{})
@@ -236,9 +240,7 @@ var _ = Describe("create cluster", func() {
 		clusterConfig.Metadata.Name = "my-cluster"
 		clusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
 		clusterConfig.Metadata.Version = "1.22"
-		if ce.mockProvider != nil {
-			ce.mockProvider(p)
-		}
+
 		if ce.updateClusterConfig != nil {
 			ce.updateClusterConfig(clusterConfig)
 		}
@@ -275,7 +277,7 @@ var _ = Describe("create cluster", func() {
 					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 				}
 			},
-			mockProvider: mockOutposts,
+			mockOutposts: true,
 		}),
 
 		Entry("[Outposts] unavailable instance type specified for the control plane", createClusterEntry{
@@ -285,7 +287,7 @@ var _ = Describe("create cluster", func() {
 					ControlPlaneInstanceType: "t2.medium",
 				}
 			},
-			mockProvider: mockOutposts,
+			mockOutposts: true,
 
 			expectedErr: `instance type "t2.medium" does not exist in Outpost "arn:aws:outposts:us-west-2:1234:outpost/op-1234"`,
 		}),
@@ -297,7 +299,7 @@ var _ = Describe("create cluster", func() {
 					ControlPlaneInstanceType: "m5.xlarge",
 				}
 			},
-			mockProvider: mockOutposts,
+			mockOutposts: true,
 		}),
 
 		Entry("[Outposts] nodegroups specified when the VPC will be created by eksctl", createClusterEntry{
@@ -309,7 +311,7 @@ var _ = Describe("create cluster", func() {
 					api.NewNodeGroup(),
 				}
 			},
-			mockProvider: mockOutposts,
+			mockOutposts: true,
 
 			expectedErr: "cannot create nodegroups on Outposts when the VPC is created by eksctl as it will not have connectivity to the API server; please rerun the command with `--without-nodegroup` and run `eksctl create nodegroup` after associating the VPC with a local gateway and ensuring connectivity to the API server",
 		}),
@@ -326,7 +328,21 @@ var _ = Describe("create cluster", func() {
 			updateClusterParams: func(params *cmdutils.CreateClusterCmdParams) {
 				params.WithoutNodeGroup = true
 			},
-			mockProvider: mockOutposts,
+			mockOutposts: true,
+		}),
+
+		Entry("[Outposts] specified Outpost does not exist", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+			},
+			updateMocks: func(provider *mockprovider.MockProvider) {
+				provider.MockOutposts().On("GetOutpost", mock.Anything, &outposts.GetOutpostInput{
+					OutpostId: aws.String("arn:aws:outposts:us-west-2:1234:outpost/op-1234"),
+				}).Return(nil, &outpoststypes.NotFoundException{Message: aws.String("not found")})
+			},
+			expectedErr: "error getting Outpost details: NotFoundException: not found",
 		}),
 	)
 })
@@ -382,7 +398,7 @@ var defaultOutput = []cftypes.Output{
 	},
 }
 
-func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output) {
+func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output, controlPlaneOnOutposts bool) {
 	p.MockEC2().On("DescribeAvailabilityZones", mock.Anything, &ec2.DescribeAvailabilityZonesInput{
 		Filters: []ec2types.Filter{{
 			Name:   aws.String("region-name"),
@@ -430,6 +446,16 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output)
 			},
 		},
 	}, nil)
+
+	const outpostID = "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
+	var outpostConfig *ekstypes.OutpostConfig
+	if controlPlaneOnOutposts {
+		mockOutposts(p, outpostID)
+		outpostConfig = &ekstypes.OutpostConfig{
+			OutpostArns:              []string{outpostID},
+			ControlPlaneInstanceType: aws.String("m5.xlarge"),
+		}
+	}
 	p.MockEKS().On("DescribeCluster", mock.Anything, mock.Anything).Return(&awseks.DescribeClusterOutput{
 		Cluster: &ekstypes.Cluster{
 			CertificateAuthority: &ekstypes.Certificate{
@@ -453,7 +479,8 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output)
 			Tags: map[string]string{
 				api.ClusterNameTag: "eksctl-my-cluster-cluster",
 			},
-			Version: aws.String("1.22"),
+			Version:       aws.String("1.22"),
+			OutpostConfig: outpostConfig,
 		},
 	}, nil)
 
@@ -493,16 +520,16 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output)
 	}, nil)
 }
 
-func mockOutposts(provider *mockprovider.MockProvider) {
+func mockOutposts(provider *mockprovider.MockProvider, outpostID string) {
 	provider.MockOutposts().On("GetOutpost", mock.Anything, &outposts.GetOutpostInput{
-		OutpostId: aws.String("arn:aws:outposts:us-west-2:1234:outpost/op-1234"),
+		OutpostId: aws.String(outpostID),
 	}).Return(&outposts.GetOutpostOutput{
 		Outpost: &outpoststypes.Outpost{
 			AvailabilityZone: aws.String("us-west-2a"),
 		},
 	}, nil)
 	provider.MockOutposts().On("GetOutpostInstanceTypes", mock.Anything, &outposts.GetOutpostInstanceTypesInput{
-		OutpostId: aws.String("arn:aws:outposts:us-west-2:1234:outpost/op-1234"),
+		OutpostId: aws.String(outpostID),
 	}).Return(&outposts.GetOutpostInstanceTypesOutput{
 		InstanceTypes: []outpoststypes.InstanceTypeItem{
 			{

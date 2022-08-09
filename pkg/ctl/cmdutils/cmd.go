@@ -32,11 +32,28 @@ type Cmd struct {
 // instance of eks.ClusterProvider, it may return an error if configuration
 // is invalid or region is not supported
 func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
+	if err := c.InitializeClusterConfig(); err != nil {
+		return nil, err
+	}
+	ctl, err := eks.New(context.TODO(), &c.ProviderConfig, c.ClusterConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ctl.IsSupportedRegion() {
+		return nil, ErrUnsupportedRegion(&c.ProviderConfig)
+	}
+
+	return ctl, nil
+}
+
+// InitializeClusterConfig validates and initializes the ClusterConfig.
+func (c *Cmd) InitializeClusterConfig() error {
 	api.SetClusterConfigDefaults(c.ClusterConfig)
 
 	if err := api.ValidateClusterConfig(c.ClusterConfig); err != nil {
 		if c.Validate {
-			return nil, err
+			return err
 		}
 		logger.Warning("ignoring validation error: %s", err.Error())
 	}
@@ -44,7 +61,7 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 	for i, ng := range c.ClusterConfig.NodeGroups {
 		if err := api.ValidateNodeGroup(i, ng, c.ClusterConfig); err != nil {
 			if c.Validate {
-				return nil, err
+				return err
 			}
 			logger.Warning("ignoring validation error: %s", err.Error())
 		}
@@ -56,20 +73,10 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 	for i, ng := range c.ClusterConfig.ManagedNodeGroups {
 		api.SetManagedNodeGroupDefaults(ng, c.ClusterConfig.Metadata, c.ClusterConfig.IsControlPlaneOnOutposts())
 		if err := api.ValidateManagedNodeGroup(i, ng); err != nil {
-			return nil, err
+			return err
 		}
 	}
-
-	ctl, err := eks.New(context.TODO(), &c.ProviderConfig, c.ClusterConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	if !ctl.IsSupportedRegion() {
-		return nil, ErrUnsupportedRegion(&c.ProviderConfig)
-	}
-
-	return ctl, nil
+	return nil
 }
 
 // NewProviderForExistingCluster is a wrapper for NewCtl that also validates that the cluster exists and is not a

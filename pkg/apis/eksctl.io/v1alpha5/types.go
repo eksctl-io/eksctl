@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/pkg/errors"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
@@ -958,10 +959,16 @@ func (c *ClusterConfig) SetClusterState(cluster *ekstypes.Cluster) error {
 		if len(outpost.OutpostArns) != 1 {
 			return fmt.Errorf("expected cluster to be associated with only one Outpost; got %v", outpost.OutpostArns)
 		}
+		outpostARN := outpost.OutpostArns[0]
+		if c.IsControlPlaneOnOutposts() && c.Outpost.ControlPlaneOutpostARN != outpostARN {
+			return fmt.Errorf("outpost.controlPlaneOutpostARN %q does not match the cluster's Outpost ARN %q", c.Outpost.ControlPlaneOutpostARN, outpostARN)
+		}
 		c.Outpost = &Outpost{
-			ControlPlaneOutpostARN:   outpost.OutpostArns[0],
+			ControlPlaneOutpostARN:   outpostARN,
 			ControlPlaneInstanceType: *outpost.ControlPlaneInstanceType,
 		}
+	} else if c.IsControlPlaneOnOutposts() {
+		return errors.New("outpost.controlPlaneOutpostARN is set but control plane is not on Outposts")
 	}
 	if cluster.Id != nil {
 		c.Status.ID = *cluster.Id

@@ -44,8 +44,12 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return err
 	}
 
-	if err := m.checkARMSupport(ctx, ctl, m.clientSet, cfg, options.SkipOutdatedAddonsCheck); err != nil {
-		return err
+	if cfg.IsControlPlaneOnOutposts() && len(cfg.ManagedNodeGroups) > 0 {
+		const msg = "Managed Nodegroups are not supported on Outposts"
+		if !options.ConfigFileProvided {
+			return fmt.Errorf("%s; please rerun the command with --managed=false", msg)
+		}
+		return errors.New(msg)
 	}
 
 	isOwnedCluster := true
@@ -63,8 +67,26 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		}
 	}
 
-	nodePools := nodes.ToNodePools(cfg)
+	rawClient, err := ctl.NewRawClient(cfg)
+	if err != nil {
+		if _, ok := err.(*kubernetes.APIServerUnreachableError); ok {
+			const msg = "eksctl requires connectivity to the API server to create nodegroups"
+			if cfg.IsControlPlaneOnOutposts() {
+				return fmt.Errorf("%s; please ensure the Outpost VPC is associated with your local gateway and you are able to connect to the API server before rerunning the command: %w", msg, err)
+			}
+			if !m.ctl.Status.ClusterInfo.Cluster.ResourcesVpcConfig.EndpointPublicAccess {
+				return fmt.Errorf("%s; please run eksctl from an environment that has access to the API server: %w", msg, err)
+			}
+			return fmt.Errorf("%s: %w", msg, err)
+		}
+		return err
+	}
 
+	if err := m.checkARMSupport(ctx, ctl, rawClient, cfg, options.SkipOutdatedAddonsCheck); err != nil {
+		return err
+	}
+
+	nodePools := nodes.ToNodePools(cfg)
 	var outpostsService *outposts.Service
 	if cfg.IsControlPlaneOnOutposts() {
 		outpostsService = &outposts.Service{
@@ -259,13 +281,8 @@ func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 	return nil
 }
 
-func (m *Manager) checkARMSupport(ctx context.Context, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
+func (m *Manager) checkARMSupport(ctx context.Context, ctl *eks.ClusterProvider, rawClient *kubernetes.RawClient, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
 	kubeProvider := m.ctl
-	rawClient, err := kubeProvider.NewRawClient(cfg)
-	if err != nil {
-		return err
-	}
-
 	kubernetesVersion, err := kubeProvider.ServerVersion(rawClient)
 	if err != nil {
 		return err
