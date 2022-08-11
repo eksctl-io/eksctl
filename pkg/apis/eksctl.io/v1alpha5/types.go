@@ -34,10 +34,12 @@ const (
 
 	Version1_22 = "1.22"
 
+	Version1_23 = "1.23"
+
 	// DefaultVersion (default)
 	DefaultVersion = Version1_22
 
-	LatestVersion = Version1_22
+	LatestVersion = Version1_23
 )
 
 // No longer supported versions
@@ -75,8 +77,8 @@ const (
 
 // Not yet supported versions
 const (
-	// Version1_23 represents Kubernetes version 1.23.x
-	Version1_23 = "1.23"
+	// Version1_24 represents Kubernetes version 1.24.x
+	Version1_24 = "1.24"
 )
 
 const (
@@ -491,6 +493,7 @@ func SupportedVersions() []string {
 		Version1_20,
 		Version1_21,
 		Version1_22,
+		Version1_23,
 	}
 }
 
