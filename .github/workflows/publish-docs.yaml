@@ -12,6 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
+          token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
           fetch-depth: 0
       - name: Trigger Netlify deployment
         run: make publish-docs
