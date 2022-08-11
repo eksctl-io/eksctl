@@ -419,8 +419,8 @@ github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.17.3 h1:xtwjqxVD
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.17.3/go.mod h1:flSX+qf2r/mLgwTavyT/Gjs4dFtHcBmjMcVp/AqpSgc=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.51.1 h1:y88XFO3AJWDVJ3HjcYc+Oo38fB948armdg6ulfphkUM=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.51.1/go.mod h1:bKs78Qpk4syfUFXKhA0hIqT3X0sxmvIAPlEHV4qVbP0=
-github.com/aws/aws-sdk-go-v2/service/eks v1.21.5 h1:miWUBz+htptzay+IZl70zYkTlO1FD7JIypv1D+8+rm0=
-github.com/aws/aws-sdk-go-v2/service/eks v1.21.5/go.mod h1:t2jyBeR+NLVCfPHpqT/1aygIu9yrW29JZREUJjgxnWg=
+github.com/aws/aws-sdk-go-v2/service/eks v1.21.7 h1:YYQ969zjeoCVHjd1GtMeD8vku/BgCDf10/CBdMDl+Z4=
+github.com/aws/aws-sdk-go-v2/service/eks v1.21.7/go.mod h1:F8ACUQtBd4+ccRLggtB+HH067f6TetR+6ptluyVCMS0=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.11 h1:c/F25ig8d74XrxKOVQC5Xg7lfJPM5euAgP/Ikymbx+A=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.11/go.mod h1:jZn72ed7R9SyOhugvNtReWoFm3tLsYU8TNxiL50Vq6g=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.8 h1:D6Sc+XyjK++NhkJJLvZNcf0xyzNhhC+GVn/MYDeONS4=
