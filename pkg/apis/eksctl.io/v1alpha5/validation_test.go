@@ -1839,7 +1839,19 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("fails when the AMIFamily is not supported", func() {
 			ng.AMIFamily = "SomeTrash"
 			err := api.ValidateNodeGroup(0, ng)
-			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer, WindowsServer2004CoreContainer, WindowsServer20H2CoreContainer"))
+			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer"))
+		})
+
+		It("fails when the AMIFamily is WindowsServer2004CoreContainer", func() {
+			ng.AMIFamily = api.NodeImageFamilyWindowsServer2004CoreContainer
+			err := api.ValidateNodeGroup(0, ng)
+			Expect(err).To(MatchError("AMI Family WindowsServer2004CoreContainer is deprecated. For more information, head to the Amazon documentation on Windows AMIs (https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-windows-ami.html)"))
+		})
+
+		It("fails when the AMIFamily is WindowsServer20H2CoreContainer", func() {
+			ng.AMIFamily = api.NodeImageFamilyWindowsServer20H2CoreContainer
+			err := api.ValidateNodeGroup(0, ng)
+			Expect(err).To(MatchError("AMI Family WindowsServer20H2CoreContainer is deprecated. For more information, head to the Amazon documentation on Windows AMIs (https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-windows-ami.html)"))
 		})
 	})
 
