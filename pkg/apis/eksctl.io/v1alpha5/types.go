@@ -189,11 +189,11 @@ const (
 
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
 	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
-	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
 )
 
 // Deprecated `NodeAMIFamily`
 const (
+	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
 	NodeImageFamilyWindowsServer20H2CoreContainer = "WindowsServer20H2CoreContainer"
 )
 
@@ -531,7 +531,6 @@ func supportedAMIFamilies() []string {
 		NodeImageFamilyBottlerocket,
 		NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
-		NodeImageFamilyWindowsServer2004CoreContainer,
 	}
 }
 

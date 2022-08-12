@@ -99,11 +99,6 @@ var _ = Describe("GPU instance support", func() {
 			gpuInstanceType:      "g4dn.xlarge",
 			expectUnsupportedErr: true,
 		}),
-		Entry("Windows2004", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyWindowsServer2004CoreContainer,
-			gpuInstanceType:      "p2.xlarge",
-			expectUnsupportedErr: true,
-		}),
 		Entry("Windows2019Core", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyWindowsServer2019CoreContainer,
 			gpuInstanceType:      "g3.8xlarge",

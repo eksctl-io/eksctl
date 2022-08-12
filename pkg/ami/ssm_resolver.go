@@ -57,8 +57,6 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyWindowsServer2019FullContainer:
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Full-EKS_Optimized-%s/%s", version, fieldName), nil
-	case api.NodeImageFamilyWindowsServer2004CoreContainer:
-		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2004-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyBottlerocket:
 		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/%s", imageType(imageFamily, instanceType, version), instanceEC2ArchName(instanceType), fieldName), nil
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
