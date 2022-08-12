@@ -61,7 +61,7 @@ nodeGroups:
       k8s.io/cluster-autoscaler/node-template/taint/feaster: "true:NoSchedule"
 ```
 
-For unmanaged nodegroups, this can be done automatically by setting `propagateASGTags` to `true`, which will add the labels and taints as tags to the Autoscaler Group:
+For unmanaged nodegroups, this can be done automatically by setting `propagateASGTags` to `true`, which will add the labels and taints as tags to the Auto Scaling group:
 
 ```yaml
 nodeGroups:
