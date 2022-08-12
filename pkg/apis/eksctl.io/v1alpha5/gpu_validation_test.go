@@ -114,11 +114,6 @@ var _ = Describe("GPU instance support", func() {
 			gpuInstanceType:      "p3.2xlarge",
 			expectUnsupportedErr: true,
 		}),
-		Entry("Windows20H2Core", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyWindowsServer20H2CoreContainer,
-			gpuInstanceType:      "g4dn.xlarge",
-			expectUnsupportedErr: true,
-		}),
 	)
 	Describe("ARM GPU", func() {
 		When("ARM GPU instance is request for unmanaged nodegroups", func() {

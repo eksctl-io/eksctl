@@ -503,6 +503,9 @@ func validateNodeGroupBase(np NodePool, path string) error {
 	}
 
 	if ng.AMIFamily != "" && !isSupportedAMIFamily(ng.AMIFamily) {
+		if ng.AMIFamily == NodeImageFamilyWindowsServer20H2CoreContainer {
+			return fmt.Errorf("AMI Family WindowsServer20H2CoreContainer is deprecated. For more information, head to the Amazon documentation on Windows AMIs (https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-windows-ami.html)")
+		}
 		return fmt.Errorf("AMI Family %s is not supported - use one of: %s", ng.AMIFamily, strings.Join(supportedAMIFamilies(), ", "))
 	}
 
@@ -1244,8 +1247,7 @@ func IsWindowsImage(imageFamily string) bool {
 	switch imageFamily {
 	case NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
-		NodeImageFamilyWindowsServer2004CoreContainer,
-		NodeImageFamilyWindowsServer20H2CoreContainer:
+		NodeImageFamilyWindowsServer2004CoreContainer:
 		return true
 
 	default:
