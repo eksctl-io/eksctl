@@ -11,7 +11,7 @@ eksctl create cluster --asg-access
 This flag also sets `k8s.io/cluster-autoscaler/enabled`
 and `k8s.io/cluster-autoscaler/<clusterName>` tags, so nodegroup discovery should work.
 
-Once the cluster is running, you will need to install [cluster autoscaler][] itself. 
+Once the cluster is running, you will need to install [Cluster Autoscaler][] itself. 
 
 You should also add the following to your managed or unmanaged nodegroup definition(s) to add the tags required for the Cluster Autoscaler to scale the nodegroup:
 ```yaml
