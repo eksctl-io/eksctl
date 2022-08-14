@@ -5,7 +5,7 @@ import gfn "github.com/weaveworks/goformation/v4/cloudformation/types"
 // AttachPolicy attaches the specified policy document
 func (t *Template) AttachPolicy(name string, refRole *Value, policyDoc MapOfInterfaces) {
 	t.NewResource(name, &IAMPolicy{
-		PolicyName:     MakeName(name),
+		PolicyName:     NewString(name),
 		Roles:          MakeSlice(refRole),
 		PolicyDocument: policyDoc,
 	})
