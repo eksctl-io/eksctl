@@ -1916,9 +1916,9 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg := api.NewClusterConfig()
 			cfg.IAM.WithOIDC = aws.Bool(true)
 			cfg.Karpenter = &api.Karpenter{
-				Version: "0.10.0",
+				Version: "0.13.3",
 			}
-			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: maximum supported version is 0.9")))
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: maximum supported version is 0.13.2")))
 		})
 	})
 
