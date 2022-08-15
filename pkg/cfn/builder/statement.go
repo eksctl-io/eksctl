@@ -270,6 +270,18 @@ func autoScalerStatements() []cft.MapOfInterfaces {
 	}
 }
 
+func cloudwatchStatements() []cft.MapOfInterfaces {
+	return []cft.MapOfInterfaces{
+		{
+			"Effect":   effectAllow,
+			"Resource": resourceAll,
+			"Action": []string{
+				"logs:PutRetentionPolicy",
+			},
+		},
+	}
+}
+
 func appMeshStatements(appendAction string) []cft.MapOfInterfaces {
 	return []cft.MapOfInterfaces{
 		{
