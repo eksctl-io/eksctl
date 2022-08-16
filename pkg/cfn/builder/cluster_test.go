@@ -576,7 +576,20 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 
 			It("should fail", func() {
-				Expect(addErr).To(MatchError(ContainSubstring("insufficient number of subnets")))
+				Expect(addErr).To(MatchError(HaveSuffix("insufficient number of subnets, at least 2x public and/or 2x private subnets are required")))
+			})
+		})
+
+		Context("[Outposts] when the spec has insufficient subnets", func() {
+			BeforeEach(func() {
+				cfg.VPC.Subnets = &api.ClusterSubnets{}
+				cfg.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+			})
+
+			It("should fail", func() {
+				Expect(addErr).To(MatchError(HaveSuffix("insufficient number of subnets, at least 1x public and/or 1x private subnets are required for Outposts")))
 			})
 		})
 

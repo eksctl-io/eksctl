@@ -54,10 +54,8 @@ func NewClusterResourceSet(ec2API awsapi.EC2, region string, spec *api.ClusterCo
 
 // AddAllResources adds all the information about the cluster to the resource set
 func (c *ClusterResourceSet) AddAllResources(ctx context.Context) error {
-	if !c.spec.IsControlPlaneOnOutposts() {
-		if err := c.spec.HasSufficientSubnets(); err != nil {
-			return err
-		}
+	if err := c.spec.HasSufficientSubnets(); err != nil {
+		return err
 	}
 
 	vpcID, subnetDetails, err := c.vpcResourceSet.CreateTemplate(ctx)
@@ -239,13 +237,12 @@ func (c *ClusterResourceSet) newResource(name string, resource gfn.Resource) *gf
 
 func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDetails) {
 	clusterVPC := &gfneks.Cluster_ResourcesVpcConfig{
+		SubnetIds:             gfnt.NewSlice(subnetDetails.ControlPlaneSubnetRefs()...),
 		EndpointPublicAccess:  gfnt.NewBoolean(*c.spec.VPC.ClusterEndpoints.PublicAccess),
 		EndpointPrivateAccess: gfnt.NewBoolean(*c.spec.VPC.ClusterEndpoints.PrivateAccess),
 		SecurityGroupIds:      gfnt.NewSlice(c.securityGroups...),
 		PublicAccessCidrs:     gfnt.NewStringSlice(c.spec.VPC.PublicAccessCIDRs...),
 	}
-
-	clusterVPC.SubnetIds = gfnt.NewSlice(append(subnetDetails.PublicSubnetRefs(), subnetDetails.PrivateSubnetRefs()...)...)
 
 	serviceRoleARN := gfnt.MakeFnGetAttString("ServiceRole", "Arn")
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRoleARN) {

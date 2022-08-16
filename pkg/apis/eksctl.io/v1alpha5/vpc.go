@@ -219,6 +219,8 @@ type (
 const (
 	// MinRequiredSubnets is the minimum required number of subnets
 	MinRequiredSubnets = 2
+	// OutpostsMinRequiredSubnets is the minimum required number of subnets for Outposts.
+	OutpostsMinRequiredSubnets = 1
 	// MinRequiredAvailabilityZones defines the minimum number of required availability zones
 	MinRequiredAvailabilityZones = MinRequiredSubnets
 	// RecommendedSubnets is the recommended number of subnets
@@ -335,7 +337,11 @@ func (c *ClusterConfig) HasAnySubnets() bool {
 // HasSufficientPrivateSubnets validates if there is a sufficient
 // number of private subnets available to create a cluster
 func (c *ClusterConfig) HasSufficientPrivateSubnets() bool {
-	return len(c.VPC.Subnets.Private) >= MinRequiredSubnets
+	subnetsCount := len(c.VPC.Subnets.Private)
+	if c.IsControlPlaneOnOutposts() {
+		return subnetsCount >= OutpostsMinRequiredSubnets
+	}
+	return subnetsCount >= MinRequiredSubnets
 }
 
 // CanUseForPrivateNodeGroups checks whether specified NodeGroups have enough
@@ -349,9 +355,21 @@ func (c *ClusterConfig) CanUseForPrivateNodeGroups() error {
 	return nil
 }
 
-var errInsufficientSubnets = fmt.Errorf(
-	"insufficient number of subnets, at least %dx public and/or %dx private subnets are required",
-	MinRequiredSubnets, MinRequiredSubnets)
+// insufficientSubnetsError represents an error for when the minimum required subnets are not provided.
+type insufficientSubnetsError struct {
+	controlPlaneOnOutposts bool
+}
+
+// Error implements the error interface.
+func (e *insufficientSubnetsError) Error() string {
+	msg := "insufficient number of subnets, at least %[1]dx public and/or %[1]dx private subnets are required"
+	minSubnets := MinRequiredSubnets
+	if e.controlPlaneOnOutposts {
+		msg += " for Outposts"
+		minSubnets = OutpostsMinRequiredSubnets
+	}
+	return fmt.Sprintf(msg, minSubnets)
+}
 
 // HasSufficientSubnets validates if there is a sufficient number
 // of either private and/or public subnets available to create
@@ -360,15 +378,21 @@ var errInsufficientSubnets = fmt.Errorf(
 // public-only or private-only
 func (c *ClusterConfig) HasSufficientSubnets() error {
 	if !c.HasAnySubnets() {
-		return errInsufficientSubnets
+		return &insufficientSubnetsError{
+			controlPlaneOnOutposts: c.IsControlPlaneOnOutposts(),
+		}
+	}
+
+	if c.IsControlPlaneOnOutposts() {
+		return nil
 	}
 
 	if numPublic := len(c.VPC.Subnets.Public); numPublic > 0 && numPublic < MinRequiredSubnets {
-		return errInsufficientSubnets
+		return &insufficientSubnetsError{}
 	}
 
 	if numPrivate := len(c.VPC.Subnets.Private); numPrivate > 0 && numPrivate < MinRequiredSubnets {
-		return errInsufficientSubnets
+		return &insufficientSubnetsError{}
 	}
 
 	return nil

@@ -33,7 +33,9 @@ func NewExistingVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig
 		clusterConfig: clusterConfig,
 		ec2API:        ec2API,
 		vpcID:         gfnt.NewString(clusterConfig.VPC.ID),
-		subnetDetails: &SubnetDetails{},
+		subnetDetails: &SubnetDetails{
+			controlPlaneOnOutposts: clusterConfig.IsControlPlaneOnOutposts(),
+		},
 	}
 }
 

@@ -527,12 +527,10 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 		return vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones, cfg.LocalZones)
 	}
 
-	if cfg.IsControlPlaneOnOutposts() {
-		// TODO: remove validation after adding support for specifying pre-existing subnets with Outposts.
-		return errors.New("cannot specify subnets or --vpc-from-kops-cluster when creating a cluster on Outposts")
-	}
-
 	if params.KopsClusterNameForVPC != "" {
+		if cfg.IsControlPlaneOnOutposts() {
+			return errors.New("cannot specify --vpc-from-kops-cluster when creating a cluster on Outposts")
+		}
 		// import VPC from a given kops cluster
 		if len(params.AvailabilityZones) != 0 {
 			return fmt.Errorf("--vpc-from-kops-cluster and --zones %s", cmdutils.IncompatibleFlags)

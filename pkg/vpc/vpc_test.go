@@ -70,9 +70,11 @@ type endpointAccessCase struct {
 }
 
 type importAllSubnetsCase struct {
-	cfg      api.ClusterConfig
-	expected api.ClusterSubnets
-	error    error
+	cfg                     api.ClusterConfig
+	privateSubnetOutpostARN *string
+
+	expectedSubnets api.ClusterSubnets
+	expectedErr     string
 }
 
 type cleanupSubnetsCase struct {
@@ -1024,6 +1026,7 @@ var _ = Describe("VPC", func() {
 						CidrBlock:        strings.Pointer("192.168.0.0/20"),
 						SubnetId:         strings.Pointer("private1"),
 						VpcId:            strings.Pointer("vpc1"),
+						OutpostArn:       e.privateSubnetOutpostARN,
 					},
 				},
 			}, nil)
@@ -1055,11 +1058,11 @@ var _ = Describe("VPC", func() {
 			}, nil)
 
 			err := ImportSubnetsFromSpec(context.Background(), p, &e.cfg)
-			if e.error != nil {
-				Expect(err).To(MatchError(e.error.Error()))
+			if e.expectedErr != "" {
+				Expect(err).To(MatchError(e.expectedErr))
 			} else {
 				Expect(err).NotTo(HaveOccurred())
-				Expect(*e.cfg.VPC.Subnets).To(Equal(e.expected))
+				Expect(*e.cfg.VPC.Subnets).To(Equal(e.expectedSubnets))
 			}
 		},
 
@@ -1083,7 +1086,7 @@ var _ = Describe("VPC", func() {
 					},
 				},
 			},
-			expected: api.ClusterSubnets{
+			expectedSubnets: api.ClusterSubnets{
 				Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 					"az1": {
 						ID:   "private1",
@@ -1099,7 +1102,6 @@ var _ = Describe("VPC", func() {
 					},
 				}),
 			},
-			error: nil,
 		}),
 
 		Entry("Private subnet is not matching with AZ", importAllSubnetsCase{
@@ -1122,7 +1124,7 @@ var _ = Describe("VPC", func() {
 					},
 				},
 			},
-			expected: api.ClusterSubnets{
+			expectedSubnets: api.ClusterSubnets{
 				Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 					"invalidAZ": {
 						ID:   "private1",
@@ -1138,7 +1140,6 @@ var _ = Describe("VPC", func() {
 					},
 				}),
 			},
-			error: nil,
 		}),
 		Entry("Public subnet is not matching with AZ", importAllSubnetsCase{
 			cfg: api.ClusterConfig{
@@ -1160,7 +1161,7 @@ var _ = Describe("VPC", func() {
 					},
 				},
 			},
-			expected: api.ClusterSubnets{
+			expectedSubnets: api.ClusterSubnets{
 				Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 					"az1": {
 						ID:   "private1",
@@ -1176,7 +1177,6 @@ var _ = Describe("VPC", func() {
 					},
 				}),
 			},
-			error: nil,
 		}),
 		Entry("Subnets given names and identified by various params", importAllSubnetsCase{
 			cfg: api.ClusterConfig{
@@ -1200,7 +1200,7 @@ var _ = Describe("VPC", func() {
 					},
 				},
 			},
-			expected: api.ClusterSubnets{
+			expectedSubnets: api.ClusterSubnets{
 				Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 					"subone": {
 						ID:   "private1",
@@ -1219,7 +1219,6 @@ var _ = Describe("VPC", func() {
 					},
 				}),
 			},
-			error: nil,
 		}),
 		Entry("Subnets identified by CIDR", importAllSubnetsCase{
 			cfg: api.ClusterConfig{
@@ -1244,7 +1243,7 @@ var _ = Describe("VPC", func() {
 					},
 				},
 			},
-			expected: api.ClusterSubnets{
+			expectedSubnets: api.ClusterSubnets{
 				Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 					"az1": {
 						ID:   "private1",
@@ -1265,7 +1264,82 @@ var _ = Describe("VPC", func() {
 					},
 				}),
 			},
-			error: nil,
+		}),
+
+		Entry("[Outposts] Subnets not on Outposts", importAllSubnetsCase{
+			cfg: api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						ID: "vpc1",
+					},
+					Subnets: &api.ClusterSubnets{
+						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+							"az1": {
+								ID: "private1",
+							},
+						}),
+					},
+				},
+				Outpost: &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				},
+			},
+
+			expectedErr: "all subnets must be on the control plane Outpost when specifying pre-existing subnets for a cluster on Outposts; found invalid private subnet(s): private1",
+		}),
+
+		Entry("[Outposts] Subnets not on the same Outpost as the control plane", importAllSubnetsCase{
+			cfg: api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						ID: "vpc1",
+					},
+					Subnets: &api.ClusterSubnets{
+						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+							"az1": {
+								ID: "private1",
+							},
+						}),
+					},
+				},
+				Outpost: &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				},
+			},
+			privateSubnetOutpostARN: aws.String("arn:aws:outposts:us-west-2:1234:outpost/op-5678"),
+
+			expectedErr: "all subnets must be on the control plane Outpost when specifying pre-existing subnets for a cluster on Outposts; found invalid private subnet(s): private1",
+		}),
+
+		Entry("[Outposts] Subnets on the same Outpost as the control plane", importAllSubnetsCase{
+			cfg: api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						ID: "vpc1",
+					},
+					Subnets: &api.ClusterSubnets{
+						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+							"az1": {
+								ID: "private1",
+							},
+						}),
+					},
+				},
+				Outpost: &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				},
+			},
+			privateSubnetOutpostARN: aws.String("arn:aws:outposts:us-west-2:1234:outpost/op-1234"),
+
+			expectedSubnets: api.ClusterSubnets{
+				Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+					"az1": {
+						ID:   "private1",
+						AZ:   "az1",
+						CIDR: ipnet.MustParseCIDR("192.168.0.0/20"),
+					},
+				}),
+			},
 		}),
 	)
 

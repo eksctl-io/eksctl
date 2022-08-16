@@ -278,7 +278,6 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			InstanceTypes: nil,
 		}
-		ng.InstanceType = "mixed"
 		ng.InstanceSelector = &api.InstanceSelector{
 			VCPUs:  2,
 			Memory: "4",

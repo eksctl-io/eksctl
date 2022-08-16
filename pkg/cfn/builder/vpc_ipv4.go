@@ -42,6 +42,8 @@ type SubnetDetails struct {
 	Public           []SubnetResource
 	PrivateLocalZone []SubnetResource
 	PublicLocalZone  []SubnetResource
+
+	controlPlaneOnOutposts bool
 }
 
 // NewIPv4VPCResourceSet creates and returns a new VPCResourceSet
@@ -50,7 +52,9 @@ func NewIPv4VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec
 		rs:            rs,
 		clusterConfig: clusterConfig,
 		ec2API:        ec2API,
-		subnetDetails: &SubnetDetails{},
+		subnetDetails: &SubnetDetails{
+			controlPlaneOnOutposts: clusterConfig.IsControlPlaneOnOutposts(),
+		},
 	}
 }
 
@@ -80,10 +84,15 @@ func (v *IPv4VPCResourceSet) addResources() error {
 
 	refIG := v.rs.newResource("InternetGateway", &gfnec2.InternetGateway{})
 	vpcGA := "VPCGatewayAttachment"
+
+	v.rs.newResource(vpcGA, &gfnec2.VPCGatewayAttachment{
+		InternetGatewayId: refIG,
+		VpcId:             v.vpcID,
+	})
+
 	refPublicRT := v.rs.newResource("PublicRouteTable", &gfnec2.RouteTable{
 		VpcId: v.vpcID,
 	})
-
 	if api.IsEnabled(vpc.AutoAllocateIPv6) {
 		v.rs.newResource("AutoAllocatedCIDRv6", &gfnec2.VPCCidrBlock{
 			VpcId:                       v.vpcID,
@@ -97,11 +106,6 @@ func (v *IPv4VPCResourceSet) addResources() error {
 			AWSCloudFormationDependsOn: []string{vpcGA},
 		})
 	}
-
-	v.rs.newResource(vpcGA, &gfnec2.VPCGatewayAttachment{
-		InternetGatewayId: refIG,
-		VpcId:             v.vpcID,
-	})
 
 	v.rs.newResource("PublicSubnetRoute", &gfnec2.Route{
 		RouteTableId:               refPublicRT,
@@ -127,6 +131,13 @@ func (v *IPv4VPCResourceSet) addResources() error {
 	}
 
 	return nil
+}
+
+func (s *SubnetDetails) ControlPlaneSubnetRefs() []*gfnt.Value {
+	if s.controlPlaneOnOutposts {
+		return s.PrivateSubnetRefs()
+	}
+	return append(s.PublicSubnetRefs(), s.PrivateSubnetRefs()...)
 }
 
 func (s *SubnetDetails) PublicSubnetRefs() []*gfnt.Value {
