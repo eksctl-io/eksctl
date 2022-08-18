@@ -239,7 +239,6 @@ var _ = Describe("create cluster", func() {
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = "my-cluster"
 		clusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
-		clusterConfig.Metadata.Version = "1.22"
 
 		if ce.updateClusterConfig != nil {
 			ce.updateClusterConfig(clusterConfig)
@@ -271,8 +270,33 @@ var _ = Describe("create cluster", func() {
 	},
 		Entry("standard cluster", createClusterEntry{}),
 
+		Entry("[Outposts] cluster version not set", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = ""
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+			},
+			mockOutposts: true,
+
+			expectedErr: "cluster version must be explicitly set to 1.21 for Outposts clusters as only version 1.21 is currently supported",
+		}),
+
+		Entry("[Outposts] cluster version set to an unsupported version", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_22
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+			},
+			mockOutposts: true,
+
+			expectedErr: "only version 1.21 is supported on Outposts",
+		}),
+
 		Entry("[Outposts] control plane on Outposts with valid config", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 				}
@@ -282,6 +306,7 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] unavailable instance type specified for the control plane", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN:   "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 					ControlPlaneInstanceType: "t2.medium",
@@ -294,6 +319,7 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] available instance type specified for the control plane", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN:   "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 					ControlPlaneInstanceType: "m5.xlarge",
@@ -304,6 +330,7 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] nodegroups specified when the VPC will be created by eksctl", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 				}
@@ -318,6 +345,7 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] nodegroups specified when the VPC will be created by eksctl, but with --without-nodegroup", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 				}
@@ -333,6 +361,7 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] specified Outpost does not exist", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 				}

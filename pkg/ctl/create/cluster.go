@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"strings"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -151,19 +150,18 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		cmdutils.LogRegionAndVersionInfo(meta)
 	})
 
-	if cfg.Metadata.Version == "" || cfg.Metadata.Version == "auto" {
+	switch cfg.Metadata.Version {
+	case "auto":
 		cfg.Metadata.Version = api.DefaultVersion
-	}
-	if cfg.Metadata.Version == "latest" {
+	case "latest":
 		cfg.Metadata.Version = api.LatestVersion
 	}
-	if cfg.Metadata.Version != api.DefaultVersion {
-		if !api.IsSupportedVersion(cfg.Metadata.Version) {
-			if api.IsDeprecatedVersion(cfg.Metadata.Version) {
-				return fmt.Errorf("invalid version, %s is no longer supported, supported values: %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", cfg.Metadata.Version, strings.Join(api.SupportedVersions(), ", "))
-			}
-			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ", "))
-		}
+
+	if err := api.ValidateClusterVersion(cfg); err != nil {
+		return err
+	}
+	if cfg.Metadata.Version == "" {
+		cfg.Metadata.Version = api.DefaultVersion
 	}
 
 	if err := cfg.ValidatePrivateCluster(); err != nil {

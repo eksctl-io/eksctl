@@ -18,6 +18,7 @@ var _ = Describe("Outposts validation", func() {
 
 	DescribeTable("unsupported ClusterConfig features", func(oe outpostsEntry) {
 		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Metadata.Version = api.Version1_21
 		clusterConfig.Outpost = &api.Outpost{
 			ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 		}

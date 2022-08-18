@@ -107,6 +107,7 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return err
 	}
 
+	var ngOutpostARN string
 	for i, ng := range cfg.NodeGroups {
 		path := fmt.Sprintf("nodeGroups[%d]", i)
 		if err := validateNg(ng.NodeGroupBase, path); err != nil {
@@ -114,6 +115,12 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 		if ng.DisableASGTagPropagation != nil {
 			logger.Warning("field DisableASGTagPropagation for nodegroup has been deprecated and has no effect. Please use PropagateASGTags instead for nodegroup %s!", ng.Name)
+		}
+		if ng.OutpostARN != "" {
+			if ngOutpostARN != "" && ng.OutpostARN != ngOutpostARN {
+				return fmt.Errorf("cannot create nodegroups in two different Outposts; got Outpost ARN %q and %q", ngOutpostARN, ng.OutpostARN)
+			}
+			ngOutpostARN = ng.OutpostARN
 		}
 	}
 
@@ -196,6 +203,29 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return fmt.Errorf("failed to validate Karpenter config: %w", err)
 	}
 
+	return nil
+}
+
+// ValidateClusterVersion validates the cluster version.
+func ValidateClusterVersion(clusterConfig *ClusterConfig) error {
+	clusterVersion := clusterConfig.Metadata.Version
+	if clusterConfig.IsControlPlaneOnOutposts() {
+		switch clusterVersion {
+		case "":
+			return fmt.Errorf("cluster version must be explicitly set to %[1]s for Outposts clusters as only version %[1]s is currently supported", Version1_21)
+		case Version1_21:
+
+		default:
+			return fmt.Errorf("only version %s is supported on Outposts", Version1_21)
+		}
+	} else if clusterVersion != "" && clusterVersion != DefaultVersion {
+		if !IsSupportedVersion(clusterVersion) {
+			if IsDeprecatedVersion(clusterVersion) {
+				return fmt.Errorf("invalid version, %s is no longer supported, supported values: %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", clusterVersion, strings.Join(SupportedVersions(), ", "))
+			}
+			return fmt.Errorf("invalid version, supported values: %s", strings.Join(SupportedVersions(), ", "))
+		}
+	}
 	return nil
 }
 
