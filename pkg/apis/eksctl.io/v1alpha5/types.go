@@ -358,7 +358,7 @@ const (
 
 // supported version of Karpenter
 const (
-	supportedKarpenterVersion = "0.13.2"
+	supportedKarpenterVersion = "0.15.0"
 )
 
 // Values for Capacity Reservation Preference
