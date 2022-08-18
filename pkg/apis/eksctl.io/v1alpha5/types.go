@@ -37,7 +37,7 @@ const (
 	Version1_23 = "1.23"
 
 	// DefaultVersion (default)
-	DefaultVersion = Version1_22
+	DefaultVersion = Version1_23
 
 	LatestVersion = Version1_23
 )
@@ -697,6 +697,7 @@ type ClusterProvider interface {
 
 // STSPresigner defines the method to pre-sign GetCallerIdentity requests to add a proper header required by EKS for
 // authentication from the outside.
+//
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_sts_presigner.go . STSPresigner
 type STSPresigner interface {
