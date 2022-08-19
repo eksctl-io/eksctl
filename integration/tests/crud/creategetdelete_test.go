@@ -109,7 +109,7 @@ var _ = BeforeSuite(func() {
 
 var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 	commonTimeout := 10 * time.Minute
-	nodegroupTimeout := time.Hour.String()
+	nodegroupTimeout := time.Duration(90 * time.Minute).String()
 	makeClusterConfig := func() *api.ClusterConfig {
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = params.ClusterName
