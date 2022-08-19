@@ -29,6 +29,7 @@ kubectl \
               del(.items[].metadata.creationTimestamp) |
               del(.items[].metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]) |
               del(.items[].metadata.annotations["deployment.kubernetes.io/revision"]) |
+              del(.items[].spec.clusterIPs) |
               del(.items[].spec.clusterIP) |
               del(.items[].secrets) |
               del(.items[].status)
