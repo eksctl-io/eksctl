@@ -35,15 +35,15 @@ var _ = Describe("upgrade cluster", func() {
 
 		Entry("upgrades by default when the version is not specified", upgradeCase{
 			givenVersion:           "",
-			eksVersion:             "1.18",
-			expectedUpgradeVersion: "1.19",
+			eksVersion:             "1.19",
+			expectedUpgradeVersion: "1.20",
 			expectedUpgrade:        true,
 		}),
 
 		Entry("upgrades by default when the version is auto", upgradeCase{
 			givenVersion:           "auto",
-			eksVersion:             "1.18",
-			expectedUpgradeVersion: "1.19",
+			eksVersion:             "1.19",
+			expectedUpgradeVersion: "1.20",
 			expectedUpgrade:        true,
 		}),
 
@@ -55,9 +55,9 @@ var _ = Describe("upgrade cluster", func() {
 		}),
 
 		Entry("upgrades to the next version when specified", upgradeCase{
-			givenVersion:           "1.19",
-			eksVersion:             "1.18",
-			expectedUpgradeVersion: "1.19",
+			givenVersion:           "1.20",
+			eksVersion:             "1.19",
+			expectedUpgradeVersion: "1.20",
 			expectedUpgrade:        true,
 		}),
 
@@ -69,8 +69,8 @@ var _ = Describe("upgrade cluster", func() {
 		}),
 
 		Entry("fails when the upgrade jumps more than one kubernetes version", upgradeCase{
-			givenVersion:      "1.19",
-			eksVersion:        "1.17",
+			givenVersion:      "1.20",
+			eksVersion:        "1.18",
 			expectedErrorText: "upgrading more than one version at a time is not supported",
 		}),
 
@@ -87,9 +87,9 @@ var _ = Describe("upgrade cluster", func() {
 		}),
 
 		Entry("fails when the version is still not supported", upgradeCase{
-			givenVersion:      "1.23",
+			givenVersion:      "1.24",
 			eksVersion:        api.LatestVersion,
-			expectedErrorText: "control plane version \"1.23\" is not known to this version of eksctl",
+			expectedErrorText: "control plane version \"1.24\" is not known to this version of eksctl",
 		}),
 	)
 })

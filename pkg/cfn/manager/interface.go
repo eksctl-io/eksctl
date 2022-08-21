@@ -96,7 +96,6 @@ type StackManager interface {
 	NewUnmanagedNodeGroupTask(ctx context.Context, nodeGroups []*v1alpha5.NodeGroup, forceAddCNIPolicy bool, importer vpc.Importer) *tasks.TaskTree
 	PropagateManagedNodeGroupTagsToASG(ngName string, ngTags map[string]string, asgNames []string, errCh chan error) error
 	RefreshFargatePodExecutionRoleARN(ctx context.Context) error
-	StackStatusIsNotReady(s *Stack) bool
 	StackStatusIsNotTransitional(s *Stack) bool
 	UpdateNodeGroupStack(ctx context.Context, nodeGroupName, template string, wait bool) error
 	UpdateStack(ctx context.Context, options UpdateStackOptions) error

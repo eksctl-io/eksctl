@@ -1839,7 +1839,19 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("fails when the AMIFamily is not supported", func() {
 			ng.AMIFamily = "SomeTrash"
 			err := api.ValidateNodeGroup(0, ng)
-			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer, WindowsServer2004CoreContainer, WindowsServer20H2CoreContainer"))
+			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer"))
+		})
+
+		It("fails when the AMIFamily is WindowsServer2004CoreContainer", func() {
+			ng.AMIFamily = api.NodeImageFamilyWindowsServer2004CoreContainer
+			err := api.ValidateNodeGroup(0, ng)
+			Expect(err).To(MatchError("AMI Family WindowsServer2004CoreContainer is deprecated. For more information, head to the Amazon documentation on Windows AMIs (https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-windows-ami.html)"))
+		})
+
+		It("fails when the AMIFamily is WindowsServer20H2CoreContainer", func() {
+			ng.AMIFamily = api.NodeImageFamilyWindowsServer20H2CoreContainer
+			err := api.ValidateNodeGroup(0, ng)
+			Expect(err).To(MatchError("AMI Family WindowsServer20H2CoreContainer is deprecated. For more information, head to the Amazon documentation on Windows AMIs (https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-windows-ami.html)"))
 		})
 	})
 
@@ -1882,7 +1894,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.Karpenter = &api.Karpenter{
 				Version: "0.6.1",
 			}
-			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: iam.withOIDC must be enabled with Karpenter")))
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate Karpenter config: iam.withOIDC must be enabled with Karpenter")))
 		})
 
 		It("returns an error when version is missing", func() {
@@ -1897,16 +1909,16 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.Karpenter = &api.Karpenter{
 				Version: "isitmeeeyourlookingfoorrrr",
 			}
-			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to parse karpenter version")))
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to parse Karpenter version")))
 		})
 
 		It("returns an error when the version is not supported", func() {
 			cfg := api.NewClusterConfig()
 			cfg.IAM.WithOIDC = aws.Bool(true)
 			cfg.Karpenter = &api.Karpenter{
-				Version: "0.10.0",
+				Version: "0.16.1",
 			}
-			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: maximum supported version is 0.9")))
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate Karpenter config: maximum supported version is 0.15.0")))
 		})
 	})
 
@@ -2053,6 +2065,70 @@ var _ = Describe("ClusterConfig validation", func() {
 				cfg.SecretsEncryption = &api.SecretsEncryption{}
 				err := api.ValidateClusterConfig(cfg)
 				Expect(err).To(MatchError(ContainSubstring("field secretsEncryption.keyARN is required for enabling secrets encryption")))
+			})
+		})
+	})
+
+	Describe("Capacity Reservation validation", func() {
+		var (
+			cfg *api.ClusterConfig
+			ng  *api.NodeGroup
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			ng = cfg.NewNodeGroup()
+			ng.Name = "ng"
+		})
+
+		When("both CapacityReservationPreference and CapacityReservationTarget are set", func() {
+			It("returns an error", func() {
+				ng.CapacityReservation = &api.CapacityReservation{
+					CapacityReservationPreference: aws.String("open"),
+					CapacityReservationTarget: &api.CapacityReservationTarget{
+						CapacityReservationID:               aws.String("id"),
+						CapacityReservationResourceGroupARN: aws.String("arn"),
+					},
+				}
+
+				Expect(api.ValidateNodeGroup(0, ng)).To(MatchError(ContainSubstring("only one of CapacityReservationPreference or CapacityReservationTarget may be specified at a time")))
+			})
+		})
+
+		When("CapacityReservationPreference is set", func() {
+			When("it is set to 'open'", func() {
+				It("does not fail", func() {
+					ng.CapacityReservation = &api.CapacityReservation{CapacityReservationPreference: aws.String("open")}
+					Expect(api.ValidateNodeGroup(0, ng)).To(Succeed())
+				})
+			})
+
+			When("it is set to 'none'", func() {
+				It("does not fail", func() {
+					ng.CapacityReservation = &api.CapacityReservation{CapacityReservationPreference: aws.String("none")}
+					Expect(api.ValidateNodeGroup(0, ng)).To(Succeed())
+				})
+			})
+
+			When("it is set to something other than 'open' or 'none'", func() {
+				It("returns an error", func() {
+					ng.CapacityReservation = &api.CapacityReservation{CapacityReservationPreference: aws.String("err")}
+					Expect(api.ValidateNodeGroup(0, ng)).To(MatchError(ContainSubstring(`accepted values include "open" and "none"; got "err"`)))
+				})
+			})
+		})
+
+		When("CapacityReservationTarget is set", func() {
+			When("when both CapacityReservationID and CapacityReservationResourceGroupARN are set", func() {
+				It("returns an error", func() {
+					ng.CapacityReservation = &api.CapacityReservation{
+						CapacityReservationTarget: &api.CapacityReservationTarget{
+							CapacityReservationID:               aws.String("id"),
+							CapacityReservationResourceGroupARN: aws.String("arn"),
+						},
+					}
+					Expect(api.ValidateNodeGroup(0, ng)).To(MatchError(ContainSubstring("only one of CapacityReservationID or CapacityReservationResourceGroupARN may be specified at a time")))
+				})
 			})
 		})
 	})

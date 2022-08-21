@@ -26,7 +26,7 @@ const (
 	defaultFilePermissions   = "0644"
 )
 
-// CloudConfig stores informaiton of the cloud config
+// CloudConfig stores information of the cloud config
 type CloudConfig struct {
 	Commands   []interface{} `json:"runcmd"`
 	Packages   []string      `json:"packages"`
@@ -63,7 +63,7 @@ func (c *CloudConfig) AddCommand(cmd ...string) {
 	c.Commands = append(c.Commands, cmd)
 }
 
-// AddShellCommand adds a shell comannd, which will be run on node start up
+// AddShellCommand adds a shell command, which will be run on node start up
 func (c *CloudConfig) AddShellCommand(cmd string) {
 	c.Commands = append(c.Commands, []string{Shell, "-c", cmd})
 }
@@ -79,7 +79,7 @@ func (c *CloudConfig) AddFile(f File) {
 	c.WriteFiles = append(c.WriteFiles, f)
 }
 
-// AddScript adds a scipt, which will be placed on the node
+// AddScript adds a script, which will be placed on the node
 func (c *CloudConfig) AddScript(p, s string) {
 	c.AddFile(File{
 		Content:     s,

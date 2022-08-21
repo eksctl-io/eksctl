@@ -19,6 +19,23 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(ctx context.Context
 		MetadataOptions:   makeMetadataOptions(mng.NodeGroupBase),
 	}
 
+	if mng.CapacityReservation != nil {
+		valueOrNil := func(value *string) *gfnt.Value {
+			if value != nil {
+				return gfnt.NewString(*value)
+			}
+			return nil
+		}
+		launchTemplateData.CapacityReservationSpecification = &gfnec2.LaunchTemplate_CapacityReservationSpecification{}
+		launchTemplateData.CapacityReservationSpecification.CapacityReservationPreference = valueOrNil(mng.CapacityReservation.CapacityReservationPreference)
+		if mng.CapacityReservation.CapacityReservationTarget != nil {
+			launchTemplateData.CapacityReservationSpecification.CapacityReservationTarget = &gfnec2.LaunchTemplate_CapacityReservationTarget{
+				CapacityReservationId:               valueOrNil(mng.CapacityReservation.CapacityReservationTarget.CapacityReservationID),
+				CapacityReservationResourceGroupArn: valueOrNil(mng.CapacityReservation.CapacityReservationTarget.CapacityReservationResourceGroupARN),
+			}
+		}
+	}
+
 	userData, err := m.bootstrapper.UserData()
 	if err != nil {
 		return nil, err

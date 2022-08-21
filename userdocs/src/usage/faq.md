@@ -21,7 +21,7 @@
     You'll see a name similar to `eksctl-CLUSTER_NAME-nodegroup-NODEGROUP_NAME`.
 
     You can execute the following to get the userdata. Note the final line which
-    decodes from base64 and uncompresses the gzipped data.
+    decodes from base64 and decompresses the gzipped data.
     ```bash
     NG_STACK=eksctl-scrumptious-monster-1595247364-nodegroup-ng-29b8862f # your stack here
     LAUNCH_TEMPLATE_ID=$(aws cloudformation describe-stack-resources --stack-name $NG_STACK \

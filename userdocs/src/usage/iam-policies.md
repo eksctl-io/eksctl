@@ -20,7 +20,7 @@ nodeGroups:
         ebs: true
         fsx: true
         efs: true
-        albIngress: true
+        awsLoadBalancerController: true
         xRay: true
         cloudWatch: true
 ```

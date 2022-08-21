@@ -67,14 +67,12 @@ func (m *Manager) Disassociate(ctx context.Context, options DisassociateIdentity
 
 				if options.WaitTimeout > 0 {
 					updateWaiter := waiter.NewUpdateWaiter(m.eksAPI, func(options *waiter.UpdateWaiterOptions) {
-						options.RetryAttemptLogMessage = "waiting for update %q in cluster %q to succeed"
+						options.RetryAttemptLogMessage = fmt.Sprintf("waiting for update %q in cluster %q to succeed", *update.Update.Id, m.metadata.Name)
 					})
-					if err := updateWaiter.Wait(ctx, &eks.DescribeUpdateInput{
+					return updateWaiter.Wait(ctx, &eks.DescribeUpdateInput{
 						Name:     aws.String(m.metadata.Name),
 						UpdateId: update.Update.Id,
-					}, options.WaitTimeout); err != nil {
-						return err
-					}
+					}, options.WaitTimeout)
 				}
 				return nil
 			},

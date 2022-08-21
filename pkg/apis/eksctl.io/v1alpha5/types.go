@@ -28,18 +28,18 @@ import (
 // Values for `KubernetesVersion`
 // All valid values should go in this block
 const (
-	Version1_19 = "1.19"
-
 	Version1_20 = "1.20"
 
 	Version1_21 = "1.21"
 
 	Version1_22 = "1.22"
 
+	Version1_23 = "1.23"
+
 	// DefaultVersion (default)
 	DefaultVersion = Version1_22
 
-	LatestVersion = Version1_22
+	LatestVersion = Version1_23
 )
 
 // No longer supported versions
@@ -55,6 +55,7 @@ const (
 
 	// Version1_13 represents Kubernetes version 1.13.x
 	Version1_13 = "1.13"
+
 	// Version1_14 represents Kubernetes version 1.14.x
 	Version1_14 = "1.14"
 
@@ -67,13 +68,17 @@ const (
 	// Version1_17 represents Kubernetes version 1.17.x
 	Version1_17 = "1.17"
 
+	// Version1_18 represents Kubernetes version 1.18.x
 	Version1_18 = "1.18"
+
+	// Version1_19 represents Kubernetes version 1.19.x
+	Version1_19 = "1.19"
 )
 
 // Not yet supported versions
 const (
-	// Version1_23 represents Kubernetes version 1.23.x
-	Version1_23 = "1.23"
+	// Version1_24 represents Kubernetes version 1.24.x
+	Version1_24 = "1.24"
 )
 
 const (
@@ -184,6 +189,10 @@ const (
 
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
 	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
+)
+
+// Deprecated `NodeAMIFamily`
+const (
 	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
 	NodeImageFamilyWindowsServer20H2CoreContainer = "WindowsServer20H2CoreContainer"
 )
@@ -349,8 +358,13 @@ const (
 
 // supported version of Karpenter
 const (
-	supportedKarpenterVersion      = "0.9"
-	supportedKarpenterVersionMinor = 9
+	supportedKarpenterVersion = "0.15.0"
+)
+
+// Values for Capacity Reservation Preference
+const (
+	OpenCapacityReservation = "open"
+	NoneCapacityReservation = "none"
 )
 
 var (
@@ -462,6 +476,7 @@ func DeprecatedVersions() []string {
 		Version1_16,
 		Version1_17,
 		Version1_18,
+		Version1_19,
 	}
 }
 
@@ -478,10 +493,10 @@ func IsDeprecatedVersion(version string) bool {
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_19,
 		Version1_20,
 		Version1_21,
 		Version1_22,
+		Version1_23,
 	}
 }
 
@@ -515,8 +530,6 @@ func supportedAMIFamilies() []string {
 		NodeImageFamilyBottlerocket,
 		NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
-		NodeImageFamilyWindowsServer2004CoreContainer,
-		NodeImageFamilyWindowsServer20H2CoreContainer,
 	}
 }
 
@@ -1044,7 +1057,10 @@ func (n *NodeGroup) InstanceTypeList() []string {
 	if HasMixedInstances(n) {
 		return n.InstancesDistribution.InstanceTypes
 	}
-	return []string{n.InstanceType}
+	if n.InstanceType != "" {
+		return []string{n.InstanceType}
+	}
+	return nil
 }
 
 // NGTaints implements NodePool
@@ -1271,6 +1287,9 @@ type NodePool interface {
 
 	// NGTaints returns the taints to apply for this nodegroup
 	NGTaints() []NodeGroupTaint
+
+	// InstanceTypeList returns a list of instances that are configured for that nodegroup
+	InstanceTypeList() []string
 }
 
 // VolumeMapping Additional Volume Configurations
@@ -1337,7 +1356,7 @@ type NodeGroupBase struct {
 	// +optional
 	PrivateNetworking bool `json:"privateNetworking"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
-	// Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)
+	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional
@@ -1428,6 +1447,24 @@ type NodeGroupBase struct {
 	// Enable EC2 detailed monitoring
 	// +optional
 	EnableDetailedMonitoring *bool `json:"enableDetailedMonitoring,omitempty"`
+
+	// CapacityReservation defines reservation policy for a nodegroup
+	CapacityReservation *CapacityReservation `json:"capacityReservation,omitempty"`
+}
+
+// CapacityReservation defines a nodegroup's Capacity Reservation targeting option
+// +optional
+type CapacityReservation struct {
+	// CapacityReservationPreference defines a nodegroup's Capacity Reservation preferences (either 'open' or 'none')
+	CapacityReservationPreference *string `json:"capacityReservationPreference,omitempty"`
+
+	// CapacityReservationTarget defines a nodegroup's target Capacity Reservation or Capacity Reservation group (not both at the same time).
+	CapacityReservationTarget *CapacityReservationTarget `json:"capacityReservationTarget,omitempty"`
+}
+
+type CapacityReservationTarget struct {
+	CapacityReservationID               *string `json:"capacityReservationID,omitempty"`
+	CapacityReservationResourceGroupARN *string `json:"capacityReservationResourceGroupARN,omitempty"`
 }
 
 // Placement specifies placement group information
@@ -1526,7 +1563,10 @@ func (m *ManagedNodeGroup) InstanceTypeList() []string {
 	if len(m.InstanceTypes) > 0 {
 		return m.InstanceTypes
 	}
-	return []string{m.InstanceType}
+	if m.InstanceType != "" {
+		return []string{m.InstanceType}
+	}
+	return nil
 }
 
 func (m *ManagedNodeGroup) ListOptions() metav1.ListOptions {

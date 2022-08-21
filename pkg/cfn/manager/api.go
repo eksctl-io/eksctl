@@ -527,33 +527,6 @@ func nonTransitionalReadyStackStatuses() []types.StackStatus {
 	}
 }
 
-// StackStatusIsNotReady will return true when stack statate is non-ready
-func (*StackCollection) StackStatusIsNotReady(s *Stack) bool {
-	for _, state := range nonReadyStackStatuses() {
-		if s.StackStatus == state {
-			return true
-		}
-	}
-	return false
-}
-
-func nonReadyStackStatuses() []types.StackStatus {
-	return []types.StackStatus{
-		types.StackStatusCreateInProgress,
-		types.StackStatusCreateFailed,
-		types.StackStatusRollbackInProgress,
-		types.StackStatusRollbackFailed,
-		types.StackStatusDeleteInProgress,
-		types.StackStatusDeleteFailed,
-		types.StackStatusUpdateInProgress,
-		types.StackStatusUpdateCompleteCleanupInProgress,
-		types.StackStatusUpdateRollbackInProgress,
-		types.StackStatusUpdateRollbackFailed,
-		types.StackStatusUpdateRollbackCompleteCleanupInProgress,
-		types.StackStatusReviewInProgress,
-	}
-}
-
 func allNonDeletedStackStatuses() []types.StackStatus {
 	return []types.StackStatus{
 		types.StackStatusCreateInProgress,

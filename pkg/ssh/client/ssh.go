@@ -34,9 +34,9 @@ func LoadKeyFromFile(ctx context.Context, filePath, clusterName, ngName string, 
 		return "", errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", filePath))
 	}
 
-	fingerprint, err := fingerprint(filePath, fileContent)
+	fingerprint, err := fingerprint(fileContent)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, fmt.Sprintf("parsing SSH public key %q", filePath))
 	}
 
 	key := string(fileContent)
@@ -50,10 +50,10 @@ func LoadKeyFromFile(ctx context.Context, filePath, clusterName, ngName string, 
 	return keyName, nil
 }
 
-func fingerprint(filePath string, key []byte) (string, error) {
+func fingerprint(key []byte) (string, error) {
 	pk, _, _, _, err := ssh.ParseAuthorizedKey(key)
 	if err != nil {
-		return "", fmt.Errorf("parsing key %q: %w", filePath, err)
+		return "", fmt.Errorf("parsing key: %w", err)
 	}
 
 	if pk.Type() == ssh.KeyAlgoED25519 {
@@ -62,7 +62,7 @@ func fingerprint(filePath string, key []byte) (string, error) {
 
 	fingerprint, err := pki.ComputeAWSKeyFingerprint(string(key))
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %q", filePath))
+		return "", errors.Wrap(err, fmt.Sprintf("computing fingerprint for key"))
 	}
 
 	return fingerprint, nil
@@ -70,9 +70,9 @@ func fingerprint(filePath string, key []byte) (string, error) {
 
 // LoadKeyByContent loads and imports an SSH public key into EC2 if it doesn't exist
 func LoadKeyByContent(ctx context.Context, key *string, clusterName, ngName string, ec2API awsapi.EC2) (string, error) {
-	fingerprint, err := pki.ComputeAWSKeyFingerprint(*key)
+	fingerprint, err := fingerprint([]byte(*key))
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %q", *key))
+		return "", errors.Wrap(err, fmt.Sprintf("parsing SSH public key \"%q\"", *key))
 	}
 	keyName := getKeyName(clusterName, ngName, fingerprint)
 

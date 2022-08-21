@@ -371,6 +371,23 @@ func newLaunchTemplateData(ctx context.Context, n *NodeGroupResourceSet) (*gfnec
 		TagSpecifications: makeTags(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
 	}
 
+	if n.spec.CapacityReservation != nil {
+		valueOrNil := func(value *string) *gfnt.Value {
+			if value != nil {
+				return gfnt.NewString(*value)
+			}
+			return nil
+		}
+		launchTemplateData.CapacityReservationSpecification = &gfnec2.LaunchTemplate_CapacityReservationSpecification{}
+		launchTemplateData.CapacityReservationSpecification.CapacityReservationPreference = valueOrNil(n.spec.CapacityReservation.CapacityReservationPreference)
+		if n.spec.CapacityReservation.CapacityReservationTarget != nil {
+			launchTemplateData.CapacityReservationSpecification.CapacityReservationTarget = &gfnec2.LaunchTemplate_CapacityReservationTarget{
+				CapacityReservationId:               valueOrNil(n.spec.CapacityReservation.CapacityReservationTarget.CapacityReservationID),
+				CapacityReservationResourceGroupArn: valueOrNil(n.spec.CapacityReservation.CapacityReservationTarget.CapacityReservationResourceGroupARN),
+			}
+		}
+	}
+
 	if err := buildNetworkInterfaces(ctx, launchTemplateData, n.spec.InstanceTypeList(), api.IsEnabled(n.spec.EFAEnabled), n.securityGroups, n.ec2API); err != nil {
 		return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
 	}

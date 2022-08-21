@@ -94,6 +94,42 @@
       "description": "holds the EKS addon configuration",
       "x-intellij-html-description": "holds the EKS addon configuration"
     },
+    "CapacityReservation": {
+      "properties": {
+        "capacityReservationPreference": {
+          "type": "string",
+          "description": "defines a nodegroup's Capacity Reservation preferences (either 'open' or 'none')",
+          "x-intellij-html-description": "defines a nodegroup's Capacity Reservation preferences (either 'open' or 'none')"
+        },
+        "capacityReservationTarget": {
+          "$ref": "#/definitions/CapacityReservationTarget",
+          "description": "defines a nodegroup's target Capacity Reservation or Capacity Reservation group (not both at the same time).",
+          "x-intellij-html-description": "defines a nodegroup's target Capacity Reservation or Capacity Reservation group (not both at the same time)."
+        }
+      },
+      "preferredOrder": [
+        "capacityReservationPreference",
+        "capacityReservationTarget"
+      ],
+      "additionalProperties": false,
+      "description": "defines a nodegroup's Capacity Reservation targeting option",
+      "x-intellij-html-description": "defines a nodegroup's Capacity Reservation targeting option"
+    },
+    "CapacityReservationTarget": {
+      "properties": {
+        "capacityReservationID": {
+          "type": "string"
+        },
+        "capacityReservationResourceGroupARN": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "capacityReservationID",
+        "capacityReservationResourceGroupARN"
+      ],
+      "additionalProperties": false
+    },
     "ClusterCloudWatch": {
       "properties": {
         "clusterLogging": {
@@ -503,14 +539,14 @@
         },
         "version": {
           "type": "string",
-          "description": "Valid variants are: `\"1.19\"`, `\"1.20\"`, `\"1.21\"`, `\"1.22\"` (default).",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code>, <code>&quot;1.21&quot;</code>, <code>&quot;1.22&quot;</code> (default).",
+          "description": "Valid variants are: `\"1.20\"`, `\"1.21\"`, `\"1.22\"` (default), `\"1.23\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;1.20&quot;</code>, <code>&quot;1.21&quot;</code>, <code>&quot;1.22&quot;</code> (default), <code>&quot;1.23&quot;</code>.",
           "default": "1.22",
           "enum": [
-            "1.19",
             "1.20",
             "1.21",
-            "1.22"
+            "1.22",
+            "1.23"
           ]
         }
       },
@@ -995,8 +1031,8 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2004CoreContainer\"`, `\"WindowsServer20H2CoreContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>, <code>&quot;WindowsServer20H2CoreContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>.",
           "default": "AmazonLinux2",
           "enum": [
             "AmazonLinux2",
@@ -1004,9 +1040,7 @@
             "Ubuntu1804",
             "Bottlerocket",
             "WindowsServer2019CoreContainer",
-            "WindowsServer2019FullContainer",
-            "WindowsServer2004CoreContainer",
-            "WindowsServer20H2CoreContainer"
+            "WindowsServer2019FullContainer"
           ]
         },
         "asgSuspendProcesses": {
@@ -1029,6 +1063,11 @@
           "$ref": "#/definitions/NodeGroupBottlerocket",
           "description": "specifies settings for Bottlerocket nodes",
           "x-intellij-html-description": "specifies settings for Bottlerocket nodes"
+        },
+        "capacityReservation": {
+          "$ref": "#/definitions/CapacityReservation",
+          "description": "defines reservation policy for a nodegroup",
+          "x-intellij-html-description": "defines reservation policy for a nodegroup"
         },
         "desiredCapacity": {
           "type": "integer"
@@ -1170,8 +1209,8 @@
             "type": "string"
           },
           "type": "object",
-          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
-          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
           "default": "{}"
         },
         "taints": {
@@ -1261,6 +1300,7 @@
         "instanceSelector",
         "bottlerocket",
         "enableDetailedMonitoring",
+        "capacityReservation",
         "instanceTypes",
         "spot",
         "taints",
@@ -1315,8 +1355,8 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2004CoreContainer\"`, `\"WindowsServer20H2CoreContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>, <code>&quot;WindowsServer20H2CoreContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>.",
           "default": "AmazonLinux2",
           "enum": [
             "AmazonLinux2",
@@ -1324,9 +1364,7 @@
             "Ubuntu1804",
             "Bottlerocket",
             "WindowsServer2019CoreContainer",
-            "WindowsServer2019FullContainer",
-            "WindowsServer2004CoreContainer",
-            "WindowsServer20H2CoreContainer"
+            "WindowsServer2019FullContainer"
           ]
         },
         "asgMetricsCollection": {
@@ -1355,6 +1393,11 @@
           "$ref": "#/definitions/NodeGroupBottlerocket",
           "description": "specifies settings for Bottlerocket nodes",
           "x-intellij-html-description": "specifies settings for Bottlerocket nodes"
+        },
+        "capacityReservation": {
+          "$ref": "#/definitions/CapacityReservation",
+          "description": "defines reservation policy for a nodegroup",
+          "x-intellij-html-description": "defines reservation policy for a nodegroup"
         },
         "classicLoadBalancerNames": {
           "items": {
@@ -1522,8 +1565,8 @@
             "type": "string"
           },
           "type": "object",
-          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
-          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
           "default": "{}"
         },
         "taints": {
@@ -1618,6 +1661,7 @@
         "instanceSelector",
         "bottlerocket",
         "enableDetailedMonitoring",
+        "capacityReservation",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",

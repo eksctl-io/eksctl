@@ -16,6 +16,9 @@ GPU instance type and they will select the correct EKS optimized accelerated AMI
 Eksctl will detect that an AMI with a GPU-enabled instance type has been selected and
 will install the [NVIDIA Kubernetes device plugin](https://github.com/NVIDIA/k8s-device-plugin) automatically.
 
+!!! note
+    Windows and Ubuntu AMIs do not ship with GPU drivers installed, hence running GPU-accelerated workloads will not work out of the box.
+
 To disable the automatic plugin installation, and manually install a specific version,
 use `--install-nvidia-plugin=false` with the create command. For example:
 

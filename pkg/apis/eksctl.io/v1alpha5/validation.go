@@ -141,7 +141,7 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	}
 
 	if err := validateKarpenterConfig(cfg); err != nil {
-		return fmt.Errorf("failed to validate karpenter config: %w", err)
+		return fmt.Errorf("failed to validate Karpenter config: %w", err)
 	}
 
 	return nil
@@ -157,11 +157,16 @@ func validateKarpenterConfig(cfg *ClusterConfig) error {
 
 	v, err := version.NewVersion(cfg.Karpenter.Version)
 	if err != nil {
-		return fmt.Errorf("failed to parse karpenter version %q: %w", cfg.Karpenter.Version, err)
+		return fmt.Errorf("failed to parse Karpenter version %q: %w", cfg.Karpenter.Version, err)
 	}
 
-	if minor := v.Segments()[1]; minor > supportedKarpenterVersionMinor {
-		return fmt.Errorf("failed to validate karpenter config: maximum supported version is %s", supportedKarpenterVersion)
+	supportedVersion, err := version.NewVersion(supportedKarpenterVersion)
+	if err != nil {
+		return fmt.Errorf("failed to parse supported Karpenter version %s: %w", supportedKarpenterVersion, err)
+	}
+
+	if v.GreaterThan(supportedVersion) {
+		return fmt.Errorf("failed to validate Karpenter config: maximum supported version is %s", supportedKarpenterVersion)
 	}
 
 	if IsDisabled(cfg.IAM.WithOIDC) {
@@ -503,6 +508,9 @@ func validateNodeGroupBase(np NodePool, path string) error {
 	}
 
 	if ng.AMIFamily != "" && !isSupportedAMIFamily(ng.AMIFamily) {
+		if ng.AMIFamily == NodeImageFamilyWindowsServer20H2CoreContainer || ng.AMIFamily == NodeImageFamilyWindowsServer2004CoreContainer {
+			return fmt.Errorf("AMI Family %s is deprecated. For more information, head to the Amazon documentation on Windows AMIs (https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-windows-ami.html)", ng.AMIFamily)
+		}
 		return fmt.Errorf("AMI Family %s is not supported - use one of: %s", ng.AMIFamily, strings.Join(supportedAMIFamilies(), ", "))
 	}
 
@@ -515,15 +523,32 @@ func validateNodeGroupBase(np NodePool, path string) error {
 		}
 	}
 
-	// Only AmazonLinux2 and Bottlerocket support NVIDIA GPUs
 	if instanceutils.IsNvidiaInstanceType(SelectInstanceType(np)) &&
 		(ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyBottlerocket && ng.AMIFamily != "") {
-		return errors.Errorf("NVIDIA GPU instance types are not supported for %s", ng.AMIFamily)
+		logger.Warning("%s does not ship with NVIDIA GPU drivers installed, hence won't support running GPU-accelerated workloads out of the box", ng.AMIFamily)
 	}
 
 	// Bottlerocket doesn't support Inferentia hosts
 	if instanceutils.IsInferentiaInstanceType(SelectInstanceType(np)) && ng.AMIFamily == NodeImageFamilyBottlerocket {
 		return errors.Errorf("Inferentia instance types are not supported for %s", ng.AMIFamily)
+	}
+
+	if ng.CapacityReservation != nil {
+		if ng.CapacityReservation.CapacityReservationPreference != nil {
+			if ng.CapacityReservation.CapacityReservationTarget != nil {
+				return errors.New("only one of CapacityReservationPreference or CapacityReservationTarget may be specified at a time")
+			}
+
+			if *ng.CapacityReservation.CapacityReservationPreference != OpenCapacityReservation && *ng.CapacityReservation.CapacityReservationPreference != NoneCapacityReservation {
+				return fmt.Errorf(`accepted values include "open" and "none"; got "%s"`, *ng.CapacityReservation.CapacityReservationPreference)
+			}
+		}
+
+		if ng.CapacityReservation.CapacityReservationTarget != nil {
+			if ng.CapacityReservation.CapacityReservationTarget.CapacityReservationID != nil && ng.CapacityReservation.CapacityReservationTarget.CapacityReservationResourceGroupARN != nil {
+				return errors.New("only one of CapacityReservationID or CapacityReservationResourceGroupARN may be specified at a time")
+			}
+		}
 	}
 
 	return nil
@@ -1225,9 +1250,7 @@ func isSupportedAMIFamily(imageFamily string) bool {
 func IsWindowsImage(imageFamily string) bool {
 	switch imageFamily {
 	case NodeImageFamilyWindowsServer2019CoreContainer,
-		NodeImageFamilyWindowsServer2019FullContainer,
-		NodeImageFamilyWindowsServer2004CoreContainer,
-		NodeImageFamilyWindowsServer20H2CoreContainer:
+		NodeImageFamilyWindowsServer2019FullContainer:
 		return true
 
 	default:
