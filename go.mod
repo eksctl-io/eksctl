@@ -96,7 +96,7 @@ require (
 	cloud.google.com/go/compute v1.9.0 // indirect
 	cloud.google.com/go/iam v0.3.0 // indirect
 	cloud.google.com/go/kms v1.1.0 // indirect
-	cloud.google.com/go/storage v1.22.1 // indirect
+	cloud.google.com/go/storage v1.25.0 // indirect
 	code.gitea.io/sdk/gitea v0.15.1 // indirect
 	github.com/AlekSi/pointer v1.2.0 // indirect
 	github.com/Antonboom/errname v0.1.5 // indirect
