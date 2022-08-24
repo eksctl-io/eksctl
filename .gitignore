@@ -46,3 +46,6 @@ dist/
 
 # Debug logs
 logs/*
+
+# VS Code
+.vscode/*
