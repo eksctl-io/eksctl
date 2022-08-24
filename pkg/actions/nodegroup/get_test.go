@@ -551,12 +551,12 @@ var _ = Describe("Get", func() {
 			}, nil)
 		})
 
-		It("returns the summary", func() {
+		It("returns the summary and the stack name", func() {
 			summary, err := m.Get(context.Background(), ngName)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(*summary).To(Equal(nodegroup.Summary{
-				StackName:            "",
+				StackName:            stackName,
 				Cluster:              clusterName,
 				Name:                 ngName,
 				Status:               "my-status",

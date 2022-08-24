@@ -19,6 +19,11 @@
         "namespace": "kube-system"
       },
       "spec": {
+        "internalTrafficPolicy": "Cluster",
+        "ipFamilies": [
+          "IPv4"
+        ],
+        "ipFamilyPolicy": "SingleStack",
         "ports": [
           {
             "name": "dns",
@@ -164,7 +169,7 @@
                   "-conf",
                   "/etc/coredns/Corefile"
                 ],
-                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.8.0-eksbuild.1",
+                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.8.7-eksbuild.2",
                 "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "failureThreshold": 5,
@@ -321,6 +326,18 @@
           ],
           "verbs": [
             "get"
+          ]
+        },
+        {
+          "apiGroups": [
+            "discovery.k8s.io"
+          ],
+          "resources": [
+            "endpointslices"
+          ],
+          "verbs": [
+            "list",
+            "watch"
           ]
         }
       ]
