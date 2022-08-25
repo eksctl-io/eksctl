@@ -230,7 +230,7 @@ func (a *Manager) getRecommendedPolicies(addon *api.Addon) (api.InlineDocument, 
 	switch addon.CanonicalName() {
 	case vpcCNIName:
 		if a.clusterConfig.IPv6Enabled() {
-			return makeIPv6VPCCNIPolicyDocument(), nil, nil
+			return makeIPv6VPCCNIPolicyDocument(api.Partition(a.clusterConfig.Metadata.Region)), nil, nil
 		}
 		return nil, []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}, nil
 	case ebsCSIDriverName:
@@ -301,7 +301,7 @@ func (a *Manager) createStack(ctx context.Context, resourceSet builder.ResourceS
 	return <-errChan
 }
 
-func makeIPv6VPCCNIPolicyDocument() map[string]interface{} {
+func makeIPv6VPCCNIPolicyDocument(partition string) map[string]interface{} {
 	return map[string]interface{}{
 		"Version": "2012-10-17",
 		"Statement": []map[string]interface{}{
@@ -321,7 +321,7 @@ func makeIPv6VPCCNIPolicyDocument() map[string]interface{} {
 				"Action": []string{
 					"ec2:CreateTags",
 				},
-				"Resource": "arn:aws:ec2:*:*:network-interface/*",
+				"Resource": fmt.Sprintf("arn:%s:ec2:*:*:network-interface/*", partition),
 			},
 		},
 	}
