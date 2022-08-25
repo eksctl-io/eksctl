@@ -572,8 +572,8 @@ func (c *StackCollection) DeleteStack(ctx context.Context, options DeleteStackOp
 	if options.ErrCh != nil {
 		logger.Info("waiting for stack %q to get deleted", *options.Stack.StackName)
 		go func() {
+			defer close(options.ErrCh)
 			options.ErrCh <- c.waitUntilStackIsDeleted(ctx, options.Stack)
-			close(options.ErrCh)
 		}()
 	}
 
