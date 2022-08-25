@@ -78,6 +78,7 @@ func (c *StackCollection) DeleteTasksForDeprecatedStacks(ctx context.Context) (*
 						stack:           s,
 						stackCollection: c,
 						ctx:             ctx,
+						wait:            true,
 					})
 				}
 			}

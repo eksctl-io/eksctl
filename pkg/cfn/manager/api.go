@@ -553,12 +553,14 @@ func defaultStackStatusFilter() []types.StackStatus {
 }
 
 // DeleteStack sends a request to delete the stack.
-// If Wait is true, it waits until status is DELETE_COMPLETE;
+// If Wait is true, it waits synchronously until status is DELETE_COMPLETE;
 // If ErrCh is given, any errors will be written to it, assume completion when nil is written,
 // do not expect more than one error value on the channel, it's closed immediately after it is written to.
-// Wait and ErrCh are mutually exclusive
+// ErrCh is essentially the mechanism used to wait for completion asynchronously,
+// for the circumstances when this method is invoked as part of a _deleteStackTask_ .
+// Wait and ErrCh are mutually exclusive.
 func (c *StackCollection) DeleteStack(ctx context.Context, options DeleteStackOptions) error {
-	if _, err := c.doDeleteStack(ctx, options.Stack); err != nil {
+	if err := c.doDeleteStack(ctx, options.Stack); err != nil {
 		return err
 	}
 
@@ -579,9 +581,9 @@ func (c *StackCollection) DeleteStack(ctx context.Context, options DeleteStackOp
 }
 
 // doDeleteStack sends a request to delete the stack
-func (c *StackCollection) doDeleteStack(ctx context.Context, s *Stack) (*Stack, error) {
+func (c *StackCollection) doDeleteStack(ctx context.Context, s *Stack) error {
 	if !matchesCluster(c.spec.Metadata.Name, s.Tags) {
-		return nil, fmt.Errorf("cannot delete stack %q as it doesn't bear our %q, %q tags", *s.StackName,
+		return fmt.Errorf("cannot delete stack %q as it doesn't bear our %q, %q tags", *s.StackName,
 			fmt.Sprintf("%s:%s", api.OldClusterNameTag, c.spec.Metadata.Name),
 			fmt.Sprintf("%s:%s", api.ClusterNameTag, c.spec.Metadata.Name))
 	}
@@ -595,10 +597,10 @@ func (c *StackCollection) doDeleteStack(ctx context.Context, s *Stack) (*Stack, 
 	}
 
 	if _, err := c.cloudformationAPI.DeleteStack(ctx, input); err != nil {
-		return nil, errors.Wrapf(err, "not able to delete stack %q", *s.StackName)
+		return errors.Wrapf(err, "not able to delete stack %q", *s.StackName)
 	}
 	logger.Info("will delete stack %q", *s.StackName)
-	return s, nil
+	return nil
 }
 
 func matchesCluster(clusterName string, tags []types.Tag) bool {
