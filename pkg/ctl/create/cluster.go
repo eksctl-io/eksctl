@@ -350,7 +350,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return fmt.Errorf("failed to create cluster %q", meta.Name)
 	}
 
-	logger.Info("waiting for the control plane availability...")
+	logger.Info("waiting for the control plane to become ready")
 
 	// obtain cluster credentials, write kubeconfig
 

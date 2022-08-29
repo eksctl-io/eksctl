@@ -2,12 +2,14 @@ package cmdutils
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/outposts"
 )
 
 // Cmd holds attributes that are common between commands;
@@ -82,15 +84,24 @@ func (c *Cmd) InitializeClusterConfig() error {
 // NewProviderForExistingCluster is a wrapper for NewCtl that also validates that the cluster exists and is not a
 // registered/connected cluster.
 func (c *Cmd) NewProviderForExistingCluster(ctx context.Context) (*eks.ClusterProvider, error) {
-	provider, err := c.NewCtl()
+	clusterProvider, err := eks.New(ctx, &c.ProviderConfig, c.ClusterConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not create cluster provider from options: %w", err)
 	}
-	if err := provider.RefreshClusterStatus(ctx, c.ClusterConfig); err != nil {
+	if !clusterProvider.IsSupportedRegion() {
+		return nil, ErrUnsupportedRegion(&c.ProviderConfig)
+	}
+	if err := clusterProvider.RefreshClusterStatus(ctx, c.ClusterConfig); err != nil {
 		return nil, err
 	}
 
-	return provider, nil
+	if err := c.InitializeClusterConfig(); err != nil {
+		return nil, err
+	}
+	if c.ClusterConfig.IsControlPlaneOnOutposts() {
+		clusterProvider.AWSProvider = outposts.WrapClusterProvider(clusterProvider.AWSProvider)
+	}
+	return clusterProvider, nil
 }
 
 // AddResourceCmd create a registers a new command under the given verb command

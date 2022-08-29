@@ -182,8 +182,13 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		if cfg.IAM != nil && IsEnabled(cfg.IAM.WithOIDC) {
 			return errors.New("iam.withOIDC is not supported on Outposts")
 		}
-		if cfg.VPC != nil && IsEnabled(cfg.VPC.AutoAllocateIPv6) {
-			return errors.New("autoAllocateIPv6 is not supported for Outposts")
+		if cfg.VPC != nil {
+			if IsEnabled(cfg.VPC.AutoAllocateIPv6) {
+				return errors.New("autoAllocateIPv6 is not supported for Outposts")
+			}
+			if len(cfg.VPC.PublicAccessCIDRs) > 0 {
+				return errors.New("publicAccessCIDRs is not supported for Outposts")
+			}
 		}
 	}
 

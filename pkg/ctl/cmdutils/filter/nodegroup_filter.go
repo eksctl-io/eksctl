@@ -4,11 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/aws/aws-sdk-go-v2/service/eks"
-	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-
 	"github.com/kris-nova/logger"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -153,7 +149,7 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(ctx context.Context, eksA
 		}
 	}
 
-	// Log remote-only nodeg	roups  AND add them to the cluster config
+	// Log remote-only nodegroups  AND add them to the cluster config
 	for _, s := range nodeGroupsWithStacks {
 		remoteNodeGroupName := s.NodeGroupName
 		if !f.localNodegroups.Has(remoteNodeGroupName) {
@@ -180,16 +176,8 @@ func (f *NodeGroupFilter) findAllNodeGroups(ctx context.Context, eksAPI awsapi.E
 	allNodeGroups, err := eksAPI.ListNodegroups(ctx, &eks.ListNodegroupsInput{
 		ClusterName: &clusterConfig.Metadata.Name,
 	})
-
 	if err != nil {
-		// TODO: temporary error.
-		var ce *ekstypes.ClientException
-		if errors.As(err, &ce) && strings.Contains(ce.ErrorMessage(), "This operation is not supported for EKS clusters") {
-			logger.Debug("ignoring temporary error: %v", err)
-			allNodeGroups = &eks.ListNodegroupsOutput{}
-		} else {
-			return nil, nil, err
-		}
+		return nil, nil, err
 	}
 
 	nodeGroupsWithStacksSet := sets.NewString()
@@ -198,7 +186,6 @@ func (f *NodeGroupFilter) findAllNodeGroups(ctx context.Context, eksAPI awsapi.E
 	}
 
 	var nodeGroupsWithoutStacks []string
-
 	for _, nodeGroupName := range allNodeGroups.Nodegroups {
 		if !nodeGroupsWithStacksSet.Has(nodeGroupName) {
 			nodeGroupsWithoutStacks = append(nodeGroupsWithoutStacks, nodeGroupName)

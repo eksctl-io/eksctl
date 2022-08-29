@@ -623,6 +623,7 @@ type ClusterStatus struct {
 	ARN                      string                   `json:"arn,omitempty"`
 	KubernetesNetworkConfig  *KubernetesNetworkConfig `json:"-"`
 	ID                       string                   `json:"-"`
+	APIServerUnreachable     bool                     `json:"-"`
 
 	StackName     string        `json:"stackName,omitempty"`
 	EKSCTLCreated EKSCTLCreated `json:"eksctlCreated,omitempty"`

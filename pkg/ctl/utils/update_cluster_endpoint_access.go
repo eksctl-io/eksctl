@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"errors"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
@@ -56,6 +57,10 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 		return err
 	}
 	logger.Info("using region %s", meta.Region)
+
+	if cfg.IsControlPlaneOnOutposts() {
+		return errors.New("this operation is not supported for local EKS clusters")
+	}
 
 	if ok, err := ctl.CanUpdate(cfg); !ok {
 		return err
