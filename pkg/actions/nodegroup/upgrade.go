@@ -196,7 +196,7 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 			return err
 		}
 
-		if err := m.stackManager.UpdateNodeGroupStack(ctx, options.NodegroupName, string(bytes), true); err != nil {
+		if err := m.stackManager.UpdateNodeGroupStack(ctx, options.NodegroupName, string(bytes), wait); err != nil {
 			return errors.Wrap(err, "error updating nodegroup stack")
 		}
 		return nil
