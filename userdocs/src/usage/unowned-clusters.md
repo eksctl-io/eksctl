@@ -20,6 +20,7 @@ If we have missed some functionality, please [let us know](https://github.com/we
     - [x] `eksctl create iamidentitymapping`
 - [x] Get:
     - [x] `eksctl get clusters/cluster`
+    - [x] `eksctl get fargateprofile`
     - [x] `eksctl get nodegroup`
     - [x] `eksctl get labels`
 - [x] Delete:
