@@ -250,6 +250,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"--cluster", params.ClusterName,
 				"--name", "fp-test",
 				"--namespace", "default",
+				"--wait",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 			ContainElement(SatisfyAll(ContainSubstring("created"), ContainSubstring("fp-test"))),
@@ -261,6 +262,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"fargateprofile",
 				"--cluster", params.ClusterName,
 				"--verbose", "2",
+				"--wait",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 			ContainElement(ContainSubstring("fp-test")),
