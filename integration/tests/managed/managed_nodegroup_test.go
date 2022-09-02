@@ -354,7 +354,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					}
 				})
 
-				It("should have functional DNS", func() {
+				PIt("should have functional DNS", func() {
 					d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-dns.yaml")
 					test.WaitForDaemonSetReady(d, defaultTimeout)
 					{
@@ -364,7 +364,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					}
 				})
 
-				It("should have access to HTTP(S) sites", func() {
+				PIt("should have access to HTTP(S) sites", func() {
 					d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-http.yaml")
 					test.WaitForDaemonSetReady(d, defaultTimeout)
 					{
