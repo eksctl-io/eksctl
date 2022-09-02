@@ -19,8 +19,9 @@ import (
 )
 
 const (
-	iamPolicyAmazonEKSClusterPolicy         = "AmazonEKSClusterPolicy"
-	iamPolicyAmazonEKSVPCResourceController = "AmazonEKSVPCResourceController"
+	iamPolicyAmazonEKSClusterPolicy             = "AmazonEKSClusterPolicy"
+	iamPolicyAmazonEKSVPCResourceController     = "AmazonEKSVPCResourceController"
+	iamPolicyAmazonEKSLocalOutpostClusterPolicy = "AmazonEKSLocalOutpostClusterPolicy"
 
 	iamPolicyAmazonEKSWorkerNodePolicy           = "AmazonEKSWorkerNodePolicy"
 	iamPolicyAmazonEKSCNIPolicy                  = "AmazonEKS_CNI_Policy"
@@ -30,7 +31,6 @@ const (
 	iamPolicyAmazonSSMManagedInstanceCore        = "AmazonSSMManagedInstanceCore"
 
 	iamPolicyAmazonEKSFargatePodExecutionRolePolicy = "AmazonEKSFargatePodExecutionRolePolicy"
-	iamLocalClusterPolicyName                       = "local-cluster"
 )
 
 const (
@@ -89,17 +89,12 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 
 	var role *gfniam.Role
 	if c.spec.IsControlPlaneOnOutposts() {
+		managedPolicyARNs = append(managedPolicyARNs, iamPolicyAmazonEKSLocalOutpostClusterPolicy)
 		role = &gfniam.Role{
 			AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
 				MakeServiceRef("EC2"),
 			),
 			ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyARNs...)...),
-			Policies: []gfniam.Role_Policy{
-				{
-					PolicyDocument: gfnt.NewString(getLocalClusterPolicyDocument()),
-					PolicyName:     gfnt.NewString(iamLocalClusterPolicyName),
-				},
-			},
 		}
 	} else {
 		managedPolicyARNs = append(managedPolicyARNs, iamPolicyAmazonEKSClusterPolicy)

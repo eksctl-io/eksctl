@@ -4,21 +4,12 @@ import (
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
-
-	_ "embed"
 )
 
 const (
 	effectAllow = "Allow"
 	resourceAll = "*"
 )
-
-//go:embed assets/local-cluster-policy-document.json
-var localClusterPolicyDocument string
-
-func getLocalClusterPolicyDocument() string {
-	return localClusterPolicyDocument
-}
 
 func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 	return []cft.MapOfInterfaces{
