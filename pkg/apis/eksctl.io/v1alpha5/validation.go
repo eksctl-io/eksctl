@@ -1400,4 +1400,3 @@ func validateIAMIdentityMappings(clusterConfig *ClusterConfig) error {
 	}
 	return nil
 }
-
