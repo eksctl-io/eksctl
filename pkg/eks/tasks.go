@@ -284,7 +284,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 
 	if len(cfg.IAMIdentityMappings) > 0 {
 		newTasks.Append(&tasks.GenericTask{
-			Description: "create iamIdentitymappings",
+			Description: "create IAM identity mappings",
 			Doer: func() error {
 				clientSet, err := c.NewStdClientSet(cfg)
 				if err != nil {
