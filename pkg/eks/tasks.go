@@ -301,9 +301,6 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 				}
 
 				for _, mapping := range cfg.IAMIdentityMappings {
-					if err := mapping.Validate(); err != nil {
-						return err
-					}
 					if err := m.Create(ctx, mapping); err != nil {
 						return err
 					}
