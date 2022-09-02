@@ -297,7 +297,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 				}
 				m, err := iamidentitymapping.New(cfg, clientSet, rawClient, cfg.Metadata.Region)
 				if err != nil {
-					return errors.Wrap(err, "error initilising iamidentitymapping")
+					return errors.Wrap(err, "error initialising iamidentitymapping")
 				}
 
 				for _, mapping := range cfg.IAMIdentityMappings {
