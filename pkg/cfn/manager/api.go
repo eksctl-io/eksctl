@@ -619,7 +619,7 @@ func fmtStacksRegexForCluster(name string) string {
 }
 
 // DescribeStacks describes the existing stacks
-func (c *StackCollection) DescribeStacks(ctx context.Context) ([]*Stack, error) {
+func (c *StackCollection) DescribeStackList(ctx context.Context) ([]*Stack, error) {
 	stacks, err := c.ListStacks(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "describing CloudFormation stacks for %q", c.spec.Metadata.Name)
