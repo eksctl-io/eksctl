@@ -16,10 +16,10 @@ spec:
         stdin: true
         tty: true
         readinessProbe:
-          initialDelaySeconds: 0
-          periodSeconds: 3
-          failureThreshold: 10
-          timeoutSeconds: 1
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          failureThreshold: 15
+          timeoutSeconds: 15
           exec:
             command:
             - nslookup
@@ -29,10 +29,10 @@ spec:
         stdin: true
         tty: true
         readinessProbe:
-          initialDelaySeconds: 0
-          periodSeconds: 3
-          failureThreshold: 10
-          timeoutSeconds: 1
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          failureThreshold: 15
+          timeoutSeconds: 15
           exec:
             command:
             - nslookup
@@ -42,10 +42,10 @@ spec:
         stdin: true
         tty: true
         readinessProbe:
-          initialDelaySeconds: 0
-          periodSeconds: 3
-          failureThreshold: 10
-          timeoutSeconds: 1
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          failureThreshold: 15
+          timeoutSeconds: 15
           exec:
             command:
             - nslookup
@@ -55,10 +55,10 @@ spec:
         stdin: true
         tty: true
         readinessProbe:
-          initialDelaySeconds: 0
-          periodSeconds: 3
-          failureThreshold: 10
-          timeoutSeconds: 1
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          failureThreshold: 15
+          timeoutSeconds: 15
           exec:
             command:
             - nslookup
@@ -68,10 +68,10 @@ spec:
         stdin: true
         tty: true
         readinessProbe:
-          initialDelaySeconds: 0
-          periodSeconds: 3
-          failureThreshold: 10
-          timeoutSeconds: 1
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          failureThreshold: 15
+          timeoutSeconds: 15
           exec:
             command:
             - nslookup
@@ -81,10 +81,10 @@ spec:
         stdin: true
         tty: true
         readinessProbe:
-          initialDelaySeconds: 0
-          periodSeconds: 3
-          failureThreshold: 10
-          timeoutSeconds: 1
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          failureThreshold: 15
+          timeoutSeconds: 15
           exec:
             command:
             - nslookup
@@ -94,10 +94,10 @@ spec:
         stdin: true
         tty: true
         readinessProbe:
-          initialDelaySeconds: 0
-          periodSeconds: 3
-          failureThreshold: 10
-          timeoutSeconds: 1
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          failureThreshold: 15
+          timeoutSeconds: 15
           exec:
             command:
             - nslookup
@@ -107,10 +107,10 @@ spec:
         stdin: true
         tty: true
         readinessProbe:
-          initialDelaySeconds: 0
-          periodSeconds: 3
+          initialDelaySeconds: 10
+          periodSeconds: 5
           failureThreshold: 10
-          timeoutSeconds: 1
+          timeoutSeconds: 10
           exec:
             command:
             - nslookup
@@ -120,10 +120,10 @@ spec:
         stdin: true
         tty: true
         readinessProbe:
-          initialDelaySeconds: 0
-          periodSeconds: 3
-          failureThreshold: 10
-          timeoutSeconds: 1
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          failureThreshold: 15
+          timeoutSeconds: 15
           exec:
             command:
             - nslookup
