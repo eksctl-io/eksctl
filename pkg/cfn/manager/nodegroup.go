@@ -102,7 +102,7 @@ func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Con
 	return c.PropagateManagedNodeGroupTagsToASG(ng.Name, ng.Tags, asgNames, errorCh)
 }
 
-// DescribeNodeGroupStacks calls DescribeStacks and filters out nodegroups
+// DescribeNodeGroupStackList calls DescribeStackList and filters out nodegroups
 func (c *StackCollection) DescribeNodeGroupStackList(ctx context.Context) ([]*Stack, error) {
 	stacks, err := c.DescribeStackList(ctx)
 	if err != nil {
@@ -151,7 +151,7 @@ func (c *StackCollection) ListNodeGroupStacks(ctx context.Context) ([]NodeGroupS
 	return nodeGroupStacks, nil
 }
 
-// DescribeNodeGroupStacksAndResources calls DescribeNodeGroupStacks and fetches all resources,
+// DescribeNodeGroupStacksAndResources calls DescribeNodeGroupStackList and fetches all resources,
 // then returns it in a map by nodegroup name
 func (c *StackCollection) DescribeNodeGroupStacksAndResources(ctx context.Context) (map[string]StackInfo, error) {
 	stacks, err := c.DescribeNodeGroupStackList(ctx)

@@ -618,7 +618,7 @@ func fmtStacksRegexForCluster(name string) string {
 	return fmt.Sprintf(ourStackRegexFmt, name)
 }
 
-// DescribeStacks describes the existing stacks
+// DescribeStackList describes the existing stacks
 func (c *StackCollection) DescribeStackList(ctx context.Context) ([]*Stack, error) {
 	stacks, err := c.ListStacks(ctx)
 	if err != nil {

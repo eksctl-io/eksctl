@@ -41,7 +41,7 @@ func (c *StackCollection) createClusterTask(ctx context.Context, errs chan error
 	return c.createClusterStack(ctx, name, stack, errs)
 }
 
-// DescribeClusterStack calls DescribeStacks and filters out cluster stack
+// DescribeClusterStack calls DescribeStackList and filters out cluster stack
 func (c *StackCollection) DescribeClusterStack(ctx context.Context) (*Stack, error) {
 	stacks, err := c.DescribeStackList(ctx)
 	if err != nil {

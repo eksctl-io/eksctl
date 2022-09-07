@@ -39,7 +39,7 @@ func (c *StackCollection) createIAMServiceAccountTask(ctx context.Context, errs 
 	return nil
 }
 
-// DescribeIAMServiceAccountStacks calls DescribeStacks and filters out iamserviceaccounts
+// DescribeIAMServiceAccountStacks calls DescribeStackList and filters out iamserviceaccounts
 func (c *StackCollection) DescribeIAMServiceAccountStacks(ctx context.Context) ([]*Stack, error) {
 	stacks, err := c.DescribeStackList(ctx)
 	if err != nil {
