@@ -242,7 +242,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		))
 	})
 
-	PIt("supports fargate", func() {
+	It("supports fargate", func() {
 		By("creating a fargate profile")
 		cmd := params.EksctlCreateCmd.
 			WithArgs(
