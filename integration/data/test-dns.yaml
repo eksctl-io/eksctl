@@ -18,7 +18,7 @@ spec:
         readinessProbe:
           initialDelaySeconds: 0
           periodSeconds: 3
-          failureThreshold: 3
+          failureThreshold: 10
           timeoutSeconds: 1
           exec:
             command:
@@ -31,7 +31,7 @@ spec:
         readinessProbe:
           initialDelaySeconds: 0
           periodSeconds: 3
-          failureThreshold: 3
+          failureThreshold: 10
           timeoutSeconds: 1
           exec:
             command:
@@ -44,7 +44,7 @@ spec:
         readinessProbe:
           initialDelaySeconds: 0
           periodSeconds: 3
-          failureThreshold: 3
+          failureThreshold: 10
           timeoutSeconds: 1
           exec:
             command:
@@ -57,7 +57,7 @@ spec:
         readinessProbe:
           initialDelaySeconds: 0
           periodSeconds: 3
-          failureThreshold: 3
+          failureThreshold: 10
           timeoutSeconds: 1
           exec:
             command:
@@ -70,7 +70,7 @@ spec:
         readinessProbe:
           initialDelaySeconds: 0
           periodSeconds: 3
-          failureThreshold: 3
+          failureThreshold: 10
           timeoutSeconds: 1
           exec:
             command:
@@ -83,7 +83,7 @@ spec:
         readinessProbe:
           initialDelaySeconds: 0
           periodSeconds: 3
-          failureThreshold: 3
+          failureThreshold: 10
           timeoutSeconds: 1
           exec:
             command:
@@ -96,7 +96,7 @@ spec:
         readinessProbe:
           initialDelaySeconds: 0
           periodSeconds: 3
-          failureThreshold: 3
+          failureThreshold: 10
           timeoutSeconds: 1
           exec:
             command:
@@ -109,7 +109,7 @@ spec:
         readinessProbe:
           initialDelaySeconds: 0
           periodSeconds: 3
-          failureThreshold: 3
+          failureThreshold: 10
           timeoutSeconds: 1
           exec:
             command:
@@ -122,7 +122,7 @@ spec:
         readinessProbe:
           initialDelaySeconds: 0
           periodSeconds: 3
-          failureThreshold: 3
+          failureThreshold: 10
           timeoutSeconds: 1
           exec:
             command:

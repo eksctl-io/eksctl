@@ -31,16 +31,16 @@ spec:
           httpGet:
             path: /readyz
             port: 8080
-          initialDelaySeconds: 1
+          initialDelaySeconds: 3
           periodSeconds: 5
-          failureThreshold: 1
+          failureThreshold: 10
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8080
-          initialDelaySeconds: 1
+          initialDelaySeconds: 5
           periodSeconds: 10
-          failureThreshold: 2
+          failureThreshold: 15
         resources:
           requests:
             memory: "32Mi"

@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/name: aws-node
     app.kubernetes.io/instance: aws-vpc-cni
     k8s-app: aws-node
-    app.kubernetes.io/version: "v1.11.2"
+    app.kubernetes.io/version: "v1.11.3"
 ---
 # Source: aws-vpc-cni/templates/customresourcedefinition.yaml
 apiVersion: apiextensions.k8s.io/v1
@@ -20,7 +20,7 @@ metadata:
     app.kubernetes.io/name: aws-node
     app.kubernetes.io/instance: aws-vpc-cni
     k8s-app: aws-node
-    app.kubernetes.io/version: "v1.11.2"
+    app.kubernetes.io/version: "v1.11.3"
 spec:
   scope: Cluster
   group: crd.k8s.amazonaws.com
@@ -47,7 +47,7 @@ metadata:
     app.kubernetes.io/name: aws-node
     app.kubernetes.io/instance: aws-vpc-cni
     k8s-app: aws-node
-    app.kubernetes.io/version: "v1.11.2"
+    app.kubernetes.io/version: "v1.11.3"
 rules:
   - apiGroups:
       - crd.k8s.amazonaws.com
@@ -61,7 +61,7 @@ rules:
   - apiGroups: [""]
     resources:
       - pods
-    verbs: ["list", "watch", "get"]
+    verbs: ["list", "watch", "get"]        
   - apiGroups: [""]
     resources:
       - nodes
@@ -70,6 +70,10 @@ rules:
     resources:
       - '*'
     verbs: ["list", "watch"]
+  - apiGroups: ["", "events.k8s.io"]
+    resources:
+      - events
+    verbs: ["create", "patch", "list", "get"]
 ---
 # Source: aws-vpc-cni/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -80,7 +84,7 @@ metadata:
     app.kubernetes.io/name: aws-node
     app.kubernetes.io/instance: aws-vpc-cni
     k8s-app: aws-node
-    app.kubernetes.io/version: "v1.11.2"
+    app.kubernetes.io/version: "v1.11.3"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -100,7 +104,7 @@ metadata:
     app.kubernetes.io/name: aws-node
     app.kubernetes.io/instance: aws-vpc-cni
     k8s-app: aws-node
-    app.kubernetes.io/version: "v1.11.2"
+    app.kubernetes.io/version: "v1.11.3"
 spec:
   updateStrategy:
     rollingUpdate:
@@ -121,7 +125,7 @@ spec:
       hostNetwork: true
       initContainers:
         - name: aws-vpc-cni-init
-          image: "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni-init:v1.11.2"
+          image: "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni-init:v1.11.3"
           env:
             - name: DISABLE_TCP_EARLY_DEMUX
               value: "false"
@@ -139,7 +143,7 @@ spec:
         {}
       containers:
         - name: aws-node
-          image: "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni:v1.11.2"
+          image: "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni:v1.11.3"
           ports:
             - containerPort: 61678
               name: metrics
@@ -148,19 +152,19 @@ spec:
               command:
                 - /app/grpc-health-probe
                 - -addr=:50051
-                - -connect-timeout=5s
-                - -rpc-timeout=5s
+                - -connect-timeout=10s
+                - -rpc-timeout=10s
             initialDelaySeconds: 60
-            timeoutSeconds: 10
+            timeoutSeconds: 15
           readinessProbe:
             exec:
               command:
                 - /app/grpc-health-probe
                 - -addr=:50051
-                - -connect-timeout=5s
-                - -rpc-timeout=5s
-            initialDelaySeconds: 1
-            timeoutSeconds: 10
+                - -connect-timeout=10s
+                - -rpc-timeout=10s
+            initialDelaySeconds: 5
+            timeoutSeconds: 15
           env:
             - name: ADDITIONAL_ENI_TAGS
               value: "{}"
@@ -177,7 +181,7 @@ spec:
             - name: AWS_VPC_K8S_CNI_LOGLEVEL
               value: "DEBUG"
             - name: AWS_VPC_K8S_CNI_LOG_FILE
-              value: "/host/var/log/aws-routed-eni/ipamd.log"
+              value: "stdout"
             - name: AWS_VPC_K8S_CNI_RANDOMIZESNAT
               value: "prng"
             - name: AWS_VPC_K8S_CNI_VETHPREFIX
@@ -210,7 +214,7 @@ spec:
                   fieldPath: spec.nodeName
           resources:
             requests:
-              cpu: 10m
+              cpu: 25m
           securityContext:
             capabilities:
               add:
