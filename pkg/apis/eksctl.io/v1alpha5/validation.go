@@ -141,7 +141,7 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	}
 
 	if err := validateKarpenterConfig(cfg); err != nil {
-		return fmt.Errorf("failed to validate karpenter config: %w", err)
+		return fmt.Errorf("failed to validate Karpenter config: %w", err)
 	}
 
 	return nil
@@ -157,11 +157,16 @@ func validateKarpenterConfig(cfg *ClusterConfig) error {
 
 	v, err := version.NewVersion(cfg.Karpenter.Version)
 	if err != nil {
-		return fmt.Errorf("failed to parse karpenter version %q: %w", cfg.Karpenter.Version, err)
+		return fmt.Errorf("failed to parse Karpenter version %q: %w", cfg.Karpenter.Version, err)
 	}
 
-	if minor := v.Segments()[1]; minor > supportedKarpenterVersionMinor {
-		return fmt.Errorf("failed to validate karpenter config: maximum supported version is %s", supportedKarpenterVersion)
+	supportedVersion, err := version.NewVersion(supportedKarpenterVersion)
+	if err != nil {
+		return fmt.Errorf("failed to parse supported Karpenter version %s: %w", supportedKarpenterVersion, err)
+	}
+
+	if v.GreaterThan(supportedVersion) {
+		return fmt.Errorf("failed to validate Karpenter config: maximum supported version is %s", supportedKarpenterVersion)
 	}
 
 	if IsDisabled(cfg.IAM.WithOIDC) {

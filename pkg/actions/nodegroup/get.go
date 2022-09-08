@@ -82,17 +82,10 @@ func (m *Manager) getManagedSummaries(ctx context.Context) ([]*Summary, error) {
 	}
 
 	for _, ngName := range managedNodeGroups.Nodegroups {
-		var stack *types.Stack
-		stack, err = m.stackManager.DescribeNodeGroupStack(ctx, ngName)
-		if err != nil {
-			stack = &types.Stack{}
-		}
-
 		summary, err := m.getManagedSummary(ctx, ngName)
 		if err != nil {
 			return nil, err
 		}
-		summary.StackName = aws.ToString(stack.StackName)
 		summaries = append(summaries, summary)
 	}
 
@@ -276,6 +269,12 @@ func getClusterNameTag(s *manager.Stack) string {
 }
 
 func (m *Manager) getManagedSummary(ctx context.Context, nodeGroupName string) (*Summary, error) {
+	var stack *types.Stack
+	stack, err := m.stackManager.DescribeNodeGroupStack(ctx, nodeGroupName)
+	if err != nil {
+		stack = &types.Stack{}
+	}
+
 	describeOutput, err := m.ctl.AWSProvider.EKS().DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(m.cfg.Metadata.Name),
 		NodegroupName: aws.String(nodeGroupName),
@@ -303,6 +302,7 @@ func (m *Manager) getManagedSummary(ctx context.Context, nodeGroupName string) (
 	}
 
 	return &Summary{
+		StackName:            aws.ToString(stack.StackName),
 		Name:                 *ng.NodegroupName,
 		Cluster:              *ng.ClusterName,
 		Status:               string(ng.Status),
