@@ -31,6 +31,7 @@ users:
       - cluster-one
       command: aws-iam-authenticator
       env: null
+      interactiveMode: IfAvailable
       provideClusterInfo: false
 - name: admin@cluster-two.us-west-2.eksctl.io
   user:
@@ -42,4 +43,5 @@ users:
       - cluster-two
       command: aws-iam-authenticator
       env: null
+      interactiveMode: IfAvailable
       provideClusterInfo: false
