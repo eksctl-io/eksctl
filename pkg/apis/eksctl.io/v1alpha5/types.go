@@ -729,6 +729,9 @@ type ClusterConfig struct {
 	IAM *ClusterIAM `json:"iam,omitempty"`
 
 	// +optional
+	IAMIdentityMappings []*IAMIdentityMapping `json:"iamIdentityMappings,omitempty"`
+
+	// +optional
 	IdentityProviders []IdentityProvider `json:"identityProviders,omitempty"`
 
 	// +optional

@@ -9,7 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 
+	"github.com/weaveworks/eksctl/pkg/actions/iamidentitymapping"
 	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
+
 	"github.com/weaveworks/eksctl/pkg/windows"
 
 	"github.com/kris-nova/logger"
@@ -219,7 +221,7 @@ func (t *restartDaemonsetTask) Do(errCh chan error) error {
 	return nil
 }
 
-// CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration not depending on the control plane availability
+// CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration
 func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg *api.ClusterConfig) *tasks.TaskTree {
 	newTasks := &tasks.TaskTree{
 		Parallel:  false,
@@ -278,6 +280,34 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 
 	if len(cfg.IdentityProviders) > 0 {
 		newTasks.Append(identityproviders.NewAssociateProvidersTask(ctx, *cfg.Metadata, cfg.IdentityProviders, c.AWSProvider.EKS()))
+	}
+
+	if len(cfg.IAMIdentityMappings) > 0 {
+		newTasks.Append(&tasks.GenericTask{
+			Description: "create IAM identity mappings",
+			Doer: func() error {
+				clientSet, err := c.NewStdClientSet(cfg)
+				if err != nil {
+					return errors.Wrap(err, "error creating Clientset")
+				}
+
+				rawClient, err := c.NewRawClient(cfg)
+				if err != nil {
+					return errors.Wrap(err, "error creating rawClient")
+				}
+				m, err := iamidentitymapping.New(cfg, clientSet, rawClient, cfg.Metadata.Region)
+				if err != nil {
+					return errors.Wrap(err, "error initialising iamidentitymapping")
+				}
+
+				for _, mapping := range cfg.IAMIdentityMappings {
+					if err := m.Create(ctx, mapping); err != nil {
+						return err
+					}
+				}
+				return c.RefreshClusterStatus(ctx, cfg)
+			},
+		})
 	}
 
 	if cfg.HasWindowsNodeGroup() {

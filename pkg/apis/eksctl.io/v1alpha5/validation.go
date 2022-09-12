@@ -140,6 +140,10 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return err
 	}
 
+	if err := validateIAMIdentityMappings(cfg); err != nil {
+		return err
+	}
+
 	if err := validateKarpenterConfig(cfg); err != nil {
 		return fmt.Errorf("failed to validate Karpenter config: %w", err)
 	}
@@ -1380,6 +1384,15 @@ func ValidateSecretsEncryption(clusterConfig *ClusterConfig) error {
 
 	if _, err := arn.Parse(clusterConfig.SecretsEncryption.KeyARN); err != nil {
 		return errors.Wrapf(err, "invalid ARN in secretsEncryption.keyARN: %q", clusterConfig.SecretsEncryption.KeyARN)
+	}
+	return nil
+}
+
+func validateIAMIdentityMappings(clusterConfig *ClusterConfig) error {
+	for _, mapping := range clusterConfig.IAMIdentityMappings {
+		if err := mapping.Validate(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
