@@ -1389,10 +1389,6 @@ func ValidateSecretsEncryption(clusterConfig *ClusterConfig) error {
 }
 
 func validateIAMIdentityMappings(clusterConfig *ClusterConfig) error {
-	if clusterConfig.IAMIdentityMappings == nil {
-		return nil
-	}
-
 	for _, mapping := range clusterConfig.IAMIdentityMappings {
 		if err := mapping.Validate(); err != nil {
 			return err
