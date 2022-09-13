@@ -71,6 +71,7 @@ var _ = BeforeSuite(func() {
 		"--nodegroup-name", initialAl2Nodegroup,
 		"--node-labels", "ng-name="+initialAl2Nodegroup,
 		"--nodes", "2",
+		"--instance-types", "t3a.xlarge",
 		"--version", params.Version,
 		"--kubeconfig", params.KubeconfigPath,
 	)
@@ -94,7 +95,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		return clusterConfig
 	}
 
-	defaultTimeout := 30 * time.Minute
+	defaultTimeout := 20 * time.Minute
 
 	type managedCLIEntry struct {
 		createArgs []string
@@ -161,14 +162,198 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 	)
 
 	Context("cluster with 1 al2 managed nodegroup", func() {
+		Context("and add two managed nodegroups (one public and one private)", func() {
+			It("should not return an error for public node group", func() {
+				cmd := params.EksctlCreateCmd.WithArgs(
+					"nodegroup",
+					"--cluster", params.ClusterName,
+					"--nodes", "4",
+					"--managed",
+					"--instance-types", "t3a.xlarge",
+					newPublicNodeGroup,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+
+			It("should not return an error for private node group", func() {
+				cmd := params.EksctlCreateCmd.WithArgs(
+					"nodegroup",
+					"--cluster", params.ClusterName,
+					"--nodes", "2",
+					"--managed",
+					"--instance-types", "t3a.xlarge",
+					"--node-private-networking",
+					newPrivateNodeGroup,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+
+			Context("create test workloads", func() {
+				var (
+					err  error
+					test *harness.Test
+				)
+
+				BeforeEach(func() {
+					test, err = kube.NewTest(params.KubeconfigPath)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				AfterEach(func() {
+					test.Close()
+					Eventually(func() int {
+						return len(test.ListPods(test.Namespace, metav1.ListOptions{}).Items)
+					}, "3m", "1s").Should(BeZero())
+				})
+
+				It("should deploy podinfo service to the cluster and access it via proxy", func() {
+					d := test.CreateDeploymentFromFile(test.Namespace, "../../data/podinfo.yaml")
+					test.WaitForDeploymentReady(d, defaultTimeout)
+
+					pods := test.ListPodsFromDeployment(d)
+					Expect(len(pods.Items)).To(Equal(2))
+
+					// For each pod of the Deployment, check we receive a sensible response to a
+					// GET request on /version.
+					for _, pod := range pods.Items {
+						Expect(pod.Namespace).To(Equal(test.Namespace))
+
+						req := test.PodProxyGet(&pod, "", "/version")
+						fmt.Fprintf(GinkgoWriter, "url = %#v", req.URL())
+
+						var js map[string]interface{}
+						test.PodProxyGetJSON(&pod, "", "/version", &js)
+
+						Expect(js).To(HaveKeyWithValue("version", "1.5.1"))
+					}
+				})
+
+				It("should have functional DNS", func() {
+					d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-dns.yaml")
+					test.WaitForDaemonSetReady(d, defaultTimeout)
+					{
+						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
+						Expect(err).ShouldNot(HaveOccurred())
+						fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
+					}
+				})
+
+				It("should have access to HTTP(S) sites", func() {
+					d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-http.yaml")
+					test.WaitForDaemonSetReady(d, defaultTimeout)
+					{
+						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
+						Expect(err).ShouldNot(HaveOccurred())
+						fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
+					}
+				})
+
+			})
+
+			Context("and delete the managed public nodegroup", func() {
+				It("should not return an error", func() {
+					cmd := params.EksctlDeleteCmd.WithArgs(
+						"nodegroup",
+						"--verbose", "4",
+						"--cluster", params.ClusterName,
+						newPublicNodeGroup,
+					)
+					Expect(cmd).To(RunSuccessfully())
+				})
+			})
+
+			Context("and delete the managed private nodegroup", func() {
+				It("should not return an error", func() {
+					cmd := params.EksctlDeleteCmd.WithArgs(
+						"nodegroup",
+						"--verbose", "4",
+						"--cluster", params.ClusterName,
+						newPrivateNodeGroup,
+					)
+					Expect(cmd).To(RunSuccessfully())
+				})
+			})
+		})
+
+		Context("and creating a nodegroup with taints", func() {
+			It("should create nodegroups with taints applied", func() {
+				taints := []api.NodeGroupTaint{
+					{
+						Key:    "key1",
+						Value:  "value1",
+						Effect: "NoSchedule",
+					},
+					{
+						Key:    "key2",
+						Effect: "NoSchedule",
+					},
+					{
+						Key:    "key3",
+						Value:  "value2",
+						Effect: "NoExecute",
+					},
+				}
+				clusterConfig := makeClusterConfig()
+				clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name: "taints",
+						},
+						Taints: taints,
+					},
+				}
+
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--verbose", "4",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdin(clusterutils.Reader(clusterConfig))
+				Expect(cmd).To(RunSuccessfully())
+
+				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
+				Expect(err).NotTo(HaveOccurred())
+				clientset, err := kubernetes.NewForConfig(config)
+				Expect(err).NotTo(HaveOccurred())
+
+				mapTaints := func(taints []api.NodeGroupTaint) []corev1.Taint {
+					var ret []corev1.Taint
+					for _, t := range taints {
+						ret = append(ret, corev1.Taint{
+							Key:    t.Key,
+							Value:  t.Value,
+							Effect: t.Effect,
+						})
+					}
+					return ret
+				}
+
+				tests.AssertNodeTaints(tests.ListNodes(clientset, "taints"), mapTaints(taints))
+			})
+
+			// clean up
+			It("should not return an error when deleting nodegroups with taints applied", func() {
+				cmd := params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"taints",
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+		})
+
 		It("supports adding bottlerocket and ubuntu nodegroups with additional volumes", func() {
 			clusterConfig := makeClusterConfig()
 			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
 				{
 					NodeGroupBase: &api.NodeGroupBase{
-						Name:       bottlerocketNodegroup,
-						VolumeSize: aws.Int(35),
-						AMIFamily:  "Bottlerocket",
+						Name:         bottlerocketNodegroup,
+						VolumeSize:   aws.Int(35),
+						AMIFamily:    "Bottlerocket",
+						InstanceType: "t3a.xlarge",
 						Bottlerocket: &api.NodeGroupBottlerocket{
 							EnableAdminContainer: api.Enabled(),
 							Settings: &api.InlineDocument{
@@ -290,222 +475,6 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			})
 		})
 
-		Context("and add two managed nodegroups (one public and one private)", func() {
-			It("should not return an error for public node group", func() {
-				cmd := params.EksctlCreateCmd.WithArgs(
-					"nodegroup",
-					"--cluster", params.ClusterName,
-					"--nodes", "4",
-					"--managed",
-					newPublicNodeGroup,
-				)
-				Expect(cmd).To(RunSuccessfully())
-			})
-
-			It("should not return an error for private node group", func() {
-				cmd := params.EksctlCreateCmd.WithArgs(
-					"nodegroup",
-					"--cluster", params.ClusterName,
-					"--nodes", "2",
-					"--managed",
-					"--node-private-networking",
-					newPrivateNodeGroup,
-				)
-				Expect(cmd).To(RunSuccessfully())
-			})
-
-			Context("create test workloads", func() {
-				var (
-					err  error
-					test *harness.Test
-				)
-
-				BeforeEach(func() {
-					test, err = kube.NewTest(params.KubeconfigPath)
-					Expect(err).ShouldNot(HaveOccurred())
-				})
-
-				AfterEach(func() {
-					test.Close()
-					Eventually(func() int {
-						return len(test.ListPods(test.Namespace, metav1.ListOptions{}).Items)
-					}, "3m", "1s").Should(BeZero())
-				})
-
-				It("should deploy podinfo service to the cluster and access it via proxy", func() {
-					d := test.CreateDeploymentFromFile(test.Namespace, "../../data/podinfo.yaml")
-					test.WaitForDeploymentReady(d, defaultTimeout)
-
-					pods := test.ListPodsFromDeployment(d)
-					Expect(len(pods.Items)).To(Equal(2))
-
-					// For each pod of the Deployment, check we receive a sensible response to a
-					// GET request on /version.
-					for _, pod := range pods.Items {
-						Expect(pod.Namespace).To(Equal(test.Namespace))
-
-						req := test.PodProxyGet(&pod, "", "/version")
-						fmt.Fprintf(GinkgoWriter, "url = %#v", req.URL())
-
-						var js map[string]interface{}
-						test.PodProxyGetJSON(&pod, "", "/version", &js)
-
-						Expect(js).To(HaveKeyWithValue("version", "1.5.1"))
-					}
-				})
-
-				It("should have functional DNS", func() {
-					d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-dns.yaml")
-					test.WaitForDaemonSetReady(d, defaultTimeout)
-					{
-						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
-						Expect(err).ShouldNot(HaveOccurred())
-						fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
-					}
-				})
-
-				It("should have access to HTTP(S) sites", func() {
-					d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-http.yaml")
-					test.WaitForDaemonSetReady(d, defaultTimeout)
-					{
-						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
-						Expect(err).ShouldNot(HaveOccurred())
-						fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
-					}
-				})
-
-			})
-
-			Context("and delete the managed public nodegroup", func() {
-				It("should not return an error", func() {
-					cmd := params.EksctlDeleteCmd.WithArgs(
-						"nodegroup",
-						"--verbose", "4",
-						"--cluster", params.ClusterName,
-						newPublicNodeGroup,
-					)
-					Expect(cmd).To(RunSuccessfully())
-				})
-			})
-
-			Context("and delete the managed private nodegroup", func() {
-				It("should not return an error", func() {
-					cmd := params.EksctlDeleteCmd.WithArgs(
-						"nodegroup",
-						"--verbose", "4",
-						"--cluster", params.ClusterName,
-						newPrivateNodeGroup,
-					)
-					Expect(cmd).To(RunSuccessfully())
-				})
-			})
-		})
-
-		Context("and upgrading a nodegroup", func() {
-			It("should upgrade to the next Kubernetes version", func() {
-				By("updating the control plane version")
-				cmd := params.EksctlUpgradeCmd.
-					WithArgs(
-						"cluster",
-						"--verbose", "4",
-						"--name", params.ClusterName,
-						"--approve",
-					)
-				Expect(cmd).To(RunSuccessfully())
-
-				var nextVersion string
-				{
-					supportedVersions := api.SupportedVersions()
-					nextVersion = supportedVersions[len(supportedVersions)-1]
-				}
-				By(fmt.Sprintf("checking that control plane is updated to %v", nextVersion))
-				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-				Expect(err).NotTo(HaveOccurred())
-
-				clientset, err := kubernetes.NewForConfig(config)
-				Expect(err).NotTo(HaveOccurred())
-				Eventually(func() string {
-					serverVersion, err := clientset.ServerVersion()
-					Expect(err).NotTo(HaveOccurred())
-					return fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))
-				}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextVersion))
-
-				upgradeNg := func(ngName string) {
-					By(fmt.Sprintf("upgrading nodegroup %s to Kubernetes version %s", ngName, nextVersion))
-					cmd = params.EksctlUpgradeCmd.WithArgs(
-						"nodegroup",
-						"--verbose", "4",
-						"--cluster", params.ClusterName,
-						"--name", ngName,
-						"--kubernetes-version", nextVersion,
-					)
-					ExpectWithOffset(1, cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("nodegroup successfully upgraded")))
-				}
-
-				upgradeNg(initialAl2Nodegroup)
-				upgradeNg(bottlerocketNodegroup)
-			})
-		})
-
-		Context("and creating a nodegroup with taints", func() {
-			It("should create nodegroups with taints applied", func() {
-				taints := []api.NodeGroupTaint{
-					{
-						Key:    "key1",
-						Value:  "value1",
-						Effect: "NoSchedule",
-					},
-					{
-						Key:    "key2",
-						Effect: "NoSchedule",
-					},
-					{
-						Key:    "key3",
-						Value:  "value2",
-						Effect: "NoExecute",
-					},
-				}
-				clusterConfig := makeClusterConfig()
-				clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
-					{
-						NodeGroupBase: &api.NodeGroupBase{
-							Name: "taints",
-						},
-						Taints: taints,
-					},
-				}
-
-				cmd := params.EksctlCreateCmd.
-					WithArgs(
-						"nodegroup",
-						"--config-file", "-",
-						"--verbose", "4",
-					).
-					WithoutArg("--region", params.Region).
-					WithStdin(clusterutils.Reader(clusterConfig))
-				Expect(cmd).To(RunSuccessfully())
-
-				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-				Expect(err).NotTo(HaveOccurred())
-				clientset, err := kubernetes.NewForConfig(config)
-				Expect(err).NotTo(HaveOccurred())
-
-				mapTaints := func(taints []api.NodeGroupTaint) []corev1.Taint {
-					var ret []corev1.Taint
-					for _, t := range taints {
-						ret = append(ret, corev1.Taint{
-							Key:    t.Key,
-							Value:  t.Value,
-							Effect: t.Effect,
-						})
-					}
-					return ret
-				}
-
-				tests.AssertNodeTaints(tests.ListNodes(clientset, "taints"), mapTaints(taints))
-			})
-		})
-
 		Context("and creating a nodegroup with an update config", func() {
 			It("defining the UpdateConfig field in the cluster config", func() {
 				By("creating it")
@@ -568,6 +537,64 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(out.Nodegroup.UpdateConfig.MaxUnavailable).Should(Equal(aws.Int32(1)))
 			})
+
+			// clean up
+			It("should not return an error when deleting nodegroup with an update config", func() {
+				cmd := params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"update-config-ng",
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+		})
+
+		Context("and upgrading a nodegroup", func() {
+			It("should upgrade to the next Kubernetes version", func() {
+				By("updating the control plane version")
+				cmd := params.EksctlUpgradeCmd.
+					WithArgs(
+						"cluster",
+						"--verbose", "4",
+						"--name", params.ClusterName,
+						"--approve",
+					)
+				Expect(cmd).To(RunSuccessfully())
+
+				var nextVersion string
+				{
+					supportedVersions := api.SupportedVersions()
+					nextVersion = supportedVersions[len(supportedVersions)-1]
+				}
+				By(fmt.Sprintf("checking that control plane is updated to %v", nextVersion))
+				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
+				Expect(err).NotTo(HaveOccurred())
+
+				clientset, err := kubernetes.NewForConfig(config)
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(func() string {
+					serverVersion, err := clientset.ServerVersion()
+					Expect(err).NotTo(HaveOccurred())
+					return fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))
+				}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextVersion))
+
+				upgradeNg := func(ngName string) {
+					By(fmt.Sprintf("upgrading nodegroup %s to Kubernetes version %s", ngName, nextVersion))
+					cmd = params.EksctlUpgradeCmd.WithArgs(
+						"nodegroup",
+						"--verbose", "4",
+						"--cluster", params.ClusterName,
+						"--name", ngName,
+						"--kubernetes-version", nextVersion,
+						"--timeout=60m", // wait for CF stacks to finish update
+					)
+					ExpectWithOffset(1, cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("nodegroup successfully upgraded")))
+				}
+
+				upgradeNg(initialAl2Nodegroup)
+				upgradeNg(bottlerocketNodegroup)
+			})
 		})
 
 		Context("and deleting the cluster", func() {
@@ -582,5 +609,5 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 })
 
 var _ = AfterSuite(func() {
-	params.DeleteClusters()
+	//params.DeleteClusters()
 })
