@@ -121,16 +121,6 @@ func (c *StackCollection) NewManagedNodeGroupTask(ctx context.Context, nodeGroup
 	return taskTree
 }
 
-// NewClusterCompatTask creates a new task that checks for cluster compatibility with new features like
-// Managed Nodegroups and Fargate, and updates the CloudFormation cluster stack if the required resources are missing
-func (c *StackCollection) NewClusterCompatTask(ctx context.Context) tasks.Task {
-	return &clusterCompatTask{
-		stackCollection: c,
-		info:            "fix cluster compatibility",
-		ctx:             ctx,
-	}
-}
-
 // NewTasksToCreateIAMServiceAccounts defines tasks required to create all of the IAM ServiceAccounts
 func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}

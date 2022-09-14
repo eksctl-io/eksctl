@@ -30,19 +30,30 @@ type ClusterResourceSet struct {
 	securityGroups []*gfnt.Value
 }
 
-// NewClusterResourceSet returns a resource set for the new cluster
-func NewClusterResourceSet(ec2API awsapi.EC2, region string, spec *api.ClusterConfig, existingStack *gjson.Result) *ClusterResourceSet {
+// NewClusterResourceSet returns a resource set for the new cluster.
+func NewClusterResourceSet(ec2API awsapi.EC2, region string, spec *api.ClusterConfig, existingStack *gjson.Result, extendForOutposts bool) *ClusterResourceSet {
+	var usesExistingVPC bool
 	if existingStack != nil {
 		unsetExistingResources(existingStack, spec)
+		usesExistingVPC = !existingStack.Get(cfnVPCResource).Exists()
+	} else {
+		usesExistingVPC = spec.VPC.ID != ""
 	}
-	rs := newResourceSet()
 
-	var vpcResourceSet VPCResourceSet = NewIPv4VPCResourceSet(rs, spec, ec2API)
-	if spec.VPC.ID != "" {
+	var (
+		vpcResourceSet VPCResourceSet
+		rs             = newResourceSet()
+	)
+
+	switch {
+	case usesExistingVPC:
 		vpcResourceSet = NewExistingVPCResourceSet(rs, spec, ec2API)
-	} else if spec.IPv6Enabled() {
+	case spec.IPv6Enabled():
 		vpcResourceSet = NewIPv6VPCResourceSet(rs, spec, ec2API)
+	default:
+		vpcResourceSet = NewIPv4VPCResourceSet(rs, spec, ec2API, extendForOutposts)
 	}
+
 	return &ClusterResourceSet{
 		rs:             rs,
 		spec:           spec,

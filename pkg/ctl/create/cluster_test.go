@@ -343,6 +343,19 @@ var _ = Describe("create cluster", func() {
 			expectedErr: "cannot create nodegroups on Outposts when the VPC is created by eksctl as it will not have connectivity to the API server; please rerun the command with `--without-nodegroup` and run `eksctl create nodegroup` after associating the VPC with a local gateway and ensuring connectivity to the API server",
 		}),
 
+		Entry("[Outposts] nodegroups specified on Outposts but the control plane is not on Outposts", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
+				ng := api.NewNodeGroup()
+				ng.OutpostARN = "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
+				c.NodeGroups = []*api.NodeGroup{ng}
+			},
+			mockOutposts: true,
+
+			expectedErr: "creating nodegroups on Outposts when the control plane is not on Outposts is not supported during cluster creation; " +
+				"either create the nodegroups after cluster creation or consider creating the control plane on Outposts",
+		}),
+
 		Entry("[Outposts] nodegroups specified when the VPC will be created by eksctl, but with --without-nodegroup", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
 				c.Metadata.Version = api.Version1_21
@@ -477,10 +490,10 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 	}, nil)
 
 	const outpostID = "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
-	var outpostConfig *ekstypes.OutpostConfig
+	var outpostConfig *ekstypes.OutpostConfigResponse
 	if controlPlaneOnOutposts {
 		mockOutposts(p, outpostID)
-		outpostConfig = &ekstypes.OutpostConfig{
+		outpostConfig = &ekstypes.OutpostConfigResponse{
 			OutpostArns:              []string{outpostID},
 			ControlPlaneInstanceType: aws.String("m5.xlarge"),
 		}

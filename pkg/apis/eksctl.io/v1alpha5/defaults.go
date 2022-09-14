@@ -174,7 +174,7 @@ func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 
 func setVolumeDefaults(ng *NodeGroupBase, controlPlaneOnOutposts bool, template *LaunchTemplate) {
 	if ng.VolumeType == nil {
-		ng.VolumeType = aws.String(getDefaultVolumeType(controlPlaneOnOutposts))
+		ng.VolumeType = aws.String(getDefaultVolumeType(controlPlaneOnOutposts || ng.OutpostARN != ""))
 	}
 	if ng.VolumeSize == nil && template == nil {
 		ng.VolumeSize = &DefaultNodeVolumeSize
@@ -222,8 +222,8 @@ func setDefaultsForAdditionalVolumes(ng *NodeGroupBase, controlPlaneOnOutposts b
 	}
 }
 
-func getDefaultVolumeType(controlPlaneOnOutposts bool) string {
-	if controlPlaneOnOutposts {
+func getDefaultVolumeType(nodeGroupOnOutposts bool) string {
+	if nodeGroupOnOutposts {
 		return NodeVolumeTypeGP2
 	}
 	return DefaultNodeVolumeType

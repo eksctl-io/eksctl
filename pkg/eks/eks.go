@@ -188,16 +188,8 @@ func sharedTags(cluster *ekstypes.Cluster) map[string]string {
 
 }
 
-// LoadClusterVPC loads the VPC configuration
-func (c *ClusterProvider) LoadClusterVPC(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
-	stack, err := stackManager.DescribeClusterStack(ctx)
-	if err != nil {
-		return err
-	}
-	if stack == nil {
-		return &manager.StackNotFoundErr{ClusterName: spec.Metadata.Name}
-	}
-
+// LoadClusterVPC loads the VPC configuration.
+func (c *ClusterProvider) LoadClusterVPC(ctx context.Context, spec *api.ClusterConfig, stack *manager.Stack) error {
 	return vpc.UseFromClusterStack(ctx, c.AWSProvider, stack, spec)
 }
 

@@ -542,8 +542,8 @@ func (c *ClusterProvider) NewStackManager(spec *api.ClusterConfig) manager.Stack
 // LoadClusterIntoSpecFromStack uses stack information to load the cluster
 // configuration into the spec
 // At the moment VPC and KubernetesNetworkConfig are respected
-func (c *ClusterProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
-	if err := c.LoadClusterVPC(ctx, spec, stackManager); err != nil {
+func (c *ClusterProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stack *manager.Stack) error {
+	if err := c.LoadClusterVPC(ctx, spec, stack); err != nil {
 		return err
 	}
 	return c.RefreshClusterStatus(ctx, spec)

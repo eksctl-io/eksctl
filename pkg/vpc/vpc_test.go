@@ -556,7 +556,7 @@ var _ = Describe("VPC", func() {
 				ManageSharedNodeSecurityGroupRules: aws.Bool(true),
 				AutoAllocateIPv6:                   aws.Bool(false),
 				NAT: &api.ClusterNAT{
-					Gateway: aws.String("Disable"),
+					Gateway: aws.String("Single"),
 				},
 				ClusterEndpoints: &api.ClusterEndpoints{
 					PublicAccess:  aws.Bool(true),
@@ -1334,9 +1334,10 @@ var _ = Describe("VPC", func() {
 			expectedSubnets: api.ClusterSubnets{
 				Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 					"az1": {
-						ID:   "private1",
-						AZ:   "az1",
-						CIDR: ipnet.MustParseCIDR("192.168.0.0/20"),
+						ID:         "private1",
+						AZ:         "az1",
+						CIDR:       ipnet.MustParseCIDR("192.168.0.0/20"),
+						OutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 					},
 				}),
 			},

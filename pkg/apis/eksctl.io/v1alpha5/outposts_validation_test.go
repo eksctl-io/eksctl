@@ -155,6 +155,48 @@ var _ = Describe("Outposts validation", func() {
 
 			expectedErr: "iam.withOIDC is not supported on Outposts",
 		}),
+
+		Entry("nodeGroup.outpostARN set in a fully-private cluster", outpostsEntry{
+			updateDefaultConfig: func(c *api.ClusterConfig) {
+				c.Outpost = nil
+				c.PrivateCluster = &api.PrivateCluster{
+					Enabled: true,
+				}
+				ng := api.NewNodeGroup()
+				ng.PrivateNetworking = true
+				ng.Name = "test"
+				ng.OutpostARN = "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
+				c.NodeGroups = []*api.NodeGroup{ng}
+			},
+
+			expectedErr: "nodeGroup.outpostARN is not supported on a fully-private cluster (privateCluster.enabled)",
+		}),
+	)
+
+	DescribeTable("support for node AMI families", func(amiFamily string, shouldFail bool) {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Metadata.Version = api.Version1_21
+		clusterConfig.Outpost = &api.Outpost{
+			ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+		}
+		err := api.ValidateNodeGroup(0, &api.NodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:      "test",
+				AMIFamily: amiFamily,
+			},
+		}, clusterConfig)
+		if shouldFail {
+			Expect(err).To(MatchError("only AmazonLinux2 is supported on local clusters"))
+		} else {
+			Expect(err).NotTo(HaveOccurred())
+		}
+	},
+		Entry("AmazonLinux2", api.NodeImageFamilyAmazonLinux2, false),
+		Entry("Bottlerocket", api.NodeImageFamilyBottlerocket, true),
+		Entry("Ubuntu1804", api.NodeImageFamilyUbuntu1804, true),
+		Entry("Ubuntu2004", api.NodeImageFamilyUbuntu2004, true),
+		Entry("Windows2019Core", api.NodeImageFamilyWindowsServer2019CoreContainer, true),
+		Entry("Windows2019Full", api.NodeImageFamilyWindowsServer2019FullContainer, true),
 	)
 
 	type nodeGroupEntry struct {
@@ -205,6 +247,18 @@ var _ = Describe("Outposts validation", func() {
 					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-5678",
 				},
 			},
+			expectedErr: `nodeGroup.outpostARN must either be empty or match the control plane's Outpost ARN ("arn:aws:outposts:us-west-2:1234:outpost/op-1234" != "arn:aws:outposts:us-west-2:1234:outpost/op-5678")`,
+		}),
+
+		Entry("instanceSelector", nodeGroupEntry{
+			nodeGroup: &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					InstanceSelector: &api.InstanceSelector{
+						VCPUs: 4,
+					},
+				},
+			},
+			expectedErr: "cannot specify instanceSelector for a nodegroup on Outposts",
 		}),
 
 		Entry("availabilityZones", nodeGroupEntry{

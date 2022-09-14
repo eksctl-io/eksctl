@@ -576,7 +576,7 @@ var _ = Describe("AssignSubnets", func() {
 					},
 				})
 			},
-			expectedErr: `subnet "subnet-123" is in a different Outpost ARN ("arn:aws:outposts:us-west-2:1234:outpost/op-5678") than the control plane ("arn:aws:outposts:us-west-2:1234:outpost/op-1234")`,
+			expectedErr: `subnet "subnet-123" is in a different Outpost ARN ("arn:aws:outposts:us-west-2:1234:outpost/op-5678") than the control plane or nodegroup Outpost ("arn:aws:outposts:us-west-2:1234:outpost/op-1234")`,
 		}),
 
 		Entry("EKS and subnets in the same Outpost", assignSubnetsEntry{

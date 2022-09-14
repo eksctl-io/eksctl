@@ -7,7 +7,6 @@
   EncryptionConfig: null
   Endpoint: null
   Health: null
-  Id: null
   Identity: null
   KubernetesNetworkConfig: null
   Logging: null
@@ -37,7 +36,6 @@
   EncryptionConfig: null
   Endpoint: null
   Health: null
-  Id: null 
   Identity: null
   KubernetesNetworkConfig: null
   Logging: null

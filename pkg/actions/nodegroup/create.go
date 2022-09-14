@@ -53,18 +53,25 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 	}
 
 	isOwnedCluster := true
-	if err := ctl.LoadClusterIntoSpecFromStack(ctx, cfg, m.stackManager); err != nil {
-		switch e := err.(type) {
+	clusterStack, err := m.stackManager.DescribeClusterStack(ctx)
+	if err != nil {
+		switch err.(type) {
 		case *manager.StackNotFoundErr:
-			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", e.Error())
+			if cfg.IsControlPlaneOnOutposts() {
+				return errors.New("Outposts is not supported on non eksctl-managed clusters")
+			}
+			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", err.Error())
 			if err := loadVPCFromConfig(ctx, ctl.AWSProvider, cfg); err != nil {
 				return errors.Wrapf(err, "loading VPC spec for cluster %q", meta.Name)
 			}
-
 			isOwnedCluster = false
+
 		default:
-			return errors.Wrapf(e, "getting existing configuration for cluster %q", meta.Name)
+			return fmt.Errorf("getting existing configuration for cluster %q: %w", meta.Name, err)
 		}
+
+	} else if err := ctl.LoadClusterIntoSpecFromStack(ctx, cfg, clusterStack); err != nil {
+		return err
 	}
 
 	rawClient, err := ctl.NewRawClient(cfg)
@@ -87,15 +94,8 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 	}
 
 	nodePools := nodes.ToNodePools(cfg)
-	var outpostsService *outposts.Service
-	if cfg.IsControlPlaneOnOutposts() {
-		outpostsService = &outposts.Service{
-			OutpostsAPI: ctl.AWSProvider.Outposts(),
-			EC2API:      ctl.AWSProvider.EC2(),
-			OutpostID:   cfg.Outpost.ControlPlaneOutpostARN,
-		}
-	}
-	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, m.instanceSelector, outpostsService)
+
+	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, m.instanceSelector, makeOutpostsService(cfg, ctl.AWSProvider))
 	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
 	}
@@ -164,6 +164,23 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 	return nil
 }
 
+func makeOutpostsService(clusterConfig *api.ClusterConfig, provider api.ClusterProvider) *outposts.Service {
+	var outpostARN string
+	if clusterConfig.IsControlPlaneOnOutposts() {
+		outpostARN = clusterConfig.Outpost.ControlPlaneOutpostARN
+	} else if nodeGroupOutpostARN, found := clusterConfig.FindNodeGroupOutpostARN(); found {
+		outpostARN = nodeGroupOutpostARN
+	} else {
+		return nil
+	}
+
+	return &outposts.Service{
+		OutpostsAPI: provider.Outposts(),
+		EC2API:      provider.EC2(),
+		OutpostID:   outpostARN,
+	}
+}
+
 func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
@@ -173,7 +190,30 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) er
 	}
 
 	if isOwnedCluster {
-		taskTree.Append(m.stackManager.NewClusterCompatTask(ctx))
+		taskTree.Append(&tasks.GenericTask{
+			Doer: func() error {
+				if err := m.stackManager.FixClusterCompatibility(ctx); err != nil {
+					return err
+				}
+				hasDedicatedVPC, err := m.stackManager.ClusterHasDedicatedVPC(ctx)
+				if err != nil {
+					return fmt.Errorf("error checking if cluster has a dedicated VPC: %w", err)
+				}
+				if !hasDedicatedVPC {
+					return nil
+				}
+				clusterExtender := &outposts.ClusterExtender{
+					StackUpdater: m.stackManager,
+					EC2API:       m.ctl.AWSProvider.EC2(),
+					OutpostsAPI:  m.ctl.AWSProvider.Outposts(),
+				}
+				if err := clusterExtender.ExtendWithOutpostSubnetsIfRequired(ctx, m.cfg, m.cfg.VPC); err != nil {
+					return fmt.Errorf("error extending cluster with Outpost subnets: %w", err)
+				}
+				return nil
+			},
+			Description: "fix cluster compatibility",
+		})
 	}
 
 	awsNodeUsesIRSA, err := eks.DoesAWSNodeUseIRSA(ctx, m.ctl.AWSProvider, m.clientSet)

@@ -266,34 +266,6 @@ var _ = Describe("NodeGroupService", func() {
 			},
 			expectedInstanceTypes: []string{"", ""},
 		}),
-
-		Entry("nodegroup with a different outpost ARN", normalizeEntry{
-			clusterConfig: &api.ClusterConfig{
-				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
-				},
-				NodeGroups: []*api.NodeGroup{
-					{
-						NodeGroupBase: &api.NodeGroupBase{
-							AMI: "ami-test",
-							SSH: &api.NodeGroupSSH{
-								Allow: api.Disabled(),
-							},
-							InstanceSelector: &api.InstanceSelector{},
-							OutpostARN:       "arn:aws:outposts:us-west-2:1234:outpost/op-5678",
-						},
-					},
-				},
-				Outpost: &api.Outpost{
-					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
-				},
-			},
-			expectedErr: "nodegroup must be on the same Outpost as the control plane",
-			expectedCallsCount: callsCount{
-				getOutpostInstanceTypes: 1,
-				describeInstanceTypes:   1,
-			},
-		}),
 	)
 })
 

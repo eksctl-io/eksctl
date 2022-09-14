@@ -259,19 +259,16 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			cfg.AvailabilityZones = []string{aws.ToString(outpost.AvailabilityZone)}
 		}
 
-		if controlPlaneInstanceType := cfg.Outpost.ControlPlaneInstanceType; controlPlaneInstanceType == "" {
-			smallestInstanceType, err := outpostsService.GetSmallestInstanceType(ctx)
-			if err != nil {
-				return fmt.Errorf("error getting smallest instance type for the control plane: %w", err)
-			}
-			cfg.Outpost.ControlPlaneInstanceType = smallestInstanceType
-		} else if err := outpostsService.ValidateInstanceType(ctx, controlPlaneInstanceType); err != nil {
-			return fmt.Errorf("error validating instance type for Outpost: %w", err)
+		if err := outpostsService.SetOrValidateOutpostInstanceType(ctx, cfg.Outpost); err != nil {
+			return fmt.Errorf("error setting or validating instance type for the control plane: %w", err)
 		}
 
 		if !cfg.HasAnySubnets() && len(kubeNodeGroups) > 0 {
 			return errors.New("cannot create nodegroups on Outposts when the VPC is created by eksctl as it will not have connectivity to the API server; please rerun the command with `--without-nodegroup` and run `eksctl create nodegroup` after associating the VPC with a local gateway and ensuring connectivity to the API server")
 		}
+	} else if _, hasNodeGroupsOnOutposts := cfg.FindNodeGroupOutpostARN(); hasNodeGroupsOnOutposts {
+		return errors.New("creating nodegroups on Outposts when the control plane is not on Outposts is not supported during cluster creation; " +
+			"either create the nodegroups after cluster creation or consider creating the control plane on Outposts")
 	}
 
 	if err := createOrImportVPC(ctx, cmd, cfg, params, ctl); err != nil {
@@ -573,6 +570,12 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 	}
 
 	if params.DryRun {
+		if cfg.VPC.NAT != nil {
+			disableNAT := api.ClusterDisableNAT
+			cfg.VPC.NAT = &api.ClusterNAT{
+				Gateway: &disableNAT,
+			}
+		}
 		return nil
 	}
 

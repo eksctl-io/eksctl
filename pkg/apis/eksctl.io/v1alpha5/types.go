@@ -708,6 +708,16 @@ func (c *ClusterConfig) GetOutpost() *Outpost {
 	return c.Outpost
 }
 
+// FindNodeGroupOutpostARN finds nodegroups that are on Outposts and returns the Outpost ARN.
+func (c *ClusterConfig) FindNodeGroupOutpostARN() (outpostARN string, found bool) {
+	for _, ng := range c.NodeGroups {
+		if ng.OutpostARN != "" {
+			return ng.OutpostARN, true
+		}
+	}
+	return "", false
+}
+
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
 	CloudFormation() awsapi.CloudFormation
@@ -835,6 +845,16 @@ type Outpost struct {
 	ControlPlaneInstanceType string `json:"controlPlaneInstanceType"`
 }
 
+// GetInstanceType returns the control plane instance type.
+func (o *Outpost) GetInstanceType() string {
+	return o.ControlPlaneInstanceType
+}
+
+// SetInstanceType sets the control plane instance type.
+func (o *Outpost) SetInstanceType(instanceType string) {
+	o.ControlPlaneInstanceType = instanceType
+}
+
 // OutpostInfo describes the Outpost info.
 type OutpostInfo interface {
 	// IsControlPlaneOnOutposts returns true if the control plane is on Outposts.
@@ -955,8 +975,7 @@ func (c *ClusterConfig) SetClusterState(cluster *ekstypes.Cluster) error {
 	c.Status.Endpoint = *cluster.Endpoint
 	c.Status.CertificateAuthorityData = data
 	c.Status.ARN = *cluster.Arn
-	if cluster.OutpostConfig != nil {
-		outpost := cluster.OutpostConfig
+	if outpost := cluster.OutpostConfig; outpost != nil {
 		if len(outpost.OutpostArns) != 1 {
 			return fmt.Errorf("expected cluster to be associated with only one Outpost; got %v", outpost.OutpostArns)
 		}
@@ -1159,6 +1178,16 @@ func (n *NodeGroup) GetDesiredCapacity() int {
 		return n.NodeGroupBase.GetDesiredCapacity()
 	}
 	return 0
+}
+
+// GetInstanceType returns the instance type.
+func (n *NodeGroup) GetInstanceType() string {
+	return n.InstanceType
+}
+
+// SetInstanceType sets the instance type.
+func (n *NodeGroup) SetInstanceType(instanceType string) {
+	n.InstanceType = instanceType
 }
 
 // GitOps groups all configuration options related to enabling GitOps Toolkit on a

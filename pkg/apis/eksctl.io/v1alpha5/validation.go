@@ -184,12 +184,14 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 		if cfg.VPC != nil {
 			if IsEnabled(cfg.VPC.AutoAllocateIPv6) {
-				return errors.New("autoAllocateIPv6 is not supported for Outposts")
+				return errors.New("autoAllocateIPv6 is not supported on Outposts")
 			}
 			if len(cfg.VPC.PublicAccessCIDRs) > 0 {
-				return errors.New("publicAccessCIDRs is not supported for Outposts")
+				return errors.New("publicAccessCIDRs is not supported on Outposts")
 			}
 		}
+	} else if ngOutpostARN != "" && cfg.IsFullyPrivate() {
+		return errors.New("nodeGroup.outpostARN is not supported on a fully-private cluster (privateCluster.enabled)")
 	}
 
 	if err := cfg.ValidateVPCConfig(); err != nil {
@@ -219,17 +221,17 @@ func ValidateClusterVersion(clusterConfig *ClusterConfig) error {
 		case "":
 			return fmt.Errorf("cluster version must be explicitly set to %[1]s for Outposts clusters as only version %[1]s is currently supported", Version1_21)
 		case Version1_21:
-
+			return nil
 		default:
 			return fmt.Errorf("only version %s is supported on Outposts", Version1_21)
 		}
-	} else if clusterVersion != "" && clusterVersion != DefaultVersion {
-		if !IsSupportedVersion(clusterVersion) {
-			if IsDeprecatedVersion(clusterVersion) {
-				return fmt.Errorf("invalid version, %s is no longer supported, supported values: %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", clusterVersion, strings.Join(SupportedVersions(), ", "))
-			}
-			return fmt.Errorf("invalid version, supported values: %s", strings.Join(SupportedVersions(), ", "))
+	}
+
+	if clusterVersion != "" && clusterVersion != DefaultVersion && !IsSupportedVersion(clusterVersion) {
+		if IsDeprecatedVersion(clusterVersion) {
+			return fmt.Errorf("invalid version, %s is no longer supported, supported values: %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", clusterVersion, strings.Join(SupportedVersions(), ", "))
 		}
+		return fmt.Errorf("invalid version, supported values: %s", strings.Join(SupportedVersions(), ", "))
 	}
 	return nil
 }
@@ -594,11 +596,16 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 		}
 	}
 
-	if ng.AMIFamily != "" && !isSupportedAMIFamily(ng.AMIFamily) {
-		if ng.AMIFamily == NodeImageFamilyWindowsServer20H2CoreContainer || ng.AMIFamily == NodeImageFamilyWindowsServer2004CoreContainer {
-			return fmt.Errorf("AMI Family %s is deprecated. For more information, head to the Amazon documentation on Windows AMIs (https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-windows-ami.html)", ng.AMIFamily)
+	if ng.AMIFamily != "" {
+		if !isSupportedAMIFamily(ng.AMIFamily) {
+			if ng.AMIFamily == NodeImageFamilyWindowsServer20H2CoreContainer || ng.AMIFamily == NodeImageFamilyWindowsServer2004CoreContainer {
+				return fmt.Errorf("AMI Family %s is deprecated. For more information, head to the Amazon documentation on Windows AMIs (https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-windows-ami.html)", ng.AMIFamily)
+			}
+			return fmt.Errorf("AMI Family %s is not supported - use one of: %s", ng.AMIFamily, strings.Join(supportedAMIFamilies(), ", "))
 		}
-		return fmt.Errorf("AMI Family %s is not supported - use one of: %s", ng.AMIFamily, strings.Join(supportedAMIFamilies(), ", "))
+		if controlPlaneOnOutposts && ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
+			return fmt.Errorf("only %s is supported on local clusters", NodeImageFamilyAmazonLinux2)
+		}
 	}
 
 	if ng.SSH != nil {
@@ -871,6 +878,9 @@ func ValidateNodeGroup(i int, ng *NodeGroup, outpostInfo OutpostInfo) error {
 	}
 
 	if outpostInfo.IsControlPlaneOnOutposts() || ng.OutpostARN != "" {
+		if ng.InstanceSelector != nil && !ng.InstanceSelector.IsZero() {
+			return errors.New("cannot specify instanceSelector for a nodegroup on Outposts")
+		}
 		const msg = "%s cannot be specified for a nodegroup on Outposts; the AZ defaults to the Outpost AZ"
 		if len(ng.AvailabilityZones) > 0 {
 			return fmt.Errorf(msg, "availabilityZones")

@@ -1,6 +1,8 @@
 package v1alpha5
 
 import (
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -27,7 +29,13 @@ type subnetCase struct {
 var _ = Describe("VPC Configuration", func() {
 	DescribeTable("Subnet import",
 		func(e subnetCase) {
-			err := doImportSubnet(e.subnets, e.az, e.subnetID, e.cidr)
+			err := ImportSubnet(e.subnets, &ec2types.Subnet{
+				AvailabilityZone: aws.String(e.az),
+				SubnetId:         aws.String(e.subnetID),
+				CidrBlock:        aws.String(e.cidr),
+			}, func(subnet *ec2types.Subnet) string {
+				return *subnet.AvailabilityZone
+			})
 			if e.err {
 				Expect(err).To(HaveOccurred())
 			} else {

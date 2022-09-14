@@ -13,14 +13,16 @@ import (
 // Stack output names
 const (
 	// outputs from cluster stack
-	ClusterVPC                  = "VPC"
-	ClusterDefaultSecurityGroup = "ClusterSecurityGroupId"
-	ClusterSecurityGroup        = "SecurityGroup"
-	ClusterSubnetsPrivate       = string("Subnets" + api.SubnetTopologyPrivate)
-	ClusterSubnetsPublic        = string("Subnets" + api.SubnetTopologyPublic)
-	ClusterSubnetsPrivateLocal  = string("SubnetsLocalZone" + api.SubnetTopologyPrivate)
-	ClusterSubnetsPublicLocal   = string("SubnetsLocalZone" + api.SubnetTopologyPublic)
-	ClusterFullyPrivate         = "ClusterFullyPrivate"
+	ClusterVPC                    = "VPC"
+	ClusterDefaultSecurityGroup   = "ClusterSecurityGroupId"
+	ClusterSecurityGroup          = "SecurityGroup"
+	ClusterSubnetsPrivate         = string("Subnets" + api.SubnetTopologyPrivate)
+	ClusterSubnetsPublic          = string("Subnets" + api.SubnetTopologyPublic)
+	ClusterSubnetsPrivateLocal    = string("SubnetsLocalZone" + api.SubnetTopologyPrivate)
+	ClusterSubnetsPublicLocal     = string("SubnetsLocalZone" + api.SubnetTopologyPublic)
+	ClusterSubnetsPrivateExtended = ClusterSubnetsPrivate + "Extended"
+	ClusterSubnetsPublicExtended  = ClusterSubnetsPublic + "Extended"
+	ClusterFullyPrivate           = "ClusterFullyPrivate"
 
 	ClusterSubnetsPublicLegacy = "Subnets"
 

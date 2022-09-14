@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/weaveworks/eksctl/pkg/outposts/fakes"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
@@ -83,6 +85,48 @@ var _ = Describe("Outposts Service", func() {
 			provider.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeInstanceTypes", 1)
 		})
 	})
+
+	type setOrValidateEntry struct {
+		outpostInstance *fakes.FakeOutpostInstance
+
+		expectedInstanceType string
+	}
+
+	DescribeTable("SetOrValidateInstanceType", func(e setOrValidateEntry) {
+		provider := mockprovider.NewMockProvider()
+		mockOutpostInstanceTypes(provider)
+		outpostsService := &outposts.Service{
+			OutpostsAPI: provider.Outposts(),
+			EC2API:      provider.EC2(),
+			OutpostID:   "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+		}
+
+		Expect(outpostsService.SetOrValidateOutpostInstanceType(context.Background(), e.outpostInstance)).To(Succeed())
+		Expect(e.outpostInstance.GetInstanceTypeCallCount()).To(Equal(1))
+		if e.expectedInstanceType != "" {
+			Expect(e.outpostInstance.SetInstanceTypeCallCount()).To(Equal(1))
+			instanceType := e.outpostInstance.SetInstanceTypeArgsForCall(0)
+			Expect(instanceType).To(Equal(e.expectedInstanceType))
+		} else {
+			Expect(e.outpostInstance.SetInstanceTypeCallCount()).To(Equal(0))
+		}
+	},
+		Entry("instance type not set", setOrValidateEntry{
+			outpostInstance: &fakes.FakeOutpostInstance{
+				GetInstanceTypeStub: func() string { return "" },
+				SetInstanceTypeStub: func(_ string) {},
+			},
+
+			expectedInstanceType: "m5a.large",
+		}),
+
+		Entry("instance type set", setOrValidateEntry{
+			outpostInstance: &fakes.FakeOutpostInstance{
+				GetInstanceTypeStub: func() string { return "m5.xlarge" },
+				SetInstanceTypeStub: func(_ string) {},
+			},
+		}),
+	)
 
 	Context("GetOutpost", func() {
 		var (

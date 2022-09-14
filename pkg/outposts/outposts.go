@@ -93,6 +93,33 @@ func (o *Service) describeOutpostInstanceTypes(ctx context.Context) ([]ec2types.
 	return o.instanceTypeInfoList, nil
 }
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes . OutpostInstance
+
+// OutpostInstance represents an instance running on Outposts.
+type OutpostInstance interface {
+	// SetInstanceType sets the instance type.
+	SetInstanceType(instanceType string)
+
+	// GetInstanceType returns the instance type.
+	GetInstanceType() string
+}
+
+// SetOrValidateOutpostInstanceType sets the instance type if it is not set, or validates that the specified instance
+// type exists in Outposts.
+func (o *Service) SetOrValidateOutpostInstanceType(ctx context.Context, oi OutpostInstance) error {
+	if instanceType := oi.GetInstanceType(); instanceType != "" {
+		return o.ValidateInstanceType(ctx, instanceType)
+	}
+
+	smallestInstanceType, err := o.GetSmallestInstanceType(ctx)
+	if err != nil {
+		return fmt.Errorf("error getting smallest instance type: %w", err)
+	}
+	oi.SetInstanceType(smallestInstanceType)
+	return nil
+}
+
 // ValidateInstanceType validates that instanceType is a valid instance type for this Outpost.
 func (o *Service) ValidateInstanceType(ctx context.Context, instanceType string) error {
 	o.mu.Lock()

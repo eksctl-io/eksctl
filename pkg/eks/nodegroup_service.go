@@ -52,7 +52,7 @@ func NewNodeGroupService(provider api.ClusterProvider, instanceSelector Instance
 const defaultCPUArch = "x86_64"
 
 // Normalize normalizes nodegroups.
-func (m *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePool, clusterConfig *api.ClusterConfig) error {
+func (n *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePool, clusterConfig *api.ClusterConfig) error {
 	for _, np := range nodePools {
 		switch ng := np.(type) {
 		case *api.ManagedNodeGroup:
@@ -61,30 +61,21 @@ func (m *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 			}
 			hasNativeAMIFamilySupport := ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 || ng.AMIFamily == api.NodeImageFamilyBottlerocket
 			if !hasNativeAMIFamilySupport && !api.IsAMI(ng.AMI) {
-				if err := ResolveAMI(ctx, m.provider, clusterConfig.Metadata.Version, np); err != nil {
+				if err := ResolveAMI(ctx, n.provider, clusterConfig.Metadata.Version, np); err != nil {
 					return err
 				}
 			}
 
 		case *api.NodeGroup:
 			if !api.IsAMI(ng.AMI) {
-				if err := ResolveAMI(ctx, m.provider, clusterConfig.Metadata.Version, ng); err != nil {
+				if err := ResolveAMI(ctx, n.provider, clusterConfig.Metadata.Version, ng); err != nil {
 					return err
 				}
 			}
 
-			if clusterConfig.IsControlPlaneOnOutposts() {
-				if ng.InstanceType == "" {
-					smallestInstanceType, err := m.outpostsService.GetSmallestInstanceType(ctx)
-					if err != nil {
-						return fmt.Errorf("error getting smallest instance type for nodegroup %q: %w", ng.Name, err)
-					}
-					ng.InstanceType = smallestInstanceType
-				} else if err := m.outpostsService.ValidateInstanceType(ctx, ng.InstanceType); err != nil {
-					return err
-				}
-				if ng.OutpostARN != "" && ng.OutpostARN != clusterConfig.Outpost.ControlPlaneOutpostARN {
-					return errors.New("nodegroup must be on the same Outpost as the control plane")
+			if clusterConfig.IsControlPlaneOnOutposts() || ng.OutpostARN != "" {
+				if err := n.outpostsService.SetOrValidateOutpostInstanceType(ctx, ng); err != nil {
+					return fmt.Errorf("error setting or validating instance type for nodegroup %q: %w", ng.Name, err)
 				}
 			} else if ng.InstanceType == "" {
 				if api.HasMixedInstances(ng) || !ng.InstanceSelector.IsZero() {
@@ -100,7 +91,7 @@ func (m *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, clusterConfig.Metadata.Version)
 
 		if ng.AMI != "" {
-			if err := ami.Use(ctx, m.provider.EC2(), ng); err != nil {
+			if err := ami.Use(ctx, n.provider.EC2(), ng); err != nil {
 				return err
 			}
 		}
@@ -108,7 +99,7 @@ func (m *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 		// fingerprint, so if unique keys are provided, each will get
 		// loaded and used as intended and there is no need to have
 		// nodegroup name in the key name
-		publicKeyName, err := ssh.LoadKey(ctx, ng.SSH, clusterConfig.Metadata.Name, ng.Name, m.provider.EC2())
+		publicKeyName, err := ssh.LoadKey(ctx, ng.SSH, clusterConfig.Metadata.Name, ng.Name, n.provider.EC2())
 		if err != nil {
 			return err
 		}
@@ -120,7 +111,7 @@ func (m *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 }
 
 // ExpandInstanceSelectorOptions sets instance types to instances matched by the instance selector criteria.
-func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error {
+func (n *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error {
 	instanceTypesMatch := func(a, b []string) bool {
 		return reflect.DeepEqual(a, b)
 	}
@@ -139,7 +130,7 @@ func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 		if len(baseNG.AvailabilityZones) != 0 {
 			azs = baseNG.AvailabilityZones
 		}
-		instanceTypes, err := m.expandInstanceSelector(baseNG.InstanceSelector, azs)
+		instanceTypes, err := n.expandInstanceSelector(baseNG.InstanceSelector, azs)
 		if err != nil {
 			return errors.Wrapf(err, "error expanding instance selector options for nodegroup %q", baseNG.Name)
 		}
@@ -177,7 +168,7 @@ func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 	return nil
 }
 
-func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs []string) ([]string, error) {
+func (n *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs []string) ([]string, error) {
 	makeRange := func(val int) *selector.IntRangeFilter {
 		return &selector.IntRangeFilter{
 			LowerBound: val,
@@ -211,7 +202,7 @@ func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	}
 	filters.CPUArchitecture = aws.String(cpuArch)
 
-	instanceTypes, err := m.instanceSelector.Filter(filters)
+	instanceTypes, err := n.instanceSelector.Filter(filters)
 	if err != nil {
 		return nil, errors.Wrap(err, "error querying instance types for the specified instance selector criteria")
 	}

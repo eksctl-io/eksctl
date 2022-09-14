@@ -59,8 +59,12 @@ func (s *stackManagerDelegate) NewManagedNodeGroupTask(context.Context, []*api.M
 	return nil
 }
 
-func (s *stackManagerDelegate) NewClusterCompatTask(context.Context) tasks.Task {
-	return noopTask
+func (s *stackManagerDelegate) FixClusterCompatibility(_ context.Context) error {
+	return nil
+}
+
+func (s *stackManagerDelegate) ClusterHasDedicatedVPC(_ context.Context) (bool, error) {
+	return false, nil
 }
 
 var _ = DescribeTable("Create", func(t ngEntry) {
@@ -200,7 +204,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	Entry("fails to create managed nodegroups on Outposts", ngEntry{
 		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfig{
+			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
 				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-1234"},
 				ControlPlaneInstanceType: aws.String("m5a.large"),
 			})
@@ -224,7 +228,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	Entry("fails to create managed nodegroups on Outposts with a config file", ngEntry{
 		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfig{
+			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
 				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-1234"},
 				ControlPlaneInstanceType: aws.String("m5a.large"),
 			})
@@ -253,7 +257,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			}
 		},
 		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfig{
+			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
 				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-5678"},
 				ControlPlaneInstanceType: aws.String("m5a.large"),
 			})
@@ -306,7 +310,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			k.NewRawClientReturns(nil, &kubernetes.APIServerUnreachableError{
 				Err: errors.New("timeout"),
 			})
-			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfig{
+			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
 				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-1234"},
 				ControlPlaneInstanceType: aws.String("m5a.large"),
 			})
@@ -369,7 +373,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	Entry("creates nodegroups on Outposts", ngEntry{
 		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfig{
+			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
 				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-1234"},
 				ControlPlaneInstanceType: aws.String("m5a.large"),
 			})
@@ -490,11 +494,11 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output)
 	mockProviderWithConfig(p, output, nil, nil)
 }
 
-func mockProviderWithOutpostConfig(p *mockprovider.MockProvider, describeStacksOutput []cftypes.Output, outpostConfig *ekstypes.OutpostConfig) {
+func mockProviderWithOutpostConfig(p *mockprovider.MockProvider, describeStacksOutput []cftypes.Output, outpostConfig *ekstypes.OutpostConfigResponse) {
 	mockProviderWithConfig(p, describeStacksOutput, nil, outpostConfig)
 }
 
-func mockProviderWithConfig(p *mockprovider.MockProvider, describeStacksOutput []cftypes.Output, vpcConfigRes *ekstypes.VpcConfigResponse, outpostConfig *ekstypes.OutpostConfig) {
+func mockProviderWithConfig(p *mockprovider.MockProvider, describeStacksOutput []cftypes.Output, vpcConfigRes *ekstypes.VpcConfigResponse, outpostConfig *ekstypes.OutpostConfigResponse) {
 	p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
 		StackSummaries: []cftypes.StackSummary{
 			{
