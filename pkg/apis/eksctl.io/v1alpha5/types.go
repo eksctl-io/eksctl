@@ -211,6 +211,9 @@ const (
 	// DefaultNodeCount defines the default number of nodes to be created
 	DefaultNodeCount = 2
 
+	// DefaultMaxSize defines the default maximum number of nodes inside the ASG
+	DefaultMaxSize = 1
+
 	// NodeImageResolverAuto represents auto AMI resolver (see ami package)
 	NodeImageResolverAuto = "auto"
 	// NodeImageResolverAutoSSM is used to indicate that the latest EKS AMIs should be used for the nodes. The AMI is selected
@@ -696,6 +699,7 @@ type ClusterProvider interface {
 
 // STSPresigner defines the method to pre-sign GetCallerIdentity requests to add a proper header required by EKS for
 // authentication from the outside.
+//
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_sts_presigner.go . STSPresigner
 type STSPresigner interface {
