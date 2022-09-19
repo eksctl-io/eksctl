@@ -2,8 +2,8 @@
 
 sponsored by [![Weaveworks](img/empty.svg#wwinline)](https://www.weave.works/) and built by [![Contributors](img/gophers.png#inline)](https://github.com/weaveworks/eksctl/graphs/contributors) on [![Github](img/empty.svg#gitinline)](https://github.com/weaveworks/eksctl)
 
-!!! tip "New for 2021"
-    Use `eksctl` to manage clusters which were created by other tools. Find out more [here](/usage/unowned-clusters).
+!!! tip "New for 2022"
+    `eksctl` now supports creating clusters and nodegroups on [AWS Outposts](/usage/outposts).
 
 `eksctl` is a simple CLI tool for creating and managing clusters on EKS - Amazon's managed Kubernetes service for EC2.
 It is written in Go, uses CloudFormation, was created by [Weaveworks](https://www.weave.works/) and it welcomes

@@ -9,7 +9,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.4-0.20220124212200-2aee60ac608e
 	github.com/aws/aws-sdk-go v1.44.35
-	github.com/aws/aws-sdk-go-v2 v1.16.14
+	github.com/aws/aws-sdk-go-v2 v1.16.15
 	github.com/aws/aws-sdk-go-v2/config v1.17.5
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.18
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.14
@@ -18,14 +18,15 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.18
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.17.3
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.53.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.21.11
+	github.com/aws/aws-sdk-go-v2/service/eks v1.22.0
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.16
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.17
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.17
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.9
+	github.com/aws/aws-sdk-go-v2/service/outposts v1.22.1
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.13
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.17
-	github.com/aws/smithy-go v1.13.2
+	github.com/aws/smithy-go v1.13.3
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
@@ -65,7 +66,7 @@ require (
 	github.com/tj/assert v0.0.3
 	github.com/vburenin/ifacemaker v1.2.1-0.20220402060045-b2018d8549dc
 	github.com/vektra/mockery v1.1.2
-	github.com/weaveworks/goformation/v4 v4.10.2-0.20211208101807-d5ec5126726c
+	github.com/weaveworks/goformation/v4 v4.10.2-0.20220801120612-4c60467fc75d
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	github.com/xgfone/netaddr v0.5.1
@@ -137,8 +138,8 @@ require (
 	github.com/ashanbrown/makezero v1.1.1 // indirect
 	github.com/atc0005/go-teams-notify/v2 v2.6.1 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.15 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.21 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.15 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.22 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.16 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.22 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.15 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.21 // indirect

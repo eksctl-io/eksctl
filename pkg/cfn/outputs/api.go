@@ -13,14 +13,16 @@ import (
 // Stack output names
 const (
 	// outputs from cluster stack
-	ClusterVPC                  = "VPC"
-	ClusterDefaultSecurityGroup = "ClusterSecurityGroupId"
-	ClusterSecurityGroup        = "SecurityGroup"
-	ClusterSubnetsPrivate       = string("Subnets" + api.SubnetTopologyPrivate)
-	ClusterSubnetsPublic        = string("Subnets" + api.SubnetTopologyPublic)
-	ClusterSubnetsPrivateLocal  = string("SubnetsLocalZone" + api.SubnetTopologyPrivate)
-	ClusterSubnetsPublicLocal   = string("SubnetsLocalZone" + api.SubnetTopologyPublic)
-	ClusterFullyPrivate         = "ClusterFullyPrivate"
+	ClusterVPC                    = "VPC"
+	ClusterDefaultSecurityGroup   = "ClusterSecurityGroupId"
+	ClusterSecurityGroup          = "SecurityGroup"
+	ClusterSubnetsPrivate         = string("Subnets" + api.SubnetTopologyPrivate)
+	ClusterSubnetsPublic          = string("Subnets" + api.SubnetTopologyPublic)
+	ClusterSubnetsPrivateLocal    = string("SubnetsLocalZone" + api.SubnetTopologyPrivate)
+	ClusterSubnetsPublicLocal     = string("SubnetsLocalZone" + api.SubnetTopologyPublic)
+	ClusterSubnetsPrivateExtended = ClusterSubnetsPrivate + "Extended"
+	ClusterSubnetsPublicExtended  = ClusterSubnetsPublic + "Extended"
+	ClusterFullyPrivate           = "ClusterFullyPrivate"
 
 	ClusterSubnetsPublicLegacy = "Subnets"
 
@@ -39,10 +41,9 @@ const (
 	// outputs to indicate configuration attributes that may have critical effect
 	// on critical effect on forward-compatibility with respect to overall functionality
 	// and integrity, e.g. networking
-	NodeGroupFeaturePrivateNetworking     = "FeaturePrivateNetworking"
-	NodeGroupFeatureSharedSecurityGroup   = "FeatureSharedSecurityGroup"
-	NodeGroupFeatureLocalSecurityGroup    = "FeatureLocalSecurityGroup"
-	NodeGroupFeaturePrivateEndpointAccess = "FeaturePrivateEndpointAccess"
+	NodeGroupFeaturePrivateNetworking   = "FeaturePrivateNetworking"
+	NodeGroupFeatureSharedSecurityGroup = "FeatureSharedSecurityGroup"
+	NodeGroupFeatureLocalSecurityGroup  = "FeatureLocalSecurityGroup"
 
 	// outputs from Fargate stack:
 	FargatePodExecutionRoleARN = "FargatePodExecutionRoleARN"

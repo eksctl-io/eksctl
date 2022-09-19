@@ -3,6 +3,7 @@ package create
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -85,10 +86,6 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with nodegroup name as flag with invalid characters", invalidParamsCase{
 				args:  []string{"--cluster", "clusterName", "--name", "eksctl-ng_k8s_nodegroup1"},
 				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
-			}),
-			Entry("with enableSsm disabled", invalidParamsCase{
-				args:  []string{"--cluster=test", "--enable-ssm=false"},
-				error: "SSM agent is now built into EKS AMIs and cannot be disabled",
 			}),
 		)
 	})

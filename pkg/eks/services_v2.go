@@ -3,15 +3,15 @@ package eks
 import (
 	"sync"
 
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/outposts"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
@@ -36,6 +36,7 @@ type ServicesV2 struct {
 	iam                    *iam.Client
 	ec2                    *ec2.Client
 	eks                    *eks.Client
+	outposts               *outposts.Client
 }
 
 // STS implements the AWS STS service.
@@ -138,6 +139,7 @@ func (s *ServicesV2) EC2() awsapi.EC2 {
 	return s.ec2
 }
 
+// EKS returns the AWS EKS service.
 func (s *ServicesV2) EKS() awsapi.EKS {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -145,4 +147,14 @@ func (s *ServicesV2) EKS() awsapi.EKS {
 		s.eks = eks.NewFromConfig(s.config)
 	}
 	return s.eks
+}
+
+// Outposts returns the AWS Outposts service.
+func (s *ServicesV2) Outposts() awsapi.Outposts {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.outposts == nil {
+		s.outposts = outposts.NewFromConfig(s.config)
+	}
+	return s.outposts
 }

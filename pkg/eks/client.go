@@ -34,14 +34,14 @@ type Client struct {
 }
 
 // NewClient creates a new client config by embedding the STS token
-func (c *KubernetesProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
-	config := kubeconfig.NewForUser(spec, GetUsername(c.RoleARN))
+func (c *KubernetesProvider) NewClient(clusterInfo kubeconfig.ClusterInfo) (*Client, error) {
+	config := kubeconfig.NewForUser(clusterInfo, GetUsername(c.RoleARN))
 	generator := NewGenerator(c.Signer, &credentials.RealClock{})
 	client := &Client{
 		Config:    config,
 		Generator: generator,
 	}
-	return client.new(spec)
+	return client.new(clusterInfo)
 }
 
 // GetUsername extracts the username part from the IAM role ARN
@@ -53,8 +53,8 @@ func GetUsername(roleArn string) string {
 	return "iam-root-account"
 }
 
-func (c *Client) new(spec *api.ClusterConfig) (*Client, error) {
-	if err := c.useEmbeddedToken(spec); err != nil {
+func (c *Client) new(clusterInfo kubeconfig.ClusterInfo) (*Client, error) {
+	if err := c.useEmbeddedToken(clusterInfo); err != nil {
 		return nil, err
 	}
 
@@ -70,8 +70,8 @@ func (c *Client) new(spec *api.ClusterConfig) (*Client, error) {
 	return c, nil
 }
 
-func (c *Client) useEmbeddedToken(spec *api.ClusterConfig) error {
-	tok, err := c.Generator.GetWithSTS(context.TODO(), spec.Metadata.Name)
+func (c *Client) useEmbeddedToken(clusterInfo kubeconfig.ClusterInfo) error {
+	tok, err := c.Generator.GetWithSTS(context.TODO(), clusterInfo.ID())
 	if err != nil {
 		return errors.Wrap(err, "could not get token")
 	}
@@ -90,8 +90,8 @@ func (c *Client) NewClientSet() (*kubernetes.Clientset, error) {
 }
 
 // NewStdClientSet creates a new API client in one go with an embedded STS token, this is most commonly used option
-func (c *KubernetesProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernetes.Clientset, error) {
-	_, clientSet, err := c.newClientSetWithEmbeddedToken(spec)
+func (c *KubernetesProvider) NewStdClientSet(clusterInfo kubeconfig.ClusterInfo) (*kubernetes.Clientset, error) {
+	_, clientSet, err := c.newClientSetWithEmbeddedToken(clusterInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -99,8 +99,8 @@ func (c *KubernetesProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernet
 	return clientSet, nil
 }
 
-func (c *KubernetesProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig) (*Client, *kubernetes.Clientset, error) {
-	client, err := c.NewClient(spec)
+func (c *KubernetesProvider) newClientSetWithEmbeddedToken(clusterInfo kubeconfig.ClusterInfo) (*Client, *kubernetes.Clientset, error) {
+	client, err := c.NewClient(clusterInfo)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")
 	}
@@ -114,8 +114,8 @@ func (c *KubernetesProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConf
 }
 
 // NewRawClient creates a new raw REST client in one go with an embedded STS token
-func (c *KubernetesProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error) {
-	client, clientSet, err := c.newClientSetWithEmbeddedToken(spec)
+func (c *KubernetesProvider) NewRawClient(clusterInfo kubeconfig.ClusterInfo) (*kubewrapper.RawClient, error) {
+	client, clientSet, err := c.newClientSetWithEmbeddedToken(clusterInfo)
 	if err != nil {
 		return nil, err
 	}

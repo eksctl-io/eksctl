@@ -160,6 +160,12 @@ func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool) cloudco
 		"NODE_LABELS":    formatLabels(ng.Labels),
 		"NODE_TAINTS":    utils.FormatTaints(np.NGTaints()),
 	}
+	if id := clusterConfig.Status.ID; id != "" {
+		variables["CLUSTER_ID"] = id
+	}
+	if clusterConfig.IsControlPlaneOnOutposts() {
+		variables["ENABLE_LOCAL_OUTPOST"] = strconv.FormatBool(true)
+	}
 
 	if ng.MaxPodsPerNode > 0 {
 		variables["MAX_PODS"] = strconv.Itoa(ng.MaxPodsPerNode)

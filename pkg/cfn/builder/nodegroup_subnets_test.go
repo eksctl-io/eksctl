@@ -27,10 +27,11 @@ import (
 
 var _ = Describe("AssignSubnets", func() {
 	type assignSubnetsEntry struct {
-		np                api.NodePool
-		mockEC2           func(*mocksv2.EC2)
-		setSubnetMapping  func(config *api.ClusterConfig)
-		createVPCImporter func() vpc.Importer
+		np                  api.NodePool
+		mockEC2             func(*mocksv2.EC2)
+		setSubnetMapping    func(*api.ClusterVPC)
+		updateClusterConfig func(config *api.ClusterConfig)
+		createVPCImporter   func() vpc.Importer
 
 		expectedErr       string
 		expectedSubnetIDs []string
@@ -52,11 +53,14 @@ var _ = Describe("AssignSubnets", func() {
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.VPC.ID = vpcID
 		if e.setSubnetMapping != nil {
-			e.setSubnetMapping(clusterConfig)
+			e.setSubnetMapping(clusterConfig.VPC)
 		}
 		mockProvider := mockprovider.NewMockProvider()
 		if e.mockEC2 != nil {
 			e.mockEC2(mockProvider.MockEC2())
+		}
+		if e.updateClusterConfig != nil {
+			e.updateClusterConfig(clusterConfig)
 		}
 
 		var vpcImporter vpc.Importer
@@ -81,8 +85,8 @@ var _ = Describe("AssignSubnets", func() {
 					AvailabilityZones: []string{"us-west-1a", "us-west-1b", "us-west-1c"},
 				},
 			},
-			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.VPC.Subnets = &api.ClusterSubnets{
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.Subnets = &api.ClusterSubnets{
 					Public: api.AZSubnetMapping{
 						"us-west-1a": api.AZSubnetSpec{
 							ID: "subnet-1a",
@@ -109,8 +113,8 @@ var _ = Describe("AssignSubnets", func() {
 					AvailabilityZones: []string{"us-west-1a", "us-west-1b", "us-west-1c"},
 				},
 			},
-			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.VPC.Subnets = &api.ClusterSubnets{
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.Subnets = &api.ClusterSubnets{
 					Public: api.AZSubnetMapping{
 						"us-west-1a": api.AZSubnetSpec{
 							ID: "subnet-1a",
@@ -136,8 +140,8 @@ var _ = Describe("AssignSubnets", func() {
 				NodeGroupBase: &api.NodeGroupBase{},
 				LocalZones:    []string{"us-west-2-lax-1a", "us-west-2-lax-1b"},
 			},
-			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.VPC.LocalZoneSubnets = &api.ClusterSubnets{
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.LocalZoneSubnets = &api.ClusterSubnets{
 					Public: api.AZSubnetMapping{
 						"us-west-2-lax-1a": api.AZSubnetSpec{
 							ID: "subnet-lax-1a",
@@ -166,8 +170,8 @@ var _ = Describe("AssignSubnets", func() {
 				},
 				LocalZones: []string{"us-west-2-lax-1a", "us-west-2-lax-1b"},
 			},
-			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.VPC.LocalZoneSubnets = &api.ClusterSubnets{
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.LocalZoneSubnets = &api.ClusterSubnets{
 					Public: api.NewAZSubnetMapping(),
 					Private: api.AZSubnetMapping{
 						"us-west-2-lax-1a": api.AZSubnetSpec{
@@ -196,8 +200,8 @@ var _ = Describe("AssignSubnets", func() {
 				},
 				LocalZones: []string{"us-west-2-lax-1a", "us-west-2-lax-1b"},
 			},
-			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.VPC.LocalZoneSubnets = &api.ClusterSubnets{
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.LocalZoneSubnets = &api.ClusterSubnets{
 					Public: api.AZSubnetMapping{
 						"us-west-2-lax-1a": api.AZSubnetSpec{
 							ID: "subnet-lax-1a",
@@ -245,8 +249,8 @@ var _ = Describe("AssignSubnets", func() {
 					Subnets:           []string{"subnet-z1", "subnet-z2"},
 				},
 			},
-			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.VPC.Subnets = &api.ClusterSubnets{
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.Subnets = &api.ClusterSubnets{
 					Private: api.AZSubnetMapping{
 						"us-west-1a": api.AZSubnetSpec{
 							ID: "subnet-1a",
@@ -292,8 +296,8 @@ var _ = Describe("AssignSubnets", func() {
 					AvailabilityZones: []string{"us-west-1a", "us-west-1b", "us-west-1c"},
 				},
 			},
-			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.VPC.Subnets = &api.ClusterSubnets{
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.Subnets = &api.ClusterSubnets{
 					Public: api.AZSubnetMapping{
 						"us-west-1a": api.AZSubnetSpec{
 							ID: "subnet-1a",
@@ -367,8 +371,8 @@ var _ = Describe("AssignSubnets", func() {
 				},
 			},
 
-			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.VPC.Subnets = &api.ClusterSubnets{
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.Subnets = &api.ClusterSubnets{
 					Public:  api.NewAZSubnetMapping(),
 					Private: api.NewAZSubnetMapping(),
 				}
@@ -402,8 +406,8 @@ var _ = Describe("AssignSubnets", func() {
 				},
 			},
 
-			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.VPC.Subnets = &api.ClusterSubnets{
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.Subnets = &api.ClusterSubnets{
 					Public: api.AZSubnetMapping{
 						"us-west-1a": api.AZSubnetSpec{
 							ID: "subnet-1a",
@@ -433,8 +437,8 @@ var _ = Describe("AssignSubnets", func() {
 				},
 			},
 
-			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.VPC.Subnets = &api.ClusterSubnets{
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.Subnets = &api.ClusterSubnets{
 					Public:  api.NewAZSubnetMapping(),
 					Private: api.NewAZSubnetMapping(),
 				}
@@ -483,8 +487,8 @@ var _ = Describe("AssignSubnets", func() {
 					},
 				})
 			},
-			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.VPC.Subnets = &api.ClusterSubnets{
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.Subnets = &api.ClusterSubnets{
 					Public: api.AZSubnetMapping{
 						"subnet-1": api.AZSubnetSpec{
 							ID: "subnet-1a",
@@ -504,10 +508,119 @@ var _ = Describe("AssignSubnets", func() {
 			},
 			expectedSubnetIDs: []string{"subnet-1a", "subnet-1b", "subnet-1c"},
 		}),
+
+		Entry("EKS on Outposts but subnets not on Outposts", assignSubnetsEntry{
+			np: &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Subnets:           []string{"subnet-123"},
+					PrivateNetworking: true,
+				},
+			},
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+			},
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.Subnets = &api.ClusterSubnets{
+					Private: api.AZSubnetMapping{
+						"us-west-2a": api.AZSubnetSpec{
+							ID: "subnet-1a",
+							AZ: "us-west-2a",
+						},
+					},
+					Public: api.NewAZSubnetMapping(),
+				}
+			},
+			mockEC2: func(ec2Mock *mocksv2.EC2) {
+				mockDescribeSubnets(ec2Mock, "us-west-2a", vpcID)
+				mockDescribeAZs(ec2Mock, []ec2types.AvailabilityZone{
+					{
+						ZoneType: aws.String("availability-zone"),
+						ZoneName: aws.String("us-west-2a"),
+					},
+				})
+			},
+			expectedErr: `subnet "subnet-123" is not on Outposts`,
+		}),
+
+		Entry("EKS on Outposts but subnets in a different Outpost", assignSubnetsEntry{
+			np: &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Subnets:           []string{"subnet-123"},
+					PrivateNetworking: true,
+				},
+			},
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+			},
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.Subnets = &api.ClusterSubnets{
+					Private: api.AZSubnetMapping{
+						"us-west-2a": api.AZSubnetSpec{
+							ID: "subnet-1a",
+							AZ: "us-west-2a",
+						},
+					},
+					Public: api.NewAZSubnetMapping(),
+				}
+			},
+			mockEC2: func(ec2Mock *mocksv2.EC2) {
+				mockDescribeSubnetsWithOutpost(ec2Mock, "us-west-2a", vpcID, aws.String("arn:aws:outposts:us-west-2:1234:outpost/op-5678"))
+				mockDescribeAZs(ec2Mock, []ec2types.AvailabilityZone{
+					{
+						ZoneType: aws.String("availability-zone"),
+						ZoneName: aws.String("us-west-2a"),
+					},
+				})
+			},
+			expectedErr: `subnet "subnet-123" is in a different Outpost ARN ("arn:aws:outposts:us-west-2:1234:outpost/op-5678") than the control plane or nodegroup Outpost ("arn:aws:outposts:us-west-2:1234:outpost/op-1234")`,
+		}),
+
+		Entry("EKS and subnets in the same Outpost", assignSubnetsEntry{
+			np: &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Subnets:           []string{"subnet-123"},
+					PrivateNetworking: true,
+				},
+			},
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+			},
+			setSubnetMapping: func(clusterVPC *api.ClusterVPC) {
+				clusterVPC.Subnets = &api.ClusterSubnets{
+					Private: api.AZSubnetMapping{
+						"us-west-2a": api.AZSubnetSpec{
+							ID: "subnet-1a",
+							AZ: "us-west-2a",
+						},
+					},
+					Public: api.NewAZSubnetMapping(),
+				}
+			},
+			mockEC2: func(ec2Mock *mocksv2.EC2) {
+				mockDescribeSubnetsWithOutpost(ec2Mock, "us-west-2a", vpcID, aws.String("arn:aws:outposts:us-west-2:1234:outpost/op-1234"))
+				mockDescribeAZs(ec2Mock, []ec2types.AvailabilityZone{
+					{
+						ZoneType: aws.String("availability-zone"),
+						ZoneName: aws.String("us-west-2a"),
+					},
+				})
+			},
+			expectedSubnetIDs: []string{"subnet-123"},
+		}),
 	)
 })
 
 func mockDescribeSubnets(ec2Mock *mocksv2.EC2, zoneName, vpcID string) {
+	mockDescribeSubnetsWithOutpost(ec2Mock, zoneName, vpcID, nil)
+}
+
+func mockDescribeSubnetsWithOutpost(ec2Mock *mocksv2.EC2, zoneName, vpcID string, outpostARN *string) {
 	ec2Mock.On("DescribeSubnets", mock.Anything, mock.Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
 		return &ec2.DescribeSubnetsOutput{
 			Subnets: []ec2types.Subnet{
@@ -515,6 +628,7 @@ func mockDescribeSubnets(ec2Mock *mocksv2.EC2, zoneName, vpcID string) {
 					SubnetId:         aws.String(input.SubnetIds[0]),
 					AvailabilityZone: aws.String(zoneName),
 					VpcId:            aws.String(vpcID),
+					OutpostArn:       outpostARN,
 				},
 			},
 		}

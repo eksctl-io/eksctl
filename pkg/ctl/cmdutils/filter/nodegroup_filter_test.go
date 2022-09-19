@@ -151,8 +151,8 @@ var _ = Describe("nodegroup filter", func() {
 			var names []string
 
 			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
-				api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata)
-				err := api.ValidateNodeGroup(i, nodeGroup)
+				api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata, cfg.IsControlPlaneOnOutposts())
+				err := api.ValidateNodeGroup(i, nodeGroup, cfg)
 				Expect(err).NotTo(HaveOccurred())
 				return nil
 			})
@@ -182,8 +182,8 @@ var _ = Describe("nodegroup filter", func() {
 			filter.delegate.ExcludeAll = true
 
 			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
-				api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata)
-				err := api.ValidateNodeGroup(i, nodeGroup)
+				api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata, cfg.IsControlPlaneOnOutposts())
+				err := api.ValidateNodeGroup(i, nodeGroup, cfg)
 				Expect(err).NotTo(HaveOccurred())
 				return nil
 			})
@@ -281,6 +281,7 @@ func addGroupA(cfg *api.ClusterConfig) {
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng1a"
+	ng.InstanceType = api.DefaultNodeType
 	ng.VolumeSize = &ng1aVolSize
 	ng.VolumeType = aws.String(api.NodeVolumeTypeIO1)
 	ng.VolumeIOPS = &ng1aVolIOPS
@@ -290,6 +291,7 @@ func addGroupA(cfg *api.ClusterConfig) {
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng2a"
+	ng.InstanceType = api.DefaultNodeType
 	ng.VolumeType = aws.String(api.NodeVolumeTypeGP2)
 	ng.IAM.AttachPolicyARNs = []string{"arn:aws:iam::aws:policy/Bar"}
 	ng.Labels = map[string]string{"group": "a", "seq": "2"}
@@ -297,6 +299,7 @@ func addGroupA(cfg *api.ClusterConfig) {
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng3a"
+	ng.InstanceType = api.DefaultNodeType
 	ng.ClusterDNS = "1.2.3.4"
 	ng.InstanceType = "m3.large"
 	ng.SSH.Allow = api.Enabled()
@@ -309,12 +312,14 @@ func addGroupB(cfg *api.ClusterConfig) {
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng1b"
+	ng.InstanceType = api.DefaultNodeType
 	ng.SSH.Allow = api.Enabled()
 	ng.SSH.PublicKeyPath = nil
 	ng.Labels = map[string]string{"group": "b", "seq": "1"}
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng2b"
+	ng.InstanceType = api.DefaultNodeType
 	ng.ClusterDNS = "4.2.8.14"
 	ng.InstanceType = "m5.xlarge"
 	ng.SecurityGroups.AttachIDs = []string{"sg-1", "sg-2"}
@@ -326,6 +331,7 @@ func addGroupB(cfg *api.ClusterConfig) {
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng3b"
+	ng.InstanceType = api.DefaultNodeType
 	ng.VolumeSize = &ng3bVolSize
 	ng.SecurityGroups.AttachIDs = []string{"sg-1", "sg-2"}
 	ng.SecurityGroups.WithLocal = api.Disabled()

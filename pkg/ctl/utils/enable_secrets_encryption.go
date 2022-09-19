@@ -64,10 +64,6 @@ func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encryptExistingSecrets bool) e
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
 
-	if err := ctl.RefreshClusterStatus(ctx, clusterConfig); err != nil {
-		return err
-	}
-
 	if err := api.ValidateSecretsEncryption(clusterConfig); err != nil {
 		return err
 	}

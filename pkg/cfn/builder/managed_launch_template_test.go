@@ -40,7 +40,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 	DescribeTable("Add resources", func(m *mngCase) {
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = "lt"
-		api.SetManagedNodeGroupDefaults(m.ng, clusterConfig.Metadata)
+		api.SetManagedNodeGroupDefaults(m.ng, clusterConfig.Metadata, false)
 		Expect(api.ValidateManagedNodeGroup(0, m.ng)).To(Succeed())
 
 		provider := mockprovider.NewMockProvider()
@@ -134,10 +134,11 @@ API_SERVER_URL=https://test.com
 			resourcesFilename: "launch_template.json",
 		}),
 
-		Entry("Launch Template With Additional Volumes", &mngCase{
+		Entry("With additionalVolumes", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
-					Name: "extra-volumes",
+					Name:         "extra-volumes",
+					InstanceType: api.DefaultNodeType,
 					AdditionalVolumes: []*api.VolumeMapping{
 						{
 							VolumeSize:      aws.Int(20),
@@ -152,10 +153,11 @@ API_SERVER_URL=https://test.com
 			resourcesFilename: "launch_template_additional_volumes.json",
 		}),
 
-		Entry("Launch Template with volumes missing volume size", &mngCase{
+		Entry("With additionalVolumes missing volume size", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
-					Name: "extra-volumes",
+					Name:         "extra-volumes",
+					InstanceType: api.DefaultNodeType,
 					AdditionalVolumes: []*api.VolumeMapping{
 						{
 							VolumeType:      aws.String(api.NodeVolumeTypeGP3),
@@ -193,7 +195,8 @@ API_SERVER_URL=https://test.com
 		Entry("SSH enabled", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
-					Name: "ssh-enabled",
+					Name:         "ssh-enabled",
+					InstanceType: api.DefaultNodeType,
 					SSH: &api.NodeGroupSSH{
 						Allow:         api.Enabled(),
 						PublicKeyName: aws.String("test-keypair"),
@@ -213,6 +216,7 @@ API_SERVER_URL=https://test.com
 						Allow:         api.Disabled(),
 						PublicKeyName: aws.String("test-keypair"),
 					},
+					InstanceType: api.DefaultNodeType,
 				},
 			},
 			hasUserData: true,
@@ -245,7 +249,7 @@ API_SERVER_URL=https://test.com
 			resourcesFilename: "spot.json",
 		}),
 
-		Entry("Without instance type set", &mngCase{
+		Entry("Without instance type set in the launch template", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
 					Name: "template-custom-ami",
@@ -265,7 +269,7 @@ API_SERVER_URL=https://test.com
 			errMsg: "instance type must be set in the launch template",
 		}),
 
-		Entry("With instance type set", &mngCase{
+		Entry("With instance type set in the launch template", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
 					Name: "template-custom-ami",

@@ -32,7 +32,7 @@ var _ = Describe("VPC Template Builder", func() {
 	})
 
 	JustBeforeEach(func() {
-		vpcRs = builder.NewIPv4VPCResourceSet(builder.NewRS(), cfg, mockEC2)
+		vpcRs = builder.NewIPv4VPCResourceSet(builder.NewRS(), cfg, mockEC2, false)
 	})
 
 	Describe("AddResources", func() {

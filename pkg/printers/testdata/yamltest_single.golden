@@ -1,4 +1,5 @@
-- Arn: arn-12345678
+- Id: null
+  Arn: arn-12345678
   CertificateAuthority: null
   ClientRequestToken: null
   ConnectorConfig: null
@@ -6,7 +7,6 @@
   EncryptionConfig: null
   Endpoint: null
   Health: null
-  Id: null
   Identity: null
   KubernetesNetworkConfig: null
   Logging: null
