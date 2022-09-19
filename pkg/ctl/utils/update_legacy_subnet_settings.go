@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -60,7 +61,11 @@ func doUpdateLegacySubnetSettings(cmd *cmdutils.Cmd) error {
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-	if err := ctl.LoadClusterVPC(ctx, cfg, stackManager); err != nil {
+	stack, err := stackManager.DescribeClusterStack(ctx)
+	if err != nil {
+		return fmt.Errorf("error describing cluster stack: %w", err)
+	}
+	if err := ctl.LoadClusterVPC(ctx, cfg, stack); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 	}
 

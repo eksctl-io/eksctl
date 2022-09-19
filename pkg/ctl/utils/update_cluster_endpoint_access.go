@@ -57,6 +57,10 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	}
 	logger.Info("using region %s", meta.Region)
 
+	if cfg.IsControlPlaneOnOutposts() {
+		return errUnsupportedLocalCluster
+	}
+
 	if ok, err := ctl.CanUpdate(cfg); !ok {
 		return err
 	}

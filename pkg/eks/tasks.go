@@ -233,9 +233,12 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 		Doer: func() error {
 			clientSet, err := c.NewRawClient(cfg)
 			if err != nil {
-				return errors.Wrap(err, "error creating Clientset")
-			}
-			if err := c.KubeProvider.WaitForControlPlane(cfg.Metadata, clientSet, c.AWSProvider.WaitTimeout()); err != nil {
+				if _, ok := err.(*kubernetes.APIServerUnreachableError); ok {
+					logger.Warning("API server is unreachable")
+				} else {
+					return fmt.Errorf("error creating Clientset: %w", err)
+				}
+			} else if err := c.KubeProvider.WaitForControlPlane(cfg.Metadata, clientSet, c.AWSProvider.WaitTimeout()); err != nil {
 				return err
 			}
 			return c.RefreshClusterStatus(ctx, cfg)

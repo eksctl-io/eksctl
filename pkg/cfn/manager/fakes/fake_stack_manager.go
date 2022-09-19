@@ -21,17 +21,31 @@ import (
 )
 
 type FakeStackManager struct {
-	AppendNewClusterStackResourceStub        func(context.Context, bool) (bool, error)
+	AppendNewClusterStackResourceStub        func(context.Context, bool, bool) (bool, error)
 	appendNewClusterStackResourceMutex       sync.RWMutex
 	appendNewClusterStackResourceArgsForCall []struct {
 		arg1 context.Context
 		arg2 bool
+		arg3 bool
 	}
 	appendNewClusterStackResourceReturns struct {
 		result1 bool
 		result2 error
 	}
 	appendNewClusterStackResourceReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
+	ClusterHasDedicatedVPCStub        func(context.Context) (bool, error)
+	clusterHasDedicatedVPCMutex       sync.RWMutex
+	clusterHasDedicatedVPCArgsForCall []struct {
+		arg1 context.Context
+	}
+	clusterHasDedicatedVPCReturns struct {
+		result1 bool
+		result2 error
+	}
+	clusterHasDedicatedVPCReturnsOnCall map[int]struct {
 		result1 bool
 		result2 error
 	}
@@ -113,6 +127,19 @@ type FakeStackManager struct {
 		result2 error
 	}
 	describeClusterStackReturnsOnCall map[int]struct {
+		result1 *types.Stack
+		result2 error
+	}
+	DescribeClusterStackIfExistsStub        func(context.Context) (*types.Stack, error)
+	describeClusterStackIfExistsMutex       sync.RWMutex
+	describeClusterStackIfExistsArgsForCall []struct {
+		arg1 context.Context
+	}
+	describeClusterStackIfExistsReturns struct {
+		result1 *types.Stack
+		result2 error
+	}
+	describeClusterStackIfExistsReturnsOnCall map[int]struct {
 		result1 *types.Stack
 		result2 error
 	}
@@ -565,17 +592,6 @@ type FakeStackManager struct {
 	makeClusterStackNameReturnsOnCall map[int]struct {
 		result1 string
 	}
-	NewClusterCompatTaskStub        func(context.Context) tasks.Task
-	newClusterCompatTaskMutex       sync.RWMutex
-	newClusterCompatTaskArgsForCall []struct {
-		arg1 context.Context
-	}
-	newClusterCompatTaskReturns struct {
-		result1 tasks.Task
-	}
-	newClusterCompatTaskReturnsOnCall map[int]struct {
-		result1 tasks.Task
-	}
 	NewManagedNodeGroupTaskStub        func(context.Context, []*v1alpha5.ManagedNodeGroup, bool, vpc.Importer) *tasks.TaskTree
 	newManagedNodeGroupTaskMutex       sync.RWMutex
 	newManagedNodeGroupTaskArgsForCall []struct {
@@ -797,19 +813,20 @@ type FakeStackManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeStackManager) AppendNewClusterStackResource(arg1 context.Context, arg2 bool) (bool, error) {
+func (fake *FakeStackManager) AppendNewClusterStackResource(arg1 context.Context, arg2 bool, arg3 bool) (bool, error) {
 	fake.appendNewClusterStackResourceMutex.Lock()
 	ret, specificReturn := fake.appendNewClusterStackResourceReturnsOnCall[len(fake.appendNewClusterStackResourceArgsForCall)]
 	fake.appendNewClusterStackResourceArgsForCall = append(fake.appendNewClusterStackResourceArgsForCall, struct {
 		arg1 context.Context
 		arg2 bool
-	}{arg1, arg2})
+		arg3 bool
+	}{arg1, arg2, arg3})
 	stub := fake.AppendNewClusterStackResourceStub
 	fakeReturns := fake.appendNewClusterStackResourceReturns
-	fake.recordInvocation("AppendNewClusterStackResource", []interface{}{arg1, arg2})
+	fake.recordInvocation("AppendNewClusterStackResource", []interface{}{arg1, arg2, arg3})
 	fake.appendNewClusterStackResourceMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -823,17 +840,17 @@ func (fake *FakeStackManager) AppendNewClusterStackResourceCallCount() int {
 	return len(fake.appendNewClusterStackResourceArgsForCall)
 }
 
-func (fake *FakeStackManager) AppendNewClusterStackResourceCalls(stub func(context.Context, bool) (bool, error)) {
+func (fake *FakeStackManager) AppendNewClusterStackResourceCalls(stub func(context.Context, bool, bool) (bool, error)) {
 	fake.appendNewClusterStackResourceMutex.Lock()
 	defer fake.appendNewClusterStackResourceMutex.Unlock()
 	fake.AppendNewClusterStackResourceStub = stub
 }
 
-func (fake *FakeStackManager) AppendNewClusterStackResourceArgsForCall(i int) (context.Context, bool) {
+func (fake *FakeStackManager) AppendNewClusterStackResourceArgsForCall(i int) (context.Context, bool, bool) {
 	fake.appendNewClusterStackResourceMutex.RLock()
 	defer fake.appendNewClusterStackResourceMutex.RUnlock()
 	argsForCall := fake.appendNewClusterStackResourceArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeStackManager) AppendNewClusterStackResourceReturns(result1 bool, result2 error) {
@@ -857,6 +874,70 @@ func (fake *FakeStackManager) AppendNewClusterStackResourceReturnsOnCall(i int, 
 		})
 	}
 	fake.appendNewClusterStackResourceReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) ClusterHasDedicatedVPC(arg1 context.Context) (bool, error) {
+	fake.clusterHasDedicatedVPCMutex.Lock()
+	ret, specificReturn := fake.clusterHasDedicatedVPCReturnsOnCall[len(fake.clusterHasDedicatedVPCArgsForCall)]
+	fake.clusterHasDedicatedVPCArgsForCall = append(fake.clusterHasDedicatedVPCArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.ClusterHasDedicatedVPCStub
+	fakeReturns := fake.clusterHasDedicatedVPCReturns
+	fake.recordInvocation("ClusterHasDedicatedVPC", []interface{}{arg1})
+	fake.clusterHasDedicatedVPCMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStackManager) ClusterHasDedicatedVPCCallCount() int {
+	fake.clusterHasDedicatedVPCMutex.RLock()
+	defer fake.clusterHasDedicatedVPCMutex.RUnlock()
+	return len(fake.clusterHasDedicatedVPCArgsForCall)
+}
+
+func (fake *FakeStackManager) ClusterHasDedicatedVPCCalls(stub func(context.Context) (bool, error)) {
+	fake.clusterHasDedicatedVPCMutex.Lock()
+	defer fake.clusterHasDedicatedVPCMutex.Unlock()
+	fake.ClusterHasDedicatedVPCStub = stub
+}
+
+func (fake *FakeStackManager) ClusterHasDedicatedVPCArgsForCall(i int) context.Context {
+	fake.clusterHasDedicatedVPCMutex.RLock()
+	defer fake.clusterHasDedicatedVPCMutex.RUnlock()
+	argsForCall := fake.clusterHasDedicatedVPCArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeStackManager) ClusterHasDedicatedVPCReturns(result1 bool, result2 error) {
+	fake.clusterHasDedicatedVPCMutex.Lock()
+	defer fake.clusterHasDedicatedVPCMutex.Unlock()
+	fake.ClusterHasDedicatedVPCStub = nil
+	fake.clusterHasDedicatedVPCReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) ClusterHasDedicatedVPCReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.clusterHasDedicatedVPCMutex.Lock()
+	defer fake.clusterHasDedicatedVPCMutex.Unlock()
+	fake.ClusterHasDedicatedVPCStub = nil
+	if fake.clusterHasDedicatedVPCReturnsOnCall == nil {
+		fake.clusterHasDedicatedVPCReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.clusterHasDedicatedVPCReturnsOnCall[i] = struct {
 		result1 bool
 		result2 error
 	}{result1, result2}
@@ -1241,6 +1322,70 @@ func (fake *FakeStackManager) DescribeClusterStackReturnsOnCall(i int, result1 *
 		})
 	}
 	fake.describeClusterStackReturnsOnCall[i] = struct {
+		result1 *types.Stack
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) DescribeClusterStackIfExists(arg1 context.Context) (*types.Stack, error) {
+	fake.describeClusterStackIfExistsMutex.Lock()
+	ret, specificReturn := fake.describeClusterStackIfExistsReturnsOnCall[len(fake.describeClusterStackIfExistsArgsForCall)]
+	fake.describeClusterStackIfExistsArgsForCall = append(fake.describeClusterStackIfExistsArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.DescribeClusterStackIfExistsStub
+	fakeReturns := fake.describeClusterStackIfExistsReturns
+	fake.recordInvocation("DescribeClusterStackIfExists", []interface{}{arg1})
+	fake.describeClusterStackIfExistsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStackManager) DescribeClusterStackIfExistsCallCount() int {
+	fake.describeClusterStackIfExistsMutex.RLock()
+	defer fake.describeClusterStackIfExistsMutex.RUnlock()
+	return len(fake.describeClusterStackIfExistsArgsForCall)
+}
+
+func (fake *FakeStackManager) DescribeClusterStackIfExistsCalls(stub func(context.Context) (*types.Stack, error)) {
+	fake.describeClusterStackIfExistsMutex.Lock()
+	defer fake.describeClusterStackIfExistsMutex.Unlock()
+	fake.DescribeClusterStackIfExistsStub = stub
+}
+
+func (fake *FakeStackManager) DescribeClusterStackIfExistsArgsForCall(i int) context.Context {
+	fake.describeClusterStackIfExistsMutex.RLock()
+	defer fake.describeClusterStackIfExistsMutex.RUnlock()
+	argsForCall := fake.describeClusterStackIfExistsArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeStackManager) DescribeClusterStackIfExistsReturns(result1 *types.Stack, result2 error) {
+	fake.describeClusterStackIfExistsMutex.Lock()
+	defer fake.describeClusterStackIfExistsMutex.Unlock()
+	fake.DescribeClusterStackIfExistsStub = nil
+	fake.describeClusterStackIfExistsReturns = struct {
+		result1 *types.Stack
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) DescribeClusterStackIfExistsReturnsOnCall(i int, result1 *types.Stack, result2 error) {
+	fake.describeClusterStackIfExistsMutex.Lock()
+	defer fake.describeClusterStackIfExistsMutex.Unlock()
+	fake.DescribeClusterStackIfExistsStub = nil
+	if fake.describeClusterStackIfExistsReturnsOnCall == nil {
+		fake.describeClusterStackIfExistsReturnsOnCall = make(map[int]struct {
+			result1 *types.Stack
+			result2 error
+		})
+	}
+	fake.describeClusterStackIfExistsReturnsOnCall[i] = struct {
 		result1 *types.Stack
 		result2 error
 	}{result1, result2}
@@ -3419,67 +3564,6 @@ func (fake *FakeStackManager) MakeClusterStackNameReturnsOnCall(i int, result1 s
 	}{result1}
 }
 
-func (fake *FakeStackManager) NewClusterCompatTask(arg1 context.Context) tasks.Task {
-	fake.newClusterCompatTaskMutex.Lock()
-	ret, specificReturn := fake.newClusterCompatTaskReturnsOnCall[len(fake.newClusterCompatTaskArgsForCall)]
-	fake.newClusterCompatTaskArgsForCall = append(fake.newClusterCompatTaskArgsForCall, struct {
-		arg1 context.Context
-	}{arg1})
-	stub := fake.NewClusterCompatTaskStub
-	fakeReturns := fake.newClusterCompatTaskReturns
-	fake.recordInvocation("NewClusterCompatTask", []interface{}{arg1})
-	fake.newClusterCompatTaskMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeStackManager) NewClusterCompatTaskCallCount() int {
-	fake.newClusterCompatTaskMutex.RLock()
-	defer fake.newClusterCompatTaskMutex.RUnlock()
-	return len(fake.newClusterCompatTaskArgsForCall)
-}
-
-func (fake *FakeStackManager) NewClusterCompatTaskCalls(stub func(context.Context) tasks.Task) {
-	fake.newClusterCompatTaskMutex.Lock()
-	defer fake.newClusterCompatTaskMutex.Unlock()
-	fake.NewClusterCompatTaskStub = stub
-}
-
-func (fake *FakeStackManager) NewClusterCompatTaskArgsForCall(i int) context.Context {
-	fake.newClusterCompatTaskMutex.RLock()
-	defer fake.newClusterCompatTaskMutex.RUnlock()
-	argsForCall := fake.newClusterCompatTaskArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeStackManager) NewClusterCompatTaskReturns(result1 tasks.Task) {
-	fake.newClusterCompatTaskMutex.Lock()
-	defer fake.newClusterCompatTaskMutex.Unlock()
-	fake.NewClusterCompatTaskStub = nil
-	fake.newClusterCompatTaskReturns = struct {
-		result1 tasks.Task
-	}{result1}
-}
-
-func (fake *FakeStackManager) NewClusterCompatTaskReturnsOnCall(i int, result1 tasks.Task) {
-	fake.newClusterCompatTaskMutex.Lock()
-	defer fake.newClusterCompatTaskMutex.Unlock()
-	fake.NewClusterCompatTaskStub = nil
-	if fake.newClusterCompatTaskReturnsOnCall == nil {
-		fake.newClusterCompatTaskReturnsOnCall = make(map[int]struct {
-			result1 tasks.Task
-		})
-	}
-	fake.newClusterCompatTaskReturnsOnCall[i] = struct {
-		result1 tasks.Task
-	}{result1}
-}
-
 func (fake *FakeStackManager) NewManagedNodeGroupTask(arg1 context.Context, arg2 []*v1alpha5.ManagedNodeGroup, arg3 bool, arg4 vpc.Importer) *tasks.TaskTree {
 	var arg2Copy []*v1alpha5.ManagedNodeGroup
 	if arg2 != nil {
@@ -4502,6 +4586,8 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.appendNewClusterStackResourceMutex.RLock()
 	defer fake.appendNewClusterStackResourceMutex.RUnlock()
+	fake.clusterHasDedicatedVPCMutex.RLock()
+	defer fake.clusterHasDedicatedVPCMutex.RUnlock()
 	fake.createStackMutex.RLock()
 	defer fake.createStackMutex.RUnlock()
 	fake.deleteStackBySpecMutex.RLock()
@@ -4514,6 +4600,8 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.deleteTasksForDeprecatedStacksMutex.RUnlock()
 	fake.describeClusterStackMutex.RLock()
 	defer fake.describeClusterStackMutex.RUnlock()
+	fake.describeClusterStackIfExistsMutex.RLock()
+	defer fake.describeClusterStackIfExistsMutex.RUnlock()
 	fake.describeIAMServiceAccountStacksMutex.RLock()
 	defer fake.describeIAMServiceAccountStacksMutex.RUnlock()
 	fake.describeNodeGroupStackMutex.RLock()
@@ -4582,8 +4670,6 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.makeChangeSetNameMutex.RUnlock()
 	fake.makeClusterStackNameMutex.RLock()
 	defer fake.makeClusterStackNameMutex.RUnlock()
-	fake.newClusterCompatTaskMutex.RLock()
-	defer fake.newClusterCompatTaskMutex.RUnlock()
 	fake.newManagedNodeGroupTaskMutex.RLock()
 	defer fake.newManagedNodeGroupTaskMutex.RUnlock()
 	fake.newTaskToDeleteAddonIAMMutex.RLock()

@@ -1,5 +1,6 @@
 [
   {
+    "Id": null,
     "Arn": "arn-12345678",
     "CertificateAuthority": null,
     "ClientRequestToken": null,
@@ -33,6 +34,7 @@
     "Version": null
   },
   {
+    "Id": null,
     "Arn": "arn-87654321",
     "CertificateAuthority": null,
     "ClientRequestToken": null,

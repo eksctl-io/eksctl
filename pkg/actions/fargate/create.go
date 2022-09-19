@@ -20,7 +20,7 @@ func (m *Manager) Create(ctx context.Context) error {
 		return errors.Wrap(err, "couldn't check cluster operable status")
 	}
 
-	clusterStack, err := m.stackManager.DescribeClusterStack(ctx)
+	clusterStack, err := m.stackManager.DescribeClusterStackIfExists(ctx)
 	if err != nil {
 		return errors.Wrap(err, "couldn't check cluster stack")
 	}
@@ -42,7 +42,7 @@ func (m *Manager) Create(ctx context.Context) error {
 					return errors.Wrap(err, "couldn't ensure fargate role exists")
 				}
 			}
-			if err := ctl.LoadClusterIntoSpecFromStack(ctx, cfg, m.stackManager); err != nil {
+			if err := ctl.LoadClusterIntoSpecFromStack(ctx, cfg, clusterStack); err != nil {
 				return errors.Wrap(err, "couldn't load cluster into spec")
 			}
 		} else {

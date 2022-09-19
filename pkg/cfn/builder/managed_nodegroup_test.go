@@ -104,7 +104,7 @@ func TestManagedPolicyResources(t *testing.T) {
 			clusterConfig := api.NewClusterConfig()
 
 			ng := api.NewManagedNodeGroup()
-			api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata)
+			api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
 			ng.IAM.WithAddonPolicies = tt.addons
 			ng.IAM.AttachPolicy = tt.attachPolicy
 			ng.IAM.AttachPolicyARNs = prefixPolicies(tt.attachPolicyARNs...)
@@ -198,7 +198,7 @@ func TestManagedNodeRole(t *testing.T) {
 		t.Run(fmt.Sprintf("%d: %s", i, tt.description), func(t *testing.T) {
 			require := require.New(t)
 			clusterConfig := api.NewClusterConfig()
-			api.SetManagedNodeGroupDefaults(tt.nodeGroup, clusterConfig.Metadata)
+			api.SetManagedNodeGroupDefaults(tt.nodeGroup, clusterConfig.Metadata, false)
 			p := mockprovider.NewMockProvider()
 			fakeVPCImporter := new(vpcfakes.FakeImporter)
 			bootstrapper := nodebootstrap.NewManagedBootstrapper(clusterConfig, tt.nodeGroup)
