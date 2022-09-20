@@ -862,7 +862,7 @@ func selectNodeGroupSubnetsFromIDs(
 
 func findInConfiguredVPC(subnetName string, subnetMapping api.AZSubnetMapping) (*api.AZSubnetSpec, bool) {
 	if subnet, ok := subnetMapping[subnetName]; !ok {
-		// if not found by name, seach by id
+		// if not found by name, search by id
 		for _, s := range subnetMapping {
 			if s.ID != subnetName {
 				continue
