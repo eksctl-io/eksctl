@@ -10,18 +10,18 @@ import (
 	"github.com/pkg/errors"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/outposts"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 	"github.com/weaveworks/eksctl/pkg/utils/nodes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 // CreateOpts controls specific steps of node group creation
@@ -44,34 +44,64 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return err
 	}
 
-	if err := m.checkARMSupport(ctx, ctl, m.clientSet, cfg, options.SkipOutdatedAddonsCheck); err != nil {
-		return err
+	if cfg.IsControlPlaneOnOutposts() && len(cfg.ManagedNodeGroups) > 0 {
+		const msg = "Managed Nodegroups are not supported on Outposts"
+		if !options.ConfigFileProvided {
+			return fmt.Errorf("%s; please rerun the command with --managed=false", msg)
+		}
+		return errors.New(msg)
 	}
 
 	isOwnedCluster := true
-	if err := ctl.LoadClusterIntoSpecFromStack(ctx, cfg, m.stackManager); err != nil {
-		switch e := err.(type) {
+	clusterStack, err := m.stackManager.DescribeClusterStack(ctx)
+	if err != nil {
+		switch err.(type) {
 		case *manager.StackNotFoundErr:
-			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", e.Error())
+			if cfg.IsControlPlaneOnOutposts() {
+				return errors.New("Outposts is not supported on non eksctl-managed clusters")
+			}
+			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", err.Error())
 			if err := loadVPCFromConfig(ctx, ctl.AWSProvider, cfg); err != nil {
 				return errors.Wrapf(err, "loading VPC spec for cluster %q", meta.Name)
 			}
-
 			isOwnedCluster = false
+
 		default:
-			return errors.Wrapf(e, "getting existing configuration for cluster %q", meta.Name)
+			return fmt.Errorf("getting existing configuration for cluster %q: %w", meta.Name, err)
 		}
+
+	} else if err := ctl.LoadClusterIntoSpecFromStack(ctx, cfg, clusterStack); err != nil {
+		return err
+	}
+
+	rawClient, err := ctl.NewRawClient(cfg)
+	if err != nil {
+		if _, ok := err.(*kubernetes.APIServerUnreachableError); ok {
+			const msg = "eksctl requires connectivity to the API server to create nodegroups"
+			if cfg.IsControlPlaneOnOutposts() {
+				return fmt.Errorf("%s; please ensure the Outpost VPC is associated with your local gateway and you are able to connect to the API server before rerunning the command: %w", msg, err)
+			}
+			if !m.ctl.Status.ClusterInfo.Cluster.ResourcesVpcConfig.EndpointPublicAccess {
+				return fmt.Errorf("%s; please run eksctl from an environment that has access to the API server: %w", msg, err)
+			}
+			return fmt.Errorf("%s: %w", msg, err)
+		}
+		return err
+	}
+
+	if err := m.checkARMSupport(ctx, ctl, rawClient, cfg, options.SkipOutdatedAddonsCheck); err != nil {
+		return err
 	}
 
 	nodePools := nodes.ToNodePools(cfg)
 
-	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, m.instanceSelector)
+	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, m.instanceSelector, makeOutpostsService(cfg, ctl.AWSProvider))
 	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
 	}
 
 	if !options.DryRun {
-		if err := nodeGroupService.Normalize(ctx, nodePools, cfg.Metadata); err != nil {
+		if err := nodeGroupService.Normalize(ctx, nodePools, cfg); err != nil {
 			return err
 		}
 	}
@@ -134,6 +164,23 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 	return nil
 }
 
+func makeOutpostsService(clusterConfig *api.ClusterConfig, provider api.ClusterProvider) *outposts.Service {
+	var outpostARN string
+	if clusterConfig.IsControlPlaneOnOutposts() {
+		outpostARN = clusterConfig.Outpost.ControlPlaneOutpostARN
+	} else if nodeGroupOutpostARN, found := clusterConfig.FindNodeGroupOutpostARN(); found {
+		outpostARN = nodeGroupOutpostARN
+	} else {
+		return nil
+	}
+
+	return &outposts.Service{
+		OutpostsAPI: provider.Outposts(),
+		EC2API:      provider.EC2(),
+		OutpostID:   outpostARN,
+	}
+}
+
 func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
@@ -143,7 +190,30 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) er
 	}
 
 	if isOwnedCluster {
-		taskTree.Append(m.stackManager.NewClusterCompatTask(ctx))
+		taskTree.Append(&tasks.GenericTask{
+			Doer: func() error {
+				if err := m.stackManager.FixClusterCompatibility(ctx); err != nil {
+					return err
+				}
+				hasDedicatedVPC, err := m.stackManager.ClusterHasDedicatedVPC(ctx)
+				if err != nil {
+					return fmt.Errorf("error checking if cluster has a dedicated VPC: %w", err)
+				}
+				if !hasDedicatedVPC {
+					return nil
+				}
+				clusterExtender := &outposts.ClusterExtender{
+					StackUpdater: m.stackManager,
+					EC2API:       m.ctl.AWSProvider.EC2(),
+					OutpostsAPI:  m.ctl.AWSProvider.Outposts(),
+				}
+				if err := clusterExtender.ExtendWithOutpostSubnetsIfRequired(ctx, m.cfg, m.cfg.VPC); err != nil {
+					return fmt.Errorf("error extending cluster with Outpost subnets: %w", err)
+				}
+				return nil
+			},
+			Description: "fix cluster compatibility",
+		})
 	}
 
 	awsNodeUsesIRSA, err := eks.DoesAWSNodeUseIRSA(ctx, m.ctl.AWSProvider, m.clientSet)
@@ -251,13 +321,8 @@ func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 	return nil
 }
 
-func (m *Manager) checkARMSupport(ctx context.Context, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
+func (m *Manager) checkARMSupport(ctx context.Context, ctl *eks.ClusterProvider, rawClient *kubernetes.RawClient, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
 	kubeProvider := m.ctl
-	rawClient, err := kubeProvider.NewRawClient(cfg)
-	if err != nil {
-		return err
-	}
-
 	kubernetesVersion, err := kubeProvider.ServerVersion(rawClient)
 	if err != nil {
 		return err

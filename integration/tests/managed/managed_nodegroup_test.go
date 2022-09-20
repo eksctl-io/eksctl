@@ -71,6 +71,7 @@ var _ = BeforeSuite(func() {
 		"--nodegroup-name", initialAl2Nodegroup,
 		"--node-labels", "ng-name="+initialAl2Nodegroup,
 		"--nodes", "2",
+		"--instance-types", "t3a.xlarge",
 		"--version", params.Version,
 		"--kubeconfig", params.KubeconfigPath,
 	)
@@ -161,135 +162,6 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 	)
 
 	Context("cluster with 1 al2 managed nodegroup", func() {
-		It("supports adding bottlerocket and ubuntu nodegroups with additional volumes", func() {
-			clusterConfig := makeClusterConfig()
-			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
-				{
-					NodeGroupBase: &api.NodeGroupBase{
-						Name:       bottlerocketNodegroup,
-						VolumeSize: aws.Int(35),
-						AMIFamily:  "Bottlerocket",
-						Bottlerocket: &api.NodeGroupBottlerocket{
-							EnableAdminContainer: api.Enabled(),
-							Settings: &api.InlineDocument{
-								"motd": "Bottlerocket is the future",
-								"network": map[string]string{
-									"hostname": "custom-bottlerocket-host",
-								},
-							},
-						},
-						AdditionalVolumes: []*api.VolumeMapping{
-							{
-								VolumeName: aws.String("/dev/sdb"),
-							},
-						},
-					},
-					Taints: []api.NodeGroupTaint{
-						{
-							Key:    "key2",
-							Value:  "value2",
-							Effect: "PreferNoSchedule",
-						},
-					},
-				},
-				{
-					NodeGroupBase: &api.NodeGroupBase{
-						Name:       ubuntuNodegroup,
-						VolumeSize: aws.Int(25),
-						AMIFamily:  "Ubuntu2004",
-					},
-				},
-			}
-
-			cmd := params.EksctlCreateCmd.
-				WithArgs(
-					"nodegroup",
-					"--config-file", "-",
-					"--verbose", "4",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(clusterutils.Reader(clusterConfig))
-
-			Expect(cmd).To(RunSuccessfully())
-
-			tests.AssertNodeVolumes(params.KubeconfigPath, params.Region, bottlerocketNodegroup, "/dev/sdb")
-
-			By("correctly configuring the bottlerocket nodegroup")
-			kubeTest, err := kube.NewTest(params.KubeconfigPath)
-			Expect(err).NotTo(HaveOccurred())
-
-			nodeList := kubeTest.ListNodes(metav1.ListOptions{
-				LabelSelector: fmt.Sprintf("%s=%s", "eks.amazonaws.com/nodegroup", bottlerocketNodegroup),
-			})
-			Expect(nodeList.Items).NotTo(BeEmpty())
-			for _, node := range nodeList.Items {
-				Expect(node.Status.NodeInfo.OSImage).To(ContainSubstring("Bottlerocket"))
-				Expect(node.Labels["kubernetes.io/hostname"]).To(Equal("custom-bottlerocket-host"))
-			}
-			kubeTest.Close()
-		})
-
-		It("should have created an EKS cluster and 4 CloudFormation stacks", func() {
-			awsSession := NewConfig(params.Region)
-
-			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, string(ekstypes.ClusterStatusActive), params.Version))
-
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initialAl2Nodegroup)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, bottlerocketNodegroup)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, ubuntuNodegroup)))
-		})
-
-		It("should have created a valid kubectl config file", func() {
-			config, err := clientcmd.LoadFromFile(params.KubeconfigPath)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			err = clientcmd.ConfirmUsable(*config, "")
-			Expect(err).ShouldNot(HaveOccurred())
-
-			Expect(config.CurrentContext).To(ContainSubstring("eksctl"))
-			Expect(config.CurrentContext).To(ContainSubstring(params.ClusterName))
-			Expect(config.CurrentContext).To(ContainSubstring(params.Region))
-		})
-
-		Context("and listing clusters", func() {
-			It("should return the previously created cluster", func() {
-				cmd := params.EksctlGetCmd.WithArgs("clusters", "--all-regions")
-				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.ClusterName)))
-			})
-		})
-
-		Context("and checking the nodegroup health", func() {
-			It("should return healthy", func() {
-				checkNg := func(ngName string) {
-					cmd := params.EksctlUtilsCmd.WithArgs(
-						"nodegroup-health",
-						"--cluster", params.ClusterName,
-						"--name", ngName,
-					)
-
-					Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("active")))
-				}
-
-				checkNg(initialAl2Nodegroup)
-				checkNg(bottlerocketNodegroup)
-				checkNg(ubuntuNodegroup)
-			})
-		})
-
-		Context("and scale the initial nodegroup", func() {
-			It("should not return an error", func() {
-				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
-					"--cluster", params.ClusterName,
-					"--nodes-min", "2",
-					"--nodes", "3",
-					"--nodes-max", "4",
-					"--name", initialAl2Nodegroup,
-				)
-				Expect(cmd).To(RunSuccessfully())
-			})
-		})
-
 		Context("and add two managed nodegroups (one public and one private)", func() {
 			It("should not return an error for public node group", func() {
 				cmd := params.EksctlCreateCmd.WithArgs(
@@ -297,6 +169,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					"--cluster", params.ClusterName,
 					"--nodes", "4",
 					"--managed",
+					"--instance-types", "t3a.xlarge",
 					newPublicNodeGroup,
 				)
 				Expect(cmd).To(RunSuccessfully())
@@ -308,6 +181,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					"--cluster", params.ClusterName,
 					"--nodes", "2",
 					"--managed",
+					"--instance-types", "t3a.xlarge",
 					"--node-private-networking",
 					newPrivateNodeGroup,
 				)
@@ -401,52 +275,6 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			})
 		})
 
-		Context("and upgrading a nodegroup", func() {
-			It("should upgrade to the next Kubernetes version", func() {
-				By("updating the control plane version")
-				cmd := params.EksctlUpgradeCmd.
-					WithArgs(
-						"cluster",
-						"--verbose", "4",
-						"--name", params.ClusterName,
-						"--approve",
-					)
-				Expect(cmd).To(RunSuccessfully())
-
-				var nextVersion string
-				{
-					supportedVersions := api.SupportedVersions()
-					nextVersion = supportedVersions[len(supportedVersions)-1]
-				}
-				By(fmt.Sprintf("checking that control plane is updated to %v", nextVersion))
-				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-				Expect(err).NotTo(HaveOccurred())
-
-				clientset, err := kubernetes.NewForConfig(config)
-				Expect(err).NotTo(HaveOccurred())
-				Eventually(func() string {
-					serverVersion, err := clientset.ServerVersion()
-					Expect(err).NotTo(HaveOccurred())
-					return fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))
-				}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextVersion))
-
-				upgradeNg := func(ngName string) {
-					By(fmt.Sprintf("upgrading nodegroup %s to Kubernetes version %s", ngName, nextVersion))
-					cmd = params.EksctlUpgradeCmd.WithArgs(
-						"nodegroup",
-						"--verbose", "4",
-						"--cluster", params.ClusterName,
-						"--name", ngName,
-						"--kubernetes-version", nextVersion,
-					)
-					ExpectWithOffset(1, cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("nodegroup successfully upgraded")))
-				}
-
-				upgradeNg(initialAl2Nodegroup)
-				upgradeNg(bottlerocketNodegroup)
-			})
-		})
-
 		Context("and creating a nodegroup with taints", func() {
 			It("should create nodegroups with taints applied", func() {
 				taints := []api.NodeGroupTaint{
@@ -503,6 +331,148 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				}
 
 				tests.AssertNodeTaints(tests.ListNodes(clientset, "taints"), mapTaints(taints))
+			})
+
+			// clean up
+			It("should not return an error when deleting nodegroups with taints applied", func() {
+				cmd := params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"taints",
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+		})
+
+		It("supports adding bottlerocket and ubuntu nodegroups with additional volumes", func() {
+			clusterConfig := makeClusterConfig()
+			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:         bottlerocketNodegroup,
+						VolumeSize:   aws.Int(35),
+						AMIFamily:    "Bottlerocket",
+						InstanceType: "t3a.xlarge",
+						Bottlerocket: &api.NodeGroupBottlerocket{
+							EnableAdminContainer: api.Enabled(),
+							Settings: &api.InlineDocument{
+								"motd": "Bottlerocket is the future",
+								"network": map[string]string{
+									"hostname": "custom-bottlerocket-host",
+								},
+							},
+						},
+						AdditionalVolumes: []*api.VolumeMapping{
+							{
+								VolumeName: aws.String("/dev/sdb"),
+							},
+						},
+					},
+					Taints: []api.NodeGroupTaint{
+						{
+							Key:    "key2",
+							Value:  "value2",
+							Effect: "PreferNoSchedule",
+						},
+					},
+				},
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:         ubuntuNodegroup,
+						VolumeSize:   aws.Int(25),
+						AMIFamily:    "Ubuntu2004",
+						InstanceType: "t3a.xlarge",
+					},
+				},
+			}
+
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(clusterutils.Reader(clusterConfig))
+
+			Expect(cmd).To(RunSuccessfully())
+
+			tests.AssertNodeVolumes(params.KubeconfigPath, params.Region, bottlerocketNodegroup, "/dev/sdb")
+
+			By("correctly configuring the bottlerocket nodegroup")
+			kubeTest, err := kube.NewTest(params.KubeconfigPath)
+			Expect(err).NotTo(HaveOccurred())
+
+			nodeList := kubeTest.ListNodes(metav1.ListOptions{
+				LabelSelector: fmt.Sprintf("%s=%s", "eks.amazonaws.com/nodegroup", bottlerocketNodegroup),
+			})
+			Expect(nodeList.Items).NotTo(BeEmpty())
+			for _, node := range nodeList.Items {
+				Expect(node.Status.NodeInfo.OSImage).To(ContainSubstring("Bottlerocket"))
+				Expect(node.Labels["kubernetes.io/hostname"]).To(Equal("custom-bottlerocket-host"))
+			}
+			kubeTest.Close()
+		})
+
+		It("should have created an EKS cluster and 4 CloudFormation stacks", func() {
+			awsSession := NewConfig(params.Region)
+
+			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, string(ekstypes.ClusterStatusActive), params.Version))
+
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initialAl2Nodegroup)))
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, bottlerocketNodegroup)))
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, ubuntuNodegroup)))
+		})
+
+		It("should have created a valid kubectl config file", func() {
+			config, err := clientcmd.LoadFromFile(params.KubeconfigPath)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			err = clientcmd.ConfirmUsable(*config, "")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Expect(config.CurrentContext).To(ContainSubstring("eksctl"))
+			Expect(config.CurrentContext).To(ContainSubstring(params.ClusterName))
+			Expect(config.CurrentContext).To(ContainSubstring(params.Region))
+		})
+
+		Context("and listing clusters", func() {
+			It("should return the previously created cluster", func() {
+				cmd := params.EksctlGetCmd.WithArgs("clusters", "--all-regions")
+				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.ClusterName)))
+			})
+		})
+
+		Context("and checking the nodegroup health", func() {
+			It("should return healthy", func() {
+				checkNg := func(ngName string) {
+					cmd := params.EksctlUtilsCmd.WithArgs(
+						"nodegroup-health",
+						"--cluster", params.ClusterName,
+						"--name", ngName,
+					)
+
+					Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("active")))
+				}
+
+				checkNg(initialAl2Nodegroup)
+				checkNg(bottlerocketNodegroup)
+				checkNg(ubuntuNodegroup)
+			})
+		})
+
+		Context("and scale the initial nodegroup", func() {
+			It("should not return an error", func() {
+				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
+					"--cluster", params.ClusterName,
+					"--nodes-min", "2",
+					"--nodes", "3",
+					"--nodes-max", "4",
+					"--name", initialAl2Nodegroup,
+				)
+				Expect(cmd).To(RunSuccessfully())
 			})
 		})
 
@@ -567,6 +537,64 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				})
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(out.Nodegroup.UpdateConfig.MaxUnavailable).Should(Equal(aws.Int32(1)))
+			})
+
+			// clean up
+			It("should not return an error when deleting nodegroup with an update config", func() {
+				cmd := params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"update-config-ng",
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+		})
+
+		Context("and upgrading a nodegroup", func() {
+			It("should upgrade to the next Kubernetes version", func() {
+				By("updating the control plane version")
+				cmd := params.EksctlUpgradeCmd.
+					WithArgs(
+						"cluster",
+						"--verbose", "4",
+						"--name", params.ClusterName,
+						"--approve",
+					)
+				Expect(cmd).To(RunSuccessfully())
+
+				var nextVersion string
+				{
+					supportedVersions := api.SupportedVersions()
+					nextVersion = supportedVersions[len(supportedVersions)-1]
+				}
+				By(fmt.Sprintf("checking that control plane is updated to %v", nextVersion))
+				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
+				Expect(err).NotTo(HaveOccurred())
+
+				clientset, err := kubernetes.NewForConfig(config)
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(func() string {
+					serverVersion, err := clientset.ServerVersion()
+					Expect(err).NotTo(HaveOccurred())
+					return fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))
+				}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextVersion))
+
+				upgradeNg := func(ngName string) {
+					By(fmt.Sprintf("upgrading nodegroup %s to Kubernetes version %s", ngName, nextVersion))
+					cmd = params.EksctlUpgradeCmd.WithArgs(
+						"nodegroup",
+						"--verbose", "4",
+						"--cluster", params.ClusterName,
+						"--name", ngName,
+						"--kubernetes-version", nextVersion,
+						"--timeout=60m", // wait for CF stacks to finish update
+					)
+					ExpectWithOffset(1, cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("nodegroup successfully upgraded")))
+				}
+
+				upgradeNg(initialAl2Nodegroup)
+				upgradeNg(bottlerocketNodegroup)
 			})
 		})
 

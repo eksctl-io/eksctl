@@ -58,6 +58,7 @@ type MockProvider struct {
 	ssm              *mocksv2.SSM
 	iam              *mocksv2.IAM
 	ec2              *mocksv2.EC2
+	outposts         *mocksv2.Outposts
 }
 
 // NewMockProvider returns a new MockProvider
@@ -79,6 +80,7 @@ func NewMockProvider() *MockProvider {
 		ssm:          &mocksv2.SSM{},
 		iam:          &mocksv2.IAM{},
 		ec2:          &mocksv2.EC2{},
+		outposts:     &mocksv2.Outposts{},
 	}
 }
 
@@ -181,6 +183,14 @@ func (m MockProvider) CloudWatchLogs() awsapi.CloudWatchLogs { return m.cloudwat
 // MockCloudWatchLogs returns a mocked CloudWatchLogs API
 func (m MockProvider) MockCloudWatchLogs() *mocksv2.CloudWatchLogs {
 	return m.CloudWatchLogs().(*mocksv2.CloudWatchLogs)
+}
+
+// Outposts returns a representation of the Outposts API
+func (m MockProvider) Outposts() awsapi.Outposts { return m.outposts }
+
+// MockOutposts returns a mocked Outposts API
+func (m MockProvider) MockOutposts() *mocksv2.Outposts {
+	return m.outposts
 }
 
 // Profile returns current profile setting

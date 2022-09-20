@@ -709,9 +709,8 @@ func (c *StackCollection) doCreateChangeSetRequest(ctx context.Context, stackNam
 		ChangeSetName: &changeSetName,
 		Description:   &description,
 		Tags:          append(tags, c.sharedTags...),
+		ChangeSetType: types.ChangeSetTypeUpdate,
 	}
-
-	input.ChangeSetType = types.ChangeSetTypeUpdate
 
 	switch data := templateData.(type) {
 	case TemplateBody:

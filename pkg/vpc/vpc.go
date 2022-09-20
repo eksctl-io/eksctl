@@ -25,36 +25,24 @@ import (
 // SetSubnets defines CIDRs for each of the subnets,
 // it must be called after SetAvailabilityZones.
 func SetSubnets(vpc *api.ClusterVPC, availabilityZones, localZones []string) error {
-	var err error
+	if err := validateVPCCIDR(vpc); err != nil {
+		return err
+	}
 
-	if vpc.CIDR == nil {
-		cidr := api.DefaultCIDR()
-		vpc.CIDR = &cidr
-	}
-	prefix, _ := vpc.CIDR.Mask.Size()
-	if prefix < 16 || prefix > 24 {
-		return errors.New("VPC CIDR prefix must be between /16 and /24")
-	}
 	zonesTotal := len(availabilityZones) + len(localZones)
+	subnetsTotal := zonesTotal * 2
 
-	var zoneCIDRs []*net.IPNet
-
-	switch subnetsTotal := zonesTotal * 2; {
-	case subnetsTotal <= 8:
-		zoneCIDRs, err = SplitInto8(&vpc.CIDR.IPNet)
-		if err != nil {
-			return err
-		}
-		logger.Debug("VPC CIDR (%s) was divided into 8 subnets %v", vpc.CIDR.String(), zoneCIDRs)
-	case subnetsTotal <= 16:
-		zoneCIDRs, err = SplitInto16(&vpc.CIDR.IPNet)
-		if err != nil {
-			return err
-		}
-		logger.Debug("VPC CIDR (%s) was divided into 16 subnets %v", vpc.CIDR.String(), zoneCIDRs)
-	default:
-		return fmt.Errorf("cannot create more than 16 subnets, %d requested", subnetsTotal)
+	subnetSize, networkLength, err := getSubnetNetworkSize(vpc.CIDR.IPNet, subnetsTotal)
+	if err != nil {
+		return err
 	}
+
+	zoneCIDRs, err := SplitInto(&vpc.CIDR.IPNet, subnetSize, networkLength)
+	if err != nil {
+		return err
+	}
+
+	logger.Debug("VPC CIDR (%s) was divided into %d subnets %v", vpc.CIDR.String(), len(zoneCIDRs), zoneCIDRs)
 
 	vpc.Subnets = &api.ClusterSubnets{
 		Private: api.NewAZSubnetMapping(),
@@ -93,51 +81,98 @@ func SetSubnets(vpc *api.ClusterVPC, availabilityZones, localZones []string) err
 	return nil
 }
 
-func SplitInto16(parent *net.IPNet) ([]*net.IPNet, error) {
-	networkLength, _ := parent.Mask.Size()
-	networkLength += 4
+// A SubnetPair represents a pair of public and private subnets.
+type SubnetPair struct {
+	Public  []api.AZSubnetSpec
+	Private []api.AZSubnetSpec
+}
 
-	var subnets []*net.IPNet
-	for i := 0; i < 16; i++ {
-		ip4 := parent.IP.To4()
-		if ip4 != nil {
-			n := binary.BigEndian.Uint32(ip4)
-			n += uint32(i) << uint(32-networkLength)
-			subnetIP := make(net.IP, len(ip4))
-			binary.BigEndian.PutUint32(subnetIP, n)
+// ExtendWithOutpostSubnets extends the VPC by returning public and private subnet CIDRs for Outposts.
+func ExtendWithOutpostSubnets(vpcCIDR net.IPNet, existingSubnetsCount int, outpostARN, outpostAZ string) (*SubnetPair, error) {
+	subnetSize, networkLength, err := getSubnetNetworkSize(vpcCIDR, existingSubnetsCount)
+	if err != nil {
+		return nil, err
+	}
+	cidrs, err := SplitInto(&vpcCIDR, subnetSize, networkLength)
+	if err != nil {
+		return nil, err
+	}
+	if len(cidrs) < existingSubnetsCount {
+		return nil, errors.New("unexpected error calculating new subnet CIDRs")
+	}
 
-			subnets = append(subnets, &net.IPNet{
-				IP:   subnetIP,
-				Mask: net.CIDRMask(networkLength, 32),
-			})
-		} else {
-			return nil, fmt.Errorf("Unexpected IP address type: %s", parent)
+	newCIDRs := cidrs[existingSubnetsCount:]
+	if len(newCIDRs) < 2 {
+		return nil, fmt.Errorf("VPC cannot be extended with more subnets: expected to find at least two free CIDRs in VPC; got %d", len(newCIDRs))
+	}
+
+	makeAZSubnetSpec := func(cidr *net.IPNet, cidrIndex int) api.AZSubnetSpec {
+		return api.AZSubnetSpec{
+			AZ: outpostAZ,
+			CIDR: &ipnet.IPNet{
+				IPNet: *cidr,
+			},
+			OutpostARN: outpostARN,
+			CIDRIndex:  cidrIndex,
 		}
 	}
 
-	return subnets, nil
+	publicCIDR, privateCIDR := newCIDRs[0], newCIDRs[1]
+	return &SubnetPair{
+		Public:  []api.AZSubnetSpec{makeAZSubnetSpec(publicCIDR, existingSubnetsCount+1)},
+		Private: []api.AZSubnetSpec{makeAZSubnetSpec(privateCIDR, existingSubnetsCount+2)},
+	}, nil
 }
 
-func SplitInto8(parent *net.IPNet) ([]*net.IPNet, error) {
-	networkLength, _ := parent.Mask.Size()
-	networkLength += 3
+func getSubnetNetworkSize(vpcCIDR net.IPNet, subnetsTotal int) (subnetSize, networkLength int, err error) {
+	switch maskSize, _ := vpcCIDR.Mask.Size(); {
+	case subnetsTotal == 2:
+		subnetSize = 2
+		networkLength = maskSize + 3
+	case subnetsTotal <= 8:
+		subnetSize = 8
+		networkLength = maskSize + 3
+	case subnetsTotal <= 16:
+		subnetSize = 16
+		networkLength = maskSize + 4
+	default:
+		return 0, 0, fmt.Errorf("cannot create more than 16 subnets, %d requested", subnetsTotal)
+	}
+	return subnetSize, networkLength, nil
+}
 
+func validateVPCCIDR(vpc *api.ClusterVPC) error {
+	if vpc.CIDR == nil {
+		cidr := api.DefaultCIDR()
+		vpc.CIDR = &cidr
+	}
+
+	if prefix, _ := vpc.CIDR.Mask.Size(); prefix < 16 || prefix > 24 {
+		return errors.New("VPC CIDR prefix must be between /16 and /24")
+	}
+	return nil
+}
+
+func SplitInto(parent *net.IPNet, size, networkLength int) ([]*net.IPNet, error) {
+	if networkLength < 16 || networkLength > 28 {
+		return nil, errors.New("CIDR block size must be between a /16 netmask and /28 netmask")
+	}
 	var subnets []*net.IPNet
-	for i := 0; i < 8; i++ {
+	for i := 0; i < size; i++ {
 		ip4 := parent.IP.To4()
-		if ip4 != nil {
-			n := binary.BigEndian.Uint32(ip4)
-			n += uint32(i) << uint(32-networkLength)
-			subnetIP := make(net.IP, len(ip4))
-			binary.BigEndian.PutUint32(subnetIP, n)
-
-			subnets = append(subnets, &net.IPNet{
-				IP:   subnetIP,
-				Mask: net.CIDRMask(networkLength, 32),
-			})
-		} else {
+		if ip4 == nil {
 			return nil, fmt.Errorf("unexpected IP address type: %s", parent)
 		}
+
+		n := binary.BigEndian.Uint32(ip4)
+		n += uint32(i) << uint(32-networkLength)
+		subnetIP := make(net.IP, len(ip4))
+		binary.BigEndian.PutUint32(subnetIP, n)
+
+		subnets = append(subnets, &net.IPNet{
+			IP:   subnetIP,
+			Mask: net.CIDRMask(networkLength, 32),
+		})
 	}
 
 	return subnets, nil
@@ -258,25 +293,44 @@ func UseFromClusterStack(ctx context.Context, provider api.ClusterProvider, stac
 		},
 	}
 
+	splitOutputValue := func(v string) []string {
+		return strings.Split(v, ",")
+	}
+	importSubnetsFromIDList := func(subnetMapping api.AZSubnetMapping, value string) error {
+		return ImportSubnetsFromIDList(ctx, provider.EC2(), spec, subnetMapping, splitOutputValue(value))
+	}
+
 	optionalCollectors := map[string]outputs.Collector{
 		outputs.ClusterSharedNodeSecurityGroup: func(v string) error {
 			spec.VPC.SharedNodeSecurityGroup = v
 			return nil
 		},
 		outputs.ClusterSubnetsPrivate: func(v string) error {
-			return ImportSubnetsFromIDList(ctx, provider.EC2(), spec, spec.VPC.Subnets.Private, strings.Split(v, ","))
+			return importSubnetsFromIDList(spec.VPC.Subnets.Private, v)
 		},
 		outputs.ClusterSubnetsPublic: func(v string) error {
-			return ImportSubnetsFromIDList(ctx, provider.EC2(), spec, spec.VPC.Subnets.Public, strings.Split(v, ","))
+			return importSubnetsFromIDList(spec.VPC.Subnets.Public, v)
 		},
 		outputs.ClusterSubnetsPrivateLocal: func(v string) error {
-			return ImportSubnetsFromIDList(ctx, provider.EC2(), spec, spec.VPC.LocalZoneSubnets.Private, strings.Split(v, ","))
+			return importSubnetsFromIDList(spec.VPC.LocalZoneSubnets.Private, v)
 		},
 		outputs.ClusterSubnetsPublicLocal: func(v string) error {
-			return ImportSubnetsFromIDList(ctx, provider.EC2(), spec, spec.VPC.LocalZoneSubnets.Public, strings.Split(v, ","))
+			return importSubnetsFromIDList(spec.VPC.LocalZoneSubnets.Public, v)
+		},
+		outputs.ClusterSubnetsPrivateExtended: func(v string) error {
+			return ImportSubnetsByIDsWithAlias(ctx, provider.EC2(), spec, spec.VPC.Subnets.Private, splitOutputValue(v), MakeExtendedSubnetAliasFunc())
+		},
+		outputs.ClusterSubnetsPublicExtended: func(v string) error {
+			return ImportSubnetsByIDsWithAlias(ctx, provider.EC2(), spec, spec.VPC.Subnets.Public, splitOutputValue(v), MakeExtendedSubnetAliasFunc())
 		},
 		outputs.ClusterFullyPrivate: func(v string) error {
 			spec.PrivateCluster.Enabled = v == "true"
+			return nil
+		},
+		outputs.ClusterFeatureNATMode: func(v string) error {
+			spec.VPC.NAT = &api.ClusterNAT{
+				Gateway: aws.String(v),
+			}
 			return nil
 		},
 	}
@@ -284,11 +338,27 @@ func UseFromClusterStack(ctx context.Context, provider api.ClusterProvider, stac
 	if !outputs.Exists(*stack, outputs.ClusterSubnetsPublic) &&
 		outputs.Exists(*stack, outputs.ClusterSubnetsPublicLegacy) {
 		optionalCollectors[outputs.ClusterSubnetsPublicLegacy] = func(v string) error {
-			return ImportSubnetsFromIDList(ctx, provider.EC2(), spec, spec.VPC.Subnets.Public, strings.Split(v, ","))
+			return importSubnetsFromIDList(spec.VPC.Subnets.Public, v)
 		}
 	}
 
 	return outputs.Collect(*stack, requiredCollectors, optionalCollectors)
+}
+
+// MakeExtendedSubnetAliasFunc returns a function for creating an alias for a subnet that was added as part of extending
+// the VPC with Outpost subnets.
+func MakeExtendedSubnetAliasFunc() MakeSubnetAlias {
+	subnetsCount := 0
+	return func(subnet *ec2types.Subnet) string {
+		subnetsCount++
+		return MakeExtendedSubnetAlias(*subnet.AvailabilityZone, subnetsCount)
+	}
+}
+
+// MakeExtendedSubnetAlias generates an alias for a subnet that was added as part of extending the VPC
+// with Outpost subnets.
+func MakeExtendedSubnetAlias(az string, ordinal int) string {
+	return fmt.Sprintf("outpost-%s-%d", az, ordinal)
 }
 
 // importVPC will update spec with VPC ID/CIDR
@@ -321,25 +391,37 @@ func importVPC(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConfig, 
 	return nil
 }
 
+type MakeSubnetAlias func(*ec2types.Subnet) string
+
 // ImportSubnets will update spec with subnets, if VPC ID/CIDR is unknown
 // it will use provider to call describeVPC based on the VPC ID of the
 // first subnet; all subnets must be in the same VPC.
 // It imports the specified subnets into ClusterConfig and sets the AZs and local zones used by those subnets.
 // NOTE: it does respect all fields set in spec.VPC, and will error if
 // there is a mismatch of local vs remote states
-func ImportSubnets(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConfig, subnetMapping api.AZSubnetMapping, subnets []ec2types.Subnet) error {
+func ImportSubnets(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConfig, subnetMapping api.AZSubnetMapping, subnets []ec2types.Subnet, makeSubnetAlias MakeSubnetAlias) error {
+	if subnetMapping == nil {
+		return nil
+	}
 	if spec.VPC.ID != "" {
 		// ensure managed NAT is disabled
 		// if we are importing an existing VPC/subnets, the expectation is that the user has
 		// already setup NAT, routing, etc. for these subnets
-		disable := api.ClusterDisableNAT
-		spec.VPC.NAT = &api.ClusterNAT{
-			Gateway: &disable,
+		if spec.VPC.NAT == nil {
+			disable := api.ClusterDisableNAT
+			spec.VPC.NAT = &api.ClusterNAT{
+				Gateway: &disable,
+			}
 		}
 
 		// ensure VPC gets imported and validated first, if it's already set
 		if err := importVPC(ctx, ec2API, spec, spec.VPC.ID); err != nil {
 			return err
+		}
+	}
+	if makeSubnetAlias == nil {
+		makeSubnetAlias = func(subnet *ec2types.Subnet) string {
+			return *subnet.AvailabilityZone
 		}
 	}
 
@@ -354,25 +436,12 @@ func ImportSubnets(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConf
 			return fmt.Errorf("given %s is in %s, not in %s", *sn.SubnetId, *sn.VpcId, spec.VPC.ID)
 		}
 
-		if err := spec.ImportSubnet(subnetMapping, *sn.AvailabilityZone, *sn.SubnetId, *sn.CidrBlock); err != nil {
-			return err
+		if err := api.ImportSubnet(subnetMapping, &sn, makeSubnetAlias); err != nil {
+			return fmt.Errorf("could not import subnet %s: %w", *sn.SubnetId, err)
 		}
 		spec.AppendAvailabilityZone(*sn.AvailabilityZone)
 	}
 	return nil
-}
-
-// ImportSubnetsFromList will update spec with subnets, it will call describeSubnets first,
-// then pass resulting subnets to ImportSubnets
-// NOTE: it does respect all fields set in spec.VPC, and will error if
-// there is a mismatch of local vs remote states
-func importSubnetsFromList(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConfig, subnetMapping api.AZSubnetMapping, subnetIDs, cidrs, azs []string) error {
-	subnets, err := describeSubnets(ctx, ec2API, spec.VPC.ID, subnetIDs, cidrs, azs)
-	if err != nil {
-		return err
-	}
-
-	return ImportSubnets(ctx, ec2API, spec, subnetMapping, subnets)
 }
 
 // importSubnetsForTopology will update spec with subnets, it will call describeSubnets first,
@@ -401,7 +470,18 @@ func importSubnetsForTopology(ctx context.Context, ec2API awsapi.EC2, spec *api.
 		return err
 	}
 
-	return ImportSubnets(ctx, ec2API, spec, subnetMapping, subnets)
+	if spec.IsControlPlaneOnOutposts() {
+		var invalidSubnetIDs []string
+		for _, subnet := range subnets {
+			if subnet.OutpostArn == nil || *subnet.OutpostArn != spec.Outpost.ControlPlaneOutpostARN {
+				invalidSubnetIDs = append(invalidSubnetIDs, *subnet.SubnetId)
+			}
+		}
+		if len(invalidSubnetIDs) > 0 {
+			return fmt.Errorf("all subnets must be on the control plane Outpost when specifying pre-existing subnets for a cluster on Outposts; found invalid %s subnet(s): %v", strings.ToLower(string(topology)), strings.Join(invalidSubnetIDs, ","))
+		}
+	}
+	return ImportSubnets(ctx, ec2API, spec, subnetMapping, subnets, nil)
 }
 
 // ImportSubnetsFromIDList will update cluster config with subnets _only specified by ID_
@@ -409,13 +489,27 @@ func importSubnetsForTopology(ctx context.Context, ec2API awsapi.EC2, spec *api.
 // NOTE: it does respect all fields set in spec.VPC, and will error if
 // there is a mismatch of local vs remote states
 func ImportSubnetsFromIDList(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConfig, subnetMapping api.AZSubnetMapping, subnetIDs []string) error {
-	return importSubnetsFromList(ctx, ec2API, spec, subnetMapping, subnetIDs, []string{}, []string{})
+	return ImportSubnetsByIDsWithAlias(ctx, ec2API, spec, subnetMapping, subnetIDs, nil)
+}
+
+// ImportSubnetsByIDsWithAlias is like ImportSubnetsFromIDList but allows passing a function that generates an alias
+// for a subnet.
+func ImportSubnetsByIDsWithAlias(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConfig, subnetMapping api.AZSubnetMapping, subnetIDs []string, makeSubnetAlias MakeSubnetAlias) error {
+	subnets, err := describeSubnets(ctx, ec2API, spec.VPC.ID, subnetIDs, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return ImportSubnets(ctx, ec2API, spec, subnetMapping, subnets, makeSubnetAlias)
 }
 
 func ValidateLegacySubnetsForNodeGroups(ctx context.Context, spec *api.ClusterConfig, provider api.ClusterProvider) error {
 	subnetsToValidate := sets.NewString()
 
 	selectSubnets := func(np api.NodePool) error {
+		if ng := np.BaseNodeGroup(); ng.PrivateNetworking || ng.OutpostARN != "" {
+			return nil
+		}
 		subnetIDs, err := SelectNodeGroupSubnets(ctx, np, spec, provider.EC2())
 		if err != nil {
 			return fmt.Errorf("could not find public subnets: %w", err)
@@ -430,21 +524,16 @@ func ValidateLegacySubnetsForNodeGroups(ctx context.Context, spec *api.ClusterCo
 	}
 
 	for _, ng := range spec.NodeGroups {
-		if !ng.PrivateNetworking {
-			if err := selectSubnets(ng); err != nil {
-				return err
-			}
+		if err := selectSubnets(ng); err != nil {
+			return err
 		}
 	}
 
 	for _, ng := range spec.ManagedNodeGroups {
-		if !ng.PrivateNetworking {
-			if err := selectSubnets(ng); err != nil {
-				return err
-			}
+		if err := selectSubnets(ng); err != nil {
+			return err
 		}
 	}
-
 	if err := ValidateExistingPublicSubnets(ctx, provider, spec.VPC.ID, subnetsToValidate.List()); err != nil {
 		// If the cluster endpoint is reachable from the VPC, nodes might still be able to join
 		if spec.HasPrivateEndpointAccess() {
@@ -590,6 +679,7 @@ func getSubnetByID(ctx context.Context, ec2API awsapi.EC2, id string) (ec2types.
 // SelectNodeGroupSubnets returns the subnet IDs to use for a nodegroup from the specified availability zones, local zones,
 // and subnets.
 func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2) ([]string, error) {
+
 	var (
 		subnetMapping api.AZSubnetMapping
 		zones         []string
@@ -619,16 +709,9 @@ func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig 
 
 	var subnetIDs []string
 	if len(zones) > 0 {
-		var networkType string
-		if ng.PrivateNetworking {
-			networkType = "private"
-		} else {
-			networkType = "public"
-		}
-
 		var err error
 		if subnetIDs, err = selectNodeGroupZoneSubnets(zones, subnetMapping); err != nil {
-			return nil, fmt.Errorf("could not find %s subnets for zones %q %s: %w", networkType, zones, makeErrorDesc(), err)
+			return nil, fmt.Errorf("could not find %s subnets for zones %q %s: %w", getNetworkType(ng), zones, makeErrorDesc(), err)
 		}
 	}
 
@@ -656,7 +739,7 @@ func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig 
 			}
 		}
 
-		subnetsFromIDs, err := selectNodeGroupSubnetsFromIDs(ctx, ng.Subnets, subnetMapping, clusterConfig.VPC.ID, ec2API, func(zone string) error {
+		subnetsFromIDs, err := selectNodeGroupSubnetsFromIDs(ctx, ng, subnetMapping, clusterConfig, ec2API, func(zone string) error {
 			zoneType, ok := zoneTypeMapping[zone]
 			if !ok {
 				return fmt.Errorf("unexpected error finding zone type for zone %q", zone)
@@ -667,6 +750,11 @@ func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig 
 			return nil, fmt.Errorf("could not select subnets from subnet IDs %s: %w", makeErrorDesc(), err)
 		}
 		subnetIDs = append(subnetIDs, subnetsFromIDs...)
+	} else if ng.OutpostARN != "" {
+		subnetIDs = subnetMapping.SelectOutpostSubnetIDs()
+		if len(subnetIDs) == 0 {
+			return nil, fmt.Errorf("no %s subnets exist in Outpost for nodegroup %s", getNetworkType(ng), ng.Name)
+		}
 	}
 
 	if api.IsEnabled(ng.EFAEnabled) && len(subnetIDs) > 0 {
@@ -702,34 +790,72 @@ func selectNodeGroupZoneSubnets(nodeGroupZones []string, subnetMapping api.AZSub
 	return subnetIDs, nil
 }
 
-func selectNodeGroupSubnetsFromIDs(ctx context.Context, subnetIDs []string, subnetMapping api.AZSubnetMapping, vpcID string, ec2API awsapi.EC2, validateSubnetZone func(zone string) error) ([]string, error) {
+func selectNodeGroupSubnetsFromIDs(ctx context.Context, ng *api.NodeGroupBase, subnetMapping api.AZSubnetMapping, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2, validateSubnetZone func(zone string) error) ([]string, error) {
 	var selectedSubnetIDs []string
-	for _, subnetName := range subnetIDs {
+	outpostARN := getOutpostARN(clusterConfig, ng)
+	for _, subnetName := range ng.Subnets {
 		var subnetID string
+		var mappedSubnet *api.AZSubnetSpec
 		if subnet, ok := subnetMapping[subnetName]; !ok {
 			for _, s := range subnetMapping {
-				if s.ID != subnetName {
-					continue
+				if s.ID == subnetName {
+					mappedSubnet = &s
+					subnetID = subnetName
+					break
 				}
-				subnetID = s.ID
 			}
 		} else {
 			subnetID = subnet.ID
+			mappedSubnet = &subnet
 		}
-		if subnetID == "" {
+		if mappedSubnet == nil {
 			subnet, err := getSubnetByID(ctx, ec2API, subnetName)
 			if err != nil {
 				return nil, err
 			}
-			if subnet.VpcId != nil && *subnet.VpcId != vpcID {
-				return nil, fmt.Errorf("subnet with ID %q is not in the attached VPC with ID %q", *subnet.SubnetId, vpcID)
+			if subnet.VpcId != nil && *subnet.VpcId != clusterConfig.VPC.ID {
+				return nil, fmt.Errorf("subnet with ID %q is not in the attached VPC with ID %q", *subnet.SubnetId, clusterConfig.VPC.ID)
 			}
 			if err := validateSubnetZone(*subnet.AvailabilityZone); err != nil {
 				return nil, err
 			}
+
+			if outpostARN != "" {
+				if err := validateSubnetOnOutposts(*subnet.SubnetId, aws.ToString(subnet.OutpostArn), outpostARN); err != nil {
+					return nil, err
+				}
+			}
 			subnetID = *subnet.SubnetId
+		} else if outpostARN != "" {
+			if err := validateSubnetOnOutposts(mappedSubnet.ID, mappedSubnet.OutpostARN, outpostARN); err != nil {
+				return nil, err
+			}
 		}
 		selectedSubnetIDs = append(selectedSubnetIDs, subnetID)
 	}
 	return selectedSubnetIDs, nil
+}
+
+func getNetworkType(ng *api.NodeGroupBase) string {
+	if ng.PrivateNetworking {
+		return "private"
+	}
+	return "public"
+}
+
+func getOutpostARN(clusterConfig *api.ClusterConfig, ng *api.NodeGroupBase) string {
+	if clusterConfig.IsControlPlaneOnOutposts() {
+		return clusterConfig.Outpost.ControlPlaneOutpostARN
+	}
+	return ng.OutpostARN
+}
+
+func validateSubnetOnOutposts(subnetID, subnetOutpostARN, outpostARN string) error {
+	if subnetOutpostARN == "" {
+		return fmt.Errorf("subnet %q is not on Outposts", subnetID)
+	}
+	if subnetOutpostARN != outpostARN {
+		return fmt.Errorf("subnet %q is in a different Outpost ARN (%q) than the control plane or nodegroup Outpost (%q)", subnetID, subnetOutpostARN, outpostARN)
+	}
+	return nil
 }

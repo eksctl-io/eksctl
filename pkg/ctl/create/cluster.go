@@ -6,8 +6,9 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"strings"
 	"sync"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/kris-nova/logger"
@@ -29,6 +30,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/outposts"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
@@ -148,19 +150,18 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		cmdutils.LogRegionAndVersionInfo(meta)
 	})
 
-	if cfg.Metadata.Version == "" || cfg.Metadata.Version == "auto" {
+	switch cfg.Metadata.Version {
+	case "auto":
 		cfg.Metadata.Version = api.DefaultVersion
-	}
-	if cfg.Metadata.Version == "latest" {
+	case "latest":
 		cfg.Metadata.Version = api.LatestVersion
 	}
-	if cfg.Metadata.Version != api.DefaultVersion {
-		if !api.IsSupportedVersion(cfg.Metadata.Version) {
-			if api.IsDeprecatedVersion(cfg.Metadata.Version) {
-				return fmt.Errorf("invalid version, %s is no longer supported, supported values: %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", cfg.Metadata.Version, strings.Join(api.SupportedVersions(), ", "))
-			}
-			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ", "))
-		}
+
+	if err := api.ValidateClusterVersion(cfg); err != nil {
+		return err
+	}
+	if cfg.Metadata.Version == "" {
+		cfg.Metadata.Version = api.DefaultVersion
 	}
 
 	if err := cfg.ValidatePrivateCluster(); err != nil {
@@ -171,8 +172,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
-	// if it's a private only cluster warn the user
-	if api.PrivateOnly(cfg.VPC.ClusterEndpoints) {
+	// If it's a private-only cluster warn the user.
+	if api.PrivateOnly(cfg.VPC.ClusterEndpoints) && !cfg.IsControlPlaneOnOutposts() {
 		logger.Warning(api.ErrClusterEndpointPrivateOnly.Error())
 	}
 
@@ -242,11 +243,39 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		eks.LogWindowsCompatibility(kubeNodeGroups, cfg.Metadata)
 	}
 
+	var outpostsService *outposts.Service
+
+	if cfg.IsControlPlaneOnOutposts() {
+		outpostsService = &outposts.Service{
+			OutpostsAPI: ctl.AWSProvider.Outposts(),
+			EC2API:      ctl.AWSProvider.EC2(),
+			OutpostID:   cfg.Outpost.ControlPlaneOutpostARN,
+		}
+		outpost, err := outpostsService.GetOutpost(ctx)
+		if err != nil {
+			return fmt.Errorf("error getting Outpost details: %w", err)
+		}
+		if !params.DryRun {
+			cfg.AvailabilityZones = []string{aws.ToString(outpost.AvailabilityZone)}
+		}
+
+		if err := outpostsService.SetOrValidateOutpostInstanceType(ctx, cfg.Outpost); err != nil {
+			return fmt.Errorf("error setting or validating instance type for the control plane: %w", err)
+		}
+
+		if !cfg.HasAnySubnets() && len(kubeNodeGroups) > 0 {
+			return errors.New("cannot create nodegroups on Outposts when the VPC is created by eksctl as it will not have connectivity to the API server; please rerun the command with `--without-nodegroup` and run `eksctl create nodegroup` after associating the VPC with a local gateway and ensuring connectivity to the API server")
+		}
+	} else if _, hasNodeGroupsOnOutposts := cfg.FindNodeGroupOutpostARN(); hasNodeGroupsOnOutposts {
+		return errors.New("creating nodegroups on Outposts when the control plane is not on Outposts is not supported during cluster creation; " +
+			"either create the nodegroups after cluster creation or consider creating the control plane on Outposts")
+	}
+
 	if err := createOrImportVPC(ctx, cmd, cfg, params, ctl); err != nil {
 		return err
 	}
 
-	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, selector.New(ctl.AWSProvider.Session()))
+	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, selector.New(ctl.AWSProvider.Session()), outpostsService)
 	nodePools := nodes.ToNodePools(cfg)
 	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
@@ -256,7 +285,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return cmdutils.PrintDryRunConfig(cfg, os.Stdout)
 	}
 
-	if err := nodeGroupService.Normalize(ctx, nodePools, cfg.Metadata); err != nil {
+	if err := nodeGroupService.Normalize(ctx, nodePools, cfg); err != nil {
 		return err
 	}
 
@@ -318,7 +347,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return fmt.Errorf("failed to create cluster %q", meta.Name)
 	}
 
-	logger.Info("waiting for the control plane availability...")
+	logger.Info("waiting for the control plane to become ready")
 
 	// obtain cluster credentials, write kubeconfig
 
@@ -385,7 +414,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				for _, err := range errs {
 					logger.Critical("%s\n", err.Error())
 				}
-				return fmt.Errorf("failed to create addons")
+				return errors.New("failed to create addons")
 			}
 		}
 
@@ -463,36 +492,40 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
 	if !subnetsGiven && params.KopsClusterNameForVPC == "" {
-		userProvidedAzs, err := eks.SetAvailabilityZones(ctx, cfg, params.AvailabilityZones, ctl.AWSProvider.EC2(), ctl.AWSProvider.Region())
-		if err != nil {
-			return err
-		}
-
-		// If the availability zones were provided at random, we already did this check.
-		if userProvidedAzs {
-			if err := eks.CheckInstanceAvailability(ctx, cfg, ctl.AWSProvider.EC2()); err != nil {
+		if !cfg.IsControlPlaneOnOutposts() {
+			userProvidedAZs, err := eks.SetAvailabilityZones(ctx, cfg, params.AvailabilityZones, ctl.AWSProvider.EC2(), ctl.AWSProvider.Region())
+			if err != nil {
 				return err
 			}
-		}
 
-		if len(cfg.LocalZones) > 0 {
-			if err := eks.ValidateLocalZones(ctx, ctl.AWSProvider.EC2(), cfg.LocalZones, ctl.AWSProvider.Region()); err != nil {
-				return err
+			// If the availability zones were provided at random, we already did this check.
+			if userProvidedAZs {
+				if err := eks.CheckInstanceAvailability(ctx, cfg, ctl.AWSProvider.EC2()); err != nil {
+					return err
+				}
+			}
+
+			if len(cfg.LocalZones) > 0 {
+				if err := eks.ValidateLocalZones(ctx, ctl.AWSProvider.EC2(), cfg.LocalZones, ctl.AWSProvider.Region()); err != nil {
+					return err
+				}
+			}
+
+			// Skip setting subnets
+			// The default subnet config set by SetSubnets will fail validation on a subsequent run of `create cluster`
+			// because those fields indicate usage of pre-existing VPC and subnets
+			// default: create dedicated VPC
+			if params.DryRun {
+				return nil
 			}
 		}
-
-		// Skip setting subnets
-		// The default subnet config set by SetSubnets will fail validation on a subsequent run of `create cluster`
-		// because those fields indicate usage of pre-existing VPC and subnets
-		// default: create dedicated VPC
-		if params.DryRun {
-			return nil
-		}
-
 		return vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones, cfg.LocalZones)
 	}
 
 	if params.KopsClusterNameForVPC != "" {
+		if cfg.IsControlPlaneOnOutposts() {
+			return errors.New("cannot specify --vpc-from-kops-cluster when creating a cluster on Outposts")
+		}
 		// import VPC from a given kops cluster
 		if len(params.AvailabilityZones) != 0 {
 			return fmt.Errorf("--vpc-from-kops-cluster and --zones %s", cmdutils.IncompatibleFlags)
@@ -537,6 +570,12 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 	}
 
 	if params.DryRun {
+		if cfg.VPC.NAT != nil {
+			disableNAT := api.ClusterDisableNAT
+			cfg.VPC.NAT = &api.ClusterNAT{
+				Gateway: &disableNAT,
+			}
+		}
 		return nil
 	}
 

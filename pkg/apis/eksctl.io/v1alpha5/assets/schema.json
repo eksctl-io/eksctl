@@ -220,6 +220,12 @@
         "iam": {
           "$ref": "#/definitions/ClusterIAM"
         },
+        "iamIdentityMappings": {
+          "items": {
+            "$ref": "#/definitions/IAMIdentityMapping"
+          },
+          "type": "array"
+        },
         "identityProviders": {
           "items": {
             "$ref": "#/definitions/IdentityProvider"
@@ -267,6 +273,11 @@
           "description": "For information and examples see [nodegroups](/usage/managing-nodegroups)",
           "x-intellij-html-description": "For information and examples see <a href=\"/usage/managing-nodegroups\">nodegroups</a>"
         },
+        "outpost": {
+          "$ref": "#/definitions/Outpost",
+          "description": "specifies the Outpost configuration.",
+          "x-intellij-html-description": "specifies the Outpost configuration."
+        },
         "privateCluster": {
           "$ref": "#/definitions/PrivateCluster",
           "description": "allows configuring a fully-private cluster in which no node has outbound internet access, and private access to AWS services is enabled via VPC endpoints",
@@ -285,6 +296,7 @@
         "metadata",
         "kubernetesNetworkConfig",
         "iam",
+        "iamIdentityMappings",
         "identityProviders",
         "vpc",
         "addons",
@@ -297,7 +309,8 @@
         "cloudWatch",
         "secretsEncryption",
         "gitops",
-        "karpenter"
+        "karpenter",
+        "outpost"
       ],
       "additionalProperties": false,
       "description": "a simple config, to be replaced with Cluster API",
@@ -816,6 +829,47 @@
       "description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types",
       "x-intellij-html-description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types"
     },
+    "IAMIdentityMapping": {
+      "properties": {
+        "account": {
+          "type": "string"
+        },
+        "arn": {
+          "type": "string"
+        },
+        "groups": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "noDuplicateARNs": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "serviceName": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "arn",
+        "username",
+        "groups",
+        "account",
+        "serviceName",
+        "namespace",
+        "noDuplicateARNs"
+      ],
+      "additionalProperties": false,
+      "description": "contains IAM accounts, users, roles and services that will be added to the aws-auth configmap to enable access to the cluster",
+      "x-intellij-html-description": "contains IAM accounts, users, roles and services that will be added to the aws-auth configmap to enable access to the cluster"
+    },
     "IdentityProvider": {
       "required": [
         "type"
@@ -913,8 +967,8 @@
         "defaultInstanceProfile"
       ],
       "additionalProperties": false,
-      "description": "provides configuration opti",
-      "x-intellij-html-description": "provides configuration opti"
+      "description": "provides configuration options",
+      "x-intellij-html-description": "provides configuration options"
     },
     "KubernetesNetworkConfig": {
       "properties": {
@@ -1100,6 +1154,11 @@
         "name": {
           "type": "string"
         },
+        "outpostARN": {
+          "type": "string",
+          "description": "specifies the Outpost ARN in which the nodegroup should be created.",
+          "x-intellij-html-description": "specifies the Outpost ARN in which the nodegroup should be created."
+        },
         "overrideBootstrapCommand": {
           "type": "string",
           "description": "Override `eksctl`'s bootstrapping script",
@@ -1253,6 +1312,7 @@
         "bottlerocket",
         "enableDetailedMonitoring",
         "capacityReservation",
+        "outpostARN",
         "instanceTypes",
         "spot",
         "taints",
@@ -1467,6 +1527,11 @@
         "name": {
           "type": "string"
         },
+        "outpostARN": {
+          "type": "string",
+          "description": "specifies the Outpost ARN in which the nodegroup should be created.",
+          "x-intellij-html-description": "specifies the Outpost ARN in which the nodegroup should be created."
+        },
         "overrideBootstrapCommand": {
           "type": "string",
           "description": "Override `eksctl`'s bootstrapping script",
@@ -1614,6 +1679,7 @@
         "bottlerocket",
         "enableDetailedMonitoring",
         "capacityReservation",
+        "outpostARN",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",
@@ -2001,6 +2067,27 @@
       "additionalProperties": false,
       "description": "holds the spec of an OIDC provider to use for EKS authzn",
       "x-intellij-html-description": "holds the spec of an OIDC provider to use for EKS authzn"
+    },
+    "Outpost": {
+      "properties": {
+        "controlPlaneInstanceType": {
+          "type": "string",
+          "description": "specifies the instance type to use for creating the control plane instances.",
+          "x-intellij-html-description": "specifies the instance type to use for creating the control plane instances."
+        },
+        "controlPlaneOutpostARN": {
+          "type": "string",
+          "description": "specifies the Outpost ARN in which the control plane should be created.",
+          "x-intellij-html-description": "specifies the Outpost ARN in which the control plane should be created."
+        }
+      },
+      "preferredOrder": [
+        "controlPlaneOutpostARN",
+        "controlPlaneInstanceType"
+      ],
+      "additionalProperties": false,
+      "description": "holds the Outpost configuration.",
+      "x-intellij-html-description": "holds the Outpost configuration."
     },
     "Placement": {
       "properties": {

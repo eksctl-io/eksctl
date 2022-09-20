@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -37,7 +36,8 @@ func (c *ClusterProvider) DescribeControlPlane(ctx context.Context, meta *api.Cl
 // it parses the credentials (endpoint, CA certificate) and stores them in ClusterConfig.Status,
 // so that a Kubernetes client can be constructed; additionally it caches Kubernetes
 // version (use ctl.ControlPlaneVersion to retrieve it) and other properties in
-// c.Status.cachedClusterInfo
+// c.Status.cachedClusterInfo.
+// It also updates ClusterConfig to reflect the current cluster state.
 func (c *ClusterProvider) RefreshClusterStatus(ctx context.Context, spec *api.ClusterConfig) error {
 	cluster, err := c.DescribeControlPlane(ctx, spec.Metadata)
 	if err != nil {
@@ -62,7 +62,7 @@ func (c *ClusterProvider) RefreshClusterStatus(ctx context.Context, spec *api.Cl
 	case ekstypes.ClusterStatusCreating, ekstypes.ClusterStatusDeleting, ekstypes.ClusterStatusFailed:
 		return nil
 	default:
-		return spec.SetClusterStatus(cluster)
+		return spec.SetClusterState(cluster)
 	}
 }
 
@@ -188,32 +188,9 @@ func sharedTags(cluster *ekstypes.Cluster) map[string]string {
 
 }
 
-// LoadClusterVPC loads the VPC configuration
-func (c *ClusterProvider) LoadClusterVPC(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
-	stack, err := stackManager.DescribeClusterStack(ctx)
-	if err != nil {
-		return err
-	}
-	if stack == nil {
-		return &manager.StackNotFoundErr{ClusterName: spec.Metadata.Name}
-	}
-
+// LoadClusterVPC loads the VPC configuration.
+func (c *ClusterProvider) LoadClusterVPC(ctx context.Context, spec *api.ClusterConfig, stack *manager.Stack) error {
 	return vpc.UseFromClusterStack(ctx, c.AWSProvider, stack, spec)
-}
-
-// loadClusterKubernetesNetworkConfig gets the network config of an existing
-// cluster, note status must be refreshed!
-func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterConfig) error {
-	if spec.Status == nil {
-		return errors.New("cluster hasn't been refreshed")
-	}
-	knCfg := c.Status.ClusterInfo.Cluster.KubernetesNetworkConfig
-	if knCfg != nil {
-		spec.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
-			ServiceIPv4CIDR: aws.ToString(knCfg.ServiceIpv4Cidr),
-		}
-	}
-	return nil
 }
 
 // GetCluster display details of an EKS cluster in your account

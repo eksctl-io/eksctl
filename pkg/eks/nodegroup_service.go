@@ -15,70 +15,83 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/outposts"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
 // MaxInstanceTypes is the maximum number of instance types you can specify in
-// a CloudFormation template
+// a CloudFormation template.
 const maxInstanceTypes = 40
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 //counterfeiter:generate -o fakes/fake_instance_selector.go . InstanceSelector
-// InstanceSelector selects a set of instance types matching the specified instance selector criteria
+// InstanceSelector selects a set of instance types matching the specified instance selector criteria.
 type InstanceSelector interface {
-	// Filter returns a set of instance types matching the specified instance selector filters
+	// Filter returns a set of instance types matching the specified instance selector filters.
 	Filter(selector.Filters) ([]string, error)
 }
 
-// A NodeGroupService provides helpers for nodegroup creation
+// A NodeGroupService provides helpers for nodegroup creation.
 type NodeGroupService struct {
-	Provider         api.ClusterProvider
+	provider         api.ClusterProvider
 	instanceSelector InstanceSelector
+	outpostsService  *outposts.Service
 }
 
-// NewNodeGroupService creates a new NodeGroupService
-func NewNodeGroupService(provider api.ClusterProvider, instanceSelector InstanceSelector) *NodeGroupService {
+// NewNodeGroupService creates a new NodeGroupService.
+func NewNodeGroupService(provider api.ClusterProvider, instanceSelector InstanceSelector, outpostsService *outposts.Service) *NodeGroupService {
 	return &NodeGroupService{
-		Provider:         provider,
+		provider:         provider,
 		instanceSelector: instanceSelector,
+		outpostsService:  outpostsService,
 	}
 }
 
 const defaultCPUArch = "x86_64"
 
-// NewAWSSelectorSession returns a new instance of Selector provided an aws session
-func (m *NodeGroupService) NewAWSSelectorSession(provider api.ClusterProvider) {
-	m.instanceSelector = selector.New(provider.Session())
-}
-
-// Normalize normalizes nodegroups
-func (m *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error {
+// Normalize normalizes nodegroups.
+func (n *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePool, clusterConfig *api.ClusterConfig) error {
 	for _, np := range nodePools {
 		switch ng := np.(type) {
 		case *api.ManagedNodeGroup:
+			if ng.LaunchTemplate == nil && ng.InstanceType == "" && len(ng.InstanceTypes) == 0 && ng.InstanceSelector.IsZero() {
+				ng.InstanceType = api.DefaultNodeType
+			}
 			hasNativeAMIFamilySupport := ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 || ng.AMIFamily == api.NodeImageFamilyBottlerocket
 			if !hasNativeAMIFamilySupport && !api.IsAMI(ng.AMI) {
-				if err := ResolveAMI(ctx, m.Provider, clusterMeta.Version, np); err != nil {
+				if err := ResolveAMI(ctx, n.provider, clusterConfig.Metadata.Version, np); err != nil {
 					return err
 				}
 			}
 
 		case *api.NodeGroup:
 			if !api.IsAMI(ng.AMI) {
-				if err := ResolveAMI(ctx, m.Provider, clusterMeta.Version, ng); err != nil {
+				if err := ResolveAMI(ctx, n.provider, clusterConfig.Metadata.Version, ng); err != nil {
 					return err
+				}
+			}
+
+			if clusterConfig.IsControlPlaneOnOutposts() || ng.OutpostARN != "" {
+				if err := n.outpostsService.SetOrValidateOutpostInstanceType(ctx, ng); err != nil {
+					return fmt.Errorf("error setting or validating instance type for nodegroup %q: %w", ng.Name, err)
+				}
+			} else if ng.InstanceType == "" {
+				if api.HasMixedInstances(ng) || !ng.InstanceSelector.IsZero() {
+					ng.InstanceType = "mixed"
+				} else {
+					ng.InstanceType = api.DefaultNodeType
 				}
 			}
 		}
 
 		ng := np.BaseNodeGroup()
 		// resolve AMI
-		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, clusterMeta.Version)
+		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, clusterConfig.Metadata.Version)
 
 		if ng.AMI != "" {
-			if err := ami.Use(ctx, m.Provider.EC2(), ng); err != nil {
+			if err := ami.Use(ctx, n.provider.EC2(), ng); err != nil {
 				return err
 			}
 		}
@@ -86,7 +99,7 @@ func (m *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 		// fingerprint, so if unique keys are provided, each will get
 		// loaded and used as intended and there is no need to have
 		// nodegroup name in the key name
-		publicKeyName, err := ssh.LoadKey(ctx, ng.SSH, clusterMeta.Name, ng.Name, m.Provider.EC2())
+		publicKeyName, err := ssh.LoadKey(ctx, ng.SSH, clusterConfig.Metadata.Name, ng.Name, n.provider.EC2())
 		if err != nil {
 			return err
 		}
@@ -97,8 +110,8 @@ func (m *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 	return nil
 }
 
-// ExpandInstanceSelectorOptions sets instance types to instances matched by the instance selector criteria
-func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error {
+// ExpandInstanceSelectorOptions sets instance types to instances matched by the instance selector criteria.
+func (n *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error {
 	instanceTypesMatch := func(a, b []string) bool {
 		return reflect.DeepEqual(a, b)
 	}
@@ -117,7 +130,7 @@ func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 		if len(baseNG.AvailabilityZones) != 0 {
 			azs = baseNG.AvailabilityZones
 		}
-		instanceTypes, err := m.expandInstanceSelector(baseNG.InstanceSelector, azs)
+		instanceTypes, err := n.expandInstanceSelector(baseNG.InstanceSelector, azs)
 		if err != nil {
 			return errors.Wrapf(err, "error expanding instance selector options for nodegroup %q", baseNG.Name)
 		}
@@ -155,7 +168,7 @@ func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 	return nil
 }
 
-func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs []string) ([]string, error) {
+func (n *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs []string) ([]string, error) {
 	makeRange := func(val int) *selector.IntRangeFilter {
 		return &selector.IntRangeFilter{
 			LowerBound: val,
@@ -189,7 +202,7 @@ func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	}
 	filters.CPUArchitecture = aws.String(cpuArch)
 
-	instanceTypes, err := m.instanceSelector.Filter(filters)
+	instanceTypes, err := n.instanceSelector.Filter(filters)
 	if err != nil {
 		return nil, errors.Wrap(err, "error querying instance types for the specified instance selector criteria")
 	}
@@ -218,7 +231,7 @@ func DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) err
 }
 
 // ValidateExistingNodeGroupsForCompatibility looks at each of the existing nodegroups and
-// validates configuration, if it find issues it logs messages
+// validates configuration, if it find issues it logs messages.
 func ValidateExistingNodeGroupsForCompatibility(ctx context.Context, cfg *api.ClusterConfig, stackManager manager.StackManager) error {
 	infoByNodeGroup, err := stackManager.DescribeNodeGroupStacksAndResources(ctx)
 	if err != nil {
