@@ -13,11 +13,10 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
-	"github.com/weaveworks/eksctl/pkg/utils/names"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
 )
 
 type nodegroupOptions struct {
@@ -54,7 +53,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		ctx := context.Background()
 		ctl, err := cmd.NewProviderForExistingCluster(ctx)
 		if err != nil {
-			return errors.Wrap(err, "couldn't create cluster provider from options")
+			return fmt.Errorf("could not create cluster provider from options: %w", err)
 		}
 
 		if ok, err := ctl.CanOperate(cmd.ClusterConfig); !ok {

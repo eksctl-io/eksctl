@@ -41,7 +41,7 @@ var _ = Describe("Cluster Template Builder", func() {
 	})
 
 	JustBeforeEach(func() {
-		crs = builder.NewClusterResourceSet(provider.EC2(), provider.Region(), cfg, existingStack)
+		crs = builder.NewClusterResourceSet(provider.EC2(), provider.Region(), cfg, existingStack, false)
 	})
 
 	Describe("AddAllResources", func() {
@@ -280,8 +280,7 @@ var _ = Describe("Cluster Template Builder", func() {
 
 		It("should add the correct policies and references to the ServiceRole ARN", func() {
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(HaveLen(2))
-			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns[0]).To(Equal(makePolicyARNRef("AmazonEKSClusterPolicy")))
-			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns[1]).To(Equal(makePolicyARNRef("AmazonEKSVPCResourceController")))
+			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(ContainElements(makePolicyARNRef("AmazonEKSClusterPolicy"), makePolicyARNRef("AmazonEKSVPCResourceController")))
 
 			cwPolicy := clusterTemplate.Resources["PolicyCloudWatchMetrics"].Properties
 			Expect(isRefTo(cwPolicy.Roles[0], "ServiceRole")).To(BeTrue())
@@ -577,7 +576,20 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 
 			It("should fail", func() {
-				Expect(addErr).To(MatchError(ContainSubstring("insufficient number of subnets")))
+				Expect(addErr).To(MatchError(HaveSuffix("insufficient number of subnets, at least 2x public and/or 2x private subnets are required")))
+			})
+		})
+
+		Context("[Outposts] when the spec has insufficient subnets", func() {
+			BeforeEach(func() {
+				cfg.VPC.Subnets = &api.ClusterSubnets{}
+				cfg.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+			})
+
+			It("should fail", func() {
+				Expect(addErr).To(MatchError(HaveSuffix("insufficient number of subnets, at least 1x public and/or 1x private subnets are required for Outposts")))
 			})
 		})
 

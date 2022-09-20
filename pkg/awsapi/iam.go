@@ -944,14 +944,15 @@ type IAM interface {
 	// Returns information about the access key IDs associated with the specified IAM
 	// user. If there is none, the operation returns an empty list. Although each user
 	// is limited to a small number of keys, you can still paginate the results using
-	// the MaxItems and Marker parameters. If the UserName field is not specified, the
-	// user name is determined implicitly based on the Amazon Web Services access key
-	// ID used to sign the request. This operation works for access keys under the
-	// Amazon Web Services account. Consequently, you can use this operation to manage
-	// Amazon Web Services account root user credentials even if the Amazon Web
-	// Services account has no associated users. To ensure the security of your Amazon
-	// Web Services account, the secret access key is accessible only during key and
-	// user creation.
+	// the MaxItems and Marker parameters. If the UserName is not specified, the user
+	// name is determined implicitly based on the Amazon Web Services access key ID
+	// used to sign the request. If a temporary access key is used, then UserName is
+	// required. If a long-term key is assigned to the user, then UserName is not
+	// required. This operation works for access keys under the Amazon Web Services
+	// account. Consequently, you can use this operation to manage Amazon Web Services
+	// account root user credentials even if the Amazon Web Services account has no
+	// associated users. To ensure the security of your Amazon Web Services account,
+	// the secret access key is accessible only during key and user creation.
 	ListAccessKeys(ctx context.Context, params *ListAccessKeysInput, optFns ...func(*Options)) (*ListAccessKeysOutput, error)
 	// Lists the account alias associated with the Amazon Web Services account (Note:
 	// you can have only one). For information about using an Amazon Web Services
@@ -1736,11 +1737,12 @@ type IAM interface {
 	// versa. This operation can be used to disable a user's key as part of a key
 	// rotation workflow. If the UserName is not specified, the user name is determined
 	// implicitly based on the Amazon Web Services access key ID used to sign the
-	// request. This operation works for access keys under the Amazon Web Services
-	// account. Consequently, you can use this operation to manage Amazon Web Services
-	// account root user credentials even if the Amazon Web Services account has no
-	// associated users. For information about rotating keys, see Managing keys and
-	// certificates
+	// request. If a temporary access key is used, then UserName is required. If a
+	// long-term key is assigned to the user, then UserName is not required. This
+	// operation works for access keys under the Amazon Web Services account.
+	// Consequently, you can use this operation to manage Amazon Web Services account
+	// root user credentials even if the Amazon Web Services account has no associated
+	// users. For information about rotating keys, see Managing keys and certificates
 	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/ManagingCredentials.html) in
 	// the IAM User Guide.
 	UpdateAccessKey(ctx context.Context, params *UpdateAccessKeyInput, optFns ...func(*Options)) (*UpdateAccessKeyOutput, error)

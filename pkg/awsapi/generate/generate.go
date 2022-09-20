@@ -10,3 +10,4 @@ package generate
 //go:generate ../../../build/scripts/generate-aws-interfaces.sh ssm SSM
 //go:generate ../../../build/scripts/generate-aws-interfaces.sh iam IAM
 //go:generate ../../../build/scripts/generate-aws-interfaces.sh eks EKS
+//go:generate ../../../build/scripts/generate-aws-interfaces.sh outposts Outposts

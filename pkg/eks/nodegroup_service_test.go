@@ -1,227 +1,338 @@
 package eks_test
 
 import (
-	"github.com/aws/aws-sdk-go-v2/aws"
-	. "github.com/onsi/ginkgo/v2"
+	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	awsoutposts "github.com/aws/aws-sdk-go-v2/service/outposts"
+	outpoststypes "github.com/aws/aws-sdk-go-v2/service/outposts/types"
+
+	"github.com/stretchr/testify/mock"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/eks/fakes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/outposts"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/utils/nodes"
 )
 
-type instanceSelectorCase struct {
-	nodeGroups                 []api.NodePool
-	instanceSelectorValue      *api.InstanceSelector
-	createFakeInstanceSelector func() *fakes.FakeInstanceSelector
-	expectedInstanceTypes      []string
-	clusterAZs                 []string
-	expectedErr                string
-	expectedAZs                []string
+type normalizeEntry struct {
+	clusterConfig         *api.ClusterConfig
+	expectedInstanceTypes []string
+
+	expectedCallsCount callsCount
+	expectedErr        string
 }
 
-var _ = Describe("Instance Selector", func() {
-	makeInstanceSelector := func(instanceTypes ...string) func() *fakes.FakeInstanceSelector {
-		return func() *fakes.FakeInstanceSelector {
-			s := &fakes.FakeInstanceSelector{}
-			s.FilterReturns(instanceTypes, nil)
-			return s
-		}
-	}
+type callsCount struct {
+	getOutpostInstanceTypes int
+	describeInstanceTypes   int
+}
 
-	DescribeTable("Expand instance selector options", func(isc instanceSelectorCase) {
-		for _, np := range isc.nodeGroups {
-			np.BaseNodeGroup().InstanceSelector = isc.instanceSelectorValue
+var _ = Describe("NodeGroupService", func() {
+	DescribeTable("Normalize nodegroup", func(ne normalizeEntry) {
+		provider := mockprovider.NewMockProvider()
+		var outpostsService *outposts.Service
+		if ne.clusterConfig.IsControlPlaneOnOutposts() {
+			mockOutpostInstanceTypes(provider)
+			outpostsService = &outposts.Service{
+				EC2API:      provider.EC2(),
+				OutpostsAPI: provider.Outposts(),
+				OutpostID:   "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+			}
 		}
-		instanceSelectorFake := isc.createFakeInstanceSelector()
-		nodeGroupService := eks.NewNodeGroupService(nil, instanceSelectorFake)
-		err := nodeGroupService.ExpandInstanceSelectorOptions(isc.nodeGroups, isc.clusterAZs)
-		if isc.expectedErr != "" {
-			Expect(err.Error()).To(ContainSubstring(isc.expectedErr))
+		provider.MockEC2().On("DescribeImages", mock.Anything, &ec2.DescribeImagesInput{
+			ImageIds: []string{"ami-test"},
+		}).Return(&ec2.DescribeImagesOutput{
+			Images: []ec2types.Image{
+				{
+					ImageId: aws.String("ami-test"),
+				},
+			},
+		}, nil)
+
+		nodeGroupService := eks.NewNodeGroupService(provider, nil, outpostsService)
+		nodePools := nodes.ToNodePools(ne.clusterConfig)
+		err := nodeGroupService.Normalize(context.Background(), nodePools, ne.clusterConfig)
+		provider.MockOutposts().AssertNumberOfCalls(GinkgoT(), "GetOutpostInstanceTypes", ne.expectedCallsCount.getOutpostInstanceTypes)
+		provider.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeInstanceTypes", ne.expectedCallsCount.describeInstanceTypes)
+		if ne.expectedErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(ne.expectedErr)))
 			return
-		}
-		Expect(instanceSelectorFake.FilterCallCount()).To(Equal(len(isc.nodeGroups)))
-
-		for i := range isc.nodeGroups {
-			Expect(*instanceSelectorFake.FilterArgsForCall(i).AvailabilityZones).To(Equal(isc.expectedAZs))
 		}
 
 		Expect(err).NotTo(HaveOccurred())
-		for _, np := range isc.nodeGroups {
-			switch ng := np.(type) {
-			case *api.NodeGroup:
-				if len(isc.expectedInstanceTypes) > 0 {
-					Expect(ng.InstancesDistribution.InstanceTypes).To(Equal(isc.expectedInstanceTypes))
-				} else {
-					Expect(ng.InstancesDistribution == nil || len(ng.InstancesDistribution.InstanceTypes) == 0).To(BeTrue())
-				}
-
-			case *api.ManagedNodeGroup:
-				Expect(ng.InstanceTypes).To(Equal(isc.expectedInstanceTypes))
-
-			default:
-				panic("unreachable code")
-			}
+		var actualInstanceTypes []string
+		for _, ng := range nodePools {
+			actualInstanceTypes = append(actualInstanceTypes, ng.BaseNodeGroup().InstanceType)
 		}
+
+		Expect(actualInstanceTypes).To(Equal(ne.expectedInstanceTypes))
 	},
 
-		Entry("valid instance selector criteria", instanceSelectorCase{
-			nodeGroups: []api.NodePool{
-				&api.NodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
+		Entry("[Outposts] nodeGroup.instanceType should be set to the smallest available instance type", normalizeEntry{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
 				},
-				&api.ManagedNodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
+				Outpost: &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 				},
-			},
-			instanceSelectorValue: &api.InstanceSelector{
-				VCPUs:           1,
-				CPUArchitecture: "x86_64",
-			},
-			createFakeInstanceSelector: makeInstanceSelector("t2.medium"),
-			expectedInstanceTypes:      []string{"t2.medium"},
-			clusterAZs:                 []string{"az1", "az2"},
-			expectedAZs:                []string{"az1", "az2"},
-		}),
-
-		Entry("valid instance selector criteria with ng-specific AZs", instanceSelectorCase{
-			nodeGroups: []api.NodePool{
-				&api.NodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{
-						AvailabilityZones: []string{"az3", "az4"},
+				NodeGroups: []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							AMI: "ami-test",
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+						},
 					},
-				},
-				&api.ManagedNodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{
-						AvailabilityZones: []string{"az3", "az4"},
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							AMI:          "ami-test",
+							InstanceType: "m5a.16xlarge",
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+						},
 					},
-				},
-			},
-			instanceSelectorValue: &api.InstanceSelector{
-				VCPUs:           1,
-				CPUArchitecture: "x86_64",
-			},
-			createFakeInstanceSelector: makeInstanceSelector("t2.medium"),
-			expectedInstanceTypes:      []string{"t2.medium"},
-			clusterAZs:                 []string{"az1", "az2"},
-			expectedAZs:                []string{"az3", "az4"},
-		}),
-
-		Entry("no matching instances", instanceSelectorCase{
-			nodeGroups: []api.NodePool{
-				&api.NodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
-				},
-				&api.ManagedNodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
-				},
-			},
-			instanceSelectorValue: &api.InstanceSelector{
-				VCPUs:  1000,
-				Memory: "400GiB",
-			},
-			createFakeInstanceSelector: makeInstanceSelector(),
-			expectedErr:                "instance selector criteria matched no instances",
-		}),
-
-		Entry("too many matching instances", instanceSelectorCase{
-			nodeGroups: []api.NodePool{
-				&api.NodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
-				},
-				&api.ManagedNodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
-				},
-			},
-			instanceSelectorValue: &api.InstanceSelector{
-				CPUArchitecture: "arm64",
-			},
-			createFakeInstanceSelector: makeInstanceSelector(tooManyTypes()...),
-			expectedErr:                "instance selector filters resulted in 41 instance types, which is greater than the maximum of 40, please set more selector options",
-		}),
-
-		Entry("nodeGroup with instancesDistribution set", instanceSelectorCase{
-			nodeGroups: []api.NodePool{
-				&api.NodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
-					InstancesDistribution: &api.NodeGroupInstancesDistribution{
-						SpotInstancePools: aws.Int(4),
-					},
-				},
-				&api.ManagedNodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
-				},
-			},
-			instanceSelectorValue: &api.InstanceSelector{
-				VCPUs:  2,
-				Memory: "4",
-			},
-			createFakeInstanceSelector: makeInstanceSelector("m5.large", "m5.xlarge"),
-			expectedInstanceTypes:      []string{"m5.large", "m5.xlarge"},
-		}),
-
-		Entry("mismatching instanceTypes and instance selector criteria for unmanaged nodegroup", instanceSelectorCase{
-			nodeGroups: []api.NodePool{
-				&api.NodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
-					InstancesDistribution: &api.NodeGroupInstancesDistribution{
-						SpotInstancePools: aws.Int(4),
-						InstanceTypes:     []string{"c3.large", "c4.large"},
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							AMI: "ami-test",
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+						},
 					},
 				},
 			},
-			instanceSelectorValue: &api.InstanceSelector{
-				VCPUs:  2,
-				Memory: "4",
+
+			expectedInstanceTypes: []string{"m5a.large", "m5a.16xlarge", "m5a.large"},
+			expectedCallsCount: callsCount{
+				getOutpostInstanceTypes: 1,
+				describeInstanceTypes:   1,
 			},
-			createFakeInstanceSelector: makeInstanceSelector("c3.large", "c4.xlarge", "c5.large"),
-			expectedErr:                "instance types matched by instance selector criteria do not match",
 		}),
 
-		Entry("mismatching instanceTypes and instance selector criteria for managed nodegroup", instanceSelectorCase{
-			nodeGroups: []api.NodePool{
-				&api.ManagedNodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
-					InstanceTypes: []string{"c3.large", "c4.large"},
+		Entry("[Outposts] unavailable instance type should return an error", normalizeEntry{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
 				},
-			},
-			instanceSelectorValue: &api.InstanceSelector{
-				VCPUs:  2,
-				Memory: "4",
-			},
-			createFakeInstanceSelector: makeInstanceSelector("c3.large", "c4.xlarge", "c5.large"),
-			expectedErr:                "instance types matched by instance selector criteria do not match",
-		}),
-
-		Entry("matching instanceTypes and instance selector criteria", instanceSelectorCase{
-			nodeGroups: []api.NodePool{
-				&api.ManagedNodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
-					InstanceTypes: []string{"c3.large", "c4.large", "c5.large"},
+				Outpost: &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 				},
-				&api.NodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
-					InstancesDistribution: &api.NodeGroupInstancesDistribution{
-						SpotInstancePools: aws.Int(4),
-						InstanceTypes:     []string{"c3.large", "c4.large", "c5.large"},
+				NodeGroups: []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							AMI: "ami-test",
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+							InstanceType: "t2.medium",
+						},
 					},
 				},
 			},
-			instanceSelectorValue: &api.InstanceSelector{
-				VCPUs:  2,
-				Memory: "4",
+			expectedErr: `instance type "t2.medium" does not exist in Outpost`,
+			expectedCallsCount: callsCount{
+				getOutpostInstanceTypes: 1,
 			},
-			createFakeInstanceSelector: makeInstanceSelector("c3.large", "c4.large", "c5.large"),
-			expectedInstanceTypes:      []string{"c3.large", "c4.large", "c5.large"},
+		}),
+
+		Entry("[Outposts] available instance type should not return an error", normalizeEntry{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
+				},
+				Outpost: &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				},
+				NodeGroups: []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							AMI: "ami-test",
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+							InstanceType: "m5a.large",
+						},
+					},
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							AMI: "ami-test",
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+							InstanceType: "m5.xlarge",
+						},
+					},
+				},
+			},
+			expectedInstanceTypes: []string{"m5a.large", "m5.xlarge"},
+			expectedCallsCount: callsCount{
+				getOutpostInstanceTypes: 1,
+			},
+		}),
+
+		Entry("instance type should be set to the default instance type", normalizeEntry{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
+				},
+				NodeGroups: []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							AMI: "ami-test",
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+							InstanceSelector: &api.InstanceSelector{},
+						},
+					},
+				},
+				ManagedNodeGroups: []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							AMI: "ami-test",
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+							InstanceSelector: &api.InstanceSelector{},
+						},
+					},
+				},
+			},
+			expectedInstanceTypes: []string{api.DefaultNodeType, api.DefaultNodeType},
+		}),
+
+		Entry(`instance type should be set to "mixed" when using mixed instance types`, normalizeEntry{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
+				},
+				NodeGroups: []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							AMI: "ami-test",
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+							InstanceSelector: &api.InstanceSelector{},
+						},
+						InstancesDistribution: &api.NodeGroupInstancesDistribution{
+							InstanceTypes: []string{"t2.medium", "t2.large"},
+						},
+					},
+				},
+			},
+			expectedInstanceTypes: []string{"mixed"},
+		}),
+
+		Entry("instance type should be left unset when instanceSelector or launchTemplate is set", normalizeEntry{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
+				},
+				ManagedNodeGroups: []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							AMI: "ami-test",
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+							InstanceSelector: &api.InstanceSelector{
+								VCPUs: 2,
+							},
+						},
+					},
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							AMI: "ami-test",
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+						},
+						LaunchTemplate: &api.LaunchTemplate{
+							ID: "lt-123",
+						},
+					},
+				},
+			},
+			expectedInstanceTypes: []string{"", ""},
 		}),
 	)
 })
 
-func tooManyTypes() []string {
-	instances := make([]string, 41)
-	for i := range instances {
-		instances[i] = "c3.large"
+func mockOutpostInstanceTypes(provider *mockprovider.MockProvider) {
+	instanceTypeInfoList := []ec2types.InstanceTypeInfo{
+		{
+			InstanceType: "m5a.12xlarge",
+			VCpuInfo: &ec2types.VCpuInfo{
+				DefaultVCpus:          aws.Int32(48),
+				DefaultCores:          aws.Int32(24),
+				DefaultThreadsPerCore: aws.Int32(2),
+			},
+			MemoryInfo: &ec2types.MemoryInfo{
+				SizeInMiB: aws.Int64(196608),
+			},
+		},
+		{
+			InstanceType: "m5a.large",
+			VCpuInfo: &ec2types.VCpuInfo{
+				DefaultVCpus:          aws.Int32(2),
+				DefaultCores:          aws.Int32(1),
+				DefaultThreadsPerCore: aws.Int32(2),
+			},
+			MemoryInfo: &ec2types.MemoryInfo{
+				SizeInMiB: aws.Int64(196608),
+			},
+		},
+		{
+			InstanceType: "m5.xlarge",
+			VCpuInfo: &ec2types.VCpuInfo{
+				DefaultVCpus:          aws.Int32(4),
+				DefaultCores:          aws.Int32(2),
+				DefaultThreadsPerCore: aws.Int32(2),
+			},
+			MemoryInfo: &ec2types.MemoryInfo{
+				SizeInMiB: aws.Int64(16384),
+			},
+		},
+		{
+			InstanceType: "m5a.16xlarge",
+			VCpuInfo: &ec2types.VCpuInfo{
+				DefaultVCpus:          aws.Int32(64),
+				DefaultCores:          aws.Int32(32),
+				DefaultThreadsPerCore: aws.Int32(2),
+			},
+			MemoryInfo: &ec2types.MemoryInfo{
+				SizeInMiB: aws.Int64(262144),
+			},
+		},
 	}
-	return instances
+
+	instanceTypeItems := make([]outpoststypes.InstanceTypeItem, len(instanceTypeInfoList))
+	instanceTypes := make([]ec2types.InstanceType, len(instanceTypeInfoList))
+	for i, it := range instanceTypeInfoList {
+		instanceTypeItems[i] = outpoststypes.InstanceTypeItem{
+			InstanceType: aws.String(string(it.InstanceType)),
+		}
+		instanceTypes[i] = it.InstanceType
+	}
+
+	provider.MockOutposts().On("GetOutpostInstanceTypes", mock.Anything, mock.Anything).Return(&awsoutposts.GetOutpostInstanceTypesOutput{
+		InstanceTypes: instanceTypeItems,
+	}, nil)
+
+	provider.MockEC2().On("DescribeInstanceTypes", mock.Anything, &ec2.DescribeInstanceTypesInput{
+		InstanceTypes: instanceTypes,
+	}).Return(&ec2.DescribeInstanceTypesOutput{
+		InstanceTypes: instanceTypeInfoList,
+	}, nil)
 }

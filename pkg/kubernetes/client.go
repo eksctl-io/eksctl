@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/blang/semver"
@@ -90,6 +91,16 @@ type RawResource struct {
 	GVK    *schema.GroupVersionKind
 }
 
+// APIServerUnreachableError represents an error reaching the API server.
+type APIServerUnreachableError struct {
+	Err error
+}
+
+// Error implements the error interface.
+func (ae *APIServerUnreachableError) Error() string {
+	return ae.Err.Error()
+}
+
 // NewRawClient creates a new raw REST client
 func NewRawClient(clientSet Interface, config *restclient.Config) (*RawClient, error) {
 	c := &RawClient{
@@ -103,6 +114,12 @@ func NewRawClient(clientSet Interface, config *restclient.Config) (*RawClient, e
 func (c *RawClient) new() (*RawClient, error) {
 	apiGroupResources, err := restmapper.GetAPIGroupResources(c.ClientSet().Discovery())
 	if err != nil {
+		var netErr net.Error
+		if errors.As(err, &netErr) {
+			return nil, &APIServerUnreachableError{
+				Err: err,
+			}
+		}
 		return nil, errors.Wrap(err, "getting list of API resources for raw REST client")
 	}
 

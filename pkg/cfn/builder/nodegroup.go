@@ -336,7 +336,7 @@ func AssignSubnets(ctx context.Context, np api.NodePool, vpcImporter vpc.Importe
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 
 	ng := np.BaseNodeGroup()
-	if nodeGroup, ok := np.(*api.NodeGroup); (!ok || len(nodeGroup.LocalZones) == 0) && len(ng.AvailabilityZones) == 0 && len(ng.Subnets) == 0 {
+	if nodeGroup, ok := np.(*api.NodeGroup); (!ok || len(nodeGroup.LocalZones) == 0) && len(ng.AvailabilityZones) == 0 && len(ng.Subnets) == 0 && (ng.OutpostARN == "" || clusterConfig.IsControlPlaneOnOutposts()) {
 		if ng.PrivateNetworking {
 			return vpcImporter.SubnetsPrivate(), nil
 		}

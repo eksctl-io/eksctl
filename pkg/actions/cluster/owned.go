@@ -2,12 +2,12 @@ package cluster
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -45,7 +45,7 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterSt
 
 func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
 	if err := vpc.UseFromClusterStack(ctx, c.ctl.AWSProvider, c.clusterStack, c.cfg); err != nil {
-		return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
+		return fmt.Errorf("getting VPC configuration for cluster %q: %w", c.cfg.Metadata.Name, err)
 	}
 
 	versionUpdateRequired, err := upgrade(ctx, c.cfg, c.ctl, dryRun)
@@ -53,7 +53,7 @@ func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
 		return err
 	}
 
-	stackUpdateRequired, err := c.stackManager.AppendNewClusterStackResource(ctx, dryRun)
+	stackUpdateRequired, err := c.stackManager.AppendNewClusterStackResource(ctx, false, dryRun)
 	if err != nil {
 		return err
 	}
@@ -91,8 +91,8 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 		}
 
 		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
-		if err := drainAllNodeGroups(ctx, c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
-			attemptVpcCniDeletion(ctx, clusterName, ctl, clientSet)
+		if err := drainAllNodeGroups(ctx, c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, func(clusterConfig *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+			attemptVpcCniDeletion(ctx, clusterConfig, ctl, clientSet)
 		}, podEvictionWaitPeriod); err != nil {
 			if !force {
 				return err
@@ -117,8 +117,12 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 	}
 	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, clusterOperable, newOIDCManager, c.ctl.Status.ClusterInfo.Cluster, kubernetes.NewCachedClientSet(clientSet), wait, force, func(errs chan error, _ string) error {
 		logger.Info("trying to cleanup dangling network interfaces")
-		if err := c.ctl.LoadClusterVPC(ctx, c.cfg, c.stackManager); err != nil {
-			return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
+		stack, err := c.stackManager.DescribeClusterStack(ctx)
+		if err != nil {
+			return fmt.Errorf("error describing cluster stack: %w", err)
+		}
+		if err := c.ctl.LoadClusterVPC(ctx, c.cfg, stack); err != nil {
+			return fmt.Errorf("getting VPC configuration for cluster %q: %w", c.cfg.Metadata.Name, err)
 		}
 
 		go func() {
