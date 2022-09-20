@@ -73,11 +73,11 @@ func (k *Wrapper) UseVPC(ctx context.Context, ec2API awsapi.EC2, spec *api.Clust
 		}
 	}
 
-	if err := vpc.ImportSubnets(ctx, ec2API, spec, spec.VPC.Subnets.Private, privateSubnets); err != nil {
+	if err := vpc.ImportSubnets(ctx, ec2API, spec, spec.VPC.Subnets.Private, privateSubnets, nil); err != nil {
 		return err
 	}
 
-	if err := vpc.ImportSubnets(ctx, ec2API, spec, spec.VPC.Subnets.Public, publicSubnets); err != nil {
+	if err := vpc.ImportSubnets(ctx, ec2API, spec, spec.VPC.Subnets.Public, publicSubnets, nil); err != nil {
 		return err
 	}
 

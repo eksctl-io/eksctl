@@ -24,7 +24,7 @@ type drainerMock struct {
 	mock.Mock
 }
 
-func (d *drainerMock) Drain(ctx context.Context, input *nodegroup.DrainInput) error {
+func (d *drainerMock) Drain(_ context.Context, input *nodegroup.DrainInput) error {
 	args := d.Called(input)
 	return args.Error(0)
 }
@@ -67,7 +67,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 				mockedDrainer := &drainerMock{}
 				mockedDrainer.On("Drain", mockedDrainInput).Return(nil)
 				vpcCniDeleterCalled := 0
-				vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+				vpcCniDeleter := func(_ *api.ClusterConfig, _ *eks.ClusterProvider, _ kubernetes.Interface) {
 					vpcCniDeleterCalled++
 				}
 
@@ -96,7 +96,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 				mockedDrainer := &drainerMock{}
 				mockedDrainer.On("Drain", mockedDrainInput).Return(nil)
 				vpcCniDeleterCalled := 0
-				vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+				vpcCniDeleter := func(_ *api.ClusterConfig, _ *eks.ClusterProvider, _ kubernetes.Interface) {
 					vpcCniDeleterCalled++
 				}
 
@@ -124,7 +124,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 				mockedDrainer := &drainerMock{}
 				mockedDrainer.On("Drain", mockedDrainInput).Return(nil)
 				vpcCniDeleterCalled := 0
-				vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+				vpcCniDeleter := func(_ *api.ClusterConfig, _ *eks.ClusterProvider, _ kubernetes.Interface) {
 					vpcCniDeleterCalled++
 				}
 

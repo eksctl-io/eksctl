@@ -34,7 +34,7 @@ command:
       source /var/lib/cloud/scripts/eksctl/bootstrap.helper.sh
 
       # Note "--node-labels=${NODE_LABELS}" needs the above helper sourced to work, otherwise will have to be defined manually.
-      /etc/eks/bootstrap.sh test-override-11 --container-runtime containerd --kubelet-extra-args "--node-labels=${NODE_LABELS}"
+      /etc/eks/bootstrap.sh ${CLUSTER_NAME} --container-runtime containerd --kubelet-extra-args "--node-labels=${NODE_LABELS}"
 ```
 
 For nodegroups that have no outbound internet access, you'll need to supply `--apiserver-endpoint` and `--b64-cluster-ca`
@@ -47,7 +47,7 @@ to the bootstrap script as follows:
       source /var/lib/cloud/scripts/eksctl/bootstrap.helper.sh
 
       # Note "--node-labels=${NODE_LABELS}" needs the above helper sourced to work, otherwise will have to be defined manually.
-      /etc/eks/bootstrap.sh test-override-11 --container-runtime containerd --kubelet-extra-args "--node-labels=${NODE_LABELS}" \
+      /etc/eks/bootstrap.sh ${CLUSTER_NAME} --container-runtime containerd --kubelet-extra-args "--node-labels=${NODE_LABELS}" \
         --apiserver-endpoint ${API_SERVER_URL} --b64-cluster-ca ${B64_CLUSTER_CA}
 ```
 

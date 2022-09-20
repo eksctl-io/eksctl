@@ -58,7 +58,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		}
 
 		rs := newResourceSet()
-		var vpcResourceSet VPCResourceSet = NewIPv4VPCResourceSet(rs, vc.clusterConfig, provider.EC2())
+		var vpcResourceSet VPCResourceSet = NewIPv4VPCResourceSet(rs, vc.clusterConfig, provider.EC2(), false)
 		if vc.clusterConfig.VPC.ID != "" {
 			vpcResourceSet = NewExistingVPCResourceSet(rs, vc.clusterConfig, provider.EC2())
 		}
