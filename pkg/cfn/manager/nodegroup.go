@@ -61,7 +61,7 @@ func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan err
 
 func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
 	name := c.makeNodeGroupStackName(ng.Name)
-	cluster, err := c.DescribeClusterStack(ctx)
+	cluster, err := c.DescribeClusterStackIfExists(ctx)
 	if err != nil {
 		return err
 	}

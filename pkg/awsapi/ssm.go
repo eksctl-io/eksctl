@@ -583,7 +583,7 @@ type SSM interface {
 	// example, approved for patches, or Failed for associations.
 	//
 	// * Severity: A patch
-	// severity. For example, critical.
+	// severity. For example, Critical.
 	//
 	// * DocumentName: An SSM document name. For
 	// example, AWS-RunPatchBaseline.

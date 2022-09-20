@@ -40,7 +40,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	ekscreds "github.com/weaveworks/eksctl/pkg/credentials"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/nodes"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
@@ -66,10 +66,10 @@ type KubernetesProvider struct {
 //counterfeiter:generate -o fakes/fake_kube_provider.go . KubeProvider
 // KubeProvider is an interface with helper funcs for k8s and EKS that are part of ClusterProvider
 type KubeProvider interface {
-	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)
-	NewStdClientSet(spec *api.ClusterConfig) (*k8sclient.Clientset, error)
+	NewRawClient(clusterInfo kubeconfig.ClusterInfo) (*kubernetes.RawClient, error)
+	NewStdClientSet(clusterInfo kubeconfig.ClusterInfo) (*k8sclient.Clientset, error)
 	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
-	WaitForControlPlane(meta *api.ClusterMeta, clientSet *kubewrapper.RawClient, waitTimeout time.Duration) error
+	WaitForControlPlane(meta *api.ClusterMeta, clientSet *kubernetes.RawClient, waitTimeout time.Duration) error
 }
 
 // ProviderServices stores the used APIs
@@ -542,12 +542,9 @@ func (c *ClusterProvider) NewStackManager(spec *api.ClusterConfig) manager.Stack
 // LoadClusterIntoSpecFromStack uses stack information to load the cluster
 // configuration into the spec
 // At the moment VPC and KubernetesNetworkConfig are respected
-func (c *ClusterProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
-	if err := c.LoadClusterVPC(ctx, spec, stackManager); err != nil {
+func (c *ClusterProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stack *manager.Stack) error {
+	if err := c.LoadClusterVPC(ctx, spec, stack); err != nil {
 		return err
 	}
-	if err := c.RefreshClusterStatus(ctx, spec); err != nil {
-		return err
-	}
-	return c.loadClusterKubernetesNetworkConfig(spec)
+	return c.RefreshClusterStatus(ctx, spec)
 }

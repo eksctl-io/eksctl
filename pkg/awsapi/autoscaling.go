@@ -39,8 +39,8 @@ type ASG interface {
 	// the DescribeLoadBalancerTargetGroups API. To detach the target group from the
 	// Auto Scaling group, call the DetachLoadBalancerTargetGroups API. This operation
 	// is additive and does not detach existing target groups or Classic Load Balancers
-	// from the Auto Scaling group. For more information, see Elastic Load Balancing
-	// and Amazon EC2 Auto Scaling
+	// from the Auto Scaling group. For more information, see Use Elastic Load
+	// Balancing to distribute traffic across the instances in your Auto Scaling group
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-load-balancer.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	AttachLoadBalancerTargetGroups(ctx context.Context, params *AttachLoadBalancerTargetGroupsInput, optFns ...func(*Options)) (*AttachLoadBalancerTargetGroupsOutput, error)
@@ -49,11 +49,11 @@ type ASG interface {
 	// one or more Classic Load Balancers to the specified Auto Scaling group. Amazon
 	// EC2 Auto Scaling registers the running instances with these Classic Load
 	// Balancers. To describe the load balancers for an Auto Scaling group, call the
-	// DescribeLoadBalancers API. To detach the load balancer from the Auto Scaling
+	// DescribeLoadBalancers API. To detach a load balancer from the Auto Scaling
 	// group, call the DetachLoadBalancers API. This operation is additive and does not
 	// detach existing Classic Load Balancers or target groups from the Auto Scaling
-	// group. For more information, see Elastic Load Balancing and Amazon EC2 Auto
-	// Scaling
+	// group. For more information, see Use Elastic Load Balancing to distribute
+	// traffic across the instances in your Auto Scaling group
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-load-balancer.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	AttachLoadBalancers(ctx context.Context, params *AttachLoadBalancersInput, optFns ...func(*Options)) (*AttachLoadBalancersOutput, error)
@@ -107,8 +107,8 @@ type ASG interface {
 	// Auto Scaling group with the specified name and attributes. If you exceed your
 	// maximum limit of Auto Scaling groups, the call fails. To query this limit, call
 	// the DescribeAccountLimits API. For information about updating this limit, see
-	// Amazon EC2 Auto Scaling service quotas
-	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-account-limits.html)
+	// Quotas for Amazon EC2 Auto Scaling
+	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-quotas.html)
 	// in the Amazon EC2 Auto Scaling User Guide. For introductory exercises for
 	// creating an Auto Scaling group, see Getting started with Amazon EC2 Auto Scaling
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/GettingStartedTutorial.html)
@@ -118,16 +118,16 @@ type ASG interface {
 	// Scaling groups
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/AutoScalingGroup.html) in
 	// the Amazon EC2 Auto Scaling User Guide. Every Auto Scaling group has three size
-	// parameters (DesiredCapacity, MaxSize, and MinSize). Usually, you set these sizes
+	// properties (DesiredCapacity, MaxSize, and MinSize). Usually, you set these sizes
 	// based on a specific number of instances. However, if you configure a mixed
 	// instances policy that defines weights for the instance types, you must specify
 	// these sizes with the same units that you use for weighting instances.
 	CreateAutoScalingGroup(ctx context.Context, params *CreateAutoScalingGroupInput, optFns ...func(*Options)) (*CreateAutoScalingGroupOutput, error)
 	// Creates a launch configuration. If you exceed your maximum limit of launch
 	// configurations, the call fails. To query this limit, call the
-	// DescribeAccountLimits API. For information about updating this limit, see Amazon
-	// EC2 Auto Scaling service quotas
-	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-account-limits.html)
+	// DescribeAccountLimits API. For information about updating this limit, see Quotas
+	// for Amazon EC2 Auto Scaling
+	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-quotas.html)
 	// in the Amazon EC2 Auto Scaling User Guide. For more information, see Launch
 	// configurations
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/LaunchConfiguration.html)
@@ -135,9 +135,9 @@ type ASG interface {
 	CreateLaunchConfiguration(ctx context.Context, params *CreateLaunchConfigurationInput, optFns ...func(*Options)) (*CreateLaunchConfigurationOutput, error)
 	// Creates or updates tags for the specified Auto Scaling group. When you specify a
 	// tag with a key that already exists, the operation overwrites the previous tag
-	// definition, and you do not get an error message. For more information, see
-	// Tagging Auto Scaling groups and instances
-	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-tagging.html)
+	// definition, and you do not get an error message. For more information, see Tag
+	// Auto Scaling groups and instances
+	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-tagging.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	CreateOrUpdateTags(ctx context.Context, params *CreateOrUpdateTagsInput, optFns ...func(*Options)) (*CreateOrUpdateTagsOutput, error)
 	// Deletes the specified Auto Scaling group. If the group has instances or scaling
@@ -180,9 +180,9 @@ type ASG interface {
 	// Describes the current Amazon EC2 Auto Scaling resource quotas for your account.
 	// When you establish an Amazon Web Services account, the account has initial
 	// quotas on the maximum number of Auto Scaling groups and launch configurations
-	// that you can create in a given Region. For more information, see Amazon EC2 Auto
-	// Scaling service quotas
-	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-account-limits.html)
+	// that you can create in a given Region. For more information, see Quotas for
+	// Amazon EC2 Auto Scaling
+	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-quotas.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	DescribeAccountLimits(ctx context.Context, params *DescribeAccountLimitsInput, optFns ...func(*Options)) (*DescribeAccountLimitsOutput, error)
 	// Describes the available adjustment types for step scaling and simple scaling
@@ -250,33 +250,34 @@ type ASG interface {
 	DescribeLifecycleHookTypes(ctx context.Context, params *DescribeLifecycleHookTypesInput, optFns ...func(*Options)) (*DescribeLifecycleHookTypesOutput, error)
 	// Gets information about the lifecycle hooks for the specified Auto Scaling group.
 	DescribeLifecycleHooks(ctx context.Context, params *DescribeLifecycleHooksInput, optFns ...func(*Options)) (*DescribeLifecycleHooksOutput, error)
-	// Gets information about the load balancer target groups for the specified Auto
-	// Scaling group. To determine the availability of registered instances, use the
-	// State element in the response. When you attach a target group to an Auto Scaling
-	// group, the initial State value is Adding. The state transitions to Added after
-	// all Auto Scaling instances are registered with the target group. If Elastic Load
-	// Balancing health checks are enabled for the Auto Scaling group, the state
-	// transitions to InService after at least one Auto Scaling instance passes the
-	// health check. When the target group is in the InService state, Amazon EC2 Auto
-	// Scaling can terminate and replace any instances that are reported as unhealthy.
-	// If no registered instances pass the health checks, the target group doesn't
-	// enter the InService state. Target groups also have an InService state if you
-	// attach them in the CreateAutoScalingGroup API call. If your target group state
-	// is InService, but it is not working properly, check the scaling activities by
-	// calling DescribeScalingActivities and take any corrective actions necessary. For
-	// help with failed health checks, see Troubleshooting Amazon EC2 Auto Scaling:
+	// Gets information about the Elastic Load Balancing target groups for the
+	// specified Auto Scaling group. To determine the attachment status of the target
+	// group, use the State element in the response. When you attach a target group to
+	// an Auto Scaling group, the initial State value is Adding. The state transitions
+	// to Added after all Auto Scaling instances are registered with the target group.
+	// If Elastic Load Balancing health checks are enabled for the Auto Scaling group,
+	// the state transitions to InService after at least one Auto Scaling instance
+	// passes the health check. When the target group is in the InService state, Amazon
+	// EC2 Auto Scaling can terminate and replace any instances that are reported as
+	// unhealthy. If no registered instances pass the health checks, the target group
+	// doesn't enter the InService state. Target groups also have an InService state if
+	// you attach them in the CreateAutoScalingGroup API call. If your target group
+	// state is InService, but it is not working properly, check the scaling activities
+	// by calling DescribeScalingActivities and take any corrective actions necessary.
+	// For help with failed health checks, see Troubleshooting Amazon EC2 Auto Scaling:
 	// Health checks
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/ts-as-healthchecks.html)
-	// in the Amazon EC2 Auto Scaling User Guide. For more information, see Elastic
-	// Load Balancing and Amazon EC2 Auto Scaling
+	// in the Amazon EC2 Auto Scaling User Guide. For more information, see Use Elastic
+	// Load Balancing to distribute traffic across the instances in your Auto Scaling
+	// group
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-load-balancer.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	DescribeLoadBalancerTargetGroups(ctx context.Context, params *DescribeLoadBalancerTargetGroupsInput, optFns ...func(*Options)) (*DescribeLoadBalancerTargetGroupsOutput, error)
 	// Gets information about the load balancers for the specified Auto Scaling group.
 	// This operation describes only Classic Load Balancers. If you have Application
-	// Load Balancers, Network Load Balancers, or Gateway Load Balancers, use the
-	// DescribeLoadBalancerTargetGroups API instead. To determine the availability of
-	// registered instances, use the State element in the response. When you attach a
+	// Load Balancers, Network Load Balancers, or Gateway Load Balancer, use the
+	// DescribeLoadBalancerTargetGroups API instead. To determine the attachment status
+	// of the load balancer, use the State element in the response. When you attach a
 	// load balancer to an Auto Scaling group, the initial State value is Adding. The
 	// state transitions to Added after all Auto Scaling instances are registered with
 	// the load balancer. If Elastic Load Balancing health checks are enabled for the
@@ -291,14 +292,13 @@ type ASG interface {
 	// corrective actions necessary. For help with failed health checks, see
 	// Troubleshooting Amazon EC2 Auto Scaling: Health checks
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/ts-as-healthchecks.html)
-	// in the Amazon EC2 Auto Scaling User Guide. For more information, see Elastic
-	// Load Balancing and Amazon EC2 Auto Scaling
+	// in the Amazon EC2 Auto Scaling User Guide. For more information, see Use Elastic
+	// Load Balancing to distribute traffic across the instances in your Auto Scaling
+	// group
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-load-balancer.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	DescribeLoadBalancers(ctx context.Context, params *DescribeLoadBalancersInput, optFns ...func(*Options)) (*DescribeLoadBalancersOutput, error)
-	// Describes the available CloudWatch metrics for Amazon EC2 Auto Scaling. The
-	// GroupStandbyInstances metric is not returned by default. You must explicitly
-	// request this metric when calling the EnableMetricsCollection API.
+	// Describes the available CloudWatch metrics for Amazon EC2 Auto Scaling.
 	DescribeMetricCollectionTypes(ctx context.Context, params *DescribeMetricCollectionTypesInput, optFns ...func(*Options)) (*DescribeMetricCollectionTypesOutput, error)
 	// Gets information about the Amazon SNS notifications that are configured for one
 	// or more Auto Scaling groups.
@@ -331,14 +331,13 @@ type ASG interface {
 	// specified values for it to be included in the results. You can also specify
 	// multiple filters. The result includes information for a particular tag only if
 	// it matches all the filters. If there's no match, no special message is returned.
-	// For more information, see Tagging Auto Scaling groups and instances
-	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-tagging.html)
+	// For more information, see Tag Auto Scaling groups and instances
+	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-tagging.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	DescribeTags(ctx context.Context, params *DescribeTagsInput, optFns ...func(*Options)) (*DescribeTagsOutput, error)
 	// Describes the termination policies supported by Amazon EC2 Auto Scaling. For
-	// more information, see Controlling which Auto Scaling instances terminate during
-	// scale in
-	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-instance-termination.html)
+	// more information, see Work with Amazon EC2 Auto Scaling termination policies
+	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-termination-policies.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	DescribeTerminationPolicyTypes(ctx context.Context, params *DescribeTerminationPolicyTypesInput, optFns ...func(*Options)) (*DescribeTerminationPolicyTypesOutput, error)
 	// Gets information about a warm pool and its instances. For more information, see
@@ -358,23 +357,29 @@ type ASG interface {
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/detach-instance-asg.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	DetachInstances(ctx context.Context, params *DetachInstancesInput, optFns ...func(*Options)) (*DetachInstancesOutput, error)
-	// Detaches one or more target groups from the specified Auto Scaling group.
+	// Detaches one or more target groups from the specified Auto Scaling group. When
+	// you detach a target group, it enters the Removing state while deregistering the
+	// instances in the group. When all instances are deregistered, then you can no
+	// longer describe the target group using the DescribeLoadBalancerTargetGroups API
+	// call. The instances remain running.
 	DetachLoadBalancerTargetGroups(ctx context.Context, params *DetachLoadBalancerTargetGroupsInput, optFns ...func(*Options)) (*DetachLoadBalancerTargetGroupsOutput, error)
 	// Detaches one or more Classic Load Balancers from the specified Auto Scaling
 	// group. This operation detaches only Classic Load Balancers. If you have
-	// Application Load Balancers, Network Load Balancers, or Gateway Load Balancers,
+	// Application Load Balancers, Network Load Balancers, or Gateway Load Balancer,
 	// use the DetachLoadBalancerTargetGroups API instead. When you detach a load
 	// balancer, it enters the Removing state while deregistering the instances in the
 	// group. When all instances are deregistered, then you can no longer describe the
 	// load balancer using the DescribeLoadBalancers API call. The instances remain
 	// running.
 	DetachLoadBalancers(ctx context.Context, params *DetachLoadBalancersInput, optFns ...func(*Options)) (*DetachLoadBalancersOutput, error)
-	// Disables group metrics for the specified Auto Scaling group.
+	// Disables group metrics collection for the specified Auto Scaling group.
 	DisableMetricsCollection(ctx context.Context, params *DisableMetricsCollectionInput, optFns ...func(*Options)) (*DisableMetricsCollectionOutput, error)
-	// Enables group metrics for the specified Auto Scaling group. For more
-	// information, see Monitoring CloudWatch metrics for your Auto Scaling groups and
-	// instances
-	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-instance-monitoring.html)
+	// Enables group metrics collection for the specified Auto Scaling group. You can
+	// use these metrics to track changes in an Auto Scaling group and to set alarms on
+	// threshold values. You can view group metrics using the Amazon EC2 Auto Scaling
+	// console or the CloudWatch console. For more information, see Monitor CloudWatch
+	// metrics for your Auto Scaling groups and instances
+	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-cloudwatch-monitoring.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	EnableMetricsCollection(ctx context.Context, params *EnableMetricsCollectionInput, optFns ...func(*Options)) (*EnableMetricsCollectionOutput, error)
 	// Moves the specified instances into the standby state. If you choose to decrement
@@ -477,7 +482,8 @@ type ASG interface {
 	// the Amazon EC2 Auto Scaling User Guide. You can view the scheduled actions for
 	// an Auto Scaling group using the DescribeScheduledActions API call. If you are no
 	// longer using a scheduled action, you can delete it by calling the
-	// DeleteScheduledAction API.
+	// DeleteScheduledAction API. If you try to schedule your action in the past,
+	// Amazon EC2 Auto Scaling returns an error message.
 	PutScheduledUpdateGroupAction(ctx context.Context, params *PutScheduledUpdateGroupActionInput, optFns ...func(*Options)) (*PutScheduledUpdateGroupActionOutput, error)
 	// Creates or updates a warm pool for the specified Auto Scaling group. A warm pool
 	// is a pool of pre-initialized EC2 instances that sits alongside the Auto Scaling
@@ -594,8 +600,8 @@ type ASG interface {
 	// We strongly recommend that all Auto Scaling groups use launch templates to
 	// ensure full functionality for Amazon EC2 Auto Scaling and Amazon EC2. Updates
 	// the configuration for the specified Auto Scaling group. To update an Auto
-	// Scaling group, specify the name of the group and the parameter that you want to
-	// change. Any parameters that you don't specify are not changed by this update
+	// Scaling group, specify the name of the group and the property that you want to
+	// change. Any properties that you don't specify are not changed by this update
 	// request. The new settings take effect on any scaling activities after this call
 	// returns. If you associate a new launch configuration or template with an Auto
 	// Scaling group, all new instances will get the updated configuration. Existing
@@ -625,7 +631,7 @@ type ASG interface {
 	// and the new MaxSize is smaller than the current size of the group, this sets the
 	// group's DesiredCapacity to the new MaxSize value.
 	//
-	// To see which parameters have
+	// To see which properties have
 	// been set, call the DescribeAutoScalingGroups API. To view the scaling policies
 	// for an Auto Scaling group, call the DescribePolicies API. If the group has
 	// scaling policies, you can update them by calling the PutScalingPolicy API.

@@ -1,9 +1,14 @@
 package utils
 
 import (
+	"errors"
+
 	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
+
+var errUnsupportedLocalCluster = errors.New("this operation is not supported on local clusters")
 
 // Command will create the `utils` commands
 func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {

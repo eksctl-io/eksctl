@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -34,15 +36,16 @@ func (c *StackCollection) MakeClusterStackNameFromName(name string) string {
 func (c *StackCollection) createClusterTask(ctx context.Context, errs chan error, supportsManagedNodes bool) error {
 	name := c.MakeClusterStackName()
 	logger.Info("building cluster stack %q", name)
-	stack := builder.NewClusterResourceSet(c.ec2API, c.region, c.spec, nil)
+	stack := builder.NewClusterResourceSet(c.ec2API, c.region, c.spec, nil, false)
 	if err := stack.AddAllResources(ctx); err != nil {
 		return err
 	}
 	return c.createClusterStack(ctx, name, stack, errs)
 }
 
-// DescribeClusterStack calls DescribeStacks and filters out cluster stack
-func (c *StackCollection) DescribeClusterStack(ctx context.Context) (*Stack, error) {
+// DescribeClusterStackIfExists calls DescribeStacks and filters out cluster stack.
+// If the stack does not exist, it returns nil.
+func (c *StackCollection) DescribeClusterStackIfExists(ctx context.Context) (*Stack, error) {
 	stacks, err := c.DescribeStacks(ctx)
 	if err != nil {
 		return nil, err
@@ -63,6 +66,20 @@ func (c *StackCollection) DescribeClusterStack(ctx context.Context) (*Stack, err
 	return nil, nil
 }
 
+// DescribeClusterStack returns the cluster stack. If the stack does not exist, it returns an error.
+func (c *StackCollection) DescribeClusterStack(ctx context.Context) (*Stack, error) {
+	stack, err := c.DescribeClusterStackIfExists(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if stack == nil {
+		return nil, &StackNotFoundErr{
+			ClusterName: c.spec.Metadata.Name,
+		}
+	}
+	return stack, nil
+}
+
 // RefreshFargatePodExecutionRoleARN reads the CloudFormation stacks and
 // their output values, and sets the Fargate pod execution role ARN to
 // the ClusterConfig. If there is no cluster stack found but a fargate stack
@@ -74,7 +91,7 @@ func (c *StackCollection) RefreshFargatePodExecutionRoleARN(ctx context.Context)
 			return nil
 		},
 	}
-	stack, err := c.DescribeClusterStack(ctx)
+	stack, err := c.DescribeClusterStackIfExists(ctx)
 	if err != nil {
 		return err
 	}
@@ -100,7 +117,7 @@ func (c *StackCollection) RefreshFargatePodExecutionRoleARN(ctx context.Context)
 
 // AppendNewClusterStackResource will update cluster
 // stack with new resources in append-only way
-func (c *StackCollection) AppendNewClusterStackResource(ctx context.Context, plan bool) (bool, error) {
+func (c *StackCollection) AppendNewClusterStackResource(ctx context.Context, extendForOutposts, plan bool) (bool, error) {
 	name := c.MakeClusterStackName()
 
 	// NOTE: currently we can only append new resources to the stack,
@@ -126,7 +143,7 @@ func (c *StackCollection) AppendNewClusterStackResource(ctx context.Context, pla
 	}
 
 	logger.Info("re-building cluster stack %q", name)
-	newStack := builder.NewClusterResourceSet(c.ec2API, c.region, c.spec, &currentResources)
+	newStack := builder.NewClusterResourceSet(c.ec2API, c.region, c.spec, &currentResources, extendForOutposts)
 	if err := newStack.AddAllResources(ctx); err != nil {
 		return false, err
 	}
@@ -196,17 +213,43 @@ func (c *StackCollection) AppendNewClusterStackResource(ctx context.Context, pla
 		logger.Info("(plan) %s", describeUpdate)
 		return true, nil
 	}
-	return true, c.UpdateStack(ctx, UpdateStackOptions{
+
+	err = c.UpdateStack(ctx, UpdateStackOptions{
 		StackName:     name,
 		ChangeSetName: c.MakeChangeSetName("update-cluster"),
 		Description:   describeUpdate,
 		TemplateData:  TemplateBody(currentTemplate),
 		Wait:          true,
 	})
+	if err != nil {
+		return false, err
+	}
+	stack, err := c.DescribeStack(ctx, &Stack{
+		StackName: aws.String(name),
+	})
+	if err != nil {
+		return false, fmt.Errorf("error describing cluster stack: %w", err)
+	}
+	if err := newStack.GetAllOutputs(*stack); err != nil {
+		return false, fmt.Errorf("error getting outputs for updated cluster stack: %w", err)
+	}
+	return true, nil
+}
+
+// ClusterHasDedicatedVPC returns true if the cluster was created with a dedicated VPC.
+func (c *StackCollection) ClusterHasDedicatedVPC(ctx context.Context) (bool, error) {
+	stackName := c.MakeClusterStackName()
+	currentTemplate, err := c.GetStackTemplate(ctx, stackName)
+	if err != nil {
+		return false, fmt.Errorf("error getting stack template %q: %w", stackName, err)
+	}
+
+	resources := gjson.Get(currentTemplate, resourcesRootPath)
+	return resources.IsObject() && resources.Get("VPC").Exists(), nil
 }
 
 func (c *StackCollection) importServiceRoleARN(ctx context.Context, resources gjson.Result) error {
-	s, err := c.DescribeClusterStack(ctx)
+	s, err := c.DescribeClusterStackIfExists(ctx)
 	if err != nil {
 		return err
 	}

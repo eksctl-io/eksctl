@@ -33,7 +33,9 @@ func NewExistingVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig
 		clusterConfig: clusterConfig,
 		ec2API:        ec2API,
 		vpcID:         gfnt.NewString(clusterConfig.VPC.ID),
-		subnetDetails: &SubnetDetails{},
+		subnetDetails: &SubnetDetails{
+			controlPlaneOnOutposts: clusterConfig.IsControlPlaneOnOutposts(),
+		},
 	}
 }
 
@@ -88,7 +90,7 @@ func (v *ExistingVPCResourceSet) addOutputs(ctx context.Context) {
 		addSubnetOutput(subnetAZs, v.clusterConfig.VPC.Subnets.Public, outputs.ClusterSubnetsPublic)
 	}
 
-	if v.isFullyPrivate() {
+	if v.clusterConfig.IsFullyPrivate() {
 		v.rs.defineOutputWithoutCollector(outputs.ClusterFullyPrivate, true, true)
 	}
 }
@@ -106,7 +108,7 @@ func (v *ExistingVPCResourceSet) importExistingResources(ctx context.Context) er
 			subnetRoutes map[string]string
 			err          error
 		)
-		if v.isFullyPrivate() {
+		if v.clusterConfig.IsFullyPrivate() {
 			subnetRoutes, err = importRouteTables(ctx, v.ec2API, v.clusterConfig.VPC.Subnets.Private)
 			if err != nil {
 				return err
@@ -189,10 +191,6 @@ func importRouteTables(ctx context.Context, ec2API awsapi.EC2, subnets map[strin
 		}
 	}
 	return subnetRoutes, nil
-}
-
-func (v *ExistingVPCResourceSet) isFullyPrivate() bool {
-	return v.clusterConfig.PrivateCluster.Enabled
 }
 
 // RenderJSON returns the rendered JSON
