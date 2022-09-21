@@ -1088,6 +1088,11 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		} else {
 			ng.MaxSize = ng.DesiredCapacity
 		}
+		// MaxSize needs to be greater or equal to 1
+		if *ng.MaxSize == 0 {
+			defaultMaxSize := DefaultMaxSize
+			ng.MaxSize = &defaultMaxSize
+		}
 	} else if ng.DesiredCapacity != nil && *ng.DesiredCapacity > *ng.MaxSize {
 		return fmt.Errorf("cannot use --nodes-max=%d and --nodes=%d at the same time", *ng.MaxSize, *ng.DesiredCapacity)
 	} else if *ng.MaxSize < *ng.MinSize {

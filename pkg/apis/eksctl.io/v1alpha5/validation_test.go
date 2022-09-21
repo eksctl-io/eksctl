@@ -2089,6 +2089,82 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("Scaling config", func() {
+		var (
+			mng   *api.ManagedNodeGroup
+			zero  int
+			one   int
+			two   int
+			three int
+		)
+
+		BeforeEach(func() {
+			mng = api.NewManagedNodeGroup()
+			mng.AMIFamily = "bOTTLEROCKEt"
+			zero = 0
+			one = 1
+			two = 2
+			three = 3
+		})
+
+		When("No config is specified", func() {
+			It("Should set the defaults", func() {
+				Expect(api.ValidateManagedNodeGroup(0, mng)).To(Succeed())
+				Expect(*mng.MinSize).To(Equal(api.DefaultNodeCount))
+				Expect(*mng.MaxSize).To(Equal(api.DefaultNodeCount))
+				Expect(*mng.DesiredCapacity).To(Equal(api.DefaultNodeCount))
+			})
+		})
+
+		When("DesiredCapacity is zero", func() {
+			It("Should set min to zero and max to 1", func() {
+				mng.DesiredCapacity = &zero
+				Expect(api.ValidateManagedNodeGroup(0, mng)).To(Succeed())
+				Expect(*mng.MinSize).To(Equal(0))
+				Expect(*mng.MaxSize).To(Equal(1))
+			})
+		})
+
+		When("DesiredCapacity is greater than zero", func() {
+			It("Should set min and max equal to capacity", func() {
+				three := 3
+				mng.DesiredCapacity = &three
+				Expect(api.ValidateManagedNodeGroup(0, mng)).To(Succeed())
+				Expect(*mng.MinSize).To(Equal(*mng.DesiredCapacity))
+				Expect(*mng.MaxSize).To(Equal(*mng.DesiredCapacity))
+			})
+		})
+
+		DescribeTable("Invalid config values", func(config api.ScalingConfig, expectedErr string) {
+			mng.ScalingConfig = &config
+			err := api.ValidateManagedNodeGroup(0, mng)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(expectedErr))
+		},
+			Entry("Desired capacity is lower than min",
+				api.ScalingConfig{
+					DesiredCapacity: &one,
+					MinSize:         &two,
+				},
+				fmt.Sprintf("cannot use --nodes-min=%d and --nodes=%d at the same time", 2, 1),
+			),
+			Entry("Desired capacity is greater than max",
+				api.ScalingConfig{
+					DesiredCapacity: &three,
+					MaxSize:         &two,
+				},
+				fmt.Sprintf("cannot use --nodes-max=%d and --nodes=%d at the same time", 2, 3),
+			),
+			Entry("Min is greater than max",
+				api.ScalingConfig{
+					MinSize: &two,
+					MaxSize: &one,
+				},
+				fmt.Sprintf("cannot use --nodes-min=%d and --nodes-max=%d at the same time", 2, 1),
+			),
+		)
+	})
+
 	Describe("Capacity Reservation validation", func() {
 		var (
 			cfg *api.ClusterConfig
