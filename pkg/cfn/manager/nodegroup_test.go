@@ -166,7 +166,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 		})
 	})
 
-	Describe("propagateManagedNodeGroupTagsToASGTask", func() {
+	Describe("Propagate ManagedNodeGroupTags to ASG", func() {
 		mng := api.NewManagedNodeGroup()
 		mng.Name = "test-managed-nodegroup"
 		mng.Tags = map[string]string{
@@ -181,23 +181,23 @@ var _ = Describe("StackCollection NodeGroup", func() {
 		}
 		p := mockprovider.NewMockProvider()
 
-		When("there are labels and taints present", func() {
-			mng.Labels = map[string]string{
-				"label-key": "label-value",
-			}
-			mng.Taints = []api.NodeGroupTaint{
-				{
-					Key:   "taint-key",
-					Value: "taint-value",
-				},
-			}
-			propagatedTags := make(map[string]string)
-			propagateFunc := func(ngName string, tags map[string]string, asgNames []string, errorCh chan error) error {
-				propagatedTags = tags
-				return nil
-			}
+		When("there are unique labels and taints present", func() {
+			It("converts them to tags and propagates to ASG", func() {
+				mng.Labels = map[string]string{
+					"label-key": "label-value",
+				}
+				mng.Taints = []api.NodeGroupTaint{
+					{
+						Key:   "taint-key",
+						Value: "taint-value",
+					},
+				}
+				propagatedTags := make(map[string]string)
+				propagateFunc := func(ngName string, tags map[string]string, asgNames []string, errorCh chan error) error {
+					propagatedTags = tags
+					return nil
+				}
 
-			It("should convert them to tags and propagate to ASG", func() {
 				p.MockEKS().On("DescribeNodegroup", mock.Anything, mock.Anything).Return(&eks.DescribeNodegroupOutput{
 					Nodegroup: &ekstypes.Nodegroup{
 						Resources: &ekstypes.NodegroupResources{},
@@ -218,6 +218,37 @@ var _ = Describe("StackCollection NodeGroup", func() {
 					labelsPrefix + "label-key": "label-value",
 					taintsPrefix + "taint-key": "taint-value",
 				}))
+			})
+		})
+
+		When("there are labels and taints with same keys", func() {
+			It("returns an error", func() {
+				mng.Labels = map[string]string{
+					"key": "label-value",
+				}
+				mng.Taints = []api.NodeGroupTaint{
+					{
+						Key:   "key",
+						Value: "taint-value",
+					},
+				}
+
+				p.MockEKS().On("DescribeNodegroup", mock.Anything, mock.Anything).Return(&eks.DescribeNodegroupOutput{
+					Nodegroup: &ekstypes.Nodegroup{
+						Resources: &ekstypes.NodegroupResources{},
+					},
+				}, nil)
+				sc.eksAPI = p.EKS()
+
+				err := sc.propagateManagedNodeGroupTagsToASGTask(
+					context.Background(),
+					make(chan error),
+					mng,
+					nil,
+				)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("duplicate key found for taints and labels"))
 			})
 		})
 	})
