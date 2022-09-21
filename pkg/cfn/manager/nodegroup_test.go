@@ -181,6 +181,18 @@ var _ = Describe("StackCollection NodeGroup", func() {
 		}
 		p := mockprovider.NewMockProvider()
 
+		BeforeEach(func() {
+			p.MockEKS().On("DescribeNodegroup", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeNodegroupInput{}))
+			}).Return(&eks.DescribeNodegroupOutput{
+				Nodegroup: &ekstypes.Nodegroup{
+					Resources: &ekstypes.NodegroupResources{},
+				},
+			}, nil)
+			sc.eksAPI = p.EKS()
+		})
+
 		When("there are unique labels and taints present", func() {
 			It("converts them to tags and propagates to ASG", func() {
 				mng.Labels = map[string]string{
@@ -197,13 +209,6 @@ var _ = Describe("StackCollection NodeGroup", func() {
 					propagatedTags = tags
 					return nil
 				}
-
-				p.MockEKS().On("DescribeNodegroup", mock.Anything, mock.Anything).Return(&eks.DescribeNodegroupOutput{
-					Nodegroup: &ekstypes.Nodegroup{
-						Resources: &ekstypes.NodegroupResources{},
-					},
-				}, nil)
-				sc.eksAPI = p.EKS()
 
 				err := sc.propagateManagedNodeGroupTagsToASGTask(
 					context.Background(),
@@ -232,13 +237,6 @@ var _ = Describe("StackCollection NodeGroup", func() {
 						Value: "taint-value",
 					},
 				}
-
-				p.MockEKS().On("DescribeNodegroup", mock.Anything, mock.Anything).Return(&eks.DescribeNodegroupOutput{
-					Nodegroup: &ekstypes.Nodegroup{
-						Resources: &ekstypes.NodegroupResources{},
-					},
-				}, nil)
-				sc.eksAPI = p.EKS()
 
 				err := sc.propagateManagedNodeGroupTagsToASGTask(
 					context.Background(),
