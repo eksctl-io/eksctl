@@ -83,7 +83,8 @@ func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorC
 	return c.CreateStack(ctx, name, stack, ng.Tags, nil, errorCh)
 }
 
-func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup) error {
+func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup,
+	propagateFunc func(string, map[string]string, []string, chan error) error) error {
 	// describe node group to retrieve ASG names
 	input := &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(c.spec.Metadata.Name),
@@ -116,7 +117,7 @@ func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Con
 		tags[k] = v
 	}
 
-	return c.PropagateManagedNodeGroupTagsToASG(ng.Name, tags, asgNames, errorCh)
+	return propagateFunc(ng.Name, tags, asgNames, errorCh)
 }
 
 // convertLabelsAndTaintsIntoTags so that they can be propageted automatically to ASG afterwards
