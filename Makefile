@@ -157,11 +157,6 @@ generate-all: generate-always $(conditionally_generated_files) ## Re-generate al
 check-all-generated-files-up-to-date: generate-all ## Run the generate all command and verify there is no new diff
 	git diff --quiet -- $(conditionally_generated_files) || (git --no-pager diff $(conditionally_generated_files); echo "HINT: to fix this, run 'git commit $(conditionally_generated_files) --message \"Update generated files\"'"; exit 1)
 
-### Update maxpods.go from AWS
-.PHONY: update-maxpods
-update-maxpods: ## Re-download the max pods info from AWS and regenerate the maxpods.go file
-	@cd pkg/nodebootstrap && go run maxpods_generate.go
-
 ### Update aws-node addon manifests from AWS
 pkg/addons/default/assets/aws-node.yaml:
 	go generate ./pkg/addons/default/aws_node_generate.go
