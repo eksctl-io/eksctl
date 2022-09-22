@@ -92,20 +92,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			return err
 		}
 
-		summaries, err := addonManager.GetAll(ctx)
-		if err != nil {
-			return err
-		}
-		activeAddons := make(map[string]struct{}, len(summaries))
-		for _, s := range summaries {
-			activeAddons[s.Name] = struct{}{}
-		}
-
 		for _, a := range cmd.ClusterConfig.Addons {
-			if _, alreadyPresent := activeAddons[a.Name]; alreadyPresent {
-				logger.Info("Addon %s is already present in this cluster, and won't be recreated", a.Name)
-				continue
-			}
 			if force { //force is specified at cmdline level
 				a.Force = true
 			}

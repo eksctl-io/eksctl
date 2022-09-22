@@ -80,6 +80,11 @@ var _ = Describe("Create", func() {
 		Expect(err).NotTo(HaveOccurred())
 		oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
 
+		mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			Expect(args).To(HaveLen(2))
+			Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAddonInput{}))
+		}).Return(nil, &ekstypes.ResourceNotFoundException{}).Once()
+
 		mockProvider.MockEKS().On("CreateAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 			Expect(args).To(HaveLen(2))
 			Expect(args[1]).To(BeAssignableToTypeOf(&eks.CreateAddonInput{}))
@@ -118,6 +123,37 @@ var _ = Describe("Create", func() {
 				},
 			},
 		}, nil)
+	})
+
+	When("the addon is already present in the cluster, as an EKS managed addon", func() {
+		BeforeEach(func() {
+			mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAddonInput{}))
+			}).Return(&eks.DescribeAddonOutput{
+				Addon: &ekstypes.Addon{
+					AddonName: aws.String("my-addon"),
+				},
+			}, nil)
+		})
+
+		It("won't re-create the addon", func() {
+			err := manager.Create(context.Background(), &api.Addon{Name: "my-addon"}, 0)
+			Expect(err).To(BeNil())
+		})
+	})
+
+	When("looking up if the addon is already present fails", func() {
+		BeforeEach(func() {
+			mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAddonInput{}))
+			}).Return(nil, fmt.Errorf("test error"))
+		})
+		It("returns an error", func() {
+			err := manager.Create(context.Background(), &api.Addon{Name: "my-addon"}, 0)
+			Expect(err).To(MatchError(`test error`))
+		})
 	})
 
 	When("it fails to create addon", func() {
@@ -319,6 +355,9 @@ var _ = Describe("Create", func() {
 		When("the addon creation succeeds", func() {
 			BeforeEach(func() {
 				withOIDC = false
+			})
+
+			It("creates the addon and waits for it to be active", func() {
 				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).
 					Return(&eks.DescribeAddonOutput{
 						Addon: &ekstypes.Addon{
@@ -326,9 +365,7 @@ var _ = Describe("Create", func() {
 							Status:    ekstypes.AddonStatusActive,
 						},
 					}, nil)
-			})
 
-			It("creates the addon and waits for it to be active", func() {
 				err := manager.Create(context.Background(), &api.Addon{
 					Name:    "my-addon",
 					Version: "v1.0.0-eksbuild.1",
@@ -345,6 +382,9 @@ var _ = Describe("Create", func() {
 		When("the addon creation fails", func() {
 			BeforeEach(func() {
 				withOIDC = false
+			})
+
+			It("returns an error", func() {
 				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything, mock.Anything).
 					Return(&eks.DescribeAddonOutput{
 						Addon: &ekstypes.Addon{
@@ -352,9 +392,7 @@ var _ = Describe("Create", func() {
 							Status:    ekstypes.AddonStatusDegraded,
 						},
 					}, nil)
-			})
 
-			It("returns an error", func() {
 				err := manager.Create(context.Background(), &api.Addon{
 					Name:    "my-addon",
 					Version: "v1.0.0-eksbuild.1",

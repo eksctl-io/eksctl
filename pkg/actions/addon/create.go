@@ -28,6 +28,22 @@ const (
 )
 
 func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
+	// First check if the addon is already present as an EKS managed addon
+	// and if so, don't re-create
+	_, err := a.eksAPI.DescribeAddon(ctx, &eks.DescribeAddonInput{
+		AddonName:   &addon.Name,
+		ClusterName: &a.clusterConfig.Metadata.Name,
+	})
+	if err == nil {
+		logger.Info("Addon %s is already present in this cluster, as an EKS managed addon, and won't be re-created", addon.Name)
+		return nil
+	} else {
+		var notFoundErr *ekstypes.ResourceNotFoundException
+		if !errors.As(err, &notFoundErr) {
+			return err
+		}
+	}
+
 	version := addon.Version
 	if version != "" {
 		var err error
