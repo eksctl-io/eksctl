@@ -73,4 +73,11 @@ var _ = Describe("Fargate", func() {
 			})
 		})
 	})
+
+	Describe("DoListFargateProfiles", func() {
+		It("should list profiles", func() {
+			fakeClient.ListProfilesReturns([]string{fargateProfileName}, nil)
+			Expect(eks.DoListFargateProfiles(context.Background(), config, fakeClient)).To(Succeed())
+		})
+	})
 })

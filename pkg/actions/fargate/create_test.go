@@ -122,6 +122,14 @@ var _ = Describe("Fargate", func() {
 							Status: ekstypes.FargateProfileStatusActive,
 						},
 					}, nil)
+
+					mockProvider.MockEKS().On("ListFargateProfiles", mock.Anything, &awseks.ListFargateProfilesInput{
+						ClusterName: &clusterName,
+					}).Return(&awseks.ListFargateProfilesOutput{
+						FargateProfileNames: []string{
+							"fp-1",
+						},
+					}, nil)
 				})
 
 				It("creates the fargateprofile using the newly created role", func() {
@@ -181,6 +189,14 @@ var _ = Describe("Fargate", func() {
 							Status: ekstypes.FargateProfileStatusActive,
 						},
 					}, nil)
+
+					mockProvider.MockEKS().On("ListFargateProfiles", mock.Anything, &awseks.ListFargateProfilesInput{
+						ClusterName: &clusterName,
+					}).Return(&awseks.ListFargateProfilesOutput{
+						FargateProfileNames: []string{
+							"fp-1",
+						},
+					}, nil)
 				})
 
 				It("creates the fargate profile using the existing role", func() {
@@ -238,6 +254,14 @@ var _ = Describe("Fargate", func() {
 					}).Return(&awseks.DescribeFargateProfileOutput{
 						FargateProfile: &ekstypes.FargateProfile{
 							Status: ekstypes.FargateProfileStatusActive,
+						},
+					}, nil)
+
+					mockProvider.MockEKS().On("ListFargateProfiles", mock.Anything, &awseks.ListFargateProfilesInput{
+						ClusterName: &clusterName,
+					}).Return(&awseks.ListFargateProfilesOutput{
+						FargateProfileNames: []string{
+							"fp-1",
 						},
 					}, nil)
 				})
