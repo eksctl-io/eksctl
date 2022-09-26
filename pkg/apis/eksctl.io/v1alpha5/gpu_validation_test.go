@@ -100,6 +100,14 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:       api.NodeImageFamilyWindowsServer2019FullContainer,
 			gpuInstanceType: "p3.2xlarge",
 		}),
+		Entry("Windows2022Core", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyWindowsServer2022CoreContainer,
+			gpuInstanceType: "g3.8xlarge",
+		}),
+		Entry("Windows2022Full", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyWindowsServer2022FullContainer,
+			gpuInstanceType: "p3.2xlarge",
+		}),
 	)
 	Describe("ARM GPU", func() {
 		When("ARM GPU instance is request for unmanaged nodegroups", func() {

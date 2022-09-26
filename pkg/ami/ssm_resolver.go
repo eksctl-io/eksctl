@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -57,6 +59,26 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyWindowsServer2019FullContainer:
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Full-EKS_Optimized-%s/%s", version, fieldName), nil
+	case api.NodeImageFamilyWindowsServer2022CoreContainer:
+		const minVersion = api.Version1_23
+		supportsWindows2022, err := utils.IsMinVersion(minVersion, version)
+		if err != nil {
+			return "", err
+		}
+		if !supportsWindows2022 {
+			return "", errors.Errorf("Windows Server 2022 Core requires EKS version %s and above", minVersion)
+		}
+		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2022-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
+	case api.NodeImageFamilyWindowsServer2022FullContainer:
+		const minVersion = api.Version1_23
+		supportsWindows2022, err := utils.IsMinVersion(minVersion, version)
+		if err != nil {
+			return "", err
+		}
+		if !supportsWindows2022 {
+			return "", errors.Errorf("Windows Server 2022 Full requires EKS version %s and above", minVersion)
+		}
+		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2022-English-Full-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyBottlerocket:
 		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/%s", imageType(imageFamily, instanceType, version), instanceEC2ArchName(instanceType), fieldName), nil
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
