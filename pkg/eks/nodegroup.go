@@ -106,7 +106,7 @@ type KubeNodeGroup interface {
 
 // GetNodeGroupIAM retrieves the IAM configuration of the given nodegroup
 func (c *ClusterProvider) GetNodeGroupIAM(ctx context.Context, stackManager manager.StackManager, ng *api.NodeGroup) error {
-	stacks, err := stackManager.DescribeNodeGroupStackList(ctx)
+	stacks, err := stackManager.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return err
 	}

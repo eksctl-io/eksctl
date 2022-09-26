@@ -66,7 +66,7 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval, podEvictionWa
 		logger.Debug("failed to check if cluster is operable: %v", err)
 	}
 
-	allStacks, err := c.stackManager.ListNodeGroupStacks(ctx)
+	allStacks, err := c.stackManager.ListNodeGroupStacksWithStatuses(ctx)
 	if err != nil {
 		return err
 	}
