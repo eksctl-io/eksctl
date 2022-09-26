@@ -73,7 +73,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 	}
 
 	// moving this here was fine because inside `NewTasksToDeleteClusterWithNodeGroups` we did it anyway.
-	allStacks, err := c.stackManager.ListNodeGroupStacks(ctx)
+	allStacks, err := c.stackManager.ListNodeGroupStacksWithStatuses(ctx)
 	if err != nil {
 		return err
 	}

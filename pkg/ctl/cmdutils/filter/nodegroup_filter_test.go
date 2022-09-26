@@ -657,7 +657,7 @@ type mockStackLister struct {
 	nodesResult []manager.NodeGroupStack
 }
 
-func (s *mockStackLister) ListNodeGroupStacks(_ context.Context) ([]manager.NodeGroupStack, error) {
+func (s *mockStackLister) ListNodeGroupStacksWithStatuses(_ context.Context) ([]manager.NodeGroupStack, error) {
 	return s.nodesResult, nil
 }
 

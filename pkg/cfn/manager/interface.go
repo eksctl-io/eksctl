@@ -49,12 +49,10 @@ type StackManager interface {
 	DescribeClusterStack(ctx context.Context) (*Stack, error)
 	DescribeIAMServiceAccountStacks(ctx context.Context) ([]*Stack, error)
 	DescribeNodeGroupStack(ctx context.Context, nodeGroupName string) (*Stack, error)
-	DescribeNodeGroupStacks(ctx context.Context) ([]*Stack, error)
 	DescribeNodeGroupStacksAndResources(ctx context.Context) (map[string]StackInfo, error)
 	DescribeStack(ctx context.Context, i *Stack) (*Stack, error)
 	DescribeStackChangeSet(ctx context.Context, i *Stack, changeSetName string) (*ChangeSet, error)
 	DescribeStackEvents(ctx context.Context, i *Stack) ([]cfntypes.StackEvent, error)
-	DescribeStacks(ctx context.Context) ([]*Stack, error)
 	DoCreateStackRequest(ctx context.Context, i *Stack, templateData TemplateData, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error
 	DoWaitUntilStackIsCreated(ctx context.Context, i *Stack) error
 	EnsureMapPublicIPOnLaunchEnabled(ctx context.Context) error
@@ -76,8 +74,10 @@ type StackManager interface {
 	HasClusterStackFromList(ctx context.Context, clusterStackNames []string, clusterName string) (bool, error)
 	ListClusterStackNames(ctx context.Context) ([]string, error)
 	ListIAMServiceAccountStacks(ctx context.Context) ([]string, error)
-	ListNodeGroupStacks(ctx context.Context) ([]NodeGroupStack, error)
-	ListStacks(ctx context.Context, statusFilters ...cfntypes.StackStatus) ([]*Stack, error)
+	ListNodeGroupStacks(ctx context.Context) ([]*Stack, error)
+	ListNodeGroupStacksWithStatuses(ctx context.Context) ([]NodeGroupStack, error)
+	ListStacks(ctx context.Context) ([]*Stack, error)
+	ListStacksWithStatuses(ctx context.Context, statusFilters ...cfntypes.StackStatus) ([]*Stack, error)
 	ListStacksMatching(ctx context.Context, nameRegex string, statusFilters ...cfntypes.StackStatus) ([]*Stack, error)
 	LookupCloudTrailEvents(ctx context.Context, i *Stack) ([]cttypes.Event, error)
 	MakeChangeSetName(action string) string
