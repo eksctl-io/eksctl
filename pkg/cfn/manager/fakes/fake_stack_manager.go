@@ -170,19 +170,6 @@ type FakeStackManager struct {
 		result1 *types.Stack
 		result2 error
 	}
-	DescribeNodeGroupStacksStub        func(context.Context) ([]*types.Stack, error)
-	describeNodeGroupStacksMutex       sync.RWMutex
-	describeNodeGroupStacksArgsForCall []struct {
-		arg1 context.Context
-	}
-	describeNodeGroupStacksReturns struct {
-		result1 []*types.Stack
-		result2 error
-	}
-	describeNodeGroupStacksReturnsOnCall map[int]struct {
-		result1 []*types.Stack
-		result2 error
-	}
 	DescribeNodeGroupStacksAndResourcesStub        func(context.Context) (map[string]manager.StackInfo, error)
 	describeNodeGroupStacksAndResourcesMutex       sync.RWMutex
 	describeNodeGroupStacksAndResourcesArgsForCall []struct {
@@ -237,19 +224,6 @@ type FakeStackManager struct {
 	}
 	describeStackEventsReturnsOnCall map[int]struct {
 		result1 []types.StackEvent
-		result2 error
-	}
-	DescribeStacksStub        func(context.Context) ([]*types.Stack, error)
-	describeStacksMutex       sync.RWMutex
-	describeStacksArgsForCall []struct {
-		arg1 context.Context
-	}
-	describeStacksReturns struct {
-		result1 []*types.Stack
-		result2 error
-	}
-	describeStacksReturnsOnCall map[int]struct {
-		result1 []*types.Stack
 		result2 error
 	}
 	DoCreateStackRequestStub        func(context.Context, *types.Stack, manager.TemplateData, map[string]string, map[string]string, bool, bool) error
@@ -515,24 +489,36 @@ type FakeStackManager struct {
 		result1 []string
 		result2 error
 	}
-	ListNodeGroupStacksStub        func(context.Context) ([]manager.NodeGroupStack, error)
+	ListNodeGroupStacksStub        func(context.Context) ([]*types.Stack, error)
 	listNodeGroupStacksMutex       sync.RWMutex
 	listNodeGroupStacksArgsForCall []struct {
 		arg1 context.Context
 	}
 	listNodeGroupStacksReturns struct {
-		result1 []manager.NodeGroupStack
+		result1 []*types.Stack
 		result2 error
 	}
 	listNodeGroupStacksReturnsOnCall map[int]struct {
+		result1 []*types.Stack
+		result2 error
+	}
+	ListNodeGroupStacksWithStatusesStub        func(context.Context) ([]manager.NodeGroupStack, error)
+	listNodeGroupStacksWithStatusesMutex       sync.RWMutex
+	listNodeGroupStacksWithStatusesArgsForCall []struct {
+		arg1 context.Context
+	}
+	listNodeGroupStacksWithStatusesReturns struct {
 		result1 []manager.NodeGroupStack
 		result2 error
 	}
-	ListStacksStub        func(context.Context, ...types.StackStatus) ([]*types.Stack, error)
+	listNodeGroupStacksWithStatusesReturnsOnCall map[int]struct {
+		result1 []manager.NodeGroupStack
+		result2 error
+	}
+	ListStacksStub        func(context.Context) ([]*types.Stack, error)
 	listStacksMutex       sync.RWMutex
 	listStacksArgsForCall []struct {
 		arg1 context.Context
-		arg2 []types.StackStatus
 	}
 	listStacksReturns struct {
 		result1 []*types.Stack
@@ -554,6 +540,20 @@ type FakeStackManager struct {
 		result2 error
 	}
 	listStacksMatchingReturnsOnCall map[int]struct {
+		result1 []*types.Stack
+		result2 error
+	}
+	ListStacksWithStatusesStub        func(context.Context, ...types.StackStatus) ([]*types.Stack, error)
+	listStacksWithStatusesMutex       sync.RWMutex
+	listStacksWithStatusesArgsForCall []struct {
+		arg1 context.Context
+		arg2 []types.StackStatus
+	}
+	listStacksWithStatusesReturns struct {
+		result1 []*types.Stack
+		result2 error
+	}
+	listStacksWithStatusesReturnsOnCall map[int]struct {
 		result1 []*types.Stack
 		result2 error
 	}
@@ -1520,70 +1520,6 @@ func (fake *FakeStackManager) DescribeNodeGroupStackReturnsOnCall(i int, result1
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeNodeGroupStacks(arg1 context.Context) ([]*types.Stack, error) {
-	fake.describeNodeGroupStacksMutex.Lock()
-	ret, specificReturn := fake.describeNodeGroupStacksReturnsOnCall[len(fake.describeNodeGroupStacksArgsForCall)]
-	fake.describeNodeGroupStacksArgsForCall = append(fake.describeNodeGroupStacksArgsForCall, struct {
-		arg1 context.Context
-	}{arg1})
-	stub := fake.DescribeNodeGroupStacksStub
-	fakeReturns := fake.describeNodeGroupStacksReturns
-	fake.recordInvocation("DescribeNodeGroupStacks", []interface{}{arg1})
-	fake.describeNodeGroupStacksMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeStackManager) DescribeNodeGroupStacksCallCount() int {
-	fake.describeNodeGroupStacksMutex.RLock()
-	defer fake.describeNodeGroupStacksMutex.RUnlock()
-	return len(fake.describeNodeGroupStacksArgsForCall)
-}
-
-func (fake *FakeStackManager) DescribeNodeGroupStacksCalls(stub func(context.Context) ([]*types.Stack, error)) {
-	fake.describeNodeGroupStacksMutex.Lock()
-	defer fake.describeNodeGroupStacksMutex.Unlock()
-	fake.DescribeNodeGroupStacksStub = stub
-}
-
-func (fake *FakeStackManager) DescribeNodeGroupStacksArgsForCall(i int) context.Context {
-	fake.describeNodeGroupStacksMutex.RLock()
-	defer fake.describeNodeGroupStacksMutex.RUnlock()
-	argsForCall := fake.describeNodeGroupStacksArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeStackManager) DescribeNodeGroupStacksReturns(result1 []*types.Stack, result2 error) {
-	fake.describeNodeGroupStacksMutex.Lock()
-	defer fake.describeNodeGroupStacksMutex.Unlock()
-	fake.DescribeNodeGroupStacksStub = nil
-	fake.describeNodeGroupStacksReturns = struct {
-		result1 []*types.Stack
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStackManager) DescribeNodeGroupStacksReturnsOnCall(i int, result1 []*types.Stack, result2 error) {
-	fake.describeNodeGroupStacksMutex.Lock()
-	defer fake.describeNodeGroupStacksMutex.Unlock()
-	fake.DescribeNodeGroupStacksStub = nil
-	if fake.describeNodeGroupStacksReturnsOnCall == nil {
-		fake.describeNodeGroupStacksReturnsOnCall = make(map[int]struct {
-			result1 []*types.Stack
-			result2 error
-		})
-	}
-	fake.describeNodeGroupStacksReturnsOnCall[i] = struct {
-		result1 []*types.Stack
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeStackManager) DescribeNodeGroupStacksAndResources(arg1 context.Context) (map[string]manager.StackInfo, error) {
 	fake.describeNodeGroupStacksAndResourcesMutex.Lock()
 	ret, specificReturn := fake.describeNodeGroupStacksAndResourcesReturnsOnCall[len(fake.describeNodeGroupStacksAndResourcesArgsForCall)]
@@ -1840,70 +1776,6 @@ func (fake *FakeStackManager) DescribeStackEventsReturnsOnCall(i int, result1 []
 	}
 	fake.describeStackEventsReturnsOnCall[i] = struct {
 		result1 []types.StackEvent
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStackManager) DescribeStacks(arg1 context.Context) ([]*types.Stack, error) {
-	fake.describeStacksMutex.Lock()
-	ret, specificReturn := fake.describeStacksReturnsOnCall[len(fake.describeStacksArgsForCall)]
-	fake.describeStacksArgsForCall = append(fake.describeStacksArgsForCall, struct {
-		arg1 context.Context
-	}{arg1})
-	stub := fake.DescribeStacksStub
-	fakeReturns := fake.describeStacksReturns
-	fake.recordInvocation("DescribeStacks", []interface{}{arg1})
-	fake.describeStacksMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeStackManager) DescribeStacksCallCount() int {
-	fake.describeStacksMutex.RLock()
-	defer fake.describeStacksMutex.RUnlock()
-	return len(fake.describeStacksArgsForCall)
-}
-
-func (fake *FakeStackManager) DescribeStacksCalls(stub func(context.Context) ([]*types.Stack, error)) {
-	fake.describeStacksMutex.Lock()
-	defer fake.describeStacksMutex.Unlock()
-	fake.DescribeStacksStub = stub
-}
-
-func (fake *FakeStackManager) DescribeStacksArgsForCall(i int) context.Context {
-	fake.describeStacksMutex.RLock()
-	defer fake.describeStacksMutex.RUnlock()
-	argsForCall := fake.describeStacksArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeStackManager) DescribeStacksReturns(result1 []*types.Stack, result2 error) {
-	fake.describeStacksMutex.Lock()
-	defer fake.describeStacksMutex.Unlock()
-	fake.DescribeStacksStub = nil
-	fake.describeStacksReturns = struct {
-		result1 []*types.Stack
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStackManager) DescribeStacksReturnsOnCall(i int, result1 []*types.Stack, result2 error) {
-	fake.describeStacksMutex.Lock()
-	defer fake.describeStacksMutex.Unlock()
-	fake.DescribeStacksStub = nil
-	if fake.describeStacksReturnsOnCall == nil {
-		fake.describeStacksReturnsOnCall = make(map[int]struct {
-			result1 []*types.Stack
-			result2 error
-		})
-	}
-	fake.describeStacksReturnsOnCall[i] = struct {
-		result1 []*types.Stack
 		result2 error
 	}{result1, result2}
 }
@@ -3190,7 +3062,7 @@ func (fake *FakeStackManager) ListIAMServiceAccountStacksReturnsOnCall(i int, re
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) ListNodeGroupStacks(arg1 context.Context) ([]manager.NodeGroupStack, error) {
+func (fake *FakeStackManager) ListNodeGroupStacks(arg1 context.Context) ([]*types.Stack, error) {
 	fake.listNodeGroupStacksMutex.Lock()
 	ret, specificReturn := fake.listNodeGroupStacksReturnsOnCall[len(fake.listNodeGroupStacksArgsForCall)]
 	fake.listNodeGroupStacksArgsForCall = append(fake.listNodeGroupStacksArgsForCall, struct {
@@ -3215,7 +3087,7 @@ func (fake *FakeStackManager) ListNodeGroupStacksCallCount() int {
 	return len(fake.listNodeGroupStacksArgsForCall)
 }
 
-func (fake *FakeStackManager) ListNodeGroupStacksCalls(stub func(context.Context) ([]manager.NodeGroupStack, error)) {
+func (fake *FakeStackManager) ListNodeGroupStacksCalls(stub func(context.Context) ([]*types.Stack, error)) {
 	fake.listNodeGroupStacksMutex.Lock()
 	defer fake.listNodeGroupStacksMutex.Unlock()
 	fake.ListNodeGroupStacksStub = stub
@@ -3228,45 +3100,108 @@ func (fake *FakeStackManager) ListNodeGroupStacksArgsForCall(i int) context.Cont
 	return argsForCall.arg1
 }
 
-func (fake *FakeStackManager) ListNodeGroupStacksReturns(result1 []manager.NodeGroupStack, result2 error) {
+func (fake *FakeStackManager) ListNodeGroupStacksReturns(result1 []*types.Stack, result2 error) {
 	fake.listNodeGroupStacksMutex.Lock()
 	defer fake.listNodeGroupStacksMutex.Unlock()
 	fake.ListNodeGroupStacksStub = nil
 	fake.listNodeGroupStacksReturns = struct {
-		result1 []manager.NodeGroupStack
+		result1 []*types.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) ListNodeGroupStacksReturnsOnCall(i int, result1 []manager.NodeGroupStack, result2 error) {
+func (fake *FakeStackManager) ListNodeGroupStacksReturnsOnCall(i int, result1 []*types.Stack, result2 error) {
 	fake.listNodeGroupStacksMutex.Lock()
 	defer fake.listNodeGroupStacksMutex.Unlock()
 	fake.ListNodeGroupStacksStub = nil
 	if fake.listNodeGroupStacksReturnsOnCall == nil {
 		fake.listNodeGroupStacksReturnsOnCall = make(map[int]struct {
-			result1 []manager.NodeGroupStack
+			result1 []*types.Stack
 			result2 error
 		})
 	}
 	fake.listNodeGroupStacksReturnsOnCall[i] = struct {
+		result1 []*types.Stack
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) ListNodeGroupStacksWithStatuses(arg1 context.Context) ([]manager.NodeGroupStack, error) {
+	fake.listNodeGroupStacksWithStatusesMutex.Lock()
+	ret, specificReturn := fake.listNodeGroupStacksWithStatusesReturnsOnCall[len(fake.listNodeGroupStacksWithStatusesArgsForCall)]
+	fake.listNodeGroupStacksWithStatusesArgsForCall = append(fake.listNodeGroupStacksWithStatusesArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.ListNodeGroupStacksWithStatusesStub
+	fakeReturns := fake.listNodeGroupStacksWithStatusesReturns
+	fake.recordInvocation("ListNodeGroupStacksWithStatuses", []interface{}{arg1})
+	fake.listNodeGroupStacksWithStatusesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStackManager) ListNodeGroupStacksWithStatusesCallCount() int {
+	fake.listNodeGroupStacksWithStatusesMutex.RLock()
+	defer fake.listNodeGroupStacksWithStatusesMutex.RUnlock()
+	return len(fake.listNodeGroupStacksWithStatusesArgsForCall)
+}
+
+func (fake *FakeStackManager) ListNodeGroupStacksWithStatusesCalls(stub func(context.Context) ([]manager.NodeGroupStack, error)) {
+	fake.listNodeGroupStacksWithStatusesMutex.Lock()
+	defer fake.listNodeGroupStacksWithStatusesMutex.Unlock()
+	fake.ListNodeGroupStacksWithStatusesStub = stub
+}
+
+func (fake *FakeStackManager) ListNodeGroupStacksWithStatusesArgsForCall(i int) context.Context {
+	fake.listNodeGroupStacksWithStatusesMutex.RLock()
+	defer fake.listNodeGroupStacksWithStatusesMutex.RUnlock()
+	argsForCall := fake.listNodeGroupStacksWithStatusesArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeStackManager) ListNodeGroupStacksWithStatusesReturns(result1 []manager.NodeGroupStack, result2 error) {
+	fake.listNodeGroupStacksWithStatusesMutex.Lock()
+	defer fake.listNodeGroupStacksWithStatusesMutex.Unlock()
+	fake.ListNodeGroupStacksWithStatusesStub = nil
+	fake.listNodeGroupStacksWithStatusesReturns = struct {
 		result1 []manager.NodeGroupStack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) ListStacks(arg1 context.Context, arg2 ...types.StackStatus) ([]*types.Stack, error) {
+func (fake *FakeStackManager) ListNodeGroupStacksWithStatusesReturnsOnCall(i int, result1 []manager.NodeGroupStack, result2 error) {
+	fake.listNodeGroupStacksWithStatusesMutex.Lock()
+	defer fake.listNodeGroupStacksWithStatusesMutex.Unlock()
+	fake.ListNodeGroupStacksWithStatusesStub = nil
+	if fake.listNodeGroupStacksWithStatusesReturnsOnCall == nil {
+		fake.listNodeGroupStacksWithStatusesReturnsOnCall = make(map[int]struct {
+			result1 []manager.NodeGroupStack
+			result2 error
+		})
+	}
+	fake.listNodeGroupStacksWithStatusesReturnsOnCall[i] = struct {
+		result1 []manager.NodeGroupStack
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) ListStacks(arg1 context.Context) ([]*types.Stack, error) {
 	fake.listStacksMutex.Lock()
 	ret, specificReturn := fake.listStacksReturnsOnCall[len(fake.listStacksArgsForCall)]
 	fake.listStacksArgsForCall = append(fake.listStacksArgsForCall, struct {
 		arg1 context.Context
-		arg2 []types.StackStatus
-	}{arg1, arg2})
+	}{arg1})
 	stub := fake.ListStacksStub
 	fakeReturns := fake.listStacksReturns
-	fake.recordInvocation("ListStacks", []interface{}{arg1, arg2})
+	fake.recordInvocation("ListStacks", []interface{}{arg1})
 	fake.listStacksMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2...)
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -3280,17 +3215,17 @@ func (fake *FakeStackManager) ListStacksCallCount() int {
 	return len(fake.listStacksArgsForCall)
 }
 
-func (fake *FakeStackManager) ListStacksCalls(stub func(context.Context, ...types.StackStatus) ([]*types.Stack, error)) {
+func (fake *FakeStackManager) ListStacksCalls(stub func(context.Context) ([]*types.Stack, error)) {
 	fake.listStacksMutex.Lock()
 	defer fake.listStacksMutex.Unlock()
 	fake.ListStacksStub = stub
 }
 
-func (fake *FakeStackManager) ListStacksArgsForCall(i int) (context.Context, []types.StackStatus) {
+func (fake *FakeStackManager) ListStacksArgsForCall(i int) context.Context {
 	fake.listStacksMutex.RLock()
 	defer fake.listStacksMutex.RUnlock()
 	argsForCall := fake.listStacksArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1
 }
 
 func (fake *FakeStackManager) ListStacksReturns(result1 []*types.Stack, result2 error) {
@@ -3380,6 +3315,71 @@ func (fake *FakeStackManager) ListStacksMatchingReturnsOnCall(i int, result1 []*
 		})
 	}
 	fake.listStacksMatchingReturnsOnCall[i] = struct {
+		result1 []*types.Stack
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) ListStacksWithStatuses(arg1 context.Context, arg2 ...types.StackStatus) ([]*types.Stack, error) {
+	fake.listStacksWithStatusesMutex.Lock()
+	ret, specificReturn := fake.listStacksWithStatusesReturnsOnCall[len(fake.listStacksWithStatusesArgsForCall)]
+	fake.listStacksWithStatusesArgsForCall = append(fake.listStacksWithStatusesArgsForCall, struct {
+		arg1 context.Context
+		arg2 []types.StackStatus
+	}{arg1, arg2})
+	stub := fake.ListStacksWithStatusesStub
+	fakeReturns := fake.listStacksWithStatusesReturns
+	fake.recordInvocation("ListStacksWithStatuses", []interface{}{arg1, arg2})
+	fake.listStacksWithStatusesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2...)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStackManager) ListStacksWithStatusesCallCount() int {
+	fake.listStacksWithStatusesMutex.RLock()
+	defer fake.listStacksWithStatusesMutex.RUnlock()
+	return len(fake.listStacksWithStatusesArgsForCall)
+}
+
+func (fake *FakeStackManager) ListStacksWithStatusesCalls(stub func(context.Context, ...types.StackStatus) ([]*types.Stack, error)) {
+	fake.listStacksWithStatusesMutex.Lock()
+	defer fake.listStacksWithStatusesMutex.Unlock()
+	fake.ListStacksWithStatusesStub = stub
+}
+
+func (fake *FakeStackManager) ListStacksWithStatusesArgsForCall(i int) (context.Context, []types.StackStatus) {
+	fake.listStacksWithStatusesMutex.RLock()
+	defer fake.listStacksWithStatusesMutex.RUnlock()
+	argsForCall := fake.listStacksWithStatusesArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeStackManager) ListStacksWithStatusesReturns(result1 []*types.Stack, result2 error) {
+	fake.listStacksWithStatusesMutex.Lock()
+	defer fake.listStacksWithStatusesMutex.Unlock()
+	fake.ListStacksWithStatusesStub = nil
+	fake.listStacksWithStatusesReturns = struct {
+		result1 []*types.Stack
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) ListStacksWithStatusesReturnsOnCall(i int, result1 []*types.Stack, result2 error) {
+	fake.listStacksWithStatusesMutex.Lock()
+	defer fake.listStacksWithStatusesMutex.Unlock()
+	fake.ListStacksWithStatusesStub = nil
+	if fake.listStacksWithStatusesReturnsOnCall == nil {
+		fake.listStacksWithStatusesReturnsOnCall = make(map[int]struct {
+			result1 []*types.Stack
+			result2 error
+		})
+	}
+	fake.listStacksWithStatusesReturnsOnCall[i] = struct {
 		result1 []*types.Stack
 		result2 error
 	}{result1, result2}
@@ -4606,8 +4606,6 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.describeIAMServiceAccountStacksMutex.RUnlock()
 	fake.describeNodeGroupStackMutex.RLock()
 	defer fake.describeNodeGroupStackMutex.RUnlock()
-	fake.describeNodeGroupStacksMutex.RLock()
-	defer fake.describeNodeGroupStacksMutex.RUnlock()
 	fake.describeNodeGroupStacksAndResourcesMutex.RLock()
 	defer fake.describeNodeGroupStacksAndResourcesMutex.RUnlock()
 	fake.describeStackMutex.RLock()
@@ -4616,8 +4614,6 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.describeStackChangeSetMutex.RUnlock()
 	fake.describeStackEventsMutex.RLock()
 	defer fake.describeStackEventsMutex.RUnlock()
-	fake.describeStacksMutex.RLock()
-	defer fake.describeStacksMutex.RUnlock()
 	fake.doCreateStackRequestMutex.RLock()
 	defer fake.doCreateStackRequestMutex.RUnlock()
 	fake.doWaitUntilStackIsCreatedMutex.RLock()
@@ -4660,10 +4656,14 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.listIAMServiceAccountStacksMutex.RUnlock()
 	fake.listNodeGroupStacksMutex.RLock()
 	defer fake.listNodeGroupStacksMutex.RUnlock()
+	fake.listNodeGroupStacksWithStatusesMutex.RLock()
+	defer fake.listNodeGroupStacksWithStatusesMutex.RUnlock()
 	fake.listStacksMutex.RLock()
 	defer fake.listStacksMutex.RUnlock()
 	fake.listStacksMatchingMutex.RLock()
 	defer fake.listStacksMatchingMutex.RUnlock()
+	fake.listStacksWithStatusesMutex.RLock()
+	defer fake.listStacksWithStatusesMutex.RUnlock()
 	fake.lookupCloudTrailEventsMutex.RLock()
 	defer fake.lookupCloudTrailEventsMutex.RUnlock()
 	fake.makeChangeSetNameMutex.RLock()

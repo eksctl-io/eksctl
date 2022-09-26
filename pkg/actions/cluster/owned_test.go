@@ -170,7 +170,7 @@ var _ = Describe("Delete", func() {
 					Tasks: []tasks.Task{},
 				}, nil)
 
-				fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
+				fakeStackManager.ListNodeGroupStacksWithStatusesReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
 
 				p.MockEC2().On("DescribeKeyPairs", mock.Anything, mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
 
@@ -235,7 +235,7 @@ var _ = Describe("Delete", func() {
 				fakeStackManager.DeleteTasksForDeprecatedStacksReturns(&tasks.TaskTree{
 					Tasks: []tasks.Task{},
 				}, nil)
-				fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
+				fakeStackManager.ListNodeGroupStacksWithStatusesReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
 
 				p.MockEC2().On("DescribeKeyPairs", mock.Anything, mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
 

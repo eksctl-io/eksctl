@@ -13,9 +13,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
+// NodegroupFilter is an interface that holds filter configuration
+//
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . NodegroupFilter
-// NodegroupFilter is an interface that holds filter configuration
 type NodegroupFilter interface {
 	SetOnlyLocal(ctx context.Context, eksAPI awsapi.EKS, lister StackLister, clusterConfig *api.ClusterConfig) error
 	Match(ngName string) bool
@@ -24,7 +25,7 @@ type NodegroupFilter interface {
 
 // StackLister lists nodegroup stacks
 type StackLister interface {
-	ListNodeGroupStacks(ctx context.Context) ([]manager.NodeGroupStack, error)
+	ListNodeGroupStacksWithStatuses(ctx context.Context) ([]manager.NodeGroupStack, error)
 }
 
 // NodeGroupFilter holds filter configuration
@@ -93,7 +94,8 @@ func (f *NodeGroupFilter) SetOnlyLocal(ctx context.Context, eksAPI awsapi.EKS, l
 
 // SetOnlyRemote uses StackLister to list existing nodegroup stacks and configures
 // the filter to exclude nodegroups already defined in the config file. It will include the
-//  nodegroups that exist in the cluster but not in the config
+//
+//	nodegroups that exist in the cluster but not in the config
 func (f *NodeGroupFilter) SetOnlyRemote(ctx context.Context, eksAPI awsapi.EKS, lister StackLister, clusterConfig *api.ClusterConfig) error {
 	f.onlyRemote = true
 
@@ -167,7 +169,7 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(ctx context.Context, eksA
 
 func (f *NodeGroupFilter) findAllNodeGroups(ctx context.Context, eksAPI awsapi.EKS, lister StackLister, clusterConfig *api.ClusterConfig) ([]manager.NodeGroupStack, []string, error) {
 	// Get remote nodegroups stacks
-	nodeGroupsWithStacks, err := lister.ListNodeGroupStacks(ctx)
+	nodeGroupsWithStacks, err := lister.ListNodeGroupStacksWithStatuses(ctx)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -141,7 +141,7 @@ func deleteDeprecatedStacks(ctx context.Context, stackManager manager.StackManag
 }
 
 func checkForUndeletedStacks(ctx context.Context, stackManager manager.StackManager) error {
-	stacks, err := stackManager.DescribeStacks(ctx)
+	stacks, err := stackManager.ListStacks(ctx)
 	if err != nil {
 		return err
 	}

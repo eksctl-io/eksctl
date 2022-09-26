@@ -133,7 +133,7 @@ var _ = Describe("Upgrade", func() {
 		When("ForceUpdateEnabled isn't set", func() {
 			When("it uses amazonlinux2", func() {
 				BeforeEach(func() {
-					fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: ngName}}, nil)
+					fakeStackManager.ListNodeGroupStacksWithStatusesReturns([]manager.NodeGroupStack{{NodeGroupName: ngName}}, nil)
 
 					fakeStackManager.GetManagedNodeGroupTemplateReturns(al2WithoutForceTemplate, nil)
 
@@ -195,7 +195,7 @@ var _ = Describe("Upgrade", func() {
 		When("it already has ForceUpdateEnabled set to false", func() {
 			When("it uses amazonlinux2 GPU nodes", func() {
 				BeforeEach(func() {
-					fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: ngName}}, nil)
+					fakeStackManager.ListNodeGroupStacksWithStatusesReturns([]manager.NodeGroupStack{{NodeGroupName: ngName}}, nil)
 
 					fakeStackManager.GetManagedNodeGroupTemplateReturns(al2ForceFalseTemplate, nil)
 
@@ -251,7 +251,7 @@ var _ = Describe("Upgrade", func() {
 		When("ForceUpdateEnabled is set to true but the desired value is false", func() {
 			When("it uses bottlerocket", func() {
 				BeforeEach(func() {
-					fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: ngName}}, nil)
+					fakeStackManager.ListNodeGroupStacksWithStatusesReturns([]manager.NodeGroupStack{{NodeGroupName: ngName}}, nil)
 
 					fakeStackManager.GetManagedNodeGroupTemplateReturns(brForceTrueTemplate, nil)
 

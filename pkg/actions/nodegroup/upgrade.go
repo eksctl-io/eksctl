@@ -52,7 +52,7 @@ type UpgradeOptions struct {
 }
 
 func (m *Manager) Upgrade(ctx context.Context, options UpgradeOptions) error {
-	stacks, err := m.stackManager.ListNodeGroupStacks(ctx)
+	stacks, err := m.stackManager.ListNodeGroupStacksWithStatuses(ctx)
 	if err != nil {
 		return err
 	}
