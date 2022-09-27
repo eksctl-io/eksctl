@@ -967,7 +967,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				})
 
 				When("ipFamily is set to IPv6 but no managed addons are provided", func() {
-					It("it returns an error including which addons are missing", func() {
+					It("returns an error including which addons are missing", func() {
 						cfg.VPC.NAT = nil
 						cfg.IAM = &api.ClusterIAM{
 							WithOIDC: api.Enabled(),
@@ -1048,7 +1048,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					})
 
 					When("the version of the vpc-cni is invalid", func() {
-						It("it returns an error", func() {
+						It("returns an error", func() {
 							cfg.Metadata.Version = api.Version1_22
 							cfg.IAM = &api.ClusterIAM{
 								WithOIDC: api.Enabled(),
@@ -1093,7 +1093,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				})
 
 				When("ipFamily is set to IPv6 and vpc.NAT is defined", func() {
-					It("it returns an error", func() {
+					It("returns an error", func() {
 						cfg.Metadata.Version = api.Version1_22
 						cfg.IAM = &api.ClusterIAM{
 							WithOIDC: api.Enabled(),
@@ -1110,7 +1110,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				})
 
 				When("ipFamily is set to IPv6 and serviceIPv4CIDR is not empty", func() {
-					It("it returns an error", func() {
+					It("returns an error", func() {
 						cfg.Metadata.Version = api.Version1_22
 						cfg.IAM = &api.ClusterIAM{
 							WithOIDC: api.Enabled(),
@@ -1128,7 +1128,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				})
 
 				When("ipFamily is set to IPv6 and AutoAllocateIPv6 is set", func() {
-					It("it returns an error", func() {
+					It("returns an error", func() {
 						cfg.VPC.AutoAllocateIPv6 = api.Enabled()
 						cfg.Metadata.Version = api.Version1_22
 						cfg.IAM = &api.ClusterIAM{
@@ -1444,13 +1444,13 @@ var _ = Describe("ClusterConfig validation", func() {
 				}
 			})
 
-			It("It doesn't panic when instance distribution is not enabled", func() {
+			It("doesn't panic when instance distribution is not enabled", func() {
 				ng.InstancesDistribution = nil
 				err := api.ValidateNodeGroup(0, ng, cfg)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			It("It doesn't fail when instance distribution is enabled and instanceType is \"mixed\"", func() {
+			It("doesn't fail when instance distribution is enabled and instanceType is \"mixed\"", func() {
 				ng.InstanceType = "mixed"
 				ng.InstancesDistribution.InstanceTypes = []string{"t3.medium"}
 
@@ -1474,7 +1474,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).To(MatchError("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily AmazonLinux2"))
 			})
 
-			It("It fails when instance distribution is enabled and instanceType set", func() {
+			It("fails when instance distribution is enabled and instanceType set", func() {
 				ng.InstanceType = "t3.small"
 
 				err := api.ValidateNodeGroup(0, ng, cfg)
@@ -1482,7 +1482,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).To(MatchError("instanceType should be \"mixed\" or unset when using the instances distribution feature"))
 			})
 
-			It("It fails when the instance distribution doesn't have any instance type", func() {
+			It("fails when the instance distribution doesn't have any instance type", func() {
 				ng.InstanceType = "mixed"
 				ng.InstancesDistribution.InstanceTypes = []string{}
 
@@ -1490,14 +1490,14 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).To(MatchError("at least two instance types have to be specified for mixed nodegroups"))
 			})
 
-			It("It fails when the onDemandBaseCapacity is not above 0", func() {
+			It("fails when the onDemandBaseCapacity is not above 0", func() {
 				ng.InstancesDistribution.OnDemandBaseCapacity = newInt(-1)
 
 				err := api.ValidateNodeGroup(0, ng, cfg)
 				Expect(err).To(MatchError("onDemandBaseCapacity should be 0 or more"))
 			})
 
-			It("It fails when the spotInstancePools is not between 1 and 20", func() {
+			It("fails when the spotInstancePools is not between 1 and 20", func() {
 				ng.InstancesDistribution.SpotInstancePools = newInt(0)
 
 				err := api.ValidateNodeGroup(0, ng, cfg)
@@ -1509,7 +1509,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).To(MatchError("spotInstancePools should be between 1 and 20"))
 			})
 
-			It("It fails when the onDemandPercentageAboveBaseCapacity is not between 0 and 100", func() {
+			It("fails when the onDemandPercentageAboveBaseCapacity is not between 0 and 100", func() {
 				ng.InstancesDistribution.OnDemandPercentageAboveBaseCapacity = newInt(-1)
 
 				err := api.ValidateNodeGroup(0, ng, cfg)
@@ -1520,14 +1520,14 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).To(MatchError("percentageAboveBase should be between 0 and 100"))
 			})
 
-			It("It fails when the spotAllocationStrategy is not a supported strategy", func() {
+			It("fails when the spotAllocationStrategy is not a supported strategy", func() {
 				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("unsupported-strategy")
 
 				err := api.ValidateNodeGroup(0, ng, cfg)
 				Expect(err).To(MatchError("spotAllocationStrategy should be one of: lowest-price, capacity-optimized, capacity-optimized-prioritized"))
 			})
 
-			It("It fails when the spotAllocationStrategy is capacity-optimized and spotInstancePools is specified", func() {
+			It("fails when the spotAllocationStrategy is capacity-optimized and spotInstancePools is specified", func() {
 				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("capacity-optimized")
 				ng.InstancesDistribution.SpotInstancePools = newInt(2)
 
@@ -1535,7 +1535,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).To(MatchError("spotInstancePools cannot be specified when also specifying spotAllocationStrategy: capacity-optimized"))
 			})
 
-			It("It fails when the spotAllocationStrategy is capacity-optimized-prioritized and spotInstancePools is specified", func() {
+			It("fails when the spotAllocationStrategy is capacity-optimized-prioritized and spotInstancePools is specified", func() {
 				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("capacity-optimized-prioritized")
 				ng.InstancesDistribution.SpotInstancePools = newInt(2)
 
@@ -1543,7 +1543,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).To(MatchError("spotInstancePools cannot be specified when also specifying spotAllocationStrategy: capacity-optimized-prioritized"))
 			})
 
-			It("It does not fail when the spotAllocationStrategy is lowest-price and spotInstancePools is specified", func() {
+			It("does not fail when the spotAllocationStrategy is lowest-price and spotInstancePools is specified", func() {
 				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("lowest-price")
 				ng.InstancesDistribution.SpotInstancePools = newInt(2)
 
