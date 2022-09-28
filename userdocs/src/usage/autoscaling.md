@@ -29,9 +29,7 @@ labels and/or taints defined on your nodegroups, you will need to propagate thes
 tags on your Auto Scaling Groups (ASGs). 
 
 One way to do this is by setting the ASG tags in the `tags` field of your nodegroup
-definitions. Note that, for unmanaged nodegroups only, `tags` are propagated to the ASG by default.
-
-For example, given a nodegroup with the following labels and
+definitions. For example, given a nodegroup with the following labels and
 taints:
 
 ```yaml
@@ -61,7 +59,7 @@ nodeGroups:
       k8s.io/cluster-autoscaler/node-template/taint/feaster: "true:NoSchedule"
 ```
 
-For unmanaged nodegroups, this can be done automatically by setting `propagateASGTags` to `true`, which will add the labels and taints as tags to the Auto Scaling group:
+For both managed and unmanaged nodegroups, this can be done automatically by setting `propagateASGTags` to `true`, which will add the labels and taints as tags to the Auto Scaling group:
 
 ```yaml
 nodeGroups:
@@ -71,22 +69,6 @@ nodeGroups:
       my-cool-label: pizza
     taints:
       feaster: "true:NoSchedule"
-    propagateASGTags: true
-```
-
-For managed nodegroups, setting `propagateASGTags` to `true` will **only** propagate the `tags` to the ASG as tags. Propagating the labels and taints in a similar way to how this is done with unmanaged nodegroups is not supported yet.
-
-```yaml
-managedNodeGroups:
-  - name: ng1-public
-    ...
-    labels:
-      my-cool-label: pizza
-    taints:
-      feaster: "true:NoSchedule"
-    tags:
-      k8s.io/cluster-autoscaler/node-template/label/my-cool-label: pizza
-      k8s.io/cluster-autoscaler/node-template/taint/feaster: "true:NoSchedule"
     propagateASGTags: true
 ```
 
