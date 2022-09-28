@@ -92,7 +92,7 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer pri
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-	stacks, err := stackManager.DescribeStacks(ctx)
+	stacks, err := stackManager.ListStacks(ctx)
 	if err != nil {
 		return err
 	}

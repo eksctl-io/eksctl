@@ -503,8 +503,8 @@ func (c *StackCollection) ListClusterStackNames(ctx context.Context) ([]string, 
 	return stacks, nil
 }
 
-// ListStacks gets all of CloudFormation stacks
-func (c *StackCollection) ListStacks(ctx context.Context, statusFilters ...types.StackStatus) ([]*Stack, error) {
+// ListStacksWithStatuses gets all of CloudFormation stacks
+func (c *StackCollection) ListStacksWithStatuses(ctx context.Context, statusFilters ...types.StackStatus) ([]*Stack, error) {
 	return c.ListStacksMatching(ctx, fmtStacksRegexForCluster(c.spec.Metadata.Name), statusFilters...)
 }
 
@@ -618,9 +618,9 @@ func fmtStacksRegexForCluster(name string) string {
 	return fmt.Sprintf(ourStackRegexFmt, name)
 }
 
-// DescribeStacks describes the existing stacks
-func (c *StackCollection) DescribeStacks(ctx context.Context) ([]*Stack, error) {
-	stacks, err := c.ListStacks(ctx)
+// ListStacks describes the existing stacks
+func (c *StackCollection) ListStacks(ctx context.Context) ([]*Stack, error) {
+	stacks, err := c.ListStacksWithStatuses(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "describing CloudFormation stacks for %q", c.spec.Metadata.Name)
 	}
