@@ -65,7 +65,7 @@ type managedNodeGroupTagsToASGPropagationTask struct {
 func (t *managedNodeGroupTagsToASGPropagationTask) Describe() string { return t.info }
 
 func (t *managedNodeGroupTagsToASGPropagationTask) Do(errorCh chan error) error {
-	return t.stackCollection.propagateManagedNodeGroupTagsToASGTask(t.ctx, errorCh, t.nodeGroup)
+	return t.stackCollection.propagateManagedNodeGroupTagsToASGTask(t.ctx, errorCh, t.nodeGroup, t.stackCollection.PropagateManagedNodeGroupTagsToASG)
 }
 
 type taskWithClusterIAMServiceAccountSpec struct {
