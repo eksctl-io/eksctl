@@ -23,6 +23,11 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
+const (
+	labelsPrefix = "k8s.io/cluster-autoscaler/node-template/label/"
+	taintsPrefix = "k8s.io/cluster-autoscaler/node-template/taints/"
+)
+
 // NodeGroupStack represents a nodegroup and its type
 type NodeGroupStack struct {
 	NodeGroupName string
@@ -78,7 +83,8 @@ func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorC
 	return c.CreateStack(ctx, name, stack, ng.Tags, nil, errorCh)
 }
 
-func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup) error {
+func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup,
+	propagateFunc func(string, map[string]string, []string, chan error) error) error {
 	// describe node group to retrieve ASG names
 	input := &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(c.spec.Metadata.Name),
@@ -99,7 +105,39 @@ func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Con
 			asgNames = append(asgNames, *asg.Name)
 		}
 	}
-	return c.PropagateManagedNodeGroupTagsToASG(ng.Name, ng.Tags, asgNames, errorCh)
+
+	// add labels and taints
+	tags, err := convertLabelsAndTaintsIntoTags(ng)
+	if err != nil {
+		return err
+	}
+
+	// add nodegroup tags
+	for k, v := range ng.Tags {
+		tags[k] = v
+	}
+
+	return propagateFunc(ng.Name, tags, asgNames, errorCh)
+}
+
+// convertLabelsAndTaintsIntoTags so that they can be propageted automatically to ASG afterwards
+func convertLabelsAndTaintsIntoTags(ng *api.ManagedNodeGroup) (map[string]string, error) {
+	result := make(map[string]string, 0)
+
+	// labels
+	for k, v := range ng.Labels {
+		result[labelsPrefix+k] = v
+	}
+
+	// taints
+	for _, taint := range ng.Taints {
+		if _, ok := ng.Labels[taint.Key]; ok {
+			return nil, fmt.Errorf("duplicate key found for taints and labels with taint key=value: %s=%s, and label: %s=%s", taint.Key, taint.Value, taint.Key, ng.Labels[taint.Key])
+		}
+		result[taintsPrefix+taint.Key] = taint.Value
+	}
+
+	return result, nil
 }
 
 // ListNodeGroupStacks calls ListStacks and filters out nodegroups
