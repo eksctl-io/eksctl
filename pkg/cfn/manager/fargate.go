@@ -10,7 +10,7 @@ import (
 // GetFargateStack returns the stack holding the fargate IAM
 // resources, if any
 func (c *StackCollection) GetFargateStack(ctx context.Context) (*Stack, error) {
-	stacks, err := c.DescribeStacks(ctx)
+	stacks, err := c.ListStacks(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -125,7 +125,7 @@ var _ = Describe("Delete", func() {
 				Nodegroups: []string{"ng-1", "ng-2"},
 			}, nil)
 
-			fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
+			fakeStackManager.ListNodeGroupStacksWithStatusesReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
 
 			var deleteCallCount int
 			fakeStackManager.NewTasksToDeleteNodeGroupsReturns(&tasks.TaskTree{
@@ -214,7 +214,7 @@ var _ = Describe("Delete", func() {
 					Nodegroups: []string{"ng-1", "ng-2"},
 				}, nil)
 
-				fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
+				fakeStackManager.ListNodeGroupStacksWithStatusesReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
 
 				var deleteCallCount int
 				fakeStackManager.NewTasksToDeleteNodeGroupsReturns(&tasks.TaskTree{
@@ -317,7 +317,7 @@ var _ = Describe("Delete", func() {
 					Nodegroups: []string{"ng-1", "ng-2"},
 				}, nil)
 
-				fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
+				fakeStackManager.ListNodeGroupStacksWithStatusesReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
 
 				var deleteCallCount int
 				fakeStackManager.NewTasksToDeleteNodeGroupsReturns(&tasks.TaskTree{
@@ -397,7 +397,7 @@ var _ = Describe("Delete", func() {
 				Nodegroups: []string{"ng-1", "ng-2"},
 			}, nil)
 
-			fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
+			fakeStackManager.ListNodeGroupStacksWithStatusesReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
 
 			var deleteCallCount int
 			fakeStackManager.NewTasksToDeleteNodeGroupsReturns(&tasks.TaskTree{

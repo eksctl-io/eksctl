@@ -102,9 +102,9 @@ func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Con
 	return c.PropagateManagedNodeGroupTagsToASG(ng.Name, ng.Tags, asgNames, errorCh)
 }
 
-// DescribeNodeGroupStacks calls DescribeStacks and filters out nodegroups
-func (c *StackCollection) DescribeNodeGroupStacks(ctx context.Context) ([]*Stack, error) {
-	stacks, err := c.DescribeStacks(ctx)
+// ListNodeGroupStacks calls ListStacks and filters out nodegroups
+func (c *StackCollection) ListNodeGroupStacks(ctx context.Context) ([]*Stack, error) {
+	stacks, err := c.ListStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -131,8 +131,8 @@ func (c *StackCollection) DescribeNodeGroupStacks(ctx context.Context) ([]*Stack
 }
 
 // ListNodeGroupStacks returns a list of NodeGroupStacks
-func (c *StackCollection) ListNodeGroupStacks(ctx context.Context) ([]NodeGroupStack, error) {
-	stacks, err := c.DescribeNodeGroupStacks(ctx)
+func (c *StackCollection) ListNodeGroupStacksWithStatuses(ctx context.Context) ([]NodeGroupStack, error) {
+	stacks, err := c.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -151,10 +151,10 @@ func (c *StackCollection) ListNodeGroupStacks(ctx context.Context) ([]NodeGroupS
 	return nodeGroupStacks, nil
 }
 
-// DescribeNodeGroupStacksAndResources calls DescribeNodeGroupStacks and fetches all resources,
+// DescribeNodeGroupStacksAndResources calls DescribeNodeGroupStackList and fetches all resources,
 // then returns it in a map by nodegroup name
 func (c *StackCollection) DescribeNodeGroupStacksAndResources(ctx context.Context) (map[string]StackInfo, error) {
-	stacks, err := c.DescribeNodeGroupStacks(ctx)
+	stacks, err := c.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return nil, err
 	}

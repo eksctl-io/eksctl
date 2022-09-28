@@ -43,10 +43,10 @@ func (c *StackCollection) createClusterTask(ctx context.Context, errs chan error
 	return c.createClusterStack(ctx, name, stack, errs)
 }
 
-// DescribeClusterStackIfExists calls DescribeStacks and filters out cluster stack.
+// DescribeClusterStackIfExists calls ListStacks and filters out cluster stack.
 // If the stack does not exist, it returns nil.
 func (c *StackCollection) DescribeClusterStackIfExists(ctx context.Context) (*Stack, error) {
-	stacks, err := c.DescribeStacks(ctx)
+	stacks, err := c.ListStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
