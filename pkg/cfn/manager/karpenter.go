@@ -10,7 +10,7 @@ import (
 // GetKarpenterStack returns the stack holding the karpenter IAM
 // resources
 func (c *StackCollection) GetKarpenterStack(ctx context.Context) (*Stack, error) {
-	stacks, err := c.DescribeStacks(ctx)
+	stacks, err := c.ListStacks(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -374,7 +374,7 @@ var _ = Describe("Get", func() {
 
 			BeforeEach(func() {
 				//unmanaged nodegroup
-				fakeStackManager.DescribeNodeGroupStacksReturns([]*cftypes.Stack{
+				fakeStackManager.ListNodeGroupStacksReturns([]*cftypes.Stack{
 					{
 						StackName: aws.String(unmanagedStackName),
 						Tags: []cftypes.Tag{

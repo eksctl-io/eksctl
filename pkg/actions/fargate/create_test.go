@@ -78,7 +78,7 @@ var _ = Describe("Fargate", func() {
 		When("creating a farage role without specifying a role", func() {
 			When("the fargate role doesn't exist", func() {
 				BeforeEach(func() {
-					fakeStackManager.ListStacksReturns(nil, nil)
+					fakeStackManager.ListStacksWithStatusesReturns(nil, nil)
 					fakeStackManager.DescribeClusterStackIfExistsReturns(&types.Stack{
 						Outputs: []types.Output{
 							{
