@@ -51,6 +51,9 @@ type CloudTrail interface {
 	// Retrieves settings for one or more trails associated with the current region for
 	// your account.
 	DescribeTrails(ctx context.Context, params *DescribeTrailsInput, optFns ...func(*Options)) (*DescribeTrailsOutput, error)
+	// Returns the specified CloudTrail service-linked channel. Amazon Web Services
+	// services create service-linked channels to view CloudTrail events.
+	GetChannel(ctx context.Context, params *GetChannelInput, optFns ...func(*Options)) (*GetChannelOutput, error)
 	// Returns information about an event data store specified as either an ARN or the
 	// ID portion of the ARN.
 	GetEventDataStore(ctx context.Context, params *GetEventDataStoreInput, optFns ...func(*Options)) (*GetEventDataStoreOutput, error)
@@ -68,10 +71,19 @@ type CloudTrail interface {
 	// selector includes data events, the resources on which you are logging data
 	// events.
 	//
-	// For more information, see Logging Data and Management Events for Trails
-	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-management-and-data-events-with-cloudtrail.html)
-	// in the CloudTrail User Guide.
+	// For more information about logging management and data events, see the
+	// following topics in the CloudTrail User Guide:
+	//
+	// * Logging management events for
+	// trails
+	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-management-events-with-cloudtrail.html)
+	//
+	// *
+	// Logging data events for trails
+	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html)
 	GetEventSelectors(ctx context.Context, params *GetEventSelectorsInput, optFns ...func(*Options)) (*GetEventSelectorsOutput, error)
+	// Returns information for the specified import.
+	GetImport(ctx context.Context, params *GetImportInput, optFns ...func(*Options)) (*GetImportOutput, error)
 	// Describes the settings for the Insights event selectors that you configured for
 	// your trail. GetInsightSelectors shows if CloudTrail Insights event logging is
 	// enabled on the trail, and if it is, which insight types are enabled. If you run
@@ -92,9 +104,16 @@ type CloudTrail interface {
 	// from a single region. To return trail status from all regions, you must call the
 	// operation on each region.
 	GetTrailStatus(ctx context.Context, params *GetTrailStatusInput, optFns ...func(*Options)) (*GetTrailStatusOutput, error)
+	// Returns all CloudTrail channels.
+	ListChannels(ctx context.Context, params *ListChannelsInput, optFns ...func(*Options)) (*ListChannelsOutput, error)
 	// Returns information about all event data stores in the account, in the current
 	// region.
 	ListEventDataStores(ctx context.Context, params *ListEventDataStoresInput, optFns ...func(*Options)) (*ListEventDataStoresOutput, error)
+	// Returns a list of failures for the specified import.
+	ListImportFailures(ctx context.Context, params *ListImportFailuresInput, optFns ...func(*Options)) (*ListImportFailuresOutput, error)
+	// Returns information on all imports, or a select set of imports by ImportStatus
+	// or Destination.
+	ListImports(ctx context.Context, params *ListImportsInput, optFns ...func(*Options)) (*ListImportsOutput, error)
 	// Returns all public keys whose private keys were used to sign the digest files
 	// within the specified time range. The public key is needed to validate digest
 	// files that were signed with its corresponding private key. CloudTrail uses
@@ -183,8 +202,10 @@ type CloudTrail interface {
 	// The PutEventSelectors operation must be called from the region in which
 	// the trail was created; otherwise, an InvalidHomeRegionException exception is
 	// thrown. You can configure up to five event selectors for each trail. For more
-	// information, see Logging data and management events for trails
-	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-management-and-data-events-with-cloudtrail.html)
+	// information, see Logging management events for trails
+	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-management-events-with-cloudtrail.html),
+	// Logging data events for trails
+	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html),
 	// and Quotas in CloudTrail
 	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/WhatIsCloudTrail-Limits.html)
 	// in the CloudTrail User Guide. You can add advanced event selectors, and
@@ -210,6 +231,15 @@ type CloudTrail interface {
 	// the seven-day wait period after deletion. Restoring an event data store can take
 	// several minutes, depending on the size of the event data store.
 	RestoreEventDataStore(ctx context.Context, params *RestoreEventDataStoreInput, optFns ...func(*Options)) (*RestoreEventDataStoreOutput, error)
+	// Starts an import of logged trail events from a source S3 bucket to a destination
+	// event data store. When you start a new import, the Destinations and ImportSource
+	// parameters are required. Before starting a new import, disable any access
+	// control lists (ACLs) attached to the source S3 bucket. For more information
+	// about disabling ACLs, see Controlling ownership of objects and disabling ACLs
+	// for your bucket
+	// (https://docs.aws.amazon.com/AmazonS3/latest/userguide/about-object-ownership.html).
+	// When you retry an import, the ImportID parameter is required.
+	StartImport(ctx context.Context, params *StartImportInput, optFns ...func(*Options)) (*StartImportOutput, error)
 	// Starts the recording of Amazon Web Services API calls and log file delivery for
 	// a trail. For a trail that is enabled in all regions, this operation must be
 	// called from the region in which the trail was created. This operation cannot be
@@ -219,6 +249,8 @@ type CloudTrail interface {
 	// Starts a CloudTrail Lake query. The required QueryStatement parameter provides
 	// your SQL query, enclosed in single quotation marks.
 	StartQuery(ctx context.Context, params *StartQueryInput, optFns ...func(*Options)) (*StartQueryOutput, error)
+	// Stops a specified import.
+	StopImport(ctx context.Context, params *StopImportInput, optFns ...func(*Options)) (*StopImportOutput, error)
 	// Suspends the recording of Amazon Web Services API calls and log file delivery
 	// for the specified trail. Under most circumstances, there is no need to use this
 	// action. You can update a trail without stopping it first. This action is the
@@ -231,7 +263,7 @@ type CloudTrail interface {
 	// Updates an event data store. The required EventDataStore value is an ARN or the
 	// ID portion of the ARN. Other parameters are optional, but at least one optional
 	// parameter must be specified, or CloudTrail throws an error. RetentionPeriod is
-	// in days, and valid values are integers between 90 and 2555. By default,
+	// in days, and valid values are integers between 90 and 2557. By default,
 	// TerminationProtection is enabled. AdvancedEventSelectors includes or excludes
 	// management and data events in your event data store; for more information about
 	// AdvancedEventSelectors, see PutEventSelectorsRequest$AdvancedEventSelectors.
