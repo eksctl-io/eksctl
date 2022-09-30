@@ -2273,7 +2273,9 @@
       "x-intellij-html-description": "an IP address in CIDR notation"
     },
     "k8s.io|api|core|v1.TaintEffect": {
-      "type": "string"
+      "type": "string",
+      "description": "+enum",
+      "x-intellij-html-description": "+enum"
     },
     "taintsWrapper": {
       "items": {
