@@ -609,7 +609,7 @@ func ImportSubnetsFromSpec(ctx context.Context, provider api.ClusterProvider, sp
 	return nil
 }
 
-//UseEndpointAccessFromCluster retrieves the Cluster's endpoint access configuration via the SDK
+// UseEndpointAccessFromCluster retrieves the Cluster's endpoint access configuration via the SDK
 // as the CloudFormation Stack doesn't support that configuration currently
 func UseEndpointAccessFromCluster(ctx context.Context, provider api.ClusterProvider, spec *api.ClusterConfig) error {
 	input := &awseks.DescribeClusterInput{
@@ -681,25 +681,31 @@ func getSubnetByID(ctx context.Context, ec2API awsapi.EC2, id string) (ec2types.
 func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2) ([]string, error) {
 
 	var (
-		subnetMapping api.AZSubnetMapping
-		zones         []string
+		subnetMapping        api.AZSubnetMapping
+		publicSubnetMapping  api.AZSubnetMapping
+		privateSubnetMapping api.AZSubnetMapping
+		zones                []string
 	)
 
 	ng := np.BaseNodeGroup()
 
 	if nodeGroup, ok := np.(*api.NodeGroup); ok && len(nodeGroup.LocalZones) > 0 {
 		zones = nodeGroup.LocalZones
+		privateSubnetMapping = clusterConfig.VPC.LocalZoneSubnets.Private
+		publicSubnetMapping = clusterConfig.VPC.LocalZoneSubnets.Public
 		if nodeGroup.PrivateNetworking {
-			subnetMapping = clusterConfig.VPC.LocalZoneSubnets.Private
+			subnetMapping = privateSubnetMapping
 		} else {
-			subnetMapping = clusterConfig.VPC.LocalZoneSubnets.Public
+			subnetMapping = publicSubnetMapping
 		}
 	} else {
 		zones = ng.AvailabilityZones
+		privateSubnetMapping = clusterConfig.VPC.Subnets.Private
+		publicSubnetMapping = clusterConfig.VPC.Subnets.Public
 		if ng.PrivateNetworking {
-			subnetMapping = clusterConfig.VPC.Subnets.Private
+			subnetMapping = privateSubnetMapping
 		} else {
-			subnetMapping = clusterConfig.VPC.Subnets.Public
+			subnetMapping = publicSubnetMapping
 		}
 	}
 
@@ -739,7 +745,7 @@ func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig 
 			}
 		}
 
-		subnetsFromIDs, err := selectNodeGroupSubnetsFromIDs(ctx, ng, subnetMapping, clusterConfig, ec2API, func(zone string) error {
+		subnetsFromIDs, err := selectNodeGroupSubnetsFromIDs(ctx, ng, publicSubnetMapping, privateSubnetMapping, clusterConfig, ec2API, func(zone string) error {
 			zoneType, ok := zoneTypeMapping[zone]
 			if !ok {
 				return fmt.Errorf("unexpected error finding zone type for zone %q", zone)
@@ -790,50 +796,84 @@ func selectNodeGroupZoneSubnets(nodeGroupZones []string, subnetMapping api.AZSub
 	return subnetIDs, nil
 }
 
-func selectNodeGroupSubnetsFromIDs(ctx context.Context, ng *api.NodeGroupBase, subnetMapping api.AZSubnetMapping, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2, validateSubnetZone func(zone string) error) ([]string, error) {
+func selectNodeGroupSubnetsFromIDs(
+	ctx context.Context,
+	ng *api.NodeGroupBase,
+	publicSubnetMapping api.AZSubnetMapping,
+	privateSubnetMapping api.AZSubnetMapping,
+	clusterConfig *api.ClusterConfig,
+	ec2API awsapi.EC2,
+	validateSubnetZone func(zone string) error) ([]string, error) {
 	var selectedSubnetIDs []string
+	var foundInPublic, foundInPrivate bool
 	outpostARN := getOutpostARN(clusterConfig, ng)
+
 	for _, subnetName := range ng.Subnets {
-		var subnetID string
 		var mappedSubnet *api.AZSubnetSpec
-		if subnet, ok := subnetMapping[subnetName]; !ok {
-			for _, s := range subnetMapping {
-				if s.ID == subnetName {
-					mappedSubnet = &s
-					subnetID = subnetName
-					break
+
+		// first try to find the specified subnet as part of the VPC inside ClusterConfig, if existent
+		if ng.PrivateNetworking {
+			if mappedSubnet, foundInPrivate = findInConfiguredVPC(subnetName, privateSubnetMapping); !foundInPrivate {
+				if mappedSubnet, foundInPublic = findInConfiguredVPC(subnetName, publicSubnetMapping); foundInPublic {
+					logger.Warning("public subnet %s is being used with `privateNetworking` enabled, please ensure this is the desired behaviour", subnetName)
 				}
 			}
 		} else {
-			subnetID = subnet.ID
-			mappedSubnet = &subnet
+			if mappedSubnet, foundInPublic = findInConfiguredVPC(subnetName, publicSubnetMapping); !foundInPublic {
+				if mappedSubnet, foundInPrivate = findInConfiguredVPC(subnetName, privateSubnetMapping); foundInPrivate {
+					return nil, fmt.Errorf("subnet %s is specified as private in ClusterConfig, thus must only be used when `privateNetworking` is enabled", subnetName)
+				}
+			}
 		}
-		if mappedSubnet == nil {
-			subnet, err := getSubnetByID(ctx, ec2API, subnetName)
-			if err != nil {
-				return nil, err
-			}
-			if subnet.VpcId != nil && *subnet.VpcId != clusterConfig.VPC.ID {
-				return nil, fmt.Errorf("subnet with ID %q is not in the attached VPC with ID %q", *subnet.SubnetId, clusterConfig.VPC.ID)
-			}
-			if err := validateSubnetZone(*subnet.AvailabilityZone); err != nil {
-				return nil, err
-			}
 
+		if mappedSubnet != nil {
 			if outpostARN != "" {
-				if err := validateSubnetOnOutposts(*subnet.SubnetId, aws.ToString(subnet.OutpostArn), outpostARN); err != nil {
+				if err := validateSubnetOnOutposts(mappedSubnet.ID, mappedSubnet.OutpostARN, outpostARN); err != nil {
 					return nil, err
 				}
 			}
-			subnetID = *subnet.SubnetId
-		} else if outpostARN != "" {
-			if err := validateSubnetOnOutposts(mappedSubnet.ID, mappedSubnet.OutpostARN, outpostARN); err != nil {
+			selectedSubnetIDs = append(selectedSubnetIDs, mappedSubnet.ID)
+			continue
+		}
+
+		// otherwise try to find the subnet as part of the AWS Account
+		subnet, err := getSubnetByID(ctx, ec2API, subnetName)
+		if err != nil {
+			return nil, err
+		}
+		if subnet.VpcId != nil && *subnet.VpcId != clusterConfig.VPC.ID {
+			return nil, fmt.Errorf("subnet with ID %q is not in the attached VPC with ID %q", *subnet.SubnetId, clusterConfig.VPC.ID)
+		}
+		if err := validateSubnetZone(*subnet.AvailabilityZone); err != nil {
+			return nil, err
+		}
+
+		if outpostARN != "" {
+			if err := validateSubnetOnOutposts(*subnet.SubnetId, aws.ToString(subnet.OutpostArn), outpostARN); err != nil {
 				return nil, err
 			}
 		}
-		selectedSubnetIDs = append(selectedSubnetIDs, subnetID)
+
+		selectedSubnetIDs = append(selectedSubnetIDs, *subnet.SubnetId)
 	}
+
 	return selectedSubnetIDs, nil
+}
+
+func findInConfiguredVPC(subnetName string, subnetMapping api.AZSubnetMapping) (*api.AZSubnetSpec, bool) {
+	if subnet, ok := subnetMapping[subnetName]; !ok {
+		// if not found by name, search by id
+		for _, s := range subnetMapping {
+			if s.ID != subnetName {
+				continue
+			}
+			return &s, true
+		}
+	} else {
+		// if found by name, return the subnet
+		return &subnet, true
+	}
+	return nil, false
 }
 
 func getNetworkType(ng *api.NodeGroupBase) string {
