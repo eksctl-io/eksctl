@@ -129,18 +129,6 @@ var _ = Describe("AMI Auto Resolution", func() {
 						p = mockprovider.NewMockProvider()
 					})
 
-					It("should return a valid Full image for 1.14", func() {
-						imageFamily = "WindowsServer2019FullContainer"
-						addMockGetParameter(p, "/aws/service/ami-windows-latest/Windows_Server-2019-English-Full-EKS_Optimized-1.14/image_id", expectedAmi)
-
-						resolver := NewSSMResolver(p.MockSSM())
-						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
-
-						Expect(err).NotTo(HaveOccurred())
-						Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
-						Expect(p.MockSSM().AssertNumberOfCalls(GinkgoT(), "GetParameter", 1)).To(BeTrue())
-					})
-
 					It("should return a valid Core image for 1.15", func() {
 						imageFamily = "WindowsServer2019CoreContainer"
 						addMockGetParameter(p, "/aws/service/ami-windows-latest/Windows_Server-2019-English-Core-EKS_Optimized-1.15/image_id", expectedAmi)
@@ -187,7 +175,28 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 			Context("and Windows Full family", func() {
 				BeforeEach(func() {
+					version = "1.14"
 					instanceType = "t3.xlarge"
+				})
+
+				Context("and ami is available", func() {
+					BeforeEach(func() {
+						version = "1.14"
+						p = mockprovider.NewMockProvider()
+					})
+
+					It("should return a valid Full image for 1.14", func() {
+						imageFamily = "WindowsServer2019FullContainer"
+						addMockGetParameter(p, "/aws/service/ami-windows-latest/Windows_Server-2019-English-Full-EKS_Optimized-1.14/image_id", expectedAmi)
+
+						resolver := NewSSMResolver(p.MockSSM())
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
+
+						Expect(err).NotTo(HaveOccurred())
+						Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
+						Expect(p.MockSSM().AssertNumberOfCalls(GinkgoT(), "GetParameter", 1)).To(BeTrue())
+					})
+
 				})
 
 				Context("Windows Server 2022 Full", func() {
