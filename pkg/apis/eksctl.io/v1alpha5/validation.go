@@ -828,8 +828,8 @@ func ValidateNodeGroup(i int, ng *NodeGroup, outpostInfo OutpostInfo) error {
 		}
 	}
 
-	if instanceutils.IsARMGPUInstanceType(SelectInstanceType(ng)) {
-		return errors.Errorf("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily %s", ng.AMIFamily)
+	if instanceutils.IsARMGPUInstanceType(SelectInstanceType(ng)) && ng.AMIFamily != NodeImageFamilyBottlerocket {
+		return fmt.Errorf("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily %s", ng.AMIFamily)
 	}
 
 	if err := validateInstancesDistribution(ng); err != nil {
