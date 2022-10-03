@@ -89,6 +89,14 @@ type selectSubnetsCase struct {
 	expectIDs        []string
 }
 
+type selectSubnetsByIDCase struct {
+	ng                   *api.NodeGroupBase
+	publicSubnetMapping  api.AZSubnetMapping
+	privateSubnetMapping api.AZSubnetMapping
+	outputSubnetIDs      []string
+	expectedErr          error
+}
+
 func newFakeClusterWithEndpoints(private, public bool, name string) *ekstypes.Cluster {
 	cluster := NewFakeCluster(name, ekstypes.ClusterStatusActive)
 	vpcCfgReq := &ekstypes.VpcConfigResponse{
@@ -1374,6 +1382,52 @@ var _ = Describe("VPC", func() {
 				},
 			}),
 			expectIDs: []string{"id-1", "id-2"},
+		}),
+	)
+
+	DescribeTable("select subnets by id",
+		func(e selectSubnetsByIDCase) {
+			subnetIDs, err := selectNodeGroupSubnetsFromIDs(context.Background(), e.ng, e.publicSubnetMapping, e.privateSubnetMapping,
+				&api.ClusterConfig{}, mockprovider.NewMockProvider().EC2(), func(zone string) error { return nil })
+
+			if e.expectedErr != nil {
+				Expect(err.Error()).To(Equal(e.expectedErr.Error()))
+			} else {
+				Expect(err).To(BeNil())
+				Expect(subnetIDs).To(Equal(e.outputSubnetIDs))
+			}
+		},
+		Entry("set private subnet, by name, with privateNetworking disabled", selectSubnetsByIDCase{
+			ng: &api.NodeGroupBase{
+				Subnets:           []string{"subnet-name"},
+				PrivateNetworking: false,
+			},
+			privateSubnetMapping: api.AZSubnetMapping{"subnet-name": api.AZSubnetSpec{}},
+			expectedErr:          fmt.Errorf("subnet subnet-name is specified as private in ClusterConfig, thus must only be used when `privateNetworking` is enabled"),
+		}),
+		Entry("set private subnet, by ID, with privateNetworking disabled", selectSubnetsByIDCase{
+			ng: &api.NodeGroupBase{
+				Subnets:           []string{"subnet-id"},
+				PrivateNetworking: false,
+			},
+			privateSubnetMapping: api.AZSubnetMapping{"subnet-name": api.AZSubnetSpec{ID: "subnet-id"}},
+			expectedErr:          fmt.Errorf("subnet subnet-id is specified as private in ClusterConfig, thus must only be used when `privateNetworking` is enabled"),
+		}),
+		Entry("set public subnet, by name, with privateNetworking enabled", selectSubnetsByIDCase{
+			ng: &api.NodeGroupBase{
+				Subnets:           []string{"subnet-name"},
+				PrivateNetworking: true,
+			},
+			publicSubnetMapping: api.AZSubnetMapping{"subnet-name": api.AZSubnetSpec{ID: "subnet-id"}},
+			outputSubnetIDs:     []string{"subnet-id"},
+		}),
+		Entry("set public subnet, by ID, with privateNetworking enabled", selectSubnetsByIDCase{
+			ng: &api.NodeGroupBase{
+				Subnets:           []string{"subnet-id"},
+				PrivateNetworking: true,
+			},
+			publicSubnetMapping: api.AZSubnetMapping{"subnet-name": api.AZSubnetSpec{ID: "subnet-id"}},
+			outputSubnetIDs:     []string{"subnet-id"},
 		}),
 	)
 
