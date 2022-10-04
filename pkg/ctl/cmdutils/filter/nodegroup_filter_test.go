@@ -346,7 +346,7 @@ const expected = `
 		"metadata": {
 		  "name": "test-3x3-ngs",
 		  "region": "eu-central-1",
-		  "version": "1.22"
+		  "version": "1.23"
 		},
 		"kubernetesNetworkConfig": {
         	"ipFamily": "IPv4"
