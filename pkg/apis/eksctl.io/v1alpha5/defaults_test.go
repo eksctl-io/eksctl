@@ -88,7 +88,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
 
 			Expect(*testNodeGroup.SSH.Allow).To(BeTrue())
 			Expect(*testNodeGroup.SSH.PublicKeyPath).To(BeIdenticalTo(testKeyPath))
@@ -104,7 +104,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
 
 			Expect(*testNodeGroup.SSH.PublicKeyPath).To(BeIdenticalTo("~/.ssh/id_rsa.pub"))
 		})
@@ -122,7 +122,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
 
 			Expect(*testNodeGroup.SSH.Allow).To(BeFalse())
 			Expect(*testNodeGroup.SSH.PublicKeyPath).To(BeIdenticalTo(testKeyPath))
@@ -135,7 +135,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				NodeGroupBase: &NodeGroupBase{},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
 			Expect(*testNodeGroup.VolumeType).To(Equal(DefaultNodeVolumeType))
 			Expect(*testNodeGroup.VolumeSize).To(Equal(DefaultNodeVolumeSize))
 		})
@@ -150,7 +150,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
 			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeType).To(Equal(DefaultNodeVolumeType))
 			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeSize).To(Equal(DefaultNodeVolumeSize))
 		})
@@ -161,10 +161,36 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
 			Expect(*testNodeGroup.VolumeType).To(Equal(NodeVolumeTypeGP3))
 			Expect(*testNodeGroup.VolumeIOPS).To(Equal(DefaultNodeVolumeGP3IOPS))
 			Expect(*testNodeGroup.VolumeThroughput).To(Equal(DefaultNodeVolumeThroughput))
+		})
+
+		It("[Outposts] sets up defaults for the main volume", func() {
+			testNodeGroup := NodeGroup{
+				NodeGroupBase: &NodeGroupBase{},
+			}
+
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, true)
+			Expect(*testNodeGroup.VolumeType).To(Equal(NodeVolumeTypeGP2))
+			Expect(*testNodeGroup.VolumeSize).To(Equal(DefaultNodeVolumeSize))
+		})
+
+		It("[Outposts] sets up defaults for additional volumes", func() {
+			testNodeGroup := NodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AdditionalVolumes: []*VolumeMapping{
+						{
+							VolumeName: aws.String("test"),
+						},
+					},
+				},
+			}
+
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, true)
+			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeType).To(Equal(NodeVolumeTypeGP2))
+			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeSize).To(Equal(DefaultNodeVolumeSize))
 		})
 	})
 
@@ -179,7 +205,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
 
 			Expect(*testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeTrue())
 		})
@@ -194,7 +220,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
 			Expect(testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeNil())
 		})
 
@@ -205,7 +231,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
 
 			Expect(testNodeGroup.Bottlerocket).NotTo(BeNil())
 			Expect(testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeNil())
@@ -229,7 +255,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			testNodeGroup := NodeGroup{
 				NodeGroupBase: &NodeGroupBase{},
 			}
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
 			Expect(*testNodeGroup.ContainerRuntime).To(Equal(DefaultContainerRuntime))
 		})
 		When("ami family is windows", func() {
@@ -239,7 +265,7 @@ var _ = Describe("ClusterConfig validation", func() {
 						AMIFamily: NodeImageFamilyWindowsServer2019CoreContainer,
 					},
 				}
-				SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+				SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
 				Expect(*testNodeGroup.ContainerRuntime).To(Equal(DefaultContainerRuntimeForWindows))
 			})
 		})

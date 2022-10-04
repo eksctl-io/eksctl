@@ -39,7 +39,7 @@ type Token struct {
 
 const (
 	clusterIDHeader        = "x-k8s-aws-id"
-	presignedURLExpiration = 15 * time.Minute
+	presignedURLExpiration = 30 * time.Minute
 	v1Prefix               = "k8s-aws-v1."
 )
 

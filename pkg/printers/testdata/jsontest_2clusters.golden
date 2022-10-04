@@ -1,5 +1,6 @@
 [
   {
+    "Id": null,
     "Arn": "arn-12345678",
     "CertificateAuthority": null,
     "ClientRequestToken": null,
@@ -7,10 +8,13 @@
     "CreatedAt": "0001-01-01T00:00:00Z",
     "EncryptionConfig": null,
     "Endpoint": null,
+    "Health": null,
+    "Id": null,
     "Identity": null,
 	"KubernetesNetworkConfig": null,
     "Logging": null,
     "Name": "test-cluster-1",
+    "OutpostConfig": null,
     "PlatformVersion": null,
     "ResourcesVpcConfig": {
       "ClusterSecurityGroupId": null,
@@ -30,6 +34,7 @@
     "Version": null
   },
   {
+    "Id": null,
     "Arn": "arn-87654321",
     "CertificateAuthority": null,
     "ClientRequestToken": null,
@@ -37,10 +42,13 @@
     "CreatedAt": "0001-01-01T00:00:00Z",
     "EncryptionConfig": null,
     "Endpoint": null,
+    "Health": null,
+    "Id": null,
     "Identity": null,
 	"KubernetesNetworkConfig": null,
     "Logging": null,
     "Name": "test-cluster-2",
+    "OutpostConfig": null,
     "PlatformVersion": null,
     "ResourcesVpcConfig": {
       "ClusterSecurityGroupId": null,

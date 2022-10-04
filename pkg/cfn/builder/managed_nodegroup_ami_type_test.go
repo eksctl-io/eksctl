@@ -26,7 +26,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 	clusterConfig.Status = &api.ClusterStatus{
 		Endpoint: "https://test.com",
 	}
-	api.SetManagedNodeGroupDefaults(e.nodeGroup, clusterConfig.Metadata)
+	api.SetManagedNodeGroupDefaults(e.nodeGroup, clusterConfig.Metadata, false)
 	p := mockprovider.NewMockProvider()
 	fakeVPCImporter := new(vpcfakes.FakeImporter)
 	bootstrapper := nodebootstrap.NewManagedBootstrapper(clusterConfig, e.nodeGroup)

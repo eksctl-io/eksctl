@@ -23,6 +23,11 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
+const (
+	labelsPrefix = "k8s.io/cluster-autoscaler/node-template/label/"
+	taintsPrefix = "k8s.io/cluster-autoscaler/node-template/taints/"
+)
+
 // NodeGroupStack represents a nodegroup and its type
 type NodeGroupStack struct {
 	NodeGroupName string
@@ -61,7 +66,7 @@ func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan err
 
 func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
 	name := c.makeNodeGroupStackName(ng.Name)
-	cluster, err := c.DescribeClusterStack(ctx)
+	cluster, err := c.DescribeClusterStackIfExists(ctx)
 	if err != nil {
 		return err
 	}
@@ -78,7 +83,8 @@ func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorC
 	return c.CreateStack(ctx, name, stack, ng.Tags, nil, errorCh)
 }
 
-func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup) error {
+func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup,
+	propagateFunc func(string, map[string]string, []string, chan error) error) error {
 	// describe node group to retrieve ASG names
 	input := &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(c.spec.Metadata.Name),
@@ -99,12 +105,44 @@ func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Con
 			asgNames = append(asgNames, *asg.Name)
 		}
 	}
-	return c.PropagateManagedNodeGroupTagsToASG(ng.Name, ng.Tags, asgNames, errorCh)
+
+	// add labels and taints
+	tags, err := convertLabelsAndTaintsIntoTags(ng)
+	if err != nil {
+		return err
+	}
+
+	// add nodegroup tags
+	for k, v := range ng.Tags {
+		tags[k] = v
+	}
+
+	return propagateFunc(ng.Name, tags, asgNames, errorCh)
 }
 
-// DescribeNodeGroupStacks calls DescribeStacks and filters out nodegroups
-func (c *StackCollection) DescribeNodeGroupStacks(ctx context.Context) ([]*Stack, error) {
-	stacks, err := c.DescribeStacks(ctx)
+// convertLabelsAndTaintsIntoTags so that they can be propageted automatically to ASG afterwards
+func convertLabelsAndTaintsIntoTags(ng *api.ManagedNodeGroup) (map[string]string, error) {
+	result := make(map[string]string, 0)
+
+	// labels
+	for k, v := range ng.Labels {
+		result[labelsPrefix+k] = v
+	}
+
+	// taints
+	for _, taint := range ng.Taints {
+		if _, ok := ng.Labels[taint.Key]; ok {
+			return nil, fmt.Errorf("duplicate key found for taints and labels with taint key=value: %s=%s, and label: %s=%s", taint.Key, taint.Value, taint.Key, ng.Labels[taint.Key])
+		}
+		result[taintsPrefix+taint.Key] = taint.Value
+	}
+
+	return result, nil
+}
+
+// ListNodeGroupStacks calls ListStacks and filters out nodegroups
+func (c *StackCollection) ListNodeGroupStacks(ctx context.Context) ([]*Stack, error) {
+	stacks, err := c.ListStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -131,8 +169,8 @@ func (c *StackCollection) DescribeNodeGroupStacks(ctx context.Context) ([]*Stack
 }
 
 // ListNodeGroupStacks returns a list of NodeGroupStacks
-func (c *StackCollection) ListNodeGroupStacks(ctx context.Context) ([]NodeGroupStack, error) {
-	stacks, err := c.DescribeNodeGroupStacks(ctx)
+func (c *StackCollection) ListNodeGroupStacksWithStatuses(ctx context.Context) ([]NodeGroupStack, error) {
+	stacks, err := c.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -151,10 +189,10 @@ func (c *StackCollection) ListNodeGroupStacks(ctx context.Context) ([]NodeGroupS
 	return nodeGroupStacks, nil
 }
 
-// DescribeNodeGroupStacksAndResources calls DescribeNodeGroupStacks and fetches all resources,
+// DescribeNodeGroupStacksAndResources calls DescribeNodeGroupStackList and fetches all resources,
 // then returns it in a map by nodegroup name
 func (c *StackCollection) DescribeNodeGroupStacksAndResources(ctx context.Context) (map[string]StackInfo, error) {
-	stacks, err := c.DescribeNodeGroupStacks(ctx)
+	stacks, err := c.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return nil, err
 	}

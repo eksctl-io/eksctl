@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -17,10 +16,7 @@ import (
 func (c *ClusterProvider) ValidateClusterForCompatibility(ctx context.Context, cfg *api.ClusterConfig, stackManager manager.StackManager) error {
 	cluster, err := stackManager.DescribeClusterStack(ctx)
 	if err != nil {
-		return errors.Wrap(err, "getting cluster stacks")
-	}
-	if cluster == nil {
-		return &manager.StackNotFoundErr{ClusterName: cfg.Metadata.Name}
+		return fmt.Errorf("getting cluster stack: %w", err)
 	}
 
 	err = outputs.Collect(*cluster,

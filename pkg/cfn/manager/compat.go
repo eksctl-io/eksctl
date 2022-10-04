@@ -19,7 +19,7 @@ import (
 // like Managed Nodegroups and Fargate
 func (c *StackCollection) FixClusterCompatibility(ctx context.Context) error {
 	logger.Info("checking cluster stack for missing resources")
-	stack, err := c.DescribeClusterStack(ctx)
+	stack, err := c.DescribeClusterStackIfExists(ctx)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (c *StackCollection) FixClusterCompatibility(ctx context.Context) error {
 	}
 
 	logger.Info("adding missing resources to cluster stack")
-	_, err = c.AppendNewClusterStackResource(ctx, false)
+	_, err = c.AppendNewClusterStackResource(ctx, false, false)
 	return err
 }
 

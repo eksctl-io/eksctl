@@ -68,8 +68,10 @@ func New(client v1.ConfigMapInterface, cm *corev1.ConfigMap) *AuthConfigMap {
 		}
 	}
 	if cm.Data == nil {
-		cm.ObjectMeta = ObjectMeta()
 		cm.Data = map[string]string{}
+	}
+	if cm.ObjectMeta.Name == "" {
+		cm.ObjectMeta = ObjectMeta()
 	}
 	return &AuthConfigMap{client: client, cm: cm}
 }
