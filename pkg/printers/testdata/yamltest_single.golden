@@ -1,14 +1,17 @@
-- Arn: arn-12345678
+- Id: null
+  Arn: arn-12345678
   CertificateAuthority: null
   ClientRequestToken: null
   ConnectorConfig: null
   CreatedAt: "0001-01-01T00:00:00Z"
   EncryptionConfig: null
   Endpoint: null
+  Health: null
   Identity: null
   KubernetesNetworkConfig: null
   Logging: null
   Name: test-cluster
+  OutpostConfig: null
   PlatformVersion: null
   ResourcesVpcConfig:
     ClusterSecurityGroupId: null

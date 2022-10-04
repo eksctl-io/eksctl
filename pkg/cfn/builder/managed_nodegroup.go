@@ -287,10 +287,10 @@ func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes
 	}
 
 	switch {
-
-	case instanceutils.IsGPUInstanceType(instanceType) && instanceutils.IsARMInstanceType(instanceType):
-		return amiType.ARMGPU
 	case instanceutils.IsGPUInstanceType(instanceType):
+		if instanceutils.IsARMInstanceType(instanceType) {
+			return amiType.ARMGPU
+		}
 		return amiType.X86GPU
 	case instanceutils.IsARMInstanceType(instanceType):
 		return amiType.ARM

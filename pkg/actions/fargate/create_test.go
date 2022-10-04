@@ -78,8 +78,8 @@ var _ = Describe("Fargate", func() {
 		When("creating a farage role without specifying a role", func() {
 			When("the fargate role doesn't exist", func() {
 				BeforeEach(func() {
-					fakeStackManager.ListStacksReturns(nil, nil)
-					fakeStackManager.DescribeClusterStackReturns(&types.Stack{
+					fakeStackManager.ListStacksWithStatusesReturns(nil, nil)
+					fakeStackManager.DescribeClusterStackIfExistsReturns(&types.Stack{
 						Outputs: []types.Output{
 							{
 								OutputKey:   aws.String("VPC"),
@@ -140,7 +140,7 @@ var _ = Describe("Fargate", func() {
 
 			When("the fargate role exists in the cluster stack", func() {
 				BeforeEach(func() {
-					fakeStackManager.DescribeClusterStackReturns(&types.Stack{
+					fakeStackManager.DescribeClusterStackIfExistsReturns(&types.Stack{
 						Outputs: []types.Output{
 							{
 								OutputKey:   aws.String("VPC"),
@@ -197,7 +197,7 @@ var _ = Describe("Fargate", func() {
 						StackName: aws.String("fargate"),
 					}, nil)
 
-					fakeStackManager.DescribeClusterStackReturns(&types.Stack{
+					fakeStackManager.DescribeClusterStackIfExistsReturns(&types.Stack{
 						Outputs: []types.Output{
 							{
 								OutputKey:   aws.String("VPC"),

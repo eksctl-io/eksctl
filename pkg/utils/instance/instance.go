@@ -2,6 +2,9 @@ package instance
 
 import (
 	"strings"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
 // IsARMInstanceType returns true if the instance type is ARM architecture
@@ -42,4 +45,23 @@ func IsNvidiaInstanceType(instanceType string) bool {
 // IsInferentiaInstanceType returns true if the instance type requires AWS Neuron
 func IsInferentiaInstanceType(instanceType string) bool {
 	return strings.HasPrefix(instanceType, "inf1")
+}
+
+// GetSmallestInstanceType returns the smallest instance type in instanceTypes.
+// Instance types that have a smaller vCPU are considered smaller.
+// instanceTypes must be non-empty or it will panic.
+func GetSmallestInstanceType(instanceTypes []ec2types.InstanceTypeInfo) string {
+	smallestInstanceTypeInfo := instanceTypes[0]
+	for _, it := range instanceTypes[1:] {
+		switch vCPUs, smallestVCPUs := aws.ToInt32(it.VCpuInfo.DefaultVCpus), aws.ToInt32(smallestInstanceTypeInfo.VCpuInfo.DefaultVCpus); {
+		case vCPUs < smallestVCPUs:
+			smallestInstanceTypeInfo = it
+		case vCPUs == smallestVCPUs:
+			if aws.ToInt64(it.MemoryInfo.SizeInMiB) < aws.ToInt64(smallestInstanceTypeInfo.MemoryInfo.SizeInMiB) {
+				smallestInstanceTypeInfo = it
+			}
+		}
+	}
+
+	return string(smallestInstanceTypeInfo.InstanceType)
 }

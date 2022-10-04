@@ -93,7 +93,7 @@ func (m *Manager) getManagedSummaries(ctx context.Context) ([]*Summary, error) {
 }
 
 func (m *Manager) getUnmanagedSummaries(ctx context.Context) ([]*Summary, error) {
-	stacks, err := m.stackManager.DescribeNodeGroupStacks(ctx)
+	stacks, err := m.stackManager.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting nodegroup stacks: %w", err)
 	}

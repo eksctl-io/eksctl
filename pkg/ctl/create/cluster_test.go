@@ -10,6 +10,8 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/aws-sdk-go-v2/service/outposts"
+	outpoststypes "github.com/aws/aws-sdk-go-v2/service/outposts/types"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -200,55 +202,191 @@ var _ = Describe("create cluster", func() {
 			}),
 		)
 	})
-	Describe("doCreateCluster", func() {
-		var (
-			ctl *eks.ClusterProvider
-			cfg *api.ClusterConfig
-		)
-		BeforeEach(func() {
-			p := mockprovider.NewMockProvider()
-			defaultProviderMocks(p, defaultOutput)
-			fk := &fakes.FakeKubeProvider{}
-			clientset := kubefake.NewSimpleClientset()
-			client, err := kubernetes.NewRawClient(clientset, &restclient.Config{})
-			Expect(err).NotTo(HaveOccurred())
-			fk.NewRawClientReturns(client, nil)
-			fk.ServerVersionReturns("1.22", nil)
-			msp := &mockSessionProvider{}
-			ctl = &eks.ClusterProvider{
-				AWSProvider: p,
-				Status: &eks.ProviderStatus{
-					ClusterInfo: &eks.ClusterInfo{
-						Cluster: testutils.NewFakeCluster("my-cluster", ""),
-					},
-					SessionCreds: msp,
-				},
-				KubeProvider: fk,
-			}
 
-			cfg = api.NewClusterConfig()
-			cfg.Metadata.Name = "my-cluster"
-			cfg.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
-			cfg.Metadata.Version = "1.22"
-		})
-		It("successfully creates a cluster", func() {
-			cmd := &cmdutils.Cmd{
-				ClusterConfig: cfg,
-				ProviderConfig: api.ProviderConfig{
-					WaitTimeout: time.Second * 1,
+	type createClusterEntry struct {
+		updateClusterConfig func(*api.ClusterConfig)
+		updateClusterParams func(*cmdutils.CreateClusterCmdParams)
+		updateMocks         func(*mockprovider.MockProvider)
+		mockOutposts        bool
+
+		expectedErr string
+	}
+
+	DescribeTable("doCreateCluster", func(ce createClusterEntry) {
+		p := mockprovider.NewMockProvider()
+		defaultProviderMocks(p, defaultOutput, ce.mockOutposts)
+		if ce.updateMocks != nil {
+			ce.updateMocks(p)
+		}
+		fk := &fakes.FakeKubeProvider{}
+		clientset := kubefake.NewSimpleClientset()
+		client, err := kubernetes.NewRawClient(clientset, &restclient.Config{})
+		Expect(err).NotTo(HaveOccurred())
+		fk.NewRawClientReturns(client, nil)
+		fk.ServerVersionReturns("1.22", nil)
+		msp := &mockSessionProvider{}
+		ctl := &eks.ClusterProvider{
+			AWSProvider: p,
+			Status: &eks.ProviderStatus{
+				ClusterInfo: &eks.ClusterInfo{
+					Cluster: testutils.NewFakeCluster("my-cluster", ""),
 				},
-			}
-			filter := filter.NewNodeGroupFilter()
-			params := &cmdutils.CreateClusterCmdParams{
-				Subnets: map[api.SubnetTopology]*[]string{
-					api.SubnetTopologyPrivate: {},
-					api.SubnetTopologyPublic:  {},
-				},
-			}
-			err := doCreateCluster(cmd, filter, params, ctl)
-			Expect(err).NotTo(HaveOccurred())
-		})
-	})
+				SessionCreds: msp,
+			},
+			KubeProvider: fk,
+		}
+
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Metadata.Name = "my-cluster"
+		clusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
+
+		if ce.updateClusterConfig != nil {
+			ce.updateClusterConfig(clusterConfig)
+		}
+		cmd := &cmdutils.Cmd{
+			ClusterConfig: clusterConfig,
+			ProviderConfig: api.ProviderConfig{
+				WaitTimeout: time.Second * 1,
+			},
+		}
+		filter := filter.NewNodeGroupFilter()
+		params := &cmdutils.CreateClusterCmdParams{
+			Subnets: map[api.SubnetTopology]*[]string{
+				api.SubnetTopologyPrivate: {},
+				api.SubnetTopologyPublic:  {},
+			},
+		}
+		if ce.updateClusterParams != nil {
+			ce.updateClusterParams(params)
+		}
+		filter.SetExcludeAll(params.WithoutNodeGroup)
+		err = doCreateCluster(cmd, filter, params, ctl)
+		if ce.expectedErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(ce.expectedErr)))
+			return
+		}
+
+		Expect(err).NotTo(HaveOccurred())
+	},
+		Entry("standard cluster", createClusterEntry{}),
+
+		Entry("[Outposts] cluster version not set", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = ""
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+			},
+			mockOutposts: true,
+
+			expectedErr: "cluster version must be explicitly set to 1.21 for Outposts clusters as only version 1.21 is currently supported",
+		}),
+
+		Entry("[Outposts] cluster version set to an unsupported version", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_22
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+			},
+			mockOutposts: true,
+
+			expectedErr: "only version 1.21 is supported on Outposts",
+		}),
+
+		Entry("[Outposts] control plane on Outposts with valid config", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+			},
+			mockOutposts: true,
+		}),
+
+		Entry("[Outposts] unavailable instance type specified for the control plane", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN:   "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+					ControlPlaneInstanceType: "t2.medium",
+				}
+			},
+			mockOutposts: true,
+
+			expectedErr: `instance type "t2.medium" does not exist in Outpost "arn:aws:outposts:us-west-2:1234:outpost/op-1234"`,
+		}),
+
+		Entry("[Outposts] available instance type specified for the control plane", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN:   "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+					ControlPlaneInstanceType: "m5.xlarge",
+				}
+			},
+			mockOutposts: true,
+		}),
+
+		Entry("[Outposts] nodegroups specified when the VPC will be created by eksctl", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+				c.NodeGroups = []*api.NodeGroup{
+					api.NewNodeGroup(),
+				}
+			},
+			mockOutposts: true,
+
+			expectedErr: "cannot create nodegroups on Outposts when the VPC is created by eksctl as it will not have connectivity to the API server; please rerun the command with `--without-nodegroup` and run `eksctl create nodegroup` after associating the VPC with a local gateway and ensuring connectivity to the API server",
+		}),
+
+		Entry("[Outposts] nodegroups specified on Outposts but the control plane is not on Outposts", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
+				ng := api.NewNodeGroup()
+				ng.OutpostARN = "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
+				c.NodeGroups = []*api.NodeGroup{ng}
+			},
+			mockOutposts: true,
+
+			expectedErr: "creating nodegroups on Outposts when the control plane is not on Outposts is not supported during cluster creation; " +
+				"either create the nodegroups after cluster creation or consider creating the control plane on Outposts",
+		}),
+
+		Entry("[Outposts] nodegroups specified when the VPC will be created by eksctl, but with --without-nodegroup", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+				c.NodeGroups = []*api.NodeGroup{
+					api.NewNodeGroup(),
+				}
+			},
+			updateClusterParams: func(params *cmdutils.CreateClusterCmdParams) {
+				params.WithoutNodeGroup = true
+			},
+			mockOutposts: true,
+		}),
+
+		Entry("[Outposts] specified Outpost does not exist", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+			},
+			updateMocks: func(provider *mockprovider.MockProvider) {
+				provider.MockOutposts().On("GetOutpost", mock.Anything, &outposts.GetOutpostInput{
+					OutpostId: aws.String("arn:aws:outposts:us-west-2:1234:outpost/op-1234"),
+				}).Return(nil, &outpoststypes.NotFoundException{Message: aws.String("not found")})
+			},
+			expectedErr: "error getting Outpost details: NotFoundException: not found",
+		}),
+	)
 })
 
 var defaultOutput = []cftypes.Output{
@@ -302,7 +440,7 @@ var defaultOutput = []cftypes.Output{
 	},
 }
 
-func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output) {
+func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output, controlPlaneOnOutposts bool) {
 	p.MockEC2().On("DescribeAvailabilityZones", mock.Anything, &ec2.DescribeAvailabilityZonesInput{
 		Filters: []ec2types.Filter{{
 			Name:   aws.String("region-name"),
@@ -350,6 +488,16 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output)
 			},
 		},
 	}, nil)
+
+	const outpostID = "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
+	var outpostConfig *ekstypes.OutpostConfigResponse
+	if controlPlaneOnOutposts {
+		mockOutposts(p, outpostID)
+		outpostConfig = &ekstypes.OutpostConfigResponse{
+			OutpostArns:              []string{outpostID},
+			ControlPlaneInstanceType: aws.String("m5.xlarge"),
+		}
+	}
 	p.MockEKS().On("DescribeCluster", mock.Anything, mock.Anything).Return(&awseks.DescribeClusterOutput{
 		Cluster: &ekstypes.Cluster{
 			CertificateAuthority: &ekstypes.Certificate{
@@ -373,7 +521,8 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output)
 			Tags: map[string]string{
 				api.ClusterNameTag: "eksctl-my-cluster-cluster",
 			},
-			Version: aws.String("1.22"),
+			Version:       aws.String("1.22"),
+			OutpostConfig: outpostConfig,
 		},
 	}, nil)
 
@@ -410,6 +559,42 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output)
 	}, nil)
 	p.MockCloudFormation().On("CreateStack", mock.Anything, mock.Anything).Return(&cloudformation.CreateStackOutput{
 		StackId: aws.String("eksctl-my-cluster-cluster"),
+	}, nil)
+}
+
+func mockOutposts(provider *mockprovider.MockProvider, outpostID string) {
+	provider.MockOutposts().On("GetOutpost", mock.Anything, &outposts.GetOutpostInput{
+		OutpostId: aws.String(outpostID),
+	}).Return(&outposts.GetOutpostOutput{
+		Outpost: &outpoststypes.Outpost{
+			AvailabilityZone: aws.String("us-west-2a"),
+		},
+	}, nil)
+	provider.MockOutposts().On("GetOutpostInstanceTypes", mock.Anything, &outposts.GetOutpostInstanceTypesInput{
+		OutpostId: aws.String(outpostID),
+	}).Return(&outposts.GetOutpostInstanceTypesOutput{
+		InstanceTypes: []outpoststypes.InstanceTypeItem{
+			{
+				InstanceType: aws.String("m5.xlarge"),
+			},
+		},
+	}, nil)
+	provider.MockEC2().On("DescribeInstanceTypes", mock.Anything, &ec2.DescribeInstanceTypesInput{
+		InstanceTypes: []ec2types.InstanceType{"m5.xlarge"},
+	}).Return(&ec2.DescribeInstanceTypesOutput{
+		InstanceTypes: []ec2types.InstanceTypeInfo{
+			{
+				InstanceType: "m5.xlarge",
+				VCpuInfo: &ec2types.VCpuInfo{
+					DefaultVCpus:          aws.Int32(4),
+					DefaultCores:          aws.Int32(2),
+					DefaultThreadsPerCore: aws.Int32(2),
+				},
+				MemoryInfo: &ec2types.MemoryInfo{
+					SizeInMiB: aws.Int64(16384),
+				},
+			},
+		},
 	}, nil)
 }
 

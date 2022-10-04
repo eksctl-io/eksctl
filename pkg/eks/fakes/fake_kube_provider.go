@@ -8,14 +8,15 @@ import (
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	kubernetesa "k8s.io/client-go/kubernetes"
 )
 
 type FakeKubeProvider struct {
-	NewRawClientStub        func(*v1alpha5.ClusterConfig) (*kubernetes.RawClient, error)
+	NewRawClientStub        func(kubeconfig.ClusterInfo) (*kubernetes.RawClient, error)
 	newRawClientMutex       sync.RWMutex
 	newRawClientArgsForCall []struct {
-		arg1 *v1alpha5.ClusterConfig
+		arg1 kubeconfig.ClusterInfo
 	}
 	newRawClientReturns struct {
 		result1 *kubernetes.RawClient
@@ -25,10 +26,10 @@ type FakeKubeProvider struct {
 		result1 *kubernetes.RawClient
 		result2 error
 	}
-	NewStdClientSetStub        func(*v1alpha5.ClusterConfig) (*kubernetesa.Clientset, error)
+	NewStdClientSetStub        func(kubeconfig.ClusterInfo) (*kubernetesa.Clientset, error)
 	newStdClientSetMutex       sync.RWMutex
 	newStdClientSetArgsForCall []struct {
-		arg1 *v1alpha5.ClusterConfig
+		arg1 kubeconfig.ClusterInfo
 	}
 	newStdClientSetReturns struct {
 		result1 *kubernetesa.Clientset
@@ -68,11 +69,11 @@ type FakeKubeProvider struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeKubeProvider) NewRawClient(arg1 *v1alpha5.ClusterConfig) (*kubernetes.RawClient, error) {
+func (fake *FakeKubeProvider) NewRawClient(arg1 kubeconfig.ClusterInfo) (*kubernetes.RawClient, error) {
 	fake.newRawClientMutex.Lock()
 	ret, specificReturn := fake.newRawClientReturnsOnCall[len(fake.newRawClientArgsForCall)]
 	fake.newRawClientArgsForCall = append(fake.newRawClientArgsForCall, struct {
-		arg1 *v1alpha5.ClusterConfig
+		arg1 kubeconfig.ClusterInfo
 	}{arg1})
 	stub := fake.NewRawClientStub
 	fakeReturns := fake.newRawClientReturns
@@ -93,13 +94,13 @@ func (fake *FakeKubeProvider) NewRawClientCallCount() int {
 	return len(fake.newRawClientArgsForCall)
 }
 
-func (fake *FakeKubeProvider) NewRawClientCalls(stub func(*v1alpha5.ClusterConfig) (*kubernetes.RawClient, error)) {
+func (fake *FakeKubeProvider) NewRawClientCalls(stub func(kubeconfig.ClusterInfo) (*kubernetes.RawClient, error)) {
 	fake.newRawClientMutex.Lock()
 	defer fake.newRawClientMutex.Unlock()
 	fake.NewRawClientStub = stub
 }
 
-func (fake *FakeKubeProvider) NewRawClientArgsForCall(i int) *v1alpha5.ClusterConfig {
+func (fake *FakeKubeProvider) NewRawClientArgsForCall(i int) kubeconfig.ClusterInfo {
 	fake.newRawClientMutex.RLock()
 	defer fake.newRawClientMutex.RUnlock()
 	argsForCall := fake.newRawClientArgsForCall[i]
@@ -132,11 +133,11 @@ func (fake *FakeKubeProvider) NewRawClientReturnsOnCall(i int, result1 *kubernet
 	}{result1, result2}
 }
 
-func (fake *FakeKubeProvider) NewStdClientSet(arg1 *v1alpha5.ClusterConfig) (*kubernetesa.Clientset, error) {
+func (fake *FakeKubeProvider) NewStdClientSet(arg1 kubeconfig.ClusterInfo) (*kubernetesa.Clientset, error) {
 	fake.newStdClientSetMutex.Lock()
 	ret, specificReturn := fake.newStdClientSetReturnsOnCall[len(fake.newStdClientSetArgsForCall)]
 	fake.newStdClientSetArgsForCall = append(fake.newStdClientSetArgsForCall, struct {
-		arg1 *v1alpha5.ClusterConfig
+		arg1 kubeconfig.ClusterInfo
 	}{arg1})
 	stub := fake.NewStdClientSetStub
 	fakeReturns := fake.newStdClientSetReturns
@@ -157,13 +158,13 @@ func (fake *FakeKubeProvider) NewStdClientSetCallCount() int {
 	return len(fake.newStdClientSetArgsForCall)
 }
 
-func (fake *FakeKubeProvider) NewStdClientSetCalls(stub func(*v1alpha5.ClusterConfig) (*kubernetesa.Clientset, error)) {
+func (fake *FakeKubeProvider) NewStdClientSetCalls(stub func(kubeconfig.ClusterInfo) (*kubernetesa.Clientset, error)) {
 	fake.newStdClientSetMutex.Lock()
 	defer fake.newStdClientSetMutex.Unlock()
 	fake.NewStdClientSetStub = stub
 }
 
-func (fake *FakeKubeProvider) NewStdClientSetArgsForCall(i int) *v1alpha5.ClusterConfig {
+func (fake *FakeKubeProvider) NewStdClientSetArgsForCall(i int) kubeconfig.ClusterInfo {
 	fake.newStdClientSetMutex.RLock()
 	defer fake.newStdClientSetMutex.RUnlock()
 	argsForCall := fake.newStdClientSetArgsForCall[i]

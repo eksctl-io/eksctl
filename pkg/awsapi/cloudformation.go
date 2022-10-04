@@ -96,8 +96,8 @@ type CloudFormation interface {
 	// Deletes stack instances for the specified accounts, in the specified Amazon Web
 	// Services Regions.
 	DeleteStackInstances(ctx context.Context, params *DeleteStackInstancesInput, optFns ...func(*Options)) (*DeleteStackInstancesOutput, error)
-	// Deletes a stack set. Before you can delete a stack set, all of its member stack
-	// instances must be deleted. For more information about how to do this, see
+	// Deletes a stack set. Before you can delete a stack set, all its member stack
+	// instances must be deleted. For more information about how to complete this, see
 	// DeleteStackInstances.
 	DeleteStackSet(ctx context.Context, params *DeleteStackSetInput, optFns ...func(*Options)) (*DeleteStackSetOutput, error)
 	// Marks an extension or extension version as DEPRECATED in the CloudFormation
@@ -131,7 +131,7 @@ type CloudFormation interface {
 	// Returns information about a CloudFormation extension publisher. If you don't
 	// supply a PublisherId, and you have registered as an extension publisher,
 	// DescribePublisher returns information about your own publisher account. For more
-	// information on registering as a publisher, see:
+	// information about registering as a publisher, see:
 	//
 	// * RegisterPublisher
 	// (https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_RegisterPublisher.html)
@@ -145,7 +145,7 @@ type CloudFormation interface {
 	// detection operation detects whether a stack's actual configuration differs, or
 	// has drifted, from it's expected configuration, as defined in the stack template
 	// and any values specified as template parameters. A stack is considered to have
-	// drifted if one or more of its resources have drifted. For more information on
+	// drifted if one or more of its resources have drifted. For more information about
 	// stack and resource drift, see Detecting Unregulated Configuration Changes to
 	// Stacks and Resources
 	// (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-stack-drift.html).
@@ -280,7 +280,7 @@ type CloudFormation interface {
 	// detailed information about a specific stack instance, including its drift status
 	// and last drift time checked.
 	//
-	// For more information on performing a drift
+	// For more information about performing a drift
 	// detection operation on a stack set, see Detecting unmanaged changes in stack
 	// sets
 	// (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-drift.html).
@@ -388,7 +388,7 @@ type CloudFormation interface {
 	ListTypes(ctx context.Context, params *ListTypesInput, optFns ...func(*Options)) (*ListTypesOutput, error)
 	// Publishes the specified extension to the CloudFormation registry as a public
 	// extension in this region. Public extensions are available for use by all
-	// CloudFormation users. For more information on publishing extensions, see
+	// CloudFormation users. For more information about publishing extensions, see
 	// Publishing extensions to make them available for public use
 	// (https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/publish-extension.html)
 	// in the CloudFormation CLI User Guide. To publish an extension, you must be
@@ -404,8 +404,8 @@ type CloudFormation interface {
 	// Registers your account as a publisher of public extensions in the CloudFormation
 	// registry. Public extensions are available for use by all CloudFormation users.
 	// This publisher ID applies to your account in all Amazon Web Services Regions.
-	// For information on requirements for registering as a public extension publisher,
-	// see Registering your account to publish CloudFormation extensions
+	// For information about requirements for registering as a public extension
+	// publisher, see Registering your account to publish CloudFormation extensions
 	// (https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/publish-extension.html#publish-extension-prereqs)
 	// in the CloudFormation CLI User Guide.
 	RegisterPublisher(ctx context.Context, params *RegisterPublisherInput, optFns ...func(*Options)) (*RegisterPublisherOutput, error)
@@ -421,9 +421,9 @@ type CloudFormation interface {
 	// *
 	// Making the extension available for use in your account.
 	//
-	// For more information on
-	// how to develop extensions and ready them for registration, see Creating Resource
-	// Providers
+	// For more information
+	// about how to develop extensions and ready them for registration, see Creating
+	// Resource Providers
 	// (https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-types.html)
 	// in the CloudFormation CLI User Guide. You can have a maximum of 50 resource
 	// extension versions registered at a time. This maximum is per account and per

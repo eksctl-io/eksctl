@@ -74,7 +74,7 @@ func (v *IPv6VPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Value, *
 	}
 	addSubnetOutput(privateSubnetResourceRefs, v.clusterConfig.VPC.Subnets.Private, outputs.ClusterSubnetsPrivate)
 
-	if v.isFullyPrivate() {
+	if v.clusterConfig.IsFullyPrivate() {
 		return vpcResourceRef, &SubnetDetails{
 			Private: privateSubnets,
 		}, nil
@@ -178,10 +178,6 @@ func (v *IPv6VPCResourceSet) addIpv6CidrBlock() {
 
 func (v *IPv6VPCResourceSet) RenderJSON() ([]byte, error) {
 	return v.rs.renderJSON()
-}
-
-func (v *IPv6VPCResourceSet) isFullyPrivate() bool {
-	return v.clusterConfig.PrivateCluster.Enabled
 }
 
 func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartitions int, private bool) *gfnt.Value {

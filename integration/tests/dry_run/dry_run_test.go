@@ -86,7 +86,6 @@ nodeGroups:
       fsx: false
       imageBuilder: false
       xRay: false
-  instanceType: m5.large
   labels:
     alpha.eksctl.io/cluster-name: %[1]s
     alpha.eksctl.io/nodegroup-name: ng-default
@@ -123,7 +122,6 @@ managedNodeGroups:
       fsx: false
       imageBuilder: false
       xRay: false
-  instanceType: m5.large
   labels:
     alpha.eksctl.io/cluster-name: %[1]s
     alpha.eksctl.io/nodegroup-name: ng-default
@@ -280,7 +278,6 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			InstanceTypes: nil,
 		}
-		ng.InstanceType = "mixed"
 		ng.InstanceSelector = &api.InstanceSelector{
 			VCPUs:  2,
 			Memory: "4",

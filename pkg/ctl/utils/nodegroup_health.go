@@ -63,10 +63,9 @@ func getNodeGroupHealth(cmd *cmdutils.Cmd, nodeGroupName string) error {
 		return cmdutils.ErrMustBeSet("name")
 	}
 
-	if err := ctl.RefreshClusterStatus(ctx, cfg); err != nil {
-		return err
+	if cfg.IsControlPlaneOnOutposts() {
+		return errUnsupportedLocalCluster
 	}
-
 	stackCollection := manager.NewStackCollection(ctl.AWSProvider, cfg)
 	managedService := managed.NewService(ctl.AWSProvider.EKS(), ctl.AWSProvider.EC2(), stackCollection, cfg.Metadata.Name)
 	healthIssues, err := managedService.GetHealth(ctx, nodeGroupName)

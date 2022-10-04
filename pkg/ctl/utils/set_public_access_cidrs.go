@@ -62,6 +62,10 @@ func doUpdatePublicAccessCIDRs(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
+	if cfg.IsControlPlaneOnOutposts() {
+		return errUnsupportedLocalCluster
+	}
+
 	logger.Info("current public access CIDRs: %v", clusterVPCConfig.PublicAccessCIDRs)
 
 	if cidrsEqual(clusterVPCConfig.PublicAccessCIDRs, cfg.VPC.PublicAccessCIDRs) {

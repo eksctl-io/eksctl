@@ -1321,6 +1321,7 @@ func newClusterAndNodeGroup() (*api.ClusterConfig, *api.NodeGroup) {
 	cfg.Metadata.Region = "us-west-2"
 	ng := cfg.NewNodeGroup()
 	ng.Name = "ng-abcd1234"
+	ng.InstanceType = api.DefaultNodeType
 	ng.VolumeType = new(string)
 	*ng.VolumeType = api.NodeVolumeTypeGP2
 	ng.VolumeName = new(string)
