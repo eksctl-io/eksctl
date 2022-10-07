@@ -14,5 +14,9 @@ jobs:
         with:
           token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
           fetch-depth: 0
+      - name: Setup identity as weaveworksbot
+        uses: ./.github/actions/setup-identity
+        with:
+          token: "${{ secrets.WEAVEWORKSBOT_TOKEN }}"
       - name: Trigger Netlify deployment
         run: make publish-docs
