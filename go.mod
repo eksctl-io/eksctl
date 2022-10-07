@@ -31,7 +31,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/cenk/backoff v2.2.1+incompatible
-	github.com/cloudflare/cfssl v1.6.1
+	github.com/cloudflare/cfssl v1.6.3
 	github.com/dave/dst v0.27.0
 	github.com/dave/jennifer v1.5.1
 	github.com/dlespiau/kube-test-harness v0.0.0-20200915102055-a03579200ae8
@@ -70,7 +70,7 @@ require (
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	github.com/xgfone/netaddr v0.5.1
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
+	golang.org/x/crypto v0.0.0-20220824171710-5757bc0c5503
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	golang.org/x/tools v0.1.10
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
