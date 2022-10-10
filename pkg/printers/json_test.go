@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	corev1 "k8s.io/api/core/v1"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -159,6 +160,34 @@ var _ = Describe("JSON Printer", func() {
 
 			It("the output should be an empty array", func() {
 				g := "[]"
+
+				Expect(actualBytes.Bytes()).Should(MatchJSON(g))
+			})
+		})
+
+		Context("given an empty config map and calling PrintObj", func() {
+			var (
+				configMap   *corev1.ConfigMap
+				err         error
+				actualBytes bytes.Buffer
+			)
+
+			JustBeforeEach(func() {
+				w := bufio.NewWriter(&actualBytes)
+				err = printer.PrintObj(configMap, w)
+				w.Flush()
+			})
+
+			AfterEach(func() {
+				actualBytes.Reset()
+			})
+
+			It("should not error", func() {
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("the output should be empty map", func() {
+				g := "{}"
 
 				Expect(actualBytes.Bytes()).Should(MatchJSON(g))
 			})
