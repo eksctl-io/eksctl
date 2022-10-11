@@ -7,6 +7,7 @@ updates:
     labels:
     - "skip-release-notes"
     - "dependencies"
+    open-pull-requests-limit: 20 # setting a higher number so we can bundle all the weekly updates together
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule: 
@@ -14,4 +15,5 @@ updates:
     labels: 
      - "skip-release-notes"
      - "dependencies"
-     
+    open-pull-requests-limit: 10 # setting a higher number so we can bundle all the weekly updates together
+    
