@@ -38,9 +38,13 @@ const (
 	ec2DeleteLaunchTemplate          = "ec2:DeleteLaunchTemplate"
 	ec2RunInstances                  = "ec2:RunInstances"
 	ec2TerminateInstances            = "ec2:TerminateInstances"
+	ec2DescribeImages                = "ec2:DescribeImages"
+	ec2DescribeSpotPriceHistory      = "ec2:DescribeSpotPriceHistory"
 	// IAM
 	iamPassRole     = "iam:PassRole"
 	ssmGetParameter = "ssm:GetParameter"
+	// Pricing
+	pricingGetProducts = "pricing:GetProducts"
 )
 
 // KarpenterResourceSet stores the resource information of the Karpenter stack
@@ -126,8 +130,11 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 			ec2DeleteLaunchTemplate,
 			ec2RunInstances,
 			ec2TerminateInstances,
+			ec2DescribeImages,
+			ec2DescribeSpotPriceHistory,
 			iamPassRole,
 			ssmGetParameter,
+			pricingGetProducts,
 		},
 	}
 	managedPolicy := gfniam.ManagedPolicy{
