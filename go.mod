@@ -32,7 +32,7 @@ require (
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/cenk/backoff v2.2.1+incompatible
 	github.com/cloudflare/cfssl v1.6.3
-	github.com/dave/dst v0.27.0
+	github.com/dave/dst v0.27.1
 	github.com/dave/jennifer v1.5.1
 	github.com/dlespiau/kube-test-harness v0.0.0-20200915102055-a03579200ae8
 	github.com/evanphx/json-patch/v5 v5.6.0
