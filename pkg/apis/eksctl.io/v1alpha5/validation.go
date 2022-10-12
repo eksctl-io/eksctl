@@ -10,7 +10,7 @@ import (
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
