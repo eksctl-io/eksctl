@@ -221,7 +221,7 @@ func (a *Manager) patchAWSNodeDaemonSet(ctx context.Context) error {
 			return errors.Wrap(err, "failed to patch daemon set")
 		}
 		// update the daemonset so the next patch can work.
-		sa, err = daemonSets.Get(ctx, "aws-node", metav1.GetOptions{})
+		_, err = daemonSets.Get(ctx, "aws-node", metav1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				logger.Debug("could not find aws-node daemon set, skipping patching")

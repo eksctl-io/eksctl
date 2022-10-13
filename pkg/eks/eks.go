@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/aws/aws-sdk-go/aws/arn"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"

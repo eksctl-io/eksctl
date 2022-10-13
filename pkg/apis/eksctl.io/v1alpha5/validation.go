@@ -10,7 +10,7 @@ import (
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -112,9 +112,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		path := fmt.Sprintf("nodeGroups[%d]", i)
 		if err := validateNg(ng.NodeGroupBase, path); err != nil {
 			return err
-		}
-		if ng.DisableASGTagPropagation != nil {
-			logger.Warning("field DisableASGTagPropagation for nodegroup has been deprecated and has no effect. Please use PropagateASGTags instead for nodegroup %s!", ng.Name)
 		}
 		if ng.OutpostARN != "" {
 			if ngOutpostARN != "" && ng.OutpostARN != ngOutpostARN {

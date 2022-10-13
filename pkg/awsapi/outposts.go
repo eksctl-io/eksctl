@@ -10,32 +10,32 @@ import (
 
 // Outposts provides an interface to the AWS Outposts service.
 type Outposts interface {
-	// Cancels an order for an Outpost.
+	// Cancels the specified order for an Outpost.
 	CancelOrder(ctx context.Context, params *CancelOrderInput, optFns ...func(*Options)) (*CancelOrderOutput, error)
 	// Creates an order for an Outpost.
 	CreateOrder(ctx context.Context, params *CreateOrderInput, optFns ...func(*Options)) (*CreateOrderOutput, error)
-	// Creates an Outpost. You can specify AvailabilityZone or AvailabilityZoneId.
+	// Creates an Outpost. You can specify either an Availability one or an AZ ID.
 	CreateOutpost(ctx context.Context, params *CreateOutpostInput, optFns ...func(*Options)) (*CreateOutpostOutput, error)
 	// Creates a site for an Outpost.
 	CreateSite(ctx context.Context, params *CreateSiteInput, optFns ...func(*Options)) (*CreateSiteOutput, error)
-	// Deletes the Outpost.
+	// Deletes the specified Outpost.
 	DeleteOutpost(ctx context.Context, params *DeleteOutpostInput, optFns ...func(*Options)) (*DeleteOutpostOutput, error)
-	// Deletes the site.
+	// Deletes the specified site.
 	DeleteSite(ctx context.Context, params *DeleteSiteInput, optFns ...func(*Options)) (*DeleteSiteOutput, error)
-	// Gets information about a catalog item.
+	// Gets information about the specified catalog item.
 	GetCatalogItem(ctx context.Context, params *GetCatalogItemInput, optFns ...func(*Options)) (*GetCatalogItemOutput, error)
 	// Amazon Web Services uses this action to install Outpost servers. Gets
-	// information about a specified connection. Use CloudTrail to monitor this action
-	// or Amazon Web Services managed policy for Amazon Web Services Outposts to secure
-	// it. For more information, see  Amazon Web Services managed policies for Amazon
-	// Web Services Outposts
+	// information about the specified connection. Use CloudTrail to monitor this
+	// action or Amazon Web Services managed policy for Amazon Web Services Outposts to
+	// secure it. For more information, see  Amazon Web Services managed policies for
+	// Amazon Web Services Outposts
 	// (https://docs.aws.amazon.com/outposts/latest/userguide/security-iam-awsmanpol.html)
 	// and  Logging Amazon Web Services Outposts API calls with Amazon Web Services
 	// CloudTrail
 	// (https://docs.aws.amazon.com/outposts/latest/userguide/logging-using-cloudtrail.html)
 	// in the Amazon Web Services Outposts User Guide.
 	GetConnection(ctx context.Context, params *GetConnectionInput, optFns ...func(*Options)) (*GetConnectionOutput, error)
-	// Gets an order.
+	// Gets information about the specified order.
 	GetOrder(ctx context.Context, params *GetOrderInput, optFns ...func(*Options)) (*GetOrderOutput, error)
 	// Gets information about the specified Outpost.
 	GetOutpost(ctx context.Context, params *GetOutpostInput, optFns ...func(*Options)) (*GetOutpostOutput, error)
@@ -43,31 +43,34 @@ type Outposts interface {
 	GetOutpostInstanceTypes(ctx context.Context, params *GetOutpostInstanceTypesInput, optFns ...func(*Options)) (*GetOutpostInstanceTypesOutput, error)
 	// Gets information about the specified Outpost site.
 	GetSite(ctx context.Context, params *GetSiteInput, optFns ...func(*Options)) (*GetSiteOutput, error)
-	// Gets the site address.
+	// Gets the site address of the specified site.
 	GetSiteAddress(ctx context.Context, params *GetSiteAddressInput, optFns ...func(*Options)) (*GetSiteAddressOutput, error)
-	// Lists the hardware assets in an Outpost. If you are using Dedicated Hosts on
-	// Amazon Web Services Outposts, you can filter your request by host ID to return a
-	// list of hardware assets that allocate resources for Dedicated Hosts.
+	// Lists the hardware assets for the specified Outpost. Use filters to return
+	// specific results. If you specify multiple filters, the results include only the
+	// resources that match all of the specified filters. For a filter where you can
+	// specify multiple values, the results include items that match any of the values
+	// that you specify for the filter.
 	ListAssets(ctx context.Context, params *ListAssetsInput, optFns ...func(*Options)) (*ListAssetsOutput, error)
-	// Lists the items in the catalog. Add filters to your request to return a more
-	// specific list of results. Use filters to match an item class, storage option, or
-	// EC2 family. If you specify multiple filters, the filters are joined with an AND,
-	// and the request returns only results that match all of the specified filters.
+	// Lists the items in the catalog. Use filters to return specific results. If you
+	// specify multiple filters, the results include only the resources that match all
+	// of the specified filters. For a filter where you can specify multiple values,
+	// the results include items that match any of the values that you specify for the
+	// filter.
 	ListCatalogItems(ctx context.Context, params *ListCatalogItemsInput, optFns ...func(*Options)) (*ListCatalogItemsOutput, error)
-	// Lists the Outpost orders for your Amazon Web Services account. You can filter
-	// your request by Outpost to return a more specific list of results.
+	// Lists the Outpost orders for your Amazon Web Services account.
 	ListOrders(ctx context.Context, params *ListOrdersInput, optFns ...func(*Options)) (*ListOrdersOutput, error)
-	// Lists the Outposts for your Amazon Web Services account. Add filters to your
-	// request to return a more specific list of results. Use filters to match an
-	// Outpost lifecycle status, Availability Zone (us-east-1a), and AZ ID (use1-az1).
-	// If you specify multiple filters, the filters are joined with an AND, and the
-	// request returns only results that match all of the specified filters.
+	// Lists the Outposts for your Amazon Web Services account. Use filters to return
+	// specific results. If you specify multiple filters, the results include only the
+	// resources that match all of the specified filters. For a filter where you can
+	// specify multiple values, the results include items that match any of the values
+	// that you specify for the filter.
 	ListOutposts(ctx context.Context, params *ListOutpostsInput, optFns ...func(*Options)) (*ListOutpostsOutput, error)
-	// Lists the Outpost sites for your Amazon Web Services account. Add operating
-	// address filters to your request to return a more specific list of results. Use
-	// filters to match site city, country code, or state/region of the operating
-	// address. If you specify multiple filters, the filters are joined with an AND,
-	// and the request returns only results that match all of the specified filters.
+	// Lists the Outpost sites for your Amazon Web Services account. Use filters to
+	// return specific results. Use filters to return specific results. If you specify
+	// multiple filters, the results include only the resources that match all of the
+	// specified filters. For a filter where you can specify multiple values, the
+	// results include items that match any of the values that you specify for the
+	// filter.
 	ListSites(ctx context.Context, params *ListSitesInput, optFns ...func(*Options)) (*ListSitesOutput, error)
 	// Lists the tags for the specified resource.
 	ListTagsForResource(ctx context.Context, params *ListTagsForResourceInput, optFns ...func(*Options)) (*ListTagsForResourceOutput, error)
@@ -88,12 +91,12 @@ type Outposts interface {
 	UntagResource(ctx context.Context, params *UntagResourceInput, optFns ...func(*Options)) (*UntagResourceOutput, error)
 	// Updates an Outpost.
 	UpdateOutpost(ctx context.Context, params *UpdateOutpostInput, optFns ...func(*Options)) (*UpdateOutpostOutput, error)
-	// Updates the site.
+	// Updates the specified site.
 	UpdateSite(ctx context.Context, params *UpdateSiteInput, optFns ...func(*Options)) (*UpdateSiteOutput, error)
-	// Updates the site address. To update a site address with an order IN_PROGRESS,
-	// you must wait for the order to complete or cancel the order. You can update the
-	// operating address before you place an order at the site, or after all Outposts
-	// that belong to the site have been deactivated.
+	// Updates the address of the specified site. You can't update a site address if
+	// there is an order in progress. You must wait for the order to complete or cancel
+	// the order. You can update the operating address before you place an order at the
+	// site, or after all Outposts that belong to the site have been deactivated.
 	UpdateSiteAddress(ctx context.Context, params *UpdateSiteAddressInput, optFns ...func(*Options)) (*UpdateSiteAddressOutput, error)
 	// Update the physical and logistical details for a rack at a site. For more
 	// information about hardware requirements for racks, see Network readiness

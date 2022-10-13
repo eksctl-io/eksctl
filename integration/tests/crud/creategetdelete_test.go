@@ -481,12 +481,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"-o", "yaml",
 				)
 
-				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputStringLines(
-					ContainElement(ContainSubstring("MaxSize: 5"))),
-					ContainElement(ContainSubstring("MinSize: 5")),
-					ContainElement(ContainSubstring("DesiredCapacity: 5")),
-					ContainElement(ContainSubstring("Type: managed")),
-				)
+				Expect(getMngNgCmd).To(SatisfyAll(
+					RunSuccessfullyWithOutputStringLines(
+						ContainElement(ContainSubstring("MaxSize: 5")),
+						ContainElement(ContainSubstring("MinSize: 5")),
+						ContainElement(ContainSubstring("DesiredCapacity: 5")),
+						ContainElement(ContainSubstring("Type: managed")),
+					),
+				))
 
 				getUnmNgCmd := params.EksctlGetCmd.WithArgs(
 					"nodegroup",
@@ -495,12 +497,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"-o", "yaml",
 				)
 
-				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputStringLines(
-					ContainElement(ContainSubstring("MaxSize: 5"))),
-					ContainElement(ContainSubstring("MinSize: 5")),
-					ContainElement(ContainSubstring("DesiredCapacity: 5")),
-					ContainElement(ContainSubstring("Type: unmanaged")),
-				)
+				Expect(getUnmNgCmd).To(SatisfyAll(
+					RunSuccessfullyWithOutputStringLines(
+						ContainElement(ContainSubstring("MaxSize: 5")),
+						ContainElement(ContainSubstring("MinSize: 5")),
+						ContainElement(ContainSubstring("DesiredCapacity: 5")),
+						ContainElement(ContainSubstring("Type: unmanaged")),
+					),
+				))
 			})
 		})
 

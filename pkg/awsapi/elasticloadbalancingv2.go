@@ -239,8 +239,8 @@ type ELBV2 interface {
 	// You can remove the tags for one or more Application Load Balancers, Network Load
 	// Balancers, Gateway Load Balancers, target groups, listeners, or rules.
 	RemoveTags(ctx context.Context, params *RemoveTagsInput, optFns ...func(*Options)) (*RemoveTagsOutput, error)
-	// Sets the type of IP addresses used by the subnets of the specified Application
-	// Load Balancer or Network Load Balancer.
+	// Sets the type of IP addresses used by the subnets of the specified load
+	// balancer.
 	SetIpAddressType(ctx context.Context, params *SetIpAddressTypeInput, optFns ...func(*Options)) (*SetIpAddressTypeOutput, error)
 	// Sets the priorities of the specified rules. You can reorder the rules as long as
 	// there are no priority conflicts in the new order. Any existing rules that you do
