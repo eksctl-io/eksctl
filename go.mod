@@ -16,8 +16,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.10
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.18.2
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.20
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.17.3
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.53.0
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.20.1
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.63.1
 	github.com/aws/aws-sdk-go-v2/service/eks v1.22.1
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.18
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.20
@@ -32,7 +32,7 @@ require (
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/cenk/backoff v2.2.1+incompatible
 	github.com/cloudflare/cfssl v1.6.3
-	github.com/dave/dst v0.27.0
+	github.com/dave/dst v0.27.1
 	github.com/dave/jennifer v1.5.1
 	github.com/dlespiau/kube-test-harness v0.0.0-20200915102055-a03579200ae8
 	github.com/evanphx/json-patch/v5 v5.6.0
@@ -50,8 +50,8 @@ require (
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
-	github.com/onsi/ginkgo/v2 v2.2.0
-	github.com/onsi/gomega v1.20.2
+	github.com/onsi/ginkgo/v2 v2.3.0
+	github.com/onsi/gomega v1.22.1
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/otiai10/copy v1.7.0
 	github.com/pelletier/go-toml v1.9.5
@@ -464,11 +464,11 @@ require (
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
 	golang.org/x/exp/typeparams v0.0.0-20220827204233-334a2380cb91 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/net v0.0.0-20221004154528-8021a29435af // indirect
+	golang.org/x/net v0.0.0-20221012135044-0b7e1fb9d458 // indirect
 	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1 // indirect
 	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/text v0.3.8 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 	google.golang.org/api v0.97.0 // indirect
