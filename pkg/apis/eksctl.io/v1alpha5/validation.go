@@ -113,9 +113,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		if err := validateNg(ng.NodeGroupBase, path); err != nil {
 			return err
 		}
-		if ng.DisableASGTagPropagation != nil {
-			logger.Warning("field DisableASGTagPropagation for nodegroup has been deprecated and has no effect. Please use PropagateASGTags instead for nodegroup %s!", ng.Name)
-		}
 		if ng.OutpostARN != "" {
 			if ngOutpostARN != "" && ng.OutpostARN != ngOutpostARN {
 				return fmt.Errorf("cannot create nodegroups in two different Outposts; got Outpost ARN %q and %q", ngOutpostARN, ng.OutpostARN)
