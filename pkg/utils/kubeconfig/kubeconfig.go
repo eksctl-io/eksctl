@@ -277,7 +277,7 @@ func getAWSCLIVersion() string {
 	if err != nil {
 		return ""
 	}
-	r := regexp.MustCompile("aws-cli/([\\d.]*)")
+	r := regexp.MustCompile(`aws-cli/([\d.]*)`)
 	matches := r.FindStringSubmatch(string(output))
 	if len(matches) != 2 {
 		return ""
