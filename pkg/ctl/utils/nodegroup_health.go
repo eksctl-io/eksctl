@@ -28,7 +28,7 @@ func nodeGroupHealthCmd(cmd *cmdutils.Cmd) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		fs.StringVarP(&nodeGroupName, "name", "n", "", "Name of the nodegroup")
 
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)

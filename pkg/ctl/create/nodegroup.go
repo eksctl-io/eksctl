@@ -96,7 +96,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		cmdutils.AddStringToStringVarPFlag(fs, &cfg.Metadata.Tags, "tags", "", map[string]string{}, "Used to tag the AWS resources")
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, `for nodegroups "auto" and "latest" can be used to automatically inherit version from the control plane or force latest`)
