@@ -1,4 +1,4 @@
-package eks
+package auth
 
 import (
 	"context"
@@ -39,7 +39,7 @@ type Token struct {
 
 const (
 	clusterIDHeader        = "x-k8s-aws-id"
-	presignedURLExpiration = 30 * time.Minute
+	presignedURLExpiration = 10 * time.Minute
 	v1Prefix               = "k8s-aws-v1."
 )
 
@@ -57,8 +57,7 @@ func (g Generator) GetWithSTS(ctx context.Context, clusterID string) (Token, err
 		return Token{}, fmt.Errorf("failed to presign caller identity: %w", err)
 	}
 
-	// Set token expiration to 1 minute before the presigned URL expires for some cushion
-	tokenExpiration := g.clock.Now().Local().Add(presignedURLExpiration - 1*time.Minute)
+	tokenExpiration := g.clock.Now().Local().Add(presignedURLExpiration)
 	// Add the token with k8s-aws-v1. prefix.
 	return Token{v1Prefix + base64.RawURLEncoding.EncodeToString([]byte(presignedURLRequest.URL)), tokenExpiration}, nil
 }
