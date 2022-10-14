@@ -118,6 +118,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		return clusterConfig
 	}
 
+	makeClientset := func() *kubernetes.Clientset {
+		config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		clientset, err := kubernetes.NewForConfig(config)
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		return clientset
+	}
+
 	Describe("cluster with 1 node", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
 			config := NewConfig(params.Region)
@@ -232,10 +240,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/taints-max-pods.yaml"))
 				Expect(cmd).To(RunSuccessfully())
 
-				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-				Expect(err).NotTo(HaveOccurred())
-				clientset, err := kubernetes.NewForConfig(config)
-				Expect(err).NotTo(HaveOccurred())
+				clientset := makeClientset()
 
 				By("asserting that both formats for taints are supported")
 				var (
@@ -388,7 +393,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and creating a nodegroup with containerd runtime", func() {
+		Context("creating a nodegroup with containerd runtime and adding a delay in preBootstrapCommands", func() {
 			var (
 				nodegroupName string
 			)
@@ -405,9 +410,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})
-			It("should create the nodegroup without problems", func() {
+			It("should create the nodegroups successfully and have no auth failures", func() {
 				clusterConfig := makeClusterConfig()
 				clusterConfig.Metadata.Name = params.ClusterName
+				delayedNGName := "delayed-ng"
 				clusterConfig.NodeGroups = []*api.NodeGroup{
 					{
 						NodeGroupBase: &api.NodeGroupBase{
@@ -422,6 +428,17 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						},
 						ContainerRuntime: aws.String(api.ContainerRuntimeContainerD),
 					},
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name: delayedNGName,
+							ScalingConfig: &api.ScalingConfig{
+								DesiredCapacity: aws.Int(1),
+							},
+							PreBootstrapCommands: []string{
+								"sleep 720",
+							},
+						},
+					},
 				}
 
 				cmd := params.EksctlCreateCmd.
@@ -435,6 +452,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					WithStdin(clusterutils.Reader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 				tests.AssertNodeVolumes(params.KubeconfigPath, params.Region, "test-containerd", "/dev/sdb")
+
+				By("ensuring that the delayed nodegroup is created successfully")
+				nodeList := tests.ListNodes(makeClientset(), delayedNGName)
+				Expect(nodeList).To(HaveLen(1))
 			})
 		})
 
@@ -556,7 +577,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--cluster", params.ClusterName,
 				)
 				Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
-					HaveLen(4),
+					HaveLen(5),
 					ContainElement(mngNG1),
 					ContainElement(mngNG2),
 					ContainElement(unmNG1),
