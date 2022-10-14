@@ -220,8 +220,8 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				Expect(err).To(BeNil())
 				Expect(propagatedTags).To(Equal(map[string]string{
 					"tag-key": "tag-value",
-					"k8s.io/cluster-autoscaler/node-template/label/label-key":  "label-value",
-					"k8s.io/cluster-autoscaler/node-template/taints/taint-key": "taint-value",
+					"k8s.io/cluster-autoscaler/node-template/label/label-key": "label-value",
+					"k8s.io/cluster-autoscaler/node-template/taint/taint-key": "taint-value",
 				}))
 			})
 		})
