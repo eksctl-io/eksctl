@@ -933,23 +933,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 						})
 
 					})
-					When("there are duplicates between taints and labels", func() {
-						BeforeEach(func() {
-							ng.PropagateASGTags = api.Enabled()
-							ng.Labels = map[string]string{
-								"test": "label",
-							}
-							ng.Taints = []api.NodeGroupTaint{
-								{
-									Key:   "test",
-									Value: "taint-value",
-								},
-							}
-						})
-						It("errors", func() {
-							Expect(addErr).To(MatchError(ContainSubstring("duplicate key found for taints and labels with taint key=value: test=taint-value, and label: test=label")))
-						})
-					})
+
 					When("there are more tags than the maximum number of tags", func() {
 						BeforeEach(func() {
 							ng.PropagateASGTags = api.Enabled()

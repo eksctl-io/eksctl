@@ -219,34 +219,10 @@ var _ = Describe("StackCollection NodeGroup", func() {
 
 				Expect(err).To(BeNil())
 				Expect(propagatedTags).To(Equal(map[string]string{
-					"tag-key":                  "tag-value",
-					labelsPrefix + "label-key": "label-value",
-					taintsPrefix + "taint-key": "taint-value",
+					"tag-key": "tag-value",
+					"k8s.io/cluster-autoscaler/node-template/label/label-key":  "label-value",
+					"k8s.io/cluster-autoscaler/node-template/taints/taint-key": "taint-value",
 				}))
-			})
-		})
-
-		When("there are labels and taints with same keys", func() {
-			It("returns an error", func() {
-				mng.Labels = map[string]string{
-					"key": "label-value",
-				}
-				mng.Taints = []api.NodeGroupTaint{
-					{
-						Key:   "key",
-						Value: "taint-value",
-					},
-				}
-
-				err := sc.propagateManagedNodeGroupTagsToASGTask(
-					context.Background(),
-					make(chan error),
-					mng,
-					nil,
-				)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("duplicate key found for taints and labels"))
 			})
 		})
 	})
