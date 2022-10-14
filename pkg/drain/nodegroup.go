@@ -224,7 +224,7 @@ func (n *NodeGroupDrainer) evictPods(ctx context.Context, node string) error {
 			}
 			// This log message is important but can be noisy.  It's useful to only
 			// update on a node every minute.
-			if time.Now().Sub(previousReportTime) > time.Minute*1 && len(pods) > 0 {
+			if time.Since(previousReportTime) > time.Minute*1 && len(pods) > 0 {
 				logger.Warning("%d pods are unevictable from node %s", len(pods), node)
 				previousReportTime = time.Now()
 			}

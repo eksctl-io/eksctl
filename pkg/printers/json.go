@@ -38,6 +38,10 @@ func (j *JSONPrinter) PrintObj(obj interface{}, writer io.Writer) error {
 		if itemsValue.Len() == 0 {
 			obj = make(map[string]int)
 		}
+	case reflect.Pointer:
+		if itemsValue.IsNil() {
+			obj = make(map[string]int)
+		}
 	}
 
 	if obj, ok := obj.(runtime.Object); ok {
@@ -58,7 +62,7 @@ func (j *JSONPrinter) PrintObj(obj interface{}, writer io.Writer) error {
 	return nil
 }
 
-// PrintObjWithKind will print the passed object formatted as YAML to
+// PrintObjWithKind will print the passed object formatted as JSON to
 // the supplied writer. This printer ignores kind argument.
 func (j *JSONPrinter) PrintObjWithKind(kind string, obj interface{}, writer io.Writer) error {
 	return j.PrintObj(obj, writer)

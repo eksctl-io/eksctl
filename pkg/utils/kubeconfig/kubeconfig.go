@@ -28,8 +28,6 @@ const (
 	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
 	// AWSEKSAuthenticator defines the recently added `aws eks get-token` command
 	AWSEKSAuthenticator = "aws"
-	// Shadowing the default kubeconfig path environment variable
-	RecommendedConfigPathEnvVar = clientcmd.RecommendedConfigPathEnvVar
 	// AWSIAMAuthenticatorMinimumBetaVersion this is the minimum version at which aws-iam-authenticator uses v1beta1 as APIVersion
 	AWSIAMAuthenticatorMinimumBetaVersion = "0.5.3"
 	// AWSCLIv1MinimumBetaVersion this is the minimum version at which aws-cli v1 uses v1beta1 as APIVersion
@@ -47,7 +45,7 @@ var execCommand = exec.Command
 
 // DefaultPath defines the default path
 func DefaultPath() string {
-	if env := os.Getenv(RecommendedConfigPathEnvVar); len(env) > 0 {
+	if env := os.Getenv(clientcmd.RecommendedConfigPathEnvVar); len(env) > 0 {
 		return env
 	}
 	return clientcmd.RecommendedHomeFile
@@ -277,7 +275,7 @@ func getAWSCLIVersion() string {
 	if err != nil {
 		return ""
 	}
-	r := regexp.MustCompile("aws-cli/([\\d.]*)")
+	r := regexp.MustCompile(`aws-cli/([\d.]*)`)
 	matches := r.FindStringSubmatch(string(output))
 	if len(matches) != 2 {
 		return ""

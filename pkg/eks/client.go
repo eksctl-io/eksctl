@@ -6,8 +6,11 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/oauth2"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -16,32 +19,36 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"k8s.io/client-go/transport"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	"github.com/weaveworks/eksctl/pkg/credentials"
+	"github.com/weaveworks/eksctl/pkg/eks/auth"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 // Client stores information about the client config
 type Client struct {
-	Config    *clientcmdapi.Config
-	Generator TokenGenerator
+	Config *clientcmdapi.Config
 
 	rawConfig *restclient.Config
 }
 
-// NewClient creates a new client config by embedding the STS token
+// NewClient creates a new client config.
 func (c *KubernetesProvider) NewClient(clusterInfo kubeconfig.ClusterInfo) (*Client, error) {
 	config := kubeconfig.NewForUser(clusterInfo, GetUsername(c.RoleARN))
-	generator := NewGenerator(c.Signer, &credentials.RealClock{})
 	client := &Client{
-		Config:    config,
-		Generator: generator,
+		Config: config,
 	}
-	return client.new(clusterInfo)
+	tokenSource := &auth.TokenSource{
+		ClusterID:      clusterInfo.ID(),
+		TokenGenerator: auth.NewGenerator(c.Signer, &credentials.RealClock{}),
+		Leeway:         1 * time.Minute,
+	}
+	return client.new(tokenSource)
 }
 
 // GetUsername extracts the username part from the IAM role ARN
@@ -53,31 +60,18 @@ func GetUsername(roleArn string) string {
 	return "iam-root-account"
 }
 
-func (c *Client) new(clusterInfo kubeconfig.ClusterInfo) (*Client, error) {
-	if err := c.useEmbeddedToken(clusterInfo); err != nil {
-		return nil, err
-	}
-
+func (c *Client) new(tokenSource oauth2.TokenSource) (*Client, error) {
 	rawConfig, err := clientcmd.NewDefaultClientConfig(*c.Config, &clientcmd.ConfigOverrides{}).ClientConfig()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create API client configuration from client config")
 	}
+	rawConfig.WrapTransport = transport.TokenSourceWrapTransport(transport.NewCachedTokenSource(tokenSource))
 
 	c.rawConfig = rawConfig
 	c.rawConfig.QPS = float32(25)
 	c.rawConfig.Burst = int(c.rawConfig.QPS) * 2
 
 	return c, nil
-}
-
-func (c *Client) useEmbeddedToken(clusterInfo kubeconfig.ClusterInfo) error {
-	tok, err := c.Generator.GetWithSTS(context.TODO(), clusterInfo.ID())
-	if err != nil {
-		return errors.Wrap(err, "could not get token")
-	}
-
-	c.Config.AuthInfos[c.Config.CurrentContext].Token = tok.Token
-	return nil
 }
 
 // NewClientSet creates a new API client
@@ -89,9 +83,9 @@ func (c *Client) NewClientSet() (*kubernetes.Clientset, error) {
 	return client, nil
 }
 
-// NewStdClientSet creates a new API client in one go with an embedded STS token, this is most commonly used option
+// NewStdClientSet creates a new API client.
 func (c *KubernetesProvider) NewStdClientSet(clusterInfo kubeconfig.ClusterInfo) (*kubernetes.Clientset, error) {
-	_, clientSet, err := c.newClientSetWithEmbeddedToken(clusterInfo)
+	_, clientSet, err := c.newClientSet(clusterInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -99,23 +93,23 @@ func (c *KubernetesProvider) NewStdClientSet(clusterInfo kubeconfig.ClusterInfo)
 	return clientSet, nil
 }
 
-func (c *KubernetesProvider) newClientSetWithEmbeddedToken(clusterInfo kubeconfig.ClusterInfo) (*Client, *kubernetes.Clientset, error) {
+func (c *KubernetesProvider) newClientSet(clusterInfo kubeconfig.ClusterInfo) (*Client, *kubernetes.Clientset, error) {
 	client, err := c.NewClient(clusterInfo)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")
+		return nil, nil, fmt.Errorf("creating Kubernetes client config: %w", err)
 	}
 
 	clientSet, err := client.NewClientSet()
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "creating Kubernetes client")
+		return nil, nil, fmt.Errorf("creating Kubernetes client: %w", err)
 	}
 
 	return client, clientSet, nil
 }
 
-// NewRawClient creates a new raw REST client in one go with an embedded STS token
+// NewRawClient creates a new raw REST client.
 func (c *KubernetesProvider) NewRawClient(clusterInfo kubeconfig.ClusterInfo) (*kubewrapper.RawClient, error) {
-	client, clientSet, err := c.newClientSetWithEmbeddedToken(clusterInfo)
+	client, clientSet, err := c.newClientSet(clusterInfo)
 	if err != nil {
 		return nil, err
 	}
