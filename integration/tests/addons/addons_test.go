@@ -39,30 +39,7 @@ func TestEKSAddons(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	clusterConfig := api.NewClusterConfig()
-	clusterConfig.Metadata.Name = params.ClusterName
-	clusterConfig.Metadata.Version = api.LatestVersion
-	clusterConfig.Metadata.Region = params.Region
-	clusterConfig.IAM.WithOIDC = api.Enabled()
-	clusterConfig.Addons = []*api.Addon{
-		{
-			Name:             "vpc-cni",
-			AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
-		},
-		{
-			Name:    "coredns",
-			Version: "latest",
-		},
-	}
-
-	ng := &api.ManagedNodeGroup{
-		NodeGroupBase: &api.NodeGroupBase{
-			Name: "ng",
-		},
-	}
-	clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
-
-	data, err := json.Marshal(clusterConfig)
+	data, err := json.Marshal(getInitialClusterConfig())
 	Expect(err).NotTo(HaveOccurred())
 
 	cmd := params.EksctlCreateCmd.
@@ -125,9 +102,37 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				return cmd
 			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
 
-			By("successfully creating the kube-proxy addon")
+			By("successfully creating the aws-ebs-csi-driver addon via config file")
+			// setup config file
+			clusterConfig := getInitialClusterConfig()
+			clusterConfig.Addons = append(clusterConfig.Addons, &api.Addon{
+				Name: "aws-ebs-csi-driver",
+			})
+			data, err := json.Marshal(clusterConfig)
 
+			Expect(err).NotTo(HaveOccurred())
 			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"addon",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).To(RunSuccessfully())
+
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "aws-ebs-csi-driver",
+						"--cluster", clusterName,
+						"--verbose", "2",
+					)
+				return cmd
+			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
+
+			By("successfully creating the kube-proxy addon")
+			cmd = params.EksctlCreateCmd.
 				WithArgs(
 					"addon",
 					"--name", "kube-proxy",
@@ -170,7 +175,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			Expect(cmd).To(RunSuccessfully())
 
-			_, err := rawClient.ClientSet().AppsV1().DaemonSets("kube-system").Get(context.Background(), "aws-node", metav1.GetOptions{})
+			_, err = rawClient.ClientSet().AppsV1().DaemonSets("kube-system").Get(context.Background(), "aws-node", metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
@@ -210,4 +215,31 @@ func getRawClient(ctx context.Context, clusterName string) *kubewrapper.RawClien
 	rawClient, err := ctl.NewRawClient(cfg)
 	Expect(err).NotTo(HaveOccurred())
 	return rawClient
+}
+
+func getInitialClusterConfig() *api.ClusterConfig {
+	clusterConfig := api.NewClusterConfig()
+	clusterConfig.Metadata.Name = params.ClusterName
+	clusterConfig.Metadata.Version = api.LatestVersion
+	clusterConfig.Metadata.Region = params.Region
+	clusterConfig.IAM.WithOIDC = api.Enabled()
+	clusterConfig.Addons = []*api.Addon{
+		{
+			Name:             "vpc-cni",
+			AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
+		},
+		{
+			Name:    "coredns",
+			Version: "latest",
+		},
+	}
+
+	ng := &api.ManagedNodeGroup{
+		NodeGroupBase: &api.NodeGroupBase{
+			Name: "ng",
+		},
+	}
+	clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
+
+	return clusterConfig
 }

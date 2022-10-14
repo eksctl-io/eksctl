@@ -28,6 +28,20 @@ const (
 )
 
 func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
+	// First check if the addon is already present as an EKS managed addon
+	// and if so, don't re-create
+	var notFoundErr *ekstypes.ResourceNotFoundException
+	_, err := a.eksAPI.DescribeAddon(ctx, &eks.DescribeAddonInput{
+		AddonName:   &addon.Name,
+		ClusterName: &a.clusterConfig.Metadata.Name,
+	})
+	if err == nil {
+		logger.Info("Addon %s is already present in this cluster, as an EKS managed addon, and won't be re-created", addon.Name)
+		return nil
+	} else if !errors.As(err, &notFoundErr) {
+		return err
+	}
+
 	version := addon.Version
 	if version != "" {
 		var err error
@@ -230,7 +244,7 @@ func (a *Manager) getRecommendedPolicies(addon *api.Addon) (api.InlineDocument, 
 	switch addon.CanonicalName() {
 	case vpcCNIName:
 		if a.clusterConfig.IPv6Enabled() {
-			return makeIPv6VPCCNIPolicyDocument(), nil, nil
+			return makeIPv6VPCCNIPolicyDocument(api.Partition(a.clusterConfig.Metadata.Region)), nil, nil
 		}
 		return nil, []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}, nil
 	case ebsCSIDriverName:
@@ -301,7 +315,7 @@ func (a *Manager) createStack(ctx context.Context, resourceSet builder.ResourceS
 	return <-errChan
 }
 
-func makeIPv6VPCCNIPolicyDocument() map[string]interface{} {
+func makeIPv6VPCCNIPolicyDocument(partition string) map[string]interface{} {
 	return map[string]interface{}{
 		"Version": "2012-10-17",
 		"Statement": []map[string]interface{}{
@@ -321,7 +335,7 @@ func makeIPv6VPCCNIPolicyDocument() map[string]interface{} {
 				"Action": []string{
 					"ec2:CreateTags",
 				},
-				"Resource": "arn:aws:ec2:*:*:network-interface/*",
+				"Resource": fmt.Sprintf("arn:%s:ec2:*:*:network-interface/*", partition),
 			},
 		},
 	}

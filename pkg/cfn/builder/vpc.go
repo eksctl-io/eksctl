@@ -38,11 +38,8 @@ const (
 	PrivateSubnetIpv6RouteKey    = "PrivateSubnetDefaultIpv6Route"
 
 	// Subnets
-	PublicSubnetKey         = "PublicSubnet"
-	PrivateSubnetKey        = "PrivateSubnet"
-	PublicSubnetsOutputKey  = "SubnetsPublic"
-	PrivateSubnetsOutputKey = "SubnetsPrivate"
-
+	PublicSubnetKey        = "PublicSubnet"
+	PrivateSubnetKey       = "PrivateSubnet"
 	defaultPrefix          = 19
 	defaultSubnetMask      = 32
 	defaultDesiredMaskSize = defaultSubnetMask - defaultPrefix

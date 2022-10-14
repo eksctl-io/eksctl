@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 )
 
 var _ = Describe("GPU instance support", func() {
@@ -22,11 +21,7 @@ var _ = Describe("GPU instance support", func() {
 	assertValidationError := func(e gpuInstanceEntry, err error) {
 		if e.expectUnsupportedErr {
 			Expect(err).To(HaveOccurred())
-			if instanceutils.IsNvidiaInstanceType(e.gpuInstanceType) {
-				Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("GPU instance types are not supported for %s", e.amiFamily))))
-			} else {
-				Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("Inferentia instance types are not supported for %s", e.amiFamily))))
-			}
+			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("Inferentia instance types are not supported for %s", e.amiFamily))))
 			return
 		}
 		Expect(err).NotTo(HaveOccurred())
@@ -48,9 +43,8 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
 		Entry("Ubuntu2004", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyUbuntu2004,
-			gpuInstanceType:      "g4dn.xlarge",
-			expectUnsupportedErr: true,
+			amiFamily:       api.NodeImageFamilyUbuntu2004,
+			gpuInstanceType: "g4dn.xlarge",
 		}),
 		Entry("Bottlerocket", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyBottlerocket,
@@ -63,7 +57,7 @@ var _ = Describe("GPU instance support", func() {
 		ng := api.NewNodeGroup()
 		ng.InstanceType = e.gpuInstanceType
 		ng.AMIFamily = e.amiFamily
-		assertValidationError(e, api.ValidateNodeGroup(0, ng))
+		assertValidationError(e, api.ValidateNodeGroup(0, ng, api.NewClusterConfig()))
 
 	},
 		Entry("AL2", gpuInstanceEntry{
@@ -95,30 +89,35 @@ var _ = Describe("GPU instance support", func() {
 			gpuInstanceType: "g4dn.xlarge",
 		}),
 		Entry("Ubuntu2004", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyUbuntu2004,
-			gpuInstanceType:      "g4dn.xlarge",
-			expectUnsupportedErr: true,
+			amiFamily:       api.NodeImageFamilyUbuntu2004,
+			gpuInstanceType: "g4dn.xlarge",
 		}),
 		Entry("Windows2019Core", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyWindowsServer2019CoreContainer,
-			gpuInstanceType:      "g3.8xlarge",
-			expectUnsupportedErr: true,
+			amiFamily:       api.NodeImageFamilyWindowsServer2019CoreContainer,
+			gpuInstanceType: "g3.8xlarge",
 		}),
 		Entry("Windows2019Full", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyWindowsServer2019FullContainer,
-			gpuInstanceType:      "p3.2xlarge",
-			expectUnsupportedErr: true,
+			amiFamily:       api.NodeImageFamilyWindowsServer2019FullContainer,
+			gpuInstanceType: "p3.2xlarge",
 		}),
 	)
-	Describe("ARM GPU", func() {
-		When("ARM GPU instance is request for unmanaged nodegroups", func() {
-			It("errors", func() {
-				ng := api.NewNodeGroup()
-				ng.InstanceType = "g5g.xlarge"
-				ng.AMIFamily = api.NodeImageFamilyBottlerocket
-				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).To(MatchError(ContainSubstring("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily Bottlerocket")))
-			})
-		})
-	})
+
+	DescribeTable("ARM-based GPU instance type support", func(amiFamily string, expectErr bool) {
+		ng := api.NewNodeGroup()
+		ng.InstanceType = "g5g.medium"
+		ng.AMIFamily = amiFamily
+		err := api.ValidateNodeGroup(0, ng, api.NewClusterConfig())
+		if expectErr {
+			Expect(err).To(MatchError(fmt.Sprintf("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily %s", amiFamily)))
+		} else {
+			Expect(err).NotTo(HaveOccurred())
+		}
+	},
+		Entry("AmazonLinux2", api.NodeImageFamilyAmazonLinux2, true),
+		Entry("Ubuntu2004", api.NodeImageFamilyUbuntu2004, true),
+		Entry("Ubuntu1804", api.NodeImageFamilyUbuntu1804, true),
+		Entry("Windows2019Full", api.NodeImageFamilyWindowsServer2019FullContainer, true),
+		Entry("Windows2019Core", api.NodeImageFamilyWindowsServer2019CoreContainer, true),
+		Entry("Bottlerocket", api.NodeImageFamilyBottlerocket, false),
+	)
 })

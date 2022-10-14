@@ -39,9 +39,9 @@ func (c *StackCollection) createIAMServiceAccountTask(ctx context.Context, errs 
 	return nil
 }
 
-// DescribeIAMServiceAccountStacks calls DescribeStacks and filters out iamserviceaccounts
+// DescribeIAMServiceAccountStacks calls ListStacks and filters out iamserviceaccounts
 func (c *StackCollection) DescribeIAMServiceAccountStacks(ctx context.Context) ([]*Stack, error) {
-	stacks, err := c.DescribeStacks(ctx)
+	stacks, err := c.ListStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func GetIAMServiceAccountName(s *Stack) string {
 }
 
 func (c *StackCollection) GetIAMAddonsStacks(ctx context.Context) ([]*Stack, error) {
-	stacks, err := c.DescribeStacks(ctx)
+	stacks, err := c.ListStacks(ctx)
 	if err != nil {
 		return nil, err
 	}

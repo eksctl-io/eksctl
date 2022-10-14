@@ -19,8 +19,9 @@ import (
 )
 
 const (
-	iamPolicyAmazonEKSClusterPolicy         = "AmazonEKSClusterPolicy"
-	iamPolicyAmazonEKSVPCResourceController = "AmazonEKSVPCResourceController"
+	iamPolicyAmazonEKSClusterPolicy             = "AmazonEKSClusterPolicy"
+	iamPolicyAmazonEKSVPCResourceController     = "AmazonEKSVPCResourceController"
+	iamPolicyAmazonEKSLocalOutpostClusterPolicy = "AmazonEKSLocalOutpostClusterPolicy"
 
 	iamPolicyAmazonEKSWorkerNodePolicy           = "AmazonEKSWorkerNodePolicy"
 	iamPolicyAmazonEKSCNIPolicy                  = "AmazonEKS_CNI_Policy"
@@ -80,19 +81,27 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 
 	c.rs.withIAM = true
 
-	managedPolicyArns := []string{
-		iamPolicyAmazonEKSClusterPolicy,
-	}
-	if !api.IsDisabled(c.spec.IAM.VPCResourceControllerPolicy) {
-		managedPolicyArns = append(managedPolicyArns, iamPolicyAmazonEKSVPCResourceController)
+	var role *gfniam.Role
+	if c.spec.IsControlPlaneOnOutposts() {
+		role = &gfniam.Role{
+			AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
+				MakeServiceRef("EC2"),
+			),
+			ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(iamPolicyAmazonEKSLocalOutpostClusterPolicy)...),
+		}
+	} else {
+		managedPolicyARNs := []string{iamPolicyAmazonEKSClusterPolicy}
+		if !api.IsDisabled(c.spec.IAM.VPCResourceControllerPolicy) {
+			managedPolicyARNs = append(managedPolicyARNs, iamPolicyAmazonEKSVPCResourceController)
+		}
+		role = &gfniam.Role{
+			AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
+				MakeServiceRef("EKS"),
+			),
+			ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyARNs...)...),
+		}
 	}
 
-	role := &gfniam.Role{
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
-			MakeServiceRef("EKS"),
-		),
-		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyArns...)...),
-	}
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRolePermissionsBoundary) {
 		role.PermissionsBoundary = gfnt.NewString(*c.spec.IAM.ServiceRolePermissionsBoundary)
 	}

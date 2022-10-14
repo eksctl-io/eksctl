@@ -32,10 +32,10 @@ import (
 type NodeGroupDrainer interface {
 	Drain(ctx context.Context, input *nodegroup.DrainInput) error
 }
-type vpcCniDeleter func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface)
+type vpcCniDeleter func(clusterConfig *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface)
 
 func deleteSharedResources(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
-	if clusterOperable {
+	if clusterOperable && !cfg.IsControlPlaneOnOutposts() {
 		if err := deleteFargateProfiles(ctx, cfg.Metadata, ctl, stackManager); err != nil {
 			return err
 		}
@@ -141,7 +141,7 @@ func deleteDeprecatedStacks(ctx context.Context, stackManager manager.StackManag
 }
 
 func checkForUndeletedStacks(ctx context.Context, stackManager manager.StackManager) error {
-	stacks, err := stackManager.DescribeStacks(ctx)
+	stacks, err := stackManager.ListStacks(ctx)
 	if err != nil {
 		return err
 	}
@@ -190,31 +190,33 @@ func drainAllNodeGroups(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.Cl
 		return err
 	}
 
-	vpcCniDeleter(cfg.Metadata.Name, ctl, clientSet)
+	vpcCniDeleter(cfg, ctl, clientSet)
 	return nil
 }
 
 // Attempts to delete the vpc-cni, and fails silently if an error occurs. This is an attempt
 // to prevent a race condition in the vpc-cni #1849
-func attemptVpcCniDeletion(ctx context.Context, clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
-	vpcCNI := "vpc-cni"
-	logger.Debug("deleting EKS addon %q if it exists", vpcCNI)
-	_, err := ctl.AWSProvider.EKS().DeleteAddon(ctx, &awseks.DeleteAddonInput{
-		ClusterName: &clusterName,
-		AddonName:   aws.String(vpcCNI),
-	})
+func attemptVpcCniDeletion(ctx context.Context, clusterConfig *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+	if !clusterConfig.IsControlPlaneOnOutposts() {
+		const vpcCNI = "vpc-cni"
+		logger.Debug("deleting EKS addon %q if it exists", vpcCNI)
+		_, err := ctl.AWSProvider.EKS().DeleteAddon(ctx, &awseks.DeleteAddonInput{
+			ClusterName: aws.String(clusterConfig.Metadata.Name),
+			AddonName:   aws.String(vpcCNI),
+		})
 
-	if err != nil {
-		var notFoundErr *ekstypes.ResourceNotFoundException
-		if errors.As(err, &notFoundErr) {
-			logger.Debug("EKS addon %q does not exist", vpcCNI)
-		} else {
-			logger.Debug("failed to delete addon %q: %v", vpcCNI, err)
+		if err != nil {
+			var notFoundErr *ekstypes.ResourceNotFoundException
+			if errors.As(err, &notFoundErr) {
+				logger.Debug("EKS addon %q does not exist", vpcCNI)
+			} else {
+				logger.Debug("failed to delete addon %q: %v", vpcCNI, err)
+			}
 		}
 	}
 
 	logger.Debug("deleting kube-system/aws-node DaemonSet")
-	err = clientSet.AppsV1().DaemonSets("kube-system").Delete(ctx, "aws-node", metav1.DeleteOptions{})
+	err := clientSet.AppsV1().DaemonSets("kube-system").Delete(ctx, "aws-node", metav1.DeleteOptions{})
 	if err != nil {
 		logger.Debug("failed to delete kube-system/aws-node DaemonSet: %w", err)
 	}

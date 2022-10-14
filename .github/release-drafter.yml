@@ -1,18 +1,30 @@
-name-template: 'eksctl $NEXT_MINOR_VERSION'
-tag-template: '$NEXT_MINOR_VERSION'
+name-template: 'eksctl v$NEXT_MINOR_VERSION'
+tag-template: 'v$NEXT_MINOR_VERSION'
 categories:
-  - title: 'Features'
+  - title: '💥 Breaking Changes'
+    label: 'kind/breaking'
+  - title: '🚀 Features'
     labels:
       - 'kind/feature'
-  - title: 'Improvements'
+  - title: '🎯 Improvements'
     labels:
       - 'kind/improvement'
-  - title: 'Bug Fixes'
+  - title: '🐛 Bug Fixes'
     labels:
       - 'kind/bug'
+  - title: '🧰 Maintenance'
+    labels: 
+      - 'area/tech-debt'
+      - 'area/ci'
+  - title: '📝 Documentation'
+    labels: 
+      - 'area/docs'
+      - 'kind/docs'
 change-template: '- $TITLE (#$NUMBER)'
+change-title-escapes: '\<*_&#@`' # You can add # and @ to disable mentions, and add ` to disable code blocks.
+version-template: '$COMPLETE'
 template: |
-  # Release $NEXT_MINOR_VERSION
+  # Release v$NEXT_MINOR_VERSION
 
   $CHANGES
 
@@ -20,7 +32,7 @@ template: |
   Weaveworks would like to sincerely thank:
   $CONTRIBUTORS
 replacers:
-  - search: '/@(Himangini|Callisto13|aclevername|nikimanoledaki|Skarlso|cPu1|weaveworksbot|dependabot(?:\[bot\])?)(?:,| |$)/gm'
+  - search: '/@(Himangini|nikimanoledaki|TiberiuGC|Skarlso|cPu1|weaveworksbot|dependabot(?:\[bot\])?)(?:,| |$)/gm'
     replace: ''
 exclude-labels:
   - 'skip-release-notes'

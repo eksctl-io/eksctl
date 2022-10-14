@@ -65,20 +65,7 @@ type managedNodeGroupTagsToASGPropagationTask struct {
 func (t *managedNodeGroupTagsToASGPropagationTask) Describe() string { return t.info }
 
 func (t *managedNodeGroupTagsToASGPropagationTask) Do(errorCh chan error) error {
-	return t.stackCollection.propagateManagedNodeGroupTagsToASGTask(t.ctx, errorCh, t.nodeGroup)
-}
-
-type clusterCompatTask struct {
-	info            string
-	stackCollection *StackCollection
-	ctx             context.Context
-}
-
-func (t *clusterCompatTask) Describe() string { return t.info }
-
-func (t *clusterCompatTask) Do(errorCh chan error) error {
-	defer close(errorCh)
-	return t.stackCollection.FixClusterCompatibility(t.ctx)
+	return t.stackCollection.propagateManagedNodeGroupTagsToASGTask(t.ctx, errorCh, t.nodeGroup, t.stackCollection.PropagateManagedNodeGroupTagsToASG)
 }
 
 type taskWithClusterIAMServiceAccountSpec struct {

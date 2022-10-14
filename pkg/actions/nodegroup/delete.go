@@ -19,7 +19,7 @@ func (m *Manager) Delete(ctx context.Context, nodeGroups []*api.NodeGroup, manag
 	}
 
 	tasks := &tasks.TaskTree{Parallel: true}
-	stacks, err := m.stackManager.ListNodeGroupStacks(ctx)
+	stacks, err := m.stackManager.ListNodeGroupStacksWithStatuses(ctx)
 	if err != nil {
 		return err
 	}

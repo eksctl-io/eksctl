@@ -118,10 +118,21 @@ func (cb *ConfigBuilder) UseSystemCA() *ConfigBuilder {
 	return cb
 }
 
+// ClusterInfo holds the cluster info.
+type ClusterInfo interface {
+	// ID returns the cluster ID.
+	// This can either be the name of the cluster or a UUID.
+	ID() string
+	// Meta returns the cluster metadata.
+	Meta() *api.ClusterMeta
+	// GetStatus returns the cluster status.
+	GetStatus() *api.ClusterStatus
+}
+
 // NewForUser returns a Config suitable for a user by respecting
 // provider settings
-func NewForUser(spec *api.ClusterConfig, username string) *clientcmdapi.Config {
-	configBuilder := NewBuilder(spec.Metadata, spec.Status, username)
+func NewForUser(cluster ClusterInfo, username string) *clientcmdapi.Config {
+	configBuilder := NewBuilder(cluster.Meta(), cluster.GetStatus(), username)
 	if os.Getenv("KUBECONFIG_USE_SYSTEM_CA") != "" {
 		configBuilder.UseSystemCA()
 	}
@@ -130,21 +141,21 @@ func NewForUser(spec *api.ClusterConfig, username string) *clientcmdapi.Config {
 
 // NewForKubectl creates configuration for a user with kubectl by configuring
 // a suitable authenticator and respecting provider settings
-func NewForKubectl(spec *api.ClusterConfig, username, roleARN, profile string) *clientcmdapi.Config {
-	config := NewForUser(spec, username)
+func NewForKubectl(cluster ClusterInfo, username, roleARN, profile string) *clientcmdapi.Config {
+	config := NewForUser(cluster, username)
 	authenticator, found := LookupAuthenticator()
 	if !found {
 		// fall back to aws-iam-authenticator
 		authenticator = AWSIAMAuthenticator
 	}
-	AppendAuthenticator(config, spec.Metadata, authenticator, roleARN, profile)
+	AppendAuthenticator(config, cluster, authenticator, roleARN, profile)
 	return config
 }
 
 // AppendAuthenticator appends the AWS IAM  authenticator, and
 // if profile is non-empty string it sets AWS_PROFILE environment
 // variable also
-func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMeta, authenticatorCMD, roleARN, profile string) {
+func AppendAuthenticator(config *clientcmdapi.Config, cluster ClusterInfo, authenticatorCMD, roleARN, profile string) {
 	var (
 		args        []string
 		roleARNFlag string
@@ -162,6 +173,8 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 		ProvideClusterInfo: false,
 	}
 
+	meta := cluster.Meta()
+
 	switch authenticatorCMD {
 	case AWSIAMAuthenticator:
 		// if version is above or equal to v0.5.3 we change the APIVersion to v1beta1.
@@ -170,21 +183,21 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 		} else if authenticatorIsBetaVersion {
 			execConfig.APIVersion = betaAPIVersion
 		}
-		args = []string{"token", "-i", clusterMeta.Name}
+		args = []string{"token", "-i", cluster.ID()}
 		roleARNFlag = "-r"
-		if clusterMeta.Region != "" {
+		if meta.Region != "" {
 			execConfig.Env = append(execConfig.Env, clientcmdapi.ExecEnvVar{
 				Name:  "AWS_DEFAULT_REGION",
-				Value: clusterMeta.Region,
+				Value: meta.Region,
 			})
 		}
 	case HeptioAuthenticatorAWS:
-		args = []string{"token", "-i", clusterMeta.Name}
+		args = []string{"token", "-i", cluster.ID()}
 		roleARNFlag = "-r"
-		if clusterMeta.Region != "" {
+		if meta.Region != "" {
 			execConfig.Env = append(execConfig.Env, clientcmdapi.ExecEnvVar{
 				Name:  "AWS_DEFAULT_REGION",
-				Value: clusterMeta.Region,
+				Value: meta.Region,
 			})
 		}
 	case AWSEKSAuthenticator:
@@ -194,10 +207,10 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 		} else if awsCLIIsBetaVersion {
 			execConfig.APIVersion = betaAPIVersion
 		}
-		args = []string{"eks", "get-token", "--cluster-name", clusterMeta.Name}
+		args = []string{"eks", "get-token", "--cluster-name", cluster.ID()}
 		roleARNFlag = "--role-arn"
-		if clusterMeta.Region != "" {
-			args = append(args, "--region", clusterMeta.Region)
+		if meta.Region != "" {
+			args = append(args, "--region", meta.Region)
 		}
 	}
 	// If the alpha API version is selected, check the kubectl version

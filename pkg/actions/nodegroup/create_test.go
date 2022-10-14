@@ -34,11 +34,15 @@ import (
 )
 
 type ngEntry struct {
-	version       string
-	opts          nodegroup.CreateOpts
-	mockCalls     func(*fakes.FakeKubeProvider, *utilFakes.FakeNodegroupFilter, *mockprovider.MockProvider, *fake.Clientset)
-	expectedCalls func(*fakes.FakeKubeProvider, *utilFakes.FakeNodegroupFilter)
-	expectedErr   error
+	version             string
+	opts                nodegroup.CreateOpts
+	mockCalls           func(*fakes.FakeKubeProvider, *utilFakes.FakeNodegroupFilter, *mockprovider.MockProvider, *fake.Clientset)
+	refreshCluster      bool
+	updateClusterConfig func(*api.ClusterConfig)
+
+	expectedCalls      func(*fakes.FakeKubeProvider, *utilFakes.FakeNodegroupFilter)
+	expectedErr        error
+	expectedRefreshErr string
 }
 
 type stackManagerDelegate struct {
@@ -55,13 +59,20 @@ func (s *stackManagerDelegate) NewManagedNodeGroupTask(context.Context, []*api.M
 	return nil
 }
 
-func (s *stackManagerDelegate) NewClusterCompatTask(context.Context) tasks.Task {
-	return noopTask
+func (s *stackManagerDelegate) FixClusterCompatibility(_ context.Context) error {
+	return nil
+}
+
+func (s *stackManagerDelegate) ClusterHasDedicatedVPC(_ context.Context) (bool, error) {
+	return false, nil
 }
 
 var _ = DescribeTable("Create", func(t ngEntry) {
 	cfg := newClusterConfig()
 	cfg.Metadata.Version = t.version
+	if t.updateClusterConfig != nil {
+		t.updateClusterConfig(cfg)
+	}
 
 	p := mockprovider.NewMockProvider()
 	ctl := &eks.ClusterProvider{
@@ -88,6 +99,14 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	if t.mockCalls != nil {
 		t.mockCalls(k, &ngFilter, p, clientset)
+	}
+	if t.refreshCluster {
+		err := ctl.RefreshClusterStatus(context.Background(), cfg)
+		if t.expectedRefreshErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(t.expectedRefreshErr)))
+			return
+		}
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	err := m.Create(context.Background(), t.opts, &ngFilter)
@@ -183,6 +202,201 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		expectedErr: errors.New("failed to determine if aws-node uses IRSA"),
 	}),
 
+	Entry("fails to create managed nodegroups on Outposts", ngEntry{
+		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
+			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
+				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-1234"},
+				ControlPlaneInstanceType: aws.String("m5a.large"),
+			})
+		},
+		opts: nodegroup.CreateOpts{
+			DryRun:                    true,
+			UpdateAuthConfigMap:       true,
+			InstallNeuronDevicePlugin: true,
+			InstallNvidiaDevicePlugin: true,
+			SkipOutdatedAddonsCheck:   true,
+			ConfigFileProvided:        false,
+		},
+		refreshCluster: true,
+		expectedCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter) {
+			Expect(k.NewRawClientCallCount()).To(Equal(0))
+			Expect(k.ServerVersionCallCount()).To(Equal(0))
+			Expect(f.SetOnlyLocalCallCount()).To(Equal(0))
+		},
+		expectedErr: errors.New("Managed Nodegroups are not supported on Outposts; please rerun the command with --managed=false"),
+	}),
+
+	Entry("fails to create managed nodegroups on Outposts with a config file", ngEntry{
+		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
+			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
+				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-1234"},
+				ControlPlaneInstanceType: aws.String("m5a.large"),
+			})
+		},
+		opts: nodegroup.CreateOpts{
+			DryRun:                    true,
+			UpdateAuthConfigMap:       true,
+			InstallNeuronDevicePlugin: true,
+			InstallNvidiaDevicePlugin: true,
+			SkipOutdatedAddonsCheck:   true,
+			ConfigFileProvided:        true,
+		},
+		refreshCluster: true,
+		expectedCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter) {
+			Expect(k.NewRawClientCallCount()).To(Equal(0))
+			Expect(k.ServerVersionCallCount()).To(Equal(0))
+			Expect(f.SetOnlyLocalCallCount()).To(Equal(0))
+		},
+		expectedErr: errors.New("Managed Nodegroups are not supported on Outposts"),
+	}),
+
+	Entry("Outpost config does not match cluster's Outpost config", ngEntry{
+		updateClusterConfig: func(c *api.ClusterConfig) {
+			c.Outpost = &api.Outpost{
+				ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+			}
+		},
+		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
+			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
+				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-5678"},
+				ControlPlaneInstanceType: aws.String("m5a.large"),
+			})
+		},
+		opts: nodegroup.CreateOpts{
+			DryRun:                    true,
+			UpdateAuthConfigMap:       true,
+			InstallNeuronDevicePlugin: true,
+			InstallNvidiaDevicePlugin: true,
+			SkipOutdatedAddonsCheck:   true,
+			ConfigFileProvided:        true,
+		},
+		refreshCluster: true,
+		expectedCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter) {
+			Expect(k.NewRawClientCallCount()).To(Equal(0))
+			Expect(k.ServerVersionCallCount()).To(Equal(0))
+			Expect(f.SetOnlyLocalCallCount()).To(Equal(0))
+		},
+		expectedRefreshErr: fmt.Sprintf("outpost.controlPlaneOutpostARN %q does not match the cluster's Outpost ARN %q", "arn:aws:outposts:us-west-2:1234:outpost/op-1234", "arn:aws:outposts:us-west-2:1234:outpost/op-5678"),
+	}),
+
+	Entry("Outpost config set but control plane is not on Outposts", ngEntry{
+		updateClusterConfig: func(c *api.ClusterConfig) {
+			c.Outpost = &api.Outpost{
+				ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+			}
+		},
+		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
+			defaultProviderMocks(p, defaultOutput)
+		},
+		opts: nodegroup.CreateOpts{
+			DryRun:                    true,
+			UpdateAuthConfigMap:       true,
+			InstallNeuronDevicePlugin: true,
+			InstallNvidiaDevicePlugin: true,
+			SkipOutdatedAddonsCheck:   true,
+			ConfigFileProvided:        true,
+		},
+		refreshCluster: true,
+		expectedCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter) {
+			Expect(k.NewRawClientCallCount()).To(Equal(0))
+			Expect(k.ServerVersionCallCount()).To(Equal(0))
+			Expect(f.SetOnlyLocalCallCount()).To(Equal(0))
+		},
+		expectedRefreshErr: "outpost.controlPlaneOutpostARN is set but control plane is not on Outposts",
+	}),
+
+	Entry("API server unreachable when creating a nodegroup on Outposts", ngEntry{
+		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
+			k.NewRawClientReturns(nil, &kubernetes.APIServerUnreachableError{
+				Err: errors.New("timeout"),
+			})
+			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
+				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-1234"},
+				ControlPlaneInstanceType: aws.String("m5a.large"),
+			})
+		},
+		opts: nodegroup.CreateOpts{
+			DryRun:                    true,
+			UpdateAuthConfigMap:       true,
+			InstallNeuronDevicePlugin: true,
+			InstallNvidiaDevicePlugin: true,
+			SkipOutdatedAddonsCheck:   true,
+			ConfigFileProvided:        true,
+		},
+		refreshCluster: true,
+		updateClusterConfig: func(c *api.ClusterConfig) {
+			c.ManagedNodeGroups = nil
+			c.Outpost = &api.Outpost{
+				ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+			}
+		},
+		expectedCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter) {
+			Expect(k.NewRawClientCallCount()).To(Equal(1))
+		},
+		expectedErr: errors.New("eksctl requires connectivity to the API server to create nodegroups;" +
+			" please ensure the Outpost VPC is associated with your local gateway and you are able to connect to" +
+			" the API server before rerunning the command: timeout"),
+	}),
+
+	Entry("API server unreachable in a cluster with private-only endpoint access", ngEntry{
+		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
+			k.NewRawClientReturns(nil, &kubernetes.APIServerUnreachableError{
+				Err: errors.New("timeout"),
+			})
+			mockProviderWithConfig(p, defaultOutput, &ekstypes.VpcConfigResponse{
+				ClusterSecurityGroupId: aws.String("csg-1234"),
+				EndpointPublicAccess:   false,
+				EndpointPrivateAccess:  true,
+				SecurityGroupIds:       []string{"sg-1"},
+				SubnetIds:              []string{"sub-1", "sub-2"},
+				VpcId:                  aws.String("vpc-1"),
+			}, nil)
+		},
+		opts: nodegroup.CreateOpts{
+			DryRun:                    true,
+			UpdateAuthConfigMap:       true,
+			InstallNeuronDevicePlugin: true,
+			InstallNvidiaDevicePlugin: true,
+			SkipOutdatedAddonsCheck:   true,
+			ConfigFileProvided:        true,
+		},
+		refreshCluster: true,
+		updateClusterConfig: func(c *api.ClusterConfig) {
+			c.ManagedNodeGroups = nil
+		},
+		expectedCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter) {
+			Expect(k.NewRawClientCallCount()).To(Equal(1))
+		},
+		expectedErr: errors.New("eksctl requires connectivity to the API server to create nodegroups;" +
+			" please run eksctl from an environment that has access to the API server: timeout"),
+	}),
+
+	Entry("creates nodegroups on Outposts", ngEntry{
+		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
+			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
+				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-1234"},
+				ControlPlaneInstanceType: aws.String("m5a.large"),
+			})
+		},
+		opts: nodegroup.CreateOpts{
+			DryRun:                    true,
+			UpdateAuthConfigMap:       true,
+			InstallNeuronDevicePlugin: true,
+			InstallNvidiaDevicePlugin: true,
+			SkipOutdatedAddonsCheck:   true,
+			ConfigFileProvided:        true,
+		},
+		refreshCluster: true,
+		updateClusterConfig: func(c *api.ClusterConfig) {
+			c.ManagedNodeGroups = nil
+		},
+		expectedCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter) {
+			Expect(k.NewRawClientCallCount()).To(Equal(1))
+			Expect(k.ServerVersionCallCount()).To(Equal(1))
+			Expect(f.SetOnlyLocalCallCount()).To(Equal(1))
+		},
+	}),
+
 	Entry("[happy path] creates nodegroup with no options", ngEntry{
 		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
 			defaultProviderMocks(p, defaultOutput)
@@ -239,17 +453,19 @@ func newClusterConfig() *api.ClusterConfig {
 		PrivateCluster: &api.PrivateCluster{},
 		NodeGroups: []*api.NodeGroup{{
 			NodeGroupBase: &api.NodeGroupBase{
-				Name:      "my-ng",
-				AMIFamily: api.NodeImageFamilyAmazonLinux2,
-				AMI:       "ami-123",
-				SSH:       &api.NodeGroupSSH{Allow: api.Disabled()},
+				Name:             "my-ng",
+				AMIFamily:        api.NodeImageFamilyAmazonLinux2,
+				AMI:              "ami-123",
+				SSH:              &api.NodeGroupSSH{Allow: api.Disabled()},
+				InstanceSelector: &api.InstanceSelector{},
 			}},
 		},
 		ManagedNodeGroups: []*api.ManagedNodeGroup{{
 			NodeGroupBase: &api.NodeGroupBase{
-				Name:      "my-ng",
-				AMIFamily: api.NodeImageFamilyAmazonLinux2,
-				SSH:       &api.NodeGroupSSH{Allow: api.Disabled()},
+				Name:             "my-ng",
+				AMIFamily:        api.NodeImageFamilyAmazonLinux2,
+				SSH:              &api.NodeGroupSSH{Allow: api.Disabled()},
+				InstanceSelector: &api.InstanceSelector{},
 			}},
 		},
 	}
@@ -275,6 +491,14 @@ var defaultOutput = []cftypes.Output{
 }
 
 func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output) {
+	mockProviderWithConfig(p, output, nil, nil)
+}
+
+func mockProviderWithOutpostConfig(p *mockprovider.MockProvider, describeStacksOutput []cftypes.Output, outpostConfig *ekstypes.OutpostConfigResponse) {
+	mockProviderWithConfig(p, describeStacksOutput, nil, outpostConfig)
+}
+
+func mockProviderWithConfig(p *mockprovider.MockProvider, describeStacksOutput []cftypes.Output, vpcConfigRes *ekstypes.VpcConfigResponse, outpostConfig *ekstypes.OutpostConfigResponse) {
 	p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
 		StackSummaries: []cftypes.StackSummary{
 			{
@@ -294,10 +518,20 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output)
 						Value: aws.String("eksctl-my-cluster-cluster"),
 					},
 				},
-				Outputs: output,
+				Outputs: describeStacksOutput,
 			},
 		},
 	}, nil)
+	if vpcConfigRes == nil {
+		vpcConfigRes = &ekstypes.VpcConfigResponse{
+			ClusterSecurityGroupId: aws.String("csg-1234"),
+			EndpointPublicAccess:   true,
+			PublicAccessCidrs:      []string{"1.2.3.4/24", "1.2.3.4/12"},
+			SecurityGroupIds:       []string{"sg-1", "sg-2"},
+			SubnetIds:              []string{"sub-1", "sub-2"},
+			VpcId:                  aws.String("vpc-1"),
+		}
+	}
 	p.MockEKS().On("DescribeCluster", mock.Anything, mock.Anything).Return(&awseks.DescribeClusterOutput{
 		Cluster: &ekstypes.Cluster{
 			CertificateAuthority: &ekstypes.Certificate{
@@ -309,15 +543,9 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output)
 			Logging:                 nil,
 			Name:                    aws.String("my-cluster"),
 			PlatformVersion:         aws.String("1.22"),
-			ResourcesVpcConfig: &ekstypes.VpcConfigResponse{
-				ClusterSecurityGroupId: aws.String("csg-1234"),
-				EndpointPublicAccess:   true,
-				PublicAccessCidrs:      []string{"1.2.3.4/24", "1.2.3.4/12"},
-				SecurityGroupIds:       []string{"sg-1", "sg-2"},
-				SubnetIds:              []string{"sub-1", "sub-2"},
-				VpcId:                  aws.String("vpc-1"),
-			},
-			Status: "CREATE_COMPLETE",
+			ResourcesVpcConfig:      vpcConfigRes,
+			OutpostConfig:           outpostConfig,
+			Status:                  "CREATE_COMPLETE",
 			Tags: map[string]string{
 				api.ClusterNameTag: "eksctl-my-cluster-cluster",
 			},

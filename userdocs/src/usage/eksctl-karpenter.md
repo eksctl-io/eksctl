@@ -2,7 +2,7 @@
 
 `eksctl` provides adding [Karpenter](https://karpenter.sh/) to a newly created cluster. It will create all the necessary
 prerequisites outlined in Karpenter's [Getting Started](https://karpenter.sh/docs/getting-started/) section including installing
-Karpenter itself using Helm. We currently support installing versions up to `0.9.*`
+Karpenter itself using Helm. We currently support installing versions up to `0.15.0`
 
 To that end, a new configuration value has been introduced into `eksctl` cluster config called `karpenter`. The following
 yaml outlines a typical installation configuration:
@@ -21,7 +21,7 @@ iam:
   withOIDC: true # required
 
 karpenter:
-  version: '0.9.0'
+  version: '0.15.0'
 
 managedNodeGroups:
   - name: managed-ng-1
@@ -35,7 +35,7 @@ to be set:
 
 ```yaml
 karpenter:
-  version: '0.9.0'
+  version: '0.15.0'
   createServiceAccount: true # default is false
   defaultInstanceProfile: 'KarpenterNodeInstanceProfile' # default is to use the IAM instance profile created by eksctl
 ```

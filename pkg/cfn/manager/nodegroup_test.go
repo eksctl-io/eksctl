@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/stretchr/testify/mock"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -160,6 +162,91 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				})
 				Expect(err).To(HaveOccurred())
 				Expect(name).To(BeEmpty())
+			})
+		})
+	})
+
+	Describe("Propagate ManagedNodeGroupTags to ASG", func() {
+		mng := api.NewManagedNodeGroup()
+		mng.Name = "test-managed-nodegroup"
+		mng.Tags = map[string]string{
+			"tag-key": "tag-value",
+		}
+		sc := StackCollection{
+			spec: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Name: "test-cluster",
+				},
+			},
+		}
+		p := mockprovider.NewMockProvider()
+
+		BeforeEach(func() {
+			p.MockEKS().On("DescribeNodegroup", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeNodegroupInput{}))
+			}).Return(&eks.DescribeNodegroupOutput{
+				Nodegroup: &ekstypes.Nodegroup{
+					Resources: &ekstypes.NodegroupResources{},
+				},
+			}, nil)
+			sc.eksAPI = p.EKS()
+		})
+
+		When("there are unique labels and taints present", func() {
+			It("converts them to tags and propagates to ASG", func() {
+				mng.Labels = map[string]string{
+					"label-key": "label-value",
+				}
+				mng.Taints = []api.NodeGroupTaint{
+					{
+						Key:   "taint-key",
+						Value: "taint-value",
+					},
+				}
+				propagatedTags := make(map[string]string)
+				propagateFunc := func(ngName string, tags map[string]string, asgNames []string, errorCh chan error) error {
+					propagatedTags = tags
+					return nil
+				}
+
+				err := sc.propagateManagedNodeGroupTagsToASGTask(
+					context.Background(),
+					make(chan error),
+					mng,
+					propagateFunc,
+				)
+
+				Expect(err).To(BeNil())
+				Expect(propagatedTags).To(Equal(map[string]string{
+					"tag-key":                  "tag-value",
+					labelsPrefix + "label-key": "label-value",
+					taintsPrefix + "taint-key": "taint-value",
+				}))
+			})
+		})
+
+		When("there are labels and taints with same keys", func() {
+			It("returns an error", func() {
+				mng.Labels = map[string]string{
+					"key": "label-value",
+				}
+				mng.Taints = []api.NodeGroupTaint{
+					{
+						Key:   "key",
+						Value: "taint-value",
+					},
+				}
+
+				err := sc.propagateManagedNodeGroupTagsToASGTask(
+					context.Background(),
+					make(chan error),
+					mng,
+					nil,
+				)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("duplicate key found for taints and labels"))
 			})
 		})
 	})

@@ -101,8 +101,11 @@ var expectedTemplate = `{
                 "ec2:DeleteLaunchTemplate",
                 "ec2:RunInstances",
                 "ec2:TerminateInstances",
+                "ec2:DescribeImages",
+                "ec2:DescribeSpotPriceHistory",
                 "iam:PassRole",
-                "ssm:GetParameter"
+                "ssm:GetParameter",
+                "pricing:GetProducts"
               ],
               "Effect": "Allow",
               "Resource": "*"
@@ -224,8 +227,11 @@ var expectedTemplateWithPermissionBoundary = `{
                 "ec2:DeleteLaunchTemplate",
                 "ec2:RunInstances",
                 "ec2:TerminateInstances",
+                "ec2:DescribeImages",
+                "ec2:DescribeSpotPriceHistory",
                 "iam:PassRole",
-                "ssm:GetParameter"
+                "ssm:GetParameter",
+                "pricing:GetProducts"
               ],
               "Effect": "Allow",
               "Resource": "*"

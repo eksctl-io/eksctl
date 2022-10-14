@@ -20,7 +20,7 @@ type managedEntry struct {
 }
 
 var _ = DescribeTable("Managed AL2", func(e managedEntry) {
-	api.SetManagedNodeGroupDefaults(e.ng, &api.ClusterMeta{Name: "cluster"})
+	api.SetManagedNodeGroupDefaults(e.ng, &api.ClusterMeta{Name: "cluster"}, false)
 	bootstrapper := nodebootstrap.NewManagedAL2Bootstrapper(e.ng)
 	bootstrapper.UserDataMimeBoundary = "//"
 

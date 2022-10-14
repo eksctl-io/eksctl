@@ -90,8 +90,9 @@ func LogWindowsCompatibility(nodeGroups []KubeNodeGroup, clusterMeta *api.Cluste
 	}
 }
 
-//go:generate "${GOBIN}/mockery" --name=KubeNodeGroup --output=mocks/
 // KubeNodeGroup defines a set of Kubernetes Nodes
+//
+//go:generate "${GOBIN}/mockery" --name=KubeNodeGroup --output=mocks/
 type KubeNodeGroup interface {
 	// NameString returns the name
 	NameString() string
@@ -105,7 +106,7 @@ type KubeNodeGroup interface {
 
 // GetNodeGroupIAM retrieves the IAM configuration of the given nodegroup
 func (c *ClusterProvider) GetNodeGroupIAM(ctx context.Context, stackManager manager.StackManager, ng *api.NodeGroup) error {
-	stacks, err := stackManager.DescribeNodeGroupStacks(ctx)
+	stacks, err := stackManager.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return err
 	}
