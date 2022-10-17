@@ -8,7 +8,7 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.4-0.20220124212200-2aee60ac608e
-	github.com/aws/aws-sdk-go v1.44.35
+	github.com/aws/aws-sdk-go v1.44.116
 	github.com/aws/aws-sdk-go-v2 v1.16.16
 	github.com/aws/aws-sdk-go-v2/config v1.17.8
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.21
@@ -466,7 +466,6 @@ require (
 	golang.org/x/exp/typeparams v0.0.0-20220827204233-334a2380cb91 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.0.0-20221012135044-0b7e1fb9d458 // indirect
-	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1 // indirect
 	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.8 // indirect
