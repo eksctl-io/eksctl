@@ -46,7 +46,7 @@ jobs:
           echo "::set-output name=changes::true"
           ! git diff --exit-code $DEFAULT_BRANCH HEAD
           git push --force-with-lease origin HEAD
-      - uses: actions/github-script@v6.3.1
+      - uses: actions/github-script@v6.3.3
         name: Open PR to ${{env.DEFAULT_BRANCH}}
         if: ${{ steps.commit.outputs.changes }} == 'true'
         with:
