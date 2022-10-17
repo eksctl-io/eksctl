@@ -393,7 +393,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("creating a nodegroup with containerd runtime and adding a delay in preBootstrapCommands", func() {
+		Context("creating a nodegroup with containerd runtime", func() {
 			var (
 				nodegroupName string
 			)
@@ -410,10 +410,9 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})
-			It("should create the nodegroups successfully and have no auth failures", func() {
+			It("should create the nodegroups successfully", func() {
 				clusterConfig := makeClusterConfig()
 				clusterConfig.Metadata.Name = params.ClusterName
-				delayedNGName := "delayed-ng"
 				clusterConfig.NodeGroups = []*api.NodeGroup{
 					{
 						NodeGroupBase: &api.NodeGroupBase{
@@ -428,17 +427,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						},
 						ContainerRuntime: aws.String(api.ContainerRuntimeContainerD),
 					},
-					{
-						NodeGroupBase: &api.NodeGroupBase{
-							Name: delayedNGName,
-							ScalingConfig: &api.ScalingConfig{
-								DesiredCapacity: aws.Int(1),
-							},
-							PreBootstrapCommands: []string{
-								"sleep 720",
-							},
-						},
-					},
 				}
 
 				cmd := params.EksctlCreateCmd.
@@ -452,10 +440,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					WithStdin(clusterutils.Reader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 				tests.AssertNodeVolumes(params.KubeconfigPath, params.Region, "test-containerd", "/dev/sdb")
-
-				By("ensuring that the delayed nodegroup is created successfully")
-				nodeList := tests.ListNodes(makeClientset(), delayedNGName)
-				Expect(nodeList).To(HaveLen(1))
 			})
 		})
 
@@ -577,7 +561,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--cluster", params.ClusterName,
 				)
 				Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
-					HaveLen(5),
+					HaveLen(4),
 					ContainElement(mngNG1),
 					ContainElement(mngNG2),
 					ContainElement(unmNG1),
