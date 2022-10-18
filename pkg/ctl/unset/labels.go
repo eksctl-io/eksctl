@@ -31,7 +31,7 @@ func unsetLabelsCmd(cmd *cmdutils.Cmd) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		fs.StringVarP(&nodeGroupName, "nodegroup", "n", "", "Nodegroup name")
 		fs.StringSliceVarP(&removeLabels, "labels", "l", nil, "List of labels to remove")
 

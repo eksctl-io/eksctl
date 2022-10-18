@@ -24,12 +24,12 @@ func describeAddonVersionsCmd(cmd *cmdutils.Cmd) {
 		"",
 	)
 
-	var addonName, k8sVersion, clusterName string
+	var addonName, k8sVersion string
 	cmd.ClusterConfig.Addons = []*api.Addon{{}}
 	cmd.FlagSetGroup.InFlagSet("Addon", func(fs *pflag.FlagSet) {
 		fs.StringVar(&addonName, "name", "", "Addon name")
 		fs.StringVar(&k8sVersion, "kubernetes-version", "", "Kubernetes version")
-		fs.StringVarP(&clusterName, "cluster", "c", "", "EKS cluster name")
+		cmdutils.AddClusterFlag(fs, cmd.ClusterConfig.Metadata)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -41,7 +41,7 @@ func describeAddonVersionsCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return describeAddonVersions(cmd, addonName, k8sVersion, clusterName)
+		return describeAddonVersions(cmd, addonName, k8sVersion, cmd.ClusterConfig.Metadata.Name)
 	}
 }
 

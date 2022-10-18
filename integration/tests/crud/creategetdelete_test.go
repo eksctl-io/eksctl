@@ -118,6 +118,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		return clusterConfig
 	}
 
+	makeClientset := func() *kubernetes.Clientset {
+		config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		clientset, err := kubernetes.NewForConfig(config)
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		return clientset
+	}
+
 	Describe("cluster with 1 node", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
 			config := NewConfig(params.Region)
@@ -232,10 +240,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/taints-max-pods.yaml"))
 				Expect(cmd).To(RunSuccessfully())
 
-				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-				Expect(err).NotTo(HaveOccurred())
-				clientset, err := kubernetes.NewForConfig(config)
-				Expect(err).NotTo(HaveOccurred())
+				clientset := makeClientset()
 
 				By("asserting that both formats for taints are supported")
 				var (
@@ -388,7 +393,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and creating a nodegroup with containerd runtime", func() {
+		Context("creating a nodegroup with containerd runtime", func() {
 			var (
 				nodegroupName string
 			)
@@ -405,7 +410,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})
-			It("should create the nodegroup without problems", func() {
+			It("should create the nodegroups successfully", func() {
 				clusterConfig := makeClusterConfig()
 				clusterConfig.Metadata.Name = params.ClusterName
 				clusterConfig.NodeGroups = []*api.NodeGroup{
