@@ -3,6 +3,9 @@ package ami
 import (
 	"context"
 	"fmt"
+	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -53,10 +56,20 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 	switch imageFamily {
 	case api.NodeImageFamilyAmazonLinux2:
 		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/%s", version, imageType(imageFamily, instanceType, version), fieldName), nil
-	case api.NodeImageFamilyWindowsServer2019CoreContainer:
-		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
-	case api.NodeImageFamilyWindowsServer2019FullContainer:
-		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Full-EKS_Optimized-%s/%s", version, fieldName), nil
+	case api.NodeImageFamilyWindowsServer2019CoreContainer,
+		api.NodeImageFamilyWindowsServer2019FullContainer:
+		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-%s-EKS_Optimized-%s/%s", windowsAmiType(imageFamily), version, fieldName), nil
+	case api.NodeImageFamilyWindowsServer2022CoreContainer,
+		api.NodeImageFamilyWindowsServer2022FullContainer:
+		const minVersion = api.Version1_23
+		supportsWindows2022, err := utils.IsMinVersion(minVersion, version)
+		if err != nil {
+			return "", err
+		}
+		if !supportsWindows2022 {
+			return "", errors.Errorf("Windows Server 2022 %s requires EKS version %s and above", windowsAmiType(imageFamily), minVersion)
+		}
+		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2022-English-%s-EKS_Optimized-%s/%s", windowsAmiType(imageFamily), version, fieldName), nil
 	case api.NodeImageFamilyBottlerocket:
 		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/%s", imageType(imageFamily, instanceType, version), instanceEC2ArchName(instanceType), fieldName), nil
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
@@ -105,4 +118,11 @@ func imageType(imageFamily, instanceType, version string) string {
 		}
 		return family
 	}
+}
+
+func windowsAmiType(imageFamily string) string {
+	if strings.Contains(imageFamily, "Core") {
+		return "Core"
+	}
+	return "Full"
 }

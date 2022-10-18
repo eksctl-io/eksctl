@@ -96,6 +96,10 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 			Entry("windows when withOIDC is disabled", false, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeDockerForWindows),
 			Entry("windows when withOIDC is enabled", true, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeDockerForWindows),
 			Entry("windows with containerd", true, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeContainerD),
+
+			Entry("Windows Server 2022 when withOIDC is disabled", false, api.NodeImageFamilyWindowsServer2022FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeDockerForWindows),
+			Entry("Windows Server 2022 when withOIDC is enabled", true, api.NodeImageFamilyWindowsServer2022FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeDockerForWindows),
+			Entry("Windows Server 2022 with containerd", true, api.NodeImageFamilyWindowsServer2022FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeContainerD),
 		)
 	})
 
