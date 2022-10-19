@@ -27,6 +27,12 @@ import (
 const MaximumTagNumber = 50
 const MaximumCreatedTagNumberPerCall = 25
 
+const (
+	nodeTemplatePrefix = "k8s.io/cluster-autoscaler/node-template/"
+	labelsPrefix       = nodeTemplatePrefix + "label/"
+	taintsPrefix       = nodeTemplatePrefix + "taint/"
+)
+
 // NodeGroupResourceSet stores the resource information of the nodegroup
 type NodeGroupResourceSet struct {
 	rs                *resourceSet
@@ -242,7 +248,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) err
 		return err
 	}
 
-	tags := []map[string]interface{}{
+	tags := []map[string]string{
 		{
 			"Key":               "Name",
 			"Value":             generateNodeName(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
@@ -256,12 +262,12 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) err
 	}
 	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AutoScaler) {
 		tags = append(tags,
-			map[string]interface{}{
+			map[string]string{
 				"Key":               "k8s.io/cluster-autoscaler/enabled",
 				"Value":             "true",
 				"PropagateAtLaunch": "true",
 			},
-			map[string]interface{}{
+			map[string]string{
 				"Key":               "k8s.io/cluster-autoscaler/" + n.clusterSpec.Metadata.Name,
 				"Value":             "owned",
 				"PropagateAtLaunch": "true",
@@ -270,10 +276,14 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) err
 	}
 
 	if api.IsEnabled(n.spec.PropagateASGTags) {
-		clusterTags, err := generateClusterAutoscalerTags(n.spec)
-		if err != nil {
-			return err
-		}
+		var clusterTags []map[string]string
+		GenerateClusterAutoscalerTags(n.spec, func(key, value string) {
+			clusterTags = append(clusterTags, map[string]string{
+				"Key":               key,
+				"Value":             value,
+				"PropagateAtLaunch": "true",
+			})
+		})
 		tags = append(tags, clusterTags...)
 		if len(tags) > MaximumTagNumber {
 			return fmt.Errorf("number of tags is exceeding the configured amount %d, was: %d. Due to desiredCapacity==0 we added an extra %d number of tags to ensure the nodegroup is scaled correctly", MaximumTagNumber, len(tags), len(clusterTags))
@@ -286,33 +296,25 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) err
 	return nil
 }
 
-func generateClusterAutoscalerTags(spec *api.NodeGroup) ([]map[string]interface{}, error) {
-	result := make([]map[string]interface{}, 0)
-	duplicates := make(map[string]string)
-
+// GenerateClusterAutoscalerTags generates Cluster Autoscaler tags for labels and taints.
+func GenerateClusterAutoscalerTags(np api.NodePool, addTag func(key, value string)) {
 	// labels
-	for k, v := range spec.Labels {
-		duplicates[k] = v
-		result = append(result, map[string]interface{}{
-			"Key":               "k8s.io/cluster-autoscaler/node-template/label/" + k,
-			"Value":             v,
-			"PropagateAtLaunch": "true",
-		})
+	for k, v := range np.BaseNodeGroup().Labels {
+		addTag(labelsPrefix+k, v)
+	}
+
+	var taints []api.NodeGroupTaint
+	switch ng := np.(type) {
+	case *api.NodeGroup:
+		taints = ng.Taints
+	case *api.ManagedNodeGroup:
+		taints = ng.Taints
 	}
 
 	// taints
-	for _, taint := range spec.Taints {
-		if _, ok := duplicates[taint.Key]; ok {
-			return nil, fmt.Errorf("duplicate key found for taints and labels with taint key=value: %s=%s, and label: %s=%s", taint.Key, taint.Value, taint.Key, duplicates[taint.Key])
-		}
-		duplicates[taint.Key] = taint.Value
-		result = append(result, map[string]interface{}{
-			"Key":               "k8s.io/cluster-autoscaler/node-template/taints/" + taint.Key,
-			"Value":             taint.Value,
-			"PropagateAtLaunch": "true",
-		})
+	for _, taint := range taints {
+		addTag(taintsPrefix+taint.Key, taint.Value)
 	}
-	return result, nil
 }
 
 // generateNodeName formulates the name based on the configuration in input
@@ -446,7 +448,7 @@ func makeMetadataOptions(ng *api.NodeGroupBase) *gfnec2.LaunchTemplate_MetadataO
 	}
 }
 
-func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interface{}, tags []map[string]interface{}, ng *api.NodeGroup) *awsCloudFormationResource {
+func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interface{}, tags []map[string]string, ng *api.NodeGroup) *awsCloudFormationResource {
 	ngProps := map[string]interface{}{
 		"VPCZoneIdentifier": vpcZoneIdentifier,
 		"Tags":              tags,
