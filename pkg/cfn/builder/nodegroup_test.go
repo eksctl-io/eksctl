@@ -882,12 +882,17 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					BeforeEach(func() {
 						ng.PropagateASGTags = api.Enabled()
 						ng.Labels = map[string]string{
-							"test": "label",
+							"test":      "label",
+							"duplicate": "value",
 						}
 						ng.Taints = []api.NodeGroupTaint{
 							{
 								Key:   "taint-key",
 								Value: "taint-value",
+							},
+							{
+								Key:   "duplicate",
+								Value: "value",
 							},
 						}
 					})
@@ -899,8 +904,16 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 							Value:             "label",
 							PropagateAtLaunch: "true",
 						}, fakes.Tag{
-							Key:               "k8s.io/cluster-autoscaler/node-template/taints/taint-key",
+							Key:               "k8s.io/cluster-autoscaler/node-template/label/duplicate",
+							Value:             "value",
+							PropagateAtLaunch: "true",
+						}, fakes.Tag{
+							Key:               "k8s.io/cluster-autoscaler/node-template/taint/taint-key",
 							Value:             "taint-value",
+							PropagateAtLaunch: "true",
+						}, fakes.Tag{
+							Key:               "k8s.io/cluster-autoscaler/node-template/taint/duplicate",
+							Value:             "value",
 							PropagateAtLaunch: "true",
 						}))
 					})
@@ -926,30 +939,14 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 								Value:             "label",
 								PropagateAtLaunch: "true",
 							}, fakes.Tag{
-								Key:               "k8s.io/cluster-autoscaler/node-template/taints/taint-key",
+								Key:               "k8s.io/cluster-autoscaler/node-template/taint/taint-key",
 								Value:             "taint-value",
 								PropagateAtLaunch: "true",
 							}))
 						})
 
 					})
-					When("there are duplicates between taints and labels", func() {
-						BeforeEach(func() {
-							ng.PropagateASGTags = api.Enabled()
-							ng.Labels = map[string]string{
-								"test": "label",
-							}
-							ng.Taints = []api.NodeGroupTaint{
-								{
-									Key:   "test",
-									Value: "taint-value",
-								},
-							}
-						})
-						It("errors", func() {
-							Expect(addErr).To(MatchError(ContainSubstring("duplicate key found for taints and labels with taint key=value: test=taint-value, and label: test=label")))
-						})
-					})
+
 					When("there are more tags than the maximum number of tags", func() {
 						BeforeEach(func() {
 							ng.PropagateASGTags = api.Enabled()
