@@ -28,6 +28,9 @@ type Addon struct {
 	// Each tag consists of a key and an optional value, both of which you define.
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
+	// ResolveConflicts determines how to resolve field value conflicts for an EKS add-on
+	// if a value was changed from default
+	ResolveConflicts ResolveConflicts `json:"resolveConflicts,omitempty"`
 	// Force overwrites an existing self-managed add-on with an EKS managed add-on.
 	// Force is intended to be used when migrating an existing self-managed add-on to an EKS managed add-on.
 	Force bool `json:"-"`

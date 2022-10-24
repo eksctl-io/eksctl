@@ -1849,3 +1849,47 @@ type UnsupportedFeatureError struct {
 func (u *UnsupportedFeatureError) Error() string {
 	return fmt.Sprintf("%s: %v", u.Message, u.Err)
 }
+
+// ResolveConflictsType determines how to resolve field value conflicts for an EKS add-on if a value was changed from default
+type ResolveConflicts int
+
+const (
+	// None – EKS doesn't change the value. The update might fail.
+	None ResolveConflicts = iota
+	// Overwrite – EKS overwrites the changed value back to default.
+	Overwrite
+	// Preserve – EKS preserves the value.
+	Preserve
+)
+
+var toResolveConflicts = map[string]ResolveConflicts{
+	"none":      None,
+	"overwrite": Overwrite,
+	"preserve":  Preserve,
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (rc *ResolveConflicts) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	resolveConflicts, ok := toResolveConflicts[strings.ToLower(s)]
+	if !ok {
+		return fmt.Errorf("%q is not a valid resolveConflict value", s)
+	}
+	*rc = resolveConflicts
+	return nil
+}
+
+// ToEKSType converts internal ResolveConflicts type to AWS EKS ResolveConflicts type
+func (rc *ResolveConflicts) ToEKSType() ekstypes.ResolveConflicts {
+	switch *rc {
+	case Overwrite:
+		return ekstypes.ResolveConflictsOverwrite
+	case Preserve:
+		return ekstypes.ResolveConflictsPreserve
+	default:
+		return ekstypes.ResolveConflictsNone
+	}
+}

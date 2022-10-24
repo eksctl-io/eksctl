@@ -59,6 +59,11 @@
           "description": "ARN of the permissions' boundary to associate",
           "x-intellij-html-description": "ARN of the permissions' boundary to associate"
         },
+        "resolveConflicts": {
+          "$ref": "#/definitions/ResolveConflicts",
+          "description": "determines how to resolve field value conflicts for an EKS add-on if a value was changed from default",
+          "x-intellij-html-description": "determines how to resolve field value conflicts for an EKS add-on if a value was changed from default"
+        },
         "serviceAccountRoleARN": {
           "type": "string"
         },
@@ -88,7 +93,8 @@
         "attachPolicy",
         "permissionsBoundary",
         "wellKnownPolicies",
-        "tags"
+        "tags",
+        "resolveConflicts"
       ],
       "additionalProperties": false,
       "description": "holds the EKS addon configuration",
@@ -2135,6 +2141,11 @@
       "additionalProperties": false,
       "description": "defines the configuration for a fully-private cluster",
       "x-intellij-html-description": "defines the configuration for a fully-private cluster"
+    },
+    "ResolveConflicts": {
+      "type": "integer",
+      "description": "ResolveConflictsType determines how to resolve field value conflicts for an EKS add-on if a value was changed from default",
+      "x-intellij-html-description": "ResolveConflictsType determines how to resolve field value conflicts for an EKS add-on if a value was changed from default"
     },
     "SecretsEncryption": {
       "required": [
