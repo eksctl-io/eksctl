@@ -106,6 +106,24 @@ eksctl update addon -f config.yaml
 eksctl update addon --name vpc-cni --version 1.8.0 --service-account-role-arn=<new-role>
 ```
 
+When updating an addon, you have full control over the config changes that you may have previously applied on that add-on's `configMap`. This means, you can either preserve, or overwrite them.
+This functionality is available **exclusively** via the config file field `resolveConflicts`. E.G.
+
+```yaml
+addons:
+- name: vpc-cni 
+  attachPolicyARNs:
+    - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+  resolveConflicts: preserve
+```
+
+The `resolveConflicts` field accepts three distinct values.
+- `preserve` - EKS preserves config changes
+- `overwrite` - EKS overwrites any config changes back to default values
+- `none` - EKS doesn't alter config, however, the update fails if config conflicts are presents
+
+If not specified, `resolveConflicts` is set by default to `none`.
+
 ## Deleting addons
 You can delete an addon by running:
 ```console
