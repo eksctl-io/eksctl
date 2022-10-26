@@ -1388,7 +1388,9 @@ func isSupportedAMIFamily(imageFamily string) bool {
 func IsWindowsImage(imageFamily string) bool {
 	switch imageFamily {
 	case NodeImageFamilyWindowsServer2019CoreContainer,
-		NodeImageFamilyWindowsServer2019FullContainer:
+		NodeImageFamilyWindowsServer2019FullContainer,
+		NodeImageFamilyWindowsServer2022CoreContainer,
+		NodeImageFamilyWindowsServer2022FullContainer:
 		return true
 
 	default:

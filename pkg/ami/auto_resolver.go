@@ -41,6 +41,12 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 		api.NodeImageFamilyWindowsServer2019FullContainer: {
 			ImageClassGeneral: fmt.Sprintf("Windows_Server-2019-English-Full-EKS_Optimized-%v-*", version),
 		},
+		api.NodeImageFamilyWindowsServer2022CoreContainer: {
+			ImageClassGeneral: fmt.Sprintf("Windows_Server-2022-English-Core-EKS_Optimized-%v-*", version),
+		},
+		api.NodeImageFamilyWindowsServer2022FullContainer: {
+			ImageClassGeneral: fmt.Sprintf("Windows_Server-2022-English-Full-EKS_Optimized-%v-*", version),
+		},
 	}
 }
 

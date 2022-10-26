@@ -170,6 +170,14 @@ var _ = Describe("create nodegroup", func() {
 				args:  []string{"cluster", "--node-ami-family", "WindowsServer2019CoreContainer"},
 				error: unsupportedWindowsError,
 			}),
+			Entry("with unsupported AMI", invalidParamsCase{
+				args:  []string{"cluster", "--node-ami-family", "WindowsServer2022FullContainer"},
+				error: unsupportedWindowsError,
+			}),
+			Entry("with unsupported AMI", invalidParamsCase{
+				args:  []string{"cluster", "--node-ami-family", "WindowsServer2022CoreContainer"},
+				error: unsupportedWindowsError,
+			}),
 		)
 
 	})
