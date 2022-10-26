@@ -152,4 +152,25 @@ cloud-init-per once efa_info /opt/amazon/efa/bin/fi_info -p efa
 --//--
 `,
 	}),
+
+	Entry("maxPodsPerNode set", managedEntry{
+		ng: &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:           "ng",
+				MaxPodsPerNode: 142,
+			},
+		},
+		expectedUserData: `MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=//
+
+--//
+Content-Type: text/x-shellscript
+Content-Type: charset="us-ascii"
+
+#!/bin/sh
+set -ex
+sed -i 's/KUBELET_EXTRA_ARGS=$2/KUBELET_EXTRA_ARGS="$2 --max-pods=142"/' /etc/eks/bootstrap.sh
+--//--
+`,
+	}),
 )
