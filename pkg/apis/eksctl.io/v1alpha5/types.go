@@ -1862,10 +1862,24 @@ const (
 	Preserve
 )
 
-var toResolveConflicts = map[string]ResolveConflicts{
+var stringToResolveConflicts = map[string]ResolveConflicts{
 	"none":      None,
 	"overwrite": Overwrite,
 	"preserve":  Preserve,
+}
+
+var resolveConflictsToString = map[ResolveConflicts]string{
+	None:      "none",
+	Overwrite: "overwrite",
+	Preserve:  "preserve",
+}
+
+// MarshalJSON implements json.Marshaler
+func (rc *ResolveConflicts) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(resolveConflictsToString[*rc])
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler
@@ -1874,7 +1888,7 @@ func (rc *ResolveConflicts) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &s); err != nil {
 		return err
 	}
-	resolveConflicts, ok := toResolveConflicts[strings.ToLower(s)]
+	resolveConflicts, ok := stringToResolveConflicts[strings.ToLower(s)]
 	if !ok {
 		return fmt.Errorf("%q is not a valid resolveConflict value", s)
 	}

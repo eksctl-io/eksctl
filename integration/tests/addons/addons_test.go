@@ -7,9 +7,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"strconv"
+	"strings"
 	"testing"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/utils/strings/slices"
 
 	"github.com/weaveworks/eksctl/integration/runner"
 	. "github.com/weaveworks/eksctl/integration/runner"
@@ -178,6 +183,113 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			_, err = rawClient.ClientSet().AppsV1().DaemonSets("kube-system").Get(context.Background(), "aws-node", metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		})
+
+		It("should have full control over configMap when updating addons", func() {
+			var (
+				clusterConfig *api.ClusterConfig
+				configMap     *corev1.ConfigMap
+			)
+
+			configMap = getConfigMap(rawClient.ClientSet(), "coredns")
+			oldCacheValue := getCacheValue(configMap)
+			newCacheValue := addToString(oldCacheValue, 5)
+			updateCacheValue(configMap, oldCacheValue, newCacheValue)
+			updateConfigMap(rawClient.ClientSet(), configMap)
+
+			By("preserving the configMap")
+			clusterConfig = getInitialClusterConfig()
+			clusterConfig.Addons = []*api.Addon{
+				{
+					Name:             "coredns",
+					Version:          "latest",
+					ResolveConflicts: api.Preserve,
+				},
+			}
+
+			data, err := json.Marshal(clusterConfig)
+			Expect(err).NotTo(HaveOccurred())
+
+			cmd := params.EksctlUpdateCmd.
+				WithArgs(
+					"addon",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).To(RunSuccessfully())
+
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "coredns",
+						"--cluster", clusterName,
+						"--verbose", "2",
+					)
+				return cmd
+			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
+
+			Expect(getCacheValue(getConfigMap(rawClient.ClientSet(), "coredns"))).To(Equal(newCacheValue))
+
+			By("erroring when there are config conflicts")
+			cmd = params.EksctlUpdateCmd.
+				WithArgs(
+					"addon",
+					"--name", "coredns",
+					"--cluster", clusterName,
+					"--wait",
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
+
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "coredns",
+						"--cluster", clusterName,
+						"--verbose", "2",
+					)
+				return cmd
+			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("UPDATE_FAILED"))))
+
+			Expect(getCacheValue(getConfigMap(rawClient.ClientSet(), "coredns"))).To(Equal(newCacheValue))
+
+			By("overwriting the configMap")
+			clusterConfig = getInitialClusterConfig()
+			clusterConfig.Addons = []*api.Addon{
+				{
+					Name:             "coredns",
+					Version:          "latest",
+					ResolveConflicts: api.Overwrite,
+				},
+			}
+
+			data, err = json.Marshal(clusterConfig)
+			Expect(err).NotTo(HaveOccurred())
+
+			cmd = params.EksctlUpdateCmd.
+				WithArgs(
+					"addon",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).To(RunSuccessfully())
+
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "coredns",
+						"--cluster", clusterName,
+						"--verbose", "2",
+					)
+				return cmd
+			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
+
+			Expect(getCacheValue(getConfigMap(rawClient.ClientSet(), "coredns"))).To(Equal(oldCacheValue))
+		})
 	})
 
 	It("should describe addons", func() {
@@ -242,4 +354,37 @@ func getInitialClusterConfig() *api.ClusterConfig {
 	clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
 
 	return clusterConfig
+}
+
+func getConfigMap(clientset kubernetes.Interface, name string) *corev1.ConfigMap {
+	configMap, err := clientset.CoreV1().ConfigMaps("kube-system").Get(context.Background(), "coredns", metav1.GetOptions{})
+	Expect(err).NotTo(HaveOccurred())
+	return configMap
+}
+
+func updateConfigMap(clientset kubernetes.Interface, configMap *corev1.ConfigMap) *corev1.ConfigMap {
+	configMap, err := clientset.CoreV1().ConfigMaps("kube-system").Update(context.Background(), configMap, metav1.UpdateOptions{})
+	Expect(err).NotTo(HaveOccurred())
+	return configMap
+}
+
+func getCacheValue(configMap *corev1.ConfigMap) string {
+	coreFile, ok := configMap.Data["Corefile"]
+	Expect(ok).To(BeTrue())
+
+	coreFileValues := strings.Fields(strings.Replace(coreFile, "\n", " ", -1))
+	return coreFileValues[slices.Index(coreFileValues, "cache")+1]
+}
+
+func updateCacheValue(configMap *corev1.ConfigMap, currentValue string, newValue string) {
+	coreFile, ok := configMap.Data["Corefile"]
+	Expect(ok).To(BeTrue())
+
+	configMap.Data["Corefile"] = strings.Replace(coreFile, "cache "+currentValue, "cache "+newValue, -1)
+}
+
+func addToString(s string, n int) string {
+	i, err := strconv.Atoi(s)
+	Expect(err).NotTo(HaveOccurred())
+	return strconv.Itoa(i + n)
 }
