@@ -1,6 +1,7 @@
 package addon_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/kris-nova/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -131,12 +133,16 @@ var _ = Describe("Update", func() {
 
 			When("the version is not set", func() {
 				It("preserves the existing addon version", func() {
+					output := &bytes.Buffer{}
+					logger.Writer = output
+
 					err := addonManager.Update(context.Background(), &api.Addon{
 						Name:    "my-addon",
 						Version: "",
 					}, 0)
 
 					Expect(err).NotTo(HaveOccurred())
+					Expect(output.String()).To(ContainSubstring("no new version provided, preserving existing version"))
 					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
 					Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
 					Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
