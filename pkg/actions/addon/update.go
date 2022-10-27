@@ -21,7 +21,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, waitTimeout time
 	updateAddonInput := &eks.UpdateAddonInput{
 		AddonName:        &addon.Name,
 		ClusterName:      &a.clusterConfig.Metadata.Name,
-		ResolveConflicts: addon.ResolveConflicts.ToEKSType(),
+		ResolveConflicts: addon.ResolveConflicts,
 	}
 
 	if addon.Force {

@@ -16,6 +16,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/utils/strings/slices"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/weaveworks/eksctl/integration/runner"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -202,7 +204,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				{
 					Name:             "coredns",
 					Version:          "latest",
-					ResolveConflicts: api.Preserve,
+					ResolveConflicts: ekstypes.ResolveConflictsPreserve,
 				},
 			}
 
@@ -261,7 +263,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				{
 					Name:             "coredns",
 					Version:          "latest",
-					ResolveConflicts: api.Overwrite,
+					ResolveConflicts: ekstypes.ResolveConflictsOverwrite,
 				},
 			}
 

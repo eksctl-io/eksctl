@@ -60,7 +60,7 @@
           "x-intellij-html-description": "ARN of the permissions' boundary to associate"
         },
         "resolveConflicts": {
-          "$ref": "#/definitions/ResolveConflicts",
+          "$ref": "#/definitions/github.com|aws|aws-sdk-go-v2|service|eks|types.ResolveConflicts",
           "description": "determines how to resolve field value conflicts for an EKS add-on if a value was changed from default",
           "x-intellij-html-description": "determines how to resolve field value conflicts for an EKS add-on if a value was changed from default"
         },
@@ -2142,11 +2142,6 @@
       "description": "defines the configuration for a fully-private cluster",
       "x-intellij-html-description": "defines the configuration for a fully-private cluster"
     },
-    "ResolveConflicts": {
-      "type": "integer",
-      "description": "ResolveConflictsType determines how to resolve field value conflicts for an EKS add-on if a value was changed from default",
-      "x-intellij-html-description": "ResolveConflictsType determines how to resolve field value conflicts for an EKS add-on if a value was changed from default"
-    },
     "SecretsEncryption": {
       "required": [
         "keyARN"
@@ -2274,6 +2269,9 @@
       "additionalProperties": false,
       "description": "for attaching common IAM policies",
       "x-intellij-html-description": "for attaching common IAM policies"
+    },
+    "github.com|aws|aws-sdk-go-v2|service|eks|types.ResolveConflicts": {
+      "type": "string"
     },
     "github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet": {
       "type": "string",

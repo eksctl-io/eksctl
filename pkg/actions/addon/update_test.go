@@ -400,9 +400,9 @@ var _ = Describe("Update", func() {
 				})
 			})
 
-			When("resolveConflict is configured", func() {
+			When("resolveConflicts is configured", func() {
 				DescribeTable("AWS EKS resolve conflicts matches value from cluster config",
-					func(rc api.ResolveConflicts) {
+					func(rc ekstypes.ResolveConflicts) {
 						err := addonManager.Update(context.Background(), &api.Addon{
 							Name:             "my-addon",
 							Version:          "v1.0.0-eksbuild.2",
@@ -410,11 +410,11 @@ var _ = Describe("Update", func() {
 						}, 0)
 
 						Expect(err).NotTo(HaveOccurred())
-						Expect(updateAddonInput.ResolveConflicts).To(Equal(rc.ToEKSType()))
+						Expect(updateAddonInput.ResolveConflicts).To(Equal(rc))
 					},
-					Entry("none", api.None),
-					Entry("overwrite", api.Overwrite),
-					Entry("preserve", api.Preserve),
+					Entry("none", ekstypes.ResolveConflictsNone),
+					Entry("overwrite", ekstypes.ResolveConflictsOverwrite),
+					Entry("preserve", ekstypes.ResolveConflictsPreserve),
 				)
 			})
 
