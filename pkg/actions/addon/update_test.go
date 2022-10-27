@@ -406,6 +406,24 @@ var _ = Describe("Update", func() {
 				})
 			})
 
+			When("resolveConflicts is configured", func() {
+				DescribeTable("AWS EKS resolve conflicts matches value from cluster config",
+					func(rc ekstypes.ResolveConflicts) {
+						err := addonManager.Update(context.Background(), &api.Addon{
+							Name:             "my-addon",
+							Version:          "v1.0.0-eksbuild.2",
+							ResolveConflicts: rc,
+						}, 0)
+
+						Expect(err).NotTo(HaveOccurred())
+						Expect(updateAddonInput.ResolveConflicts).To(Equal(rc))
+					},
+					Entry("none", ekstypes.ResolveConflictsNone),
+					Entry("overwrite", ekstypes.ResolveConflictsOverwrite),
+					Entry("preserve", ekstypes.ResolveConflictsPreserve),
+				)
+			})
+
 			When("wellKnownPolicies are configured", func() {
 				When("its an update to an existing cloudformation", func() {
 					It("updates the stack", func() {
