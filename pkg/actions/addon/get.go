@@ -58,11 +58,15 @@ func (a *Manager) Get(ctx context.Context, addon *api.Addon) (Summary, error) {
 		serviceAccountRoleARN = *output.Addon.ServiceAccountRoleArn
 	}
 
-	if addon.Version == "" {
-		addon.Version = *output.Addon.AddonVersion
+	addonWithVersion := &api.Addon{
+		Name:    addon.Name,
+		Version: addon.Version,
+	}
+	if addonWithVersion.Version == "" {
+		addonWithVersion.Version = *output.Addon.AddonVersion
 	}
 
-	newerVersion, err := a.findNewerVersions(ctx, addon)
+	newerVersion, err := a.findNewerVersions(ctx, addonWithVersion)
 	if err != nil {
 		return Summary{}, err
 	}
