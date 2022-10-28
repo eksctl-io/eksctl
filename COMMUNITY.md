@@ -15,7 +15,7 @@ Ready to start contributing? Head over to our [contribution docs](CONTRIBUTING.m
 ## Core team
 
 The core team of maintainers are Chetan Patwal ([@cPu1](https://github.com/cPu1)),
-Niki Manoledaki ([@nikimanoledaki](https://github.com/nikimanoledaki)),
+Tiberiu Copaciu ([@TiberiuGC](https://github.com/TiberiuGC)),
 and Himangini Daware ([@Himangini](https://github.com/Himangini)).
 
 ## Join us!
