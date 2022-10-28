@@ -191,6 +191,9 @@ const (
 
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
 	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
+
+	NodeImageFamilyWindowsServer2022CoreContainer = "WindowsServer2022CoreContainer"
+	NodeImageFamilyWindowsServer2022FullContainer = "WindowsServer2022FullContainer"
 )
 
 // Deprecated `NodeAMIFamily`
@@ -536,6 +539,8 @@ func supportedAMIFamilies() []string {
 		NodeImageFamilyBottlerocket,
 		NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
+		NodeImageFamilyWindowsServer2022CoreContainer,
+		NodeImageFamilyWindowsServer2022FullContainer,
 	}
 }
 
@@ -1133,11 +1138,6 @@ type NodeGroup struct {
 	// ContainerRuntime defines the runtime (CRI) to use for containers on the node
 	// +optional
 	ContainerRuntime *string `json:"containerRuntime,omitempty"`
-
-	// DisableASGTagPropagation disables the tag propagation to ASG in case desired capacity is 0.
-	// Defaults to `false`
-	// +optional
-	DisableASGTagPropagation *bool `json:"disableASGTagPropagation,omitempty"`
 
 	// MaxInstanceLifetime defines the maximum amount of time in seconds an instance stays alive.
 	// +optional

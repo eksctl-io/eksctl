@@ -10,7 +10,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -23,6 +22,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/iam"
+	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
 const (
@@ -85,7 +85,11 @@ func NewFromClientSet(clientSet kubernetes.Interface) (*AuthConfigMap, error) {
 	if err != nil && !apierrors.IsNotFound(err) {
 		return nil, errors.Wrapf(err, "getting auth ConfigMap")
 	}
-	logger.Debug("aws-auth = %s", awsutil.Prettify(cm))
+
+	if err := printers.NewJSONPrinter().LogObj(logger.Debug, "aws-auth = %s", cm); err != nil {
+		logger.Debug("failed to log aws-auth config map as json: %v", err)
+	}
+
 	return New(client, cm), nil
 }
 

@@ -49,16 +49,15 @@ type MockProvider struct {
 	cloudwatchlogs *mocksv2.CloudWatchLogs
 	configProvider *mocks.ConfigProvider
 
-	cfn              *mocksv2.CloudFormation
-	sts              *mocksv2.STS
-	stsPresigner     api.STSPresigner
-	cloudformationV2 *mocksv2.CloudFormation
-	elb              *mocksv2.ELB
-	elbV2            *mocksv2.ELBV2
-	ssm              *mocksv2.SSM
-	iam              *mocksv2.IAM
-	ec2              *mocksv2.EC2
-	outposts         *mocksv2.Outposts
+	cfn          *mocksv2.CloudFormation
+	sts          *mocksv2.STS
+	stsPresigner api.STSPresigner
+	elb          *mocksv2.ELB
+	elbV2        *mocksv2.ELBV2
+	ssm          *mocksv2.SSM
+	iam          *mocksv2.IAM
+	ec2          *mocksv2.EC2
+	outposts     *mocksv2.Outposts
 }
 
 // NewMockProvider returns a new MockProvider
@@ -103,12 +102,12 @@ func (m MockProvider) MockSTSPresigner() *fakes.FakeSTSPresigner {
 	return m.stsPresigner.(*fakes.FakeSTSPresigner)
 }
 
-// CloudFormationV2 returns a representation of the CloudFormation v2 API
+// CloudFormation returns a representation of the CloudFormation v2 API
 func (m MockProvider) CloudFormation() awsapi.CloudFormation {
 	return m.cfn
 }
 
-// MockCloudFormationV2 returns a mocked CloudFormation v2 API
+// MockCloudFormation returns a mocked CloudFormation v2 API
 func (m MockProvider) MockCloudFormation() *mocksv2.CloudFormation {
 	return m.cfn
 }
@@ -128,8 +127,6 @@ func (m *MockProvider) ELBV2() awsapi.ELBV2 {
 func (m *MockProvider) MockELBV2() *mocksv2.ELBV2 {
 	return m.elbV2
 }
-
-// CloudFormation returns a representation of the CloudFormation API
 
 // CloudFormationRoleARN returns, if any, a service role used by CloudFormation to call AWS API on your behalf
 func (m MockProvider) CloudFormationRoleARN() string { return m.cfnRoleARN }

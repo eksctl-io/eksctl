@@ -10,8 +10,6 @@ import (
 	asTypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/awstesting"
 
 	. "github.com/onsi/ginkgo/v2"
 
@@ -289,8 +287,6 @@ var _ = Describe("StackCollection", func() {
 			p := mockprovider.NewMockProvider()
 			p.MockCloudFormation().On("DescribeStacks", mock.Anything, describeInput).Return(describeOutput, nil)
 			p.MockCloudFormation().On("CreateChangeSet", mock.Anything, mock.Anything).Return(nil, nil)
-			req := awstesting.NewClient(nil).NewRequest(&request.Operation{Name: "Operation"}, nil, describeChangeSetCreateCompleteOutput)
-			p.MockCloudFormation().On("DescribeChangeSetRequest", mock.Anything, mock.Anything).Return(req, describeChangeSetCreateCompleteOutput)
 			p.MockCloudFormation().On("DescribeChangeSet", mock.Anything, mock.Anything, mock.Anything).Return(describeChangeSetCreateCompleteOutput, nil)
 			p.MockCloudFormation().On("ExecuteChangeSet", mock.Anything, executeChangeSetInput).Return(nil, nil)
 			// For the future, this is the call we do not expect to happen, and this is the difference compared to the

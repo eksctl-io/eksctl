@@ -62,7 +62,7 @@ func fingerprint(key []byte) (string, error) {
 
 	fingerprint, err := pki.ComputeAWSKeyFingerprint(string(key))
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("computing fingerprint for key"))
+		return "", errors.Wrap(err, "computing fingerprint for key")
 	}
 
 	return fingerprint, nil

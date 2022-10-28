@@ -35,8 +35,7 @@ func getIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
-
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		fs.StringVar(&namespace, "namespace", "", "namespace to look for iamserviceaccount")
 		fs.StringVar(&name, "name", "", "name of iamserviceaccount to get")
 
