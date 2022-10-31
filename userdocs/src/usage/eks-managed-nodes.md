@@ -196,9 +196,9 @@ eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release
     - create a new version of the custom AMI (using AWS EKS console).
     - create a new launch template version with the new AMI ID (using AWS EKS console).
     - upgrade the nodes to the new version of the launch template. e.g. 
-    ```
-    eksctl upgrade nodegroup --name nodegroup-name --cluster cluster-name --launch-template-version new-template-version
-    ```
+      ```
+      eksctl upgrade nodegroup --name nodegroup-name --cluster cluster-name --launch-template-version new-template-version
+      ```
 
 ## Handling parallel upgrades for nodes
 Multiple managed nodes can be upgraded simultaneously. To configure parallel upgrades, define the `updateConfig` of a nodegroup when creating the nodegroup. An example `updateConfig` can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/15-managed-nodes.yaml).
