@@ -11,7 +11,7 @@ jobs:
   update_aws_node:
     name: Update aws-node and open PR
     runs-on: ubuntu-latest
-    container: weaveworks/eksctl-build:8100780c4e39d24eae83cb23c085688c141f83b3
+    container: weaveworks/eksctl-build:6e91691565355d5bd17864bb7e362c34a0c86a2e
     env:
       UPDATE_BRANCH: update-aws-node
       GOPRIVATE: ""
@@ -46,7 +46,7 @@ jobs:
           echo "::set-output name=changes::true"
           ! git diff --exit-code $DEFAULT_BRANCH HEAD
           git push --force-with-lease origin HEAD
-      - uses: actions/github-script@v6.3.1
+      - uses: actions/github-script@v6.3.3
         name: Open PR to ${{env.DEFAULT_BRANCH}}
         if: ${{ steps.commit.outputs.changes }} == 'true'
         with:

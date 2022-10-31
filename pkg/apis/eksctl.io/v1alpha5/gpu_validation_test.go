@@ -100,6 +100,14 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:       api.NodeImageFamilyWindowsServer2019FullContainer,
 			gpuInstanceType: "p3.2xlarge",
 		}),
+		Entry("Windows2022Core", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyWindowsServer2022CoreContainer,
+			gpuInstanceType: "g3.8xlarge",
+		}),
+		Entry("Windows2022Full", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyWindowsServer2022FullContainer,
+			gpuInstanceType: "p3.2xlarge",
+		}),
 	)
 
 	DescribeTable("ARM-based GPU instance type support", func(amiFamily string, expectErr bool) {

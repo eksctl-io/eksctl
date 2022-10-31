@@ -67,6 +67,8 @@ The `--node-ami-family` can take following keywords:
 | Bottlerocket                   | Indicates that the EKS AMI image based on Bottlerocket should be used.                       |
 | WindowsServer2019FullContainer | Indicates that the EKS AMI image based on Windows Server 2019 Full Container should be used. |
 | WindowsServer2019CoreContainer | Indicates that the EKS AMI image based on Windows Server 2019 Core Container should be used. |
+| WindowsServer2022FullContainer | Indicates that the EKS AMI image based on Windows Server 2022 Full Container should be used. |
+| WindowsServer2022CoreContainer | Indicates that the EKS AMI image based on Windows Server 2022 Core Container should be used. |
 
 CLI flag example:
 ```sh
