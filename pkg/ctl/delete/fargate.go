@@ -48,7 +48,7 @@ func configureDeleteFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.Options {
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "wait for the deletion of the Fargate profile, which may take from a couple seconds to a couple minutes.")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 	return &opts
 }
 

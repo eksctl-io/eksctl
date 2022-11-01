@@ -46,8 +46,11 @@ func newV2Config(pc *api.ProviderConfig, region string, credentialsCacheFilePath
 		options = append(options, config.WithEndpointResolverWithOptions(endpointResolver))
 	}
 
+	if !pc.Profile.SourceIsEnvVar {
+		options = append(options, config.WithSharedConfigProfile(pc.Profile.Name))
+	}
+
 	cfg, err := config.LoadDefaultConfig(context.TODO(), append(options,
-		config.WithSharedConfigProfile(pc.Profile),
 		config.WithRetryer(func() aws.Retryer {
 			return NewRetryerV2()
 		}),
@@ -65,7 +68,7 @@ func newV2Config(pc *api.ProviderConfig, region string, credentialsCacheFilePath
 	}
 	if credentialsCacheFilePath != "" {
 		// TODO: extract the underlying CredentialsProvider from cfg.Credentials and use it.
-		fileCache, err := credentials.NewFileCacheV2(cfg.Credentials, pc.Profile, afero.NewOsFs(), func(path string) credentials.Flock {
+		fileCache, err := credentials.NewFileCacheV2(cfg.Credentials, pc.Profile.Name, afero.NewOsFs(), func(path string) credentials.Flock {
 			return flock.New(path)
 		}, &credentials.RealClock{}, credentialsCacheFilePath)
 		if err != nil {

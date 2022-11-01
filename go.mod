@@ -13,15 +13,15 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.17.10
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.23
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.18
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.12
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.23.0
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.19.2
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.22
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.16.0
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.21.1
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.63.3
 	github.com/aws/aws-sdk-go-v2/service/eks v1.22.3
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.20
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.22
-	github.com/aws/aws-sdk-go-v2/service/iam v1.18.22
+	github.com/aws/aws-sdk-go-v2/service/iam v1.18.23
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.15
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.23.2
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.31.3

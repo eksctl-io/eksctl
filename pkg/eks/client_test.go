@@ -56,7 +56,7 @@ var _ = Describe("eks auth helpers", func() {
 				}
 
 				testAuthenticatorConfig := func(roleARN string) {
-					clientConfig := kubeconfig.NewForKubectl(cfg, GetUsername(ctl.Status.IAMRoleARN), roleARN, ctl.AWSProvider.Profile())
+					clientConfig := kubeconfig.NewForKubectl(cfg, GetUsername(ctl.Status.IAMRoleARN), roleARN, ctl.AWSProvider.Profile().Name)
 					Expect(clientConfig).To(Not(BeNil()))
 					ctx := clientConfig.CurrentContext
 					cluster := strings.Split(ctx, "@")[1]

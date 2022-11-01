@@ -747,7 +747,7 @@ type ClusterProvider interface {
 	CloudWatchLogs() awsapi.CloudWatchLogs
 	IAM() awsapi.IAM
 	Region() string
-	Profile() string
+	Profile() Profile
 	WaitTimeout() time.Duration
 	ConfigProvider() client.ConfigProvider
 	Session() *session.Session
@@ -775,8 +775,14 @@ type ProviderConfig struct {
 	CloudFormationDisableRollback bool
 
 	Region      string
-	Profile     string
+	Profile     Profile
 	WaitTimeout time.Duration
+}
+
+// Profile is the AWS profile to use.
+type Profile struct {
+	Name           string
+	SourceIsEnvVar bool
 }
 
 // +genclient

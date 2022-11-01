@@ -35,7 +35,7 @@ func associateIAMOIDCProviderCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddApproveFlag(fs, cmd)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
