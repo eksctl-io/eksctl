@@ -372,12 +372,12 @@ github.com/aws/aws-sdk-go-v2/internal/ini v1.3.26 h1:Mza+vlnZr+fPKFKRq/lKGVvM6B/
 github.com/aws/aws-sdk-go-v2/internal/ini v1.3.26/go.mod h1:Y2OJ+P+MC1u1VKnavT+PshiEuGPyh/7DqxoDNij4/bg=
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.18 h1:41EFhcsMHSF3tGQo8m82pNXF9VYhuYoH5eJmlakt8eA=
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.18/go.mod h1:1ioJeG7kmYYuqmA8Wsh5AXwjPn9mRKL6F8OOwt/uyBQ=
-github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.12 h1:shgG+a+6Nlvw1P2e0YGKDMrIJjtwzRTc8DWy7t7A4xk=
-github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.12/go.mod h1:AyrrIfauUrYfHqLrnroijTBBegQow3QIZTaLbQsauNk=
+github.com/aws/aws-sdk-go-v2/service/cloudformation v1.23.0 h1:Y+CAg1iGb3Mz3/LVSDXw2yr93gDowLXG+DpFLTpqnpE=
+github.com/aws/aws-sdk-go-v2/service/cloudformation v1.23.0/go.mod h1:AyrrIfauUrYfHqLrnroijTBBegQow3QIZTaLbQsauNk=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.19.2 h1:O+K38eNyy0kHezOg5rbtbw8rEAu+Twa6wsrztgKeGL0=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.19.2/go.mod h1:G3xZtg7cjsJaJdl1oVkscYXbdDLZBfOHbE1JqcnZxOI=
-github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.22 h1:h88fwI1btHtdkUY9aB8Bipm9m3BGYFi7SA0gwVzBJYc=
-github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.22/go.mod h1:9feOMWt3rxs46DqBVHco7z1KxRG36bKUqtv306cAtaA=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.16.0 h1:xOcB5Poga/bjOi+CJnNLP+FJvfxds430zYfQxSNnqTI=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.16.0/go.mod h1:9feOMWt3rxs46DqBVHco7z1KxRG36bKUqtv306cAtaA=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.21.1 h1:lj4DpCeptmd3fV30KgVRKWmADiIqfCtsay4kSbAnSdc=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.21.1/go.mod h1:2LQRr4SMTXDqUodAi6pIi0u7t1f0+kMOCRYjh3dAflw=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.63.3 h1:+UHyeFhdPddRB+EkgeaKMutWiqwWrj3FIQUif3VnalM=
@@ -388,8 +388,8 @@ github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.20 h1:+pjpsr6Wij
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.20/go.mod h1:gHgx63dm28U/o5NotzfFWhxUASzcZuPgO8GDpsI1Aqw=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.22 h1:EbYXWwuQAoT2Wtc9LC+n0cQiSokCB8em/8T0dtPowos=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.22/go.mod h1:uIsRP+M5F/Ch+21isqTg6u16FXl2yzupCX0Dli4eQEM=
-github.com/aws/aws-sdk-go-v2/service/iam v1.18.22 h1:JRgyDCvWrPSsvFL4plqy75dQgOlw2/tymxLzK+KLT8s=
-github.com/aws/aws-sdk-go-v2/service/iam v1.18.22/go.mod h1:yQ92mKfw/Gg5AvgxGmfdufKEyVoa9RNBsdnB9j5Gzkk=
+github.com/aws/aws-sdk-go-v2/service/iam v1.18.23 h1:HOtW30EkfQevdv++mKguMyn8/agh1z2VuBGR4Hou/u8=
+github.com/aws/aws-sdk-go-v2/service/iam v1.18.23/go.mod h1:yQ92mKfw/Gg5AvgxGmfdufKEyVoa9RNBsdnB9j5Gzkk=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.3.0/go.mod h1:R1KK+vY8AfalhG1AOu5e35pOD2SdoPKQCFLTvnxiohk=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.19 h1:GE25AWCdNUPh9AOJzI9KIJnja7IwUc1WyUqz/JTyJ/I=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.19/go.mod h1:02CP6iuYP+IVnBX5HULVdSAku/85eHB2Y9EsFhrkEwU=
@@ -3029,8 +3029,6 @@ gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7/go.mod h1:dt/ZhP58zS4L8KSrWD
 gopkg.in/warnings.v0 v0.1.1/go.mod h1:jksf8JmL6Qr/oQM2OXTHunEvvTAsrWBLb6OOjuVWRNI=
 gopkg.in/warnings.v0 v0.1.2 h1:wFXVbFY8DY5/xOe1ECiWdKCzZlxgshcYVNkBHstARME=
 gopkg.in/warnings.v0 v0.1.2/go.mod h1:jksf8JmL6Qr/oQM2OXTHunEvvTAsrWBLb6OOjuVWRNI=
-gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0 h1:POO/ycCATvegFmVuPpQzZFJ+pGZeX22Ufu6fibxDVjU=
-gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0/go.mod h1:WDnlLJ4WF5VGsH/HVa3CI79GS0ol3YnhVnKP89i0kNg=
 gopkg.in/yaml.v2 v2.0.0-20170812160011-eb3733d160e7/go.mod h1:JAlM8MvJe8wmxCU4Bli9HhUf9+ttbYbLASfIpnQbh74=
 gopkg.in/yaml.v2 v2.0.0/go.mod h1:JAlM8MvJe8wmxCU4Bli9HhUf9+ttbYbLASfIpnQbh74=
 gopkg.in/yaml.v2 v2.2.1/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
