@@ -190,8 +190,8 @@ eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release
       managedNodeGroups:
         - name: launch-template-ng
           launchTemplate:
-          id: lt-1234
-          version: "2" #optional (uses the default version of the launch template if unspecified)
+            id: lt-1234
+            version: "2" #optional (uses the default version of the launch template if unspecified)
       ```
     - create a new version of the custom AMI (using AWS EKS console).
     - create a new launch template version with the new AMI ID (using AWS EKS console).
