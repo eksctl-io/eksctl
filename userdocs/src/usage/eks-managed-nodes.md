@@ -185,6 +185,7 @@ eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release
 
 !!!note 
     If the managed nodes are deployed using custom AMIs, the following workflow must be followed in order to deploy a new version of the custom AMI.
+
     - initial deployment of the nodegroup must be done using a launch template. e.g.
       ```yaml
       managedNodeGroups:
