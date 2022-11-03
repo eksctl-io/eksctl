@@ -79,7 +79,6 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 	registryClient, err := registry.NewClient(
 		registry.ClientOptEnableCache(true),
 	)
-
 	if err != nil {
 		return fmt.Errorf("failed to create registry client: %w", err)
 	}
@@ -94,7 +93,7 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 		RegistryClient:  registryClient,
 	}
 
-	logger.Debug("the following chartOptions will be applied to the install: %w", options)
+	logger.Debug("the following chartOptions will be applied to the install: %+v", options)
 
 	if err := k.HelmInstaller.InstallChart(ctx, options); err != nil {
 		return fmt.Errorf("failed to install Karpenter chart: %w", err)
