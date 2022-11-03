@@ -855,6 +855,36 @@ func (_m *CloudWatchLogs) GetQueryResults(ctx context.Context, params *cloudwatc
 	return r0, r1
 }
 
+// ListTagsForResource provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) ListTagsForResource(ctx context.Context, params *cloudwatchlogs.ListTagsForResourceInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListTagsForResourceOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudwatchlogs.ListTagsForResourceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.ListTagsForResourceInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.ListTagsForResourceOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.ListTagsForResourceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.ListTagsForResourceInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListTagsLogGroup provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudWatchLogs) ListTagsLogGroup(ctx context.Context, params *cloudwatchlogs.ListTagsLogGroupInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListTagsLogGroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1215,6 +1245,36 @@ func (_m *CloudWatchLogs) TagLogGroup(ctx context.Context, params *cloudwatchlog
 	return r0, r1
 }
 
+// TagResource provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) TagResource(ctx context.Context, params *cloudwatchlogs.TagResourceInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.TagResourceOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudwatchlogs.TagResourceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.TagResourceInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.TagResourceOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.TagResourceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.TagResourceInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // TestMetricFilter provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudWatchLogs) TestMetricFilter(ctx context.Context, params *cloudwatchlogs.TestMetricFilterInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.TestMetricFilterOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1267,6 +1327,36 @@ func (_m *CloudWatchLogs) UntagLogGroup(ctx context.Context, params *cloudwatchl
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.UntagLogGroupInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagResource provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) UntagResource(ctx context.Context, params *cloudwatchlogs.UntagResourceInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.UntagResourceOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudwatchlogs.UntagResourceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.UntagResourceInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.UntagResourceOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.UntagResourceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.UntagResourceInput, ...func(*cloudwatchlogs.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)

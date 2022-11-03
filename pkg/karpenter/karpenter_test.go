@@ -6,6 +6,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"helm.sh/helm/v3/pkg/registry"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/karpenter/providers"
@@ -26,7 +27,7 @@ var _ = Describe("Install", func() {
 			cfg = api.NewClusterConfig()
 			cfg.Metadata.Name = "test-cluster"
 			cfg.Karpenter = &api.Karpenter{
-				Version:                "0.4.3",
+				Version:                "0.15.3",
 				CreateServiceAccount:   api.Disabled(),
 				DefaultInstanceProfile: nil,
 			}
@@ -46,6 +47,7 @@ var _ = Describe("Install", func() {
 		It("installs karpenter into an existing cluster", func() {
 			Expect(installerUnderTest.Install(context.Background(), "role-arn", "role/profile")).To(Succeed())
 			_, args := fakeHelmInstaller.InstallChartArgsForCall(0)
+			args.RegistryClient = &registry.Client{}
 			values := map[string]interface{}{
 				clusterName:     cfg.Metadata.Name,
 				clusterEndpoint: cfg.Status.Endpoint,
@@ -61,25 +63,16 @@ var _ = Describe("Install", func() {
 				},
 			}
 			Expect(args).To(Equal(providers.InstallChartOpts{
-				ChartName:       "karpenter/karpenter",
+				ChartName:       "oci://public.ecr.aws/karpenter/karpenter",
 				CreateNamespace: true,
 				Namespace:       "karpenter",
 				ReleaseName:     "karpenter",
 				Values:          values,
-				Version:         "0.4.3",
+				Version:         "0.15.3",
+				RegistryClient:  &registry.Client{},
 			}))
 		})
-		When("add repo fails", func() {
 
-			BeforeEach(func() {
-				fakeHelmInstaller.AddRepoReturns(errors.New("nope"))
-			})
-
-			It("errors", func() {
-				Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).
-					To(MatchError(ContainSubstring("failed to add Karpenter repository: nope")))
-			})
-		})
 		When("install chart fails", func() {
 
 			BeforeEach(func() {

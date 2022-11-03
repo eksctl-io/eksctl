@@ -500,7 +500,7 @@ type CloudFormation interface {
 	// region for testing. To perform testing, CloudFormation assumes the execution
 	// role specified when the type was registered. For more information, see
 	// RegisterType. Once you've initiated testing on an extension using TestType, you
-	// can use DescribeType
+	// can pass the returned TypeVersionArn into DescribeType
 	// (https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeType.html)
 	// to monitor the current test status and test status description for the
 	// extension. An extension must have a test status of PASSED before it can be
