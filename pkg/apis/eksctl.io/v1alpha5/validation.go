@@ -251,8 +251,8 @@ func validateKarpenterConfig(cfg *ClusterConfig) error {
 		return fmt.Errorf("failed to parse supported Karpenter version %s: %w", supportedKarpenterVersion, err)
 	}
 
-	if v.GreaterThan(supportedVersion) {
-		return fmt.Errorf("failed to validate Karpenter config: maximum supported version is %s", supportedKarpenterVersion)
+	if v.LessThan(supportedVersion) {
+		return fmt.Errorf("minimum supported version is %s", supportedKarpenterVersion)
 	}
 
 	if IsDisabled(cfg.IAM.WithOIDC) {

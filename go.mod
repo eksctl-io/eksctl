@@ -13,15 +13,15 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.17.10
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.23
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.18
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.12
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.23.0
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.19.2
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.22
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.16.0
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.21.1
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.63.3
 	github.com/aws/aws-sdk-go-v2/service/eks v1.22.3
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.20
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.22
-	github.com/aws/aws-sdk-go-v2/service/iam v1.18.22
+	github.com/aws/aws-sdk-go-v2/service/iam v1.18.23
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.15
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.23.2
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.31.3
@@ -74,7 +74,6 @@ require (
 	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1
 	golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde
 	golang.org/x/tools v0.2.0
-	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.10.1
 	k8s.io/api v0.25.2

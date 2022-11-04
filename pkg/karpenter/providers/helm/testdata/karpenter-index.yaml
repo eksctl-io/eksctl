@@ -8,6 +8,6 @@ entries:
       name: karpenter
       type: application
       urls:
-        - karpenter-0.4.3.tgz
-      version: 0.4.3
+        - karpenter-0.18.0.tgz
+      version: 0.18.0
 generated: "2021-11-15T09:46:01.740397-08:00"
