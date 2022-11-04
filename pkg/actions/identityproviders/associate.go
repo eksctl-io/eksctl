@@ -39,7 +39,7 @@ func (m *Manager) Associate(ctx context.Context, options AssociateIdentityProvid
 					logger.Info("started associating identity provider %s", idP.Name)
 					if options.WaitTimeout > 0 {
 						updateWaiter := waiter.NewUpdateWaiter(m.eksAPI, func(options *waiter.UpdateWaiterOptions) {
-							options.RetryAttemptLogMessage = "waiting for update %q in cluster %q to succeed"
+							options.RetryAttemptLogMessage = fmt.Sprintf("waiting for update %q in cluster %q to complete", *update.Id, m.metadata.Name)
 						})
 						if err := updateWaiter.Wait(ctx, &eks.DescribeUpdateInput{
 							Name:     aws.String(m.metadata.Name),
