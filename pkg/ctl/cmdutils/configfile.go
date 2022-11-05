@@ -476,10 +476,6 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup, options CreateManagedNGOptio
 }
 
 func validateUnsupportedCLIFeatures(ng *api.ManagedNodeGroup) error {
-	if api.IsWindowsImage(ng.AMIFamily) {
-		return errors.New("Windows is not supported for managed nodegroups; eksctl now creates " +
-			"managed nodegroups by default, to use a self-managed nodegroup, pass --managed=false")
-	}
 	return nil
 }
 
