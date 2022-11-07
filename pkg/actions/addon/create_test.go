@@ -328,6 +328,24 @@ var _ = Describe("Create", func() {
 		})
 	})
 
+	When("resolveConflicts is configured", func() {
+		DescribeTable("AWS EKS resolve conflicts matches value from cluster config",
+			func(rc ekstypes.ResolveConflicts) {
+				err := manager.Create(context.Background(), &api.Addon{
+					Name:             "my-addon",
+					Version:          "latest",
+					ResolveConflicts: rc,
+				}, 0)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(createAddonInput.ResolveConflicts).To(Equal(rc))
+			},
+			Entry("none", ekstypes.ResolveConflictsNone),
+			Entry("overwrite", ekstypes.ResolveConflictsOverwrite),
+			Entry("preserve", ekstypes.ResolveConflictsPreserve),
+		)
+	})
+
 	When("force is true", func() {
 		BeforeEach(func() {
 			withOIDC = false

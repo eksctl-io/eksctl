@@ -51,9 +51,10 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 		}
 	}
 	createAddonInput := &eks.CreateAddonInput{
-		AddonName:    &addon.Name,
-		AddonVersion: &version,
-		ClusterName:  &a.clusterConfig.Metadata.Name,
+		AddonName:        &addon.Name,
+		AddonVersion:     &version,
+		ClusterName:      &a.clusterConfig.Metadata.Name,
+		ResolveConflicts: addon.ResolveConflicts,
 	}
 
 	if addon.Force {
@@ -65,6 +66,8 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 			logger.Info("when creating an addon to replace an existing application, e.g. CoreDNS, kube-proxy & VPC-CNI the --force flag will ensure the currently deployed configuration is replaced")
 		}
 	}
+
+	logger.Debug("resolve conflicts set to %s", createAddonInput.ResolveConflicts)
 
 	logger.Debug("addon: %v", addon)
 	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
