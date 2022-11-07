@@ -31,13 +31,15 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 	// First check if the addon is already present as an EKS managed addon
 	// and if so, don't re-create
 	var notFoundErr *ekstypes.ResourceNotFoundException
-	_, err := a.eksAPI.DescribeAddon(ctx, &eks.DescribeAddonInput{
+	summary, err := a.eksAPI.DescribeAddon(ctx, &eks.DescribeAddonInput{
 		AddonName:   &addon.Name,
 		ClusterName: &a.clusterConfig.Metadata.Name,
 	})
 	if err == nil {
-		logger.Info("Addon %s is already present in this cluster, as an EKS managed addon, and won't be re-created", addon.Name)
-		return nil
+		if summary.Addon.Status != ekstypes.AddonStatusCreateFailed {
+			logger.Info("Addon %s is already present in this cluster, as an EKS managed addon, and won't be re-created", addon.Name)
+			return nil
+		}
 	} else if !errors.As(err, &notFoundErr) {
 		return err
 	}
@@ -59,7 +61,6 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 
 	if addon.Force {
 		createAddonInput.ResolveConflicts = ekstypes.ResolveConflictsOverwrite
-		logger.Debug("setting resolve conflicts to overwrite")
 	} else {
 		addonName := strings.ToLower(addon.Name)
 		if addonName == "coredns" || addonName == "kube-proxy" || addonName == "vpc-cni" {
