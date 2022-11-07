@@ -23,6 +23,7 @@ nav:
             - usage/eks-private-cluster.md
             - usage/addons.md
             - usage/emr-access.md
+            - usage/aws-batch-access.md
             - usage/fargate-support.md
             - usage/cluster-upgrade.md
             - usage/addon-upgrade.md

@@ -37,7 +37,7 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &identityMapping.ARN, "create")
 		fs.StringVar(&identityMapping.Username, "username", "", "User name within Kubernetes to map to IAM role")
 		fs.StringSliceVar(&identityMapping.Groups, "group", []string{}, "Groups within Kubernetes to which IAM role is mapped")
-		fs.StringVar(&identityMapping.ServiceName, "service-name", "", "Service name; valid value: emr-containers")
+		fs.StringVar(&identityMapping.ServiceName, "service-name", "", "Service name; valid values: emr-containers, aws-batch")
 		fs.StringVar(&identityMapping.Namespace, "namespace", "", "Namespace in which to create RBAC resources (only valid with --service-name)")
 		fs.BoolVar(&identityMapping.NoDuplicateARNs, "no-duplicate-arns", false, "Throw error when an aws-auth record already exists with the given ARN")
 	})

@@ -18,10 +18,14 @@ import (
 //go:embed assets/emr-containers-rbac.yaml
 var emrContainersRbacYamlBytes []byte
 
+//go:embed assets/aws-batch-rbac.yaml
+var awsBatchRbacYamlBytes []byte
+
 type ServiceName string
 
 const (
 	emrContainers ServiceName = "emr-containers"
+	awsBatch      ServiceName = "aws-batch"
 )
 
 type serviceDetails struct {
@@ -34,6 +38,11 @@ var (
 	emrContainersService = serviceDetails{
 		User:        emrContainers,
 		IAMRoleName: "AWSServiceRoleForAmazonEMRContainers",
+		Namespaced:  true,
+	}
+	awsBatchService = serviceDetails{
+		User:        awsBatch,
+		IAMRoleName: "AWSServiceRoleForBatch",
 		Namespaced:  true,
 	}
 )
@@ -100,8 +109,14 @@ func (s *ServiceAccess) Grant(serviceName, namespace string, partition string) e
 func (s *ServiceAccess) applyResource(o runtime.Object, namespace string) error {
 	if namespace != "" {
 		metadataAccessor := meta.NewAccessor()
-		if err := metadataAccessor.SetNamespace(o, namespace); err != nil {
-			return errors.Wrap(err, "unexpected error setting namespace")
+		kind, err := metadataAccessor.Kind(o)
+		if err != nil {
+			return errors.Wrapf(err, "unexpected error getting object kind")
+		}
+		if !isClusterScopedKind(kind) {
+			if err := metadataAccessor.SetNamespace(o, namespace); err != nil {
+				return errors.Wrap(err, "unexpected error setting namespace")
+			}
 		}
 	}
 	r, err := s.rawClient.NewRawResource(o)
@@ -131,7 +146,19 @@ func lookupService(serviceName string) (resources []byte, sd serviceDetails, err
 	switch ServiceName(serviceName) {
 	case emrContainers:
 		return emrContainersRbacYamlBytes, emrContainersService, nil
+	case awsBatch:
+		return awsBatchRbacYamlBytes, awsBatchService, nil
 	default:
 		return nil, sd, errors.Errorf("invalid service name %q", serviceName)
 	}
+}
+
+func isClusterScopedKind(kind string) bool {
+	var clusterScopedKinds = []string{"ClusterRole", "ClusterRoleBinding"}
+	for _, s := range clusterScopedKinds {
+		if s == kind {
+			return true
+		}
+	}
+	return false
 }
