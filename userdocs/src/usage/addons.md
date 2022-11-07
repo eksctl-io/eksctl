@@ -80,6 +80,7 @@ addons:
 ```
 
 For addon create, the `resolveConflicts` field supports two distinct values.
+
 - `overwrite` - EKS overwrites any config changes back to EKS default values
 - `none` - EKS doesn't change the value. The create might fail.
 
@@ -132,6 +133,7 @@ addons:
 ```
 
 For addon update, the `resolveConflicts` field accepts three distinct values.
+
 - `preserve` - EKS preserves the value. If you choose this option, we recommend that you test any field and value changes on a non-production cluster before updating the add-on on your production cluster.
 - `overwrite` - EKS overwrites any config changes back to EKS default values
 - `none` - EKS doesn't change the value. The update might fail.
