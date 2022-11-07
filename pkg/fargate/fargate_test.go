@@ -88,6 +88,15 @@ var _ = Describe("fargate", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("timed out while waiting for Fargate profile \"default\"'s creation"))
 			})
+
+			It("suggests using a different AZ when profile creation fails with an unsupported AZ error", func() {
+				retryPolicy := &retry.ConstantBackoff{
+					Time: 0, TimeUnit: time.Second, MaxRetries: 1,
+				}
+				client := fargate.NewWithRetryPolicy(clusterName, mockCreateFargateProfileAZError(), retryPolicy, nil)
+				err := client.CreateProfile(context.Background(), testFargateProfile(), false)
+				Expect(err).To(MatchError(ContainSubstring("Fargate Profile creation for the Availability Zone ca-central-1d for Subnet subnet-1234 is not supported; please rerun the command by supplying subnets in the Fargate Profile that do not exist in the unsupported AZ, or recreate the cluster after specifying supported AZs in `availabilityZones`")))
+			})
 		})
 
 		Describe("ReadProfiles", func() {
@@ -233,6 +242,16 @@ func mockForCreateFargateProfileWithWait(numRetries int) *mocksv2.EKS {
 func mockCreateFargateProfile(mockClient *mocksv2.EKS) {
 	mockClient.Mock.On("CreateFargateProfile", mock.Anything, testCreateFargateProfileInput()).
 		Return(&eks.CreateFargateProfileOutput{}, nil)
+}
+
+func mockCreateFargateProfileAZError() *mocksv2.EKS {
+	var mockClient mocksv2.EKS
+	mockClient.Mock.On("CreateFargateProfile", mock.Anything, testCreateFargateProfileInput()).
+		Return(nil, &ekstypes.InvalidParameterException{
+			Message:            aws.String("Fargate Profile creation for the Availability Zone ca-central-1d for Subnet subnet-1234 is not supported"),
+			FargateProfileName: aws.String("test"),
+		})
+	return &mockClient
 }
 
 func mockCreateFargateProfileWithoutTag(mockClient *mocksv2.EKS) {
