@@ -36,6 +36,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 		ClusterName: &a.clusterConfig.Metadata.Name,
 	})
 	if err == nil {
+		// we should try to re-create the addon if the existing one has CREATE_FAILED status
 		if summary.Addon.Status != ekstypes.AddonStatusCreateFailed {
 			logger.Info("Addon %s is already present in this cluster, as an EKS managed addon, and won't be re-created", addon.Name)
 			return nil
