@@ -236,6 +236,18 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(testNodeGroup.Bottlerocket).NotTo(BeNil())
 			Expect(testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeNil())
 		})
+
+		It("tolerates non standard casing of AMI Family", func() {
+			testNodeGroup := NodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMIFamily: "BoTTleRocKet",
+				},
+			}
+
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+
+			Expect(testNodeGroup.NodeGroupBase.AMIFamily).To(Equal(NodeImageFamilyBottlerocket))
+		})
 	})
 
 	Context("Cluster NAT settings", func() {
