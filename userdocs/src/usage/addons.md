@@ -69,7 +69,7 @@ eksctl create addon -f config.yaml
 eksctl create addon --name vpc-cni --version 1.7.5 --service-account-role-arn=<role-arn>
 ```
 
-During addon creation, providing a self-managed version of the addon already exists on the cluster, you have the possibility to choose how potential `configMap` conflicts shall be resolved. This is achievable via the config file field `resolveConflicts`. e.g.,
+During addon creation, if a self-managed version of the addon already exists on the cluster, you can choose how potential `configMap` conflicts shall be resolved by setting `resolveConflicts` option via the config file. e.g.,
 
 ```yaml
 addons:

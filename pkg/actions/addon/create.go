@@ -70,7 +70,6 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 	}
 
 	logger.Debug("resolve conflicts set to %s", createAddonInput.ResolveConflicts)
-
 	logger.Debug("addon: %v", addon)
 	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
