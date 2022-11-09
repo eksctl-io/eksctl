@@ -3,6 +3,7 @@ package nodebootstrap
 import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
 )
@@ -14,12 +15,14 @@ const (
 type AmazonLinux2 struct {
 	clusterConfig *api.ClusterConfig
 	ng            *api.NodeGroup
+	clusterDNS    string
 }
 
-func NewAL2Bootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) *AmazonLinux2 {
+func NewAL2Bootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup, clusterDNS string) *AmazonLinux2 {
 	return &AmazonLinux2{
 		clusterConfig: clusterConfig,
 		ng:            ng,
+		clusterDNS:    clusterDNS,
 	}
 }
 
@@ -30,7 +33,7 @@ func (b *AmazonLinux2) UserData() (string, error) {
 		scripts = append(scripts, script{name: "efa.al2.sh", contents: assets.EfaAl2Sh})
 	}
 
-	body, err := linuxConfig(b.clusterConfig, al2BootScript, assets.BootstrapAl2Sh, b.ng, scripts...)
+	body, err := linuxConfig(b.clusterConfig, al2BootScript, assets.BootstrapAl2Sh, b.clusterDNS, b.ng, scripts...)
 	if err != nil {
 		return "", errors.Wrap(err, "encoding user data")
 	}

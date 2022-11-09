@@ -201,9 +201,10 @@ func TestManagedNodeRole(t *testing.T) {
 			api.SetManagedNodeGroupDefaults(tt.nodeGroup, clusterConfig.Metadata, false)
 			p := mockprovider.NewMockProvider()
 			fakeVPCImporter := new(vpcfakes.FakeImporter)
-			bootstrapper := nodebootstrap.NewManagedBootstrapper(clusterConfig, tt.nodeGroup)
+			bootstrapper, err := nodebootstrap.NewManagedBootstrapper(clusterConfig, tt.nodeGroup)
+			require.NoError(err)
 			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, tt.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)
-			err := stack.AddAllResources(context.Background())
+			err = stack.AddAllResources(context.Background())
 			require.NoError(err)
 
 			bytes, err := stack.RenderJSON()
