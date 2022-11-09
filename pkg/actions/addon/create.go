@@ -29,20 +29,20 @@ const (
 
 func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
 	// First check if the addon is already present as an EKS managed addon
-	// and if so, don't re-create
+	// in a state different from CREATE_FAILED, and if so, don't re-create
 	var notFoundErr *ekstypes.ResourceNotFoundException
 	summary, err := a.eksAPI.DescribeAddon(ctx, &eks.DescribeAddonInput{
 		AddonName:   &addon.Name,
 		ClusterName: &a.clusterConfig.Metadata.Name,
 	})
-	if err == nil {
-		// we should try to re-create the addon if the existing one has CREATE_FAILED status
-		if summary.Addon.Status != ekstypes.AddonStatusCreateFailed {
-			logger.Info("Addon %s is already present in this cluster, as an EKS managed addon, and won't be re-created", addon.Name)
-			return nil
-		}
-	} else if !errors.As(err, &notFoundErr) {
+	if err != nil && !errors.As(err, &notFoundErr) {
 		return err
+	}
+
+	// if the addon already exists AND it is not in CREATE_FAILED state
+	if err == nil && summary.Addon.Status != ekstypes.AddonStatusCreateFailed {
+		logger.Info("Addon %s is already present in this cluster, as an EKS managed addon, and won't be re-created", addon.Name)
+		return nil
 	}
 
 	version := addon.Version
