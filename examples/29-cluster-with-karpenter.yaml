@@ -4,7 +4,7 @@ kind: ClusterConfig
 metadata:
   name: cluster-with-karpenter
   region: us-west-2
-  version: '1.21'
+  version: '1.22'
   tags:
     karpenter.sh/discovery: cluster-with-karpenter
 
@@ -12,7 +12,7 @@ iam:
   withOIDC: true
 
 karpenter:
-  version: '0.15.0'
+  version: 'v0.18.0' # Exact version must be provided
   createServiceAccount: true # default is false
 
 managedNodeGroups:
