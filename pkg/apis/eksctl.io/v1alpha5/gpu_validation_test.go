@@ -12,8 +12,9 @@ import (
 var _ = Describe("GPU instance support", func() {
 
 	type gpuInstanceEntry struct {
-		gpuInstanceType string
-		amiFamily       string
+		gpuInstanceType  string
+		amiFamily        string
+		instanceTypeName string
 
 		expectUnsupportedErr bool
 	}
@@ -21,7 +22,7 @@ var _ = Describe("GPU instance support", func() {
 	assertValidationError := func(e gpuInstanceEntry, err error) {
 		if e.expectUnsupportedErr {
 			Expect(err).To(HaveOccurred())
-			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("Inferentia instance types are not supported for %s", e.amiFamily))))
+			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("%s instance types are not supported for %s", e.instanceTypeName, e.amiFamily))))
 			return
 		}
 		Expect(err).NotTo(HaveOccurred())
@@ -50,6 +51,13 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:            api.NodeImageFamilyBottlerocket,
 			gpuInstanceType:      "inf1.xlarge",
 			expectUnsupportedErr: true,
+			instanceTypeName:     "Inferentia",
+		}),
+		Entry("Bottlerocket", gpuInstanceEntry{
+			amiFamily:            api.NodeImageFamilyBottlerocket,
+			gpuInstanceType:      "trn1.2xlarge",
+			expectUnsupportedErr: true,
+			instanceTypeName:     "Trainium",
 		}),
 	)
 
@@ -72,6 +80,10 @@ var _ = Describe("GPU instance support", func() {
 			gpuInstanceType: "inf1.xlarge",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
+		Entry("AL2", gpuInstanceEntry{
+			gpuInstanceType: "trn1.2xlarge",
+			amiFamily:       api.NodeImageFamilyAmazonLinux2,
+		}),
 		Entry("AMI unset", gpuInstanceEntry{
 			gpuInstanceType: "g4dn.xlarge",
 		}),
@@ -82,6 +94,11 @@ var _ = Describe("GPU instance support", func() {
 		Entry("Bottlerocket infra", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyBottlerocket,
 			gpuInstanceType:      "inf1.xlarge",
+			expectUnsupportedErr: true,
+		}),
+		Entry("Bottlerocket infra", gpuInstanceEntry{
+			amiFamily:            api.NodeImageFamilyBottlerocket,
+			gpuInstanceType:      "trn1.2xlarge",
 			expectUnsupportedErr: true,
 		}),
 		Entry("Bottlerocket nvidia", gpuInstanceEntry{

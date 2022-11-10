@@ -620,8 +620,12 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 	}
 
 	// Bottlerocket doesn't support Inferentia hosts
-	if instanceutils.IsInferentiaInstanceType(SelectInstanceType(np)) && ng.AMIFamily == NodeImageFamilyBottlerocket {
+	if instanceutils.IsInferentiaInstanceType(SelectInstanceType(np)) && ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != "" {
 		return errors.Errorf("Inferentia instance types are not supported for %s", ng.AMIFamily)
+	}
+	// Bottlerocket doesn't support Trainium hosts
+	if instanceutils.IsTrainiumInstanceType(SelectInstanceType(np)) && ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != "" {
+		return errors.Errorf("Trainium instance types are not supported for %s", ng.AMIFamily)
 	}
 
 	if ng.CapacityReservation != nil {
