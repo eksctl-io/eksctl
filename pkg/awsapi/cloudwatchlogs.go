@@ -30,10 +30,13 @@ type CloudWatchLogs interface {
 	// Creates an export task, which allows you to efficiently export data from a log
 	// group to an Amazon S3 bucket. When you perform a CreateExportTask operation, you
 	// must use credentials that have permission to write to the S3 bucket that you
-	// specify as the destination. This is an asynchronous call. If all the required
-	// information is provided, this operation initiates an export task and responds
-	// with the ID of the task. After the task has started, you can use
-	// DescribeExportTasks
+	// specify as the destination. Exporting log data to Amazon S3 buckets that are
+	// encrypted by KMS is supported. Exporting log data to Amazon S3 buckets that have
+	// S3 Object Lock enabled with a retention period is also supported. Exporting to
+	// S3 buckets that are encrypted with AES-256 is supported. This is an asynchronous
+	// call. If all the required information is provided, this operation initiates an
+	// export task and responds with the ID of the task. After the task has started,
+	// you can use DescribeExportTasks
 	// (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeExportTasks.html)
 	// to get the status of the export task. Each account can only have one active
 	// (RUNNING or PENDING) export task at a time. To cancel an export task, use
@@ -42,8 +45,8 @@ type CloudWatchLogs interface {
 	// You can export logs from multiple log groups or multiple time ranges to the same
 	// S3 bucket. To separate out log data for each export task, you can specify a
 	// prefix to be used as the Amazon S3 key prefix for all exported objects.
-	// Exporting to S3 buckets that are encrypted with AES-256 is supported. Exporting
-	// to S3 buckets encrypted with SSE-KMS is not supported.
+	// Time-based sorting on chunks of log data inside an exported file is not
+	// guaranteed. You can sort the exported log fild data by using Linux utilities.
 	CreateExportTask(ctx context.Context, params *CreateExportTaskInput, optFns ...func(*Options)) (*CreateExportTaskOutput, error)
 	// Creates a log group with the specified name. You can create up to 20,000 log
 	// groups per account. You must use the following guidelines when naming a log
@@ -162,9 +165,10 @@ type CloudWatchLogs interface {
 	DisassociateKmsKey(ctx context.Context, params *DisassociateKmsKeyInput, optFns ...func(*Options)) (*DisassociateKmsKeyOutput, error)
 	// Lists log events from the specified log group. You can list all the log events
 	// or filter the results using a filter pattern, a time range, and the name of the
-	// log stream. By default, this operation returns as many log events as can fit in
-	// 1 MB (up to 10,000 log events) or all the events found within the time range
-	// that you specify. If the results include a token, then there are more log events
+	// log stream. You must have the logs;FilterLogEvents permission to perform this
+	// operation. By default, this operation returns as many log events as can fit in 1
+	// MB (up to 10,000 log events) or all the events found within the time range that
+	// you specify. If the results include a token, then there are more log events
 	// available, and you can get additional results by specifying the token in a
 	// subsequent call. This operation can return empty results while there are more
 	// log events available through the token. The returned log events are sorted by
@@ -315,7 +319,16 @@ type CloudWatchLogs interface {
 	PutResourcePolicy(ctx context.Context, params *PutResourcePolicyInput, optFns ...func(*Options)) (*PutResourcePolicyOutput, error)
 	// Sets the retention of the specified log group. A retention policy allows you to
 	// configure the number of days for which to retain log events in the specified log
-	// group.
+	// group. CloudWatch Logs doesn’t immediately delete log events when they reach
+	// their retention setting. It typically takes up to 72 hours after that before log
+	// events are deleted, but in rare situations might take longer. This means that if
+	// you change a log group to have a longer retention setting when it contains log
+	// events that are past the expiration date, but haven’t been actually deleted,
+	// those log events will take up to 72 hours to be deleted after the new retention
+	// date is reached. To make sure that log data is deleted permanently, keep a log
+	// group at its lower retention setting until 72 hours has passed after the end of
+	// the previous retention period, or you have confirmed that the older log events
+	// are deleted.
 	PutRetentionPolicy(ctx context.Context, params *PutRetentionPolicyInput, optFns ...func(*Options)) (*PutRetentionPolicyOutput, error)
 	// Creates or updates a subscription filter and associates it with the specified
 	// log group. Subscription filters allow you to subscribe to a real-time stream of
@@ -350,7 +363,8 @@ type CloudWatchLogs interface {
 	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html).
 	// Queries time out after 15 minutes of execution. If your queries are timing out,
 	// reduce the time range being searched or partition your query into a number of
-	// queries.
+	// queries. You are limited to 20 concurrent CloudWatch Logs insights queries,
+	// including queries that have been added to dashboards.
 	StartQuery(ctx context.Context, params *StartQueryInput, optFns ...func(*Options)) (*StartQueryOutput, error)
 	// Stops a CloudWatch Logs Insights query that is in progress. If the query has
 	// already ended, the operation returns an error indicating that the specified
