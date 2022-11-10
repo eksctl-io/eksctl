@@ -34,7 +34,8 @@ var _ = Describe("Managed Bottlerocket", func() {
 			e.setFields(ng)
 		}
 
-		bootstrapper := nodebootstrap.NewManagedBootstrapper(clusterConfig, ng)
+		bootstrapper, err := nodebootstrap.NewManagedBootstrapper(clusterConfig, ng)
+		Expect(err).NotTo(HaveOccurred())
 		userData, err := bootstrapper.UserData()
 		if e.expectedErr != "" {
 			Expect(err).To(HaveOccurred())
