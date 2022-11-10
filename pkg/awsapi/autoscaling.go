@@ -131,7 +131,14 @@ type ASG interface {
 	// in the Amazon EC2 Auto Scaling User Guide. For more information, see Launch
 	// configurations
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/LaunchConfiguration.html)
-	// in the Amazon EC2 Auto Scaling User Guide.
+	// in the Amazon EC2 Auto Scaling User Guide. Amazon EC2 Auto Scaling configures
+	// instances launched as part of an Auto Scaling group using either a launch
+	// template or a launch configuration. We strongly recommend that you do not use
+	// launch configurations. They do not provide full functionality for Amazon EC2
+	// Auto Scaling or Amazon EC2. For information about using launch templates, see
+	// Launch templates
+	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/launch-templates.html) in
+	// the Amazon EC2 Auto Scaling User Guide.
 	CreateLaunchConfiguration(ctx context.Context, params *CreateLaunchConfigurationInput, optFns ...func(*Options)) (*CreateLaunchConfigurationOutput, error)
 	// Creates or updates tags for the specified Auto Scaling group. When you specify a
 	// tag with a key that already exists, the operation overwrites the previous tag
@@ -142,14 +149,19 @@ type ASG interface {
 	CreateOrUpdateTags(ctx context.Context, params *CreateOrUpdateTagsInput, optFns ...func(*Options)) (*CreateOrUpdateTagsOutput, error)
 	// Deletes the specified Auto Scaling group. If the group has instances or scaling
 	// activities in progress, you must specify the option to force the deletion in
-	// order for it to succeed. If the group has policies, deleting the group deletes
-	// the policies, the underlying alarm actions, and any alarm that no longer has an
-	// associated action. To remove instances from the Auto Scaling group before
-	// deleting it, call the DetachInstances API with the list of instances and the
-	// option to decrement the desired capacity. This ensures that Amazon EC2 Auto
-	// Scaling does not launch replacement instances. To terminate all instances before
-	// deleting the Auto Scaling group, call the UpdateAutoScalingGroup API and set the
-	// minimum size and desired capacity of the Auto Scaling group to zero.
+	// order for it to succeed. The force delete operation will also terminate the EC2
+	// instances. If the group has a warm pool, the force delete option also deletes
+	// the warm pool. To remove instances from the Auto Scaling group before deleting
+	// it, call the DetachInstances API with the list of instances and the option to
+	// decrement the desired capacity. This ensures that Amazon EC2 Auto Scaling does
+	// not launch replacement instances. To terminate all instances before deleting the
+	// Auto Scaling group, call the UpdateAutoScalingGroup API and set the minimum size
+	// and desired capacity of the Auto Scaling group to zero. If the group has scaling
+	// policies, deleting the group deletes the policies, the underlying alarm actions,
+	// and any alarm that no longer has an associated action. For more information, see
+	// Delete your Auto Scaling infrastructure
+	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-process-shutdown.html)
+	// in the Amazon EC2 Auto Scaling User Guide.
 	DeleteAutoScalingGroup(ctx context.Context, params *DeleteAutoScalingGroupInput, optFns ...func(*Options)) (*DeleteAutoScalingGroupOutput, error)
 	// Deletes the specified launch configuration. The launch configuration must not be
 	// attached to an Auto Scaling group. When this call completes, the launch
