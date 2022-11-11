@@ -29,17 +29,20 @@ const (
 
 func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
 	// First check if the addon is already present as an EKS managed addon
-	// and if so, don't re-create
+	// in a state different from CREATE_FAILED, and if so, don't re-create
 	var notFoundErr *ekstypes.ResourceNotFoundException
-	_, err := a.eksAPI.DescribeAddon(ctx, &eks.DescribeAddonInput{
+	summary, err := a.eksAPI.DescribeAddon(ctx, &eks.DescribeAddonInput{
 		AddonName:   &addon.Name,
 		ClusterName: &a.clusterConfig.Metadata.Name,
 	})
-	if err == nil {
+	if err != nil && !errors.As(err, &notFoundErr) {
+		return err
+	}
+
+	// if the addon already exists AND it is not in CREATE_FAILED state
+	if err == nil && summary.Addon.Status != ekstypes.AddonStatusCreateFailed {
 		logger.Info("Addon %s is already present in this cluster, as an EKS managed addon, and won't be re-created", addon.Name)
 		return nil
-	} else if !errors.As(err, &notFoundErr) {
-		return err
 	}
 
 	version := addon.Version
@@ -51,14 +54,14 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 		}
 	}
 	createAddonInput := &eks.CreateAddonInput{
-		AddonName:    &addon.Name,
-		AddonVersion: &version,
-		ClusterName:  &a.clusterConfig.Metadata.Name,
+		AddonName:        &addon.Name,
+		AddonVersion:     &version,
+		ClusterName:      &a.clusterConfig.Metadata.Name,
+		ResolveConflicts: addon.ResolveConflicts,
 	}
 
 	if addon.Force {
 		createAddonInput.ResolveConflicts = ekstypes.ResolveConflictsOverwrite
-		logger.Debug("setting resolve conflicts to overwrite")
 	} else {
 		addonName := strings.ToLower(addon.Name)
 		if addonName == "coredns" || addonName == "kube-proxy" || addonName == "vpc-cni" {
@@ -66,6 +69,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 		}
 	}
 
+	logger.Debug("resolve conflicts set to %s", createAddonInput.ResolveConflicts)
 	logger.Debug("addon: %v", addon)
 	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
