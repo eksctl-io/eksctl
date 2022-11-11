@@ -51,7 +51,7 @@ func updateIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
 }
 
 func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {

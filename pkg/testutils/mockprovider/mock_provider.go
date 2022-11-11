@@ -18,8 +18,10 @@ import (
 
 // ProviderConfig holds current global config
 var ProviderConfig = &api.ProviderConfig{
-	Region:      api.DefaultRegion,
-	Profile:     "default",
+	Region: api.DefaultRegion,
+	Profile: api.Profile{
+		Name: "default",
+	},
 	WaitTimeout: 1200000000000,
 }
 
@@ -191,7 +193,7 @@ func (m MockProvider) MockOutposts() *mocksv2.Outposts {
 }
 
 // Profile returns current profile setting
-func (m MockProvider) Profile() string { return ProviderConfig.Profile }
+func (m MockProvider) Profile() api.Profile { return ProviderConfig.Profile }
 
 // Region returns current region setting
 func (m MockProvider) Region() string {

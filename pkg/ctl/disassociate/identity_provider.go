@@ -45,7 +45,7 @@ func disassociateIdentityProvider(cmd *cmdutils.Cmd) {
 		fs.StringVar(&cliProvidedIDP.Type, "type", "", "type of the provider to disassociate")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func newDisassociateIdentityProviderLoader(cmd *cmdutils.Cmd, cliProvidedIDP cliProvidedIDP) cmdutils.ClusterConfigLoader {

@@ -39,7 +39,7 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		fs.StringVar(&account, "account", "", "Account ID to delete")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn, account string, all bool) error {
