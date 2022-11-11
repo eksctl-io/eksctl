@@ -29,7 +29,8 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 	api.SetManagedNodeGroupDefaults(e.nodeGroup, clusterConfig.Metadata, false)
 	p := mockprovider.NewMockProvider()
 	fakeVPCImporter := new(vpcfakes.FakeImporter)
-	bootstrapper := nodebootstrap.NewManagedBootstrapper(clusterConfig, e.nodeGroup)
+	bootstrapper, err := nodebootstrap.NewManagedBootstrapper(clusterConfig, e.nodeGroup)
+	Expect(err).NotTo(HaveOccurred())
 	stack := NewManagedNodeGroup(p.EC2(), clusterConfig, e.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)
 
 	Expect(stack.AddAllResources(context.Background())).To(Succeed())
