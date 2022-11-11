@@ -44,6 +44,9 @@ type CloudTrail interface {
 	// trail was created. DeleteTrail cannot be called on the shadow trails (replicated
 	// trails in other regions) of a trail that is enabled in all regions.
 	DeleteTrail(ctx context.Context, params *DeleteTrailInput, optFns ...func(*Options)) (*DeleteTrailOutput, error)
+	// Removes CloudTrail delegated administrator permissions from a member account in
+	// an organization.
+	DeregisterOrganizationDelegatedAdmin(ctx context.Context, params *DeregisterOrganizationDelegatedAdminInput, optFns ...func(*Options)) (*DeregisterOrganizationDelegatedAdminOutput, error)
 	// Returns metadata about a query, including query run time in milliseconds, number
 	// of events scanned and matched, and query status. You must specify an ARN for
 	// EventDataStore, and a value for QueryID.
@@ -54,7 +57,7 @@ type CloudTrail interface {
 	// Returns information about a specific channel. Amazon Web Services services
 	// create service-linked channels to get information about CloudTrail events on
 	// your behalf. For more information about service-linked channels, see Viewing
-	// service-linked channels for CloudTrail by using the CLI.
+	// service-linked channels for CloudTrail by using the CLI
 	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/viewing-service-linked-channels.html).
 	GetChannel(ctx context.Context, params *GetChannelInput, optFns ...func(*Options)) (*GetChannelOutput, error)
 	// Returns information about an event data store specified as either an ARN or the
@@ -231,6 +234,9 @@ type CloudTrail interface {
 	// valid Insights event types in this release are ApiErrorRateInsight and
 	// ApiCallRateInsight.
 	PutInsightSelectors(ctx context.Context, params *PutInsightSelectorsInput, optFns ...func(*Options)) (*PutInsightSelectorsOutput, error)
+	// Registers an organization’s member account as the CloudTrail delegated
+	// administrator.
+	RegisterOrganizationDelegatedAdmin(ctx context.Context, params *RegisterOrganizationDelegatedAdminInput, optFns ...func(*Options)) (*RegisterOrganizationDelegatedAdminOutput, error)
 	// Removes the specified tags from a trail or event data store.
 	RemoveTags(ctx context.Context, params *RemoveTagsInput, optFns ...func(*Options)) (*RemoveTagsOutput, error)
 	// Restores a deleted event data store specified by EventDataStore, which accepts
