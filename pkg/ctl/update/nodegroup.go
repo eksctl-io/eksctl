@@ -34,7 +34,7 @@ func updateNodeGroupCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "wait for update to finish")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
