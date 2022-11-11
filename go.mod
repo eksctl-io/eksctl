@@ -85,7 +85,6 @@ require (
 	k8s.io/code-generator v0.25.0
 	k8s.io/kops v1.25.2
 	k8s.io/kubelet v0.25.2
-	k8s.io/legacy-cloud-providers v0.25.2
 	k8s.io/utils v0.0.0-20220922104903-7796b5f52b7e
 	sigs.k8s.io/mdtoc v1.1.0
 	sigs.k8s.io/yaml v1.3.0

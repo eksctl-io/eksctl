@@ -37,7 +37,7 @@ func getIdentityProvider(cmd *cmdutils.Cmd) {
 		fs.StringVar(&name, "name", "", "name of the provider to delete")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func doGetIdentityProvider(cmd *cmdutils.Cmd, params getCmdParams, name string) error {

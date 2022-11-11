@@ -108,8 +108,8 @@ func (p ProviderServices) CloudWatchLogs() awsapi.CloudWatchLogs {
 // Region returns provider-level region setting
 func (p ProviderServices) Region() string { return p.spec.Region }
 
-// Profile returns provider-level profile name
-func (p ProviderServices) Profile() string { return p.spec.Profile }
+// Profile returns the provider-level AWS profile.
+func (p ProviderServices) Profile() api.Profile { return p.spec.Profile }
 
 // WaitTimeout returns provider-level duration after which any wait operation has to timeout
 func (p ProviderServices) WaitTimeout() time.Duration { return p.spec.WaitTimeout }
@@ -164,7 +164,7 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 		if err != nil {
 			return nil, fmt.Errorf("error getting cache file path: %w", err)
 		}
-		if cachedProvider, err := ekscreds.NewFileCacheProvider(spec.Profile, s.Config.Credentials, &ekscreds.RealClock{}, afero.NewOsFs(), func(path string) ekscreds.Flock {
+		if cachedProvider, err := ekscreds.NewFileCacheProvider(spec.Profile.Name, s.Config.Credentials, &ekscreds.RealClock{}, afero.NewOsFs(), func(path string) ekscreds.Flock {
 			return flock.New(path)
 		}, credentialsCacheFilePath); err == nil {
 			s.Config.Credentials = credentials.NewCredentials(&cachedProvider)
@@ -507,7 +507,7 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session 
 	opts := session.Options{
 		Config:                  *config,
 		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 spec.Profile,
+		Profile:                 spec.Profile.Name,
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 	}
 

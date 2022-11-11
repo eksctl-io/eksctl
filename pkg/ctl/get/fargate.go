@@ -55,7 +55,7 @@ func configureGetFargateProfileCmd(cmd *cmdutils.Cmd) *options {
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &options.chunkSize, &options.output)
 	})
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 	return &options
 }
 
