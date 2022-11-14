@@ -35,7 +35,7 @@ func publicAccessCIDRsCmdWithHandler(cmd *cmdutils.Cmd, handler func(cmd *cmduti
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func publicAccessCIDRsCmd(cmd *cmdutils.Cmd) {

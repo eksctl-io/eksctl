@@ -119,7 +119,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 
 	cmdutils.AddInstanceSelectorOptions(cmd.FlagSetGroup, ng)
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
 
 	cmd.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &params.KubeconfigPath, &params.AuthenticatorRoleARN, &params.SetContext, &params.AutoKubeconfigPath, exampleClusterName)
@@ -355,7 +355,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		var kubeconfigContextName string
 
 		if params.WriteKubeconfig {
-			kubectlConfig := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile())
+			kubectlConfig := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile().Name)
 			kubeconfigContextName = kubectlConfig.CurrentContext
 
 			params.KubeconfigPath, err = kubeconfig.Write(params.KubeconfigPath, *kubectlConfig, params.SetContext)
@@ -420,7 +420,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 		// After we have the cluster config and all the nodes are done, we install Karpenter if necessary.
 		if cfg.Karpenter != nil {
-			config := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile())
+			config := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile().Name)
 			kubeConfigBytes, err := runtime.Encode(clientcmdlatest.Codec, config)
 			if err != nil {
 				return errors.Wrap(err, "generating kubeconfig")

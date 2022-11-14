@@ -167,6 +167,7 @@ func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 	if ng.InstanceSelector == nil {
 		ng.InstanceSelector = &InstanceSelector{}
 	}
+	normalizeAMIFamily(ng)
 	if ng.AMIFamily == NodeImageFamilyBottlerocket {
 		setBottlerocketNodeGroupDefaults(ng)
 	}

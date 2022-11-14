@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/kris-nova/logger"
+	"helm.sh/helm/v3/pkg/registry"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/karpenter/providers"
@@ -21,8 +22,7 @@ const (
 	clusterName              = "clusterName"
 	create                   = "create"
 	defaultInstanceProfile   = "defaultInstanceProfile"
-	helmChartName            = "karpenter/karpenter"
-	helmRepo                 = "https://charts.karpenter.sh"
+	helmChartName            = "oci://public.ecr.aws/karpenter/karpenter"
 	releaseName              = "karpenter"
 	serviceAccount           = "serviceAccount"
 	serviceAccountAnnotation = "annotations"
@@ -59,9 +59,7 @@ func NewKarpenterInstaller(opts Options) *Installer {
 func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, instanceProfileName string) error {
 	logger.Info("adding Karpenter to cluster %s", k.ClusterConfig.Metadata.Name)
 	logger.Debug("cluster endpoint used by Karpenter: %s", k.ClusterConfig.Status.Endpoint)
-	if err := k.HelmInstaller.AddRepo(helmRepo, releaseName); err != nil {
-		return fmt.Errorf("failed to add Karpenter repository: %w", err)
-	}
+
 	serviceAccountMap := map[string]interface{}{
 		create: api.IsEnabled(k.ClusterConfig.Karpenter.CreateServiceAccount),
 		serviceAccountAnnotation: map[string]interface{}{
@@ -78,15 +76,26 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 		serviceAccount: serviceAccountMap,
 	}
 
-	logger.Debug("the following values will be applied to the install: %+v", values)
-	if err := k.HelmInstaller.InstallChart(ctx, providers.InstallChartOpts{
+	registryClient, err := registry.NewClient(
+		registry.ClientOptEnableCache(true),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create registry client: %w", err)
+	}
+
+	options := providers.InstallChartOpts{
 		ChartName:       helmChartName,
 		CreateNamespace: true,
 		Namespace:       DefaultNamespace,
 		ReleaseName:     releaseName,
 		Values:          values,
 		Version:         k.ClusterConfig.Karpenter.Version,
-	}); err != nil {
+		RegistryClient:  registryClient,
+	}
+
+	logger.Debug("the following chartOptions will be applied to the install: %+v", options)
+
+	if err := k.HelmInstaller.InstallChart(ctx, options); err != nil {
 		return fmt.Errorf("failed to install Karpenter chart: %w", err)
 	}
 	return nil

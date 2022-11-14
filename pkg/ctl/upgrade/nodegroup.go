@@ -44,7 +44,7 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, upgradeNodegroupTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 
 }
 

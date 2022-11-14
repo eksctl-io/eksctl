@@ -69,7 +69,10 @@ func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorC
 		return errors.New("managed nodegroups cannot be created on IPv6 unowned clusters")
 	}
 	logger.Info("building managed nodegroup stack %q", name)
-	bootstrapper := nodebootstrap.NewManagedBootstrapper(c.spec, ng)
+	bootstrapper, err := nodebootstrap.NewManagedBootstrapper(c.spec, ng)
+	if err != nil {
+		return err
+	}
 	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), bootstrapper, forceAddCNIPolicy, vpcImporter)
 	if err := stack.AddAllResources(ctx); err != nil {
 		return err

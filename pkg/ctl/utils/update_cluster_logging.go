@@ -45,7 +45,7 @@ func enableLoggingCmd(cmd *cmdutils.Cmd) {
 
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func doEnableLogging(cmd *cmdutils.Cmd, logTypesToEnable []string, logTypesToDisable []string) error {
