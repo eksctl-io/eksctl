@@ -27,11 +27,12 @@ var _ = Describe("Windows", func() {
 			Endpoint:                 "https://test.com",
 			CertificateAuthorityData: []byte("test"),
 		}
+		runtime := api.ContainerRuntimeDockerForWindows
 		ng := &api.NodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
 				AMIFamily: api.NodeImageFamilyWindowsServer2019CoreContainer,
 			},
-			ContainerRuntime: &api.DefaultContainerRuntimeForWindows,
+			ContainerRuntime: &runtime,
 		}
 		if e.updateNodeGroup != nil {
 			e.updateNodeGroup(ng)
