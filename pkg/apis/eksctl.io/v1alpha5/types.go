@@ -372,6 +372,7 @@ const (
 	VPCCNIAddon                 = "vpc-cni"
 	KubeProxyAddon              = "kube-proxy"
 	CoreDNSAddon                = "coredns"
+	AWSEBSCSIDriverAddon        = "aws-ebs-csi-driver"
 )
 
 // supported version of Karpenter
