@@ -113,7 +113,7 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta, controlPlaneOnOutpos
 		ng.SecurityGroups.WithShared = Enabled()
 	}
 
-	setContainerRuntimeDefault(ng)
+	setContainerRuntimeDefault(ng, meta.Version)
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
@@ -229,13 +229,22 @@ func getDefaultVolumeType(nodeGroupOnOutposts bool) string {
 	return DefaultNodeVolumeType
 }
 
-func setContainerRuntimeDefault(ng *NodeGroup) {
-	if ng.ContainerRuntime == nil {
-		ng.ContainerRuntime = &DefaultContainerRuntime
-		if IsWindowsImage(ng.AMIFamily) {
-			ng.ContainerRuntime = &DefaultContainerRuntimeForWindows
-		}
+func setContainerRuntimeDefault(ng *NodeGroup, apiVersion string) {
+	var runtime string
+	if ng.ContainerRuntime != nil {
+		return
 	}
+
+	if apiVersion < DockershimDeprecationVersion {
+		runtime = ContainerRuntimeDockerD
+		if IsWindowsImage(ng.AMIFamily) {
+			runtime = ContainerRuntimeDockerForWindows
+		}
+	} else {
+		runtime = ContainerRuntimeContainerD
+	}
+
+	ng.ContainerRuntime = &runtime
 }
 
 func setIAMDefaults(iamConfig *NodeGroupIAM) {

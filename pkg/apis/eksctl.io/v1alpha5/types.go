@@ -44,6 +44,8 @@ const (
 	DefaultVersion = Version1_23
 
 	LatestVersion = Version1_24
+
+	DockershimDeprecationVersion = Version1_24
 )
 
 // No longer supported versions
@@ -401,12 +403,6 @@ var (
 
 	// DefaultNodeVolumeSize defines the default root volume size
 	DefaultNodeVolumeSize = 80
-)
-
-var (
-	// DefaultContainerRuntime defines the default container runtime.
-	DefaultContainerRuntime           = ContainerRuntimeDockerD
-	DefaultContainerRuntimeForWindows = ContainerRuntimeDockerForWindows
 )
 
 // Enabled return pointer to true value
