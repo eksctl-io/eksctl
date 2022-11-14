@@ -541,7 +541,7 @@ var _ = Describe("Create", func() {
 			When("it's the aws-ebs-csi-driver addon", func() {
 				It("creates a role with the recommended policies and attaches it to the addon", func() {
 					err := manager.Create(context.Background(), &api.Addon{
-						Name:    "aws-ebs-csi-driver",
+						Name:    api.AWSEBSCSIDriverAddon,
 						Version: "v1.0.0-eksbuild.1",
 					}, 0)
 					Expect(err).NotTo(HaveOccurred())
@@ -551,13 +551,13 @@ var _ = Describe("Create", func() {
 					Expect(name).To(Equal("eksctl-my-cluster-addon-aws-ebs-csi-driver"))
 					Expect(resourceSet).NotTo(BeNil())
 					Expect(tags).To(Equal(map[string]string{
-						api.AddonNameTag: "aws-ebs-csi-driver",
+						api.AddonNameTag: api.AWSEBSCSIDriverAddon,
 					}))
 					output, err := resourceSet.RenderJSON()
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(output)).To(ContainSubstring("PolicyEBSCSIController"))
 					Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-					Expect(*createAddonInput.AddonName).To(Equal("aws-ebs-csi-driver"))
+					Expect(*createAddonInput.AddonName).To(Equal(api.AWSEBSCSIDriverAddon))
 					Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
 					Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("role-arn"))
 				})

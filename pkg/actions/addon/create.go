@@ -23,8 +23,6 @@ import (
 
 const (
 	kubeSystemNamespace = "kube-system"
-	vpcCNIName          = "vpc-cni"
-	ebsCSIDriverName    = "aws-ebs-csi-driver"
 )
 
 func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
@@ -120,7 +118,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 		}
 	}
 
-	if addon.CanonicalName() == vpcCNIName {
+	if addon.CanonicalName() == api.VPCCNIAddon {
 		logger.Debug("patching AWS node")
 		err := a.patchAWSNodeSA(ctx)
 		if err != nil {
@@ -246,12 +244,12 @@ func (a *Manager) patchAWSNodeDaemonSet(ctx context.Context) error {
 func (a *Manager) getRecommendedPolicies(addon *api.Addon) (api.InlineDocument, []string, *api.WellKnownPolicies) {
 	// API isn't case-sensitive
 	switch addon.CanonicalName() {
-	case vpcCNIName:
+	case api.VPCCNIAddon:
 		if a.clusterConfig.IPv6Enabled() {
 			return makeIPv6VPCCNIPolicyDocument(api.Partition(a.clusterConfig.Metadata.Region)), nil, nil
 		}
 		return nil, []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}, nil
-	case ebsCSIDriverName:
+	case api.AWSEBSCSIDriverAddon:
 		return nil, nil, &api.WellKnownPolicies{
 			EBSCSIController: true,
 		}
@@ -263,7 +261,7 @@ func (a *Manager) getRecommendedPolicies(addon *api.Addon) (api.InlineDocument, 
 func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, string) {
 	// API isn't case sensitive
 	switch addon.CanonicalName() {
-	case vpcCNIName:
+	case api.VPCCNIAddon:
 		logger.Debug("found known service account location %s/%s", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
 		return api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name
 	default:
