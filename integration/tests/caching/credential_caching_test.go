@@ -56,7 +56,7 @@ var _ = Describe("", func() {
 		// Note: This proves to be a challenge since normal providers like, static and file providers, do not support
 		// expiry, therefore, they cannot be cached. This requires an AssumeRole or an EC2 role provider.
 		// For now, this part is tested via unit tests.
-		XWhen("credential caching is enabled", func() {
+		When("credential caching is enabled", func() {
 			var tmp string
 			BeforeEach(func() {
 				tmp, err := os.MkdirTemp("", "caching_creds")
