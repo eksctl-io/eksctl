@@ -19,15 +19,16 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, waitTimeout time
 	logger.Debug("addon: %v", addon)
 
 	updateAddonInput := &eks.UpdateAddonInput{
-		AddonName:   &addon.Name,
-		ClusterName: &a.clusterConfig.Metadata.Name,
+		AddonName:        &addon.Name,
+		ClusterName:      &a.clusterConfig.Metadata.Name,
+		ResolveConflicts: addon.ResolveConflicts,
 	}
 
 	if addon.Force {
 		updateAddonInput.ResolveConflicts = ekstypes.ResolveConflictsOverwrite
-		logger.Debug("setting resolve conflicts to overwrite")
-
 	}
+
+	logger.Debug("resolve conflicts set to %s", updateAddonInput.ResolveConflicts)
 
 	summary, err := a.Get(ctx, addon)
 	if err != nil {

@@ -126,9 +126,14 @@ var _ = Describe("(Integration) [Identity Provider]", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("reading Kubernetes resources")
-		list, err := clientset.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(list.Items).To(HaveLen(1))
+		Eventually(func() (int, error) {
+			list, err := clientset.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+			if err != nil {
+				fmt.Fprintf(GinkgoWriter, "error reading Kubernetes nodes: %v\n", err)
+				return 0, err
+			}
+			return len(list.Items), nil
+		}, "10m", "20s").Should(Equal(1))
 
 		secrets, err := clientset.CoreV1().Secrets(metav1.NamespaceAll).List(context.TODO(), metav1.ListOptions{})
 		Expect(err).NotTo(HaveOccurred())
