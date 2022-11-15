@@ -3,6 +3,8 @@ package karpenter
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/kris-nova/logger"
 	"helm.sh/helm/v3/pkg/registry"
@@ -16,17 +18,17 @@ const (
 	DefaultNamespace = "karpenter"
 	// DefaultServiceAccountName is the name of the service account which is needed for Karpenter
 	DefaultServiceAccountName = "karpenter"
-
-	aws                      = "aws"
-	clusterEndpoint          = "clusterEndpoint"
-	clusterName              = "clusterName"
-	create                   = "create"
-	defaultInstanceProfile   = "defaultInstanceProfile"
-	helmChartName            = "oci://public.ecr.aws/karpenter/karpenter"
-	releaseName              = "karpenter"
-	serviceAccount           = "serviceAccount"
-	serviceAccountAnnotation = "annotations"
-	serviceAccountName       = "name"
+	settings                  = "settings"
+	aws                       = "aws"
+	clusterEndpoint           = "clusterEndpoint"
+	clusterName               = "clusterName"
+	create                    = "create"
+	defaultInstanceProfile    = "defaultInstanceProfile"
+	helmChartName             = "oci://public.ecr.aws/karpenter/karpenter"
+	releaseName               = "karpenter"
+	serviceAccount            = "serviceAccount"
+	serviceAccountAnnotation  = "annotations"
+	serviceAccountName        = "name"
 )
 
 // Options contains values which Karpenter uses to configure the installation.
@@ -37,6 +39,7 @@ type Options struct {
 }
 
 // ChartInstaller defines a functionality to install Karpenter.
+//
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_chart_installer.go . ChartInstaller
 type ChartInstaller interface {
@@ -67,6 +70,11 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 		},
 		serviceAccountName: DefaultServiceAccountName,
 	}
+
+	versions := strings.Split(k.ClusterConfig.Karpenter.Version, ".")
+
+	minor, err := strconv.Atoi(versions[1])
+
 	values := map[string]interface{}{
 		clusterName:     k.ClusterConfig.Metadata.Name,
 		clusterEndpoint: k.ClusterConfig.Status.Endpoint,
@@ -74,6 +82,19 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 			defaultInstanceProfile: instanceProfileName,
 		},
 		serviceAccount: serviceAccountMap,
+	}
+
+	if minor >= 19 {
+		values = map[string]interface{}{
+			settings: map[string]interface{}{
+				aws: map[string]interface{}{
+					defaultInstanceProfile: instanceProfileName,
+					clusterName:            k.ClusterConfig.Metadata.Name,
+					clusterEndpoint:        k.ClusterConfig.Status.Endpoint,
+				},
+			},
+			serviceAccount: serviceAccountMap,
+		}
 	}
 
 	registryClient, err := registry.NewClient(
