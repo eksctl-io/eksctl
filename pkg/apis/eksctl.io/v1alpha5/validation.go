@@ -1051,7 +1051,9 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 	normalizeAMIFamily(ng.BaseNodeGroup())
 	switch ng.AMIFamily {
-	case NodeImageFamilyAmazonLinux2, NodeImageFamilyBottlerocket, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004:
+	case NodeImageFamilyAmazonLinux2, NodeImageFamilyBottlerocket, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004, //
+		NodeImageFamilyWindowsServer2019CoreContainer, NodeImageFamilyWindowsServer2019FullContainer, //
+		NodeImageFamilyWindowsServer2022CoreContainer, NodeImageFamilyWindowsServer2022FullContainer:
 	default:
 		return errors.Errorf("%q is not supported for managed nodegroups", ng.AMIFamily)
 	}
@@ -1149,6 +1151,20 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		}
 		if ng.PreBootstrapCommands != nil {
 			return fieldNotSupported("preBootstrapCommands")
+		}
+		if ng.OverrideBootstrapCommand != nil {
+			return fieldNotSupported("overrideBootstrapCommand")
+		}
+	}
+
+	// Windows doesn't use overrideBootstrapCommand, as it always uses bootstrapping script that comes with Windows AMIs
+	if IsWindowsImage(ng.AMIFamily) {
+		fieldNotSupported := func(field string) error {
+			return &unsupportedFieldError{
+				ng:    ng.NodeGroupBase,
+				path:  path,
+				field: field,
+			}
 		}
 		if ng.OverrideBootstrapCommand != nil {
 			return fieldNotSupported("overrideBootstrapCommand")
