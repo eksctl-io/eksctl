@@ -845,7 +845,11 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD && *ng.ContainerRuntime != ContainerRuntimeDockerForWindows {
 			return fmt.Errorf("only %s, %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD, ContainerRuntimeDockerForWindows)
 		}
-		if *ng.ContainerRuntime != ContainerRuntimeContainerD && cfg.Metadata.Version >= DockershimDeprecationVersion {
+		isDockershimDeprecated, err := utils.IsMinVersion(DockershimDeprecationVersion, cfg.Metadata.Version)
+		if err != nil {
+			return err
+		}
+		if *ng.ContainerRuntime != ContainerRuntimeContainerD && isDockershimDeprecated {
 			return fmt.Errorf("only %s is supported for container runtime, starting with EKS version %s", ContainerRuntimeContainerD, Version1_24)
 		}
 		if ng.OverrideBootstrapCommand != nil {
