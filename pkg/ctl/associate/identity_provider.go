@@ -37,7 +37,7 @@ func associateIdentityProvider(cmd *cmdutils.Cmd) {
 		cmdutils.AddTimeoutFlagWithValue(fs, &timeout, defaultAssociateTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func newAssociateIdentityProviderLoader(cmd *cmdutils.Cmd) cmdutils.ClusterConfigLoader {

@@ -105,13 +105,23 @@ func GetNameArg(args []string) string {
 }
 
 // AddCommonFlagsForAWS adds common flags for api.ProviderConfig
-func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig, addCfnOptions bool) {
-	group.InFlagSet("AWS client", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&p.Profile, "profile", "p", os.Getenv("AWS_PROFILE"), "AWS credentials profile to use (defaults to value of the AWS_PROFILE environment variable)")
-
+func AddCommonFlagsForAWS(cmd *Cmd, p *api.ProviderConfig, addCfnOptions bool) {
+	cmd.FlagSetGroup.InFlagSet("AWS client", func(fs *pflag.FlagSet) {
+		fs.StringVarP(&p.Profile.Name, "profile", "p", "", "AWS credentials profile to use (defaults to the value of the AWS_PROFILE environment variable)")
 		if addCfnOptions {
 			fs.StringVar(&p.CloudFormationRoleARN, "cfn-role-arn", "", "IAM role used by CloudFormation to call AWS API on your behalf")
 			fs.BoolVar(&p.CloudFormationDisableRollback, "cfn-disable-rollback", false, "for debugging: If a stack fails, do not roll it back. Be careful, this may lead to unintentional resource consumption!")
+		}
+	})
+
+	AddPreRun(cmd.CobraCommand, func(c *cobra.Command, args []string) {
+		if !c.Flag("profile").Changed {
+			if val, ok := os.LookupEnv("AWS_PROFILE"); ok {
+				p.Profile = api.Profile{
+					Name:           val,
+					SourceIsEnvVar: true,
+				}
+			}
 		}
 	})
 }

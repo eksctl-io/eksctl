@@ -65,7 +65,7 @@ func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 		fs.IntVar(&parallel, "parallel", 1, "Number of nodes to drain in parallel. Max 25")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
 }
 
 func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, podEvictionWaitPeriod time.Duration, disableEviction bool, parallel int) error {

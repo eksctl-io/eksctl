@@ -83,7 +83,6 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				return cmd
 			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(
 				ContainElement(ContainSubstring("vpc-cni")),
-				ContainElement(ContainSubstring("coredns")),
 			))
 
 			By("Asserting the addons are healthy")
@@ -92,17 +91,6 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 					WithArgs(
 						"addon",
 						"--name", "vpc-cni",
-						"--cluster", clusterName,
-						"--verbose", "2",
-					)
-				return cmd
-			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
-
-			Eventually(func() runner.Cmd {
-				cmd := params.EksctlGetCmd.
-					WithArgs(
-						"addon",
-						"--name", "coredns",
 						"--cluster", clusterName,
 						"--verbose", "2",
 					)
@@ -184,6 +172,85 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 
 			_, err = rawClient.ClientSet().AppsV1().DaemonSets("kube-system").Get(context.Background(), "aws-node", metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should have full control over configMap when creating addons", func() {
+			var (
+				clusterConfig *api.ClusterConfig
+				configMap     *corev1.ConfigMap
+			)
+
+			configMap = getConfigMap(rawClient.ClientSet(), "coredns")
+			oldCacheValue := getCacheValue(configMap)
+			newCacheValue := addToString(oldCacheValue, 5)
+			updateCacheValue(configMap, oldCacheValue, newCacheValue)
+			updateConfigMap(rawClient.ClientSet(), configMap)
+
+			By("erroring when there are config conflicts")
+			clusterConfig = getInitialClusterConfig()
+			clusterConfig.Addons = []*api.Addon{
+				{
+					Name:             "coredns",
+					Version:          "latest",
+					ResolveConflicts: ekstypes.ResolveConflictsNone,
+				},
+			}
+			data, err := json.Marshal(clusterConfig)
+			Expect(err).NotTo(HaveOccurred())
+
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"addon",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).ShouldNot(RunSuccessfully())
+
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "coredns",
+						"--cluster", clusterName,
+						"--verbose", "2",
+					)
+				return cmd
+			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("CREATE_FAILED"))))
+
+			By("overwriting the configMap")
+			clusterConfig = getInitialClusterConfig()
+			clusterConfig.Addons = []*api.Addon{
+				{
+					Name:             "coredns",
+					Version:          "latest",
+					ResolveConflicts: ekstypes.ResolveConflictsOverwrite,
+				},
+			}
+			data, err = json.Marshal(clusterConfig)
+			Expect(err).NotTo(HaveOccurred())
+
+			cmd = params.EksctlCreateCmd.
+				WithArgs(
+					"addon",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).To(RunSuccessfully())
+
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "coredns",
+						"--cluster", clusterName,
+						"--verbose", "2",
+					)
+				return cmd
+			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
+
+			Expect(getCacheValue(getConfigMap(rawClient.ClientSet(), "coredns"))).To(Equal(oldCacheValue))
 		})
 
 		It("should have full control over configMap when updating addons", func() {
@@ -341,10 +408,6 @@ func getInitialClusterConfig() *api.ClusterConfig {
 		{
 			Name:             "vpc-cni",
 			AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
-		},
-		{
-			Name:    "coredns",
-			Version: "latest",
 		},
 	}
 

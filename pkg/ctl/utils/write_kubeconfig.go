@@ -43,7 +43,7 @@ func writeKubeconfigCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &outputPath, &authenticatorRoleARN, &setContext, &autoPath, "<name>")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setContext, autoPath bool) error {
@@ -82,7 +82,7 @@ func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setCont
 		return err
 	}
 
-	kubectlConfig := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), roleARN, ctl.AWSProvider.Profile())
+	kubectlConfig := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), roleARN, ctl.AWSProvider.Profile().Name)
 	filename, err := kubeconfig.Write(outputPath, *kubectlConfig, setContext)
 	if err != nil {
 		return errors.Wrap(err, "writing kubeconfig")
