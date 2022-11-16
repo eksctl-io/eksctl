@@ -7,6 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 const (
@@ -113,7 +114,7 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta, controlPlaneOnOutpos
 		ng.SecurityGroups.WithShared = Enabled()
 	}
 
-	setContainerRuntimeDefault(ng)
+	setContainerRuntimeDefault(ng, meta.Version)
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
@@ -230,13 +231,24 @@ func getDefaultVolumeType(nodeGroupOnOutposts bool) string {
 	return DefaultNodeVolumeType
 }
 
-func setContainerRuntimeDefault(ng *NodeGroup) {
-	if ng.ContainerRuntime == nil {
-		ng.ContainerRuntime = &DefaultContainerRuntime
+func setContainerRuntimeDefault(ng *NodeGroup, clusterVersion string) {
+	var runtime string
+	if ng.ContainerRuntime != nil {
+		return
+	}
+
+	isDockershimDeprecated, _ := utils.IsMinVersion(DockershimDeprecationVersion, clusterVersion)
+
+	if isDockershimDeprecated {
+		runtime = ContainerRuntimeContainerD
+	} else {
+		runtime = ContainerRuntimeDockerD
 		if IsWindowsImage(ng.AMIFamily) {
-			ng.ContainerRuntime = &DefaultContainerRuntimeForWindows
+			runtime = ContainerRuntimeDockerForWindows
 		}
 	}
+
+	ng.ContainerRuntime = &runtime
 }
 
 func setIAMDefaults(iamConfig *NodeGroupIAM) {

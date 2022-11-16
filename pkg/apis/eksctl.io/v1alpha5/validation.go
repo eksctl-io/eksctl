@@ -735,10 +735,10 @@ func validateNodeGroupName(name string) error {
 }
 
 // ValidateNodeGroup checks compatible fields of a given nodegroup
-func ValidateNodeGroup(i int, ng *NodeGroup, outpostInfo OutpostInfo) error {
+func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 	normalizeAMIFamily(ng.BaseNodeGroup())
 	path := fmt.Sprintf("nodeGroups[%d]", i)
-	if err := validateNodeGroupBase(ng, path, outpostInfo.IsControlPlaneOnOutposts()); err != nil {
+	if err := validateNodeGroupBase(ng, path, cfg.IsControlPlaneOnOutposts()); err != nil {
 		return err
 	}
 
@@ -842,13 +842,15 @@ func ValidateNodeGroup(i int, ng *NodeGroup, outpostInfo OutpostInfo) error {
 	}
 
 	if ng.ContainerRuntime != nil {
-		if *ng.ContainerRuntime == ContainerRuntimeContainerD {
-			if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && !IsWindowsImage(ng.AMIFamily) {
-				return fmt.Errorf("%s as runtime is only supported for AL2 or Windows ami family", ContainerRuntimeContainerD)
-			}
-		}
 		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD && *ng.ContainerRuntime != ContainerRuntimeDockerForWindows {
 			return fmt.Errorf("only %s, %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD, ContainerRuntimeDockerForWindows)
+		}
+		isDockershimDeprecated, err := utils.IsMinVersion(DockershimDeprecationVersion, cfg.Metadata.Version)
+		if err != nil {
+			return err
+		}
+		if *ng.ContainerRuntime != ContainerRuntimeContainerD && isDockershimDeprecated {
+			return fmt.Errorf("only %s is supported for container runtime, starting with EKS version %s", ContainerRuntimeContainerD, Version1_24)
 		}
 		if ng.OverrideBootstrapCommand != nil {
 			return fmt.Errorf("overrideBootstrapCommand overwrites container runtime setting; please use --container-runtime in the bootsrap script instead")
@@ -869,12 +871,12 @@ func ValidateNodeGroup(i int, ng *NodeGroup, outpostInfo OutpostInfo) error {
 		if err := validateOutpostARN(ng.OutpostARN); err != nil {
 			return err
 		}
-		if outpostInfo.IsControlPlaneOnOutposts() && ng.OutpostARN != outpostInfo.GetOutpost().ControlPlaneOutpostARN {
-			return fmt.Errorf("nodeGroup.outpostARN must either be empty or match the control plane's Outpost ARN (%q != %q)", ng.OutpostARN, outpostInfo.GetOutpost().ControlPlaneOutpostARN)
+		if cfg.IsControlPlaneOnOutposts() && ng.OutpostARN != cfg.GetOutpost().ControlPlaneOutpostARN {
+			return fmt.Errorf("nodeGroup.outpostARN must either be empty or match the control plane's Outpost ARN (%q != %q)", ng.OutpostARN, cfg.GetOutpost().ControlPlaneOutpostARN)
 		}
 	}
 
-	if outpostInfo.IsControlPlaneOnOutposts() || ng.OutpostARN != "" {
+	if cfg.IsControlPlaneOnOutposts() || ng.OutpostARN != "" {
 		if ng.InstanceSelector != nil && !ng.InstanceSelector.IsZero() {
 			return errors.New("cannot specify instanceSelector for a nodegroup on Outposts")
 		}

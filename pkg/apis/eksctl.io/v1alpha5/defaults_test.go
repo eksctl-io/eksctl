@@ -263,22 +263,34 @@ var _ = Describe("ClusterConfig validation", func() {
 	})
 
 	Context("Container Runtime settings", func() {
-		It("defaults to dockerd as a container runtime", func() {
-			testNodeGroup := NodeGroup{
-				NodeGroupBase: &NodeGroupBase{},
-			}
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
-			Expect(*testNodeGroup.ContainerRuntime).To(Equal(DefaultContainerRuntime))
-		})
-		When("ami family is windows", func() {
-			It("defaults to docker as a container runtime", func() {
+		Context("Kubernetes version 1.23 or lower", func() {
+			It("defaults to dockerd as a container runtime", func() {
 				testNodeGroup := NodeGroup{
-					NodeGroupBase: &NodeGroupBase{
-						AMIFamily: NodeImageFamilyWindowsServer2019CoreContainer,
-					},
+					NodeGroupBase: &NodeGroupBase{},
 				}
-				SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
-				Expect(*testNodeGroup.ContainerRuntime).To(Equal(DefaultContainerRuntimeForWindows))
+				SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{Version: Version1_23}, false)
+				Expect(*testNodeGroup.ContainerRuntime).To(Equal(ContainerRuntimeDockerD))
+			})
+			When("ami family is windows", func() {
+				It("defaults to docker as a container runtime", func() {
+					testNodeGroup := NodeGroup{
+						NodeGroupBase: &NodeGroupBase{
+							AMIFamily: NodeImageFamilyWindowsServer2019CoreContainer,
+						},
+					}
+					SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+					Expect(*testNodeGroup.ContainerRuntime).To(Equal(ContainerRuntimeDockerForWindows))
+				})
+			})
+		})
+
+		Context("Kubernetes version 1.24 or greater", func() {
+			It("defaults to containerd as a container runtime", func() {
+				testNodeGroup := NodeGroup{
+					NodeGroupBase: &NodeGroupBase{},
+				}
+				SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{Version: Version1_24}, false)
+				Expect(*testNodeGroup.ContainerRuntime).To(Equal(ContainerRuntimeContainerD))
 			})
 		})
 	})
