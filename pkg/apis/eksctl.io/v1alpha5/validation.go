@@ -845,12 +845,14 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD && *ng.ContainerRuntime != ContainerRuntimeDockerForWindows {
 			return fmt.Errorf("only %s, %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD, ContainerRuntimeDockerForWindows)
 		}
-		isDockershimDeprecated, err := utils.IsMinVersion(DockershimDeprecationVersion, cfg.Metadata.Version)
-		if err != nil {
-			return err
-		}
-		if *ng.ContainerRuntime != ContainerRuntimeContainerD && isDockershimDeprecated {
-			return fmt.Errorf("only %s is supported for container runtime, starting with EKS version %s", ContainerRuntimeContainerD, Version1_24)
+		if clusterVersion := cfg.Metadata.Version; clusterVersion != "" {
+			isDockershimDeprecated, err := utils.IsMinVersion(DockershimDeprecationVersion, clusterVersion)
+			if err != nil {
+				return err
+			}
+			if *ng.ContainerRuntime != ContainerRuntimeContainerD && isDockershimDeprecated {
+				return fmt.Errorf("only %s is supported for container runtime, starting with EKS version %s", ContainerRuntimeContainerD, Version1_24)
+			}
 		}
 		if ng.OverrideBootstrapCommand != nil {
 			return fmt.Errorf("overrideBootstrapCommand overwrites container runtime setting; please use --container-runtime in the bootsrap script instead")
