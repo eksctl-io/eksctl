@@ -17,6 +17,7 @@ var _ = Describe("Windows", func() {
 
 	type windowsEntry struct {
 		updateNodeGroup func(*api.NodeGroup)
+		clusterDNS      string
 
 		expectedUserData string
 	}
@@ -38,7 +39,7 @@ var _ = Describe("Windows", func() {
 			e.updateNodeGroup(ng)
 		}
 
-		bootstrapper := nodebootstrap.NewWindowsBootstrapper(clusterConfig, ng)
+		bootstrapper := nodebootstrap.NewWindowsBootstrapper(clusterConfig, ng, e.clusterDNS)
 		userData, err := bootstrapper.UserData()
 		Expect(err).NotTo(HaveOccurred())
 
@@ -146,6 +147,17 @@ start /wait msiexec.exe /qb /i "amazon-cloudwatch-agent.msi"
 <powershell>
 [string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
 & $EKSBootstrapScriptFile -EKSClusterName "windohs" -APIServerEndpoint "https://test.com" -Base64ClusterCA "dGVzdA==" -ContainerRuntime "containerd" -KubeletExtraArgs "--node-labels= --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
+</powershell>
+`,
+		}),
+
+		Entry("with clusterDNS", windowsEntry{
+			clusterDNS: "172.20.0.10",
+
+			expectedUserData: `
+<powershell>
+[string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
+& $EKSBootstrapScriptFile -EKSClusterName "windohs" -APIServerEndpoint "https://test.com" -Base64ClusterCA "dGVzdA==" -DNSClusterIP "172.20.0.10" -ContainerRuntime "docker" -KubeletExtraArgs "--node-labels= --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
 </powershell>
 `,
 		}),

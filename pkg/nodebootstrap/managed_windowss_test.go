@@ -2,11 +2,13 @@ package nodebootstrap_test
 
 import (
 	"encoding/base64"
+	"strings"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
-	"strings"
 )
 
 var _ = Describe("Managed Windows UserData", func() {
@@ -27,18 +29,16 @@ var _ = Describe("Managed Windows UserData", func() {
 
 		ng := api.NewManagedNodeGroup()
 		ng.AMIFamily = api.NodeImageFamilyWindowsServer2019CoreContainer
-		//api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
 		if e.updateNodeGroup != nil {
 			e.updateNodeGroup(ng)
 		}
 
-		bootstrapper := nodebootstrap.NewWindowsBootstrapper(clusterConfig, ng)
+		bootstrapper := nodebootstrap.NewWindowsBootstrapper(clusterConfig, ng, "")
 		userData, err := bootstrapper.UserData()
 		Expect(err).NotTo(HaveOccurred())
 		actual, err := base64.StdEncoding.DecodeString(userData)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(actual)).To(Equal(strings.TrimSpace(e.expectedUserData)))
-		//Expect(decodeData(userData)).To(Equal(strings.TrimSpace(e.expectedUserData)))
 	},
 		Entry("mandatory bootstrap args in userdata", windowsEntry{
 

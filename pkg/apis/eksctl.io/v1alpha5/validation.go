@@ -1050,14 +1050,6 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 // ValidateManagedNodeGroup validates a ManagedNodeGroup and sets some defaults
 func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 	normalizeAMIFamily(ng.BaseNodeGroup())
-	switch ng.AMIFamily {
-	case NodeImageFamilyAmazonLinux2, NodeImageFamilyBottlerocket, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004, //
-		NodeImageFamilyWindowsServer2019CoreContainer, NodeImageFamilyWindowsServer2019FullContainer, //
-		NodeImageFamilyWindowsServer2022CoreContainer, NodeImageFamilyWindowsServer2022FullContainer:
-	default:
-		return errors.Errorf("%q is not supported for managed nodegroups", ng.AMIFamily)
-	}
-
 	path := fmt.Sprintf("managedNodeGroups[%d]", index)
 
 	if err := validateNodeGroupBase(ng, path, false); err != nil {
