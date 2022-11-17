@@ -24,7 +24,14 @@ func IsARMInstanceType(instanceType string) bool {
 // IsGPUInstanceType returns true if the instance type is GPU optimised
 func IsGPUInstanceType(instanceType string) bool {
 	return IsNvidiaInstanceType(instanceType) ||
-		IsInferentiaInstanceType(instanceType)
+		IsInferentiaInstanceType(instanceType) ||
+		IsTrainiumInstanceType(instanceType)
+}
+
+// IsNeuronInstanceType returns true if the instance type requires AWS Neuron
+func IsNeuronInstanceType(instanceType string) bool {
+	return IsInferentiaInstanceType(instanceType) ||
+		IsTrainiumInstanceType(instanceType)
 }
 
 // IsARMGPUInstanceType returns true if the instance type is ARM-GPU architecture
@@ -45,6 +52,11 @@ func IsNvidiaInstanceType(instanceType string) bool {
 // IsInferentiaInstanceType returns true if the instance type requires AWS Neuron
 func IsInferentiaInstanceType(instanceType string) bool {
 	return strings.HasPrefix(instanceType, "inf1")
+}
+
+// IsTrainiumnstanceType returns true if the instance type requires AWS Neuron
+func IsTrainiumInstanceType(instanceType string) bool {
+	return strings.HasPrefix(instanceType, "trn1")
 }
 
 // GetSmallestInstanceType returns the smallest instance type in instanceTypes.

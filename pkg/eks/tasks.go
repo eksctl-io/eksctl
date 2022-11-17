@@ -372,7 +372,7 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 	var clusterRequiresNeuronDevicePlugin, clusterRequiresNvidiaDevicePlugin, efaEnabled bool
 	for _, ng := range cfg.NodeGroups {
 		clusterRequiresNeuronDevicePlugin = clusterRequiresNeuronDevicePlugin ||
-			api.HasInstanceType(ng, instanceutils.IsInferentiaInstanceType)
+			api.HasInstanceType(ng, instanceutils.IsNeuronInstanceType)
 		// Only AL2 requires the NVIDIA device plugin
 		clusterRequiresNvidiaDevicePlugin = clusterRequiresNvidiaDevicePlugin ||
 			(api.HasInstanceType(ng, instanceutils.IsNvidiaInstanceType) &&
@@ -381,7 +381,7 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 	}
 	for _, ng := range cfg.ManagedNodeGroups {
 		clusterRequiresNeuronDevicePlugin = clusterRequiresNeuronDevicePlugin ||
-			api.HasInstanceTypeManaged(ng, instanceutils.IsInferentiaInstanceType)
+			api.HasInstanceTypeManaged(ng, instanceutils.IsNeuronInstanceType)
 		// Only AL2 requires the NVIDIA device plugin
 		clusterRequiresNvidiaDevicePlugin = clusterRequiresNvidiaDevicePlugin ||
 			(api.HasInstanceTypeManaged(ng, instanceutils.IsNvidiaInstanceType) &&
