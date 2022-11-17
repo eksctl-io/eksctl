@@ -237,6 +237,7 @@ func setContainerRuntimeDefault(ng *NodeGroup, clusterVersion string) {
 		return
 	}
 
+	// since clusterVersion is standardised beforehand, we can safely ignore the error
 	isDockershimDeprecated, _ := utils.IsMinVersion(DockershimDeprecationVersion, clusterVersion)
 
 	if isDockershimDeprecated {

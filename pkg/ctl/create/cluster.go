@@ -52,12 +52,27 @@ var once sync.Once
 
 func createClusterCmd(cmd *cmdutils.Cmd) {
 	createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error {
+		err := checkClusterVersion(cmd.ClusterConfig)
+		if err != nil {
+			return err
+		}
 		ctl, err := cmd.NewCtl()
 		if err != nil {
 			return err
 		}
 		return doCreateCluster(cmd, ngFilter, params, ctl)
 	})
+}
+
+func checkClusterVersion(cfg *api.ClusterConfig) error {
+	switch cfg.Metadata.Version {
+	case "", "auto":
+		cfg.Metadata.Version = api.DefaultVersion
+	case "latest":
+		cfg.Metadata.Version = api.LatestVersion
+	}
+
+	return api.ValidateClusterVersion(cfg)
 }
 
 func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error) {
@@ -149,20 +164,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	once.Do(func() {
 		cmdutils.LogRegionAndVersionInfo(meta)
 	})
-
-	switch cfg.Metadata.Version {
-	case "auto":
-		cfg.Metadata.Version = api.DefaultVersion
-	case "latest":
-		cfg.Metadata.Version = api.LatestVersion
-	}
-
-	if err := api.ValidateClusterVersion(cfg); err != nil {
-		return err
-	}
-	if cfg.Metadata.Version == "" {
-		cfg.Metadata.Version = api.DefaultVersion
-	}
 
 	if err := cfg.ValidatePrivateCluster(); err != nil {
 		return err
