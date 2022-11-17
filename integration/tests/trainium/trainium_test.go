@@ -207,10 +207,6 @@ func newClientSet(name string) *kubernetes.Clientset {
 }
 
 func getAvailabilityZones(ctx context.Context, ec2API awsapi.EC2) (string, string) {
-	zoneMap := map[string]bool{}
-	clusterZones := []string{}
-	nodeZones := []string{}
-
 	// Trn1 instance types are only available in one AZ per region at this time
 	// TODO: dynamically discover zones as part of the core codebase
 	trnInstanceZones := map[string]string{
@@ -238,20 +234,24 @@ func getAvailabilityZones(ctx context.Context, ec2API awsapi.EC2) (string, strin
 	Expect(err).NotTo(HaveOccurred())
 	zones := output.AvailabilityZones
 
+	zoneMap := map[string]struct{}{}
+	var nodeZones []string
+
 	// Add the zones to the zoneMap where the instance type is supported
 	for _, zone := range zones {
 		if *zone.ZoneId == trnInstanceZones[params.Region] {
 			nodeZones = append(nodeZones, *zone.ZoneName)
-			zoneMap[*zone.ZoneName] = true
+			zoneMap[*zone.ZoneName] = struct{}{}
 		}
 	}
 
-	// If we have fewer than the minimum required number of availabilty zones
+	// If we have fewer than the minimum required number of availability zones
 	// then backfill clusterZones to get to MinRequiredAvailabilityZones
 	for i := 0; i < len(zones) && len(zoneMap) < api.MinRequiredAvailabilityZones; i++ {
-		zoneMap[*zones[i].ZoneName] = true
+		zoneMap[*zones[i].ZoneName] = struct{}{}
 	}
 
+	var clusterZones []string
 	// convert this back to a slice of strings
 	for zone := range zoneMap {
 		clusterZones = append(clusterZones, zone)
