@@ -232,23 +232,21 @@ func getDefaultVolumeType(nodeGroupOnOutposts bool) string {
 }
 
 func setContainerRuntimeDefault(ng *NodeGroup, clusterVersion string) {
-	var runtime string
 	if ng.ContainerRuntime != nil {
 		return
 	}
 
+	// since clusterVersion is standardised beforehand, we can safely ignore the error
 	isDockershimDeprecated, _ := utils.IsMinVersion(DockershimDeprecationVersion, clusterVersion)
 
 	if isDockershimDeprecated {
-		runtime = ContainerRuntimeContainerD
+		ng.ContainerRuntime = aws.String(ContainerRuntimeContainerD)
 	} else {
-		runtime = ContainerRuntimeDockerD
+		ng.ContainerRuntime = aws.String(ContainerRuntimeDockerD)
 		if IsWindowsImage(ng.AMIFamily) {
-			runtime = ContainerRuntimeDockerForWindows
+			ng.ContainerRuntime = aws.String(ContainerRuntimeDockerForWindows)
 		}
 	}
-
-	ng.ContainerRuntime = &runtime
 }
 
 func setIAMDefaults(iamConfig *NodeGroupIAM) {

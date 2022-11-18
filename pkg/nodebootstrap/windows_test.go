@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	. "github.com/onsi/ginkgo/v2"
 
 	. "github.com/onsi/gomega"
@@ -27,12 +28,11 @@ var _ = Describe("Windows", func() {
 			Endpoint:                 "https://test.com",
 			CertificateAuthorityData: []byte("test"),
 		}
-		runtime := api.ContainerRuntimeDockerForWindows
 		ng := &api.NodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
 				AMIFamily: api.NodeImageFamilyWindowsServer2019CoreContainer,
 			},
-			ContainerRuntime: &runtime,
+			ContainerRuntime: aws.String(api.ContainerRuntimeDockerForWindows),
 		}
 		if e.updateNodeGroup != nil {
 			e.updateNodeGroup(ng)
