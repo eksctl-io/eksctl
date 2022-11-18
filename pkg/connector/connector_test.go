@@ -214,6 +214,47 @@ var _ = Describe("EKS Connector", func() {
 			_, err := c.RegisterCluster(context.Background(), cluster)
 			Expect(err).To(HaveOccurred())
 		})
+
+		It("should not fail if RegisterCluster returns a non-existent role error for the first call", func() {
+			cluster := connector.ExternalCluster{
+				Name:             "external",
+				Provider:         "gke",
+				ConnectorRoleARN: "arn:aws:iam::1234567890:role/custom-connector-role",
+			}
+
+			mockProvider := mockprovider.NewMockProvider()
+
+			mockDescribeCluster(mockProvider, cluster.Name)
+
+			createRegisterClusterMock := func() *mock.Call {
+				return mockProvider.MockEKS().On("RegisterCluster", mock.Anything, mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
+					return *input.Name == cluster.Name
+				}))
+			}
+			createRegisterClusterMock().Return(nil, &smithy.OperationError{
+				Err: errors.New("Nonexistent role or missing ssm service principal in trust policy"),
+			}).Once()
+
+			createRegisterClusterMock().Return(&eks.RegisterClusterOutput{
+				Cluster: &ekstypes.Cluster{
+					ConnectorConfig: &ekstypes.ConnectorConfigResponse{
+						ActivationId:     aws.String("activation-id-123"),
+						ActivationCode:   aws.String("activation-code-123"),
+						ActivationExpiry: aws.Time(time.Now()),
+					},
+				},
+			}, nil).Once()
+
+			mockProvider.MockSTS().On("GetCallerIdentity", mock.Anything, mock.Anything).Return(&sts.GetCallerIdentityOutput{
+				Arn: aws.String("arn:aws:iam::12356:user/eksctl"),
+			}, nil)
+
+			c := &connector.EKSConnector{
+				Provider: mockProvider,
+			}
+			_, err := c.RegisterCluster(context.Background(), cluster)
+			Expect(err).NotTo(HaveOccurred())
+		})
 	})
 })
 

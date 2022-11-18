@@ -164,7 +164,7 @@ func (c *EKSConnector) registerCluster(ctx context.Context, cluster ExternalClus
 
 		if err != nil {
 			var oe *smithy.OperationError
-			if errors.As(err, &oe) && strings.Contains(oe.Error(), "Not existing role") {
+			if errors.As(err, &oe) && (strings.Contains(oe.Error(), "Nonexistent role") || strings.Contains(oe.Error(), "Not existing role")) {
 				logger.Debug("IAM role could not be found; retrying RegisterCluster")
 				return err
 			}
