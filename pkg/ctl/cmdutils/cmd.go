@@ -84,6 +84,13 @@ func (c *Cmd) InitializeClusterConfig() error {
 // NewProviderForExistingCluster is a wrapper for NewCtl that also validates that the cluster exists and is not a
 // registered/connected cluster.
 func (c *Cmd) NewProviderForExistingCluster(ctx context.Context) (*eks.ClusterProvider, error) {
+	return c.NewProviderForExistingClusterHelper(ctx, func(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
+		return nil
+	})
+}
+
+// NewProviderForExistingClusterHelper allows formating cluster K8s version to a standard value before doing nodegroup validations and initializations
+func (c *Cmd) NewProviderForExistingClusterHelper(ctx context.Context, standardizeClusterVersionFormat func(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error) (*eks.ClusterProvider, error) {
 	clusterProvider, err := eks.New(ctx, &c.ProviderConfig, c.ClusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("could not create cluster provider from options: %w", err)
@@ -92,6 +99,10 @@ func (c *Cmd) NewProviderForExistingCluster(ctx context.Context) (*eks.ClusterPr
 		return nil, ErrUnsupportedRegion(&c.ProviderConfig)
 	}
 	if err := clusterProvider.RefreshClusterStatus(ctx, c.ClusterConfig); err != nil {
+		return nil, err
+	}
+
+	if err := standardizeClusterVersionFormat(clusterProvider, c.ClusterConfig.Metadata); err != nil {
 		return nil, err
 	}
 

@@ -3,7 +3,6 @@ package nodegroup_test
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -120,11 +119,6 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		t.expectedCalls(k, &ngFilter)
 	}
 },
-	Entry("fails when cluster version is not supported", ngEntry{
-		version:     "1.14",
-		expectedErr: fmt.Errorf("invalid version, %s is no longer supported, supported values: auto, default, latest, %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", "1.14", strings.Join(api.SupportedVersions(), ", ")),
-	}),
-
 	Entry("when cluster is unowned, fails to load VPC from config if config is not supplied", ngEntry{
 		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
