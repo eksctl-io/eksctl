@@ -69,6 +69,7 @@ var _ = BeforeSuite(func() {
 			"--nodes", "1",
 			"--node-type", "inf1.xlarge",
 			"--version", params.Version,
+			"--zones", "us-west-2a,us-west-2c,us-west-2d",
 			"--kubeconfig", params.KubeconfigPath,
 		)
 		Expect(cmd).To(RunSuccessfully())
@@ -83,6 +84,7 @@ var _ = BeforeSuite(func() {
 			"--nodes", "1",
 			"--node-type", "inf1.xlarge",
 			"--version", params.Version,
+			"--zones", "us-west-2a,us-west-2c,us-west-2d",
 			"--kubeconfig", params.KubeconfigPath,
 		)
 		Expect(cmd).To(RunSuccessfully())

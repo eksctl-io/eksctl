@@ -1,7 +1,7 @@
 # Make sure to run the following commands after changes to this file are made:
 # `make -f Makefile.docker update-build-image-tag && make -f Makefile.docker push-build-image`
 
-FROM golang:1.18.0-alpine3.14@sha256:b8eeab34b03b7b97988e42b75223c764d26ed4b5b5231c6c14f2695c8cd86847 AS base
+FROM golang:1.18.8-alpine3.16@sha256:6b494c932ee8c209631e27521ddbe364da56e7f1275998fbb182447d20103e46 AS base
 
 # Add kubectl and aws-iam-authenticator to the PATH
 ENV PATH="${PATH}:/out/usr/bin:/out/usr/local/bin"

@@ -112,21 +112,17 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).To(HaveOccurred())
 		})
 
-		It("containerd is only allowed for AL2 or Windows", func() {
+		It("should reject docker runtime if version is 1.24 or greater", func() {
 			cfg := api.NewClusterConfig()
+			cfg.Metadata.Version = api.Version1_24
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "node-group"
-			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
-			ng0.AMIFamily = api.NodeImageFamilyBottlerocket
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerD)
 			err := api.ValidateClusterConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
 			err = api.ValidateNodeGroup(0, ng0, cfg)
 			Expect(err).To(HaveOccurred())
-			ng0.AMIFamily = api.NodeImageFamilyWindowsServer2019CoreContainer
-			err = api.ValidateClusterConfig(cfg)
-			Expect(err).NotTo(HaveOccurred())
-			err = api.ValidateNodeGroup(0, ng0, cfg)
-			Expect(err).NotTo(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("only %s is supported for container runtime, starting with EKS version %s", api.ContainerRuntimeContainerD, api.Version1_24))))
 		})
 
 		It("containerd cannot be set together with overrideBootstrapCommand", func() {

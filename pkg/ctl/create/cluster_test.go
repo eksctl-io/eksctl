@@ -22,6 +22,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
+	"github.com/weaveworks/eksctl/pkg/ctl/ctltest"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/fakes"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -212,6 +213,50 @@ var _ = Describe("create cluster", func() {
 		expectedErr string
 	}
 
+	Describe("[Outposts] cluster version issues", func() {
+		Describe("version not set", func() {
+			It("should return an error", func() {
+				cfg := &api.ClusterConfig{
+					TypeMeta: api.ClusterConfigTypeMeta(),
+					Metadata: &api.ClusterMeta{
+						Name:    "cluster-1",
+						Region:  "us-west-2",
+						Version: "",
+					},
+					Outpost: &api.Outpost{
+						ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+					},
+				}
+
+				cmd := newDefaultCmd("cluster", "--config-file", ctltest.CreateConfigFile(cfg))
+				_, err := cmd.execute()
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring("cluster version must be explicitly set to 1.21 for Outposts clusters as only version 1.21 is currently supported")))
+			})
+		})
+
+		Describe("version set to unsupported version", func() {
+			It("should return an error", func() {
+				cfg := &api.ClusterConfig{
+					TypeMeta: api.ClusterConfigTypeMeta(),
+					Metadata: &api.ClusterMeta{
+						Name:    "cluster-1",
+						Region:  "us-west-2",
+						Version: "1.20",
+					},
+					Outpost: &api.Outpost{
+						ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+					},
+				}
+
+				cmd := newDefaultCmd("cluster", "--config-file", ctltest.CreateConfigFile(cfg))
+				_, err := cmd.execute()
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring("only version 1.21 is supported on Outposts")))
+			})
+		})
+	})
+
 	DescribeTable("doCreateCluster", func(ce createClusterEntry) {
 		p := mockprovider.NewMockProvider()
 		defaultProviderMocks(p, defaultOutput, ce.mockOutposts)
@@ -269,30 +314,6 @@ var _ = Describe("create cluster", func() {
 		Expect(err).NotTo(HaveOccurred())
 	},
 		Entry("standard cluster", createClusterEntry{}),
-
-		Entry("[Outposts] cluster version not set", createClusterEntry{
-			updateClusterConfig: func(c *api.ClusterConfig) {
-				c.Metadata.Version = ""
-				c.Outpost = &api.Outpost{
-					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
-				}
-			},
-			mockOutposts: true,
-
-			expectedErr: "cluster version must be explicitly set to 1.21 for Outposts clusters as only version 1.21 is currently supported",
-		}),
-
-		Entry("[Outposts] cluster version set to an unsupported version", createClusterEntry{
-			updateClusterConfig: func(c *api.ClusterConfig) {
-				c.Metadata.Version = api.Version1_22
-				c.Outpost = &api.Outpost{
-					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
-				}
-			},
-			mockOutposts: true,
-
-			expectedErr: "only version 1.21 is supported on Outposts",
-		}),
 
 		Entry("[Outposts] control plane on Outposts with valid config", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {

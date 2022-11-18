@@ -202,7 +202,7 @@ var _ = Describe("Outposts validation", func() {
 	)
 
 	type nodeGroupEntry struct {
-		outpostInfo api.OutpostInfo
+		outpostInfo *api.ClusterConfig
 		nodeGroup   *api.NodeGroup
 
 		expectedErr string
