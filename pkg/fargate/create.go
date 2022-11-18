@@ -60,6 +60,10 @@ func (c *Client) CreateProfile(ctx context.Context, profile *api.FargateProfile,
 	out, err := c.api.CreateFargateProfile(ctx, createRequest(c.clusterName, profile))
 	logger.Debug("Fargate profile: create request: received: %#v", out)
 	if err != nil {
+		var ipe *ekstypes.InvalidParameterException
+		if errors.As(err, &ipe) && strings.HasPrefix(ipe.ErrorMessage(), "Fargate Profile creation for the Availability Zone") {
+			return fmt.Errorf("%s; please rerun the command by supplying subnets in the Fargate Profile that do not exist in the unsupported AZ, or recreate the cluster after specifying supported AZs in `availabilityZones`", ipe.ErrorMessage())
+		}
 		return errors.Wrapf(err, "failed to create Fargate profile %q", profile.Name)
 	}
 	if waitForCreation {

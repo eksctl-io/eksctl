@@ -10,7 +10,7 @@ import (
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -112,9 +112,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		path := fmt.Sprintf("nodeGroups[%d]", i)
 		if err := validateNg(ng.NodeGroupBase, path); err != nil {
 			return err
-		}
-		if ng.DisableASGTagPropagation != nil {
-			logger.Warning("field DisableASGTagPropagation for nodegroup has been deprecated and has no effect. Please use PropagateASGTags instead for nodegroup %s!", ng.Name)
 		}
 		if ng.OutpostARN != "" {
 			if ngOutpostARN != "" && ng.OutpostARN != ngOutpostARN {
@@ -254,8 +251,8 @@ func validateKarpenterConfig(cfg *ClusterConfig) error {
 		return fmt.Errorf("failed to parse supported Karpenter version %s: %w", supportedKarpenterVersion, err)
 	}
 
-	if v.GreaterThan(supportedVersion) {
-		return fmt.Errorf("failed to validate Karpenter config: maximum supported version is %s", supportedKarpenterVersion)
+	if v.LessThan(supportedVersion) {
+		return fmt.Errorf("minimum supported version is %s", supportedKarpenterVersion)
 	}
 
 	if IsDisabled(cfg.IAM.WithOIDC) {
@@ -622,9 +619,19 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 		logger.Warning("%s does not ship with NVIDIA GPU drivers installed, hence won't support running GPU-accelerated workloads out of the box", ng.AMIFamily)
 	}
 
-	// Bottlerocket doesn't support Inferentia hosts
-	if instanceutils.IsInferentiaInstanceType(SelectInstanceType(np)) && ng.AMIFamily == NodeImageFamilyBottlerocket {
-		return errors.Errorf("Inferentia instance types are not supported for %s", ng.AMIFamily)
+	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != "" {
+		instanceType := SelectInstanceType(np)
+		unsupportedErr := func(instanceTypeName string) error {
+			return fmt.Errorf("%s instance types are not supported for %s", instanceTypeName, ng.AMIFamily)
+		}
+		// Only AL2 supports Inferentia hosts.
+		if instanceutils.IsInferentiaInstanceType(instanceType) {
+			return unsupportedErr("Inferentia")
+		}
+		// Only AL2 supports Trainium hosts.
+		if instanceutils.IsTrainiumInstanceType(instanceType) {
+			return unsupportedErr("Trainium")
+		}
 	}
 
 	if ng.CapacityReservation != nil {
@@ -738,10 +745,10 @@ func validateNodeGroupName(name string) error {
 }
 
 // ValidateNodeGroup checks compatible fields of a given nodegroup
-func ValidateNodeGroup(i int, ng *NodeGroup, outpostInfo OutpostInfo) error {
+func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 	normalizeAMIFamily(ng.BaseNodeGroup())
 	path := fmt.Sprintf("nodeGroups[%d]", i)
-	if err := validateNodeGroupBase(ng, path, outpostInfo.IsControlPlaneOnOutposts()); err != nil {
+	if err := validateNodeGroupBase(ng, path, cfg.IsControlPlaneOnOutposts()); err != nil {
 		return err
 	}
 
@@ -845,13 +852,17 @@ func ValidateNodeGroup(i int, ng *NodeGroup, outpostInfo OutpostInfo) error {
 	}
 
 	if ng.ContainerRuntime != nil {
-		if *ng.ContainerRuntime == ContainerRuntimeContainerD {
-			if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && !IsWindowsImage(ng.AMIFamily) {
-				return fmt.Errorf("%s as runtime is only supported for AL2 or Windows ami family", ContainerRuntimeContainerD)
-			}
-		}
 		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD && *ng.ContainerRuntime != ContainerRuntimeDockerForWindows {
 			return fmt.Errorf("only %s, %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD, ContainerRuntimeDockerForWindows)
+		}
+		if clusterVersion := cfg.Metadata.Version; clusterVersion != "" {
+			isDockershimDeprecated, err := utils.IsMinVersion(DockershimDeprecationVersion, clusterVersion)
+			if err != nil {
+				return err
+			}
+			if *ng.ContainerRuntime != ContainerRuntimeContainerD && isDockershimDeprecated {
+				return fmt.Errorf("only %s is supported for container runtime, starting with EKS version %s", ContainerRuntimeContainerD, Version1_24)
+			}
 		}
 		if ng.OverrideBootstrapCommand != nil {
 			return fmt.Errorf("overrideBootstrapCommand overwrites container runtime setting; please use --container-runtime in the bootsrap script instead")
@@ -872,12 +883,12 @@ func ValidateNodeGroup(i int, ng *NodeGroup, outpostInfo OutpostInfo) error {
 		if err := validateOutpostARN(ng.OutpostARN); err != nil {
 			return err
 		}
-		if outpostInfo.IsControlPlaneOnOutposts() && ng.OutpostARN != outpostInfo.GetOutpost().ControlPlaneOutpostARN {
-			return fmt.Errorf("nodeGroup.outpostARN must either be empty or match the control plane's Outpost ARN (%q != %q)", ng.OutpostARN, outpostInfo.GetOutpost().ControlPlaneOutpostARN)
+		if cfg.IsControlPlaneOnOutposts() && ng.OutpostARN != cfg.GetOutpost().ControlPlaneOutpostARN {
+			return fmt.Errorf("nodeGroup.outpostARN must either be empty or match the control plane's Outpost ARN (%q != %q)", ng.OutpostARN, cfg.GetOutpost().ControlPlaneOutpostARN)
 		}
 	}
 
-	if outpostInfo.IsControlPlaneOnOutposts() || ng.OutpostARN != "" {
+	if cfg.IsControlPlaneOnOutposts() || ng.OutpostARN != "" {
 		if ng.InstanceSelector != nil && !ng.InstanceSelector.IsZero() {
 			return errors.New("cannot specify instanceSelector for a nodegroup on Outposts")
 		}
@@ -1391,7 +1402,9 @@ func isSupportedAMIFamily(imageFamily string) bool {
 func IsWindowsImage(imageFamily string) bool {
 	switch imageFamily {
 	case NodeImageFamilyWindowsServer2019CoreContainer,
-		NodeImageFamilyWindowsServer2019FullContainer:
+		NodeImageFamilyWindowsServer2019FullContainer,
+		NodeImageFamilyWindowsServer2022CoreContainer,
+		NodeImageFamilyWindowsServer2022FullContainer:
 		return true
 
 	default:

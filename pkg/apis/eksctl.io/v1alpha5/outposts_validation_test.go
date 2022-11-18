@@ -197,10 +197,12 @@ var _ = Describe("Outposts validation", func() {
 		Entry("Ubuntu2004", api.NodeImageFamilyUbuntu2004, true),
 		Entry("Windows2019Core", api.NodeImageFamilyWindowsServer2019CoreContainer, true),
 		Entry("Windows2019Full", api.NodeImageFamilyWindowsServer2019FullContainer, true),
+		Entry("Windows2022Core", api.NodeImageFamilyWindowsServer2022CoreContainer, true),
+		Entry("Windows2022Full", api.NodeImageFamilyWindowsServer2022FullContainer, true),
 	)
 
 	type nodeGroupEntry struct {
-		outpostInfo api.OutpostInfo
+		outpostInfo *api.ClusterConfig
 		nodeGroup   *api.NodeGroup
 
 		expectedErr string

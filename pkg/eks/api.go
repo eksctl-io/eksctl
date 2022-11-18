@@ -10,6 +10,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	awsv2 "github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
@@ -63,8 +64,9 @@ type KubernetesProvider struct {
 	Signer      api.STSPresigner
 }
 
-//counterfeiter:generate -o fakes/fake_kube_provider.go . KubeProvider
 // KubeProvider is an interface with helper funcs for k8s and EKS that are part of ClusterProvider
+//
+//counterfeiter:generate -o fakes/fake_kube_provider.go . KubeProvider
 type KubeProvider interface {
 	NewRawClient(clusterInfo kubeconfig.ClusterInfo) (*kubernetes.RawClient, error)
 	NewStdClientSet(clusterInfo kubeconfig.ClusterInfo) (*k8sclient.Clientset, error)
@@ -106,8 +108,8 @@ func (p ProviderServices) CloudWatchLogs() awsapi.CloudWatchLogs {
 // Region returns provider-level region setting
 func (p ProviderServices) Region() string { return p.spec.Region }
 
-// Profile returns provider-level profile name
-func (p ProviderServices) Profile() string { return p.spec.Profile }
+// Profile returns the provider-level AWS profile.
+func (p ProviderServices) Profile() api.Profile { return p.spec.Profile }
 
 // WaitTimeout returns provider-level duration after which any wait operation has to timeout
 func (p ProviderServices) WaitTimeout() time.Duration { return p.spec.WaitTimeout }
@@ -162,7 +164,7 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 		if err != nil {
 			return nil, fmt.Errorf("error getting cache file path: %w", err)
 		}
-		if cachedProvider, err := ekscreds.NewFileCacheProvider(spec.Profile, s.Config.Credentials, &ekscreds.RealClock{}, afero.NewOsFs(), func(path string) ekscreds.Flock {
+		if cachedProvider, err := ekscreds.NewFileCacheProvider(spec.Profile.Name, s.Config.Credentials, &ekscreds.RealClock{}, afero.NewOsFs(), func(path string) ekscreds.Flock {
 			return flock.New(path)
 		}, credentialsCacheFilePath); err == nil {
 			s.Config.Credentials = credentials.NewCredentials(&cachedProvider)
@@ -397,12 +399,12 @@ func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2
 	p := ec2.NewDescribeInstanceTypeOfferingsPaginator(ec2API, &ec2.DescribeInstanceTypeOfferingsInput{
 		Filters: []ec2types.Filter{
 			{
-				Name:   aws.String("instance-type"),
+				Name:   awsv2.String("instance-type"),
 				Values: uniqueInstances.List(),
 			},
 		},
 		LocationType: ec2types.LocationTypeAvailabilityZone,
-		MaxResults:   aws.Int32(100),
+		MaxResults:   awsv2.Int32(100),
 	})
 	for p.HasMorePages() {
 		output, err := p.NextPage(ctx)
@@ -417,10 +419,10 @@ func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2
 	for _, offer := range instanceTypeOfferings {
 		if _, ok := offers[string(offer.InstanceType)]; !ok {
 			offers[string(offer.InstanceType)] = map[string]struct{}{
-				aws.StringValue(offer.Location): {},
+				awsv2.ToString(offer.Location): {},
 			}
 		} else {
-			offers[string(offer.InstanceType)][aws.StringValue(offer.Location)] = struct{}{}
+			offers[string(offer.InstanceType)][awsv2.ToString(offer.Location)] = struct{}{}
 		}
 	}
 	// check if the instance type is available in at least one of the offered zones
@@ -456,11 +458,11 @@ func ValidateLocalZones(ctx context.Context, ec2API awsapi.EC2, localZones []str
 		ZoneNames: localZones,
 		Filters: []ec2types.Filter{
 			{
-				Name:   aws.String("region-name"),
+				Name:   awsv2.String("region-name"),
 				Values: []string{region},
 			},
 			{
-				Name:   aws.String("state"),
+				Name:   awsv2.String("state"),
 				Values: []string{string(ec2types.AvailabilityZoneStateAvailable)},
 			},
 		},
@@ -505,7 +507,7 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session 
 	opts := session.Options{
 		Config:                  *config,
 		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 spec.Profile,
+		Profile:                 spec.Profile.Name,
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 	}
 

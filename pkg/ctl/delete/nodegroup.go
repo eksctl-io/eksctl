@@ -48,7 +48,7 @@ func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cm
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to delete")
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
@@ -70,7 +70,7 @@ func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cm
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
 }
 
 func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration, podEvictionWaitPeriod time.Duration, disableEviction bool, parallel int) error {

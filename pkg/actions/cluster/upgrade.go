@@ -118,6 +118,8 @@ func getNextVersion(currentVersion string) (string, error) {
 		return api.Version1_23, nil
 	case api.Version1_23:
 		return api.Version1_24, nil
+	case api.Version1_24:
+		return api.Version1_25, nil
 	default:
 		// version of control plane is not known to us, maybe we are just too old...
 		return "", fmt.Errorf("control plane version %q is not known to this version of eksctl, try to upgrade eksctl first", currentVersion)

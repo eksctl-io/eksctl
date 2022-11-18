@@ -32,7 +32,7 @@ func scaleNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to scale")
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 
@@ -56,7 +56,7 @@ func scaleNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
 }
 
 func doScaleNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {

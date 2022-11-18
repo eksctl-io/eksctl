@@ -1,11 +1,17 @@
 package create
 
 import (
+	"fmt"
+	"strings"
+
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 var _ = Describe("create nodegroup", func() {
@@ -170,7 +176,83 @@ var _ = Describe("create nodegroup", func() {
 				args:  []string{"cluster", "--node-ami-family", "WindowsServer2019CoreContainer"},
 				error: unsupportedWindowsError,
 			}),
+			Entry("with unsupported AMI", invalidParamsCase{
+				args:  []string{"cluster", "--node-ami-family", "WindowsServer2022FullContainer"},
+				error: unsupportedWindowsError,
+			}),
+			Entry("with unsupported AMI", invalidParamsCase{
+				args:  []string{"cluster", "--node-ami-family", "WindowsServer2022CoreContainer"},
+				error: unsupportedWindowsError,
+			}),
 		)
-
 	})
+
+	type checkNodeGroupVersionInput struct {
+		ctl             *eks.ClusterProvider
+		meta            *api.ClusterMeta
+		expectedVersion string
+		expectedErr     string
+	}
+
+	providerVersion1_23 := &eks.ClusterProvider{
+		Status: &eks.ProviderStatus{
+			ClusterInfo: &eks.ClusterInfo{
+				Cluster: &types.Cluster{
+					Version: aws.String(api.Version1_23),
+				},
+			},
+		},
+	}
+
+	DescribeTable("checkNodeGroupVersion",
+		func(input checkNodeGroupVersionInput) {
+			err := checkNodeGroupVersion(input.ctl, input.meta)
+			if input.expectedErr != "" {
+				Expect(err).To(MatchError(ContainSubstring(input.expectedErr)))
+				return
+			}
+			Expect(err).NotTo(HaveOccurred())
+			Expect(input.meta.Version).To(Equal(input.expectedVersion))
+		},
+		Entry("version is left empty", checkNodeGroupVersionInput{
+			ctl:             providerVersion1_23,
+			meta:            &api.ClusterMeta{},
+			expectedVersion: api.Version1_23,
+		}),
+		Entry("version is set to auto", checkNodeGroupVersionInput{
+			ctl: providerVersion1_23,
+			meta: &api.ClusterMeta{
+				Version: "auto",
+			},
+			expectedVersion: api.Version1_23,
+		}),
+		Entry("version is set to latest", checkNodeGroupVersionInput{
+			ctl: providerVersion1_23,
+			meta: &api.ClusterMeta{
+				Version: "latest",
+			},
+			expectedVersion: api.LatestVersion,
+		}),
+		Entry("version is set to deprecated version", checkNodeGroupVersionInput{
+			meta: &api.ClusterMeta{
+				Version: api.Version1_15,
+			},
+			expectedErr: fmt.Sprintf("invalid version, %s is no longer supported", api.Version1_15),
+		}),
+		Entry("version is set to unsupported version", checkNodeGroupVersionInput{
+			meta: &api.ClusterMeta{
+				Version: "100",
+			},
+			expectedErr: fmt.Sprintf("invalid version 100, supported values: auto, default, latest, %s", strings.Join(api.SupportedVersions(), ", ")),
+		}),
+		Entry("fails to retrieve control plane version", checkNodeGroupVersionInput{
+			ctl: &eks.ClusterProvider{
+				Status: &eks.ProviderStatus{},
+			},
+			meta: &api.ClusterMeta{
+				Version: "auto",
+			},
+			expectedErr: "unable to get control plane version",
+		}),
+	)
 })

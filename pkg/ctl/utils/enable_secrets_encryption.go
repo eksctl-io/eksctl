@@ -33,7 +33,7 @@ func enableSecretsEncryptionWithHandler(cmd *cmdutils.Cmd, handler func(*cmdutil
 		return handler(cmd, encryptExistingSecrets)
 	}
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlag(fs, cfg.Metadata)

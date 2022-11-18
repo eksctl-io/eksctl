@@ -70,7 +70,7 @@ func flux2Install(cmd *cmdutils.Cmd) error {
 			}
 		}()
 		logger.Debug("writing temporary kubeconfig to %s", kubeCfgPath.Name())
-		kubectlConfig := kubeconfig.NewForKubectl(cmd.ClusterConfig, eks.GetUsername(ctl.Status.IAMRoleARN), "", ctl.AWSProvider.Profile())
+		kubectlConfig := kubeconfig.NewForKubectl(cmd.ClusterConfig, eks.GetUsername(ctl.Status.IAMRoleARN), "", ctl.AWSProvider.Profile().Name)
 		if _, err := kubeconfig.Write(kubeCfgPath.Name(), *kubectlConfig, true); err != nil {
 			return err
 		}

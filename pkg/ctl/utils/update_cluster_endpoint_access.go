@@ -39,7 +39,7 @@ func updateClusterEndpointsCmd(cmd *cmdutils.Cmd) {
 			fs.BoolVar(&private, "private-access", false, "access for private (VPC) clients")
 			fs.BoolVar(&public, "public-access", false, "access for public clients")
 		})
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool) error {

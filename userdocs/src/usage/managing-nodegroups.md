@@ -220,7 +220,7 @@ eksctl delete nodegroup --cluster=<clusterName> --name=<nodegroupName>
 
 
 !!!note
-This will drain all pods from that nodegroup before the instances are deleted.
+    This will drain all pods from that nodegroup before the instances are deleted.
 
 To skip eviction rules during the drain process, run:
 

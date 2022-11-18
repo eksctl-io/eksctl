@@ -28,7 +28,7 @@ func nodeGroupHealthCmd(cmd *cmdutils.Cmd) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		fs.StringVarP(&nodeGroupName, "name", "n", "", "Name of the nodegroup")
 
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
@@ -36,7 +36,7 @@ func nodeGroupHealthCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func getNodeGroupHealth(cmd *cmdutils.Cmd, nodeGroupName string) error {

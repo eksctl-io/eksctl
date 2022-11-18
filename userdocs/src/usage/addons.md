@@ -69,6 +69,21 @@ eksctl create addon -f config.yaml
 eksctl create addon --name vpc-cni --version 1.7.5 --service-account-role-arn=<role-arn>
 ```
 
+During addon creation, if a self-managed version of the addon already exists on the cluster, you can choose how potential `configMap` conflicts shall be resolved by setting `resolveConflicts` option via the config file. e.g.,
+
+```yaml
+addons:
+- name: vpc-cni 
+  attachPolicyARNs:
+    - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+  resolveConflicts: overwrite
+```
+
+For addon create, the `resolveConflicts` field supports two distinct values.
+
+- `overwrite` - EKS overwrites any config changes back to EKS default values
+- `none` - EKS doesn't change the value. The create might fail.
+
 ## Listing enabled addons
 
 You can see what addons are enabled in your cluster by running:
@@ -105,6 +120,23 @@ eksctl update addon -f config.yaml
 ```console
 eksctl update addon --name vpc-cni --version 1.8.0 --service-account-role-arn=<new-role>
 ```
+
+Similarly to addon creation, When updating an addon, you have full control over the config changes that you may have previously applied on that add-on's `configMap`. Specifically, you can preserve, or overwrite them. This optional functionality is available via the same config file field `resolveConflicts`. e.g.,
+
+
+```yaml
+addons:
+- name: vpc-cni 
+  attachPolicyARNs:
+    - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+  resolveConflicts: preserve
+```
+
+For addon update, the `resolveConflicts` field accepts three distinct values.
+
+- `preserve` - EKS preserves the value. If you choose this option, we recommend that you test any field and value changes on a non-production cluster before updating the add-on on your production cluster.
+- `overwrite` - EKS overwrites any config changes back to EKS default values
+- `none` - EKS doesn't change the value. The update might fail.
 
 ## Deleting addons
 You can delete an addon by running:

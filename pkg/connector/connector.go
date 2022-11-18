@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	awsarn "github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	awsarn "github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/smithy-go"
 	"github.com/cenk/backoff"
 	"github.com/kris-nova/logger"
@@ -164,7 +164,7 @@ func (c *EKSConnector) registerCluster(ctx context.Context, cluster ExternalClus
 
 		if err != nil {
 			var oe *smithy.OperationError
-			if errors.As(err, &oe) && strings.Contains(oe.Error(), "Not existing role") {
+			if errors.As(err, &oe) && (strings.Contains(oe.Error(), "Nonexistent role") || strings.Contains(oe.Error(), "Not existing role")) {
 				logger.Debug("IAM role could not be found; retrying RegisterCluster")
 				return err
 			}

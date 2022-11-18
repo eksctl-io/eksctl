@@ -38,10 +38,14 @@ const (
 
 	Version1_23 = "1.23"
 
+	Version1_24 = "1.24"
+
 	// DefaultVersion (default)
 	DefaultVersion = Version1_23
 
-	LatestVersion = Version1_23
+	LatestVersion = Version1_24
+
+	DockershimDeprecationVersion = Version1_24
 )
 
 // No longer supported versions
@@ -79,8 +83,8 @@ const (
 
 // Not yet supported versions
 const (
-	// Version1_24 represents Kubernetes version 1.24.x
-	Version1_24 = "1.24"
+	// Version1_25 represents Kubernetes version 1.25.x
+	Version1_25 = "1.25"
 )
 
 const (
@@ -147,6 +151,9 @@ const (
 	// RegionAPEast1 represents the Asia Pacific Region Hong Kong
 	RegionAPEast1 = "ap-east-1"
 
+	// RegionMECentral1 represents the Middle East Region Dubai
+	RegionMECentral1 = "me-central-1"
+
 	// RegionMESouth1 represents the Middle East Region Bahrain
 	RegionMESouth1 = "me-south-1"
 
@@ -191,6 +198,9 @@ const (
 
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
 	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
+
+	NodeImageFamilyWindowsServer2022CoreContainer = "WindowsServer2022CoreContainer"
+	NodeImageFamilyWindowsServer2022FullContainer = "WindowsServer2022FullContainer"
 )
 
 // Deprecated `NodeAMIFamily`
@@ -288,6 +298,9 @@ const (
 	// eksResourceAccountAPEast1 defines the AWS EKS account ID that provides node resources in ap-east-1 region
 	eksResourceAccountAPEast1 = "800184023465"
 
+	// eksResourceAccountMECentral1 defines the AWS EKS account ID that provides node resources in me-central-1 region
+	eksResourceAccountMECentral1 = "759879836304"
+
 	// eksResourceAccountMESouth1 defines the AWS EKS account ID that provides node resources in me-south-1 region
 	eksResourceAccountMESouth1 = "558608220178"
 
@@ -363,7 +376,7 @@ const (
 
 // supported version of Karpenter
 const (
-	supportedKarpenterVersion = "0.15.0"
+	supportedKarpenterVersion = "v0.17.0"
 )
 
 // Values for Capacity Reservation Preference
@@ -390,12 +403,6 @@ var (
 
 	// DefaultNodeVolumeSize defines the default root volume size
 	DefaultNodeVolumeSize = 80
-)
-
-var (
-	// DefaultContainerRuntime defines the default container runtime.
-	DefaultContainerRuntime           = ContainerRuntimeDockerD
-	DefaultContainerRuntimeForWindows = ContainerRuntimeDockerForWindows
 )
 
 // Enabled return pointer to true value
@@ -446,6 +453,7 @@ func SupportedRegions() []string {
 		RegionAPSouthEast3,
 		RegionAPSouth1,
 		RegionAPEast1,
+		RegionMECentral1,
 		RegionMESouth1,
 		RegionSAEast1,
 		RegionAFSouth1,
@@ -503,6 +511,7 @@ func SupportedVersions() []string {
 		Version1_21,
 		Version1_22,
 		Version1_23,
+		Version1_24,
 	}
 }
 
@@ -536,6 +545,8 @@ func supportedAMIFamilies() []string {
 		NodeImageFamilyBottlerocket,
 		NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
+		NodeImageFamilyWindowsServer2022CoreContainer,
+		NodeImageFamilyWindowsServer2022FullContainer,
 	}
 }
 
@@ -564,6 +575,8 @@ func EKSResourceAccountID(region string) string {
 	switch region {
 	case RegionAPEast1:
 		return eksResourceAccountAPEast1
+	case RegionMECentral1:
+		return eksResourceAccountMECentral1
 	case RegionMESouth1:
 		return eksResourceAccountMESouth1
 	case RegionCNNorthwest1:
@@ -733,7 +746,7 @@ type ClusterProvider interface {
 	CloudWatchLogs() awsapi.CloudWatchLogs
 	IAM() awsapi.IAM
 	Region() string
-	Profile() string
+	Profile() Profile
 	WaitTimeout() time.Duration
 	ConfigProvider() client.ConfigProvider
 	Session() *session.Session
@@ -761,8 +774,14 @@ type ProviderConfig struct {
 	CloudFormationDisableRollback bool
 
 	Region      string
-	Profile     string
+	Profile     Profile
 	WaitTimeout time.Duration
+}
+
+// Profile is the AWS profile to use.
+type Profile struct {
+	Name           string
+	SourceIsEnvVar bool
 }
 
 // +genclient
@@ -1133,11 +1152,6 @@ type NodeGroup struct {
 	// ContainerRuntime defines the runtime (CRI) to use for containers on the node
 	// +optional
 	ContainerRuntime *string `json:"containerRuntime,omitempty"`
-
-	// DisableASGTagPropagation disables the tag propagation to ASG in case desired capacity is 0.
-	// Defaults to `false`
-	// +optional
-	DisableASGTagPropagation *bool `json:"disableASGTagPropagation,omitempty"`
 
 	// MaxInstanceLifetime defines the maximum amount of time in seconds an instance stays alive.
 	// +optional

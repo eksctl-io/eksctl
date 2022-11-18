@@ -27,7 +27,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	cloudprovider "k8s.io/cloud-provider"
-	awsprovider "k8s.io/legacy-cloud-providers/aws"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -46,6 +45,11 @@ type loadBalancer struct {
 	kind                  loadBalancerKind
 	ownedSecurityGroupIDs map[string]struct{}
 }
+
+const (
+	serviceAnnotationLoadBalancerType = "service.beta.kubernetes.io/aws-load-balancer-type"
+	tagNameKubernetesClusterPrefix    = "kubernetes.io/cluster/"
+)
 
 // DescribeLoadBalancersAPI provides an interface to the AWS ELB service.
 type DescribeLoadBalancersAPI interface {
@@ -239,7 +243,7 @@ func deleteOrphanLoadBalancerSecurityGroups(ctx context.Context, ec2API awsapi.E
 		Filters: []ec2types.Filter{
 			{
 				Name:   aws.String("tag-key"),
-				Values: []string{awsprovider.TagNameKubernetesClusterPrefix + clusterName},
+				Values: []string{tagNameKubernetesClusterPrefix + clusterName},
 			},
 		},
 	}
@@ -360,7 +364,7 @@ func describeSecurityGroupsByID(ctx context.Context, ec2API awsapi.EC2, groupIDs
 }
 
 func tagsIncludeClusterName(tags []ec2types.Tag, clusterName string) bool {
-	clusterTagKey := awsprovider.TagNameKubernetesClusterPrefix + clusterName
+	clusterTagKey := tagNameKubernetesClusterPrefix + clusterName
 	for _, tag := range tags {
 		if aws.ToString(tag.Key) == clusterTagKey {
 			return true
@@ -422,7 +426,7 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API awsapi.EC2
 
 func getLoadBalancerKind(service *corev1.Service) loadBalancerKind {
 	// See https://github.com/kubernetes/legacy-cloud-providers/blob/master/aws/aws_loadbalancer.go#L65-L70
-	if service.Annotations[awsprovider.ServiceAnnotationLoadBalancerType] == "nlb" {
+	if service.Annotations[serviceAnnotationLoadBalancerType] == "nlb" {
 		return network
 	}
 	return classic

@@ -1,16 +1,19 @@
 img[src$="#inline"] {
   height: 25px;
+  vertical-align: middle;
 }
 
 img[src$="#gitinline"] {
   height: 30px;
   background: url("../img/octocat.svg") no-repeat;
+  vertical-align: middle;
 }
 
 img[src$="#wwinline"] {
     height: 25px;
     width: 160px;
     background: url("../img/weaveworks.svg") no-repeat;
+    vertical-align: middle;
   }
 
 img[src$="#content"] {

@@ -60,6 +60,23 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 	})
 }
 
+func checkClusterVersion(cfg *api.ClusterConfig) error {
+	switch cfg.Metadata.Version {
+	case "auto":
+		cfg.Metadata.Version = api.DefaultVersion
+	case "latest":
+		cfg.Metadata.Version = api.LatestVersion
+	}
+
+	if err := api.ValidateClusterVersion(cfg); err != nil {
+		return err
+	}
+	if cfg.Metadata.Version == "" {
+		cfg.Metadata.Version = api.DefaultVersion
+	}
+	return nil
+}
+
 func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
@@ -73,6 +90,10 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 		cmd.NameArg = cmdutils.GetNameArg(args)
 		ngFilter := filter.NewNodeGroupFilter()
 		if err := cmdutils.NewCreateClusterLoader(cmd, ngFilter, ng, params).Load(); err != nil {
+			return err
+		}
+		err := checkClusterVersion(cmd.ClusterConfig)
+		if err != nil {
 			return err
 		}
 		return runFunc(cmd, ngFilter, params)
@@ -119,7 +140,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 
 	cmdutils.AddInstanceSelectorOptions(cmd.FlagSetGroup, ng)
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
 
 	cmd.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &params.KubeconfigPath, &params.AuthenticatorRoleARN, &params.SetContext, &params.AutoKubeconfigPath, exampleClusterName)
@@ -149,20 +170,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	once.Do(func() {
 		cmdutils.LogRegionAndVersionInfo(meta)
 	})
-
-	switch cfg.Metadata.Version {
-	case "auto":
-		cfg.Metadata.Version = api.DefaultVersion
-	case "latest":
-		cfg.Metadata.Version = api.LatestVersion
-	}
-
-	if err := api.ValidateClusterVersion(cfg); err != nil {
-		return err
-	}
-	if cfg.Metadata.Version == "" {
-		cfg.Metadata.Version = api.DefaultVersion
-	}
 
 	if err := cfg.ValidatePrivateCluster(); err != nil {
 		return err
@@ -355,7 +362,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		var kubeconfigContextName string
 
 		if params.WriteKubeconfig {
-			kubectlConfig := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile())
+			kubectlConfig := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile().Name)
 			kubeconfigContextName = kubectlConfig.CurrentContext
 
 			params.KubeconfigPath, err = kubeconfig.Write(params.KubeconfigPath, *kubectlConfig, params.SetContext)
@@ -420,7 +427,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 		// After we have the cluster config and all the nodes are done, we install Karpenter if necessary.
 		if cfg.Karpenter != nil {
-			config := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile())
+			config := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile().Name)
 			kubeConfigBytes, err := runtime.Encode(clientcmdlatest.Codec, config)
 			if err != nil {
 				return errors.Wrap(err, "generating kubeconfig")

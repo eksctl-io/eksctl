@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: windows-server-iis-ltsc2022
+spec:
+  selector:
+    matchLabels:
+      app: windows-server-iis-ltsc2022
+      tier: backend
+      track: stable
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: windows-server-iis-ltsc2022
+        tier: backend
+        track: stable
+    spec:
+      containers:
+      - name: windows-server-iis-ltsc2022
+        image: mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2022
+        ports:
+        - name: http
+          containerPort: 80
+        imagePullPolicy: IfNotPresent
+        command:
+        - powershell.exe
+        - -command
+        - "Add-WindowsFeature Web-Server; Invoke-WebRequest -UseBasicParsing -Uri 'https://dotnetbinaries.blob.core.windows.net/servicemonitor/2.0.1.6/ServiceMonitor.exe' -OutFile 'C:\\ServiceMonitor.exe'; echo '<html><body><br/><br/><H1>Windows Container Workshop - Windows LTSC2019!!!<H1></body><html>' > C:\\inetpub\\wwwroot\\iisstart.htm; C:\\ServiceMonitor.exe 'w3svc'; "
+      nodeSelector:
+        kubernetes.io/os: windows

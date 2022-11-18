@@ -59,6 +59,11 @@
           "description": "ARN of the permissions' boundary to associate",
           "x-intellij-html-description": "ARN of the permissions' boundary to associate"
         },
+        "resolveConflicts": {
+          "$ref": "#/definitions/github.com|aws|aws-sdk-go-v2|service|eks|types.ResolveConflicts",
+          "description": "determines how to resolve field value conflicts for an EKS add-on if a value was changed from default",
+          "x-intellij-html-description": "determines how to resolve field value conflicts for an EKS add-on if a value was changed from default"
+        },
         "serviceAccountRoleARN": {
           "type": "string"
         },
@@ -88,7 +93,8 @@
         "attachPolicy",
         "permissionsBoundary",
         "wellKnownPolicies",
-        "tags"
+        "tags",
+        "resolveConflicts"
       ],
       "additionalProperties": false,
       "description": "holds the EKS addon configuration",
@@ -545,14 +551,15 @@
         },
         "version": {
           "type": "string",
-          "description": "Valid variants are: `\"1.20\"`, `\"1.21\"`, `\"1.22\"` (default), `\"1.23\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;1.20&quot;</code>, <code>&quot;1.21&quot;</code>, <code>&quot;1.22&quot;</code> (default), <code>&quot;1.23&quot;</code>.",
+          "description": "Valid variants are: `\"1.20\"`, `\"1.21\"`, `\"1.22\"`, `\"1.23\"` (default), `\"1.24\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;1.20&quot;</code>, <code>&quot;1.21&quot;</code>, <code>&quot;1.22&quot;</code>, <code>&quot;1.23&quot;</code> (default), <code>&quot;1.24&quot;</code>.",
           "default": "1.23",
           "enum": [
             "1.20",
             "1.21",
             "1.22",
-            "1.23"
+            "1.23",
+            "1.24"
           ]
         }
       },
@@ -1037,8 +1044,8 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2022CoreContainer\"`, `\"WindowsServer2022FullContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2022CoreContainer&quot;</code>, <code>&quot;WindowsServer2022FullContainer&quot;</code>.",
           "default": "AmazonLinux2",
           "enum": [
             "AmazonLinux2",
@@ -1046,7 +1053,9 @@
             "Ubuntu1804",
             "Bottlerocket",
             "WindowsServer2019CoreContainer",
-            "WindowsServer2019FullContainer"
+            "WindowsServer2019FullContainer",
+            "WindowsServer2022CoreContainer",
+            "WindowsServer2022FullContainer"
           ]
         },
         "asgSuspendProcesses": {
@@ -1367,8 +1376,8 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2022CoreContainer\"`, `\"WindowsServer2022FullContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2022CoreContainer&quot;</code>, <code>&quot;WindowsServer2022FullContainer&quot;</code>.",
           "default": "AmazonLinux2",
           "enum": [
             "AmazonLinux2",
@@ -1376,7 +1385,9 @@
             "Ubuntu1804",
             "Bottlerocket",
             "WindowsServer2019CoreContainer",
-            "WindowsServer2019FullContainer"
+            "WindowsServer2019FullContainer",
+            "WindowsServer2022CoreContainer",
+            "WindowsServer2022FullContainer"
           ]
         },
         "asgMetricsCollection": {
@@ -1436,12 +1447,6 @@
         },
         "desiredCapacity": {
           "type": "integer"
-        },
-        "disableASGTagPropagation": {
-          "type": "boolean",
-          "description": "disables the tag propagation to ASG in case desired capacity is 0.",
-          "x-intellij-html-description": "disables the tag propagation to ASG in case desired capacity is 0.",
-          "default": false
         },
         "disableIMDSv1": {
           "type": "boolean",
@@ -1690,7 +1695,6 @@
         "clusterDNS",
         "kubeletExtraConfig",
         "containerRuntime",
-        "disableASGTagPropagation",
         "maxInstanceLifetime",
         "localZones"
       ],
@@ -2266,6 +2270,9 @@
       "additionalProperties": false,
       "description": "for attaching common IAM policies",
       "x-intellij-html-description": "for attaching common IAM policies"
+    },
+    "github.com|aws|aws-sdk-go-v2|service|eks|types.ResolveConflicts": {
+      "type": "string"
     },
     "github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet": {
       "type": "string",

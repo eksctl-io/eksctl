@@ -36,23 +36,24 @@ type Bootstrapper interface {
 
 // NewBootstrapper returns the correct bootstrapper for the AMI family
 func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Bootstrapper, error) {
-	if ng.ClusterDNS == "" {
-		clusterDNS, err := GetClusterDNS(clusterConfig)
+	clusterDNS := ng.ClusterDNS
+	if clusterDNS == "" {
+		var err error
+		clusterDNS, err = GetClusterDNS(clusterConfig)
 		if err != nil {
 			return nil, err
 		}
-		ng.ClusterDNS = clusterDNS
 	}
 	if api.IsWindowsImage(ng.AMIFamily) {
 		return NewWindowsBootstrapper(clusterConfig, ng), nil
 	}
 	switch ng.AMIFamily {
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
-		return NewUbuntuBootstrapper(clusterConfig, ng), nil
+		return NewUbuntuBootstrapper(clusterConfig, ng, clusterDNS), nil
 	case api.NodeImageFamilyBottlerocket:
 		return NewBottlerocketBootstrapper(clusterConfig, ng), nil
 	case api.NodeImageFamilyAmazonLinux2:
-		return NewAL2Bootstrapper(clusterConfig, ng), nil
+		return NewAL2Bootstrapper(clusterConfig, ng, clusterDNS), nil
 	default:
 		return nil, errors.Errorf("unrecognized AMI family %q for creating bootstrapper", ng.AMIFamily)
 
@@ -60,16 +61,20 @@ func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Boots
 }
 
 // NewManagedBootstrapper creates a new bootstrapper for managed nodegroups based on the AMI family
-func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNodeGroup) Bootstrapper {
+func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNodeGroup) (Bootstrapper, error) {
 	switch ng.AMIFamily {
 	case api.NodeImageFamilyAmazonLinux2:
-		return NewManagedAL2Bootstrapper(ng)
+		return NewManagedAL2Bootstrapper(ng), nil
 	case api.NodeImageFamilyBottlerocket:
-		return NewManagedBottlerocketBootstrapper(clusterConfig, ng)
+		return NewManagedBottlerocketBootstrapper(clusterConfig, ng), nil
 	case api.NodeImageFamilyUbuntu1804, api.NodeImageFamilyUbuntu2004:
-		return NewUbuntuBootstrapper(clusterConfig, ng)
+		clusterDNS, err := GetClusterDNS(clusterConfig)
+		if err != nil {
+			return nil, err
+		}
+		return NewUbuntuBootstrapper(clusterConfig, ng, clusterDNS), nil
 	}
-	return nil
+	return nil, nil
 }
 
 // GetClusterDNS returns the DNS address to use
@@ -88,7 +93,7 @@ func GetClusterDNS(clusterConfig *api.ClusterConfig) (string, error) {
 	return ip.String(), nil
 }
 
-func linuxConfig(clusterConfig *api.ClusterConfig, bootScriptName, bootScriptContent string, np api.NodePool, scripts ...script) (string, error) {
+func linuxConfig(clusterConfig *api.ClusterConfig, bootScriptName, bootScriptContent, clusterDNS string, np api.NodePool, scripts ...script) (string, error) {
 	config := cloudconfig.New()
 	ng := np.BaseNodeGroup()
 
@@ -116,7 +121,7 @@ func linuxConfig(clusterConfig *api.ClusterConfig, bootScriptName, bootScriptCon
 		return "", err
 	}
 	files = append(files, kubeletConf)
-	envFile := makeBootstrapEnv(clusterConfig, np)
+	envFile := makeBootstrapEnv(clusterConfig, np, clusterDNS)
 	files = append(files, envFile)
 
 	if err := addFilesAndScripts(config, files, scripts); err != nil {
@@ -151,7 +156,7 @@ func makeKubeletExtraConf(kubeletExtraConf *api.InlineDocument) (cloudconfig.Fil
 	}, nil
 }
 
-func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool) cloudconfig.File {
+func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool, clusterDNS string) cloudconfig.File {
 	ng := np.BaseNodeGroup()
 	variables := map[string]string{
 		"CLUSTER_NAME":   clusterConfig.Metadata.Name,
@@ -171,8 +176,8 @@ func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool) cloudco
 		variables["MAX_PODS"] = strconv.Itoa(ng.MaxPodsPerNode)
 	}
 
-	if unmanaged, ok := np.(*api.NodeGroup); ok && unmanaged.ClusterDNS != "" {
-		variables["CLUSTER_DNS"] = unmanaged.ClusterDNS
+	if clusterDNS != "" {
+		variables["CLUSTER_DNS"] = clusterDNS
 	}
 
 	if unmanaged, ok := np.(*api.NodeGroup); ok && ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {

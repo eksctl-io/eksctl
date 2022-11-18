@@ -125,11 +125,6 @@ linters-settings:
     include-go-root: false
     packages:
       - github.com/golang/glog
-  misspell:
-    # Correct spellings using locale preferences for US or UK.
-    # Default is to use a neutral variety of English.
-    # Setting locale to US will correct the British spelling of 'colour' to 'color'.
-    locale: default
   lll:
     # max line length, lines longer will be reported. Default is 120.
     # '\t' is counted as 1 character by default, and can be changed with the tab-width option
@@ -176,7 +171,6 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - deadcode
     - errcheck
     - gofmt
     - goimports
@@ -186,10 +180,8 @@ linters:
     - ineffassign
     - misspell
     - staticcheck
-    - structcheck
     - typecheck
     - unused
-    - varcheck
     # TODO: enable the below linter in the future
 #    - maligned
 #    - prealloc

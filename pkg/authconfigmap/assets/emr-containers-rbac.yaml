@@ -18,7 +18,7 @@ rules:
   - apiGroups: ["batch"]
     resources: ["jobs"]
     verbs: ["get", "list", "watch", "describe", "create", "edit", "delete", "annotate", "patch", "label"]
-  - apiGroups: ["extensions"]
+  - apiGroups: ["extensions", "networking.k8s.io"]
     resources: ["ingresses"]
     verbs: ["get", "list", "watch", "describe", "create", "edit", "delete", "annotate", "patch", "label"]
   - apiGroups: ["rbac.authorization.k8s.io"]

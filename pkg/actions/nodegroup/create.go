@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -39,10 +38,6 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 	cfg := m.cfg
 	meta := cfg.Metadata
 	ctl := m.ctl
-
-	if err := checkVersion(ctl, meta); err != nil {
-		return err
-	}
 
 	if cfg.IsControlPlaneOnOutposts() && len(cfg.ManagedNodeGroups) > 0 {
 		const msg = "Managed Nodegroups are not supported on Outposts"
@@ -284,40 +279,6 @@ func (m *Manager) postNodeCreationTasks(ctx context.Context, clientSet kubernete
 	}
 
 	logger.Success("created %d managed nodegroup(s) in cluster %q", len(m.cfg.ManagedNodeGroups), m.cfg.Metadata.Name)
-	return nil
-}
-
-func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
-	switch meta.Version {
-	case "auto":
-		break
-	case "":
-		meta.Version = "auto"
-	case "default":
-		meta.Version = api.DefaultVersion
-		logger.Info("will use default version (%s) for new nodegroup(s)", meta.Version)
-	case "latest":
-		meta.Version = api.LatestVersion
-		logger.Info("will use latest version (%s) for new nodegroup(s)", meta.Version)
-	default:
-		if !api.IsSupportedVersion(meta.Version) {
-			if api.IsDeprecatedVersion(meta.Version) {
-				return fmt.Errorf("invalid version, %s is no longer supported, supported values: auto, default, latest, %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", meta.Version, strings.Join(api.SupportedVersions(), ", "))
-			}
-			return fmt.Errorf("invalid version %s, supported values: auto, default, latest, %s", meta.Version, strings.Join(api.SupportedVersions(), ", "))
-		}
-	}
-
-	if v := ctl.ControlPlaneVersion(); v == "" {
-		return fmt.Errorf("unable to get control plane version")
-	} else if meta.Version == "auto" {
-		meta.Version = v
-		logger.Info("will use version %s for new nodegroup(s) based on control plane version", meta.Version)
-	} else if meta.Version != v {
-		hint := "--version=auto"
-		logger.Warning("will use version %s for new nodegroup(s), while control plane version is %s; to automatically inherit the version use %q", meta.Version, v, hint)
-	}
-
 	return nil
 }
 

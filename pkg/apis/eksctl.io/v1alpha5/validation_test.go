@@ -112,21 +112,17 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).To(HaveOccurred())
 		})
 
-		It("containerd is only allowed for AL2 or Windows", func() {
+		It("should reject docker runtime if version is 1.24 or greater", func() {
 			cfg := api.NewClusterConfig()
+			cfg.Metadata.Version = api.Version1_24
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "node-group"
-			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
-			ng0.AMIFamily = api.NodeImageFamilyBottlerocket
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerD)
 			err := api.ValidateClusterConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
 			err = api.ValidateNodeGroup(0, ng0, cfg)
 			Expect(err).To(HaveOccurred())
-			ng0.AMIFamily = api.NodeImageFamilyWindowsServer2019CoreContainer
-			err = api.ValidateClusterConfig(cfg)
-			Expect(err).NotTo(HaveOccurred())
-			err = api.ValidateNodeGroup(0, ng0, cfg)
-			Expect(err).NotTo(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("only %s is supported for container runtime, starting with EKS version %s", api.ContainerRuntimeContainerD, api.Version1_24))))
 		})
 
 		It("containerd cannot be set together with overrideBootstrapCommand", func() {
@@ -1857,7 +1853,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("fails when the AMIFamily is not supported", func() {
 			ng.AMIFamily = "SomeTrash"
 			err := api.ValidateNodeGroup(0, ng, cfg)
-			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer"))
+			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer, WindowsServer2022CoreContainer, WindowsServer2022FullContainer"))
 		})
 
 		It("fails when the AMIFamily is WindowsServer2004CoreContainer", func() {
@@ -1912,7 +1908,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("returns an error when OIDC is not set", func() {
 			cfg := api.NewClusterConfig()
 			cfg.Karpenter = &api.Karpenter{
-				Version: "0.6.1",
+				Version: "0.17.0",
 			}
 			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate Karpenter config: iam.withOIDC must be enabled with Karpenter")))
 		})
@@ -1936,9 +1932,9 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg := api.NewClusterConfig()
 			cfg.IAM.WithOIDC = aws.Bool(true)
 			cfg.Karpenter = &api.Karpenter{
-				Version: "0.16.1",
+				Version: "v0.14.1",
 			}
-			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate Karpenter config: maximum supported version is 0.15.0")))
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate Karpenter config: minimum supported version is v0.17.0")))
 		})
 	})
 

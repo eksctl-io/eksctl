@@ -32,7 +32,7 @@ func setLabelsCmd(cmd *cmdutils.Cmd) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		fs.StringVarP(&options.nodeGroupName, "nodegroup", "n", "", "Nodegroup name")
 		cmdutils.AddStringToStringVarPFlag(fs, &options.labels, "labels", "l", nil, "Labels")
 
@@ -41,7 +41,7 @@ func setLabelsCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {

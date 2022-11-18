@@ -83,10 +83,9 @@ type cleanupSubnetsCase struct {
 }
 
 type selectSubnetsCase struct {
-	nodegroupAZs     []string
-	nodegroupSubnets []string
-	subnets          api.AZSubnetMapping
-	expectIDs        []string
+	nodegroupAZs []string
+	subnets      api.AZSubnetMapping
+	expectIDs    []string
 }
 
 type selectSubnetsByIDCase struct {

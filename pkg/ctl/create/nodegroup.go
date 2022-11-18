@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 
@@ -16,6 +17,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 )
 
@@ -51,7 +53,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		}
 
 		ctx := context.Background()
-		ctl, err := cmd.NewProviderForExistingCluster(ctx)
+		ctl, err := cmd.NewProviderForExistingClusterHelper(ctx, checkNodeGroupVersion)
 		if err != nil {
 			return fmt.Errorf("could not create cluster provider from options: %w", err)
 		}
@@ -96,7 +98,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		cmdutils.AddStringToStringVarPFlag(fs, &cfg.Metadata.Tags, "tags", "", map[string]string{}, "Used to tag the AWS resources")
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, `for nodegroups "auto" and "latest" can be used to automatically inherit version from the control plane or force latest`)
@@ -121,5 +123,39 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 
 	cmdutils.AddInstanceSelectorOptions(cmd.FlagSetGroup, ng)
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
+}
+
+func checkNodeGroupVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
+	switch meta.Version {
+	case "auto":
+		break
+	case "":
+		meta.Version = "auto"
+	case "default":
+		meta.Version = api.DefaultVersion
+		logger.Info("will use default version (%s) for new nodegroup(s)", meta.Version)
+	case "latest":
+		meta.Version = api.LatestVersion
+		logger.Info("will use latest version (%s) for new nodegroup(s)", meta.Version)
+	default:
+		if !api.IsSupportedVersion(meta.Version) {
+			if api.IsDeprecatedVersion(meta.Version) {
+				return fmt.Errorf("invalid version, %s is no longer supported, supported values: auto, default, latest, %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", meta.Version, strings.Join(api.SupportedVersions(), ", "))
+			}
+			return fmt.Errorf("invalid version %s, supported values: auto, default, latest, %s", meta.Version, strings.Join(api.SupportedVersions(), ", "))
+		}
+	}
+
+	if v := ctl.ControlPlaneVersion(); v == "" {
+		return fmt.Errorf("unable to get control plane version")
+	} else if meta.Version == "auto" {
+		meta.Version = v
+		logger.Info("will use version %s for new nodegroup(s) based on control plane version", meta.Version)
+	} else if meta.Version != v {
+		hint := "--version=auto"
+		logger.Warning("will use version %s for new nodegroup(s), while control plane version is %s; to automatically inherit the version use %q", meta.Version, v, hint)
+	}
+
+	return nil
 }

@@ -43,7 +43,7 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the iamserviceaccount to")
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 
 		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount to create")
 		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to create the iamserviceaccount")
@@ -63,7 +63,7 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
 }
 
 func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccounts bool) error {

@@ -31,12 +31,12 @@ type CloudWatchLogs interface {
 	// group to an Amazon S3 bucket. When you perform a CreateExportTask operation, you
 	// must use credentials that have permission to write to the S3 bucket that you
 	// specify as the destination. Exporting log data to Amazon S3 buckets that are
-	// encrypted by KMS is not supported. Exporting log data to Amazon S3 buckets that
-	// have S3 Object Lock enabled with a retention period is not supported. Exporting
-	// to S3 buckets that are encrypted with AES-256 is supported. This is an
-	// asynchronous call. If all the required information is provided, this operation
-	// initiates an export task and responds with the ID of the task. After the task
-	// has started, you can use DescribeExportTasks
+	// encrypted by KMS is supported. Exporting log data to Amazon S3 buckets that have
+	// S3 Object Lock enabled with a retention period is also supported. Exporting to
+	// S3 buckets that are encrypted with AES-256 is supported. This is an asynchronous
+	// call. If all the required information is provided, this operation initiates an
+	// export task and responds with the ID of the task. After the task has started,
+	// you can use DescribeExportTasks
 	// (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeExportTasks.html)
 	// to get the status of the export task. Each account can only have one active
 	// (RUNNING or PENDING) export task at a time. To cancel an export task, use
@@ -165,9 +165,10 @@ type CloudWatchLogs interface {
 	DisassociateKmsKey(ctx context.Context, params *DisassociateKmsKeyInput, optFns ...func(*Options)) (*DisassociateKmsKeyOutput, error)
 	// Lists log events from the specified log group. You can list all the log events
 	// or filter the results using a filter pattern, a time range, and the name of the
-	// log stream. By default, this operation returns as many log events as can fit in
-	// 1 MB (up to 10,000 log events) or all the events found within the time range
-	// that you specify. If the results include a token, then there are more log events
+	// log stream. You must have the logs;FilterLogEvents permission to perform this
+	// operation. By default, this operation returns as many log events as can fit in 1
+	// MB (up to 10,000 log events) or all the events found within the time range that
+	// you specify. If the results include a token, then there are more log events
 	// available, and you can get additional results by specifying the token in a
 	// subsequent call. This operation can return empty results while there are more
 	// log events available through the token. The returned log events are sorted by
@@ -207,7 +208,15 @@ type CloudWatchLogs interface {
 	// returns only partial results. If you see a value of Scheduled or Running for the
 	// status, you can retry the operation later to see the final results.
 	GetQueryResults(ctx context.Context, params *GetQueryResultsInput, optFns ...func(*Options)) (*GetQueryResultsOutput, error)
-	// Lists the tags for the specified log group.
+	// Displays the tags associated with a CloudWatch Logs resource. Currently, log
+	// groups and destinations support tagging.
+	ListTagsForResource(ctx context.Context, params *ListTagsForResourceInput, optFns ...func(*Options)) (*ListTagsForResourceOutput, error)
+	// The ListTagsLogGroup operation is on the path to deprecation. We recommend that
+	// you use ListTagsForResource
+	// (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_ListTagsForResource.html)
+	// instead. Lists the tags for the specified log group.
+	//
+	// Deprecated: Please use the generic tagging API ListTagsForResource
 	ListTagsLogGroup(ctx context.Context, params *ListTagsLogGroupInput, optFns ...func(*Options)) (*ListTagsLogGroupOutput, error)
 	// Creates or updates a destination. This operation is used only to create
 	// destinations for cross-account subscriptions. A destination encapsulates a
@@ -310,7 +319,16 @@ type CloudWatchLogs interface {
 	PutResourcePolicy(ctx context.Context, params *PutResourcePolicyInput, optFns ...func(*Options)) (*PutResourcePolicyOutput, error)
 	// Sets the retention of the specified log group. A retention policy allows you to
 	// configure the number of days for which to retain log events in the specified log
-	// group.
+	// group. CloudWatch Logs doesn’t immediately delete log events when they reach
+	// their retention setting. It typically takes up to 72 hours after that before log
+	// events are deleted, but in rare situations might take longer. This means that if
+	// you change a log group to have a longer retention setting when it contains log
+	// events that are past the expiration date, but haven’t been actually deleted,
+	// those log events will take up to 72 hours to be deleted after the new retention
+	// date is reached. To make sure that log data is deleted permanently, keep a log
+	// group at its lower retention setting until 72 hours has passed after the end of
+	// the previous retention period, or you have confirmed that the older log events
+	// are deleted.
 	PutRetentionPolicy(ctx context.Context, params *PutRetentionPolicyInput, optFns ...func(*Options)) (*PutRetentionPolicyOutput, error)
 	// Creates or updates a subscription filter and associates it with the specified
 	// log group. Subscription filters allow you to subscribe to a real-time stream of
@@ -345,17 +363,21 @@ type CloudWatchLogs interface {
 	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html).
 	// Queries time out after 15 minutes of execution. If your queries are timing out,
 	// reduce the time range being searched or partition your query into a number of
-	// queries.
+	// queries. You are limited to 20 concurrent CloudWatch Logs insights queries,
+	// including queries that have been added to dashboards.
 	StartQuery(ctx context.Context, params *StartQueryInput, optFns ...func(*Options)) (*StartQueryOutput, error)
 	// Stops a CloudWatch Logs Insights query that is in progress. If the query has
 	// already ended, the operation returns an error indicating that the specified
 	// query is not running.
 	StopQuery(ctx context.Context, params *StopQueryInput, optFns ...func(*Options)) (*StopQueryOutput, error)
-	// Adds or updates the specified tags for the specified log group. To list the tags
-	// for a log group, use ListTagsLogGroup
-	// (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_ListTagsLogGroup.html).
-	// To remove tags, use UntagLogGroup
-	// (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_UntagLogGroup.html).
+	// The TagLogGroup operation is on the path to deprecation. We recommend that you
+	// use TagResource
+	// (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_TagResource.html)
+	// instead. Adds or updates the specified tags for the specified log group. To list
+	// the tags for a log group, use ListTagsForResource
+	// (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_ListTagsForResource.html).
+	// To remove tags, use UntagResource
+	// (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_UntagResource.html).
 	// For more information about tags, see Tag Log Groups in Amazon CloudWatch Logs
 	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#log-group-tagging)
 	// in the Amazon CloudWatch Logs User Guide. CloudWatch Logs doesn’t support IAM
@@ -364,19 +386,41 @@ type CloudWatchLogs interface {
 	// about using tags to control access, see Controlling access to Amazon Web
 	// Services resources using tags
 	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_tags.html).
+	//
+	// Deprecated: Please use the generic tagging API TagResource
 	TagLogGroup(ctx context.Context, params *TagLogGroupInput, optFns ...func(*Options)) (*TagLogGroupOutput, error)
+	// Assigns one or more tags (key-value pairs) to the specified CloudWatch Logs
+	// resource. Currently, the only CloudWatch Logs resources that can be tagged are
+	// log groups and destinations. Tags can help you organize and categorize your
+	// resources. You can also use them to scope user permissions by granting a user
+	// permission to access or change only resources with certain tag values. Tags
+	// don't have any semantic meaning to Amazon Web Services and are interpreted
+	// strictly as strings of characters. You can use the TagResource action with a
+	// resource that already has tags. If you specify a new tag key for the alarm, this
+	// tag is appended to the list of tags associated with the alarm. If you specify a
+	// tag key that is already associated with the alarm, the new tag value that you
+	// specify replaces the previous value for that tag. You can associate as many as
+	// 50 tags with a CloudWatch Logs resource.
+	TagResource(ctx context.Context, params *TagResourceInput, optFns ...func(*Options)) (*TagResourceOutput, error)
 	// Tests the filter pattern of a metric filter against a sample of log event
 	// messages. You can use this operation to validate the correctness of a metric
 	// filter pattern.
 	TestMetricFilter(ctx context.Context, params *TestMetricFilterInput, optFns ...func(*Options)) (*TestMetricFilterOutput, error)
-	// Removes the specified tags from the specified log group. To list the tags for a
-	// log group, use ListTagsLogGroup
-	// (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_ListTagsLogGroup.html).
-	// To add tags, use TagLogGroup
-	// (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_TagLogGroup.html).
+	// The UntagLogGroup operation is on the path to deprecation. We recommend that you
+	// use UntagResource
+	// (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_UntagResource.html)
+	// instead. Removes the specified tags from the specified log group. To list the
+	// tags for a log group, use ListTagsForResource
+	// (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_ListTagsForResource.html).
+	// To add tags, use TagResource
+	// (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_TagResource.html).
 	// CloudWatch Logs doesn’t support IAM policies that prevent users from assigning
 	// specified tags to log groups using the aws:Resource/key-name  or aws:TagKeys
 	// condition keys.
+	//
+	// Deprecated: Please use the generic tagging API UntagResource
 	UntagLogGroup(ctx context.Context, params *UntagLogGroupInput, optFns ...func(*Options)) (*UntagLogGroupOutput, error)
+	// Removes one or more tags from the specified resource.
+	UntagResource(ctx context.Context, params *UntagResourceInput, optFns ...func(*Options)) (*UntagResourceOutput, error)
 }
 

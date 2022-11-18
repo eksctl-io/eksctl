@@ -7,6 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 const (
@@ -113,7 +114,7 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta, controlPlaneOnOutpos
 		ng.SecurityGroups.WithShared = Enabled()
 	}
 
-	setContainerRuntimeDefault(ng)
+	setContainerRuntimeDefault(ng, meta.Version)
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
@@ -167,6 +168,7 @@ func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 	if ng.InstanceSelector == nil {
 		ng.InstanceSelector = &InstanceSelector{}
 	}
+	normalizeAMIFamily(ng)
 	if ng.AMIFamily == NodeImageFamilyBottlerocket {
 		setBottlerocketNodeGroupDefaults(ng)
 	}
@@ -229,11 +231,20 @@ func getDefaultVolumeType(nodeGroupOnOutposts bool) string {
 	return DefaultNodeVolumeType
 }
 
-func setContainerRuntimeDefault(ng *NodeGroup) {
-	if ng.ContainerRuntime == nil {
-		ng.ContainerRuntime = &DefaultContainerRuntime
+func setContainerRuntimeDefault(ng *NodeGroup, clusterVersion string) {
+	if ng.ContainerRuntime != nil {
+		return
+	}
+
+	// since clusterVersion is standardised beforehand, we can safely ignore the error
+	isDockershimDeprecated, _ := utils.IsMinVersion(DockershimDeprecationVersion, clusterVersion)
+
+	if isDockershimDeprecated {
+		ng.ContainerRuntime = aws.String(ContainerRuntimeContainerD)
+	} else {
+		ng.ContainerRuntime = aws.String(ContainerRuntimeDockerD)
 		if IsWindowsImage(ng.AMIFamily) {
-			ng.ContainerRuntime = &DefaultContainerRuntimeForWindows
+			ng.ContainerRuntime = aws.String(ContainerRuntimeDockerForWindows)
 		}
 	}
 }
