@@ -619,9 +619,19 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 		logger.Warning("%s does not ship with NVIDIA GPU drivers installed, hence won't support running GPU-accelerated workloads out of the box", ng.AMIFamily)
 	}
 
-	// Bottlerocket doesn't support Inferentia hosts
-	if instanceutils.IsInferentiaInstanceType(SelectInstanceType(np)) && ng.AMIFamily == NodeImageFamilyBottlerocket {
-		return errors.Errorf("Inferentia instance types are not supported for %s", ng.AMIFamily)
+	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != "" {
+		instanceType := SelectInstanceType(np)
+		unsupportedErr := func(instanceTypeName string) error {
+			return fmt.Errorf("%s instance types are not supported for %s", instanceTypeName, ng.AMIFamily)
+		}
+		// Only AL2 supports Inferentia hosts.
+		if instanceutils.IsInferentiaInstanceType(instanceType) {
+			return unsupportedErr("Inferentia")
+		}
+		// Only AL2 supports Trainium hosts.
+		if instanceutils.IsTrainiumInstanceType(instanceType) {
+			return unsupportedErr("Trainium")
+		}
 	}
 
 	if ng.CapacityReservation != nil {
