@@ -67,7 +67,7 @@ kubernetesNetworkConfig:
   ipFamily: IPv4
 nodeGroups:
 - amiFamily: AmazonLinux2
-  containerRuntime: dockerd
+  containerRuntime: containerd
   disableIMDSv1: false
   disablePodIMDS: false
   instanceSelector: {}

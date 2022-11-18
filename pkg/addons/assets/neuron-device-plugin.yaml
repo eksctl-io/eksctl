@@ -113,7 +113,7 @@ spec:
                       - trn1.2xlarge
                       - trn1.32xlarge
       containers:
-        - image: "public.ecr.aws/neuron/neuron-device-plugin:1.5.3.0"
+        - image: "public.ecr.aws/neuron/neuron-device-plugin:2.1.2.0"
           imagePullPolicy: Always
           name: k8s-neuron-device-plugin-ctr
           env:
