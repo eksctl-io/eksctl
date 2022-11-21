@@ -352,8 +352,8 @@ github.com/aws/aws-sdk-go-v2/service/autoscaling v1.24.1 h1:qqomaqydzFZ+mPflFvrJ
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.24.1/go.mod h1:1ioJeG7kmYYuqmA8Wsh5AXwjPn9mRKL6F8OOwt/uyBQ=
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.23.1 h1:wT/pYhWzlyHoBTPUIllV6yzVLR58r9V8UbQsJVSAUUc=
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.23.1/go.mod h1:AyrrIfauUrYfHqLrnroijTBBegQow3QIZTaLbQsauNk=
-github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.20.1 h1:68HHq5Qur4d/5Ap9ZeTz39e4MQBs5CXX5m19/oSkOHI=
-github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.20.1/go.mod h1:G3xZtg7cjsJaJdl1oVkscYXbdDLZBfOHbE1JqcnZxOI=
+github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.20.2 h1:4gX/vArgwRbgQIE7n0i0wmoatYWg+MpBL43c85izKew=
+github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.20.2/go.mod h1:G3xZtg7cjsJaJdl1oVkscYXbdDLZBfOHbE1JqcnZxOI=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.16.2 h1:5TT4ek4RSlWEHQZbNuBacxH2fd4Esg9BZPF0NJCw2Jc=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.16.2/go.mod h1:9feOMWt3rxs46DqBVHco7z1KxRG36bKUqtv306cAtaA=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.21.1 h1:lj4DpCeptmd3fV30KgVRKWmADiIqfCtsay4kSbAnSdc=
