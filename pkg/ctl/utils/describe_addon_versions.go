@@ -82,20 +82,26 @@ func describeAddonVersions(cmd *cmdutils.Cmd, addonName, k8sVersion, clusterName
 
 	var summary string
 
-	switch addonName {
-	case "":
-		summary, err = addonManager.DescribeAllVersions(ctx)
-		if err != nil {
-			return err
+	for _, a := range cmd.ClusterConfig.Addons {
+		if a.Name != "" && addonName == "" {
+			addonName = a.Name
 		}
-	default:
-		summary, err = addonManager.DescribeVersions(ctx, &api.Addon{Name: addonName})
-		if err != nil {
-			return err
-		}
-	}
 
-	fmt.Println(summary)
+		switch addonName {
+		case "":
+			summary, err = addonManager.DescribeAllVersions(ctx, &api.Addon{Types: a.Types, Owners: a.Owners, Publishers: a.Publishers})
+			if err != nil {
+				return err
+			}
+		default:
+			summary, err = addonManager.DescribeVersions(ctx, &api.Addon{Name: addonName, Types: a.Types, Owners: a.Owners, Publishers: a.Publishers})
+			if err != nil {
+				return err
+			}
+		}
+
+		fmt.Println(summary)
+	}
 
 	return nil
 }

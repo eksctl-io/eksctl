@@ -24,9 +24,9 @@ func (a *Manager) DescribeVersions(ctx context.Context, addon *api.Addon) (strin
 	return addonVersionsToString(versions)
 }
 
-func (a *Manager) DescribeAllVersions(ctx context.Context) (string, error) {
+func (a *Manager) DescribeAllVersions(ctx context.Context, addon *api.Addon) (string, error) {
 	logger.Info("describing all addon versions")
-	versions, err := a.describeVersions(ctx, &api.Addon{})
+	versions, err := a.describeVersions(ctx, addon)
 	if err != nil {
 		return "", err
 	}
@@ -38,8 +38,19 @@ func (a *Manager) describeVersions(ctx context.Context, addon *api.Addon) (*eks.
 		KubernetesVersion: &a.clusterConfig.Metadata.Version,
 	}
 
+	addon.Types = "infra-management"
+
 	if addon.Name != "" {
 		input.AddonName = &addon.Name
+	}
+	if addon.Publishers != "" {
+		input.Publishers = &addon.Publishers
+	}
+	if addon.Types != "" {
+		input.Types = &addon.Types
+	}
+	if addon.Owners != "" {
+		input.Owners = &addon.Owners
 	}
 
 	output, err := a.eksAPI.DescribeAddonVersions(ctx, input)

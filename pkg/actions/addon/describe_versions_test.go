@@ -101,6 +101,66 @@ var _ = Describe("DescribeVersions", func() {
 				Expect(*describeAddonVersonsInput.AddonName).To(Equal("my-addon"))
 			})
 		})
+
+		It("returns an addon with a publisher, type and owner", func() {
+			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+				describeAddonVersonsInput = args[1].(*awseks.DescribeAddonVersionsInput)
+			}).Return(&awseks.DescribeAddonVersionsOutput{
+				Addons: []ekstypes.AddonInfo{
+					{
+						AddonName: aws.String("upbound_universal-crossplane"),
+						Type:      aws.String("infra-management"),
+						AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion: aws.String("1.0"),
+							},
+							{
+								AddonVersion: aws.String("1.1"),
+							},
+						},
+						Publisher: aws.String("upbound"),
+						Owner:     aws.String("aws-marketplace"),
+					},
+				},
+			}, nil)
+
+			summary, err := manager.DescribeVersions(context.Background(), &api.Addon{
+				Name:       "upbound_universal-crossplane",
+				Types:      "infra-management",
+				Owners:     "aws-marketplace",
+				Publishers: "upbound",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			expected, err := json.Marshal(struct {
+				Addons []ekstypes.AddonInfo
+			}{
+				Addons: []ekstypes.AddonInfo{
+					{
+						AddonName: aws.String("upbound_universal-crossplane"),
+						Type:      aws.String("infra-management"),
+						AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion: aws.String("1.0"),
+							},
+							{
+								AddonVersion: aws.String("1.1"),
+							},
+						},
+						Publisher: aws.String("upbound"),
+						Owner:     aws.String("aws-marketplace"),
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(summary).To(Equal(string(expected)))
+			Expect(*describeAddonVersonsInput.KubernetesVersion).To(Equal("1.18"))
+			Expect(*describeAddonVersonsInput.AddonName).To(Equal("upbound_universal-crossplane"))
+			Expect(*describeAddonVersonsInput.Types).To(Equal("infra-management"))
+			Expect(*describeAddonVersonsInput.Publishers).To(Equal("upbound"))
+			Expect(*describeAddonVersonsInput.Owners).To(Equal("aws-marketplace"))
+		})
 	})
 
 	Describe("DescribeAllVersions", func() {
@@ -126,7 +186,7 @@ var _ = Describe("DescribeVersions", func() {
 				},
 			}, nil)
 
-			summary, err := manager.DescribeAllVersions(context.Background())
+			summary, err := manager.DescribeAllVersions(context.Background(), &api.Addon{})
 			Expect(err).NotTo(HaveOccurred())
 
 			expected, err := json.Marshal(struct {
@@ -162,11 +222,72 @@ var _ = Describe("DescribeVersions", func() {
 					describeAddonVersonsInput = args[1].(*awseks.DescribeAddonVersionsInput)
 				}).Return(&awseks.DescribeAddonVersionsOutput{}, fmt.Errorf("foo"))
 
-				_, err := manager.DescribeAllVersions(context.Background())
+				_, err := manager.DescribeAllVersions(context.Background(), &api.Addon{})
 				Expect(err).To(MatchError(`failed to describe addon versions: foo`))
 				Expect(*describeAddonVersonsInput.KubernetesVersion).To(Equal("1.18"))
 				Expect(describeAddonVersonsInput.AddonName).To(BeNil())
 			})
+		})
+
+		It("returns an addon with a publisher, type and owner", func() {
+			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+				describeAddonVersonsInput = args[1].(*awseks.DescribeAddonVersionsInput)
+			}).Return(&awseks.DescribeAddonVersionsOutput{
+				Addons: []ekstypes.AddonInfo{
+					{
+						AddonName: aws.String("upbound_universal-crossplane"),
+						Type:      aws.String("infra-management"),
+						AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion: aws.String("1.0"),
+							},
+							{
+								AddonVersion: aws.String("1.1"),
+							},
+						},
+						Publisher: aws.String("upbound"),
+						Owner:     aws.String("aws-marketplace"),
+					},
+				},
+			}, nil)
+
+			summary, err := manager.DescribeAllVersions(context.Background(), &api.Addon{
+				Types:      "infra-management",
+				Owners:     "aws-marketplace",
+				Publishers: "upbound",
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			expected, err := json.Marshal(struct {
+				Addons []ekstypes.AddonInfo
+			}{
+				Addons: []ekstypes.AddonInfo{
+					{
+						AddonName: aws.String("upbound_universal-crossplane"),
+						Type:      aws.String("infra-management"),
+						AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion: aws.String("1.0"),
+							},
+							{
+								AddonVersion: aws.String("1.1"),
+							},
+						},
+						Publisher: aws.String("upbound"),
+						Owner:     aws.String("aws-marketplace"),
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(summary).To(Equal(string(expected)))
+
+			Expect(*describeAddonVersonsInput.KubernetesVersion).To(Equal("1.18"))
+			Expect(describeAddonVersonsInput.AddonName).To(BeNil())
+			Expect(*describeAddonVersonsInput.Types).To(Equal("infra-management"))
+			Expect(*describeAddonVersonsInput.Publishers).To(Equal("upbound"))
+			Expect(*describeAddonVersonsInput.Owners).To(Equal("aws-marketplace"))
 		})
 	})
 })

@@ -371,6 +371,35 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			ContainElement(ContainSubstring("vpc-cni")),
 		))
 	})
+
+	It("should describe addons when publisher, type and owner is supplied via config file", func() {
+
+		clusterConfig = getInitialClusterConfig()
+		clusterConfig.Addons = []*api.Addon{
+			{
+				Types:      "infra-management",
+				Owners:     "aws-marketplace",
+				Publishers: "upbound",
+			},
+		}
+
+		data, err := json.Marshal(clusterConfig)
+		Expect(err).NotTo(HaveOccurred())
+
+		cmd := params.EksctlUtilsCmd.
+			WithArgs(
+				"describe-addon-versions",
+				"--kubernetes-version", api.LatestVersion,
+				"--config-file", "-",
+			).
+			WithoutArg("--region", params.Region).
+			WithStdin(bytes.NewReader(data))
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring("infra-management")),
+			ContainElement(ContainSubstring("aws-marketplace")),
+			ContainElement(ContainSubstring("upbound")),
+		))
+	})
 })
 
 var _ = AfterSuite(func() {
