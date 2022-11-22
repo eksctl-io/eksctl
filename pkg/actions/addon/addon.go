@@ -27,10 +27,6 @@ type Manager struct {
 	clientSet     kubeclient.Interface
 }
 
-var (
-	ExportWaitForAddonToBeActive = (*Manager).waitForAddonToBeActive
-)
-
 func New(clusterConfig *api.ClusterConfig, eksAPI awsapi.EKS, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) (*Manager, error) {
 	return &Manager{
 		clusterConfig: clusterConfig,
