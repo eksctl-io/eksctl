@@ -101,7 +101,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			// setup config file
 			clusterConfig := getInitialClusterConfig()
 			clusterConfig.Addons = append(clusterConfig.Addons, &api.Addon{
-				Name: "aws-ebs-csi-driver",
+				Name: api.AWSEBSCSIDriverAddon,
 			})
 			data, err := json.Marshal(clusterConfig)
 
@@ -119,7 +119,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				cmd := params.EksctlGetCmd.
 					WithArgs(
 						"addon",
-						"--name", "aws-ebs-csi-driver",
+						"--name", api.AWSEBSCSIDriverAddon,
 						"--cluster", clusterName,
 						"--verbose", "2",
 					)
