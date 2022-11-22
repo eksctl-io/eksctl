@@ -704,6 +704,36 @@ func (_m *SSM) DeleteResourceDataSync(ctx context.Context, params *ssm.DeleteRes
 	return r0, r1
 }
 
+// DeleteResourcePolicy provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) DeleteResourcePolicy(ctx context.Context, params *ssm.DeleteResourcePolicyInput, optFns ...func(*ssm.Options)) (*ssm.DeleteResourcePolicyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.DeleteResourcePolicyOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DeleteResourcePolicyInput, ...func(*ssm.Options)) *ssm.DeleteResourcePolicyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.DeleteResourcePolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.DeleteResourcePolicyInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeregisterManagedInstance provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DeregisterManagedInstance(ctx context.Context, params *ssm.DeregisterManagedInstanceInput, optFns ...func(*ssm.Options)) (*ssm.DeregisterManagedInstanceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2504,6 +2534,36 @@ func (_m *SSM) GetPatchBaselineForPatchGroup(ctx context.Context, params *ssm.Ge
 	return r0, r1
 }
 
+// GetResourcePolicies provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) GetResourcePolicies(ctx context.Context, params *ssm.GetResourcePoliciesInput, optFns ...func(*ssm.Options)) (*ssm.GetResourcePoliciesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.GetResourcePoliciesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.GetResourcePoliciesInput, ...func(*ssm.Options)) *ssm.GetResourcePoliciesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.GetResourcePoliciesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.GetResourcePoliciesInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetServiceSetting provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetServiceSetting(ctx context.Context, params *ssm.GetServiceSettingInput, optFns ...func(*ssm.Options)) (*ssm.GetServiceSettingOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3156,6 +3216,36 @@ func (_m *SSM) PutParameter(ctx context.Context, params *ssm.PutParameterInput, 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ssm.PutParameterInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PutResourcePolicy provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) PutResourcePolicy(ctx context.Context, params *ssm.PutResourcePolicyInput, optFns ...func(*ssm.Options)) (*ssm.PutResourcePolicyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.PutResourcePolicyOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.PutResourcePolicyInput, ...func(*ssm.Options)) *ssm.PutResourcePolicyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.PutResourcePolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.PutResourcePolicyInput, ...func(*ssm.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)

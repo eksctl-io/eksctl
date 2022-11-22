@@ -188,6 +188,13 @@ type SSM interface {
 	// changes to data on managed nodes are no longer synced to or from the target.
 	// Deleting a sync configuration doesn't delete data.
 	DeleteResourceDataSync(ctx context.Context, params *DeleteResourceDataSyncInput, optFns ...func(*Options)) (*DeleteResourceDataSyncOutput, error)
+	// Deletes a Systems Manager resource policy. A resource policy helps you to define
+	// the IAM entity (for example, an Amazon Web Services account) that can manage
+	// your Systems Manager resources. Currently, OpsItemGroup is the only resource
+	// that supports Systems Manager resource policies. The resource policy for
+	// OpsItemGroup enables Amazon Web Services accounts to view and interact with
+	// OpsCenter operational work items (OpsItems).
+	DeleteResourcePolicy(ctx context.Context, params *DeleteResourcePolicyInput, optFns ...func(*Options)) (*DeleteResourcePolicyOutput, error)
 	// Removes the server or virtual machine from the list of registered servers. You
 	// can reregister the node again at any time. If you don't plan to use Run Command
 	// on the server, we suggest uninstalling SSM Agent first.
@@ -440,6 +447,8 @@ type SSM interface {
 	GetPatchBaseline(ctx context.Context, params *GetPatchBaselineInput, optFns ...func(*Options)) (*GetPatchBaselineOutput, error)
 	// Retrieves the patch baseline that should be used for the specified patch group.
 	GetPatchBaselineForPatchGroup(ctx context.Context, params *GetPatchBaselineForPatchGroupInput, optFns ...func(*Options)) (*GetPatchBaselineForPatchGroupOutput, error)
+	// Returns an array of the Policy object.
+	GetResourcePolicies(ctx context.Context, params *GetResourcePoliciesInput, optFns ...func(*Options)) (*GetResourcePoliciesOutput, error)
 	// ServiceSetting is an account-level setting for an Amazon Web Services service.
 	// This setting defines how a user interacts with or uses a service or a feature of
 	// a service. For example, if an Amazon Web Services service charges money to the
@@ -615,6 +624,13 @@ type SSM interface {
 	PutInventory(ctx context.Context, params *PutInventoryInput, optFns ...func(*Options)) (*PutInventoryOutput, error)
 	// Add a parameter to the system.
 	PutParameter(ctx context.Context, params *PutParameterInput, optFns ...func(*Options)) (*PutParameterOutput, error)
+	// Creates or updates a Systems Manager resource policy. A resource policy helps
+	// you to define the IAM entity (for example, an Amazon Web Services account) that
+	// can manage your Systems Manager resources. Currently, OpsItemGroup is the only
+	// resource that supports Systems Manager resource policies. The resource policy
+	// for OpsItemGroup enables Amazon Web Services accounts to view and interact with
+	// OpsCenter operational work items (OpsItems).
+	PutResourcePolicy(ctx context.Context, params *PutResourcePolicyInput, optFns ...func(*Options)) (*PutResourcePolicyOutput, error)
 	// Defines the default patch baseline for the relevant operating system. To reset
 	// the Amazon Web Services-predefined patch baseline as the default, specify the
 	// full patch baseline Amazon Resource Name (ARN) as the baseline ID value. For

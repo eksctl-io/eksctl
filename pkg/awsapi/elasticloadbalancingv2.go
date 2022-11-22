@@ -215,9 +215,7 @@ type ELBV2 interface {
 	// action.
 	ModifyRule(ctx context.Context, params *ModifyRuleInput, optFns ...func(*Options)) (*ModifyRuleOutput, error)
 	// Modifies the health checks used when evaluating the health state of the targets
-	// in the specified target group. If the protocol of the target group is TCP, TLS,
-	// UDP, or TCP_UDP, you can't modify the health check protocol, interval, timeout,
-	// or success codes.
+	// in the specified target group.
 	ModifyTargetGroup(ctx context.Context, params *ModifyTargetGroupInput, optFns ...func(*Options)) (*ModifyTargetGroupOutput, error)
 	// Modifies the specified attributes of the specified target group.
 	ModifyTargetGroupAttributes(ctx context.Context, params *ModifyTargetGroupAttributesInput, optFns ...func(*Options)) (*ModifyTargetGroupAttributesOutput, error)
