@@ -219,6 +219,8 @@ spec:
             capabilities:
               add:
               - NET_ADMIN
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
           volumeMounts:
           - mountPath: /host/opt/cni/bin
             name: cni-bin-dir

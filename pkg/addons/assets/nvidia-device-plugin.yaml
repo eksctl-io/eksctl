@@ -50,6 +50,7 @@ spec:
         name: nvidia-device-plugin-ctr
         args: ["--fail-on-init-error=false"]
         securityContext:
+          runAsNonRoot: true
           allowPrivilegeEscalation: false
           capabilities:
             drop: ["ALL"]

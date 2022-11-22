@@ -124,6 +124,7 @@ spec:
                 fieldRef:
                   fieldPath: spec.nodeName
           securityContext:
+            runAsNonRoot: true
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
