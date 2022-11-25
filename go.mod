@@ -12,20 +12,20 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.17.1
 	github.com/aws/aws-sdk-go-v2/config v1.18.2
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.2
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.24.2
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.24.0
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.20.2
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.16.3
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.24.3
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.24.1
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.20.3
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.16.4
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.21.1
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.72.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.23.0
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.22
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.25
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.23
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.26
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.23
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.17
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.23.2
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.33.0
-	github.com/aws/aws-sdk-go-v2/service/sts v1.17.4
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.33.1
+	github.com/aws/aws-sdk-go-v2/service/sts v1.17.5
 	github.com/aws/smithy-go v1.13.4
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
