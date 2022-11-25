@@ -149,6 +149,7 @@ func (m *OpenIDConnectManager) getIssuerCAThumbprint() error {
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: m.insecureSkipVerify,
+				MinVersion:         tls.VersionTLS12,
 			},
 			Proxy: http.ProxyFromEnvironment,
 		},
