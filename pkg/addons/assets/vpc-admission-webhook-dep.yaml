@@ -19,6 +19,10 @@ spec:
     spec:
       containers:
         - name: vpc-admission-webhook
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            runAsUser: 1000
           args:
             - -tlsCertFile=/etc/webhook/certs/cert.pem
             - -tlsKeyFile=/etc/webhook/certs/key.pem
