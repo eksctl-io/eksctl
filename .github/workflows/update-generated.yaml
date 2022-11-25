@@ -40,10 +40,10 @@ jobs:
           git config user.email "weaveworksbot@users.noreply.github.com"
           git add -u
           if ! EDITOR=true git commit -m "Update aws-node"; then
-            echo "::set-output name=changes::false"
+            echo "name=changes::false" >> $GITHUB_OUTPUT
             exit 0
           fi
-          echo "::set-output name=changes::true"
+          echo "name=changes::true" >> $GITHUB_OUTPUT
           ! git diff --exit-code $DEFAULT_BRANCH HEAD
           git push --force-with-lease origin HEAD
       - uses: actions/github-script@v6.3.3
