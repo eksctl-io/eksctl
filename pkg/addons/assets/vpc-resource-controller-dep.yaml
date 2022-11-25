@@ -40,6 +40,7 @@ spec:
         securityContext:
           runAsNonRoot: true
           allowPrivilegeEscalation: false
+          runAsUser: 1000
       hostNetwork: true
       affinity:
         nodeAffinity:
