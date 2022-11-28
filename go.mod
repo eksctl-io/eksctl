@@ -61,7 +61,7 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
-	github.com/tidwall/gjson v1.14.3
+	github.com/tidwall/gjson v1.14.4
 	github.com/tidwall/sjson v1.2.5
 	github.com/tj/assert v0.0.3
 	github.com/vburenin/ifacemaker v1.2.1-0.20220402060045-b2018d8549dc
