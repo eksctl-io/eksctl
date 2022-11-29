@@ -155,6 +155,7 @@ spec:
         - image: "%s.dkr.ecr.%s.%s/eks/aws-efa-k8s-device-plugin:v0.3.3"
           name: aws-efa-k8s-device-plugin
           securityContext:
+            runAsNonRoot: true
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]

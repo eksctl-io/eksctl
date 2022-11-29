@@ -70,7 +70,7 @@ func (c *EKSConnector) RegisterCluster(ctx context.Context, cluster ExternalClus
 	if err != nil {
 		var notFoundError *ekstypes.ResourceNotFoundException
 		if !errors.As(err, &notFoundError) {
-			return nil, errors.New("unexpected error calling DescribeCluster")
+			return nil, errors.Wrap(err, "unexpected error calling DescribeCluster")
 		}
 	} else {
 		return nil, errors.Errorf("cluster already exists; deregister the cluster first using `eksctl deregister cluster --name %s --region %s` and try again", cluster.Name, c.Provider.Region())

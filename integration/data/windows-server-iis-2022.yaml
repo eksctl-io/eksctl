@@ -27,5 +27,8 @@ spec:
         - powershell.exe
         - -command
         - "Add-WindowsFeature Web-Server; Invoke-WebRequest -UseBasicParsing -Uri 'https://dotnetbinaries.blob.core.windows.net/servicemonitor/2.0.1.6/ServiceMonitor.exe' -OutFile 'C:\\ServiceMonitor.exe'; echo '<html><body><br/><br/><H1>Windows Container Workshop - Windows LTSC2019!!!<H1></body><html>' > C:\\inetpub\\wwwroot\\iisstart.htm; C:\\ServiceMonitor.exe 'w3svc'; "
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
       nodeSelector:
         kubernetes.io/os: windows
