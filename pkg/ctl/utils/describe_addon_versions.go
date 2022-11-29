@@ -25,10 +25,14 @@ func describeAddonVersionsCmd(cmd *cmdutils.Cmd) {
 	)
 
 	var addonName, k8sVersion string
+	var types, owners, publishers []string
 	cmd.ClusterConfig.Addons = []*api.Addon{{}}
 	cmd.FlagSetGroup.InFlagSet("Addon", func(fs *pflag.FlagSet) {
 		fs.StringVar(&addonName, "name", "", "Addon name")
 		fs.StringVar(&k8sVersion, "kubernetes-version", "", "Kubernetes version")
+		fs.StringSliceVar(&types, "types", []string{}, "Addon type (optional, can be comma separated list e.g., --types \"typeA, typeB\"")
+		fs.StringSliceVar(&owners, "owners", []string{}, "Addon owner (optional, can be comma separated list e.g., --owners \"ownerA, ownerB\"")
+		fs.StringSliceVar(&publishers, "publishers", []string{}, "Addon publisher (optional, can be comma separated list e.g., --publishers \"publisherA, publisherB\"")
 		cmdutils.AddClusterFlag(fs, cmd.ClusterConfig.Metadata)
 	})
 
@@ -41,11 +45,11 @@ func describeAddonVersionsCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return describeAddonVersions(cmd, addonName, k8sVersion, cmd.ClusterConfig.Metadata.Name)
+		return describeAddonVersions(cmd, addonName, k8sVersion, cmd.ClusterConfig.Metadata.Name, types, owners, publishers)
 	}
 }
 
-func describeAddonVersions(cmd *cmdutils.Cmd, addonName, k8sVersion, clusterName string) error {
+func describeAddonVersions(cmd *cmdutils.Cmd, addonName, k8sVersion, clusterName string, types, owners, publishers []string) error {
 	clusterProvider, err := cmd.NewCtl()
 	if err != nil {
 		return err
@@ -81,15 +85,14 @@ func describeAddonVersions(cmd *cmdutils.Cmd, addonName, k8sVersion, clusterName
 	}
 
 	var summary string
-
 	switch addonName {
 	case "":
-		summary, err = addonManager.DescribeAllVersions(ctx)
+		summary, err = addonManager.DescribeAllVersions(ctx, &api.Addon{Types: types, Owners: owners, Publishers: publishers})
 		if err != nil {
 			return err
 		}
 	default:
-		summary, err = addonManager.DescribeVersions(ctx, &api.Addon{Name: addonName})
+		summary, err = addonManager.DescribeVersions(ctx, &api.Addon{Name: addonName, Owners: owners, Publishers: publishers})
 		if err != nil {
 			return err
 		}

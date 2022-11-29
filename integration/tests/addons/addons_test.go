@@ -371,6 +371,36 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			ContainElement(ContainSubstring("vpc-cni")),
 		))
 	})
+
+	It("should describe addons when publisher, type and owner is supplied", func() {
+		cmd := params.EksctlUtilsCmd.
+			WithArgs(
+				"describe-addon-versions",
+				"--kubernetes-version", api.LatestVersion,
+				"--types", "infra-management",
+				"--owners", "aws-marketplace",
+				"--publishers", "upbound",
+			)
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring("infra-management")),
+			ContainElement(ContainSubstring("aws-marketplace")),
+			ContainElement(ContainSubstring("upbound")),
+			ContainElement(ContainSubstring("upbound_universal-crossplane")),
+		))
+	})
+
+	It("should describe addons when multiple types is supplied", func() {
+		cmd := params.EksctlUtilsCmd.
+			WithArgs(
+				"describe-addon-versions",
+				"--kubernetes-version", api.LatestVersion,
+				"--types", "infra-management, policy-management",
+			)
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring("infra-management")),
+			ContainElement(ContainSubstring("policy-management")),
+		))
+	})
 })
 
 var _ = AfterSuite(func() {

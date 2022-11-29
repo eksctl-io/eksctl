@@ -84,6 +84,21 @@ func (in *Addon) DeepCopyInto(out *Addon) {
 			(*out)[key] = val
 		}
 	}
+	if in.Publishers != nil {
+		in, out := &in.Publishers, &out.Publishers
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
+	if in.Types != nil {
+		in, out := &in.Types, &out.Types
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
+	if in.Owners != nil {
+		in, out := &in.Owners, &out.Owners
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 

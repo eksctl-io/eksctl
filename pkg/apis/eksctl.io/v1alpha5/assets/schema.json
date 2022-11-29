@@ -54,10 +54,22 @@
         "name": {
           "type": "string"
         },
+        "owners": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "permissionsBoundary": {
           "type": "string",
           "description": "ARN of the permissions' boundary to associate",
           "x-intellij-html-description": "ARN of the permissions' boundary to associate"
+        },
+        "publishers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "resolveConflicts": {
           "$ref": "#/definitions/github.com|aws|aws-sdk-go-v2|service|eks|types.ResolveConflicts",
@@ -75,6 +87,12 @@
           "description": "The metadata to apply to the cluster to assist with categorization and organization. Each tag consists of a key and an optional value, both of which you define.",
           "x-intellij-html-description": "The metadata to apply to the cluster to assist with categorization and organization. Each tag consists of a key and an optional value, both of which you define.",
           "default": "{}"
+        },
+        "types": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "version": {
           "type": "string"
@@ -94,7 +112,10 @@
         "permissionsBoundary",
         "wellKnownPolicies",
         "tags",
-        "resolveConflicts"
+        "resolveConflicts",
+        "publishers",
+        "types",
+        "owners"
       ],
       "additionalProperties": false,
       "description": "holds the EKS addon configuration",
