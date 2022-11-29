@@ -61,7 +61,7 @@ var _ = Describe("DescribeVersions", func() {
 				Name: "my-addon",
 			})
 			Expect(err).NotTo(HaveOccurred())
-			expected, err := json.Marshal(struct {
+			expected, err := json.MarshalIndent(struct {
 				Addons []ekstypes.AddonInfo
 			}{
 				Addons: []ekstypes.AddonInfo{
@@ -78,7 +78,7 @@ var _ = Describe("DescribeVersions", func() {
 						},
 					},
 				},
-			})
+			}, "", "\t")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(summary).To(Equal(string(expected)))
 			Expect(*describeAddonVersonsInput.KubernetesVersion).To(Equal("1.18"))
@@ -128,12 +128,12 @@ var _ = Describe("DescribeVersions", func() {
 
 			summary, err := manager.DescribeVersions(context.Background(), &api.Addon{
 				Name:       "upbound_universal-crossplane",
-				Types:      "infra-management",
-				Owners:     "aws-marketplace",
-				Publishers: "upbound",
+				Types:      []string{"infra-management"},
+				Owners:     []string{"aws-marketplace"},
+				Publishers: []string{"upbound"},
 			})
 			Expect(err).NotTo(HaveOccurred())
-			expected, err := json.Marshal(struct {
+			expected, err := json.MarshalIndent(struct {
 				Addons []ekstypes.AddonInfo
 			}{
 				Addons: []ekstypes.AddonInfo{
@@ -152,14 +152,14 @@ var _ = Describe("DescribeVersions", func() {
 						Owner:     aws.String("aws-marketplace"),
 					},
 				},
-			})
+			}, "", "\t")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(summary).To(Equal(string(expected)))
 			Expect(*describeAddonVersonsInput.KubernetesVersion).To(Equal("1.18"))
 			Expect(*describeAddonVersonsInput.AddonName).To(Equal("upbound_universal-crossplane"))
-			Expect(*describeAddonVersonsInput.Types).To(Equal("infra-management"))
-			Expect(*describeAddonVersonsInput.Publishers).To(Equal("upbound"))
-			Expect(*describeAddonVersonsInput.Owners).To(Equal("aws-marketplace"))
+			Expect(describeAddonVersonsInput.Types).To(Equal([]string{"infra-management"}))
+			Expect(describeAddonVersonsInput.Publishers).To(Equal([]string{"upbound"}))
+			Expect(describeAddonVersonsInput.Owners).To(Equal([]string{"aws-marketplace"}))
 		})
 	})
 
@@ -189,7 +189,7 @@ var _ = Describe("DescribeVersions", func() {
 			summary, err := manager.DescribeAllVersions(context.Background(), &api.Addon{})
 			Expect(err).NotTo(HaveOccurred())
 
-			expected, err := json.Marshal(struct {
+			expected, err := json.MarshalIndent(struct {
 				Addons []ekstypes.AddonInfo
 			}{
 				Addons: []ekstypes.AddonInfo{
@@ -206,7 +206,7 @@ var _ = Describe("DescribeVersions", func() {
 						},
 					},
 				},
-			})
+			}, "", "\t")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(summary).To(Equal(string(expected)))
 
@@ -254,13 +254,13 @@ var _ = Describe("DescribeVersions", func() {
 			}, nil)
 
 			summary, err := manager.DescribeAllVersions(context.Background(), &api.Addon{
-				Types:      "infra-management",
-				Owners:     "aws-marketplace",
-				Publishers: "upbound",
+				Types:      []string{"infra-management"},
+				Owners:     []string{"aws-marketplace"},
+				Publishers: []string{"upbound"},
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			expected, err := json.Marshal(struct {
+			expected, err := json.MarshalIndent(struct {
 				Addons []ekstypes.AddonInfo
 			}{
 				Addons: []ekstypes.AddonInfo{
@@ -279,15 +279,15 @@ var _ = Describe("DescribeVersions", func() {
 						Owner:     aws.String("aws-marketplace"),
 					},
 				},
-			})
+			}, "", "\t")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(summary).To(Equal(string(expected)))
 
 			Expect(*describeAddonVersonsInput.KubernetesVersion).To(Equal("1.18"))
 			Expect(describeAddonVersonsInput.AddonName).To(BeNil())
-			Expect(*describeAddonVersonsInput.Types).To(Equal("infra-management"))
-			Expect(*describeAddonVersonsInput.Publishers).To(Equal("upbound"))
-			Expect(*describeAddonVersonsInput.Owners).To(Equal("aws-marketplace"))
+			Expect(describeAddonVersonsInput.Types).To(Equal([]string{"infra-management"}))
+			Expect(describeAddonVersonsInput.Publishers).To(Equal([]string{"upbound"}))
+			Expect(describeAddonVersonsInput.Owners).To(Equal([]string{"aws-marketplace"}))
 		})
 	})
 })

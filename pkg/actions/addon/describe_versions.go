@@ -38,19 +38,17 @@ func (a *Manager) describeVersions(ctx context.Context, addon *api.Addon) (*eks.
 		KubernetesVersion: &a.clusterConfig.Metadata.Version,
 	}
 
-	addon.Types = "infra-management"
-
 	if addon.Name != "" {
 		input.AddonName = &addon.Name
 	}
-	if addon.Publishers != "" {
-		input.Publishers = &addon.Publishers
+	if len(addon.Publishers) != 0 {
+		input.Publishers = addon.Publishers
 	}
-	if addon.Types != "" {
-		input.Types = &addon.Types
+	if len(addon.Types) != 0 {
+		input.Types = addon.Types
 	}
-	if addon.Owners != "" {
-		input.Owners = &addon.Owners
+	if len(addon.Owners) != 0 {
+		input.Owners = addon.Owners
 	}
 
 	output, err := a.eksAPI.DescribeAddonVersions(ctx, input)
@@ -62,11 +60,11 @@ func (a *Manager) describeVersions(ctx context.Context, addon *api.Addon) (*eks.
 }
 
 func addonVersionsToString(output *eks.DescribeAddonVersionsOutput) (string, error) {
-	data, err := json.Marshal(struct {
+	data, err := json.MarshalIndent(struct {
 		Addons []ekstypes.AddonInfo `json:"Addons"`
 	}{
 		Addons: output.Addons,
-	})
+	}, "", "\t")
 	if err != nil {
 		return "", err
 	}

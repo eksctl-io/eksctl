@@ -37,11 +37,11 @@ type Addon struct {
 	// Force is intended to be used when migrating an existing self-managed add-on to an EKS managed add-on.
 	Force bool `json:"-"`
 	// +optional
-	Publishers string `json:"publishers,omitempty"`
+	Publishers []string `json:"publishers,omitempty"`
 	// +optional
-	Types string `json:"types,omitempty"`
+	Types []string `json:"types,omitempty"`
 	// +optional
-	Owners string `json:"owners,omitempty"`
+	Owners []string `json:"owners,omitempty"`
 }
 
 func (a Addon) CanonicalName() string {

@@ -111,6 +111,13 @@ addons are available for a particular kubernetes version you can run:
 eksctl utils describe-addon-versions --kubernetes-version <version>
 ```
 
+You can also discover addons by filtering on their `type`, `owner` and/or `publisher`.
+For e.g., to see addons for a particular owner and type you can run:
+```console
+eksctl utils describe-addon-versions --kubernetes-version 1.22 --types "infra-management, policy-management" --owners "aws-marketplace" 
+```
+The `types`, `owners` and `publishers` flags are optional and can be specified together or individually to filter the results.
+
 ## Updating addons
 You can update your addons to newer versions and change what policies are attached by running:
 ```console

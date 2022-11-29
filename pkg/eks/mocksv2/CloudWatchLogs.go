@@ -165,6 +165,36 @@ func (_m *CloudWatchLogs) CreateLogStream(ctx context.Context, params *cloudwatc
 	return r0, r1
 }
 
+// DeleteDataProtectionPolicy provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) DeleteDataProtectionPolicy(ctx context.Context, params *cloudwatchlogs.DeleteDataProtectionPolicyInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DeleteDataProtectionPolicyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudwatchlogs.DeleteDataProtectionPolicyOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.DeleteDataProtectionPolicyInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.DeleteDataProtectionPolicyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.DeleteDataProtectionPolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.DeleteDataProtectionPolicyInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteDestination provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudWatchLogs) DeleteDestination(ctx context.Context, params *cloudwatchlogs.DeleteDestinationInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DeleteDestinationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -735,6 +765,36 @@ func (_m *CloudWatchLogs) FilterLogEvents(ctx context.Context, params *cloudwatc
 	return r0, r1
 }
 
+// GetDataProtectionPolicy provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) GetDataProtectionPolicy(ctx context.Context, params *cloudwatchlogs.GetDataProtectionPolicyInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.GetDataProtectionPolicyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudwatchlogs.GetDataProtectionPolicyOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.GetDataProtectionPolicyInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.GetDataProtectionPolicyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.GetDataProtectionPolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.GetDataProtectionPolicyInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetLogEvents provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudWatchLogs) GetLogEvents(ctx context.Context, params *cloudwatchlogs.GetLogEventsInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.GetLogEventsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -907,6 +967,36 @@ func (_m *CloudWatchLogs) ListTagsLogGroup(ctx context.Context, params *cloudwat
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.ListTagsLogGroupInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PutDataProtectionPolicy provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) PutDataProtectionPolicy(ctx context.Context, params *cloudwatchlogs.PutDataProtectionPolicyInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.PutDataProtectionPolicyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudwatchlogs.PutDataProtectionPolicyOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.PutDataProtectionPolicyInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.PutDataProtectionPolicyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.PutDataProtectionPolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.PutDataProtectionPolicyInput, ...func(*cloudwatchlogs.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)

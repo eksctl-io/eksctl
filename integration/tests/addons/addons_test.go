@@ -372,32 +372,33 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		))
 	})
 
-	It("should describe addons when publisher, type and owner is supplied via config file", func() {
-
-		clusterConfig = getInitialClusterConfig()
-		clusterConfig.Addons = []*api.Addon{
-			{
-				Types:      "infra-management",
-				Owners:     "aws-marketplace",
-				Publishers: "upbound",
-			},
-		}
-
-		data, err := json.Marshal(clusterConfig)
-		Expect(err).NotTo(HaveOccurred())
-
+	It("should describe addons when publisher, type and owner is supplied", func() {
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"describe-addon-versions",
 				"--kubernetes-version", api.LatestVersion,
-				"--config-file", "-",
-			).
-			WithoutArg("--region", params.Region).
-			WithStdin(bytes.NewReader(data))
+				"--types", "infra-management",
+				"--owners", "aws-marketplace",
+				"--publishers", "upbound",
+			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 			ContainElement(ContainSubstring("infra-management")),
 			ContainElement(ContainSubstring("aws-marketplace")),
 			ContainElement(ContainSubstring("upbound")),
+			ContainElement(ContainSubstring("upbound_universal-crossplane")),
+		))
+	})
+
+	It("should describe addons when multiple types is supplied", func() {
+		cmd := params.EksctlUtilsCmd.
+			WithArgs(
+				"describe-addon-versions",
+				"--kubernetes-version", api.LatestVersion,
+				"--types", "infra-management, policy-management",
+			)
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring("infra-management")),
+			ContainElement(ContainSubstring("policy-management")),
 		))
 	})
 })

@@ -123,6 +123,7 @@ type EKS interface {
 	DeregisterCluster(ctx context.Context, params *DeregisterClusterInput, optFns ...func(*Options)) (*DeregisterClusterOutput, error)
 	// Describes an Amazon EKS add-on.
 	DescribeAddon(ctx context.Context, params *DescribeAddonInput, optFns ...func(*Options)) (*DescribeAddonOutput, error)
+	DescribeAddonConfiguration(ctx context.Context, params *DescribeAddonConfigurationInput, optFns ...func(*Options)) (*DescribeAddonConfigurationOutput, error)
 	// Describes the Kubernetes versions that the add-on can be used with.
 	DescribeAddonVersions(ctx context.Context, params *DescribeAddonVersionsInput, optFns ...func(*Options)) (*DescribeAddonVersionsOutput, error)
 	// Returns descriptive information about an Amazon EKS cluster. The API server
