@@ -7,17 +7,25 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/utils/strings/slices"
 
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	. "github.com/weaveworks/eksctl/integration/matchers"
 	"github.com/weaveworks/eksctl/integration/runner"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -25,9 +33,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 var (
@@ -370,6 +375,32 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 			ContainElement(ContainSubstring("vpc-cni")),
 		))
+	})
+
+	It("should output the configuration schema for addons", func() {
+		addonWithSchema := "coredns"
+		cfg := NewConfig(params.Region)
+		eksAPI := awseks.NewFromConfig(cfg)
+		By(fmt.Sprintf("listing available addon versions for %s", addonWithSchema))
+		output, err := eksAPI.DescribeAddonVersions(context.Background(), &awseks.DescribeAddonVersionsInput{
+			AddonName:         aws.String(addonWithSchema),
+			KubernetesVersion: aws.String(api.LatestVersion),
+		})
+		Expect(err).NotTo(HaveOccurred(), "error describing addon versions")
+		By(fmt.Sprintf("fetching the configuration schema for %s", addonWithSchema))
+		Expect(output.Addons).NotTo(BeEmpty(), "expected to find addon versions for %s", addonWithSchema)
+		addonVersions := output.Addons[0].AddonVersions
+		Expect(addonVersions).NotTo(BeEmpty(), "expected to find at least one addon version")
+
+		cmd := params.EksctlUtilsCmd.
+			WithArgs(
+				"describe-addon-configuration",
+				"--name", addonWithSchema,
+				"--version", *addonVersions[0].AddonVersion,
+			)
+		session := cmd.Run()
+		Expect(session.ExitCode()).To(Equal(0))
+		Expect(json.Valid(session.Buffer().Contents())).To(BeTrue(), "invalid JSON for configuration schema")
 	})
 
 	It("should describe addons when publisher, type and owner is supplied", func() {
