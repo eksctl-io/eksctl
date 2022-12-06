@@ -73,7 +73,7 @@ During addon creation, if a self-managed version of the addon already exists on 
 
 ```yaml
 addons:
-- name: vpc-cni 
+- name: vpc-cni
   attachPolicyARNs:
     - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
   resolveConflicts: overwrite
@@ -114,9 +114,18 @@ eksctl utils describe-addon-versions --kubernetes-version <version>
 You can also discover addons by filtering on their `type`, `owner` and/or `publisher`.
 For e.g., to see addons for a particular owner and type you can run:
 ```console
-eksctl utils describe-addon-versions --kubernetes-version 1.22 --types "infra-management, policy-management" --owners "aws-marketplace" 
+eksctl utils describe-addon-versions --kubernetes-version 1.22 --types "infra-management, policy-management" --owners "aws-marketplace"
 ```
 The `types`, `owners` and `publishers` flags are optional and can be specified together or individually to filter the results.
+
+## Discovering the configuration schema for addons
+After discovering the addon and version, you can view the customization options by fetching its JSON configuration schema.
+
+```console
+eksctl utils describe-addon-configuration --name vpc-cni --version v1.12.0-eksbuild.1
+```
+
+This returns a JSON schema of the various options available for this addon.
 
 ## Updating addons
 You can update your addons to newer versions and change what policies are attached by running:
@@ -133,7 +142,7 @@ Similarly to addon creation, When updating an addon, you have full control over 
 
 ```yaml
 addons:
-- name: vpc-cni 
+- name: vpc-cni
   attachPolicyARNs:
     - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
   resolveConflicts: preserve
