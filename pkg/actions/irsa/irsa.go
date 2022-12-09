@@ -26,14 +26,14 @@ func New(clusterName string, stackManager manager.StackManager, oidcManager *iam
 	}
 }
 
-func doTasks(taskTree *tasks.TaskTree) error {
+func doTasks(taskTree *tasks.TaskTree, verb string) error {
 	logger.Info(taskTree.Describe())
 	if errs := taskTree.DoAllSync(); len(errs) > 0 {
-		logger.Info("%d error(s) occurred and IAM Role stacks haven't been updated properly, you may wish to check CloudFormation console", len(errs))
+		logger.Info("%d error(s) occurred and IAM Role stacks haven't been %sd properly, you may wish to check CloudFormation console", len(errs), verb)
 		for _, err := range errs {
 			logger.Critical("%s\n", err.Error())
 		}
-		return fmt.Errorf("failed to create iamserviceaccount(s)")
+		return fmt.Errorf("failed to %s iamserviceaccount(s)", verb)
 	}
 	return nil
 }
