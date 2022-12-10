@@ -84,6 +84,14 @@ cloudWatch:
       - "authenticator"
 ```
 
+Note that by default, log data is stored in CloudWatch Logs indefinitely. This can be controlled with:
+
+```yaml
+cloudWatch:
+  clusterLogging:
+    logRetentionInDays: 7
+```
+
 Full example:
 
 ```yaml
@@ -102,6 +110,7 @@ nodeGroups:
 cloudWatch:
   clusterLogging:
     enableTypes: ["audit", "authenticator"]
+    logRetentionInDays: 7
 ```
 
 [eksdocs]: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html
