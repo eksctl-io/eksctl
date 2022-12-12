@@ -1,6 +1,7 @@
 package create
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -209,6 +210,7 @@ var _ = Describe("create cluster", func() {
 		updateClusterParams func(*cmdutils.CreateClusterCmdParams)
 		updateMocks         func(*mockprovider.MockProvider)
 		mockOutposts        bool
+		fullyPrivateCluster bool
 
 		expectedErr string
 	}
@@ -259,7 +261,7 @@ var _ = Describe("create cluster", func() {
 
 	DescribeTable("doCreateCluster", func(ce createClusterEntry) {
 		p := mockprovider.NewMockProvider()
-		defaultProviderMocks(p, defaultOutput, ce.mockOutposts)
+		defaultProviderMocks(p, defaultOutput, ce.fullyPrivateCluster, ce.mockOutposts)
 		if ce.updateMocks != nil {
 			ce.updateMocks(p)
 		}
@@ -312,8 +314,66 @@ var _ = Describe("create cluster", func() {
 		}
 
 		Expect(err).NotTo(HaveOccurred())
+
+		if ce.fullyPrivateCluster {
+			Expect(clusterConfig.PrivateCluster.Enabled).To(BeTrue())
+			p.MockEKS().AssertNumberOfCalls(GinkgoT(), "UpdateClusterConfig", 1)
+		}
 	},
 		Entry("standard cluster", createClusterEntry{}),
+
+		Entry("[Fully Private Cluster] updates cluster config successfully", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.VPC.ClusterEndpoints.PrivateAccess = api.Enabled()
+				c.PrivateCluster = &api.PrivateCluster{
+					Enabled:              true,
+					SkipEndpointCreation: true,
+				}
+			},
+			updateMocks: func(provider *mockprovider.MockProvider) {
+				provider.MockEKS().On("UpdateClusterConfig", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.UpdateClusterConfigInput{}))
+					Expect(args[1].(*awseks.UpdateClusterConfigInput).ResourcesVpcConfig.EndpointPrivateAccess).To(Equal(api.Enabled()))
+					Expect(args[1].(*awseks.UpdateClusterConfigInput).ResourcesVpcConfig.EndpointPublicAccess).To(Equal(api.Disabled()))
+				}).Return(&awseks.UpdateClusterConfigOutput{
+					Update: &ekstypes.Update{
+						Id: aws.String("test-id"),
+					},
+				}, nil).Once()
+
+				provider.MockEKS().On("DescribeUpdate", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeUpdateInput) bool {
+					return true
+				}), mock.Anything).Return(&awseks.DescribeUpdateOutput{
+					Update: &ekstypes.Update{
+						Id:     aws.String("test-id"),
+						Type:   ekstypes.UpdateTypeConfigUpdate,
+						Status: ekstypes.UpdateStatusSuccessful,
+					},
+				}, nil).Once()
+			},
+			fullyPrivateCluster: true,
+		}),
+
+		Entry("[Fully Private Cluster] fails to update cluster config", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.VPC.ClusterEndpoints.PrivateAccess = api.Enabled()
+				c.PrivateCluster = &api.PrivateCluster{
+					Enabled:              true,
+					SkipEndpointCreation: true,
+				}
+			},
+			updateMocks: func(provider *mockprovider.MockProvider) {
+				provider.MockEKS().On("UpdateClusterConfig", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.UpdateClusterConfigInput{}))
+					Expect(args[1].(*awseks.UpdateClusterConfigInput).ResourcesVpcConfig.EndpointPrivateAccess).To(Equal(api.Enabled()))
+					Expect(args[1].(*awseks.UpdateClusterConfigInput).ResourcesVpcConfig.EndpointPublicAccess).To(Equal(api.Disabled()))
+				}).Return(nil, fmt.Errorf("")).Once()
+			},
+			expectedErr:         "error disabling public endpoint access for the cluster",
+			fullyPrivateCluster: true,
+		}),
 
 		Entry("[Outposts] control plane on Outposts with valid config", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
@@ -461,7 +521,7 @@ var defaultOutput = []cftypes.Output{
 	},
 }
 
-func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output, controlPlaneOnOutposts bool) {
+func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output, fullyPrivateCluster bool, controlPlaneOnOutposts bool) {
 	p.MockEC2().On("DescribeAvailabilityZones", mock.Anything, &ec2.DescribeAvailabilityZonesInput{
 		Filters: []ec2types.Filter{{
 			Name:   aws.String("region-name"),
@@ -494,6 +554,14 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 			},
 		},
 	}, nil)
+
+	if fullyPrivateCluster {
+		output = append(output, cftypes.Output{
+			OutputKey:   aws.String("ClusterFullyPrivate"),
+			OutputValue: aws.String(""),
+		})
+	}
+
 	p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.Anything).Return(&cloudformation.DescribeStacksOutput{
 		Stacks: []cftypes.Stack{
 			{
