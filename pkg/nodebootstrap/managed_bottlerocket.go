@@ -27,10 +27,7 @@ func (b *ManagedBottlerocket) UserData() (string, error) {
 	if err := b.setDerivedSettings(); err != nil {
 		return "", err
 	}
-
-	settings, err := toml.TreeFromMap(map[string]interface{}{
-		"settings": *b.ng.Bottlerocket.Settings,
-	})
+	settings, err := toml.Load(*b.ng.OverrideBootstrapCommand)
 	if err != nil {
 		return "", errors.Wrap(err, "error loading user-provided Bottlerocket settings")
 	}
