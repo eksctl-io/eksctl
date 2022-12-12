@@ -819,9 +819,6 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 			if ng.PreBootstrapCommands != nil {
 				return fieldNotSupported("preBootstrapCommands")
 			}
-			if ng.OverrideBootstrapCommand != nil {
-				return fieldNotSupported("overrideBootstrapCommand")
-			}
 		}
 	} else if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
 		return err
@@ -1143,9 +1140,6 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		if ng.PreBootstrapCommands != nil {
 			return fieldNotSupported("preBootstrapCommands")
 		}
-		if ng.OverrideBootstrapCommand != nil {
-			return fieldNotSupported("overrideBootstrapCommand")
-		}
 	}
 
 	// Windows doesn't use overrideBootstrapCommand, as it always uses bootstrapping script that comes with Windows AMIs
@@ -1200,7 +1194,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		if !IsAMI(ng.AMI) {
 			return errors.Errorf("invalid AMI %q (%s.%s)", ng.AMI, path, "ami")
 		}
-		if ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
+		if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyBottlerocket {
 			return errors.Errorf("cannot set amiFamily to %s when using a custom AMI", ng.AMIFamily)
 		}
 		if ng.OverrideBootstrapCommand == nil {
