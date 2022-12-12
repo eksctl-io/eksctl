@@ -1285,8 +1285,8 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 	}
 
 	if distribution.SpotAllocationStrategy != nil {
-		if !isSpotAllocationStrategySupported(*distribution.SpotAllocationStrategy) {
-			return fmt.Errorf("spotAllocationStrategy should be one of: %v", strings.Join(supportedSpotAllocationStrategies(), ", "))
+		if err := validateSpotAllocationStrategy(*distribution.SpotAllocationStrategy); err != nil {
+			return err
 		}
 	}
 
