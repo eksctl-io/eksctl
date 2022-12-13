@@ -347,7 +347,7 @@ func getKubectlVersion() string {
 }
 
 func lockFileName(filePath string) string {
-	return filepath.Join(os.TempDir(), fmt.Sprintf("%s.eksctl.lock", filepath.Base(filePath)))
+	return filepath.Join(os.TempDir(), fmt.Sprintf("%x.eksctl.lock", utils.FnvHash(filePath)))
 }
 
 // ensureDirectory should probably be handled in flock

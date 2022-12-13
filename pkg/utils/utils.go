@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"hash/fnv"
 	"regexp"
 	"strings"
 
@@ -9,7 +10,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-var matchFirstCap = regexp.MustCompile("([0-9]+|[A-Z])")
+var (
+	matchFirstCap = regexp.MustCompile("([0-9]+|[A-Z])")
+	fnvHash       = fnv.New32a()
+)
 
 // ToKebabCase turns a CamelCase string into a kebab-case string
 func ToKebabCase(str string) string {
@@ -46,4 +50,12 @@ func CompareVersions(a, b string) (int, error) {
 		return 0, errors.Wrapf(err, "unable to parse second version %q", b)
 	}
 	return aVersion.Compare(bVersion), nil
+}
+
+// FnvHash computes the hash of a string using the Fowler–Noll–Vo hash function
+func FnvHash(s string) []byte {
+	fnvHash.Write([]byte(s))
+	defer fnvHash.Reset()
+
+	return fnvHash.Sum(nil)
 }
