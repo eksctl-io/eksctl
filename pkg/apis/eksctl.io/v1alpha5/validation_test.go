@@ -10,7 +10,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
-	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 var _ = Describe("ClusterConfig validation", func() {
@@ -1517,14 +1516,14 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			It("fails when the spotAllocationStrategy is not a supported strategy", func() {
-				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("unsupported-strategy")
+				ng.InstancesDistribution.SpotAllocationStrategy = aws.String("unsupported-strategy")
 
 				err := api.ValidateNodeGroup(0, ng, cfg)
-				Expect(err).To(MatchError("spotAllocationStrategy should be one of: lowest-price, capacity-optimized, capacity-optimized-prioritized"))
+				Expect(err).To(MatchError("spotAllocationStrategy should be one of: [lowest-price diversified capacity-optimized capacity-optimized-prioritized price-capacity-optimized]"))
 			})
 
 			It("fails when the spotAllocationStrategy is capacity-optimized and spotInstancePools is specified", func() {
-				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("capacity-optimized")
+				ng.InstancesDistribution.SpotAllocationStrategy = aws.String("capacity-optimized")
 				ng.InstancesDistribution.SpotInstancePools = newInt(2)
 
 				err := api.ValidateNodeGroup(0, ng, cfg)
@@ -1532,7 +1531,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			It("fails when the spotAllocationStrategy is capacity-optimized-prioritized and spotInstancePools is specified", func() {
-				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("capacity-optimized-prioritized")
+				ng.InstancesDistribution.SpotAllocationStrategy = aws.String("capacity-optimized-prioritized")
 				ng.InstancesDistribution.SpotInstancePools = newInt(2)
 
 				err := api.ValidateNodeGroup(0, ng, cfg)
@@ -1540,7 +1539,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			It("does not fail when the spotAllocationStrategy is lowest-price and spotInstancePools is specified", func() {
-				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("lowest-price")
+				ng.InstancesDistribution.SpotAllocationStrategy = aws.String("lowest-price")
 				ng.InstancesDistribution.SpotInstancePools = newInt(2)
 
 				err := api.ValidateNodeGroup(0, ng, cfg)
