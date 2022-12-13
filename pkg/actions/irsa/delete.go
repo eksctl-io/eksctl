@@ -13,7 +13,7 @@ func (m *Manager) Delete(ctx context.Context, serviceAccounts []string, plan, wa
 	}
 	taskTree.PlanMode = plan
 
-	err = doTasks(taskTree, "delete")
+	err = doTasks(taskTree, Delete)
 
 	logPlanModeWarning(plan && taskTree.Len() > 0)
 	return err

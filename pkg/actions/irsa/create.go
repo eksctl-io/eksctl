@@ -9,7 +9,7 @@ func (a *Manager) CreateIAMServiceAccount(iamServiceAccounts []*api.ClusterIAMSe
 	taskTree := a.stackManager.NewTasksToCreateIAMServiceAccounts(iamServiceAccounts, a.oidcManager, kubernetes.NewCachedClientSet(a.clientSet))
 	taskTree.PlanMode = plan
 
-	err := doTasks(taskTree, "create")
+	err := doTasks(taskTree, Create)
 
 	logPlanModeWarning(plan && len(iamServiceAccounts) > 0)
 
