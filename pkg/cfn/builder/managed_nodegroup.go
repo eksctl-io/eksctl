@@ -34,10 +34,10 @@ type ManagedNodeGroupResourceSet struct {
 const ManagedNodeGroupResourceName = "ManagedNodeGroup"
 
 // Windows AMI types are not in sdk-v2 yet, so the constants here are temporary; will remove after sdk is updated
-const AMITypesWindows2019FullX8664 ekstypes.AMITypes = "WINDOWS_2019_FULL_x86_64"
-const AMITypesWindows2019CoreX8664 ekstypes.AMITypes = "WINDOWS_2019_CORE_x86_64"
-const AMITypesWindows2022FullX8664 ekstypes.AMITypes = "WINDOWS_2022_FULL_x86_64"
-const AMITypesWindows2022CoreX8664 ekstypes.AMITypes = "WINDOWS_2022_CORE_x86_64"
+const AMITypesWindows2019FullX8664 ekstypes.AMITypes = "WINDOWS_FULL_2019_x86_64"
+const AMITypesWindows2019CoreX8664 ekstypes.AMITypes = "WINDOWS_CORE_2019_x86_64"
+const AMITypesWindows2022FullX8664 ekstypes.AMITypes = "WINDOWS_FULL_2022_x86_64"
+const AMITypesWindows2022CoreX8664 ekstypes.AMITypes = "WINDOWS_CORE_2022_x86_64"
 
 // NewManagedNodeGroup creates a new ManagedNodeGroupResourceSet
 func NewManagedNodeGroup(ec2API awsapi.EC2, cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *ManagedNodeGroupResourceSet {

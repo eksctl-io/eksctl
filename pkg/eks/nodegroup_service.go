@@ -26,8 +26,9 @@ const maxInstanceTypes = 40
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
-//counterfeiter:generate -o fakes/fake_instance_selector.go . InstanceSelector
 // InstanceSelector selects a set of instance types matching the specified instance selector criteria.
+//
+//counterfeiter:generate -o fakes/fake_instance_selector.go . InstanceSelector
 type InstanceSelector interface {
 	// Filter returns a set of instance types matching the specified instance selector filters.
 	Filter(selector.Filters) ([]string, error)
@@ -59,7 +60,7 @@ func (n *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 			if ng.LaunchTemplate == nil && ng.InstanceType == "" && len(ng.InstanceTypes) == 0 && ng.InstanceSelector.IsZero() {
 				ng.InstanceType = api.DefaultNodeType
 			}
-			hasNativeAMIFamilySupport := ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 || ng.AMIFamily == api.NodeImageFamilyBottlerocket
+			hasNativeAMIFamilySupport := ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 || ng.AMIFamily == api.NodeImageFamilyBottlerocket || isWindowsAMIFamily(ng.AMIFamily)
 			if !hasNativeAMIFamilySupport && !api.IsAMI(ng.AMI) {
 				if err := ResolveAMI(ctx, n.provider, clusterConfig.Metadata.Version, np); err != nil {
 					return err
@@ -272,4 +273,16 @@ func ValidateExistingNodeGroupsForCompatibility(ctx context.Context, cfg *api.Cl
 	}
 
 	return nil
+}
+func isWindowsAMIFamily(amiFamilyType string) bool {
+	switch amiFamilyType {
+	case api.NodeImageFamilyWindowsServer2019CoreContainer,
+		api.NodeImageFamilyWindowsServer2019FullContainer,
+		api.NodeImageFamilyWindowsServer2022CoreContainer,
+		api.NodeImageFamilyWindowsServer2022FullContainer:
+		return true
+
+	default:
+		return false
+	}
 }
