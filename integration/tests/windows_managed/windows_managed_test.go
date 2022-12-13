@@ -4,20 +4,23 @@ package windows_managed
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
-	"testing"
-	"time"
 )
 
 const (
@@ -29,19 +32,23 @@ var params *tests.Params
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
-	params = tests.NewParams("ManagedWindows")
+	params = tests.NewParams("managed-windows")
 }
 
 func TestWindowsManaged(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var _ = BeforeSuite(func() {
+func makeClusterConfig() *api.ClusterConfig {
 	clusterConfig := api.NewClusterConfig()
 	clusterConfig.Metadata.Name = params.ClusterName
 	clusterConfig.Metadata.Version = api.DefaultVersion
-	clusterConfig.Metadata.Region = api.DefaultRegion
+	clusterConfig.Metadata.Region = params.Region
+	return clusterConfig
+}
 
+var _ = BeforeSuite(func() {
+	clusterConfig := makeClusterConfig()
 	clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
 		{
 			NodeGroupBase: &api.NodeGroupBase{
@@ -71,7 +78,7 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = Describe("(Integration) [EKS Windows Managed Nodegroups]", func() {
-	Context("Create Windows managed nodegroup and launch pods", func() {
+	Context("Create Windows pods", func() {
 		It("should launch a Windows pod", func() {
 			kubeTest, err := kube.NewTest(params.KubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
@@ -82,7 +89,7 @@ var _ = Describe("(Integration) [EKS Windows Managed Nodegroups]", func() {
 	})
 
 	Context("should create Windows managed nodegroup with taints applied", func() {
-		It("should not throw error when create Windows managed nodegroup with taints applied", func() {
+		It("should not throw error when creating Windows managed nodegroup with taints applied", func() {
 			taints := []api.NodeGroupTaint{
 				{
 					Key:    "key1",
@@ -99,20 +106,21 @@ var _ = Describe("(Integration) [EKS Windows Managed Nodegroups]", func() {
 					Effect: "NoExecute",
 				},
 			}
-			clusterConfig := api.NewClusterConfig()
-			clusterConfig.Metadata.Name = params.ClusterName
-			clusterConfig.Metadata.Region = params.Region
-			clusterConfig.Metadata.Version = params.Version
-			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
-				{
-					NodeGroupBase: &api.NodeGroupBase{
-						Name:         "windows-taints",
-						AMIFamily:    api.NodeImageFamilyWindowsServer2022CoreContainer,
-						VolumeSize:   aws.Int(120),
-						InstanceType: "t3a.xlarge",
+			clusterConfig := makeClusterConfig()
+			ngWithTaints := &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "windows-taints",
+					AMIFamily:    api.NodeImageFamilyWindowsServer2022CoreContainer,
+					VolumeSize:   aws.Int(120),
+					InstanceType: "t3a.xlarge",
+					ScalingConfig: &api.ScalingConfig{
+						DesiredCapacity: aws.Int(1),
 					},
-					Taints: taints,
 				},
+				Taints: taints,
+			}
+			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				ngWithTaints,
 			}
 
 			cmd := params.EksctlCreateCmd.
@@ -141,16 +149,17 @@ var _ = Describe("(Integration) [EKS Windows Managed Nodegroups]", func() {
 				}
 				return ret
 			}
-			tests.AssertNodeTaints(tests.ListNodes(clientset, "taints"), mapTaints(taints))
+			tests.AssertNodeTaints(tests.ListNodes(clientset, ngWithTaints.Name), mapTaints(taints))
 		})
 	})
 
 	Context("should create Windows managed nodegroup via CLI", func() {
-		It("should not throw error when create Windows managed nodegroup via CLI", func() {
+		It("should not throw error when creating Windows managed nodegroup via CLI", func() {
 			cmd := params.EksctlCreateCmd.WithArgs(
 				"nodegroup",
 				"--cluster", params.ClusterName,
-				"--nodes", "4",
+				"--region", params.Region,
+				"--nodes", "1",
 				"--managed",
 				"--instance-types", "t3a.xlarge",
 				"--node-ami-family=WindowsServer2019CoreContainer",
