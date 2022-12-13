@@ -60,7 +60,7 @@ func (n *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 			if ng.LaunchTemplate == nil && ng.InstanceType == "" && len(ng.InstanceTypes) == 0 && ng.InstanceSelector.IsZero() {
 				ng.InstanceType = api.DefaultNodeType
 			}
-			hasNativeAMIFamilySupport := ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 || ng.AMIFamily == api.NodeImageFamilyBottlerocket || isWindowsAMIFamily(ng.AMIFamily)
+			hasNativeAMIFamilySupport := ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 || ng.AMIFamily == api.NodeImageFamilyBottlerocket || api.IsWindowsImage(ng.AMIFamily)
 			if !hasNativeAMIFamilySupport && !api.IsAMI(ng.AMI) {
 				if err := ResolveAMI(ctx, n.provider, clusterConfig.Metadata.Version, np); err != nil {
 					return err
@@ -273,16 +273,4 @@ func ValidateExistingNodeGroupsForCompatibility(ctx context.Context, cfg *api.Cl
 	}
 
 	return nil
-}
-func isWindowsAMIFamily(amiFamilyType string) bool {
-	switch amiFamilyType {
-	case api.NodeImageFamilyWindowsServer2019CoreContainer,
-		api.NodeImageFamilyWindowsServer2019FullContainer,
-		api.NodeImageFamilyWindowsServer2022CoreContainer,
-		api.NodeImageFamilyWindowsServer2022FullContainer:
-		return true
-
-	default:
-		return false
-	}
 }

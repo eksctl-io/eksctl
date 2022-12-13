@@ -1,5 +1,7 @@
 //go:build integration
+// +build integration
 
+//revive:disable Not changing package name
 package windows_managed
 
 import (
@@ -24,7 +26,7 @@ import (
 )
 
 const (
-	DefaultTimeOut = 45 * time.Minute
+	DefaultTimeout = 45 * time.Minute
 )
 
 var params *tests.Params
@@ -84,7 +86,7 @@ var _ = Describe("(Integration) [EKS Windows Managed Nodegroups]", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			d := kubeTest.CreateDeploymentFromFile("default", fmt.Sprintf("../../data/%s", "windows-server-iis-2022.yaml"))
-			kubeTest.WaitForDeploymentReady(d, DefaultTimeOut)
+			kubeTest.WaitForDeploymentReady(d, DefaultTimeout)
 		})
 	})
 
