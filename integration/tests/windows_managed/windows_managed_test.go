@@ -21,10 +21,7 @@ import (
 )
 
 const (
-	DefaultTimeOut           = 25 * time.Minute
-	InitialAl2Nodegroup      = "al2-1"
-	Windows2019FullNodegroup = "WindowsServer2019FullContainer"
-	Windows2022FullNodegroup = "WindowsServer2022FullContainer"
+	DefaultTimeOut = 45 * time.Minute
 )
 
 var params *tests.Params
@@ -40,77 +37,52 @@ func TestWindowsManaged(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
+	clusterConfig := api.NewClusterConfig()
+	clusterConfig.Metadata.Name = params.ClusterName
+	clusterConfig.Metadata.Version = api.DefaultVersion
+	clusterConfig.Metadata.Region = api.DefaultRegion
 
-	cmd := params.EksctlCreateCmd.WithArgs(
-		"cluster",
-		"--verbose", "4",
-		"--name", params.ClusterName,
-		"--tags", "alpha.eksctl.io/description=eksctl integration test",
-		"--managed",
-		"--nodegroup-name", InitialAl2Nodegroup,
-		"--node-labels", "ng-name="+InitialAl2Nodegroup,
-		"--nodes", "2",
-		"--instance-types", "t3a.xlarge",
-		"--version", params.Version,
-		"--kubeconfig", params.KubeconfigPath,
-	)
+	clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+		{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name: "linux",
+			},
+		},
+		{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         "windows-mng",
+				AMIFamily:    api.NodeImageFamilyWindowsServer2022FullContainer,
+				VolumeSize:   aws.Int(120),
+				InstanceType: "t3a.xlarge",
+			},
+		},
+	}
+
+	cmd := params.EksctlCreateCmd.
+		WithArgs(
+			"cluster",
+			"--config-file", "-",
+			"--verbose", "4",
+			"--kubeconfig", params.KubeconfigPath,
+		).
+		WithoutArg("--region", params.Region).
+		WithStdin(clusterutils.Reader(clusterConfig))
 	Expect(cmd).To(RunSuccessfully())
 })
 
 var _ = Describe("(Integration) [EKS Windows Managed Nodegroups]", func() {
-	makeClusterConfig := func(clusterName string) *api.ClusterConfig {
-		clusterConfig := api.NewClusterConfig()
-		clusterConfig.Metadata.Name = clusterName
-		clusterConfig.Metadata.Region = params.Region
-		clusterConfig.Metadata.Version = params.Version
-		return clusterConfig
-	}
+	Context("Create Windows managed nodegroup and launch pods", func() {
+		It("should launch a Windows pod", func() {
+			kubeTest, err := kube.NewTest(params.KubeconfigPath)
+			Expect(err).NotTo(HaveOccurred())
 
-	createClusterWithWindowsMNG := func(clusterName, amiType string) {
-		clusterConfig := makeClusterConfig(clusterName)
-		clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
-			{
-				NodeGroupBase: &api.NodeGroupBase{
-					Name:         "windows",
-					AMIFamily:    amiType,
-					VolumeSize:   aws.Int(80),
-					InstanceType: "t3a.xlarge",
-				},
-			},
-		}
+			d := kubeTest.CreateDeploymentFromFile("default", fmt.Sprintf("../../data/%s", "windows-server-iis-2022.yaml"))
+			kubeTest.WaitForDeploymentReady(d, DefaultTimeOut)
+		})
+	})
 
-		cmd := params.EksctlCreateCmd.
-			WithArgs(
-				"cluster",
-				"--verbose", "4",
-				"--config-file", "-",
-			).
-			WithoutArg("--region", params.Region).
-			WithStdin(clusterutils.Reader(clusterConfig))
-		Expect(cmd).To(RunSuccessfully())
-	}
-
-	runWindowsPod := func(workload string) {
-		By("scheduling a Windows pod")
-		kubeTest, err := kube.NewTest(params.KubeconfigPath)
-		Expect(err).NotTo(HaveOccurred())
-
-		d := kubeTest.CreateDeploymentFromFile("default", fmt.Sprintf("../../data/%s", workload))
-		kubeTest.WaitForDeploymentReady(d, DefaultTimeOut)
-	}
-
-	deleteCluster := func(clusterName string) {
-		By("deleting the windows cluster")
-		cmd := params.EksctlDeleteCmd.WithArgs(
-			"cluster",
-			"--name", clusterName,
-		)
-		Expect(cmd).To(RunSuccessfully())
-	}
-
-	Context("Create Windows managed nodegroup with taints", func() {
-		It("should create Windows managed nodegroup taints applied", func() {
+	Context("should create Windows managed nodegroup with taints applied", func() {
+		It("should not throw error when create Windows managed nodegroup with taints applied", func() {
 			taints := []api.NodeGroupTaint{
 				{
 					Key:    "key1",
@@ -127,7 +99,10 @@ var _ = Describe("(Integration) [EKS Windows Managed Nodegroups]", func() {
 					Effect: "NoExecute",
 				},
 			}
-			clusterConfig := makeClusterConfig(params.ClusterName)
+			clusterConfig := api.NewClusterConfig()
+			clusterConfig.Metadata.Name = params.ClusterName
+			clusterConfig.Metadata.Region = params.Region
+			clusterConfig.Metadata.Version = params.Version
 			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
 				{
 					NodeGroupBase: &api.NodeGroupBase{
@@ -169,8 +144,9 @@ var _ = Describe("(Integration) [EKS Windows Managed Nodegroups]", func() {
 			tests.AssertNodeTaints(tests.ListNodes(clientset, "taints"), mapTaints(taints))
 		})
 	})
-	Context("Create Windows managed nodegroup via CLI", func() {
-		It("should not return error when creating Windows managed nodegroup via CLI", func() {
+
+	Context("should create Windows managed nodegroup via CLI", func() {
+		It("should not throw error when create Windows managed nodegroup via CLI", func() {
 			cmd := params.EksctlCreateCmd.WithArgs(
 				"nodegroup",
 				"--cluster", params.ClusterName,
@@ -181,16 +157,6 @@ var _ = Describe("(Integration) [EKS Windows Managed Nodegroups]", func() {
 			)
 			Expect(cmd).To(RunSuccessfully())
 		})
-	})
-	Context("Create Windows managed nodegroups and run pods then cleanup", func() {
-		DescribeTable("it should be able to run Windows pods", func(windowsAmiType, workload, clusterName string) {
-			createClusterWithWindowsMNG(clusterName, windowsAmiType)
-			runWindowsPod(workload)
-			deleteCluster(clusterName)
-		},
-			Entry("Windows Server 2019 Full", api.NodeImageFamilyWindowsServer2019CoreContainer, "windows-server-iis.yaml", "managed-windows-cluster1"),
-			Entry("Windows Server 2022 Full", api.NodeImageFamilyWindowsServer2022FullContainer, "windows-server-iis-2022.yaml", "managed-windows-cluster2"),
-		)
 	})
 })
 
