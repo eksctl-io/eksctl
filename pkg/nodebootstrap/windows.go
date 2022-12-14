@@ -32,19 +32,22 @@ func NewWindowsBootstrapper(clusterConfig *api.ClusterConfig, np api.NodePool, c
 }
 
 func (b *Windows) UserData() (string, error) {
-	bootstrapCommands := []string{
-		`<powershell>
-[string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"`,
-	}
 	ng := b.np.BaseNodeGroup()
-	bootstrapCommands = append(bootstrapCommands, ng.PreBootstrapCommands...)
-	eksBootstrapCommand := fmt.Sprintf("& $EKSBootstrapScriptFile %s 3>&1 4>&1 5>&1 6>&1", b.makeBootstrapParams())
-	bootstrapCommands = append(bootstrapCommands,
-		eksBootstrapCommand,
-		"</powershell>",
-	)
+	commands := []string{`<powershell>`}
 
-	userData := base64.StdEncoding.EncodeToString([]byte(strings.Join(bootstrapCommands, "\n")))
+	if managed, ok := b.np.(*api.ManagedNodeGroup); ok {
+		commands = append(commands, ng.PreBootstrapCommands...)
+		logger.Debug("nodegroup = %s", managed.Name)
+	} else if unmanaged, ok := b.np.(*api.NodeGroup); ok {
+		commands = append(commands, `[string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"`)
+		commands = append(commands, ng.PreBootstrapCommands...)
+		eksBootstrapCommand := fmt.Sprintf("& $EKSBootstrapScriptFile %s 3>&1 4>&1 5>&1 6>&1", b.makeBootstrapParams())
+		commands = append(commands, eksBootstrapCommand)
+		logger.Debug("nodegroup = %s", unmanaged.Name)
+	}
+	commands = append(commands, "</powershell>")
+
+	userData := base64.StdEncoding.EncodeToString([]byte(strings.Join(commands, "\n")))
 
 	logger.Debug("user-data = %s", userData)
 	return userData, nil

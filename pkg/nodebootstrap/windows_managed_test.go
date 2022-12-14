@@ -40,17 +40,15 @@ var _ = Describe("Managed Windows UserData", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(actual)).To(Equal(strings.TrimSpace(e.expectedUserData)))
 	},
-		Entry("mandatory bootstrap args in userdata", windowsEntry{
+		Entry("should have no bootstrap args in userdata", windowsEntry{
 
 			expectedUserData: `
 <powershell>
-[string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
-& $EKSBootstrapScriptFile -EKSClusterName "windohs" -APIServerEndpoint "https://test.com" -Base64ClusterCA "dGVzdA==" -KubeletExtraArgs "--node-labels= --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
 </powershell>
 `,
 		}),
 
-		Entry("with labels", windowsEntry{
+		Entry("should not have labels here", windowsEntry{
 			updateNodeGroup: func(ng *api.ManagedNodeGroup) {
 				ng.Labels = map[string]string{
 					"foo": "bar",
@@ -59,13 +57,11 @@ var _ = Describe("Managed Windows UserData", func() {
 
 			expectedUserData: `
 <powershell>
-[string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
-& $EKSBootstrapScriptFile -EKSClusterName "windohs" -APIServerEndpoint "https://test.com" -Base64ClusterCA "dGVzdA==" -KubeletExtraArgs "--node-labels=foo=bar --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
 </powershell>
 `,
 		}),
 
-		Entry("with taints", windowsEntry{
+		Entry("should not have taints here", windowsEntry{
 			updateNodeGroup: func(ng *api.ManagedNodeGroup) {
 				ng.Taints = []api.NodeGroupTaint{
 					{
@@ -78,13 +74,11 @@ var _ = Describe("Managed Windows UserData", func() {
 
 			expectedUserData: `
 <powershell>
-[string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
-& $EKSBootstrapScriptFile -EKSClusterName "windohs" -APIServerEndpoint "https://test.com" -Base64ClusterCA "dGVzdA==" -KubeletExtraArgs "--node-labels= --register-with-taints=foo=bar:NoSchedule" 3>&1 4>&1 5>&1 6>&1
 </powershell>
 `,
 		}),
 
-		Entry("with a preBootstrapCommand", windowsEntry{
+		Entry("should only have a preBootstrapCommand", windowsEntry{
 			updateNodeGroup: func(ng *api.ManagedNodeGroup) {
 				ng.PreBootstrapCommands = []string{
 					"wget -UseBasicParsing -O amazon-cloudwatch-agent.msi https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi",
@@ -93,14 +87,12 @@ var _ = Describe("Managed Windows UserData", func() {
 
 			expectedUserData: `
 <powershell>
-[string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
 wget -UseBasicParsing -O amazon-cloudwatch-agent.msi https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi
-& $EKSBootstrapScriptFile -EKSClusterName "windohs" -APIServerEndpoint "https://test.com" -Base64ClusterCA "dGVzdA==" -KubeletExtraArgs "--node-labels= --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
 </powershell>
 `,
 		}),
 
-		Entry("with several preBootstrapCommands", windowsEntry{
+		Entry("should have several preBootstrapCommands", windowsEntry{
 			updateNodeGroup: func(ng *api.ManagedNodeGroup) {
 				ng.PreBootstrapCommands = []string{
 					"wget -UseBasicParsing -O amazon-cloudwatch-agent.msi https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi",
@@ -111,10 +103,8 @@ wget -UseBasicParsing -O amazon-cloudwatch-agent.msi https://s3.amazonaws.com/am
 
 			expectedUserData: `
 <powershell>
-[string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
 wget -UseBasicParsing -O amazon-cloudwatch-agent.msi https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi
 start /wait msiexec.exe /qb /i "amazon-cloudwatch-agent.msi"
-& $EKSBootstrapScriptFile -EKSClusterName "windohs" -APIServerEndpoint "https://test.com" -Base64ClusterCA "dGVzdA==" -KubeletExtraArgs "--node-labels= --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
 </powershell>
 `,
 		}),
