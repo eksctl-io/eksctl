@@ -25,7 +25,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.18
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.23.2
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.33.1
-	github.com/aws/aws-sdk-go-v2/service/sts v1.17.5
+	github.com/aws/aws-sdk-go-v2/service/sts v1.17.6
 	github.com/aws/smithy-go v1.13.5
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
@@ -150,7 +150,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.26 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.20 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.26 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.19 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.20 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.25 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.8 // indirect
 	github.com/awslabs/goformation/v4 v4.15.5 // indirect
