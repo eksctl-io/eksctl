@@ -175,7 +175,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		})
 
 		It("should support advanced addon configuration", func() {
-			By("succesfully creating an addon with configuration values")
+			By("successfully creating an addon with configuration values")
 			clusterConfig := getInitialClusterConfig()
 			clusterConfig.Addons = []*api.Addon{
 				{
@@ -207,7 +207,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				return cmd
 			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("{\"replicaCount\":3}"))))
 
-			By("succesfully updating the configuration values of the addon")
+			By("successfully updating the configuration values of the addon")
 			clusterConfig = getInitialClusterConfig()
 			clusterConfig.Addons = []*api.Addon{
 				{
