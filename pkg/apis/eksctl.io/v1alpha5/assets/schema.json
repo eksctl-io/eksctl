@@ -51,6 +51,11 @@
           "description": "list of ARNs of the IAM policies to attach",
           "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
         },
+        "configurationValues": {
+          "type": "string",
+          "description": "ConfigurationValues",
+          "x-intellij-html-description": "ConfigurationValues"
+        },
         "name": {
           "type": "string"
         },
@@ -113,9 +118,13 @@
         "wellKnownPolicies",
         "tags",
         "resolveConflicts",
+<<<<<<< Updated upstream
         "publishers",
         "types",
         "owners"
+=======
+        "configurationValues"
+>>>>>>> Stashed changes
       ],
       "additionalProperties": false,
       "description": "holds the EKS addon configuration",
