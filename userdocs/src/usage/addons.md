@@ -118,14 +118,29 @@ eksctl utils describe-addon-versions --kubernetes-version 1.22 --types "infra-ma
 ```
 The `types`, `owners` and `publishers` flags are optional and can be specified together or individually to filter the results.
 
-## Setting up the configuration schema for addons
-These previously discovered options can be configured by passing the `ConfigurationValues` filed to the configuration file, and then used on either addon create or update commands. For the moment, all the options the user wants to modify will be passed together in the format of a JSON string, e.g.
+# TODO: update documentation here after merging DescribeAddonConfiguration PR
+These previously discovered options can be configured by passing the `ConfigurationValues` filed to the configuration file, and then used with either addon create or update commands. For the moment, all the options the user wants to configure will be passed together in the format of a JSON string, e.g.
 
 ```yaml
 addons:
 - name: coredns
   version: latest
   configurationValues: "{\"replicaCount\":3}"
+```
+
+Additionally, the get command will now also retrieve the ConfigurationValues for the addon. e.g.
+
+```console
+eksctl get addon --cluster cluster-adds --output yaml
+```
+```yaml   
+- ConfigurationValues: '{"replicaCount":3}'
+  IAMRole: ""
+  Issues: null
+  Name: coredns
+  NewerVersion: ""
+  Status: ACTIVE
+  Version: v1.8.7-eksbuild.3
 ```
 
 ## Updating addons

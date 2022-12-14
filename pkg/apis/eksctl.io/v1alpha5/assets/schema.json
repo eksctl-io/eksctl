@@ -53,8 +53,8 @@
         },
         "configurationValues": {
           "type": "string",
-          "description": "ConfigurationValues",
-          "x-intellij-html-description": "ConfigurationValues"
+          "description": "defines the set of configuration properties for add-ons. For now, all properties will be specified as a JSON string and have to respect the schema from DescribeAddonConfiguration.",
+          "x-intellij-html-description": "defines the set of configuration properties for add-ons. For now, all properties will be specified as a JSON string and have to respect the schema from DescribeAddonConfiguration."
         },
         "name": {
           "type": "string"
@@ -118,13 +118,10 @@
         "wellKnownPolicies",
         "tags",
         "resolveConflicts",
-<<<<<<< Updated upstream
+        "configurationValues",
         "publishers",
         "types",
         "owners"
-=======
-        "configurationValues"
->>>>>>> Stashed changes
       ],
       "additionalProperties": false,
       "description": "holds the EKS addon configuration",
