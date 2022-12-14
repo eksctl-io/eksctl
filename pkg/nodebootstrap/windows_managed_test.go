@@ -20,20 +20,13 @@ var _ = Describe("Managed Windows UserData", func() {
 	}
 
 	DescribeTable("Managed Windows bootstrap", func(e windowsEntry) {
-		clusterConfig := api.NewClusterConfig()
-		clusterConfig.Metadata.Name = "windohs"
-		clusterConfig.Status = &api.ClusterStatus{
-			Endpoint:                 "https://test.com",
-			CertificateAuthorityData: []byte("test"),
-		}
-
 		ng := api.NewManagedNodeGroup()
 		ng.AMIFamily = api.NodeImageFamilyWindowsServer2019CoreContainer
 		if e.updateNodeGroup != nil {
 			e.updateNodeGroup(ng)
 		}
 
-		bootstrapper := nodebootstrap.NewWindowsBootstrapper(clusterConfig, ng, "")
+		bootstrapper := nodebootstrap.ManagedWindows{NodeGroup: ng}
 		userData, err := bootstrapper.UserData()
 		Expect(err).NotTo(HaveOccurred())
 		actual, err := base64.StdEncoding.DecodeString(userData)
@@ -41,11 +34,7 @@ var _ = Describe("Managed Windows UserData", func() {
 		Expect(string(actual)).To(Equal(strings.TrimSpace(e.expectedUserData)))
 	},
 		Entry("should have no bootstrap args in userdata", windowsEntry{
-
-			expectedUserData: `
-<powershell>
-</powershell>
-`,
+			expectedUserData: "",
 		}),
 
 		Entry("should not have labels here", windowsEntry{
@@ -55,10 +44,7 @@ var _ = Describe("Managed Windows UserData", func() {
 				}
 			},
 
-			expectedUserData: `
-<powershell>
-</powershell>
-`,
+			expectedUserData: "",
 		}),
 
 		Entry("should not have taints here", windowsEntry{
@@ -72,10 +58,7 @@ var _ = Describe("Managed Windows UserData", func() {
 				}
 			},
 
-			expectedUserData: `
-<powershell>
-</powershell>
-`,
+			expectedUserData: "",
 		}),
 
 		Entry("should only have a preBootstrapCommand", windowsEntry{
