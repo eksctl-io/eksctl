@@ -186,6 +186,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				{
 					Name:                api.CoreDNSAddon,
 					ConfigurationValues: "{\"replicaCount\":3}",
+					ResolveConflicts:    ekstypes.ResolveConflictsOverwrite,
 				},
 			}
 			data, err := json.Marshal(clusterConfig)
@@ -218,6 +219,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				{
 					Name:                api.CoreDNSAddon,
 					ConfigurationValues: "{\"replicaCount\":3, \"computeType\":\"test\"}",
+					ResolveConflicts:    ekstypes.ResolveConflictsOverwrite,
 				},
 			}
 			data, err = json.Marshal(clusterConfig)
