@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -15,7 +14,8 @@ import (
 
 type Windows struct {
 	clusterConfig *api.ClusterConfig
-	ng            *api.NodeGroup
+	np            api.NodePool
+	clusterDNS    string
 }
 
 type keyValue struct {
@@ -23,10 +23,11 @@ type keyValue struct {
 	value string
 }
 
-func NewWindowsBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) *Windows {
+func NewWindowsBootstrapper(clusterConfig *api.ClusterConfig, np api.NodePool, clusterDNS string) *Windows {
 	return &Windows{
 		clusterConfig: clusterConfig,
-		ng:            ng,
+		np:            np,
+		clusterDNS:    clusterDNS,
 	}
 }
 
@@ -35,8 +36,8 @@ func (b *Windows) UserData() (string, error) {
 		`<powershell>
 [string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"`,
 	}
-
-	bootstrapCommands = append(bootstrapCommands, b.ng.PreBootstrapCommands...)
+	ng := b.np.BaseNodeGroup()
+	bootstrapCommands = append(bootstrapCommands, ng.PreBootstrapCommands...)
 	eksBootstrapCommand := fmt.Sprintf("& $EKSBootstrapScriptFile %s 3>&1 4>&1 5>&1 6>&1", b.makeBootstrapParams())
 	bootstrapCommands = append(bootstrapCommands,
 		eksBootstrapCommand,
@@ -63,39 +64,49 @@ func (b *Windows) makeBootstrapParams() string {
 			key:   "Base64ClusterCA",
 			value: base64.StdEncoding.EncodeToString(b.clusterConfig.Status.CertificateAuthorityData),
 		},
-		{
-			key:   "DNSClusterIP",
-			value: b.ng.ClusterDNS,
-		},
-		{
-			key:   "ContainerRuntime",
-			value: aws.ToString(b.ng.ContainerRuntime),
-		},
-		{
-			key:   "KubeletExtraArgs",
-			value: b.makeKubeletOptions(),
-		},
+	}
+	if unmanaged, ok := b.np.(*api.NodeGroup); ok {
+		// DNSClusterIP is only configurable for self-managed nodegroups.
+		if b.clusterDNS != "" {
+			params = append(params, keyValue{
+				key:   "DNSClusterIP",
+				value: b.clusterDNS,
+			})
+		}
+		// ContainerRuntime is only configurable for self-managed nodegroups.
+		if unmanaged.ContainerRuntime != nil {
+			params = append(params, keyValue{
+				key:   "ContainerRuntime",
+				value: *unmanaged.ContainerRuntime,
+			})
+		}
 	}
 
+	params = append(params, keyValue{
+		key:   "KubeletExtraArgs",
+		value: b.makeKubeletOptions(),
+	})
 	return formatWindowsParams(params)
 }
 
 func (b *Windows) makeKubeletOptions() string {
+	ng := b.np.BaseNodeGroup()
+
 	kubeletOptions := []keyValue{
 		{
 			key:   "node-labels",
-			value: formatLabels(b.ng.Labels),
+			value: formatLabels(ng.Labels),
 		},
 		{
 			key:   "register-with-taints",
-			value: utils.FormatTaints(b.ng.Taints),
+			value: utils.FormatTaints(b.np.NGTaints()),
 		},
 	}
 
-	if b.ng.MaxPodsPerNode != 0 {
+	if ng.MaxPodsPerNode != 0 {
 		kubeletOptions = append(kubeletOptions, keyValue{
 			key:   "max-pods",
-			value: strconv.Itoa(b.ng.MaxPodsPerNode),
+			value: strconv.Itoa(ng.MaxPodsPerNode),
 		})
 	}
 
