@@ -24,9 +24,9 @@ func (a *Manager) DescribeVersions(ctx context.Context, addon *api.Addon) (strin
 	return addonVersionsToString(versions)
 }
 
-func (a *Manager) DescribeAllVersions(ctx context.Context) (string, error) {
+func (a *Manager) DescribeAllVersions(ctx context.Context, addon *api.Addon) (string, error) {
 	logger.Info("describing all addon versions")
-	versions, err := a.describeVersions(ctx, &api.Addon{})
+	versions, err := a.describeVersions(ctx, addon)
 	if err != nil {
 		return "", err
 	}
@@ -41,6 +41,15 @@ func (a *Manager) describeVersions(ctx context.Context, addon *api.Addon) (*eks.
 	if addon.Name != "" {
 		input.AddonName = &addon.Name
 	}
+	if len(addon.Publishers) != 0 {
+		input.Publishers = addon.Publishers
+	}
+	if len(addon.Types) != 0 {
+		input.Types = addon.Types
+	}
+	if len(addon.Owners) != 0 {
+		input.Owners = addon.Owners
+	}
 
 	output, err := a.eksAPI.DescribeAddonVersions(ctx, input)
 	if err != nil {
@@ -51,11 +60,11 @@ func (a *Manager) describeVersions(ctx context.Context, addon *api.Addon) (*eks.
 }
 
 func addonVersionsToString(output *eks.DescribeAddonVersionsOutput) (string, error) {
-	data, err := json.Marshal(struct {
+	data, err := json.MarshalIndent(struct {
 		Addons []ekstypes.AddonInfo `json:"Addons"`
 	}{
 		Addons: output.Addons,
-	})
+	}, "", "\t")
 	if err != nil {
 		return "", err
 	}
