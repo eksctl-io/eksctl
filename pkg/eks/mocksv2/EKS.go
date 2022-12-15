@@ -374,6 +374,36 @@ func (_m *EKS) DescribeAddon(ctx context.Context, params *eks.DescribeAddonInput
 	return r0, r1
 }
 
+// DescribeAddonConfiguration provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) DescribeAddonConfiguration(ctx context.Context, params *eks.DescribeAddonConfigurationInput, optFns ...func(*eks.Options)) (*eks.DescribeAddonConfigurationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.DescribeAddonConfigurationOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeAddonConfigurationInput, ...func(*eks.Options)) *eks.DescribeAddonConfigurationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeAddonConfigurationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeAddonConfigurationInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeAddonVersions provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DescribeAddonVersions(ctx context.Context, params *eks.DescribeAddonVersionsInput, optFns ...func(*eks.Options)) (*eks.DescribeAddonVersionsOutput, error) {
 	_va := make([]interface{}, len(optFns))
