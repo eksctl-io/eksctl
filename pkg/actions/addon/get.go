@@ -17,12 +17,13 @@ import (
 )
 
 type Summary struct {
-	Name         string
-	Version      string
-	NewerVersion string
-	IAMRole      string
-	Status       string
-	Issues       []Issue
+	Name                string
+	Version             string
+	NewerVersion        string
+	IAMRole             string
+	Status              string
+	ConfigurationValues string
+	Issues              []Issue
 }
 
 type Issue struct {
@@ -71,13 +72,19 @@ func (a *Manager) Get(ctx context.Context, addon *api.Addon) (Summary, error) {
 		return Summary{}, err
 	}
 
+	configurationValues := ""
+	if output.Addon.ConfigurationValues != nil {
+		configurationValues = *output.Addon.ConfigurationValues
+	}
+
 	return Summary{
-		Name:         *output.Addon.AddonName,
-		Version:      *output.Addon.AddonVersion,
-		IAMRole:      serviceAccountRoleARN,
-		Status:       string(output.Addon.Status),
-		NewerVersion: newerVersion,
-		Issues:       issues,
+		Name:                *output.Addon.AddonName,
+		Version:             *output.Addon.AddonVersion,
+		IAMRole:             serviceAccountRoleARN,
+		Status:              string(output.Addon.Status),
+		NewerVersion:        newerVersion,
+		ConfigurationValues: configurationValues,
+		Issues:              issues,
 	}, nil
 }
 

@@ -167,6 +167,7 @@ var _ = Describe("Get", func() {
 					AddonVersion:          aws.String("1.0.0"),
 					ServiceAccountRoleArn: aws.String("foo"),
 					Status:                "created",
+					ConfigurationValues:   aws.String("{\"replicaCount\":3}"),
 				},
 			}, nil)
 
@@ -174,11 +175,12 @@ var _ = Describe("Get", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(summary).To(Equal([]addon.Summary{
 				{
-					Name:         "my-addon",
-					Version:      "1.0.0",
-					NewerVersion: "v1.1.0,1.2.0",
-					IAMRole:      "foo",
-					Status:       "created",
+					Name:                "my-addon",
+					Version:             "1.0.0",
+					NewerVersion:        "v1.1.0,1.2.0",
+					IAMRole:             "foo",
+					Status:              "created",
+					ConfigurationValues: "{\"replicaCount\":3}",
 				},
 			}))
 

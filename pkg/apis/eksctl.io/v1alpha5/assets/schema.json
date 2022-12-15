@@ -51,6 +51,11 @@
           "description": "list of ARNs of the IAM policies to attach",
           "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
         },
+        "configurationValues": {
+          "type": "string",
+          "description": "defines the set of configuration properties for add-ons. For now, all properties will be specified as a JSON string and have to respect the schema from DescribeAddonConfiguration.",
+          "x-intellij-html-description": "defines the set of configuration properties for add-ons. For now, all properties will be specified as a JSON string and have to respect the schema from DescribeAddonConfiguration."
+        },
         "name": {
           "type": "string"
         },
@@ -113,6 +118,7 @@
         "wellKnownPolicies",
         "tags",
         "resolveConflicts",
+        "configurationValues",
         "publishers",
         "types",
         "owners"

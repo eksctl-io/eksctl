@@ -183,7 +183,7 @@ To upgrade to a specific AMI release version instead of the latest version, pass
 eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release-version=1.19.6-20210310
 ```
 
-!!!note 
+!!!note
     If the managed nodes are deployed using custom AMIs, the following workflow must be followed in order to deploy a new version of the custom AMI.
 
     - initial deployment of the nodegroup must be done using a launch template. e.g.
@@ -196,7 +196,7 @@ eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release
       ```
     - create a new version of the custom AMI (using AWS EKS console).
     - create a new launch template version with the new AMI ID (using AWS EKS console).
-    - upgrade the nodes to the new version of the launch template. e.g. 
+    - upgrade the nodes to the new version of the launch template. e.g.
       ```
       eksctl upgrade nodegroup --name nodegroup-name --cluster cluster-name --launch-template-version new-template-version
       ```
@@ -265,7 +265,6 @@ EKS Managed Nodegroups are managed by AWS EKS and do not offer the same level of
 The unsupported options are noted below.
 
 - `iam.instanceProfileARN` is not supported for managed nodegroups.
-- The `amiFamily` field supports only `AmazonLinux2`
 - `instancesDistribution` field is not supported
 - Full control over the node bootstrapping process and customization of the kubelet are not supported. This includes the
 following fields: `classicLoadBalancerNames`, `targetGroupARNs`, `clusterDNS` and `kubeletExtraConfig`.

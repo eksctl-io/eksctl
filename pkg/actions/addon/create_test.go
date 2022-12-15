@@ -429,6 +429,20 @@ var _ = Describe("Create", func() {
 		)
 	})
 
+	When("configurationValues is configured", func() {
+		addon := &api.Addon{
+			Name:                "my-addon",
+			Version:             "latest",
+			ConfigurationValues: "{\"replicaCount\":3}",
+		}
+		It("sends the value to the AWS EKS API", func() {
+			err := manager.Create(context.Background(), addon, 0)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(*createAddonInput.ConfigurationValues).To(Equal(addon.ConfigurationValues))
+		})
+	})
+
 	When("force is true", func() {
 		BeforeEach(func() {
 			withOIDC = false
