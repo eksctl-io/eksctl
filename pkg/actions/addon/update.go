@@ -18,10 +18,15 @@ import (
 func (a *Manager) Update(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
 	logger.Debug("addon: %v", addon)
 
+	var configurationValues *string
+	if addon.ConfigurationValues != "" {
+		configurationValues = &addon.ConfigurationValues
+	}
 	updateAddonInput := &eks.UpdateAddonInput{
-		AddonName:        &addon.Name,
-		ClusterName:      &a.clusterConfig.Metadata.Name,
-		ResolveConflicts: addon.ResolveConflicts,
+		AddonName:           &addon.Name,
+		ClusterName:         &a.clusterConfig.Metadata.Name,
+		ResolveConflicts:    addon.ResolveConflicts,
+		ConfigurationValues: configurationValues,
 	}
 
 	if addon.Force {

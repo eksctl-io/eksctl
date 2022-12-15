@@ -1,6 +1,7 @@
 package v1alpha5
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -33,6 +34,11 @@ type Addon struct {
 	// ResolveConflicts determines how to resolve field value conflicts for an EKS add-on
 	// if a value was changed from default
 	ResolveConflicts ekstypes.ResolveConflicts `json:"resolveConflicts,omitempty"`
+	// ConfigurationValues defines the set of configuration properties for add-ons.
+	// For now, all properties will be specified as a JSON string
+	// and have to respect the schema from DescribeAddonConfiguration.
+	// +optional
+	ConfigurationValues string `json:"configurationValues,omitempty"`
 	// Force overwrites an existing self-managed add-on with an EKS managed add-on.
 	// Force is intended to be used when migrating an existing self-managed add-on to an EKS managed add-on.
 	Force bool `json:"-"`
@@ -53,7 +59,19 @@ func (a Addon) Validate() error {
 		return fmt.Errorf("name required")
 	}
 
+	if err := a.validateConfigurationValuesIsJSON(); err != nil {
+		return fmt.Errorf("%s is not a valid JSON", a.ConfigurationValues)
+	}
+
 	return a.checkOnlyOnePolicyProviderIsSet()
+}
+
+func (a Addon) validateConfigurationValuesIsJSON() error {
+	if a.ConfigurationValues == "" {
+		return nil
+	}
+	var js map[string]interface{}
+	return json.Unmarshal([]byte(a.ConfigurationValues), &js)
 }
 
 func (a Addon) checkOnlyOnePolicyProviderIsSet() error {
