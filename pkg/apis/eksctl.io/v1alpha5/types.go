@@ -194,15 +194,23 @@ const (
 	// RegionUSGovEast1 represents the region GovCloud (US-East)
 	RegionUSGovEast1 = "us-gov-east-1"
 
+	// RegionUSISOEast1 represents the region US ISO East.
+	RegionUSISOEast1 = "us-iso-east-1"
+
+	// RegionUSISOBEast1 represents the region US ISOB East (Ohio).
+	RegionUSISOBEast1 = "us-isob-east-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 )
 
 // Partitions
 const (
-	PartitionAWS   = "aws"
-	PartitionChina = "aws-cn"
-	PartitionUSGov = "aws-us-gov"
+	PartitionAWS      = "aws"
+	PartitionChina    = "aws-cn"
+	PartitionUSGov    = "aws-us-gov"
+	PartitionISOEast  = "aws-iso"
+	PartitionISOBEast = "aws-iso-b"
 )
 
 // Values for `NodeAMIFamily`
@@ -355,6 +363,11 @@ const (
 
 	// eksResourceAccountAPSouthEast4 defines the AWS EKS account ID that provides node resources in ap-southeast-4
 	eksResourceAccountAPSouthEast4 = "491585149902"
+	// eksResourceAccountUSISOEast1 defines the AWS EKS account ID that provides node resources in us-iso-east-1
+	eksResourceAccountUSISOEast1 = "725322719131"
+
+	// eksResourceAccountUSISOEast1 defines the AWS EKS account ID that provides node resources in us-isob-east-1
+	eksResourceAccountUSISOBEast1 = "187977181151"
 )
 
 // Values for `VolumeType`
@@ -497,6 +510,8 @@ func SupportedRegions() []string {
 		RegionCNNorth1,
 		RegionUSGovWest1,
 		RegionUSGovEast1,
+		RegionUSISOEast1,
+		RegionUSISOBEast1,
 	}
 }
 
@@ -507,6 +522,10 @@ func Partition(region string) string {
 		return PartitionUSGov
 	case RegionCNNorth1, RegionCNNorthwest1:
 		return PartitionChina
+	case RegionUSISOEast1:
+		return PartitionISOEast
+	case RegionUSISOBEast1:
+		return PartitionISOBEast
 	default:
 		return PartitionAWS
 	}
@@ -632,6 +651,10 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountAPSouthEast3
 	case RegionAPSouthEast4:
 		return eksResourceAccountAPSouthEast4
+	case RegionUSISOEast1:
+		return eksResourceAccountUSISOEast1
+	case RegionUSISOBEast1:
+		return eksResourceAccountUSISOBEast1
 	default:
 		return eksResourceAccountStandard
 	}
