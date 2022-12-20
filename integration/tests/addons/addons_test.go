@@ -179,84 +179,6 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("should support advanced addon configuration", func() {
-			By("successfully creating an addon with configuration values")
-			clusterConfig := getInitialClusterConfig()
-			clusterConfig.Addons = []*api.Addon{
-				{
-					Name:                api.CoreDNSAddon,
-					ConfigurationValues: "{\"replicaCount\":3}",
-					ResolveConflicts:    ekstypes.ResolveConflictsOverwrite,
-				},
-			}
-			data, err := json.Marshal(clusterConfig)
-
-			Expect(err).NotTo(HaveOccurred())
-			cmd := params.EksctlCreateCmd.
-				WithArgs(
-					"addon",
-					"--config-file", "-",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(bytes.NewReader(data))
-			Expect(cmd).To(RunSuccessfully())
-
-			Eventually(func() runner.Cmd {
-				cmd := params.EksctlGetCmd.
-					WithArgs(
-						"addon",
-						"--name", "coredns",
-						"--cluster", clusterName,
-						"--verbose", "2",
-						"--region", params.Region,
-					)
-				return cmd
-			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("{\"replicaCount\":3}"))))
-
-			By("successfully updating the configuration values of the addon")
-			clusterConfig = getInitialClusterConfig()
-			clusterConfig.Addons = []*api.Addon{
-				{
-					Name:                api.CoreDNSAddon,
-					ConfigurationValues: "{\"replicaCount\":3, \"computeType\":\"test\"}",
-					ResolveConflicts:    ekstypes.ResolveConflictsOverwrite,
-				},
-			}
-			data, err = json.Marshal(clusterConfig)
-
-			Expect(err).NotTo(HaveOccurred())
-			cmd = params.EksctlUpdateCmd.
-				WithArgs(
-					"addon",
-					"--config-file", "-",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(bytes.NewReader(data))
-			Expect(cmd).To(RunSuccessfully())
-
-			Eventually(func() runner.Cmd {
-				cmd := params.EksctlGetCmd.
-					WithArgs(
-						"addon",
-						"--name", "coredns",
-						"--cluster", clusterName,
-						"--verbose", "2",
-						"--region", params.Region,
-					)
-				return cmd
-			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("{\"replicaCount\":3, \"computeType\":\"test\"}"))))
-
-			cmd = params.EksctlDeleteCmd.
-				WithArgs(
-					"addon",
-					"--name", "coredns",
-					"--cluster", clusterName,
-					"--verbose", "2",
-					"--region", params.Region,
-				)
-			Expect(cmd).To(RunSuccessfully())
-		})
-
 		It("should have full control over configMap when creating addons", func() {
 			var (
 				clusterConfig *api.ClusterConfig
@@ -441,6 +363,84 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
 
 			Expect(getCacheValue(getConfigMap(rawClient.ClientSet(), "coredns"))).To(Equal(oldCacheValue))
+		})
+
+		It("should support advanced addon configuration", func() {
+			cmd := params.EksctlDeleteCmd.
+				WithArgs(
+					"addon",
+					"--name", "coredns",
+					"--cluster", clusterName,
+					"--verbose", "2",
+					"--region", params.Region,
+				)
+			Expect(cmd).To(RunSuccessfully())
+
+			By("successfully creating an addon with configuration values")
+			clusterConfig := getInitialClusterConfig()
+			clusterConfig.Addons = []*api.Addon{
+				{
+					Name:                api.CoreDNSAddon,
+					ConfigurationValues: "{\"replicaCount\":3}",
+					ResolveConflicts:    ekstypes.ResolveConflictsOverwrite,
+				},
+			}
+			data, err := json.Marshal(clusterConfig)
+
+			Expect(err).NotTo(HaveOccurred())
+			cmd = params.EksctlCreateCmd.
+				WithArgs(
+					"addon",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).To(RunSuccessfully())
+
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "coredns",
+						"--cluster", clusterName,
+						"--verbose", "2",
+						"--region", params.Region,
+					)
+				return cmd
+			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("{\"replicaCount\":3}"))))
+
+			By("successfully updating the configuration values of the addon")
+			clusterConfig = getInitialClusterConfig()
+			clusterConfig.Addons = []*api.Addon{
+				{
+					Name:                api.CoreDNSAddon,
+					ConfigurationValues: "{\"replicaCount\":3, \"computeType\":\"test\"}",
+					ResolveConflicts:    ekstypes.ResolveConflictsOverwrite,
+				},
+			}
+			data, err = json.Marshal(clusterConfig)
+
+			Expect(err).NotTo(HaveOccurred())
+			cmd = params.EksctlUpdateCmd.
+				WithArgs(
+					"addon",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).To(RunSuccessfully())
+
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "coredns",
+						"--cluster", clusterName,
+						"--verbose", "2",
+						"--region", params.Region,
+					)
+				return cmd
+			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("{\"replicaCount\":3, \"computeType\":\"test\"}"))))
 		})
 	})
 
