@@ -427,7 +427,7 @@ require (
 	github.com/slack-go/slack v0.10.2 // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/sonatard/noctx v0.0.1 // indirect
-	github.com/sourcegraph/go-diff v0.6.1 // indirect
+	github.com/sourcegraph/go-diff v0.6.2-0.20221031073116-7ef5f68ebea1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.13.0 // indirect
