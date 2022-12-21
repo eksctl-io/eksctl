@@ -85,15 +85,13 @@ var _ = Describe("eks auth helpers", func() {
 					// TODO: This test depends on which authenticator(s) is(are) installed and
 					// the code deciding which one should be picked up. Ideally we'd like to
 					// test all combinations, probably best done with a unit test.
-					Expect(k.AuthInfos[ctx].Exec.Command).To(MatchRegexp("(heptio-authenticator-aws|aws-iam-authenticator|aws)"))
+					Expect(k.AuthInfos[ctx].Exec.Command).To(BeElementOf("aws-iam-authenticator", "aws"))
 
 					var expectedArgs, roleARNArg string
 					switch k.AuthInfos[ctx].Exec.Command {
 					case "aws":
 						expectedArgs = "eks get-token --cluster-name auth-test-cluster --region eu-west-3"
 						roleARNArg = "--role-arn"
-					case "heptio-authenticator-aws":
-						fallthrough
 					case "aws-iam-authenticator":
 						expectedArgs = "token -i auth-test-cluster"
 						roleARNArg = "-r"
