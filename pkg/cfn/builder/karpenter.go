@@ -41,8 +41,9 @@ const (
 	ec2DescribeImages                = "ec2:DescribeImages"
 	ec2DescribeSpotPriceHistory      = "ec2:DescribeSpotPriceHistory"
 	// IAM
-	iamPassRole     = "iam:PassRole"
-	ssmGetParameter = "ssm:GetParameter"
+	iamPassRole                = "iam:PassRole"
+	iamCreateServiceLinkedRole = "iam:CreateServiceLinkedRole"
+	ssmGetParameter            = "ssm:GetParameter"
 	// Pricing
 	pricingGetProducts = "pricing:GetProducts"
 )
@@ -133,6 +134,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 			ec2DescribeImages,
 			ec2DescribeSpotPriceHistory,
 			iamPassRole,
+			iamCreateServiceLinkedRole,
 			ssmGetParameter,
 			pricingGetProducts,
 		},
