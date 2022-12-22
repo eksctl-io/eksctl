@@ -346,7 +346,7 @@ const expected = `
 		"metadata": {
 		  "name": "test-3x3-ngs",
 		  "region": "eu-central-1",
-		  "version": "1.23"
+		  "version": "1.24"
 		},
 		"kubernetesNetworkConfig": {
         	"ipFamily": "IPv4"
@@ -414,7 +414,7 @@ const expected = `
 			  "disableIMDSv1": false,
 			  "disablePodIMDS": false,
 			  "instanceSelector": {},
-			  "containerRuntime": "dockerd"
+			  "containerRuntime": "containerd"
 		  },
 		  {
 			  "name": "test-ng2a",
@@ -459,7 +459,7 @@ const expected = `
 			  "disableIMDSv1": false,
 			  "disablePodIMDS": false,
 			  "instanceSelector": {},
-			  "containerRuntime": "dockerd"
+			  "containerRuntime": "containerd"
 		  },
 		  {
 			  "name": "test-ng3a",
@@ -505,7 +505,7 @@ const expected = `
 			  "disableIMDSv1": false,
 			  "disablePodIMDS": false,
 			  "instanceSelector": {},
-			  "containerRuntime": "dockerd"
+			  "containerRuntime": "containerd"
 		  },
 		  {
 			  "name": "test-ng1b",
@@ -550,7 +550,7 @@ const expected = `
 			  "disableIMDSv1": false,
 			  "disablePodIMDS": false,
 			  "instanceSelector": {},
-			  "containerRuntime": "dockerd"
+			  "containerRuntime": "containerd"
 		  },
 		  {
 			  "name": "test-ng2b",
@@ -599,7 +599,7 @@ const expected = `
 			  "disableIMDSv1": false,
 			  "disablePodIMDS": false,
 			  "instanceSelector": {},
-			  "containerRuntime": "dockerd"
+			  "containerRuntime": "containerd"
 		  },
 		  {
 			  "name": "test-ng3b",
@@ -647,7 +647,7 @@ const expected = `
 			  "disableIMDSv1": false,
 			  "disablePodIMDS": false,
 			  "instanceSelector": {},
-			  "containerRuntime": "dockerd"
+			  "containerRuntime": "containerd"
 		  }
 		]
   }

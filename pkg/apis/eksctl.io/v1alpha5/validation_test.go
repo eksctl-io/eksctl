@@ -86,16 +86,19 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg := api.NewClusterConfig()
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "node-group"
-			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerForWindows)
+
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
 			err := api.ValidateNodeGroup(0, ng0, cfg)
 			Expect(err).NotTo(HaveOccurred())
 
-			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerD)
+			// Docker container runtime is only supported up to K8s version 1.23
+			cfg.Metadata.Version = api.Version1_23
+
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerForWindows)
 			err = api.ValidateNodeGroup(0, ng0, cfg)
 			Expect(err).NotTo(HaveOccurred())
 
-			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
-			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerD)
 			err = api.ValidateNodeGroup(0, ng0, cfg)
 			Expect(err).NotTo(HaveOccurred())
 		})
