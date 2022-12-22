@@ -91,6 +91,12 @@ You can see what addons are enabled in your cluster by running:
 eksctl get addons --cluster <cluster-name>
 ```
 
+or
+
+```console
+eksctl get addons -f config.yaml
+```
+
 ## Setting the addon's version
 
 Setting the version of the addon is optional. If the `version` field is empty in the request sent by `eksctl`, the EKS API will set it to the default version for that specific addon. More information about which version is the default version for specific addons can be found in the AWS documentation about EKS. Note that the default version might not necessarily be the latest version available.
@@ -142,7 +148,7 @@ Additionally, the get command will now also retrieve `ConfigurationValues` for t
 ```console
 eksctl get addon --cluster my-cluster --output yaml
 ```
-```yaml   
+```yaml
 - ConfigurationValues: '{"replicaCount":3}'
   IAMRole: ""
   Issues: null
