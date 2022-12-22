@@ -42,7 +42,7 @@ const (
 	Version1_24 = "1.24"
 
 	// DefaultVersion (default)
-	DefaultVersion = Version1_23
+	DefaultVersion = Version1_24
 
 	LatestVersion = Version1_24
 

@@ -24,8 +24,6 @@ import (
 const (
 	// AWSIAMAuthenticator defines the name of the AWS IAM authenticator
 	AWSIAMAuthenticator = "aws-iam-authenticator"
-	// HeptioAuthenticatorAWS defines the old name of AWS IAM authenticator
-	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
 	// AWSEKSAuthenticator defines the recently added `aws eks get-token` command
 	AWSEKSAuthenticator = "aws"
 	// AWSIAMAuthenticatorMinimumBetaVersion this is the minimum version at which aws-iam-authenticator uses v1beta1 as APIVersion
@@ -51,11 +49,10 @@ func DefaultPath() string {
 	return clientcmd.RecommendedHomeFile
 }
 
-// AuthenticatorCommands returns all of authenticator commands
+// AuthenticatorCommands returns all authenticator commands.
 func AuthenticatorCommands() []string {
 	return []string{
 		AWSIAMAuthenticator,
-		HeptioAuthenticatorAWS,
 		AWSEKSAuthenticator,
 	}
 }
@@ -189,15 +186,7 @@ func AppendAuthenticator(config *clientcmdapi.Config, cluster ClusterInfo, authe
 				Value: meta.Region,
 			})
 		}
-	case HeptioAuthenticatorAWS:
-		args = []string{"token", "-i", cluster.ID()}
-		roleARNFlag = "-r"
-		if meta.Region != "" {
-			execConfig.Env = append(execConfig.Env, clientcmdapi.ExecEnvVar{
-				Name:  "AWS_DEFAULT_REGION",
-				Value: meta.Region,
-			})
-		}
+
 	case AWSEKSAuthenticator:
 		// if [aws-cli v1/aws-cli v2] is above or equal to [v1.23.9/v2.6.3] respectively, we change the APIVersion to v1beta1.
 		if awsCLIIsBetaVersion, err := awsCliIsAboveVersion(); err != nil {
