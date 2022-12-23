@@ -139,4 +139,7 @@ func addAddonSummaryTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("UPDATE AVAILABLE", func(s addon.Summary) string {
 		return s.NewerVersion
 	})
+	printer.AddColumn("CONFIGURATION VALUES", func(s addon.Summary) string {
+		return s.ConfigurationValues
+	})
 }

@@ -424,6 +424,19 @@ var _ = Describe("Update", func() {
 				)
 			})
 
+			When("configurationValues is configured", func() {
+				It("AWS EKS configuration values matches the value from cluster config", func() {
+					err := addonManager.Update(context.Background(), &api.Addon{
+						Name:                "my-addon",
+						Version:             "v1.0.0-eksbuild.2",
+						ConfigurationValues: "{\"replicaCount\":3}",
+					}, 0)
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(aws.ToString(updateAddonInput.ConfigurationValues)).To(Equal("{\"replicaCount\":3}"))
+				})
+			})
+
 			When("wellKnownPolicies are configured", func() {
 				When("its an update to an existing cloudformation", func() {
 					It("updates the stack", func() {

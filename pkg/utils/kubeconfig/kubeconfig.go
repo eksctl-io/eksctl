@@ -308,20 +308,23 @@ func getAWSIAMAuthenticatorVersion() (string, error) {
 	return parsedVersion.Version, nil
 }
 
-/* KubectlVersionFormat is the format used by kubectl version --format=json, example output:
-{
-  "clientVersion": {
-    "major": "1",
-    "minor": "23",
-    "gitVersion": "v1.23.6",
-    "gitCommit": "ad3338546da947756e8a88aa6822e9c11e7eac22",
-    "gitTreeState": "archive",
-    "buildDate": "2022-04-29T06:39:16Z",
-    "goVersion": "go1.18.1",
-    "compiler": "gc",
-    "platform": "linux/amd64"
-  }
-} */
+/*
+KubectlVersionFormat is the format used by kubectl version --format=json, example output:
+
+	{
+	  "clientVersion": {
+	    "major": "1",
+	    "minor": "23",
+	    "gitVersion": "v1.23.6",
+	    "gitCommit": "ad3338546da947756e8a88aa6822e9c11e7eac22",
+	    "gitTreeState": "archive",
+	    "buildDate": "2022-04-29T06:39:16Z",
+	    "goVersion": "go1.18.1",
+	    "compiler": "gc",
+	    "platform": "linux/amd64"
+	  }
+	}
+*/
 type KubectlVersionData struct {
 	Version string `json:"gitVersion"`
 }
@@ -344,7 +347,7 @@ func getKubectlVersion() string {
 }
 
 func lockFileName(filePath string) string {
-	return filePath + ".eksctl.lock"
+	return filepath.Join(os.TempDir(), fmt.Sprintf("%x.eksctl.lock", utils.FnvHash(filePath)))
 }
 
 // ensureDirectory should probably be handled in flock

@@ -36,6 +36,11 @@ managedNodeGroups:
     instanceType: t2.large
     minSize: 2
     maxSize: 3
+
+  - name: windows-managed-ng
+    amiFamily: WindowsServer2019FullContainer
+    minSize: 2
+    maxSize: 3
 ```
 
 ```console
@@ -43,22 +48,20 @@ eksctl create cluster -f cluster.yaml
 ```
 
 
-To create a new cluster without using a config file, issue the following commands:
+To create a new cluster with Windows un-managed nodegroup without using a config file, issue the following commands:
 
 ```console
 eksctl create cluster --managed=false --name=windows-cluster --node-ami-family=WindowsServer2019CoreContainer
-eksctl create nodegroup --cluster=windows-cluster --node-ami-family=AmazonLinux2 --nodes-min=2 --node-type=t2.large
 ```
-
-!!!note
-    Windows is only supported for self-managed (--managed=false flag) nodegroups.
 
 
 ## Adding Windows support to an existing Linux cluster
 To enable running Windows workloads on an existing cluster with Linux nodes (`AmazonLinux2` AMI family), you need to add a Windows nodegroup.
 
+**NEW** Support for Windows managed nodegroup has been added (--managed=true or omit the flag).
 ```console
 eksctl create nodegroup --managed=false --cluster=existing-cluster --node-ami-family=WindowsServer2019CoreContainer
+eksctl create nodegroup --cluster=existing-cluster --node-ami-family=WindowsServer2019CoreContainer
 ```
 
 To ensure workloads are scheduled on the right OS, they must have a `nodeSelector` targeting the OS it must run on:
