@@ -265,6 +265,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		if !params.DryRun {
 			cfg.AvailabilityZones = []string{aws.ToString(outpost.AvailabilityZone)}
 		}
+		if cfg.Outpost.HasPlacementGroup() {
+			if err := outpostsService.ValidatePlacementGroup(ctx, cfg.Outpost.ControlPlanePlacement); err != nil {
+				return err
+			}
+		}
 
 		if err := outpostsService.SetOrValidateOutpostInstanceType(ctx, cfg.Outpost); err != nil {
 			return fmt.Errorf("error setting or validating instance type for the control plane: %w", err)
