@@ -860,6 +860,8 @@ type Outpost struct {
 	ControlPlaneOutpostARN string `json:"controlPlaneOutpostARN"`
 	// ControlPlaneInstanceType specifies the instance type to use for creating the control plane instances.
 	ControlPlaneInstanceType string `json:"controlPlaneInstanceType"`
+	// ControlPlanePlacement specifies the placement configuration for control plane instances on Outposts.
+	ControlPlanePlacement *Placement `json:"controlPlanePlacement,omitempty"`
 }
 
 // GetInstanceType returns the control plane instance type.
@@ -870,6 +872,11 @@ func (o *Outpost) GetInstanceType() string {
 // SetInstanceType sets the control plane instance type.
 func (o *Outpost) SetInstanceType(instanceType string) {
 	o.ControlPlaneInstanceType = instanceType
+}
+
+// HasPlacementGroup reports whether this Outpost has a placement group.
+func (o *Outpost) HasPlacementGroup() bool {
+	return o.ControlPlanePlacement != nil
 }
 
 // OutpostInfo describes the Outpost info.

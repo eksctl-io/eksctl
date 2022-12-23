@@ -66,7 +66,7 @@ require (
 	github.com/tj/assert v0.0.3
 	github.com/vburenin/ifacemaker v1.2.1-0.20220402060045-b2018d8549dc
 	github.com/vektra/mockery v1.1.2
-	github.com/weaveworks/goformation/v4 v4.10.2-0.20220801120612-4c60467fc75d
+	github.com/weaveworks/goformation/v4 v4.10.2-0.20221208090411-a71cb48c37d5
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	github.com/xgfone/netaddr v0.5.1
@@ -153,7 +153,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.19 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.25 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.8 // indirect
-	github.com/awslabs/goformation/v4 v4.15.5 // indirect
+	github.com/awslabs/goformation/v4 v4.19.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/bkielbasa/cyclop v1.2.0 // indirect
