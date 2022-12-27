@@ -1167,8 +1167,8 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 
 	switch {
 	case ng.LaunchTemplate != nil:
-		if ng.LaunchTemplate.ID == "" {
-			return errors.Errorf("launchTemplate.id is required if launchTemplate is set (%s.%s)", path, "launchTemplate")
+		if ng.LaunchTemplate.ID == nil && ng.LaunchTemplate.Name == nil {
+			return errors.Errorf("launchTemplate.id OR launchTemplate.name is required if launchTemplate is set (%s.%s)", path, "launchTemplate")
 		}
 
 		if ng.LaunchTemplate.Version != nil {

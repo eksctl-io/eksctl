@@ -328,10 +328,20 @@ func (m *Manager) getInstanceTypes(ctx context.Context, ng *ekstypes.Nodegroup) 
 		logger.Info("no instance type found for nodegroup %q", *ng.NodegroupName)
 		return "-"
 	}
+	if ng.LaunchTemplate.Id == nil && ng.LaunchTemplate.Name == nil {
+		logger.Info("Expected Id or Name for LaunchTemplate in %q", *ng.NodegroupName)
+		return "-"
+	}
 
-	resp, err := m.ctl.AWSProvider.EC2().DescribeLaunchTemplateVersions(ctx, &ec2.DescribeLaunchTemplateVersionsInput{
+	input := &ec2.DescribeLaunchTemplateVersionsInput{
 		LaunchTemplateId: ng.LaunchTemplate.Id,
-	})
+	}
+	if ng.LaunchTemplate.Id != nil {
+		input.LaunchTemplateId = ng.LaunchTemplate.Id
+	} else if ng.LaunchTemplate.Name != nil {
+		input.LaunchTemplateName = ng.LaunchTemplate.Name
+	}
+	resp, err := m.ctl.AWSProvider.EC2().DescribeLaunchTemplateVersions(ctx, input)
 	if err != nil {
 		return "-"
 	}

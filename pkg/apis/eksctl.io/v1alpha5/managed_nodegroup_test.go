@@ -82,18 +82,26 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				},
 			},
 		}),
-		Entry("launchTemplate with no ID", &nodeGroupCase{
+		Entry("launchTemplate with no ID and no Name", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
 				NodeGroupBase:  &NodeGroupBase{},
 				LaunchTemplate: &LaunchTemplate{},
 			},
-			errMsg: "launchTemplate.id is required",
+			errMsg: "launchTemplate.id OR launchTemplate.name is required",
 		}),
 		Entry("launchTemplate with ID", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
 				NodeGroupBase: &NodeGroupBase{},
 				LaunchTemplate: &LaunchTemplate{
-					ID: "lt-1234",
+					ID: aws.String("lt-1234"),
+				},
+			},
+		}),
+		Entry("launchTemplate with Name", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{},
+				LaunchTemplate: &LaunchTemplate{
+					Name: aws.String("lt-with-name"),
 				},
 			},
 		}),
@@ -101,18 +109,27 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 			ng: &ManagedNodeGroup{
 				NodeGroupBase: &NodeGroupBase{},
 				LaunchTemplate: &LaunchTemplate{
-					ID:      "lt-custom",
+					ID:      aws.String("lt-custom"),
 					Version: aws.String("0"),
 				},
 			},
 			errMsg: "launchTemplate.version must be >= 1",
 		}),
-		Entry("launchTemplate with valid version", &nodeGroupCase{
+		Entry("launchTemplate with ID and valid version", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
 				NodeGroupBase: &NodeGroupBase{},
 				LaunchTemplate: &LaunchTemplate{
-					ID:      "lt-custom",
+					ID:      aws.String("lt-custom"),
 					Version: aws.String("3"),
+				},
+			},
+		}),
+		Entry("launchTemplate with Name and valid version", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{},
+				LaunchTemplate: &LaunchTemplate{
+					Name:    aws.String("lt-with-name"),
+					Version: aws.String("9"),
 				},
 			},
 		}),
@@ -121,7 +138,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				NodeGroupBase: &NodeGroupBase{},
 				InstanceTypes: []string{"c3.large", "c4.large"},
 				LaunchTemplate: &LaunchTemplate{
-					ID: "lt-custom",
+					ID: aws.String("lt-custom"),
 				},
 			},
 		}),
@@ -154,7 +171,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 		mng := &ManagedNodeGroup{
 			NodeGroupBase: ngBase,
 			LaunchTemplate: &LaunchTemplate{
-				ID: "lt-custom",
+				ID: aws.String("lt-custom"),
 			},
 		}
 		SetManagedNodeGroupDefaults(mng, &ClusterMeta{Name: "managed-cluster"}, false)

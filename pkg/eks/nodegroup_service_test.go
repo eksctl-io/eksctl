@@ -259,7 +259,7 @@ var _ = Describe("NodeGroupService", func() {
 							},
 						},
 						LaunchTemplate: &api.LaunchTemplate{
-							ID: "lt-123",
+							ID: aws.String("lt-123"),
 						},
 					},
 				},

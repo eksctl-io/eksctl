@@ -9,8 +9,8 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
-//BeNotFoundError succeeds if actual is a non-nil error
-//which represents a missing kubernetes resource
+// BeNotFoundError succeeds if actual is a non-nil error
+// which represents a missing kubernetes resource
 func BeNotFoundError() types.GomegaMatcher {
 	return &notFoundMatcher{}
 }

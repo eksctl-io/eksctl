@@ -37,6 +37,38 @@ managedNodeGroups:
 
 ```
 
+### Alternative using Launch Template Name
+
+```yaml
+# managed-cluster.yaml
+# A cluster with two managed nodegroups
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: managed-cluster
+  region: us-west-2
+
+managedNodeGroups:
+  - name: managed-ng-1
+    launchTemplate:
+      name: lt-with-other-name
+      version: "2" # optional (uses the default launch template version if unspecified)
+
+  - name: managed-ng-2
+    minSize: 2
+    desiredCapacity: 2
+    maxSize: 4
+    labels:
+      role: worker
+    tags:
+      nodegroup-name: managed-ng-2
+    privateNetworking: true
+    launchTemplate:
+      name: lt-by-name
+
+```
 
 ## Upgrading a managed nodegroup to use a different launch template version
 

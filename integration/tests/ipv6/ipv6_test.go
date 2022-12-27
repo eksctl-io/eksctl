@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -50,7 +49,7 @@ func TestIPv6(t *testing.T) {
 var clusterConfig *api.ClusterConfig
 
 var _ = BeforeSuite(func() {
-	f, err := ioutil.TempFile("", "kubeconfig-")
+	f, err := os.CreateTemp("", "kubeconfig-")
 	Expect(err).NotTo(HaveOccurred())
 	params.KubeconfigPath = f.Name()
 	params.KubeconfigTemp = true

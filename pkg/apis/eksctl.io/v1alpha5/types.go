@@ -1631,13 +1631,13 @@ func (n *NodeGroupBase) GetAMIFamily() string {
 
 type LaunchTemplate struct {
 	// Launch template ID
-	// +required
-	ID string `json:"id,omitempty"`
+	ID *string `json:"id,omitempty"`
+	// Launch template Name
+	Name *string `json:"name,omitempty"`
 	// Launch template version
 	// Defaults to the default launch template version
 	// TODO support $Default, $Latest
 	Version *string `json:"version,omitempty"`
-	// TODO support Name?
 }
 
 // NodeGroupTaint represents a Kubernetes taint

@@ -28,9 +28,15 @@ func NewLaunchTemplateFetcher(fetcher launchTemplateFetcher) *LaunchTemplateFetc
 
 // Fetch fetches the specified launch template
 func (l *LaunchTemplateFetcher) Fetch(ctx context.Context, launchTemplate *api.LaunchTemplate) (*ec2types.ResponseLaunchTemplateData, error) {
-	input := &ec2.DescribeLaunchTemplateVersionsInput{
-		LaunchTemplateId: aws.String(launchTemplate.ID),
+	input := &ec2.DescribeLaunchTemplateVersionsInput{}
+	if launchTemplate.ID != nil {
+		input.LaunchTemplateId = aws.String(*launchTemplate.ID)
+	} else if launchTemplate.Name != nil {
+		input.LaunchTemplateName = aws.String(*launchTemplate.Name)
+	} else {
+		return nil, errors.New("launch template requires ID or Name")
 	}
+
 	if version := launchTemplate.Version; version != nil {
 		input.Versions = []string{*version}
 	} else {
@@ -42,7 +48,11 @@ func (l *LaunchTemplateFetcher) Fetch(ctx context.Context, launchTemplate *api.L
 		return nil, err
 	}
 	if len(output.LaunchTemplateVersions) != 1 {
-		return nil, errors.Errorf("failed to find launch template with ID %q", launchTemplate.ID)
+		if launchTemplate.ID != nil {
+			return nil, errors.Errorf("failed to find launch template with ID %q", *launchTemplate.ID)
+		} else if launchTemplate.Name != nil {
+			return nil, errors.Errorf("failed to find launch template with ID %q", *launchTemplate.Name)
+		}
 	}
 
 	return output.LaunchTemplateVersions[0].LaunchTemplateData, nil

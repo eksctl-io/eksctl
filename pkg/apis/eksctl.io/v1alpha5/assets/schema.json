@@ -1029,14 +1029,16 @@
       "x-intellij-html-description": "contains cluster networking options"
     },
     "LaunchTemplate": {
-      "required": [
-        "id"
-      ],
       "properties": {
         "id": {
           "type": "string",
           "description": "Launch template ID",
           "x-intellij-html-description": "Launch template ID"
+        },
+        "name": {
+          "type": "string",
+          "description": "Launch template Name",
+          "x-intellij-html-description": "Launch template Name"
         },
         "version": {
           "type": "string",
@@ -1046,6 +1048,7 @@
       },
       "preferredOrder": [
         "id",
+        "name",
         "version"
       ],
       "additionalProperties": false

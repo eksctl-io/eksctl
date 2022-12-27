@@ -148,8 +148,11 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 			return err
 		}
 
-		launchTemplate = &gfneks.Nodegroup_LaunchTemplateSpecification{
-			Id: gfnt.NewString(m.nodeGroup.LaunchTemplate.ID),
+		launchTemplate = &gfneks.Nodegroup_LaunchTemplateSpecification{}
+		if id := m.nodeGroup.LaunchTemplate.ID; id != nil {
+			launchTemplate.Id = gfnt.NewString(*id)
+		} else if name := m.nodeGroup.LaunchTemplate.Name; name != nil {
+			launchTemplate.Name = gfnt.NewString(*name)
 		}
 		if version := m.nodeGroup.LaunchTemplate.Version; version != nil {
 			launchTemplate.Version = gfnt.NewString(*version)

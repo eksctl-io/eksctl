@@ -348,12 +348,16 @@ func (m *Manager) usesCustomAMI(ctx context.Context, ltResources map[string]*gfn
 		return lt.LaunchTemplateData.ImageId != nil, nil
 	}
 
-	if ng.LaunchTemplate == nil || ng.LaunchTemplate.Id == nil {
+	if ng.LaunchTemplate == nil || (ng.LaunchTemplate.Id == nil && ng.LaunchTemplate.Name == nil) {
 		return false, nil
 	}
 
-	lt := &api.LaunchTemplate{
-		ID: ng.LaunchTemplate.Id.String(),
+	lt := &api.LaunchTemplate{}
+	if id := ng.LaunchTemplate.Id; id != nil {
+		lt.ID = aws.String(id.String())
+	}
+	if name := ng.LaunchTemplate.Name; name != nil {
+		lt.Name = aws.String(name.String())
 	}
 	if version := ng.LaunchTemplate.Version; version != nil {
 		lt.Version = aws.String(version.String())

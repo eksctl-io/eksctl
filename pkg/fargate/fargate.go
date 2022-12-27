@@ -60,7 +60,8 @@ func toSelectors(in []ekstypes.FargateProfileSelector) []api.FargateProfileSelec
 
 // IsUnauthorizedError reports whether the error is an authorization error
 // Unauthorized errors are of the form:
-//   AccessDeniedException: Account <account> is not authorized to use this service
+//
+//	AccessDeniedException: Account <account> is not authorized to use this service
 func IsUnauthorizedError(err error) bool {
 	var apiErr smithy.APIError
 	return errors.As(err, &apiErr) && apiErr.ErrorCode() == "AccessDeniedException"

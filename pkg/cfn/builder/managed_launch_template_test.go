@@ -8,6 +8,8 @@ import (
 	"os"
 	"path"
 
+	"github.com/weaveworks/goformation/v4"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
@@ -18,7 +20,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/weaveworks/goformation/v4"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -121,7 +122,7 @@ API_SERVER_URL=https://test.com
 					Name: "custom-template",
 				},
 				LaunchTemplate: &api.LaunchTemplate{
-					ID: "lt-1234",
+					ID: aws.String("lt-1234"),
 				},
 			},
 			mockFetcherFn: mockLaunchTemplate(func(input *ec2.DescribeLaunchTemplateVersionsInput) bool {
@@ -132,6 +133,25 @@ API_SERVER_URL=https://test.com
 			}),
 
 			resourcesFilename: "launch_template.json",
+		}),
+
+		Entry("Launch Template with Name", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "custom-template",
+				},
+				LaunchTemplate: &api.LaunchTemplate{
+					Name: aws.String("lt-with-name"),
+				},
+			},
+			mockFetcherFn: mockLaunchTemplate(func(input *ec2.DescribeLaunchTemplateVersionsInput) bool {
+				return *input.LaunchTemplateName == "lt-with-name" && input.Versions[0] == "$Default"
+			}, &ec2types.ResponseLaunchTemplateData{
+				InstanceType: ec2types.InstanceTypeT2Medium,
+				KeyName:      aws.String("key-name"),
+			}),
+
+			resourcesFilename: "launch_template_with_name.json",
 		}),
 
 		Entry("With additionalVolumes", &mngCase{
@@ -176,7 +196,7 @@ API_SERVER_URL=https://test.com
 					Name: "template-custom-ami",
 				},
 				LaunchTemplate: &api.LaunchTemplate{
-					ID:      "lt-1234",
+					ID:      aws.String("lt-1234"),
 					Version: aws.String("2"),
 				},
 			},
@@ -255,7 +275,7 @@ API_SERVER_URL=https://test.com
 					Name: "template-custom-ami",
 				},
 				LaunchTemplate: &api.LaunchTemplate{
-					ID:      "lt-1234",
+					ID:      aws.String("lt-1234"),
 					Version: aws.String("2"),
 				},
 			},
@@ -276,7 +296,7 @@ API_SERVER_URL=https://test.com
 				},
 				InstanceTypes: []string{"t2.medium"},
 				LaunchTemplate: &api.LaunchTemplate{
-					ID:      "lt-1234",
+					ID:      aws.String("lt-1234"),
 					Version: aws.String("2"),
 				},
 			},
@@ -298,7 +318,7 @@ API_SERVER_URL=https://test.com
 				},
 				InstanceTypes: []string{"c3.large", "c4.large", "c5.large", "c5d.large", "c5n.large", "c5a.large"},
 				LaunchTemplate: &api.LaunchTemplate{
-					ID:      "lt-1234",
+					ID:      aws.String("lt-1234"),
 					Version: aws.String("3"),
 				},
 			},
