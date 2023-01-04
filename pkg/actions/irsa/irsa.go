@@ -17,12 +17,12 @@ type Manager struct {
 	clientSet    kubeclient.Interface
 }
 
-type Action string
+type action string
 
 const (
-	Create Action = "create"
-	Delete Action = "delete"
-	Update Action = "update"
+	actionCreate action = "create"
+	actionDelete action = "delete"
+	actionUpdate action = "update"
 )
 
 func New(clusterName string, stackManager manager.StackManager, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) *Manager {
