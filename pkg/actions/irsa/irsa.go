@@ -34,7 +34,7 @@ func New(clusterName string, stackManager manager.StackManager, oidcManager *iam
 	}
 }
 
-func doTasks(taskTree *tasks.TaskTree, action Action) error {
+func doTasks(taskTree *tasks.TaskTree, action action) error {
 	logger.Info(taskTree.Describe())
 	if errs := taskTree.DoAllSync(); len(errs) > 0 {
 		logger.Info("%d error(s) occurred and IAM Role stacks haven't been %sd properly, you may wish to check CloudFormation console", len(errs), action)

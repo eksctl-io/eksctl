@@ -58,7 +58,7 @@ func (a *Manager) UpdateIAMServiceAccounts(ctx context.Context, iamServiceAccoun
 	}
 
 	defer logPlanModeWarning(plan && len(iamServiceAccounts) > 0)
-	return doTasks(updateTasks, Update)
+	return doTasks(updateTasks, actionUpdate)
 }
 
 // getRoleNameFromStackTemplate returns the role if the initial stack's template contained it.
