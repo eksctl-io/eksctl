@@ -2,8 +2,12 @@ package outposts
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"sync"
+
+	"github.com/aws/smithy-go"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -11,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/outposts"
 	outpoststypes "github.com/aws/aws-sdk-go-v2/service/outposts/types"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 )
@@ -145,4 +150,23 @@ func (o *Service) GetOutpost(ctx context.Context) (*outpoststypes.Outpost, error
 		return nil, err
 	}
 	return outpost.Outpost, nil
+}
+
+// ValidatePlacementGroup validates that the specified placement group exists.
+func (o *Service) ValidatePlacementGroup(ctx context.Context, placement *api.Placement) error {
+	output, err := o.EC2API.DescribePlacementGroups(ctx, &ec2.DescribePlacementGroupsInput{
+		GroupNames: []string{placement.GroupName},
+	})
+	if err != nil {
+		var oe *smithy.OperationError
+		if errors.As(err, &oe) && strings.Contains(oe.Error(), "InvalidPlacementGroup.Unknown") {
+			return fmt.Errorf("placement group %q does not exist: %w", placement.GroupName, err)
+		}
+		return fmt.Errorf("error describing placement group %q: %w", placement.GroupName, err)
+	}
+	if len(output.PlacementGroups) != 1 {
+		return fmt.Errorf("expected to find exactly 1 placement group; got %d", len(output.PlacementGroups))
+	}
+	return nil
+
 }

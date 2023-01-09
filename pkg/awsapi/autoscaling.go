@@ -57,6 +57,14 @@ type ASG interface {
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-load-balancer.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	AttachLoadBalancers(ctx context.Context, params *AttachLoadBalancersInput, optFns ...func(*Options)) (*AttachLoadBalancersOutput, error)
+	// Reserved for use with Amazon VPC Lattice, which is in preview and subject to
+	// change. Do not use this API for production workloads. This API is also subject
+	// to change. Attaches one or more traffic sources to the specified Auto Scaling
+	// group. To describe the traffic sources for an Auto Scaling group, call the
+	// DescribeTrafficSources API. To detach a traffic source from the Auto Scaling
+	// group, call the DetachTrafficSources API. This operation is additive and does
+	// not detach existing traffic sources from the Auto Scaling group.
+	AttachTrafficSources(ctx context.Context, params *AttachTrafficSourcesInput, optFns ...func(*Options)) (*AttachTrafficSourcesOutput, error)
 	// Deletes one or more scheduled actions for the specified Auto Scaling group.
 	BatchDeleteScheduledAction(ctx context.Context, params *BatchDeleteScheduledActionInput, optFns ...func(*Options)) (*BatchDeleteScheduledActionOutput, error)
 	// Creates or updates one or more scheduled scaling actions for an Auto Scaling
@@ -283,7 +291,10 @@ type ASG interface {
 	// Load Balancing to distribute traffic across the instances in your Auto Scaling
 	// group
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-load-balancer.html)
-	// in the Amazon EC2 Auto Scaling User Guide.
+	// in the Amazon EC2 Auto Scaling User Guide. You can use this operation to
+	// describe target groups that were attached by using
+	// AttachLoadBalancerTargetGroups, but not for target groups that were attached by
+	// using AttachTrafficSources.
 	DescribeLoadBalancerTargetGroups(ctx context.Context, params *DescribeLoadBalancerTargetGroupsInput, optFns ...func(*Options)) (*DescribeLoadBalancerTargetGroupsOutput, error)
 	// Gets information about the load balancers for the specified Auto Scaling group.
 	// This operation describes only Classic Load Balancers. If you have Application
@@ -352,6 +363,11 @@ type ASG interface {
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-termination-policies.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	DescribeTerminationPolicyTypes(ctx context.Context, params *DescribeTerminationPolicyTypesInput, optFns ...func(*Options)) (*DescribeTerminationPolicyTypesOutput, error)
+	// Reserved for use with Amazon VPC Lattice, which is in preview and subject to
+	// change. Do not use this API for production workloads. This API is also subject
+	// to change. Gets information about the traffic sources for the specified Auto
+	// Scaling group.
+	DescribeTrafficSources(ctx context.Context, params *DescribeTrafficSourcesInput, optFns ...func(*Options)) (*DescribeTrafficSourcesOutput, error)
 	// Gets information about a warm pool and its instances. For more information, see
 	// Warm pools for Amazon EC2 Auto Scaling
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-warm-pools.html)
@@ -373,7 +389,9 @@ type ASG interface {
 	// you detach a target group, it enters the Removing state while deregistering the
 	// instances in the group. When all instances are deregistered, then you can no
 	// longer describe the target group using the DescribeLoadBalancerTargetGroups API
-	// call. The instances remain running.
+	// call. The instances remain running. You can use this operation to detach target
+	// groups that were attached by using AttachLoadBalancerTargetGroups, but not for
+	// target groups that were attached by using AttachTrafficSources.
 	DetachLoadBalancerTargetGroups(ctx context.Context, params *DetachLoadBalancerTargetGroupsInput, optFns ...func(*Options)) (*DetachLoadBalancerTargetGroupsOutput, error)
 	// Detaches one or more Classic Load Balancers from the specified Auto Scaling
 	// group. This operation detaches only Classic Load Balancers. If you have
@@ -384,6 +402,11 @@ type ASG interface {
 	// load balancer using the DescribeLoadBalancers API call. The instances remain
 	// running.
 	DetachLoadBalancers(ctx context.Context, params *DetachLoadBalancersInput, optFns ...func(*Options)) (*DetachLoadBalancersOutput, error)
+	// Reserved for use with Amazon VPC Lattice, which is in preview and subject to
+	// change. Do not use this API for production workloads. This API is also subject
+	// to change. Detaches one or more traffic sources from the specified Auto Scaling
+	// group.
+	DetachTrafficSources(ctx context.Context, params *DetachTrafficSourcesInput, optFns ...func(*Options)) (*DetachTrafficSourcesOutput, error)
 	// Disables group metrics collection for the specified Auto Scaling group.
 	DisableMetricsCollection(ctx context.Context, params *DisableMetricsCollectionInput, optFns ...func(*Options)) (*DisableMetricsCollectionOutput, error)
 	// Enables group metrics collection for the specified Auto Scaling group. You can

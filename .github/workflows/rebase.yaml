@@ -15,6 +15,6 @@ jobs:
         with:
           fetch-depth: 0
       - name: Rebase
-        uses: cirrus-actions/rebase@1.7
+        uses: cirrus-actions/rebase@1.8
         env:
           GITHUB_TOKEN: ${{ secrets.WEAVEWORKSBOT_TOKEN }}

@@ -917,6 +917,24 @@ func NewGetClusterLoader(cmd *Cmd) ClusterConfigLoader {
 	return l
 }
 
+// NewGetAddonsLoader loads config file and validates command for `eksctl get addon`.
+func NewGetAddonsLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithoutConfigFile = func() error {
+		meta := cmd.ClusterConfig.Metadata
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+		if cmd.NameArg != "" {
+			return ErrUnsupportedNameArg()
+		}
+		return nil
+	}
+
+	return l
+}
+
 // NewSetLabelLoader will load config or use flags for 'eksctl set labels'
 func NewSetLabelLoader(cmd *Cmd, nodeGroupName string, labels map[string]string) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
