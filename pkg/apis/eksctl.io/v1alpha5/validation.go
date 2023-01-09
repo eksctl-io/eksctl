@@ -140,7 +140,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		if cfg.Outpost.ControlPlaneOutpostARN == "" {
 			return errors.New("outpost.controlPlaneOutpostARN is required for Outposts")
 		}
-
 		if err := validateOutpostARN(cfg.Outpost.ControlPlaneOutpostARN); err != nil {
 			return err
 		}

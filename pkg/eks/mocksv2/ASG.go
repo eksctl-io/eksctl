@@ -105,6 +105,36 @@ func (_m *ASG) AttachLoadBalancers(ctx context.Context, params *autoscaling.Atta
 	return r0, r1
 }
 
+// AttachTrafficSources provides a mock function with given fields: ctx, params, optFns
+func (_m *ASG) AttachTrafficSources(ctx context.Context, params *autoscaling.AttachTrafficSourcesInput, optFns ...func(*autoscaling.Options)) (*autoscaling.AttachTrafficSourcesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *autoscaling.AttachTrafficSourcesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *autoscaling.AttachTrafficSourcesInput, ...func(*autoscaling.Options)) *autoscaling.AttachTrafficSourcesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*autoscaling.AttachTrafficSourcesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *autoscaling.AttachTrafficSourcesInput, ...func(*autoscaling.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // BatchDeleteScheduledAction provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) BatchDeleteScheduledAction(ctx context.Context, params *autoscaling.BatchDeleteScheduledActionInput, optFns ...func(*autoscaling.Options)) (*autoscaling.BatchDeleteScheduledActionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1125,6 +1155,36 @@ func (_m *ASG) DescribeTerminationPolicyTypes(ctx context.Context, params *autos
 	return r0, r1
 }
 
+// DescribeTrafficSources provides a mock function with given fields: ctx, params, optFns
+func (_m *ASG) DescribeTrafficSources(ctx context.Context, params *autoscaling.DescribeTrafficSourcesInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeTrafficSourcesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *autoscaling.DescribeTrafficSourcesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *autoscaling.DescribeTrafficSourcesInput, ...func(*autoscaling.Options)) *autoscaling.DescribeTrafficSourcesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*autoscaling.DescribeTrafficSourcesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *autoscaling.DescribeTrafficSourcesInput, ...func(*autoscaling.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeWarmPool provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DescribeWarmPool(ctx context.Context, params *autoscaling.DescribeWarmPoolInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeWarmPoolOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1237,6 +1297,36 @@ func (_m *ASG) DetachLoadBalancers(ctx context.Context, params *autoscaling.Deta
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *autoscaling.DetachLoadBalancersInput, ...func(*autoscaling.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DetachTrafficSources provides a mock function with given fields: ctx, params, optFns
+func (_m *ASG) DetachTrafficSources(ctx context.Context, params *autoscaling.DetachTrafficSourcesInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DetachTrafficSourcesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *autoscaling.DetachTrafficSourcesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *autoscaling.DetachTrafficSourcesInput, ...func(*autoscaling.Options)) *autoscaling.DetachTrafficSourcesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*autoscaling.DetachTrafficSourcesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *autoscaling.DetachTrafficSourcesInput, ...func(*autoscaling.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)

@@ -2110,11 +2110,17 @@
           "type": "string",
           "description": "specifies the Outpost ARN in which the control plane should be created.",
           "x-intellij-html-description": "specifies the Outpost ARN in which the control plane should be created."
+        },
+        "controlPlanePlacement": {
+          "$ref": "#/definitions/Placement",
+          "description": "specifies the placement configuration for control plane instances on Outposts.",
+          "x-intellij-html-description": "specifies the placement configuration for control plane instances on Outposts."
         }
       },
       "preferredOrder": [
         "controlPlaneOutpostARN",
-        "controlPlaneInstanceType"
+        "controlPlaneInstanceType",
+        "controlPlanePlacement"
       ],
       "additionalProperties": false,
       "description": "holds the Outpost configuration.",

@@ -89,10 +89,10 @@ type EKS interface {
 	// (https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html). An
 	// Amazon EKS managed node group is an Amazon EC2 Auto Scaling group and associated
 	// Amazon EC2 instances that are managed by Amazon Web Services for an Amazon EKS
-	// cluster. Each node group uses a version of the Amazon EKS optimized Amazon Linux
-	// 2 AMI. For more information, see Managed Node Groups
+	// cluster. For more information, see Managed node groups
 	// (https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html) in
-	// the Amazon EKS User Guide.
+	// the Amazon EKS User Guide. Windows AMI types are only supported for commercial
+	// Regions that support Windows Amazon EKS.
 	CreateNodegroup(ctx context.Context, params *CreateNodegroupInput, optFns ...func(*Options)) (*CreateNodegroupOutput, error)
 	// Delete an Amazon EKS add-on. When you remove the add-on, it will also be deleted
 	// from the cluster. You can always manually start an add-on on the cluster using
@@ -246,9 +246,12 @@ type EKS interface {
 	// AMI version of a node group's current Kubernetes version by not specifying a
 	// Kubernetes version in the request. You can update to the latest AMI version of
 	// your cluster's current Kubernetes version by specifying your cluster's
-	// Kubernetes version in the request. For more information, see Amazon EKS
-	// optimized Amazon Linux 2 AMI versions
+	// Kubernetes version in the request. For information about Linux versions, see
+	// Amazon EKS optimized Amazon Linux AMI versions
 	// (https://docs.aws.amazon.com/eks/latest/userguide/eks-linux-ami-versions.html)
+	// in the Amazon EKS User Guide. For information about Windows versions, see Amazon
+	// EKS optimized Windows AMI versions
+	// (https://docs.aws.amazon.com/eks/latest/userguide/eks-ami-versions-windows.html)
 	// in the Amazon EKS User Guide. You cannot roll back a node group to an earlier
 	// Kubernetes version or AMI version. When a node in a managed node group is
 	// terminated due to a scaling action or update, the pods in that node are drained
