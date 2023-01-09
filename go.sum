@@ -375,8 +375,8 @@ github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.21/go.mod h1:lR
 github.com/aws/aws-sdk-go-v2/service/kms v1.5.0/go.mod h1:w7JuP9Oq1IKMFQPkNe3V6s9rOssXzOVEMNEqK1L1bao=
 github.com/aws/aws-sdk-go-v2/service/kms v1.19.4 h1:bX+nEwdukfDdfGPUjNNqs7NwZyqyMjIy5YpZda9Gcu4=
 github.com/aws/aws-sdk-go-v2/service/kms v1.19.4/go.mod h1:13sjgMH7Xu4e46+0BEDhSnNh+cImHSYS5PpBjV3oXcU=
-github.com/aws/aws-sdk-go-v2/service/outposts v1.23.4 h1:tSYmcaCagB0wxOD99jgLe3Y4NH9GWYtwE2KQJHGd++o=
-github.com/aws/aws-sdk-go-v2/service/outposts v1.23.4/go.mod h1:6L+76+hINDtjTyvgj0Z+QXXD90f98Uy/i3gVRO2xa20=
+github.com/aws/aws-sdk-go-v2/service/outposts v1.24.0 h1:x4L8MOkl8z9tOe6ZOlobqigpbNpb+uuQsTj+7M1E0ic=
+github.com/aws/aws-sdk-go-v2/service/outposts v1.24.0/go.mod h1:6L+76+hINDtjTyvgj0Z+QXXD90f98Uy/i3gVRO2xa20=
 github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.6.0/go.mod h1:B+7C5UKdVq1ylkI/A6O8wcurFtaux0R1njePNPtKwoA=
 github.com/aws/aws-sdk-go-v2/service/ssm v1.10.0/go.mod h1:4dXS5YNqI3SNbetQ7X7vfsMlX6ZnboJA2dulBwJx7+g=
 github.com/aws/aws-sdk-go-v2/service/ssm v1.33.4 h1:s8o8aN6cOaYQ6oJ4D7DMV98iyNhkiY1PDFSk5uSbqF8=
