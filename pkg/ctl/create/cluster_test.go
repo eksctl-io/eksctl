@@ -1,6 +1,8 @@
 package create
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -13,9 +15,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/outposts"
 	outpoststypes "github.com/aws/aws-sdk-go-v2/service/outposts/types"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/smithy-go"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/stretchr/testify/mock"
+
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	restclient "k8s.io/client-go/rest"
 
@@ -29,6 +35,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
+
+const outpostARN = "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
 
 var _ = Describe("create cluster", func() {
 	Describe("un-managed node group", func() {
@@ -209,6 +217,7 @@ var _ = Describe("create cluster", func() {
 		updateClusterParams func(*cmdutils.CreateClusterCmdParams)
 		updateMocks         func(*mockprovider.MockProvider)
 		mockOutposts        bool
+		fullyPrivateCluster bool
 
 		expectedErr string
 	}
@@ -224,7 +233,7 @@ var _ = Describe("create cluster", func() {
 						Version: "",
 					},
 					Outpost: &api.Outpost{
-						ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+						ControlPlaneOutpostARN: outpostARN,
 					},
 				}
 
@@ -245,7 +254,7 @@ var _ = Describe("create cluster", func() {
 						Version: "1.20",
 					},
 					Outpost: &api.Outpost{
-						ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+						ControlPlaneOutpostARN: outpostARN,
 					},
 				}
 
@@ -259,7 +268,7 @@ var _ = Describe("create cluster", func() {
 
 	DescribeTable("doCreateCluster", func(ce createClusterEntry) {
 		p := mockprovider.NewMockProvider()
-		defaultProviderMocks(p, defaultOutput, ce.mockOutposts)
+		defaultProviderMocks(p, defaultOutput, ce.fullyPrivateCluster, ce.mockOutposts)
 		if ce.updateMocks != nil {
 			ce.updateMocks(p)
 		}
@@ -312,14 +321,72 @@ var _ = Describe("create cluster", func() {
 		}
 
 		Expect(err).NotTo(HaveOccurred())
+
+		if ce.fullyPrivateCluster {
+			Expect(clusterConfig.PrivateCluster.Enabled).To(BeTrue())
+			p.MockEKS().AssertNumberOfCalls(GinkgoT(), "UpdateClusterConfig", 1)
+		}
 	},
 		Entry("standard cluster", createClusterEntry{}),
+
+		Entry("[Fully Private Cluster] updates cluster config successfully", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.VPC.ClusterEndpoints.PrivateAccess = api.Enabled()
+				c.PrivateCluster = &api.PrivateCluster{
+					Enabled:              true,
+					SkipEndpointCreation: true,
+				}
+			},
+			updateMocks: func(provider *mockprovider.MockProvider) {
+				provider.MockEKS().On("UpdateClusterConfig", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.UpdateClusterConfigInput{}))
+					Expect(args[1].(*awseks.UpdateClusterConfigInput).ResourcesVpcConfig.EndpointPrivateAccess).To(Equal(api.Enabled()))
+					Expect(args[1].(*awseks.UpdateClusterConfigInput).ResourcesVpcConfig.EndpointPublicAccess).To(Equal(api.Disabled()))
+				}).Return(&awseks.UpdateClusterConfigOutput{
+					Update: &ekstypes.Update{
+						Id: aws.String("test-id"),
+					},
+				}, nil).Once()
+
+				provider.MockEKS().On("DescribeUpdate", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeUpdateInput) bool {
+					return true
+				}), mock.Anything).Return(&awseks.DescribeUpdateOutput{
+					Update: &ekstypes.Update{
+						Id:     aws.String("test-id"),
+						Type:   ekstypes.UpdateTypeConfigUpdate,
+						Status: ekstypes.UpdateStatusSuccessful,
+					},
+				}, nil).Once()
+			},
+			fullyPrivateCluster: true,
+		}),
+
+		Entry("[Fully Private Cluster] fails to update cluster config", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.VPC.ClusterEndpoints.PrivateAccess = api.Enabled()
+				c.PrivateCluster = &api.PrivateCluster{
+					Enabled:              true,
+					SkipEndpointCreation: true,
+				}
+			},
+			updateMocks: func(provider *mockprovider.MockProvider) {
+				provider.MockEKS().On("UpdateClusterConfig", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.UpdateClusterConfigInput{}))
+					Expect(args[1].(*awseks.UpdateClusterConfigInput).ResourcesVpcConfig.EndpointPrivateAccess).To(Equal(api.Enabled()))
+					Expect(args[1].(*awseks.UpdateClusterConfigInput).ResourcesVpcConfig.EndpointPublicAccess).To(Equal(api.Disabled()))
+				}).Return(nil, fmt.Errorf("")).Once()
+			},
+			expectedErr:         "error disabling public endpoint access for the cluster",
+			fullyPrivateCluster: true,
+		}),
 
 		Entry("[Outposts] control plane on Outposts with valid config", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
 				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
-					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+					ControlPlaneOutpostARN: outpostARN,
 				}
 			},
 			mockOutposts: true,
@@ -329,20 +396,20 @@ var _ = Describe("create cluster", func() {
 			updateClusterConfig: func(c *api.ClusterConfig) {
 				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
-					ControlPlaneOutpostARN:   "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+					ControlPlaneOutpostARN:   outpostARN,
 					ControlPlaneInstanceType: "t2.medium",
 				}
 			},
 			mockOutposts: true,
 
-			expectedErr: `instance type "t2.medium" does not exist in Outpost "arn:aws:outposts:us-west-2:1234:outpost/op-1234"`,
+			expectedErr: fmt.Sprintf(`instance type "t2.medium" does not exist in Outpost %q`, outpostARN),
 		}),
 
 		Entry("[Outposts] available instance type specified for the control plane", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
 				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
-					ControlPlaneOutpostARN:   "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+					ControlPlaneOutpostARN:   outpostARN,
 					ControlPlaneInstanceType: "m5.xlarge",
 				}
 			},
@@ -353,7 +420,7 @@ var _ = Describe("create cluster", func() {
 			updateClusterConfig: func(c *api.ClusterConfig) {
 				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
-					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+					ControlPlaneOutpostARN: outpostARN,
 				}
 				c.NodeGroups = []*api.NodeGroup{
 					api.NewNodeGroup(),
@@ -368,7 +435,7 @@ var _ = Describe("create cluster", func() {
 			updateClusterConfig: func(c *api.ClusterConfig) {
 				c.Metadata.Version = api.Version1_21
 				ng := api.NewNodeGroup()
-				ng.OutpostARN = "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
+				ng.OutpostARN = outpostARN
 				c.NodeGroups = []*api.NodeGroup{ng}
 			},
 			mockOutposts: true,
@@ -381,7 +448,7 @@ var _ = Describe("create cluster", func() {
 			updateClusterConfig: func(c *api.ClusterConfig) {
 				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
-					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+					ControlPlaneOutpostARN: outpostARN,
 				}
 				c.NodeGroups = []*api.NodeGroup{
 					api.NewNodeGroup(),
@@ -397,15 +464,61 @@ var _ = Describe("create cluster", func() {
 			updateClusterConfig: func(c *api.ClusterConfig) {
 				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
-					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+					ControlPlaneOutpostARN: outpostARN,
 				}
 			},
 			updateMocks: func(provider *mockprovider.MockProvider) {
 				provider.MockOutposts().On("GetOutpost", mock.Anything, &outposts.GetOutpostInput{
-					OutpostId: aws.String("arn:aws:outposts:us-west-2:1234:outpost/op-1234"),
+					OutpostId: aws.String(outpostARN),
 				}).Return(nil, &outpoststypes.NotFoundException{Message: aws.String("not found")})
 			},
 			expectedErr: "error getting Outpost details: NotFoundException: not found",
+		}),
+
+		Entry("[Outposts] specified Outpost placement group does not exist", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: outpostARN,
+					ControlPlanePlacement: &api.Placement{
+						GroupName: "test",
+					},
+				}
+			},
+			updateMocks: func(provider *mockprovider.MockProvider) {
+				provider.MockEC2().On("DescribePlacementGroups", mock.Anything, &ec2.DescribePlacementGroupsInput{
+					GroupNames: []string{"test"},
+				}).Return(nil, &smithy.OperationError{
+					OperationName: "DescribePlacementGroups",
+					Err:           errors.New("api error InvalidPlacementGroup.Unknown: The Placement Group 'test' is unknown"),
+				})
+			},
+			mockOutposts: true,
+			expectedErr:  `placement group "test" does not exist`,
+		}),
+
+		Entry("[Outposts] valid Outpost placement group specified", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Metadata.Version = api.Version1_21
+				c.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: outpostARN,
+					ControlPlanePlacement: &api.Placement{
+						GroupName: "test",
+					},
+				}
+			},
+			updateMocks: func(provider *mockprovider.MockProvider) {
+				provider.MockEC2().On("DescribePlacementGroups", mock.Anything, &ec2.DescribePlacementGroupsInput{
+					GroupNames: []string{"test"},
+				}).Return(&ec2.DescribePlacementGroupsOutput{
+					PlacementGroups: []ec2types.PlacementGroup{
+						{
+							GroupName: aws.String("test"),
+						},
+					},
+				}, nil)
+			},
+			mockOutposts: true,
 		}),
 	)
 })
@@ -461,7 +574,7 @@ var defaultOutput = []cftypes.Output{
 	},
 }
 
-func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output, controlPlaneOnOutposts bool) {
+func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output, fullyPrivateCluster bool, controlPlaneOnOutposts bool) {
 	p.MockEC2().On("DescribeAvailabilityZones", mock.Anything, &ec2.DescribeAvailabilityZonesInput{
 		Filters: []ec2types.Filter{{
 			Name:   aws.String("region-name"),
@@ -494,6 +607,14 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 			},
 		},
 	}, nil)
+
+	if fullyPrivateCluster {
+		output = append(output, cftypes.Output{
+			OutputKey:   aws.String("ClusterFullyPrivate"),
+			OutputValue: aws.String(""),
+		})
+	}
+
 	p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.Anything).Return(&cloudformation.DescribeStacksOutput{
 		Stacks: []cftypes.Stack{
 			{
@@ -510,12 +631,11 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 		},
 	}, nil)
 
-	const outpostID = "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
 	var outpostConfig *ekstypes.OutpostConfigResponse
 	if controlPlaneOnOutposts {
-		mockOutposts(p, outpostID)
+		mockOutposts(p, outpostARN)
 		outpostConfig = &ekstypes.OutpostConfigResponse{
-			OutpostArns:              []string{outpostID},
+			OutpostArns:              []string{outpostARN},
 			ControlPlaneInstanceType: aws.String("m5.xlarge"),
 		}
 	}

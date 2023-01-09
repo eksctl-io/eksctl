@@ -51,11 +51,16 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 			return fmt.Errorf("failed to fetch version %s for addon %s: %w", version, addon.Name, err)
 		}
 	}
+	var configurationValues *string
+	if addon.ConfigurationValues != "" {
+		configurationValues = &addon.ConfigurationValues
+	}
 	createAddonInput := &eks.CreateAddonInput{
-		AddonName:        &addon.Name,
-		AddonVersion:     &version,
-		ClusterName:      &a.clusterConfig.Metadata.Name,
-		ResolveConflicts: addon.ResolveConflicts,
+		AddonName:           &addon.Name,
+		AddonVersion:        &version,
+		ClusterName:         &a.clusterConfig.Metadata.Name,
+		ResolveConflicts:    addon.ResolveConflicts,
+		ConfigurationValues: configurationValues,
 	}
 
 	if addon.Force {

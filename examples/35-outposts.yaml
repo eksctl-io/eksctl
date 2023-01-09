@@ -10,6 +10,7 @@ kind: ClusterConfig
 metadata:
   name: outpost
   region: us-west-2
+  version: "1.21"
 
 nodeGroups:
   - name: ng
@@ -22,3 +23,7 @@ outpost:
   controlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
   # Optional, defaults to the smallest available instance type on the Outpost.
   controlPlaneInstanceType: m5d.large
+
+  # Optional
+  controlPlanePlacement:
+    groupName: placement-group-name

@@ -10,7 +10,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
-	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 var _ = Describe("ClusterConfig validation", func() {
@@ -87,16 +86,19 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg := api.NewClusterConfig()
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "node-group"
-			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerForWindows)
+
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
 			err := api.ValidateNodeGroup(0, ng0, cfg)
 			Expect(err).NotTo(HaveOccurred())
 
-			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerD)
+			// Docker container runtime is only supported up to K8s version 1.23
+			cfg.Metadata.Version = api.Version1_23
+
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerForWindows)
 			err = api.ValidateNodeGroup(0, ng0, cfg)
 			Expect(err).NotTo(HaveOccurred())
 
-			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
-			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerD)
 			err = api.ValidateNodeGroup(0, ng0, cfg)
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -1517,14 +1519,14 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			It("fails when the spotAllocationStrategy is not a supported strategy", func() {
-				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("unsupported-strategy")
+				ng.InstancesDistribution.SpotAllocationStrategy = aws.String("unsupported-strategy")
 
 				err := api.ValidateNodeGroup(0, ng, cfg)
-				Expect(err).To(MatchError("spotAllocationStrategy should be one of: lowest-price, capacity-optimized, capacity-optimized-prioritized"))
+				Expect(err).To(MatchError("spotAllocationStrategy should be one of: [lowest-price diversified capacity-optimized capacity-optimized-prioritized price-capacity-optimized]"))
 			})
 
 			It("fails when the spotAllocationStrategy is capacity-optimized and spotInstancePools is specified", func() {
-				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("capacity-optimized")
+				ng.InstancesDistribution.SpotAllocationStrategy = aws.String("capacity-optimized")
 				ng.InstancesDistribution.SpotInstancePools = newInt(2)
 
 				err := api.ValidateNodeGroup(0, ng, cfg)
@@ -1532,7 +1534,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			It("fails when the spotAllocationStrategy is capacity-optimized-prioritized and spotInstancePools is specified", func() {
-				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("capacity-optimized-prioritized")
+				ng.InstancesDistribution.SpotAllocationStrategy = aws.String("capacity-optimized-prioritized")
 				ng.InstancesDistribution.SpotInstancePools = newInt(2)
 
 				err := api.ValidateNodeGroup(0, ng, cfg)
@@ -1540,7 +1542,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			It("does not fail when the spotAllocationStrategy is lowest-price and spotInstancePools is specified", func() {
-				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("lowest-price")
+				ng.InstancesDistribution.SpotAllocationStrategy = aws.String("lowest-price")
 				ng.InstancesDistribution.SpotInstancePools = newInt(2)
 
 				err := api.ValidateNodeGroup(0, ng, cfg)

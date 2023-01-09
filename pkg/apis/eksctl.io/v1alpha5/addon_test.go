@@ -16,6 +16,31 @@ var _ = Describe("Addon", func() {
 			})
 		})
 
+		When("specifying an invalid json", func() {
+			It("errors", func() {
+				err := v1alpha5.Addon{
+					Name:                "name",
+					Version:             "version",
+					ConfigurationValues: "not a json",
+				}.Validate()
+				Expect(err).To(MatchError(ContainSubstring("is not a valid JSON")))
+			})
+		})
+
+		DescribeTable("specifying a valid json",
+			func(configurationValues string) {
+				err := v1alpha5.Addon{
+					Name:                "name",
+					Version:             "version",
+					ConfigurationValues: configurationValues,
+				}.Validate()
+				Expect(err).NotTo(HaveOccurred())
+			},
+			Entry("empty string", ""),
+			Entry("empty json", "{}"),
+			Entry("non-empty json", "{\"replicaCount\":3}"),
+		)
+
 		When("specifying more than one of serviceAccountRoleARN, attachPolicyARNs, attachPolicy", func() {
 			It("errors", func() {
 				err := v1alpha5.Addon{

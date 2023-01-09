@@ -47,7 +47,7 @@ karpenter:
 
 OIDC must be defined in order to install Karpenter.
 
-Once Karpenter is successfully installed, add a [Provisioner](https://karpenter.sh/docs/provisioner/) so Karpenter
+Once Karpenter is successfully installed, add a [Provisioner](https://karpenter.sh/docs/concepts/provisioners/) so Karpenter
 can start adding the right nodes to the cluster.
 
 The provisioner's `instanceProfile` section must match the created `NodeInstanceProfile` role's name. For example:

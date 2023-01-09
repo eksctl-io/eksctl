@@ -140,7 +140,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		if cfg.Outpost.ControlPlaneOutpostARN == "" {
 			return errors.New("outpost.controlPlaneOutpostARN is required for Outposts")
 		}
-
 		if err := validateOutpostARN(cfg.Outpost.ControlPlaneOutpostARN); err != nil {
 			return err
 		}
@@ -1050,12 +1049,6 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 // ValidateManagedNodeGroup validates a ManagedNodeGroup and sets some defaults
 func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 	normalizeAMIFamily(ng.BaseNodeGroup())
-	switch ng.AMIFamily {
-	case NodeImageFamilyAmazonLinux2, NodeImageFamilyBottlerocket, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004:
-	default:
-		return errors.Errorf("%q is not supported for managed nodegroups", ng.AMIFamily)
-	}
-
 	path := fmt.Sprintf("managedNodeGroups[%d]", index)
 
 	if err := validateNodeGroupBase(ng, path, false); err != nil {
@@ -1149,6 +1142,20 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		}
 		if ng.PreBootstrapCommands != nil {
 			return fieldNotSupported("preBootstrapCommands")
+		}
+		if ng.OverrideBootstrapCommand != nil {
+			return fieldNotSupported("overrideBootstrapCommand")
+		}
+	}
+
+	// Windows doesn't use overrideBootstrapCommand, as it always uses bootstrapping script that comes with Windows AMIs
+	if IsWindowsImage(ng.AMIFamily) {
+		fieldNotSupported := func(field string) error {
+			return &unsupportedFieldError{
+				ng:    ng.NodeGroupBase,
+				path:  path,
+				field: field,
+			}
 		}
 		if ng.OverrideBootstrapCommand != nil {
 			return fieldNotSupported("overrideBootstrapCommand")
@@ -1285,8 +1292,8 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 	}
 
 	if distribution.SpotAllocationStrategy != nil {
-		if !isSpotAllocationStrategySupported(*distribution.SpotAllocationStrategy) {
-			return fmt.Errorf("spotAllocationStrategy should be one of: %v", strings.Join(supportedSpotAllocationStrategies(), ", "))
+		if err := validateSpotAllocationStrategy(*distribution.SpotAllocationStrategy); err != nil {
+			return err
 		}
 	}
 

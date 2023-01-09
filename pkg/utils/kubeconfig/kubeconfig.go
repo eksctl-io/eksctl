@@ -24,8 +24,6 @@ import (
 const (
 	// AWSIAMAuthenticator defines the name of the AWS IAM authenticator
 	AWSIAMAuthenticator = "aws-iam-authenticator"
-	// HeptioAuthenticatorAWS defines the old name of AWS IAM authenticator
-	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
 	// AWSEKSAuthenticator defines the recently added `aws eks get-token` command
 	AWSEKSAuthenticator = "aws"
 	// AWSIAMAuthenticatorMinimumBetaVersion this is the minimum version at which aws-iam-authenticator uses v1beta1 as APIVersion
@@ -51,11 +49,10 @@ func DefaultPath() string {
 	return clientcmd.RecommendedHomeFile
 }
 
-// AuthenticatorCommands returns all of authenticator commands
+// AuthenticatorCommands returns all authenticator commands.
 func AuthenticatorCommands() []string {
 	return []string{
 		AWSIAMAuthenticator,
-		HeptioAuthenticatorAWS,
 		AWSEKSAuthenticator,
 	}
 }
@@ -189,15 +186,7 @@ func AppendAuthenticator(config *clientcmdapi.Config, cluster ClusterInfo, authe
 				Value: meta.Region,
 			})
 		}
-	case HeptioAuthenticatorAWS:
-		args = []string{"token", "-i", cluster.ID()}
-		roleARNFlag = "-r"
-		if meta.Region != "" {
-			execConfig.Env = append(execConfig.Env, clientcmdapi.ExecEnvVar{
-				Name:  "AWS_DEFAULT_REGION",
-				Value: meta.Region,
-			})
-		}
+
 	case AWSEKSAuthenticator:
 		// if [aws-cli v1/aws-cli v2] is above or equal to [v1.23.9/v2.6.3] respectively, we change the APIVersion to v1beta1.
 		if awsCLIIsBetaVersion, err := awsCliIsAboveVersion(); err != nil {
@@ -308,20 +297,23 @@ func getAWSIAMAuthenticatorVersion() (string, error) {
 	return parsedVersion.Version, nil
 }
 
-/* KubectlVersionFormat is the format used by kubectl version --format=json, example output:
-{
-  "clientVersion": {
-    "major": "1",
-    "minor": "23",
-    "gitVersion": "v1.23.6",
-    "gitCommit": "ad3338546da947756e8a88aa6822e9c11e7eac22",
-    "gitTreeState": "archive",
-    "buildDate": "2022-04-29T06:39:16Z",
-    "goVersion": "go1.18.1",
-    "compiler": "gc",
-    "platform": "linux/amd64"
-  }
-} */
+/*
+KubectlVersionFormat is the format used by kubectl version --format=json, example output:
+
+	{
+	  "clientVersion": {
+	    "major": "1",
+	    "minor": "23",
+	    "gitVersion": "v1.23.6",
+	    "gitCommit": "ad3338546da947756e8a88aa6822e9c11e7eac22",
+	    "gitTreeState": "archive",
+	    "buildDate": "2022-04-29T06:39:16Z",
+	    "goVersion": "go1.18.1",
+	    "compiler": "gc",
+	    "platform": "linux/amd64"
+	  }
+	}
+*/
 type KubectlVersionData struct {
 	Version string `json:"gitVersion"`
 }
@@ -344,7 +336,7 @@ func getKubectlVersion() string {
 }
 
 func lockFileName(filePath string) string {
-	return filePath + ".eksctl.lock"
+	return filepath.Join(os.TempDir(), fmt.Sprintf("%x.eksctl.lock", utils.FnvHash(filePath)))
 }
 
 // ensureDirectory should probably be handled in flock

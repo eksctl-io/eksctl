@@ -139,10 +139,11 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with Ubuntu AMI", "--node-ami-family", "Ubuntu2004"),
 			Entry("with Bottlerocket AMI", "--node-ami-family", "Bottlerocket"),
 			Entry("with subnet-ids flag", "--subnet-ids", "id1,id2,id3"),
+			Entry("with Windows AMI", "--node-ami-family", "WindowsServer2019FullContainer"),
+			Entry("with Windows AMI", "--node-ami-family", "WindowsServer2019CoreContainer"),
+			Entry("with Windows AMI", "--node-ami-family", "WindowsServer2022FullContainer"),
+			Entry("with Windows AMI", "--node-ami-family", "WindowsServer2022CoreContainer"),
 		)
-
-		const unsupportedWindowsError = "Windows is not supported for managed nodegroups; eksctl now creates " +
-			"managed nodegroups by default, to use a self-managed nodegroup, pass --managed=false"
 
 		DescribeTable("invalid flags or arguments",
 			func(c invalidParamsCase) {
@@ -167,22 +168,6 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with version flag", invalidParamsCase{
 				args:  []string{"--version", "1.18"},
 				error: "--version is only valid with unmanaged nodegroups",
-			}),
-			Entry("with unsupported AMI", invalidParamsCase{
-				args:  []string{"cluster", "--node-ami-family", "WindowsServer2019FullContainer"},
-				error: unsupportedWindowsError,
-			}),
-			Entry("with unsupported AMI", invalidParamsCase{
-				args:  []string{"cluster", "--node-ami-family", "WindowsServer2019CoreContainer"},
-				error: unsupportedWindowsError,
-			}),
-			Entry("with unsupported AMI", invalidParamsCase{
-				args:  []string{"cluster", "--node-ami-family", "WindowsServer2022FullContainer"},
-				error: unsupportedWindowsError,
-			}),
-			Entry("with unsupported AMI", invalidParamsCase{
-				args:  []string{"cluster", "--node-ami-family", "WindowsServer2022CoreContainer"},
-				error: unsupportedWindowsError,
 			}),
 		)
 	})

@@ -9,9 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/pkg/errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
@@ -41,7 +42,7 @@ const (
 	Version1_24 = "1.24"
 
 	// DefaultVersion (default)
-	DefaultVersion = Version1_23
+	DefaultVersion = Version1_24
 
 	LatestVersion = Version1_24
 
@@ -551,23 +552,15 @@ func supportedAMIFamilies() []string {
 	}
 }
 
-// supportedSpotAllocationStrategies are the spot allocation strategies supported by ASG
-func supportedSpotAllocationStrategies() []string {
-	return []string{
-		SpotAllocationStrategyLowestPrice,
-		SpotAllocationStrategyCapacityOptimized,
-		SpotAllocationStrategyCapacityOptimizedPrioritized,
-	}
-}
-
-// isSpotAllocationStrategySupported returns true if the spot allocation strategy is supported for ASG
-func isSpotAllocationStrategySupported(allocationStrategy string) bool {
-	for _, strategy := range supportedSpotAllocationStrategies() {
-		if strategy == allocationStrategy {
-			return true
+// validateSpotAllocationStrategy validates that the specified spot allocation strategy is supported.
+func validateSpotAllocationStrategy(allocationStrategy string) error {
+	var strategy ec2types.SpotAllocationStrategy
+	for _, s := range strategy.Values() {
+		if string(s) == allocationStrategy {
+			return nil
 		}
 	}
-	return false
+	return fmt.Errorf("spotAllocationStrategy should be one of: %v", strategy.Values())
 }
 
 // EKSResourceAccountID provides worker node resources(ami/ecr image) in different aws account
@@ -867,6 +860,8 @@ type Outpost struct {
 	ControlPlaneOutpostARN string `json:"controlPlaneOutpostARN"`
 	// ControlPlaneInstanceType specifies the instance type to use for creating the control plane instances.
 	ControlPlaneInstanceType string `json:"controlPlaneInstanceType"`
+	// ControlPlanePlacement specifies the placement configuration for control plane instances on Outposts.
+	ControlPlanePlacement *Placement `json:"controlPlanePlacement,omitempty"`
 }
 
 // GetInstanceType returns the control plane instance type.
@@ -877,6 +872,11 @@ func (o *Outpost) GetInstanceType() string {
 // SetInstanceType sets the control plane instance type.
 func (o *Outpost) SetInstanceType(instanceType string) {
 	o.ControlPlaneInstanceType = instanceType
+}
+
+// HasPlacementGroup reports whether this Outpost has a placement group.
+func (o *Outpost) HasPlacementGroup() bool {
+	return o.ControlPlanePlacement != nil
 }
 
 // OutpostInfo describes the Outpost info.

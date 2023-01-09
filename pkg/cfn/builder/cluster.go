@@ -283,9 +283,14 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 	}
 
 	if c.spec.IsControlPlaneOnOutposts() {
-		cluster.OutpostConfig = &gfneks.OutpostConfig{
-			OutpostARNs:              gfnt.NewStringSlice(c.spec.Outpost.ControlPlaneOutpostARN),
+		cluster.OutpostConfig = &gfneks.Cluster_OutpostConfig{
+			OutpostArns:              gfnt.NewStringSlice(c.spec.Outpost.ControlPlaneOutpostARN),
 			ControlPlaneInstanceType: gfnt.NewString(c.spec.Outpost.ControlPlaneInstanceType),
+		}
+		if c.spec.Outpost.HasPlacementGroup() {
+			cluster.OutpostConfig.ControlPlanePlacement = &gfneks.Cluster_ControlPlanePlacement{
+				GroupName: gfnt.NewString(c.spec.Outpost.ControlPlanePlacement.GroupName),
+			}
 		}
 	}
 

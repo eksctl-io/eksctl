@@ -24,16 +24,22 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 		Expect(err.Error()).To(ContainSubstring(n.errMsg))
 
 	},
-		Entry("Unsupported AMI family", &nodeGroupCase{
+		Entry("Supported Windows as AMI family", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMIFamily: "WindowsServer2022FullContainer",
+				},
+			},
+		}),
+		Entry("Unsupported OverrideBootstrapCommand for Windows AMI", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
 				NodeGroupBase: &NodeGroupBase{
 					AMI:                      "",
-					OverrideBootstrapCommand: nil,
-					PreBootstrapCommands:     nil,
-					AMIFamily:                "WindowsServer2019FullContainer",
+					OverrideBootstrapCommand: aws.String(`bootstrap.sh`),
+					AMIFamily:                "WindowsServer2019CoreContainer",
 				},
 			},
-			errMsg: `"WindowsServer2019FullContainer" is not supported for managed nodegroups`,
+			errMsg: "overrideBootstrapCommand is not supported for WindowsServer2019CoreContainer nodegroups",
 		}),
 		Entry("Supported AMI family", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
@@ -49,6 +55,24 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				},
 			},
 			errMsg: "overrideBootstrapCommand is required when using a custom AMI",
+		}),
+		Entry("Custom AMI with Windows AMI family without overrideBootstrapCommand", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMI:       "ami-custom",
+					AMIFamily: "WindowsServer2019FullContainer",
+				},
+			},
+			errMsg: "cannot set amiFamily to WindowsServer2019FullContainer when using a custom AMI",
+		}),
+		Entry("Custom AMI with Bottlerocket AMI family without overrideBootstrapCommand", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMI:       "ami-custom",
+					AMIFamily: "Bottlerocket",
+				},
+			},
+			errMsg: "cannot set amiFamily to Bottlerocket when using a custom AMI",
 		}),
 		Entry("Custom AMI with overrideBootstrapCommand", &nodeGroupCase{
 			ng: &ManagedNodeGroup{

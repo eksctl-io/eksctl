@@ -476,10 +476,6 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup, options CreateManagedNGOptio
 }
 
 func validateUnsupportedCLIFeatures(ng *api.ManagedNodeGroup) error {
-	if api.IsWindowsImage(ng.AMIFamily) {
-		return errors.New("Windows is not supported for managed nodegroups; eksctl now creates " +
-			"managed nodegroups by default, to use a self-managed nodegroup, pass --managed=false")
-	}
 	return nil
 }
 
@@ -917,6 +913,24 @@ func NewGetLabelsLoader(cmd *Cmd, ngName string) ClusterConfigLoader {
 // NewGetClusterLoader will load config or use flags for 'eksctl get cluster(s)'
 func NewGetClusterLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
+
+	return l
+}
+
+// NewGetAddonsLoader loads config file and validates command for `eksctl get addon`.
+func NewGetAddonsLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithoutConfigFile = func() error {
+		meta := cmd.ClusterConfig.Metadata
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+		if cmd.NameArg != "" {
+			return ErrUnsupportedNameArg()
+		}
+		return nil
+	}
 
 	return l
 }

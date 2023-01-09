@@ -7,17 +7,25 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/utils/strings/slices"
 
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	. "github.com/weaveworks/eksctl/integration/matchers"
 	"github.com/weaveworks/eksctl/integration/runner"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -25,9 +33,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 var (
@@ -359,6 +364,84 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 
 			Expect(getCacheValue(getConfigMap(rawClient.ClientSet(), "coredns"))).To(Equal(oldCacheValue))
 		})
+
+		It("should support advanced addon configuration", func() {
+			cmd := params.EksctlDeleteCmd.
+				WithArgs(
+					"addon",
+					"--name", "coredns",
+					"--cluster", clusterName,
+					"--verbose", "2",
+					"--region", params.Region,
+				)
+			Expect(cmd).To(RunSuccessfully())
+
+			By("successfully creating an addon with configuration values")
+			clusterConfig := getInitialClusterConfig()
+			clusterConfig.Addons = []*api.Addon{
+				{
+					Name:                api.CoreDNSAddon,
+					ConfigurationValues: "{\"replicaCount\":3}",
+					ResolveConflicts:    ekstypes.ResolveConflictsOverwrite,
+				},
+			}
+			data, err := json.Marshal(clusterConfig)
+
+			Expect(err).NotTo(HaveOccurred())
+			cmd = params.EksctlCreateCmd.
+				WithArgs(
+					"addon",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).To(RunSuccessfully())
+
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "coredns",
+						"--cluster", clusterName,
+						"--verbose", "2",
+						"--region", params.Region,
+					)
+				return cmd
+			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("{\"replicaCount\":3}"))))
+
+			By("successfully updating the configuration values of the addon")
+			clusterConfig = getInitialClusterConfig()
+			clusterConfig.Addons = []*api.Addon{
+				{
+					Name:                api.CoreDNSAddon,
+					ConfigurationValues: "{\"replicaCount\":3, \"computeType\":\"test\"}",
+					ResolveConflicts:    ekstypes.ResolveConflictsOverwrite,
+				},
+			}
+			data, err = json.Marshal(clusterConfig)
+
+			Expect(err).NotTo(HaveOccurred())
+			cmd = params.EksctlUpdateCmd.
+				WithArgs(
+					"addon",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).To(RunSuccessfully())
+
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "coredns",
+						"--cluster", clusterName,
+						"--verbose", "2",
+						"--region", params.Region,
+					)
+				return cmd
+			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("{\"replicaCount\":3, \"computeType\":\"test\"}"))))
+		})
 	})
 
 	It("should describe addons", func() {
@@ -370,6 +453,32 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 			ContainElement(ContainSubstring("vpc-cni")),
 		))
+	})
+
+	It("should output the configuration schema for addons", func() {
+		addonWithSchema := "coredns"
+		cfg := NewConfig(params.Region)
+		eksAPI := awseks.NewFromConfig(cfg)
+		By(fmt.Sprintf("listing available addon versions for %s", addonWithSchema))
+		output, err := eksAPI.DescribeAddonVersions(context.Background(), &awseks.DescribeAddonVersionsInput{
+			AddonName:         aws.String(addonWithSchema),
+			KubernetesVersion: aws.String(api.LatestVersion),
+		})
+		Expect(err).NotTo(HaveOccurred(), "error describing addon versions")
+		By(fmt.Sprintf("fetching the configuration schema for %s", addonWithSchema))
+		Expect(output.Addons).NotTo(BeEmpty(), "expected to find addon versions for %s", addonWithSchema)
+		addonVersions := output.Addons[0].AddonVersions
+		Expect(addonVersions).NotTo(BeEmpty(), "expected to find at least one addon version")
+
+		cmd := params.EksctlUtilsCmd.
+			WithArgs(
+				"describe-addon-configuration",
+				"--name", addonWithSchema,
+				"--version", *addonVersions[0].AddonVersion,
+			)
+		session := cmd.Run()
+		Expect(session.ExitCode()).To(Equal(0))
+		Expect(json.Valid(session.Buffer().Contents())).To(BeTrue(), "invalid JSON for configuration schema")
 	})
 
 	It("should describe addons when publisher, type and owner is supplied", func() {

@@ -135,9 +135,8 @@ var _ = Describe("(Integration) [Identity Provider]", func() {
 			return len(list.Items), nil
 		}, "10m", "20s").Should(Equal(1))
 
-		secrets, err := clientset.CoreV1().Secrets(metav1.NamespaceAll).List(context.TODO(), metav1.ListOptions{})
+		_, err = clientset.CoreV1().Secrets(metav1.NamespaceAll).List(context.TODO(), metav1.ListOptions{})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(secrets.Items).NotTo(BeEmpty())
 
 		By("ensuring the client does not have write access")
 		_, err = clientset.CoreV1().ConfigMaps(metav1.NamespaceDefault).Create(context.TODO(), &corev1.ConfigMap{

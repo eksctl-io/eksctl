@@ -28,9 +28,9 @@ func getAddonCmd(cmd *cmdutils.Cmd) {
 		"addons",
 	)
 
-	cmd.ClusterConfig.Addons = []*api.Addon{{}}
+	var a api.Addon
 	cmd.FlagSetGroup.InFlagSet("Addon", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cmd.ClusterConfig.Addons[0].Name, "name", "", "Addon name")
+		fs.StringVar(&a.Name, "name", "", "Addon name")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -44,11 +44,14 @@ func getAddonCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return getAddon(cmd, params)
+		return getAddon(cmd, &a, params)
 	}
 }
 
-func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
+func getAddon(cmd *cmdutils.Cmd, a *api.Addon, params *getCmdParams) error {
+	if err := cmdutils.NewGetAddonsLoader(cmd).Load(); err != nil {
+		return err
+	}
 	if params.output != printers.TableType {
 		//log warnings and errors to stdout
 		logger.Writer = os.Stderr
@@ -80,17 +83,17 @@ func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 	}
 
 	var summaries []addon.Summary
-	if cmd.ClusterConfig.Addons[0].Name == "" {
+	if a.Name == "" {
 		summaries, err = addonManager.GetAll(ctx)
 		if err != nil {
 			return err
 		}
 	} else {
-		summary, err := addonManager.Get(ctx, cmd.ClusterConfig.Addons[0])
-		summaries = []addon.Summary{summary}
+		summary, err := addonManager.Get(ctx, a)
 		if err != nil {
 			return err
 		}
+		summaries = []addon.Summary{summary}
 	}
 
 	if len(summaries) > 0 {
@@ -110,8 +113,8 @@ func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 		return err
 	}
 
-	//if getting a particular addon, print the issue
-	if cmd.ClusterConfig.Addons[0].Name != "" {
+	// if getting a particular addon, print the issue.
+	if a.Name != "" {
 		for _, issue := range summaries[0].Issues {
 			fmt.Printf("Issue: %+v\n", issue)
 		}
@@ -138,5 +141,8 @@ func addAddonSummaryTableColumns(printer *printers.TablePrinter) {
 	})
 	printer.AddColumn("UPDATE AVAILABLE", func(s addon.Summary) string {
 		return s.NewerVersion
+	})
+	printer.AddColumn("CONFIGURATION VALUES", func(s addon.Summary) string {
+		return s.ConfigurationValues
 	})
 }
