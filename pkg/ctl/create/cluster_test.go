@@ -220,7 +220,7 @@ var _ = Describe("create cluster", func() {
 		updateClusterConfig         func(*api.ClusterConfig)
 		updateClusterParams         func(*cmdutils.CreateClusterCmdParams)
 		updateMocks                 func(*mockprovider.MockProvider)
-		configureKarpenterInstaller func(*karpenterfakes.FakeInstallerTaskCreator) error
+		configureKarpenterInstaller func(*karpenterfakes.FakeInstallerTaskCreator)
 		mockOutposts                bool
 		fullyPrivateCluster         bool
 
@@ -351,14 +351,13 @@ var _ = Describe("create cluster", func() {
 					Version: "v0.18.0",
 				}
 			},
-			configureKarpenterInstaller: func(ki *karpenterfakes.FakeInstallerTaskCreator) error {
+			configureKarpenterInstaller: func(ki *karpenterfakes.FakeInstallerTaskCreator) {
 				ki.CreateStub = func(ctx context.Context) error {
 					return nil
 				}
 				createKarpenterInstaller = func(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface, restClientGetter *kubernetes.SimpleRESTClientGetter) (karpenteractions.InstallerTaskCreator, error) {
 					return ki, nil
 				}
-				return nil
 			},
 		}),
 
@@ -368,11 +367,10 @@ var _ = Describe("create cluster", func() {
 					Version: "v0.18.0",
 				}
 			},
-			configureKarpenterInstaller: func(ki *karpenterfakes.FakeInstallerTaskCreator) error {
+			configureKarpenterInstaller: func(ki *karpenterfakes.FakeInstallerTaskCreator) {
 				createKarpenterInstaller = func(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface, restClientGetter *kubernetes.SimpleRESTClientGetter) (karpenteractions.InstallerTaskCreator, error) {
 					return ki, fmt.Errorf("")
 				}
-				return nil
 			},
 			expectedErr: "failed to create installer",
 		}),
@@ -383,14 +381,13 @@ var _ = Describe("create cluster", func() {
 					Version: "v0.18.0",
 				}
 			},
-			configureKarpenterInstaller: func(ki *karpenterfakes.FakeInstallerTaskCreator) error {
+			configureKarpenterInstaller: func(ki *karpenterfakes.FakeInstallerTaskCreator) {
 				ki.CreateStub = func(ctx context.Context) error {
 					return fmt.Errorf("")
 				}
 				createKarpenterInstaller = func(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface, restClientGetter *kubernetes.SimpleRESTClientGetter) (karpenteractions.InstallerTaskCreator, error) {
 					return ki, nil
 				}
-				return nil
 			},
 			expectedErr: "failed to install Karpenter",
 		}),
