@@ -251,7 +251,7 @@ var _ = Describe("create cluster", func() {
 					Metadata: &api.ClusterMeta{
 						Name:    "cluster-1",
 						Region:  "us-west-2",
-						Version: "1.20",
+						Version: "1.22",
 					},
 					Outpost: &api.Outpost{
 						ControlPlaneOutpostARN: outpostARN,

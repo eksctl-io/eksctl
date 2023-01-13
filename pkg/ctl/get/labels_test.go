@@ -55,5 +55,4 @@ kind: ClusterConfig
 metadata:
   name: test-nodegroup-cluster-config
   region: us-west-2
-  version: '1.20'
 `
