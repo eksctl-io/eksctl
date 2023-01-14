@@ -72,28 +72,6 @@ func targetFargateProfileExists(target string, profiles []string, clusterName st
 	return false
 }
 
-// DoListFargateProfiles list fargate profiles as specified in the config
-func DoListFargateProfiles(ctx context.Context, config *api.ClusterConfig, fargateClient FargateClient) error {
-	clusterName := config.Metadata.Name
-
-	// Get existing Farget profiles list
-	_, err := fargateClient.ListProfiles(ctx)
-	if err != nil {
-		return errors.Wrap(err, "failed to get Fargate Profile list")
-	}
-
-	for _, profile := range config.FargateProfiles {
-		_, err := fargateClient.ListProfiles(ctx)
-		switch {
-		case err == nil:
-			logger.Info("list Fargate profiles %q on EKS cluster %q", profile.Name, clusterName)
-		default:
-			return errors.Wrapf(err, "failed to list Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
-		}
-	}
-	return nil
-}
-
 // DoCreateFargateProfiles creates fargate profiles as specified in the config
 func DoCreateFargateProfiles(ctx context.Context, config *api.ClusterConfig, fargateClient FargateClient) error {
 	clusterName := config.Metadata.Name
