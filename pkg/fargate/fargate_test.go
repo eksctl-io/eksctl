@@ -127,6 +127,30 @@ var _ = Describe("fargate", func() {
 			})
 		})
 
+		Describe("ListProfile", func() {
+			It("list empty profile without error", func() {
+				client := fargate.NewWithRetryPolicy(clusterName, mockForListEmptyProfile(), &retryPolicy, neverCalledStackManager)
+				out, err := client.ListProfiles(context.Background())
+				Expect(err).To(Not(HaveOccurred()))
+				Expect(out).To(HaveLen(0))
+			})
+
+			It("list multiple profiles without error", func() {
+				client := fargate.NewWithRetryPolicy(clusterName, mockForListMultipleProfiles(), &retryPolicy, neverCalledStackManager)
+				out, err := client.ListProfiles(context.Background())
+				Expect(err).To(Not(HaveOccurred()))
+				Expect(out).To(HaveLen(4))
+			})
+
+			It("list profiles with error", func() {
+				client := fargate.NewWithRetryPolicy(clusterName, mockForListProfilesWithError(), &retryPolicy, neverCalledStackManager)
+				out, err := client.ListProfiles(context.Background())
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("failed to get Fargate profile(s) for cluster \"non-existing-test-cluster\": failed to get Fargate Profile list"))
+				Expect(out).To(BeNil())
+			})
+		})
+
 		Describe("ReadProfile", func() {
 			It("returns the Fargate profile matching the provided name, if any", func() {
 				client := fargate.NewWithRetryPolicy(clusterName, mockForReadProfile(), &retryPolicy, neverCalledStackManager)
@@ -395,6 +419,26 @@ func apiFargateProfile(name string) *api.FargateProfile {
 		},
 		Status: "ACTIVE",
 	}
+}
+
+func mockForListEmptyProfile() *mocksv2.EKS {
+	mockClient := mocksv2.EKS{}
+	mockListFargateProfiles(&mockClient)
+	return &mockClient
+}
+
+func mockForListMultipleProfiles() *mocksv2.EKS {
+	mockClient := mocksv2.EKS{}
+	mockListFargateProfiles(&mockClient, "default", testBlue, testGreen, testRed)
+	return &mockClient
+}
+
+func mockForListProfilesWithError() *mocksv2.EKS {
+	mockClient := mocksv2.EKS{}
+	mockClient.Mock.On("ListFargateProfiles", mock.Anything, &eks.ListFargateProfilesInput{
+		ClusterName: strings.Pointer(clusterName),
+	}).Return(nil, errors.New("failed to get Fargate Profile list"))
+	return &mockClient
 }
 
 func mockForEmptyReadProfiles() *mocksv2.EKS {
