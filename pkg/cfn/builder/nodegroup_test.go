@@ -878,94 +878,110 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			})
 
 			Context("ng.PropagateASGTags", func() {
-				When("PropagateASGTags is enabled and there are labels and taints", func() {
+				When("PropagateASGTags is enabled", func() {
 					BeforeEach(func() {
 						ng.PropagateASGTags = api.Enabled()
-						ng.Labels = map[string]string{
-							"test":      "label",
-							"duplicate": "value",
-						}
-						ng.Taints = []api.NodeGroupTaint{
-							{
-								Key:   "taint-key",
-								Value: "taint-value",
-							},
-							{
-								Key:   "duplicate",
-								Value: "value",
-							},
-						}
 					})
 
-					It("propagates the labels and taints to the ASG tags", func() {
+					It("appends autoscaling tags to the ASG", func() {
 						tags := ngTemplate.Resources["NodeGroup"].Properties.Tags
-						Expect(tags).To(ContainElements(fakes.Tag{
-							Key:               "k8s.io/cluster-autoscaler/node-template/label/test",
-							Value:             "label",
-							PropagateAtLaunch: "true",
-						}, fakes.Tag{
-							Key:               "k8s.io/cluster-autoscaler/node-template/label/duplicate",
-							Value:             "value",
-							PropagateAtLaunch: "true",
-						}, fakes.Tag{
-							Key:               "k8s.io/cluster-autoscaler/node-template/taint/taint-key",
-							Value:             "taint-value",
-							PropagateAtLaunch: "true",
-						}, fakes.Tag{
-							Key:               "k8s.io/cluster-autoscaler/node-template/taint/duplicate",
-							Value:             "value",
-							PropagateAtLaunch: "true",
-						}))
+						Expect(tags).To(HaveLen(4))
+						Expect(tags[2].Key).To(Equal("k8s.io/cluster-autoscaler/enabled"))
+						Expect(tags[2].Value).To(Equal("true"))
+						Expect(tags[2].PropagateAtLaunch).To(Equal("true"))
+						Expect(tags[3].Key).To(Equal("k8s.io/cluster-autoscaler/bonsai"))
+						Expect(tags[3].Value).To(Equal("owned"))
+						Expect(tags[3].PropagateAtLaunch).To(Equal("true"))
 					})
-					When("PropagateASGTags is disabled", func() {
+
+					When("There are labels and taints", func() {
 						BeforeEach(func() {
-							ng.PropagateASGTags = api.Disabled()
-							ng.DesiredCapacity = aws.Int(0)
 							ng.Labels = map[string]string{
-								"test": "label",
+								"test":      "label",
+								"duplicate": "value",
 							}
 							ng.Taints = []api.NodeGroupTaint{
 								{
 									Key:   "taint-key",
 									Value: "taint-value",
 								},
+								{
+									Key:   "duplicate",
+									Value: "value",
+								},
 							}
 						})
 
-						It("skips adding tags", func() {
+						It("propagates the labels and taints to the ASG tags", func() {
 							tags := ngTemplate.Resources["NodeGroup"].Properties.Tags
-							Expect(tags).NotTo(ContainElements(fakes.Tag{
+							Expect(tags).To(ContainElements(fakes.Tag{
 								Key:               "k8s.io/cluster-autoscaler/node-template/label/test",
 								Value:             "label",
+								PropagateAtLaunch: "true",
+							}, fakes.Tag{
+								Key:               "k8s.io/cluster-autoscaler/node-template/label/duplicate",
+								Value:             "value",
 								PropagateAtLaunch: "true",
 							}, fakes.Tag{
 								Key:               "k8s.io/cluster-autoscaler/node-template/taint/taint-key",
 								Value:             "taint-value",
 								PropagateAtLaunch: "true",
+							}, fakes.Tag{
+								Key:               "k8s.io/cluster-autoscaler/node-template/taint/duplicate",
+								Value:             "value",
+								PropagateAtLaunch: "true",
 							}))
 						})
+						When("PropagateASGTags is disabled", func() {
+							BeforeEach(func() {
+								ng.PropagateASGTags = api.Disabled()
+								ng.DesiredCapacity = aws.Int(0)
+								ng.Labels = map[string]string{
+									"test": "label",
+								}
+								ng.Taints = []api.NodeGroupTaint{
+									{
+										Key:   "taint-key",
+										Value: "taint-value",
+									},
+								}
+							})
 
-					})
+							It("skips adding tags", func() {
+								tags := ngTemplate.Resources["NodeGroup"].Properties.Tags
+								Expect(tags).NotTo(ContainElements(fakes.Tag{
+									Key:               "k8s.io/cluster-autoscaler/node-template/label/test",
+									Value:             "label",
+									PropagateAtLaunch: "true",
+								}, fakes.Tag{
+									Key:               "k8s.io/cluster-autoscaler/node-template/taint/taint-key",
+									Value:             "taint-value",
+									PropagateAtLaunch: "true",
+								}))
+							})
 
-					When("there are more tags than the maximum number of tags", func() {
-						BeforeEach(func() {
-							ng.PropagateASGTags = api.Enabled()
-							ng.Labels = map[string]string{}
-							ng.Taints = []api.NodeGroupTaint{}
-							for i := 0; i < builder.MaximumTagNumber+1; i++ {
-								ng.Labels[fmt.Sprintf("%d", i)] = "test"
-							}
 						})
-						// +2 because of Name and kubernetes.io/cluster/
-						It("errors", func() {
-							Expect(addErr).To(
-								MatchError(
-									ContainSubstring(
-										fmt.Sprintf("number of tags is exceeding the configured amount %d, was: %d. "+
-											"Due to desiredCapacity==0 we added an extra %d number of tags to ensure the nodegroup is scaled correctly",
-											builder.MaximumTagNumber,
-											builder.MaximumTagNumber+3,
-											builder.MaximumTagNumber+1))))
+
+						When("there are more tags than the maximum number of tags", func() {
+							BeforeEach(func() {
+								ng.PropagateASGTags = api.Enabled()
+								ng.Labels = map[string]string{}
+								ng.Taints = []api.NodeGroupTaint{}
+								for i := 0; i < builder.MaximumTagNumber+1; i++ {
+									ng.Labels[fmt.Sprintf("%d", i)] = "test"
+								}
+							})
+							// +2 because of Name and kubernetes.io/cluster/
+							It("errors", func() {
+								Expect(addErr).To(
+									MatchError(
+										ContainSubstring(
+											fmt.Sprintf("number of tags is exceeding the configured amount %d, was: %d. "+
+												"Due to desiredCapacity==0 we added an extra %d number of tags to ensure the nodegroup is scaled correctly",
+												builder.MaximumTagNumber,
+												builder.MaximumTagNumber+5,
+												builder.MaximumTagNumber+1))))
+							})
 						})
 					})
 				})

@@ -260,7 +260,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) err
 			"PropagateAtLaunch": "true",
 		},
 	}
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AutoScaler) {
+	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AutoScaler) || api.IsEnabled(n.spec.PropagateASGTags) {
 		tags = append(tags,
 			map[string]string{
 				"Key":               "k8s.io/cluster-autoscaler/enabled",
