@@ -28,6 +28,7 @@ const (
 	serviceAccountAnnotation = "annotations"
 	serviceAccountName       = "name"
 	settings                 = "settings"
+	interruptionQueueName    = "interruptionQueueName"
 )
 
 // Options contains values which Karpenter uses to configure the installation.
@@ -68,6 +69,7 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 		},
 		serviceAccountName: DefaultServiceAccountName,
 	}
+
 	values := map[string]interface{}{
 		clusterName:     k.ClusterConfig.Metadata.Name,
 		clusterEndpoint: k.ClusterConfig.Status.Endpoint,
@@ -79,6 +81,7 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 				defaultInstanceProfile: instanceProfileName,
 				clusterName:            k.ClusterConfig.Metadata.Name,
 				clusterEndpoint:        k.ClusterConfig.Status.Endpoint,
+				interruptionQueueName:  k.ClusterConfig.Metadata.Name,
 			},
 		},
 		serviceAccount: serviceAccountMap,

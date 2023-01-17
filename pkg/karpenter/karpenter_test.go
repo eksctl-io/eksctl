@@ -66,6 +66,7 @@ var _ = Describe("Install", func() {
 						defaultInstanceProfile: "role/profile",
 						clusterName:            cfg.Metadata.Name,
 						clusterEndpoint:        cfg.Status.Endpoint,
+						interruptionQueueName:  cfg.Metadata.Name,
 					},
 				},
 			}
@@ -115,6 +116,7 @@ var _ = Describe("Install", func() {
 							defaultInstanceProfile: "role/profile",
 							clusterName:            cfg.Metadata.Name,
 							clusterEndpoint:        cfg.Status.Endpoint,
+							interruptionQueueName:  cfg.Metadata.Name,
 						},
 					},
 				}
