@@ -17,6 +17,14 @@ type Manager struct {
 	clientSet    kubeclient.Interface
 }
 
+type action string
+
+const (
+	actionCreate action = "create"
+	actionDelete action = "delete"
+	actionUpdate action = "update"
+)
+
 func New(clusterName string, stackManager manager.StackManager, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) *Manager {
 	return &Manager{
 		clusterName:  clusterName,
@@ -26,14 +34,14 @@ func New(clusterName string, stackManager manager.StackManager, oidcManager *iam
 	}
 }
 
-func doTasks(taskTree *tasks.TaskTree) error {
+func doTasks(taskTree *tasks.TaskTree, action action) error {
 	logger.Info(taskTree.Describe())
 	if errs := taskTree.DoAllSync(); len(errs) > 0 {
-		logger.Info("%d error(s) occurred and IAM Role stacks haven't been updated properly, you may wish to check CloudFormation console", len(errs))
+		logger.Info("%d error(s) occurred and IAM Role stacks haven't been %sd properly, you may wish to check CloudFormation console", len(errs), action)
 		for _, err := range errs {
 			logger.Critical("%s\n", err.Error())
 		}
-		return fmt.Errorf("failed to create iamserviceaccount(s)")
+		return fmt.Errorf("failed to %s iamserviceaccount(s)", action)
 	}
 	return nil
 }
