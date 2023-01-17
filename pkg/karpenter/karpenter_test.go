@@ -61,6 +61,13 @@ var _ = Describe("Install", func() {
 				aws: map[string]interface{}{
 					defaultInstanceProfile: "role/profile",
 				},
+				settings: map[string]interface{}{
+					aws: map[string]interface{}{
+						defaultInstanceProfile: "role/profile",
+						clusterName:            cfg.Metadata.Name,
+						clusterEndpoint:        cfg.Status.Endpoint,
+					},
+				},
 			}
 			Expect(args).To(Equal(providers.InstallChartOpts{
 				ChartName:       "oci://public.ecr.aws/karpenter/karpenter",
@@ -102,6 +109,13 @@ var _ = Describe("Install", func() {
 					},
 					aws: map[string]interface{}{
 						defaultInstanceProfile: "role/profile",
+					},
+					settings: map[string]interface{}{
+						aws: map[string]interface{}{
+							defaultInstanceProfile: "role/profile",
+							clusterName:            cfg.Metadata.Name,
+							clusterEndpoint:        cfg.Status.Endpoint,
+						},
 					},
 				}
 				Expect(opts.Values).To(Equal(values))
