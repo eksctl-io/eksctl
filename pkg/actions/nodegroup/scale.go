@@ -58,7 +58,6 @@ func (m *Manager) scaleUnmanagedNodeGroup(ctx context.Context, ng *api.NodeGroup
 			break
 		}
 	}
-
 	if asgName == "" {
 		return fmt.Errorf("failed to find NodeGroup auto scaling group")
 	}
@@ -83,37 +82,35 @@ func (m *Manager) scaleUnmanagedNodeGroup(ctx context.Context, ng *api.NodeGroup
 		input.DesiredCapacity = aws.Int32(int32(*ng.DesiredCapacity))
 	}
 
-	_, err := m.ctl.AWSProvider.ASG().UpdateAutoScalingGroup(ctx, input)
-	if err != nil {
+	if _, err := m.ctl.AWSProvider.ASG().UpdateAutoScalingGroup(ctx, input); err != nil {
 		return err
 	}
-	logger.Info("nodegroup successfully scaled")
 
+	logger.Info("nodegroup successfully scaled")
 	return nil
 }
 
 func (m *Manager) scaleManagedNodeGroup(ctx context.Context, ng *api.NodeGroupBase) error {
-	scalingConfig := &ekstypes.NodegroupScalingConfig{}
+
+	input := &eks.UpdateNodegroupConfigInput{
+		ScalingConfig: &ekstypes.NodegroupScalingConfig{},
+		ClusterName:   &m.cfg.Metadata.Name,
+		NodegroupName: &ng.Name,
+	}
 
 	if ng.MaxSize != nil {
-		scalingConfig.MaxSize = aws.Int32(int32(*ng.MaxSize))
+		input.ScalingConfig.MaxSize = aws.Int32(int32(*ng.MaxSize))
 	}
 
 	if ng.MinSize != nil {
-		scalingConfig.MinSize = aws.Int32(int32(*ng.MinSize))
+		input.ScalingConfig.MinSize = aws.Int32(int32(*ng.MinSize))
 	}
 
 	if ng.DesiredCapacity != nil {
-		scalingConfig.DesiredSize = aws.Int32(int32(*ng.DesiredCapacity))
+		input.ScalingConfig.DesiredSize = aws.Int32(int32(*ng.DesiredCapacity))
 	}
 
-	_, err := m.ctl.AWSProvider.EKS().UpdateNodegroupConfig(ctx, &eks.UpdateNodegroupConfigInput{
-		ScalingConfig: scalingConfig,
-		ClusterName:   &m.cfg.Metadata.Name,
-		NodegroupName: &ng.Name,
-	})
-
-	if err != nil {
+	if _, err := m.ctl.AWSProvider.EKS().UpdateNodegroupConfig(ctx, input); err != nil {
 		return err
 	}
 
