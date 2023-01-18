@@ -1787,10 +1787,9 @@ type SecretsEncryption struct {
 	KeyARN string `json:"keyARN,omitempty"`
 }
 
-// PrivateCluster defines the configuration for a fully-private cluster
+// PrivateCluster defines the configuration for a fully-private cluster.
 type PrivateCluster struct {
-
-	// Enabled enables creation of a fully-private cluster
+	// Enabled enables creation of a fully-private cluster.
 	Enabled bool `json:"enabled"`
 
 	// SkipEndpointCreation skips the creation process for endpoints completely. This is only used in case of an already
@@ -1799,7 +1798,7 @@ type PrivateCluster struct {
 
 	// AdditionalEndpointServices specifies additional endpoint services that
 	// must be enabled for private access.
-	// Valid entries are `AdditionalEndpointServices` constants
+	// Valid entries are "cloudformation", "autoscaling" and "logs".
 	AdditionalEndpointServices []string `json:"additionalEndpointServices,omitempty"`
 }
 

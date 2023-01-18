@@ -26,15 +26,6 @@ var _ = Describe("Outposts validation", func() {
 		err := api.ValidateClusterConfig(clusterConfig)
 		Expect(err).To(MatchError(ContainSubstring(oe.expectedErr)))
 	},
-		Entry("fully-private cluster", outpostsEntry{
-			updateDefaultConfig: func(c *api.ClusterConfig) {
-				c.PrivateCluster = &api.PrivateCluster{
-					Enabled: true,
-				}
-			},
-			expectedErr: "fully-private cluster (privateCluster.enabled) is not supported for Outposts",
-		}),
-
 		Entry("Addons", outpostsEntry{
 			updateDefaultConfig: func(c *api.ClusterConfig) {
 				c.Addons = []*api.Addon{
