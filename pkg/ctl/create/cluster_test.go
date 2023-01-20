@@ -1,6 +1,7 @@
 package create
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -22,6 +23,9 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
+	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
+	karpenterfakes "github.com/weaveworks/eksctl/pkg/actions/karpenter/fakes"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	restclient "k8s.io/client-go/rest"
 
@@ -213,11 +217,12 @@ var _ = Describe("create cluster", func() {
 	})
 
 	type createClusterEntry struct {
-		updateClusterConfig func(*api.ClusterConfig)
-		updateClusterParams func(*cmdutils.CreateClusterCmdParams)
-		updateMocks         func(*mockprovider.MockProvider)
-		mockOutposts        bool
-		fullyPrivateCluster bool
+		updateClusterConfig         func(*api.ClusterConfig)
+		updateClusterParams         func(*cmdutils.CreateClusterCmdParams)
+		updateMocks                 func(*mockprovider.MockProvider)
+		configureKarpenterInstaller func(*karpenterfakes.FakeInstallerTaskCreator)
+		mockOutposts                bool
+		fullyPrivateCluster         bool
 
 		expectedErr string
 	}
@@ -290,6 +295,13 @@ var _ = Describe("create cluster", func() {
 			KubeProvider: fk,
 		}
 
+		fakeInstallerTaskCreator := &karpenterfakes.FakeInstallerTaskCreator{}
+		if ce.configureKarpenterInstaller != nil {
+			installFunc := createKarpenterInstaller
+			defer func() { createKarpenterInstaller = installFunc }()
+			ce.configureKarpenterInstaller(fakeInstallerTaskCreator)
+		}
+
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = "my-cluster"
 		clusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
@@ -326,8 +338,59 @@ var _ = Describe("create cluster", func() {
 			Expect(clusterConfig.PrivateCluster.Enabled).To(BeTrue())
 			p.MockEKS().AssertNumberOfCalls(GinkgoT(), "UpdateClusterConfig", 1)
 		}
+
+		if fakeInstallerTaskCreator.CreateStub != nil {
+			Expect(fakeInstallerTaskCreator.CreateCallCount()).To(Equal(1))
+		}
 	},
 		Entry("standard cluster", createClusterEntry{}),
+
+		Entry("[Cluster with Karpenter] installs Karpenter successfully", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Karpenter = &api.Karpenter{
+					Version: "v0.18.0",
+				}
+			},
+			configureKarpenterInstaller: func(ki *karpenterfakes.FakeInstallerTaskCreator) {
+				ki.CreateStub = func(ctx context.Context) error {
+					return nil
+				}
+				createKarpenterInstaller = func(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface, restClientGetter *kubernetes.SimpleRESTClientGetter) (karpenteractions.InstallerTaskCreator, error) {
+					return ki, nil
+				}
+			},
+		}),
+
+		Entry("[Cluster with Karpenter] fails to create the installer", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Karpenter = &api.Karpenter{
+					Version: "v0.18.0",
+				}
+			},
+			configureKarpenterInstaller: func(ki *karpenterfakes.FakeInstallerTaskCreator) {
+				createKarpenterInstaller = func(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface, restClientGetter *kubernetes.SimpleRESTClientGetter) (karpenteractions.InstallerTaskCreator, error) {
+					return ki, fmt.Errorf("failed to create karpenter installer")
+				}
+			},
+			expectedErr: "failed to create installer",
+		}),
+
+		Entry("[Cluster with Karpenter] fails to actually install Karpenter", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Karpenter = &api.Karpenter{
+					Version: "v0.18.0",
+				}
+			},
+			configureKarpenterInstaller: func(ki *karpenterfakes.FakeInstallerTaskCreator) {
+				ki.CreateStub = func(ctx context.Context) error {
+					return fmt.Errorf("failed to install karpenter")
+				}
+				createKarpenterInstaller = func(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface, restClientGetter *kubernetes.SimpleRESTClientGetter) (karpenteractions.InstallerTaskCreator, error) {
+					return ki, nil
+				}
+			},
+			expectedErr: "failed to install Karpenter",
+		}),
 
 		Entry("[Fully Private Cluster] updates cluster config successfully", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
