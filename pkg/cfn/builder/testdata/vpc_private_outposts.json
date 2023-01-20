@@ -1,0 +1,222 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "PrivateRouteTableUSWEST2A": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${AWS::StackName}/PrivateRouteTableUSWEST2A"
+            }
+          }
+        ],
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "RouteTableAssociationPrivateUSWEST2A": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PrivateRouteTableUSWEST2A"
+        },
+        "SubnetId": {
+          "Ref": "SubnetPrivateUSWEST2A"
+        }
+      }
+    },
+    "SubnetPrivateUSWEST2A": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": "us-west-2a",
+        "CidrBlock": "192.168.32.0/19",
+        "OutpostArn": "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+        "Tags": [
+          {
+            "Key": "kubernetes.io/role/internal-elb",
+            "Value": "1"
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${AWS::StackName}/SubnetPrivateUSWEST2A"
+            }
+          }
+        ],
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "VPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "192.168.0.0/16",
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true,
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${AWS::StackName}/VPC"
+            }
+          }
+        ]
+      }
+    },
+    "VPCEndpointEC2": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "PrivateDnsEnabled": true,
+        "SecurityGroupIds": ["sg-test"],
+        "ServiceName": "com.amazonaws.us-west-2.ec2",
+        "SubnetIds": [
+          {
+            "Ref": "SubnetPrivateUSWEST2A"
+          }
+        ],
+        "VpcEndpointType": "Interface",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "VPCEndpointEC2MESSAGES": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "PrivateDnsEnabled": true,
+        "SecurityGroupIds": ["sg-test"],
+        "ServiceName": "com.amazonaws.us-west-2.ec2messages",
+        "SubnetIds": [
+          {
+            "Ref": "SubnetPrivateUSWEST2A"
+          }
+        ],
+        "VpcEndpointType": "Interface",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "VPCEndpointECRAPI": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "PrivateDnsEnabled": true,
+        "SecurityGroupIds": ["sg-test"],
+        "ServiceName": "com.amazonaws.us-west-2.ecr.api",
+        "SubnetIds": [
+          {
+            "Ref": "SubnetPrivateUSWEST2A"
+          }
+        ],
+        "VpcEndpointType": "Interface",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "VPCEndpointECRDKR": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "PrivateDnsEnabled": true,
+        "SecurityGroupIds": ["sg-test"],
+        "ServiceName": "com.amazonaws.us-west-2.ecr.dkr",
+        "SubnetIds": [
+          {
+            "Ref": "SubnetPrivateUSWEST2A"
+          }
+        ],
+        "VpcEndpointType": "Interface",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "VPCEndpointS3": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "RouteTableIds": [
+          {
+            "Ref": "PrivateRouteTableUSWEST2A"
+          }
+        ],
+        "ServiceName": "com.amazonaws.us-west-2.s3",
+        "VpcEndpointType": "Gateway",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "VPCEndpointSECRETSMANAGER": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "PrivateDnsEnabled": true,
+        "SecurityGroupIds": ["sg-test"],
+        "ServiceName": "com.amazonaws.us-west-2.secretsmanager",
+        "SubnetIds": [
+          {
+            "Ref": "SubnetPrivateUSWEST2A"
+          }
+        ],
+        "VpcEndpointType": "Interface",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "VPCEndpointSSM": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "PrivateDnsEnabled": true,
+        "SecurityGroupIds": ["sg-test"],
+        "ServiceName": "com.amazonaws.us-west-2.ssm",
+        "SubnetIds": [
+          {
+            "Ref": "SubnetPrivateUSWEST2A"
+          }
+        ],
+        "VpcEndpointType": "Interface",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "VPCEndpointSSMMESSAGES": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "PrivateDnsEnabled": true,
+        "SecurityGroupIds": ["sg-test"],
+        "ServiceName": "com.amazonaws.us-west-2.ssmmessages",
+        "SubnetIds": [
+          {
+            "Ref": "SubnetPrivateUSWEST2A"
+          }
+        ],
+        "VpcEndpointType": "Interface",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "VPCEndpointSTS": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "PrivateDnsEnabled": true,
+        "SecurityGroupIds": ["sg-test"],
+        "ServiceName": "com.amazonaws.us-west-2.sts",
+        "SubnetIds": [
+          {
+            "Ref": "SubnetPrivateUSWEST2A"
+          }
+        ],
+        "VpcEndpointType": "Interface",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    }
+  }
+}

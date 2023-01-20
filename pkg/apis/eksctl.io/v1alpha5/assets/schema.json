@@ -2142,21 +2142,16 @@
       "properties": {
         "additionalEndpointServices": {
           "items": {
-            "type": "string",
-            "enum": [
-              "cloudformation",
-              "autoscaling",
-              "logs"
-            ]
+            "type": "string"
           },
           "type": "array",
-          "description": "specifies additional endpoint services that must be enabled for private access. Valid entries are: `\"cloudformation\"`, `\"autoscaling\"`, `\"logs\"`.",
-          "x-intellij-html-description": "specifies additional endpoint services that must be enabled for private access. Valid entries are: <code>&quot;cloudformation&quot;</code>, <code>&quot;autoscaling&quot;</code>, <code>&quot;logs&quot;</code>."
+          "description": "specifies additional endpoint services that must be enabled for private access. Valid entries are \"cloudformation\", \"autoscaling\" and \"logs\".",
+          "x-intellij-html-description": "specifies additional endpoint services that must be enabled for private access. Valid entries are &quot;cloudformation&quot;, &quot;autoscaling&quot; and &quot;logs&quot;."
         },
         "enabled": {
           "type": "boolean",
-          "description": "enables creation of a fully-private cluster",
-          "x-intellij-html-description": "enables creation of a fully-private cluster",
+          "description": "enables creation of a fully-private cluster.",
+          "x-intellij-html-description": "enables creation of a fully-private cluster.",
           "default": "false"
         },
         "skipEndpointCreation": {
@@ -2172,8 +2167,8 @@
         "additionalEndpointServices"
       ],
       "additionalProperties": false,
-      "description": "defines the configuration for a fully-private cluster",
-      "x-intellij-html-description": "defines the configuration for a fully-private cluster"
+      "description": "defines the configuration for a fully-private cluster.",
+      "x-intellij-html-description": "defines the configuration for a fully-private cluster."
     },
     "SecretsEncryption": {
       "required": [

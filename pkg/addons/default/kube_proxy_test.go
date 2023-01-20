@@ -160,73 +160,103 @@ var _ = Describe("KubeProxy", func() {
 			})
 		})
 
-		When("the version reported by EKS API is more up-to-date than the default cluster version", func() {
-			BeforeEach(func() {
-				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
-					AddonName:         aws.String("kube-proxy"),
-					KubernetesVersion: aws.String("1.21"),
-				}).Return(&awseks.DescribeAddonVersionsOutput{
-					Addons: []ekstypes.AddonInfo{
+		type versionUpdateEntry struct {
+			addonOutput ekstypes.AddonInfo
+
+			expectedImageTag string
+		}
+		DescribeTable("kube-proxy version update", func(e versionUpdateEntry) {
+			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
+				AddonName:         aws.String("kube-proxy"),
+				KubernetesVersion: aws.String("1.21"),
+			}).Return(&awseks.DescribeAddonVersionsOutput{
+				Addons: []ekstypes.AddonInfo{e.addonOutput},
+			}, nil)
+
+			_, err := da.UpdateKubeProxy(context.Background(), input, false)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(kubeProxyImage(clientSet)).To(Equal(fmt.Sprintf("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:%s", e.expectedImageTag)))
+			Expect(kubeProxyNodeSelectorValues(clientSet)).To(ConsistOf("amd64", "arm64"))
+		},
+			Entry("a more up-to-date version should use a minimal container image", versionUpdateEntry{
+				addonOutput: ekstypes.AddonInfo{
+					AddonName: aws.String("kube-proxy"),
+					AddonVersions: []ekstypes.AddonVersionInfo{
 						{
-							AddonName: aws.String("kube-proxy"),
-							AddonVersions: []ekstypes.AddonVersionInfo{
-								{
-									AddonVersion: aws.String("v1.17.0-eksbuild.1"),
-								},
-								{
-									//latest, unordered list to ensure we sort correctly
-									AddonVersion: aws.String("v1.21.1-eksbuild.2"),
-								},
-								{
-									AddonVersion: aws.String("v1.21.1-eksbuild.1"),
-								},
-							},
+							AddonVersion: aws.String("v1.17.0-eksbuild.1"),
+						},
+						{
+							// Latest, unordered list to ensure we sort correctly.
+							AddonVersion: aws.String("v1.21.1-eksbuild.2"),
+						},
+						{
+							AddonVersion: aws.String("v1.21.1-eksbuild.1"),
 						},
 					},
-				}, nil)
-			})
+				},
+				expectedImageTag: "v1.21.1-minimal-eksbuild.2",
+			}),
 
-			It("uses the image version from the EKS api", func() {
-				_, err := da.UpdateKubeProxy(context.Background(), input, false)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(kubeProxyImage(clientSet)).To(Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.21.1-eksbuild.2"))
-				Expect(kubeProxyNodeSelectorValues(clientSet)).To(ConsistOf("amd64", "arm64"))
-			})
-		})
-
-		When("the version reported by EKS API is behind the default cluster version", func() {
-			BeforeEach(func() {
-				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
-					AddonName:         aws.String("kube-proxy"),
-					KubernetesVersion: aws.String("1.21"),
-				}).Return(&awseks.DescribeAddonVersionsOutput{
-					Addons: []ekstypes.AddonInfo{
+			Entry("a more up-to-date version that lacks a pre-release version should be returned unchanged", versionUpdateEntry{
+				addonOutput: ekstypes.AddonInfo{
+					AddonName: aws.String("kube-proxy"),
+					AddonVersions: []ekstypes.AddonVersionInfo{
 						{
-							AddonName: aws.String("kube-proxy"),
-							AddonVersions: []ekstypes.AddonVersionInfo{
-								{
-									AddonVersion: aws.String("v1.17.0-eksbuild.1"),
-								},
-								{
-									//latest, unordered list to ensure we sort correctly
-									//behind the default-cluster version 1.18.1-eksbuild.1
-									AddonVersion: aws.String("v1.18.0-eksbuild.2"),
-								},
-								{
-									AddonVersion: aws.String("v1.18.0-eksbuild.1"),
-								},
-							},
+							AddonVersion: aws.String("v1.17.0"),
+						},
+						{
+							AddonVersion: aws.String("v1.21.2"),
+						},
+						{
+							AddonVersion: aws.String("v1.21.1"),
 						},
 					},
-				}, nil)
-			})
+				},
 
-			It("uses the default cluster version", func() {
-				_, err := da.UpdateKubeProxy(context.Background(), input, false)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(kubeProxyImage(clientSet)).To(Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.21.1-eksbuild.1"))
-			})
-		})
+				expectedImageTag: "v1.21.2",
+			}),
+
+			Entry("a more up-to-date version that lacks a `v` prefix should not have a `v` prefix", versionUpdateEntry{
+				addonOutput: ekstypes.AddonInfo{
+					AddonName: aws.String("kube-proxy"),
+					AddonVersions: []ekstypes.AddonVersionInfo{
+						{
+							AddonVersion: aws.String("1.17.0-eksbuild.1"),
+						},
+						{
+							// Latest, unordered list to ensure we sort correctly.
+							AddonVersion: aws.String("1.21.1-eksbuild.2"),
+						},
+						{
+							AddonVersion: aws.String("1.21.1-eksbuild.1"),
+						},
+					},
+				},
+
+				expectedImageTag: "1.21.1-minimal-eksbuild.2",
+			}),
+
+			Entry("version that is behind the default cluster version should not be used", versionUpdateEntry{
+				addonOutput: ekstypes.AddonInfo{
+					AddonName: aws.String("kube-proxy"),
+					AddonVersions: []ekstypes.AddonVersionInfo{
+						{
+							AddonVersion: aws.String("v1.17.0-eksbuild.1"),
+						},
+						{
+							// Latest, unordered list to ensure we sort correctly
+							// behind the default-cluster version 1.18.1-eksbuild.1.
+							AddonVersion: aws.String("v1.18.0-eksbuild.2"),
+						},
+						{
+							AddonVersion: aws.String("v1.18.0-eksbuild.1"),
+						},
+					},
+				},
+
+				expectedImageTag: "v1.21.1-eksbuild.1",
+			}),
+		)
 
 		When("there are no versions returned", func() {
 			BeforeEach(func() {

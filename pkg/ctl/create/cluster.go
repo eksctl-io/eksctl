@@ -469,7 +469,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
 		}
 
-		if cfg.PrivateCluster.Enabled {
+		if cfg.IsFullyPrivate() && !cfg.IsControlPlaneOnOutposts() {
 			// disable public access
 			logger.Info("disabling public endpoint access for the cluster")
 			cfg.VPC.ClusterEndpoints.PublicAccess = api.Disabled()
