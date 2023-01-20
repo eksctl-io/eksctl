@@ -66,10 +66,10 @@ type KubernetesProvider struct {
 
 // KubeProvider is an interface with helper funcs for k8s and EKS that are part of ClusterProvider
 //
-//counterfeiter:generate -o fakes/fake_kube_provider.go . KubeProvider
+//go:generate counterfeiter -o fakes/fake_kube_provider.go . KubeProvider
 type KubeProvider interface {
 	NewRawClient(clusterInfo kubeconfig.ClusterInfo) (*kubernetes.RawClient, error)
-	NewStdClientSet(clusterInfo kubeconfig.ClusterInfo) (*k8sclient.Clientset, error)
+	NewStdClientSet(clusterInfo kubeconfig.ClusterInfo) (k8sclient.Interface, error)
 	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
 	WaitForControlPlane(meta *api.ClusterMeta, clientSet *kubernetes.RawClient, waitTimeout time.Duration) error
 }

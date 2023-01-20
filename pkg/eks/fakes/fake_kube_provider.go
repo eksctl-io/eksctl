@@ -26,17 +26,17 @@ type FakeKubeProvider struct {
 		result1 *kubernetes.RawClient
 		result2 error
 	}
-	NewStdClientSetStub        func(kubeconfig.ClusterInfo) (*kubernetesa.Clientset, error)
+	NewStdClientSetStub        func(kubeconfig.ClusterInfo) (kubernetesa.Interface, error)
 	newStdClientSetMutex       sync.RWMutex
 	newStdClientSetArgsForCall []struct {
 		arg1 kubeconfig.ClusterInfo
 	}
 	newStdClientSetReturns struct {
-		result1 *kubernetesa.Clientset
+		result1 kubernetesa.Interface
 		result2 error
 	}
 	newStdClientSetReturnsOnCall map[int]struct {
-		result1 *kubernetesa.Clientset
+		result1 kubernetesa.Interface
 		result2 error
 	}
 	ServerVersionStub        func(*kubernetes.RawClient) (string, error)
@@ -133,7 +133,7 @@ func (fake *FakeKubeProvider) NewRawClientReturnsOnCall(i int, result1 *kubernet
 	}{result1, result2}
 }
 
-func (fake *FakeKubeProvider) NewStdClientSet(arg1 kubeconfig.ClusterInfo) (*kubernetesa.Clientset, error) {
+func (fake *FakeKubeProvider) NewStdClientSet(arg1 kubeconfig.ClusterInfo) (kubernetesa.Interface, error) {
 	fake.newStdClientSetMutex.Lock()
 	ret, specificReturn := fake.newStdClientSetReturnsOnCall[len(fake.newStdClientSetArgsForCall)]
 	fake.newStdClientSetArgsForCall = append(fake.newStdClientSetArgsForCall, struct {
@@ -158,7 +158,7 @@ func (fake *FakeKubeProvider) NewStdClientSetCallCount() int {
 	return len(fake.newStdClientSetArgsForCall)
 }
 
-func (fake *FakeKubeProvider) NewStdClientSetCalls(stub func(kubeconfig.ClusterInfo) (*kubernetesa.Clientset, error)) {
+func (fake *FakeKubeProvider) NewStdClientSetCalls(stub func(kubeconfig.ClusterInfo) (kubernetesa.Interface, error)) {
 	fake.newStdClientSetMutex.Lock()
 	defer fake.newStdClientSetMutex.Unlock()
 	fake.NewStdClientSetStub = stub
@@ -171,28 +171,28 @@ func (fake *FakeKubeProvider) NewStdClientSetArgsForCall(i int) kubeconfig.Clust
 	return argsForCall.arg1
 }
 
-func (fake *FakeKubeProvider) NewStdClientSetReturns(result1 *kubernetesa.Clientset, result2 error) {
+func (fake *FakeKubeProvider) NewStdClientSetReturns(result1 kubernetesa.Interface, result2 error) {
 	fake.newStdClientSetMutex.Lock()
 	defer fake.newStdClientSetMutex.Unlock()
 	fake.NewStdClientSetStub = nil
 	fake.newStdClientSetReturns = struct {
-		result1 *kubernetesa.Clientset
+		result1 kubernetesa.Interface
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeKubeProvider) NewStdClientSetReturnsOnCall(i int, result1 *kubernetesa.Clientset, result2 error) {
+func (fake *FakeKubeProvider) NewStdClientSetReturnsOnCall(i int, result1 kubernetesa.Interface, result2 error) {
 	fake.newStdClientSetMutex.Lock()
 	defer fake.newStdClientSetMutex.Unlock()
 	fake.NewStdClientSetStub = nil
 	if fake.newStdClientSetReturnsOnCall == nil {
 		fake.newStdClientSetReturnsOnCall = make(map[int]struct {
-			result1 *kubernetesa.Clientset
+			result1 kubernetesa.Interface
 			result2 error
 		})
 	}
 	fake.newStdClientSetReturnsOnCall[i] = struct {
-		result1 *kubernetesa.Clientset
+		result1 kubernetesa.Interface
 		result2 error
 	}{result1, result2}
 }

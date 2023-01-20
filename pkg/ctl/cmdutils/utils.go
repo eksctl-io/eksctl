@@ -8,7 +8,7 @@ import (
 
 // KubernetesClientAndConfigFrom returns a Kubernetes client set and REST
 // configuration object for the currently configured cluster.
-func KubernetesClientAndConfigFrom(cmd *Cmd) (*kubernetes.Clientset, error) {
+func KubernetesClientAndConfigFrom(cmd *Cmd) (kubernetes.Interface, error) {
 	ctl, err := cmd.NewProviderForExistingCluster(context.TODO())
 	if err != nil {
 		return nil, err
