@@ -2,6 +2,7 @@ package nodegroup_test
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -26,6 +27,17 @@ import (
 )
 
 var _ = Describe("Upgrade", func() {
+	supportedVersions := api.SupportedVersions()
+	if len(supportedVersions) < 2 {
+		Fail("Upgrade test requires at least two supported EKS versions")
+	}
+
+	var (
+		eksVersion        = aws.String(supportedVersions[len(supportedVersions)-2])
+		latestEKSVersion  = supportedVersions[len(supportedVersions)-1]
+		eksReleaseVersion = aws.String(fmt.Sprintf("%s-20201212", *eksVersion))
+	)
+
 	var (
 		clusterName, ngName string
 		p                   *mockprovider.MockProvider
@@ -49,7 +61,7 @@ var _ = Describe("Upgrade", func() {
 		m.SetStackManager(fakeStackManager)
 		options = nodegroup.UpgradeOptions{
 			NodegroupName:     ngName,
-			KubernetesVersion: "1.21",
+			KubernetesVersion: latestEKSVersion,
 			Wait:              false,
 			ForceUpgrade:      false,
 		}
@@ -67,7 +79,7 @@ var _ = Describe("Upgrade", func() {
 						ClusterName:   aws.String(clusterName),
 						Status:        ekstypes.NodegroupStatusActive,
 						AmiType:       "ami-type",
-						Version:       aws.String("1.20"),
+						Version:       eksVersion,
 						LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
 							Id: aws.String("id-123"),
 						},
@@ -78,7 +90,7 @@ var _ = Describe("Upgrade", func() {
 					NodegroupName: aws.String(ngName),
 					ClusterName:   aws.String(clusterName),
 					Force:         false,
-					Version:       aws.String("1.21"),
+					Version:       aws.String(latestEKSVersion),
 					LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
 						Id:      aws.String("id-123"),
 						Version: aws.String("v2"),
@@ -103,7 +115,7 @@ var _ = Describe("Upgrade", func() {
 						ClusterName:   aws.String(clusterName),
 						Status:        ekstypes.NodegroupStatusActive,
 						AmiType:       ekstypes.AMITypesAl2X8664,
-						Version:       aws.String("1.20"),
+						Version:       eksVersion,
 						LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
 							Name: aws.String("lt"),
 						},
@@ -114,7 +126,7 @@ var _ = Describe("Upgrade", func() {
 					NodegroupName: aws.String(ngName),
 					ClusterName:   aws.String(clusterName),
 					Force:         false,
-					Version:       aws.String("1.21"),
+					Version:       aws.String(latestEKSVersion),
 					LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
 						Name:    aws.String("lt"),
 						Version: aws.String("v2"),
@@ -157,16 +169,16 @@ var _ = Describe("Upgrade", func() {
 							ClusterName:    aws.String(clusterName),
 							Status:         ekstypes.NodegroupStatusActive,
 							AmiType:        ekstypes.AMITypesAl2X8664,
-							Version:        aws.String("1.20"),
-							ReleaseVersion: aws.String("1.20-20201212"),
+							Version:        eksVersion,
+							ReleaseVersion: eksReleaseVersion,
 						},
 					}, nil)
 
 					p.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
-						Name: aws.String("/aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/release_version"),
+						Name: aws.String(fmt.Sprintf("/aws/service/eks/optimized-ami/%s/amazon-linux-2/recommended/release_version", latestEKSVersion)),
 					}).Return(&ssm.GetParameterOutput{
 						Parameter: &ssmtypes.Parameter{
-							Value: aws.String("1.21-20201212"),
+							Value: aws.String(fmt.Sprintf("%s-20201212", latestEKSVersion)),
 						},
 					}, nil)
 				})
@@ -219,16 +231,16 @@ var _ = Describe("Upgrade", func() {
 							ClusterName:    aws.String(clusterName),
 							Status:         ekstypes.NodegroupStatusActive,
 							AmiType:        ekstypes.AMITypesAl2X8664Gpu,
-							Version:        aws.String("1.20"),
-							ReleaseVersion: aws.String("1.20-20201212"),
+							Version:        eksVersion,
+							ReleaseVersion: eksReleaseVersion,
 						},
 					}, nil)
 
 					p.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
-						Name: aws.String("/aws/service/eks/optimized-ami/1.21/amazon-linux-2-gpu/recommended/release_version"),
+						Name: aws.String(fmt.Sprintf("/aws/service/eks/optimized-ami/%s/amazon-linux-2-gpu/recommended/release_version", latestEKSVersion)),
 					}).Return(&ssm.GetParameterOutput{
 						Parameter: &ssmtypes.Parameter{
-							Value: aws.String("1.21-20201212"),
+							Value: aws.String(fmt.Sprintf("%s-20201212", latestEKSVersion)),
 						},
 					}, nil)
 				})
@@ -275,13 +287,13 @@ var _ = Describe("Upgrade", func() {
 							ClusterName:    aws.String(clusterName),
 							Status:         ekstypes.NodegroupStatusActive,
 							AmiType:        ekstypes.AMITypesBottlerocketX8664,
-							Version:        aws.String("1.20"),
-							ReleaseVersion: aws.String("1.20-20201212"),
+							Version:        eksVersion,
+							ReleaseVersion: eksReleaseVersion,
 						},
 					}, nil)
 
 					p.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
-						Name: aws.String("/aws/service/bottlerocket/aws-k8s-1.21/x86_64/latest/image_version"),
+						Name: aws.String(fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/x86_64/latest/image_version", latestEKSVersion)),
 					}).Return(&ssm.GetParameterOutput{
 						Parameter: &ssmtypes.Parameter{
 							Value: aws.String("1.5.2-1602f3a8"),
@@ -322,8 +334,8 @@ var _ = Describe("Upgrade", func() {
 						ClusterName:    aws.String(clusterName),
 						Status:         ekstypes.NodegroupStatusUpdating,
 						AmiType:        ekstypes.AMITypesBottlerocketX8664,
-						Version:        aws.String("1.20"),
-						ReleaseVersion: aws.String("1.20-20201212"),
+						Version:        eksVersion,
+						ReleaseVersion: eksReleaseVersion,
 					},
 				}, nil)
 			})
@@ -344,8 +356,8 @@ var _ = Describe("Upgrade", func() {
 						ClusterName:    aws.String(clusterName),
 						Status:         ekstypes.NodegroupStatusDegraded,
 						AmiType:        ekstypes.AMITypesBottlerocketX8664,
-						Version:        aws.String("1.20"),
-						ReleaseVersion: aws.String("1.20-20201212"),
+						Version:        eksVersion,
+						ReleaseVersion: eksReleaseVersion,
 					},
 				}, nil)
 			})
