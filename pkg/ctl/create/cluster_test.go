@@ -370,7 +370,7 @@ var _ = Describe("create cluster", func() {
 				Expect(err).To(Not(HaveOccurred()))
 				fk.NewRawClientReturns(rawClient, nil)
 			},
-			expectedErr: "error installing device plugin",
+			expectedErr: "failed to create cluster",
 		}),
 
 		Entry("[Cluster with NodeGroups] CloudFormation fails to create the nodegroup", createClusterEntry{

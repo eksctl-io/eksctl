@@ -128,7 +128,7 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 
 			ctx := context.Background()
 			By("ensuring the K8s cluster has IPv6 enabled")
-			var clientSet *kubernetes.Clientset
+			var clientSet kubernetes.Interface
 			ctl, err := eks.New(ctx, &api.ProviderConfig{Region: params.Region}, clusterConfig)
 			Expect(err).NotTo(HaveOccurred())
 			err = ctl.RefreshClusterStatus(ctx, clusterConfig)
