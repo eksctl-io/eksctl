@@ -180,6 +180,21 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcID *gfnt.Value) *c
 			FromPort:              sgPortZero,
 			ToPort:                sgMaxNodePort,
 		})
+		if c.spec.IsControlPlaneOnOutposts() && c.spec.IsFullyPrivate() {
+			if subnets := c.spec.VPC.Subnets; subnets != nil && subnets.Private != nil {
+				for az, subnet := range subnets.Private {
+					c.newResource(fmt.Sprintf("IngressPrivateSubnet%s", formatAZ(az)), &gfnec2.SecurityGroupIngress{
+						GroupId:     refClusterSharedNodeSG,
+						CidrIp:      gfnt.NewString(subnet.CIDR.String()),
+						Description: gfnt.NewString("Allow private subnets to communicate with VPC endpoints"),
+						IpProtocol:  gfnt.NewString("tcp"),
+						FromPort:    sgPortHTTPS,
+						ToPort:      sgPortHTTPS,
+					})
+				}
+			}
+
+		}
 		c.newResource("IngressNodeToDefaultClusterSG", &gfnec2.SecurityGroupIngress{
 			GroupId:               gfnt.MakeFnGetAttString("ControlPlane", outputs.ClusterDefaultSecurityGroup),
 			SourceSecurityGroupId: refClusterSharedNodeSG,
