@@ -2,9 +2,7 @@ package irsa
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
@@ -15,15 +13,8 @@ func (m *Manager) Delete(ctx context.Context, serviceAccounts []string, plan, wa
 	}
 	taskTree.PlanMode = plan
 
-	logger.Info(taskTree.Describe())
-	if errs := taskTree.DoAllSync(); len(errs) > 0 {
-		logger.Info("%d error(s) occurred and IAM Role stacks haven't been deleted properly, you may wish to check CloudFormation console", len(errs))
-		for _, err := range errs {
-			logger.Critical("%s\n", err.Error())
-		}
-		return fmt.Errorf("failed to delete iamserviceaccount(s)")
-	}
+	err = doTasks(taskTree, actionDelete)
 
 	logPlanModeWarning(plan && taskTree.Len() > 0)
-	return nil
+	return err
 }
