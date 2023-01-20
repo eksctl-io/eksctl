@@ -295,11 +295,11 @@ var _ = Describe("create cluster", func() {
 			KubeProvider: fk,
 		}
 
-		FakeInstallerTaskCreator := &karpenterfakes.FakeInstallerTaskCreator{}
+		fakeInstallerTaskCreator := &karpenterfakes.FakeInstallerTaskCreator{}
 		if ce.configureKarpenterInstaller != nil {
 			installFunc := createKarpenterInstaller
 			defer func() { createKarpenterInstaller = installFunc }()
-			ce.configureKarpenterInstaller(FakeInstallerTaskCreator)
+			ce.configureKarpenterInstaller(fakeInstallerTaskCreator)
 		}
 
 		clusterConfig := api.NewClusterConfig()
@@ -339,8 +339,8 @@ var _ = Describe("create cluster", func() {
 			p.MockEKS().AssertNumberOfCalls(GinkgoT(), "UpdateClusterConfig", 1)
 		}
 
-		if FakeInstallerTaskCreator.CreateStub != nil {
-			Expect(FakeInstallerTaskCreator.CreateCallCount()).To(Equal(1))
+		if fakeInstallerTaskCreator.CreateStub != nil {
+			Expect(fakeInstallerTaskCreator.CreateCallCount()).To(Equal(1))
 		}
 	},
 		Entry("standard cluster", createClusterEntry{}),
@@ -369,7 +369,7 @@ var _ = Describe("create cluster", func() {
 			},
 			configureKarpenterInstaller: func(ki *karpenterfakes.FakeInstallerTaskCreator) {
 				createKarpenterInstaller = func(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface, restClientGetter *kubernetes.SimpleRESTClientGetter) (karpenteractions.InstallerTaskCreator, error) {
-					return ki, fmt.Errorf("")
+					return ki, fmt.Errorf("failed to create karpenter installer")
 				}
 			},
 			expectedErr: "failed to create installer",
@@ -383,7 +383,7 @@ var _ = Describe("create cluster", func() {
 			},
 			configureKarpenterInstaller: func(ki *karpenterfakes.FakeInstallerTaskCreator) {
 				ki.CreateStub = func(ctx context.Context) error {
-					return fmt.Errorf("")
+					return fmt.Errorf("failed to install karpenter")
 				}
 				createKarpenterInstaller = func(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface, restClientGetter *kubernetes.SimpleRESTClientGetter) (karpenteractions.InstallerTaskCreator, error) {
 					return ki, nil
