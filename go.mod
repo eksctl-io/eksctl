@@ -36,7 +36,7 @@ require (
 	github.com/dave/jennifer v1.6.0
 	github.com/dlespiau/kube-test-harness v0.0.0-20200915102055-a03579200ae8
 	github.com/evanphx/json-patch/v5 v5.6.0
-	github.com/fatih/color v1.13.0
+	github.com/fatih/color v1.14.0
 	github.com/github-release/github-release v0.10.0
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.8.1
@@ -348,7 +348,7 @@ require (
 	github.com/matoous/godox v0.0.0-20210227103229-6504466cf951 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-ieproxy v0.0.1 // indirect
-	github.com/mattn/go-isatty v0.0.16 // indirect
+	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mattn/go-sqlite3 v1.14.15 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
