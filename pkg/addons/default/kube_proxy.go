@@ -224,7 +224,23 @@ func getLatestImageVersionFromEKS(ctx context.Context, eksAPI awsapi.EKS, contro
 	sort.SliceStable(versions, func(i, j int) bool {
 		return versions[j].LessThan(versions[i])
 	})
-	return versions[0].Original(), nil
+
+	return toMinimalVersion(versions[0]), nil
+}
+
+func toMinimalVersion(v *version.Version) string {
+	preRelease := v.Prerelease()
+	if preRelease == "" {
+		return v.Original()
+	}
+	const versionPrefix = "v"
+	var tagPrefix string
+	if strings.HasPrefix(v.Original(), versionPrefix) {
+		tagPrefix = versionPrefix
+	}
+
+	minimalBuildTag := fmt.Sprintf("%s%s-minimal-%s", tagPrefix, v.Core(), preRelease)
+	return minimalBuildTag
 }
 
 func versionWithOnlyMajorAndMinor(v string) (string, error) {

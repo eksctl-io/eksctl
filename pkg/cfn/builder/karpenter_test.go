@@ -104,6 +104,7 @@ var expectedTemplate = `{
                 "ec2:DescribeImages",
                 "ec2:DescribeSpotPriceHistory",
                 "iam:PassRole",
+                "iam:CreateServiceLinkedRole",
                 "ssm:GetParameter",
                 "pricing:GetProducts"
               ],
@@ -230,6 +231,7 @@ var expectedTemplateWithPermissionBoundary = `{
                 "ec2:DescribeImages",
                 "ec2:DescribeSpotPriceHistory",
                 "iam:PassRole",
+                "iam:CreateServiceLinkedRole",
                 "ssm:GetParameter",
                 "pricing:GetProducts"
               ],

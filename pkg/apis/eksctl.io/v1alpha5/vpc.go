@@ -259,8 +259,10 @@ func DefaultCIDR() ipnet.IPNet {
 // Note that the user must use
 // either AZs as keys
 // OR names as keys and specify
-//    the ID (optionally with AZ and CIDR)
-//    OR AZ, optionally with CIDR.
+//
+//	the ID (optionally with AZ and CIDR)
+//	OR AZ, optionally with CIDR.
+//
 // If a user specifies a subnet by AZ without CIDR and ID but multiple subnets
 // exist in this VPC, one will be arbitrarily chosen.
 func ImportSubnet(subnets AZSubnetMapping, subnet *ec2types.Subnet, makeSubnetAlias func(*ec2types.Subnet) string) error {
@@ -440,19 +442,19 @@ func (c *ClusterConfig) HasSufficientSubnets() error {
 	return nil
 }
 
-//DefaultEndpointsMsg returns a message that the EndpointAccess is the same as the default
+// DefaultEndpointsMsg returns a message that the EndpointAccess is the same as the default.
 func (c *ClusterConfig) DefaultEndpointsMsg() string {
 	return fmt.Sprintf(
 		"Kubernetes API endpoint access will use default of {publicAccess=true, privateAccess=false} for cluster %q in %q", c.Metadata.Name, c.Metadata.Region)
 }
 
-//CustomEndpointsMsg returns a message indicating the EndpointAccess given by the user
+// CustomEndpointsMsg returns a message indicating the EndpointAccess given by the user.
 func (c *ClusterConfig) CustomEndpointsMsg() string {
 	return fmt.Sprintf(
 		"Kubernetes API endpoint access will use provided values {publicAccess=%v, privateAccess=%v} for cluster %q in %q", *c.VPC.ClusterEndpoints.PublicAccess, *c.VPC.ClusterEndpoints.PrivateAccess, c.Metadata.Name, c.Metadata.Region)
 }
 
-//UpdateEndpointsMsg gives message indicating that they need to use eksctl utils to make this config
+// UpdateEndpointsMsg returns a message indicating that they need to use `eksctl utils` to make this config.
 func (c *ClusterConfig) UpdateEndpointsMsg() string {
 	return fmt.Sprintf(
 		"you can update Kubernetes API endpoint access with `eksctl utils update-cluster-endpoints --region=%s --name=%s --private-access=bool --public-access=bool`", c.Metadata.Region, c.Metadata.Name)
@@ -463,7 +465,7 @@ func EndpointsEqual(a, b ClusterEndpoints) bool {
 	return reflect.DeepEqual(a, b)
 }
 
-//HasClusterEndpointAccess determines if endpoint access was configured in config file or not
+// HasClusterEndpointAccess determines if endpoint access was configured in config file or not.
 func (c *ClusterConfig) HasClusterEndpointAccess() bool {
 	if c.VPC != nil && c.VPC.ClusterEndpoints != nil {
 		hasPublicAccess := aws.ToBool(c.VPC.ClusterEndpoints.PublicAccess)

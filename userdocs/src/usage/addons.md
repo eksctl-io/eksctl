@@ -14,7 +14,6 @@ kind: ClusterConfig
 metadata:
   name: example-cluster
   region: us-west-2
-  version: "1.20"
 
 iam:
   withOIDC: true
@@ -141,13 +140,13 @@ addons:
 - name: coredns
   version: latest
   configurationValues: "{\"replicaCount\":3}"
-  resolveConflics: overwrite
+  resolveConflicts: overwrite
 ```
 
 !!!note
     Bear in mind that when addon configuration values are being modified, configuration conflics will arise.
     Thus, we need to specify how to deal with those by setting the `resolveConflicts` field accordingly.
-    As in this scenario we want to modify these values, we'd set `resolveConflicts: overwrite`. 
+    As in this scenario we want to modify these values, we'd set `resolveConflicts: overwrite`.
 
 Additionally, the get command will now also retrieve `ConfigurationValues` for the addon. e.g.
 

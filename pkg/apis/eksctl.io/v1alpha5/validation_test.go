@@ -833,7 +833,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 		When("additional endpoints are defined with skip endpoints", func() {
 			It("fails the validation", func() {
-				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudWatch.Name}
 				cfg.PrivateCluster.SkipEndpointCreation = true
 				err := api.ValidateClusterConfig(cfg)
 				Expect(err).To(MatchError(ContainSubstring("privateCluster.additionalEndpointServices cannot be set when privateCluster.skipEndpointCreation is true")))
@@ -841,7 +841,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 		When("additional endpoints are defined", func() {
 			It("validates the endpoint configuration", func() {
-				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudWatch.Name}
 				err := api.ValidateClusterConfig(cfg)
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -1121,7 +1121,7 @@ var _ = Describe("ClusterConfig validation", func() {
 						cfg.KubernetesNetworkConfig.ServiceIPv4CIDR = "192.168.0.0/24"
 						cfg.VPC.NAT = nil
 						err = api.ValidateClusterConfig(cfg)
-						Expect(err).To(MatchError(ContainSubstring("service ipv4 cidr is not supported with IPv6")))
+						Expect(err).To(MatchError(ContainSubstring("service IPv4 CIDR is not supported with IPv6")))
 					})
 				})
 
@@ -1304,7 +1304,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 		When("additional endpoints are defined with skip endpoints", func() {
 			It("fails the validation", func() {
-				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudWatch.Name}
 				cfg.PrivateCluster.SkipEndpointCreation = true
 				err := cfg.ValidatePrivateCluster()
 				Expect(err).To(MatchError(ContainSubstring("privateCluster.additionalEndpointServices cannot be set when privateCluster.skipEndpointCreation is true")))
@@ -1312,7 +1312,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 		When("additional endpoints are defined", func() {
 			It("validates the endpoint configuration", func() {
-				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudWatch.Name}
 				err := cfg.ValidatePrivateCluster()
 				Expect(err).NotTo(HaveOccurred())
 			})
