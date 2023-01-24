@@ -47,7 +47,7 @@ type CachedClientSet struct {
 	CachedClientSet Interface
 }
 
-// NewCachedClientSet costructs a new CachedClientSets
+// NewCachedClientSet constructs a new CachedClientSet.
 func NewCachedClientSet(clientSet Interface) *CachedClientSet {
 	return &CachedClientSet{CachedClientSet: clientSet}
 }

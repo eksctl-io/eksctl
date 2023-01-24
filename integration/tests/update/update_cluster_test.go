@@ -162,7 +162,7 @@ var _ = Describe("(Integration) Update addons", func() {
 				kubeProxyVersion, err := addons.ImageTag(daemonSet.Spec.Template.Spec.Containers[0].Image)
 				Expect(err).NotTo(HaveOccurred())
 				return kubeProxyVersion
-			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(ContainSubstring(fmt.Sprintf("v%s-eksbuild.", kubernetesVersion)))
+			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(ContainSubstring(fmt.Sprintf("v%s-minimal-eksbuild.", kubernetesVersion)))
 		})
 
 		It("should upgrade aws-node", func() {

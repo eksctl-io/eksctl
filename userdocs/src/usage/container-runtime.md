@@ -48,4 +48,4 @@ managedNodeGroups:
       /etc/eks/bootstrap.sh <cluster-name> <other flags> --container-runtime containerd
 ```
 For Windows managed nodes, you will need to use a custom launch template with an ami-id and pass in the required bootstrap arguments in the userdata.
-Read more on [creating a launch template](https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html), and [using a launch template with eksctl]((https://eksctl.io/usage/launch-template-support/)).
+Read more on [creating a launch template](https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html), and [using a launch template with eksctl](launch-template-support.md).

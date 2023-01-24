@@ -21,7 +21,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
-	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
+	"github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -48,7 +48,10 @@ const (
 		"and run `eksctl utils install-vpc-controllers` with the --delete ﬂag to remove the worker node installation of the VPC resource controller"
 )
 
-var once sync.Once
+var (
+	once                     sync.Once
+	createKarpenterInstaller = karpenter.NewInstaller
+)
 
 func createClusterCmd(cmd *cmdutils.Cmd) {
 	createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error {
@@ -466,7 +469,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
 		}
 
-		if cfg.PrivateCluster.Enabled {
+		if cfg.IsFullyPrivate() && !cfg.IsControlPlaneOnOutposts() {
 			// disable public access
 			logger.Info("disabling public endpoint access for the cluster")
 			cfg.VPC.ClusterEndpoints.PublicAccess = api.Disabled()
@@ -488,7 +491,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 // - identity mapping
 // then proceeds with installing Karpenter using Helm.
 func installKarpenter(ctx context.Context, ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackManager manager.StackManager, clientSet *kubeclient.Clientset, restClientGetter *kubernetes.SimpleRESTClientGetter) error {
-	installer, err := karpenteractions.NewInstaller(ctx, cfg, ctl, stackManager, clientSet, restClientGetter)
+	installer, err := createKarpenterInstaller(ctx, cfg, ctl, stackManager, clientSet, restClientGetter)
 	if err != nil {
 		return fmt.Errorf("failed to create installer: %w", err)
 	}

@@ -5,8 +5,8 @@ prerequisites outlined in Karpenter's [Getting Started](https://karpenter.sh/doc
 Karpenter itself using Helm. We currently support installing versions starting `0.17.0` and above.
 
 !!!info
-    With [v0.17.0](https://karpenter.sh/docs/upgrade-guide/#upgrading-to-v0170) Karpenter’s Helm chart package is now stored in Karpenter’s OCI (Open Container Initiative) registry. 
-    Eksctl therefore is not supporting lower versions of Karpenter for new cluster creation. Previously created clusters shouldn't be affected by this change. 
+    With [v0.17.0](https://karpenter.sh/docs/upgrade-guide/#upgrading-to-v0170) Karpenter’s Helm chart package is now stored in Karpenter’s OCI (Open Container Initiative) registry.
+    Eksctl therefore is not supporting lower versions of Karpenter for new cluster creation. Previously created clusters shouldn't be affected by this change.
     If you wish to upgrade your current installation of Karpenter please refer to the [upgrade guide](https://karpenter.sh/docs/upgrade-guide/)
 
 To that end, a new configuration value has been introduced into `eksctl` cluster config called `karpenter`. The following
@@ -19,7 +19,7 @@ kind: ClusterConfig
 metadata:
   name: cluster-with-karpenter
   region: us-west-2
-  version: '1.20'
+  version: '1.24'
   tags:
     karpenter.sh/discovery: cluster-with-karpenter # here, it is set to the cluster name
 iam:
@@ -36,7 +36,7 @@ managedNodeGroups:
 ```
 
 The version is Karpenter's version as it can be found in their Helm Repository. The following options are also available
-to be set: 
+to be set:
 
 ```yaml
 karpenter:
