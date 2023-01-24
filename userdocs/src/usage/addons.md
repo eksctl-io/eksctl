@@ -140,7 +140,7 @@ addons:
 - name: coredns
   version: latest
   configurationValues: "{\"replicaCount\":3}"
-  resolveConflics: overwrite
+  resolveConflicts: overwrite
 ```
 
 !!!note
