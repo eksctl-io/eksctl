@@ -21,15 +21,21 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"k8s.io/client-go/rest"
+	k8stest "k8s.io/client-go/testing"
+
 	"github.com/stretchr/testify/mock"
 
 	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	karpenterfakes "github.com/weaveworks/eksctl/pkg/actions/karpenter/fakes"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
 	kubefake "k8s.io/client-go/kubernetes/fake"
-	restclient "k8s.io/client-go/rest"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/ctl/ctltest"
@@ -220,6 +226,7 @@ var _ = Describe("create cluster", func() {
 		updateClusterConfig         func(*api.ClusterConfig)
 		updateClusterParams         func(*cmdutils.CreateClusterCmdParams)
 		updateMocks                 func(*mockprovider.MockProvider)
+		updateKubeProvider          func(*fakes.FakeKubeProvider)
 		configureKarpenterInstaller func(*karpenterfakes.FakeInstallerTaskCreator)
 		mockOutposts                bool
 		fullyPrivateCluster         bool
@@ -273,22 +280,26 @@ var _ = Describe("create cluster", func() {
 
 	DescribeTable("doCreateCluster", func(ce createClusterEntry) {
 		p := mockprovider.NewMockProvider()
-		defaultProviderMocks(p, defaultOutput, ce.fullyPrivateCluster, ce.mockOutposts)
+		defaultProviderMocks(p, defaultOutputForCluster, ce.fullyPrivateCluster, ce.mockOutposts)
 		if ce.updateMocks != nil {
 			ce.updateMocks(p)
 		}
+
+		// default setting for KubeProvider
 		fk := &fakes.FakeKubeProvider{}
 		clientset := kubefake.NewSimpleClientset()
-		client, err := kubernetes.NewRawClient(clientset, &restclient.Config{})
-		Expect(err).NotTo(HaveOccurred())
-		fk.NewRawClientReturns(client, nil)
+		fk.NewStdClientSetReturns(clientset, nil)
 		fk.ServerVersionReturns("1.22", nil)
+		if ce.updateKubeProvider != nil {
+			ce.updateKubeProvider(fk)
+		}
+
 		msp := &mockSessionProvider{}
 		ctl := &eks.ClusterProvider{
 			AWSProvider: p,
 			Status: &eks.ProviderStatus{
 				ClusterInfo: &eks.ClusterInfo{
-					Cluster: testutils.NewFakeCluster("my-cluster", ""),
+					Cluster: testutils.NewFakeCluster(clusterName, ""),
 				},
 				SessionCreds: msp,
 			},
@@ -303,7 +314,7 @@ var _ = Describe("create cluster", func() {
 		}
 
 		clusterConfig := api.NewClusterConfig()
-		clusterConfig.Metadata.Name = "my-cluster"
+		clusterConfig.Metadata.Name = clusterName
 		clusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
 
 		if ce.updateClusterConfig != nil {
@@ -326,7 +337,7 @@ var _ = Describe("create cluster", func() {
 			ce.updateClusterParams(params)
 		}
 		filter.SetExcludeAll(params.WithoutNodeGroup)
-		err = doCreateCluster(cmd, filter, params, ctl)
+		err := doCreateCluster(cmd, filter, params, ctl)
 		if ce.expectedErr != "" {
 			Expect(err).To(MatchError(ContainSubstring(ce.expectedErr)))
 			return
@@ -343,6 +354,99 @@ var _ = Describe("create cluster", func() {
 			Expect(fakeInstallerTaskCreator.CreateCallCount()).To(Equal(1))
 		}
 	},
+
+		Entry("[Cluster with NodeGroups] fails to install device plugins", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				nodeGroup := getDefaultNodeGroup()
+				nodeGroup.InstanceType = "g3.xlarge"
+				c.NodeGroups = append(c.NodeGroups, nodeGroup)
+			},
+			updateClusterParams: func(params *cmdutils.CreateClusterCmdParams) {
+				params.InstallNvidiaDevicePlugin = true
+			},
+			updateMocks: func(p *mockprovider.MockProvider) {
+				updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup)(p)
+				p.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+					InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
+						{
+							InstanceType: "g3.xlarge",
+							Location:     aws.String("us-west-2-1b"),
+							LocationType: "availability-zone",
+						},
+						{
+							InstanceType: "g3.xlarge",
+							Location:     aws.String("us-west-2-1a"),
+							LocationType: "availability-zone",
+						},
+					},
+				}, nil)
+			},
+			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
+				rawClient, err := kubernetes.NewRawClient(kubefake.NewSimpleClientset(), &rest.Config{})
+				Expect(err).To(Not(HaveOccurred()))
+				fk.NewRawClientReturns(rawClient, nil)
+			},
+			expectedErr: "failed to create cluster",
+		}),
+
+		Entry("[Cluster with NodeGroups] CloudFormation fails to create the nodegroup", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.NodeGroups = append(c.NodeGroups, getDefaultNodeGroup())
+			},
+			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateFailed, defaultOutputForNodeGroup),
+			expectedErr: "failed to create cluster",
+		}),
+
+		Entry("[Cluster with NodeGroups] fails to create K8s clientset", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.NodeGroups = append(c.NodeGroups, getDefaultNodeGroup())
+			},
+			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup),
+			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
+				fk.NewStdClientSetReturns(nil, errors.New("failed to create clientset"))
+			},
+			expectedErr: "failed to create clientset",
+		}),
+
+		Entry("[Cluster with NodeGroups] fails to add a nodegroup IAM role in the auth ConfigMap", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.NodeGroups = append(c.NodeGroups, getDefaultNodeGroup())
+			},
+			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateComplete, wrongARNOutputForNodeGroup),
+			expectedErr: "arn is neither user nor role",
+		}),
+
+		Entry("[Cluster with NodeGroups] times out waiting for nodes to join the cluster", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.NodeGroups = append(c.NodeGroups, getDefaultNodeGroup())
+			},
+			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup),
+			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
+				node := getDefaultNode()
+				clientset := kubefake.NewSimpleClientset(node)
+				fk.NewStdClientSetReturns(clientset, nil)
+			},
+			expectedErr: "timed out waiting for at least 1 nodes to join the cluster and become ready",
+		}),
+
+		Entry("[Cluster with NodeGroups] all resources are created successfully", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.NodeGroups = append(c.NodeGroups, getDefaultNodeGroup())
+			},
+			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup),
+			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
+				node := getDefaultNode()
+				clientset := kubefake.NewSimpleClientset(node)
+				watcher := watch.NewFake()
+				go func() {
+					defer watcher.Stop()
+					watcher.Add(node)
+				}()
+				clientset.PrependWatchReactor("nodes", k8stest.DefaultWatchReactor(watcher, nil))
+				fk.NewStdClientSetReturns(clientset, nil)
+			},
+		}),
+
 		Entry("standard cluster", createClusterEntry{}),
 
 		Entry("[Cluster with Karpenter] installs Karpenter successfully", createClusterEntry{
@@ -586,56 +690,183 @@ var _ = Describe("create cluster", func() {
 	)
 })
 
-var defaultOutput = []cftypes.Output{
-	{
-		OutputKey:   aws.String("ClusterSecurityGroupId"),
-		OutputValue: aws.String("csg-1234"),
-	},
-	{
-		OutputKey:   aws.String("SecurityGroup"),
-		OutputValue: aws.String("sg-1"),
-	},
-	{
-		OutputKey:   aws.String("VPC"),
-		OutputValue: aws.String("vpc-1"),
-	},
-	{
-		OutputKey:   aws.String("SharedNodeSecurityGroup"),
-		OutputValue: aws.String("sg-1"),
-	},
-	{
-		OutputKey:   aws.String("FeatureNATMode"),
-		OutputValue: aws.String("Single"),
-	},
-	{
-		OutputKey:   aws.String("SubnetsPrivate"),
-		OutputValue: aws.String("sub-priv-1 sub-priv-2 sub-priv-3"),
-	},
-	{
-		OutputKey:   aws.String("SubnetsPublic"),
-		OutputValue: aws.String("sub-pub-1 sub-pub-2 sub-pub-3"),
-	},
-	{
-		OutputKey:   aws.String("ServiceRoleARN"),
-		OutputValue: aws.String("arn:aws:iam::123456:role/amazingrole-1"),
-	},
-	{
-		OutputKey:   aws.String("ARN"),
-		OutputValue: aws.String("arn:aws:iam::123456:role/amazingrole-2"),
-	},
-	{
-		OutputKey:   aws.String("CertificateAuthorityData"),
-		OutputValue: aws.String("dGVzdAo="),
-	},
-	{
-		OutputKey:   aws.String("ClusterStackName"),
-		OutputValue: aws.String("eksctl-my-cluster-cluster"),
-	},
-	{
-		OutputKey:   aws.String("Endpoint"),
-		OutputValue: aws.String("https://endpoint.com"),
-	},
-}
+var (
+	clusterName        = "my-cluster"
+	clusterStackName   = "eksctl-" + clusterName + "-cluster"
+	nodeGroupName      = "my-nodegroup"
+	nodeGroupStackName = "eksctl-" + clusterName + "-nodegroup-" + nodeGroupName
+
+	defaultOutputForNodeGroup = []cftypes.Output{
+		{
+			OutputKey:   aws.String(outputs.NodeGroupInstanceRoleARN),
+			OutputValue: aws.String("arn:aws:iam::083751696308:role/eksctl-my-cluster-cluster-nodegroup-my-nodegroup-NodeInstanceRole-1IYQ3JS8OKPX1"),
+		},
+		{
+			OutputKey:   aws.String(outputs.NodeGroupInstanceProfileARN),
+			OutputValue: aws.String("arn:aws:iam::083751696308:role/eksctl-my-cluster-cluster-nodegroup-my-nodegroup-NodeInstanceProfile-1IYQ3JS8OKPX1"),
+		},
+		{
+			OutputKey:   aws.String(outputs.NodeGroupFeaturePrivateNetworking),
+			OutputValue: aws.String("ngfpn"),
+		},
+		{
+			OutputKey:   aws.String(outputs.NodeGroupFeatureLocalSecurityGroup),
+			OutputValue: aws.String("nglsg"),
+		},
+		{
+			OutputKey:   aws.String(outputs.NodeGroupFeatureSharedSecurityGroup),
+			OutputValue: aws.String("ngssg"),
+		},
+	}
+
+	wrongARNOutputForNodeGroup = []cftypes.Output{
+		{
+			OutputKey:   aws.String(outputs.NodeGroupInstanceRoleARN),
+			OutputValue: aws.String("arn:aws:iam::083751696308:account/eksctl-my-cluster-cluster-nodegroup-my-nodegroup-NodeInstanceRole-1IYQ3JS8OKPX1"),
+		},
+		{
+			OutputKey:   aws.String(outputs.NodeGroupInstanceProfileARN),
+			OutputValue: aws.String("arn:aws:iam::083751696308:account/eksctl-my-cluster-cluster-nodegroup-my-nodegroup-NodeInstanceProfile-1IYQ3JS8OKPX1"),
+		},
+		{
+			OutputKey:   aws.String(outputs.NodeGroupFeaturePrivateNetworking),
+			OutputValue: aws.String("ngfpn"),
+		},
+		{
+			OutputKey:   aws.String(outputs.NodeGroupFeatureLocalSecurityGroup),
+			OutputValue: aws.String("nglsg"),
+		},
+		{
+			OutputKey:   aws.String(outputs.NodeGroupFeatureSharedSecurityGroup),
+			OutputValue: aws.String("ngssg"),
+		},
+	}
+
+	defaultOutputForCluster = []cftypes.Output{
+		{
+			OutputKey:   aws.String("ClusterSecurityGroupId"),
+			OutputValue: aws.String("csg-1234"),
+		},
+		{
+			OutputKey:   aws.String("SecurityGroup"),
+			OutputValue: aws.String("sg-1"),
+		},
+		{
+			OutputKey:   aws.String("VPC"),
+			OutputValue: aws.String("vpc-1"),
+		},
+		{
+			OutputKey:   aws.String("SharedNodeSecurityGroup"),
+			OutputValue: aws.String("sg-1"),
+		},
+		{
+			OutputKey:   aws.String("FeatureNATMode"),
+			OutputValue: aws.String("Single"),
+		},
+		{
+			OutputKey:   aws.String("SubnetsPrivate"),
+			OutputValue: aws.String("sub-priv-1 sub-priv-2 sub-priv-3"),
+		},
+		{
+			OutputKey:   aws.String("SubnetsPublic"),
+			OutputValue: aws.String("sub-pub-1 sub-pub-2 sub-pub-3"),
+		},
+		{
+			OutputKey:   aws.String("ServiceRoleARN"),
+			OutputValue: aws.String("arn:aws:iam::123456:role/amazingrole-1"),
+		},
+		{
+			OutputKey:   aws.String("ARN"),
+			OutputValue: aws.String("arn:aws:iam::123456:role/amazingrole-2"),
+		},
+		{
+			OutputKey:   aws.String("CertificateAuthorityData"),
+			OutputValue: aws.String("dGVzdAo="),
+		},
+		{
+			OutputKey:   aws.String("ClusterStackName"),
+			OutputValue: aws.String(clusterStackName),
+		},
+		{
+			OutputKey:   aws.String("Endpoint"),
+			OutputValue: aws.String("https://endpoint.com"),
+		},
+	}
+
+	getDefaultNode = func() *corev1.Node {
+		return &corev1.Node{
+			ObjectMeta: v1.ObjectMeta{
+				Name: nodeGroupName + "-my-node",
+				Labels: map[string]string{
+					"alpha.eksctl.io/nodegroup-name": nodeGroupName,
+				},
+			},
+			Status: corev1.NodeStatus{
+				Conditions: []corev1.NodeCondition{
+					{
+						Type:   corev1.NodeReady,
+						Status: corev1.ConditionTrue,
+					},
+				},
+			}}
+	}
+
+	getDefaultNodeGroup = func() *api.NodeGroup {
+		return &api.NodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:             nodeGroupName,
+				AMIFamily:        api.NodeImageFamilyAmazonLinux2,
+				AMI:              "ami-123",
+				SSH:              &api.NodeGroupSSH{Allow: api.Disabled()},
+				InstanceSelector: &api.InstanceSelector{},
+				SecurityGroups: &api.NodeGroupSGs{
+					WithShared: aws.Bool(false),
+					WithLocal:  aws.Bool(false),
+				},
+				ScalingConfig: &api.ScalingConfig{
+					DesiredCapacity: aws.Int(1),
+				},
+				IAM: &api.NodeGroupIAM{},
+			},
+		}
+	}
+
+	updateMocksForNodegroups = func(status cftypes.StackStatus, outputs []cftypes.Output) func(mp *mockprovider.MockProvider) {
+		return func(mp *mockprovider.MockProvider) {
+			mp.MockCloudFormation().On("CreateStack", mock.Anything, mock.Anything).Return(&cloudformation.CreateStackOutput{
+				StackId: aws.String(nodeGroupStackName),
+			}, nil).Once()
+			// mock for when DescribeStacks is called inside DoWaitUntilStackIsCreated
+			mp.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.Anything, mock.Anything).Return(&cloudformation.DescribeStacksOutput{
+				Stacks: []cftypes.Stack{
+					{
+						StackName:   aws.String(nodeGroupStackName),
+						StackStatus: status,
+					},
+				},
+			}, nil).Once()
+			mp.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.Anything).Return(&cloudformation.DescribeStacksOutput{
+				Stacks: []cftypes.Stack{
+					{
+						StackName:   aws.String(nodeGroupStackName),
+						StackStatus: status,
+						Tags: []cftypes.Tag{
+							{
+								Key:   aws.String(api.NodeGroupNameTag),
+								Value: aws.String(nodeGroupStackName),
+							},
+							{
+								Key:   aws.String(api.ClusterNameTag),
+								Value: aws.String(clusterStackName),
+							},
+						},
+						Outputs: outputs,
+					},
+				},
+			}, nil).Once()
+		}
+	}
+)
 
 func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output, fullyPrivateCluster bool, controlPlaneOnOutposts bool) {
 	p.MockEC2().On("DescribeAvailabilityZones", mock.Anything, &ec2.DescribeAvailabilityZonesInput{
@@ -665,7 +896,7 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 	p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
 		StackSummaries: []cftypes.StackSummary{
 			{
-				StackName:   aws.String("eksctl-my-cluster-cluster"),
+				StackName:   aws.String(clusterStackName),
 				StackStatus: "CREATE_COMPLETE",
 			},
 		},
@@ -681,18 +912,18 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 	p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.Anything).Return(&cloudformation.DescribeStacksOutput{
 		Stacks: []cftypes.Stack{
 			{
-				StackName:   aws.String("eksctl-my-cluster-cluster"),
+				StackName:   aws.String(clusterStackName),
 				StackStatus: "CREATE_COMPLETE",
 				Tags: []cftypes.Tag{
 					{
 						Key:   aws.String(api.ClusterNameTag),
-						Value: aws.String("eksctl-my-cluster-cluster"),
+						Value: aws.String(clusterStackName),
 					},
 				},
 				Outputs: output,
 			},
 		},
-	}, nil)
+	}, nil).Once()
 
 	var outpostConfig *ekstypes.OutpostConfigResponse
 	if controlPlaneOnOutposts {
@@ -711,7 +942,7 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 			Arn:                     aws.String("arn"),
 			KubernetesNetworkConfig: nil,
 			Logging:                 nil,
-			Name:                    aws.String("my-cluster"),
+			Name:                    aws.String(clusterName),
 			PlatformVersion:         aws.String("1.22"),
 			ResourcesVpcConfig: &ekstypes.VpcConfigResponse{
 				ClusterSecurityGroupId: aws.String("csg-1234"),
@@ -723,7 +954,7 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 			},
 			Status: "CREATE_COMPLETE",
 			Tags: map[string]string{
-				api.ClusterNameTag: "eksctl-my-cluster-cluster",
+				api.ClusterNameTag: clusterStackName,
 			},
 			Version:       aws.String("1.22"),
 			OutpostConfig: outpostConfig,
@@ -762,8 +993,8 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 		},
 	}, nil)
 	p.MockCloudFormation().On("CreateStack", mock.Anything, mock.Anything).Return(&cloudformation.CreateStackOutput{
-		StackId: aws.String("eksctl-my-cluster-cluster"),
-	}, nil)
+		StackId: aws.String(clusterStackName),
+	}, nil).Once()
 }
 
 func mockOutposts(provider *mockprovider.MockProvider, outpostID string) {

@@ -270,8 +270,8 @@ func (c *ClusterProvider) waitForUpdateToSucceed(ctx context.Context, clusterNam
 	}, c.AWSProvider.WaitTimeout())
 }
 
-func controlPlaneIsVersion(clientSet *kubeclient.Clientset, version string) (bool, error) {
-	serverVersion, err := clientSet.ServerVersion()
+func controlPlaneIsVersion(clientSet kubeclient.Interface, version string) (bool, error) {
+	serverVersion, err := clientSet.Discovery().ServerVersion()
 	if err != nil {
 		return false, err
 	}
