@@ -60,7 +60,6 @@ var (
 		"cfn-role-arn",
 		"install-neuron-plugin",
 		"install-nvidia-plugin",
-		"profile",
 		"timeout",
 	}
 
