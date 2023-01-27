@@ -213,10 +213,8 @@ nodeGroups:
 ```
 
 !!!note
-    Only Amazon Linux 2 is supported for nodegroups when the control plane is on Outposts.
-
-!!!note
-    Only EBS gp2 volume types are supported for nodegroups on Outposts.
+    - Only Amazon Linux 2 is supported for nodegroups when the control plane is on Outposts.
+    - Only EBS gp2 volume types are supported for nodegroups on Outposts.
 
 
 ## Features unsupported on local clusters
