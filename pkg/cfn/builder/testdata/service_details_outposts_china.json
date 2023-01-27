@@ -1,0 +1,336 @@
+{
+    "ServiceDetails": [
+        {
+            "ServiceName": "cn.com.amazonaws.cn-north-1.ec2",
+            "ServiceId": "vpce-svc-1",
+            "ServiceType": [
+                {
+                    "ServiceType": "Interface"
+                }
+            ],
+            "AvailabilityZones": [
+                "cn-north-1a",
+                "cn-north-1b",
+                "cn-north-1c",
+                "cn-north-1d"
+            ],
+            "Owner": "amazon",
+            "BaseEndpointDnsNames": [
+                "ec2.cn-north-1.vpce.amazonaws.com.cn"
+            ],
+            "PrivateDnsName": "ec2.cn-north-1.amazonaws.com",
+            "PrivateDnsNames": [
+                {
+                    "PrivateDnsName": "ec2.cn-north-1.amazonaws.com"
+                },
+                {
+                    "PrivateDnsName": "ec2.cn-north-1.api.aws"
+                }
+            ],
+            "VpcEndpointPolicySupported": true,
+            "AcceptanceRequired": false,
+            "ManagesVpcEndpoints": false,
+            "Tags": [],
+            "PrivateDnsNameVerificationState": "verified",
+            "SupportedIpAddressTypes": [
+                "ipv4"
+            ]
+        },
+        {
+            "ServiceName": "com.amazonaws.cn-north-1.ec2messages",
+            "ServiceId": "vpce-svc-2",
+            "ServiceType": [
+                {
+                    "ServiceType": "Interface"
+                }
+            ],
+            "AvailabilityZones": [
+                "cn-north-1a",
+                "cn-north-1b",
+                "cn-north-1c",
+                "cn-north-1d"
+            ],
+            "Owner": "amazon",
+            "BaseEndpointDnsNames": [
+                "ec2messages.cn-north-1.vpce.amazonaws.com"
+            ],
+            "PrivateDnsName": "ec2messages.cn-north-1.amazonaws.com",
+            "PrivateDnsNames": [
+                {
+                    "PrivateDnsName": "ec2messages.cn-north-1.amazonaws.com"
+                }
+            ],
+            "VpcEndpointPolicySupported": true,
+            "AcceptanceRequired": false,
+            "ManagesVpcEndpoints": false,
+            "Tags": [],
+            "PrivateDnsNameVerificationState": "verified",
+            "SupportedIpAddressTypes": [
+                "ipv4"
+            ]
+        },
+        {
+            "ServiceName": "cn.com.amazonaws.cn-north-1.ecr.api",
+            "ServiceId": "vpce-svc-3",
+            "ServiceType": [
+                {
+                    "ServiceType": "Interface"
+                }
+            ],
+            "AvailabilityZones": [
+                "cn-north-1a",
+                "cn-north-1b",
+                "cn-north-1c",
+                "cn-north-1d"
+            ],
+            "Owner": "amazon",
+            "BaseEndpointDnsNames": [
+                "api.ecr.cn-north-1.vpce.amazonaws.com.cn"
+            ],
+            "PrivateDnsName": "api.ecr.cn-north-1.amazonaws.com",
+            "PrivateDnsNames": [
+                {
+                    "PrivateDnsName": "api.ecr.cn-north-1.amazonaws.com"
+                }
+            ],
+            "VpcEndpointPolicySupported": true,
+            "AcceptanceRequired": false,
+            "ManagesVpcEndpoints": false,
+            "Tags": [],
+            "PrivateDnsNameVerificationState": "verified",
+            "SupportedIpAddressTypes": [
+                "ipv4"
+            ]
+        },
+        {
+            "ServiceName": "cn.com.amazonaws.cn-north-1.ecr.dkr",
+            "ServiceId": "vpce-svc-4",
+            "ServiceType": [
+                {
+                    "ServiceType": "Interface"
+                }
+            ],
+            "AvailabilityZones": [
+                "cn-north-1a",
+                "cn-north-1b",
+                "cn-north-1c",
+                "cn-north-1d"
+            ],
+            "Owner": "amazon",
+            "BaseEndpointDnsNames": [
+                "dkr.ecr.cn-north-1.vpce.amazonaws.com.cn"
+            ],
+            "PrivateDnsName": "*.dkr.ecr.cn-north-1.amazonaws.com",
+            "PrivateDnsNames": [
+                {
+                    "PrivateDnsName": "*.dkr.ecr.cn-north-1.amazonaws.com"
+                }
+            ],
+            "VpcEndpointPolicySupported": true,
+            "AcceptanceRequired": false,
+            "ManagesVpcEndpoints": false,
+            "Tags": [],
+            "PrivateDnsNameVerificationState": "verified",
+            "SupportedIpAddressTypes": [
+                "ipv4"
+            ]
+        },
+        {
+            "ServiceName": "com.amazonaws.cn-north-1.s3",
+            "ServiceId": "vpce-svc-5",
+            "ServiceType": [
+                {
+                    "ServiceType": "Interface"
+                }
+            ],
+            "AvailabilityZones": [
+                "cn-north-1a",
+                "cn-north-1b",
+                "cn-north-1c",
+                "cn-north-1d"
+            ],
+            "Owner": "amazon",
+            "BaseEndpointDnsNames": [
+                "s3.cn-north-1.vpce.amazonaws.com"
+            ],
+            "VpcEndpointPolicySupported": true,
+            "AcceptanceRequired": false,
+            "ManagesVpcEndpoints": false,
+            "Tags": [],
+            "SupportedIpAddressTypes": [
+                "ipv4"
+            ]
+        },
+        {
+            "ServiceName": "com.amazonaws.cn-north-1.s3",
+            "ServiceId": "vpce-svc-6",
+            "ServiceType": [
+                {
+                    "ServiceType": "Gateway"
+                }
+            ],
+            "AvailabilityZones": [
+                "cn-north-1-lax-1a",
+                "cn-north-1-lax-1b",
+                "cn-north-1a",
+                "cn-north-1b",
+                "cn-north-1c",
+                "cn-north-1d"
+            ],
+            "Owner": "amazon",
+            "BaseEndpointDnsNames": [
+                "s3.cn-north-1.amazonaws.com"
+            ],
+            "VpcEndpointPolicySupported": true,
+            "AcceptanceRequired": false,
+            "ManagesVpcEndpoints": false,
+            "Tags": [],
+            "SupportedIpAddressTypes": [
+                "ipv4"
+            ]
+        },
+        {
+            "ServiceName": "com.amazonaws.cn-north-1.secretsmanager",
+            "ServiceId": "vpce-svc-7",
+            "ServiceType": [
+                {
+                    "ServiceType": "Interface"
+                }
+            ],
+            "AvailabilityZones": [
+                "cn-north-1a",
+                "cn-north-1b",
+                "cn-north-1c",
+                "cn-north-1d"
+            ],
+            "Owner": "amazon",
+            "BaseEndpointDnsNames": [
+                "secretsmanager.cn-north-1.vpce.amazonaws.com"
+            ],
+            "PrivateDnsName": "secretsmanager.cn-north-1.amazonaws.com",
+            "PrivateDnsNames": [
+                {
+                    "PrivateDnsName": "secretsmanager.cn-north-1.amazonaws.com"
+                }
+            ],
+            "VpcEndpointPolicySupported": true,
+            "AcceptanceRequired": false,
+            "ManagesVpcEndpoints": false,
+            "Tags": [],
+            "PrivateDnsNameVerificationState": "verified",
+            "SupportedIpAddressTypes": [
+                "ipv4"
+            ]
+        },
+        {
+            "ServiceName": "com.amazonaws.cn-north-1.ssm",
+            "ServiceId": "vpce-svc-8",
+            "ServiceType": [
+                {
+                    "ServiceType": "Interface"
+                }
+            ],
+            "AvailabilityZones": [
+                "cn-north-1a",
+                "cn-north-1b",
+                "cn-north-1c",
+                "cn-north-1d"
+            ],
+            "Owner": "amazon",
+            "BaseEndpointDnsNames": [
+                "ssm.cn-north-1.vpce.amazonaws.com"
+            ],
+            "PrivateDnsName": "ssm.cn-north-1.amazonaws.com",
+            "PrivateDnsNames": [
+                {
+                    "PrivateDnsName": "ssm.cn-north-1.amazonaws.com"
+                }
+            ],
+            "VpcEndpointPolicySupported": true,
+            "AcceptanceRequired": false,
+            "ManagesVpcEndpoints": false,
+            "Tags": [],
+            "PrivateDnsNameVerificationState": "verified",
+            "SupportedIpAddressTypes": [
+                "ipv4"
+            ]
+        },
+        {
+            "ServiceName": "com.amazonaws.cn-north-1.ssmmessages",
+            "ServiceId": "vpce-svc-9",
+            "ServiceType": [
+                {
+                    "ServiceType": "Interface"
+                }
+            ],
+            "AvailabilityZones": [
+                "cn-north-1a",
+                "cn-north-1b",
+                "cn-north-1c",
+                "cn-north-1d"
+            ],
+            "Owner": "amazon",
+            "BaseEndpointDnsNames": [
+                "ssmmessages.cn-north-1.vpce.amazonaws.com"
+            ],
+            "PrivateDnsName": "ssmmessages.cn-north-1.amazonaws.com",
+            "PrivateDnsNames": [
+                {
+                    "PrivateDnsName": "ssmmessages.cn-north-1.amazonaws.com"
+                }
+            ],
+            "VpcEndpointPolicySupported": true,
+            "AcceptanceRequired": false,
+            "ManagesVpcEndpoints": false,
+            "Tags": [],
+            "PrivateDnsNameVerificationState": "verified",
+            "SupportedIpAddressTypes": [
+                "ipv4"
+            ]
+        },
+        {
+            "ServiceName": "cn.com.amazonaws.cn-north-1.sts",
+            "ServiceId": "vpce-svc-10",
+            "ServiceType": [
+                {
+                    "ServiceType": "Interface"
+                }
+            ],
+            "AvailabilityZones": [
+                "cn-north-1a",
+                "cn-north-1b",
+                "cn-north-1c",
+                "cn-north-1d"
+            ],
+            "Owner": "amazon",
+            "BaseEndpointDnsNames": [
+                "sts.cn-north-1.vpce.amazonaws.com.cn"
+            ],
+            "PrivateDnsName": "sts.cn-north-1.amazonaws.com",
+            "PrivateDnsNames": [
+                {
+                    "PrivateDnsName": "sts.cn-north-1.amazonaws.com"
+                }
+            ],
+            "VpcEndpointPolicySupported": true,
+            "AcceptanceRequired": false,
+            "ManagesVpcEndpoints": false,
+            "Tags": [],
+            "PrivateDnsNameVerificationState": "verified",
+            "SupportedIpAddressTypes": [
+                "ipv4"
+            ]
+        }
+    ],
+    "ServiceNames": [
+      "cn.com.amazonaws.cn-north-1.ec2",
+      "cn.com.amazonaws.cn-north-1.ecr.api",
+      "cn.com.amazonaws.cn-north-1.ecr.dkr",
+      "com.amazonaws.cn-north-1.s3",
+      "cn.com.amazonaws.cn-north-1.sts",
+      "com.amazonaws.cn-north-1.ssm",
+      "com.amazonaws.cn-north-1.ssmmessages",
+      "com.amazonaws.cn-north-1.ec2messages",
+      "com.amazonaws.cn-north-1.secretsmanager"
+    ]
+}

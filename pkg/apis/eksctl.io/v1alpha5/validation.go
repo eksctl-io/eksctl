@@ -144,9 +144,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 			return err
 		}
 
-		if cfg.IsFullyPrivate() {
-			return errors.New("fully-private cluster (privateCluster.enabled) is not supported for Outposts")
-		}
 		if cfg.IPv6Enabled() {
 			return errors.New("IPv6 is not supported on Outposts")
 		}
@@ -463,7 +460,7 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 				return errors.New("privateCluster.additionalEndpointServices cannot be set when privateCluster.skipEndpointCreation is true")
 			}
 			if err := ValidateAdditionalEndpointServices(additionalEndpoints); err != nil {
-				return errors.Wrap(err, "invalid value in privateCluster.additionalEndpointServices")
+				return fmt.Errorf("invalid value in privateCluster.additionalEndpointServices: %w", err)
 			}
 		}
 
@@ -474,8 +471,10 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 			return errors.New("localZones cannot be used in a fully-private cluster")
 		}
 		// public access is initially enabled to allow running operations that access the Kubernetes API
-		c.VPC.ClusterEndpoints.PublicAccess = Enabled()
-		c.VPC.ClusterEndpoints.PrivateAccess = Enabled()
+		if !c.IsControlPlaneOnOutposts() {
+			c.VPC.ClusterEndpoints.PublicAccess = Enabled()
+			c.VPC.ClusterEndpoints.PrivateAccess = Enabled()
+		}
 	}
 	return nil
 }
@@ -487,7 +486,7 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 	}
 	if c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
 		if c.IPv6Enabled() {
-			return fmt.Errorf("service ipv4 cidr is not supported with IPv6")
+			return errors.New("service IPv4 CIDR is not supported with IPv6")
 		}
 		serviceIP := c.KubernetesNetworkConfig.ServiceIPv4CIDR
 		if _, _, err := net.ParseCIDR(serviceIP); serviceIP != "" && err != nil {

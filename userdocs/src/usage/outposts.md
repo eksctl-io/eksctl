@@ -57,8 +57,37 @@ When the control plane is on Outposts, nodegroups are created on that Outpost. Y
 !!!warning
     Local clusters support EKS 1.21 only. Support for newer versions will be added later.
 
-**NEW** Placement group support
-A placement group name can be specified in `controlPlanePlacement.groupName` to satisfy high-availability requirements according to your Outpost deployment topology. If a placement group is not specified, the default EC2 placement is used.
+
+!!!abstract "New"
+    [Fully-private cluster support](eks-private-cluster.md)
+    
+    eksctl now supports creating fully-private clusters on AWS Outposts.
+
+```yaml
+# outpost-fully-private.yaml
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: outpost-fully-private
+  region: us-west-2
+  version: "1.21"
+
+privateCluster:
+  enabled: true
+
+outpost:
+  # Required.
+  controlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
+  # Optional, defaults to the smallest available instance type on the Outpost.
+  controlPlaneInstanceType: m5d.large
+```
+
+!!!abstract "New"
+    **Placement group support**
+
+    A placement group name can be specified in `controlPlanePlacement.groupName` to satisfy high-availability requirements according to your Outpost deployment topology. If a placement group is not specified, the default EC2 placement is used.
 
 ```yaml
 # outpost.yaml
