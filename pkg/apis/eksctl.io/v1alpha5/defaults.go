@@ -7,6 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
@@ -78,7 +79,7 @@ func IAMServiceAccountsWithImplicitServiceAccounts(cfg *ClusterConfig) []*Cluste
 			awsNode := ClusterIAMServiceAccount{
 				ClusterIAMMeta: AWSNodeMeta,
 				AttachPolicyARNs: []string{
-					fmt.Sprintf("arn:%s:iam::aws:policy/%s", Partition(cfg.Metadata.Region), IAMPolicyAmazonEKSCNIPolicy),
+					fmt.Sprintf("arn:%s:iam::aws:policy/%s", Partitions.ForRegion(cfg.Metadata.Region), IAMPolicyAmazonEKSCNIPolicy),
 				},
 			}
 			serviceAccounts = append(serviceAccounts, &awsNode)

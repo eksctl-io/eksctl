@@ -200,7 +200,7 @@ func serviceEndpointTypeExpected(serviceName string, endpointType ec2types.Servi
 
 func makeServiceName(domain, region string, endpointService api.EndpointService) string {
 	serviceName := fmt.Sprintf("%s.%s", domain, endpointService.Name)
-	if endpointService.RequiresChinaPrefix && api.Partition(region) == api.PartitionChina {
+	if endpointService.RequiresChinaPrefix && api.Partitions.ForRegion(region) == api.PartitionChina {
 		serviceName = "cn." + serviceName
 	}
 	return serviceName

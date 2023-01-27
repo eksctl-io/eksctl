@@ -42,7 +42,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		api.SetClusterConfigDefaults(vc.clusterConfig)
 
 		if len(vc.clusterConfig.AvailabilityZones) == 0 {
-			switch api.Partition(vc.clusterConfig.Metadata.Region) {
+			switch api.Partitions.ForRegion(vc.clusterConfig.Metadata.Region) {
 			case api.PartitionAWS:
 				vc.clusterConfig.AvailabilityZones = []string{"us-west-2a", "us-west-2b", "us-west-2c", "us-west-2d"}
 			case api.PartitionChina:
