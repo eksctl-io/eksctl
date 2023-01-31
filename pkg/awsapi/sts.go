@@ -11,12 +11,11 @@ import (
 // STS provides an interface to the AWS STS service.
 type STS interface {
 	// Returns a set of temporary security credentials that you can use to access
-	// Amazon Web Services resources that you might not normally have access to. These
-	// temporary credentials consist of an access key ID, a secret access key, and a
-	// security token. Typically, you use AssumeRole within your account or for
-	// cross-account access. For a comparison of AssumeRole with other API operations
-	// that produce temporary credentials, see Requesting Temporary Security
-	// Credentials
+	// Amazon Web Services resources. These temporary credentials consist of an access
+	// key ID, a secret access key, and a security token. Typically, you use AssumeRole
+	// within your account or for cross-account access. For a comparison of AssumeRole
+	// with other API operations that produce temporary credentials, see Requesting
+	// Temporary Security Credentials
 	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html)
 	// and Comparing the Amazon Web Services STS API operations
 	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#stsapi_comparison)
@@ -432,16 +431,17 @@ type STS interface {
 	// Temporary credentials obtained by using the Amazon Web Services account root
 	// user credentials have a maximum duration of 3,600 seconds (1 hour). Permissions
 	// You can use the temporary credentials created by GetFederationToken in any
-	// Amazon Web Services service except the following:
+	// Amazon Web Services service with the following exceptions:
 	//
-	// * You cannot call any IAM
-	// operations using the CLI or the Amazon Web Services API.
+	// * You cannot call
+	// any IAM operations using the CLI or the Amazon Web Services API. This limitation
+	// does not apply to console sessions.
 	//
-	// * You cannot call any
-	// STS operations except GetCallerIdentity.
+	// * You cannot call any STS operations except
+	// GetCallerIdentity.
 	//
-	// You must pass an inline or managed
-	// session policy
+	// You can use temporary credentials for single sign-on (SSO)
+	// to the console. You must pass an inline or managed session policy
 	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session)
 	// to this operation. You can pass a single JSON policy document to use as an
 	// inline session policy. You can also specify up to 10 managed policy Amazon
