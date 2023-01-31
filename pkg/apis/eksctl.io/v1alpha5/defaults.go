@@ -105,8 +105,8 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta, controlPlaneOnOutpos
 		ng.AMIFamily = DefaultNodeImageFamily
 	}
 
-	setVolumeDefaults(ng.NodeGroupBase, controlPlaneOnOutposts, nil)
-	setDefaultsForAdditionalVolumes(ng.NodeGroupBase, controlPlaneOnOutposts)
+	setVolumeDefaults(ng.NodeGroupBase, controlPlaneOnOutposts, meta.Region, nil)
+	setDefaultsForAdditionalVolumes(ng.NodeGroupBase, controlPlaneOnOutposts, meta.Region)
 
 	if ng.SecurityGroups.WithLocal == nil {
 		ng.SecurityGroups.WithLocal = Enabled()
@@ -134,8 +134,8 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta, contro
 	ng.Tags[NodeGroupNameTag] = ng.Name
 	ng.Tags[NodeGroupTypeTag] = string(NodeGroupTypeManaged)
 
-	setVolumeDefaults(ng.NodeGroupBase, controlPlaneOnOutposts, ng.LaunchTemplate)
-	setDefaultsForAdditionalVolumes(ng.NodeGroupBase, controlPlaneOnOutposts)
+	setVolumeDefaults(ng.NodeGroupBase, controlPlaneOnOutposts, meta.Region, ng.LaunchTemplate)
+	setDefaultsForAdditionalVolumes(ng.NodeGroupBase, controlPlaneOnOutposts, meta.Region)
 }
 
 func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
@@ -178,9 +178,9 @@ func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 	}
 }
 
-func setVolumeDefaults(ng *NodeGroupBase, controlPlaneOnOutposts bool, template *LaunchTemplate) {
+func setVolumeDefaults(ng *NodeGroupBase, controlPlaneOnOutposts bool, region string, template *LaunchTemplate) {
 	if ng.VolumeType == nil {
-		ng.VolumeType = aws.String(getDefaultVolumeType(controlPlaneOnOutposts || ng.OutpostARN != ""))
+		ng.VolumeType = aws.String(getDefaultVolumeType(controlPlaneOnOutposts || ng.OutpostARN != "", region))
 	}
 	if ng.VolumeSize == nil && template == nil {
 		ng.VolumeSize = &DefaultNodeVolumeSize
@@ -206,10 +206,10 @@ func setVolumeDefaults(ng *NodeGroupBase, controlPlaneOnOutposts bool, template 
 	}
 }
 
-func setDefaultsForAdditionalVolumes(ng *NodeGroupBase, controlPlaneOnOutposts bool) {
+func setDefaultsForAdditionalVolumes(ng *NodeGroupBase, controlPlaneOnOutposts bool, region string) {
 	for i, av := range ng.AdditionalVolumes {
 		if av.VolumeType == nil {
-			ng.AdditionalVolumes[i].VolumeType = aws.String(getDefaultVolumeType(controlPlaneOnOutposts))
+			ng.AdditionalVolumes[i].VolumeType = aws.String(getDefaultVolumeType(controlPlaneOnOutposts, region))
 		}
 		if av.VolumeSize == nil {
 			ng.AdditionalVolumes[i].VolumeSize = &DefaultNodeVolumeSize
@@ -228,11 +228,11 @@ func setDefaultsForAdditionalVolumes(ng *NodeGroupBase, controlPlaneOnOutposts b
 	}
 }
 
-func getDefaultVolumeType(nodeGroupOnOutposts bool) string {
+func getDefaultVolumeType(nodeGroupOnOutposts bool, region string) string {
 	if nodeGroupOnOutposts {
 		return NodeVolumeTypeGP2
 	}
-	return DefaultNodeVolumeType
+	return defaultVolumeTypeForRegion(region)
 }
 
 func setContainerRuntimeDefault(ng *NodeGroup, clusterVersion string) {
