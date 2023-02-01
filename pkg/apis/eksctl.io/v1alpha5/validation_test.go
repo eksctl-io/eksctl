@@ -1733,6 +1733,17 @@ var _ = Describe("ClusterConfig validation", func() {
 	})
 
 	Describe("Bottlerocket node groups", func() {
+		It("returns an error if bottlerocket settings are used with incorrect amiFamily", func() {
+			ng := &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Bottlerocket: &api.NodeGroupBottlerocket{},
+				},
+			}
+			err := api.ValidateNodeGroup(0, ng, api.NewClusterConfig())
+			Expect(err).ToNot(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(`bottlerocket config can only be used with amiFamily "Bottlerocket"`)))
+		})
+
 		It("returns an error with unsupported fields", func() {
 			cmd := "/usr/bin/some-command"
 			doc := api.InlineDocument{
