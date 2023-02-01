@@ -10,6 +10,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-version"
+
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -110,7 +112,7 @@ var _ = BeforeSuite(func() {
 })
 var _ = Describe("(Integration) Update addons", func() {
 
-	Context(fmt.Sprintf("cluster with version %s", eksVersion), func() {
+	Context("update cluster and addons", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
 			config := NewConfig(params.Region)
 
@@ -119,8 +121,7 @@ var _ = Describe("(Integration) Update addons", func() {
 			Expect(config).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initNG)))
 		})
 
-		It(fmt.Sprintf("should upgrade the control plane to version %s", nextEKSVersion), func() {
-
+		It("should upgrade the control plane to the next version", func() {
 			cmd := params.EksctlUpgradeCmd.
 				WithArgs(
 					"cluster",
@@ -154,15 +155,17 @@ var _ = Describe("(Integration) Update addons", func() {
 			Expect(cmd).To(RunSuccessfully())
 
 			rawClient := getRawClient(context.Background())
-			kubernetesVersion, err := rawClient.ServerVersion()
-			Expect(err).NotTo(HaveOccurred())
 			Eventually(func() string {
 				daemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "kube-proxy", metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				kubeProxyVersion, err := addons.ImageTag(daemonSet.Spec.Template.Spec.Containers[0].Image)
 				Expect(err).NotTo(HaveOccurred())
-				return kubeProxyVersion
-			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(ContainSubstring(fmt.Sprintf("v%s-minimal-eksbuild.", kubernetesVersion)))
+				v, err := version.NewVersion(kubeProxyVersion)
+				Expect(err).NotTo(HaveOccurred())
+				segments := v.Segments()
+				Expect(len(segments)).To(BeNumerically(">=", 2))
+				return fmt.Sprintf("%d.%d", segments[0], segments[1])
+			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextEKSVersion))
 		})
 
 		It("should upgrade aws-node", func() {
