@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"sigs.k8s.io/yaml"
 )
 
 // Addon holds the EKS addon configuration
@@ -60,7 +61,11 @@ func (a Addon) Validate() error {
 	}
 
 	if err := a.validateConfigurationValuesIsJSON(); err != nil {
-		return fmt.Errorf("%s is not a valid JSON", a.ConfigurationValues)
+		if configurationValues, err := yaml.YAMLToJSONStrict([]byte(a.ConfigurationValues)); err != nil {
+			return fmt.Errorf("%s is not a valid JSON nor a valid YAML", a.ConfigurationValues)
+		} else {
+			a.ConfigurationValues = string(configurationValues)
+		}
 	}
 
 	return a.checkOnlyOnePolicyProviderIsSet()
