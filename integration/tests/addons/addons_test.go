@@ -376,6 +376,18 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			Expect(cmd).To(RunSuccessfully())
 
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "coredns",
+						"--cluster", clusterName,
+						"--verbose", "2",
+						"--region", params.Region,
+					)
+				return cmd
+			}, "5m", "30s").ShouldNot(RunSuccessfully())
+
 			By("successfully creating an addon with configuration values")
 			clusterConfig := getInitialClusterConfig()
 			clusterConfig.Addons = []*api.Addon{
