@@ -1740,7 +1740,6 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 			err := api.ValidateNodeGroup(0, ng, api.NewClusterConfig())
-			Expect(err).ToNot(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring(`bottlerocket config can only be used with amiFamily "Bottlerocket"`)))
 		})
 
