@@ -146,6 +146,10 @@ func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamCo
 		cfnTemplate.attachAllowPolicy("PolicyXRay", refIR, xRayStatements())
 	}
 
+	if api.IsEnabled(iamConfig.WithAddonPolicies.CloudWatch) {
+		cfnTemplate.attachAllowPolicy("PolicyCloudWatch", refIR, cloudwatchStatements())
+	}
+
 	return nil
 }
 

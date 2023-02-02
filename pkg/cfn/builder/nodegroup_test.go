@@ -525,6 +525,20 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					Expect(isRefTo(ngTemplate.Resources["PolicyXRay"].Properties.Roles[0], "NodeInstanceRole")).To(BeTrue())
 				})
 			})
+
+			Context("ng.WithAddonPolicies.CloudWatch is set", func() {
+				BeforeEach(func() {
+					ng.IAM.WithAddonPolicies.CloudWatch = aws.Bool(true)
+				})
+
+				It("adds PolicyCloudWatch to the role", func() {
+					Expect(ngTemplate.Resources).To(HaveKey("PolicyCloudWatch"))
+
+					Expect(ngTemplate.Resources["PolicyCloudWatch"].Properties.Roles).To(HaveLen(1))
+					Expect(isRefTo(ngTemplate.Resources["PolicyCloudWatch"].Properties.Roles[0], "NodeInstanceRole")).To(BeTrue())
+				})
+			})
+
 			// TODO end
 		})
 
