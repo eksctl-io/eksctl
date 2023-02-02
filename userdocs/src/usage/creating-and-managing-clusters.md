@@ -117,6 +117,13 @@ eksctl delete cluster -f cluster.yaml
     In some cases, AWS resources using the cluster or its VPC may cause cluster deletion to fail. To ensure any deletion errors are propagated in `eksctl delete cluster`, the `--wait` flag must be used.
     If your delete fails or you forget the wait flag, you may have to go to the CloudFormation GUI and delete the eks stacks from there.
 
+!!! note
+    When deleting a cluster with nodegroups, in some scenarios, Pod Disruption Budget (PDB) policies can prevent nodes from being removed successfully from nodepools. E.g. a cluster with `aws-ebs-csi-driver` installed, by default, spins off two pods while having a PDB policy that allows at most one pod to be unavailable at a time. This will make the other pod unevictable during deletion. To successfully delete the cluster, one should use `disable-nodegroup-eviction` flag. This will bypass checking PDB policies.
+
+    ```
+    eksctl delete cluster -f cluster.yaml --disable-nodegroup-eviction
+    ```
+
 See [`examples/`](https://github.com/weaveworks/eksctl/tree/master/examples) directory for more sample config files.
 
 ## Dry Run
