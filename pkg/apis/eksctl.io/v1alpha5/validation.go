@@ -208,19 +208,7 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 
 // ValidateClusterVersion validates the cluster version.
 func ValidateClusterVersion(clusterConfig *ClusterConfig) error {
-	clusterVersion := clusterConfig.Metadata.Version
-	if clusterConfig.IsControlPlaneOnOutposts() {
-		switch clusterVersion {
-		case "":
-			return fmt.Errorf("cluster version must be explicitly set to %[1]s for Outposts clusters as only version %[1]s is currently supported", Version1_21)
-		case Version1_21:
-			return nil
-		default:
-			return fmt.Errorf("only version %s is supported on Outposts", Version1_21)
-		}
-	}
-
-	if clusterVersion != "" && clusterVersion != DefaultVersion && !IsSupportedVersion(clusterVersion) {
+	if clusterVersion := clusterConfig.Metadata.Version; clusterVersion != "" && clusterVersion != DefaultVersion && !IsSupportedVersion(clusterVersion) {
 		if IsDeprecatedVersion(clusterVersion) {
 			return fmt.Errorf("invalid version, %s is no longer supported, supported values: %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", clusterVersion, strings.Join(SupportedVersions(), ", "))
 		}
