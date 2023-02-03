@@ -762,6 +762,11 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		}
 	}
 
+	if ng.Bottlerocket != nil && ng.AMIFamily != NodeImageFamilyBottlerocket {
+		return fmt.Errorf(`bottlerocket config can only be used with amiFamily "Bottlerocket" but found "%s" (path=%s.bottlerocket)`,
+			ng.AMIFamily, path)
+	}
+
 	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyBottlerocket && !IsWindowsImage(ng.AMIFamily) {
 		return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI (%[1]s.ami)", path)
 	}
@@ -778,11 +783,6 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		if err := validateNodeGroupSSH(ng.SSH); err != nil {
 			return err
 		}
-	}
-
-	if ng.Bottlerocket != nil && ng.AMIFamily != NodeImageFamilyBottlerocket {
-		return fmt.Errorf(`bottlerocket config can only be used with amiFamily "Bottlerocket" but found %s (path=%s.bottlerocket)`,
-			ng.AMIFamily, path)
 	}
 
 	if IsWindowsImage(ng.AMIFamily) || ng.AMIFamily == NodeImageFamilyBottlerocket {
