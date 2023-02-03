@@ -150,7 +150,7 @@ const (
 	// RegionAPSouth1 represents the Asia-Pacific South Region Mumbai
 	RegionAPSouth1 = "ap-south-1"
 
-	// RegionAPSouth2 represents the Asia-Pacific Hyderabad
+	// RegionAPSouth2 represents the Asia-Pacific South Region Hyderabad
 	RegionAPSouth2 = "ap-south-2"
 
 	// RegionAPEast1 represents the Asia Pacific Region Hong Kong
