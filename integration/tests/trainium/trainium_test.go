@@ -187,7 +187,7 @@ var _ = AfterSuite(func() {
 	os.RemoveAll(params.TestDirectory)
 })
 
-func newClientSet(name string) *kubernetes.Clientset {
+func newClientSet(name string) kubernetes.Interface {
 	cfg := &api.ClusterConfig{
 		Metadata: &api.ClusterMeta{
 			Name:   name,

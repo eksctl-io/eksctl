@@ -25,14 +25,14 @@ theme:
           icon: fontawesome/solid/moon
           name: Switch to dark mode
         primary: white
-        accent: blue
+        accent: indigo
       - media: "(prefers-color-scheme: dark)"
         scheme: slate
         toggle:
           icon: material/weather-sunny
           name: Switch to light mode
         primary: black
-        accent: blue
+        accent: indigo
     highlightjs: true
     hljs_languages:
         - yaml
@@ -48,18 +48,29 @@ theme:
       - search.suggest
       - content.code.annotate
       - content.tooltips
+      - content.tabs.link
+      - content.code.copy
     
 # Plugins
 plugins:
   - search
+  - glightbox
   - minify:
       minify_html: true
 
 # Customization
 extra:
     social:
+    - icon: fontawesome/brands/facebook
+      link: https://www.facebook.com/WeaveworksInc/
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/weaveworks
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/weaveworks
+    - icon: fontawesome/brands/slack
+      link: https://slack.weave.works/
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/c/WeaveWorksInc
     analytics:
       provider: google
       property: G-EQKYCQY5Q
@@ -78,6 +89,8 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tasklist:
       custom_checkbox: true
+  - attr_list
+  - md_in_html
 
 # Page tree
 nav:

@@ -48,7 +48,7 @@ build: generate-always binary ## Generate, lint and build eksctl binary for curr
 
 .PHONY: binary
 binary: ## Build eksctl binary for current OS and place it at ./eksctl
-	CGO_ENABLED=0 go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).buildDate=$(build_date)" ./cmd/eksctl
+	CGO_ENABLED=0 go build -ldflags "-s -w -X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).buildDate=$(build_date)" ./cmd/eksctl
 
 
 .PHONY: build-all

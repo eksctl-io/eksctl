@@ -84,7 +84,7 @@ func (c *Client) NewClientSet() (*kubernetes.Clientset, error) {
 }
 
 // NewStdClientSet creates a new API client.
-func (c *KubernetesProvider) NewStdClientSet(clusterInfo kubeconfig.ClusterInfo) (*kubernetes.Clientset, error) {
+func (c *KubernetesProvider) NewStdClientSet(clusterInfo kubeconfig.ClusterInfo) (kubernetes.Interface, error) {
 	_, clientSet, err := c.newClientSet(clusterInfo)
 	if err != nil {
 		return nil, err
