@@ -75,6 +75,36 @@ func (_m *CloudTrail) CancelQuery(ctx context.Context, params *cloudtrail.Cancel
 	return r0, r1
 }
 
+// CreateChannel provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) CreateChannel(ctx context.Context, params *cloudtrail.CreateChannelInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.CreateChannelOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.CreateChannelOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.CreateChannelInput, ...func(*cloudtrail.Options)) *cloudtrail.CreateChannelOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.CreateChannelOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.CreateChannelInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateEventDataStore provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) CreateEventDataStore(ctx context.Context, params *cloudtrail.CreateEventDataStoreInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.CreateEventDataStoreOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -135,6 +165,36 @@ func (_m *CloudTrail) CreateTrail(ctx context.Context, params *cloudtrail.Create
 	return r0, r1
 }
 
+// DeleteChannel provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) DeleteChannel(ctx context.Context, params *cloudtrail.DeleteChannelInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.DeleteChannelOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.DeleteChannelOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.DeleteChannelInput, ...func(*cloudtrail.Options)) *cloudtrail.DeleteChannelOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.DeleteChannelOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.DeleteChannelInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteEventDataStore provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) DeleteEventDataStore(ctx context.Context, params *cloudtrail.DeleteEventDataStoreInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.DeleteEventDataStoreOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -157,6 +217,36 @@ func (_m *CloudTrail) DeleteEventDataStore(ctx context.Context, params *cloudtra
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.DeleteEventDataStoreInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteResourcePolicy provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) DeleteResourcePolicy(ctx context.Context, params *cloudtrail.DeleteResourcePolicyInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.DeleteResourcePolicyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.DeleteResourcePolicyOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.DeleteResourcePolicyInput, ...func(*cloudtrail.Options)) *cloudtrail.DeleteResourcePolicyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.DeleteResourcePolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.DeleteResourcePolicyInput, ...func(*cloudtrail.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -457,6 +547,36 @@ func (_m *CloudTrail) GetQueryResults(ctx context.Context, params *cloudtrail.Ge
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.GetQueryResultsInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetResourcePolicy provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) GetResourcePolicy(ctx context.Context, params *cloudtrail.GetResourcePolicyInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.GetResourcePolicyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.GetResourcePolicyOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetResourcePolicyInput, ...func(*cloudtrail.Options)) *cloudtrail.GetResourcePolicyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GetResourcePolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.GetResourcePolicyInput, ...func(*cloudtrail.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -855,6 +975,36 @@ func (_m *CloudTrail) PutInsightSelectors(ctx context.Context, params *cloudtrai
 	return r0, r1
 }
 
+// PutResourcePolicy provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) PutResourcePolicy(ctx context.Context, params *cloudtrail.PutResourcePolicyInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.PutResourcePolicyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.PutResourcePolicyOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.PutResourcePolicyInput, ...func(*cloudtrail.Options)) *cloudtrail.PutResourcePolicyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.PutResourcePolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.PutResourcePolicyInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RegisterOrganizationDelegatedAdmin provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) RegisterOrganizationDelegatedAdmin(ctx context.Context, params *cloudtrail.RegisterOrganizationDelegatedAdminInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.RegisterOrganizationDelegatedAdminOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1087,6 +1237,36 @@ func (_m *CloudTrail) StopLogging(ctx context.Context, params *cloudtrail.StopLo
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.StopLoggingInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateChannel provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) UpdateChannel(ctx context.Context, params *cloudtrail.UpdateChannelInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.UpdateChannelOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.UpdateChannelOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.UpdateChannelInput, ...func(*cloudtrail.Options)) *cloudtrail.UpdateChannelOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.UpdateChannelOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.UpdateChannelInput, ...func(*cloudtrail.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)

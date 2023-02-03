@@ -1,18 +1,5 @@
 ## Getting started
 
-_Need help? Join [Weave Community Slack][slackjoin]._
-[slackjoin]: https://slack.weave.works/
-
-### Listing clusters
-
-To list the details about a cluster or all of the clusters, use:
-
-```
-
-eksctl get cluster [--name=<name>][--region=<region>]
-
-```
-
 ### Basic cluster creation
 
 To create a basic cluster, but with a different name, run:
@@ -29,6 +16,16 @@ With `eksctl` you can deploy any of the supported versions by passing `--version
 ```
 
 eksctl create cluster --version=1.24
+
+```
+
+### Listing clusters
+
+To list the details about a cluster or all of the clusters, use:
+
+```
+
+eksctl get cluster [--name=<name>][--region=<region>]
 
 ```
 
@@ -188,6 +185,9 @@ eksctl delete cluster --name=<name> [--region=<region>]
 ## Contributions
 
 Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](https://github.com/weaveworks/eksctl/blob/master/CONTRIBUTING.md).
+
+_Need help? Join [Weave Community Slack][slackjoin]._
+[slackjoin]: https://slack.weave.works/
 
 
 ## Installation
