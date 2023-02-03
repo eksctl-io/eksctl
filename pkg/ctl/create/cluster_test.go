@@ -26,19 +26,19 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
-	karpenterfakes "github.com/weaveworks/eksctl/pkg/actions/karpenter/fakes"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 
+	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
+	karpenterfakes "github.com/weaveworks/eksctl/pkg/actions/karpenter/fakes"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
-	"github.com/weaveworks/eksctl/pkg/ctl/ctltest"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/fakes"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -233,50 +233,6 @@ var _ = Describe("create cluster", func() {
 
 		expectedErr string
 	}
-
-	Describe("[Outposts] cluster version issues", func() {
-		Describe("version not set", func() {
-			It("should return an error", func() {
-				cfg := &api.ClusterConfig{
-					TypeMeta: api.ClusterConfigTypeMeta(),
-					Metadata: &api.ClusterMeta{
-						Name:    "cluster-1",
-						Region:  "us-west-2",
-						Version: "",
-					},
-					Outpost: &api.Outpost{
-						ControlPlaneOutpostARN: outpostARN,
-					},
-				}
-
-				cmd := newDefaultCmd("cluster", "--config-file", ctltest.CreateConfigFile(cfg))
-				_, err := cmd.execute()
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring("cluster version must be explicitly set to 1.21 for Outposts clusters as only version 1.21 is currently supported")))
-			})
-		})
-
-		Describe("version set to unsupported version", func() {
-			It("should return an error", func() {
-				cfg := &api.ClusterConfig{
-					TypeMeta: api.ClusterConfigTypeMeta(),
-					Metadata: &api.ClusterMeta{
-						Name:    "cluster-1",
-						Region:  "us-west-2",
-						Version: "1.22",
-					},
-					Outpost: &api.Outpost{
-						ControlPlaneOutpostARN: outpostARN,
-					},
-				}
-
-				cmd := newDefaultCmd("cluster", "--config-file", ctltest.CreateConfigFile(cfg))
-				_, err := cmd.execute()
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring("only version 1.21 is supported on Outposts")))
-			})
-		})
-	})
 
 	DescribeTable("doCreateCluster", func(ce createClusterEntry) {
 		p := mockprovider.NewMockProvider()
@@ -551,7 +507,6 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] control plane on Outposts with valid config", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
-				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN: outpostARN,
 				}
@@ -561,7 +516,6 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] unavailable instance type specified for the control plane", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
-				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN:   outpostARN,
 					ControlPlaneInstanceType: "t2.medium",
@@ -574,7 +528,6 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] available instance type specified for the control plane", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
-				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN:   outpostARN,
 					ControlPlaneInstanceType: "m5.xlarge",
@@ -585,7 +538,6 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] nodegroups specified when the VPC will be created by eksctl", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
-				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN: outpostARN,
 				}
@@ -600,7 +552,6 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] nodegroups specified on Outposts but the control plane is not on Outposts", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
-				c.Metadata.Version = api.Version1_21
 				ng := api.NewNodeGroup()
 				ng.OutpostARN = outpostARN
 				c.NodeGroups = []*api.NodeGroup{ng}
@@ -613,7 +564,6 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] nodegroups specified when the VPC will be created by eksctl, but with --without-nodegroup", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
-				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN: outpostARN,
 				}
@@ -629,7 +579,6 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] specified Outpost does not exist", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
-				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN: outpostARN,
 				}
@@ -644,7 +593,6 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] specified Outpost placement group does not exist", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
-				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN: outpostARN,
 					ControlPlanePlacement: &api.Placement{
@@ -666,7 +614,6 @@ var _ = Describe("create cluster", func() {
 
 		Entry("[Outposts] valid Outpost placement group specified", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
-				c.Metadata.Version = api.Version1_21
 				c.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN: outpostARN,
 					ControlPlanePlacement: &api.Placement{
