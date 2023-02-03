@@ -44,7 +44,7 @@ var _ = BeforeSuite(func() {
 	cfg := NewConfig(params.Region)
 	ssm := awsssm.NewFromConfig(cfg)
 	input := &awsssm.GetParameterInput{
-		Name: aws.String("/aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/image_id"),
+		Name: aws.String("/aws/service/eks/optimized-ami/1.22/amazon-linux-2/recommended/image_id"),
 	}
 	output, err := ssm.GetParameter(context.Background(), input)
 	Expect(err).NotTo(HaveOccurred())
