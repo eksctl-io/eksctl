@@ -140,11 +140,19 @@ var _ = Describe("ClusterConfig validation", func() {
 	})
 
 	Describe("nodeGroups[*].ami validation", func() {
+		It("should require ami family if ami is set", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMI = "ami-1234"
+			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(MatchError(ContainSubstring("when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag")))
+		})
 		It("should require overrideBootstrapCommand if ami is set", func() {
 			cfg := api.NewClusterConfig()
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "node-group"
 			ng0.AMI = "ami-1234"
+			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2
 			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(MatchError(ContainSubstring("overrideBootstrapCommand is required when using a custom AMI ")))
 		})
 		It("should not require overrideBootstrapCommand if ami is set and type is Bottlerocket", func() {
@@ -177,6 +185,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "node-group"
 			ng0.AMI = "ami-1234"
+			ng0.AMIFamily = api.DefaultNodeImageFamily
 			ng0.OverrideBootstrapCommand = aws.String("echo 'yo'")
 			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(Succeed())
 		})
