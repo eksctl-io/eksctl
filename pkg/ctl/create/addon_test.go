@@ -27,7 +27,7 @@ var _ = Describe("create addon", func() {
 		It("should return an error", func() {
 			cmd := newDefaultCmd("addon", "--config-file", ctltest.CreateConfigFile(cfg))
 			_, err := cmd.execute()
-			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("%s is not in valid JSON or YAML format", cfg.Addons[0].ConfigurationValues))))
+			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("%s is not valid in JSON nor in other supported format", cfg.Addons[0].ConfigurationValues))))
 		})
 	})
 })
