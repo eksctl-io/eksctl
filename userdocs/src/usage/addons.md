@@ -133,7 +133,14 @@ eksctl utils describe-addon-configuration --name vpc-cni --version v1.12.0-eksbu
 This returns a JSON schema of the various options available for this addon.
 
 ## Working with configuration values
-These previously discovered options can be configured by passing the `ConfigurationValues` field to the configuration file, and then used with either addon create or update commands. For the moment, all the options the user wants to configure will be passed together in the format of a JSON string, e.g.
+These previously discovered options can be configured by passing the `ConfigurationValues` field to the configuration file, and then used with either addon create or update commands. For the moment, all the options the user wants to configure will be passed together in the format of a JSON or YAML string, e.g.
+
+```yaml
+addons:
+- name: coredns
+  configurationValues: |-
+    replicaCount: 2
+```
 
 ```yaml
 addons:
