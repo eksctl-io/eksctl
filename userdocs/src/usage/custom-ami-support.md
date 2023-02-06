@@ -79,6 +79,9 @@ managedNodeGroups:
 
 The `--node-ami-family` flag can also be used with `eksctl create nodegroup`.
 
+!!! note
+  To ensure consistent behaviour through various validations, eksctl requires AMI Family to be explicitly set via config file or via `--node-ami-family` CLI flag, whenever working with a custom AMI.
+
 ## Bottlerocket custom AMI support
 
 For Bottlerocket nodes, the `overrideBootstrapCommand` is not supported. Instead, to designate their own bootstrap container, one should use the `bottlerocket` field as part of the configuration file. E.g.
