@@ -62,7 +62,7 @@ func (a Addon) Validate() error {
 
 	if err := a.validateConfigurationValuesIsJSON(); err != nil {
 		if configurationValues, err := yaml.YAMLToJSONStrict([]byte(a.ConfigurationValues)); err != nil {
-			return fmt.Errorf("%s is not a valid JSON nor a valid YAML", a.ConfigurationValues)
+			return fmt.Errorf("%s is not in valid JSON or YAML format", a.ConfigurationValues)
 		} else {
 			a.ConfigurationValues = string(configurationValues)
 		}

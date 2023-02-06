@@ -16,18 +16,18 @@ var _ = Describe("Addon", func() {
 			})
 		})
 
-		When("specifying an invalid json", func() {
+		When("specifying an invalid json and invalid yaml", func() {
 			It("errors", func() {
 				err := v1alpha5.Addon{
 					Name:                "name",
 					Version:             "version",
-					ConfigurationValues: "not a json",
+					ConfigurationValues: "@not a json not a yaml",
 				}.Validate()
-				Expect(err).To(MatchError(ContainSubstring("is not a valid JSON")))
+				Expect(err).To(MatchError(ContainSubstring("is not in valid JSON or YAML format")))
 			})
 		})
 
-		DescribeTable("specifying a valid json",
+		DescribeTable("specifying a valid json or yaml",
 			func(configurationValues string) {
 				err := v1alpha5.Addon{
 					Name:                "name",
@@ -39,6 +39,7 @@ var _ = Describe("Addon", func() {
 			Entry("empty string", ""),
 			Entry("empty json", "{}"),
 			Entry("non-empty json", "{\"replicaCount\":3}"),
+			Entry("non-empty yaml", "replicaCount: 3"),
 		)
 
 		When("specifying more than one of serviceAccountRoleARN, attachPolicyARNs, attachPolicy", func() {

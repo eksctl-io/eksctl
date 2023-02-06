@@ -20,14 +20,14 @@ var _ = Describe("create addon", func() {
 			Addons: []*api.Addon{
 				{
 					Name:                "core-dns",
-					ConfigurationValues: "not a json",
+					ConfigurationValues: "@not a json not a yaml",
 				},
 			},
 		}
 		It("should return an error", func() {
 			cmd := newDefaultCmd("addon", "--config-file", ctltest.CreateConfigFile(cfg))
 			_, err := cmd.execute()
-			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("%s is not a valid JSON", cfg.Addons[0].ConfigurationValues))))
+			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("%s is not in valid JSON or YAML format", cfg.Addons[0].ConfigurationValues))))
 		})
 	})
 })
