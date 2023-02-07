@@ -124,7 +124,7 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta, contro
 	// When using custom AMIs, we want the user to explicitly specify AMI family.
 	// Thus, we only setup default AMI family when no custom AMI is being used.
 	if ng.AMIFamily == "" && ng.AMI == "" {
-		ng.AMIFamily = DefaultNodeImageFamily
+		ng.AMIFamily = NodeImageFamilyAmazonLinux2
 	}
 
 	if ng.Tags == nil {
