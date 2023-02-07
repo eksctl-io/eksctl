@@ -77,10 +77,7 @@ managedNodeGroups:
     amiFamily: Ubuntu2004
 ```
 
-The `--node-ami-family` flag can also be used with `eksctl create nodegroup`.
-
-!!! note
-  To ensure consistent behaviour through various validations, eksctl requires AMI Family to be explicitly set via config file or via `--node-ami-family` CLI flag, whenever working with a custom AMI.
+The `--node-ami-family` flag can also be used with `eksctl create nodegroup`. `eksctl` requires AMI Family to be explicitly set via config file or via `--node-ami-family` CLI flag, whenever working with a custom AMI.
 
 ## Bottlerocket custom AMI support
 
