@@ -28,7 +28,7 @@ jobs:
           EDITOR=true git merge --continue
           ! git diff --exit-code $DEFAULT_BRANCH...HEAD || exit 1
           git push --set-upstream origin HEAD
-      - uses: actions/github-script@v6.3.3
+      - uses: actions/github-script@v6.4.0
         name: Open PR to ${{env.DEFAULT_BRANCH}}
         with:
           github-token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}

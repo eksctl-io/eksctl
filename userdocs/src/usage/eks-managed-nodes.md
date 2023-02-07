@@ -142,6 +142,38 @@ managedNodeGroups:
       /etc/eks/bootstrap.sh managed-cluster --kubelet-extra-args '--node-labels=eks.amazonaws.com/nodegroup=custom-ng,eks.amazonaws.com/nodegroup-image=ami-0e124de4755b2734d'
 ```
 
+If you are requesting an instance type that is only available in one zone (and the eksctl config requires
+specification of two) make sure to add the availability zone to your node group request:
+
+
+```yaml
+# cluster.yaml
+# A cluster with a managed nodegroup with "availabilityZones"
+---
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: flux-cluster
+  region: us-east-2
+  version: "1.23"
+ 
+availabilityZones: ["us-east-2b", "us-east-2c"]
+managedNodeGroups:
+  - name: workers
+    instanceType: hpc6a.48xlarge
+    minSize: 64
+    maxSize: 64
+    labels: { "fluxoperator": "true" }
+    availabilityZones: ["us-east-2b"]   
+    efaEnabled: true
+    placement:
+      groupName: eks-efa-testing
+```
+
+This can be true for instance types like [the Hpc6 family](https://aws.amazon.com/ec2/instance-types/hpc6/) that are only available
+in one zone.
 
 ### Existing clusters
 
