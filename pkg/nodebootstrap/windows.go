@@ -64,6 +64,10 @@ func (b *Windows) makeBootstrapParams() string {
 			key:   "Base64ClusterCA",
 			value: base64.StdEncoding.EncodeToString(b.clusterConfig.Status.CertificateAuthorityData),
 		},
+		{
+			key:   "ServiceCIDR",
+			value: b.clusterConfig.Status.KubernetesNetworkConfig.ServiceIPv4CIDR,
+		},
 	}
 	if unmanaged, ok := b.np.(*api.NodeGroup); ok {
 		// DNSClusterIP is only configurable for self-managed nodegroups.
