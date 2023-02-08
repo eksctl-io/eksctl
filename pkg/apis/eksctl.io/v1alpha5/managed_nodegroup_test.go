@@ -48,10 +48,19 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				},
 			},
 		}),
-		Entry("Custom AMI without overrideBootstrapCommand", &nodeGroupCase{
+		Entry("Custom AMI without AMI Family", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
 				NodeGroupBase: &NodeGroupBase{
 					AMI: "ami-custom",
+				},
+			},
+			errMsg: "when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag",
+		}),
+		Entry("Custom AMI without overrideBootstrapCommand", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMI:       "ami-custom",
+					AMIFamily: DefaultNodeImageFamily,
 				},
 			},
 			errMsg: "overrideBootstrapCommand is required when using a custom AMI",
@@ -78,6 +87,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 			ng: &ManagedNodeGroup{
 				NodeGroupBase: &NodeGroupBase{
 					AMI:                      "ami-custom",
+					AMIFamily:                DefaultNodeImageFamily,
 					OverrideBootstrapCommand: aws.String(`bootstrap.sh`),
 				},
 			},
