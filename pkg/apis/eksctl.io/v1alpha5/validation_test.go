@@ -185,7 +185,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "node-group"
 			ng0.AMI = "ami-1234"
-			ng0.AMIFamily = api.DefaultNodeImageFamily
+			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2
 			ng0.OverrideBootstrapCommand = aws.String("echo 'yo'")
 			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(Succeed())
 		})
