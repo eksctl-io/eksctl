@@ -18,7 +18,7 @@ INSTANCE_ID="$(get_metadata instance-id)"
 INSTANCE_LIFECYCLE="$(get_metadata instance-life-cycle)"
 CLUSTER_DNS="${CLUSTER_DNS:-}"
 NODE_TAINTS="${NODE_TAINTS:-}"
-MAX_PODS="${MAX_PODS:-}"
+MAX_PODS="${MAX_PODS:-110}"
 NODE_LABELS="${NODE_LABELS},node-lifecycle=${INSTANCE_LIFECYCLE},alpha.eksctl.io/instance-id=${INSTANCE_ID}"
 
 KUBELET_ARGS=("--node-labels=${NODE_LABELS}")
