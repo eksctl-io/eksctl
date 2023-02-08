@@ -101,7 +101,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 					Name:         "custom-ami",
 					InstanceType: "m5.xlarge",
 					AMI:          "ami-custom",
-					AMIFamily:    api.DefaultNodeImageFamily,
+					AMIFamily:    api.NodeImageFamilyAmazonLinux2,
 					OverrideBootstrapCommand: aws.String(`
 #!/bin/bash
 set -ex
