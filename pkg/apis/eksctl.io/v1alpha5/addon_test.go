@@ -8,7 +8,7 @@ import (
 )
 
 var _ = Describe("Addon", func() {
-	Describe("Validate", func() {
+	Describe("Validating configuration", func() {
 		When("name is not set", func() {
 			It("errors", func() {
 				err := v1alpha5.Addon{}.Validate()
@@ -16,18 +16,20 @@ var _ = Describe("Addon", func() {
 			})
 		})
 
-		When("specifying an invalid json and invalid yaml", func() {
-			It("errors", func() {
+		DescribeTable("when configurationValues is in invalid format",
+			func(configurationValues string) {
 				err := v1alpha5.Addon{
 					Name:                "name",
 					Version:             "version",
-					ConfigurationValues: "@not a json not a yaml",
+					ConfigurationValues: configurationValues,
 				}.Validate()
 				Expect(err).To(MatchError(ContainSubstring("is not valid in JSON nor in other supported format")))
-			})
-		})
+			},
+			Entry("non-empty string", "this a string not an object"),
+			Entry("invalid yaml", "\"replicaCount: 1"),
+		)
 
-		DescribeTable("specifying a valid json or yaml",
+		DescribeTable("when configurationValues is in valid format",
 			func(configurationValues string) {
 				err := v1alpha5.Addon{
 					Name:                "name",
