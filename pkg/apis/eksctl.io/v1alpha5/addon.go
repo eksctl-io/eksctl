@@ -60,7 +60,7 @@ func (a Addon) Validate() error {
 		return fmt.Errorf("name required")
 	}
 
-	if err := a.validateConfigurationValuesIsJSON(); err != nil {
+	if !json.Valid([]byte(a.ConfigurationValues)) {
 		if err := a.convertConfigurationValuesToJSON(); err != nil {
 			return fmt.Errorf("%s is not valid in JSON nor in other supported format(s): YAML", a.ConfigurationValues)
 		}
@@ -69,18 +69,14 @@ func (a Addon) Validate() error {
 	return a.checkOnlyOnePolicyProviderIsSet()
 }
 
-func (a Addon) validateConfigurationValuesIsJSON() error {
-	if a.ConfigurationValues == "" {
-		return nil
-	}
-	var js map[string]interface{}
-	return json.Unmarshal([]byte(a.ConfigurationValues), &js)
-}
-
 func (a *Addon) convertConfigurationValuesToJSON() (err error) {
-	var configurationValues []byte
-	if configurationValues, err = yaml.YAMLToJSONStrict([]byte(a.ConfigurationValues)); err == nil {
-		a.ConfigurationValues = string(configurationValues)
+	rawConfigurationValues := []byte(a.ConfigurationValues)
+	var js map[string]interface{}
+	if err = yaml.UnmarshalStrict(rawConfigurationValues, &js); err == nil {
+		var convertedJson []byte
+		if convertedJson, err = yaml.YAMLToJSONStrict(rawConfigurationValues); err == nil {
+			a.ConfigurationValues = string(convertedJson)
+		}
 	}
 	return err
 }
