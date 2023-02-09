@@ -73,9 +73,9 @@ func (a *Addon) convertConfigurationValuesToJSON() (err error) {
 	rawConfigurationValues := []byte(a.ConfigurationValues)
 	var js map[string]interface{}
 	if err = yaml.UnmarshalStrict(rawConfigurationValues, &js); err == nil {
-		var convertedJson []byte
-		if convertedJson, err = yaml.YAMLToJSONStrict(rawConfigurationValues); err == nil {
-			a.ConfigurationValues = string(convertedJson)
+		var JSONConfigurationValues []byte
+		if JSONConfigurationValues, err = yaml.YAMLToJSONStrict(rawConfigurationValues); err == nil {
+			a.ConfigurationValues = string(JSONConfigurationValues)
 		}
 	}
 	return err
