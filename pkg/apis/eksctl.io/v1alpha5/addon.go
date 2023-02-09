@@ -57,12 +57,12 @@ func (a Addon) CanonicalName() string {
 
 func (a Addon) Validate() error {
 	if a.Name == "" {
-		return fmt.Errorf("name required")
+		return fmt.Errorf("name is required")
 	}
 
 	if !json.Valid([]byte(a.ConfigurationValues)) {
 		if err := a.convertConfigurationValuesToJSON(); err != nil {
-			return fmt.Errorf("%s is not valid in JSON nor in other supported format(s): YAML", a.ConfigurationValues)
+			return fmt.Errorf("configurationValues: \"%s\" is not valid in JSON nor in other supported format(s): YAML", a.ConfigurationValues)
 		}
 	}
 

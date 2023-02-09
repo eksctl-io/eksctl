@@ -12,7 +12,7 @@ var _ = Describe("Addon", func() {
 		When("name is not set", func() {
 			It("errors", func() {
 				err := v1alpha5.Addon{}.Validate()
-				Expect(err).To(MatchError("name required"))
+				Expect(err).To(MatchError("name is required"))
 			})
 		})
 
