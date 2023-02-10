@@ -23,7 +23,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
-	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 const clusterName = "non-existing-test-cluster"
@@ -326,11 +325,11 @@ func testFargateProfile() *api.FargateProfile {
 
 func testCreateFargateProfileInput() *eks.CreateFargateProfileInput {
 	return &eks.CreateFargateProfileInput{
-		ClusterName:        strings.Pointer(clusterName),
-		FargateProfileName: strings.Pointer("default"),
+		ClusterName:        aws.String(clusterName),
+		FargateProfileName: aws.String("default"),
 		Selectors: []ekstypes.FargateProfileSelector{
 			{
-				Namespace: strings.Pointer("kube-system"),
+				Namespace: aws.String("kube-system"),
 				Labels: map[string]string{
 					"app": "my-app",
 					"env": "test",
@@ -345,11 +344,11 @@ func testCreateFargateProfileInput() *eks.CreateFargateProfileInput {
 
 func createEksProfileWithoutTag() *eks.CreateFargateProfileInput {
 	return &eks.CreateFargateProfileInput{
-		ClusterName:        strings.Pointer(clusterName),
-		FargateProfileName: strings.Pointer("default"),
+		ClusterName:        aws.String(clusterName),
+		FargateProfileName: aws.String("default"),
 		Selectors: []ekstypes.FargateProfileSelector{
 			{
-				Namespace: strings.Pointer("kube-system"),
+				Namespace: aws.String("kube-system"),
 				Labels: map[string]string{
 					"app": "my-app",
 					"env": "test",
@@ -375,10 +374,10 @@ func mockForReadProfiles() *mocksv2.EKS {
 
 func mockListFargateProfiles(mockClient *mocksv2.EKS, names ...string) {
 	mockClient.Mock.On("ListFargateProfiles", mock.Anything, &eks.ListFargateProfilesInput{
-		ClusterName: strings.Pointer(clusterName),
-	}).Once().Return(&eks.ListFargateProfilesOutput{
+		ClusterName: aws.String(clusterName),
+	}).Return(&eks.ListFargateProfilesOutput{
 		FargateProfileNames: names,
-	}, nil)
+	}, nil).Once()
 }
 
 func mockForReadProfile() *mocksv2.EKS {
@@ -389,20 +388,20 @@ func mockForReadProfile() *mocksv2.EKS {
 
 func mockDescribeFargateProfile(mockClient *mocksv2.EKS, name, status string) {
 	mockClient.Mock.On("DescribeFargateProfile", mock.Anything, &eks.DescribeFargateProfileInput{
-		ClusterName:        strings.Pointer(clusterName),
-		FargateProfileName: strings.Pointer(name),
-	}).Once().Return(&eks.DescribeFargateProfileOutput{
+		ClusterName:        aws.String(clusterName),
+		FargateProfileName: aws.String(name),
+	}).Return(&eks.DescribeFargateProfileOutput{
 		FargateProfile: eksFargateProfile(name, status),
-	}, nil)
+	}, nil).Once()
 }
 
 func eksFargateProfile(name, status string) *ekstypes.FargateProfile {
 	return &ekstypes.FargateProfile{
-		ClusterName:        strings.Pointer(clusterName),
-		FargateProfileName: strings.Pointer(name),
+		ClusterName:        aws.String(clusterName),
+		FargateProfileName: aws.String(name),
 		Selectors: []ekstypes.FargateProfileSelector{
 			{
-				Namespace: strings.Pointer(name),
+				Namespace: aws.String(name),
 			},
 		},
 		Status: ekstypes.FargateProfileStatus(status),
@@ -436,7 +435,7 @@ func mockForListMultipleProfiles() *mocksv2.EKS {
 func mockForListProfilesWithError() *mocksv2.EKS {
 	mockClient := mocksv2.EKS{}
 	mockClient.Mock.On("ListFargateProfiles", mock.Anything, &eks.ListFargateProfilesInput{
-		ClusterName: strings.Pointer(clusterName),
+		ClusterName: aws.String(clusterName),
 	}).Return(nil, errors.New("failed to get Fargate Profile list"))
 	return &mockClient
 }
@@ -450,8 +449,8 @@ func mockForEmptyReadProfiles() *mocksv2.EKS {
 func mockForEmptyReadProfile() *mocksv2.EKS {
 	mockClient := mocksv2.EKS{}
 	mockClient.Mock.On("DescribeFargateProfile", mock.Anything, &eks.DescribeFargateProfileInput{
-		ClusterName:        strings.Pointer(clusterName),
-		FargateProfileName: strings.Pointer(testRed),
+		ClusterName:        aws.String(clusterName),
+		FargateProfileName: aws.String(testRed),
 	}).Return(nil, fmt.Errorf("ResourceNotFoundException: No Fargate Profile found with name: %s", testRed))
 	return &mockClient
 }
@@ -459,7 +458,7 @@ func mockForEmptyReadProfile() *mocksv2.EKS {
 func mockForFailureOnReadProfiles() *mocksv2.EKS {
 	mockClient := mocksv2.EKS{}
 	mockClient.Mock.On("ListFargateProfiles", mock.Anything, &eks.ListFargateProfilesInput{
-		ClusterName: strings.Pointer(clusterName),
+		ClusterName: aws.String(clusterName),
 	}).Return(nil, errors.New("the Internet broke down"))
 	return &mockClient
 }
@@ -492,7 +491,7 @@ func mockForDeleteFargateProfileWithWait(name string, numRetries int) *mocksv2.E
 
 func mockDeleteFargateProfile(mockClient *mocksv2.EKS, name string) {
 	mockClient.Mock.On("DeleteFargateProfile", mock.Anything, &eks.DeleteFargateProfileInput{
-		ClusterName:        strings.Pointer(clusterName),
+		ClusterName:        aws.String(clusterName),
 		FargateProfileName: &name,
 	}).Return(&eks.DeleteFargateProfileOutput{
 		FargateProfile: &ekstypes.FargateProfile{
@@ -505,7 +504,7 @@ func mockDeleteFargateProfile(mockClient *mocksv2.EKS, name string) {
 func mockForFailureOnDeleteFargateProfile(name string) *mocksv2.EKS {
 	mockClient := mocksv2.EKS{}
 	mockClient.Mock.On("DeleteFargateProfile", mock.Anything, &eks.DeleteFargateProfileInput{
-		ClusterName:        strings.Pointer(clusterName),
+		ClusterName:        aws.String(clusterName),
 		FargateProfileName: &name,
 	}).Return(nil, errors.New("the Internet broke down"))
 	return &mockClient
