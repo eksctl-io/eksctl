@@ -148,6 +148,13 @@ var _ = Describe("fargate", func() {
 				Expect(err.Error()).To(Equal("failed to get Fargate profile(s) for cluster \"non-existing-test-cluster\": failed to get Fargate Profile list"))
 				Expect(out).To(BeNil())
 			})
+
+			It("list all profiles with multiple requests without error", func() {
+				client := fargate.NewWithRetryPolicy(clusterName, mockListFargateProfilesMultipleRequest(), &retryPolicy, neverCalledStackManager)
+				out, err := client.ListProfiles(context.Background())
+				Expect(err).To(Not(HaveOccurred()))
+				Expect(out).To(HaveLen(4))
+			})
 		})
 
 		Describe("ReadProfile", func() {
@@ -369,6 +376,40 @@ func mockForReadProfiles() *mocksv2.EKS {
 	mockListFargateProfiles(&mockClient, testBlue, testGreen)
 	mockDescribeFargateProfile(&mockClient, testBlue, "ACTIVE")
 	mockDescribeFargateProfile(&mockClient, testGreen, "ACTIVE")
+	return &mockClient
+}
+
+func mockListFargateProfilesMultipleRequest() *mocksv2.EKS {
+	mockClient := mocksv2.EKS{}
+	mockClient.Mock.On("ListFargateProfiles", mock.Anything, &eks.ListFargateProfilesInput{
+		ClusterName: aws.String(clusterName),
+	}).Return(&eks.ListFargateProfilesOutput{
+		FargateProfileNames: []string{"default"},
+		NextToken:           aws.String(testBlue),
+	}, nil)
+
+	mockClient.Mock.On("ListFargateProfiles", mock.Anything, &eks.ListFargateProfilesInput{
+		ClusterName: aws.String(clusterName),
+		NextToken:   aws.String(testBlue),
+	}).Return(&eks.ListFargateProfilesOutput{
+		FargateProfileNames: []string{testBlue},
+		NextToken:           aws.String(testGreen),
+	}, nil)
+
+	mockClient.Mock.On("ListFargateProfiles", mock.Anything, &eks.ListFargateProfilesInput{
+		ClusterName: aws.String(clusterName),
+		NextToken:   aws.String(testGreen),
+	}).Return(&eks.ListFargateProfilesOutput{
+		FargateProfileNames: []string{testGreen},
+		NextToken:           aws.String(testRed),
+	}, nil)
+
+	mockClient.Mock.On("ListFargateProfiles", mock.Anything, &eks.ListFargateProfilesInput{
+		ClusterName: aws.String(clusterName),
+		NextToken:   aws.String(testRed),
+	}).Return(&eks.ListFargateProfilesOutput{
+		FargateProfileNames: []string{testRed},
+	}, nil)
 	return &mockClient
 }
 
