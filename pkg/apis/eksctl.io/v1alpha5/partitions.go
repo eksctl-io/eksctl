@@ -1,5 +1,7 @@
 package v1alpha5
 
+import "fmt"
+
 // Partitions.
 const (
 	PartitionAWS   = "aws"
@@ -9,10 +11,12 @@ const (
 	PartitionISOB  = "aws-iso-b"
 )
 
+// partition is an AWS partition.
 type partition struct {
-	name            string
-	serviceMappings map[string]string
-	regions         []string
+	name                        string
+	serviceMappings             map[string]string
+	regions                     []string
+	endpointServiceDomainPrefix string
 }
 
 type partitions []partition
@@ -23,16 +27,22 @@ var standardServiceMappings = map[string]string{
 	"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
 }
 
+const standardPartitionServiceDomainPrefix = "com.amazonaws"
+
+var awsPartition = partition{
+	name:                        PartitionAWS,
+	serviceMappings:             standardServiceMappings,
+	endpointServiceDomainPrefix: standardPartitionServiceDomainPrefix,
+}
+
 // Partitions is a list of supported AWS partitions.
 var Partitions = partitions{
+	awsPartition,
 	{
-		name:            PartitionAWS,
-		serviceMappings: standardServiceMappings,
-	},
-	{
-		name:            PartitionUSGov,
-		serviceMappings: standardServiceMappings,
-		regions:         []string{RegionUSGovEast1, RegionUSGovWest1},
+		name:                        PartitionUSGov,
+		serviceMappings:             standardServiceMappings,
+		regions:                     []string{RegionUSGovEast1, RegionUSGovWest1},
+		endpointServiceDomainPrefix: standardPartitionServiceDomainPrefix,
 	},
 	{
 		name: PartitionChina,
@@ -41,7 +51,8 @@ var Partitions = partitions{
 			"EKS":            "eks.amazonaws.com",
 			"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
 		},
-		regions: []string{RegionCNNorth1, RegionCNNorthwest1},
+		regions:                     []string{RegionCNNorth1, RegionCNNorthwest1},
+		endpointServiceDomainPrefix: fmt.Sprintf("cn.%s", standardPartitionServiceDomainPrefix),
 	},
 	{
 		name: PartitionISO,
@@ -50,7 +61,8 @@ var Partitions = partitions{
 			"EKS":            "eks.amazonaws.com",
 			"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
 		},
-		regions: []string{RegionUSISOEast1},
+		regions:                     []string{RegionUSISOEast1},
+		endpointServiceDomainPrefix: "gov.ic.c2s",
 	},
 	{
 		name: PartitionISOB,
@@ -59,7 +71,8 @@ var Partitions = partitions{
 			"EKS":            "eks.amazonaws.com",
 			"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
 		},
-		regions: []string{RegionUSISOBEast1},
+		regions:                     []string{RegionUSISOBEast1},
+		endpointServiceDomainPrefix: "gov.sgov.sc2s",
 	},
 }
 
@@ -73,6 +86,31 @@ func (p partitions) ForRegion(region string) string {
 		}
 	}
 	return PartitionAWS
+}
+
+// GetEndpointServiceDomainPrefix returns the domain prefix for the endpoint service.
+func (p partitions) GetEndpointServiceDomainPrefix(endpointService EndpointService, region string) string {
+	for _, pt := range p {
+		for _, r := range pt.regions {
+			if r == region {
+				switch pt.name {
+				case PartitionChina:
+					if endpointService.RequiresChinaPrefix {
+						return pt.endpointServiceDomainPrefix
+					}
+					return standardPartitionServiceDomainPrefix
+				case PartitionISO:
+					if endpointService.RequiresISOPrefix {
+						return pt.endpointServiceDomainPrefix
+					}
+					return standardPartitionServiceDomainPrefix
+				default:
+					return pt.endpointServiceDomainPrefix
+				}
+			}
+		}
+	}
+	return awsPartition.endpointServiceDomainPrefix
 }
 
 // IsSupported returns true if the partition is supported.

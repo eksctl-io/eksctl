@@ -14,6 +14,8 @@ type EndpointService struct {
 	OutpostsOnly bool
 	// RequiresChinaPrefix is true if the endpoint service requires a prefix for China regions.
 	RequiresChinaPrefix bool
+	// RequiresISOPrefix is true if the endpoint service requires a prefix for ISO regions.
+	RequiresISOPrefix bool
 }
 
 var (
@@ -33,14 +35,17 @@ var EndpointServices = []EndpointService{
 	{
 		Name:                "ec2",
 		RequiresChinaPrefix: true,
+		RequiresISOPrefix:   true,
 	},
 	{
 		Name:                "ecr.api",
 		RequiresChinaPrefix: true,
+		RequiresISOPrefix:   true,
 	},
 	{
 		Name:                "ecr.dkr",
 		RequiresChinaPrefix: true,
+		RequiresISOPrefix:   true,
 	},
 	EndpointServiceS3,
 	{
@@ -69,8 +74,9 @@ var EndpointServices = []EndpointService{
 		RequiresChinaPrefix: true,
 	},
 	{
-		Name:     "autoscaling",
-		Optional: true,
+		Name:              "autoscaling",
+		Optional:          true,
+		RequiresISOPrefix: true,
 	},
 	EndpointServiceCloudWatch,
 }
