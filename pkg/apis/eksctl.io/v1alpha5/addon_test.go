@@ -23,7 +23,7 @@ var _ = Describe("Addon", func() {
 					Version:             "version",
 					ConfigurationValues: configurationValues,
 				}.Validate()
-				Expect(err).To(MatchError(ContainSubstring("is not valid in JSON nor in other supported format")))
+				Expect(err).To(MatchError(ContainSubstring("is not valid, supported format(s) are: JSON and YAML")))
 			},
 			Entry("non-empty string", "this a string not an object"),
 			Entry("invalid yaml", "\"replicaCount: 1"),
