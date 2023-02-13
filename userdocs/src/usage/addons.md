@@ -151,7 +151,7 @@ addons:
 ```
 
 !!!note
-    Bear in mind that when addon configuration values are being modified, configuration conflics will arise.
+    Bear in mind that when addon configuration values are being modified, configuration conflicts will arise.
     Thus, we need to specify how to deal with those by setting the `resolveConflicts` field accordingly.
     As in this scenario we want to modify these values, we'd set `resolveConflicts: overwrite`.
 
