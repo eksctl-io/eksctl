@@ -1725,6 +1725,36 @@ func (_m *ASG) ResumeProcesses(ctx context.Context, params *autoscaling.ResumePr
 	return r0, r1
 }
 
+// RollbackInstanceRefresh provides a mock function with given fields: ctx, params, optFns
+func (_m *ASG) RollbackInstanceRefresh(ctx context.Context, params *autoscaling.RollbackInstanceRefreshInput, optFns ...func(*autoscaling.Options)) (*autoscaling.RollbackInstanceRefreshOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *autoscaling.RollbackInstanceRefreshOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *autoscaling.RollbackInstanceRefreshInput, ...func(*autoscaling.Options)) *autoscaling.RollbackInstanceRefreshOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*autoscaling.RollbackInstanceRefreshOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *autoscaling.RollbackInstanceRefreshInput, ...func(*autoscaling.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SetDesiredCapacity provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) SetDesiredCapacity(ctx context.Context, params *autoscaling.SetDesiredCapacityInput, optFns ...func(*autoscaling.Options)) (*autoscaling.SetDesiredCapacityOutput, error) {
 	_va := make([]interface{}, len(optFns))

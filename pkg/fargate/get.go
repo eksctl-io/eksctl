@@ -42,21 +42,33 @@ func (c *Client) ReadProfiles(ctx context.Context) ([]*api.FargateProfile, error
 }
 
 // ListProfiles lists all existing Fargate profiles.
-func (c *Client) ListProfiles(ctx context.Context) ([]string, error) {
-	out, err := c.api.ListFargateProfiles(ctx, listRequest(c.clusterName))
+func (c *Client) ListProfiles(ctx context.Context) (fargateProfileNames []string, err error) {
+	request := &eks.ListFargateProfilesInput{
+		ClusterName: &c.clusterName,
+	}
+	var out *eks.ListFargateProfilesOutput
+	for out, err = c.sendListRequestOnce(ctx, request); err == nil; out, err = c.sendListRequestOnce(ctx, request) {
+		fargateProfileNames = append(fargateProfileNames, out.FargateProfileNames...)
+
+		if request.NextToken = out.NextToken; request.NextToken == nil {
+			break
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	logger.Debug("Fargate profile: list request: received a total of %v profile(s)", len(fargateProfileNames))
+	return fargateProfileNames, nil
+}
+
+func (c *Client) sendListRequestOnce(ctx context.Context, request *eks.ListFargateProfilesInput) (*eks.ListFargateProfilesOutput, error) {
+	logger.Debug("Fargate profile: list request: sending: %#v", request)
+	out, err := c.api.ListFargateProfiles(ctx, request)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get Fargate profile(s) for cluster %q", c.clusterName)
 	}
 	logger.Debug("Fargate profile: list request: received %v profile(s): %#v", len(out.FargateProfileNames), out)
-	return out.FargateProfileNames, nil
-}
-
-func listRequest(clusterName string) *eks.ListFargateProfilesInput {
-	request := &eks.ListFargateProfilesInput{
-		ClusterName: &clusterName,
-	}
-	logger.Debug("Fargate profile: list request: sending: %#v", request)
-	return request
+	return out, nil
 }
 
 func toFargateProfile(in *ekstypes.FargateProfile) *api.FargateProfile {
