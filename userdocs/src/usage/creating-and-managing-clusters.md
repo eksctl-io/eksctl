@@ -110,7 +110,7 @@ To delete this cluster, run:
 eksctl delete cluster -f cluster.yaml
 ```
 
-!!!note
+!!! note
 
     Without the `--wait` flag, this will only issue a delete operation to the cluster's CloudFormation stack and won't wait for its deletion.
 

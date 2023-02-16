@@ -6,7 +6,7 @@ An EKS managed node group is an autoscaling group and associated EC2 instances t
 
 **NEW** [Launch Template support for managed nodegroups](launch-template-support.md)
 
-!!!info
+!!! info
     The term "unmanaged nodegroups" has been used to refer to nodegroups that eksctl has supported since the beginning (represented via the `nodeGroups` field). The `ClusterConfig` file continues to use the `nodeGroups` field for defining unmanaged nodegroups, and managed nodegroups are defined with the `managedNodeGroups` field.
 
 ## Creating managed nodegroups
@@ -25,7 +25,7 @@ $ eksctl create cluster
 
 To create multiple managed nodegroups and have more control over the configuration, a config file can be used.
 
-!!!note
+!!! note
     Managed nodegroups do not have complete feature parity with unmanaged nodegroups.
 
 ```yaml
@@ -215,7 +215,7 @@ To upgrade to a specific AMI release version instead of the latest version, pass
 eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release-version=1.19.6-20210310
 ```
 
-!!!note
+!!! note
     If the managed nodes are deployed using custom AMIs, the following workflow must be followed in order to deploy a new version of the custom AMI.
 
     - initial deployment of the nodegroup must be done using a launch template. e.g.

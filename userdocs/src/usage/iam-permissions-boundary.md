@@ -30,7 +30,7 @@ nodeGroups:
       instanceRolePermissionsBoundary: "arn:aws:iam::11111:policy/entity/boundary"
 ```
 
-!!!warning
+!!! warning
     It is not possible to provide both a role ARN and a permissions boundary!
 
 [permissions-boundary]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html

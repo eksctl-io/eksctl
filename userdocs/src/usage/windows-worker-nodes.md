@@ -4,7 +4,7 @@ From version 1.14, Amazon EKS supports [Windows Nodes][eks-user-guide] that allo
 In addition to having Windows nodes, a Linux node in the cluster is required to run CoreDNS, as Microsoft doesn't support host-networking mode yet. Thus, a Windows EKS cluster will be a mixture of Windows nodes and at least one Linux node.
 The Linux nodes are critical to the functioning of the cluster, and thus, for a production-grade cluster, it's recommended to have at least two `t2.large` Linux nodes for HA.
 
-!!!note
+!!! note
     You no longer need to install the VPC resource controller on Linux worker nodes to run Windows workloads in EKS clusters
     created after October 22, 2021.
     You can enable Windows IP address management on the EKS control plane via a ConﬁgMap setting (see https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html for details).

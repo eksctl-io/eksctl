@@ -56,5 +56,5 @@ $ eksctl utils enable-secrets-encryption --cluster=kms-cluster --key-arn=arn:aws
 If a cluster already has KMS encryption enabled, eksctl will proceed to re-encrypting all existing secrets.
 
 
-!!!note
+!!! note
     Once KMS encryption is enabled, it cannot be disabled or updated to use a different KMS key.
