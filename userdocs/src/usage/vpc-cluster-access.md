@@ -74,7 +74,7 @@ eksctl utils set-public-access-cidrs -f config.yaml
     `context deadline exceeded` due to the nodes being unable to access the public endpoint and hence failing
     to join the cluster.
 
-!!! note
+???+ note
     This feature only applies to the public endpoint. The
     [API server endpoint access configuration options](https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html)
     won't change, and you will still have the option to disable the public endpoint so your cluster is not accessible from

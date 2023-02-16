@@ -7,7 +7,7 @@ to AWS Outposts by creating worker nodes on Outposts.
 !!! warning
     EKS Managed Nodegroups are not supported on Outposts.
 
-!!! info
+???+ info
     Local clusters support Outpost racks only.
 
 
@@ -203,7 +203,7 @@ nodeGroups:
     outpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
 ```
 
-!!! note
+???+ note
     - Only Amazon Linux 2 is supported for nodegroups when the control plane is on Outposts.
     - Only EBS gp2 volume types are supported for nodegroups on Outposts.
 

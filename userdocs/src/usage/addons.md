@@ -48,7 +48,7 @@ You can specify at most one of `attachPolicy`, `attachPolicyARNs` and `serviceAc
 
 If none of these are specified, the addon will be created with a role that has all recommended policies attached.
 
-!!! note
+???+ note
     In order to attach policies to addons your cluster must have `OIDC` enabled. If it's not enabled we ignore any policies
     attached.
 
@@ -143,7 +143,7 @@ addons:
   resolveConflicts: overwrite
 ```
 
-!!! note
+???+ note
     Bear in mind that when addon configuration values are being modified, configuration conflics will arise.
     Thus, we need to specify how to deal with those by setting the `resolveConflicts` field accordingly.
     As in this scenario we want to modify these values, we'd set `resolveConflicts: overwrite`.

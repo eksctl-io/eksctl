@@ -11,14 +11,14 @@ An _`eksctl`-managed_ cluster can be upgraded in 3 easy steps:
 
 Please make sure to read this section in full before you proceed.
 
-!!! info
+???+ info
     Kubernetes supports version drift of up-to two minor versions during upgrade
     process. So nodes can be up to two minor versions ahead or behind the control plane
     version. You can only upgrade the control plane one minor version at a time, but
     nodes can be upgraded more than one minor version at a time, provided the nodes stay
     within two minor versions of the control plane.
 
-!!! info
+???+ info
     The old `eksctl update cluster` will be deprecated. Use `eksctl upgrade cluster` instead.
 
 ## Updating control plane version

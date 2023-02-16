@@ -8,7 +8,7 @@ To create an additional nodegroup, use:
 eksctl create nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
 ```
  
-!!! note
+???+ note
     `--version` flag is not supported for managed nodegroups. It always inherits the version from control plane.
 
     By default, new unmanaged nodegroups inherit the version from the control plane (`--version=auto`), but you can specify a different
@@ -155,7 +155,7 @@ Kindly note that these values can also be passed with flags `--nodes-min` and `-
 
 Scaling a nodegroup is achieved by directly calling the EKS API that updates a managed node group configuration. 
 
-!!! note
+???+ note
     Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
 
 You can also enable SSH, ASG access and other features for a nodegroup, e.g.:
@@ -219,7 +219,7 @@ eksctl delete nodegroup --cluster=<clusterName> --name=<nodegroupName>
 [Include and exclude rules](#include-and-exclude-rules) can also be used with this command.
 
 
-!!! note
+???+ note
     This will drain all pods from that nodegroup before the instances are deleted.
 
 To skip eviction rules during the drain process, run:
