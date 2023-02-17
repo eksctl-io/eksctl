@@ -21,9 +21,11 @@ import (
 
 var _ = Describe("KubeProxy", func() {
 	var (
-		clientSet    kubernetes.Interface
-		input        da.AddonInput
-		mockProvider *mockprovider.MockProvider
+		clientSet           kubernetes.Interface
+		input               da.AddonInput
+		mockProvider        *mockprovider.MockProvider
+		kubernetesVersion   = aws.String("1.22")
+		controlPlaneVersion = "1.22.1"
 	)
 
 	Context("IsKubeProxyUpToDate", func() {
@@ -32,12 +34,12 @@ var _ = Describe("KubeProxy", func() {
 			input = da.AddonInput{
 				Region:              "eu-west-1",
 				EKSAPI:              mockProvider.EKS(),
-				ControlPlaneVersion: "1.21.1",
+				ControlPlaneVersion: controlPlaneVersion,
 			}
 
 			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 				AddonName:         aws.String("kube-proxy"),
-				KubernetesVersion: aws.String("1.21"),
+				KubernetesVersion: kubernetesVersion,
 			}).Return(&awseks.DescribeAddonVersionsOutput{
 				Addons: []ekstypes.AddonInfo{
 					{
@@ -75,7 +77,7 @@ var _ = Describe("KubeProxy", func() {
 
 		When("when its up-to-date", func() {
 			BeforeEach(func() {
-				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.21.json")
+				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.22.json")
 				input.RawClient = rawClient
 				clientSet = rawClient.ClientSet()
 			})
@@ -117,14 +119,14 @@ var _ = Describe("KubeProxy", func() {
 
 	Context("UpdateKubeProxyImageTag", func() {
 		BeforeEach(func() {
-			rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.21.json")
+			rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.22.json")
 			clientSet = rawClient.ClientSet()
 			mockProvider = mockprovider.NewMockProvider()
 			input = da.AddonInput{
 				RawClient:           rawClient,
 				Region:              "eu-west-1",
 				EKSAPI:              mockProvider.EKS(),
-				ControlPlaneVersion: "1.21.1",
+				ControlPlaneVersion: controlPlaneVersion,
 			}
 		})
 
@@ -133,7 +135,7 @@ var _ = Describe("KubeProxy", func() {
 				input.RawClient = testutils.NewFakeRawClientWithSamples("testdata/sample-old-kube-proxy-amd.json")
 				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 					AddonName:         aws.String("kube-proxy"),
-					KubernetesVersion: aws.String("1.21"),
+					KubernetesVersion: kubernetesVersion,
 				}).Return(&awseks.DescribeAddonVersionsOutput{
 					Addons: []ekstypes.AddonInfo{
 						{
@@ -168,7 +170,7 @@ var _ = Describe("KubeProxy", func() {
 		DescribeTable("kube-proxy version update", func(e versionUpdateEntry) {
 			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 				AddonName:         aws.String("kube-proxy"),
-				KubernetesVersion: aws.String("1.21"),
+				KubernetesVersion: kubernetesVersion,
 			}).Return(&awseks.DescribeAddonVersionsOutput{
 				Addons: []ekstypes.AddonInfo{e.addonOutput},
 			}, nil)
@@ -187,14 +189,14 @@ var _ = Describe("KubeProxy", func() {
 						},
 						{
 							// Latest, unordered list to ensure we sort correctly.
-							AddonVersion: aws.String("v1.21.1-eksbuild.2"),
+							AddonVersion: aws.String("v1.22.1-eksbuild.2"),
 						},
 						{
-							AddonVersion: aws.String("v1.21.1-eksbuild.1"),
+							AddonVersion: aws.String("v1.22.1-eksbuild.1"),
 						},
 					},
 				},
-				expectedImageTag: "v1.21.1-minimal-eksbuild.2",
+				expectedImageTag: "v1.22.1-minimal-eksbuild.2",
 			}),
 
 			Entry("a more up-to-date version that lacks a pre-release version should be returned unchanged", versionUpdateEntry{
@@ -205,15 +207,15 @@ var _ = Describe("KubeProxy", func() {
 							AddonVersion: aws.String("v1.17.0"),
 						},
 						{
-							AddonVersion: aws.String("v1.21.2"),
+							AddonVersion: aws.String("v1.22.2"),
 						},
 						{
-							AddonVersion: aws.String("v1.21.1"),
+							AddonVersion: aws.String("v1.22.1"),
 						},
 					},
 				},
 
-				expectedImageTag: "v1.21.2",
+				expectedImageTag: "v1.22.2",
 			}),
 
 			Entry("a more up-to-date version that lacks a `v` prefix should not have a `v` prefix", versionUpdateEntry{
@@ -225,15 +227,15 @@ var _ = Describe("KubeProxy", func() {
 						},
 						{
 							// Latest, unordered list to ensure we sort correctly.
-							AddonVersion: aws.String("1.21.1-eksbuild.2"),
+							AddonVersion: aws.String("1.22.1-eksbuild.2"),
 						},
 						{
-							AddonVersion: aws.String("1.21.1-eksbuild.1"),
+							AddonVersion: aws.String("1.22.1-eksbuild.1"),
 						},
 					},
 				},
 
-				expectedImageTag: "1.21.1-minimal-eksbuild.2",
+				expectedImageTag: "1.22.1-minimal-eksbuild.2",
 			}),
 
 			Entry("version that is behind the default cluster version should not be used", versionUpdateEntry{
@@ -254,7 +256,7 @@ var _ = Describe("KubeProxy", func() {
 					},
 				},
 
-				expectedImageTag: "v1.21.1-eksbuild.1",
+				expectedImageTag: "v1.22.1-eksbuild.1",
 			}),
 		)
 
@@ -262,7 +264,7 @@ var _ = Describe("KubeProxy", func() {
 			BeforeEach(func() {
 				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 					AddonName:         aws.String("kube-proxy"),
-					KubernetesVersion: aws.String("1.21"),
+					KubernetesVersion: kubernetesVersion,
 				}).Return(&awseks.DescribeAddonVersionsOutput{
 					Addons: []ekstypes.AddonInfo{
 						{
@@ -283,7 +285,7 @@ var _ = Describe("KubeProxy", func() {
 			BeforeEach(func() {
 				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 					AddonName:         aws.String("kube-proxy"),
-					KubernetesVersion: aws.String("1.21"),
+					KubernetesVersion: kubernetesVersion,
 				}).Return(&awseks.DescribeAddonVersionsOutput{
 					Addons: []ekstypes.AddonInfo{
 						{
@@ -308,7 +310,7 @@ var _ = Describe("KubeProxy", func() {
 			BeforeEach(func() {
 				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 					AddonName:         aws.String("kube-proxy"),
-					KubernetesVersion: aws.String("1.21"),
+					KubernetesVersion: kubernetesVersion,
 				}).Return(&awseks.DescribeAddonVersionsOutput{}, fmt.Errorf("foo"))
 			})
 
