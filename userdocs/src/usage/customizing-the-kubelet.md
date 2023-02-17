@@ -59,7 +59,7 @@ the `InstanceDistribution.InstanceTypes` field. This way NodeGroups with dispara
 many resources on the smallest instance. However, this could lead to a reservation that is too small for the largest
 instance type.
 
-!!! Warning
+!!! warning
     By default `eksctl` sets `featureGates.RotateKubeletServerCertificate=true`, but when custom `featureGates` are
     provided, it will be unset. You should always include `featureGates.RotateKubeletServerCertificate=true`, unless
     you have to disable it.

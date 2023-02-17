@@ -4,7 +4,7 @@
 prerequisites outlined in Karpenter's [Getting Started](https://karpenter.sh/docs/getting-started/getting-started-with-eksctl/) section including installing
 Karpenter itself using Helm. We currently support installing versions starting `0.17.0` and above.
 
-!!!info
+???+ info
     With [v0.17.0](https://karpenter.sh/docs/upgrade-guide/#upgrading-to-v0170) Karpenter’s Helm chart package is now stored in Karpenter’s OCI (Open Container Initiative) registry.
     Eksctl therefore is not supporting lower versions of Karpenter for new cluster creation. Previously created clusters shouldn't be affected by this change.
     If you wish to upgrade your current installation of Karpenter please refer to the [upgrade guide](https://karpenter.sh/docs/upgrade-guide/)

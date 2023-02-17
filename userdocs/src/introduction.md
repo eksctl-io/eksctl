@@ -111,7 +111,7 @@ eksctl create cluster --name=cluster-5 --nodes-min=3 --nodes-max=5
 
 ```
 
-!!! note
+???+ note
     You will still need to install and configure Auto Scaling. See the "Enable Auto Scaling" section. Also
     note that depending on your workloads you might need to use a separate nodegroup for each AZ. See [Zone-aware
     Auto Scaling](/usage/autoscaling/) for more info.
@@ -143,7 +143,7 @@ eksctl create cluster --enable-ssm
 
 ```
 
-!!! note
+???+ note
     If you are creating managed nodes with a custom launch template, the `--enable-ssm` flag is disallowed.
 
 ### Tagging
@@ -158,7 +158,7 @@ eksctl create cluster --tags environment=staging --region=us-east-1
 
 ### Volume size
 
-!!! note
+???+ note
     The default volume size is 80G.
 
 To configure node root volume, use the `--node-volume-size` (and optionally `--node-volume-type`), e.g.:
@@ -179,7 +179,7 @@ eksctl delete cluster --name=<name> [--region=<region>]
 
 ```
 
-!!! note
+???+ note
     Cluster info will be cleaned up in kubernetes config file. Please run `kubectl config get-contexts` to select right context.
 
 ## Contributions

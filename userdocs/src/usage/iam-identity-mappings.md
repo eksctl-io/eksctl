@@ -64,9 +64,9 @@ Delete an identity mapping:
 eksctl delete iamidentitymapping --cluster  <clusterName> --region=<region> --arn arn:aws:iam::123456:role/testing
 ```
 
-!!!note
-Above command deletes a single mapping FIFO unless `--all` is given in which case it removes all matching. Will warn if
-more mappings matching this role are found.
+???+ note
+    Above command deletes a single mapping FIFO unless `--all` is given in which case it removes all matching. Will warn if
+    more mappings matching this role are found.
 
 Create an account mapping:
 

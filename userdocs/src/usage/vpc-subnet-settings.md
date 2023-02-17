@@ -5,7 +5,7 @@
 If you prefer to isolate the initial nodegroup from the public internet, you can use the `--node-private-networking` flag.
 When used in conjunction with the `--ssh-access` flag, the SSH port can only be accessed from inside the VPC.
 
-!!! note
+???+ note
     Using the `--node-private-networking` flag will result in outgoing traffic to go through the NAT gateway using its
     Elastic IP. On the other hand, if the nodes are in a public subnet, the outgoing traffic won't go through the
     NAT gateway and hence the outgoing traffic has the IP of each individual node.
@@ -50,7 +50,7 @@ vpc:
 	in that AZ will be chosen from the VPC, arbitrarily if multiple such subnets
 	exist.
 
-!!! note
+???+ note
     A complete subnet spec must be provided, i.e. both `public` and `private` configurations
     declared in the VPC spec.
 
@@ -75,7 +75,7 @@ nodeGroups:
       - public-one
 ```
 
-!!! note
+???+ note
     Only one of `subnets` or `availabilityZones` can be provided in nodegroup configuration.
 
 When placing nodegroups inside a private subnet, `privateNetworking` must be set to `true`
