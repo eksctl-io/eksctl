@@ -102,37 +102,8 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				return cmd
 			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
 
-			By("successfully creating the aws-ebs-csi-driver addon via config file")
-			// setup config file
-			clusterConfig := getInitialClusterConfig()
-			clusterConfig.Addons = append(clusterConfig.Addons, &api.Addon{
-				Name: api.AWSEBSCSIDriverAddon,
-			})
-			data, err := json.Marshal(clusterConfig)
-
-			Expect(err).NotTo(HaveOccurred())
-			cmd := params.EksctlCreateCmd.
-				WithArgs(
-					"addon",
-					"--config-file", "-",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(bytes.NewReader(data))
-			Expect(cmd).To(RunSuccessfully())
-
-			Eventually(func() runner.Cmd {
-				cmd := params.EksctlGetCmd.
-					WithArgs(
-						"addon",
-						"--name", api.AWSEBSCSIDriverAddon,
-						"--cluster", clusterName,
-						"--verbose", "2",
-					)
-				return cmd
-			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
-
 			By("successfully creating the kube-proxy addon")
-			cmd = params.EksctlCreateCmd.
+			cmd := params.EksctlCreateCmd.
 				WithArgs(
 					"addon",
 					"--name", "kube-proxy",
@@ -154,11 +125,50 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				return cmd
 			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
 
+			By("successfully creating the aws-ebs-csi-driver addon via config file")
+			// setup config file
+			clusterConfig := getInitialClusterConfig()
+			clusterConfig.Addons = append(clusterConfig.Addons, &api.Addon{
+				Name: api.AWSEBSCSIDriverAddon,
+			})
+			data, err := json.Marshal(clusterConfig)
+
+			Expect(err).NotTo(HaveOccurred())
+			cmd = params.EksctlCreateCmd.
+				WithArgs(
+					"addon",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).To(RunSuccessfully())
+
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", api.AWSEBSCSIDriverAddon,
+						"--cluster", clusterName,
+						"--verbose", "2",
+					)
+				return cmd
+			}, "10m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
+
 			By("Deleting the kube-proxy addon")
 			cmd = params.EksctlDeleteCmd.
 				WithArgs(
 					"addon",
 					"--name", "kube-proxy",
+					"--cluster", clusterName,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
+
+			By("Deleting the aws-ebs-csi-driver addon")
+			cmd = params.EksctlDeleteCmd.
+				WithArgs(
+					"addon",
+					"--name", api.AWSEBSCSIDriverAddon,
 					"--cluster", clusterName,
 					"--verbose", "2",
 				)
