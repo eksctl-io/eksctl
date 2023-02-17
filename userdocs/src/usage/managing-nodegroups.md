@@ -153,7 +153,7 @@ A nodegroup can also be scaled by using a config file passed to `--config-file` 
 If the desired number of nodes is `NOT` within the range of current minimum and current maximum nodes, one specific error will be shown.
 Kindly note that these values can also be passed with flags `--nodes-min` and `--nodes-max` respectively.
 
-Scaling a nodegroup works by modifying the nodegroup CloudFormation stack via a ChangeSet.
+Scaling a nodegroup is achieved by directly calling the EKS API that updates a managed node group configuration. 
 
 !!!note
     Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
