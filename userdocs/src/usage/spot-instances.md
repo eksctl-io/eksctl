@@ -53,7 +53,7 @@ managedNodeGroups:
 $ eksctl create cluster -f spot-cluster.yaml
 ```
 
-!!!note
+???+ note
     Unmanaged nodegroups do not support the `spot` and `instanceTypes` fields, instead the `instancesDistribution` field
     is used to configure Spot instances. [See below](spot-instances.md#unmanaged-nodegroups)
 

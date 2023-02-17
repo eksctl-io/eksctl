@@ -3,7 +3,7 @@
 From `eksctl` version `0.40.0` users can run `eksctl` commands against clusters which were
 not created by `eksctl`.
 
-!!!note
+???+ note
     Eksctl can only support unowned clusters with names which comply with the guidelines mentioned [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-using-console-create-stack-parameters.html). Any cluster names which do not match this will fail CloudFormation API validation check.
 
 ## Supported commands

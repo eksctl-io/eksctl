@@ -349,13 +349,13 @@ var _ = Describe("AMI Auto Resolution", func() {
 				Context("and gpu instance", func() {
 					BeforeEach(func() {
 						instanceType = "p3.2xlarge"
-						version = "1.21"
+						version = "1.22"
 					})
 
 					Context("and ami is available", func() {
 						BeforeEach(func() {
 							p = mockprovider.NewMockProvider()
-							addMockGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.21-nvidia/x86_64/latest/image_id", expectedAmi)
+							addMockGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.22-nvidia/x86_64/latest/image_id", expectedAmi)
 							resolver := NewSSMResolver(p.MockSSM())
 							resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 						})
@@ -374,7 +374,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 					Context("and ami is NOT available", func() {
 						BeforeEach(func() {
 							p = mockprovider.NewMockProvider()
-							addMockFailedGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.21-nvidia/x86_64/latest/image_id")
+							addMockFailedGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.22-nvidia/x86_64/latest/image_id")
 
 							resolver := NewSSMResolver(p.MockSSM())
 							resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)

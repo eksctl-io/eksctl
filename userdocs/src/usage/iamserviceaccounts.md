@@ -9,7 +9,7 @@ any other data services (RDS, MQ, STS, DynamoDB), or Kubernetes components like 
 
 You can easily create IAM Role and Service Account pairs with `eksctl`.
 
-!!!note
+???+ note
     If you used [instance roles](/usage/iam-policies), and are considering to use IRSA instead, you shouldn't mix the two.
 
 ## How it works
@@ -24,7 +24,7 @@ In `eksctl` the name of the resource is _iamserviceaccount_, which represents an
 
 ### Usage without config files
 
-!!!note
+???+ note
     IAM Roles for Service Accounts require Kubernetes version 1.13 or above.
 
 The IAM OIDC Provider is not enabled by default, you can use the following command to enable it, or use config file (see below):
@@ -39,7 +39,7 @@ Once you have the IAM OIDC Provider associated with the cluster, to create a IAM
 eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountName> --namespace=<serviceAccountNamespace> --attach-policy-arn=<policyARN>
 ```
 
-!!!note
+???+ note
     You can specify `--attach-policy-arn` multiple times to use more than one policy.
 
 More specifically, you can create a service account with read-only access to S3 by running:
@@ -53,7 +53,7 @@ By default, it will be created in `default` namespace, but you can specify any o
 eksctl create iamserviceaccount --cluster=<clusterName> --name=s3-read-only --namespace=s3-app --attach-policy-arn=arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
 ```
 
-!!!note
+???+ note
     If the namespace doesn't exist already, it will be created.
 
 If you have service account already created in the cluster (without an IAM Role), you will need to use `--override-existing-serviceaccounts` flag.
@@ -85,7 +85,7 @@ eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountNa
 
 To update a service accounts roles permissions you can run `eksctl update iamserviceaccount`.
 
-!!!note
+???+ note
     `eksctl delete iamserviceaccount` deletes Kubernetes `ServiceAccounts` even if they were not created by `eksctl`.
 
 ### Usage with config files
