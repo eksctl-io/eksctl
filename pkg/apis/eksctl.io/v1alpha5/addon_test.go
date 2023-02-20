@@ -8,26 +8,28 @@ import (
 )
 
 var _ = Describe("Addon", func() {
-	Describe("Validate", func() {
+	Describe("Validating configuration", func() {
 		When("name is not set", func() {
 			It("errors", func() {
 				err := v1alpha5.Addon{}.Validate()
-				Expect(err).To(MatchError("name required"))
+				Expect(err).To(MatchError("name is required"))
 			})
 		})
 
-		When("specifying an invalid json", func() {
-			It("errors", func() {
+		DescribeTable("when configurationValues is in invalid format",
+			func(configurationValues string) {
 				err := v1alpha5.Addon{
 					Name:                "name",
 					Version:             "version",
-					ConfigurationValues: "not a json",
+					ConfigurationValues: configurationValues,
 				}.Validate()
-				Expect(err).To(MatchError(ContainSubstring("is not a valid JSON")))
-			})
-		})
+				Expect(err).To(MatchError(ContainSubstring("is not valid, supported format(s) are: JSON and YAML")))
+			},
+			Entry("non-empty string", "this a string not an object"),
+			Entry("invalid yaml", "\"replicaCount: 1"),
+		)
 
-		DescribeTable("specifying a valid json",
+		DescribeTable("when configurationValues is in valid format",
 			func(configurationValues string) {
 				err := v1alpha5.Addon{
 					Name:                "name",
@@ -39,6 +41,7 @@ var _ = Describe("Addon", func() {
 			Entry("empty string", ""),
 			Entry("empty json", "{}"),
 			Entry("non-empty json", "{\"replicaCount\":3}"),
+			Entry("non-empty yaml", "replicaCount: 3"),
 		)
 
 		When("specifying more than one of serviceAccountRoleARN, attachPolicyARNs, attachPolicy", func() {
