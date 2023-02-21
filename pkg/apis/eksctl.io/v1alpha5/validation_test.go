@@ -53,11 +53,10 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
-
 	Describe("nodeGroups[*].name validation", func() {
 		var (
 			cfg *api.ClusterConfig
-			ng *api.NodeGroup
+			ng  *api.NodeGroup
 			err error
 		)
 
@@ -76,6 +75,18 @@ var _ = Describe("ClusterConfig validation", func() {
 			Entry("starts with [^A-Za-z0-9]", "-ng-invalid-name-10"),
 			Entry("contains [^A-Za-z0-9\\-]", "ng100_invalid-name"),
 			Entry("ends with [^A-Za-z0-9]", "ng-invalid-name-10--"),
+		)
+
+		DescribeTable("accepting valid names",
+			func(ngName string) {
+				ng.Name = ngName
+
+				err = api.ValidateNodeGroup(0, ng, cfg)
+				Expect(err).NotTo(HaveOccurred())
+			},
+			Entry("starts with [0-9]", "123---123"),
+			Entry("starts and ends with [a-z]", "ng-valid-name"),
+			Entry("starts and ends with [A-Z]", "Ng-valid-name-A"),
 		)
 	})
 
