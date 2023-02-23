@@ -507,7 +507,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"describe-addon-versions",
-				"--kubernetes-version", api.LatestVersion,
+				"--kubernetes-version", api.DefaultVersion,
 				"--types", "infra-management",
 				"--owners", "aws-marketplace",
 				"--publishers", "upbound",
@@ -524,7 +524,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"describe-addon-versions",
-				"--kubernetes-version", api.LatestVersion,
+				"--kubernetes-version", api.DefaultVersion,
 				"--types", "infra-management, policy-management",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
