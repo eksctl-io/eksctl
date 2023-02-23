@@ -47,7 +47,8 @@
                           "key": "kubernetes.io/arch",
                           "operator": "In",
                           "values": [
-                            "amd64"
+                            "amd64",
+                            "arm64"
                           ]
                         },
                         {
@@ -68,9 +69,21 @@
                 "command": [
                   "kube-proxy",
                   "--v=2",
-                  "--config=/var/lib/kube-proxy-config/config"
+                  "--config=/var/lib/kube-proxy-config/config",
+                  "--hostname-override=$(NODE_NAME)"
                 ],
-                "image": "602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.20.1-eksbuild.1",
+                "env": [
+                  {
+                    "name": "NODE_NAME",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "apiVersion": "v1",
+                        "fieldPath": "spec.nodeName"
+                      }
+                    }
+                  }
+                ],
+                "image": "602401143452.dkr.ecr.ap-northeast-2.amazonaws.com/eks/kube-proxy:v1.25.6-minimal-eksbuild.1",
                 "imagePullPolicy": "IfNotPresent",
                 "name": "kube-proxy",
                 "resources": {
@@ -163,6 +176,7 @@
         },
         "updateStrategy": {
           "rollingUpdate": {
+            "maxSurge": 0,
             "maxUnavailable": "10%"
           },
           "type": "RollingUpdate"
@@ -188,6 +202,14 @@
       },
       "spec": {
         "clusterIP": "10.100.0.10",
+        "clusterIPs": [
+          "10.100.0.10"
+        ],
+        "internalTrafficPolicy": "Cluster",
+        "ipFamilies": [
+          "IPv4"
+        ],
+        "ipFamilyPolicy": "SingleStack",
         "ports": [
           {
             "name": "dns",
@@ -225,7 +247,7 @@
     {
       "apiVersion": "v1",
       "data": {
-        "Corefile": ".:53 {\n    errors\n    health\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n      pods insecure\n      upstream\n      fallthrough in-addr.arpa ip6.arpa\n    }\n    prometheus :9153\n    forward . /etc/resolv.conf\n    cache 30\n    loop\n    reload\n    loadbalance\n}\n"
+        "Corefile": ".:53 {\n    errors\n    health\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n      pods insecure\n      fallthrough in-addr.arpa ip6.arpa\n    }\n    prometheus :9153\n    forward . /etc/resolv.conf\n    cache 30\n    loop\n    reload\n    loadbalance\n}\n"
       },
       "kind": "ConfigMap",
       "metadata": {
@@ -297,7 +319,8 @@
                           "key": "kubernetes.io/arch",
                           "operator": "In",
                           "values": [
-                            "amd64"
+                            "amd64",
+                            "arm64"
                           ]
                         }
                       ]
@@ -333,7 +356,7 @@
                   "-conf",
                   "/etc/coredns/Corefile"
                 ],
-                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.6.6",
+                "image": "602401143452.dkr.ecr.ap-northeast-2.amazonaws.com/eks/coredns:v1.9.3-eksbuild.2",
                 "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "failureThreshold": 5,
@@ -491,6 +514,18 @@
           "verbs": [
             "get"
           ]
+        },
+        {
+          "apiGroups": [
+            "discovery.k8s.io"
+          ],
+          "resources": [
+            "endpointslices"
+          ],
+          "verbs": [
+            "list",
+            "watch"
+          ]
         }
       ]
     },
@@ -529,6 +564,9 @@
           "deprecated.daemonset.template.generation": "1"
         },
         "labels": {
+          "app.kubernetes.io/instance": "aws-vpc-cni",
+          "app.kubernetes.io/name": "aws-node",
+          "app.kubernetes.io/version": "v1.12.2",
           "k8s-app": "aws-node"
         },
         "name": "aws-node",
@@ -545,6 +583,8 @@
           "metadata": {
             "creationTimestamp": null,
             "labels": {
+              "app.kubernetes.io/instance": "aws-vpc-cni",
+              "app.kubernetes.io/name": "aws-node",
               "k8s-app": "aws-node"
             }
           },
@@ -566,7 +606,8 @@
                           "key": "kubernetes.io/arch",
                           "operator": "In",
                           "values": [
-                            "amd64"
+                            "amd64",
+                            "arm64"
                           ]
                         },
                         {
@@ -586,16 +627,84 @@
               {
                 "env": [
                   {
+                    "name": "ADDITIONAL_ENI_TAGS",
+                    "value": "{}"
+                  },
+                  {
+                    "name": "AWS_VPC_CNI_NODE_PORT_SUPPORT",
+                    "value": "true"
+                  },
+                  {
+                    "name": "AWS_VPC_ENI_MTU",
+                    "value": "9001"
+                  },
+                  {
+                    "name": "AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG",
+                    "value": "false"
+                  },
+                  {
+                    "name": "AWS_VPC_K8S_CNI_EXTERNALSNAT",
+                    "value": "false"
+                  },
+                  {
                     "name": "AWS_VPC_K8S_CNI_LOGLEVEL",
                     "value": "DEBUG"
+                  },
+                  {
+                    "name": "AWS_VPC_K8S_CNI_LOG_FILE",
+                    "value": "/host/var/log/aws-routed-eni/ipamd.log"
+                  },
+                  {
+                    "name": "AWS_VPC_K8S_CNI_RANDOMIZESNAT",
+                    "value": "prng"
                   },
                   {
                     "name": "AWS_VPC_K8S_CNI_VETHPREFIX",
                     "value": "eni"
                   },
                   {
-                    "name": "AWS_VPC_ENI_MTU",
-                    "value": "9001"
+                    "name": "AWS_VPC_K8S_PLUGIN_LOG_FILE",
+                    "value": "/var/log/aws-routed-eni/plugin.log"
+                  },
+                  {
+                    "name": "AWS_VPC_K8S_PLUGIN_LOG_LEVEL",
+                    "value": "DEBUG"
+                  },
+                  {
+                    "name": "DISABLE_INTROSPECTION",
+                    "value": "false"
+                  },
+                  {
+                    "name": "DISABLE_METRICS",
+                    "value": "false"
+                  },
+                  {
+                    "name": "DISABLE_NETWORK_RESOURCE_PROVISIONING",
+                    "value": "false"
+                  },
+                  {
+                    "name": "ENABLE_IPv4",
+                    "value": "true"
+                  },
+                  {
+                    "name": "ENABLE_IPv6",
+                    "value": "false"
+                  },
+                  {
+                    "name": "ENABLE_POD_ENI",
+                    "value": "false"
+                  },
+                  {
+                    "name": "ENABLE_PREFIX_DELEGATION",
+                    "value": "false"
+                  },
+                  {
+                    "name": "WARM_ENI_TARGET",
+                    "value": "1"
+                  },
+                  {
+                    "name": "WARM_PREFIX_TARGET",
+                    "value": "1"
                   },
                   {
                     "name": "MY_NODE_NAME",
@@ -607,20 +716,22 @@
                     }
                   }
                 ],
-                "image": "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni:v1.7.6",
-                "imagePullPolicy": "Always",
+                "image": "602401143452.dkr.ecr.ap-northeast-2.amazonaws.com/amazon-k8s-cni:v1.12.2-eksbuild.1",
+                "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "exec": {
                     "command": [
                       "/app/grpc-health-probe",
-                      "-addr=:50051"
+                      "-addr=:50051",
+                      "-connect-timeout=5s",
+                      "-rpc-timeout=5s"
                     ]
                   },
                   "failureThreshold": 3,
-                  "initialDelaySeconds": 35,
+                  "initialDelaySeconds": 60,
                   "periodSeconds": 10,
                   "successThreshold": 1,
-                  "timeoutSeconds": 1
+                  "timeoutSeconds": 10
                 },
                 "name": "aws-node",
                 "ports": [
@@ -635,22 +746,29 @@
                   "exec": {
                     "command": [
                       "/app/grpc-health-probe",
-                      "-addr=:50051"
+                      "-addr=:50051",
+                      "-connect-timeout=5s",
+                      "-rpc-timeout=5s"
                     ]
                   },
                   "failureThreshold": 3,
-                  "initialDelaySeconds": 35,
+                  "initialDelaySeconds": 1,
                   "periodSeconds": 10,
                   "successThreshold": 1,
-                  "timeoutSeconds": 1
+                  "timeoutSeconds": 10
                 },
                 "resources": {
                   "requests": {
-                    "cpu": "10m"
+                    "cpu": "25m"
                   }
                 },
                 "securityContext": {
-                  "privileged": true
+                  "capabilities": {
+                    "add": [
+                      "NET_ADMIN",
+                      "NET_RAW"
+                    ]
+                  }
                 },
                 "terminationMessagePath": "/dev/termination-log",
                 "terminationMessagePolicy": "File",
@@ -664,29 +782,58 @@
                     "name": "cni-net-dir"
                   },
                   {
-                    "mountPath": "/host/var/log",
+                    "mountPath": "/host/var/log/aws-routed-eni",
                     "name": "log-dir"
                   },
                   {
-                    "mountPath": "/var/run/docker.sock",
-                    "name": "dockersock"
+                    "mountPath": "/var/run/aws-node",
+                    "name": "run-dir"
                   },
                   {
-                    "mountPath": "/var/run/dockershim.sock",
-                    "name": "dockershim"
+                    "mountPath": "/run/xtables.lock",
+                    "name": "xtables-lock"
                   }
                 ]
               }
             ],
             "dnsPolicy": "ClusterFirst",
             "hostNetwork": true,
+            "initContainers": [
+              {
+                "env": [
+                  {
+                    "name": "DISABLE_TCP_EARLY_DEMUX",
+                    "value": "false"
+                  },
+                  {
+                    "name": "ENABLE_IPv6",
+                    "value": "false"
+                  }
+                ],
+                "image": "602401143452.dkr.ecr.ap-northeast-2.amazonaws.com/amazon-k8s-cni-init:v1.12.2-eksbuild.1",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "aws-vpc-cni-init",
+                "resources": {},
+                "securityContext": {
+                  "privileged": true
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                  {
+                    "mountPath": "/host/opt/cni/bin",
+                    "name": "cni-bin-dir"
+                  }
+                ]
+              }
+            ],
             "priorityClassName": "system-node-critical",
             "restartPolicy": "Always",
             "schedulerName": "default-scheduler",
             "securityContext": {},
             "serviceAccount": "aws-node",
             "serviceAccountName": "aws-node",
-            "terminationGracePeriodSeconds": 30,
+            "terminationGracePeriodSeconds": 10,
             "tolerations": [
               {
                 "operator": "Exists"
@@ -709,30 +856,31 @@
               },
               {
                 "hostPath": {
-                  "path": "/var/log",
-                  "type": ""
+                  "path": "/var/log/aws-routed-eni",
+                  "type": "DirectoryOrCreate"
                 },
                 "name": "log-dir"
               },
               {
                 "hostPath": {
-                  "path": "/var/run/docker.sock",
-                  "type": ""
+                  "path": "/var/run/aws-node",
+                  "type": "DirectoryOrCreate"
                 },
-                "name": "dockersock"
+                "name": "run-dir"
               },
               {
                 "hostPath": {
-                  "path": "/var/run/dockershim.sock",
+                  "path": "/run/xtables.lock",
                   "type": ""
                 },
-                "name": "dockershim"
+                "name": "xtables-lock"
               }
             ]
           }
         },
         "updateStrategy": {
           "rollingUpdate": {
+            "maxSurge": 0,
             "maxUnavailable": "10%"
           },
           "type": "RollingUpdate"
@@ -744,6 +892,12 @@
       "kind": "CustomResourceDefinition",
       "metadata": {
         "annotations": {},
+        "labels": {
+          "app.kubernetes.io/instance": "aws-vpc-cni",
+          "app.kubernetes.io/name": "aws-node",
+          "app.kubernetes.io/version": "v1.12.2",
+          "k8s-app": "aws-node"
+        },
         "name": "eniconfigs.crd.k8s.amazonaws.com"
       },
       "spec": {
@@ -757,11 +911,16 @@
           "plural": "eniconfigs",
           "singular": "eniconfig"
         },
-        "preserveUnknownFields": true,
         "scope": "Cluster",
         "versions": [
           {
             "name": "v1alpha1",
+            "schema": {
+              "openAPIV3Schema": {
+                "type": "object",
+                "x-kubernetes-preserve-unknown-fields": true
+              }
+            },
             "served": true,
             "storage": true
           }
@@ -773,6 +932,12 @@
       "kind": "ClusterRole",
       "metadata": {
         "annotations": {},
+        "labels": {
+          "app.kubernetes.io/instance": "aws-vpc-cni",
+          "app.kubernetes.io/name": "aws-node",
+          "app.kubernetes.io/version": "v1.12.2",
+          "k8s-app": "aws-node"
+        },
         "name": "aws-node"
       },
       "rules": [
@@ -781,10 +946,12 @@
             "crd.k8s.amazonaws.com"
           ],
           "resources": [
-            "*"
+            "eniconfigs"
           ],
           "verbs": [
-            "*"
+            "list",
+            "watch",
+            "get"
           ]
         },
         {
@@ -792,8 +959,6 @@
             ""
           ],
           "resources": [
-            "pods",
-            "nodes",
             "namespaces"
           ],
           "verbs": [
@@ -804,14 +969,55 @@
         },
         {
           "apiGroups": [
+            ""
+          ],
+          "resources": [
+            "pods"
+          ],
+          "verbs": [
+            "list",
+            "watch",
+            "get"
+          ]
+        },
+        {
+          "apiGroups": [
+            ""
+          ],
+          "resources": [
+            "nodes"
+          ],
+          "verbs": [
+            "list",
+            "watch",
+            "get",
+            "update"
+          ]
+        },
+        {
+          "apiGroups": [
             "extensions"
           ],
           "resources": [
-            "daemonsets"
+            "*"
           ],
           "verbs": [
             "list",
             "watch"
+          ]
+        },
+        {
+          "apiGroups": [
+            "",
+            "events.k8s.io"
+          ],
+          "resources": [
+            "events"
+          ],
+          "verbs": [
+            "create",
+            "patch",
+            "list"
           ]
         }
       ]
@@ -821,6 +1027,12 @@
       "kind": "ClusterRoleBinding",
       "metadata": {
         "annotations": {},
+        "labels": {
+          "app.kubernetes.io/instance": "aws-vpc-cni",
+          "app.kubernetes.io/name": "aws-node",
+          "app.kubernetes.io/version": "v1.12.2",
+          "k8s-app": "aws-node"
+        },
         "name": "aws-node"
       },
       "roleRef": {
