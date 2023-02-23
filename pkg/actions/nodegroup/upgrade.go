@@ -100,6 +100,7 @@ func (m *Manager) upgradeUsingAPI(ctx context.Context, options UpgradeOptions, n
 		Force:         options.ForceUpgrade,
 		NodegroupName: &options.NodegroupName,
 		Version:       &options.KubernetesVersion,
+		ReleaseVersion: &options.ReleaseVersion,
 	}
 
 	if options.LaunchTemplateVersion != "" {

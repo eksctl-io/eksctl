@@ -95,7 +95,10 @@ var _ = Describe("Upgrade", func() {
 						Id:      aws.String("id-123"),
 						Version: aws.String("v2"),
 					},
+					ReleaseVersion: eksReleaseVersion,
 				}).Return(&awseks.UpdateNodegroupVersionOutput{}, nil)
+
+				options.ReleaseVersion = *eksReleaseVersion
 			})
 
 			It("upgrades the nodegroup version and lt by calling the API", func() {
@@ -131,7 +134,10 @@ var _ = Describe("Upgrade", func() {
 						Name:    aws.String("lt"),
 						Version: aws.String("v2"),
 					},
+					ReleaseVersion: eksReleaseVersion,
 				}).Return(&awseks.UpdateNodegroupVersionOutput{}, nil)
+
+				options.ReleaseVersion = *eksReleaseVersion
 			})
 
 			It("upgrades the nodegroup version and lt by calling the API", func() {
