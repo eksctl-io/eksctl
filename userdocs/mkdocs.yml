@@ -87,6 +87,7 @@ markdown_extensions:
   - codehilite:
       linenums: true
   - pymdownx.superfences
+  - pymdownx.details
   - pymdownx.tasklist:
       custom_checkbox: true
   - attr_list

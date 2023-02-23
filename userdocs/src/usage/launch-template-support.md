@@ -44,7 +44,7 @@ managedNodeGroups:
 eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --launch-template-version=3
 ```
 
-!!!note
+???+ note
     If a launch template is using a custom AMI, then the new version should also use a custom AMI or the upgrade operation will fail
 
 

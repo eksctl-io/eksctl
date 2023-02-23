@@ -15,7 +15,7 @@ Get the name of old nodegroup:
 eksctl get nodegroups --cluster=<clusterName> --region=<region>
 ```
 
-!!!note
+???+ note
     You should see only one nodegroup here, if you see more - read the next section.
 
 Create new nodegroup:
@@ -30,7 +30,7 @@ Delete old nodegroup:
 eksctl delete nodegroup --cluster=<clusterName> --region=<region> --name=<oldNodeGroupName>
 ```
 
-!!!note
+???+ note
     This will drain all pods from that nodegroup before the instances are deleted.
 
 ## Updating multiple nodegroups
@@ -76,7 +76,7 @@ Once you have new nodegroups in place, you can delete old ones:
 eksctl delete nodegroup --config-file=<path> --only-missing
 ```
 
-!!!note
+???+ note
     First run is in plan mode, if you are happy with the proposed changes, re-run with `--approve`.
 
 ## Updating default add-ons
@@ -84,10 +84,10 @@ eksctl delete nodegroup --config-file=<path> --only-missing
 There are 3 default add-ons that get included in each EKS cluster, the process for updating each of them is different, hence
 there are 3 distinct commands that you will need to run.
 
-!!!info
+???+ info
     All of the following commands accept `--config-file`.
 
-!!!note
+???+ note
     By default each of these commands runs in plan mode, if you are happy with the proposed changes, re-run with `--approve`.
 
 To update `kube-proxy`, run:

@@ -13,7 +13,7 @@ The flag can take the AMI image id for an image to explicitly use. It also can t
 | auto-ssm  | Indicates that the AMI to use for the nodes should be found by querying AWS SSM Parameter Store.                    |
 
 
-!!! note
+???+ note
     When setting `--node-ami` to an ID string, `eksctl` will assume that a custom AMI has been requested.
     For AmazonLinux2 and Ubuntu nodes, both EKS managed and self-managed, this will mean that `overrideBootstrapCommand` is required.
 

@@ -14,6 +14,6 @@ documentation](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-se
 For managed and unmanaged nodegroups, [`disablePodIMDS`](/usage/schema/#nodeGroups-disablePodIMDS) option is available prevents all
 non host networking pods running in this nodegroup from making IMDS requests.
 
-!!!note
+???+ note
     This can not be used together with [`withAddonPolicies`](/usage/iam-policies/).
 

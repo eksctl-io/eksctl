@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"sigs.k8s.io/yaml"
 )
 
 // Addon holds the EKS addon configuration
@@ -56,22 +57,28 @@ func (a Addon) CanonicalName() string {
 
 func (a Addon) Validate() error {
 	if a.Name == "" {
-		return fmt.Errorf("name required")
+		return fmt.Errorf("name is required")
 	}
 
-	if err := a.validateConfigurationValuesIsJSON(); err != nil {
-		return fmt.Errorf("%s is not a valid JSON", a.ConfigurationValues)
+	if !json.Valid([]byte(a.ConfigurationValues)) {
+		if err := a.convertConfigurationValuesToJSON(); err != nil {
+			return fmt.Errorf("configurationValues: \"%s\" is not valid, supported format(s) are: JSON and YAML", a.ConfigurationValues)
+		}
 	}
 
 	return a.checkOnlyOnePolicyProviderIsSet()
 }
 
-func (a Addon) validateConfigurationValuesIsJSON() error {
-	if a.ConfigurationValues == "" {
-		return nil
-	}
+func (a *Addon) convertConfigurationValuesToJSON() (err error) {
+	rawConfigurationValues := []byte(a.ConfigurationValues)
 	var js map[string]interface{}
-	return json.Unmarshal([]byte(a.ConfigurationValues), &js)
+	if err = yaml.UnmarshalStrict(rawConfigurationValues, &js); err == nil {
+		var JSONConfigurationValues []byte
+		if JSONConfigurationValues, err = yaml.YAMLToJSONStrict(rawConfigurationValues); err == nil {
+			a.ConfigurationValues = string(JSONConfigurationValues)
+		}
+	}
+	return err
 }
 
 func (a Addon) checkOnlyOnePolicyProviderIsSet() error {

@@ -25,10 +25,10 @@ $ eksctl register cluster --name <name> --provider <provider>
 This command will register the cluster and write three files that contain the Kubernetes manifests for EKS Connector
 that must be applied to the external cluster before the registration expires.
 
-!!!note
-`eks-connector-clusterrole.yaml` and `eks-connector-console-dashboard-full-access-clusterrole.yaml` give `get` and `list` permissions for Kubernetes resources
-in all namespaces to the calling IAM identity and must be edited accordingly if required before applying them to the cluster.
-To configure more restricted access, see [Granting access to a user to view a cluster](https://docs.aws.amazon.com/eks/latest/userguide/connector-grant-access.html).
+???+ note
+    `eks-connector-clusterrole.yaml` and `eks-connector-console-dashboard-full-access-clusterrole.yaml` give `get` and `list` permissions for Kubernetes resources
+    in all namespaces to the calling IAM identity and must be edited accordingly if required before applying them to the cluster.
+    To configure more restricted access, see [Granting access to a user to view a cluster](https://docs.aws.amazon.com/eks/latest/userguide/connector-grant-access.html).
 
 To provide an existing IAM role to use for EKS Connector, pass it via `--role-arn` as in:
 
