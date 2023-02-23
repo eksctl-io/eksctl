@@ -53,9 +53,9 @@ eksctl create cluster -f cluster-arm-2.yaml
 
 The AMI resolvers, `auto` and `auto-ssm`, will see that you want to use an ARM instance type and they will select the correct AMI.
 
-!!!note
+???+ note
     Note that currently there are only AmazonLinux2 EKS optimized AMIs for ARM.
 
-!!!note
+???+ note
     ARM is supported for clusters with version 1.15 and higher.
 

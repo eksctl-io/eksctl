@@ -1,6 +1,6 @@
 # New: GitOps with Flux v2
 
-!!! Warning "Flux v2 `eksctl` integration is **experimental**"
+!!! warning "Flux v2 `eksctl` integration is **experimental**"
     Partial experimental support for [Flux v2 (part of the GitOps Toolkit)](https://toolkit.fluxcd.io/)
     was made available in `eksctl` version `0.38.0`.
 
@@ -66,7 +66,7 @@ gitops:
 
 This example configuration can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/12-gitops-toolkit.yaml).
 
-!!! Note
+???+ note
     Flux v2 configuration can **only** be provided via configuration file; no flags
     are exposed on this subcommand other than `--config-file`.
 

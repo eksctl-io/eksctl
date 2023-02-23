@@ -407,7 +407,7 @@ var _ = Describe("Get", func() {
 					},
 					Status: corev1.NodeStatus{
 						NodeInfo: corev1.NodeSystemInfo{
-							KubeletVersion: "1.21.1",
+							KubeletVersion: "1.22.1",
 						},
 					},
 				}, metav1.CreateOptions{})
@@ -468,7 +468,7 @@ var _ = Describe("Get", func() {
 					MaxSize:              100,
 					DesiredCapacity:      50,
 					MinSize:              1,
-					Version:              "1.21.1",
+					Version:              "1.22.1",
 					CreationTime:         creationTime,
 					NodeGroupType:        api.NodeGroupTypeUnmanaged,
 				}))

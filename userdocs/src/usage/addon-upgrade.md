@@ -5,16 +5,16 @@ There are 3 default add-ons that get included in each EKS cluster:
 - `aws-node`
 - `coredns`
 
-!!!info
+???+ info
 For official EKS addons that are created manually through `eksctl create addons` or upon cluster creation, the way to manage them is
 through `eksctl create/get/update/delete addon`. In such cases, please refer to the docs about [EKS Add-Ons](https://eksctl.io/usage/addons/).
 
 The process for updating each of them is different, hence there are 3 distinct commands that you will need to run.
 
-!!!info
+???+ info
     All of the following commands accept `--config-file`.
 
-!!!note
+???+ note
     By default each of these commands runs in plan mode, if you are happy with the proposed changes, re-run with `--approve`.
 
 To update `kube-proxy`, run:
