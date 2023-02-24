@@ -53,31 +53,30 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+
 	Describe("nodeGroups[*].name validation", func() {
 		var (
 			cfg *api.ClusterConfig
+			ng *api.NodeGroup
 			err error
 		)
 
 		BeforeEach(func() {
 			cfg = api.NewClusterConfig()
-			ng0 := cfg.NewNodeGroup()
-			ng0.Name = "ng_invalid-name-10"
-			ng1 := cfg.NewNodeGroup()
-			ng1.Name = "ng100_invalid_name"
-			ng2 := cfg.NewNodeGroup()
-			ng2.Name = "ng100@invalid-name"
+			ng = cfg.NewNodeGroup()
 		})
 
-		It("should reject invalid nodegroup names", func() {
-			err = api.ValidateClusterConfig(cfg)
-			Expect(err).NotTo(HaveOccurred())
+		DescribeTable("rejecting invalid names", 
+			func(ngName string) {
+				ng.Name = ngName
 
-			for i, ng := range cfg.NodeGroups {
-				err = api.ValidateNodeGroup(i, ng, cfg)
+				err = api.ValidateNodeGroup(0, ng, cfg)
 				Expect(err).To(HaveOccurred())
-			}
-		})
+			},
+			Entry("starts with [^A-Za-z0-9]", "-ng-invalid-name-10"),
+			Entry("contains [^A-Za-z0-9\\-]", "ng100_invalid-name"),
+			Entry("ends with [^A-Za-z0-9]", "ng-invalid-name-10--"),
+		)
 	})
 
 	Describe("nodeGroups[*].containerRuntime validation", func() {
