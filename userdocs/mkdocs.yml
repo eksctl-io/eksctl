@@ -156,3 +156,4 @@ nav:
     - announcements/nodegroup-override-announcement.md
   - Examples: "https://github.com/weaveworks/eksctl/tree/main/examples"
   - Community: community.md
+  - Features: features.md
