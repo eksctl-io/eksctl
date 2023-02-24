@@ -65,7 +65,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng = cfg.NewNodeGroup()
 		})
 
-		DescribeTable("rejecting invalid names", 
+		DescribeTable("rejecting invalid names",
 			func(ngName string) {
 				ng.Name = ngName
 

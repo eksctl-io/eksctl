@@ -713,13 +713,13 @@ func (ue *unsupportedFieldError) Error() string {
 
 // IsInvalidNameArg checks whether the name contains invalid characters
 func IsInvalidNameArg(name string) bool {
-	re := regexp.MustCompile(`[^a-zA-Z0-9\-]+`)
-	return re.MatchString(name)
+	re := regexp.MustCompile(`^([A-Za-z0-9][-A-Za-z0-9]*)?[A-Za-z0-9]$`)
+	return !re.MatchString(name)
 }
 
 // errInvalidName error when invalid characters for a name is provided
 func ErrInvalidName(name string) error {
-	return fmt.Errorf("validation for %s failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*", name)
+	return fmt.Errorf("validation for %s failed, name must satisfy regular expression pattern: ([A-Za-z0-9][-A-Za-z0-9]*)?[A-Za-z0-9]", name)
 }
 
 func validateNodeGroupName(name string) error {

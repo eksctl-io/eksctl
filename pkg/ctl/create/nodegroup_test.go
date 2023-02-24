@@ -91,7 +91,7 @@ var _ = Describe("create nodegroup", func() {
 			}),
 			Entry("with nodegroup name as flag with invalid characters", invalidParamsCase{
 				args:  []string{"--cluster", "clusterName", "--name", "eksctl-ng_k8s_nodegroup1"},
-				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
+				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: ([A-Za-z0-9][-A-Za-z0-9]*)?[A-Za-z0-9]",
 			}),
 		)
 	})
@@ -163,7 +163,7 @@ var _ = Describe("create nodegroup", func() {
 			}),
 			Entry("with nodegroup name as flag with invalid characters", invalidParamsCase{
 				args:  []string{"--name", "eksctl-ng_k8s_nodegroup1"},
-				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
+				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: ([A-Za-z0-9][-A-Za-z0-9]*)?[A-Za-z0-9]",
 			}),
 			Entry("with version flag", invalidParamsCase{
 				args:  []string{"--version", "1.18"},
