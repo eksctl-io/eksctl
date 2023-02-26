@@ -56,15 +56,24 @@ eksctl utils update-cluster-logging --disable-types all
 
 ## `ClusterConfig` Examples
 
-There 5 types of logs that you may wish to enable (see [EKS documentation][eksdocs] for more details):
+In an EKS cluster, the "enableTypes" field under "clusterLogging" can take a list of possible values to enable the different types of logs for the control plane components.
 
-- `api`
-- `audit`
-- `authenticator`
-- `controllerManager`
-- `scheduler`
+### Values
+The following are the possible values:
 
-You can enable all types with `"*"` or `"all"`, i.e.:
+- `api`: This enables the Kubernetes API server logs for the control plane.
+- `audit`: This enables the Kubernetes audit logs for the control plane.
+- `authenticator`: This enables the authenticator logs for the control plane.
+- `controllerManager`: This enables the Kubernetes controller manager logs for the control plane.
+- `scheduler`: This enables the Kubernetes scheduler logs for the control plane.
+
+To learn more, see [EKS documentation][eksdocs]. 
+
+### Disable all logs
+To disable all types, use `[]` or remove the `cloudWatch` section completely.
+
+### Enable all logs
+You can enable all types with `"*"` or `"all"`. For example:
 
 ```yaml
 cloudWatch:
@@ -72,9 +81,8 @@ cloudWatch:
     enableTypes: ["*"]
 ```
 
-To disable all types, use `[]` or remove `cloudWatch` section completely.
-
-You can enable a subset of types by listing the types you want to enable:
+### Enable one or more logs
+You can enable a subset of types by listing the types you want to enable. For example:
 
 ```yaml
 cloudWatch:
@@ -84,7 +92,8 @@ cloudWatch:
       - "authenticator"
 ```
 
-Note that by default, log data is stored in CloudWatch Logs indefinitely. This can be controlled with:
+### Log retention period
+By default, logs are stored in CloudWatch Logs, indefinitely. You can specify the number of days for which the control plane logs should be retained in CloudWatch Logs. The following example retains logs for 7 days:
 
 ```yaml
 cloudWatch:
@@ -92,7 +101,7 @@ cloudWatch:
     logRetentionInDays: 7
 ```
 
-Full example:
+### Complete example
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
