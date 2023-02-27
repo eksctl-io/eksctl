@@ -374,8 +374,8 @@ github.com/aybabtme/rgbterm v0.0.0-20170906152045-cc83f3b3ce59/go.mod h1:q/89r3U
 github.com/benbjohnson/clock v1.0.3/go.mod h1:bGMdMPoPVvcYyt1gHDf4J2KE153Yf9BuiUKYMaxlTDM=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
-github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea h1:NhnqtoeNnEBu36bfeP2CZq/d5bJxzJBtChscvM7v5Cg=
-github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea/go.mod h1:jfBxQAPihPj5l6sipcapjHruLizHrt3RKuppDE97K+g=
+github.com/benjamintf1/unmarshalledmatchers v1.0.0 h1:JUhctHQVNarMXg5x3m0Tkp7WnDLzNVxeWc1qbKQPylI=
+github.com/benjamintf1/unmarshalledmatchers v1.0.0/go.mod h1:IVZdtAzpNyBTuhobduAjo5CjTLczWWbiXnWDVxIgSko=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
