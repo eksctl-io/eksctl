@@ -14,6 +14,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	awsssm "github.com/aws/aws-sdk-go-v2/service/ssm"
 
 	harness "github.com/dlespiau/kube-test-harness"
 
@@ -81,6 +82,8 @@ var _ = BeforeSuite(func() {
 var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 	const (
+		bottlerocketCustomAMI = "bottlerocket-custom-ami"
+		bottlerocketGPU       = "bottlerocket-gpu"
 		bottlerocketNodegroup = "bottlerocket-1"
 		ubuntuNodegroup       = "ubuntu-1"
 		newPublicNodeGroup    = "ng-public-1"
@@ -325,6 +328,84 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			})
 		})
 
+		It("supports adding bottlerocket nodegroups with gpu nodes", func() {
+			clusterConfig := makeClusterConfig()
+			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:         bottlerocketGPU,
+						VolumeSize:   aws.Int(35),
+						AMIFamily:    "Bottlerocket",
+						InstanceType: "g5g.medium",
+						Bottlerocket: &api.NodeGroupBottlerocket{
+							EnableAdminContainer: api.Enabled(),
+							Settings: &api.InlineDocument{
+								"motd": "Bottlerocket is the future",
+								"network": map[string]string{
+									"hostname": "custom-bottlerocket-host",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(clusterutils.Reader(clusterConfig))
+
+			Expect(cmd).To(RunSuccessfully())
+		})
+
+		It("supports adding bottlerocket nodegroups with custom AMI", func() {
+			cfg := NewConfig(params.Region)
+			ssm := awsssm.NewFromConfig(cfg)
+			input := &awsssm.GetParameterInput{
+				Name: aws.String("/aws/service/bottlerocket/aws-k8s-1.22/x86_64/latest/image_id"),
+			}
+			output, err := ssm.GetParameter(context.Background(), input)
+			Expect(err).NotTo(HaveOccurred())
+			customAMI := *output.Parameter.Value
+
+			clusterConfig := makeClusterConfig()
+			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:         bottlerocketCustomAMI,
+						VolumeSize:   aws.Int(35),
+						AMIFamily:    "Bottlerocket",
+						AMI:          customAMI,
+						InstanceType: "t3a.xlarge",
+						Bottlerocket: &api.NodeGroupBottlerocket{
+							EnableAdminContainer: api.Enabled(),
+							Settings: &api.InlineDocument{
+								"motd": "Bottlerocket is the future",
+								"network": map[string]string{
+									"hostname": "custom-bottlerocket-host",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(clusterutils.Reader(clusterConfig))
+
+			Expect(cmd).To(RunSuccessfully())
+		})
+
 		It("supports adding bottlerocket and ubuntu nodegroups with additional volumes", func() {
 			clusterConfig := makeClusterConfig()
 			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
@@ -395,7 +476,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			kubeTest.Close()
 		})
 
-		It("should have created an EKS cluster and 4 CloudFormation stacks", func() {
+		It("should have created an EKS cluster and 6 CloudFormation stacks", func() {
 			awsSession := NewConfig(params.Region)
 
 			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, string(ekstypes.ClusterStatusActive), params.Version))
@@ -403,6 +484,8 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initialAl2Nodegroup)))
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, bottlerocketNodegroup)))
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, bottlerocketGPU)))
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, bottlerocketCustomAMI)))
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, ubuntuNodegroup)))
 		})
 
