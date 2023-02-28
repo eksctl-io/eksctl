@@ -81,7 +81,6 @@ var _ = BeforeSuite(func() {
 var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 	const (
-		bottlerocketCustomAMI = "bottlerocket-custom-ami"
 		bottlerocketGPU       = "bottlerocket-gpu"
 		bottlerocketNodegroup = "bottlerocket-1"
 		ubuntuNodegroup       = "ubuntu-1"
