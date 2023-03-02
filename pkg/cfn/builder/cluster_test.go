@@ -3,6 +3,7 @@ package builder_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -560,6 +561,9 @@ var _ = Describe("Cluster Template Builder", func() {
 
 		Context("when fargate profiles are configured", func() {
 			BeforeEach(func() {
+				cfg.Status = &api.ClusterStatus{
+					ARN: fmt.Sprintf("arn:aws:eks:%s:111122223333:cluster/%s", provider.Region(), cfg.Metadata.Name),
+				}
 				cfg.FargateProfiles = []*api.FargateProfile{{
 					Name: "fp-default",
 					Selectors: []api.FargateProfileSelector{
