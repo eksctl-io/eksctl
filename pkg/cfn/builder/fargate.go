@@ -105,13 +105,27 @@ func addResourcesForFargate(rs *resourceSet, cfg *api.ClusterConfig) error {
 }
 
 func makeSourceArnCondition(cfg *api.ClusterConfig) (cft.MapOfInterfaces, error) {
-	parsedARN, err := arn.Parse(cfg.Status.ARN)
+	accountID, err := getAWSAccountID(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("parsing cluster ARN: %w", err)
+		return nil, err
 	}
 	return cft.MapOfInterfaces{
 		"ArnLike": cft.MapOfInterfaces{
-			"aws:SourceArn": fmt.Sprintf("arn:aws:eks:%s:%s:fargateprofile/%s/*", cfg.Metadata.Region, parsedARN.AccountID, cfg.Metadata.Name),
+			"aws:SourceArn": fmt.Sprintf("arn:aws:eks:%s:%s:fargateprofile/%s/*", cfg.Metadata.Region, accountID, cfg.Metadata.Name),
 		},
 	}, nil
+}
+
+func getAWSAccountID(cfg *api.ClusterConfig) (string, error) {
+	if cfg.Metadata.AccountID != "" {
+		return cfg.Metadata.AccountID, nil
+	}
+	if cfg.Status != nil && cfg.Status.ARN != "" {
+		parsedARN, err := arn.Parse(cfg.Status.ARN)
+		if err != nil {
+			return "", fmt.Errorf("error parsing cluster ARN: %v", err)
+		}
+		return parsedARN.AccountID, nil
+	}
+	return "", fmt.Errorf("failed to determine account ID")
 }
