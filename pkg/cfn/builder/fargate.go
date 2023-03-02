@@ -3,6 +3,7 @@ package builder
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -73,8 +74,17 @@ func addResourcesForFargate(rs *resourceSet, cfg *api.ClusterConfig) error {
 	rs.withIAM = true
 
 	rs.template.Description = fargateRoleDescription
+
+	// As per AWS docs, to avoid a confused deputy security problem, it's important that the role restricts access based on SourceArn.
+	// See: https://docs.aws.amazon.com/eks/latest/userguide/pod-execution-role.html#check-pod-execution-role
+	sourceArnCondition, err := makeSourceArnCondition(cfg)
+	if err != nil {
+		return fmt.Errorf("restricting access based on SourceArn: %w", err)
+	}
+
 	role := &gfniam.Role{
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServicesWithConditions(
+			sourceArnCondition,
 			MakeServiceRef("EKSFargatePods"), // Ensure that EKS can schedule pods onto Fargate.
 		),
 		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(
@@ -92,4 +102,16 @@ func addResourcesForFargate(rs *resourceSet, cfg *api.ClusterConfig) error {
 		return nil
 	})
 	return nil
+}
+
+func makeSourceArnCondition(cfg *api.ClusterConfig) (cft.MapOfInterfaces, error) {
+	parsedARN, err := arn.Parse(cfg.Status.ARN)
+	if err != nil {
+		return nil, fmt.Errorf("parsing cluster ARN: %w", err)
+	}
+	return cft.MapOfInterfaces{
+		"ArnLike": cft.MapOfInterfaces{
+			"aws:SourceArn": fmt.Sprintf("arn:aws:eks:%s:%s:fargateprofile/%s/*", cfg.Metadata.Region, parsedARN.AccountID, cfg.Metadata.Name),
+		},
+	}, nil
 }
