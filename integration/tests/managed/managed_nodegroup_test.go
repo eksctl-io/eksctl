@@ -81,6 +81,7 @@ var _ = BeforeSuite(func() {
 var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 	const (
+		bottlerocketGPU       = "bottlerocket-gpu"
 		bottlerocketNodegroup = "bottlerocket-1"
 		ubuntuNodegroup       = "ubuntu-1"
 		newPublicNodeGroup    = "ng-public-1"
@@ -325,6 +326,41 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			})
 		})
 
+		It("supports adding bottlerocket nodegroups with gpu nodes", func() {
+			clusterConfig := makeClusterConfig()
+			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:         bottlerocketGPU,
+						VolumeSize:   aws.Int(35),
+						AMIFamily:    "Bottlerocket",
+						InstanceType: "g4dn.xlarge",
+						Bottlerocket: &api.NodeGroupBottlerocket{
+							EnableAdminContainer: api.Enabled(),
+							Settings: &api.InlineDocument{
+								"motd": "Bottlerocket is the future",
+								"network": map[string]string{
+									"hostname": "custom-bottlerocket-host",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--skip-outdated-addons-check",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(clusterutils.Reader(clusterConfig))
+
+			Expect(cmd).To(RunSuccessfully())
+		})
+
 		It("supports adding bottlerocket and ubuntu nodegroups with additional volumes", func() {
 			clusterConfig := makeClusterConfig()
 			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
@@ -395,7 +431,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			kubeTest.Close()
 		})
 
-		It("should have created an EKS cluster and 4 CloudFormation stacks", func() {
+		It("should have created an EKS cluster and 5 CloudFormation stacks", func() {
 			awsSession := NewConfig(params.Region)
 
 			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, string(ekstypes.ClusterStatusActive), params.Version))
@@ -403,6 +439,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initialAl2Nodegroup)))
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, bottlerocketNodegroup)))
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, bottlerocketGPU)))
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, ubuntuNodegroup)))
 		})
 

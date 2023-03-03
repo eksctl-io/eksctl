@@ -45,8 +45,9 @@ func makeBlockDeviceMappings(ng *api.NodeGroupBase) []gfnec2.LaunchTemplate_Bloc
 		mappings = append(mappings, gfnec2.LaunchTemplate_BlockDeviceMapping{
 			DeviceName: gfnt.NewString(ng.AdditionalEncryptedVolume),
 			Ebs: &gfnec2.LaunchTemplate_Ebs{
-				Encrypted: gfnt.NewBoolean(*ng.VolumeEncrypted),
-				KmsKeyId:  mapping.Ebs.KmsKeyId,
+				Encrypted:  gfnt.NewBoolean(*ng.VolumeEncrypted),
+				KmsKeyId:   mapping.Ebs.KmsKeyId,
+				VolumeType: mapping.Ebs.VolumeType,
 			},
 		})
 	}

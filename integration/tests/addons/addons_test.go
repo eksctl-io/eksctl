@@ -503,33 +503,32 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		Expect(json.Valid(session.Buffer().Contents())).To(BeTrue(), "invalid JSON for configuration schema")
 	})
 
-	It("should describe addons when publisher, type and owner is supplied", func() {
+	It("should describe addons when publisher, type and owner are supplied", func() {
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"describe-addon-versions",
 				"--kubernetes-version", api.LatestVersion,
-				"--types", "infra-management",
-				"--owners", "aws-marketplace",
-				"--publishers", "upbound",
+				"--types", "networking",
+				"--owners", "aws",
+				"--publishers", "eks",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-			ContainElement(ContainSubstring("infra-management")),
-			ContainElement(ContainSubstring("aws-marketplace")),
-			ContainElement(ContainSubstring("upbound")),
-			ContainElement(ContainSubstring("upbound_universal-crossplane")),
+			ContainElement(ContainSubstring("vpc-cni")),
+			ContainElement(ContainSubstring("coredns")),
+			ContainElement(ContainSubstring("kube-proxy")),
 		))
 	})
 
-	It("should describe addons when multiple types is supplied", func() {
+	It("should describe addons when multiple types are supplied", func() {
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"describe-addon-versions",
 				"--kubernetes-version", api.LatestVersion,
-				"--types", "infra-management, policy-management",
+				"--types", "networking, storage",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-			ContainElement(ContainSubstring("infra-management")),
-			ContainElement(ContainSubstring("policy-management")),
+			ContainElement(ContainSubstring("vpc-cni")),
+			ContainElement(ContainSubstring("aws-ebs-csi-driver")),
 		))
 	})
 })
