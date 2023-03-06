@@ -129,7 +129,7 @@ func Cleanup(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancer
 			lb.name, lb.kind, convertStringSetToSlice(lb.ownedSecurityGroupIDs),
 		)
 		awsLoadBalancers[lb.name] = *lb
-		logger.Debug("deleting 'kubernetes.io/ingress.class: alb' Ingress %s/%s", ingressMetadata.Namespace, ingressMetadata.Name)
+		logger.Debug("deleting ALB Ingress %s/%s", ingressMetadata.Namespace, ingressMetadata.Name)
 		if err := i.Delete(kubernetesCS); err != nil {
 			errStr := fmt.Sprintf("cannot delete Kubernetes Ingress %s/%s: %s", ingressMetadata.Namespace, ingressMetadata.Name, err)
 			if k8serrors.IsForbidden(err) {
@@ -195,9 +195,9 @@ func getServiceLoadBalancer(ctx context.Context, ec2API awsapi.EC2, elbAPI Descr
 
 func getIngressLoadBalancer(ingress Ingress) (lb *loadBalancer) {
 	metadata := ingress.GetMetadata()
-	ingressCls := "kubernetes.io/ingress.class"
-	if metadata.Annotations[ingressCls] != "alb" {
-		logger.Debug("%s is not ALB Ingress, it is '%s': '%s', skip", metadata.Name, ingressCls, metadata.Annotations[ingressCls])
+
+	if ingress.GetIngressClass() != "alb" {
+		logger.Debug("%s is not ALB Ingress, Ingress Class is '%s', skip", metadata.Name, ingress.GetIngressClass())
 		return nil
 	}
 
