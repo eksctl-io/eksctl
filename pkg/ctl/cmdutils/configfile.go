@@ -383,7 +383,11 @@ func validateZonesAndNodeZones(cmd *cobra.Command) error {
 
 func validateDryRunOptions(cmd *cobra.Command, incompatibleFlags []string) error {
 	if flagName, found := findChangedFlag(cmd, incompatibleFlags); found {
-		return errors.Errorf("cannot use --%s with --dry-run as this option cannot be represented in ClusterConfig", flagName)
+		msg := fmt.Sprintf("cannot use --%s with --dry-run as this option cannot be represented in ClusterConfig", flagName)
+		if flagName == "profile" {
+			msg = fmt.Sprintf("%s: set the AWS_PROFILE environment variable instead", msg)
+		}
+		return errors.New(msg)
 	}
 	return nil
 }

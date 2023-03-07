@@ -31,18 +31,18 @@ import (
 // Values for `KubernetesVersion`
 // All valid values should go in this block
 const (
-	Version1_21 = "1.21"
-
 	Version1_22 = "1.22"
 
 	Version1_23 = "1.23"
 
 	Version1_24 = "1.24"
 
+	Version1_25 = "1.25"
+
 	// DefaultVersion (default)
 	DefaultVersion = Version1_24
 
-	LatestVersion = Version1_24
+	LatestVersion = Version1_25
 
 	DockershimDeprecationVersion = Version1_24
 )
@@ -81,12 +81,15 @@ const (
 
 	// Version1_20 represents Kubernetes version 1.20.x
 	Version1_20 = "1.20"
+
+	// Version1_21 represents Kubernetes version 1.21.x
+	Version1_21 = "1.21"
 )
 
 // Not yet supported versions
 const (
-	// Version1_25 represents Kubernetes version 1.25.x
-	Version1_25 = "1.25"
+	// Version1_26 represents Kubernetes version 1.26.x
+	Version1_26 = "1.26"
 )
 
 const (
@@ -126,8 +129,14 @@ const (
 	// RegionEUCentral1 represents the EU Central Region Frankfurt
 	RegionEUCentral1 = "eu-central-1"
 
-	// RegionEUSouth1 represents te Eu South Region Milan
+	// RegionEUCentral2 represents the EU Central Region Zurich.
+	RegionEUCentral2 = "eu-central-2"
+
+	// RegionEUSouth1 represents the Eu South Region Milan
 	RegionEUSouth1 = "eu-south-1"
+
+	// RegionEUSouth2 represents the Eu South Region Spain
+	RegionEUSouth2 = "eu-south-2"
 
 	// RegionAPNorthEast1 represents the Asia-Pacific North East Region Tokyo
 	RegionAPNorthEast1 = "ap-northeast-1"
@@ -149,6 +158,9 @@ const (
 
 	// RegionAPSouth1 represents the Asia-Pacific South Region Mumbai
 	RegionAPSouth1 = "ap-south-1"
+
+	// RegionAPSouth2 represents the Asia-Pacific South Region Hyderabad
+	RegionAPSouth2 = "ap-south-2"
 
 	// RegionAPEast1 represents the Asia Pacific Region Hong Kong
 	RegionAPEast1 = "ap-east-1"
@@ -318,11 +330,20 @@ const (
 	// eksResourceAccountEUSouth1 defines the AWS EKS account ID that provides node resources in eu-south-1
 	eksResourceAccountEUSouth1 = "590381155156"
 
+	// eksResourceAccountEUSouth2 defines the AWS EKS account ID that provides node resources in eu-south-2
+	eksResourceAccountEUSouth2 = "455263428931"
+
+	// eksResourceAccountEUCentral2 defines the AWS EKS account ID that provides node resources in eu-central-2.
+	eksResourceAccountEUCentral2 = "900612956339"
+
 	// eksResourceAccountUSGovWest1 defines the AWS EKS account ID that provides node resources in us-gov-west-1
 	eksResourceAccountUSGovWest1 = "013241004608"
 
 	// eksResourceAccountUSGovEast1 defines the AWS EKS account ID that provides node resources in us-gov-east-1
 	eksResourceAccountUSGovEast1 = "151742754352"
+
+	// eksResourceAccountAPSouth2 defines the AWS EKS account ID that provides node resources in ap-south-2
+	eksResourceAccountAPSouth2 = "900889452093"
 
 	// eksResourceAccountAPSouthEast3 defines the AWS EKS account ID that provides node resources in ap-southeast-3
 	eksResourceAccountAPSouthEast3 = "296578399912"
@@ -447,7 +468,9 @@ func SupportedRegions() []string {
 		RegionEUWest3,
 		RegionEUNorth1,
 		RegionEUCentral1,
+		RegionEUCentral2,
 		RegionEUSouth1,
+		RegionEUSouth2,
 		RegionAPNorthEast1,
 		RegionAPNorthEast2,
 		RegionAPNorthEast3,
@@ -455,6 +478,7 @@ func SupportedRegions() []string {
 		RegionAPSouthEast2,
 		RegionAPSouthEast3,
 		RegionAPSouth1,
+		RegionAPSouth2,
 		RegionAPEast1,
 		RegionMECentral1,
 		RegionMESouth1,
@@ -495,6 +519,7 @@ func DeprecatedVersions() []string {
 		Version1_18,
 		Version1_19,
 		Version1_20,
+		Version1_21,
 	}
 }
 
@@ -511,10 +536,10 @@ func IsDeprecatedVersion(version string) bool {
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_21,
 		Version1_22,
 		Version1_23,
 		Version1_24,
+		Version1_25,
 	}
 }
 
@@ -586,6 +611,12 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountAFSouth1
 	case RegionEUSouth1:
 		return eksResourceAccountEUSouth1
+	case RegionEUSouth2:
+		return eksResourceAccountEUSouth2
+	case RegionEUCentral2:
+		return eksResourceAccountEUCentral2
+	case RegionAPSouth2:
+		return eksResourceAccountAPSouth2
 	case RegionAPSouthEast3:
 		return eksResourceAccountAPSouthEast3
 	default:

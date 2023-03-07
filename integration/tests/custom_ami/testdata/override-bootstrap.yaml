@@ -9,6 +9,7 @@ metadata:
 nodeGroups:
   - name: unm-1
     ami: <generated-ami>
+    amiFamily: AmazonLinux2
     desiredCapacity: 1
     maxSize: 2
     minSize: 1
@@ -20,6 +21,7 @@ nodeGroups:
 managedNodeGroups:
   - name: mng-1
     ami: <generated-ami>
+    amiFamily: AmazonLinux2
     desiredCapacity: 1
     maxSize: 2
     minSize: 1

@@ -102,37 +102,8 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				return cmd
 			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
 
-			By("successfully creating the aws-ebs-csi-driver addon via config file")
-			// setup config file
-			clusterConfig := getInitialClusterConfig()
-			clusterConfig.Addons = append(clusterConfig.Addons, &api.Addon{
-				Name: api.AWSEBSCSIDriverAddon,
-			})
-			data, err := json.Marshal(clusterConfig)
-
-			Expect(err).NotTo(HaveOccurred())
-			cmd := params.EksctlCreateCmd.
-				WithArgs(
-					"addon",
-					"--config-file", "-",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(bytes.NewReader(data))
-			Expect(cmd).To(RunSuccessfully())
-
-			Eventually(func() runner.Cmd {
-				cmd := params.EksctlGetCmd.
-					WithArgs(
-						"addon",
-						"--name", api.AWSEBSCSIDriverAddon,
-						"--cluster", clusterName,
-						"--verbose", "2",
-					)
-				return cmd
-			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
-
 			By("successfully creating the kube-proxy addon")
-			cmd = params.EksctlCreateCmd.
+			cmd := params.EksctlCreateCmd.
 				WithArgs(
 					"addon",
 					"--name", "kube-proxy",
@@ -154,11 +125,50 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				return cmd
 			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
 
+			By("successfully creating the aws-ebs-csi-driver addon via config file")
+			// setup config file
+			clusterConfig := getInitialClusterConfig()
+			clusterConfig.Addons = append(clusterConfig.Addons, &api.Addon{
+				Name: api.AWSEBSCSIDriverAddon,
+			})
+			data, err := json.Marshal(clusterConfig)
+
+			Expect(err).NotTo(HaveOccurred())
+			cmd = params.EksctlCreateCmd.
+				WithArgs(
+					"addon",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).To(RunSuccessfully())
+
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", api.AWSEBSCSIDriverAddon,
+						"--cluster", clusterName,
+						"--verbose", "2",
+					)
+				return cmd
+			}, "10m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
+
 			By("Deleting the kube-proxy addon")
 			cmd = params.EksctlDeleteCmd.
 				WithArgs(
 					"addon",
 					"--name", "kube-proxy",
+					"--cluster", clusterName,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
+
+			By("Deleting the aws-ebs-csi-driver addon")
+			cmd = params.EksctlDeleteCmd.
+				WithArgs(
+					"addon",
+					"--name", api.AWSEBSCSIDriverAddon,
 					"--cluster", clusterName,
 					"--verbose", "2",
 				)
@@ -376,6 +386,18 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			Expect(cmd).To(RunSuccessfully())
 
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "coredns",
+						"--cluster", clusterName,
+						"--verbose", "2",
+						"--region", params.Region,
+					)
+				return cmd
+			}, "5m", "30s").ShouldNot(RunSuccessfully())
+
 			By("successfully creating an addon with configuration values")
 			clusterConfig := getInitialClusterConfig()
 			clusterConfig.Addons = []*api.Addon{
@@ -481,33 +503,32 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		Expect(json.Valid(session.Buffer().Contents())).To(BeTrue(), "invalid JSON for configuration schema")
 	})
 
-	It("should describe addons when publisher, type and owner is supplied", func() {
+	It("should describe addons when publisher, type and owner are supplied", func() {
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"describe-addon-versions",
 				"--kubernetes-version", api.LatestVersion,
-				"--types", "infra-management",
-				"--owners", "aws-marketplace",
-				"--publishers", "upbound",
+				"--types", "networking",
+				"--owners", "aws",
+				"--publishers", "eks",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-			ContainElement(ContainSubstring("infra-management")),
-			ContainElement(ContainSubstring("aws-marketplace")),
-			ContainElement(ContainSubstring("upbound")),
-			ContainElement(ContainSubstring("upbound_universal-crossplane")),
+			ContainElement(ContainSubstring("vpc-cni")),
+			ContainElement(ContainSubstring("coredns")),
+			ContainElement(ContainSubstring("kube-proxy")),
 		))
 	})
 
-	It("should describe addons when multiple types is supplied", func() {
+	It("should describe addons when multiple types are supplied", func() {
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"describe-addon-versions",
 				"--kubernetes-version", api.LatestVersion,
-				"--types", "infra-management, policy-management",
+				"--types", "networking, storage",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-			ContainElement(ContainSubstring("infra-management")),
-			ContainElement(ContainSubstring("policy-management")),
+			ContainElement(ContainSubstring("vpc-cni")),
+			ContainElement(ContainSubstring("aws-ebs-csi-driver")),
 		))
 	})
 })

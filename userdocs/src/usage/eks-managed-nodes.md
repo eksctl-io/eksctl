@@ -6,7 +6,7 @@ An EKS managed node group is an autoscaling group and associated EC2 instances t
 
 **NEW** [Launch Template support for managed nodegroups](launch-template-support.md)
 
-!!!info
+???+ info
     The term "unmanaged nodegroups" has been used to refer to nodegroups that eksctl has supported since the beginning (represented via the `nodeGroups` field). The `ClusterConfig` file continues to use the `nodeGroups` field for defining unmanaged nodegroups, and managed nodegroups are defined with the `managedNodeGroups` field.
 
 ## Creating managed nodegroups
@@ -25,7 +25,7 @@ $ eksctl create cluster
 
 To create multiple managed nodegroups and have more control over the configuration, a config file can be used.
 
-!!!note
+???+ note
     Managed nodegroups do not have complete feature parity with unmanaged nodegroups.
 
 ```yaml
@@ -142,6 +142,38 @@ managedNodeGroups:
       /etc/eks/bootstrap.sh managed-cluster --kubelet-extra-args '--node-labels=eks.amazonaws.com/nodegroup=custom-ng,eks.amazonaws.com/nodegroup-image=ami-0e124de4755b2734d'
 ```
 
+If you are requesting an instance type that is only available in one zone (and the eksctl config requires
+specification of two) make sure to add the availability zone to your node group request:
+
+
+```yaml
+# cluster.yaml
+# A cluster with a managed nodegroup with "availabilityZones"
+---
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: flux-cluster
+  region: us-east-2
+  version: "1.23"
+ 
+availabilityZones: ["us-east-2b", "us-east-2c"]
+managedNodeGroups:
+  - name: workers
+    instanceType: hpc6a.48xlarge
+    minSize: 64
+    maxSize: 64
+    labels: { "fluxoperator": "true" }
+    availabilityZones: ["us-east-2b"]   
+    efaEnabled: true
+    placement:
+      groupName: eks-efa-testing
+```
+
+This can be true for instance types like [the Hpc6 family](https://aws.amazon.com/ec2/instance-types/hpc6/) that are only available
+in one zone.
 
 ### Existing clusters
 
@@ -183,7 +215,7 @@ To upgrade to a specific AMI release version instead of the latest version, pass
 eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release-version=1.19.6-20210310
 ```
 
-!!!note
+???+ note
     If the managed nodes are deployed using custom AMIs, the following workflow must be followed in order to deploy a new version of the custom AMI.
 
     - initial deployment of the nodegroup must be done using a launch template. e.g.

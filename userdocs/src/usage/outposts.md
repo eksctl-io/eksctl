@@ -4,10 +4,10 @@
 Customers can either create a local cluster with both the EKS control plane and worker nodes running locally on AWS Outposts, or they can extend an existing EKS cluster running in an AWS region
 to AWS Outposts by creating worker nodes on Outposts.
 
-!!!warning
+!!! warning
     EKS Managed Nodegroups are not supported on Outposts.
 
-!!!info
+???+ info
     Local clusters support Outpost racks only.
 
 
@@ -24,7 +24,6 @@ kind: ClusterConfig
 metadata:
   name: outpost
   region: us-west-2
-  version: "1.21"
 
 outpost:
   # Required.
@@ -54,13 +53,9 @@ By default, eksctl attempts to choose the smallest available instance type on Ou
 When the control plane is on Outposts, nodegroups are created on that Outpost. You can optionally specify the Outpost ARN for the nodegroup in `nodeGroup.outpostARN` but it must match the control plane's Outpost ARN.
 
 
-!!!warning
-    Local clusters support EKS 1.21 only. Support for newer versions will be added later.
-
-
-!!!abstract "New"
+!!! abstract "New"
     [Fully-private cluster support](eks-private-cluster.md)
-    
+
     eksctl now supports creating fully-private clusters on AWS Outposts.
 
 ```yaml
@@ -72,7 +67,6 @@ kind: ClusterConfig
 metadata:
   name: outpost-fully-private
   region: us-west-2
-  version: "1.21"
 
 privateCluster:
   enabled: true
@@ -84,7 +78,7 @@ outpost:
   controlPlaneInstanceType: m5d.large
 ```
 
-!!!abstract "New"
+!!! abstract "New"
     **Placement group support**
 
     A placement group name can be specified in `controlPlanePlacement.groupName` to satisfy high-availability requirements according to your Outpost deployment topology. If a placement group is not specified, the default EC2 placement is used.
@@ -98,7 +92,6 @@ kind: ClusterConfig
 metadata:
   name: outpost
   region: us-west-2
-  version: "1.21"
 
 outpost:
   # Required.
@@ -160,7 +153,6 @@ kind: ClusterConfig
 metadata:
   name: existing-cluster
   region: us-west-2
-  version: "1.21"
 
 nodeGroups:
   # Nodegroup will be created in an AWS region.
@@ -191,7 +183,6 @@ kind: ClusterConfig
 metadata:
   name: extended-cluster-vpc
   region: us-west-2
-  version: "1.21"
 
 vpc:
   id: vpc-1234
@@ -212,7 +203,7 @@ nodeGroups:
     outpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
 ```
 
-!!!note
+???+ note
     - Only Amazon Linux 2 is supported for nodegroups when the control plane is on Outposts.
     - Only EBS gp2 volume types are supported for nodegroups on Outposts.
 

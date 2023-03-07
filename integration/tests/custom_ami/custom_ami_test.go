@@ -37,18 +37,30 @@ func TestOverrideBootstrap(t *testing.T) {
 }
 
 var (
-	customAMI string
+	customAMIAL2          string
+	customAMIBottlerocket string
 )
 
 var _ = BeforeSuite(func() {
 	cfg := NewConfig(params.Region)
 	ssm := awsssm.NewFromConfig(cfg)
+
+	// retrieve AL2 AMI
 	input := &awsssm.GetParameterInput{
-		Name: aws.String("/aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/image_id"),
+		Name: aws.String("/aws/service/eks/optimized-ami/1.22/amazon-linux-2/recommended/image_id"),
 	}
 	output, err := ssm.GetParameter(context.Background(), input)
 	Expect(err).NotTo(HaveOccurred())
-	customAMI = *output.Parameter.Value
+	customAMIAL2 = *output.Parameter.Value
+
+	// retrieve Bottlerocket AMI
+	input = &awsssm.GetParameterInput{
+		Name: aws.String("/aws/service/bottlerocket/aws-k8s-1.25/x86_64/latest/image_id"),
+	}
+	output, err = ssm.GetParameter(context.Background(), input)
+	Expect(err).NotTo(HaveOccurred())
+	customAMIBottlerocket = *output.Parameter.Value
+
 	cmd := params.EksctlCreateCmd.WithArgs(
 		"cluster",
 		"--verbose", "4",
@@ -60,17 +72,39 @@ var _ = BeforeSuite(func() {
 	Expect(cmd).To(RunSuccessfully())
 })
 
-var _ = Describe("(Integration) [Test OverrideBootstrapCommand]", func() {
+var _ = Describe("(Integration) [Test Custom AMI]", func() {
 
 	Context("override bootstrap command for managed and un-managed nodegroups", func() {
 
-		It("can create a working nodegroups which can join the cluster", func() {
-			By(fmt.Sprintf("using the following EKS optimised AMI: %s", customAMI))
+		It("can create a working nodegroup which can join the cluster", func() {
+			By(fmt.Sprintf("using the following EKS optimised AMI: %s", customAMIAL2))
 			content, err := os.ReadFile(filepath.Join("testdata/override-bootstrap.yaml"))
 			Expect(err).NotTo(HaveOccurred())
 			content = bytes.ReplaceAll(content, []byte("<generated>"), []byte(params.ClusterName))
 			content = bytes.ReplaceAll(content, []byte("<generated-region>"), []byte(params.Region))
-			content = bytes.ReplaceAll(content, []byte("<generated-ami>"), []byte(customAMI))
+			content = bytes.ReplaceAll(content, []byte("<generated-ami>"), []byte(customAMIAL2))
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(content))
+			Expect(cmd).To(RunSuccessfully())
+		})
+
+	})
+
+	Context("bottlerocket un-managed nodegroups", func() {
+
+		It("can create a working nodegroup which can join the cluster", func() {
+			By(fmt.Sprintf("using the following EKS optimised AMI: %s", customAMIBottlerocket))
+			content, err := os.ReadFile(filepath.Join("testdata/bottlerocket-settings.yaml"))
+			Expect(err).NotTo(HaveOccurred())
+			content = bytes.ReplaceAll(content, []byte("<generated>"), []byte(params.ClusterName))
+			content = bytes.ReplaceAll(content, []byte("<generated-region>"), []byte(params.Region))
+			content = bytes.ReplaceAll(content, []byte("<generated-ami>"), []byte(customAMIBottlerocket))
 			cmd := params.EksctlCreateCmd.
 				WithArgs(
 					"nodegroup",

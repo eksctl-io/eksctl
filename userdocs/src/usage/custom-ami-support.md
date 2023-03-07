@@ -1,13 +1,4 @@
-# Latest & Custom AMI support
-
-!!! warning
-    In a future as yet undecided release **unmanaged** nodegroups created with **custom AmazonLinux2** or **custom Ubuntu** images
-    will need to have the `overrideBootstrapCommand` configuration option set. This is to ensure that nodes are able
-    to join the cluster. For more information and to track this change please see [this issue](https://github.com/weaveworks/eksctl/issues/3563).
-
-    Users setting the `ami` field on **unmanaged** nodegroups to `ami-XXXX` (i.e. setting a custom AMI) will start to see
-    a warning message that they are being sent down a legacy code path. There is no action to take at this time, but in a future
-    release the users seeing this warning will be affected by the above change.
+# Custom AMI support
 
 ## Setting the node AMI ID
 
@@ -22,10 +13,9 @@ The flag can take the AMI image id for an image to explicitly use. It also can t
 | auto-ssm  | Indicates that the AMI to use for the nodes should be found by querying AWS SSM Parameter Store.                    |
 
 
-!!! note
+???+ note
     When setting `--node-ami` to an ID string, `eksctl` will assume that a custom AMI has been requested.
-    For managed nodes this will mean that `overrideBootstrapCommand` is required. For unmanaged nodes
-    `overrideBootstrapCommand` is recommended for AmazonLinux2 and Ubuntu custom images.
+    For AmazonLinux2 and Ubuntu nodes, both EKS managed and self-managed, this will mean that `overrideBootstrapCommand` is required.
 
 CLI flag examples:
 ```sh
@@ -87,4 +77,21 @@ managedNodeGroups:
     amiFamily: Ubuntu2004
 ```
 
-The `--node-ami-family` flag can also be used with `eksctl create nodegroup`.
+The `--node-ami-family` flag can also be used with `eksctl create nodegroup`. `eksctl` requires AMI Family to be explicitly set via config file or via `--node-ami-family` CLI flag, whenever working with a custom AMI.
+
+## Bottlerocket custom AMI support
+
+For Bottlerocket nodes, the `overrideBootstrapCommand` is not supported. Instead, to designate their own bootstrap container, one should use the `bottlerocket` field as part of the configuration file. E.g.
+
+```yaml
+  nodeGroups:
+  - name: bottlerocket-ng
+    ami: ami-custom1234
+    amiFamily: Bottlerocket
+    bottlerocket:
+      enableAdminContainer: true
+      settings:
+        bootstrap-containers
+          bootstrap
+            source: <MY-CONTAINER-URI>
+```

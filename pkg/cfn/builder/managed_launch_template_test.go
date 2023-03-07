@@ -102,6 +102,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 					Name:         "custom-ami",
 					InstanceType: "m5.xlarge",
 					AMI:          "ami-custom",
+					AMIFamily:    api.NodeImageFamilyAmazonLinux2,
 					OverrideBootstrapCommand: aws.String(`
 #!/bin/bash
 set -ex
@@ -353,6 +354,19 @@ API_SERVER_URL=https://test.com
 				},
 			},
 			resourcesFilename: "bottlerocket_volume.json",
+		}),
+
+		Entry("Bottlerocket with additional encrypted volume", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:            "bottlerocket-additional-encrypted-volume",
+					AMIFamily:       api.NodeImageFamilyBottlerocket,
+					InstanceType:    "m5.xlarge",
+					VolumeType:      aws.String(api.NodeVolumeTypeGP3),
+					VolumeEncrypted: aws.Bool(true),
+				},
+			},
+			resourcesFilename: "bottlerocket_additional_encrypted_volume.json",
 		}),
 
 		Entry("CapacityReservationID is set", &mngCase{

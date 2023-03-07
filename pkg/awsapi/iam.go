@@ -153,12 +153,12 @@ type IAM interface {
 	// Services. Amazon Web Services secures communication with some OIDC identity
 	// providers (IdPs) through our library of trusted certificate authorities (CAs)
 	// instead of using a certificate thumbprint to verify your IdP server certificate.
-	// These OIDC IdPs include Google, and those that use an Amazon S3 bucket to host a
-	// JSON Web Key Set (JWKS) endpoint. In these cases, your legacy thumbprint remains
-	// in your configuration, but is no longer used for validation. The trust for the
-	// OIDC provider is derived from the IAM provider that this operation creates.
-	// Therefore, it is best to limit access to the CreateOpenIDConnectProvider
-	// operation to highly privileged users.
+	// These OIDC IdPs include Google, Auth0, and those that use an Amazon S3 bucket to
+	// host a JSON Web Key Set (JWKS) endpoint. In these cases, your legacy thumbprint
+	// remains in your configuration, but is no longer used for validation. The trust
+	// for the OIDC provider is derived from the IAM provider that this operation
+	// creates. Therefore, it is best to limit access to the
+	// CreateOpenIDConnectProvider operation to highly privileged users.
 	CreateOpenIDConnectProvider(ctx context.Context, params *CreateOpenIDConnectProviderInput, optFns ...func(*Options)) (*CreateOpenIDConnectProviderOutput, error)
 	// Creates a new managed policy for your Amazon Web Services account. This
 	// operation creates a policy version with a version identifier of v1 and sets v1
@@ -348,12 +348,29 @@ type IAM interface {
 	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-versions.html)
 	// in the IAM User Guide.
 	DeletePolicyVersion(ctx context.Context, params *DeletePolicyVersionInput, optFns ...func(*Options)) (*DeletePolicyVersionOutput, error)
-	// Deletes the specified role. The role must not have any policies attached. For
-	// more information about roles, see Working with roles
-	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/WorkingWithRoles.html). Make
-	// sure that you do not have any Amazon EC2 instances running with the role you are
-	// about to delete. Deleting a role or instance profile that is associated with a
-	// running instance will break any applications running on the instance.
+	// Deletes the specified role. Unlike the Amazon Web Services Management Console,
+	// when you delete a role programmatically, you must delete the items attached to
+	// the role manually, or the deletion fails. For more information, see Deleting an
+	// IAM role
+	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_manage_delete.html#roles-managingrole-deleting-cli).
+	// Before attempting to delete a role, remove the following attached items:
+	//
+	// *
+	// Inline policies (DeleteRolePolicy)
+	//
+	// * Attached managed policies
+	// (DetachRolePolicy)
+	//
+	// * Instance profile (RemoveRoleFromInstanceProfile)
+	//
+	// *
+	// Optional – Delete instance profile after detaching from role for resource clean
+	// up (DeleteInstanceProfile)
+	//
+	// Make sure that you do not have any Amazon EC2
+	// instances running with the role you are about to delete. Deleting a role or
+	// instance profile that is associated with a running instance will break any
+	// applications running on the instance.
 	DeleteRole(ctx context.Context, params *DeleteRoleInput, optFns ...func(*Options)) (*DeleteRoleOutput, error)
 	// Deletes the permissions boundary for the specified IAM role. Deleting the
 	// permissions boundary for a role might increase its permissions. For example, it
@@ -1391,6 +1408,11 @@ type IAM interface {
 	// policy to evaluate context keys. To get the list of context keys that the
 	// policies require for correct simulation, use GetContextKeysForCustomPolicy. If
 	// the output is long, you can use MaxItems and Marker parameters to paginate the
+	// results. The IAM policy simulator evaluates statements in the identity-based
+	// policy and the inputs that you provide during simulation. The policy simulator
+	// results can differ from your live Amazon Web Services environment. We recommend
+	// that you check your policies against your live Amazon Web Services environment
+	// after testing using the policy simulator to confirm that you have the desired
 	// results. For more information about using the policy simulator, see Testing IAM
 	// policies with the IAM policy simulator
 	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_testing-policies.html)in
@@ -1405,19 +1427,25 @@ type IAM interface {
 	// additional policies specified as strings to include in the simulation. If you
 	// want to simulate only policies specified as strings, use SimulateCustomPolicy
 	// instead. You can also optionally include one resource-based policy to be
-	// evaluated with each of the resources included in the simulation. The simulation
-	// does not perform the API operations; it only checks the authorization to
-	// determine if the simulated policies allow or deny the operations. Note: This
-	// operation discloses information about the permissions granted to other users. If
-	// you do not want users to see other user's permissions, then consider allowing
-	// them to use SimulateCustomPolicy instead. Context keys are variables maintained
-	// by Amazon Web Services and its services that provide details about the context
-	// of an API query request. You can use the Condition element of an IAM policy to
-	// evaluate context keys. To get the list of context keys that the policies require
-	// for correct simulation, use GetContextKeysForPrincipalPolicy. If the output is
-	// long, you can use the MaxItems and Marker parameters to paginate the results.
-	// For more information about using the policy simulator, see Testing IAM policies
-	// with the IAM policy simulator
+	// evaluated with each of the resources included in the simulation for IAM users
+	// only. The simulation does not perform the API operations; it only checks the
+	// authorization to determine if the simulated policies allow or deny the
+	// operations. Note: This operation discloses information about the permissions
+	// granted to other users. If you do not want users to see other user's
+	// permissions, then consider allowing them to use SimulateCustomPolicy instead.
+	// Context keys are variables maintained by Amazon Web Services and its services
+	// that provide details about the context of an API query request. You can use the
+	// Condition element of an IAM policy to evaluate context keys. To get the list of
+	// context keys that the policies require for correct simulation, use
+	// GetContextKeysForPrincipalPolicy. If the output is long, you can use the
+	// MaxItems and Marker parameters to paginate the results. The IAM policy simulator
+	// evaluates statements in the identity-based policy and the inputs that you
+	// provide during simulation. The policy simulator results can differ from your
+	// live Amazon Web Services environment. We recommend that you check your policies
+	// against your live Amazon Web Services environment after testing using the policy
+	// simulator to confirm that you have the desired results. For more information
+	// about using the policy simulator, see Testing IAM policies with the IAM policy
+	// simulator
 	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_testing-policies.html)in
 	// the IAM User Guide.
 	SimulatePrincipalPolicy(ctx context.Context, params *SimulatePrincipalPolicyInput, optFns ...func(*Options)) (*SimulatePrincipalPolicyOutput, error)
@@ -1792,9 +1820,9 @@ type IAM interface {
 	// the certificate thumbprint is updated. Amazon Web Services secures communication
 	// with some OIDC identity providers (IdPs) through our library of trusted
 	// certificate authorities (CAs) instead of using a certificate thumbprint to
-	// verify your IdP server certificate. These OIDC IdPs include Google, and those
-	// that use an Amazon S3 bucket to host a JSON Web Key Set (JWKS) endpoint. In
-	// these cases, your legacy thumbprint remains in your configuration, but is no
+	// verify your IdP server certificate. These OIDC IdPs include Google, Auth0, and
+	// those that use an Amazon S3 bucket to host a JSON Web Key Set (JWKS) endpoint.
+	// In these cases, your legacy thumbprint remains in your configuration, but is no
 	// longer used for validation. Trust for the OIDC provider is derived from the
 	// provider certificate and is validated by the thumbprint. Therefore, it is best
 	// to limit access to the UpdateOpenIDConnectProviderThumbprint operation to highly

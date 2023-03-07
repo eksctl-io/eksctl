@@ -48,7 +48,7 @@ You can specify at most one of `attachPolicy`, `attachPolicyARNs` and `serviceAc
 
 If none of these are specified, the addon will be created with a role that has all recommended policies attached.
 
-!!!note
+???+ note
     In order to attach policies to addons your cluster must have `OIDC` enabled. If it's not enabled we ignore any policies
     attached.
 
@@ -133,7 +133,16 @@ eksctl utils describe-addon-configuration --name vpc-cni --version v1.12.0-eksbu
 This returns a JSON schema of the various options available for this addon.
 
 ## Working with configuration values
-These previously discovered options can be configured by passing the `ConfigurationValues` field to the configuration file, and then used with either addon create or update commands. For the moment, all the options the user wants to configure will be passed together in the format of a JSON string, e.g.
+`ConfigurationValues` can be provided in the configuration file during the creation or update of addons. Only JSON and YAML formats are supported. 
+
+For eg.,
+
+```yaml
+addons:
+- name: coredns
+  configurationValues: |-
+    replicaCount: 2
+```
 
 ```yaml
 addons:
@@ -143,8 +152,9 @@ addons:
   resolveConflicts: overwrite
 ```
 
-!!!note
-    Bear in mind that when addon configuration values are being modified, configuration conflics will arise.
+???+ note
+    Bear in mind that when addon configuration values are being modified, configuration conflicts will arise.
+
     Thus, we need to specify how to deal with those by setting the `resolveConflicts` field accordingly.
     As in this scenario we want to modify these values, we'd set `resolveConflicts: overwrite`.
 

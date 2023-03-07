@@ -15,7 +15,7 @@ privateCluster:
   enabled: true
 ```
 
-!!!note
+???+ note
     Post cluster creation, not all eksctl commands will be supported, especially commands that need access to the Kubernetes API server.
     Creating managed nodegroups will continue to work, however, creating self-managed nodegroups will not work as it needs access to the API server.
     Even if the command is run from within the cluster's VPC, a peered VPC or using some other means like AWS Direct Connect, some commands may fail
@@ -23,11 +23,11 @@ privateCluster:
     If your setup can reach the EKS API server endpoint via its private address, and has outbound internet access (for `EKS:DescribeCluster`),
     all eksctl commands should work.
 
-!!!note
+???+ info
     VPC endpoints are charged by the hour and based on usage. More details about pricing can be found at
     [AWS PrivateLink pricing](https://aws.amazon.com/privatelink/pricing/)
     
-!!!note
+!!! warning 
     Fully-private clusters are not supported in `eu-south-1`.
 
 ## Configuring private access to additional AWS services
