@@ -199,14 +199,20 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 		})
 	}
 
+	stsOutput, err := c.checkAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// c.Status.IAMRoleARN is later needed by the kubeProvider
+	c.Status.IAMRoleARN = *stsOutput.Arn
+	logger.Debug("role ARN for the current session is %q", c.Status.IAMRoleARN)
+
 	if clusterSpec != nil {
+		clusterSpec.Metadata.AccountID = *stsOutput.Account
 		clusterSpec.Metadata.Region = c.AWSProvider.Region()
 	}
 
-	// c.Status.IAMRoleARN is set up in checkAuth which is later on needed by the kubeProvider.
-	if err := c.checkAuth(ctx); err != nil {
-		return nil, err
-	}
 	kubeProvider := &KubernetesProvider{
 		WaitTimeout: spec.WaitTimeout,
 		RoleARN:     c.Status.IAMRoleARN,
@@ -285,17 +291,15 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 }
 
 // checkAuth checks the AWS authentication
-func (c *ClusterProvider) checkAuth(ctx context.Context) error {
+func (c *ClusterProvider) checkAuth(ctx context.Context) (*sts.GetCallerIdentityOutput, error) {
 	output, err := c.AWSProvider.STS().GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
-		return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
+		return nil, errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
 	}
 	if output == nil || output.Arn == nil {
-		return fmt.Errorf("unexpected response from AWS STS")
+		return nil, fmt.Errorf("unexpected response from AWS STS")
 	}
-	c.Status.IAMRoleARN = *output.Arn
-	logger.Debug("role ARN for the current session is %q", c.Status.IAMRoleARN)
-	return nil
+	return output, nil
 }
 
 // ResolveAMI ensures that the node AMI is set and is available

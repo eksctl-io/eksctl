@@ -641,6 +641,9 @@ type ClusterMeta struct {
 	// Annotations are arbitrary metadata ignored by `eksctl`.
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
+	// Internal fields
+	// AccountID the ID of the account hosting this cluster
+	AccountID string `json:"-"`
 }
 
 // KubernetesNetworkConfig contains cluster networking options
