@@ -377,7 +377,7 @@ func (m *Manager) usesCustomAMIEKSNodeGroup(ctx context.Context, ng *ekstypes.No
 	}
 
 	return m.usesCustomAMI(ctx, &api.LaunchTemplate{
-		ID:      *ng.LaunchTemplate.Id,
+		ID:      ng.LaunchTemplate.Id,
 		Version: ng.LaunchTemplate.Version,
 	})
 }
