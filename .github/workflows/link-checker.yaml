@@ -35,7 +35,7 @@ jobs:
         run: make build-pages
         # Using link-checker action to check links in Markdown, HTML files
       - name: Link Checker
-        uses: lycheeverse/lychee-action@4dcb8bee2a0a4531cba1a1f392c54e8375d6dd81 #v1.5.4
+        uses: lycheeverse/lychee-action@9ace499fe66cee282a29eaa628fdac2c72fa087f #v1.6.1
         with:
           fail: true
           args: --exclude-all-private --exclude-file .github/workflows/exclude-file.txt --verbose --no-progress './**/*.md' './**/*.html'
