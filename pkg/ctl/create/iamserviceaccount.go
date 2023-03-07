@@ -17,17 +17,18 @@ import (
 )
 
 func createIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
-	createIAMServiceAccountCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, overrideExistingServiceAccounts bool) error {
-		return doCreateIAMServiceAccount(cmd, overrideExistingServiceAccounts)
+	createIAMServiceAccountCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, overrideExistingServiceAccounts, roleOnly bool) error {
+		return doCreateIAMServiceAccount(cmd, overrideExistingServiceAccounts, roleOnly)
 	})
 }
 
-func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, overrideExistingServiceAccounts bool) error) {
+func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, overrideExistingServiceAccounts, roleOnly bool) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
+	roleOnly := api.Disabled()
 	serviceAccount := &api.ClusterIAMServiceAccount{
-		RoleOnly: api.Disabled(),
+		RoleOnly: roleOnly,
 	}
 
 	cfg.IAM.WithOIDC = api.Enabled()
@@ -39,7 +40,7 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, overrideExistingServiceAccounts)
+		return runFunc(cmd, overrideExistingServiceAccounts, *roleOnly)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -50,7 +51,7 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 		fs.StringSliceVar(&serviceAccount.AttachPolicyARNs, "attach-policy-arn", []string{}, "ARN of the policy where to create the iamserviceaccount")
 		fs.StringVar(&serviceAccount.AttachRoleARN, "attach-role-arn", "", "ARN of the role to attach to the iamserviceaccount")
 		fs.StringVar(&serviceAccount.RoleName, "role-name", "", "Set a custom name for the created role")
-		fs.BoolVar(serviceAccount.RoleOnly, "role-only", false, "disable service account creation, only the role will be created")
+		fs.BoolVar(roleOnly, "role-only", false, "disable service account creation, only the role will be created")
 
 		cmdutils.AddStringToStringVarPFlag(fs, &serviceAccount.Tags, "tags", "", map[string]string{}, "Used to tag the IAM role")
 
@@ -66,7 +67,7 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
 }
 
-func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccounts bool) error {
+func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccounts, roleOnly bool) error {
 	saFilter := filter.NewIAMServiceAccountFilter()
 
 	if err := cmdutils.NewCreateIAMServiceAccountLoader(cmd, saFilter).Load(); err != nil {
@@ -115,10 +116,16 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 
 	filteredServiceAccounts := saFilter.FilterMatching(cfg.IAM.ServiceAccounts)
 	saFilter.LogInfo(cfg.IAM.ServiceAccounts)
-	if !overrideExistingServiceAccounts {
-		logger.Warning("serviceaccounts that exist in Kubernetes will be excluded, use --override-existing-serviceaccounts to override")
-	} else {
+
+	if roleOnly {
+		logger.Warning("serviceaccounts in Kubernetes will not be created or modified, since the option --role-only is used")
+		if overrideExistingServiceAccounts {
+			logger.Warning("when option --role-only is used passing --override-existing-serviceaccounts has no effect")
+		}
+	} else if overrideExistingServiceAccounts {
 		logger.Warning("metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set")
+	} else {
+		logger.Warning("serviceaccounts that exist in Kubernetes will be excluded, use --override-existing-serviceaccounts to override")
 	}
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
