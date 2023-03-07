@@ -6,6 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -67,8 +69,31 @@ var _ = Describe("Upgrade", func() {
 		}
 	})
 
-	When("the nodegroup does not have a stack", func() {
-		When("launchTemplate Id is set", func() {
+	Context("the nodegroup does not have a stack", func() {
+		When("the nodegroup does not use a launch template", func() {
+			BeforeEach(func() {
+				p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
+					ClusterName:   aws.String(clusterName),
+					NodegroupName: aws.String(ngName),
+				}).Return(&awseks.DescribeNodegroupOutput{
+					Nodegroup: &ekstypes.Nodegroup{
+						NodegroupName:  aws.String(ngName),
+						ClusterName:    aws.String(clusterName),
+						Status:         ekstypes.NodegroupStatusActive,
+						AmiType:        "ami-type",
+						Version:        eksVersion,
+						LaunchTemplate: nil,
+					},
+				}, nil)
+			})
+			It("returns an error if launch template version is specified", func() {
+				options.LaunchTemplateVersion = "2"
+				err := m.Upgrade(context.Background(), options)
+				Expect(err).To(MatchError(ContainSubstring("cannot update launch template version because the nodegroup is not configured to use one")))
+			})
+		})
+
+		When("the nodegroup uses launch template", func() {
 			BeforeEach(func() {
 				p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 					ClusterName:   aws.String(clusterName),
@@ -81,73 +106,86 @@ var _ = Describe("Upgrade", func() {
 						AmiType:       "ami-type",
 						Version:       eksVersion,
 						LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
-							Id: aws.String("id-123"),
+							Id:      aws.String("id-123"),
+							Version: aws.String("2"),
 						},
 					},
 				}, nil)
-
-				p.MockEKS().On("UpdateNodegroupVersion", mock.Anything, &awseks.UpdateNodegroupVersionInput{
-					NodegroupName: aws.String(ngName),
-					ClusterName:   aws.String(clusterName),
-					Force:         false,
-					Version:       aws.String(latestEKSVersion),
-					LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
-						Id:      aws.String("id-123"),
-						Version: aws.String("v2"),
-					},
-					ReleaseVersion: eksReleaseVersion,
-				}).Return(&awseks.UpdateNodegroupVersionOutput{}, nil)
-
-				options.ReleaseVersion = *eksReleaseVersion
 			})
-
-			It("upgrades the nodegroup version and lt by calling the API", func() {
-				options.LaunchTemplateVersion = "v2"
-				Expect(m.Upgrade(context.Background(), options)).To(Succeed())
-			})
-		})
-
-		When("launchTemplate name is set", func() {
-			BeforeEach(func() {
-				p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
-					ClusterName:   aws.String(clusterName),
-					NodegroupName: aws.String(ngName),
-				}).Return(&awseks.DescribeNodegroupOutput{
-					Nodegroup: &ekstypes.Nodegroup{
+			When("using a custom AMI", func() {
+				BeforeEach(func() {
+					p.MockEC2().On("DescribeLaunchTemplateVersions", mock.Anything, &ec2.DescribeLaunchTemplateVersionsInput{
+						LaunchTemplateId: aws.String("id-123"),
+						Versions:         []string{"2"},
+					}).Return(&ec2.DescribeLaunchTemplateVersionsOutput{LaunchTemplateVersions: []ec2types.LaunchTemplateVersion{
+						{
+							LaunchTemplateData: &ec2types.ResponseLaunchTemplateData{
+								ImageId:      aws.String("1234"),
+								InstanceType: "big",
+							},
+							VersionNumber: aws.Int64(2),
+						},
+					}}, nil)
+				})
+				It("returns an error if kubernetes version is specified", func() {
+					options.KubernetesVersion = api.DefaultVersion
+					err := m.Upgrade(context.Background(), options)
+					Expect(err).To(MatchError(ContainSubstring("cannot specify kubernetes-version when using a custom AMI")))
+				})
+				It("upgrades the nodegroup version and lt by calling the EKS API", func() {
+					p.MockEKS().On("UpdateNodegroupVersion", mock.Anything, &awseks.UpdateNodegroupVersionInput{
 						NodegroupName: aws.String(ngName),
 						ClusterName:   aws.String(clusterName),
-						Status:        ekstypes.NodegroupStatusActive,
-						AmiType:       ekstypes.AMITypesAl2X8664,
-						Version:       eksVersion,
+						Force:         false,
 						LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
-							Name: aws.String("lt"),
+							Id:      aws.String("id-123"),
+							Version: aws.String("2"),
 						},
-					},
-				}, nil)
-
-				p.MockEKS().On("UpdateNodegroupVersion", mock.Anything, &awseks.UpdateNodegroupVersionInput{
-					NodegroupName: aws.String(ngName),
-					ClusterName:   aws.String(clusterName),
-					Force:         false,
-					Version:       aws.String(latestEKSVersion),
-					LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
-						Name:    aws.String("lt"),
-						Version: aws.String("v2"),
-					},
-					ReleaseVersion: eksReleaseVersion,
-				}).Return(&awseks.UpdateNodegroupVersionOutput{}, nil)
-
-				options.ReleaseVersion = *eksReleaseVersion
+						ReleaseVersion: eksReleaseVersion,
+					}).Return(&awseks.UpdateNodegroupVersionOutput{}, nil)
+					options.KubernetesVersion = ""
+					options.LaunchTemplateVersion = "2"
+					options.ReleaseVersion = *eksReleaseVersion
+					Expect(m.Upgrade(context.Background(), options)).To(Succeed())
+				})
 			})
-
-			It("upgrades the nodegroup version and lt by calling the API", func() {
-				options.LaunchTemplateVersion = "v2"
-				Expect(m.Upgrade(context.Background(), options)).To(Succeed())
+			When("not using a custom AMI", func() {
+				BeforeEach(func() {
+					p.MockEC2().On("DescribeLaunchTemplateVersions", mock.Anything, &ec2.DescribeLaunchTemplateVersionsInput{
+						LaunchTemplateId: aws.String("id-123"),
+						Versions:         []string{"2"},
+					}).Return(&ec2.DescribeLaunchTemplateVersionsOutput{LaunchTemplateVersions: []ec2types.LaunchTemplateVersion{
+						{
+							LaunchTemplateData: &ec2types.ResponseLaunchTemplateData{
+								ImageId:      nil,
+								InstanceType: "big",
+							},
+							VersionNumber: aws.Int64(2),
+						},
+					}}, nil)
+				})
+				It("upgrades the nodegroup version and lt by calling the EKS API", func() {
+					p.MockEKS().On("UpdateNodegroupVersion", mock.Anything, &awseks.UpdateNodegroupVersionInput{
+						NodegroupName: aws.String(ngName),
+						ClusterName:   aws.String(clusterName),
+						Force:         false,
+						Version:       aws.String(api.Version1_22),
+						LaunchTemplate: &ekstypes.LaunchTemplateSpecification{
+							Id:      aws.String("id-123"),
+							Version: aws.String("2"),
+						},
+						ReleaseVersion: eksReleaseVersion,
+					}).Return(&awseks.UpdateNodegroupVersionOutput{}, nil)
+					options.KubernetesVersion = api.Version1_22
+					options.LaunchTemplateVersion = "2"
+					options.ReleaseVersion = *eksReleaseVersion
+					Expect(m.Upgrade(context.Background(), options)).To(Succeed())
+				})
 			})
 		})
 	})
 
-	When("the nodegroup does have a stack", func() {
+	Context("the nodegroup does have a stack", func() {
 		When("ForceUpdateEnabled isn't set", func() {
 			When("it uses amazonlinux2", func() {
 				BeforeEach(func() {
