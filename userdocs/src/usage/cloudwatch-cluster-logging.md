@@ -61,11 +61,11 @@ In an EKS cluster, the "enableTypes" field under "clusterLogging" can take a lis
 ### Values
 The following are the possible values:
 
-- `api`: This enables the Kubernetes API server logs for the control plane.
-- `audit`: This enables the Kubernetes audit logs for the control plane.
-- `authenticator`: This enables the authenticator logs for the control plane.
-- `controllerManager`: This enables the Kubernetes controller manager logs for the control plane.
-- `scheduler`: This enables the Kubernetes scheduler logs for the control plane.
+- `api`: Enables the Kubernetes API server logs.
+- `audit`: Enables the Kubernetes audit logs.
+- `authenticator`: Enables the authenticator logs.
+- `controllerManager`: Enables the Kubernetes controller manager logs.
+- `scheduler`: Enables the Kubernetes scheduler logs.
 
 To learn more, see [EKS documentation][eksdocs]. 
 
