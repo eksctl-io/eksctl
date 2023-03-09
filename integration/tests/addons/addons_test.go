@@ -628,7 +628,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 
 		AfterEach(func() {
 			cmd := params.EksctlDeleteClusterCmd.
-				WithArgs("--cluster", clusterConfig.Metadata.Name).
+				WithArgs("--name", clusterConfig.Metadata.Name).
 				WithArgs("--verbose", "2")
 			Expect(cmd).To(RunSuccessfully())
 		})
