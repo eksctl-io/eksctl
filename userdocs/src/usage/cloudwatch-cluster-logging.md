@@ -56,7 +56,7 @@ eksctl utils update-cluster-logging --disable-types all
 
 ## `ClusterConfig` Examples
 
-In an EKS cluster, the "enableTypes" field under "clusterLogging" can take a list of possible values to enable the different types of logs for the control plane components.
+In an EKS cluster, the `enableTypes` field under `clusterLogging` can take a list of possible values to enable the different types of logs for the control plane components.
 
 ### Values
 The following are the possible values:
