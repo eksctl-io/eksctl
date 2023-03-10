@@ -564,8 +564,8 @@ type SSM interface {
 	ListTagsForResource(ctx context.Context, params *ListTagsForResourceInput, optFns ...func(*Options)) (*ListTagsForResourceOutput, error)
 	// Shares a Amazon Web Services Systems Manager document (SSM document)publicly or
 	// privately. If you share a document privately, you must specify the Amazon Web
-	// Services user account IDs for those people who can use the document. If you
-	// share a document publicly, you must specify All as the account ID.
+	// Services user IDs for those people who can use the document. If you share a
+	// document publicly, you must specify All as the account ID.
 	ModifyDocumentPermission(ctx context.Context, params *ModifyDocumentPermissionInput, optFns ...func(*Options)) (*ModifyDocumentPermissionOutput, error)
 	// Registers a compliance type and other compliance details on a designated
 	// resource. This operation lets you register custom compliance details with a
@@ -709,15 +709,14 @@ type SSM interface {
 	// includes the Name parameter. Before calling this API action, we recommend that
 	// you call the DescribeAssociation API operation and make a note of all optional
 	// parameters required for your UpdateAssociation call. In order to call this API
-	// operation, your Identity and Access Management (IAM) user account, group, or
-	// role must be configured with permission to call the DescribeAssociation API
-	// operation. If you don't have permission to call DescribeAssociation, then you
-	// receive the following error: An error occurred (AccessDeniedException) when
-	// calling the UpdateAssociation operation: User: isn't authorized to perform:
-	// ssm:DescribeAssociation on resource:  When you update an association, the
-	// association immediately runs against the specified targets. You can add the
-	// ApplyOnlyAtCronInterval parameter to run the association during the next
-	// schedule run.
+	// operation, a user, group, or role must be granted permission to call the
+	// DescribeAssociation API operation. If you don't have permission to call
+	// DescribeAssociation, then you receive the following error: An error occurred
+	// (AccessDeniedException) when calling the UpdateAssociation operation: User:
+	// isn't authorized to perform: ssm:DescribeAssociation on resource:  When you
+	// update an association, the association immediately runs against the specified
+	// targets. You can add the ApplyOnlyAtCronInterval parameter to run the
+	// association during the next schedule run.
 	UpdateAssociation(ctx context.Context, params *UpdateAssociationInput, optFns ...func(*Options)) (*UpdateAssociationOutput, error)
 	// Updates the status of the Amazon Web Services Systems Manager document (SSM
 	// document) associated with the specified managed node. UpdateAssociationStatus is

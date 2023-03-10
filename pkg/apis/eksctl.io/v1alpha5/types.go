@@ -40,7 +40,7 @@ const (
 	Version1_25 = "1.25"
 
 	// DefaultVersion (default)
-	DefaultVersion = Version1_24
+	DefaultVersion = Version1_25
 
 	LatestVersion = Version1_25
 
@@ -155,6 +155,9 @@ const (
 
 	// RegionAPSouthEast3 represents the Asia-Pacific South East Region Jakarta
 	RegionAPSouthEast3 = "ap-southeast-3"
+
+	// RegionAPSouthEast4 represents the Asia-Pacific South East Region Melbourne
+	RegionAPSouthEast4 = "ap-southeast-4"
 
 	// RegionAPSouth1 represents the Asia-Pacific South Region Mumbai
 	RegionAPSouth1 = "ap-south-1"
@@ -347,6 +350,9 @@ const (
 
 	// eksResourceAccountAPSouthEast3 defines the AWS EKS account ID that provides node resources in ap-southeast-3
 	eksResourceAccountAPSouthEast3 = "296578399912"
+
+	// eksResourceAccountAPSouthEast4 defines the AWS EKS account ID that provides node resources in ap-southeast-4
+	eksResourceAccountAPSouthEast4 = "491585149902"
 )
 
 // Values for `VolumeType`
@@ -477,6 +483,7 @@ func SupportedRegions() []string {
 		RegionAPSouthEast1,
 		RegionAPSouthEast2,
 		RegionAPSouthEast3,
+		RegionAPSouthEast4,
 		RegionAPSouth1,
 		RegionAPSouth2,
 		RegionAPEast1,
@@ -619,6 +626,8 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountAPSouth2
 	case RegionAPSouthEast3:
 		return eksResourceAccountAPSouthEast3
+	case RegionAPSouthEast4:
+		return eksResourceAccountAPSouthEast4
 	default:
 		return eksResourceAccountStandard
 	}
@@ -641,6 +650,9 @@ type ClusterMeta struct {
 	// Annotations are arbitrary metadata ignored by `eksctl`.
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
+	// Internal fields
+	// AccountID the ID of the account hosting this cluster
+	AccountID string `json:"-"`
 }
 
 // KubernetesNetworkConfig contains cluster networking options

@@ -2,6 +2,7 @@ package fargate_test
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -31,6 +32,8 @@ var _ = Describe("Fargate", func() {
 		fargateManager   *fargate.Manager
 		fakeStackManager *fakes.FakeStackManager
 		clusterName      string
+		region           string
+		accountID        string
 		fakeClientSet    *fake.Clientset
 	)
 
@@ -50,7 +53,13 @@ var _ = Describe("Fargate", func() {
 		}
 
 		clusterName = "my-cluster"
+		region = "eu-north-1"
+		accountID = "111122223333"
 		cfg.Metadata.Name = clusterName
+		cfg.Metadata.Region = region
+		cfg.Status = &api.ClusterStatus{
+			ARN: fmt.Sprintf("arn:aws:eks:%s:%s:cluster/%s", region, accountID, clusterName),
+		}
 		ctl := &eks.ClusterProvider{AWSProvider: mockProvider, Status: &eks.ProviderStatus{
 			ClusterInfo: &eks.ClusterInfo{
 				Cluster: &ekstypes.Cluster{
@@ -142,6 +151,7 @@ var _ = Describe("Fargate", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(output)).To(ContainSubstring("AWS::IAM::Role"))
 					Expect(string(output)).To(ContainSubstring("FargatePodExecutionRole"))
+					Expect(string(output)).To(ContainSubstring(fmt.Sprintf("\"aws:SourceArn\": \"arn:aws:eks:%s:%s:fargateprofile/%s/*\"", region, accountID, clusterName)))
 					Expect(fakeStackManager.RefreshFargatePodExecutionRoleARNCallCount()).To(Equal(1))
 				})
 			})
