@@ -99,34 +99,39 @@ func (m *Manager) upgradeUsingAPI(ctx context.Context, options UpgradeOptions, n
 		ClusterName:   &m.cfg.Metadata.Name,
 		Force:         options.ForceUpgrade,
 		NodegroupName: &options.NodegroupName,
-		Version:       &options.KubernetesVersion,
 	}
 
 	if options.LaunchTemplateVersion != "" {
 		lt := nodegroup.LaunchTemplate
-		if lt == nil || (lt.Id == nil && lt.Name == nil) {
+		if lt == nil || lt.Id == nil {
 			return errors.New("cannot update launch template version because the nodegroup is not configured to use one")
 		}
-
 		input.LaunchTemplate = &ekstypes.LaunchTemplateSpecification{
 			Version: &options.LaunchTemplateVersion,
 		}
-
-		if lt.Id != nil {
-			input.LaunchTemplate.Id = nodegroup.LaunchTemplate.Id
-		} else {
-			input.LaunchTemplate.Name = nodegroup.LaunchTemplate.Name
-
-		}
+		input.LaunchTemplate.Id = nodegroup.LaunchTemplate.Id
 	}
 
-	if options.KubernetesVersion == "" {
-		// Use the current Kubernetes version
-		version, err := semver.ParseTolerant(*nodegroup.Version)
-		if err != nil {
-			return errors.Wrapf(err, "unexpected error parsing Kubernetes version %q", *nodegroup.Version)
+	usesCustomAMI, err := m.usesCustomAMIEKSNodeGroup(ctx, nodegroup)
+	if err != nil {
+		return err
+	}
+
+	if usesCustomAMI && options.KubernetesVersion != "" {
+		return errors.New("cannot specify kubernetes-version when using a custom AMI")
+	}
+
+	if !usesCustomAMI {
+		if options.KubernetesVersion != "" {
+			input.Version = &options.KubernetesVersion
+		} else {
+			// Use the current Kubernetes version
+			version, err := semver.ParseTolerant(*nodegroup.Version)
+			if err != nil {
+				return errors.Wrapf(err, "unexpected error parsing Kubernetes version %q", *nodegroup.Version)
+			}
+			input.Version = aws.String(fmt.Sprintf("%v.%v", version.Major, version.Minor))
 		}
-		input.Version = aws.String(fmt.Sprintf("%v.%v", version.Major, version.Minor))
 	}
 
 	upgradeResponse, err := m.ctl.AWSProvider.EKS().UpdateNodegroupVersion(ctx, input)
@@ -234,7 +239,7 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 		}
 	}
 
-	usesCustomAMI, err := m.usesCustomAMI(ctx, ltResources, ngResource)
+	usesCustomAMI, err := m.usesCustomAMIGFNNodeGroup(ctx, ltResources, ngResource)
 	if err != nil {
 		return err
 	}
@@ -343,7 +348,7 @@ func (m *Manager) getLatestReleaseVersion(ctx context.Context, kubernetesVersion
 	return *ssmOutput.Parameter.Value, nil
 }
 
-func (m *Manager) usesCustomAMI(ctx context.Context, ltResources map[string]*gfnec2.LaunchTemplate, ng *gfneks.Nodegroup) (bool, error) {
+func (m *Manager) usesCustomAMIGFNNodeGroup(ctx context.Context, ltResources map[string]*gfnec2.LaunchTemplate, ng *gfneks.Nodegroup) (bool, error) {
 	if lt, ok := ltResources["LaunchTemplate"]; ok {
 		return lt.LaunchTemplateData.ImageId != nil, nil
 	}
@@ -359,6 +364,21 @@ func (m *Manager) usesCustomAMI(ctx context.Context, ltResources map[string]*gfn
 		lt.Version = aws.String(version.String())
 	}
 
+	return m.usesCustomAMI(ctx, lt)
+}
+
+func (m *Manager) usesCustomAMIEKSNodeGroup(ctx context.Context, ng *ekstypes.Nodegroup) (bool, error) {
+	if ng.LaunchTemplate == nil || ng.LaunchTemplate.Id == nil {
+		return false, nil
+	}
+
+	return m.usesCustomAMI(ctx, &api.LaunchTemplate{
+		ID:      *ng.LaunchTemplate.Id,
+		Version: ng.LaunchTemplate.Version,
+	})
+}
+
+func (m *Manager) usesCustomAMI(ctx context.Context, lt *api.LaunchTemplate) (bool, error) {
 	customLaunchTemplate, err := m.launchTemplateFetcher.Fetch(ctx, lt)
 	if err != nil {
 		return false, errors.Wrap(err, "error fetching launch template data")
