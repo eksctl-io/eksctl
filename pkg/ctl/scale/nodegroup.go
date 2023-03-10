@@ -94,6 +94,10 @@ func scaleNodegroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
 	if err != nil {
 		return err
 	}
+	clientSet, err := ctl.NewStdClientSet(cmd.ClusterConfig)
+	if err != nil {
+		return err
+	}
 
-	return nodegroup.New(cfg, ctl, nil, selector.New(ctl.AWSProvider.Session())).Scale(ctx, ng, cmd.Wait)
+	return nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session())).Scale(ctx, ng, cmd.Wait)
 }

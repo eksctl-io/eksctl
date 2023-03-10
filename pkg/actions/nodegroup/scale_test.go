@@ -10,6 +10,7 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
 	"github.com/stretchr/testify/mock"
+	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
@@ -51,7 +52,7 @@ var _ = Describe("Scale", func() {
 			},
 		}
 
-		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil, nil)
+		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, fake.NewSimpleClientset(), nil)
 		fakeStackManager = new(fakes.FakeStackManager)
 		m.SetStackManager(fakeStackManager)
 		p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil, nil)
@@ -212,6 +213,12 @@ var _ = Describe("Scale", func() {
 			It("scales the nodegroup", func() {
 				err := m.Scale(context.Background(), ng, false)
 				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("waits for scaling and times out", func() {
+				p.SetWaitTimeout(1 * time.Millisecond)
+				err := m.Scale(context.Background(), ng, true)
+				Expect(err).To(MatchError(fmt.Sprintf("failed to scale nodegroup for cluster %q, error: timed out waiting for at least %d nodes to join the cluster and become ready in %q: context deadline exceeded", clusterName, *ng.ScalingConfig.MinSize, ng.Name)))
 			})
 		})
 
