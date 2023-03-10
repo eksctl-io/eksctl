@@ -18,7 +18,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-func (m *Manager) Scale(ctx context.Context, ng *api.NodeGroupBase) error {
+func (m *Manager) Scale(ctx context.Context, ng *api.NodeGroupBase, wait bool) error {
 	logger.Info("scaling nodegroup %q in cluster %s", ng.Name, m.cfg.Metadata.Name)
 
 	nodegroupStackInfos, err := m.stackManager.DescribeNodeGroupStacksAndResources(ctx)
@@ -40,7 +40,7 @@ func (m *Manager) Scale(ctx context.Context, ng *api.NodeGroupBase) error {
 	if isUnmanagedNodegroup {
 		err = m.scaleUnmanagedNodeGroup(ctx, ng, stackInfo)
 	} else {
-		err = m.scaleManagedNodeGroup(ctx, ng)
+		err = m.scaleManagedNodeGroup(ctx, ng, wait)
 	}
 
 	if err != nil {
@@ -90,7 +90,7 @@ func (m *Manager) scaleUnmanagedNodeGroup(ctx context.Context, ng *api.NodeGroup
 	return nil
 }
 
-func (m *Manager) scaleManagedNodeGroup(ctx context.Context, ng *api.NodeGroupBase) error {
+func (m *Manager) scaleManagedNodeGroup(ctx context.Context, ng *api.NodeGroupBase, wait bool) error {
 
 	input := &eks.UpdateNodegroupConfigInput{
 		ScalingConfig: &ekstypes.NodegroupScalingConfig{},
@@ -113,18 +113,23 @@ func (m *Manager) scaleManagedNodeGroup(ctx context.Context, ng *api.NodeGroupBa
 	if _, err := m.ctl.AWSProvider.EKS().UpdateNodegroupConfig(ctx, input); err != nil {
 		return err
 	}
+	logger.Info("initiated scaling of nodegroup")
 
-	logger.Info("waiting for scaling of nodegroup %q to complete", ng.Name)
+	if wait {
+		logger.Info("waiting for scaling of nodegroup %q to complete", ng.Name)
 
-	waiter := eks.NewNodegroupActiveWaiter(m.ctl.AWSProvider.EKS())
-	if err := waiter.Wait(ctx, &eks.DescribeNodegroupInput{
-		ClusterName:   &m.cfg.Metadata.Name,
-		NodegroupName: &ng.Name,
-	}, m.ctl.AWSProvider.WaitTimeout()); err != nil {
-		return err
+		waiter := eks.NewNodegroupActiveWaiter(m.ctl.AWSProvider.EKS())
+		if err := waiter.Wait(ctx, &eks.DescribeNodegroupInput{
+			ClusterName:   input.ClusterName,
+			NodegroupName: input.NodegroupName,
+		}, m.ctl.AWSProvider.WaitTimeout()); err != nil {
+			return err
+		}
+
+		logger.Info("nodegroup successfully scaled")
+	} else {
+		logger.Info("to see the status of the scaling run `eksctl get nodegroup --cluster %s --region %s --name %s`", *input.ClusterName, m.ctl.AWSProvider.Region(), ng.Name)
 	}
-
-	logger.Info("nodegroup successfully scaled")
 	return nil
 }
 

@@ -54,6 +54,7 @@ func scaleNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddWaitFlag(fs, &cmd.Wait, "wait for update to finish")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
@@ -94,5 +95,5 @@ func scaleNodegroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
 		return err
 	}
 
-	return nodegroup.New(cfg, ctl, nil, selector.New(ctl.AWSProvider.Session())).Scale(ctx, ng)
+	return nodegroup.New(cfg, ctl, nil, selector.New(ctl.AWSProvider.Session())).Scale(ctx, ng, cmd.Wait)
 }
