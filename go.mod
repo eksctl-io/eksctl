@@ -9,7 +9,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.0
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.1
 	github.com/aws/aws-sdk-go v1.44.215
-	github.com/aws/aws-sdk-go-v2 v1.17.5
+	github.com/aws/aws-sdk-go-v2 v1.17.6
 	github.com/aws/aws-sdk-go-v2/config v1.18.15
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.15
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.27.2
