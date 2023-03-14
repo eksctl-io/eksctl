@@ -94,5 +94,5 @@ func scaleNodegroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
 		return err
 	}
 
-	return nodegroup.New(cfg, ctl, nil, selector.New(ctl.AWSProvider.Session())).Scale(ctx, ng)
+	return nodegroup.New(cfg, ctl, nil, selector.New(nil /* TODO - use ctl.AWSProvider.AWSConfig() */)).Scale(ctx, ng)
 }

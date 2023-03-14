@@ -74,7 +74,7 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 	}
 
 	var summaries []*nodegroup.Summary
-	manager := nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
+	manager := nodegroup.New(cfg, ctl, clientSet, selector.New(nil /* TODO - use ctl.AWSProvider.AWSConfig() */))
 	if ng.Name == "" {
 		summaries, err = manager.GetAll(ctx)
 		if err != nil {

@@ -290,7 +290,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
-	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, selector.New(ctl.AWSProvider.Session()), outpostsService)
+	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, selector.New(nil /* TODO - use ctl.AWSProvider.AWSConfig() */), outpostsService)
 	nodePools := nodes.ToNodePools(cfg)
 	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err

@@ -17,8 +17,6 @@ import (
 
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/aws/aws-sdk-go/aws/client"
-	"github.com/aws/aws-sdk-go/aws/session"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -786,8 +784,8 @@ type ClusterProvider interface {
 	Region() string
 	Profile() Profile
 	WaitTimeout() time.Duration
-	ConfigProvider() client.ConfigProvider
-	Session() *session.Session
+	CredentialsProvider() aws.CredentialsProvider
+	AWSConfig() *aws.Config
 
 	ELB() awsapi.ELB
 	ELBV2() awsapi.ELBV2

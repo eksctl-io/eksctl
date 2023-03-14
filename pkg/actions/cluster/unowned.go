@@ -38,7 +38,7 @@ func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMa
 			return ctl.NewStdClientSet(cfg)
 		},
 		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
-			return nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
+			return nodegroup.New(cfg, ctl, clientSet, selector.New(nil /* TODO - use ctl.AWSProvider.AWSConfig() */))
 		},
 	}
 }

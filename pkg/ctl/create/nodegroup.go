@@ -67,7 +67,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 			return err
 		}
 
-		manager := nodegroup.New(cmd.ClusterConfig, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
+		manager := nodegroup.New(cmd.ClusterConfig, ctl, clientSet, selector.New(nil /* TODO - use ctl.AWSProvider.AWSConfig() */))
 		return manager.Create(ctx, nodegroup.CreateOpts{
 			InstallNeuronDevicePlugin: options.InstallNeuronDevicePlugin,
 			InstallNvidiaDevicePlugin: options.InstallNvidiaDevicePlugin,

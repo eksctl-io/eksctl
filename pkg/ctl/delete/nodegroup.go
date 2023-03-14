@@ -130,7 +130,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	}
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
-	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
+	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet, selector.New(nil /* TODO - use ctl.AWSProvider.AWSConfig() */))
 	if deleteNodeGroupDrain {
 		cmdutils.LogIntendedAction(cmd.Plan, "drain %d nodegroup(s) in cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 

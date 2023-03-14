@@ -57,5 +57,5 @@ func updateNodegroup(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	return nodegroup.New(cmd.ClusterConfig, ctl, nil, selector.New(ctl.AWSProvider.Session())).Update(ctx, cmd.Wait)
+	return nodegroup.New(cmd.ClusterConfig, ctl, nil, selector.New(nil /* TODO - use ctl.AWSProvider.AWSConfig() */)).Update(ctx, cmd.Wait)
 }
