@@ -338,7 +338,7 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 
 	// manageSharedNodeSecurityGroupRules cannot be disabled if using eksctl managed security groups
 	if c.VPC.SharedNodeSecurityGroup == "" && IsDisabled(c.VPC.ManageSharedNodeSecurityGroupRules) {
-		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
+		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using eksctl-managed security groups")
 	}
 
 	if len(c.LocalZones) > 0 {
