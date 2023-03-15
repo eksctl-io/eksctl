@@ -145,20 +145,23 @@ type IAM interface {
 	// client IDs (also known as audiences) that identify the application or
 	// applications allowed to authenticate using the OIDC provider
 	//
-	// * A list of
-	// thumbprints of one or more server certificates that the IdP uses
+	// * A list of tags
+	// that are attached to the specified IAM OIDC provider
 	//
-	// You get all of
-	// this information from the OIDC IdP you want to use to access Amazon Web
-	// Services. Amazon Web Services secures communication with some OIDC identity
-	// providers (IdPs) through our library of trusted certificate authorities (CAs)
-	// instead of using a certificate thumbprint to verify your IdP server certificate.
-	// These OIDC IdPs include Google, Auth0, and those that use an Amazon S3 bucket to
-	// host a JSON Web Key Set (JWKS) endpoint. In these cases, your legacy thumbprint
-	// remains in your configuration, but is no longer used for validation. The trust
-	// for the OIDC provider is derived from the IAM provider that this operation
-	// creates. Therefore, it is best to limit access to the
-	// CreateOpenIDConnectProvider operation to highly privileged users.
+	// * A list of thumbprints of
+	// one or more server certificates that the IdP uses
+	//
+	// You get all of this
+	// information from the OIDC IdP you want to use to access Amazon Web Services.
+	// Amazon Web Services secures communication with some OIDC identity providers
+	// (IdPs) through our library of trusted certificate authorities (CAs) instead of
+	// using a certificate thumbprint to verify your IdP server certificate. These OIDC
+	// IdPs include Google, Auth0, and those that use an Amazon S3 bucket to host a
+	// JSON Web Key Set (JWKS) endpoint. In these cases, your legacy thumbprint remains
+	// in your configuration, but is no longer used for validation. The trust for the
+	// OIDC provider is derived from the IAM provider that this operation creates.
+	// Therefore, it is best to limit access to the CreateOpenIDConnectProvider
+	// operation to highly privileged users.
 	CreateOpenIDConnectProvider(ctx context.Context, params *CreateOpenIDConnectProviderInput, optFns ...func(*Options)) (*CreateOpenIDConnectProviderOutput, error)
 	// Creates a new managed policy for your Amazon Web Services account. This
 	// operation creates a policy version with a version identifier of v1 and sets v1
@@ -786,7 +789,7 @@ type IAM interface {
 	// information, see Refining permissions using service last accessed data
 	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor.html)
 	// in the IAM User Guide. For each service that principals in an account (root
-	// users, IAM users, or IAM roles) could access using SCPs, the operation returns
+	// user, IAM users, or IAM roles) could access using SCPs, the operation returns
 	// details about the most recent access attempt. If there was no attempt, the
 	// service is listed without details about the most recent attempt to access the
 	// service. If the operation fails, it returns the reason that it failed. By
@@ -1520,15 +1523,16 @@ type IAM interface {
 	// key name Cost Center and the value 41200.
 	//
 	// * Access control - Include tags in
-	// IAM user-based and resource-based policies. You can use tags to restrict access
-	// to only an OIDC provider that has a specified tag attached. For examples of
-	// policies that show how to use tags to control access, see Control access using
-	// IAM tags (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_tags.html) in
-	// the IAM User Guide.
+	// IAM identity-based and resource-based policies. You can use tags to restrict
+	// access to only an OIDC provider that has a specified tag attached. For examples
+	// of policies that show how to use tags to control access, see Control access
+	// using IAM tags
+	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_tags.html) in the IAM
+	// User Guide.
 	//
-	// * If any one of the tags is invalid or if you exceed the
-	// allowed maximum number of tags, then the entire request fails and the resource
-	// is not created. For more information about tagging, see Tagging IAM resources
+	// * If any one of the tags is invalid or if you exceed the allowed
+	// maximum number of tags, then the entire request fails and the resource is not
+	// created. For more information about tagging, see Tagging IAM resources
 	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_tags.html) in the IAM User
 	// Guide.
 	//
@@ -1683,8 +1687,8 @@ type IAM interface {
 	// search for all resources with the key name Cost Center and the value 41200.
 	//
 	// *
-	// Access control - Include tags in IAM user-based and resource-based policies. You
-	// can use tags to restrict access to only an IAM requesting user that has a
+	// Access control - Include tags in IAM identity-based and resource-based policies.
+	// You can use tags to restrict access to only an IAM requesting user that has a
 	// specified tag attached. You can also restrict access to only those resources
 	// that have a certain tag attached. For examples of policies that show how to use
 	// tags to control access, see Control access using IAM tags
