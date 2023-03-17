@@ -218,7 +218,7 @@ var _ = Describe("Scale", func() {
 			It("waits for scaling and times out", func() {
 				p.SetWaitTimeout(1 * time.Millisecond)
 				err := m.Scale(context.Background(), ng, true)
-				Expect(err).To(MatchError(fmt.Sprintf("failed to scale nodegroup for cluster %q, error: timed out waiting for at least %d nodes to join the cluster and become ready in %q: context deadline exceeded", clusterName, *ng.ScalingConfig.MinSize, ng.Name)))
+				Expect(err).To(MatchError(fmt.Sprintf("failed to scale nodegroup %q for cluster %q, error: timed out waiting for at least %d nodes to join the cluster and become ready in %q: context deadline exceeded", ng.Name, clusterName, *ng.ScalingConfig.MinSize, ng.Name)))
 			})
 		})
 
@@ -259,7 +259,7 @@ var _ = Describe("Scale", func() {
 			const asgName = "asg-1234"
 			mockNodeGroupStack(ngName, asgName)
 			mockNodeGroupAMI(e.deprecated, asgName)
-			err := m.Scale(context.Background(), ng)
+			err := m.Scale(context.Background(), ng, false)
 			if e.expectedErr != "" {
 				Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
 			} else {
