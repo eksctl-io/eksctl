@@ -560,6 +560,7 @@ var _ = Describe("Cluster Template Builder", func() {
 
 		Context("when fargate profiles are configured", func() {
 			BeforeEach(func() {
+				cfg.Metadata.AccountID = "111122223333"
 				cfg.FargateProfiles = []*api.FargateProfile{{
 					Name: "fp-default",
 					Selectors: []api.FargateProfileSelector{
