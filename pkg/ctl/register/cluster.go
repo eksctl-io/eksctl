@@ -1,15 +1,15 @@
 package register
 
 import (
+	"context"
 	"fmt"
-	"strings"
-
-	"github.com/spf13/afero"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/connector"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -26,7 +26,7 @@ func registerClusterCmd(cmd *cmdutils.Cmd) {
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cluster.Name, "name", "", "EKS cluster name")
-		fs.StringVar(&cluster.Provider, "provider", "", fmt.Sprintf("Kubernetes provider name (one of %s)", strings.Join(connector.ValidProviders(), ", ")))
+		fs.StringVar(&cluster.Provider, "provider", "", fmt.Sprintf("Kubernetes provider name (one of %v)", connector.ValidProviders()))
 		fs.StringVar(&cluster.ConnectorRoleARN, "role-arn", "", "EKS Connector role ARN")
 
 		requiredFlags := []string{"name", "provider"}
@@ -36,12 +36,13 @@ func registerClusterCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 
 }
 
 func registerCluster(cmd *cmdutils.Cmd, cluster connector.ExternalCluster) error {
-	clusterProvider, err := eks.New(&cmd.ProviderConfig, nil)
+	ctx := context.Background()
+	clusterProvider, err := eks.New(ctx, &cmd.ProviderConfig, nil)
 	if err != nil {
 		return err
 	}
@@ -52,10 +53,10 @@ func registerCluster(cmd *cmdutils.Cmd, cluster connector.ExternalCluster) error
 	}
 
 	c := connector.EKSConnector{
-		Provider:         clusterProvider.Provider,
+		Provider:         clusterProvider.AWSProvider,
 		ManifestTemplate: manifestTemplate,
 	}
-	resourceList, err := c.RegisterCluster(cluster)
+	resourceList, err := c.RegisterCluster(ctx, cluster)
 	if err != nil {
 		return errors.Wrap(err, "error registering cluster")
 	}

@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -37,7 +39,7 @@ func updateClusterEndpointsCmd(cmd *cmdutils.Cmd) {
 			fs.BoolVar(&private, "private-access", false, "access for private (VPC) clients")
 			fs.BoolVar(&public, "public-access", false, "access for public clients")
 		})
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool) error {
@@ -48,17 +50,22 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
 	logger.Info("using region %s", meta.Region)
 
+	if cfg.IsControlPlaneOnOutposts() {
+		return errUnsupportedLocalCluster
+	}
+
 	if ok, err := ctl.CanUpdate(cfg); !ok {
 		return err
 	}
 
-	clusterVPCConfig, err := ctl.GetCurrentClusterVPCConfig(cfg)
+	clusterVPCConfig, err := ctl.GetCurrentClusterVPCConfig(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -103,7 +110,7 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	}
 
 	if !cmd.Plan {
-		if err := ctl.UpdateClusterConfigForEndpoints(cfg); err != nil {
+		if err := ctl.UpdateClusterConfigForEndpoints(ctx, cfg); err != nil {
 			return err
 		}
 		cmdutils.LogCompletedAction(

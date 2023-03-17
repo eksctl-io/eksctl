@@ -16,7 +16,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
 	"github.com/kubicorn/kubicorn/pkg/namer"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -49,10 +49,6 @@ var _ = BeforeSuite(func() {
 		)
 		Expect(cmd).To(RunSuccessfully())
 	}
-})
-
-var _ = AfterSuite(func() {
-	params.DeleteClusters()
 })
 
 var _ = Describe("Enable GitOps", func() {
@@ -105,4 +101,8 @@ var _ = Describe("Enable GitOps", func() {
 			AssertFlux2PodsPresentInKubernetes(params.KubeconfigPath)
 		})
 	})
+})
+
+var _ = AfterSuite(func() {
+	params.DeleteClusters()
 })

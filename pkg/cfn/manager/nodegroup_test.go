@@ -1,235 +1,29 @@
 package manager
 
 import (
+	"context"
 	"fmt"
-	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
-	. "github.com/onsi/gomega"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/stretchr/testify/mock"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 var _ = Describe("StackCollection NodeGroup", func() {
-	var (
-		cc *api.ClusterConfig
-		sc StackManager
-
-		p *mockprovider.MockProvider
-	)
-
-	const nodegroupResource = `
-{
-  "Resources": {
-    "NodeGroup": {
-      "Type": "AWS::AutoScaling::AutoScalingGroup",
-      "Properties": {
-        "DesiredCapacity": "3",
-        "MaxSize": "6",
-        "MinSize": "1"
-      }
-    }
-  }
-}
-
-`
-	testAZs := []string{"us-west-2b", "us-west-2a", "us-west-2c"}
-
-	newClusterConfig := func(clusterName string) *api.ClusterConfig {
-		cfg := api.NewClusterConfig()
-
-		cfg.Metadata.Region = "us-west-2"
-		cfg.Metadata.Name = clusterName
-		cfg.AvailabilityZones = testAZs
-
-		*cfg.VPC.CIDR = api.DefaultCIDR()
-
-		return cfg
-	}
-
-	newNodeGroup := func(cfg *api.ClusterConfig) {
-		ng := cfg.NewNodeGroup()
-		ng.InstanceType = "t2.medium"
-		ng.AMIFamily = "AmazonLinux2"
-		ng.Name = "12345"
-	}
-
-	Describe("GetUnmanagedNodeGroupSummaries", func() {
-		Context("With a cluster name", func() {
-			var (
-				clusterName  string
-				err          error
-				out          []*NodeGroupSummary
-				creationTime = time.Now()
-			)
-
-			JustBeforeEach(func() {
-				p = mockprovider.NewMockProvider()
-
-				cc = newClusterConfig(clusterName)
-
-				newNodeGroup(cc)
-
-				sc = NewStackCollection(p, cc)
-
-				p.MockCloudFormation().On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
-					return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345"
-				})).Return(&cfn.GetTemplateOutput{
-					TemplateBody: aws.String(nodegroupResource),
-				}, nil)
-
-				p.MockCloudFormation().On("GetTemplate", mock.Anything).Return(nil, fmt.Errorf("GetTemplate failed"))
-
-				p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					consume := args[1].(func(p *cfn.ListStacksOutput, last bool) (shouldContinue bool))
-					out := &cfn.ListStacksOutput{
-						StackSummaries: []*cfn.StackSummary{
-							{
-								StackName: aws.String("eksctl-test-cluster-nodegroup-12345"),
-							},
-						},
-					}
-					cont := consume(out, true)
-					if !cont {
-						panic("unexpected return value from the paging function: shouldContinue was false. It becomes false only when subsequent DescribeStacks call(s) fail, which isn't expected in this test scenario")
-					}
-				}).Return(nil)
-
-				p.MockCloudFormation().On("DescribeStacks", mock.MatchedBy(func(input *cfn.DescribeStacksInput) bool {
-					return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345"
-				})).Return(&cfn.DescribeStacksOutput{
-					Stacks: []*cfn.Stack{
-						{
-							StackName:    aws.String("eksctl-test-cluster-nodegroup-12345"),
-							StackId:      aws.String("eksctl-test-cluster-nodegroup-12345-id"),
-							StackStatus:  aws.String("CREATE_COMPLETE"),
-							CreationTime: aws.Time(creationTime),
-							Tags: []*cfn.Tag{
-								{
-									Key:   aws.String(api.NodeGroupNameTag),
-									Value: aws.String("12345"),
-								},
-								{
-									Key:   aws.String(api.ClusterNameTag),
-									Value: aws.String(clusterName),
-								},
-							},
-							Outputs: []*cfn.Output{
-								{
-									OutputKey:   aws.String("InstanceRoleARN"),
-									OutputValue: aws.String("arn:aws:iam::1111:role/eks-nodes-base-role"),
-								},
-							},
-						},
-					},
-				}, nil)
-
-				p.MockCloudFormation().On("DescribeStacks", mock.Anything).Return(nil, fmt.Errorf("DescribeStacks failed"))
-
-				p.MockCloudFormation().On("DescribeStackResource", mock.MatchedBy(func(input *cfn.DescribeStackResourceInput) bool {
-					return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345" && input.LogicalResourceId != nil && *input.LogicalResourceId == "NodeGroup"
-				})).Return(&cfn.DescribeStackResourceOutput{
-					StackResourceDetail: &cfn.StackResourceDetail{
-						PhysicalResourceId: aws.String("eksctl-test-cluster-nodegroup-12345-NodeGroup-1N68LL8H1EH27"),
-					},
-				}, nil)
-
-				p.MockCloudFormation().On("DescribeStackResource", mock.Anything).Return(nil, fmt.Errorf("DescribeStackResource failed"))
-
-				p.MockASG().On("DescribeAutoScalingGroups", mock.MatchedBy(func(input *autoscaling.DescribeAutoScalingGroupsInput) bool {
-					return len(input.AutoScalingGroupNames) == 1 && *input.AutoScalingGroupNames[0] == "eksctl-test-cluster-nodegroup-12345-NodeGroup-1N68LL8H1EH27"
-				})).Return(&autoscaling.DescribeAutoScalingGroupsOutput{
-					AutoScalingGroups: []*autoscaling.Group{
-						{
-							DesiredCapacity: aws.Int64(7),
-							MinSize:         aws.Int64(1),
-							MaxSize:         aws.Int64(10),
-						},
-					},
-				}, nil)
-
-				p.MockASG().On("DescribeAutoScalingGroups", mock.Anything).Return(nil, fmt.Errorf("DescribeAutoScalingGroups failed"))
-			})
-
-			Context("With no matching stacks", func() {
-				BeforeEach(func() {
-					clusterName = "test-cluster-non-existent"
-				})
-
-				JustBeforeEach(func() {
-					out, err = sc.GetUnmanagedNodeGroupSummaries("")
-				})
-
-				It("should not error", func() {
-					Expect(err).NotTo(HaveOccurred())
-				})
-
-				It("should not have called AWS CloudFormation GetTemplate", func() {
-					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 0)).To(BeTrue())
-				})
-
-				It("the output should equal the expectation", func() {
-					Expect(out).To(HaveLen(0))
-				})
-			})
-
-			Context("With matching stacks", func() {
-				BeforeEach(func() {
-					clusterName = "test-cluster"
-				})
-
-				JustBeforeEach(func() {
-					out, err = sc.GetUnmanagedNodeGroupSummaries("")
-				})
-
-				It("should not error", func() {
-					Expect(err).NotTo(HaveOccurred())
-				})
-
-				It("should have called AWS CloudFormation GetTemplate", func() {
-					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 1)).To(BeTrue())
-				})
-
-				It("should have called AWS CloudFormation DescribeStacks once", func() {
-					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "DescribeStacks", 1)).To(BeTrue())
-				})
-
-				It("the output should equal the expectation", func() {
-					Expect(out).To(HaveLen(1))
-					summary := *out[0]
-					Expect(summary).To(Equal(NodeGroupSummary{
-						StackName:            "eksctl-test-cluster-nodegroup-12345",
-						Cluster:              clusterName,
-						Name:                 "12345",
-						Status:               "CREATE_COMPLETE",
-						MaxSize:              10,
-						MinSize:              1,
-						DesiredCapacity:      7,
-						InstanceType:         "",
-						ImageID:              "",
-						CreationTime:         creationTime,
-						NodeInstanceRoleARN:  "arn:aws:iam::1111:role/eks-nodes-base-role",
-						AutoScalingGroupName: "eksctl-test-cluster-nodegroup-12345-NodeGroup-1N68LL8H1EH27",
-						Version:              "",
-						NodeGroupType:        "unmanaged",
-					}))
-				})
-			})
-		})
-	})
-
 	Describe("GetNodeGroupType", func() {
-
-		createTags := func(tags map[string]string) []*cfn.Tag {
-			cfnTags := make([]*cfn.Tag, 0)
+		createTags := func(tags map[string]string) []types.Tag {
+			cfnTags := make([]types.Tag, 0)
 			for k, v := range tags {
-				cfnTags = append(cfnTags, &cfn.Tag{
+				cfnTags = append(cfnTags, types.Tag{
 					Key:   aws.String(k),
 					Value: aws.String(v),
 				})
@@ -319,5 +113,117 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				},
 				api.NodeGroupType("")),
 		)
+	})
+
+	Describe("GetUnmanagedNodeGroupAutoScalingGroupName", func() {
+
+		stackName := "stack"
+		logicalResourceID := "NodeGroup"
+		physicalResourceID := "asg"
+
+		It("returns the asg name", func() {
+			p := mockprovider.NewMockProvider()
+			p.MockCloudFormation().On("DescribeStackResource", mock.Anything, &cloudformation.DescribeStackResourceInput{
+				LogicalResourceId: aws.String(logicalResourceID),
+				StackName:         aws.String(stackName),
+			}).Return(&cloudformation.DescribeStackResourceOutput{
+				StackResourceDetail: &types.StackResourceDetail{
+					LogicalResourceId:  aws.String(logicalResourceID),
+					StackName:          aws.String(stackName),
+					PhysicalResourceId: aws.String(physicalResourceID),
+				},
+			}, nil)
+
+			sm := NewStackCollection(p, api.NewClusterConfig())
+			name, err := sm.GetUnmanagedNodeGroupAutoScalingGroupName(context.Background(), &types.Stack{
+				StackName: aws.String(stackName),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(name).To(Equal(physicalResourceID))
+		})
+
+		When("The asg resource has no physical ID", func() {
+			It("returns an error", func() {
+				p := mockprovider.NewMockProvider()
+				p.MockCloudFormation().On("DescribeStackResource", mock.Anything, &cloudformation.DescribeStackResourceInput{
+					LogicalResourceId: aws.String(logicalResourceID),
+					StackName:         aws.String(stackName),
+				}).Return(&cloudformation.DescribeStackResourceOutput{
+					StackResourceDetail: &types.StackResourceDetail{
+						LogicalResourceId:  aws.String(logicalResourceID),
+						StackName:          aws.String(stackName),
+						PhysicalResourceId: nil,
+					},
+				}, fmt.Errorf("no PhysicalResourceId"))
+
+				sm := NewStackCollection(p, api.NewClusterConfig())
+				name, err := sm.GetUnmanagedNodeGroupAutoScalingGroupName(context.Background(), &types.Stack{
+					StackName: aws.String(stackName),
+				})
+				Expect(err).To(HaveOccurred())
+				Expect(name).To(BeEmpty())
+			})
+		})
+	})
+
+	Describe("Propagate ManagedNodeGroupTags to ASG", func() {
+		mng := api.NewManagedNodeGroup()
+		mng.Name = "test-managed-nodegroup"
+		mng.Tags = map[string]string{
+			"tag-key": "tag-value",
+		}
+		sc := StackCollection{
+			spec: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Name: "test-cluster",
+				},
+			},
+		}
+		p := mockprovider.NewMockProvider()
+
+		BeforeEach(func() {
+			p.MockEKS().On("DescribeNodegroup", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeNodegroupInput{}))
+			}).Return(&eks.DescribeNodegroupOutput{
+				Nodegroup: &ekstypes.Nodegroup{
+					Resources: &ekstypes.NodegroupResources{},
+				},
+			}, nil)
+			sc.eksAPI = p.EKS()
+		})
+
+		When("there are unique labels and taints present", func() {
+			It("converts them to tags and propagates to ASG", func() {
+				mng.Labels = map[string]string{
+					"label-key": "label-value",
+				}
+				mng.Taints = []api.NodeGroupTaint{
+					{
+						Key:   "taint-key",
+						Value: "taint-value",
+					},
+				}
+				propagatedTags := make(map[string]string)
+				propagateFunc := func(ngName string, tags map[string]string, asgNames []string, errorCh chan error) error {
+					propagatedTags = tags
+					return nil
+				}
+
+				err := sc.propagateManagedNodeGroupTagsToASGTask(
+					context.Background(),
+					make(chan error),
+					mng,
+					propagateFunc,
+				)
+
+				Expect(err).To(BeNil())
+				Expect(propagatedTags).To(Equal(map[string]string{
+					"tag-key": "tag-value",
+					"k8s.io/cluster-autoscaler/node-template/label/label-key": "label-value",
+					"k8s.io/cluster-autoscaler/node-template/taint/taint-key": "taint-value",
+				}))
+			})
+		})
 	})
 })

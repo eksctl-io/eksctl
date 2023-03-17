@@ -8,7 +8,7 @@ The default VPC CIDR used by `eksctl` is `192.168.0.0/16`. It is divided into 8 
 The initial nodegroup is created in public subnets, with SSH access disabled unless `--allow-ssh` is specified.
 The nodegroup by default allows inbound traffic from the control plane security group on ports 1025 - 65535.
 
-!!! note
+???+ note
     In `us-east-1` eksctl only creates 2 public and 2 private subnets by default.
 
 !!! important

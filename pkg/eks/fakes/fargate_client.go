@@ -2,6 +2,7 @@
 package fakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -9,11 +10,12 @@ import (
 )
 
 type FakeFargateClient struct {
-	CreateProfileStub        func(*v1alpha5.FargateProfile, bool) error
+	CreateProfileStub        func(context.Context, *v1alpha5.FargateProfile, bool) error
 	createProfileMutex       sync.RWMutex
 	createProfileArgsForCall []struct {
-		arg1 *v1alpha5.FargateProfile
-		arg2 bool
+		arg1 context.Context
+		arg2 *v1alpha5.FargateProfile
+		arg3 bool
 	}
 	createProfileReturns struct {
 		result1 error
@@ -21,23 +23,37 @@ type FakeFargateClient struct {
 	createProfileReturnsOnCall map[int]struct {
 		result1 error
 	}
+	ListProfilesStub        func(context.Context) ([]string, error)
+	listProfilesMutex       sync.RWMutex
+	listProfilesArgsForCall []struct {
+		arg1 context.Context
+	}
+	listProfilesReturns struct {
+		result1 []string
+		result2 error
+	}
+	listProfilesReturnsOnCall map[int]struct {
+		result1 []string
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeFargateClient) CreateProfile(arg1 *v1alpha5.FargateProfile, arg2 bool) error {
+func (fake *FakeFargateClient) CreateProfile(arg1 context.Context, arg2 *v1alpha5.FargateProfile, arg3 bool) error {
 	fake.createProfileMutex.Lock()
 	ret, specificReturn := fake.createProfileReturnsOnCall[len(fake.createProfileArgsForCall)]
 	fake.createProfileArgsForCall = append(fake.createProfileArgsForCall, struct {
-		arg1 *v1alpha5.FargateProfile
-		arg2 bool
-	}{arg1, arg2})
+		arg1 context.Context
+		arg2 *v1alpha5.FargateProfile
+		arg3 bool
+	}{arg1, arg2, arg3})
 	stub := fake.CreateProfileStub
 	fakeReturns := fake.createProfileReturns
-	fake.recordInvocation("CreateProfile", []interface{}{arg1, arg2})
+	fake.recordInvocation("CreateProfile", []interface{}{arg1, arg2, arg3})
 	fake.createProfileMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -51,17 +67,17 @@ func (fake *FakeFargateClient) CreateProfileCallCount() int {
 	return len(fake.createProfileArgsForCall)
 }
 
-func (fake *FakeFargateClient) CreateProfileCalls(stub func(*v1alpha5.FargateProfile, bool) error) {
+func (fake *FakeFargateClient) CreateProfileCalls(stub func(context.Context, *v1alpha5.FargateProfile, bool) error) {
 	fake.createProfileMutex.Lock()
 	defer fake.createProfileMutex.Unlock()
 	fake.CreateProfileStub = stub
 }
 
-func (fake *FakeFargateClient) CreateProfileArgsForCall(i int) (*v1alpha5.FargateProfile, bool) {
+func (fake *FakeFargateClient) CreateProfileArgsForCall(i int) (context.Context, *v1alpha5.FargateProfile, bool) {
 	fake.createProfileMutex.RLock()
 	defer fake.createProfileMutex.RUnlock()
 	argsForCall := fake.createProfileArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeFargateClient) CreateProfileReturns(result1 error) {
@@ -87,11 +103,77 @@ func (fake *FakeFargateClient) CreateProfileReturnsOnCall(i int, result1 error) 
 	}{result1}
 }
 
+func (fake *FakeFargateClient) ListProfiles(arg1 context.Context) ([]string, error) {
+	fake.listProfilesMutex.Lock()
+	ret, specificReturn := fake.listProfilesReturnsOnCall[len(fake.listProfilesArgsForCall)]
+	fake.listProfilesArgsForCall = append(fake.listProfilesArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.ListProfilesStub
+	fakeReturns := fake.listProfilesReturns
+	fake.recordInvocation("ListProfiles", []interface{}{arg1})
+	fake.listProfilesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeFargateClient) ListProfilesCallCount() int {
+	fake.listProfilesMutex.RLock()
+	defer fake.listProfilesMutex.RUnlock()
+	return len(fake.listProfilesArgsForCall)
+}
+
+func (fake *FakeFargateClient) ListProfilesCalls(stub func(context.Context) ([]string, error)) {
+	fake.listProfilesMutex.Lock()
+	defer fake.listProfilesMutex.Unlock()
+	fake.ListProfilesStub = stub
+}
+
+func (fake *FakeFargateClient) ListProfilesArgsForCall(i int) context.Context {
+	fake.listProfilesMutex.RLock()
+	defer fake.listProfilesMutex.RUnlock()
+	argsForCall := fake.listProfilesArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeFargateClient) ListProfilesReturns(result1 []string, result2 error) {
+	fake.listProfilesMutex.Lock()
+	defer fake.listProfilesMutex.Unlock()
+	fake.ListProfilesStub = nil
+	fake.listProfilesReturns = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFargateClient) ListProfilesReturnsOnCall(i int, result1 []string, result2 error) {
+	fake.listProfilesMutex.Lock()
+	defer fake.listProfilesMutex.Unlock()
+	fake.ListProfilesStub = nil
+	if fake.listProfilesReturnsOnCall == nil {
+		fake.listProfilesReturnsOnCall = make(map[int]struct {
+			result1 []string
+			result2 error
+		})
+	}
+	fake.listProfilesReturnsOnCall[i] = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeFargateClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.createProfileMutex.RLock()
 	defer fake.createProfileMutex.RUnlock()
+	fake.listProfilesMutex.RLock()
+	defer fake.listProfilesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

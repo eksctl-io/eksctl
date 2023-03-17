@@ -1,11 +1,13 @@
 package delete
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/fargate"
@@ -46,32 +48,25 @@ func configureDeleteFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.Options {
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "wait for the deletion of the Fargate profile, which may take from a couple seconds to a couple minutes.")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 	return &opts
 }
 
 func doDeleteFargateProfile(cmd *cmdutils.Cmd, opts *fargate.Options) error {
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
-	}
-
-	supportsFargate, err := ctl.SupportsFargate(cmd.ClusterConfig)
-	if err != nil {
-		return err
-	}
-	if !supportsFargate {
-		return fmt.Errorf("Fargate is not supported for this cluster version. Please update the cluster to be at least eks.%d", fargate.MinPlatformVersion)
 	}
 
 	clusterName := cmd.ClusterConfig.Metadata.Name
-	manager := fargate.NewFromProvider(clusterName, ctl.Provider, ctl.NewStackManager(cmd.ClusterConfig))
+	manager := fargate.NewFromProvider(clusterName, ctl.AWSProvider, ctl.NewStackManager(cmd.ClusterConfig))
 	if cmd.Wait {
 		logger.Info(deletingFargateProfileMsg(clusterName, opts.ProfileName))
 	} else {
 		logger.Debug(deletingFargateProfileMsg(clusterName, opts.ProfileName))
 	}
-	if err := manager.DeleteProfile(opts.ProfileName, cmd.Wait); err != nil {
+	if err := manager.DeleteProfile(ctx, opts.ProfileName, cmd.Wait); err != nil {
 		return err
 	}
 	logger.Info("deleted Fargate profile %q on EKS cluster %q", opts.ProfileName, clusterName)

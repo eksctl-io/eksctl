@@ -5,27 +5,22 @@
 package cloudwatch_logging
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-
-	. "github.com/weaveworks/eksctl/integration/matchers"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 
-	"github.com/weaveworks/eksctl/pkg/testutils"
-
+	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"github.com/weaveworks/eksctl/integration/tests"
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
 var params *tests.Params
@@ -57,13 +52,13 @@ var _ = Describe("(Integration) [CloudWatch Logging test]", func() {
 
 			Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("set log retention to 545 days for CloudWatch logging")))
 
-			cloudWatchLogs := cloudwatchlogs.New(NewSession(params.Region))
-			logGroups, err := cloudWatchLogs.DescribeLogGroups(&cloudwatchlogs.DescribeLogGroupsInput{
+			cloudWatchLogs := cloudwatchlogs.NewFromConfig(NewConfig(params.Region))
+			logGroups, err := cloudWatchLogs.DescribeLogGroups(context.Background(), &cloudwatchlogs.DescribeLogGroupsInput{
 				LogGroupNamePrefix: aws.String(fmt.Sprintf("/aws/eks/%s/cluster", params.ClusterName)),
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(logGroups.LogGroups).To(HaveLen(1))
-			Expect(*logGroups.LogGroups[0].RetentionInDays).To(Equal(int64(545)))
+			Expect(*logGroups.LogGroups[0].RetentionInDays).To(Equal(int32(545)))
 		})
 	})
 })

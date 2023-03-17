@@ -1,4 +1,12 @@
-mkdocs                  == 1.2.3
-mkdocs-material         == 5.3.3
+mkdocs                  == 1.4.2
+mkdocs-material         == 9.0.6
 mkdocs-redirects
-pymdown-extensions      == 7.1
+mkdocs-minify-plugin
+mkdocs-glightbox
+pymdown-extensions      >= 9.9.1
+jinja2                  == 3.1.2
+
+# Dependencies from material theme 
+mkdocs-material-extensions>=1.1
+pygments>=2.12
+markdown>=3.2

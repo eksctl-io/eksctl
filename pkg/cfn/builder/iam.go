@@ -1,13 +1,14 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/iam"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
@@ -18,8 +19,9 @@ import (
 )
 
 const (
-	iamPolicyAmazonEKSClusterPolicy         = "AmazonEKSClusterPolicy"
-	iamPolicyAmazonEKSVPCResourceController = "AmazonEKSVPCResourceController"
+	iamPolicyAmazonEKSClusterPolicy             = "AmazonEKSClusterPolicy"
+	iamPolicyAmazonEKSVPCResourceController     = "AmazonEKSVPCResourceController"
+	iamPolicyAmazonEKSLocalOutpostClusterPolicy = "AmazonEKSLocalOutpostClusterPolicy"
 
 	iamPolicyAmazonEKSWorkerNodePolicy           = "AmazonEKSWorkerNodePolicy"
 	iamPolicyAmazonEKSCNIPolicy                  = "AmazonEKS_CNI_Policy"
@@ -79,19 +81,27 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 
 	c.rs.withIAM = true
 
-	managedPolicyArns := []string{
-		iamPolicyAmazonEKSClusterPolicy,
-	}
-	if !api.IsDisabled(c.spec.IAM.VPCResourceControllerPolicy) {
-		managedPolicyArns = append(managedPolicyArns, iamPolicyAmazonEKSVPCResourceController)
+	var role *gfniam.Role
+	if c.spec.IsControlPlaneOnOutposts() {
+		role = &gfniam.Role{
+			AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
+				MakeServiceRef("EC2"),
+			),
+			ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(iamPolicyAmazonEKSLocalOutpostClusterPolicy)...),
+		}
+	} else {
+		managedPolicyARNs := []string{iamPolicyAmazonEKSClusterPolicy}
+		if !api.IsDisabled(c.spec.IAM.VPCResourceControllerPolicy) {
+			managedPolicyARNs = append(managedPolicyARNs, iamPolicyAmazonEKSVPCResourceController)
+		}
+		role = &gfniam.Role{
+			AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
+				MakeServiceRef("EKS"),
+			),
+			ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyARNs...)...),
+		}
 	}
 
-	role := &gfniam.Role{
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
-			MakeServiceRef("EKS"),
-		),
-		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyArns...)...),
-	}
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRolePermissionsBoundary) {
 		role.PermissionsBoundary = gfnt.NewString(*c.spec.IAM.ServiceRolePermissionsBoundary)
 	}
@@ -119,7 +129,7 @@ func (n *NodeGroupResourceSet) WithNamedIAM() bool {
 	return n.rs.withNamedIAM
 }
 
-func (n *NodeGroupResourceSet) addResourcesForIAM() error {
+func (n *NodeGroupResourceSet) addResourcesForIAM(ctx context.Context) error {
 	if n.spec.IAM.InstanceProfileARN != "" {
 		n.rs.withIAM = false
 		n.rs.withNamedIAM = false
@@ -134,7 +144,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 		}
 		// if instance role is not given, export profile and use the getter to call importer function
 		n.rs.defineOutput(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true, func(v string) error {
-			return iam.ImportInstanceRoleFromProfileARN(n.iamAPI, n.spec, v)
+			return iam.ImportInstanceRoleFromProfileARN(ctx, n.iamAPI, n.spec, v)
 		})
 
 		return nil
@@ -330,6 +340,6 @@ func (rs *IAMRoleResourceSet) RenderJSON() ([]byte, error) {
 }
 
 // GetAllOutputs will get all outputs from iamserviceaccount stack
-func (rs *IAMRoleResourceSet) GetAllOutputs(stack cfn.Stack) error {
+func (rs *IAMRoleResourceSet) GetAllOutputs(stack types.Stack) error {
 	return rs.outputs.MustCollect(stack)
 }

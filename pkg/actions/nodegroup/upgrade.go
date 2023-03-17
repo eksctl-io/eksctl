@@ -1,17 +1,23 @@
 package nodegroup
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/weaveworks/eksctl/pkg/eks/waiter"
+
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/goformation/v4"
 	"github.com/weaveworks/goformation/v4/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
@@ -23,7 +29,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/managed"
-	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
 
@@ -46,8 +51,8 @@ type UpgradeOptions struct {
 	Stack *manager.NodeGroupStack
 }
 
-func (m *Manager) Upgrade(options UpgradeOptions) error {
-	stacks, err := m.stackManager.ListNodeGroupStacks()
+func (m *Manager) Upgrade(ctx context.Context, options UpgradeOptions) error {
+	stacks, err := m.stackManager.ListNodeGroupStacksWithStatuses(ctx)
 	if err != nil {
 		return err
 	}
@@ -59,7 +64,7 @@ func (m *Manager) Upgrade(options UpgradeOptions) error {
 		}
 	}
 
-	nodegroupOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+	nodegroupOutput, err := m.ctl.AWSProvider.EKS().DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
 		ClusterName:   &m.cfg.Metadata.Name,
 		NodegroupName: &options.NodegroupName,
 	})
@@ -71,91 +76,92 @@ func (m *Manager) Upgrade(options UpgradeOptions) error {
 		return err
 	}
 
-	if hasStack != nil {
-		options.Stack = hasStack
-		return m.upgradeUsingStack(options, nodegroupOutput.Nodegroup)
+	switch nodegroupOutput.Nodegroup.Status {
+	case ekstypes.NodegroupStatusActive:
+
+	case ekstypes.NodegroupStatusUpdating:
+		return errors.New("nodegroup is currently being updated, please retry the command after the existing update is complete")
+
+	default:
+		return fmt.Errorf("nodegroup must be in %q state when upgrading a nodegroup; got state %q", ekstypes.NodegroupStatusActive, nodegroupOutput.Nodegroup.Status)
 	}
 
-	return m.upgradeUsingAPI(options, nodegroupOutput.Nodegroup)
+	if hasStack != nil {
+		options.Stack = hasStack
+		return m.upgradeUsingStack(ctx, options, nodegroupOutput.Nodegroup)
+	}
+
+	return m.upgradeUsingAPI(ctx, options, nodegroupOutput.Nodegroup)
 }
 
-func (m *Manager) upgradeUsingAPI(options UpgradeOptions, nodegroup *eks.Nodegroup) error {
+func (m *Manager) upgradeUsingAPI(ctx context.Context, options UpgradeOptions, nodegroup *ekstypes.Nodegroup) error {
 	input := &eks.UpdateNodegroupVersionInput{
 		ClusterName:   &m.cfg.Metadata.Name,
-		Force:         &options.ForceUpgrade,
+		Force:         options.ForceUpgrade,
 		NodegroupName: &options.NodegroupName,
-		Version:       &options.KubernetesVersion,
 	}
 
 	if options.LaunchTemplateVersion != "" {
 		lt := nodegroup.LaunchTemplate
-		if lt == nil || (lt.Id == nil && lt.Name == nil) {
+		if lt == nil || lt.Id == nil {
 			return errors.New("cannot update launch template version because the nodegroup is not configured to use one")
 		}
-
-		input.LaunchTemplate = &eks.LaunchTemplateSpecification{
+		input.LaunchTemplate = &ekstypes.LaunchTemplateSpecification{
 			Version: &options.LaunchTemplateVersion,
 		}
+		input.LaunchTemplate.Id = nodegroup.LaunchTemplate.Id
+	}
 
-		if lt.Id != nil {
-			input.LaunchTemplate.Id = nodegroup.LaunchTemplate.Id
+	usesCustomAMI, err := m.usesCustomAMIEKSNodeGroup(ctx, nodegroup)
+	if err != nil {
+		return err
+	}
+
+	if usesCustomAMI && options.KubernetesVersion != "" {
+		return errors.New("cannot specify kubernetes-version when using a custom AMI")
+	}
+
+	if !usesCustomAMI {
+		if options.KubernetesVersion != "" {
+			input.Version = &options.KubernetesVersion
 		} else {
-			input.LaunchTemplate.Name = nodegroup.LaunchTemplate.Name
-
+			// Use the current Kubernetes version
+			version, err := semver.ParseTolerant(*nodegroup.Version)
+			if err != nil {
+				return errors.Wrapf(err, "unexpected error parsing Kubernetes version %q", *nodegroup.Version)
+			}
+			input.Version = aws.String(fmt.Sprintf("%v.%v", version.Major, version.Minor))
 		}
 	}
 
-	if options.KubernetesVersion == "" {
-		// Use the current Kubernetes version
-		version, err := semver.ParseTolerant(*nodegroup.Version)
-		if err != nil {
-			return errors.Wrapf(err, "unexpected error parsing Kubernetes version %q", *nodegroup.Version)
-		}
-		input.Version = aws.String(fmt.Sprintf("%v.%v", version.Major, version.Minor))
-	}
-
-	upgradeResponse, err := m.ctl.Provider.EKS().UpdateNodegroupVersion(input)
+	upgradeResponse, err := m.ctl.AWSProvider.EKS().UpdateNodegroupVersion(ctx, input)
 
 	if err != nil {
 		return err
 	}
 
 	if upgradeResponse != nil {
-		logger.Debug("upgrade response for %q: %s", options.NodegroupName, upgradeResponse.String())
+		logger.Debug("upgrade response for %q: %+v", options.NodegroupName, upgradeResponse.Update)
 	}
 
 	logger.Info("upgrade of nodegroup %q in progress", options.NodegroupName)
 
 	if options.Wait {
-		return m.waitForUpgrade(options)
+		return m.waitForUpgrade(ctx, options, upgradeResponse.Update)
 	}
 
 	return nil
 }
 
-func (m *Manager) waitForUpgrade(options UpgradeOptions) error {
+func (m *Manager) waitForUpgrade(ctx context.Context, options UpgradeOptions, update *ekstypes.Update) error {
+	logger.Info("waiting for upgrade of nodegroup %q to complete", options.NodegroupName)
+	updateWaiter := waiter.NewUpdateWaiter(m.ctl.AWSProvider.EKS())
 
-	newRequest := func() *request.Request {
-		input := &eks.DescribeNodegroupInput{
-			ClusterName:   &m.cfg.Metadata.Name,
-			NodegroupName: &options.NodegroupName,
-		}
-		req, _ := m.ctl.Provider.EKS().DescribeNodegroupRequest(input)
-		return req
-	}
-
-	msg := fmt.Sprintf("waiting for upgrade of nodegroup %q to complete", options.NodegroupName)
-
-	acceptors := waiters.MakeAcceptors(
-		"Nodegroup.Status",
-		eks.NodegroupStatusActive,
-		[]string{
-			eks.NodegroupStatusDegraded,
-		},
-	)
-
-	err := m.wait(options.NodegroupName, msg, acceptors, newRequest, m.ctl.Provider.WaitTimeout(), nil)
-	if err != nil {
+	if err := updateWaiter.Wait(ctx, &eks.DescribeUpdateInput{
+		Name:          aws.String(m.cfg.Metadata.Name),
+		UpdateId:      update.Id,
+		NodegroupName: &options.NodegroupName,
+	}, m.ctl.AWSProvider.WaitTimeout()); err != nil {
 		return err
 	}
 	logger.Info("nodegroup successfully upgraded")
@@ -165,12 +171,12 @@ func (m *Manager) waitForUpgrade(options UpgradeOptions) error {
 // upgradeUsingStack upgrades nodegroup to the latest AMI release for the specified Kubernetes version, or
 // the current Kubernetes version if the version isn't specified
 // If options.LaunchTemplateVersion is set, it also upgrades the nodegroup to the specified launch template version
-func (m *Manager) upgradeUsingStack(options UpgradeOptions, nodegroup *eks.Nodegroup) error {
+func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions, nodegroup *ekstypes.Nodegroup) error {
 	if options.KubernetesVersion != "" && options.ReleaseVersion != "" {
 		return errors.New("only one of kubernetes-version or release-version can be specified")
 	}
 
-	template, err := m.stackManager.GetManagedNodeGroupTemplate(manager.GetNodegroupOption{
+	template, err := m.stackManager.GetManagedNodeGroupTemplate(ctx, manager.GetNodegroupOption{
 		Stack:         options.Stack,
 		NodeGroupName: options.NodegroupName,
 	})
@@ -195,13 +201,13 @@ func (m *Manager) upgradeUsingStack(options UpgradeOptions, nodegroup *eks.Nodeg
 			return err
 		}
 
-		if err := m.stackManager.UpdateNodeGroupStack(options.NodegroupName, string(bytes), true); err != nil {
+		if err := m.stackManager.UpdateNodeGroupStack(ctx, options.NodegroupName, string(bytes), true); err != nil {
 			return errors.Wrap(err, "error updating nodegroup stack")
 		}
 		return nil
 	}
 
-	requiresUpdate, err := m.requiresStackUpdate(options.NodegroupName)
+	requiresUpdate, err := m.requiresStackUpdate(ctx, options.NodegroupName)
 	if err != nil {
 		return err
 	}
@@ -233,7 +239,7 @@ func (m *Manager) upgradeUsingStack(options UpgradeOptions, nodegroup *eks.Nodeg
 		}
 	}
 
-	usesCustomAMI, err := m.usesCustomAMI(ltResources, ngResource)
+	usesCustomAMI, err := m.usesCustomAMIGFNNodeGroup(ctx, ltResources, ngResource)
 	if err != nil {
 		return err
 	}
@@ -255,7 +261,7 @@ func (m *Manager) upgradeUsingStack(options UpgradeOptions, nodegroup *eks.Nodeg
 			kubernetesVersion = fmt.Sprintf("%v.%v", version.Major, version.Minor)
 		}
 
-		latestReleaseVersion, err := m.getLatestReleaseVersion(kubernetesVersion, nodegroup)
+		latestReleaseVersion, err := m.getLatestReleaseVersion(ctx, kubernetesVersion, nodegroup)
 		if err != nil {
 			return err
 		}
@@ -282,7 +288,7 @@ func (m *Manager) upgradeUsingStack(options UpgradeOptions, nodegroup *eks.Nodeg
 	return nil
 }
 
-func (m *Manager) updateReleaseVersion(latestReleaseVersion, launchTemplateVersion string, nodegroup *eks.Nodegroup, ngResource *gfneks.Nodegroup) error {
+func (m *Manager) updateReleaseVersion(latestReleaseVersion, launchTemplateVersion string, nodegroup *ekstypes.Nodegroup, ngResource *gfneks.Nodegroup) error {
 	latest, err := ParseReleaseVersion(latestReleaseVersion)
 	if err != nil {
 		return err
@@ -302,8 +308,8 @@ func (m *Manager) updateReleaseVersion(latestReleaseVersion, launchTemplateVersi
 	return nil
 }
 
-func (m *Manager) requiresStackUpdate(nodeGroupName string) (bool, error) {
-	ngStack, err := m.stackManager.DescribeNodeGroupStack(nodeGroupName)
+func (m *Manager) requiresStackUpdate(ctx context.Context, nodeGroupName string) (bool, error) {
+	ngStack, err := m.stackManager.DescribeNodeGroupStack(ctx, nodeGroupName)
 	if err != nil {
 		return false, err
 	}
@@ -323,8 +329,8 @@ func (m *Manager) requiresStackUpdate(nodeGroupName string) (bool, error) {
 	return !ver.EQ(curVer), nil
 }
 
-func (m *Manager) getLatestReleaseVersion(kubernetesVersion string, nodeGroup *eks.Nodegroup) (string, error) {
-	ssmParameterName, err := ami.MakeManagedSSMParameterName(kubernetesVersion, *nodeGroup.AmiType)
+func (m *Manager) getLatestReleaseVersion(ctx context.Context, kubernetesVersion string, nodeGroup *ekstypes.Nodegroup) (string, error) {
+	ssmParameterName, err := ami.MakeManagedSSMParameterName(kubernetesVersion, nodeGroup.AmiType)
 	if err != nil {
 		return "", err
 	}
@@ -333,7 +339,7 @@ func (m *Manager) getLatestReleaseVersion(kubernetesVersion string, nodeGroup *e
 		return "", nil
 	}
 
-	ssmOutput, err := m.ctl.Provider.SSM().GetParameter(&ssm.GetParameterInput{
+	ssmOutput, err := m.ctl.AWSProvider.SSM().GetParameter(ctx, &ssm.GetParameterInput{
 		Name: &ssmParameterName,
 	})
 	if err != nil {
@@ -342,7 +348,7 @@ func (m *Manager) getLatestReleaseVersion(kubernetesVersion string, nodeGroup *e
 	return *ssmOutput.Parameter.Value, nil
 }
 
-func (m *Manager) usesCustomAMI(ltResources map[string]*gfnec2.LaunchTemplate, ng *gfneks.Nodegroup) (bool, error) {
+func (m *Manager) usesCustomAMIGFNNodeGroup(ctx context.Context, ltResources map[string]*gfnec2.LaunchTemplate, ng *gfneks.Nodegroup) (bool, error) {
 	if lt, ok := ltResources["LaunchTemplate"]; ok {
 		return lt.LaunchTemplateData.ImageId != nil, nil
 	}
@@ -358,7 +364,22 @@ func (m *Manager) usesCustomAMI(ltResources map[string]*gfnec2.LaunchTemplate, n
 		lt.Version = aws.String(version.String())
 	}
 
-	customLaunchTemplate, err := m.launchTemplateFetcher.Fetch(lt)
+	return m.usesCustomAMI(ctx, lt)
+}
+
+func (m *Manager) usesCustomAMIEKSNodeGroup(ctx context.Context, ng *ekstypes.Nodegroup) (bool, error) {
+	if ng.LaunchTemplate == nil || ng.LaunchTemplate.Id == nil {
+		return false, nil
+	}
+
+	return m.usesCustomAMI(ctx, &api.LaunchTemplate{
+		ID:      *ng.LaunchTemplate.Id,
+		Version: ng.LaunchTemplate.Version,
+	})
+}
+
+func (m *Manager) usesCustomAMI(ctx context.Context, lt *api.LaunchTemplate) (bool, error) {
+	customLaunchTemplate, err := m.launchTemplateFetcher.Fetch(ctx, lt)
 	if err != nil {
 		return false, errors.Wrap(err, "error fetching launch template data")
 	}

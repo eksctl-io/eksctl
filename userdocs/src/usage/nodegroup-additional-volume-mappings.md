@@ -32,3 +32,6 @@ managedNodeGroups:
         volumeType: 'gp2'
         snapshotID: 'snapshot-id'
 ```
+
+For more details about selecting volumeNames, see the [device naming documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/device_naming.html).
+To find out more about EBS volumes, Instance volume limits or Block device mappings visit [this page](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Storage.html).

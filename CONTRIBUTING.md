@@ -45,7 +45,7 @@ Looking forward to seeing you in the repo! :sparkles:
 # Legal bits
 
 ## License
-`eksctl` is [Apache 2.0 licenced](LICENSE).
+`eksctl` is [Apache 2.0 licensed](LICENSE).
 
 ## Certificate of Origin
 

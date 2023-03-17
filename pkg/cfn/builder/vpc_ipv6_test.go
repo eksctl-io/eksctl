@@ -1,11 +1,12 @@
 package builder_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -24,11 +25,15 @@ var _ = Describe("IPv6 VPC builder", func() {
 		cfg = api.NewClusterConfig()
 		cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
 		cfg.AvailabilityZones = []string{azA, azB}
+		cfg.VPC.Subnets = &api.ClusterSubnets{
+			Public:  api.NewAZSubnetMapping(),
+			Private: api.NewAZSubnetMapping(),
+		}
 	})
 
 	It("creates the ipv6 VPC and its resources", func() {
 		vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
-		_, subnetDetails, err := vpcRs.CreateTemplate()
+		_, subnetDetails, err := vpcRs.CreateTemplate(context.Background())
 		Expect(err).NotTo(HaveOccurred())
 
 		By("returning the references of public subnets")
@@ -258,9 +263,9 @@ var _ = Describe("IPv6 VPC builder", func() {
 			assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock, expectedFnIPv6CIDR, cidrBlockIndex)
 		}
 		assertSubnetSet(azA, builder.PublicSubnetKey+azAFormatted, "kubernetes.io/role/elb", float64(0), true)
-		Expect(vpcTemplate.Resources[builder.PublicSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(BeNil())
+		Expect(*vpcTemplate.Resources[builder.PublicSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
 		assertSubnetSet(azB, builder.PublicSubnetKey+azBFormatted, "kubernetes.io/role/elb", float64(1), true)
-		Expect(vpcTemplate.Resources[builder.PublicSubnetKey+azBFormatted].Properties.AssignIpv6AddressOnCreation).To(BeNil())
+		Expect(*vpcTemplate.Resources[builder.PublicSubnetKey+azBFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
 
 		assertSubnetSet(azA, builder.PrivateSubnetKey+azAFormatted, "kubernetes.io/role/internal-elb", float64(2), false)
 		Expect(*vpcTemplate.Resources[builder.PrivateSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
@@ -331,6 +336,77 @@ var _ = Describe("IPv6 VPC builder", func() {
 			},
 		}))
 	})
+	When("custom cidr block is provided", func() {
+		var (
+			cfg *api.ClusterConfig
+		)
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+			cfg.AvailabilityZones = []string{azA, azB}
+			cfg.VPC.Network.CIDR = ipnet.MustParseCIDR("10.1.0.0/20")
+			cfg.VPC.Subnets = &api.ClusterSubnets{
+				Public:  api.NewAZSubnetMapping(),
+				Private: api.NewAZSubnetMapping(),
+			}
+		})
+		It("calculates the correct cidr blocks for the subnets", func() {
+			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
+			_, subnetDetails, err := vpcRs.CreateTemplate(context.Background())
+			Expect(err).NotTo(HaveOccurred())
+
+			By("returning the references of public subnets")
+			pubRefs := subnetDetails.PublicSubnetRefs()
+			Expect(pubRefs).To(HaveLen(2))
+			Expect(pubRefs).To(ContainElement(makePrimitive(builder.PublicSubnetKey + azAFormatted)))
+			Expect(pubRefs).To(ContainElement(makePrimitive(builder.PublicSubnetKey + azBFormatted)))
+
+			By("returning the references of private subnets")
+			privRef := subnetDetails.PrivateSubnetRefs()
+			Expect(privRef).To(HaveLen(2))
+			Expect(privRef).To(ContainElement(makePrimitive(builder.PrivateSubnetKey + azBFormatted)))
+			Expect(privRef).To(ContainElement(makePrimitive(builder.PrivateSubnetKey + azBFormatted)))
+
+			vpcTemplate, err := renderTemplate(vpcRs)
+			Expect(err).NotTo(HaveOccurred())
+
+			assertSubnetSet := func(az, subnetKey, kubernetesTag string, cidrBlockIndex float64, mapPublicIpOnLaunch bool) {
+				Expect(vpcTemplate.Resources).To(HaveKey(subnetKey))
+				Expect(vpcTemplate.Resources[subnetKey].Type).To(Equal("AWS::EC2::Subnet"))
+				Expect(vpcTemplate.Resources[subnetKey].DependsOn).To(ConsistOf(builder.IPv6CIDRBlockKey))
+				Expect(vpcTemplate.Resources[subnetKey].Properties.AvailabilityZone).To(Equal(az))
+				Expect(vpcTemplate.Resources[subnetKey].Properties.MapPublicIPOnLaunch).To(Equal(mapPublicIpOnLaunch))
+
+				Expect(vpcTemplate.Resources[subnetKey].Properties.VpcID).To(Equal(map[string]interface{}{"Ref": "VPC"}))
+				Expect(vpcTemplate.Resources[subnetKey].Properties.Tags).To(ConsistOf(
+					fakes.Tag{
+						Key:   kubernetesTag,
+						Value: "1",
+					},
+					fakes.Tag{
+						Key:   "Name",
+						Value: map[string]interface{}{"Fn::Sub": fmt.Sprintf("${AWS::StackName}/%s", subnetKey)},
+					},
+				))
+
+				// Note, this is the important difference.
+				expectedFnIPv4CIDR := `{ "Fn::Cidr": [{ "Fn::GetAtt": ["VPC", "CidrBlock"]}, 6, 9 ]}`
+				assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock, expectedFnIPv4CIDR, cidrBlockIndex)
+
+				expectedFnIPv6CIDR := `{ "Fn::Cidr": [{ "Fn::Select": [ 0, { "Fn::GetAtt": ["VPC", "Ipv6CidrBlocks"] }]}, 6, 64 ]}`
+				assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock, expectedFnIPv6CIDR, cidrBlockIndex)
+			}
+			assertSubnetSet(azA, builder.PublicSubnetKey+azAFormatted, "kubernetes.io/role/elb", float64(0), true)
+			Expect(*vpcTemplate.Resources[builder.PublicSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
+			assertSubnetSet(azB, builder.PublicSubnetKey+azBFormatted, "kubernetes.io/role/elb", float64(1), true)
+			Expect(*vpcTemplate.Resources[builder.PublicSubnetKey+azBFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
+
+			assertSubnetSet(azA, builder.PrivateSubnetKey+azAFormatted, "kubernetes.io/role/internal-elb", float64(2), false)
+			Expect(*vpcTemplate.Resources[builder.PrivateSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
+			assertSubnetSet(azB, builder.PrivateSubnetKey+azBFormatted, "kubernetes.io/role/internal-elb", float64(3), false)
+			Expect(*vpcTemplate.Resources[builder.PrivateSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
+		})
+	})
 
 	When("private cluster is enabled", func() {
 		It("creates only private IPv6 resources", func() {
@@ -341,7 +417,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 			cfg.AvailabilityZones = []string{azA, azB}
 			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
 
-			_, subnetDetails, err := vpcRs.CreateTemplate()
+			_, subnetDetails, err := vpcRs.CreateTemplate(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 
 			By("returning the references of public subnets")
@@ -614,7 +690,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 })
 
 func createAndRenderTemplate(vpcRs *builder.IPv6VPCResourceSet) (*fakes.FakeTemplate, error) {
-	_, _, err := vpcRs.CreateTemplate()
+	_, _, err := vpcRs.CreateTemplate(context.Background())
 	if err != nil {
 		return nil, err
 	}

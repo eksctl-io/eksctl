@@ -1,6 +1,8 @@
 package irsa
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -11,8 +13,8 @@ type GetOptions struct {
 	Namespace string
 }
 
-func (m *Manager) Get(options GetOptions) ([]*api.ClusterIAMServiceAccount, error) {
-	remoteServiceAccounts, err := m.stackManager.GetIAMServiceAccounts()
+func (m *Manager) Get(ctx context.Context, options GetOptions) ([]*api.ClusterIAMServiceAccount, error) {
+	remoteServiceAccounts, err := m.stackManager.GetIAMServiceAccounts(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting iamserviceaccounts")
 	}

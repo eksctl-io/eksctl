@@ -1,9 +1,11 @@
 package v1alpha5
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 )
 
@@ -27,7 +29,13 @@ type subnetCase struct {
 var _ = Describe("VPC Configuration", func() {
 	DescribeTable("Subnet import",
 		func(e subnetCase) {
-			err := doImportSubnet(e.subnets, e.az, e.subnetID, e.cidr)
+			err := ImportSubnet(e.subnets, &ec2types.Subnet{
+				AvailabilityZone: aws.String(e.az),
+				SubnetId:         aws.String(e.subnetID),
+				CidrBlock:        aws.String(e.cidr),
+			}, func(subnet *ec2types.Subnet) string {
+				return *subnet.AvailabilityZone
+			})
 			if e.err {
 				Expect(err).To(HaveOccurred())
 			} else {
@@ -165,7 +173,7 @@ var _ = Describe("VPC Configuration", func() {
 				},
 			}),
 		}),
-		Entry("ID disamiguating list", subnetCase{
+		Entry("ID disambiguating list", subnetCase{
 			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
 				"main-subnet": {
 					AZ: "us-east-1a",

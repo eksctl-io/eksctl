@@ -1,6 +1,8 @@
 package set
 
 import (
+	"context"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -30,7 +32,7 @@ func setLabelsCmd(cmd *cmdutils.Cmd) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		fs.StringVarP(&options.nodeGroupName, "nodegroup", "n", "", "Nodegroup name")
 		cmdutils.AddStringToStringVarPFlag(fs, &options.labels, "labels", "l", nil, "Labels")
 
@@ -39,7 +41,7 @@ func setLabelsCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
@@ -49,12 +51,13 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 		return err
 	}
 	cfg := cmd.ClusterConfig
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
 
-	service := managed.NewService(ctl.Provider.EKS(), ctl.Provider.SSM(), ctl.Provider.EC2(), manager.NewStackCollection(ctl.Provider, cfg), cfg.Metadata.Name)
+	service := managed.NewService(ctl.AWSProvider.EKS(), ctl.AWSProvider.EC2(), manager.NewStackCollection(ctl.AWSProvider, cfg), cfg.Metadata.Name)
 
 	if options.nodeGroupName == "" && cmd.ClusterConfigFile != "" {
 		logger.Info("setting label(s) on %d nodegroup(s) in cluster %s", len(cfg.ManagedNodeGroups), cmd.ClusterConfig.Metadata)
@@ -62,10 +65,10 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 		logger.Info("setting label(s) on nodegroup %s in cluster %s", options.nodeGroupName, cmd.ClusterConfig.Metadata)
 	}
 
-	manager := label.New(cfg.Metadata.Name, service, ctl.Provider.EKS())
+	manager := label.New(cfg.Metadata.Name, service, ctl.AWSProvider.EKS())
 	// when there is no config file provided
 	if cmd.ClusterConfigFile == "" {
-		if err := manager.Set(options.nodeGroupName, options.labels); err != nil {
+		if err := manager.Set(ctx, options.nodeGroupName, options.labels); err != nil {
 			return err
 		}
 		logger.Info("done")
@@ -73,7 +76,7 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 	}
 	// when there is a config file, we call GetLabels first.
 	for _, mng := range cfg.ManagedNodeGroups {
-		existingLabels, err := service.GetLabels(mng.Name)
+		existingLabels, err := service.GetLabels(ctx, mng.Name)
 		if err != nil {
 			return err
 		}
@@ -84,7 +87,7 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 			logger.Info("no new labels to add for nodegroup %s", mng.Name)
 			continue
 		}
-		if err := manager.Set(mng.Name, mng.Labels); err != nil {
+		if err := manager.Set(ctx, mng.Name, mng.Labels); err != nil {
 			return err
 		}
 	}

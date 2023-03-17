@@ -1,19 +1,48 @@
 package v1alpha5_test
 
 import (
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 var _ = Describe("Addon", func() {
-	Describe("Validate", func() {
+	Describe("Validating configuration", func() {
 		When("name is not set", func() {
 			It("errors", func() {
 				err := v1alpha5.Addon{}.Validate()
-				Expect(err).To(MatchError("name required"))
+				Expect(err).To(MatchError("name is required"))
 			})
 		})
+
+		DescribeTable("when configurationValues is in invalid format",
+			func(configurationValues string) {
+				err := v1alpha5.Addon{
+					Name:                "name",
+					Version:             "version",
+					ConfigurationValues: configurationValues,
+				}.Validate()
+				Expect(err).To(MatchError(ContainSubstring("is not valid, supported format(s) are: JSON and YAML")))
+			},
+			Entry("non-empty string", "this a string not an object"),
+			Entry("invalid yaml", "\"replicaCount: 1"),
+		)
+
+		DescribeTable("when configurationValues is in valid format",
+			func(configurationValues string) {
+				err := v1alpha5.Addon{
+					Name:                "name",
+					Version:             "version",
+					ConfigurationValues: configurationValues,
+				}.Validate()
+				Expect(err).NotTo(HaveOccurred())
+			},
+			Entry("empty string", ""),
+			Entry("empty json", "{}"),
+			Entry("non-empty json", "{\"replicaCount\":3}"),
+			Entry("non-empty yaml", "replicaCount: 3"),
+		)
 
 		When("specifying more than one of serviceAccountRoleARN, attachPolicyARNs, attachPolicy", func() {
 			It("errors", func() {

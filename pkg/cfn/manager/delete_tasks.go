@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -21,8 +23,10 @@ import (
 // think Jake is deleting this soon
 func deleteAll(_ string) bool { return true }
 
+type NewOIDCManager func() (*iamoidc.OpenIDConnectManager, error)
+
 // NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete the given cluster along with all of its resources
-func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(clusterStack *Stack, nodeGroupStacks []NodeGroupStack, deleteOIDCProvider bool, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
+func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(ctx context.Context, clusterStack *Stack, nodeGroupStacks []NodeGroupStack, clusterOperable bool, newOIDCManager NewOIDCManager, cluster *ekstypes.Cluster, clientSetGetter kubernetes.ClientSetGetter, wait, force bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
 	taskTree := &tasks.TaskTree{Parallel: false}
 
 	nodeGroupTasks, err := c.NewTasksToDeleteNodeGroups(nodeGroupStacks, deleteAll, true, cleanup)
@@ -35,8 +39,8 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(clusterStack *St
 		taskTree.Append(nodeGroupTasks)
 	}
 
-	if deleteOIDCProvider {
-		serviceAccountAndOIDCTasks, err := c.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc, clientSetGetter)
+	if clusterOperable {
+		serviceAccountAndOIDCTasks, err := c.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx, newOIDCManager, cluster, clientSetGetter, force)
 		if err != nil {
 			return nil, err
 		}
@@ -47,14 +51,14 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(clusterStack *St
 		}
 	}
 
-	deleteAddonIAMtasks, err := c.NewTaskToDeleteAddonIAM(wait)
+	deleteAddonIAMTasks, err := c.NewTaskToDeleteAddonIAM(ctx, wait)
 	if err != nil {
 		return nil, err
 	}
 
-	if deleteAddonIAMtasks.Len() > 0 {
-		deleteAddonIAMtasks.IsSubTask = true
-		taskTree.Append(deleteAddonIAMtasks)
+	if deleteAddonIAMTasks.Len() > 0 {
+		deleteAddonIAMTasks.IsSubTask = true
+		taskTree.Append(deleteAddonIAMTasks)
 	}
 
 	if clusterStack == nil {
@@ -89,7 +93,7 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(nodeGroupStacks []NodeGroup
 			continue
 		}
 
-		if *s.Stack.StackStatus == cloudformation.StackStatusDeleteFailed && cleanup != nil {
+		if s.Stack.StackStatus == types.StackStatusDeleteFailed && cleanup != nil {
 			taskTree.Append(&tasks.TaskWithNameParam{
 				Info: fmt.Sprintf("cleanup for nodegroup %q", s.NodeGroupName),
 				Call: cleanup,
@@ -125,7 +129,8 @@ type DeleteUnownedNodegroupTask struct {
 	nodegroup string
 	wait      *DeleteWaitCondition
 	info      string
-	eksAPI    eksiface.EKSAPI
+	eksAPI    awsapi.EKS
+	ctx       context.Context
 }
 
 func (d *DeleteUnownedNodegroupTask) Describe() string {
@@ -133,7 +138,7 @@ func (d *DeleteUnownedNodegroupTask) Describe() string {
 }
 
 func (d *DeleteUnownedNodegroupTask) Do() error {
-	out, err := d.eksAPI.DeleteNodegroup(&eks.DeleteNodegroupInput{
+	out, err := d.eksAPI.DeleteNodegroup(d.ctx, &awseks.DeleteNodegroupInput{
 		ClusterName:   &d.cluster,
 		NodegroupName: &d.nodegroup,
 	})
@@ -158,12 +163,12 @@ func (d *DeleteUnownedNodegroupTask) Do() error {
 	}
 
 	if out != nil {
-		logger.Debug("delete nodegroup %q output: %s", d.nodegroup, out.String())
+		logger.Debug("delete nodegroup %q output: %+v", d.nodegroup, out.Nodegroup)
 	}
 	return nil
 }
 
-func (c *StackCollection) NewTaskToDeleteUnownedNodeGroup(clusterName, nodegroup string, eksAPI eksiface.EKSAPI, waitCondition *DeleteWaitCondition) tasks.Task {
+func (c *StackCollection) NewTaskToDeleteUnownedNodeGroup(ctx context.Context, clusterName, nodegroup string, eksAPI awsapi.EKS, waitCondition *DeleteWaitCondition) tasks.Task {
 	return tasks.SynchronousTask{
 		SynchronousTaskIface: &DeleteUnownedNodegroupTask{
 			cluster:   clusterName,
@@ -171,45 +176,82 @@ func (c *StackCollection) NewTaskToDeleteUnownedNodeGroup(clusterName, nodegroup
 			eksAPI:    eksAPI,
 			wait:      waitCondition,
 			info:      fmt.Sprintf("delete unowned nodegroup %s", nodegroup),
+			ctx:       ctx,
 		}}
 }
 
 // NewTasksToDeleteOIDCProviderWithIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts
-// along with associated IAM ODIC provider
-func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) (*tasks.TaskTree, error) {
+// along with associated IAM OIDC provider
+func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx context.Context, newOIDCManager NewOIDCManager, cluster *ekstypes.Cluster, clientSetGetter kubernetes.ClientSetGetter, force bool) (*tasks.TaskTree, error) {
 	taskTree := &tasks.TaskTree{Parallel: false}
 
-	allServiceAccountsWithStacks, err := c.getAllServiceAccounts()
+	oidc, err := newOIDCManager()
 	if err != nil {
-		return nil, err
+		if _, ok := err.(*iamoidc.UnsupportedOIDCError); ok {
+			logger.Debug("OIDC is not supported for this cluster")
+			return taskTree, nil
+		}
+		return nil, fmt.Errorf("error creating OIDC manager: %w", err)
 	}
-	saTasks, err := c.NewTasksToDeleteIAMServiceAccounts(allServiceAccountsWithStacks, clientSetGetter, true)
+
+	allServiceAccountsWithStacks, err := c.getAllServiceAccounts(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if saTasks.Len() > 0 {
-		saTasks.IsSubTask = true
-		taskTree.Append(saTasks)
+	if len(allServiceAccountsWithStacks) > 0 {
+		saTasks, err := c.NewTasksToDeleteIAMServiceAccounts(ctx, allServiceAccountsWithStacks, clientSetGetter, true)
+		if err != nil {
+			return nil, err
+		}
+
+		if saTasks.Len() > 0 {
+			saTasks.IsSubTask = true
+			taskTree.Append(saTasks)
+		}
 	}
 
-	providerExists, err := oidc.CheckProviderExists()
+	providerExists, err := oidc.CheckProviderExists(ctx)
 	if err != nil {
+		if iamoidc.IsAccessDeniedError(err) {
+			clusterHasOIDC, foundTag := clusterHasOIDCProvider(cluster)
+			errMsg := "IAM permissions are required to delete OIDC provider"
+			switch {
+			case foundTag:
+				if clusterHasOIDC {
+					return nil, fmt.Errorf("%s: %w", errMsg, err)
+				}
+				if len(allServiceAccountsWithStacks) > 0 {
+					logger.Warning("expected an OIDC provider to be associated with the cluster; found %d service account(s)", len(allServiceAccountsWithStacks))
+				}
+			case len(allServiceAccountsWithStacks) > 0:
+				if !force {
+					return nil, fmt.Errorf("found %d IAM service account(s); %s: %w", len(allServiceAccountsWithStacks), errMsg, err)
+				}
+			default:
+				logger.Info("could not determine if cluster has an OIDC provider because of missing IAM permissions; " +
+					"if an OIDC provider was associated with the cluster (either by setting `iam.withOIDC: true` or by using `eksctl utils associate-iam-oidc-provider`), " +
+					"run `aws iam delete-open-id-connect-provider` from an authorized IAM entity to delete it")
+			}
+			return taskTree, nil
+		}
 		return nil, err
 	}
 
 	if providerExists {
 		taskTree.Append(&asyncTaskWithoutParams{
 			info: "delete IAM OIDC provider",
-			call: oidc.DeleteProvider,
+			call: func() error {
+				return oidc.DeleteProvider(ctx)
+			},
 		})
 	}
 
 	return taskTree, nil
 }
 
-func (c *StackCollection) getAllServiceAccounts() ([]string, error) {
-	serviceAccountStacks, err := c.DescribeIAMServiceAccountStacks()
+func (c *StackCollection) getAllServiceAccounts(ctx context.Context) ([]string, error) {
+	serviceAccountStacks, err := c.DescribeIAMServiceAccountStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -223,8 +265,8 @@ func (c *StackCollection) getAllServiceAccounts() ([]string, error) {
 }
 
 // NewTasksToDeleteIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts
-func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(serviceAccounts []string, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error) {
-	serviceAccountStacks, err := c.DescribeIAMServiceAccountStacks()
+func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(ctx context.Context, serviceAccounts []string, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error) {
+	serviceAccountStacks, err := c.DescribeIAMServiceAccountStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -271,8 +313,8 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(serviceAccounts []s
 	return taskTree, nil
 }
 
-func stacksToServiceAccountMap(stacks []*cloudformation.Stack) map[string]*cloudformation.Stack {
-	stackMap := make(map[string]*cloudformation.Stack)
+func stacksToServiceAccountMap(stacks []*types.Stack) map[string]*types.Stack {
+	stackMap := make(map[string]*types.Stack)
 	for _, stack := range stacks {
 		stackMap[GetIAMServiceAccountName(stack)] = stack
 	}
@@ -281,8 +323,8 @@ func stacksToServiceAccountMap(stacks []*cloudformation.Stack) map[string]*cloud
 }
 
 // NewTaskToDeleteAddonIAM defines tasks required to delete all of the addons
-func (c *StackCollection) NewTaskToDeleteAddonIAM(wait bool) (*tasks.TaskTree, error) {
-	stacks, err := c.GetIAMAddonsStacks()
+func (c *StackCollection) NewTaskToDeleteAddonIAM(ctx context.Context, wait bool) (*tasks.TaskTree, error) {
+	stacks, err := c.GetIAMAddonsStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -311,4 +353,13 @@ func (c *StackCollection) NewTaskToDeleteAddonIAM(wait bool) (*tasks.TaskTree, e
 	}
 	return taskTree, nil
 
+}
+
+func clusterHasOIDCProvider(cluster *ekstypes.Cluster) (hasOIDC bool, found bool) {
+	for k, v := range cluster.Tags {
+		if k == api.ClusterOIDCEnabledTag {
+			return v == "true", true
+		}
+	}
+	return false, false
 }

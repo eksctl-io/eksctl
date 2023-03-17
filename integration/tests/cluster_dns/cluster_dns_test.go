@@ -9,18 +9,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/weaveworks/eksctl/integration/runner"
-	"github.com/weaveworks/eksctl/integration/utilities/kube"
-
 	"github.com/weaveworks/eksctl/integration/tests"
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
+	"github.com/weaveworks/eksctl/integration/utilities/kube"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	. "github.com/onsi/ginkgo"
 )
 
 var params *tests.Params
@@ -35,42 +34,43 @@ func TestClusterDNS(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
+var _ = BeforeSuite(func() {
+	if params.SkipCreate {
+		return
+	}
+	clusterConfig := api.NewClusterConfig()
+	clusterConfig.Metadata.Name = params.ClusterName
+	clusterConfig.Metadata.Region = params.Region
+	clusterConfig.Metadata.Version = params.Version
+	clusterConfig.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
+		ServiceIPv4CIDR: "172.16.0.0/12",
+	}
+	clusterConfig.NodeGroups = []*api.NodeGroup{
+		{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name: "dns",
+				ScalingConfig: &api.ScalingConfig{
+					DesiredCapacity: aws.Int(1),
+				},
+			},
+		},
+	}
+
+	cmd := params.EksctlCreateCmd.WithArgs(
+		"cluster",
+		"--config-file", "-",
+		"--kubeconfig", params.KubeconfigPath,
+		"--verbose", "4",
+	).
+		WithoutArg("--region", params.Region).
+		WithStdin(clusterutils.Reader(clusterConfig))
+
+	Expect(cmd).To(RunSuccessfully())
+})
+
 var _ = Describe("(Integration) [Cluster DNS test]", func() {
 
 	Context("Cluster with non-default ServiceIPv4CIDR", func() {
-		BeforeSuite(func() {
-			if params.SkipCreate {
-				return
-			}
-			clusterConfig := api.NewClusterConfig()
-			clusterConfig.Metadata.Name = params.ClusterName
-			clusterConfig.Metadata.Region = params.Region
-			clusterConfig.Metadata.Version = params.Version
-			clusterConfig.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
-				ServiceIPv4CIDR: "172.16.0.0/12",
-			}
-			clusterConfig.NodeGroups = []*api.NodeGroup{
-				{
-					NodeGroupBase: &api.NodeGroupBase{
-						Name: "dns",
-						ScalingConfig: &api.ScalingConfig{
-							DesiredCapacity: aws.Int(1),
-						},
-					},
-				},
-			}
-
-			cmd := params.EksctlCreateCmd.WithArgs(
-				"cluster",
-				"--config-file", "-",
-				"--kubeconfig", params.KubeconfigPath,
-				"--verbose", "4",
-			).
-				WithoutArg("--region", params.Region).
-				WithStdin(clusterutils.Reader(clusterConfig))
-
-			Expect(cmd).To(RunSuccessfully())
-		})
 
 		It("cluster DNS should work", func() {
 			test, err := kube.NewTest(params.KubeconfigPath)
@@ -82,16 +82,17 @@ var _ = Describe("(Integration) [Cluster DNS test]", func() {
 			fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
 		})
 
-		AfterSuite(func() {
-			if params.SkipDelete {
-				return
-			}
-			cmd := params.EksctlDeleteCmd.WithArgs(
-				"cluster", params.ClusterName,
-				"--verbose", "2",
-			)
-			Expect(cmd).To(RunSuccessfully())
-		})
 	})
 
+})
+
+var _ = AfterSuite(func() {
+	if params.SkipDelete {
+		return
+	}
+	cmd := params.EksctlDeleteCmd.WithArgs(
+		"cluster", params.ClusterName,
+		"--verbose", "2",
+	)
+	Expect(cmd).To(RunSuccessfully())
 })

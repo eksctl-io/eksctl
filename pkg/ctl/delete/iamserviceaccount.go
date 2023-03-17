@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
@@ -39,8 +40,7 @@ func deleteIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to delete the iamserviceaccount from")
-
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount to delete")
 		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to delete the iamserviceaccount")
 
@@ -55,7 +55,7 @@ func deleteIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
 }
 
 func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, onlyMissing bool) error {
@@ -69,7 +69,8 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -83,12 +84,12 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 		return err
 	}
 
-	oidc, err := ctl.NewOpenIDConnectManager(cfg)
+	oidc, err := ctl.NewOpenIDConnectManager(ctx, cfg)
 	if err != nil {
 		return err
 	}
 
-	providerExists, err := oidc.CheckProviderExists()
+	providerExists, err := oidc.CheckProviderExists(ctx)
 	if err != nil {
 		return err
 	}
@@ -101,7 +102,7 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d iamserviceaccounts defined in the given config (%q) against remote state", len(cfg.IAM.ServiceAccounts), cmd.ClusterConfigFile)
-		if err := saFilter.SetDeleteFilter(stackManager, onlyMissing, cfg); err != nil {
+		if err := saFilter.SetDeleteFilter(ctx, stackManager, onlyMissing, cfg); err != nil {
 			return err
 		}
 	}
@@ -115,5 +116,5 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
-	return irsaManager.Delete(saSubset.List(), cmd.Plan, cmd.Wait)
+	return irsaManager.Delete(ctx, saSubset.List(), cmd.Plan, cmd.Wait)
 }

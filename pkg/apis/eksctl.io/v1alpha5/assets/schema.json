@@ -16,8 +16,8 @@
       "properties": {
         "az": {
           "type": "string",
-          "description": "can be omitted if the key is an AZ",
-          "x-intellij-html-description": "can be omitted if the key is an AZ"
+          "description": "zone name for this subnet, it can either be an availability zone name or a local zone name. AZ can be omitted if the key is an AZ.",
+          "x-intellij-html-description": "zone name for this subnet, it can either be an availability zone name or a local zone name. AZ can be omitted if the key is an AZ."
         },
         "cidr": {
           "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"
@@ -51,13 +51,35 @@
           "description": "list of ARNs of the IAM policies to attach",
           "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
         },
+        "configurationValues": {
+          "type": "string",
+          "description": "defines the set of configuration properties for add-ons. For now, all properties will be specified as a JSON string and have to respect the schema from DescribeAddonConfiguration.",
+          "x-intellij-html-description": "defines the set of configuration properties for add-ons. For now, all properties will be specified as a JSON string and have to respect the schema from DescribeAddonConfiguration."
+        },
         "name": {
           "type": "string"
+        },
+        "owners": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "permissionsBoundary": {
           "type": "string",
           "description": "ARN of the permissions' boundary to associate",
           "x-intellij-html-description": "ARN of the permissions' boundary to associate"
+        },
+        "publishers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "resolveConflicts": {
+          "$ref": "#/definitions/github.com|aws|aws-sdk-go-v2|service|eks|types.ResolveConflicts",
+          "description": "determines how to resolve field value conflicts for an EKS add-on if a value was changed from default",
+          "x-intellij-html-description": "determines how to resolve field value conflicts for an EKS add-on if a value was changed from default"
         },
         "serviceAccountRoleARN": {
           "type": "string"
@@ -70,6 +92,12 @@
           "description": "The metadata to apply to the cluster to assist with categorization and organization. Each tag consists of a key and an optional value, both of which you define.",
           "x-intellij-html-description": "The metadata to apply to the cluster to assist with categorization and organization. Each tag consists of a key and an optional value, both of which you define.",
           "default": "{}"
+        },
+        "types": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "version": {
           "type": "string"
@@ -88,11 +116,52 @@
         "attachPolicy",
         "permissionsBoundary",
         "wellKnownPolicies",
-        "tags"
+        "tags",
+        "resolveConflicts",
+        "configurationValues",
+        "publishers",
+        "types",
+        "owners"
       ],
       "additionalProperties": false,
       "description": "holds the EKS addon configuration",
       "x-intellij-html-description": "holds the EKS addon configuration"
+    },
+    "CapacityReservation": {
+      "properties": {
+        "capacityReservationPreference": {
+          "type": "string",
+          "description": "defines a nodegroup's Capacity Reservation preferences (either 'open' or 'none')",
+          "x-intellij-html-description": "defines a nodegroup's Capacity Reservation preferences (either 'open' or 'none')"
+        },
+        "capacityReservationTarget": {
+          "$ref": "#/definitions/CapacityReservationTarget",
+          "description": "defines a nodegroup's target Capacity Reservation or Capacity Reservation group (not both at the same time).",
+          "x-intellij-html-description": "defines a nodegroup's target Capacity Reservation or Capacity Reservation group (not both at the same time)."
+        }
+      },
+      "preferredOrder": [
+        "capacityReservationPreference",
+        "capacityReservationTarget"
+      ],
+      "additionalProperties": false,
+      "description": "defines a nodegroup's Capacity Reservation targeting option",
+      "x-intellij-html-description": "defines a nodegroup's Capacity Reservation targeting option"
+    },
+    "CapacityReservationTarget": {
+      "properties": {
+        "capacityReservationID": {
+          "type": "string"
+        },
+        "capacityReservationResourceGroupARN": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "capacityReservationID",
+        "capacityReservationResourceGroupARN"
+      ],
+      "additionalProperties": false
     },
     "ClusterCloudWatch": {
       "properties": {
@@ -184,6 +253,12 @@
         "iam": {
           "$ref": "#/definitions/ClusterIAM"
         },
+        "iamIdentityMappings": {
+          "items": {
+            "$ref": "#/definitions/IAMIdentityMapping"
+          },
+          "type": "array"
+        },
         "identityProviders": {
           "items": {
             "$ref": "#/definitions/IdentityProvider"
@@ -204,6 +279,14 @@
         "kubernetesNetworkConfig": {
           "$ref": "#/definitions/KubernetesNetworkConfig"
         },
+        "localZones": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "specifies a list of local zones where the subnets should be created. Only self-managed nodegroups can be launched in local zones. These subnets are not passed to EKS.",
+          "x-intellij-html-description": "specifies a list of local zones where the subnets should be created. Only self-managed nodegroups can be launched in local zones. These subnets are not passed to EKS."
+        },
         "managedNodeGroups": {
           "items": {
             "$ref": "#/definitions/ManagedNodeGroup"
@@ -223,6 +306,11 @@
           "description": "For information and examples see [nodegroups](/usage/managing-nodegroups)",
           "x-intellij-html-description": "For information and examples see <a href=\"/usage/managing-nodegroups\">nodegroups</a>"
         },
+        "outpost": {
+          "$ref": "#/definitions/Outpost",
+          "description": "specifies the Outpost configuration.",
+          "x-intellij-html-description": "specifies the Outpost configuration."
+        },
         "privateCluster": {
           "$ref": "#/definitions/PrivateCluster",
           "description": "allows configuring a fully-private cluster in which no node has outbound internet access, and private access to AWS services is enabled via VPC endpoints",
@@ -241,6 +329,7 @@
         "metadata",
         "kubernetesNetworkConfig",
         "iam",
+        "iamIdentityMappings",
         "identityProviders",
         "vpc",
         "addons",
@@ -249,10 +338,12 @@
         "managedNodeGroups",
         "fargateProfiles",
         "availabilityZones",
+        "localZones",
         "cloudWatch",
         "secretsEncryption",
         "gitops",
-        "karpenter"
+        "karpenter",
+        "outpost"
       ],
       "additionalProperties": false,
       "description": "a simple config, to be replaced with Cluster API",
@@ -299,8 +390,8 @@
             "$ref": "#/definitions/ClusterIAMServiceAccount"
           },
           "type": "array",
-          "description": "service accounts to create in the cluster. See [IAM Service Accounts](/iamserviceaccounts/#usage-with-config-files)",
-          "x-intellij-html-description": "service accounts to create in the cluster. See <a href=\"/iamserviceaccounts/#usage-with-config-files\">IAM Service Accounts</a>"
+          "description": "service accounts to create in the cluster. See [IAM Service Accounts](/usage/iamserviceaccounts/#usage-with-config-files)",
+          "x-intellij-html-description": "service accounts to create in the cluster. See <a href=\"/usage/iamserviceaccounts/#usage-with-config-files\">IAM Service Accounts</a>"
         },
         "serviceRoleARN": {
           "type": "string"
@@ -487,14 +578,14 @@
         },
         "version": {
           "type": "string",
-          "description": "Valid variants are: `\"1.18\"`, `\"1.19\"`, `\"1.20\"`, `\"1.21\"` (default).",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;1.18&quot;</code>, <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code>, <code>&quot;1.21&quot;</code> (default).",
-          "default": "1.21",
+          "description": "Valid variants are: `\"1.22\"`, `\"1.23\"`, `\"1.24\"`, `\"1.25\"` (default).",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;1.22&quot;</code>, <code>&quot;1.23&quot;</code>, <code>&quot;1.24&quot;</code>, <code>&quot;1.25&quot;</code> (default).",
+          "default": "1.25",
           "enum": [
-            "1.18",
-            "1.19",
-            "1.20",
-            "1.21"
+            "1.22",
+            "1.23",
+            "1.24",
+            "1.25"
           ]
         }
       },
@@ -771,6 +862,47 @@
       "description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types",
       "x-intellij-html-description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types"
     },
+    "IAMIdentityMapping": {
+      "properties": {
+        "account": {
+          "type": "string"
+        },
+        "arn": {
+          "type": "string"
+        },
+        "groups": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "noDuplicateARNs": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "serviceName": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "arn",
+        "username",
+        "groups",
+        "account",
+        "serviceName",
+        "namespace",
+        "noDuplicateARNs"
+      ],
+      "additionalProperties": false,
+      "description": "contains IAM accounts, users, roles and services that will be added to the aws-auth configmap to enable access to the cluster",
+      "x-intellij-html-description": "contains IAM accounts, users, roles and services that will be added to the aws-auth configmap to enable access to the cluster"
+    },
     "IdentityProvider": {
       "required": [
         "type"
@@ -868,8 +1000,8 @@
         "defaultInstanceProfile"
       ],
       "additionalProperties": false,
-      "description": "provides configuration opti",
-      "x-intellij-html-description": "provides configuration opti"
+      "description": "provides configuration options",
+      "x-intellij-html-description": "provides configuration options"
     },
     "KubernetesNetworkConfig": {
       "properties": {
@@ -938,8 +1070,8 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2004CoreContainer\"`, `\"WindowsServer20H2CoreContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>, <code>&quot;WindowsServer20H2CoreContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2022CoreContainer\"`, `\"WindowsServer2022FullContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2022CoreContainer&quot;</code>, <code>&quot;WindowsServer2022FullContainer&quot;</code>.",
           "default": "AmazonLinux2",
           "enum": [
             "AmazonLinux2",
@@ -948,8 +1080,8 @@
             "Bottlerocket",
             "WindowsServer2019CoreContainer",
             "WindowsServer2019FullContainer",
-            "WindowsServer2004CoreContainer",
-            "WindowsServer20H2CoreContainer"
+            "WindowsServer2022CoreContainer",
+            "WindowsServer2022FullContainer"
           ]
         },
         "asgSuspendProcesses": {
@@ -972,6 +1104,11 @@
           "$ref": "#/definitions/NodeGroupBottlerocket",
           "description": "specifies settings for Bottlerocket nodes",
           "x-intellij-html-description": "specifies settings for Bottlerocket nodes"
+        },
+        "capacityReservation": {
+          "$ref": "#/definitions/CapacityReservation",
+          "description": "defines reservation policy for a nodegroup",
+          "x-intellij-html-description": "defines reservation policy for a nodegroup"
         },
         "desiredCapacity": {
           "type": "integer"
@@ -1052,6 +1189,11 @@
         "name": {
           "type": "string"
         },
+        "outpostARN": {
+          "type": "string",
+          "description": "specifies the Outpost ARN in which the nodegroup should be created.",
+          "x-intellij-html-description": "specifies the Outpost ARN in which the nodegroup should be created."
+        },
         "overrideBootstrapCommand": {
           "type": "string",
           "description": "Override `eksctl`'s bootstrapping script",
@@ -1075,6 +1217,11 @@
           "description": "Enable [private networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup) for nodegroup",
           "x-intellij-html-description": "Enable <a href=\"/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup\">private networking</a> for nodegroup",
           "default": "false"
+        },
+        "propagateASGTags": {
+          "type": "boolean",
+          "description": "Propagate all taints and labels to the ASG automatically.",
+          "x-intellij-html-description": "Propagate all taints and labels to the ASG automatically."
         },
         "releaseVersion": {
           "type": "string",
@@ -1191,6 +1338,7 @@
         "additionalVolumes",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
+        "propagateASGTags",
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
@@ -1198,6 +1346,8 @@
         "instanceSelector",
         "bottlerocket",
         "enableDetailedMonitoring",
+        "capacityReservation",
+        "outpostARN",
         "instanceTypes",
         "spot",
         "taints",
@@ -1252,8 +1402,8 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2004CoreContainer\"`, `\"WindowsServer20H2CoreContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>, <code>&quot;WindowsServer20H2CoreContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2022CoreContainer\"`, `\"WindowsServer2022FullContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2022CoreContainer&quot;</code>, <code>&quot;WindowsServer2022FullContainer&quot;</code>.",
           "default": "AmazonLinux2",
           "enum": [
             "AmazonLinux2",
@@ -1262,8 +1412,8 @@
             "Bottlerocket",
             "WindowsServer2019CoreContainer",
             "WindowsServer2019FullContainer",
-            "WindowsServer2004CoreContainer",
-            "WindowsServer20H2CoreContainer"
+            "WindowsServer2022CoreContainer",
+            "WindowsServer2022FullContainer"
           ]
         },
         "asgMetricsCollection": {
@@ -1293,6 +1443,11 @@
           "description": "specifies settings for Bottlerocket nodes",
           "x-intellij-html-description": "specifies settings for Bottlerocket nodes"
         },
+        "capacityReservation": {
+          "$ref": "#/definitions/CapacityReservation",
+          "description": "defines reservation policy for a nodegroup",
+          "x-intellij-html-description": "defines reservation policy for a nodegroup"
+        },
         "classicLoadBalancerNames": {
           "items": {
             "type": "string"
@@ -1318,11 +1473,6 @@
         },
         "desiredCapacity": {
           "type": "integer"
-        },
-        "disableASGTagPropagation": {
-          "type": "boolean",
-          "description": "disable the tag propagation in case desired capacity is 0.",
-          "x-intellij-html-description": "disable the tag propagation in case desired capacity is 0."
         },
         "disableIMDSv1": {
           "type": "boolean",
@@ -1383,6 +1533,14 @@
           "type": "object",
           "default": "{}"
         },
+        "localZones": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "specifies a list of local zones where the nodegroup should be launched. The cluster should have been created with all of the local zones specified in this field.",
+          "x-intellij-html-description": "specifies a list of local zones where the nodegroup should be launched. The cluster should have been created with all of the local zones specified in this field."
+        },
         "maxInstanceLifetime": {
           "type": "integer",
           "description": "defines the maximum amount of time in seconds an instance stays alive.",
@@ -1399,6 +1557,11 @@
         },
         "name": {
           "type": "string"
+        },
+        "outpostARN": {
+          "type": "string",
+          "description": "specifies the Outpost ARN in which the nodegroup should be created.",
+          "x-intellij-html-description": "specifies the Outpost ARN in which the nodegroup should be created."
         },
         "overrideBootstrapCommand": {
           "type": "string",
@@ -1423,6 +1586,11 @@
           "description": "Enable [private networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup) for nodegroup",
           "x-intellij-html-description": "Enable <a href=\"/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup\">private networking</a> for nodegroup",
           "default": "false"
+        },
+        "propagateASGTags": {
+          "type": "boolean",
+          "description": "Propagate all taints and labels to the ASG automatically.",
+          "x-intellij-html-description": "Propagate all taints and labels to the ASG automatically."
         },
         "securityGroups": {
           "$ref": "#/definitions/NodeGroupSGs"
@@ -1533,6 +1701,7 @@
         "additionalVolumes",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
+        "propagateASGTags",
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
@@ -1540,6 +1709,8 @@
         "instanceSelector",
         "bottlerocket",
         "enableDetailedMonitoring",
+        "capacityReservation",
+        "outpostARN",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",
@@ -1550,8 +1721,8 @@
         "clusterDNS",
         "kubeletExtraConfig",
         "containerRuntime",
-        "disableASGTagPropagation",
-        "maxInstanceLifetime"
+        "maxInstanceLifetime",
+        "localZones"
       ],
       "additionalProperties": false,
       "description": "holds configuration attributes that are specific to an unmanaged nodegroup",
@@ -1927,6 +2098,33 @@
       "description": "holds the spec of an OIDC provider to use for EKS authzn",
       "x-intellij-html-description": "holds the spec of an OIDC provider to use for EKS authzn"
     },
+    "Outpost": {
+      "properties": {
+        "controlPlaneInstanceType": {
+          "type": "string",
+          "description": "specifies the instance type to use for creating the control plane instances.",
+          "x-intellij-html-description": "specifies the instance type to use for creating the control plane instances."
+        },
+        "controlPlaneOutpostARN": {
+          "type": "string",
+          "description": "specifies the Outpost ARN in which the control plane should be created.",
+          "x-intellij-html-description": "specifies the Outpost ARN in which the control plane should be created."
+        },
+        "controlPlanePlacement": {
+          "$ref": "#/definitions/Placement",
+          "description": "specifies the placement configuration for control plane instances on Outposts.",
+          "x-intellij-html-description": "specifies the placement configuration for control plane instances on Outposts."
+        }
+      },
+      "preferredOrder": [
+        "controlPlaneOutpostARN",
+        "controlPlaneInstanceType",
+        "controlPlanePlacement"
+      ],
+      "additionalProperties": false,
+      "description": "holds the Outpost configuration.",
+      "x-intellij-html-description": "holds the Outpost configuration."
+    },
     "Placement": {
       "properties": {
         "groupName": {
@@ -1944,21 +2142,16 @@
       "properties": {
         "additionalEndpointServices": {
           "items": {
-            "type": "string",
-            "enum": [
-              "cloudformation",
-              "autoscaling",
-              "logs"
-            ]
+            "type": "string"
           },
           "type": "array",
-          "description": "specifies additional endpoint services that must be enabled for private access. Valid entries are: `\"cloudformation\"`, `\"autoscaling\"`, `\"logs\"`.",
-          "x-intellij-html-description": "specifies additional endpoint services that must be enabled for private access. Valid entries are: <code>&quot;cloudformation&quot;</code>, <code>&quot;autoscaling&quot;</code>, <code>&quot;logs&quot;</code>."
+          "description": "specifies additional endpoint services that must be enabled for private access. Valid entries are \"cloudformation\", \"autoscaling\" and \"logs\".",
+          "x-intellij-html-description": "specifies additional endpoint services that must be enabled for private access. Valid entries are &quot;cloudformation&quot;, &quot;autoscaling&quot; and &quot;logs&quot;."
         },
         "enabled": {
           "type": "boolean",
-          "description": "enables creation of a fully-private cluster",
-          "x-intellij-html-description": "enables creation of a fully-private cluster",
+          "description": "enables creation of a fully-private cluster.",
+          "x-intellij-html-description": "enables creation of a fully-private cluster.",
           "default": "false"
         },
         "skipEndpointCreation": {
@@ -1974,8 +2167,8 @@
         "additionalEndpointServices"
       ],
       "additionalProperties": false,
-      "description": "defines the configuration for a fully-private cluster",
-      "x-intellij-html-description": "defines the configuration for a fully-private cluster"
+      "description": "defines the configuration for a fully-private cluster.",
+      "x-intellij-html-description": "defines the configuration for a fully-private cluster."
     },
     "SecretsEncryption": {
       "required": [
@@ -2105,13 +2298,18 @@
       "description": "for attaching common IAM policies",
       "x-intellij-html-description": "for attaching common IAM policies"
     },
+    "github.com|aws|aws-sdk-go-v2|service|eks|types.ResolveConflicts": {
+      "type": "string"
+    },
     "github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet": {
       "type": "string",
       "description": "an IP address in CIDR notation",
       "x-intellij-html-description": "an IP address in CIDR notation"
     },
     "k8s.io|api|core|v1.TaintEffect": {
-      "type": "string"
+      "type": "string",
+      "description": "+enum",
+      "x-intellij-html-description": "+enum"
     },
     "taintsWrapper": {
       "items": {

@@ -30,6 +30,18 @@ func MakeAssumeRolePolicyDocumentForServices(services ...*gfn.Value) MapOfInterf
 	})
 }
 
+// MakeAssumeRolePolicyDocumentForServices constructs a trust policy for given services with given conditions
+func MakeAssumeRolePolicyDocumentForServicesWithConditions(condition MapOfInterfaces, services ...*gfn.Value) MapOfInterfaces {
+	return MakePolicyDocument(MapOfInterfaces{
+		"Effect":    "Allow",
+		"Action":    []string{"sts:AssumeRole"},
+		"Condition": condition,
+		"Principal": map[string][]*gfn.Value{
+			"Service": services,
+		},
+	})
+}
+
 // MakeAssumeRoleWithWebIdentityPolicyDocument constructs a trust policy for given a web identity priovider with given conditions
 func MakeAssumeRoleWithWebIdentityPolicyDocument(providerARN string, condition MapOfInterfaces) MapOfInterfaces {
 	return MakePolicyDocument(MapOfInterfaces{

@@ -6,7 +6,9 @@ import (
 	"net"
 	"reflect"
 
-	"github.com/aws/aws-sdk-go/aws"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
@@ -34,7 +36,7 @@ const (
 type AZSubnetMapping map[string]AZSubnetSpec
 
 func NewAZSubnetMapping() AZSubnetMapping {
-	return AZSubnetMapping(make(map[string]AZSubnetSpec))
+	return make(map[string]AZSubnetSpec)
 }
 
 func AZSubnetMappingFromMap(m map[string]AZSubnetSpec) AZSubnetMapping {
@@ -45,7 +47,7 @@ func AZSubnetMappingFromMap(m map[string]AZSubnetSpec) AZSubnetMapping {
 			m[k] = v
 		}
 	}
-	return AZSubnetMapping(m)
+	return m
 }
 
 func (m *AZSubnetMapping) Set(name string, spec AZSubnetSpec) {
@@ -135,6 +137,11 @@ type (
 		// VPCs](/usage/vpc-networking/#use-existing-vpc-other-custom-configuration).
 		// +optional
 		Subnets *ClusterSubnets `json:"subnets,omitempty"`
+
+		// LocalZoneSubnets represents subnets in local zones.
+		// This field is used internally and is not part of the ClusterConfig schema.
+		LocalZoneSubnets *ClusterSubnets `json:"-"`
+
 		// for additional CIDR associations, e.g. a CIDR for
 		// private subnets or any ad-hoc subnets
 		// +optional
@@ -171,16 +178,23 @@ type (
 		Private AZSubnetMapping `json:"private,omitempty"`
 		Public  AZSubnetMapping `json:"public,omitempty"`
 	}
+
 	// SubnetTopology can be SubnetTopologyPrivate or SubnetTopologyPublic
 	SubnetTopology string
 	AZSubnetSpec   struct {
 		// +optional
 		ID string `json:"id,omitempty"`
-		// AZ can be omitted if the key is an AZ
+		// AZ is the zone name for this subnet, it can either be an availability zone name
+		// or a local zone name.
+		// AZ can be omitted if the key is an AZ.
 		// +optional
 		AZ string `json:"az,omitempty"`
 		// +optional
 		CIDR *ipnet.IPNet `json:"cidr,omitempty"`
+
+		CIDRIndex int `json:"-"`
+
+		OutpostARN string `json:"-"`
 	}
 	// Network holds ID and CIDR
 	Network struct {
@@ -209,11 +223,13 @@ type (
 const (
 	// MinRequiredSubnets is the minimum required number of subnets
 	MinRequiredSubnets = 2
+	// OutpostsMinRequiredSubnets is the minimum required number of subnets for Outposts.
+	OutpostsMinRequiredSubnets = 1
 	// MinRequiredAvailabilityZones defines the minimum number of required availability zones
 	MinRequiredAvailabilityZones = MinRequiredSubnets
 	// RecommendedSubnets is the recommended number of subnets
 	RecommendedSubnets = 3
-	// recommendedAvailabilityZones defines the default number of required availability zones
+	// RecommendedAvailabilityZones defines the default number of required availability zones
 	RecommendedAvailabilityZones = RecommendedSubnets
 	// SubnetTopologyPrivate represents privately-routed subnets
 	SubnetTopologyPrivate SubnetTopology = "Private"
@@ -239,46 +255,33 @@ func DefaultCIDR() ipnet.IPNet {
 	}
 }
 
-// ImportSubnet loads a given subnet into cluster config
-func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr string) error {
-	if c.VPC.Subnets == nil {
-		c.VPC.Subnets = &ClusterSubnets{
-			Private: NewAZSubnetMapping(),
-			Public:  NewAZSubnetMapping(),
-		}
-	}
-
-	var subnetMapping AZSubnetMapping
-	switch topology {
-	case SubnetTopologyPrivate:
-		subnetMapping = c.VPC.Subnets.Private
-	case SubnetTopologyPublic:
-		subnetMapping = c.VPC.Subnets.Public
-	default:
-		panic(fmt.Sprintf("unexpected subnet topology: %s", topology))
-	}
-
-	if err := doImportSubnet(subnetMapping, az, subnetID, cidr); err != nil {
-		return errors.Wrapf(err, "couldn't import subnet %s", subnetID)
-	}
-	return nil
-}
-
+// ImportSubnet loads a given subnet into ClusterConfig.
 // Note that the user must use
-// EITHER AZs as keys
+// either AZs as keys
 // OR names as keys and specify
-//    the ID (optionally with AZ and CIDR)
-//    OR AZ, optionally with CIDR
+//
+//	the ID (optionally with AZ and CIDR)
+//	OR AZ, optionally with CIDR.
+//
 // If a user specifies a subnet by AZ without CIDR and ID but multiple subnets
-// exist in this VPC, one will be arbitrarily chosen
-func doImportSubnet(subnets AZSubnetMapping, az, subnetID, cidr string) error {
-	subnetCIDR, _ := ipnet.ParseCIDR(cidr)
-
+// exist in this VPC, one will be arbitrarily chosen.
+func ImportSubnet(subnets AZSubnetMapping, subnet *ec2types.Subnet, makeSubnetAlias func(*ec2types.Subnet) string) error {
 	if subnets == nil {
 		return nil
 	}
 
-	if network, ok := subnets[az]; !ok {
+	subnetCIDR, err := ipnet.ParseCIDR(*subnet.CidrBlock)
+	if err != nil {
+		return fmt.Errorf("unexpected error parsing subnet CIDR %q: %w", *subnet.CidrBlock, err)
+	}
+
+	var (
+		subnetID = *subnet.SubnetId
+		az       = *subnet.AvailabilityZone
+	)
+
+	subnetAlias := makeSubnetAlias(subnet)
+	if network, ok := subnets[subnetAlias]; !ok {
 		newS := AZSubnetSpec{ID: subnetID, AZ: az, CIDR: subnetCIDR}
 		// Used if we find an exact ID match
 		var idKey string
@@ -308,7 +311,10 @@ func doImportSubnet(subnets AZSubnetMapping, az, subnetID, cidr string) error {
 		} else if guessKey != "" {
 			subnets[guessKey] = newS
 		} else {
-			subnets[az] = newS
+			if subnet.OutpostArn != nil {
+				newS.OutpostARN = *subnet.OutpostArn
+			}
+			subnets[subnetAlias] = newS
 		}
 	} else {
 		if network.ID == "" {
@@ -322,9 +328,42 @@ func doImportSubnet(subnets AZSubnetMapping, az, subnetID, cidr string) error {
 			return fmt.Errorf("subnet CIDR %q is not the same as %q", network.CIDR.String(), subnetCIDR.String())
 		}
 		network.AZ = az
-		subnets[az] = network
+		if subnet.OutpostArn != nil {
+			network.OutpostARN = *subnet.OutpostArn
+		}
+		subnets[subnetAlias] = network
 	}
 	return nil
+}
+
+// SelectOutpostSubnetIDs returns all subnets that are on Outposts.
+func (m AZSubnetMapping) SelectOutpostSubnetIDs() []string {
+	var subnetIDs []string
+	for _, s := range m {
+		if s.OutpostARN != "" {
+			subnetIDs = append(subnetIDs, s.ID)
+		}
+	}
+	return subnetIDs
+}
+
+func (m AZSubnetMapping) getOutpostARN() (outpostARN string, found bool) {
+	for _, s := range m {
+		if s.OutpostARN != "" {
+			return s.OutpostARN, true
+		}
+	}
+	return "", false
+}
+
+// FindOutpostSubnetsARN finds all subnets that are on Outposts and returns the Outpost ARN.
+func (v *ClusterVPC) FindOutpostSubnetsARN() (outpostARN string, found bool) {
+	outpostARN, found = v.Subnets.Private.getOutpostARN()
+	if found {
+		return outpostARN, true
+	}
+	return v.Subnets.Public.getOutpostARN()
+
 }
 
 // SubnetInfo returns a string containing VPC subnet information
@@ -336,13 +375,17 @@ func (c *ClusterConfig) SubnetInfo() string {
 
 // HasAnySubnets checks if any subnets were set
 func (c *ClusterConfig) HasAnySubnets() bool {
-	return c.VPC.Subnets != nil && len(c.VPC.Subnets.Private)+len(c.VPC.Subnets.Public) != 0
+	return c.VPC.Subnets != nil && (len(c.VPC.Subnets.Private) > 0 || len(c.VPC.Subnets.Public) > 0)
 }
 
 // HasSufficientPrivateSubnets validates if there is a sufficient
 // number of private subnets available to create a cluster
 func (c *ClusterConfig) HasSufficientPrivateSubnets() bool {
-	return len(c.VPC.Subnets.Private) >= MinRequiredSubnets
+	subnetsCount := len(c.VPC.Subnets.Private)
+	if c.IsControlPlaneOnOutposts() {
+		return subnetsCount >= OutpostsMinRequiredSubnets
+	}
+	return subnetsCount >= MinRequiredSubnets
 }
 
 // CanUseForPrivateNodeGroups checks whether specified NodeGroups have enough
@@ -356,9 +399,21 @@ func (c *ClusterConfig) CanUseForPrivateNodeGroups() error {
 	return nil
 }
 
-var errInsufficientSubnets = fmt.Errorf(
-	"insufficient number of subnets, at least %dx public and/or %dx private subnets are required",
-	MinRequiredSubnets, MinRequiredSubnets)
+// insufficientSubnetsError represents an error for when the minimum required subnets are not provided.
+type insufficientSubnetsError struct {
+	controlPlaneOnOutposts bool
+}
+
+// Error implements the error interface.
+func (e *insufficientSubnetsError) Error() string {
+	msg := "insufficient number of subnets, at least %[1]dx public and/or %[1]dx private subnets are required"
+	minSubnets := MinRequiredSubnets
+	if e.controlPlaneOnOutposts {
+		msg += " for Outposts"
+		minSubnets = OutpostsMinRequiredSubnets
+	}
+	return fmt.Sprintf(msg, minSubnets)
+}
 
 // HasSufficientSubnets validates if there is a sufficient number
 // of either private and/or public subnets available to create
@@ -367,33 +422,39 @@ var errInsufficientSubnets = fmt.Errorf(
 // public-only or private-only
 func (c *ClusterConfig) HasSufficientSubnets() error {
 	if !c.HasAnySubnets() {
-		return errInsufficientSubnets
+		return &insufficientSubnetsError{
+			controlPlaneOnOutposts: c.IsControlPlaneOnOutposts(),
+		}
+	}
+
+	if c.IsControlPlaneOnOutposts() {
+		return nil
 	}
 
 	if numPublic := len(c.VPC.Subnets.Public); numPublic > 0 && numPublic < MinRequiredSubnets {
-		return errInsufficientSubnets
+		return &insufficientSubnetsError{}
 	}
 
 	if numPrivate := len(c.VPC.Subnets.Private); numPrivate > 0 && numPrivate < MinRequiredSubnets {
-		return errInsufficientSubnets
+		return &insufficientSubnetsError{}
 	}
 
 	return nil
 }
 
-//DefaultEndpointsMsg returns a message that the EndpointAccess is the same as the default
+// DefaultEndpointsMsg returns a message that the EndpointAccess is the same as the default.
 func (c *ClusterConfig) DefaultEndpointsMsg() string {
 	return fmt.Sprintf(
 		"Kubernetes API endpoint access will use default of {publicAccess=true, privateAccess=false} for cluster %q in %q", c.Metadata.Name, c.Metadata.Region)
 }
 
-//CustomEndpointsMsg returns a message indicating the EndpointAccess given by the user
+// CustomEndpointsMsg returns a message indicating the EndpointAccess given by the user.
 func (c *ClusterConfig) CustomEndpointsMsg() string {
 	return fmt.Sprintf(
 		"Kubernetes API endpoint access will use provided values {publicAccess=%v, privateAccess=%v} for cluster %q in %q", *c.VPC.ClusterEndpoints.PublicAccess, *c.VPC.ClusterEndpoints.PrivateAccess, c.Metadata.Name, c.Metadata.Region)
 }
 
-//UpdateEndpointsMsg gives message indicating that they need to use eksctl utils to make this config
+// UpdateEndpointsMsg returns a message indicating that they need to use `eksctl utils` to make this config.
 func (c *ClusterConfig) UpdateEndpointsMsg() string {
 	return fmt.Sprintf(
 		"you can update Kubernetes API endpoint access with `eksctl utils update-cluster-endpoints --region=%s --name=%s --private-access=bool --public-access=bool`", c.Metadata.Region, c.Metadata.Name)
@@ -404,19 +465,16 @@ func EndpointsEqual(a, b ClusterEndpoints) bool {
 	return reflect.DeepEqual(a, b)
 }
 
-//HasClusterEndpointAccess determines if endpoint access was configured in config file or not
+// HasClusterEndpointAccess determines if endpoint access was configured in config file or not.
 func (c *ClusterConfig) HasClusterEndpointAccess() bool {
 	if c.VPC != nil && c.VPC.ClusterEndpoints != nil {
-		hasPublicAccess := aws.BoolValue(c.VPC.ClusterEndpoints.PublicAccess)
-		hasPrivateAccess := aws.BoolValue(c.VPC.ClusterEndpoints.PrivateAccess)
+		hasPublicAccess := aws.ToBool(c.VPC.ClusterEndpoints.PublicAccess)
+		hasPrivateAccess := aws.ToBool(c.VPC.ClusterEndpoints.PrivateAccess)
 		return hasPublicAccess || hasPrivateAccess
 	}
 	return true
 }
 
 func (c *ClusterConfig) HasPrivateEndpointAccess() bool {
-	return c.VPC != nil &&
-		c.VPC.ClusterEndpoints != nil &&
-		c.VPC.ClusterEndpoints.PrivateAccess != nil &&
-		*c.VPC.ClusterEndpoints.PrivateAccess
+	return c.VPC != nil && c.VPC.ClusterEndpoints != nil && IsEnabled(c.VPC.ClusterEndpoints.PrivateAccess)
 }

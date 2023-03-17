@@ -1,9 +1,11 @@
 package builder
 
 import (
+	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -17,11 +19,11 @@ import (
 type IPv6VPCResourceSet struct {
 	rs            *resourceSet
 	clusterConfig *api.ClusterConfig
-	ec2API        ec2iface.EC2API
+	ec2API        awsapi.EC2
 }
 
 // NewIPv6VPCResourceSet creates and returns a new VPCResourceSet
-func NewIPv6VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec2API ec2iface.EC2API) *IPv6VPCResourceSet {
+func NewIPv6VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2) *IPv6VPCResourceSet {
 	return &IPv6VPCResourceSet{
 		rs:            rs,
 		clusterConfig: clusterConfig,
@@ -29,7 +31,7 @@ func NewIPv6VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec
 	}
 }
 
-func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, error) {
+func (v *IPv6VPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Value, *SubnetDetails, error) {
 	var publicSubnetResourceRefs, privateSubnetResourceRefs []*gfnt.Value
 	vpcResourceRef := v.rs.newResource(VPCResourceKey, &gfnec2.VPC{
 		CidrBlock:          gfnt.NewString(v.clusterConfig.VPC.CIDR.String()),
@@ -43,9 +45,9 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 
 	v.addIpv6CidrBlock()
 
-	addSubnetOutput := func(subnetRefs []*gfnt.Value, topology api.SubnetTopology, outputName string) {
+	addSubnetOutput := func(subnetRefs []*gfnt.Value, subnetMapping api.AZSubnetMapping, outputName string) {
 		v.rs.defineJoinedOutput(outputName, subnetRefs, true, func(value string) error {
-			return vpc.ImportSubnetsFromIDList(v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
+			return vpc.ImportSubnetsFromIDList(ctx, v.ec2API, v.clusterConfig, subnetMapping, strings.Split(value, ","))
 		})
 	}
 
@@ -70,9 +72,9 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 			SubnetId:     subnet,
 		})
 	}
-	addSubnetOutput(privateSubnetResourceRefs, api.SubnetTopologyPrivate, outputs.ClusterSubnetsPrivate)
+	addSubnetOutput(privateSubnetResourceRefs, v.clusterConfig.VPC.Subnets.Private, outputs.ClusterSubnetsPrivate)
 
-	if v.isFullyPrivate() {
+	if v.clusterConfig.IsFullyPrivate() {
 		return vpcResourceRef, &SubnetDetails{
 			Private: privateSubnets,
 		}, nil
@@ -149,7 +151,7 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 			RouteTableId:               gfnt.MakeRef(PrivateRouteTableKey + azFormatted),
 		})
 	}
-	addSubnetOutput(publicSubnetResourceRefs, api.SubnetTopologyPublic, outputs.ClusterSubnetsPublic)
+	addSubnetOutput(publicSubnetResourceRefs, v.clusterConfig.VPC.Subnets.Public, outputs.ClusterSubnetsPublic)
 
 	return vpcResourceRef, &SubnetDetails{
 		Private: privateSubnets,
@@ -178,12 +180,7 @@ func (v *IPv6VPCResourceSet) RenderJSON() ([]byte, error) {
 	return v.rs.renderJSON()
 }
 
-func (v *IPv6VPCResourceSet) isFullyPrivate() bool {
-	return v.clusterConfig.PrivateCluster.Enabled
-}
-
 func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartitions int, private bool) *gfnt.Value {
-	var assignIpv6AddressOnCreation *gfnt.Value
 	subnetKey := PublicSubnetKey + azFormatted
 	mapPublicIPOnLaunch := gfnt.True()
 	elbTagKey := "kubernetes.io/role/elb"
@@ -191,17 +188,16 @@ func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartiti
 	if private {
 		subnetKey = PrivateSubnetKey + azFormatted
 		mapPublicIPOnLaunch = nil
-		assignIpv6AddressOnCreation = gfnt.True()
 		elbTagKey = "kubernetes.io/role/internal-elb"
 	}
 
 	return v.rs.newResource(subnetKey, &gfnec2.Subnet{
 		AWSCloudFormationDependsOn:  []string{IPv6CIDRBlockKey},
 		AvailabilityZone:            gfnt.NewString(az),
-		CidrBlock:                   gfnt.MakeFnSelect(gfnt.NewInteger(i), getSubnetIPv4CIDRBlock(cidrPartitions)),
+		CidrBlock:                   gfnt.MakeFnSelect(gfnt.NewInteger(i), getSubnetIPv4CIDRBlock(cidrPartitions, v.clusterConfig.VPC.Network.CIDR)),
 		Ipv6CidrBlock:               gfnt.MakeFnSelect(gfnt.NewInteger(i), getSubnetIPv6CIDRBlock(cidrPartitions)),
 		MapPublicIpOnLaunch:         mapPublicIPOnLaunch,
-		AssignIpv6AddressOnCreation: assignIpv6AddressOnCreation,
+		AssignIpv6AddressOnCreation: gfnt.True(),
 		VpcId:                       gfnt.MakeRef(VPCResourceKey),
 		Tags: []cloudformation.Tag{{
 			Key:   gfnt.NewString(elbTagKey),

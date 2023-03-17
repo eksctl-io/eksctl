@@ -3,9 +3,7 @@ package create
 import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 
-	. "github.com/onsi/ginkgo/extensions/table"
-
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -16,7 +14,7 @@ var _ = Describe("create iamserviceaccount", func() {
 			cmd := newMockEmptyCmd(commandArgs...)
 			count := 0
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				createIAMServiceAccountCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, overrideExistingServiceAccounts bool) error {
+				createIAMServiceAccountCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, _, _ bool) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
 					Expect(cmd.ClusterConfig.IAM.ServiceAccounts[0].Name).To(Equal("serviceAccountName"))
 					Expect(cmd.ClusterConfig.IAM.ServiceAccounts[0].AttachPolicyARNs).To(ContainElement("dummyPolicyArn"))
@@ -53,11 +51,11 @@ var _ = Describe("create iamserviceaccount", func() {
 		}),
 		Entry("with --attach-role-arn and --role-name", invalidParamsCase{
 			args:  []string{"iamserviceaccount", "--cluster", "clusterName", "serviceAccountName", "--role-name", "foo", "--attach-role-arn", "123"},
-			error: "cannot provde --role-name or --role-only when --attach-role-arn is configured",
+			error: "cannot provide --role-name or --role-only when --attach-role-arn is configured",
 		}),
 		Entry("with --attach-policy-role and --role-only", invalidParamsCase{
 			args:  []string{"iamserviceaccount", "--cluster", "clusterName", "serviceAccountName", "--role-only", "--attach-role-arn", "123"},
-			error: "cannot provde --role-name or --role-only when --attach-role-arn is configured",
+			error: "cannot provide --role-name or --role-only when --attach-role-arn is configured",
 		}),
 		Entry("with --attach-role-arn and --attach-policy-arns", invalidParamsCase{
 			args:  []string{"iamserviceaccount", "--cluster", "clusterName", "serviceAccountName", "--attach-policy-arn", "123", "--attach-role-arn", "123"},

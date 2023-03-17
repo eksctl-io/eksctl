@@ -6,11 +6,12 @@ import (
 	"os"
 	"time"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	. "github.com/weaveworks/eksctl/pkg/printers"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -24,10 +25,10 @@ var _ = Describe("Table Printer", func() {
 		BeforeEach(func() {
 			printer = NewTablePrinter()
 
-			printer.(*TablePrinter).AddColumn("NAME", func(c *awseks.Cluster) string {
+			printer.(*TablePrinter).AddColumn("NAME", func(c *ekstypes.Cluster) string {
 				return *c.Name
 			})
-			printer.(*TablePrinter).AddColumn("ARN", func(c *awseks.Cluster) string {
+			printer.(*TablePrinter).AddColumn("ARN", func(c *ekstypes.Cluster) string {
 				return *c.Arn
 			})
 		})
@@ -42,21 +43,21 @@ var _ = Describe("Table Printer", func() {
 
 		Context("given just a cluster struct (no slice) and calling PrintObjWithKind", func() {
 			var (
-				cluster     *awseks.Cluster
+				cluster     *ekstypes.Cluster
 				err         error
 				actualBytes bytes.Buffer
 			)
 
 			BeforeEach(func() {
 				created := &time.Time{}
-				cluster = &awseks.Cluster{
+				cluster = &ekstypes.Cluster{
 					Name:      aws.String("test-cluster"),
-					Status:    aws.String(awseks.ClusterStatusActive),
+					Status:    ekstypes.ClusterStatusActive,
 					Arn:       aws.String("arn-12345678"),
 					CreatedAt: created,
-					ResourcesVpcConfig: &awseks.VpcConfigResponse{
+					ResourcesVpcConfig: &ekstypes.VpcConfigResponse{
 						VpcId:     aws.String("vpc-1234"),
-						SubnetIds: []*string{aws.String("sub1"), aws.String("sub2")},
+						SubnetIds: []string{"sub1", "sub2"},
 					},
 				}
 			})
@@ -84,7 +85,7 @@ var _ = Describe("Table Printer", func() {
 
 			JustBeforeEach(func() {
 				w := bufio.NewWriter(&actualBytes)
-				err = printer.PrintObjWithKind("clusters", []*awseks.Cluster{}, w)
+				err = printer.PrintObjWithKind("clusters", []*ekstypes.Cluster{}, w)
 				w.Flush()
 			})
 
@@ -108,28 +109,28 @@ var _ = Describe("Table Printer", func() {
 
 		Context("given a slice with a cluster struct and calling PrintObjWithKind", func() {
 			var (
-				cluster     *awseks.Cluster
+				cluster     *ekstypes.Cluster
 				err         error
 				actualBytes bytes.Buffer
 			)
 
 			BeforeEach(func() {
 				created := &time.Time{}
-				cluster = &awseks.Cluster{
+				cluster = &ekstypes.Cluster{
 					Name:      aws.String("test-cluster"),
-					Status:    aws.String(awseks.ClusterStatusActive),
+					Status:    ekstypes.ClusterStatusActive,
 					Arn:       aws.String("arn-12345678"),
 					CreatedAt: created,
-					ResourcesVpcConfig: &awseks.VpcConfigResponse{
+					ResourcesVpcConfig: &ekstypes.VpcConfigResponse{
 						VpcId:     aws.String("vpc-1234"),
-						SubnetIds: []*string{aws.String("sub1"), aws.String("sub2")},
+						SubnetIds: []string{"sub1", "sub2"},
 					},
 				}
 			})
 
 			JustBeforeEach(func() {
 				w := bufio.NewWriter(&actualBytes)
-				err = printer.PrintObjWithKind("clusters", []*awseks.Cluster{cluster}, w)
+				err = printer.PrintObjWithKind("clusters", []*ekstypes.Cluster{cluster}, w)
 				w.Flush()
 			})
 
@@ -153,32 +154,32 @@ var _ = Describe("Table Printer", func() {
 
 		Context("given a slice with 2 cluster structs and calling PrintObjWithKind", func() {
 			var (
-				clusters    []*awseks.Cluster
+				clusters    []*ekstypes.Cluster
 				err         error
 				actualBytes bytes.Buffer
 			)
 
 			BeforeEach(func() {
 				created := &time.Time{}
-				clusters = []*awseks.Cluster{
+				clusters = []*ekstypes.Cluster{
 					{
 						Name:      aws.String("test-cluster-1"),
-						Status:    aws.String(awseks.ClusterStatusActive),
+						Status:    ekstypes.ClusterStatusActive,
 						Arn:       aws.String("arn-12345678"),
 						CreatedAt: created,
-						ResourcesVpcConfig: &awseks.VpcConfigResponse{
+						ResourcesVpcConfig: &ekstypes.VpcConfigResponse{
 							VpcId:     aws.String("vpc-1234"),
-							SubnetIds: []*string{aws.String("sub1"), aws.String("sub2")},
+							SubnetIds: []string{"sub1", "sub2"},
 						},
 					},
 					{
 						Name:      aws.String("test-cluster-2"),
-						Status:    aws.String(awseks.ClusterStatusActive),
+						Status:    ekstypes.ClusterStatusActive,
 						Arn:       aws.String("arn-87654321"),
 						CreatedAt: created,
-						ResourcesVpcConfig: &awseks.VpcConfigResponse{
+						ResourcesVpcConfig: &ekstypes.VpcConfigResponse{
 							VpcId:     aws.String("vpc-1234"),
-							SubnetIds: []*string{aws.String("sub1"), aws.String("sub2")},
+							SubnetIds: []string{"sub1", "sub2"},
 						},
 					},
 				}

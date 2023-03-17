@@ -1,6 +1,7 @@
 package associate
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -36,7 +37,7 @@ func associateIdentityProvider(cmd *cmdutils.Cmd) {
 		cmdutils.AddTimeoutFlagWithValue(fs, &timeout, defaultAssociateTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func newAssociateIdentityProviderLoader(cmd *cmdutils.Cmd) cmdutils.ClusterConfigLoader {
@@ -59,7 +60,8 @@ func doAssociateIdentityProvider(cmd *cmdutils.Cmd, timeout time.Duration) error
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -70,15 +72,15 @@ func doAssociateIdentityProvider(cmd *cmdutils.Cmd, timeout time.Duration) error
 
 	manager := identityproviders.NewManager(
 		*cfg.Metadata,
-		ctl.Provider.EKS(),
+		ctl.AWSProvider.EKS(),
 	)
 
 	options := identityproviders.AssociateIdentityProvidersOptions{
 		Providers: cfg.IdentityProviders,
 	}
 	if cmd.Wait {
-		options.WaitTimeout = &timeout
+		options.WaitTimeout = timeout
 	}
 
-	return manager.Associate(options)
+	return manager.Associate(ctx, options)
 }

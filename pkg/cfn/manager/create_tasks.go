@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
@@ -20,8 +21,8 @@ const (
 )
 
 // NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
-// with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works
-func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*api.NodeGroup,
+// with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works.
+func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(ctx context.Context, nodeGroups []*api.NodeGroup,
 	managedNodeGroups []*api.ManagedNodeGroup, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree {
 
 	taskTree := tasks.TaskTree{Parallel: false}
@@ -31,40 +32,38 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 			info:                 fmt.Sprintf("create cluster control plane %q", c.spec.Metadata.Name),
 			stackCollection:      c,
 			supportsManagedNodes: true,
+			ctx:                  ctx,
 		},
 	)
 
-	if c.spec.IPv6Enabled() {
-		taskTree.Append(
-			&AssignIpv6AddressOnCreationTask{
-				ClusterConfig: c.spec,
-				EC2API:        c.ec2API,
-			},
-		)
-	}
-
 	appendNodeGroupTasksTo := func(taskTree *tasks.TaskTree) {
 		vpcImporter := vpc.NewStackConfigImporter(c.MakeClusterStackName())
-		nodeGroupTasks := c.NewUnmanagedNodeGroupTask(nodeGroups, false, vpcImporter)
-		managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups, false, vpcImporter)
-		if managedNodeGroupTasks.Len() > 0 {
-			nodeGroupTasks.Append(managedNodeGroupTasks.Tasks...)
+		nodeGroupTasks := &tasks.TaskTree{
+			Parallel:  true,
+			IsSubTask: true,
+		}
+		if unmanagedNodeGroupTasks := c.NewUnmanagedNodeGroupTask(ctx, nodeGroups, false, vpcImporter); unmanagedNodeGroupTasks.Len() > 0 {
+			unmanagedNodeGroupTasks.IsSubTask = true
+			nodeGroupTasks.Append(unmanagedNodeGroupTasks)
+		}
+		if managedNodeGroupTasks := c.NewManagedNodeGroupTask(ctx, managedNodeGroups, false, vpcImporter); managedNodeGroupTasks.Len() > 0 {
+			managedNodeGroupTasks.IsSubTask = true
+			nodeGroupTasks.Append(managedNodeGroupTasks)
 		}
 
 		if nodeGroupTasks.Len() > 0 {
-			nodeGroupTasks.IsSubTask = true
 			taskTree.Append(nodeGroupTasks)
 		}
 	}
 
 	if len(postClusterCreationTasks) > 0 {
-		postClusterCreationTaskTree := tasks.TaskTree{
+		postClusterCreationTaskTree := &tasks.TaskTree{
 			Parallel:  false,
 			IsSubTask: true,
 		}
 		postClusterCreationTaskTree.Append(postClusterCreationTasks...)
-		appendNodeGroupTasksTo(&postClusterCreationTaskTree)
-		taskTree.Append(&postClusterCreationTaskTree)
+		appendNodeGroupTasksTo(postClusterCreationTaskTree)
+		taskTree.Append(postClusterCreationTaskTree)
 	} else {
 		appendNodeGroupTasksTo(&taskTree)
 	}
@@ -73,12 +72,13 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 }
 
 // NewUnmanagedNodeGroupTask defines tasks required to create all of the nodegroups
-func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
+func (c *StackCollection) NewUnmanagedNodeGroupTask(ctx context.Context, nodeGroups []*api.NodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 
 	for _, ng := range nodeGroups {
 		taskTree.Append(&nodeGroupTask{
 			info:              fmt.Sprintf("create nodegroup %q", ng.NameString()),
+			ctx:               ctx,
 			nodeGroup:         ng,
 			stackCollection:   c,
 			forceAddCNIPolicy: forceAddCNIPolicy,
@@ -91,27 +91,34 @@ func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup,
 }
 
 // NewManagedNodeGroupTask defines tasks required to create managed nodegroups
-func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
+func (c *StackCollection) NewManagedNodeGroupTask(ctx context.Context, nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 	for _, ng := range nodeGroups {
-		taskTree.Append(&managedNodeGroupTask{
+		// Disable parallelisation if any tags propagation is done
+		// since nodegroup must be created to propagate tags to its ASGs.
+		subTask := &tasks.TaskTree{
+			Parallel:  false,
+			IsSubTask: true,
+		}
+		subTask.Append(&managedNodeGroupTask{
 			stackCollection:   c,
 			nodeGroup:         ng,
 			forceAddCNIPolicy: forceAddCNIPolicy,
 			vpcImporter:       vpcImporter,
 			info:              fmt.Sprintf("create managed nodegroup %q", ng.Name),
+			ctx:               ctx,
 		})
+		if api.IsEnabled(ng.PropagateASGTags) {
+			subTask.Append(&managedNodeGroupTagsToASGPropagationTask{
+				stackCollection: c,
+				nodeGroup:       ng,
+				info:            fmt.Sprintf("propagate tags to ASG for managed nodegroup %q", ng.Name),
+				ctx:             ctx,
+			})
+		}
+		taskTree.Append(subTask)
 	}
 	return taskTree
-}
-
-// NewClusterCompatTask creates a new task that checks for cluster compatibility with new features like
-// Managed Nodegroups and Fargate, and updates the CloudFormation cluster stack if the required resources are missing
-func (c *StackCollection) NewClusterCompatTask() tasks.Task {
-	return &clusterCompatTask{
-		stackCollection: c,
-		info:            "fix cluster compatibility",
-	}
 }
 
 // NewTasksToCreateIAMServiceAccounts defines tasks required to create all of the IAM ServiceAccounts

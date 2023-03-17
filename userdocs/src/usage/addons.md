@@ -12,9 +12,8 @@ You can specify what addons you want and what policies (if required) to attach t
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 metadata:
-  name: exmaple-cluster
+  name: example-cluster
   region: us-west-2
-  version: "1.18"
 
 iam:
   withOIDC: true
@@ -47,7 +46,9 @@ addons:
 
 You can specify at most one of `attachPolicy`, `attachPolicyARNs` and `serviceAccountRoleARN`.
 
-!!!note
+If none of these are specified, the addon will be created with a role that has all recommended policies attached.
+
+???+ note
     In order to attach policies to addons your cluster must have `OIDC` enabled. If it's not enabled we ignore any policies
     attached.
 
@@ -67,6 +68,21 @@ eksctl create addon -f config.yaml
 eksctl create addon --name vpc-cni --version 1.7.5 --service-account-role-arn=<role-arn>
 ```
 
+During addon creation, if a self-managed version of the addon already exists on the cluster, you can choose how potential `configMap` conflicts shall be resolved by setting `resolveConflicts` option via the config file. e.g.,
+
+```yaml
+addons:
+- name: vpc-cni
+  attachPolicyARNs:
+    - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+  resolveConflicts: overwrite
+```
+
+For addon create, the `resolveConflicts` field supports two distinct values.
+
+- `overwrite` - EKS overwrites any config changes back to EKS default values
+- `none` - EKS doesn't change the value. The create might fail.
+
 ## Listing enabled addons
 
 You can see what addons are enabled in your cluster by running:
@@ -74,9 +90,15 @@ You can see what addons are enabled in your cluster by running:
 eksctl get addons --cluster <cluster-name>
 ```
 
+or
+
+```console
+eksctl get addons -f config.yaml
+```
+
 ## Setting the addon's version
 
-Setting the version of the addon is optional. If the `version` field is empty in the request sent by `eksctl`, the EKS API will set it to the default version for that specific addon. More information about which version is the default version for specific addons can be found in the AWS documentation about EKS. Note that the default version might not necessarily be the latest version available. 
+Setting the version of the addon is optional. If the `version` field is empty in the request sent by `eksctl`, the EKS API will set it to the default version for that specific addon. More information about which version is the default version for specific addons can be found in the AWS documentation about EKS. Note that the default version might not necessarily be the latest version available.
 
 The addon version can be set to `latest`. Alternatively, the version can be set with the EKS build tag specified, such as `v1.7.5-eksbuild.1` or `v1.7.5-eksbuild.2`. It can also be set to the release version of the addon, such as `v1.7.5` or `1.7.5`, and the `eksbuild` suffix tag will be discovered and set for you.
 
@@ -94,6 +116,63 @@ addons are available for a particular kubernetes version you can run:
 eksctl utils describe-addon-versions --kubernetes-version <version>
 ```
 
+You can also discover addons by filtering on their `type`, `owner` and/or `publisher`.
+For e.g., to see addons for a particular owner and type you can run:
+```console
+eksctl utils describe-addon-versions --kubernetes-version 1.22 --types "infra-management, policy-management" --owners "aws-marketplace"
+```
+The `types`, `owners` and `publishers` flags are optional and can be specified together or individually to filter the results.
+
+## Discovering the configuration schema for addons
+After discovering the addon and version, you can view the customization options by fetching its JSON configuration schema.
+
+```console
+eksctl utils describe-addon-configuration --name vpc-cni --version v1.12.0-eksbuild.1
+```
+
+This returns a JSON schema of the various options available for this addon.
+
+## Working with configuration values
+`ConfigurationValues` can be provided in the configuration file during the creation or update of addons. Only JSON and YAML formats are supported. 
+
+For eg.,
+
+```yaml
+addons:
+- name: coredns
+  configurationValues: |-
+    replicaCount: 2
+```
+
+```yaml
+addons:
+- name: coredns
+  version: latest
+  configurationValues: "{\"replicaCount\":3}"
+  resolveConflicts: overwrite
+```
+
+???+ note
+    Bear in mind that when addon configuration values are being modified, configuration conflicts will arise.
+
+    Thus, we need to specify how to deal with those by setting the `resolveConflicts` field accordingly.
+    As in this scenario we want to modify these values, we'd set `resolveConflicts: overwrite`.
+
+Additionally, the get command will now also retrieve `ConfigurationValues` for the addon. e.g.
+
+```console
+eksctl get addon --cluster my-cluster --output yaml
+```
+```yaml
+- ConfigurationValues: '{"replicaCount":3}'
+  IAMRole: ""
+  Issues: null
+  Name: coredns
+  NewerVersion: ""
+  Status: ACTIVE
+  Version: v1.8.7-eksbuild.3
+```
+
 ## Updating addons
 You can update your addons to newer versions and change what policies are attached by running:
 ```console
@@ -103,6 +182,23 @@ eksctl update addon -f config.yaml
 ```console
 eksctl update addon --name vpc-cni --version 1.8.0 --service-account-role-arn=<new-role>
 ```
+
+Similarly to addon creation, When updating an addon, you have full control over the config changes that you may have previously applied on that add-on's `configMap`. Specifically, you can preserve, or overwrite them. This optional functionality is available via the same config file field `resolveConflicts`. e.g.,
+
+
+```yaml
+addons:
+- name: vpc-cni
+  attachPolicyARNs:
+    - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+  resolveConflicts: preserve
+```
+
+For addon update, the `resolveConflicts` field accepts three distinct values.
+
+- `preserve` - EKS preserves the value. If you choose this option, we recommend that you test any field and value changes on a non-production cluster before updating the add-on on your production cluster.
+- `overwrite` - EKS overwrites any config changes back to EKS default values
+- `none` - EKS doesn't change the value. The update might fail.
 
 ## Deleting addons
 You can delete an addon by running:

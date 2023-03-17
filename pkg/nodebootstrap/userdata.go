@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
@@ -18,7 +17,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap/legacy"
 )
 
 const (
@@ -38,33 +36,24 @@ type Bootstrapper interface {
 
 // NewBootstrapper returns the correct bootstrapper for the AMI family
 func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Bootstrapper, error) {
-	if ng.ClusterDNS == "" {
-		clusterDNS, err := GetClusterDNS(clusterConfig)
+	clusterDNS := ng.ClusterDNS
+	if clusterDNS == "" {
+		var err error
+		clusterDNS, err = GetClusterDNS(clusterConfig)
 		if err != nil {
 			return nil, err
 		}
-		ng.ClusterDNS = clusterDNS
 	}
 	if api.IsWindowsImage(ng.AMIFamily) {
-		return NewWindowsBootstrapper(clusterConfig, ng), nil
+		return NewWindowsBootstrapper(clusterConfig, ng, clusterDNS), nil
 	}
 	switch ng.AMIFamily {
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
-		// TODO remove
-		if ng.CustomAMI {
-			logger.Warning("Custom AMI detected for nodegroup %s, using legacy nodebootstrap mechanism. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
-			return legacy.NewUbuntuBootstrapper(clusterConfig, ng), nil
-		}
-		return NewUbuntuBootstrapper(clusterConfig, ng), nil
+		return NewUbuntuBootstrapper(clusterConfig, ng, clusterDNS), nil
 	case api.NodeImageFamilyBottlerocket:
 		return NewBottlerocketBootstrapper(clusterConfig, ng), nil
 	case api.NodeImageFamilyAmazonLinux2:
-		// TODO remove
-		if ng.CustomAMI {
-			logger.Warning("Custom AMI detected for nodegroup %s, using legacy nodebootstrap mechanism. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
-			return legacy.NewAL2Bootstrapper(clusterConfig, ng), nil
-		}
-		return NewAL2Bootstrapper(clusterConfig, ng), nil
+		return NewAL2Bootstrapper(clusterConfig, ng, clusterDNS), nil
 	default:
 		return nil, errors.Errorf("unrecognized AMI family %q for creating bootstrapper", ng.AMIFamily)
 
@@ -72,16 +61,25 @@ func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Boots
 }
 
 // NewManagedBootstrapper creates a new bootstrapper for managed nodegroups based on the AMI family
-func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNodeGroup) Bootstrapper {
+func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNodeGroup) (Bootstrapper, error) {
+	if api.IsWindowsImage(ng.AMIFamily) {
+		return &ManagedWindows{
+			NodeGroup: ng,
+		}, nil
+	}
 	switch ng.AMIFamily {
 	case api.NodeImageFamilyAmazonLinux2:
-		return NewManagedAL2Bootstrapper(ng)
+		return NewManagedAL2Bootstrapper(ng), nil
 	case api.NodeImageFamilyBottlerocket:
-		return NewManagedBottlerocketBootstrapper(clusterConfig, ng)
+		return NewManagedBottlerocketBootstrapper(clusterConfig, ng), nil
 	case api.NodeImageFamilyUbuntu1804, api.NodeImageFamilyUbuntu2004:
-		return NewUbuntuBootstrapper(clusterConfig, ng)
+		clusterDNS, err := GetClusterDNS(clusterConfig)
+		if err != nil {
+			return nil, err
+		}
+		return NewUbuntuBootstrapper(clusterConfig, ng, clusterDNS), nil
 	}
-	return nil
+	return nil, nil
 }
 
 // GetClusterDNS returns the DNS address to use
@@ -100,7 +98,7 @@ func GetClusterDNS(clusterConfig *api.ClusterConfig) (string, error) {
 	return ip.String(), nil
 }
 
-func linuxConfig(clusterConfig *api.ClusterConfig, bootScriptName, bootScriptContent string, np api.NodePool, scripts ...script) (string, error) {
+func linuxConfig(clusterConfig *api.ClusterConfig, bootScriptName, bootScriptContent, clusterDNS string, np api.NodePool, scripts ...script) (string, error) {
 	config := cloudconfig.New()
 	ng := np.BaseNodeGroup()
 
@@ -116,19 +114,20 @@ func linuxConfig(clusterConfig *api.ClusterConfig, bootScriptName, bootScriptCon
 	if ng.OverrideBootstrapCommand != nil {
 		config.AddShellCommand(*ng.OverrideBootstrapCommand)
 	} else {
-		scripts = append(scripts, script{name: commonLinuxBootScript, contents: assets.BootstrapHelperSh}, script{name: bootScriptName, contents: bootScriptContent})
-		var kubeletExtraConf *api.InlineDocument
-		if unmanaged, ok := np.(*api.NodeGroup); ok {
-			kubeletExtraConf = unmanaged.KubeletExtraConfig
-		}
-		kubeletConf, err := makeKubeletExtraConf(kubeletExtraConf)
-		if err != nil {
-			return "", err
-		}
-		files = append(files, kubeletConf)
-		envFile := makeBootstrapEnv(clusterConfig, np)
-		files = append(files, envFile)
+		scripts = append(scripts, script{name: bootScriptName, contents: bootScriptContent})
 	}
+	scripts = append(scripts, script{name: commonLinuxBootScript, contents: assets.BootstrapHelperSh})
+	var kubeletExtraConf *api.InlineDocument
+	if unmanaged, ok := np.(*api.NodeGroup); ok {
+		kubeletExtraConf = unmanaged.KubeletExtraConfig
+	}
+	kubeletConf, err := makeKubeletExtraConf(kubeletExtraConf)
+	if err != nil {
+		return "", err
+	}
+	files = append(files, kubeletConf)
+	envFile := makeBootstrapEnv(clusterConfig, np, clusterDNS)
+	files = append(files, envFile)
 
 	if err := addFilesAndScripts(config, files, scripts); err != nil {
 		return "", err
@@ -162,7 +161,7 @@ func makeKubeletExtraConf(kubeletExtraConf *api.InlineDocument) (cloudconfig.Fil
 	}, nil
 }
 
-func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool) cloudconfig.File {
+func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool, clusterDNS string) cloudconfig.File {
 	ng := np.BaseNodeGroup()
 	variables := map[string]string{
 		"CLUSTER_NAME":   clusterConfig.Metadata.Name,
@@ -171,13 +170,19 @@ func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool) cloudco
 		"NODE_LABELS":    formatLabels(ng.Labels),
 		"NODE_TAINTS":    utils.FormatTaints(np.NGTaints()),
 	}
+	if id := clusterConfig.Status.ID; id != "" {
+		variables["CLUSTER_ID"] = id
+	}
+	if clusterConfig.IsControlPlaneOnOutposts() {
+		variables["ENABLE_LOCAL_OUTPOST"] = strconv.FormatBool(true)
+	}
 
 	if ng.MaxPodsPerNode > 0 {
 		variables["MAX_PODS"] = strconv.Itoa(ng.MaxPodsPerNode)
 	}
 
-	if unmanaged, ok := np.(*api.NodeGroup); ok && unmanaged.ClusterDNS != "" {
-		variables["CLUSTER_DNS"] = unmanaged.ClusterDNS
+	if clusterDNS != "" {
+		variables["CLUSTER_DNS"] = clusterDNS
 	}
 
 	if unmanaged, ok := np.(*api.NodeGroup); ok && ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {

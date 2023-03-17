@@ -2,15 +2,52 @@ name: Publish docs
 
 on:
   release:
-    types:
-      - published
+    types: [published]
 jobs:
   publish-docs:
     name: Publish docs to Netlify
     if: ${{ !github.event.release.prerelease }}
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
+          fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18.x
+      - name: Cache go-build and mod
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: go-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            go-
+      - name: Setup identity as weaveworksbot
+        uses: ./.github/actions/setup-identity
+        with:
+          token: "${{ secrets.WEAVEWORKSBOT_TOKEN }}"
       - name: Trigger Netlify deployment
         run: make publish-docs
-        env:
-          NETLIFY_BUILD_HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
+      - name: slack on success
+        if: success()
+        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+        with:
+          slack_token: ${{ secrets.WEAVEWORKS_SLACK_EKSCTLBOT_TOKEN }}
+          message: ":tada: Docs published successfully :tada:"
+          channel: team-pitch-black
+          color: green
+          verbose: true
+      - name: slack on failure
+        if: failure()
+        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+        with:
+          slack_token: ${{ secrets.WEAVEWORKS_SLACK_EKSCTLBOT_TOKEN }}
+          message: ":ahhhhhhhhh: Docs publishing failed."
+          channel: team-pitch-black
+          color: red
+          verbose: true

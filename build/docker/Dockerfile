@@ -1,7 +1,7 @@
 # Make sure to run the following commands after changes to this file are made:
 # `make -f Makefile.docker update-build-image-tag && make -f Makefile.docker push-build-image`
 
-FROM golang:1.17.0-alpine3.14@sha256:4ace2a06b957dec72202e03e71ccb661f082cc9d9a1849c0efef41ddc246bdba AS base
+FROM golang:1.18.8-alpine3.16@sha256:6b494c932ee8c209631e27521ddbe364da56e7f1275998fbb182447d20103e46 AS base
 
 # Add kubectl and aws-iam-authenticator to the PATH
 ENV PATH="${PATH}:/out/usr/bin:/out/usr/local/bin"
@@ -46,7 +46,7 @@ WORKDIR /src
 ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org,direct
 
 # The authenticator is a runtime dependency, so it needs to be in /out
-ENV AWS_IAM_AUTH_VERSION 0.5.2
+ENV AWS_IAM_AUTH_VERSION 0.5.7
 RUN curl --silent --location "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_IAM_AUTH_VERSION}/aws-iam-authenticator_${AWS_IAM_AUTH_VERSION}_linux_amd64" --output /out/usr/local/bin/aws-iam-authenticator \
     && chmod +x /out/usr/local/bin/aws-iam-authenticator
 COPY .requirements install-build-deps.sh go.mod go.sum /src/

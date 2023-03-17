@@ -1,11 +1,13 @@
 package irsa_test
 
 import (
+	"context"
 	"errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-	. "github.com/onsi/ginkgo"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
@@ -46,17 +48,17 @@ var _ = Describe("Update", func() {
 
 	When("the IAMServiceAccount exists", func() {
 		It("updates the role", func() {
-			stacks := []*cloudformation.Stack{
+			stacks := []*types.Stack{
 				{
 					StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
 				},
 			}
-			err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, stacks, false)
+			err := irsaManager.UpdateIAMServiceAccounts(context.Background(), serviceAccount, stacks, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
 			fakeStackManager.UpdateStackArgsForCall(0)
-			options := fakeStackManager.UpdateStackArgsForCall(0)
+			_, options := fakeStackManager.UpdateStackArgsForCall(0)
 			Expect(options.StackName).To(Equal("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"))
 			Expect(options.ChangeSetName).To(ContainSubstring("updating-policy"))
 			Expect(options.Description).To(Equal("updating policies for IAMServiceAccount default/test-sa"))
@@ -68,12 +70,12 @@ var _ = Describe("Update", func() {
 
 		When("in plan mode", func() {
 			It("does not trigger an update", func() {
-				stacks := []*cloudformation.Stack{
+				stacks := []*types.Stack{
 					{
 						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
 					},
 				}
-				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, stacks, true)
+				err := irsaManager.UpdateIAMServiceAccounts(context.Background(), serviceAccount, stacks, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(0))
@@ -82,7 +84,7 @@ var _ = Describe("Update", func() {
 
 		When("the service account doesn't exist", func() {
 			It("errors", func() {
-				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, []*cloudformation.Stack{}, false)
+				err := irsaManager.UpdateIAMServiceAccounts(context.Background(), serviceAccount, []*types.Stack{}, false)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeStackManager.UpdateStackCallCount()).To(BeZero())
 			})
@@ -90,19 +92,19 @@ var _ = Describe("Update", func() {
 
 		When("a custom role name was used during creation", func() {
 			It("uses that role name", func() {
-				stacks := []*cloudformation.Stack{
+				stacks := []*types.Stack{
 					{
 						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
 					},
 				}
 				fakeStackManager.GetStackTemplateReturns(stackTemplateWithRoles, nil)
 
-				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, stacks, false)
+				err := irsaManager.UpdateIAMServiceAccounts(context.Background(), serviceAccount, stacks, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
 				fakeStackManager.UpdateStackArgsForCall(0)
-				options := fakeStackManager.UpdateStackArgsForCall(0)
+				_, options := fakeStackManager.UpdateStackArgsForCall(0)
 				Expect(options.StackName).To(Equal("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"))
 				Expect(options.ChangeSetName).To(ContainSubstring("updating-policy"))
 				Expect(options.Description).To(Equal("updating policies for IAMServiceAccount default/test-sa"))
@@ -115,14 +117,14 @@ var _ = Describe("Update", func() {
 		})
 		When("GetStackTemplate errors", func() {
 			It("errors", func() {
-				stacks := []*cloudformation.Stack{
+				stacks := []*types.Stack{
 					{
 						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
 					},
 				}
 				fakeStackManager.GetStackTemplateReturns("", errors.New("nope"))
 
-				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, stacks, false)
+				err := irsaManager.UpdateIAMServiceAccounts(context.Background(), serviceAccount, stacks, false)
 				Expect(err).To(MatchError(ContainSubstring("failed to get stack template: nope")))
 			})
 		})

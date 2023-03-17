@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 )
@@ -22,7 +22,7 @@ var _ = Describe("completion", func() {
 		cmd := newMockCmd("zsh")
 		out, err := cmd.execute()
 		Expect(err).NotTo(HaveOccurred())
-		Expect(out).To(ContainSubstring("#compdef _eksctl eksctl"))
+		Expect(out).To(ContainSubstring("#compdef eksctl"))
 	})
 
 	It("with fish", func() {

@@ -2,26 +2,28 @@
 
 sponsored by [![Weaveworks](img/empty.svg#wwinline)](https://www.weave.works/) and built by [![Contributors](img/gophers.png#inline)](https://github.com/weaveworks/eksctl/graphs/contributors) on [![Github](img/empty.svg#gitinline)](https://github.com/weaveworks/eksctl)
 
-!!! tip "New for 2021"
-    Use `eksctl` to manage clusters which were created by other tools. Find out more [here](/usage/unowned-clusters).
+!!! tip "New for 2023"
+    `eksctl` now supports creating fully private clusters on [AWS Outposts](/usage/outposts).
+
+    `eksctl` now supports new regions - Zurich (`eu-central-2`), Spain (`eu-south-2`), Hyderabad (`ap-south-2`) and  Melbourne (`ap-southeast-4`).
 
 `eksctl` is a simple CLI tool for creating and managing clusters on EKS - Amazon's managed Kubernetes service for EC2.
 It is written in Go, uses CloudFormation, was created by [Weaveworks](https://www.weave.works/) and it welcomes
-contributions from the community. Create a basic cluster in minutes with just one command:
+contributions from the community.
 
- <h2 id="intro-code">
-```console
-eksctl create cluster
-```
-</h2>
+!!! example "Create a basic cluster in minutes with just one command"
+    ```
+    eksctl create cluster
+    ```
+    ![eksctl create cluster](img/eksctl-gopher.png){ align=right }
 
-A cluster will be created with default parameters:
+    A cluster will be created with default parameters:
 
-- exciting auto-generated name, e.g., `fabulous-mushroom-1527688624`
-- two `m5.large` worker nodes—this instance type suits most common use-cases, and is good value for money
-- use the official AWS [EKS AMI](https://github.com/awslabs/amazon-eks-ami)
-- `us-west-2` region
-- a dedicated VPC (check your quotas)
+    - exciting auto-generated name, e.g., `fabulous-mushroom-1527688624`
+    - two `m5.large` worker nodes (this instance type suits most common use-cases, and is good value for money)
+    - use the official AWS [EKS AMI](https://github.com/awslabs/amazon-eks-ami)
+    - `us-west-2` region
+    - a dedicated VPC (check your quotas)
 
 Example output:
 
@@ -55,9 +57,6 @@ $ eksctl create cluster
 [ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
 [✔]  EKS cluster "floral-unicorn-1540567338" in "us-west-2" region is ready
 ```
-
-_Need help? Join [Weave Community Slack][slackjoin]._
-[slackjoin]: https://slack.weave.works/
 
 Customize your cluster by using a config file. Just run
 
@@ -95,10 +94,5 @@ To learn more about how to create clusters and other features continue reading t
 
 [ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
-[![Coverage Status](https://coveralls.io/repos/github/weaveworks/eksctl/badge.svg?branch=master)](https://coveralls.io/github/weaveworks/eksctl?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/eksctl)](https://goreportcard.com/report/github.com/weaveworks/eksctl)
-![Gophers: E, K, S, C, T, & L](img/eksctl.png)
-
-!!! credits
-    _Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://github.com/matryer/gopherize.me)._
-
-    Site powered by [Netlify ©](https://netlify.com)
+_Need help? Join [Weave Community Slack][slackjoin]._
+[slackjoin]: https://slack.weave.works/

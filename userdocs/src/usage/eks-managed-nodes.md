@@ -6,7 +6,7 @@ An EKS managed node group is an autoscaling group and associated EC2 instances t
 
 **NEW** [Launch Template support for managed nodegroups](launch-template-support.md)
 
-!!!info
+???+ info
     The term "unmanaged nodegroups" has been used to refer to nodegroups that eksctl has supported since the beginning (represented via the `nodeGroups` field). The `ClusterConfig` file continues to use the `nodeGroups` field for defining unmanaged nodegroups, and managed nodegroups are defined with the `managedNodeGroups` field.
 
 ## Creating managed nodegroups
@@ -25,7 +25,7 @@ $ eksctl create cluster
 
 To create multiple managed nodegroups and have more control over the configuration, a config file can be used.
 
-!!!note
+???+ note
     Managed nodegroups do not have complete feature parity with unmanaged nodegroups.
 
 ```yaml
@@ -142,6 +142,38 @@ managedNodeGroups:
       /etc/eks/bootstrap.sh managed-cluster --kubelet-extra-args '--node-labels=eks.amazonaws.com/nodegroup=custom-ng,eks.amazonaws.com/nodegroup-image=ami-0e124de4755b2734d'
 ```
 
+If you are requesting an instance type that is only available in one zone (and the eksctl config requires
+specification of two) make sure to add the availability zone to your node group request:
+
+
+```yaml
+# cluster.yaml
+# A cluster with a managed nodegroup with "availabilityZones"
+---
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: flux-cluster
+  region: us-east-2
+  version: "1.23"
+ 
+availabilityZones: ["us-east-2b", "us-east-2c"]
+managedNodeGroups:
+  - name: workers
+    instanceType: hpc6a.48xlarge
+    minSize: 64
+    maxSize: 64
+    labels: { "fluxoperator": "true" }
+    availabilityZones: ["us-east-2b"]   
+    efaEnabled: true
+    placement:
+      groupName: eks-efa-testing
+```
+
+This can be true for instance types like [the Hpc6 family](https://aws.amazon.com/ec2/instance-types/hpc6/) that are only available
+in one zone.
 
 ### Existing clusters
 
@@ -183,6 +215,24 @@ To upgrade to a specific AMI release version instead of the latest version, pass
 eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release-version=1.19.6-20210310
 ```
 
+???+ note
+    If the managed nodes are deployed using custom AMIs, the following workflow must be followed in order to deploy a new version of the custom AMI.
+
+    - initial deployment of the nodegroup must be done using a launch template. e.g.
+      ```yaml
+      managedNodeGroups:
+        - name: launch-template-ng
+          launchTemplate:
+            id: lt-1234
+            version: "2" #optional (uses the default version of the launch template if unspecified)
+      ```
+    - create a new version of the custom AMI (using AWS EKS console).
+    - create a new launch template version with the new AMI ID (using AWS EKS console).
+    - upgrade the nodes to the new version of the launch template. e.g.
+      ```
+      eksctl upgrade nodegroup --name nodegroup-name --cluster cluster-name --launch-template-version new-template-version
+      ```
+
 ## Handling parallel upgrades for nodes
 Multiple managed nodes can be upgraded simultaneously. To configure parallel upgrades, define the `updateConfig` of a nodegroup when creating the nodegroup. An example `updateConfig` can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/15-managed-nodes.yaml).
 
@@ -193,13 +243,13 @@ Note that `maxUnavailable` cannot be higher than `maxSize`. Also, `maxUnavailabl
 This feature is only available for managed nodes.
 
 ## Updating managed nodegroups
-It is also possible to update specific fields of a managed nodegroup with the command `eksctl update nodegroup` without using `upgrade`.
 
-This new command currently only supports a few fields. It is intended to be used as a way to modify the configuration of a nodegroup without triggering an entire upgrade.
+`eksctl` allows updating the [UpdateConfig](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-eks-nodegroup-updateconfig.html) section of a managed nodegroup.
+This section defines two fields. `MaxUnavailable` and `MaxUnavailablePercentage`. Your nodegroups are unaffected during
+the update, thus downtime shouldn't be expected.
 
-Right now, it will only update upgrade configuration.
-
-The command `update nodegroup` should be used with a config file using the `--config-file` flag. If the config file contains fields that cannot be updated through `eksctl update nodegroup`, a log will inform you of all the fields that remained unchanged.
+The command `update nodegroup` should be used with a config file using the `--config-file` flag. The nodegroup should
+contain an `nodeGroup.updateConfig` section. More information can be found [here](https://eksctl.io/usage/schema/#nodeGroups-updateConfig).
 
 ## Nodegroup Health issues
 EKS Managed Nodegroups automatically checks the configuration of your nodegroup and nodes for health issues and reports
@@ -246,10 +296,7 @@ eksctl scale nodegroup --name=managed-ng-1 --cluster=managed-cluster --nodes=4 -
 EKS Managed Nodegroups are managed by AWS EKS and do not offer the same level of configuration as unmanaged nodegroups.
 The unsupported options are noted below.
 
-- Tags (managedNodeGroups[*].tags) in managed nodegroups apply to the EKS Nodegroup resource and to the EC2 instances launched as part of the nodegroup.
-They do not propagate to the provisioned Autoscaling Group like in unmanaged nodegroups.
 - `iam.instanceProfileARN` is not supported for managed nodegroups.
-- The `amiFamily` field supports only `AmazonLinux2`
 - `instancesDistribution` field is not supported
 - Full control over the node bootstrapping process and customization of the kubelet are not supported. This includes the
 following fields: `classicLoadBalancerNames`, `targetGroupARNs`, `clusterDNS` and `kubeletExtraConfig`.

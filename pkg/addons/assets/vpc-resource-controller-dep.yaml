@@ -38,7 +38,9 @@ spec:
           timeoutSeconds: 5
         name: vpc-resource-controller
         securityContext:
-          privileged: true
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          runAsUser: 1000
       hostNetwork: true
       affinity:
         nodeAffinity:

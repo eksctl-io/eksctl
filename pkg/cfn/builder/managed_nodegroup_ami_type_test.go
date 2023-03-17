@@ -1,12 +1,16 @@
 package builder
 
 import (
-	. "github.com/onsi/ginkgo/extensions/table"
+	"context"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
+
 	"github.com/weaveworks/goformation/v4"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 )
@@ -22,13 +26,14 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 	clusterConfig.Status = &api.ClusterStatus{
 		Endpoint: "https://test.com",
 	}
-	api.SetManagedNodeGroupDefaults(e.nodeGroup, clusterConfig.Metadata)
+	api.SetManagedNodeGroupDefaults(e.nodeGroup, clusterConfig.Metadata, false)
 	p := mockprovider.NewMockProvider()
 	fakeVPCImporter := new(vpcfakes.FakeImporter)
-	bootstrapper := nodebootstrap.NewManagedBootstrapper(clusterConfig, e.nodeGroup)
+	bootstrapper, err := nodebootstrap.NewManagedBootstrapper(clusterConfig, e.nodeGroup)
+	Expect(err).NotTo(HaveOccurred())
 	stack := NewManagedNodeGroup(p.EC2(), clusterConfig, e.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)
 
-	Expect(stack.AddAllResources()).To(Succeed())
+	Expect(stack.AddAllResources(context.Background())).To(Succeed())
 	bytes, err := stack.RenderJSON()
 	Expect(err).NotTo(HaveOccurred())
 
@@ -130,6 +135,27 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 			},
 		},
 		expectedAMIType: "BOTTLEROCKET_ARM_64",
+	}),
+	Entry("Bottlerocket ARM GPU instance type", amiTypeEntry{
+		nodeGroup: &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         "test",
+				AMIFamily:    api.NodeImageFamilyBottlerocket,
+				InstanceType: "g5g.xlarge",
+			},
+		},
+		expectedAMIType: "BOTTLEROCKET_ARM_64_NVIDIA",
+	}),
+
+	Entry("Bottlerocket x86 Nvidia GPU instance type", amiTypeEntry{
+		nodeGroup: &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         "test",
+				AMIFamily:    api.NodeImageFamilyBottlerocket,
+				InstanceType: "g4dn.xlarge",
+			},
+		},
+		expectedAMIType: "BOTTLEROCKET_x86_64_NVIDIA",
 	}),
 
 	Entry("non-native Ubuntu", amiTypeEntry{

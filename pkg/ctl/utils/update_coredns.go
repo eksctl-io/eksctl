@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -28,7 +30,7 @@ func updateCoreDNSCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func doUpdateCoreDNS(cmd *cmdutils.Cmd) error {
@@ -39,7 +41,8 @@ func doUpdateCoreDNS(cmd *cmdutils.Cmd) error {
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -58,7 +61,7 @@ func doUpdateCoreDNS(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	updateRequired, err := defaultaddons.UpdateCoreDNS(defaultaddons.AddonInput{
+	updateRequired, err := defaultaddons.UpdateCoreDNS(ctx, defaultaddons.AddonInput{
 		RawClient:           rawClient,
 		ControlPlaneVersion: kubernetesVersion,
 		Region:              meta.Region,

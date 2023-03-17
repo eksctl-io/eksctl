@@ -1,6 +1,7 @@
 package update
 
 import (
+	"context"
 	"errors"
 
 	"github.com/kris-nova/logger"
@@ -37,7 +38,7 @@ func updateIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster")
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 
 		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount to update")
 		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to update the iamserviceaccount")
@@ -50,7 +51,7 @@ func updateIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
 }
 
 func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
@@ -65,7 +66,8 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -79,12 +81,12 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	oidc, err := ctl.NewOpenIDConnectManager(cfg)
+	oidc, err := ctl.NewOpenIDConnectManager(ctx, cfg)
 	if err != nil {
 		return err
 	}
 
-	providerExists, err := oidc.CheckProviderExists()
+	providerExists, err := oidc.CheckProviderExists(ctx)
 	if err != nil {
 		return err
 	}
@@ -95,14 +97,17 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 	}
 	stackManager := ctl.NewStackManager(cfg)
 
+	filteredServiceAccounts := saFilter.FilterMatching(cfg.IAM.ServiceAccounts)
+	saFilter.LogInfo(cfg.IAM.ServiceAccounts)
+
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 
-	existingIAMStacks, err := stackManager.ListStacksMatching("eksctl-.*-addon-iamserviceaccount")
+	existingIAMStacks, err := stackManager.ListStacksMatching(ctx, "eksctl-.*-addon-iamserviceaccount")
 	if err != nil {
 		return err
 	}
 
-	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(cfg.IAM.ServiceAccounts, existingIAMStacks, cmd.Plan)
+	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(ctx, filteredServiceAccounts, existingIAMStacks, cmd.Plan)
 }

@@ -1,6 +1,6 @@
 # Define Container Runtime
 
-For AL2 ( AmazonLinux2 ) AMIs it's possible to set container runtime to `containerd`.
+For AL2 ( AmazonLinux2 ) and Windows AMIs, it's possible to set container runtime to `containerd`.
 
 ## Un-managed Nodes
 
@@ -30,18 +30,22 @@ _Note that there is no equivalent flag for setting the container runtime, this c
 At the time of this writing the following container runtime values are allowed:
 
 - containerd
-- dockerd
+- dockerd (docker for Windows)
 
 ## Managed Nodes
 
 For managed nodes we don't explicitly provide a bootstrap script, and thus it's up to the user
-to define a different runtime if they wish, using `overrideBootstrapCommand`:
+to define a different runtime if they wish, using `overrideBootstrapCommand`.
+The `overrideBootstrapCommand` option requires that you specify an AMI for the managed node group.
 
 ```yaml
 managedNodeGroups:
   - name: m-ng-1
+    ami: ami-XXXXXXXXXXXXXX
     instanceType: m5.large
     overrideBootstrapCommand: |
       #!/bin/bash
       /etc/eks/bootstrap.sh <cluster-name> <other flags> --container-runtime containerd
 ```
+For Windows managed nodes, you will need to use a custom launch template with an ami-id and pass in the required bootstrap arguments in the userdata.
+Read more on [creating a launch template](https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html), and [using a launch template with eksctl](launch-template-support.md).

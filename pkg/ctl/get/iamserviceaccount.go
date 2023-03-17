@@ -1,11 +1,13 @@
 package get
 
 import (
+	"context"
 	"os"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -33,8 +35,7 @@ func getIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
-
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		fs.StringVar(&namespace, "namespace", "", "namespace to look for iamserviceaccount")
 		fs.StringVar(&name, "name", "", "name of iamserviceaccount to get")
 
@@ -45,7 +46,7 @@ func getIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 // IAMServiceAccountOptions holds the configuration for the get
@@ -64,7 +65,8 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, options IAMServiceAccountOptions)
 		logger.Writer = os.Stderr
 	}
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -76,7 +78,7 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, options IAMServiceAccountOptions)
 
 	stackManager := ctl.NewStackManager(cfg)
 	irsaManager := irsa.New(cfg.Metadata.Name, stackManager, nil, nil)
-	serviceAccounts, err := irsaManager.Get(options.GetOptions)
+	serviceAccounts, err := irsaManager.Get(ctx, options.GetOptions)
 
 	if err != nil {
 		return err

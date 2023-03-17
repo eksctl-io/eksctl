@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -144,11 +144,11 @@ var _ = Describe("Kubernetes client wrappers", func() {
 			Expect(ct.Updated()).To(BeEmpty())
 			Expect(ct.UpdatedItems()).To(BeEmpty())
 
-			dsl, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).List(context.TODO(), metav1.ListOptions{})
+			dsl, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).List(context.Background(), metav1.ListOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dsl.Items).To(HaveLen(2))
 
-			awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
+			awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), "aws-node", metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
@@ -201,16 +201,16 @@ var _ = Describe("Kubernetes client wrappers", func() {
 			Expect(ct.UpdatedItems()).NotTo(BeEmpty())
 			Expect(ct.UpdatedItems()).To(HaveLen(1))
 
-			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), "test1", metav1.GetOptions{})
+			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.Background(), "test1", metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), "test2", metav1.GetOptions{})
+			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.Background(), "test2", metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Create(context.TODO(), saTest1, metav1.CreateOptions{})
+			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Create(context.Background(), saTest1, metav1.CreateOptions{})
 			Expect(err).To(HaveOccurred())
 
-			err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Delete(context.TODO(), "test1", metav1.DeleteOptions{})
+			err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Delete(context.Background(), "test1", metav1.DeleteOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			// saving a clientset instance results in objects being trackable,
@@ -218,9 +218,9 @@ var _ = Describe("Kubernetes client wrappers", func() {
 			// we need to find a way to fix this, the test is only to document
 			// this limitation
 			c := rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault)
-			err = c.Delete(context.TODO(), "test1", metav1.DeleteOptions{})
+			err = c.Delete(context.Background(), "test1", metav1.DeleteOptions{})
 			Expect(err).NotTo(HaveOccurred())
-			err = c.Delete(context.TODO(), "test1", metav1.DeleteOptions{})
+			err = c.Delete(context.Background(), "test1", metav1.DeleteOptions{})
 			Expect(err).To(HaveOccurred())
 
 			// however deletions of raw resources are trackable
@@ -228,7 +228,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 			Expect(err).NotTo(HaveOccurred())
 			_, err = rc.Helper.Delete(rc.Info.Namespace, rc.Info.Name)
 			Expect(err).NotTo(HaveOccurred())
-			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), "test1", metav1.GetOptions{})
+			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.Background(), "test1", metav1.GetOptions{})
 			Expect(err).To(HaveOccurred())
 		})
 

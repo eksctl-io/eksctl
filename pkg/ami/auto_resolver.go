@@ -1,10 +1,13 @@
 package ami
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 )
@@ -38,11 +41,11 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 		api.NodeImageFamilyWindowsServer2019FullContainer: {
 			ImageClassGeneral: fmt.Sprintf("Windows_Server-2019-English-Full-EKS_Optimized-%v-*", version),
 		},
-		api.NodeImageFamilyWindowsServer2004CoreContainer: {
-			ImageClassGeneral: fmt.Sprintf("Windows_Server-2004-English-Core-EKS_Optimized-%v-*", version),
+		api.NodeImageFamilyWindowsServer2022CoreContainer: {
+			ImageClassGeneral: fmt.Sprintf("Windows_Server-2022-English-Core-EKS_Optimized-%v-*", version),
 		},
-		api.NodeImageFamilyWindowsServer20H2CoreContainer: {
-			ImageClassGeneral: fmt.Sprintf("Windows_Server-20H2-English-Core-EKS_Optimized-%v-*", version),
+		api.NodeImageFamilyWindowsServer2022FullContainer: {
+			ImageClassGeneral: fmt.Sprintf("Windows_Server-2022-English-Full-EKS_Optimized-%v-*", version),
 		},
 	}
 }
@@ -65,12 +68,12 @@ func OwnerAccountID(imageFamily, region string) (string, error) {
 // AutoResolver resolves the AMi to the defaults for the region
 // by querying AWS EC2 API for the AMI to use
 type AutoResolver struct {
-	api ec2iface.EC2API
+	api awsapi.EC2
 }
 
 // Resolve will return an AMI to use based on the default AMI for
 // each region
-func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string) (string, error) {
+func (r *AutoResolver) Resolve(ctx context.Context, region, version, instanceType, imageFamily string) (string, error) {
 	logger.Debug("resolving AMI using AutoResolver for region %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
 
 	imageClasses := MakeImageSearchPatterns(version)[imageFamily]
@@ -99,7 +102,7 @@ func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string
 		return "", NewErrFailedResolution(region, version, instanceType, imageFamily)
 	}
 
-	id, err := FindImage(r.api, ownerAccount, namePattern)
+	id, err := FindImage(ctx, r.api, ownerAccount, namePattern)
 	if err != nil {
 		return "", fmt.Errorf("error getting AMI from EC2 API: %w. please verify that AMI Family is supported", err)
 	}

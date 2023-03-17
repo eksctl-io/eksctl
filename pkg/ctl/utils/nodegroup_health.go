@@ -1,9 +1,12 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/managed"
 
@@ -25,7 +28,7 @@ func nodeGroupHealthCmd(cmd *cmdutils.Cmd) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		fs.StringVarP(&nodeGroupName, "name", "n", "", "Name of the nodegroup")
 
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
@@ -33,13 +36,14 @@ func nodeGroupHealthCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func getNodeGroupHealth(cmd *cmdutils.Cmd, nodeGroupName string) error {
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -59,13 +63,12 @@ func getNodeGroupHealth(cmd *cmdutils.Cmd, nodeGroupName string) error {
 		return cmdutils.ErrMustBeSet("name")
 	}
 
-	if err := ctl.RefreshClusterStatus(cfg); err != nil {
-		return err
+	if cfg.IsControlPlaneOnOutposts() {
+		return errUnsupportedLocalCluster
 	}
-
-	stackCollection := manager.NewStackCollection(ctl.Provider, cfg)
-	managedService := managed.NewService(ctl.Provider.EKS(), ctl.Provider.SSM(), ctl.Provider.EC2(), stackCollection, cfg.Metadata.Name)
-	healthIssues, err := managedService.GetHealth(nodeGroupName)
+	stackCollection := manager.NewStackCollection(ctl.AWSProvider, cfg)
+	managedService := managed.NewService(ctl.AWSProvider.EKS(), ctl.AWSProvider.EC2(), stackCollection, cfg.Metadata.Name)
+	healthIssues, err := managedService.GetHealth(ctx, nodeGroupName)
 	if err != nil {
 		return err
 	}

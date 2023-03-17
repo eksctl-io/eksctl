@@ -1,19 +1,23 @@
 package builder
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 	. "github.com/benjamintf1/unmarshalledmatchers"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
+
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/weaveworks/goformation/v4"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
@@ -36,7 +40,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 	DescribeTable("Add resources", func(m *mngCase) {
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = "lt"
-		api.SetManagedNodeGroupDefaults(m.ng, clusterConfig.Metadata)
+		api.SetManagedNodeGroupDefaults(m.ng, clusterConfig.Metadata, false)
 		Expect(api.ValidateManagedNodeGroup(0, m.ng)).To(Succeed())
 
 		provider := mockprovider.NewMockProvider()
@@ -59,7 +63,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 		}
 
 		stack := NewManagedNodeGroup(provider.MockEC2(), clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, fakeVPCImporter)
-		err := stack.AddAllResources()
+		err := stack.AddAllResources(context.Background())
 		if m.errMsg != "" {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(m.errMsg))
@@ -97,6 +101,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 					Name:         "custom-ami",
 					InstanceType: "m5.xlarge",
 					AMI:          "ami-custom",
+					AMIFamily:    api.NodeImageFamilyAmazonLinux2,
 					OverrideBootstrapCommand: aws.String(`
 #!/bin/bash
 set -ex
@@ -121,19 +126,20 @@ API_SERVER_URL=https://test.com
 				},
 			},
 			mockFetcherFn: mockLaunchTemplate(func(input *ec2.DescribeLaunchTemplateVersionsInput) bool {
-				return *input.LaunchTemplateId == "lt-1234" && *input.Versions[0] == "$Default"
-			}, &ec2.ResponseLaunchTemplateData{
-				InstanceType: aws.String("t2.medium"),
+				return *input.LaunchTemplateId == "lt-1234" && input.Versions[0] == "$Default"
+			}, &ec2types.ResponseLaunchTemplateData{
+				InstanceType: ec2types.InstanceTypeT2Medium,
 				KeyName:      aws.String("key-name"),
 			}),
 
 			resourcesFilename: "launch_template.json",
 		}),
 
-		Entry("Launch Template With Additional Volumes", &mngCase{
+		Entry("With additionalVolumes", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
-					Name: "extra-volumes",
+					Name:         "extra-volumes",
+					InstanceType: api.DefaultNodeType,
 					AdditionalVolumes: []*api.VolumeMapping{
 						{
 							VolumeSize:      aws.Int(20),
@@ -148,10 +154,11 @@ API_SERVER_URL=https://test.com
 			resourcesFilename: "launch_template_additional_volumes.json",
 		}),
 
-		Entry("Launch Template with volumes missing volume size", &mngCase{
+		Entry("With additionalVolumes missing volume size", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
-					Name: "extra-volumes",
+					Name:         "extra-volumes",
+					InstanceType: api.DefaultNodeType,
 					AdditionalVolumes: []*api.VolumeMapping{
 						{
 							VolumeType:      aws.String(api.NodeVolumeTypeGP3),
@@ -175,10 +182,10 @@ API_SERVER_URL=https://test.com
 				},
 			},
 			mockFetcherFn: mockLaunchTemplate(func(input *ec2.DescribeLaunchTemplateVersionsInput) bool {
-				return *input.LaunchTemplateId == "lt-1234" && *input.Versions[0] == "2"
-			}, &ec2.ResponseLaunchTemplateData{
+				return *input.LaunchTemplateId == "lt-1234" && input.Versions[0] == "2"
+			}, &ec2types.ResponseLaunchTemplateData{
 				ImageId:      aws.String("ami-1234"),
-				InstanceType: aws.String("t2.medium"),
+				InstanceType: ec2types.InstanceTypeT2Medium,
 				KeyName:      aws.String("key-name"),
 				UserData:     aws.String("bootstrap.sh"),
 			}),
@@ -189,7 +196,8 @@ API_SERVER_URL=https://test.com
 		Entry("SSH enabled", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
-					Name: "ssh-enabled",
+					Name:         "ssh-enabled",
+					InstanceType: api.DefaultNodeType,
 					SSH: &api.NodeGroupSSH{
 						Allow:         api.Enabled(),
 						PublicKeyName: aws.String("test-keypair"),
@@ -209,6 +217,7 @@ API_SERVER_URL=https://test.com
 						Allow:         api.Disabled(),
 						PublicKeyName: aws.String("test-keypair"),
 					},
+					InstanceType: api.DefaultNodeType,
 				},
 			},
 			hasUserData: true,
@@ -241,7 +250,7 @@ API_SERVER_URL=https://test.com
 			resourcesFilename: "spot.json",
 		}),
 
-		Entry("Without instance type set", &mngCase{
+		Entry("Without instance type set in the launch template", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
 					Name: "template-custom-ami",
@@ -252,8 +261,8 @@ API_SERVER_URL=https://test.com
 				},
 			},
 			mockFetcherFn: mockLaunchTemplate(func(input *ec2.DescribeLaunchTemplateVersionsInput) bool {
-				return *input.LaunchTemplateId == "lt-1234" && *input.Versions[0] == "2"
-			}, &ec2.ResponseLaunchTemplateData{
+				return *input.LaunchTemplateId == "lt-1234" && input.Versions[0] == "2"
+			}, &ec2types.ResponseLaunchTemplateData{
 				ImageId:  aws.String("ami-1234"),
 				KeyName:  aws.String("key-name"),
 				UserData: aws.String("bootstrap.sh"),
@@ -261,7 +270,7 @@ API_SERVER_URL=https://test.com
 			errMsg: "instance type must be set in the launch template",
 		}),
 
-		Entry("With instance type set", &mngCase{
+		Entry("With instance type set in the launch template", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
 					Name: "template-custom-ami",
@@ -273,10 +282,10 @@ API_SERVER_URL=https://test.com
 				},
 			},
 			mockFetcherFn: mockLaunchTemplate(func(input *ec2.DescribeLaunchTemplateVersionsInput) bool {
-				return *input.LaunchTemplateId == "lt-1234" && *input.Versions[0] == "2"
-			}, &ec2.ResponseLaunchTemplateData{
+				return *input.LaunchTemplateId == "lt-1234" && input.Versions[0] == "2"
+			}, &ec2types.ResponseLaunchTemplateData{
 				ImageId:      aws.String("ami-1234"),
-				InstanceType: aws.String("m5.large"),
+				InstanceType: ec2types.InstanceTypeM5Large,
 				KeyName:      aws.String("key-name"),
 				UserData:     aws.String("bootstrap.sh"),
 			}),
@@ -295,8 +304,8 @@ API_SERVER_URL=https://test.com
 				},
 			},
 			mockFetcherFn: mockLaunchTemplate(func(input *ec2.DescribeLaunchTemplateVersionsInput) bool {
-				return *input.LaunchTemplateId == "lt-1234" && *input.Versions[0] == "3"
-			}, &ec2.ResponseLaunchTemplateData{
+				return *input.LaunchTemplateId == "lt-1234" && input.Versions[0] == "3"
+			}, &ec2types.ResponseLaunchTemplateData{
 				ImageId:  aws.String("ami-1234"),
 				KeyName:  aws.String("key-name"),
 				UserData: aws.String("bootstrap.sh"),
@@ -326,14 +335,74 @@ API_SERVER_URL=https://test.com
 			},
 			resourcesFilename: "bottlerocket_volume.json",
 		}),
+
+		Entry("Bottlerocket with additional encrypted volume", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:            "bottlerocket-additional-encrypted-volume",
+					AMIFamily:       api.NodeImageFamilyBottlerocket,
+					InstanceType:    "m5.xlarge",
+					VolumeType:      aws.String(api.NodeVolumeTypeGP3),
+					VolumeEncrypted: aws.Bool(true),
+				},
+			},
+			resourcesFilename: "bottlerocket_additional_encrypted_volume.json",
+		}),
+
+		Entry("CapacityReservationID is set", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "capacity-test",
+					AMIFamily:    api.NodeImageFamilyBottlerocket,
+					InstanceType: "m5.xlarge",
+					VolumeSize:   aws.Int(142),
+					CapacityReservation: &api.CapacityReservation{
+						CapacityReservationTarget: &api.CapacityReservationTarget{
+							CapacityReservationID: aws.String("res-id"),
+						},
+					},
+				},
+			},
+			resourcesFilename: "launch_template_with_capacity_reservation_id.json",
+		}),
+		Entry("CapacityReservationResourceGroupAN is set", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "capacity-test",
+					AMIFamily:    api.NodeImageFamilyBottlerocket,
+					InstanceType: "m5.xlarge",
+					VolumeSize:   aws.Int(142),
+					CapacityReservation: &api.CapacityReservation{
+						CapacityReservationTarget: &api.CapacityReservationTarget{
+							CapacityReservationResourceGroupARN: aws.String("group-arn"),
+						},
+					},
+				},
+			},
+			resourcesFilename: "launch_template_with_capacity_reservation_resource_group_arn.json",
+		}),
+		Entry("CapacityReservationPreference is set", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "capacity-test",
+					AMIFamily:    api.NodeImageFamilyBottlerocket,
+					InstanceType: "m5.xlarge",
+					VolumeSize:   aws.Int(142),
+					CapacityReservation: &api.CapacityReservation{
+						CapacityReservationPreference: aws.String("open"),
+					},
+				},
+			},
+			resourcesFilename: "launch_template_with_capacity_reservation_preference.json",
+		}),
 	)
 })
 
-func mockLaunchTemplate(matcher func(*ec2.DescribeLaunchTemplateVersionsInput) bool, lt *ec2.ResponseLaunchTemplateData) func(provider *mockprovider.MockProvider) {
+func mockLaunchTemplate(matcher func(*ec2.DescribeLaunchTemplateVersionsInput) bool, lt *ec2types.ResponseLaunchTemplateData) func(provider *mockprovider.MockProvider) {
 	return func(provider *mockprovider.MockProvider) {
-		provider.MockEC2().On("DescribeLaunchTemplateVersions", mock.MatchedBy(matcher)).
+		provider.MockEC2().On("DescribeLaunchTemplateVersions", mock.Anything, mock.MatchedBy(matcher)).
 			Return(&ec2.DescribeLaunchTemplateVersionsOutput{
-				LaunchTemplateVersions: []*ec2.LaunchTemplateVersion{
+				LaunchTemplateVersions: []ec2types.LaunchTemplateVersion{
 					{
 						LaunchTemplateData: lt,
 					},

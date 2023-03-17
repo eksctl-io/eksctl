@@ -3,7 +3,7 @@ package defaultaddons_test
 import (
 	"context"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -15,7 +15,6 @@ import (
 var _ = Describe("default addons - coredns", func() {
 	var (
 		rawClient           *testutils.FakeRawClient
-		ct                  *testutils.CollectionTracker
 		input               da.AddonInput
 		region              string
 		controlPlaneVersion string
@@ -25,10 +24,9 @@ var _ = Describe("default addons - coredns", func() {
 	BeforeEach(func() {
 		rawClient = testutils.NewFakeRawClient()
 		rawClient.UseUnionTracker = true
-		ct = rawClient.Collection
 		region = "eu-west-2"
-		controlPlaneVersion = "1.18.x"
-		kubernetesVersion = "1.17"
+		controlPlaneVersion = "1.23.x"
+		kubernetesVersion = "1.22"
 
 		input = da.AddonInput{
 			RawClient:           rawClient,
@@ -43,12 +41,12 @@ var _ = Describe("default addons - coredns", func() {
 		)
 
 		BeforeEach(func() {
-			createCoreDNSFromTestSample(rawClient, ct, kubernetesVersion)
-			expectedImageTag = "v1.7.0-eksbuild.1"
+			createCoreDNSFromTestSample(rawClient, kubernetesVersion)
+			expectedImageTag = "v1.8.7-eksbuild.2"
 		})
 
 		It("updates coredns to the correct version", func() {
-			_, err := da.UpdateCoreDNS(input, false)
+			_, err := da.UpdateCoreDNS(context.Background(), input, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			updateReqs := []string{
@@ -73,18 +71,18 @@ var _ = Describe("default addons - coredns", func() {
 
 	Context("IsCoreDNSUpToDate", func() {
 		BeforeEach(func() {
-			createCoreDNSFromTestSample(rawClient, ct, kubernetesVersion)
-			_, err := da.UpdateCoreDNS(input, false)
+			createCoreDNSFromTestSample(rawClient, kubernetesVersion)
+			_, err := da.UpdateCoreDNS(context.Background(), input, false)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("when CoreDNS is NOT up to date", func() {
 			BeforeEach(func() {
-				input.ControlPlaneVersion = "1.19.x"
+				input.ControlPlaneVersion = "1.22.x"
 			})
 
 			It("reports 'false'", func() {
-				isUpToDate, err := da.IsCoreDNSUpToDate(input)
+				isUpToDate, err := da.IsCoreDNSUpToDate(context.Background(), input)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(isUpToDate).To(Equal(false))
 			})
@@ -92,7 +90,7 @@ var _ = Describe("default addons - coredns", func() {
 
 		Context("when CoreDNS is up to date", func() {
 			It("reports 'true'", func() {
-				isUpToDate, err := da.IsCoreDNSUpToDate(input)
+				isUpToDate, err := da.IsCoreDNSUpToDate(context.Background(), input)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(isUpToDate).To(Equal(true))
 			})
@@ -100,7 +98,7 @@ var _ = Describe("default addons - coredns", func() {
 	})
 })
 
-func createCoreDNSFromTestSample(rawClient *testutils.FakeRawClient, ct *testutils.CollectionTracker, kubernetesVersion string) {
+func createCoreDNSFromTestSample(rawClient *testutils.FakeRawClient, kubernetesVersion string) {
 	samplePath := "testdata/sample-" + kubernetesVersion + ".json"
 	sampleAddons := testutils.LoadSamples(samplePath)
 
@@ -133,7 +131,7 @@ func createCoreDNSFromTestSample(rawClient *testutils.FakeRawClient, ct *testuti
 }
 
 func coreDNSImage(rawClient *testutils.FakeRawClient) string {
-	coreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), da.CoreDNS, metav1.GetOptions{})
+	coreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.Background(), da.CoreDNS, metav1.GetOptions{})
 
 	Expect(err).NotTo(HaveOccurred())
 	Expect(coreDNS).NotTo(BeNil())

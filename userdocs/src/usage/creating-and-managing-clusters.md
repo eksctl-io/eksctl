@@ -11,11 +11,11 @@ eksctl create cluster
 That will create an EKS cluster in your default region (as specified by your AWS CLI configuration) with one managed
 nodegroup containing two m5.large nodes.
 
-!!! note
+???+ note
     eksctl now creates a managed nodegroup by default when a config file isn't used. To create a self-managed nodegroup,
     pass `--managed=false` to `eksctl create cluster` or `eksctl create nodegroup`.
 
-!!! note
+???+ note
     In `us-east-1` you are likely to get `UnsupportedAvailabilityZoneException`. If you do, copy the suggested zones and pass `--zones` flag, e.g. `eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1d`. This may occur in other regions, but less likely. You shouldn't need to use `--zone` flag otherwise.
 
 After the cluster has been created, the appropriate kubernetes configuration will be added to your kubeconfig file.
@@ -101,7 +101,7 @@ nodeGroups:
         imageBuilder: true
 ```
 
-!!! note
+???+ note
     The cluster name or nodegroup name can contain only alphanumeric characters (case-sensitive) and hyphens. It must start with an alphabetic character and can't be longer than 128 characters otherwise you will get a validation error. More information can be found [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-using-console-create-stack-parameters.html)
 
 To delete this cluster, run:
@@ -110,12 +110,19 @@ To delete this cluster, run:
 eksctl delete cluster -f cluster.yaml
 ```
 
-!!!note
+???+ note
 
     Without the `--wait` flag, this will only issue a delete operation to the cluster's CloudFormation stack and won't wait for its deletion.
 
     In some cases, AWS resources using the cluster or its VPC may cause cluster deletion to fail. To ensure any deletion errors are propagated in `eksctl delete cluster`, the `--wait` flag must be used.
     If your delete fails or you forget the wait flag, you may have to go to the CloudFormation GUI and delete the eks stacks from there.
+
+???+ note
+    When deleting a cluster with nodegroups, in some scenarios, Pod Disruption Budget (PDB) policies can prevent nodes from being removed successfully from nodepools. E.g. a cluster with `aws-ebs-csi-driver` installed, by default, spins off two pods while having a PDB policy that allows at most one pod to be unavailable at a time. This will make the other pod unevictable during deletion. To successfully delete the cluster, one should use `disable-nodegroup-eviction` flag. This will bypass checking PDB policies.
+
+    ```
+    eksctl delete cluster -f cluster.yaml --disable-nodegroup-eviction
+    ```
 
 See [`examples/`](https://github.com/weaveworks/eksctl/tree/master/examples) directory for more sample config files.
 

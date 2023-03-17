@@ -1,6 +1,7 @@
 package karpenter
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -19,6 +20,14 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
+// FakeInstaller defines a functionality to create Karpenter installing task.
+//
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_karpenter_installer.go . InstallerTaskCreator
+type InstallerTaskCreator interface {
+	Create(ctx context.Context) error
+}
+
 // Installer contains all necessary dependencies for the Karpenter Install tasks and others.
 type Installer struct {
 	StackManager       manager.StackManager
@@ -33,7 +42,7 @@ type Installer struct {
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
 
 // NewInstaller creates a new Karpenter installer.
-func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubeclient.Interface, restClientGetter *kubernetes.SimpleRESTClientGetter) (*Installer, error) {
+func NewInstaller(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubeclient.Interface, restClientGetter *kubernetes.SimpleRESTClientGetter) (InstallerTaskCreator, error) {
 	helmInstaller, err := helm.NewInstaller(helm.Options{
 		Namespace:        karpenter.DefaultNamespace,
 		RESTClientGetter: restClientGetter,
@@ -46,12 +55,12 @@ func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager
 		Namespace:     karpenter.DefaultNamespace,
 		ClusterConfig: cfg,
 	})
-	oidc, err := ctl.NewOpenIDConnectManager(cfg)
+	oidc, err := ctl.NewOpenIDConnectManager(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	oidcProviderExists, err := oidc.CheckProviderExists()
+	oidcProviderExists, err := oidc.CheckProviderExists(ctx)
 	if err != nil {
 		return nil, err
 	}

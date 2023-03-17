@@ -1,101 +1,157 @@
+# Project information
 site_name: eksctl
 site_description: 'The official CLI for Amazon EKS'
 site_author: 'eksctl authors'
+
+# Repository
 repo_name: 'weaveworks/eksctl'
 repo_url: 'https://github.com/weaveworks/eksctl'
 docs_dir: src
 edit_uri: ""
 
-extra_css:
-    - extra.css
-    - usage/schema.css
-
-nav:
-    - Introduction: introduction.md
-    - Usage:
-        - Clusters:
-            - usage/creating-and-managing-clusters.md
-            - usage/unowned-clusters.md
-            - usage/eks-connector.md
-            - usage/customizing-the-kubelet.md
-            - usage/cloudwatch-cluster-logging.md
-            - usage/eks-private-cluster.md
-            - usage/addons.md
-            - usage/emr-access.md
-            - usage/fargate-support.md
-            - usage/cluster-upgrade.md
-            - usage/addon-upgrade.md
-        - Nodegroups:
-            - usage/managing-nodegroups.md
-            - usage/nodegroup-upgrade.md
-            - usage/nodegroup-with-custom-subnet.md
-            - usage/nodegroup-customize-dns.md
-            - usage/eks-managed-nodes.md
-            - usage/launch-template-support.md
-            - usage/instance-selector.md
-            - usage/spot-instances.md
-            - usage/gpu-support.md
-            - usage/arm-support.md
-            - usage/autoscaling.md
-            - usage/custom-ami-support.md
-            - usage/container-runtime.md
-            - usage/windows-worker-nodes.md
-            - usage/nodegroup-additional-volume-mappings.md
-        - GitOps:
-            - usage/gitops-v2.md
-        - Security:
-            - usage/security.md
-            - usage/kms-encryption.md
-        - Networking:
-            - usage/vpc-networking.md
-            - usage/vpc-configuration.md
-            - usage/vpc-subnet-settings.md
-            - usage/vpc-cluster-access.md
-            - usage/vpc-ip-family.md
-        - IAM:
-            - usage/minimum-iam-policies.md
-            - usage/iam-permissions-boundary.md
-            - usage/iam-policies.md
-            - usage/iam-identity-mappings.md
-            - usage/iamserviceaccounts.md
-        - usage/dry-run.md
-        - usage/schema.md
-        - usage/eksctl-anywhere.md
-        - usage/eksctl-karpenter.md
-        - usage/troubleshooting.md
-        - FAQ: usage/faq.md
-    - Examples: "https://github.com/weaveworks/eksctl/tree/main/examples"
-    - Community: community.md
-
-extra:
-    social:
-    - icon: fontawesome/brands/twitter
-      link: https://twitter.com/weaveworks
-
+# Configuration
 theme:
     name: 'material'
     custom_dir: 'theme'
     favicon: 'assets/images/favicon.png'
     logo: 'assets/images/logo.png'
     font:
-        text: 'Montserrat'
+        text: 'Segoe UI'
         code: 'Roboto Mono'
     palette:
-      primary: 'white'
-      accent: 'light blue'
-      scheme: preference
+      - media: "(prefers-color-scheme: light)"
+        scheme: default
+        toggle:
+          icon: fontawesome/solid/moon
+          name: Switch to dark mode
+        primary: white
+        accent: indigo
+      - media: "(prefers-color-scheme: dark)"
+        scheme: slate
+        toggle:
+          icon: material/weather-sunny
+          name: Switch to light mode
+        primary: black
+        accent: indigo
     highlightjs: true
     hljs_languages:
         - yaml
         - json
         - bash
+    features:
+      - header.autohide
+      - navigation.instant
+      - navigation.sections
+      - navigation.top
+      - search.highlight
+      - search.share
+      - search.suggest
+      - content.code.annotate
+      - content.tooltips
+      - content.tabs.link
+      - content.code.copy
+    
+# Plugins
+plugins:
+  - search
+  - glightbox
+  - minify:
+      minify_html: true
 
+# Customization
+extra:
+    social:
+    - icon: fontawesome/brands/facebook
+      link: https://www.facebook.com/WeaveworksInc/
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/weaveworks
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/weaveworks
+    - icon: fontawesome/brands/slack
+      link: https://slack.weave.works/
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/c/WeaveWorksInc
+    analytics:
+      provider: google
+      property: G-EQKYCQY5Q
+
+extra_css:
+  - stylesheets/extra.css
+  - stylesheets/schema.css
+
+# Extensions
 markdown_extensions:
-    - toc:
-        permalink: true
-    - admonition
-    - codehilite:
-        linenums: true
-    - pymdownx.superfences
-    - pymdownx.tasklist:
-        custom_checkbox: true
+  - toc:
+      permalink: true
+  - admonition
+  - codehilite:
+      linenums: true
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - attr_list
+  - md_in_html
+
+# Page tree
+nav:
+  - Introduction: introduction.md
+  - Usage:
+      - Clusters:
+          - usage/creating-and-managing-clusters.md
+          - usage/outposts.md
+          - usage/unowned-clusters.md
+          - usage/eks-connector.md
+          - usage/customizing-the-kubelet.md
+          - usage/cloudwatch-cluster-logging.md
+          - usage/eks-private-cluster.md
+          - usage/addons.md
+          - usage/emr-access.md
+          - usage/fargate-support.md
+          - usage/cluster-upgrade.md
+          - usage/addon-upgrade.md
+      - Nodegroups:
+          - usage/managing-nodegroups.md
+          - usage/nodegroup-upgrade.md
+          - usage/nodegroup-with-custom-subnet.md
+          - usage/nodegroup-customize-dns.md
+          - usage/nodegroup-taints.md
+          - usage/eks-managed-nodes.md
+          - usage/launch-template-support.md
+          - usage/instance-selector.md
+          - usage/spot-instances.md
+          - usage/gpu-support.md
+          - usage/arm-support.md
+          - usage/autoscaling.md
+          - usage/custom-ami-support.md
+          - usage/container-runtime.md
+          - usage/windows-worker-nodes.md
+          - usage/nodegroup-additional-volume-mappings.md
+      - GitOps:
+          - usage/gitops-v2.md
+      - Security:
+          - usage/security.md
+          - usage/kms-encryption.md
+      - Networking:
+          - usage/vpc-networking.md
+          - usage/vpc-configuration.md
+          - usage/vpc-subnet-settings.md
+          - usage/vpc-cluster-access.md
+          - usage/vpc-ip-family.md
+      - IAM:
+          - usage/minimum-iam-policies.md
+          - usage/iam-permissions-boundary.md
+          - usage/iam-policies.md
+          - usage/iam-identity-mappings.md
+          - usage/iamserviceaccounts.md
+      - usage/dry-run.md
+      - usage/schema.md
+      - usage/eksctl-anywhere.md
+      - usage/eksctl-karpenter.md
+      - usage/troubleshooting.md
+      - FAQ: usage/faq.md
+  - Announcements:
+    - announcements/managed-nodegroups-announcement.md
+    - announcements/nodegroup-override-announcement.md
+  - Examples: "https://github.com/weaveworks/eksctl/tree/main/examples"
+  - Community: community.md

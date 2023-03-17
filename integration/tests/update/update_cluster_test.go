@@ -10,28 +10,30 @@ import (
 	"strings"
 	"testing"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/hashicorp/go-version"
+
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/pkg/addons"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
 const (
-	k8sUpdatePollInterval = "2s"
-	k8sUpdatePollTimeout  = "3m"
+	k8sUpdatePollInterval = "30s"
+	k8sUpdatePollTimeout  = "10m"
 )
 
 var (
@@ -50,85 +52,76 @@ func TestUpdate(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
+var (
+	eksVersion     string
+	nextEKSVersion string
+)
+
+const (
+	initNG = "kp-ng-0"
+)
+
+var _ = BeforeSuite(func() {
+	params.KubeconfigTemp = false
+	if params.KubeconfigPath == "" {
+		wd, _ := os.Getwd()
+		f, _ := os.CreateTemp(wd, "kubeconfig-")
+		params.KubeconfigPath = f.Name()
+		params.KubeconfigTemp = true
+	}
+
+	if params.SkipCreate {
+		fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", defaultCluster)
+		if !file.Exists(params.KubeconfigPath) {
+			// Generate the Kubernetes configuration that eksctl create
+			// would have generated otherwise:
+			cmd := params.EksctlUtilsCmd.WithArgs(
+				"write-kubeconfig",
+				"--verbose", "4",
+				"--cluster", defaultCluster,
+				"--kubeconfig", params.KubeconfigPath,
+			)
+			Expect(cmd).To(RunSuccessfully())
+		}
+		return
+	}
+
+	fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
+
+	supportedVersions := api.SupportedVersions()
+	if len(supportedVersions) < 2 {
+		Fail("Update cluster test requires at least two supported EKS versions")
+	}
+
+	// Use the lowest supported version
+	eksVersion, nextEKSVersion = supportedVersions[0], supportedVersions[1]
+
+	cmd := params.EksctlCreateCmd.WithArgs(
+		"cluster",
+		"--verbose", "4",
+		"--name", defaultCluster,
+		"--tags", "alpha.eksctl.io/description=eksctl integration test",
+		"--nodegroup-name", initNG,
+		"--node-labels", "ng-name="+initNG,
+		"--nodes", "1",
+		"--node-type", "t3.large",
+		"--version", eksVersion,
+		"--kubeconfig", params.KubeconfigPath,
+	)
+	Expect(cmd).To(RunSuccessfully())
+})
 var _ = Describe("(Integration) Update addons", func() {
-	const (
-		initNG = "kp-ng-0"
-	)
-	var (
-		eksVersion     string
-		nextEKSVersion string
-	)
 
-	BeforeSuite(func() {
-		params.KubeconfigTemp = false
-		if params.KubeconfigPath == "" {
-			wd, _ := os.Getwd()
-			f, _ := os.CreateTemp(wd, "kubeconfig-")
-			params.KubeconfigPath = f.Name()
-			params.KubeconfigTemp = true
-		}
-
-		if params.SkipCreate {
-			fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", defaultCluster)
-			if !file.Exists(params.KubeconfigPath) {
-				// Generate the Kubernetes configuration that eksctl create
-				// would have generated otherwise:
-				cmd := params.EksctlUtilsCmd.WithArgs(
-					"write-kubeconfig",
-					"--verbose", "4",
-					"--cluster", defaultCluster,
-					"--kubeconfig", params.KubeconfigPath,
-				)
-				Expect(cmd).To(RunSuccessfully())
-			}
-			return
-		}
-
-		fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
-
-		supportedVersions := api.SupportedVersions()
-		if len(supportedVersions) < 2 {
-			Fail("Update cluster test requires at least two supported EKS versions")
-		}
-
-		// Use the lowest supported version
-		eksVersion, nextEKSVersion = supportedVersions[0], supportedVersions[1]
-
-		cmd := params.EksctlCreateCmd.WithArgs(
-			"cluster",
-			"--verbose", "4",
-			"--name", defaultCluster,
-			"--tags", "alpha.eksctl.io/description=eksctl integration test",
-			"--nodegroup-name", initNG,
-			"--node-labels", "ng-name="+initNG,
-			"--nodes", "1",
-			"--node-type", "t3.large",
-			"--version", eksVersion,
-			"--kubeconfig", params.KubeconfigPath,
-		)
-		Expect(cmd).To(RunSuccessfully())
-	})
-
-	AfterSuite(func() {
-		params.DeleteClusters()
-		gexec.KillAndWait()
-		if params.KubeconfigTemp {
-			os.Remove(params.KubeconfigPath)
-		}
-		os.RemoveAll(params.TestDirectory)
-	})
-
-	Context(fmt.Sprintf("cluster with version %s", eksVersion), func() {
+	Context("update cluster and addons", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
-			awsSession := NewSession(params.Region)
+			config := NewConfig(params.Region)
 
-			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, eksVersion))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initNG)))
+			Expect(config).To(HaveExistingCluster(params.ClusterName, string(types.ClusterStatusActive), eksVersion))
+			Expect(config).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
+			Expect(config).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initNG)))
 		})
 
-		It(fmt.Sprintf("should upgrade the control plane to version %s", nextEKSVersion), func() {
-
+		It("should upgrade the control plane to the next version", func() {
 			cmd := params.EksctlUpgradeCmd.
 				WithArgs(
 					"cluster",
@@ -161,20 +154,22 @@ var _ = Describe("(Integration) Update addons", func() {
 			)
 			Expect(cmd).To(RunSuccessfully())
 
-			rawClient := getRawClient()
-			kubernetesVersion, err := rawClient.ServerVersion()
-			Expect(err).NotTo(HaveOccurred())
+			rawClient := getRawClient(context.Background())
 			Eventually(func() string {
 				daemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "kube-proxy", metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				kubeProxyVersion, err := addons.ImageTag(daemonSet.Spec.Template.Spec.Containers[0].Image)
 				Expect(err).NotTo(HaveOccurred())
-				return kubeProxyVersion
-			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(ContainSubstring(fmt.Sprintf("v%s-eksbuild.", kubernetesVersion)))
+				v, err := version.NewVersion(kubeProxyVersion)
+				Expect(err).NotTo(HaveOccurred())
+				segments := v.Segments()
+				Expect(len(segments)).To(BeNumerically(">=", 2))
+				return fmt.Sprintf("%d.%d", segments[0], segments[1])
+			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextEKSVersion))
 		})
 
 		It("should upgrade aws-node", func() {
-			rawClient := getRawClient()
+			rawClient := getRawClient(context.Background())
 			getAWSNodeVersion := func() string {
 				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
@@ -208,17 +203,26 @@ var _ = Describe("(Integration) Update addons", func() {
 	})
 })
 
-func getRawClient() *kubewrapper.RawClient {
+var _ = AfterSuite(func() {
+	params.DeleteClusters()
+	gexec.KillAndWait()
+	if params.KubeconfigTemp {
+		os.Remove(params.KubeconfigPath)
+	}
+	os.RemoveAll(params.TestDirectory)
+})
+
+func getRawClient(ctx context.Context) *kubewrapper.RawClient {
 	cfg := &api.ClusterConfig{
 		Metadata: &api.ClusterMeta{
 			Name:   params.ClusterName,
 			Region: params.Region,
 		},
 	}
-	ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+	ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = ctl.RefreshClusterStatus(cfg)
+	err = ctl.RefreshClusterStatus(ctx, cfg)
 	Expect(err).ShouldNot(HaveOccurred())
 	rawClient, err := ctl.NewRawClient(cfg)
 	Expect(err).NotTo(HaveOccurred())

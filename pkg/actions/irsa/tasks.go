@@ -1,6 +1,7 @@
 package irsa
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -13,7 +14,6 @@ import (
 )
 
 func NewUpdateIAMServiceAccountTask(clusterName string, sa *api.ClusterIAMServiceAccount, stackManager manager.StackManager, oidcManager *iamoidc.OpenIDConnectManager) (*tasks.TaskTree, error) {
-
 	rs := builder.NewIAMRoleResourceSetForServiceAccount(sa, oidcManager)
 	err := rs.AddAllResources()
 	if err != nil {
@@ -58,7 +58,7 @@ func (t *updateIAMServiceAccountTask) Do(errorCh chan error) error {
 	}()
 
 	desc := fmt.Sprintf("updating policies for IAMServiceAccount %s/%s", t.sa.Namespace, t.sa.Name)
-	return t.stackManager.UpdateStack(manager.UpdateStackOptions{
+	return t.stackManager.UpdateStack(context.TODO(), manager.UpdateStackOptions{
 		StackName:     stackName,
 		ChangeSetName: fmt.Sprintf("updating-policy-%s", uuid.NewString()),
 		Description:   desc,

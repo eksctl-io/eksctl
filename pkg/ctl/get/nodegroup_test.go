@@ -3,7 +3,7 @@ package get
 import (
 	"os"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -55,7 +55,6 @@ kind: ClusterConfig
 metadata:
   name: test-nodegroup-cluster-config
   region: us-west-2
-  version: '1.20'
 
 managedNodeGroups:
   - name: managed-ng-1

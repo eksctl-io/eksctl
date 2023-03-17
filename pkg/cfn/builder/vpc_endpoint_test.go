@@ -1,24 +1,31 @@
 package builder
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"sort"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/aws/aws-sdk-go-v2/service/outposts"
+	outpoststypes "github.com/aws/aws-sdk-go-v2/service/outposts/types"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
-	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/vpc"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
+	_ "embed"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 type vpcResourceSetCase struct {
@@ -43,7 +50,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			}
 		}
 		if vc.clusterConfig.VPC.ID == "" {
-			Expect(vpc.SetSubnets(vc.clusterConfig.VPC, vc.clusterConfig.AvailabilityZones)).To(Succeed())
+			Expect(vpc.SetSubnets(vc.clusterConfig.VPC, vc.clusterConfig.AvailabilityZones, nil)).To(Succeed())
 		}
 
 		var provider api.ClusterProvider
@@ -54,11 +61,11 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		}
 
 		rs := newResourceSet()
-		var vpcResourceSet VPCResourceSet = NewIPv4VPCResourceSet(rs, vc.clusterConfig, provider.EC2())
+		var vpcResourceSet VPCResourceSet = NewIPv4VPCResourceSet(rs, vc.clusterConfig, provider.EC2(), false)
 		if vc.clusterConfig.VPC.ID != "" {
 			vpcResourceSet = NewExistingVPCResourceSet(rs, vc.clusterConfig, provider.EC2())
 		}
-		vpcID, subnetDetails, err := vpcResourceSet.CreateTemplate()
+		vpcID, subnetDetails, err := vpcResourceSet.CreateTemplate(context.Background())
 		if vc.err != "" {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("subnets must be associated with a non-main route table"))
@@ -68,7 +75,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		Expect(err).NotTo(HaveOccurred())
 		if vc.clusterConfig.PrivateCluster.Enabled {
 			vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider.EC2(), provider.Region(), rs, vc.clusterConfig, vpcID, subnetDetails.Private, gfnt.NewString("sg-test"))
-			Expect(vpcEndpointResourceSet.AddResources()).To(Succeed())
+			Expect(vpcEndpointResourceSet.AddResources(context.Background())).To(Succeed())
 			s3Endpoint := rs.template.Resources["VPCEndpointS3"].(*gfnec2.VPCEndpoint)
 			routeIdsSlice, ok := s3Endpoint.RouteTableIds.Raw().(gfnt.Slice)
 			Expect(ok).To(BeTrue())
@@ -104,7 +111,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			},
 			createProvider: func() api.ClusterProvider {
 				provider := mockprovider.NewMockProvider()
-				mockDescribeVPCEndpoints(provider, false)
+				mockDescribeVPCEndpoints(provider, false, false)
 				return provider
 			},
 			expectedFile: "vpc_private.json",
@@ -121,7 +128,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			},
 			createProvider: func() api.ClusterProvider {
 				provider := mockprovider.NewMockProvider()
-				mockDescribeVPCEndpoints(provider, true)
+				mockDescribeVPCEndpoints(provider, true, false)
 				provider.SetRegion("cn-north-1")
 				return provider
 			},
@@ -183,7 +190,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			createProvider: func() api.ClusterProvider {
 				provider := mockprovider.NewMockProvider()
 				mockDescribeVPC(provider)
-				mockDescribeVPCEndpoints(provider, false)
+				mockDescribeVPCEndpoints(provider, false, false)
 				mockDescribeRouteTables(provider, []string{"subnet-custom1", "subnet-custom2"})
 				return provider
 			},
@@ -216,7 +223,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			createProvider: func() api.ClusterProvider {
 				provider := mockprovider.NewMockProvider()
 				mockDescribeVPC(provider)
-				mockDescribeVPCEndpoints(provider, false)
+				mockDescribeVPCEndpoints(provider, false, false)
 				mockDescribeRouteTablesSame(provider, []string{"subnet-custom1", "subnet-custom2"})
 				return provider
 			},
@@ -247,11 +254,11 @@ var _ = Describe("VPC Endpoint Builder", func() {
 				provider := mockprovider.NewMockProvider()
 				mockDescribeVPC(provider)
 				output := &ec2.DescribeRouteTablesOutput{
-					RouteTables: []*ec2.RouteTable{
+					RouteTables: []ec2types.RouteTable{
 						{
 							VpcId:        aws.String("vpc-custom"),
 							RouteTableId: aws.String("rt-main"),
-							Associations: []*ec2.RouteTableAssociation{
+							Associations: []ec2types.RouteTableAssociation{
 								{
 									RouteTableId:            aws.String("rt-main"),
 									RouteTableAssociationId: aws.String("rtbassoc-custom1"),
@@ -267,323 +274,85 @@ var _ = Describe("VPC Endpoint Builder", func() {
 						},
 					},
 				}
-				provider.MockEC2().On("DescribeRouteTables", mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
+				provider.MockEC2().On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 					return len(input.Filters) > 0
 				})).Return(output, nil)
 				return provider
 			},
 			err: "subnets must be associated with a non-main route table",
 		}),
+
+		Entry("Private cluster on Outposts", vpcResourceSetCase{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Region: "us-west-2",
+				},
+				VPC: api.NewClusterVPC(false),
+				PrivateCluster: &api.PrivateCluster{
+					Enabled: true,
+				},
+				Outpost: &api.Outpost{
+					ControlPlaneOutpostARN:   "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+					ControlPlaneInstanceType: "m5.xlarge",
+				},
+				AvailabilityZones: []string{"us-west-2a"},
+			},
+			createProvider: func() api.ClusterProvider {
+				provider := mockprovider.NewMockProvider()
+				mockDescribeVPCEndpoints(provider, false, true)
+				mockOutposts(provider, "arn:aws:outposts:us-west-2:1234:outpost/op-1234", "us-west-2a")
+				return provider
+			},
+			expectedFile: "vpc_private_outposts.json",
+		}),
+
+		Entry("Private cluster on Outposts in a China region", vpcResourceSetCase{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Region: "cn-north-1",
+				},
+				VPC: api.NewClusterVPC(false),
+				PrivateCluster: &api.PrivateCluster{
+					Enabled: true,
+				},
+				Outpost: &api.Outpost{
+					ControlPlaneOutpostARN:   "arn:aws:outposts:cn-north-1:1234:outpost/op-1234",
+					ControlPlaneInstanceType: "m5.xlarge",
+				},
+				AvailabilityZones: []string{"cn-north-1a"},
+			},
+			createProvider: func() api.ClusterProvider {
+				provider := mockprovider.NewMockProvider()
+				mockDescribeVPCEndpoints(provider, true, true)
+				mockOutposts(provider, "arn:aws:outposts:cn-north-1:1234:outpost/op-1234", "cn-north-1a")
+				provider.SetRegion("cn-north-1")
+				return provider
+			},
+			expectedFile: "vpc_private_outposts_china.json",
+		}),
 	)
 })
 
-var serviceDetailsJSON = `
-{
-  "ServiceNames": [
-    "com.amazonaws.us-west-2.ec2",
-    "com.amazonaws.us-west-2.ecr.api",
-    "com.amazonaws.us-west-2.ecr.dkr",
-    "com.amazonaws.us-west-2.s3",
-    "com.amazonaws.us-west-2.sts"
-  ],
-  "ServiceDetails": [
-    {
-      "ServiceType": [
-        {
-          "ServiceType": "Interface"
-        }
-      ],
-      "Tags": [],
-      "ManagesVpcEndpoints": false,
-      "PrivateDnsName": "ec2.us-west-2.amazonaws.com",
-      "ServiceName": "com.amazonaws.us-west-2.ec2",
-      "VpcEndpointPolicySupported": true,
-      "ServiceId": "vpce-svc-0ee6723c76642b3d8",
-      "Owner": "amazon",
-      "AvailabilityZones": [
-        "us-west-2a",
-        "us-west-2b",
-        "us-west-2c"
-      ],
-      "AcceptanceRequired": false,
-      "BaseEndpointDnsNames": [
-        "ec2.us-west-2.vpce.amazonaws.com"
-      ]
-    },
-    {
-      "ServiceType": [
-        {
-          "ServiceType": "Interface"
-        }
-      ],
-      "Tags": [],
-      "ManagesVpcEndpoints": false,
-      "PrivateDnsName": "api.ecr.us-west-2.amazonaws.com",
-      "ServiceName": "com.amazonaws.us-west-2.ecr.api",
-      "VpcEndpointPolicySupported": true,
-      "ServiceId": "vpce-svc-07d1f428f072fd172",
-      "Owner": "amazon",
-      "AvailabilityZones": [
-        "us-west-2a",
-        "us-west-2b",
-        "us-west-2c",
-        "us-west-2d"
-      ],
-      "AcceptanceRequired": false,
-      "BaseEndpointDnsNames": [
-        "api.ecr.us-west-2.vpce.amazonaws.com"
-      ]
-    },
-    {
-      "ServiceType": [
-        {
-          "ServiceType": "Interface"
-        }
-      ],
-      "Tags": [],
-      "ManagesVpcEndpoints": false,
-      "PrivateDnsName": "*.dkr.ecr.us-west-2.amazonaws.com",
-      "ServiceName": "com.amazonaws.us-west-2.ecr.dkr",
-      "VpcEndpointPolicySupported": true,
-      "ServiceId": "vpce-svc-09d74a28015a69002",
-      "Owner": "amazon",
-      "AvailabilityZones": [
-        "us-west-2a",
-        "us-west-2b",
-        "us-west-2c",
-        "us-west-2d"
-      ],
-      "AcceptanceRequired": false,
-      "BaseEndpointDnsNames": [
-        "dkr.ecr.us-west-2.vpce.amazonaws.com"
-      ]
-    },
-    {
-      "ServiceType": [
-        {
-          "ServiceType": "Gateway"
-        }
-      ],
-      "Tags": [],
-      "ManagesVpcEndpoints": false,
-      "AcceptanceRequired": false,
-      "ServiceName": "com.amazonaws.us-west-2.s3",
-      "VpcEndpointPolicySupported": true,
-      "ServiceId": "vpce-svc-0001be97e1865c74e",
-      "Owner": "amazon",
-      "AvailabilityZones": [
-        "us-west-2a",
-        "us-west-2b",
-        "us-west-2c",
-        "us-west-2d"
-      ],
-      "BaseEndpointDnsNames": [
-        "s3.us-west-2.amazonaws.com"
-      ]
-    },
-    {
-      "ServiceType": [
-        {
-          "ServiceType": "Interface"
-        }
-      ],
-      "Tags": [],
-      "ManagesVpcEndpoints": false,
-      "AcceptanceRequired": false,
-      "ServiceName": "com.amazonaws.us-west-2.s3",
-      "VpcEndpointPolicySupported": true,
-      "ServiceId": "vpce-svc-0b5d83f29260cde0d",
-      "Owner": "amazon",
-      "AvailabilityZones": [
-        "us-west-2a",
-        "us-west-2b",
-        "us-west-2c",
-        "us-west-2d"
-      ],
-      "BaseEndpointDnsNames": [
-        "s3.us-west-2.amazonaws.com"
-      ]
-    },
-    {
-      "ServiceType": [
-        {
-          "ServiceType": "Interface"
-        }
-      ],
-      "Tags": [],
-      "ManagesVpcEndpoints": false,
-      "PrivateDnsName": "sts.us-west-2.amazonaws.com",
-      "ServiceName": "com.amazonaws.us-west-2.sts",
-      "VpcEndpointPolicySupported": true,
-      "ServiceId": "vpce-svc-06681ce20e9a3e8c4",
-      "Owner": "amazon",
-      "AvailabilityZones": [
-        "us-west-2a",
-        "us-west-2b",
-        "us-west-2c"
-      ],
-      "AcceptanceRequired": false,
-      "BaseEndpointDnsNames": [
-        "sts.us-west-2.vpce.amazonaws.com"
-      ]
-    },
-    {
-      "ServiceType": [
-        {
-          "ServiceType": "Gateway"
-        }
-      ],
-      "Tags": [],
-      "ManagesVpcEndpoints": false,
-      "AcceptanceRequired": false,
-      "ServiceName": "com.amazonaws.us-west-2.ec2",
-      "VpcEndpointPolicySupported": true,
-      "ServiceId": "vpce-svc-non-existing-endpoint-type",
-      "Owner": "amazon",
-      "AvailabilityZones": [
-        "us-west-2a",
-        "us-west-2b",
-        "us-west-2c",
-        "us-west-2d"
-      ],
-      "BaseEndpointDnsNames": [
-        "ec2.us-west-2.amazonaws.com"
-      ]
-    }
-  ]
-}
-`
-var serviceDetailsJSONChina = `
-{
-  "ServiceNames": [
-    "cn.com.amazonaws.cn-north-1.ec2",
-    "cn.com.amazonaws.cn-north-1.ecr.api",
-    "cn.com.amazonaws.cn-north-1.ecr.dkr",
-    "com.amazonaws.cn-north-1.s3",
-    "cn.com.amazonaws.cn-north-1.sts"
-  ],
-  "ServiceDetails": [
-    {
-      "ServiceType": [
-        {
-          "ServiceType": "Interface"
-        }
-      ],
-      "Tags": [],
-      "ManagesVpcEndpoints": false,
-      "PrivateDnsName": "ec2.cn-north-1.amazonaws.com.cn",
-      "ServiceName": "cn.com.amazonaws.cn-north-1.ec2",
-      "VpcEndpointPolicySupported": true,
-      "ServiceId": "vpce-svc-0ee6723c76642b3d8",
-      "Owner": "amazon",
-      "AvailabilityZones": [
-        "cn-north-1a",
-        "cn-north-1b"
-      ],
-      "AcceptanceRequired": false,
-      "BaseEndpointDnsNames": [
-        "ec2.cn-north-1.vpce.amazonaws.com.cn"
-      ]
-    },
-    {
-      "ServiceType": [
-        {
-          "ServiceType": "Interface"
-        }
-      ],
-      "Tags": [],
-      "ManagesVpcEndpoints": false,
-      "PrivateDnsName": "api.ecr.cn-north-1.amazonaws.com.cn",
-      "ServiceName": "cn.com.amazonaws.cn-north-1.ecr.api",
-      "VpcEndpointPolicySupported": true,
-      "ServiceId": "vpce-svc-07d1f428f072fd172",
-      "Owner": "amazon",
-      "AvailabilityZones": [
-        "cn-north-1a",
-        "cn-north-1b"
-      ],
-      "AcceptanceRequired": false,
-      "BaseEndpointDnsNames": [
-        "api.ecr.cn-north-1.vpce.amazonaws.com.cn"
-      ]
-    },
-    {
-      "ServiceType": [
-        {
-          "ServiceType": "Interface"
-        }
-      ],
-      "Tags": [],
-      "ManagesVpcEndpoints": false,
-      "PrivateDnsName": "*.dkr.ecr.cn-north-1.amazonaws.com.cn",
-      "ServiceName": "cn.com.amazonaws.cn-north-1.ecr.dkr",
-      "VpcEndpointPolicySupported": true,
-      "ServiceId": "vpce-svc-09d74a28015a69002",
-      "Owner": "amazon",
-      "AvailabilityZones": [
-        "cn-north-1a",
-        "cn-north-1b"
-      ],
-      "AcceptanceRequired": false,
-      "BaseEndpointDnsNames": [
-        "dkr.ecr.cn-north-1.vpce.amazonaws.com.cn"
-      ]
-    },
-    {
-      "ServiceType": [
-        {
-          "ServiceType": "Gateway"
-        }
-      ],
-      "Tags": [],
-      "ManagesVpcEndpoints": false,
-      "AcceptanceRequired": false,
-      "ServiceName": "com.amazonaws.cn-north-1.s3",
-      "VpcEndpointPolicySupported": true,
-      "ServiceId": "vpce-svc-0001be97e1865c74e",
-      "Owner": "amazon",
-      "AvailabilityZones": [
-        "cn-north-1a",
-        "cn-north-1b"
-      ],
-      "BaseEndpointDnsNames": [
-        "s3.cn-north-1.amazonaws.com"
-      ]
-    },
-    {
-      "ServiceType": [
-        {
-          "ServiceType": "Interface"
-        }
-      ],
-      "Tags": [],
-      "ManagesVpcEndpoints": false,
-      "PrivateDnsName": "sts.cn-north-1.amazonaws.com.cn",
-      "ServiceName": "cn.com.amazonaws.cn-north-1.sts",
-      "VpcEndpointPolicySupported": true,
-      "ServiceId": "vpce-svc-06681ce20e9a3e8c4",
-      "Owner": "amazon",
-      "AvailabilityZones": [
-        "cn-north-1a",
-        "cn-north-1b"
-      ],
-      "AcceptanceRequired": false,
-      "BaseEndpointDnsNames": [
-        "sts.cn-north-1.vpce.amazonaws.com.cn"
-      ]
-    }
-  ]
-}
-`
+//go:embed testdata/service_details.json
+var serviceDetailsJSON []byte
+
+//go:embed testdata/service_details_china.json
+var serviceDetailsJSONChina []byte
+
+//go:embed testdata/service_details_outposts.json
+var serviceDetailsOutpostsJSON []byte
+
+//go:embed testdata/service_details_outposts_china.json
+var serviceDetailsOutpostsChinaJSON []byte
 
 func mockDescribeVPC(provider *mockprovider.MockProvider) {
-	provider.MockEC2().On("DescribeVpcs", &awsec2.DescribeVpcsInput{
-		VpcIds: aws.StringSlice([]string{"vpc-custom"}),
-	}).Return(&awsec2.DescribeVpcsOutput{
-		Vpcs: []*awsec2.Vpc{
+	provider.MockEC2().On("DescribeVpcs", mock.Anything, &ec2.DescribeVpcsInput{
+		VpcIds: []string{"vpc-custom"},
+	}).Return(&ec2.DescribeVpcsOutput{
+		Vpcs: []ec2types.Vpc{
 			{
 				VpcId: aws.String("vpc-custom"),
-				Ipv6CidrBlockAssociationSet: []*awsec2.VpcIpv6CidrBlockAssociation{
+				Ipv6CidrBlockAssociationSet: []ec2types.VpcIpv6CidrBlockAssociation{
 					{
 						Ipv6CidrBlock: aws.String("foo"),
 					},
@@ -593,32 +362,57 @@ func mockDescribeVPC(provider *mockprovider.MockProvider) {
 	}, nil)
 }
 
-func mockDescribeVPCEndpoints(provider *mockprovider.MockProvider, china bool) {
-	var detailsJSON = serviceDetailsJSON
-	if china {
+func mockDescribeVPCEndpoints(provider *mockprovider.MockProvider, china, outposts bool) {
+	var detailsJSON []byte
+	switch {
+	case outposts && china:
+		detailsJSON = serviceDetailsOutpostsChinaJSON
+	case outposts:
+		detailsJSON = serviceDetailsOutpostsJSON
+	case china:
 		detailsJSON = serviceDetailsJSONChina
+	default:
+		detailsJSON = serviceDetailsJSON
 	}
 
 	var output *ec2.DescribeVpcEndpointServicesOutput
-	Expect(json.Unmarshal([]byte(detailsJSON), &output)).To(Succeed())
+	Expect(json.Unmarshal(detailsJSON, &output)).To(Succeed())
 
-	provider.MockEC2().On("DescribeVpcEndpointServices", mock.MatchedBy(func(e *ec2.DescribeVpcEndpointServicesInput) bool {
-		return len(e.ServiceNames) == 5
+	provider.MockEC2().On("DescribeVpcEndpointServices", mock.Anything, mock.MatchedBy(func(e *ec2.DescribeVpcEndpointServicesInput) bool {
+		return reflect.DeepEqual(e.ServiceNames, output.ServiceNames)
 	})).Return(output, nil)
+}
 
+func mockOutposts(provider *mockprovider.MockProvider, outpostARN, az string) {
+	provider.MockOutposts().On("GetOutpost", mock.Anything, &outposts.GetOutpostInput{
+		OutpostId: aws.String(outpostARN),
+	}).Return(&outposts.GetOutpostOutput{
+		Outpost: &outpoststypes.Outpost{
+			AvailabilityZone: aws.String(az),
+		},
+	}, nil)
+	provider.MockOutposts().On("GetOutpostInstanceTypes", mock.Anything, &outposts.GetOutpostInstanceTypesInput{
+		OutpostId: aws.String(outpostARN),
+	}).Return(&outposts.GetOutpostInstanceTypesOutput{
+		InstanceTypes: []outpoststypes.InstanceTypeItem{
+			{
+				InstanceType: aws.String("m5.xlarge"),
+			},
+		},
+	}, nil)
 }
 
 func mockDescribeRouteTables(provider *mockprovider.MockProvider, subnetIDs []string) {
 	output := &ec2.DescribeRouteTablesOutput{
-		RouteTables: make([]*ec2.RouteTable, len(subnetIDs)),
+		RouteTables: make([]ec2types.RouteTable, len(subnetIDs)),
 	}
 
 	for i, subnetID := range subnetIDs {
 		rtID := aws.String(fmt.Sprintf("rtb-custom-%d", i+1))
-		output.RouteTables[i] = &ec2.RouteTable{
+		output.RouteTables[i] = ec2types.RouteTable{
 			VpcId:        aws.String("vpc-custom"),
 			RouteTableId: rtID,
-			Associations: []*ec2.RouteTableAssociation{
+			Associations: []ec2types.RouteTableAssociation{
 				{
 					RouteTableId:            rtID,
 					SubnetId:                aws.String(subnetID),
@@ -629,22 +423,22 @@ func mockDescribeRouteTables(provider *mockprovider.MockProvider, subnetIDs []st
 		}
 	}
 
-	provider.MockEC2().On("DescribeRouteTables", mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
+	provider.MockEC2().On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 		return len(input.Filters) > 0
 	})).Return(output, nil)
 }
 
 func mockDescribeRouteTablesSame(provider *mockprovider.MockProvider, subnetIDs []string) {
 	output := &ec2.DescribeRouteTablesOutput{
-		RouteTables: make([]*ec2.RouteTable, len(subnetIDs)),
+		RouteTables: make([]ec2types.RouteTable, len(subnetIDs)),
 	}
 
 	for i, subnetID := range subnetIDs {
 		rtID := aws.String("rtb-custom-1")
-		output.RouteTables[i] = &ec2.RouteTable{
+		output.RouteTables[i] = ec2types.RouteTable{
 			VpcId:        aws.String("vpc-custom"),
 			RouteTableId: rtID,
-			Associations: []*ec2.RouteTableAssociation{
+			Associations: []ec2types.RouteTableAssociation{
 				{
 					RouteTableId:            rtID,
 					SubnetId:                aws.String(subnetID),
@@ -655,7 +449,7 @@ func mockDescribeRouteTablesSame(provider *mockprovider.MockProvider, subnetIDs 
 		}
 	}
 
-	provider.MockEC2().On("DescribeRouteTables", mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
+	provider.MockEC2().On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 		return len(input.Filters) > 0
 	})).Return(output, nil)
 }

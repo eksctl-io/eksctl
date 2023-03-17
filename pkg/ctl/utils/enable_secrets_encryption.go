@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -32,7 +33,7 @@ func enableSecretsEncryptionWithHandler(cmd *cmdutils.Cmd, handler func(*cmdutil
 		return handler(cmd, encryptExistingSecrets)
 	}
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlag(fs, cfg.Metadata)
@@ -53,7 +54,8 @@ func enableSecretsEncryptionCmd(cmd *cmdutils.Cmd) {
 func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encryptExistingSecrets bool) error {
 	clusterConfig := cmd.ClusterConfig
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -62,15 +64,11 @@ func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encryptExistingSecrets bool) e
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
 
-	if err := ctl.RefreshClusterStatus(clusterConfig); err != nil {
-		return err
-	}
-
 	if err := api.ValidateSecretsEncryption(clusterConfig); err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), ctl.Provider.WaitTimeout())
+	ctx, cancel := context.WithTimeout(context.Background(), ctl.AWSProvider.WaitTimeout())
 	defer cancel()
 
 	if err := ctl.EnableKMSEncryption(ctx, clusterConfig); err != nil {

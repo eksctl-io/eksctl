@@ -1,12 +1,14 @@
 package deregister
 
 import (
+	"context"
+	"fmt"
 	"strings"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/connector"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -28,22 +30,23 @@ func deregisterClusterCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 
 }
 
 func deregisterCluster(cmd *cmdutils.Cmd, clusterName string) error {
-	clusterProvider, err := eks.New(&cmd.ProviderConfig, nil)
+	ctx := context.Background()
+	clusterProvider, err := eks.New(ctx, &cmd.ProviderConfig, nil)
 	if err != nil {
 		return err
 	}
 
 	c := connector.EKSConnector{
-		Provider: clusterProvider.Provider,
+		Provider: clusterProvider.AWSProvider,
 	}
 
-	if err := c.DeregisterCluster(clusterName); err != nil {
-		return errors.Wrap(err, "error deregistering cluster")
+	if err := c.DeregisterCluster(ctx, clusterName); err != nil {
+		return fmt.Errorf("error deregistering cluster: %w", err)
 	}
 
 	logger.Info("unregistered cluster %q successfully", clusterName)

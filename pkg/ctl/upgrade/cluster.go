@@ -1,6 +1,7 @@
 package upgrade
 
 import (
+	"context"
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/actions/cluster"
@@ -30,7 +31,7 @@ func upgradeClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 	cmd.SetDescription("cluster", "Upgrade control plane to the next version",
 		"Upgrade control plane to the next Kubernetes version if available. Will also perform any updates needed in the cluster stack if resources are missing.")
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
@@ -58,7 +59,8 @@ func upgradeClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 // DoUpgradeCluster made public so that it can be shared with update/cluster.go until this is deprecated
 // TODO Once `eksctl update cluster` is officially deprecated this can be made package private again
 func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -72,10 +74,10 @@ func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
 		logger.Warning("NOTE: cluster VPC (subnets, routing & NAT Gateway) configuration changes are not yet implemented")
 	}
 
-	c, err := cluster.New(cfg, ctl)
+	c, err := cluster.New(ctx, cfg, ctl)
 	if err != nil {
 		return err
 	}
 
-	return c.Upgrade(cmd.Plan)
+	return c.Upgrade(ctx, cmd.Plan)
 }

@@ -1,11 +1,11 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/aws/aws-sdk-go/service/eks"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/pkg/errors"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
@@ -13,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -24,7 +25,7 @@ type ManagedNodeGroupResourceSet struct {
 	forceAddCNIPolicy     bool
 	nodeGroup             *api.ManagedNodeGroup
 	launchTemplateFetcher *LaunchTemplateFetcher
-	ec2API                ec2iface.EC2API
+	ec2API                awsapi.EC2
 	vpcImporter           vpc.Importer
 	bootstrapper          nodebootstrap.Bootstrapper
 	*resourceSet
@@ -32,8 +33,14 @@ type ManagedNodeGroupResourceSet struct {
 
 const ManagedNodeGroupResourceName = "ManagedNodeGroup"
 
+// Windows AMI types are not in sdk-v2 yet, so the constants here are temporary; will remove after sdk is updated
+const AMITypesWindows2019FullX8664 ekstypes.AMITypes = "WINDOWS_FULL_2019_x86_64"
+const AMITypesWindows2019CoreX8664 ekstypes.AMITypes = "WINDOWS_CORE_2019_x86_64"
+const AMITypesWindows2022FullX8664 ekstypes.AMITypes = "WINDOWS_FULL_2022_x86_64"
+const AMITypesWindows2022CoreX8664 ekstypes.AMITypes = "WINDOWS_CORE_2022_x86_64"
+
 // NewManagedNodeGroup creates a new ManagedNodeGroupResourceSet
-func NewManagedNodeGroup(ec2API ec2iface.EC2API, cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *ManagedNodeGroupResourceSet {
+func NewManagedNodeGroup(ec2API awsapi.EC2, cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *ManagedNodeGroupResourceSet {
 	return &ManagedNodeGroupResourceSet{
 		clusterConfig:         cluster,
 		forceAddCNIPolicy:     forceAddCNIPolicy,
@@ -47,7 +54,7 @@ func NewManagedNodeGroup(ec2API ec2iface.EC2API, cluster *api.ClusterConfig, nod
 }
 
 // AddAllResources adds all required CloudFormation resources
-func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
+func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error {
 	m.resourceSet.template.Description = fmt.Sprintf(
 		"%s (SSH access: %v) %s",
 		"EKS Managed Nodes",
@@ -66,7 +73,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		nodeRole = gfnt.NewString(NormalizeARN(m.nodeGroup.IAM.InstanceRoleARN))
 	}
 
-	subnets, err := AssignSubnets(m.nodeGroup.NodeGroupBase, m.vpcImporter, m.clusterConfig, m.ec2API)
+	subnets, err := AssignSubnets(ctx, m.nodeGroup, m.vpcImporter, m.clusterConfig, m.ec2API)
 	if err != nil {
 		return err
 	}
@@ -127,13 +134,13 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	instanceTypes := m.nodeGroup.InstanceTypeList()
 
 	makeAMIType := func() *gfnt.Value {
-		return gfnt.NewString(getAMIType(m.nodeGroup, selectManagedInstanceType(m.nodeGroup)))
+		return gfnt.NewString(string(getAMIType(m.nodeGroup, selectManagedInstanceType(m.nodeGroup))))
 	}
 
 	var launchTemplate *gfneks.Nodegroup_LaunchTemplateSpecification
 
 	if m.nodeGroup.LaunchTemplate != nil {
-		launchTemplateData, err := m.launchTemplateFetcher.Fetch(m.nodeGroup.LaunchTemplate)
+		launchTemplateData, err := m.launchTemplateFetcher.Fetch(ctx, m.nodeGroup.LaunchTemplate)
 		if err != nil {
 			return err
 		}
@@ -149,18 +156,18 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		}
 
 		if launchTemplateData.ImageId == nil {
-			if launchTemplateData.InstanceType == nil {
+			if launchTemplateData.InstanceType == "" {
 				managedResource.AmiType = makeAMIType()
 			} else {
-				managedResource.AmiType = gfnt.NewString(getAMIType(m.nodeGroup, *launchTemplateData.InstanceType))
+				managedResource.AmiType = gfnt.NewString(string(getAMIType(m.nodeGroup, string(launchTemplateData.InstanceType))))
 			}
 		}
 
-		if launchTemplateData.InstanceType == nil {
+		if launchTemplateData.InstanceType == "" {
 			managedResource.InstanceTypes = gfnt.NewStringSlice(instanceTypes...)
 		}
 	} else {
-		launchTemplateData, err := m.makeLaunchTemplateData()
+		launchTemplateData, err := m.makeLaunchTemplateData(ctx)
 		if err != nil {
 			return err
 		}
@@ -186,14 +193,14 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 func mapTaints(taints []api.NodeGroupTaint) ([]gfneks.Nodegroup_Taint, error) {
 	var ret []gfneks.Nodegroup_Taint
 
-	mapEffect := func(effect corev1.TaintEffect) string {
+	mapEffect := func(effect corev1.TaintEffect) ekstypes.TaintEffect {
 		switch effect {
 		case corev1.TaintEffectNoSchedule:
-			return eks.TaintEffectNoSchedule
+			return ekstypes.TaintEffectNoSchedule
 		case corev1.TaintEffectPreferNoSchedule:
-			return eks.TaintEffectPreferNoSchedule
+			return ekstypes.TaintEffectPreferNoSchedule
 		case corev1.TaintEffectNoExecute:
-			return eks.TaintEffectNoExecute
+			return ekstypes.TaintEffectNoExecute
 		default:
 			return ""
 		}
@@ -207,7 +214,7 @@ func mapTaints(taints []api.NodeGroupTaint) ([]gfneks.Nodegroup_Taint, error) {
 		ret = append(ret, gfneks.Nodegroup_Taint{
 			Key:    gfnt.NewString(t.Key),
 			Value:  gfnt.NewString(t.Value),
-			Effect: gfnt.NewString(effect),
+			Effect: gfnt.NewString(string(effect)),
 		})
 	}
 	return ret, nil
@@ -225,10 +232,10 @@ func selectManagedInstanceType(ng *api.ManagedNodeGroup) string {
 	return ng.InstanceType
 }
 
-func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, ng *api.ManagedNodeGroup) error {
+func validateLaunchTemplate(launchTemplateData *ec2types.ResponseLaunchTemplateData, ng *api.ManagedNodeGroup) error {
 	const mngFieldName = "managedNodeGroup"
 
-	if launchTemplateData.InstanceType == nil {
+	if launchTemplateData.InstanceType == "" {
 		if len(ng.InstanceTypes) == 0 {
 			return errors.Errorf("instance type must be set in the launch template if %s.instanceTypes is not specified", mngFieldName)
 		}
@@ -260,31 +267,50 @@ func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, 
 	return nil
 }
 
-func getAMIType(ng *api.ManagedNodeGroup, instanceType string) string {
+func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes {
 	amiTypeMapping := map[string]struct {
-		X86x64 string
-		GPU    string
-		ARM    string
+		X86x64 ekstypes.AMITypes
+		X86GPU ekstypes.AMITypes
+		ARM    ekstypes.AMITypes
+		ARMGPU ekstypes.AMITypes
 	}{
 		api.NodeImageFamilyAmazonLinux2: {
-			X86x64: eks.AMITypesAl2X8664,
-			GPU:    eks.AMITypesAl2X8664Gpu,
-			ARM:    eks.AMITypesAl2Arm64,
+			X86x64: ekstypes.AMITypesAl2X8664,
+			X86GPU: ekstypes.AMITypesAl2X8664Gpu,
+			ARM:    ekstypes.AMITypesAl2Arm64,
 		},
 		api.NodeImageFamilyBottlerocket: {
-			X86x64: eks.AMITypesBottlerocketX8664,
-			ARM:    eks.AMITypesBottlerocketArm64,
+			X86x64: ekstypes.AMITypesBottlerocketX8664,
+			X86GPU: ekstypes.AMITypesBottlerocketX8664Nvidia,
+			ARM:    ekstypes.AMITypesBottlerocketArm64,
+			ARMGPU: ekstypes.AMITypesBottlerocketArm64Nvidia,
+		},
+		// Windows AMI Types are not in sdk-v2 yet, so the constant here is temporary; will remove after sdk is updated
+		api.NodeImageFamilyWindowsServer2019FullContainer: {
+			X86x64: AMITypesWindows2019FullX8664,
+		},
+		api.NodeImageFamilyWindowsServer2019CoreContainer: {
+			X86x64: AMITypesWindows2019CoreX8664,
+		},
+		api.NodeImageFamilyWindowsServer2022FullContainer: {
+			X86x64: AMITypesWindows2022FullX8664,
+		},
+		api.NodeImageFamilyWindowsServer2022CoreContainer: {
+			X86x64: AMITypesWindows2022CoreX8664,
 		},
 	}
 
 	amiType, ok := amiTypeMapping[ng.AMIFamily]
 	if !ok {
-		return eks.AMITypesCustom
+		return ekstypes.AMITypesCustom
 	}
 
 	switch {
 	case instanceutils.IsGPUInstanceType(instanceType):
-		return amiType.GPU
+		if instanceutils.IsARMInstanceType(instanceType) {
+			return amiType.ARMGPU
+		}
+		return amiType.X86GPU
 	case instanceutils.IsARMInstanceType(instanceType):
 		return amiType.ARM
 	default:

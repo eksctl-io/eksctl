@@ -1,14 +1,12 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -19,16 +17,18 @@ type createClusterTask struct {
 	info                 string
 	stackCollection      *StackCollection
 	supportsManagedNodes bool
+	ctx                  context.Context
 }
 
 func (t *createClusterTask) Describe() string { return t.info }
 
 func (t *createClusterTask) Do(errorCh chan error) error {
-	return t.stackCollection.createClusterTask(errorCh, t.supportsManagedNodes)
+	return t.stackCollection.createClusterTask(t.ctx, errorCh, t.supportsManagedNodes)
 }
 
 type nodeGroupTask struct {
 	info              string
+	ctx               context.Context
 	nodeGroup         *api.NodeGroup
 	forceAddCNIPolicy bool
 	vpcImporter       vpc.Importer
@@ -37,7 +37,7 @@ type nodeGroupTask struct {
 
 func (t *nodeGroupTask) Describe() string { return t.info }
 func (t *nodeGroupTask) Do(errs chan error) error {
-	return t.stackCollection.createNodeGroupTask(errs, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
+	return t.stackCollection.createNodeGroupTask(t.ctx, errs, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
 }
 
 type managedNodeGroupTask struct {
@@ -46,24 +46,26 @@ type managedNodeGroupTask struct {
 	stackCollection   *StackCollection
 	forceAddCNIPolicy bool
 	vpcImporter       vpc.Importer
+	ctx               context.Context
 }
 
 func (t *managedNodeGroupTask) Describe() string { return t.info }
 
 func (t *managedNodeGroupTask) Do(errorCh chan error) error {
-	return t.stackCollection.createManagedNodeGroupTask(errorCh, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
+	return t.stackCollection.createManagedNodeGroupTask(t.ctx, errorCh, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
 }
 
-type clusterCompatTask struct {
+type managedNodeGroupTagsToASGPropagationTask struct {
 	info            string
+	nodeGroup       *api.ManagedNodeGroup
 	stackCollection *StackCollection
+	ctx             context.Context
 }
 
-func (t *clusterCompatTask) Describe() string { return t.info }
+func (t *managedNodeGroupTagsToASGPropagationTask) Describe() string { return t.info }
 
-func (t *clusterCompatTask) Do(errorCh chan error) error {
-	defer close(errorCh)
-	return t.stackCollection.FixClusterCompatibility()
+func (t *managedNodeGroupTagsToASGPropagationTask) Do(errorCh chan error) error {
+	return t.stackCollection.propagateManagedNodeGroupTagsToASGTask(t.ctx, errorCh, t.nodeGroup, t.stackCollection.PropagateManagedNodeGroupTagsToASG)
 }
 
 type taskWithClusterIAMServiceAccountSpec struct {
@@ -75,29 +77,29 @@ type taskWithClusterIAMServiceAccountSpec struct {
 
 func (t *taskWithClusterIAMServiceAccountSpec) Describe() string { return t.info }
 func (t *taskWithClusterIAMServiceAccountSpec) Do(errs chan error) error {
-	return t.stackCollection.createIAMServiceAccountTask(errs, t.serviceAccount, t.oidc)
+	return t.stackCollection.createIAMServiceAccountTask(context.TODO(), errs, t.serviceAccount, t.oidc)
 }
 
 type taskWithStackSpec struct {
 	info  string
 	stack *Stack
-	call  func(*Stack, chan error) error
+	call  func(context.Context, *Stack, chan error) error
 }
 
 func (t *taskWithStackSpec) Describe() string { return t.info }
 func (t *taskWithStackSpec) Do(errs chan error) error {
-	return t.call(t.stack, errs)
+	return t.call(context.TODO(), t.stack, errs)
 }
 
 type asyncTaskWithStackSpec struct {
 	info  string
 	stack *Stack
-	call  func(*Stack) (*Stack, error)
+	call  func(context.Context, *Stack) (*Stack, error)
 }
 
 func (t *asyncTaskWithStackSpec) Describe() string { return t.info + " [async]" }
 func (t *asyncTaskWithStackSpec) Do(errs chan error) error {
-	_, err := t.call(t.stack)
+	_, err := t.call(context.TODO(), t.stack)
 	close(errs)
 	return err
 }
@@ -133,31 +135,4 @@ func (t *kubernetesTask) Do(errs chan error) error {
 	err = t.call(clientSet, t.objectMeta)
 	close(errs)
 	return err
-}
-
-type AssignIpv6AddressOnCreationTask struct {
-	EC2API        ec2iface.EC2API
-	ClusterConfig *api.ClusterConfig
-}
-
-func (t *AssignIpv6AddressOnCreationTask) Describe() string {
-	return "set AssignIpv6AddressOnCreation to true for public subnets"
-}
-
-func (t *AssignIpv6AddressOnCreationTask) Do(errs chan error) error {
-	defer close(errs)
-	if t.ClusterConfig.VPC.Subnets.Public != nil {
-		for _, subnet := range t.ClusterConfig.VPC.Subnets.Public.WithIDs() {
-			_, err := t.EC2API.ModifySubnetAttribute(&ec2.ModifySubnetAttributeInput{
-				AssignIpv6AddressOnCreation: &ec2.AttributeBooleanValue{
-					Value: aws.Bool(true),
-				},
-				SubnetId: aws.String(subnet),
-			})
-			if err != nil {
-				return fmt.Errorf("failed to update public subnet %q: %v", subnet, err)
-			}
-		}
-	}
-	return nil
 }

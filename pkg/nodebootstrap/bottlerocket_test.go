@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	toml "github.com/pelletier/go-toml"
 	"github.com/stretchr/testify/require"
@@ -33,7 +33,7 @@ var _ = Describe("Bottlerocket", func() {
 
 		ng = api.NewNodeGroup()
 		ng.AMIFamily = "Bottlerocket"
-		api.SetNodeGroupDefaults(ng, clusterConfig.Metadata)
+		api.SetNodeGroupDefaults(ng, clusterConfig.Metadata, false)
 	})
 
 	Describe("with no user settings", func() {

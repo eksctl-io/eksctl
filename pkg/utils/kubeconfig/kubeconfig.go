@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/gofrs/flock"
@@ -23,14 +24,14 @@ import (
 const (
 	// AWSIAMAuthenticator defines the name of the AWS IAM authenticator
 	AWSIAMAuthenticator = "aws-iam-authenticator"
-	// HeptioAuthenticatorAWS defines the old name of AWS IAM authenticator
-	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
 	// AWSEKSAuthenticator defines the recently added `aws eks get-token` command
 	AWSEKSAuthenticator = "aws"
-	// Shadowing the default kubeconfig path environment variable
-	RecommendedConfigPathEnvVar = clientcmd.RecommendedConfigPathEnvVar
 	// AWSIAMAuthenticatorMinimumBetaVersion this is the minimum version at which aws-iam-authenticator uses v1beta1 as APIVersion
 	AWSIAMAuthenticatorMinimumBetaVersion = "0.5.3"
+	// AWSCLIv1MinimumBetaVersion this is the minimum version at which aws-cli v1 uses v1beta1 as APIVersion
+	AWSCLIv1MinimumBetaVersion = "1.23.9"
+	// AWSCLIv2MinimumBetaVersion this is the minimum version at which aws-cli v2 uses v1beta1 as APIVersion
+	AWSCLIv2MinimumBetaVersion = "2.6.3"
 
 	alphaAPIVersion = "client.authentication.k8s.io/v1alpha1"
 	betaAPIVersion  = "client.authentication.k8s.io/v1beta1"
@@ -42,17 +43,16 @@ var execCommand = exec.Command
 
 // DefaultPath defines the default path
 func DefaultPath() string {
-	if env := os.Getenv(RecommendedConfigPathEnvVar); len(env) > 0 {
+	if env := os.Getenv(clientcmd.RecommendedConfigPathEnvVar); len(env) > 0 {
 		return env
 	}
 	return clientcmd.RecommendedHomeFile
 }
 
-// AuthenticatorCommands returns all of authenticator commands
+// AuthenticatorCommands returns all authenticator commands.
 func AuthenticatorCommands() []string {
 	return []string{
 		AWSIAMAuthenticator,
-		HeptioAuthenticatorAWS,
 		AWSEKSAuthenticator,
 	}
 }
@@ -113,10 +113,21 @@ func (cb *ConfigBuilder) UseSystemCA() *ConfigBuilder {
 	return cb
 }
 
+// ClusterInfo holds the cluster info.
+type ClusterInfo interface {
+	// ID returns the cluster ID.
+	// This can either be the name of the cluster or a UUID.
+	ID() string
+	// Meta returns the cluster metadata.
+	Meta() *api.ClusterMeta
+	// GetStatus returns the cluster status.
+	GetStatus() *api.ClusterStatus
+}
+
 // NewForUser returns a Config suitable for a user by respecting
 // provider settings
-func NewForUser(spec *api.ClusterConfig, username string) *clientcmdapi.Config {
-	configBuilder := NewBuilder(spec.Metadata, spec.Status, username)
+func NewForUser(cluster ClusterInfo, username string) *clientcmdapi.Config {
+	configBuilder := NewBuilder(cluster.Meta(), cluster.GetStatus(), username)
 	if os.Getenv("KUBECONFIG_USE_SYSTEM_CA") != "" {
 		configBuilder.UseSystemCA()
 	}
@@ -125,21 +136,21 @@ func NewForUser(spec *api.ClusterConfig, username string) *clientcmdapi.Config {
 
 // NewForKubectl creates configuration for a user with kubectl by configuring
 // a suitable authenticator and respecting provider settings
-func NewForKubectl(spec *api.ClusterConfig, username, roleARN, profile string) *clientcmdapi.Config {
-	config := NewForUser(spec, username)
+func NewForKubectl(cluster ClusterInfo, username, roleARN, profile string) *clientcmdapi.Config {
+	config := NewForUser(cluster, username)
 	authenticator, found := LookupAuthenticator()
 	if !found {
 		// fall back to aws-iam-authenticator
 		authenticator = AWSIAMAuthenticator
 	}
-	AppendAuthenticator(config, spec.Metadata, authenticator, roleARN, profile)
+	AppendAuthenticator(config, cluster, authenticator, roleARN, profile)
 	return config
 }
 
 // AppendAuthenticator appends the AWS IAM  authenticator, and
 // if profile is non-empty string it sets AWS_PROFILE environment
 // variable also
-func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMeta, authenticatorCMD, roleARN, profile string) {
+func AppendAuthenticator(config *clientcmdapi.Config, cluster ClusterInfo, authenticatorCMD, roleARN, profile string) {
 	var (
 		args        []string
 		roleARNFlag string
@@ -157,6 +168,8 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 		ProvideClusterInfo: false,
 	}
 
+	meta := cluster.Meta()
+
 	switch authenticatorCMD {
 	case AWSIAMAuthenticator:
 		// if version is above or equal to v0.5.3 we change the APIVersion to v1beta1.
@@ -165,28 +178,39 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 		} else if authenticatorIsBetaVersion {
 			execConfig.APIVersion = betaAPIVersion
 		}
-		args = []string{"token", "-i", clusterMeta.Name}
+		args = []string{"token", "-i", cluster.ID()}
 		roleARNFlag = "-r"
-		if clusterMeta.Region != "" {
+		if meta.Region != "" {
 			execConfig.Env = append(execConfig.Env, clientcmdapi.ExecEnvVar{
 				Name:  "AWS_DEFAULT_REGION",
-				Value: clusterMeta.Region,
+				Value: meta.Region,
 			})
 		}
-	case HeptioAuthenticatorAWS:
-		args = []string{"token", "-i", clusterMeta.Name}
-		roleARNFlag = "-r"
-		if clusterMeta.Region != "" {
-			execConfig.Env = append(execConfig.Env, clientcmdapi.ExecEnvVar{
-				Name:  "AWS_DEFAULT_REGION",
-				Value: clusterMeta.Region,
-			})
-		}
+
 	case AWSEKSAuthenticator:
-		args = []string{"eks", "get-token", "--cluster-name", clusterMeta.Name}
+		// if [aws-cli v1/aws-cli v2] is above or equal to [v1.23.9/v2.6.3] respectively, we change the APIVersion to v1beta1.
+		if awsCLIIsBetaVersion, err := awsCliIsAboveVersion(); err != nil {
+			logger.Warning("failed to determine authenticator version, leaving API version as default v1alpha1: %v", err)
+		} else if awsCLIIsBetaVersion {
+			execConfig.APIVersion = betaAPIVersion
+		}
+		args = []string{"eks", "get-token", "--cluster-name", cluster.ID()}
 		roleARNFlag = "--role-arn"
-		if clusterMeta.Region != "" {
-			args = append(args, "--region", clusterMeta.Region)
+		if meta.Region != "" {
+			args = append(args, "--region", meta.Region)
+		}
+	}
+	// If the alpha API version is selected, check the kubectl version
+	// If kubectl 1.24.0 or above is detected, override with the beta API version
+	// kubectl 1.24.0 removes the alpha API version, so it will never work
+	// Therefore as a best effort try the beta version even if it might not work
+	if execConfig.APIVersion == alphaAPIVersion {
+		if kubectlVersion := getKubectlVersion(); kubectlVersion != "" {
+			// Silently ignore errors because kubectl is not required to run eksctl
+			compareVersions, err := utils.CompareVersions(kubectlVersion, "1.24.0")
+			if err == nil && compareVersions >= 0 {
+				execConfig.APIVersion = betaAPIVersion
+			}
 		}
 	}
 	if roleARN != "" {
@@ -211,6 +235,41 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 // {"Version":"0.5.5","Commit":"85e50980d9d916ae95882176c18f14ae145f916f"}
 type AWSAuthenticatorVersionFormat struct {
 	Version string `json:"Version"`
+}
+
+func awsCliIsAboveVersion() (bool, error) {
+	awsCliVersion := getAWSCLIVersion()
+	compareVersions, err := utils.CompareVersions(awsCliVersion, "2.0.0")
+	if err != nil {
+		return false, fmt.Errorf("failed to parse versions: %w", err)
+	}
+	// AWS CLI provides beta in two separate major versions. One for v1 and one for v2.
+	// Being above a single version doesn't necessarily mean that we are in the clear.
+	// Thus, first check which major version we are dealing with, then check if beta is
+	// supported for that major version.
+	if compareVersions < 0 {
+		compareVersions, err = utils.CompareVersions(awsCliVersion, AWSCLIv1MinimumBetaVersion)
+	} else {
+		compareVersions, err = utils.CompareVersions(awsCliVersion, AWSCLIv2MinimumBetaVersion)
+	}
+	if err != nil {
+		return false, fmt.Errorf("failed to parse versions: %w", err)
+	}
+	return compareVersions >= 0, nil
+}
+
+func getAWSCLIVersion() string {
+	cmd := execCommand("aws", "--version")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	r := regexp.MustCompile(`aws-cli/([\d.]*)`)
+	matches := r.FindStringSubmatch(string(output))
+	if len(matches) != 2 {
+		return ""
+	}
+	return matches[1]
 }
 
 func authenticatorIsAboveVersion(version string) (bool, error) {
@@ -238,8 +297,46 @@ func getAWSIAMAuthenticatorVersion() (string, error) {
 	return parsedVersion.Version, nil
 }
 
+/*
+KubectlVersionFormat is the format used by kubectl version --format=json, example output:
+
+	{
+	  "clientVersion": {
+	    "major": "1",
+	    "minor": "23",
+	    "gitVersion": "v1.23.6",
+	    "gitCommit": "ad3338546da947756e8a88aa6822e9c11e7eac22",
+	    "gitTreeState": "archive",
+	    "buildDate": "2022-04-29T06:39:16Z",
+	    "goVersion": "go1.18.1",
+	    "compiler": "gc",
+	    "platform": "linux/amd64"
+	  }
+	}
+*/
+type KubectlVersionData struct {
+	Version string `json:"gitVersion"`
+}
+
+type KubectlVersionFormat struct {
+	ClientVersion KubectlVersionData `json:"clientVersion"`
+}
+
+func getKubectlVersion() string {
+	cmd := execCommand("kubectl", "version", "--client", "--output=json")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	var parsedVersion KubectlVersionFormat
+	if err := json.Unmarshal(output, &parsedVersion); err != nil {
+		return ""
+	}
+	return strings.TrimLeft(parsedVersion.ClientVersion.Version, "v")
+}
+
 func lockFileName(filePath string) string {
-	return filePath + ".eksctl.lock"
+	return filepath.Join(os.TempDir(), fmt.Sprintf("%x.eksctl.lock", utils.FnvHash(filePath)))
 }
 
 // ensureDirectory should probably be handled in flock

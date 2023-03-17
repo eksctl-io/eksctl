@@ -3,10 +3,11 @@ package nodebootstrap_test
 import (
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	"github.com/aws/aws-sdk-go-v2/aws"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
@@ -173,6 +174,29 @@ NODE_TAINTS=
 CLUSTER_DNS=172.16.0.10
 CONTAINER_RUNTIME=`,
 		}),
+
+		Entry("control plane on Outposts", bootScriptEntry{
+			clusterConfig: func() *api.ClusterConfig {
+				clusterConfig := api.NewClusterConfig()
+				clusterConfig.Metadata.Name = "outpost"
+				clusterConfig.Outpost = &api.Outpost{
+					ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+				}
+				clusterConfig.Status = &api.ClusterStatus{
+					ID: "51eaebb5-7e52-4e71-baba-e98a6314b10e",
+				}
+				return clusterConfig
+			}(),
+			ng: api.NewNodeGroup(),
+			expectedUserData: `CLUSTER_NAME=outpost
+API_SERVER_URL=
+B64_CLUSTER_CA=
+NODE_LABELS=
+NODE_TAINTS=
+CLUSTER_ID=51eaebb5-7e52-4e71-baba-e98a6314b10e
+ENABLE_LOCAL_OUTPOST=true
+CONTAINER_RUNTIME=`,
+		}),
 	)
 
 	Context("standard userdata", func() {
@@ -205,16 +229,16 @@ CONTAINER_RUNTIME=`, "\n")))
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.helper.sh"))
-			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0755"))
+			Expect(cloudCfg.WriteFiles[3].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.helper.sh"))
+			Expect(cloudCfg.WriteFiles[3].Permissions).To(Equal("0755"))
 		})
 
 		It("adds the al2 boot script to the userdata", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[3].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.al2.sh"))
-			Expect(cloudCfg.WriteFiles[3].Permissions).To(Equal("0755"))
+			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.al2.sh"))
+			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0755"))
 		})
 	})
 
@@ -332,8 +356,8 @@ CONTAINER_RUNTIME=`, "\n")))
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.Commands).To(HaveLen(1))
-			Expect(cloudCfg.WriteFiles).To(HaveLen(0))
+			Expect(cloudCfg.Commands).To(HaveLen(2))
+			Expect(cloudCfg.WriteFiles).To(HaveLen(3))
 		})
 	})
 })

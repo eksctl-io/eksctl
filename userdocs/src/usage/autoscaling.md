@@ -8,15 +8,28 @@ You can create a cluster (or nodegroup in an existing cluster) with IAM role tha
 eksctl create cluster --asg-access
 ```
 
-Once cluster is running, you will need to install [cluster autoscaler][] itself. This flag also sets `k8s.io/cluster-autoscaler/enabled`
+This flag also sets `k8s.io/cluster-autoscaler/enabled`
 and `k8s.io/cluster-autoscaler/<clusterName>` tags, so nodegroup discovery should work.
+
+Once the cluster is running, you will need to install [Cluster Autoscaler][] itself. 
+
+You should also add the following to your managed or unmanaged nodegroup definition(s) to add the tags required for the Cluster Autoscaler to scale the nodegroup:
+```yaml
+nodeGroups:
+  - name: ng1-public
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+```
 
 ### Scaling up from 0
 
-If you'd like to be able to scale your node group up from 0 and you have
-labels and/or taints defined on your nodegroups you'll need corresponding
-tags on your ASGs.  You can do this with the `tags` key on your node group
-definitions.  For example, given a node group with the following labels and
+If you would like to be able to scale your node group up from 0 and you have
+labels and/or taints defined on your nodegroups, you will need to propagate these as
+tags on your Auto Scaling Groups (ASGs). 
+
+One way to do this is by setting the ASG tags in the `tags` field of your nodegroup
+definitions. For example, given a nodegroup with the following labels and
 taints:
 
 ```yaml
@@ -26,7 +39,9 @@ nodeGroups:
     labels:
       my-cool-label: pizza
     taints:
-      feaster: "true:NoSchedule"
+      key: feaster
+      value: "true"
+      effect: NoSchedule
 ```
 
 You would need to add the following ASG tags:
@@ -44,10 +59,7 @@ nodeGroups:
       k8s.io/cluster-autoscaler/node-template/taint/feaster: "true:NoSchedule"
 ```
 
-For unmanaged noderoups, this is done by `eksctl` automatically if `desiredCapacity` is set to `0`, there is no need to
-specify these by hand. This feature is not supported for managed nodegroups. However, if the number of tags added like 
-this exceeds the current ASG tag limit ( 50 at the time of this writing ) or, this feature is not desired, there is a
-setting to disable it. Set `disableASGTagPropagation` to `true` like this:
+For both managed and unmanaged nodegroups, this can be done automatically by setting `propagateASGTags` to `true`, which will add the labels and taints as tags to the Auto Scaling group:
 
 ```yaml
 nodeGroups:
@@ -57,12 +69,8 @@ nodeGroups:
       my-cool-label: pizza
     taints:
       feaster: "true:NoSchedule"
-    disableASGTagPropagation: true
+    propagateASGTags: true
 ```
-
-You can read more about this
-[here](https://github.com/weaveworks/eksctl/issues/1066) and
-[here](https://github.com/kubernetes/autoscaler/issues/2418).
 
 [cluster autoscaler]: https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md
 

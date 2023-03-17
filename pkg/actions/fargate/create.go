@@ -1,33 +1,26 @@
 package fargate
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"github.com/pkg/errors"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 )
 
-func (m *Manager) Create() error {
+func (m *Manager) Create(ctx context.Context) error {
 	ctl := m.ctl
 	cfg := m.cfg
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return errors.Wrap(err, "couldn't check cluster operable status")
 	}
 
-	supportsFargate, err := ctl.SupportsFargate(cfg)
-	if err != nil {
-		return errors.Wrap(err, "couldn't check fargate support")
-	}
-	if !supportsFargate {
-		return fmt.Errorf("Fargate is not supported for this cluster version. Please update the cluster to be at least eks.%d", fargate.MinPlatformVersion)
-	}
-
-	clusterStack, err := m.stackManager.DescribeClusterStack()
+	clusterStack, err := m.stackManager.DescribeClusterStackIfExists(ctx)
 	if err != nil {
 		return errors.Wrap(err, "couldn't check cluster stack")
 	}
@@ -44,30 +37,30 @@ func (m *Manager) Create() error {
 	if fargateRoleNeeded {
 		if clusterStack != nil {
 			if !m.fargateRoleExistsOnClusterStack(clusterStack) {
-				err := ensureFargateRoleStackExists(cfg, ctl.Provider, m.stackManager)
+				err := ensureFargateRoleStackExists(ctx, cfg, ctl.AWSProvider, m.stackManager)
 				if err != nil {
 					return errors.Wrap(err, "couldn't ensure fargate role exists")
 				}
 			}
-			if err := ctl.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
+			if err := ctl.LoadClusterIntoSpecFromStack(ctx, cfg, clusterStack); err != nil {
 				return errors.Wrap(err, "couldn't load cluster into spec")
 			}
 		} else {
-			if err := ensureFargateRoleStackExists(cfg, ctl.Provider, m.stackManager); err != nil {
+			if err := ensureFargateRoleStackExists(ctx, cfg, ctl.AWSProvider, m.stackManager); err != nil {
 				return errors.Wrap(err, "couldn't ensure unowned cluster is ready for fargate")
 			}
 		}
 
 		if !api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRoleARN) {
 			// Read back the default Fargate pod execution role ARN from CloudFormation:
-			if err := m.stackManager.RefreshFargatePodExecutionRoleARN(); err != nil {
+			if err := m.stackManager.RefreshFargatePodExecutionRoleARN(ctx); err != nil {
 				return errors.Wrap(err, "couldn't refresh role arn")
 			}
 		}
 	}
 
-	fargateClient := fargate.NewFromProvider(cfg.Metadata.Name, ctl.Provider, m.stackManager)
-	if err := eks.DoCreateFargateProfiles(cfg, &fargateClient); err != nil {
+	fargateClient := fargate.NewFromProvider(cfg.Metadata.Name, ctl.AWSProvider, m.stackManager)
+	if err := eks.DoCreateFargateProfiles(ctx, cfg, &fargateClient); err != nil {
 		return errors.Wrap(err, "could not create fargate profiles")
 	}
 	clientSet, err := m.newStdClientSet()

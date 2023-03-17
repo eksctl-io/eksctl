@@ -3,7 +3,7 @@ package builder
 import (
 	"fmt"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -38,9 +38,14 @@ const (
 	ec2DeleteLaunchTemplate          = "ec2:DeleteLaunchTemplate"
 	ec2RunInstances                  = "ec2:RunInstances"
 	ec2TerminateInstances            = "ec2:TerminateInstances"
+	ec2DescribeImages                = "ec2:DescribeImages"
+	ec2DescribeSpotPriceHistory      = "ec2:DescribeSpotPriceHistory"
 	// IAM
-	iamPassRole     = "iam:PassRole"
-	ssmGetParameter = "ssm:GetParameter"
+	iamPassRole                = "iam:PassRole"
+	iamCreateServiceLinkedRole = "iam:CreateServiceLinkedRole"
+	ssmGetParameter            = "ssm:GetParameter"
+	// Pricing
+	pricingGetProducts = "pricing:GetProducts"
 )
 
 // KarpenterResourceSet stores the resource information of the Karpenter stack
@@ -95,6 +100,10 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		ManagedPolicyArns:        gfnt.NewSlice(makePolicyARNs(managedPolicyNames.List()...)...),
 	}
 
+	if api.IsSetAndNonEmptyString(k.clusterSpec.IAM.ServiceRolePermissionsBoundary) {
+		role.PermissionsBoundary = gfnt.NewString(*k.clusterSpec.IAM.ServiceRolePermissionsBoundary)
+	}
+
 	roleRef := k.newResource(KarpenterNodeRoleName, &role)
 
 	instanceProfile := gfniam.InstanceProfile{
@@ -122,8 +131,12 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 			ec2DeleteLaunchTemplate,
 			ec2RunInstances,
 			ec2TerminateInstances,
+			ec2DescribeImages,
+			ec2DescribeSpotPriceHistory,
 			iamPassRole,
+			iamCreateServiceLinkedRole,
 			ssmGetParameter,
+			pricingGetProducts,
 		},
 	}
 	managedPolicy := gfniam.ManagedPolicy{
@@ -147,6 +160,6 @@ func (k *KarpenterResourceSet) WithNamedIAM() bool {
 }
 
 // GetAllOutputs collects all outputs of the nodegroup
-func (k *KarpenterResourceSet) GetAllOutputs(stack cfn.Stack) error {
+func (k *KarpenterResourceSet) GetAllOutputs(stack types.Stack) error {
 	return k.rs.GetAllOutputs(stack)
 }

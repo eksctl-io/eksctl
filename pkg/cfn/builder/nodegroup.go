@@ -1,13 +1,14 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/pkg/errors"
+
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
@@ -16,6 +17,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -23,15 +25,23 @@ import (
 
 // MaximumTagNumber for ASGs as described here https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-tagging.html
 const MaximumTagNumber = 50
+const MaximumCreatedTagNumberPerCall = 25
+
+const (
+	nodeTemplatePrefix = "k8s.io/cluster-autoscaler/node-template/"
+	labelsPrefix       = nodeTemplatePrefix + "label/"
+	taintsPrefix       = nodeTemplatePrefix + "taint/"
+)
 
 // NodeGroupResourceSet stores the resource information of the nodegroup
 type NodeGroupResourceSet struct {
-	rs                 *resourceSet
-	clusterSpec        *api.ClusterConfig
-	spec               *api.NodeGroup
-	forceAddCNIPolicy  bool
-	ec2API             ec2iface.EC2API
-	iamAPI             iamiface.IAMAPI
+	rs                *resourceSet
+	clusterSpec       *api.ClusterConfig
+	spec              *api.NodeGroup
+	forceAddCNIPolicy bool
+	ec2API            awsapi.EC2
+
+	iamAPI             awsapi.IAM
 	instanceProfileARN *gfnt.Value
 	securityGroups     []*gfnt.Value
 	vpc                *gfnt.Value
@@ -40,7 +50,7 @@ type NodeGroupResourceSet struct {
 }
 
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
-func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, ng *api.NodeGroup, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *NodeGroupResourceSet {
+func NewNodeGroupResourceSet(ec2API awsapi.EC2, iamAPI awsapi.IAM, spec *api.ClusterConfig, ng *api.NodeGroup, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:                newResourceSet(),
 		forceAddCNIPolicy: forceAddCNIPolicy,
@@ -54,7 +64,7 @@ func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spe
 }
 
 // AddAllResources adds all the information about the nodegroup to the resource set
-func (n *NodeGroupResourceSet) AddAllResources() error {
+func (n *NodeGroupResourceSet) AddAllResources(ctx context.Context) error {
 
 	if n.clusterSpec.IPv6Enabled() {
 		return errors.New("unmanaged nodegroups are not supported with IPv6 clusters")
@@ -112,12 +122,12 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		return fmt.Errorf("--nodes-min value (%d) cannot be greater than --nodes-max value (%d)", *n.spec.MinSize, *n.spec.MaxSize)
 	}
 
-	if err := n.addResourcesForIAM(); err != nil {
+	if err := n.addResourcesForIAM(ctx); err != nil {
 		return err
 	}
 	n.addResourcesForSecurityGroups()
 
-	return n.addResourcesForNodeGroup()
+	return n.addResourcesForNodeGroup(ctx)
 }
 
 func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
@@ -215,9 +225,9 @@ func (n *NodeGroupResourceSet) newResource(name string, resource gfn.Resource) *
 	return n.rs.newResource(name, resource)
 }
 
-func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
+func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) error {
 	launchTemplateName := gfnt.MakeFnSubString(fmt.Sprintf("${%s}", gfnt.StackName))
-	launchTemplateData, err := newLaunchTemplateData(n)
+	launchTemplateData, err := newLaunchTemplateData(ctx, n)
 	if err != nil {
 		return errors.Wrap(err, "could not add resources for nodegroup")
 	}
@@ -233,12 +243,12 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		LaunchTemplateData: launchTemplateData,
 	})
 
-	vpcZoneIdentifier, err := AssignSubnets(n.spec.NodeGroupBase, n.vpcImporter, n.clusterSpec, n.ec2API)
+	vpcZoneIdentifier, err := AssignSubnets(ctx, n.spec, n.vpcImporter, n.clusterSpec, n.ec2API)
 	if err != nil {
 		return err
 	}
 
-	tags := []map[string]interface{}{
+	tags := []map[string]string{
 		{
 			"Key":               "Name",
 			"Value":             generateNodeName(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
@@ -252,12 +262,12 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	}
 	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AutoScaler) {
 		tags = append(tags,
-			map[string]interface{}{
+			map[string]string{
 				"Key":               "k8s.io/cluster-autoscaler/enabled",
 				"Value":             "true",
 				"PropagateAtLaunch": "true",
 			},
-			map[string]interface{}{
+			map[string]string{
 				"Key":               "k8s.io/cluster-autoscaler/" + n.clusterSpec.Metadata.Name,
 				"Value":             "owned",
 				"PropagateAtLaunch": "true",
@@ -265,13 +275,15 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		)
 	}
 
-	// not using aws.IntValue because it's not a required field
-	// and aws.IntValue would result in 0 if it's nil.
-	if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity == 0 {
-		clusterTags, err := generateClusterAutoscalerTags(n.spec)
-		if err != nil {
-			return err
-		}
+	if api.IsEnabled(n.spec.PropagateASGTags) {
+		var clusterTags []map[string]string
+		GenerateClusterAutoscalerTags(n.spec, func(key, value string) {
+			clusterTags = append(clusterTags, map[string]string{
+				"Key":               key,
+				"Value":             value,
+				"PropagateAtLaunch": "true",
+			})
+		})
 		tags = append(tags, clusterTags...)
 		if len(tags) > MaximumTagNumber {
 			return fmt.Errorf("number of tags is exceeding the configured amount %d, was: %d. Due to desiredCapacity==0 we added an extra %d number of tags to ensure the nodegroup is scaled correctly", MaximumTagNumber, len(tags), len(clusterTags))
@@ -284,36 +296,25 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	return nil
 }
 
-func generateClusterAutoscalerTags(spec *api.NodeGroup) ([]map[string]interface{}, error) {
-	if api.IsEnabled(spec.DisableASGTagPropagation) {
-		return nil, nil
-	}
-	result := make([]map[string]interface{}, 0)
-	duplicates := make(map[string]string)
-
+// GenerateClusterAutoscalerTags generates Cluster Autoscaler tags for labels and taints.
+func GenerateClusterAutoscalerTags(np api.NodePool, addTag func(key, value string)) {
 	// labels
-	for k, v := range spec.Labels {
-		duplicates[k] = v
-		result = append(result, map[string]interface{}{
-			"Key":               "k8s.io/cluster-autoscaler/node-template/label/" + k,
-			"Value":             v,
-			"PropagateAtLaunch": "true",
-		})
+	for k, v := range np.BaseNodeGroup().Labels {
+		addTag(labelsPrefix+k, v)
+	}
+
+	var taints []api.NodeGroupTaint
+	switch ng := np.(type) {
+	case *api.NodeGroup:
+		taints = ng.Taints
+	case *api.ManagedNodeGroup:
+		taints = ng.Taints
 	}
 
 	// taints
-	for _, taint := range spec.Taints {
-		if _, ok := duplicates[taint.Key]; ok {
-			return nil, fmt.Errorf("duplicate key found for taints and labels with taint key=value: %s=%s, and label: %s=%s", taint.Key, taint.Value, taint.Key, duplicates[taint.Key])
-		}
-		duplicates[taint.Key] = taint.Value
-		result = append(result, map[string]interface{}{
-			"Key":               "k8s.io/cluster-autoscaler/node-template/taints/" + taint.Key,
-			"Value":             taint.Value,
-			"PropagateAtLaunch": "true",
-		})
+	for _, taint := range taints {
+		addTag(taintsPrefix+taint.Key, taint.Value)
 	}
-	return result, nil
 }
 
 // generateNodeName formulates the name based on the configuration in input
@@ -331,42 +332,32 @@ func generateNodeName(ng *api.NodeGroupBase, meta *api.ClusterMeta) string {
 	return strings.Join(nameParts, "")
 }
 
-// AssignSubnets subnets based on the specified availability zones
-func AssignSubnets(spec *api.NodeGroupBase, vpcImporter vpc.Importer, clusterSpec *api.ClusterConfig, ec2API ec2iface.EC2API) (*gfnt.Value, error) {
-	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
+// AssignSubnets assigns subnets based on the availability zones, local zones and subnet IDs in the specified nodegroup.
+func AssignSubnets(ctx context.Context, np api.NodePool, vpcImporter vpc.Importer, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2) (*gfnt.Value, error) {
+	// Currently, goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 
-	if len(spec.AvailabilityZones) > 0 || len(spec.Subnets) > 0 || api.IsEnabled(spec.EFAEnabled) {
-		subnets := clusterSpec.VPC.Subnets.Public
-		typ := "public"
-		if spec.PrivateNetworking {
-			subnets = clusterSpec.VPC.Subnets.Private
-			typ = "private"
+	ng := np.BaseNodeGroup()
+	if nodeGroup, ok := np.(*api.NodeGroup); (!ok || len(nodeGroup.LocalZones) == 0) && len(ng.AvailabilityZones) == 0 && len(ng.Subnets) == 0 && (ng.OutpostARN == "" || clusterConfig.IsControlPlaneOnOutposts()) {
+		if ng.PrivateNetworking {
+			return vpcImporter.SubnetsPrivate(), nil
 		}
-		subnetIDs, err := vpc.SelectNodeGroupSubnets(spec.AvailabilityZones, spec.Subnets, subnets, ec2API, clusterSpec.VPC.ID)
-		if api.IsEnabled(spec.EFAEnabled) && len(subnetIDs) > 1 {
-			subnetIDs = []string{subnetIDs[0]}
-			logger.Info("EFA requires all nodes be in a single subnet, arbitrarily choosing one: %s", subnetIDs)
-		}
-		return gfnt.NewStringSlice(subnetIDs...), errors.Wrapf(err, "couldn't find %s subnets", typ)
+		return vpcImporter.SubnetsPublic(), nil
 	}
 
-	var subnets *gfnt.Value
-	if spec.PrivateNetworking {
-		subnets = vpcImporter.SubnetsPrivate()
-	} else {
-		subnets = vpcImporter.SubnetsPublic()
+	subnetIDs, err := vpc.SelectNodeGroupSubnets(ctx, np, clusterConfig, ec2API)
+	if err != nil {
+		return nil, err
 	}
-
-	return subnets, nil
+	return gfnt.NewStringSlice(subnetIDs...), nil
 }
 
 // GetAllOutputs collects all outputs of the nodegroup
-func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
+func (n *NodeGroupResourceSet) GetAllOutputs(stack types.Stack) error {
 	return n.rs.GetAllOutputs(stack)
 }
 
-func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
+func newLaunchTemplateData(ctx context.Context, n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
 	userData, err := n.bootstrapper.UserData()
 	if err != nil {
 		return nil, err
@@ -382,7 +373,24 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_Laun
 		TagSpecifications: makeTags(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
 	}
 
-	if err := buildNetworkInterfaces(launchTemplateData, n.spec.InstanceTypeList(), api.IsEnabled(n.spec.EFAEnabled), n.securityGroups, n.ec2API); err != nil {
+	if n.spec.CapacityReservation != nil {
+		valueOrNil := func(value *string) *gfnt.Value {
+			if value != nil {
+				return gfnt.NewString(*value)
+			}
+			return nil
+		}
+		launchTemplateData.CapacityReservationSpecification = &gfnec2.LaunchTemplate_CapacityReservationSpecification{}
+		launchTemplateData.CapacityReservationSpecification.CapacityReservationPreference = valueOrNil(n.spec.CapacityReservation.CapacityReservationPreference)
+		if n.spec.CapacityReservation.CapacityReservationTarget != nil {
+			launchTemplateData.CapacityReservationSpecification.CapacityReservationTarget = &gfnec2.LaunchTemplate_CapacityReservationTarget{
+				CapacityReservationId:               valueOrNil(n.spec.CapacityReservation.CapacityReservationTarget.CapacityReservationID),
+				CapacityReservationResourceGroupArn: valueOrNil(n.spec.CapacityReservation.CapacityReservationTarget.CapacityReservationResourceGroupARN),
+			}
+		}
+	}
+
+	if err := buildNetworkInterfaces(ctx, launchTemplateData, n.spec.InstanceTypeList(), api.IsEnabled(n.spec.EFAEnabled), n.securityGroups, n.ec2API); err != nil {
 		return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
 	}
 
@@ -440,7 +448,7 @@ func makeMetadataOptions(ng *api.NodeGroupBase) *gfnec2.LaunchTemplate_MetadataO
 	}
 }
 
-func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interface{}, tags []map[string]interface{}, ng *api.NodeGroup) *awsCloudFormationResource {
+func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interface{}, tags []map[string]string, ng *api.NodeGroup) *awsCloudFormationResource {
 	ngProps := map[string]interface{}{
 		"VPCZoneIdentifier": vpcZoneIdentifier,
 		"Tags":              tags,

@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/kris-nova/logger"
@@ -247,16 +248,36 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			*clusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
 		}
 
-		if clusterConfig.PrivateCluster != nil && clusterConfig.PrivateCluster.Enabled {
-			if clusterEndpoints := clusterConfig.VPC.ClusterEndpoints; clusterEndpoints != nil && (clusterEndpoints.PublicAccess != nil || clusterEndpoints.PrivateAccess != nil) {
+		hasEndpointAccess := func() bool {
+			clusterEndpoints := clusterConfig.VPC.ClusterEndpoints
+			return clusterEndpoints != nil && (clusterEndpoints.PublicAccess != nil || clusterEndpoints.PrivateAccess != nil)
+		}
+
+		if clusterConfig.IsFullyPrivate() {
+			if hasEndpointAccess() {
 				return errors.New("vpc.clusterEndpoints cannot be set for a fully-private cluster (privateCluster.enabled) as the endpoint access defaults to private-only")
 			}
 		}
-
-		api.SetClusterEndpointAccessDefaults(clusterConfig.VPC)
-
-		if err := clusterConfig.ValidateClusterEndpointConfig(); err != nil {
-			return err
+		if clusterConfig.IsControlPlaneOnOutposts() {
+			if len(clusterConfig.ManagedNodeGroups) > 0 {
+				return errors.New("Managed Nodegroups are not supported on Outposts")
+			}
+			if hasEndpointAccess() {
+				clusterEndpoints := clusterConfig.VPC.ClusterEndpoints
+				const msg = "the cluster defaults to private-endpoint-only access"
+				if api.IsEnabled(clusterEndpoints.PublicAccess) {
+					return fmt.Errorf("clusterEndpoints.publicAccess cannot be enabled for a cluster on Outposts; %s", msg)
+				}
+				if api.IsDisabled(clusterEndpoints.PrivateAccess) {
+					return fmt.Errorf("clusterEndpoints.privateAccess cannot be disabled for a cluster on Outposts; %s", msg)
+				}
+			}
+			clusterConfig.VPC.ClusterEndpoints = &api.ClusterEndpoints{
+				PrivateAccess: api.Enabled(),
+				PublicAccess:  api.Disabled(),
+			}
+		} else {
+			api.SetClusterEndpointAccessDefaults(clusterConfig.VPC)
 		}
 
 		if clusterConfig.HasAnySubnets() && len(clusterConfig.AvailabilityZones) != 0 {
@@ -362,7 +383,11 @@ func validateZonesAndNodeZones(cmd *cobra.Command) error {
 
 func validateDryRunOptions(cmd *cobra.Command, incompatibleFlags []string) error {
 	if flagName, found := findChangedFlag(cmd, incompatibleFlags); found {
-		return errors.Errorf("cannot use --%s with --dry-run as this option cannot be represented in ClusterConfig", flagName)
+		msg := fmt.Sprintf("cannot use --%s with --dry-run as this option cannot be represented in ClusterConfig", flagName)
+		if flagName == "profile" {
+			msg = fmt.Sprintf("%s: set the AWS_PROFILE environment variable instead", msg)
+		}
+		return errors.New(msg)
 	}
 	return nil
 }
@@ -455,10 +480,6 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup, options CreateManagedNGOptio
 }
 
 func validateUnsupportedCLIFeatures(ng *api.ManagedNodeGroup) error {
-	if api.IsWindowsImage(ng.AMIFamily) {
-		return errors.New("Windows is not supported for managed nodegroups; eksctl now creates " +
-			"managed nodegroups by default, to use a self-managed nodegroup, pass --managed=false")
-	}
 	return nil
 }
 
@@ -517,8 +538,8 @@ func normalizeBaseNodeGroup(np api.NodePool, cmd *cobra.Command) {
 	}
 }
 
-// NewDeleteNodeGroupLoader will load config or use flags for 'eksctl delete nodegroup'
-func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter) ClusterConfigLoader {
+// NewDeleteAndDrainNodeGroupLoader will load config or use flags for 'eksctl delete nodegroup'
+func NewDeleteAndDrainNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithConfigFile = func() error {
@@ -544,6 +565,12 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 
 		if ng.Name == "" {
 			return ErrMustBeSet("--name")
+		}
+
+		if flag := l.CobraCommand.Flag("parallel"); flag != nil && flag.Changed {
+			if val, _ := strconv.Atoi(flag.Value.String()); val > 25 || val < 1 {
+				return fmt.Errorf("--parallel value must be of range 1-25")
+			}
 		}
 
 		ngFilter.AppendIncludeNames(ng.Name)
@@ -708,7 +735,7 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *filter.IAMServiceAccou
 		}
 
 		if serviceAccount.AttachRoleARN != "" && (*serviceAccount.RoleOnly || serviceAccount.RoleName != "") {
-			return fmt.Errorf("cannot provde --role-name or --role-only when --attach-role-arn is configured")
+			return fmt.Errorf("cannot provide --role-name or --role-only when --attach-role-arn is configured")
 		}
 
 		if serviceAccount.AttachRoleARN != "" && (len(serviceAccount.AttachPolicyARNs) != 0 || serviceAccount.AttachPolicy != nil) {
@@ -890,6 +917,24 @@ func NewGetLabelsLoader(cmd *Cmd, ngName string) ClusterConfigLoader {
 // NewGetClusterLoader will load config or use flags for 'eksctl get cluster(s)'
 func NewGetClusterLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
+
+	return l
+}
+
+// NewGetAddonsLoader loads config file and validates command for `eksctl get addon`.
+func NewGetAddonsLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithoutConfigFile = func() error {
+		meta := cmd.ClusterConfig.Metadata
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+		if cmd.NameArg != "" {
+			return ErrUnsupportedNameArg()
+		}
+		return nil
+	}
 
 	return l
 }

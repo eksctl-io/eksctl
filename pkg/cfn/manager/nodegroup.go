@@ -1,48 +1,27 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 	"strings"
-	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	asgtypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
+	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
-
-const (
-	imageIDPath = resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.ImageId"
-)
-
-// NodeGroupSummary represents a summary of a nodegroup stack
-type NodeGroupSummary struct {
-	StackName            string
-	Cluster              string
-	Name                 string
-	Status               string
-	MaxSize              int
-	MinSize              int
-	DesiredCapacity      int
-	InstanceType         string
-	ImageID              string
-	CreationTime         time.Time
-	NodeInstanceRoleARN  string
-	AutoScalingGroupName string
-	Version              string
-	NodeGroupType        api.NodeGroupType `json:"Type"`
-}
 
 // NodeGroupStack represents a nodegroup and its type
 type NodeGroupStack struct {
@@ -57,7 +36,7 @@ func (c *StackCollection) makeNodeGroupStackName(name string) string {
 }
 
 // createNodeGroupTask creates the nodegroup
-func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
+func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan error, ng *api.NodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 
 	logger.Info("building nodegroup stack %q", name)
@@ -66,7 +45,7 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 		return errors.Wrap(err, "error creating bootstrapper")
 	}
 	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, ng, bootstrapper, forceAddCNIPolicy, vpcImporter)
-	if err := stack.AddAllResources(); err != nil {
+	if err := stack.AddAllResources(ctx); err != nil {
 		return err
 	}
 
@@ -77,12 +56,12 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 	ng.Tags[api.OldNodeGroupNameTag] = ng.Name
 	ng.Tags[api.NodeGroupTypeTag] = string(api.NodeGroupTypeUnmanaged)
 
-	return c.CreateStack(name, stack, ng.Tags, nil, errs)
+	return c.CreateStack(ctx, name, stack, ng.Tags, nil, errs)
 }
 
-func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
+func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
 	name := c.makeNodeGroupStackName(ng.Name)
-	cluster, err := c.DescribeClusterStack()
+	cluster, err := c.DescribeClusterStackIfExists(ctx)
 	if err != nil {
 		return err
 	}
@@ -90,18 +69,58 @@ func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api
 		return errors.New("managed nodegroups cannot be created on IPv6 unowned clusters")
 	}
 	logger.Info("building managed nodegroup stack %q", name)
-	bootstrapper := nodebootstrap.NewManagedBootstrapper(c.spec, ng)
+	bootstrapper, err := nodebootstrap.NewManagedBootstrapper(c.spec, ng)
+	if err != nil {
+		return err
+	}
 	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), bootstrapper, forceAddCNIPolicy, vpcImporter)
-	if err := stack.AddAllResources(); err != nil {
+	if err := stack.AddAllResources(ctx); err != nil {
 		return err
 	}
 
-	return c.CreateStack(name, stack, ng.Tags, nil, errorCh)
+	return c.CreateStack(ctx, name, stack, ng.Tags, nil, errorCh)
 }
 
-// DescribeNodeGroupStacks calls DescribeStacks and filters out nodegroups
-func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
-	stacks, err := c.DescribeStacks()
+func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup,
+	propagateFunc func(string, map[string]string, []string, chan error) error) error {
+	// describe node group to retrieve ASG names
+	input := &eks.DescribeNodegroupInput{
+		ClusterName:   aws.String(c.spec.Metadata.Name),
+		NodegroupName: aws.String(ng.Name),
+	}
+	res, err := c.eksAPI.DescribeNodegroup(ctx, input)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't get managed nodegroup details for nodegroup %q", ng.Name)
+	}
+
+	if res.Nodegroup.Resources == nil {
+		return nil
+	}
+
+	asgNames := []string{}
+	for _, asg := range res.Nodegroup.Resources.AutoScalingGroups {
+		if asg.Name != nil && *asg.Name != "" {
+			asgNames = append(asgNames, *asg.Name)
+		}
+	}
+
+	// add labels and taints
+	tags := map[string]string{}
+	builder.GenerateClusterAutoscalerTags(ng, func(key, value string) {
+		tags[key] = value
+	})
+
+	// add nodegroup tags
+	for k, v := range ng.Tags {
+		tags[k] = v
+	}
+
+	return propagateFunc(ng.Name, tags, asgNames, errorCh)
+}
+
+// ListNodeGroupStacks calls ListStacks and filters out nodegroups
+func (c *StackCollection) ListNodeGroupStacks(ctx context.Context) ([]*Stack, error) {
+	stacks, err := c.ListStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -112,11 +131,11 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 
 	nodeGroupStacks := []*Stack{}
 	for _, s := range stacks {
-		switch *s.StackStatus {
-		case cfn.StackStatusDeleteComplete:
+		switch s.StackStatus {
+		case types.StackStatusDeleteComplete:
 			continue
-		case cfn.StackStatusDeleteFailed:
-			logger.Warning("stack's status of nodegroup named %s is %s", *s.StackName, *s.StackStatus)
+		case types.StackStatusDeleteFailed:
+			logger.Warning("stack's status of nodegroup named %s is %s", *s.StackName, s.StackStatus)
 			continue
 		}
 		if c.GetNodeGroupName(s) != "" {
@@ -128,8 +147,8 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 }
 
 // ListNodeGroupStacks returns a list of NodeGroupStacks
-func (c *StackCollection) ListNodeGroupStacks() ([]NodeGroupStack, error) {
-	stacks, err := c.DescribeNodeGroupStacks()
+func (c *StackCollection) ListNodeGroupStacksWithStatuses(ctx context.Context) ([]NodeGroupStack, error) {
+	stacks, err := c.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -148,10 +167,10 @@ func (c *StackCollection) ListNodeGroupStacks() ([]NodeGroupStack, error) {
 	return nodeGroupStacks, nil
 }
 
-// DescribeNodeGroupStacksAndResources calls DescribeNodeGroupStacks and fetches all resources,
+// DescribeNodeGroupStacksAndResources calls DescribeNodeGroupStackList and fetches all resources,
 // then returns it in a map by nodegroup name
-func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]StackInfo, error) {
-	stacks, err := c.DescribeNodeGroupStacks()
+func (c *StackCollection) DescribeNodeGroupStacksAndResources(ctx context.Context) (map[string]StackInfo, error) {
+	stacks, err := c.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +181,7 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 		input := &cfn.DescribeStackResourcesInput{
 			StackName: s.StackName,
 		}
-		resources, err := c.cloudformationAPI.DescribeStackResources(input)
+		resources, err := c.cloudformationAPI.DescribeStackResources(ctx, input)
 		if err != nil {
 			return nil, errors.Wrapf(err, "getting all resources for %q stack", *s.StackName)
 		}
@@ -175,61 +194,7 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 	return allResources, nil
 }
 
-// GetUnmanagedNodeGroupSummaries returns a list of summaries for the unmanaged nodegroups of a cluster
-func (c *StackCollection) GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGroupSummary, error) {
-	stacks, err := c.DescribeNodeGroupStacks()
-	if err != nil {
-		return nil, errors.Wrap(err, "getting nodegroup stacks")
-	}
-
-	// Create an empty array here so that an object is returned rather than null
-	summaries := []*NodeGroupSummary{}
-	for _, s := range stacks {
-		nodeGroupType, err := GetNodeGroupType(s.Tags)
-		if err != nil {
-			return nil, err
-		}
-
-		if nodeGroupType != api.NodeGroupTypeUnmanaged {
-			continue
-		}
-
-		ngPaths, err := getNodeGroupPaths(s.Tags)
-		if err != nil {
-			return nil, err
-		}
-
-		summary, err := c.mapStackToNodeGroupSummary(s, ngPaths)
-
-		if err != nil {
-			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
-		}
-		summary.NodeGroupType = api.NodeGroupTypeUnmanaged
-
-		asgName, err := c.getUnmanagedNodeGroupAutoScalingGroupName(s)
-		if err != nil {
-			return nil, errors.Wrap(err, "getting autoscalinggroupname")
-		}
-
-		summary.AutoScalingGroupName = asgName
-
-		scalingGroup, err := c.GetAutoScalingGroupDesiredCapacity(asgName)
-		if err != nil {
-			return nil, errors.Wrap(err, "getting autoscalinggroup desired capacity")
-		}
-		summary.DesiredCapacity = int(*scalingGroup.DesiredCapacity)
-		summary.MinSize = int(*scalingGroup.MinSize)
-		summary.MaxSize = int(*scalingGroup.MaxSize)
-
-		if name == "" || summary.Name == name {
-			summaries = append(summaries, summary)
-		}
-	}
-
-	return summaries, nil
-}
-
-func (c *StackCollection) GetAutoScalingGroupName(s *Stack) (string, error) {
+func (c *StackCollection) GetAutoScalingGroupName(ctx context.Context, s *Stack) (string, error) {
 
 	nodeGroupType, err := GetNodeGroupType(s.Tags)
 	if err != nil {
@@ -238,13 +203,13 @@ func (c *StackCollection) GetAutoScalingGroupName(s *Stack) (string, error) {
 
 	switch nodeGroupType {
 	case api.NodeGroupTypeManaged:
-		res, err := c.getManagedNodeGroupAutoScalingGroupName(s)
+		res, err := c.getManagedNodeGroupAutoScalingGroupName(ctx, s)
 		if err != nil {
 			return "", err
 		}
 		return res, nil
 	case api.NodeGroupTypeUnmanaged, "":
-		res, err := c.getUnmanagedNodeGroupAutoScalingGroupName(s)
+		res, err := c.GetUnmanagedNodeGroupAutoScalingGroupName(ctx, s)
 		if err != nil {
 			return "", err
 		}
@@ -256,27 +221,30 @@ func (c *StackCollection) GetAutoScalingGroupName(s *Stack) (string, error) {
 }
 
 // GetNodeGroupAutoScalingGroupName returns the unmanaged nodegroup's AutoScalingGroupName
-func (c *StackCollection) getUnmanagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
+func (c *StackCollection) GetUnmanagedNodeGroupAutoScalingGroupName(ctx context.Context, s *Stack) (string, error) {
 	input := &cfn.DescribeStackResourceInput{
 		StackName:         s.StackName,
 		LogicalResourceId: aws.String("NodeGroup"),
 	}
 
-	res, err := c.cloudformationAPI.DescribeStackResource(input)
+	res, err := c.cloudformationAPI.DescribeStackResource(ctx, input)
 	if err != nil {
 		return "", err
+	}
+	if res.StackResourceDetail.PhysicalResourceId == nil {
+		return "", fmt.Errorf("%q resource of stack %q has no physical resource id", *input.LogicalResourceId, *res.StackResourceDetail.LogicalResourceId)
 	}
 	return *res.StackResourceDetail.PhysicalResourceId, nil
 }
 
 // GetManagedNodeGroupAutoScalingGroupName returns the managed nodegroup's AutoScalingGroup names
-func (c *StackCollection) getManagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
+func (c *StackCollection) getManagedNodeGroupAutoScalingGroupName(ctx context.Context, s *Stack) (string, error) {
 	input := &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(getClusterNameTag(s)),
 		NodegroupName: aws.String(c.GetNodeGroupName(s)),
 	}
 
-	res, err := c.eksAPI.DescribeNodegroup(input)
+	res, err := c.eksAPI.DescribeNodegroup(ctx, input)
 	if err != nil {
 		logger.Warning("couldn't get managed nodegroup details for stack %q", *s.StackName)
 		return "", nil
@@ -286,38 +254,38 @@ func (c *StackCollection) getManagedNodeGroupAutoScalingGroupName(s *Stack) (str
 
 	if res.Nodegroup.Resources != nil {
 		for _, v := range res.Nodegroup.Resources.AutoScalingGroups {
-			asgs = append(asgs, aws.StringValue(v.Name))
+			asgs = append(asgs, aws.ToString(v.Name))
 		}
 	}
 	return strings.Join(asgs, ","), nil
 }
 
-// GetAutoScalingGroupDesiredCapacity returns the AutoScalingGroup's desired capacity
-func (c *StackCollection) GetAutoScalingGroupDesiredCapacity(name string) (autoscaling.Group, error) {
-	asg, err := c.asgAPI.DescribeAutoScalingGroups(&autoscaling.DescribeAutoScalingGroupsInput{
-		AutoScalingGroupNames: []*string{
-			&name,
+func (c *StackCollection) GetAutoScalingGroupDesiredCapacity(ctx context.Context, name string) (asgtypes.AutoScalingGroup, error) {
+	asg, err := c.asgAPI.DescribeAutoScalingGroups(ctx, &autoscaling.DescribeAutoScalingGroupsInput{
+		AutoScalingGroupNames: []string{
+			name,
 		},
 	})
+
 	if err != nil {
-		return autoscaling.Group{}, fmt.Errorf("couldn't describe ASG: %s", name)
+		return asgtypes.AutoScalingGroup{}, fmt.Errorf("couldn't describe ASG: %s", name)
 	}
 	if len(asg.AutoScalingGroups) != 1 {
 		logger.Warning("couldn't find ASG %s", name)
-		return autoscaling.Group{}, fmt.Errorf("couldn't find ASG: %s", name)
+		return asgtypes.AutoScalingGroup{}, fmt.Errorf("couldn't find ASG: %s", name)
 	}
 
-	return *asg.AutoScalingGroups[0], nil
+	return asg.AutoScalingGroups[0], nil
 }
 
 // DescribeNodeGroupStack gets the specified nodegroup stack
-func (c *StackCollection) DescribeNodeGroupStack(nodeGroupName string) (*Stack, error) {
+func (c *StackCollection) DescribeNodeGroupStack(ctx context.Context, nodeGroupName string) (*Stack, error) {
 	stackName := c.makeNodeGroupStackName(nodeGroupName)
-	return c.DescribeStack(&Stack{StackName: &stackName})
+	return c.DescribeStack(ctx, &Stack{StackName: &stackName})
 }
 
 // GetNodeGroupStackType returns the nodegroup stack type
-func (c *StackCollection) GetNodeGroupStackType(options GetNodegroupOption) (api.NodeGroupType, error) {
+func (c *StackCollection) GetNodeGroupStackType(ctx context.Context, options GetNodegroupOption) (api.NodeGroupType, error) {
 	var (
 		err   error
 		stack *Stack
@@ -326,7 +294,7 @@ func (c *StackCollection) GetNodeGroupStackType(options GetNodegroupOption) (api
 		stack = options.Stack.Stack
 	}
 	if stack == nil {
-		stack, err = c.DescribeNodeGroupStack(options.NodeGroupName)
+		stack, err = c.DescribeNodeGroupStack(ctx, options.NodeGroupName)
 		if err != nil {
 			return "", err
 		}
@@ -335,7 +303,7 @@ func (c *StackCollection) GetNodeGroupStackType(options GetNodegroupOption) (api
 }
 
 // GetNodeGroupType returns the nodegroup type
-func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
+func GetNodeGroupType(tags []types.Tag) (api.NodeGroupType, error) {
 	var nodeGroupType api.NodeGroupType
 
 	if ngNameTagValue := GetNodegroupTagName(tags); ngNameTagValue == "" {
@@ -357,7 +325,7 @@ func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
 }
 
 // GetEksctlVersionFromTags returns the eksctl version used to create or update the stack
-func GetEksctlVersionFromTags(tags []*cfn.Tag) (semver.Version, bool, error) {
+func GetEksctlVersionFromTags(tags []types.Tag) (semver.Version, bool, error) {
 	for _, tag := range tags {
 		if *tag.Key == api.EksctlVersionTag {
 			v, err := version.ParseEksctlVersion(*tag.Value)
@@ -368,96 +336,6 @@ func GetEksctlVersionFromTags(tags []*cfn.Tag) (semver.Version, bool, error) {
 		}
 	}
 	return semver.Version{}, false, nil
-}
-
-type nodeGroupPaths struct {
-	InstanceType    string
-	DesiredCapacity string
-	MinSize         string
-	MaxSize         string
-}
-
-func getNodeGroupPaths(tags []*cfn.Tag) (*nodeGroupPaths, error) {
-	nodeGroupType, err := GetNodeGroupType(tags)
-	if err != nil {
-		return nil, err
-	}
-
-	switch nodeGroupType {
-	case api.NodeGroupTypeManaged:
-		makePath := func(fieldPath string) string {
-			return fmt.Sprintf("%s.ManagedNodeGroup.Properties.%s", resourcesRootPath, fieldPath)
-		}
-		makeScalingPath := func(field string) string {
-			return makePath(fmt.Sprintf("ScalingConfig.%s", field))
-		}
-		return &nodeGroupPaths{
-			InstanceType:    makePath("InstanceTypes.0"),
-			DesiredCapacity: makeScalingPath("DesiredSize"),
-			MinSize:         makeScalingPath("MinSize"),
-			MaxSize:         makeScalingPath("MaxSize"),
-		}, nil
-
-		// Tag may not exist for existing nodegroups
-	case api.NodeGroupTypeUnmanaged, "":
-		makePath := func(field string) string {
-			return fmt.Sprintf("%s.NodeGroup.Properties.%s", resourcesRootPath, field)
-		}
-		return &nodeGroupPaths{
-			InstanceType:    resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.InstanceType",
-			DesiredCapacity: makePath("DesiredCapacity"),
-			MinSize:         makePath("MinSize"),
-			MaxSize:         makePath("MaxSize"),
-		}, nil
-
-	default:
-		return nil, fmt.Errorf("unexpected nodegroup type tag: %q", nodeGroupType)
-	}
-
-}
-
-func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *nodeGroupPaths) (*NodeGroupSummary, error) {
-	template, err := c.GetStackTemplate(*stack.StackName)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error getting CloudFormation template for stack %s", *stack.StackName)
-	}
-
-	summary := &NodeGroupSummary{
-		StackName:       *stack.StackName,
-		Cluster:         getClusterNameTag(stack),
-		Name:            c.GetNodeGroupName(stack),
-		Status:          *stack.StackStatus,
-		MaxSize:         int(gjson.Get(template, ngPaths.MaxSize).Int()),
-		MinSize:         int(gjson.Get(template, ngPaths.MinSize).Int()),
-		DesiredCapacity: int(gjson.Get(template, ngPaths.DesiredCapacity).Int()),
-		InstanceType:    gjson.Get(template, ngPaths.InstanceType).String(),
-		ImageID:         gjson.Get(template, imageIDPath).String(),
-		CreationTime:    *stack.CreationTime,
-	}
-
-	nodeGroupType, err := GetNodeGroupType(stack.Tags)
-	if err != nil {
-		return nil, err
-	}
-
-	var nodeInstanceRoleARN string
-	if nodeGroupType == api.NodeGroupTypeUnmanaged {
-		nodeInstanceRoleARNCollector := func(s string) error {
-			nodeInstanceRoleARN = s
-			return nil
-		}
-		collectors := map[string]outputs.Collector{
-			outputs.NodeGroupInstanceRoleARN: nodeInstanceRoleARNCollector,
-		}
-		collectorSet := outputs.NewCollectorSet(collectors)
-		if err := collectorSet.MustCollect(*stack); err != nil {
-			logger.Warning(errors.Wrapf(err, "error collecting Cloudformation outputs for stack %s", *stack.StackName).Error())
-		}
-	}
-
-	summary.NodeInstanceRoleARN = nodeInstanceRoleARN
-
-	return summary, nil
 }
 
 // GetNodeGroupName will return nodegroup name based on tags
@@ -475,7 +353,7 @@ func (*StackCollection) GetNodeGroupName(s *Stack) string {
 }
 
 // GetNodegroupTagName returns the nodegroup name of a stack based on its tags. Taking into account legacy tags.
-func GetNodegroupTagName(tags []*cfn.Tag) string {
+func GetNodegroupTagName(tags []types.Tag) string {
 	for _, tag := range tags {
 		switch *tag.Key {
 		case api.NodeGroupNameTag, api.OldNodeGroupNameTag, api.OldNodeGroupIDTag:

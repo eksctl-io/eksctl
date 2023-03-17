@@ -4,8 +4,13 @@ on:
       isReleaseCandidate:
         required: true
         type: boolean
+      name:
+        required: true
+        type: string
     secrets:
       githubToken:
+        required: true
+      slackToken:
         required: true
 
 jobs:
@@ -14,9 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Cache go-build and mod
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build/
@@ -25,9 +30,9 @@ jobs:
           restore-keys: |
             go-
       - name: Setup Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.17.x
+          go-version: 1.18.x
       - name: Setup deps
         run: |
           make install-build-deps
@@ -43,3 +48,33 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.githubToken }}
         run: |
           ./build/scripts/do-release-candidate.sh
+      - name: get version
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      - name: slack on success - team-pitch-black
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+        with:
+          slack_token: ${{ secrets.slackToken }}
+          message: ":cool-doge: ${{ inputs.name }} successful for tag <https://github.com/weaveworks/eksctl/releases/tag/${{ steps.get_version.outputs.version }}|${{ steps.get_version.outputs.version }}>"
+          channel: team-pitch-black
+          color: green
+          verbose: false
+      - name: slack on failure - team-pitch-black
+        if: ${{ failure() }}
+        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+        with:
+          slack_token: ${{ secrets.slackToken }}
+          message: ":ahhhhhhhhh: ${{ inputs.name }} has failed for tag <https://github.com/weaveworks/eksctl/releases/tag/${{ steps.get_version.outputs.version }}|${{ steps.get_version.outputs.version }}>"
+          channel: team-pitch-black
+          color: red
+          verbose: true
+      - name: slack on success - aws-dev
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+        with:
+          slack_token: ${{ secrets.slackToken }}
+          message: ":tada: <https://github.com/weaveworks/eksctl/releases/tag/${{ steps.get_version.outputs.version }}|${{ steps.get_version.outputs.version }}> released!"
+          channel: aws-dev
+          color: green
+          verbose: false

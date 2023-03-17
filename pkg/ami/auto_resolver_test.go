@@ -1,11 +1,16 @@
 package ami_test
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	. "github.com/onsi/ginkgo"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
 	. "github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -13,7 +18,7 @@ import (
 
 type returnAmi struct {
 	imageID     string
-	state       string
+	state       ec2types.ImageState
 	createdDate string
 }
 
@@ -30,7 +35,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 			imageFamily  string
 			resolvedAmi  string
 			expectedAmi  string
-			imageState   string
+			imageState   ec2types.ImageState
 		)
 
 		Context("setting proper AWS Account IDs based on instance families", func() {
@@ -57,6 +62,13 @@ var _ = Describe("AMI Auto Resolution", func() {
 				Expect(ownerAccount).To(BeEquivalentTo("099720109477"))
 				Expect(err).NotTo(HaveOccurred())
 			})
+
+			It("should return the Windows Account ID for Windows Server images", func() {
+				ownerAccount, err := OwnerAccountID(api.NodeImageFamilyWindowsServer2022CoreContainer, region)
+				Expect(ownerAccount).To(BeEquivalentTo("801119661308"))
+				Expect(err).NotTo(HaveOccurred())
+			})
+
 		})
 
 		Context("with a valid region and N instance type", func() {
@@ -74,12 +86,12 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("and ami is available", func() {
 					BeforeEach(func() {
-						imageState = "available"
+						imageState = ec2types.ImageStateAvailable
 
 						p = mockprovider.NewMockProvider()
 						addMockDescribeImages(p, "amazon-eks-node-1.15-v*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", api.NodeImageFamilyAmazonLinux2)
 						resolver := NewAutoResolver(p.MockEC2())
-						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 					})
 
 					It("should not error", func() {
@@ -97,14 +109,14 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("and ami is available", func() {
 					BeforeEach(func() {
-						imageState = "available"
+						imageState = ec2types.ImageStateAvailable
 						imageFamily = "Ubuntu1804"
 
 						p = mockprovider.NewMockProvider()
 						addMockDescribeImages(p, "ubuntu-eks/k8s_1.15/images/*18.04*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", api.NodeImageFamilyUbuntu1804)
 
 						resolver := NewAutoResolver(p.MockEC2())
-						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 					})
 
 					It("should not error", func() {
@@ -122,13 +134,13 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("and ami is NOT available", func() {
 					BeforeEach(func() {
-						imageState = "pending"
+						imageState = ec2types.ImageStatePending
 
 						p = mockprovider.NewMockProvider()
 						addMockDescribeImagesMultiple(p, "amazon-eks-node-1.15-v*", []returnAmi{})
 
 						resolver := NewAutoResolver(p.MockEC2())
-						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 					})
 
 					It("should not error", func() {
@@ -166,7 +178,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						addMockDescribeImagesMultiple(p, "amazon-eks-node-1.15-v*", images)
 
 						resolver := NewAutoResolver(p.MockEC2())
-						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 					})
 
 					It("should not error", func() {
@@ -195,7 +207,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						p = mockprovider.NewMockProvider()
 						addMockDescribeImages(p, "amazon-eks-gpu-node-1.15-*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", api.NodeImageFamilyAmazonLinux2)
 						resolver := NewAutoResolver(p.MockEC2())
-						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 					})
 
 					It("should not error", func() {
@@ -215,13 +227,14 @@ var _ = Describe("AMI Auto Resolution", func() {
 	})
 })
 
-func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern string, amiID string, amiState string, createdDate string, instanceFamily string) {
+func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern string, amiID string, amiState ec2types.ImageState, createdDate string, instanceFamily string) {
 	p.MockEC2().On("DescribeImages",
+		mock.Anything,
 		mock.MatchedBy(func(input *ec2.DescribeImagesInput) bool {
 			for _, filter := range input.Filters {
 				if *filter.Name == "name" {
 					if len(filter.Values) > 0 {
-						if *filter.Values[0] == expectedNamePattern {
+						if filter.Values[0] == expectedNamePattern {
 							return true
 						}
 					}
@@ -230,10 +243,10 @@ func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern str
 			return false
 		}),
 	).Return(&ec2.DescribeImagesOutput{
-		Images: []*ec2.Image{
+		Images: []ec2types.Image{
 			{
 				ImageId:      aws.String(amiID),
-				State:        aws.String(amiState),
+				State:        amiState,
 				CreationDate: aws.String(createdDate),
 				Description:  aws.String(instanceFamily),
 			},
@@ -242,21 +255,22 @@ func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern str
 }
 
 func addMockDescribeImagesMultiple(p *mockprovider.MockProvider, expectedNamePattern string, returnAmis []returnAmi) {
-	images := make([]*ec2.Image, len(returnAmis))
-	for index, ami := range returnAmis {
-		images[index] = &ec2.Image{
+	images := make([]ec2types.Image, len(returnAmis))
+	for i, ami := range returnAmis {
+		images[i] = ec2types.Image{
 			ImageId:      aws.String(ami.imageID),
-			State:        aws.String(ami.state),
+			State:        ami.state,
 			CreationDate: aws.String(ami.createdDate),
 		}
 	}
 
 	p.MockEC2().On("DescribeImages",
+		mock.Anything,
 		mock.MatchedBy(func(input *ec2.DescribeImagesInput) bool {
 			for _, filter := range input.Filters {
 				if *filter.Name == "name" {
 					if len(filter.Values) > 0 {
-						if *filter.Values[0] == expectedNamePattern {
+						if filter.Values[0] == expectedNamePattern {
 							return true
 						}
 					}

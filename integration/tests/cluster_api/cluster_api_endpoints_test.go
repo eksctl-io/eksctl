@@ -5,22 +5,21 @@
 package cluster_api
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 	"time"
+
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
-	. "github.com/onsi/gomega"
 )
 
 var params *tests.Params
@@ -81,36 +80,25 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 			setEndpointConfig(cfg, e.Private, e.Public)
 			setMetadata(cfg, clName, params.Region)
 
-			// create and populate config file from clusterconfig
-			bytes, err := json.Marshal(cfg)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(len(bytes)).NotTo(BeZero())
-			tmpfile, err := os.CreateTemp("", "clusterendpointtests")
-			Expect(err).NotTo(HaveOccurred())
-
-			defer os.Remove(tmpfile.Name())
-
-			_, err = tmpfile.Write(bytes)
-			Expect(err).NotTo(HaveOccurred())
-			err = tmpfile.Close()
-			Expect(err).NotTo(HaveOccurred())
-
 			// create cluster with config file
 			if e.Type == createCluster {
 				cmd := params.EksctlCreateCmd.WithArgs(
 					"cluster",
 					"--verbose", "2",
-					"--config-file", tmpfile.Name(),
+					"--config-file", "-",
 					"--without-nodegroup",
-				).WithoutArg("--region", params.Region)
+				).
+					WithoutArg("--region", params.Region).
+					WithStdin(clusterutils.Reader(cfg))
+
 				if e.Fails {
 					Expect(cmd).ShouldNot(RunSuccessfully())
 					return
 				}
 				Expect(cmd).Should(RunSuccessfully())
-				awsSession := NewSession(params.Region)
+				awsSession := NewConfig(params.Region)
 				Eventually(awsSession, timeOutSeconds, pollInterval).Should(
-					HaveExistingCluster(clName, awseks.ClusterStatusActive, params.Version))
+					HaveExistingCluster(clName, string(ekstypes.ClusterStatusActive), params.Version))
 			} else if e.Type == updateCluster {
 				utilsCmd := params.EksctlUtilsCmd.
 					WithTimeout(timeOutSeconds*time.Second).
@@ -152,9 +140,9 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 					"--name", clName,
 				)
 				Expect(deleteCmd).Should(RunSuccessfully())
-				awsSession := NewSession(params.Region)
+				awsSession := NewConfig(params.Region)
 				Eventually(awsSession, timeOutSeconds, pollInterval).
-					ShouldNot(HaveExistingCluster(clName, awseks.ClusterStatusActive, params.Version))
+					ShouldNot(HaveExistingCluster(clName, string(ekstypes.ClusterStatusActive), params.Version))
 			}
 		},
 		Entry("Create cluster1, Private=false, Public=true, should succeed", endpointAccessCase{

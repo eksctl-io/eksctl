@@ -7,16 +7,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/smithy-go"
+
+	"github.com/aws/aws-sdk-go-v2/aws/retry"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
+	elbtypes "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing/types"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	elbv2types "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
+
 	"github.com/pkg/errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/aws/aws-sdk-go/service/elb"
-	"github.com/aws/aws-sdk-go/service/elb/elbiface"
-	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
 	corev1 "k8s.io/api/core/v1"
 
@@ -24,10 +27,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	cloudprovider "k8s.io/cloud-provider"
-	awsprovider "k8s.io/legacy-cloud-providers/aws"
 
-	"github.com/aws/aws-sdk-go/aws/request"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 )
 
 type loadBalancerKind int
@@ -44,8 +46,25 @@ type loadBalancer struct {
 	ownedSecurityGroupIDs map[string]struct{}
 }
 
+const (
+	serviceAnnotationLoadBalancerType = "service.beta.kubernetes.io/aws-load-balancer-type"
+	tagNameKubernetesClusterPrefix    = "kubernetes.io/cluster/"
+)
+
+// DescribeLoadBalancersAPI provides an interface to the AWS ELB service.
+type DescribeLoadBalancersAPI interface {
+	// DescribeLoadBalancers describes the specified load balancers or all load balancers.
+	DescribeLoadBalancers(ctx context.Context, params *elasticloadbalancing.DescribeLoadBalancersInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DescribeLoadBalancersOutput, error)
+}
+
+// DescribeLoadBalancersAPIV2 provides an interface to the AWS ELBv2 service.
+type DescribeLoadBalancersAPIV2 interface {
+	// DescribeLoadBalancers describes the specified load balancers or all load balancers for ELBv2.
+	DescribeLoadBalancers(ctx context.Context, params *elasticloadbalancingv2.DescribeLoadBalancersInput, optFns ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.DescribeLoadBalancersOutput, error)
+}
+
 // Cleanup finds and deletes any dangling ELBs associated to a Kubernetes Service
-func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI, elbv2API elbv2iface.ELBV2API,
+func Cleanup(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI, elbv2API DescribeLoadBalancersAPIV2,
 	kubernetesCS kubernetes.Interface, clusterConfig *api.ClusterConfig) error {
 
 	deadline, ok := ctx.Deadline()
@@ -153,7 +172,7 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 	return nil
 }
 
-func getServiceLoadBalancer(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI, clusterName string,
+func getServiceLoadBalancer(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI, clusterName string,
 	service *corev1.Service) (*loadBalancer, error) {
 	if service.Spec.Type != corev1.ServiceTypeLoadBalancer {
 		return nil, nil
@@ -218,19 +237,20 @@ func convertStringSetToSlice(set map[string]struct{}) []string {
 // Load balancers provisioned by the AWS cloud-provider integration are named k8s-elb-$loadBalancerName
 var sgNameRegex = regexp.MustCompile(`^k8s-elb-([^-]{1-32})$`)
 
-func deleteOrphanLoadBalancerSecurityGroups(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI, clusterConfig *api.ClusterConfig) error {
+func deleteOrphanLoadBalancerSecurityGroups(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI, clusterConfig *api.ClusterConfig) error {
 	clusterName := clusterConfig.Metadata.Name
 	describeRequest := &ec2.DescribeSecurityGroupsInput{
-		Filters: []*ec2.Filter{
+		Filters: []ec2types.Filter{
 			{
 				Name:   aws.String("tag-key"),
-				Values: []*string{aws.String(awsprovider.TagNameKubernetesClusterPrefix + clusterName)},
+				Values: []string{tagNameKubernetesClusterPrefix + clusterName},
 			},
 		},
 	}
-	var failedSGs []*ec2.SecurityGroup
-	for {
-		result, err := ec2API.DescribeSecurityGroupsWithContext(ctx, describeRequest)
+	var failedSGs []ec2types.SecurityGroup
+	paginator := ec2.NewDescribeSecurityGroupsPaginator(ec2API, describeRequest)
+	for paginator.HasMorePages() {
+		result, err := paginator.NextPage(ctx)
 		if err != nil {
 			return fmt.Errorf("cannot describe security groups: %s", err)
 		}
@@ -240,7 +260,8 @@ func deleteOrphanLoadBalancerSecurityGroups(ctx context.Context, ec2API ec2iface
 				continue
 			}
 			if err := deleteSecurityGroup(ctx, ec2API, sg); err != nil {
-				if awsError, ok := err.(awserr.Error); ok && awsError.Code() == "DependencyViolation" {
+				var ae smithy.APIError
+				if errors.As(err, &ae) && ae.ErrorCode() == "DependencyViolation" {
 					logger.Debug("failed to delete security group, possibly because its load balancer is still being deleted")
 					failedSGs = append(failedSGs, sg)
 				} else {
@@ -262,7 +283,7 @@ func deleteOrphanLoadBalancerSecurityGroups(ctx context.Context, ec2API ec2iface
 	return nil
 }
 
-func deleteFailedSecurityGroups(ctx aws.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI, securityGroups []*ec2.SecurityGroup) error {
+func deleteFailedSecurityGroups(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI, securityGroups []ec2types.SecurityGroup) error {
 	for _, sg := range securityGroups {
 		// wait for the security group's load balancer to complete deletion
 		if err := ensureLoadBalancerDeleted(ctx, elbAPI, sg); err != nil {
@@ -275,7 +296,7 @@ func deleteFailedSecurityGroups(ctx aws.Context, ec2API ec2iface.EC2API, elbAPI 
 	return nil
 }
 
-func ensureLoadBalancerDeleted(ctx context.Context, elbAPI elbiface.ELBAPI, sg *ec2.SecurityGroup) error {
+func ensureLoadBalancerDeleted(ctx context.Context, elbAPI DescribeLoadBalancersAPI, sg ec2types.SecurityGroup) error {
 	// extract load balancer name from the SG ID
 	match := sgNameRegex.FindStringSubmatch(*sg.GroupName)
 	if len(match) != 2 {
@@ -292,18 +313,20 @@ func ensureLoadBalancerDeleted(ctx context.Context, elbAPI elbiface.ELBAPI, sg *
 	defer cancelFunc()
 
 	for {
-		input := &elb.DescribeLoadBalancersInput{
-			LoadBalancerNames: []*string{aws.String(loadBalancerName)},
+		input := &elasticloadbalancing.DescribeLoadBalancersInput{
+			LoadBalancerNames: []string{loadBalancerName},
 		}
-
-		if _, err := elbAPI.DescribeLoadBalancersWithContext(timeoutCtx, input); err != nil {
-			if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == elb.ErrCodeAccessPointNotFoundException {
+		if _, err := elbAPI.DescribeLoadBalancers(timeoutCtx, input); err != nil {
+			switch {
+			case isELBNotFoundErr(err):
 				return nil
-			} else if err == context.DeadlineExceeded {
+			case err == context.DeadlineExceeded:
 				return errors.Wrap(err, "timed out looking up load balancer")
-			} else if request.IsErrorRetryable(err) {
+			case retry.IsErrorRetryables(retry.DefaultRetryables).IsErrorRetryable(err).Bool():
+				// This is not required when a retryer is configured. It exists to maintain the existing behaviour
+				// of manually retrying requests.
 				logger.Debug("retrying request after %v", lbRetryAfter)
-			} else {
+			default:
 				return err
 			}
 		}
@@ -319,40 +342,38 @@ func ensureLoadBalancerDeleted(ctx context.Context, elbAPI elbiface.ELBAPI, sg *
 	}
 }
 
-func deleteSecurityGroup(ctx context.Context, ec2API ec2iface.EC2API, sg *ec2.SecurityGroup) error {
+func deleteSecurityGroup(ctx context.Context, ec2API awsapi.EC2, sg ec2types.SecurityGroup) error {
 	logger.Debug("deleting orphan Load Balancer security group %s with description %q",
-		aws.StringValue(sg.GroupId), aws.StringValue(sg.Description))
+		aws.ToString(sg.GroupId), aws.ToString(sg.Description))
 	input := &ec2.DeleteSecurityGroupInput{
 		GroupId: sg.GroupId,
 	}
-	_, err := ec2API.DeleteSecurityGroupWithContext(ctx, input)
+	_, err := ec2API.DeleteSecurityGroup(ctx, input)
 	return err
 }
 
-func describeSecurityGroupsByID(ctx context.Context, ec2API ec2iface.EC2API, groupIDs []string) (*ec2.DescribeSecurityGroupsOutput, error) {
-	filter := &ec2.Filter{
-		Name: aws.String("group-id"),
-	}
-	for _, groupID := range groupIDs {
-		filter.Values = append(filter.Values, aws.String(groupID))
-	}
-	describeRequest := &ec2.DescribeSecurityGroupsInput{
-		Filters: []*ec2.Filter{filter},
-	}
-	return ec2API.DescribeSecurityGroupsWithContext(ctx, describeRequest)
+func describeSecurityGroupsByID(ctx context.Context, ec2API awsapi.EC2, groupIDs []string) (*ec2.DescribeSecurityGroupsOutput, error) {
+	return ec2API.DescribeSecurityGroups(ctx, &ec2.DescribeSecurityGroupsInput{
+		Filters: []ec2types.Filter{
+			{
+				Name:   aws.String("group-id"),
+				Values: groupIDs,
+			},
+		},
+	})
 }
 
-func tagsIncludeClusterName(tags []*ec2.Tag, clusterName string) bool {
-	clusterTagKey := awsprovider.TagNameKubernetesClusterPrefix + clusterName
+func tagsIncludeClusterName(tags []ec2types.Tag, clusterName string) bool {
+	clusterTagKey := tagNameKubernetesClusterPrefix + clusterName
 	for _, tag := range tags {
-		if aws.StringValue(tag.Key) == clusterTagKey {
+		if aws.ToString(tag.Key) == clusterTagKey {
 			return true
 		}
 	}
 	return false
 }
 
-func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI,
+func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI,
 	clusterName string, loadBalancerName string, loadBalancerKind loadBalancerKind) (map[string]struct{}, error) {
 	if loadBalancerKind == network {
 		// V2 ELBs just use the Security Group of the EC2 instances
@@ -368,7 +389,7 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API ec2iface.E
 		return map[string]struct{}{}, nil
 	}
 
-	sgResponse, err := describeSecurityGroupsByID(ctx, ec2API, aws.StringValueSlice(lb.SecurityGroups))
+	sgResponse, err := describeSecurityGroupsByID(ctx, ec2API, lb.SecurityGroups)
 
 	if err != nil {
 		return nil, fmt.Errorf("error obtaining security groups for ELB: %s", err)
@@ -377,7 +398,7 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API ec2iface.E
 	result := map[string]struct{}{}
 
 	for _, sg := range sgResponse.SecurityGroups {
-		sgID := aws.StringValue(sg.GroupId)
+		sgID := aws.ToString(sg.GroupId)
 
 		// FIXME(fons): AWS' CloudConfig accepts a global ELB security group, which shouldn't be deleted.
 		//              However, there doesn't seem to be a way to access the CloudConfiguration through the API Server.
@@ -405,13 +426,13 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API ec2iface.E
 
 func getLoadBalancerKind(service *corev1.Service) loadBalancerKind {
 	// See https://github.com/kubernetes/legacy-cloud-providers/blob/master/aws/aws_loadbalancer.go#L65-L70
-	if service.Annotations[awsprovider.ServiceAnnotationLoadBalancerType] == "nlb" {
+	if service.Annotations[serviceAnnotationLoadBalancerType] == "nlb" {
 		return network
 	}
 	return classic
 }
 
-func loadBalancerExists(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI, elbv2API elbv2iface.ELBV2API, lb loadBalancer) (bool, error) {
+func loadBalancerExists(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI, elbv2API DescribeLoadBalancersAPIV2, lb loadBalancer) (bool, error) {
 	exists, err := elbExists(ctx, elbAPI, elbv2API, lb.name, lb.kind)
 	if err != nil {
 		return false, err
@@ -429,7 +450,7 @@ func loadBalancerExists(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbi
 	return len(sgResponse.SecurityGroups) != 0, nil
 }
 
-func elbExists(ctx context.Context, elbAPI elbiface.ELBAPI, elbv2API elbv2iface.ELBV2API,
+func elbExists(ctx context.Context, elbAPI DescribeLoadBalancersAPI, elbv2API DescribeLoadBalancersAPIV2,
 	name string, kind loadBalancerKind) (bool, error) {
 	if kind == network || kind == application {
 		return elbV2Exists(ctx, elbv2API, name)
@@ -438,24 +459,20 @@ func elbExists(ctx context.Context, elbAPI elbiface.ELBAPI, elbv2API elbv2iface.
 	return desc != nil, err
 }
 
-func describeClassicLoadBalancer(ctx context.Context, elbAPI elbiface.ELBAPI,
-	name string) (*elb.LoadBalancerDescription, error) {
+func describeClassicLoadBalancer(ctx context.Context, elbAPI DescribeLoadBalancersAPI,
+	name string) (*elbtypes.LoadBalancerDescription, error) {
 
-	request := &elb.DescribeLoadBalancersInput{
-		LoadBalancerNames: []*string{&name},
-	}
-
-	response, err := elbAPI.DescribeLoadBalancersWithContext(ctx, request)
+	response, err := elbAPI.DescribeLoadBalancers(ctx, &elasticloadbalancing.DescribeLoadBalancersInput{
+		LoadBalancerNames: []string{name},
+	})
 	if err != nil {
-		if awsError, ok := err.(awserr.Error); ok {
-			if awsError.Code() == elb.ErrCodeAccessPointNotFoundException {
-				return nil, nil
-			}
+		if isELBNotFoundErr(err) {
+			return nil, nil
 		}
 		return nil, err
 	}
 
-	var ret *elb.LoadBalancerDescription
+	var ret elbtypes.LoadBalancerDescription
 	switch {
 	case len(response.LoadBalancerDescriptions) > 1:
 		logger.Warning("found multiple load balancers with name: %s", name)
@@ -463,23 +480,25 @@ func describeClassicLoadBalancer(ctx context.Context, elbAPI elbiface.ELBAPI,
 	case len(response.LoadBalancerDescriptions) > 0:
 		ret = response.LoadBalancerDescriptions[0]
 	}
-	return ret, nil
+	return &ret, nil
 }
 
-func elbV2Exists(ctx context.Context, api elbv2iface.ELBV2API, name string) (bool, error) {
-	request := &elbv2.DescribeLoadBalancersInput{
-		Names: []*string{aws.String(name)},
-	}
-
-	_, err := api.DescribeLoadBalancersWithContext(ctx, request)
+func elbV2Exists(ctx context.Context, api DescribeLoadBalancersAPIV2, name string) (bool, error) {
+	_, err := api.DescribeLoadBalancers(ctx, &elasticloadbalancingv2.DescribeLoadBalancersInput{
+		Names: []string{name},
+	})
 	if err != nil {
-		if awsError, ok := err.(awserr.Error); ok {
-			if awsError.Code() == elbv2.ErrCodeLoadBalancerNotFoundException {
-				return false, nil
-			}
+		var notFoundErr *elbv2types.LoadBalancerNotFoundException
+		if errors.As(err, &notFoundErr) {
+			return false, nil
 		}
 		return false, err
 	}
 
 	return true, nil
+}
+
+func isELBNotFoundErr(err error) bool {
+	var notFoundErr *elbtypes.AccessPointNotFoundException
+	return errors.As(err, &notFoundErr)
 }

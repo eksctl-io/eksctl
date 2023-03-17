@@ -2,50 +2,49 @@ package v1alpha5
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
+	"github.com/pkg/errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
-	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
-	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/elb/elbiface"
-	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
-	"github.com/pkg/errors"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/utils/taints"
 )
 
 // Values for `KubernetesVersion`
 // All valid values should go in this block
 const (
-	Version1_18 = "1.18"
+	Version1_22 = "1.22"
 
-	Version1_19 = "1.19"
+	Version1_23 = "1.23"
 
-	Version1_20 = "1.20"
+	Version1_24 = "1.24"
 
-	Version1_21 = "1.21"
+	Version1_25 = "1.25"
 
 	// DefaultVersion (default)
-	DefaultVersion = Version1_21
+	DefaultVersion = Version1_25
 
-	LatestVersion = Version1_21
+	LatestVersion = Version1_25
+
+	DockershimDeprecationVersion = Version1_24
 )
 
 // No longer supported versions
@@ -61,6 +60,7 @@ const (
 
 	// Version1_13 represents Kubernetes version 1.13.x
 	Version1_13 = "1.13"
+
 	// Version1_14 represents Kubernetes version 1.14.x
 	Version1_14 = "1.14"
 
@@ -72,12 +72,24 @@ const (
 
 	// Version1_17 represents Kubernetes version 1.17.x
 	Version1_17 = "1.17"
+
+	// Version1_18 represents Kubernetes version 1.18.x
+	Version1_18 = "1.18"
+
+	// Version1_19 represents Kubernetes version 1.19.x
+	Version1_19 = "1.19"
+
+	// Version1_20 represents Kubernetes version 1.20.x
+	Version1_20 = "1.20"
+
+	// Version1_21 represents Kubernetes version 1.21.x
+	Version1_21 = "1.21"
 )
 
 // Not yet supported versions
 const (
-	// Version1_22 represents Kubernetes version 1.22.x
-	Version1_22 = "1.22"
+	// Version1_26 represents Kubernetes version 1.26.x
+	Version1_26 = "1.26"
 )
 
 const (
@@ -117,8 +129,14 @@ const (
 	// RegionEUCentral1 represents the EU Central Region Frankfurt
 	RegionEUCentral1 = "eu-central-1"
 
-	// RegionEUSouth1 represents te Eu South Region Milan
+	// RegionEUCentral2 represents the EU Central Region Zurich.
+	RegionEUCentral2 = "eu-central-2"
+
+	// RegionEUSouth1 represents the Eu South Region Milan
 	RegionEUSouth1 = "eu-south-1"
+
+	// RegionEUSouth2 represents the Eu South Region Spain
+	RegionEUSouth2 = "eu-south-2"
 
 	// RegionAPNorthEast1 represents the Asia-Pacific North East Region Tokyo
 	RegionAPNorthEast1 = "ap-northeast-1"
@@ -135,11 +153,23 @@ const (
 	// RegionAPSouthEast2 represents the Asia-Pacific South East Region Sydney
 	RegionAPSouthEast2 = "ap-southeast-2"
 
+	// RegionAPSouthEast3 represents the Asia-Pacific South East Region Jakarta
+	RegionAPSouthEast3 = "ap-southeast-3"
+
+	// RegionAPSouthEast4 represents the Asia-Pacific South East Region Melbourne
+	RegionAPSouthEast4 = "ap-southeast-4"
+
 	// RegionAPSouth1 represents the Asia-Pacific South Region Mumbai
 	RegionAPSouth1 = "ap-south-1"
 
+	// RegionAPSouth2 represents the Asia-Pacific South Region Hyderabad
+	RegionAPSouth2 = "ap-south-2"
+
 	// RegionAPEast1 represents the Asia Pacific Region Hong Kong
 	RegionAPEast1 = "ap-east-1"
+
+	// RegionMECentral1 represents the Middle East Region Dubai
+	RegionMECentral1 = "me-central-1"
 
 	// RegionMESouth1 represents the Middle East Region Bahrain
 	RegionMESouth1 = "me-south-1"
@@ -185,14 +215,22 @@ const (
 
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
 	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
+
+	NodeImageFamilyWindowsServer2022CoreContainer = "WindowsServer2022CoreContainer"
+	NodeImageFamilyWindowsServer2022FullContainer = "WindowsServer2022FullContainer"
+)
+
+// Deprecated `NodeAMIFamily`
+const (
 	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
 	NodeImageFamilyWindowsServer20H2CoreContainer = "WindowsServer20H2CoreContainer"
 )
 
 // Container runtime values.
 const (
-	ContainerRuntimeContainerD = "containerd"
-	ContainerRuntimeDockerD    = "dockerd"
+	ContainerRuntimeContainerD       = "containerd"
+	ContainerRuntimeDockerD          = "dockerd"
+	ContainerRuntimeDockerForWindows = "docker"
 )
 
 const (
@@ -201,6 +239,9 @@ const (
 
 	// DefaultNodeCount defines the default number of nodes to be created
 	DefaultNodeCount = 2
+
+	// DefaultMaxSize defines the default maximum number of nodes inside the ASG
+	DefaultMaxSize = 1
 
 	// NodeImageResolverAuto represents auto AMI resolver (see ami package)
 	NodeImageResolverAuto = "auto"
@@ -213,6 +254,9 @@ const (
 
 	// ClusterNameTag defines the tag of the cluster name
 	ClusterNameTag = "alpha.eksctl.io/cluster-name"
+
+	// ClusterOIDCEnabledTag determines whether OIDC is enabled or not.
+	ClusterOIDCEnabledTag = "alpha.eksctl.io/cluster-oidc-enabled"
 
 	// OldClusterNameTag defines the tag of the cluster name
 	OldClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
@@ -271,6 +315,9 @@ const (
 	// eksResourceAccountAPEast1 defines the AWS EKS account ID that provides node resources in ap-east-1 region
 	eksResourceAccountAPEast1 = "800184023465"
 
+	// eksResourceAccountMECentral1 defines the AWS EKS account ID that provides node resources in me-central-1 region
+	eksResourceAccountMECentral1 = "759879836304"
+
 	// eksResourceAccountMESouth1 defines the AWS EKS account ID that provides node resources in me-south-1 region
 	eksResourceAccountMESouth1 = "558608220178"
 
@@ -286,11 +333,26 @@ const (
 	// eksResourceAccountEUSouth1 defines the AWS EKS account ID that provides node resources in eu-south-1
 	eksResourceAccountEUSouth1 = "590381155156"
 
+	// eksResourceAccountEUSouth2 defines the AWS EKS account ID that provides node resources in eu-south-2
+	eksResourceAccountEUSouth2 = "455263428931"
+
+	// eksResourceAccountEUCentral2 defines the AWS EKS account ID that provides node resources in eu-central-2.
+	eksResourceAccountEUCentral2 = "900612956339"
+
 	// eksResourceAccountUSGovWest1 defines the AWS EKS account ID that provides node resources in us-gov-west-1
 	eksResourceAccountUSGovWest1 = "013241004608"
 
 	// eksResourceAccountUSGovEast1 defines the AWS EKS account ID that provides node resources in us-gov-east-1
 	eksResourceAccountUSGovEast1 = "151742754352"
+
+	// eksResourceAccountAPSouth2 defines the AWS EKS account ID that provides node resources in ap-south-2
+	eksResourceAccountAPSouth2 = "900889452093"
+
+	// eksResourceAccountAPSouthEast3 defines the AWS EKS account ID that provides node resources in ap-southeast-3
+	eksResourceAccountAPSouthEast3 = "296578399912"
+
+	// eksResourceAccountAPSouthEast4 defines the AWS EKS account ID that provides node resources in ap-southeast-4
+	eksResourceAccountAPSouthEast4 = "491585149902"
 )
 
 // Values for `VolumeType`
@@ -335,10 +397,22 @@ const (
 
 // Values for core addons
 const (
+	minimumVPCCNIVersionForIPv6 = "1.10.0"
 	VPCCNIAddon                 = "vpc-cni"
 	KubeProxyAddon              = "kube-proxy"
 	CoreDNSAddon                = "coredns"
-	minimumVPCCNIVersionForIPv6 = "1.10.0"
+	AWSEBSCSIDriverAddon        = "aws-ebs-csi-driver"
+)
+
+// supported version of Karpenter
+const (
+	supportedKarpenterVersion = "v0.17.0"
+)
+
+// Values for Capacity Reservation Preference
+const (
+	OpenCapacityReservation = "open"
+	NoneCapacityReservation = "none"
 )
 
 var (
@@ -353,16 +427,12 @@ var (
 	// DefaultNodeSSHPublicKeyPath is the default path to SSH public key
 	DefaultNodeSSHPublicKeyPath = "~/.ssh/id_rsa.pub"
 
-	// DefaultNodeVolumeType defines the default root volume type to use
+	// DefaultNodeVolumeType defines the default root volume type to use for
+	// non-Outpost clusters.
 	DefaultNodeVolumeType = NodeVolumeTypeGP3
 
 	// DefaultNodeVolumeSize defines the default root volume size
 	DefaultNodeVolumeSize = 80
-)
-
-var (
-	// DefaultContainerRuntime defines the default container runtime.
-	DefaultContainerRuntime = ContainerRuntimeDockerD
 )
 
 // Enabled return pointer to true value
@@ -388,7 +458,7 @@ func IsDisabled(v *bool) bool { return v != nil && !*v }
 // IsSetAndNonEmptyString will only return true if s is not nil and not empty
 func IsSetAndNonEmptyString(s *string) bool { return s != nil && *s != "" }
 
-// IsSetAndNonEmptyString will only return true if s is not nil and not empty
+// IsEmpty will only return true if s is not nil and not empty
 func IsEmpty(s *string) bool { return !IsSetAndNonEmptyString(s) }
 
 // SupportedRegions are the regions where EKS is available
@@ -404,14 +474,20 @@ func SupportedRegions() []string {
 		RegionEUWest3,
 		RegionEUNorth1,
 		RegionEUCentral1,
+		RegionEUCentral2,
 		RegionEUSouth1,
+		RegionEUSouth2,
 		RegionAPNorthEast1,
 		RegionAPNorthEast2,
 		RegionAPNorthEast3,
 		RegionAPSouthEast1,
 		RegionAPSouthEast2,
+		RegionAPSouthEast3,
+		RegionAPSouthEast4,
 		RegionAPSouth1,
+		RegionAPSouth2,
 		RegionAPEast1,
+		RegionMECentral1,
 		RegionMESouth1,
 		RegionSAEast1,
 		RegionAFSouth1,
@@ -447,6 +523,10 @@ func DeprecatedVersions() []string {
 		Version1_15,
 		Version1_16,
 		Version1_17,
+		Version1_18,
+		Version1_19,
+		Version1_20,
+		Version1_21,
 	}
 }
 
@@ -463,10 +543,10 @@ func IsDeprecatedVersion(version string) bool {
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_18,
-		Version1_19,
-		Version1_20,
-		Version1_21,
+		Version1_22,
+		Version1_23,
+		Version1_24,
+		Version1_25,
 	}
 }
 
@@ -500,28 +580,20 @@ func supportedAMIFamilies() []string {
 		NodeImageFamilyBottlerocket,
 		NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
-		NodeImageFamilyWindowsServer2004CoreContainer,
-		NodeImageFamilyWindowsServer20H2CoreContainer,
+		NodeImageFamilyWindowsServer2022CoreContainer,
+		NodeImageFamilyWindowsServer2022FullContainer,
 	}
 }
 
-// supportedSpotAllocationStrategies are the spot allocation strategies supported by ASG
-func supportedSpotAllocationStrategies() []string {
-	return []string{
-		SpotAllocationStrategyLowestPrice,
-		SpotAllocationStrategyCapacityOptimized,
-		SpotAllocationStrategyCapacityOptimizedPrioritized,
-	}
-}
-
-// isSpotAllocationStrategySupported returns true if the spot allocation strategy is supported for ASG
-func isSpotAllocationStrategySupported(allocationStrategy string) bool {
-	for _, strategy := range supportedSpotAllocationStrategies() {
-		if strategy == allocationStrategy {
-			return true
+// validateSpotAllocationStrategy validates that the specified spot allocation strategy is supported.
+func validateSpotAllocationStrategy(allocationStrategy string) error {
+	var strategy ec2types.SpotAllocationStrategy
+	for _, s := range strategy.Values() {
+		if string(s) == allocationStrategy {
+			return nil
 		}
 	}
-	return false
+	return fmt.Errorf("spotAllocationStrategy should be one of: %v", strategy.Values())
 }
 
 // EKSResourceAccountID provides worker node resources(ami/ecr image) in different aws account
@@ -530,6 +602,8 @@ func EKSResourceAccountID(region string) string {
 	switch region {
 	case RegionAPEast1:
 		return eksResourceAccountAPEast1
+	case RegionMECentral1:
+		return eksResourceAccountMECentral1
 	case RegionMESouth1:
 		return eksResourceAccountMESouth1
 	case RegionCNNorthwest1:
@@ -544,6 +618,16 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountAFSouth1
 	case RegionEUSouth1:
 		return eksResourceAccountEUSouth1
+	case RegionEUSouth2:
+		return eksResourceAccountEUSouth2
+	case RegionEUCentral2:
+		return eksResourceAccountEUCentral2
+	case RegionAPSouth2:
+		return eksResourceAccountAPSouth2
+	case RegionAPSouthEast3:
+		return eksResourceAccountAPSouthEast3
+	case RegionAPSouthEast4:
+		return eksResourceAccountAPSouthEast4
 	default:
 		return eksResourceAccountStandard
 	}
@@ -566,6 +650,9 @@ type ClusterMeta struct {
 	// Annotations are arbitrary metadata ignored by `eksctl`.
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
+	// Internal fields
+	// AccountID the ID of the account hosting this cluster
+	AccountID string `json:"-"`
 }
 
 // KubernetesNetworkConfig contains cluster networking options
@@ -589,6 +676,8 @@ type ClusterStatus struct {
 	CertificateAuthorityData []byte                   `json:"certificateAuthorityData,omitempty"`
 	ARN                      string                   `json:"arn,omitempty"`
 	KubernetesNetworkConfig  *KubernetesNetworkConfig `json:"-"`
+	ID                       string                   `json:"-"`
+	APIServerUnreachable     bool                     `json:"-"`
 
 	StackName     string        `json:"stackName,omitempty"`
 	EKSCTLCreated EKSCTLCreated `json:"eksctlCreated,omitempty"`
@@ -640,26 +729,81 @@ func (c ClusterConfig) HasNodes() bool {
 	return false
 }
 
+// ID returns the cluster ID.
+func (c *ClusterConfig) ID() string {
+	if c.Status != nil && c.Status.ID != "" {
+		return c.Status.ID
+	}
+	return c.Metadata.Name
+}
+
+// Meta returns the cluster metadata.
+func (c *ClusterConfig) Meta() *ClusterMeta {
+	return c.Metadata
+}
+
+// GetStatus returns the cluster status.
+func (c *ClusterConfig) GetStatus() *ClusterStatus {
+	return c.Status
+}
+
+// IsFullyPrivate returns true if this is a fully-private cluster.
+func (c *ClusterConfig) IsFullyPrivate() bool {
+	return c.PrivateCluster != nil && c.PrivateCluster.Enabled
+}
+
+// IsControlPlaneOnOutposts returns true if the control plane is on Outposts.
+func (c *ClusterConfig) IsControlPlaneOnOutposts() bool {
+	return c.Outpost != nil && c.Outpost.ControlPlaneOutpostARN != ""
+}
+
+// GetOutpost returns the Outpost info.
+func (c *ClusterConfig) GetOutpost() *Outpost {
+	return c.Outpost
+}
+
+// FindNodeGroupOutpostARN finds nodegroups that are on Outposts and returns the Outpost ARN.
+func (c *ClusterConfig) FindNodeGroupOutpostARN() (outpostARN string, found bool) {
+	for _, ng := range c.NodeGroups {
+		if ng.OutpostARN != "" {
+			return ng.OutpostARN, true
+		}
+	}
+	return "", false
+}
+
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
-	CloudFormation() cloudformationiface.CloudFormationAPI
+	CloudFormation() awsapi.CloudFormation
 	CloudFormationRoleARN() string
 	CloudFormationDisableRollback() bool
-	ASG() autoscalingiface.AutoScalingAPI
-	EKS() eksiface.EKSAPI
-	EC2() ec2iface.EC2API
-	ELB() elbiface.ELBAPI
-	ELBV2() elbv2iface.ELBV2API
-	STS() stsiface.STSAPI
-	SSM() ssmiface.SSMAPI
-	IAM() iamiface.IAMAPI
-	CloudTrail() cloudtrailiface.CloudTrailAPI
-	CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI
+	ASG() awsapi.ASG
+	EKS() awsapi.EKS
+	SSM() awsapi.SSM
+	CloudTrail() awsapi.CloudTrail
+	CloudWatchLogs() awsapi.CloudWatchLogs
+	IAM() awsapi.IAM
 	Region() string
-	Profile() string
+	Profile() Profile
 	WaitTimeout() time.Duration
 	ConfigProvider() client.ConfigProvider
 	Session() *session.Session
+
+	ELB() awsapi.ELB
+	ELBV2() awsapi.ELBV2
+	STS() awsapi.STS
+	STSPresigner() STSPresigner
+	EC2() awsapi.EC2
+	Outposts() awsapi.Outposts
+}
+
+// STSPresigner defines the method to pre-sign GetCallerIdentity requests to add a proper header required by EKS for
+// authentication from the outside.
+//
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_sts_presigner.go . STSPresigner
+type STSPresigner interface {
+	PresignGetCallerIdentity(ctx context.Context, params *sts.GetCallerIdentityInput, optFns ...func(*sts.PresignOptions)) (*v4.PresignedHTTPRequest, error)
 }
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs
@@ -668,8 +812,14 @@ type ProviderConfig struct {
 	CloudFormationDisableRollback bool
 
 	Region      string
-	Profile     string
+	Profile     Profile
 	WaitTimeout time.Duration
+}
+
+// Profile is the AWS profile to use.
+type Profile struct {
+	Name           string
+	SourceIsEnvVar bool
 }
 
 // +genclient
@@ -687,6 +837,9 @@ type ClusterConfig struct {
 
 	// +optional
 	IAM *ClusterIAM `json:"iam,omitempty"`
+
+	// +optional
+	IAMIdentityMappings []*IAMIdentityMapping `json:"iamIdentityMappings,omitempty"`
 
 	// +optional
 	IdentityProviders []IdentityProvider `json:"identityProviders,omitempty"`
@@ -718,6 +871,11 @@ type ClusterConfig struct {
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 
+	// LocalZones specifies a list of local zones where the subnets should be created.
+	// Only self-managed nodegroups can be launched in local zones. These subnets are not passed to EKS.
+	// +optional
+	LocalZones []string `json:"localZones,omitempty"`
+
 	// See [CloudWatch support](/usage/cloudwatch-cluster-logging/)
 	// +optional
 	CloudWatch *ClusterCloudWatch `json:"cloudWatch,omitempty"`
@@ -734,9 +892,47 @@ type ClusterConfig struct {
 	// Karpenter specific configuration options.
 	// +optional
 	Karpenter *Karpenter `json:"karpenter,omitempty"`
+
+	// Outpost specifies the Outpost configuration.
+	// +optional
+	Outpost *Outpost `json:"outpost,omitempty"`
 }
 
-// Karpenter provides configuration opti
+// Outpost holds the Outpost configuration.
+type Outpost struct {
+	// ControlPlaneOutpostARN specifies the Outpost ARN in which the control plane should be created.
+	ControlPlaneOutpostARN string `json:"controlPlaneOutpostARN"`
+	// ControlPlaneInstanceType specifies the instance type to use for creating the control plane instances.
+	ControlPlaneInstanceType string `json:"controlPlaneInstanceType"`
+	// ControlPlanePlacement specifies the placement configuration for control plane instances on Outposts.
+	ControlPlanePlacement *Placement `json:"controlPlanePlacement,omitempty"`
+}
+
+// GetInstanceType returns the control plane instance type.
+func (o *Outpost) GetInstanceType() string {
+	return o.ControlPlaneInstanceType
+}
+
+// SetInstanceType sets the control plane instance type.
+func (o *Outpost) SetInstanceType(instanceType string) {
+	o.ControlPlaneInstanceType = instanceType
+}
+
+// HasPlacementGroup reports whether this Outpost has a placement group.
+func (o *Outpost) HasPlacementGroup() bool {
+	return o.ControlPlanePlacement != nil
+}
+
+// OutpostInfo describes the Outpost info.
+type OutpostInfo interface {
+	// IsControlPlaneOnOutposts returns true if the control plane is on Outposts.
+	IsControlPlaneOnOutposts() bool
+
+	// GetOutpost returns the Outpost info.
+	GetOutpost() *Outpost
+}
+
+// Karpenter provides configuration options
 type Karpenter struct {
 	// Version defines the Karpenter version to install
 	// +required
@@ -830,20 +1026,41 @@ func (c *ClusterConfig) IPv6Enabled() bool {
 	return c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.IPv6Enabled()
 }
 
-// SetClusterStatus populates ClusterStatus using *eks.Cluster.
-func (c *ClusterConfig) SetClusterStatus(cluster *eks.Cluster) error {
+// SetClusterState updates the cluster state and populates the ClusterStatus using *eks.Cluster.
+func (c *ClusterConfig) SetClusterState(cluster *ekstypes.Cluster) error {
 	if networkConfig := cluster.KubernetesNetworkConfig; networkConfig != nil && networkConfig.ServiceIpv4Cidr != nil {
 		c.Status.KubernetesNetworkConfig = &KubernetesNetworkConfig{
 			ServiceIPv4CIDR: *networkConfig.ServiceIpv4Cidr,
 		}
+		c.KubernetesNetworkConfig = &KubernetesNetworkConfig{
+			ServiceIPv4CIDR: aws.ToString(cluster.KubernetesNetworkConfig.ServiceIpv4Cidr),
+		}
 	}
 	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
 	if err != nil {
-		return errors.Wrap(err, "decoding certificate authority data")
+		return fmt.Errorf("decoding certificate authority data: %w", err)
 	}
 	c.Status.Endpoint = *cluster.Endpoint
 	c.Status.CertificateAuthorityData = data
 	c.Status.ARN = *cluster.Arn
+	if outpost := cluster.OutpostConfig; outpost != nil {
+		if len(outpost.OutpostArns) != 1 {
+			return fmt.Errorf("expected cluster to be associated with only one Outpost; got %v", outpost.OutpostArns)
+		}
+		outpostARN := outpost.OutpostArns[0]
+		if c.IsControlPlaneOnOutposts() && c.Outpost.ControlPlaneOutpostARN != outpostARN {
+			return fmt.Errorf("outpost.controlPlaneOutpostARN %q does not match the cluster's Outpost ARN %q", c.Outpost.ControlPlaneOutpostARN, outpostARN)
+		}
+		c.Outpost = &Outpost{
+			ControlPlaneOutpostARN:   outpostARN,
+			ControlPlaneInstanceType: *outpost.ControlPlaneInstanceType,
+		}
+	} else if c.IsControlPlaneOnOutposts() {
+		return errors.New("outpost.controlPlaneOutpostARN is set but control plane is not on Outposts")
+	}
+	if cluster.Id != nil {
+		c.Status.ID = *cluster.Id
+	}
 	return nil
 }
 
@@ -852,7 +1069,6 @@ func NewNodeGroup() *NodeGroup {
 	return &NodeGroup{
 		NodeGroupBase: &NodeGroupBase{
 			PrivateNetworking: false,
-			InstanceType:      DefaultNodeType,
 			VolumeSize:        &DefaultNodeVolumeSize,
 			IAM: &NodeGroupIAM{
 				WithAddonPolicies: NodeGroupIAMAddonPolicies{
@@ -982,13 +1198,14 @@ type NodeGroup struct {
 	// +optional
 	ContainerRuntime *string `json:"containerRuntime,omitempty"`
 
-	// DisableASGTagPropagation disable the tag propagation in case desired capacity is 0.
-	// +optional
-	DisableASGTagPropagation *bool `json:"disableASGTagPropagation,omitempty"`
-
 	// MaxInstanceLifetime defines the maximum amount of time in seconds an instance stays alive.
 	// +optional
 	MaxInstanceLifetime *int `json:"maxInstanceLifetime,omitempty"`
+
+	// LocalZones specifies a list of local zones where the nodegroup should be launched.
+	// The cluster should have been created with all of the local zones specified in this field.
+	// +optional
+	LocalZones []string `json:"localZones,omitempty"`
 }
 
 // GetContainerRuntime returns the container runtime.
@@ -1003,7 +1220,10 @@ func (n *NodeGroup) InstanceTypeList() []string {
 	if HasMixedInstances(n) {
 		return n.InstancesDistribution.InstanceTypes
 	}
-	return []string{n.InstanceType}
+	if n.InstanceType != "" {
+		return []string{n.InstanceType}
+	}
+	return nil
 }
 
 // NGTaints implements NodePool
@@ -1021,6 +1241,16 @@ func (n *NodeGroup) GetDesiredCapacity() int {
 		return n.NodeGroupBase.GetDesiredCapacity()
 	}
 	return 0
+}
+
+// GetInstanceType returns the instance type.
+func (n *NodeGroup) GetInstanceType() string {
+	return n.InstanceType
+}
+
+// SetInstanceType sets the instance type.
+func (n *NodeGroup) SetInstanceType(instanceType string) {
+	n.InstanceType = instanceType
 }
 
 // GitOps groups all configuration options related to enabling GitOps Toolkit on a
@@ -1045,8 +1275,6 @@ type Flux struct {
 // FluxFlags is a map of string for passing arbitrary flags to Flux bootstrap
 type FluxFlags map[string]string
 
-// Operator groups all configuration options related to the operator used to
-// keep the cluster and the Git repository in sync.
 // HasGitOpsFluxConfigured returns true if gitops.flux configuration is not nil
 func (c *ClusterConfig) HasGitOpsFluxConfigured() bool {
 	return c.GitOps != nil && c.GitOps.Flux != nil
@@ -1230,6 +1458,9 @@ type NodePool interface {
 
 	// NGTaints returns the taints to apply for this nodegroup
 	NGTaints() []NodeGroupTaint
+
+	// InstanceTypeList returns a list of instances that are configured for that nodegroup
+	InstanceTypeList() []string
 }
 
 // VolumeMapping Additional Volume Configurations
@@ -1349,6 +1580,10 @@ type NodeGroupBase struct {
 	// +optional
 	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
 
+	// Propagate all taints and labels to the ASG automatically.
+	// +optional
+	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
+
 	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
 	// Defaults to `false`
 	// +optional
@@ -1380,14 +1615,31 @@ type NodeGroupBase struct {
 	// +optional
 	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
 
-	// TODO remove this
-	// This is a hack, will be removed shortly. When this is true for Ubuntu and
-	// AL2 images a legacy bootstrapper will be used.
-	CustomAMI bool `json:"-"`
-
 	// Enable EC2 detailed monitoring
 	// +optional
 	EnableDetailedMonitoring *bool `json:"enableDetailedMonitoring,omitempty"`
+
+	// CapacityReservation defines reservation policy for a nodegroup
+	CapacityReservation *CapacityReservation `json:"capacityReservation,omitempty"`
+
+	// OutpostARN specifies the Outpost ARN in which the nodegroup should be created.
+	// +optional
+	OutpostARN string `json:"outpostARN,omitempty"`
+}
+
+// CapacityReservation defines a nodegroup's Capacity Reservation targeting option
+// +optional
+type CapacityReservation struct {
+	// CapacityReservationPreference defines a nodegroup's Capacity Reservation preferences (either 'open' or 'none')
+	CapacityReservationPreference *string `json:"capacityReservationPreference,omitempty"`
+
+	// CapacityReservationTarget defines a nodegroup's target Capacity Reservation or Capacity Reservation group (not both at the same time).
+	CapacityReservationTarget *CapacityReservationTarget `json:"capacityReservationTarget,omitempty"`
+}
+
+type CapacityReservationTarget struct {
+	CapacityReservationID               *string `json:"capacityReservationID,omitempty"`
+	CapacityReservationResourceGroupARN *string `json:"capacityReservationResourceGroupARN,omitempty"`
 }
 
 // Placement specifies placement group information
@@ -1486,7 +1738,10 @@ func (m *ManagedNodeGroup) InstanceTypeList() []string {
 	if len(m.InstanceTypes) > 0 {
 		return m.InstanceTypes
 	}
-	return []string{m.InstanceType}
+	if m.InstanceType != "" {
+		return []string{m.InstanceType}
+	}
+	return nil
 }
 
 func (m *ManagedNodeGroup) ListOptions() metav1.ListOptions {
@@ -1575,10 +1830,9 @@ type SecretsEncryption struct {
 	KeyARN string `json:"keyARN,omitempty"`
 }
 
-// PrivateCluster defines the configuration for a fully-private cluster
+// PrivateCluster defines the configuration for a fully-private cluster.
 type PrivateCluster struct {
-
-	// Enabled enables creation of a fully-private cluster
+	// Enabled enables creation of a fully-private cluster.
 	Enabled bool `json:"enabled"`
 
 	// SkipEndpointCreation skips the creation process for endpoints completely. This is only used in case of an already
@@ -1587,7 +1841,7 @@ type PrivateCluster struct {
 
 	// AdditionalEndpointServices specifies additional endpoint services that
 	// must be enabled for private access.
-	// Valid entries are `AdditionalEndpointServices` constants
+	// Valid entries are "cloudformation", "autoscaling" and "logs".
 	AdditionalEndpointServices []string `json:"additionalEndpointServices,omitempty"`
 }
 
@@ -1637,7 +1891,7 @@ func (t *taintsWrapper) UnmarshalJSON(data []byte) error {
 	dec := json.NewDecoder(bytes.NewReader(data))
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&ngTaints); err != nil {
-		return errors.Wrap(err, "taints must be a {string: string} or a [{key, value, effect}]")
+		return fmt.Errorf("taints must be a {string: string} or a [{key, value, effect}]: %w", err)
 	}
 	*t = ngTaints
 	return nil

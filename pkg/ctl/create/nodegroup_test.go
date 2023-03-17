@@ -1,12 +1,17 @@
 package create
 
 import (
-	. "github.com/onsi/ginkgo/extensions/table"
+	"fmt"
+	"strings"
 
-	. "github.com/onsi/ginkgo"
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/aws-sdk-go/aws"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 var _ = Describe("create nodegroup", func() {
@@ -88,10 +93,6 @@ var _ = Describe("create nodegroup", func() {
 				args:  []string{"--cluster", "clusterName", "--name", "eksctl-ng_k8s_nodegroup1"},
 				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
 			}),
-			Entry("with enableSsm disabled", invalidParamsCase{
-				args:  []string{"--cluster=test", "--enable-ssm=false"},
-				error: "SSM agent is now built into EKS AMIs and cannot be disabled",
-			}),
 		)
 	})
 
@@ -138,10 +139,11 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with Ubuntu AMI", "--node-ami-family", "Ubuntu2004"),
 			Entry("with Bottlerocket AMI", "--node-ami-family", "Bottlerocket"),
 			Entry("with subnet-ids flag", "--subnet-ids", "id1,id2,id3"),
+			Entry("with Windows AMI", "--node-ami-family", "WindowsServer2019FullContainer"),
+			Entry("with Windows AMI", "--node-ami-family", "WindowsServer2019CoreContainer"),
+			Entry("with Windows AMI", "--node-ami-family", "WindowsServer2022FullContainer"),
+			Entry("with Windows AMI", "--node-ami-family", "WindowsServer2022CoreContainer"),
 		)
-
-		const unsupportedWindowsError = "Windows is not supported for managed nodegroups; eksctl now creates " +
-			"managed nodegroups by default, to use a self-managed nodegroup, pass --managed=false"
 
 		DescribeTable("invalid flags or arguments",
 			func(c invalidParamsCase) {
@@ -167,19 +169,75 @@ var _ = Describe("create nodegroup", func() {
 				args:  []string{"--version", "1.18"},
 				error: "--version is only valid with unmanaged nodegroups",
 			}),
-			Entry("with unsupported AMI", invalidParamsCase{
-				args:  []string{"cluster", "--node-ami-family", "WindowsServer2019FullContainer"},
-				error: unsupportedWindowsError,
-			}),
-			Entry("with unsupported AMI", invalidParamsCase{
-				args:  []string{"cluster", "--node-ami-family", "WindowsServer2019CoreContainer"},
-				error: unsupportedWindowsError,
-			}),
-			Entry("with unsupported AMI", invalidParamsCase{
-				args:  []string{"cluster", "--node-ami-family", "WindowsServer2004CoreContainer"},
-				error: unsupportedWindowsError,
-			}),
 		)
-
 	})
+
+	type checkNodeGroupVersionInput struct {
+		ctl             *eks.ClusterProvider
+		meta            *api.ClusterMeta
+		expectedVersion string
+		expectedErr     string
+	}
+
+	providerVersion1_23 := &eks.ClusterProvider{
+		Status: &eks.ProviderStatus{
+			ClusterInfo: &eks.ClusterInfo{
+				Cluster: &types.Cluster{
+					Version: aws.String(api.Version1_23),
+				},
+			},
+		},
+	}
+
+	DescribeTable("checkNodeGroupVersion",
+		func(input checkNodeGroupVersionInput) {
+			err := checkNodeGroupVersion(input.ctl, input.meta)
+			if input.expectedErr != "" {
+				Expect(err).To(MatchError(ContainSubstring(input.expectedErr)))
+				return
+			}
+			Expect(err).NotTo(HaveOccurred())
+			Expect(input.meta.Version).To(Equal(input.expectedVersion))
+		},
+		Entry("version is left empty", checkNodeGroupVersionInput{
+			ctl:             providerVersion1_23,
+			meta:            &api.ClusterMeta{},
+			expectedVersion: api.Version1_23,
+		}),
+		Entry("version is set to auto", checkNodeGroupVersionInput{
+			ctl: providerVersion1_23,
+			meta: &api.ClusterMeta{
+				Version: "auto",
+			},
+			expectedVersion: api.Version1_23,
+		}),
+		Entry("version is set to latest", checkNodeGroupVersionInput{
+			ctl: providerVersion1_23,
+			meta: &api.ClusterMeta{
+				Version: "latest",
+			},
+			expectedVersion: api.LatestVersion,
+		}),
+		Entry("version is set to deprecated version", checkNodeGroupVersionInput{
+			meta: &api.ClusterMeta{
+				Version: api.Version1_15,
+			},
+			expectedErr: fmt.Sprintf("invalid version, %s is no longer supported", api.Version1_15),
+		}),
+		Entry("version is set to unsupported version", checkNodeGroupVersionInput{
+			meta: &api.ClusterMeta{
+				Version: "100",
+			},
+			expectedErr: fmt.Sprintf("invalid version 100, supported values: auto, default, latest, %s", strings.Join(api.SupportedVersions(), ", ")),
+		}),
+		Entry("fails to retrieve control plane version", checkNodeGroupVersionInput{
+			ctl: &eks.ClusterProvider{
+				Status: &eks.ProviderStatus{},
+			},
+			meta: &api.ClusterMeta{
+				Version: "auto",
+			},
+			expectedErr: "unable to get control plane version",
+		}),
+	)
 })

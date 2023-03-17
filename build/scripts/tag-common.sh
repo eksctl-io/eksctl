@@ -20,7 +20,7 @@ function current_branch() {
 }
 
 function release_generate() {
-  go run pkg/version/generate/release_generate.go "${1}"
+  go run pkg/version/generate/release_generate.go "${1}" ${2:+"${2}"}
 }
 
 function check_origin() {
@@ -61,6 +61,15 @@ function commit() {
   git add pkg/version/release.go
   git add "${release_notes_file}"
   git commit --message "${commit_msg}"
+}
+
+function tag_and_push_release() {
+    local version="${1}"
+    local msg="${2}"
+    for tag in "${version}" "v${version}"; do
+        git tag --annotate --message "${msg}" "${tag}"
+        git push origin "${tag}"
+    done
 }
 
 function tag_version_and_latest() {

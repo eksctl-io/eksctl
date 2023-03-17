@@ -1,6 +1,8 @@
 package fargate
 
 import (
+	"context"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -26,18 +28,16 @@ func (t *createFargateStackTask) Do(errs chan error) error {
 	if err := rs.AddAllResources(); err != nil {
 		return errors.Wrap(err, "couldn't add all resources to fargate resource set")
 	}
-	return t.stackManager.CreateStack(makeClusterStackName(t.cfg.Metadata.Name), rs, nil, nil, errs)
+	return t.stackManager.CreateStack(context.TODO(), makeClusterStackName(t.cfg.Metadata.Name), rs, nil, nil, errs)
 }
 
 // ensureFargateRoleStackExists creates fargate IAM resources if they
-func ensureFargateRoleStackExists(
-	cfg *api.ClusterConfig, provider api.ClusterProvider, stackManager manager.StackManager,
-) error {
+func ensureFargateRoleStackExists(ctx context.Context, cfg *api.ClusterConfig, provider api.ClusterProvider, stackManager manager.StackManager) error {
 	if api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRoleARN) {
 		return nil
 	}
 
-	fargateStack, err := stackManager.GetFargateStack()
+	fargateStack, err := stackManager.GetFargateStack(ctx)
 	if err != nil {
 		return err
 	}

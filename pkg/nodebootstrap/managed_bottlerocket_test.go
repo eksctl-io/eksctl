@@ -3,9 +3,7 @@ package nodebootstrap_test
 import (
 	"encoding/base64"
 
-	. "github.com/onsi/ginkgo/extensions/table"
-
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -31,12 +29,13 @@ var _ = Describe("Managed Bottlerocket", func() {
 
 		ng := api.NewManagedNodeGroup()
 		ng.AMIFamily = api.NodeImageFamilyBottlerocket
-		api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata)
+		api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
 		if e.setFields != nil {
 			e.setFields(ng)
 		}
 
-		bootstrapper := nodebootstrap.NewManagedBootstrapper(clusterConfig, ng)
+		bootstrapper, err := nodebootstrap.NewManagedBootstrapper(clusterConfig, ng)
+		Expect(err).NotTo(HaveOccurred())
 		userData, err := bootstrapper.UserData()
 		if e.expectedErr != "" {
 			Expect(err).To(HaveOccurred())

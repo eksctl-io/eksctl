@@ -1,7 +1,10 @@
 # KMS Envelope Encryption for EKS clusters
 
-EKS supports using [AWS KMS](https://aws.amazon.com/about-aws/whats-new/2020/03/amazon-eks-adds-envelope-encryption-for-secrets-with-aws-kms/) keys to provide envelope encryption of Kubernetes secrets stored in EKS. Implementing envelope encryption is considered a security best practice for applications that store sensitive data and is part of a [_defense in depth_ security strategy](https://www.us-cert.gov/bsi/articles/knowledge/principles/defense-in-depth).
+EKS supports using [AWS KMS](https://aws.amazon.com/about-aws/whats-new/2021/03/amazon-eks-supports-adding-kms-envelope-encryption-to-existing-clusters/) keys to provide envelope encryption of Kubernetes secrets stored in EKS. Envelope encryption adds an addition, customer-managed layer of encryption for application secrets or user data that is stored within a Kubernetes cluster.
 
+Previously, Amazon EKS supported [enabling envelope encryption](https://aws.amazon.com/about-aws/whats-new/2020/03/amazon-eks-adds-envelope-encryption-for-secrets-with-aws-kms/) using KMS keys only during cluster creation. Now, you can enable envelope encryption for Amazon EKS clusters at any time.
+
+Read more about Using EKS encryption provider support for defense-in-depth post on the [AWS containers blog](https://aws.amazon.com/blogs/containers/using-eks-encryption-provider-support-for-defense-in-depth/).
 
 ## Creating a cluster with KMS encryption enabled
 
@@ -56,5 +59,5 @@ $ eksctl utils enable-secrets-encryption --cluster=kms-cluster --key-arn=arn:aws
 If a cluster already has KMS encryption enabled, eksctl will proceed to re-encrypting all existing secrets.
 
 
-!!!note
+???+ note
     Once KMS encryption is enabled, it cannot be disabled or updated to use a different KMS key.

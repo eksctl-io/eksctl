@@ -1,28 +1,29 @@
 package nodegroup
 
 import (
+	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/outposts"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
+	"github.com/weaveworks/eksctl/pkg/utils/nodes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-// Options controls specific steps of node group creation
+// CreateOpts controls specific steps of node group creation
 type CreateOpts struct {
 	UpdateAuthConfigMap       bool
 	InstallNeuronDevicePlugin bool
@@ -33,54 +34,69 @@ type CreateOpts struct {
 }
 
 // Create creates a new nodegroup with the given options.
-func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFilter) error {
+func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilter filter.NodegroupFilter) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 	ctl := m.ctl
-	kubeProvider := m.kubeProvider
 
-	if err := checkVersion(ctl, meta); err != nil {
-		return err
+	if cfg.IsControlPlaneOnOutposts() && len(cfg.ManagedNodeGroups) > 0 {
+		const msg = "Managed Nodegroups are not supported on Outposts"
+		if !options.ConfigFileProvided {
+			return fmt.Errorf("%s; please rerun the command with --managed=false", msg)
+		}
+		return errors.New(msg)
 	}
 
-	if err := m.checkARMSupport(ctl, m.clientSet, cfg, options.SkipOutdatedAddonsCheck); err != nil {
-		return err
-	}
-
-	var isOwnedCluster = true
-	if err := kubeProvider.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
-		switch e := err.(type) {
+	isOwnedCluster := true
+	clusterStack, err := m.stackManager.DescribeClusterStack(ctx)
+	if err != nil {
+		switch err.(type) {
 		case *manager.StackNotFoundErr:
-			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", e.Error())
-			if err := loadVPCFromConfig(ctl.Provider, cfg); err != nil {
+			if cfg.IsControlPlaneOnOutposts() {
+				return errors.New("Outposts is not supported on non eksctl-managed clusters")
+			}
+			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", err.Error())
+			if err := loadVPCFromConfig(ctx, ctl.AWSProvider, cfg); err != nil {
 				return errors.Wrapf(err, "loading VPC spec for cluster %q", meta.Name)
 			}
-
 			isOwnedCluster = false
-		default:
-			return errors.Wrapf(e, "getting existing configuration for cluster %q", meta.Name)
-		}
-	}
 
-	// EKS 1.14 clusters created with prior versions of eksctl may not support Managed Nodes
-	supportsManagedNodes, err := kubeProvider.SupportsManagedNodes(cfg)
-	if err != nil {
+		default:
+			return fmt.Errorf("getting existing configuration for cluster %q: %w", meta.Name, err)
+		}
+
+	} else if err := ctl.LoadClusterIntoSpecFromStack(ctx, cfg, clusterStack); err != nil {
 		return err
 	}
 
-	if len(cfg.ManagedNodeGroups) > 0 && !supportsManagedNodes {
-		return errors.New("Managed Nodegroups are not supported for this cluster version. Please update the cluster before adding managed nodegroups")
+	rawClient, err := ctl.NewRawClient(cfg)
+	if err != nil {
+		if _, ok := err.(*kubernetes.APIServerUnreachableError); ok {
+			const msg = "eksctl requires connectivity to the API server to create nodegroups"
+			if cfg.IsControlPlaneOnOutposts() {
+				return fmt.Errorf("%s; please ensure the Outpost VPC is associated with your local gateway and you are able to connect to the API server before rerunning the command: %w", msg, err)
+			}
+			if !m.ctl.Status.ClusterInfo.Cluster.ResourcesVpcConfig.EndpointPublicAccess {
+				return fmt.Errorf("%s; please run eksctl from an environment that has access to the API server: %w", msg, err)
+			}
+			return fmt.Errorf("%s: %w", msg, err)
+		}
+		return err
 	}
 
-	m.init.NewAWSSelectorSession(ctl.Provider)
-	nodePools := cmdutils.ToNodePools(cfg)
+	if err := m.checkARMSupport(ctx, ctl, rawClient, cfg, options.SkipOutdatedAddonsCheck); err != nil {
+		return err
+	}
 
-	if err := m.init.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
+	nodePools := nodes.ToNodePools(cfg)
+
+	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, m.instanceSelector, makeOutpostsService(cfg, ctl.AWSProvider))
+	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
 	}
 
 	if !options.DryRun {
-		if err := m.init.Normalize(nodePools, cfg.Metadata); err != nil {
+		if err := nodeGroupService.Normalize(ctx, nodePools, cfg); err != nil {
 			return err
 		}
 	}
@@ -91,16 +107,16 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	}
 
 	if isOwnedCluster {
-		if err := kubeProvider.ValidateClusterForCompatibility(cfg, m.stackManager); err != nil {
+		if err := ctl.ValidateClusterForCompatibility(ctx, cfg, m.stackManager); err != nil {
 			return errors.Wrap(err, "cluster compatibility check failed")
 		}
 	}
 
-	if err := m.init.ValidateLegacySubnetsForNodeGroups(cfg, ctl.Provider); err != nil {
+	if err := vpc.ValidateLegacySubnetsForNodeGroups(ctx, cfg, ctl.AWSProvider); err != nil {
 		return err
 	}
 
-	if err := nodegroupFilter.SetOnlyLocal(m.ctl.Provider.EKS(), m.stackManager, cfg); err != nil {
+	if err := nodegroupFilter.SetOnlyLocal(ctx, m.ctl.AWSProvider.EKS(), m.stackManager, cfg); err != nil {
 		return err
 	}
 
@@ -128,35 +144,74 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
 	}
 
-	if err := m.nodeCreationTasks(supportsManagedNodes, isOwnedCluster); err != nil {
+	if err := m.nodeCreationTasks(ctx, isOwnedCluster); err != nil {
 		return err
 	}
 
-	if err := m.postNodeCreationTasks(m.clientSet, options); err != nil {
+	if err := m.postNodeCreationTasks(ctx, m.clientSet, options); err != nil {
 		return err
 	}
 
-	if err := m.init.ValidateExistingNodeGroupsForCompatibility(cfg, m.stackManager); err != nil {
+	if err := eks.ValidateExistingNodeGroupsForCompatibility(ctx, cfg, m.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
 	return nil
 }
 
-func (m *Manager) nodeCreationTasks(supportsManagedNodes, isOwnedCluster bool) error {
+func makeOutpostsService(clusterConfig *api.ClusterConfig, provider api.ClusterProvider) *outposts.Service {
+	var outpostARN string
+	if clusterConfig.IsControlPlaneOnOutposts() {
+		outpostARN = clusterConfig.Outpost.ControlPlaneOutpostARN
+	} else if nodeGroupOutpostARN, found := clusterConfig.FindNodeGroupOutpostARN(); found {
+		outpostARN = nodeGroupOutpostARN
+	} else {
+		return nil
+	}
+
+	return &outposts.Service{
+		OutpostsAPI: provider.Outposts(),
+		EC2API:      provider.EC2(),
+		OutpostID:   outpostARN,
+	}
+}
+
+func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
-	init := m.init
 
 	taskTree := &tasks.TaskTree{
 		Parallel: false,
 	}
 
-	if supportsManagedNodes && isOwnedCluster {
-		taskTree.Append(m.stackManager.NewClusterCompatTask())
+	if isOwnedCluster {
+		taskTree.Append(&tasks.GenericTask{
+			Doer: func() error {
+				if err := m.stackManager.FixClusterCompatibility(ctx); err != nil {
+					return err
+				}
+				hasDedicatedVPC, err := m.stackManager.ClusterHasDedicatedVPC(ctx)
+				if err != nil {
+					return fmt.Errorf("error checking if cluster has a dedicated VPC: %w", err)
+				}
+				if !hasDedicatedVPC {
+					return nil
+				}
+				clusterExtender := &outposts.ClusterExtender{
+					StackUpdater: m.stackManager,
+					EC2API:       m.ctl.AWSProvider.EC2(),
+					OutpostsAPI:  m.ctl.AWSProvider.Outposts(),
+				}
+				if err := clusterExtender.ExtendWithOutpostSubnetsIfRequired(ctx, m.cfg, m.cfg.VPC); err != nil {
+					return fmt.Errorf("error extending cluster with Outpost subnets: %w", err)
+				}
+				return nil
+			},
+			Description: "fix cluster compatibility",
+		})
 	}
 
-	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(m.ctl.Provider, m.clientSet)
+	awsNodeUsesIRSA, err := eks.DoesAWSNodeUseIRSA(ctx, m.ctl.AWSProvider, m.clientSet)
 	if err != nil {
 		return errors.Wrap(err, "couldn't check aws-node for annotation")
 	}
@@ -175,20 +230,20 @@ func (m *Manager) nodeCreationTasks(supportsManagedNodes, isOwnedCluster bool) e
 	allNodeGroupTasks := &tasks.TaskTree{
 		Parallel: true,
 	}
-	nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(cfg.NodeGroups, !awsNodeUsesIRSA, vpcImporter)
+	nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(ctx, cfg.NodeGroups, !awsNodeUsesIRSA, vpcImporter)
 	if nodeGroupTasks.Len() > 0 {
 		allNodeGroupTasks.Append(nodeGroupTasks)
 	}
-	managedTasks := m.stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups, !awsNodeUsesIRSA, vpcImporter)
+	managedTasks := m.stackManager.NewManagedNodeGroupTask(ctx, cfg.ManagedNodeGroups, !awsNodeUsesIRSA, vpcImporter)
 	if managedTasks.Len() > 0 {
 		allNodeGroupTasks.Append(managedTasks)
 	}
 
 	taskTree.Append(allNodeGroupTasks)
-	return m.init.DoAllNodegroupStackTasks(taskTree, meta.Region, meta.Name)
+	return eks.DoAllNodegroupStackTasks(taskTree, meta.Region, meta.Name)
 }
 
-func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options CreateOpts) error {
+func (m *Manager) postNodeCreationTasks(ctx context.Context, clientSet kubernetes.Interface, options CreateOpts) error {
 	tasks := m.ctl.ClusterTasksForNodeGroups(m.cfg, options.InstallNeuronDevicePlugin, options.InstallNvidiaDevicePlugin)
 	logger.Info(tasks.Describe())
 	errs := tasks.DoAllSync()
@@ -203,15 +258,17 @@ func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options 
 		return fmt.Errorf("failed to create nodegroups for cluster %q", m.cfg.Metadata.Name)
 	}
 
+	timeoutCtx, cancel := context.WithTimeout(ctx, m.ctl.AWSProvider.WaitTimeout())
+	defer cancel()
+
 	if options.UpdateAuthConfigMap {
-		if err := m.kubeProvider.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet); err != nil {
+		if err := eks.UpdateAuthConfigMap(timeoutCtx, m.cfg.NodeGroups, clientSet); err != nil {
 			return err
 		}
 	}
 	logger.Success("created %d nodegroup(s) in cluster %q", len(m.cfg.NodeGroups), m.cfg.Metadata.Name)
-
 	for _, ng := range m.cfg.ManagedNodeGroups {
-		if err := m.kubeProvider.WaitForNodes(clientSet, ng); err != nil {
+		if err := eks.WaitForNodes(timeoutCtx, clientSet, ng); err != nil {
 			if m.cfg.PrivateCluster.Enabled {
 				logger.Info("error waiting for nodes to join the cluster; this command was likely run from outside the cluster's VPC as the API server is not reachable, nodegroup(s) should still be able to join the cluster, underlying error is: %v", err)
 				break
@@ -225,53 +282,14 @@ func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options 
 	return nil
 }
 
-func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
-	switch meta.Version {
-	case "auto":
-		break
-	case "":
-		meta.Version = "auto"
-	case "default":
-		meta.Version = api.DefaultVersion
-		logger.Info("will use default version (%s) for new nodegroup(s)", meta.Version)
-	case "latest":
-		meta.Version = api.LatestVersion
-		logger.Info("will use latest version (%s) for new nodegroup(s)", meta.Version)
-	default:
-		if !api.IsSupportedVersion(meta.Version) {
-			if api.IsDeprecatedVersion(meta.Version) {
-				return fmt.Errorf("invalid version, %s is no longer supported, supported values: auto, default, latest, %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", meta.Version, strings.Join(api.SupportedVersions(), ", "))
-			}
-			return fmt.Errorf("invalid version %s, supported values: auto, default, latest, %s", meta.Version, strings.Join(api.SupportedVersions(), ", "))
-		}
-	}
-
-	if v := ctl.ControlPlaneVersion(); v == "" {
-		return fmt.Errorf("unable to get control plane version")
-	} else if meta.Version == "auto" {
-		meta.Version = v
-		logger.Info("will use version %s for new nodegroup(s) based on control plane version", meta.Version)
-	} else if meta.Version != v {
-		hint := "--version=auto"
-		logger.Warning("will use version %s for new nodegroup(s), while control plane version is %s; to automatically inherit the version use %q", meta.Version, v, hint)
-	}
-
-	return nil
-}
-
-func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
-	kubeProvider := m.kubeProvider
-	rawClient, err := kubeProvider.NewRawClient(cfg)
-	if err != nil {
-		return err
-	}
-
+func (m *Manager) checkARMSupport(ctx context.Context, ctl *eks.ClusterProvider, rawClient *kubernetes.RawClient, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
+	kubeProvider := m.ctl
 	kubernetesVersion, err := kubeProvider.ServerVersion(rawClient)
 	if err != nil {
 		return err
 	}
 	if api.ClusterHasInstanceType(cfg, instanceutils.IsARMInstanceType) {
-		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(ctl.Provider.EKS(), rawClient, kubernetesVersion, ctl.Provider.Region())
+		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(ctx, ctl.AWSProvider.EKS(), rawClient, kubernetesVersion, ctl.AWSProvider.Region())
 		if err != nil {
 			return err
 		}
@@ -285,12 +303,12 @@ func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes
 	return nil
 }
 
-func loadVPCFromConfig(provider api.ClusterProvider, cfg *api.ClusterConfig) error {
+func loadVPCFromConfig(ctx context.Context, provider api.ClusterProvider, cfg *api.ClusterConfig) error {
 	if cfg.VPC == nil || cfg.VPC.Subnets == nil || cfg.VPC.SecurityGroup == "" || cfg.VPC.ID == "" {
 		return errors.New("VPC configuration required for creating nodegroups on clusters not owned by eksctl: vpc.subnets, vpc.id, vpc.securityGroup")
 	}
 
-	if err := vpc.ImportSubnetsFromSpec(provider, cfg); err != nil {
+	if err := vpc.ImportSubnetsFromSpec(ctx, provider, cfg); err != nil {
 		return err
 	}
 

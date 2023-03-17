@@ -15,7 +15,7 @@ nodeGroups:
     volumeType: gp2
     volumeEncrypted: true
 
-  - name: ng2-encrypt-using-customer-encrytion-key
+  - name: ng2-encrypt-using-customer-encryption-key
     instanceType: m5.xlarge
     desiredCapacity: 1
     volumeSize: 100

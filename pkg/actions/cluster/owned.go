@@ -1,10 +1,13 @@
 package cluster
 
 import (
+	"context"
+	"fmt"
 	"time"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -35,33 +38,27 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterSt
 			return ctl.NewStdClientSet(cfg)
 		},
 		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
-			return nodegroup.New(cfg, ctl, clientSet)
+			return nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
 		},
 	}
 }
 
-func (c *OwnedCluster) Upgrade(dryRun bool) error {
-	if err := vpc.UseFromClusterStack(c.ctl.Provider, c.clusterStack, c.cfg); err != nil {
-		return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
+func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
+	if err := vpc.UseFromClusterStack(ctx, c.ctl.AWSProvider, c.clusterStack, c.cfg); err != nil {
+		return fmt.Errorf("getting VPC configuration for cluster %q: %w", c.cfg.Metadata.Name, err)
 	}
 
-	versionUpdateRequired, err := upgrade(c.cfg, c.ctl, dryRun)
+	versionUpdateRequired, err := upgrade(ctx, c.cfg, c.ctl, dryRun)
 	if err != nil {
 		return err
 	}
 
-	supportsManagedNodes, err := c.ctl.SupportsManagedNodes(c.cfg)
+	stackUpdateRequired, err := c.stackManager.AppendNewClusterStackResource(ctx, false, dryRun)
 	if err != nil {
 		return err
 	}
 
-	stackUpdateRequired, err := c.stackManager.AppendNewClusterStackResource(dryRun, supportsManagedNodes)
-	if err != nil {
-		return err
-	}
-
-	nodeGroupService := eks.NodeGroupService{Provider: c.ctl.Provider}
-	if err := nodeGroupService.ValidateExistingNodeGroupsForCompatibility(c.cfg, c.stackManager); err != nil {
+	if err := eks.ValidateExistingNodeGroupsForCompatibility(ctx, c.cfg, c.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
@@ -69,24 +66,19 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *OwnedCluster) Delete(_ time.Duration, wait, force, disableNodegroupEviction bool) error {
-	var (
-		clientSet kubernetes.Interface
-		oidc      *iamoidc.OpenIDConnectManager
-	)
-
+func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
 	clusterOperable, err := c.ctl.CanOperate(c.cfg)
 	if err != nil {
 		logger.Debug("failed to check if cluster is operable: %v", err)
 	}
 
 	// moving this here was fine because inside `NewTasksToDeleteClusterWithNodeGroups` we did it anyway.
-	allStacks, err := c.stackManager.ListNodeGroupStacks()
+	allStacks, err := c.stackManager.ListNodeGroupStacksWithStatuses(ctx)
 	if err != nil {
 		return err
 	}
 
-	oidcSupported := true
+	var clientSet kubernetes.Interface
 	if clusterOperable {
 		var err error
 		clientSet, err = c.newClientSet()
@@ -98,20 +90,10 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force, disableNodegroupEvic
 			}
 		}
 
-		oidc, err = c.ctl.NewOpenIDConnectManager(c.cfg)
-		if err != nil {
-			if _, ok := err.(*eks.UnsupportedOIDCError); !ok {
-				if force {
-					logger.Warning("error occurred during deletion: %v", err)
-				} else {
-					return err
-				}
-			}
-			oidcSupported = false
-		}
-
 		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
-		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, nodeGroupManager, attemptVpcCniDeletion); err != nil {
+		if err := drainAllNodeGroups(ctx, c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, func(clusterConfig *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+			attemptVpcCniDeletion(ctx, clusterConfig, ctl, clientSet)
+		}, podEvictionWaitPeriod); err != nil {
 			if !force {
 				return err
 			}
@@ -120,7 +102,7 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force, disableNodegroupEvic
 		}
 	}
 
-	if err := deleteSharedResources(c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
+	if err := deleteSharedResources(ctx, c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
 		if err != nil {
 			if force {
 				logger.Warning("error occurred during deletion: %v", err)
@@ -130,15 +112,21 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force, disableNodegroupEvic
 		}
 	}
 
-	deleteOIDCProvider := clusterOperable && oidcSupported
-	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(c.clusterStack, allStacks, deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
+	newOIDCManager := func() (*iamoidc.OpenIDConnectManager, error) {
+		return c.ctl.NewOpenIDConnectManager(ctx, c.cfg)
+	}
+	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, clusterOperable, newOIDCManager, c.ctl.Status.ClusterInfo.Cluster, kubernetes.NewCachedClientSet(clientSet), wait, force, func(errs chan error, _ string) error {
 		logger.Info("trying to cleanup dangling network interfaces")
-		if err := c.ctl.LoadClusterVPC(c.cfg, c.stackManager); err != nil {
-			return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
+		stack, err := c.stackManager.DescribeClusterStack(ctx)
+		if err != nil {
+			return fmt.Errorf("error describing cluster stack: %w", err)
+		}
+		if err := c.ctl.LoadClusterVPC(ctx, c.cfg, stack); err != nil {
+			return fmt.Errorf("getting VPC configuration for cluster %q: %w", c.cfg.Metadata.Name, err)
 		}
 
 		go func() {
-			errs <- vpc.CleanupNetworkInterfaces(c.ctl.Provider.EC2(), c.cfg)
+			errs <- vpc.CleanupNetworkInterfaces(ctx, c.ctl.AWSProvider.EC2(), c.cfg)
 			close(errs)
 		}()
 		return nil
@@ -158,11 +146,11 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force, disableNodegroupEvic
 		return handleErrors(errs, "cluster with nodegroup(s)")
 	}
 
-	if err := c.deleteKarpenterStackIfExists(); err != nil {
+	if err := c.deleteKarpenterStackIfExists(ctx); err != nil {
 		return err
 	}
 
-	if err := checkForUndeletedStacks(c.stackManager); err != nil {
+	if err := checkForUndeletedStacks(ctx, c.stackManager); err != nil {
 		return err
 	}
 
@@ -171,15 +159,15 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force, disableNodegroupEvic
 	return nil
 }
 
-func (c *OwnedCluster) deleteKarpenterStackIfExists() error {
-	stack, err := c.stackManager.GetKarpenterStack()
+func (c *OwnedCluster) deleteKarpenterStackIfExists(ctx context.Context) error {
+	stack, err := c.stackManager.GetKarpenterStack(ctx)
 	if err != nil {
 		return err
 	}
 
 	if stack != nil {
 		logger.Info("deleting karpenter stack")
-		return c.stackManager.DeleteStackSync(stack)
+		return c.stackManager.DeleteStackSync(ctx, stack)
 	}
 
 	return nil

@@ -18,13 +18,11 @@ package eks
 
 import (
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/request"
 )
@@ -64,13 +62,7 @@ func (l LoggingRetryer) ShouldRetry(r *request.Request) bool {
 	if !shouldRetry {
 		return false
 	}
-	if aerr, ok := r.Error.(awserr.RequestFailure); ok && aerr != nil && aerr.Code() == "EC2MetadataError" {
-		switch aerr.StatusCode() {
-		case http.StatusForbidden, http.StatusNotFound, http.StatusMethodNotAllowed:
-			return false
-		}
-	}
-	return true
+	return isErrorRetryable(r.Error)
 }
 
 // RetryRules extends on DefaultRetryer.RetryRules

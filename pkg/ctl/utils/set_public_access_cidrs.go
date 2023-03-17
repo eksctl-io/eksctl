@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -33,7 +35,7 @@ func publicAccessCIDRsCmdWithHandler(cmd *cmdutils.Cmd, handler func(cmd *cmduti
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func publicAccessCIDRsCmd(cmd *cmdutils.Cmd) {
@@ -44,7 +46,8 @@ func doUpdatePublicAccessCIDRs(cmd *cmdutils.Cmd) error {
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -54,9 +57,13 @@ func doUpdatePublicAccessCIDRs(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	clusterVPCConfig, err := ctl.GetCurrentClusterVPCConfig(cfg)
+	clusterVPCConfig, err := ctl.GetCurrentClusterVPCConfig(ctx, cfg)
 	if err != nil {
 		return err
+	}
+
+	if cfg.IsControlPlaneOnOutposts() {
+		return errUnsupportedLocalCluster
 	}
 
 	logger.Info("current public access CIDRs: %v", clusterVPCConfig.PublicAccessCIDRs)
@@ -72,7 +79,7 @@ func doUpdatePublicAccessCIDRs(cmd *cmdutils.Cmd) error {
 		meta.Name, meta.Region, cfg.VPC.PublicAccessCIDRs)
 
 	if !cmd.Plan {
-		if err := ctl.UpdatePublicAccessCIDRs(cfg); err != nil {
+		if err := ctl.UpdatePublicAccessCIDRs(ctx, cfg); err != nil {
 			return errors.Wrap(err, "error updating CIDRs for public access")
 		}
 		cmdutils.LogCompletedAction(

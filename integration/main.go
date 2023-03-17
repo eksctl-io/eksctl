@@ -17,6 +17,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 )
 
 func main() {
@@ -109,9 +110,24 @@ const (
 	Error = 1
 )
 
+const defaultSuiteTimeout = 5 * time.Hour
+
 func runGinkgo(ctx context.Context, wg *sync.WaitGroup, summaries chan []string, statuses chan int, id int, dir string) {
 	defer wg.Done()
-	args := []string{"--noColor", "-tags", "integration", "-v", "--progress", fmt.Sprintf("%s/...", dir), "--"}
+	suiteTimeout := defaultSuiteTimeout
+	if timeout := os.Getenv("SUITE_TIMEOUT"); timeout != "" {
+		var err error
+		suiteTimeout, err = time.ParseDuration(timeout)
+		if err != nil {
+			panic(fmt.Sprintf("invalid value for SUITE_TIMEOUT: %v", timeout))
+		}
+	}
+
+	args := []string{"--no-color", fmt.Sprintf("--timeout=%s", suiteTimeout), "-tags", "integration", "-v", "--progress"}
+	if focus := os.Getenv("INTEGRATION_TEST_FOCUS"); focus != "" {
+		args = append(args, fmt.Sprintf(`--focus="%s"`, focus))
+	}
+	args = append(args, fmt.Sprintf("%s/...", dir), "--")
 	args = append(args, os.Args[1:]...)
 	name := "ginkgo"
 	prefix := fmt.Sprintf("[%d]", id)

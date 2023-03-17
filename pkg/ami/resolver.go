@@ -1,9 +1,11 @@
 package ami
 
 import (
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
+	"context"
+
 	"github.com/kris-nova/logger"
+
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 )
 
 // MultiResolver is a Resolver that delegates to one or more Resolvers.
@@ -15,9 +17,9 @@ type MultiResolver struct {
 // Resolve will resolve an AMI from the supplied region
 // and instance type. It will invoke a specific resolver
 // to do the actual determining of AMI.
-func (r *MultiResolver) Resolve(region, version, instanceType, imageFamily string) (string, error) {
+func (r *MultiResolver) Resolve(ctx context.Context, region, version, instanceType, imageFamily string) (string, error) {
 	for _, resolver := range r.delegates {
-		ami, err := resolver.Resolve(region, version, instanceType, imageFamily)
+		ami, err := resolver.Resolve(ctx, region, version, instanceType, imageFamily)
 		if err != nil {
 			if _, ok := err.(*UnsupportedQueryError); ok {
 				logger.Debug(err.Error())
@@ -36,7 +38,7 @@ func (r *MultiResolver) Resolve(region, version, instanceType, imageFamily strin
 // Resolver provides an interface to enable implementing multiple
 // ways to determine which AMI to use from the region/instance type/image family.
 type Resolver interface {
-	Resolve(region, version, instanceType, imageFamily string) (string, error)
+	Resolve(ctx context.Context, region, version, instanceType, imageFamily string) (string, error)
 }
 
 // NewMultiResolver creates and returns a MultiResolver with the specified delegates
@@ -47,12 +49,12 @@ func NewMultiResolver(delegates ...Resolver) *MultiResolver {
 }
 
 // NewAutoResolver creates a new AutoResolver
-func NewAutoResolver(api ec2iface.EC2API) Resolver {
+func NewAutoResolver(api awsapi.EC2) Resolver {
 	return &AutoResolver{api: api}
 }
 
 // NewSSMResolver creates a new AutoResolver.
-func NewSSMResolver(api ssmiface.SSMAPI) Resolver {
+func NewSSMResolver(api awsapi.SSM) Resolver {
 	return &SSMResolver{ssmAPI: api}
 }
 

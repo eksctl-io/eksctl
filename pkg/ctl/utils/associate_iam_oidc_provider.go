@@ -1,6 +1,13 @@
 package utils
 
 import (
+	"context"
+	"fmt"
+
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -28,7 +35,7 @@ func associateIAMOIDCProviderCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddApproveFlag(fs, cmd)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
 
 func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
@@ -41,7 +48,8 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -50,7 +58,7 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	oidc, err := ctl.NewOpenIDConnectManager(cfg)
+	oidc, err := ctl.NewOpenIDConnectManager(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -59,7 +67,7 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	providerExists, err := oidc.CheckProviderExists()
+	providerExists, err := oidc.CheckProviderExists(ctx)
 	if err != nil {
 		return err
 	}
@@ -67,10 +75,14 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 	if !providerExists {
 		cmdutils.LogIntendedAction(cmd.Plan, "create IAM Open ID Connect provider for cluster %q in %q", meta.Name, meta.Region)
 		if !cmd.Plan {
-			if err := oidc.CreateProvider(); err != nil {
+			if err := oidc.CreateProvider(ctx); err != nil {
 				return err
 			}
 			logger.Success("created IAM Open ID Connect provider for cluster %q in %q", meta.Name, meta.Region)
+
+			if err := addOIDCTag(ctx, ctl.AWSProvider, ctl.Status.ClusterInfo.Cluster); err != nil {
+				return err
+			}
 		}
 	} else {
 		logger.Info("IAM Open ID Connect provider is already associated with cluster %q in %q", meta.Name, meta.Region)
@@ -78,5 +90,17 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 
 	cmdutils.LogPlanModeWarning(cmd.Plan && !providerExists)
 
+	return nil
+}
+
+func addOIDCTag(ctx context.Context, provider api.ClusterProvider, cluster *ekstypes.Cluster) error {
+	if _, err := provider.EKS().TagResource(ctx, &eks.TagResourceInput{
+		ResourceArn: cluster.Arn,
+		Tags: map[string]string{
+			api.ClusterOIDCEnabledTag: "true",
+		},
+	}); err != nil {
+		return fmt.Errorf("error tagging EKS cluster with OIDC tag: %w", err)
+	}
 	return nil
 }

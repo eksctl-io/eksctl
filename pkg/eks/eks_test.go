@@ -1,14 +1,19 @@
 package eks_test
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"context"
+
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/kris-nova/logger"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/stretchr/testify/mock"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -27,7 +32,7 @@ var _ = Describe("EKS API wrapper", func() {
 		var (
 			clusterName string
 			err         error
-			cluster     *awseks.Cluster
+			cluster     *ekstypes.Cluster
 		)
 
 		When("the cluster is ready", func() {
@@ -37,13 +42,13 @@ var _ = Describe("EKS API wrapper", func() {
 				p = mockprovider.NewMockProvider()
 
 				c = &ClusterProvider{
-					Provider: p,
+					AWSProvider: p,
 				}
 
-				p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+				p.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 					return *input.Name == clusterName
 				})).Return(&awseks.DescribeClusterOutput{
-					Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
+					Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive),
 				}, nil)
 			})
 
@@ -53,7 +58,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				JustBeforeEach(func() {
-					cluster, err = c.GetCluster(clusterName)
+					cluster, err = c.GetCluster(context.Background(), clusterName)
 				})
 
 				It("should not error", func() {
@@ -61,15 +66,15 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				It("should return the cluster", func() {
-					Expect(cluster).To(Equal(testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive)))
+					Expect(cluster).To(Equal(testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive)))
 				})
 
 				It("should have called AWS EKS service once", func() {
 					p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)
 				})
 
-				It("should not call AWS CFN ListStacksPages", func() {
-					p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)
+				It("should not call AWS CFN ListStacks", func() {
+					p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacks", 0)
 				})
 			})
 
@@ -97,19 +102,19 @@ var _ = Describe("EKS API wrapper", func() {
 
 					logger.Level = 4
 
-					p.MockCloudFormation().On("ListStacksPages", mock.MatchedBy(func(input *cfn.ListStacksInput) bool {
+					p.MockCloudFormation().On("ListStacks", mock.Anything, mock.MatchedBy(func(input *cfn.ListStacksInput) bool {
 						matches := 0
 						for i := range input.StackStatusFilter {
-							if *input.StackStatusFilter[i] == expectedStatusFilter[i] {
+							if input.StackStatusFilter[i] == types.StackStatus(expectedStatusFilter[i]) {
 								matches++
 							}
 						}
 						return matches == len(expectedStatusFilter)
-					}), mock.Anything).Return(nil)
+					})).Return(&cfn.ListStacksOutput{}, nil)
 				})
 
 				JustBeforeEach(func() {
-					cluster, err = c.GetCluster(clusterName)
+					cluster, err = c.GetCluster(context.Background(), clusterName)
 				})
 
 				It("should not error", func() {
@@ -117,15 +122,15 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				It("should return the cluster", func() {
-					Expect(cluster).To(Equal(testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive)))
+					Expect(cluster).To(Equal(testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive)))
 				})
 
 				It("should have called AWS EKS service once", func() {
 					p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)
 				})
 
-				It("should have called AWS CFN ListStacksPages", func() {
-					p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 1)
+				It("should have called AWS CFN ListStacks", func() {
+					p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacks", 1)
 				})
 			})
 		})
@@ -138,18 +143,18 @@ var _ = Describe("EKS API wrapper", func() {
 				p = mockprovider.NewMockProvider()
 
 				c = &ClusterProvider{
-					Provider: p,
+					AWSProvider: p,
 				}
 
-				p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+				p.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 					return *input.Name == clusterName
 				})).Return(&awseks.DescribeClusterOutput{
-					Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusDeleting),
+					Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusDeleting),
 				}, nil)
 			})
 
 			JustBeforeEach(func() {
-				cluster, err = c.GetCluster(clusterName)
+				cluster, err = c.GetCluster(context.Background(), clusterName)
 			})
 
 			It("should not error", func() {
@@ -160,8 +165,8 @@ var _ = Describe("EKS API wrapper", func() {
 				p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)
 			})
 
-			It("should not call AWS CFN ListStacksPages", func() {
-				p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)
+			It("should not call AWS CFN ListStacks", func() {
+				p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacks", 0)
 			})
 		})
 
@@ -179,135 +184,42 @@ var _ = Describe("EKS API wrapper", func() {
 		BeforeEach(func() {
 			p := mockprovider.NewMockProvider()
 			ctl = &ClusterProvider{
-				Provider: p,
-				Status:   &ProviderStatus{},
+				AWSProvider: p,
+				Status:      &ProviderStatus{},
 			}
 
 			cfg = api.NewClusterConfig()
 
 			describeClusterOutput := &awseks.DescribeClusterOutput{
-				Cluster: testutils.NewFakeCluster("testcluster", awseks.ClusterStatusActive),
+				Cluster: testutils.NewFakeCluster("testcluster", ekstypes.ClusterStatusActive),
 			}
 
-			describeClusterOutput.Cluster.Version = aws.String(api.Version1_13)
+			describeClusterOutput.Cluster.Version = aws.String(api.Version1_21)
 
-			describeClusterOutput.Cluster.Identity = &awseks.Identity{
-				Oidc: &awseks.OIDC{
+			describeClusterOutput.Cluster.Identity = &ekstypes.Identity{
+				Oidc: &ekstypes.OIDC{
 					Issuer: &issuer,
 				},
 			}
 
-			p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+			p.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 				return true
 			})).Return(describeClusterOutput, nil)
 		})
 
 		It("should get cluster, cache status and construct OIDC manager", func() {
-			err = ctl.RefreshClusterStatus(cfg)
+			err = ctl.RefreshClusterStatus(context.Background(), cfg)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(cfg.Status.Endpoint).To(Equal("https://localhost/"))
 			Expect(cfg.Status.CertificateAuthorityData).To(Equal([]byte("test\n")))
 
-			Expect(ctl.ControlPlaneVersion()).To(Equal(api.Version1_13))
+			Expect(ctl.ControlPlaneVersion()).To(Equal(api.Version1_21))
 
-			_, err := ctl.NewOpenIDConnectManager(cfg)
+			_, err := ctl.NewOpenIDConnectManager(context.Background(), cfg)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
-
-	type managedNodesSupportCase struct {
-		platformVersion string
-
-		expectError bool
-		supports    bool
-	}
-
-	DescribeTable("EKS managed nodes support", func(m *managedNodesSupportCase) {
-		var platform *string
-		if m.platformVersion != "" {
-			platform = aws.String(m.platformVersion)
-		}
-		cluster := &awseks.Cluster{
-			PlatformVersion: platform,
-		}
-
-		supportsManagedNodes, err := ClusterSupportsManagedNodes(cluster)
-		if m.expectError {
-			Expect(err).To(HaveOccurred())
-		}
-		Expect(supportsManagedNodes).To(Equal(m.supports))
-	},
-		Entry("with unsupported platform version", &managedNodesSupportCase{
-			platformVersion: "eks.2",
-			expectError:     false,
-			supports:        false,
-		}),
-		Entry("with invalid platform version", &managedNodesSupportCase{
-			platformVersion: " eks.3",
-			expectError:     true,
-			supports:        false,
-		}),
-	)
-
-	type fargateSupportCase struct {
-		platformVersion   string
-		kubernetesVersion string
-		supportsFargate   bool
-		expectError       bool
-	}
-
-	DescribeTable("ClusterSupportsFargate", func(m *fargateSupportCase) {
-		cluster := &awseks.Cluster{
-			Version:         aws.String(m.kubernetesVersion),
-			PlatformVersion: aws.String(m.platformVersion),
-		}
-		supportsFargate, err := ClusterSupportsFargate(cluster)
-		if m.expectError {
-			Expect(err).To(HaveOccurred())
-		}
-		Expect(supportsFargate).To(Equal(m.supportsFargate))
-	},
-		Entry("eks.1 does NOT support Fargate", &fargateSupportCase{
-			platformVersion: "eks.1", kubernetesVersion: "1.14", supportsFargate: false, expectError: false,
-		}),
-		Entry("eks.2 does NOT support Fargate", &fargateSupportCase{
-			platformVersion: "eks.2", kubernetesVersion: "1.14", supportsFargate: false, expectError: false,
-		}),
-		Entry("eks.3 does NOT support Fargate", &fargateSupportCase{
-			platformVersion: "eks.3", kubernetesVersion: "1.14", supportsFargate: false, expectError: false,
-		}),
-		Entry("eks.4 does NOT support Fargate", &fargateSupportCase{
-			platformVersion: "eks.4", kubernetesVersion: "1.14", supportsFargate: false, expectError: false,
-		}),
-		Entry("eks.5 is the minimum version which supports Fargate", &fargateSupportCase{
-			platformVersion: "eks.5", kubernetesVersion: "1.14", supportsFargate: true, expectError: false,
-		}),
-		Entry("1.14 is the minimum version which supports Fargate", &fargateSupportCase{
-			platformVersion: "eks.5", kubernetesVersion: "1.13", supportsFargate: false, expectError: false,
-		}),
-		Entry("eks.6 supports Fargate", &fargateSupportCase{
-			platformVersion: "eks.6", kubernetesVersion: "1.14", supportsFargate: true, expectError: false,
-		}),
-		Entry("eks.7 supports Fargate", &fargateSupportCase{
-			platformVersion: "eks.7", kubernetesVersion: "1.14", supportsFargate: true, expectError: false,
-		}),
-		Entry("eks. should raise an error", &fargateSupportCase{
-			platformVersion: "eks.", kubernetesVersion: "1.14", supportsFargate: false, expectError: true,
-		}),
-		Entry("eks.invalid should raise an error", &fargateSupportCase{
-			platformVersion: "eks.invalid", kubernetesVersion: "1.14", supportsFargate: false, expectError: true,
-		}),
-		Entry("invalid Kubernetes version should raise an error", &fargateSupportCase{
-			platformVersion: "eks.5", kubernetesVersion: "1.", supportsFargate: false, expectError: true,
-		}),
-		Entry("should support 1.15 for all platform versions", &fargateSupportCase{
-			platformVersion: "eks.1", kubernetesVersion: "1.15", supportsFargate: true, expectError: false,
-		}),
-		Entry("should support 1.16 for all platform versions", &fargateSupportCase{
-			platformVersion: "eks.1", kubernetesVersion: "1.16", supportsFargate: true, expectError: false,
-		}),
-	)
 
 	type platformVersionCase struct {
 		platformVersion string

@@ -1,6 +1,6 @@
 package api
 
-// Conventional Kubernetes API contants
+// Conventional Kubernetes API constants
 const (
 	GroupName = "eksctl.io"
 )

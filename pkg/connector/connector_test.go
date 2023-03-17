@@ -1,19 +1,30 @@
 package connector_test
 
 import (
+	"context"
 	"os"
 	"path"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/aws/aws-sdk-go/service/sts"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	"github.com/aws/smithy-go"
+	"github.com/pkg/errors"
+
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/stretchr/testify/mock"
+
+	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/connector"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
@@ -62,11 +73,11 @@ var _ = Describe("EKS Connector", func() {
 		mockProvider := mockprovider.NewMockProvider()
 
 		mockDescribeCluster(mockProvider, cc.cluster.Name)
-		mockProvider.MockEKS().On("RegisterCluster", mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
-			return *input.Name == cc.cluster.Name && *input.ConnectorConfig.Provider == strings.ToUpper(cc.cluster.Provider)
+		mockProvider.MockEKS().On("RegisterCluster", mock.Anything, mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
+			return *input.Name == cc.cluster.Name && string(input.ConnectorConfig.Provider) == strings.ToUpper(cc.cluster.Provider)
 		})).Return(&eks.RegisterClusterOutput{
-			Cluster: &eks.Cluster{
-				ConnectorConfig: &eks.ConnectorConfigResponse{
+			Cluster: &ekstypes.Cluster{
+				ConnectorConfig: &ekstypes.ConnectorConfigResponse{
 					ActivationId:     aws.String("activation-id-123"),
 					ActivationCode:   aws.String("activation-code-123"),
 					ActivationExpiry: aws.Time(time.Now()),
@@ -74,12 +85,12 @@ var _ = Describe("EKS Connector", func() {
 			},
 		}, nil)
 
-		mockProvider.MockSTS().On("GetCallerIdentity", mock.Anything).Return(&sts.GetCallerIdentityOutput{
+		mockProvider.MockSTS().On("GetCallerIdentity", mock.Anything, mock.Anything).Return(&sts.GetCallerIdentityOutput{
 			Arn: aws.String("arn:aws:iam::12356:user/eksctl"),
 		}, nil)
 
 		if cc.cluster.ConnectorRoleARN == "" {
-			mockIAM(mockProvider)
+			mockIAM(mockProvider, cc.cluster.Name)
 		}
 
 		manifestTemplate, err := cc.getManifestTemplate()
@@ -90,7 +101,7 @@ var _ = Describe("EKS Connector", func() {
 			ManifestTemplate: manifestTemplate,
 		}
 
-		resourceList, err := c.RegisterCluster(cc.cluster)
+		resourceList, err := c.RegisterCluster(context.Background(), cc.cluster)
 		if cc.expectedErr != "" {
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring(cc.expectedErr)))
@@ -157,17 +168,17 @@ var _ = Describe("EKS Connector", func() {
 			mockProvider := mockprovider.NewMockProvider()
 
 			mockDescribeCluster(mockProvider, cluster.Name)
-			mockProvider.MockEKS().On("RegisterCluster", mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
+			mockProvider.MockEKS().On("RegisterCluster", mock.Anything, mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
 				return *input.Name == cluster.Name
-			})).Return(nil, &eks.InvalidRequestException{
-				Message_: aws.String("Cluster Management role arn:aws:iam::12345:role/aws-service-role/eks-connector.amazonaws.com/AWSServiceRoleForAmazonEKSConnector is not available"),
+			})).Return(nil, &smithy.OperationError{
+				Err: errors.New("Cluster Management role arn:aws:iam::12345:role/aws-service-role/eks-connector.amazonaws.com/AWSServiceRoleForAmazonEKSConnector is not available"),
 			})
 			mockProvider.MockIAM().On("DeleteRole").Return(&iam.DeleteRoleOutput{}, nil)
 
 			c := &connector.EKSConnector{
 				Provider: mockProvider,
 			}
-			_, err := c.RegisterCluster(cluster)
+			_, err := c.RegisterCluster(context.Background(), cluster)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring("SLR for EKS Connector does not exist; please run `aws iam create-service-linked-role --aws-service-name eks-connector.amazonaws.com` first")))
 		})
@@ -181,35 +192,76 @@ var _ = Describe("EKS Connector", func() {
 			mockProvider := mockprovider.NewMockProvider()
 
 			mockDescribeCluster(mockProvider, cluster.Name)
-			mockProvider.MockEKS().On("RegisterCluster", mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
+			mockProvider.MockEKS().On("RegisterCluster", mock.Anything, mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
 				return *input.Name == cluster.Name
-			})).Return(nil, &eks.InvalidRequestException{
-				Message_: aws.String("test"),
+			})).Return(nil, &ekstypes.InvalidRequestException{
+				Message: aws.String("test"),
 			})
 
-			mockIAM(mockProvider)
+			mockIAM(mockProvider, cluster.Name)
 
 			mockProvider.MockIAM().
-				On("DeleteRolePolicy", mock.MatchedBy(func(input *iam.DeleteRolePolicyInput) bool {
+				On("DeleteRolePolicy", mock.Anything, mock.MatchedBy(func(input *iam.DeleteRolePolicyInput) bool {
 					return matchesRole(*input.RoleName) && *input.PolicyName == "eks-connector-agent"
 				})).Return(&iam.DeleteRolePolicyOutput{}, nil).
-				On("DeleteRole", mock.MatchedBy(func(input *iam.DeleteRoleInput) bool {
+				On("DeleteRole", mock.Anything, mock.MatchedBy(func(input *iam.DeleteRoleInput) bool {
 					return matchesRole(*input.RoleName)
 				})).Return(&iam.DeleteRoleOutput{}, nil)
 
 			c := &connector.EKSConnector{
 				Provider: mockProvider,
 			}
-			_, err := c.RegisterCluster(cluster)
+			_, err := c.RegisterCluster(context.Background(), cluster)
 			Expect(err).To(HaveOccurred())
+		})
+
+		It("should not fail if RegisterCluster returns a non-existent role error for the first call", func() {
+			cluster := connector.ExternalCluster{
+				Name:             "external",
+				Provider:         "gke",
+				ConnectorRoleARN: "arn:aws:iam::1234567890:role/custom-connector-role",
+			}
+
+			mockProvider := mockprovider.NewMockProvider()
+
+			mockDescribeCluster(mockProvider, cluster.Name)
+
+			createRegisterClusterMock := func() *mock.Call {
+				return mockProvider.MockEKS().On("RegisterCluster", mock.Anything, mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
+					return *input.Name == cluster.Name
+				}))
+			}
+			createRegisterClusterMock().Return(nil, &smithy.OperationError{
+				Err: errors.New("Nonexistent role or missing ssm service principal in trust policy"),
+			}).Once()
+
+			createRegisterClusterMock().Return(&eks.RegisterClusterOutput{
+				Cluster: &ekstypes.Cluster{
+					ConnectorConfig: &ekstypes.ConnectorConfigResponse{
+						ActivationId:     aws.String("activation-id-123"),
+						ActivationCode:   aws.String("activation-code-123"),
+						ActivationExpiry: aws.Time(time.Now()),
+					},
+				},
+			}, nil).Once()
+
+			mockProvider.MockSTS().On("GetCallerIdentity", mock.Anything, mock.Anything).Return(&sts.GetCallerIdentityOutput{
+				Arn: aws.String("arn:aws:iam::12356:user/eksctl"),
+			}, nil)
+
+			c := &connector.EKSConnector{
+				Provider: mockProvider,
+			}
+			_, err := c.RegisterCluster(context.Background(), cluster)
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 })
 
 func mockDescribeCluster(mockProvider *mockprovider.MockProvider, clusterName string) {
-	mockProvider.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
+	mockProvider.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
 		return *input.Name == clusterName
-	})).Return(nil, &eks.ResourceNotFoundException{
+	})).Return(nil, &ekstypes.ResourceNotFoundException{
 		ClusterName: aws.String(clusterName),
 	})
 }
@@ -218,19 +270,29 @@ func matchesRole(roleName string) bool {
 	return strings.HasPrefix(roleName, "eksctl-")
 }
 
-func mockIAM(mockProvider *mockprovider.MockProvider) {
+func mockIAM(mockProvider *mockprovider.MockProvider, clusterName string) {
 	mockProvider.MockIAM().
-		On("CreateRole", mock.MatchedBy(func(input *iam.CreateRoleInput) bool {
+		On("CreateRole", mock.Anything, mock.MatchedBy(func(input *iam.CreateRoleInput) bool {
 			return matchesRole(*input.RoleName)
 		})).Return(&iam.CreateRoleOutput{
-		Role: &iam.Role{
+		Role: &iamtypes.Role{
 			Arn: aws.String("arn:aws:iam::1234567890:role/eksctl-12345"),
 		},
 	}, nil).
-		On("PutRolePolicy", mock.MatchedBy(func(input *iam.PutRolePolicyInput) bool {
+		On("PutRolePolicy", mock.Anything, mock.MatchedBy(func(input *iam.PutRolePolicyInput) bool {
 			return matchesRole(*input.RoleName)
 		})).Return(&iam.PutRolePolicyOutput{}, nil).
-		On("WaitUntilRoleExists", mock.MatchedBy(func(input *iam.GetRoleInput) bool {
+		On("GetRole", mock.Anything, mock.MatchedBy(func(input *iam.GetRoleInput) bool {
 			return matchesRole(*input.RoleName)
-		})).Return(nil)
+		}), mock.Anything).
+		Return(&iam.GetRoleOutput{
+			Role: &iamtypes.Role{
+				Tags: []iamtypes.Tag{
+					{
+						Key:   aws.String(v1alpha5.ClusterNameTag),
+						Value: aws.String(clusterName),
+					},
+				},
+			},
+		}, nil)
 }

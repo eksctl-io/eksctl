@@ -23,4 +23,5 @@ users:
       - cluster-two
       command: aws-iam-authenticator
       env: null
+      interactiveMode: IfAvailable
       provideClusterInfo: false

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"hash/fnv"
 	"regexp"
 	"strings"
 
@@ -46,4 +47,11 @@ func CompareVersions(a, b string) (int, error) {
 		return 0, errors.Wrapf(err, "unable to parse second version %q", b)
 	}
 	return aVersion.Compare(bVersion), nil
+}
+
+// FnvHash computes the hash of a string using the Fowler–Noll–Vo hash function
+func FnvHash(s string) []byte {
+	fnvHash := fnv.New32a()
+	fnvHash.Write([]byte(s))
+	return fnvHash.Sum(nil)
 }

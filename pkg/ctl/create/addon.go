@@ -1,14 +1,16 @@
 package create
 
 import (
+	"context"
 	"fmt"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/kris-nova/logger"
-	"github.com/weaveworks/eksctl/pkg/actions/addon"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -27,7 +29,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].Name, "name", "", "Add-on name")
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].Version, "version", "", "Add-on version. Use `eksctl utils describe-addon-versions` to discover a version or set to \"latest\"")
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].ServiceAccountRoleARN, "service-account-role-arn", "", "Add-on serviceAccountRoleARN")
-		fs.BoolVar(&force, "force", false, "Force applies the add-on to overwrite an existing add-on")
+		fs.BoolVar(&force, "force", false, "Force migrates an existing self-managed add-on to an EKS managed add-on")
 		fs.BoolVar(&wait, "wait", false, "Wait for the addon creation to complete")
 
 		fs.StringSliceVar(&cmd.ClusterConfig.Addons[0].AttachPolicyARNs, "attach-policy-arn", []string{}, "ARN of the policies to attach")
@@ -39,7 +41,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
@@ -47,17 +49,18 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			return err
 		}
 
-		clusterProvider, err := cmd.NewProviderForExistingCluster()
+		ctx := context.TODO()
+		clusterProvider, err := cmd.NewProviderForExistingCluster(ctx)
 		if err != nil {
 			return err
 		}
 
-		oidc, err := clusterProvider.NewOpenIDConnectManager(cmd.ClusterConfig)
+		oidc, err := clusterProvider.NewOpenIDConnectManager(ctx, cmd.ClusterConfig)
 		if err != nil {
 			return err
 		}
 
-		oidcProviderExists, err := oidc.CheckProviderExists()
+		oidcProviderExists, err := oidc.CheckProviderExists(ctx)
 		if err != nil {
 			return err
 		}
@@ -68,7 +71,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 
 		stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
 
-		output, err := clusterProvider.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+		output, err := clusterProvider.AWSProvider.EKS().DescribeCluster(ctx, &awseks.DescribeClusterInput{
 			Name: &cmd.ClusterConfig.Metadata.Name,
 		})
 
@@ -84,7 +87,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			return err
 		}
 
-		addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.Provider.EKS(), stackManager, oidcProviderExists, oidc, clientSet, cmd.ProviderConfig.WaitTimeout)
+		addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, clientSet)
 		if err != nil {
 			return err
 		}
@@ -93,8 +96,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			if force { //force is specified at cmdline level
 				a.Force = true
 			}
-			err := addonManager.Create(a, wait)
-			if err != nil {
+			if err := addonManager.Create(ctx, a, cmd.ProviderConfig.WaitTimeout); err != nil {
 				return err
 			}
 		}

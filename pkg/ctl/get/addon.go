@@ -1,14 +1,16 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"os"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	"github.com/kris-nova/logger"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 
+	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -26,9 +28,9 @@ func getAddonCmd(cmd *cmdutils.Cmd) {
 		"addons",
 	)
 
-	cmd.ClusterConfig.Addons = []*api.Addon{{}}
+	var a api.Addon
 	cmd.FlagSetGroup.InFlagSet("Addon", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cmd.ClusterConfig.Addons[0].Name, "name", "", "Addon name")
+		fs.StringVar(&a.Name, "name", "", "Addon name")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -38,28 +40,32 @@ func getAddonCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return getAddon(cmd, params)
+		return getAddon(cmd, &a, params)
 	}
 }
 
-func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
+func getAddon(cmd *cmdutils.Cmd, a *api.Addon, params *getCmdParams) error {
+	if err := cmdutils.NewGetAddonsLoader(cmd).Load(); err != nil {
+		return err
+	}
 	if params.output != printers.TableType {
 		//log warnings and errors to stdout
 		logger.Writer = os.Stderr
 	}
 
-	clusterProvider, err := cmd.NewProviderForExistingCluster()
+	ctx := context.Background()
+	clusterProvider, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
 
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
 
-	output, err := clusterProvider.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+	output, err := clusterProvider.AWSProvider.EKS().DescribeCluster(ctx, &awseks.DescribeClusterInput{
 		Name: &cmd.ClusterConfig.Metadata.Name,
 	})
 
@@ -70,30 +76,30 @@ func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 	logger.Info("Kubernetes version %q in use by cluster %q", *output.Cluster.Version, cmd.ClusterConfig.Metadata.Name)
 	cmd.ClusterConfig.Metadata.Version = *output.Cluster.Version
 
-	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.Provider.EKS(), stackManager, *cmd.ClusterConfig.IAM.WithOIDC, nil, nil, cmd.ProviderConfig.WaitTimeout)
+	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.AWSProvider.EKS(), stackManager, *cmd.ClusterConfig.IAM.WithOIDC, nil, nil)
 
 	if err != nil {
 		return err
 	}
 
 	var summaries []addon.Summary
-	if cmd.ClusterConfig.Addons[0].Name == "" {
-		summaries, err = addonManager.GetAll()
+	if a.Name == "" {
+		summaries, err = addonManager.GetAll(ctx)
 		if err != nil {
 			return err
 		}
 	} else {
-		summary, err := addonManager.Get(cmd.ClusterConfig.Addons[0])
-		summaries = []addon.Summary{summary}
+		summary, err := addonManager.Get(ctx, a)
 		if err != nil {
 			return err
 		}
+		summaries = []addon.Summary{summary}
 	}
 
-	if len(summaries) == 0 {
-		logger.Info("no addons found")
-		return nil
+	if len(summaries) > 0 {
+		logger.Info("to see issues for an addon run `eksctl get addon --name <addon-name> --cluster <cluster-name>`")
 	}
+
 	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
 		return err
@@ -103,18 +109,14 @@ func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 		addAddonSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	logger.Info("to see issues for an addon run `eksctl get addon --name <addon-name> --cluster <cluster-name>`")
-
-	if err := printer.PrintObjWithKind("addonsummary", summaries, os.Stdout); err != nil {
+	if err := printer.PrintObjWithKind("addons", summaries, os.Stdout); err != nil {
 		return err
 	}
 
-	//if getting a particular addon, print the issue
-	if cmd.ClusterConfig.Addons[0].Name != "" {
+	// if getting a particular addon, print the issue.
+	if a.Name != "" {
 		for _, issue := range summaries[0].Issues {
-			if issue != "" {
-				fmt.Printf("Issue: %s\n", issue)
-			}
+			fmt.Printf("Issue: %+v\n", issue)
 		}
 	}
 
@@ -139,5 +141,8 @@ func addAddonSummaryTableColumns(printer *printers.TablePrinter) {
 	})
 	printer.AddColumn("UPDATE AVAILABLE", func(s addon.Summary) string {
 		return s.NewerVersion
+	})
+	printer.AddColumn("CONFIGURATION VALUES", func(s addon.Summary) string {
+		return s.ConfigurationValues
 	})
 }

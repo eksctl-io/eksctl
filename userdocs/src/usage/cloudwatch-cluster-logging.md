@@ -12,7 +12,7 @@ setting, you can create a cluster with `eksctl create cluster --config-file=<pat
 
 If you have created a cluster already, you can use `eksctl utils update-cluster-logging`.
 
-!!!note
+???+ note
     this command runs in plan mode by default, you will need to specify `--approve` flag to
     apply the changes to your cluster.
 
@@ -56,15 +56,23 @@ eksctl utils update-cluster-logging --disable-types all
 
 ## `ClusterConfig` Examples
 
-There 5 types of logs that you may wish to enable (see [EKS documentation][eksdocs] for more details):
+In an EKS cluster, the `enableTypes` field under `clusterLogging` can take a list of possible values to enable the different types of logs for the control plane components.
 
-- `api`
-- `audit`
-- `authenticator`
-- `controllerManager`
-- `scheduler`
+The following are the possible values:
 
-You can enable all types with `"*"` or `"all"`, i.e.:
+- `api`: Enables the Kubernetes API server logs.
+- `audit`: Enables the Kubernetes audit logs.
+- `authenticator`: Enables the authenticator logs.
+- `controllerManager`: Enables the Kubernetes controller manager logs.
+- `scheduler`: Enables the Kubernetes scheduler logs.
+
+To learn more, see [EKS documentation][eksdocs]. 
+
+### Disable all logs
+To disable all types, use `[]` or remove the `cloudWatch` section completely.
+
+### Enable all logs
+You can enable all types with `"*"` or `"all"`. For example:
 
 ```yaml
 cloudWatch:
@@ -72,9 +80,8 @@ cloudWatch:
     enableTypes: ["*"]
 ```
 
-To disable all types, use `[]` or remove `cloudWatch` section completely.
-
-You can enable a subset of types by listing the types you want to enable:
+### Enable one or more logs
+You can enable a subset of types by listing the types you want to enable. For example:
 
 ```yaml
 cloudWatch:
@@ -84,7 +91,16 @@ cloudWatch:
       - "authenticator"
 ```
 
-Full example:
+### Log retention period
+By default, logs are stored in CloudWatch Logs, indefinitely. You can specify the number of days for which the control plane logs should be retained in CloudWatch Logs. The following example retains logs for 7 days:
+
+```yaml
+cloudWatch:
+  clusterLogging:
+    logRetentionInDays: 7
+```
+
+### Complete example
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
@@ -102,6 +118,7 @@ nodeGroups:
 cloudWatch:
   clusterLogging:
     enableTypes: ["audit", "authenticator"]
+    logRetentionInDays: 7
 ```
 
 [eksdocs]: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html

@@ -1,6 +1,7 @@
 package addon
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
+func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
 	preTasks := &tasks.TaskTree{Parallel: false}
 	postTasks := &tasks.TaskTree{Parallel: false}
 	var preAddons []*api.Addon
@@ -26,6 +27,7 @@ func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvid
 		&createAddonTask{
 			info:            "create addons",
 			addons:          preAddons,
+			ctx:             ctx,
 			cfg:             cfg,
 			clusterProvider: clusterProvider,
 			forceAll:        forceAll,
@@ -38,6 +40,7 @@ func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvid
 		&createAddonTask{
 			info:            "create addons",
 			addons:          postAddons,
+			ctx:             ctx,
 			cfg:             cfg,
 			clusterProvider: clusterProvider,
 			forceAll:        forceAll,
@@ -49,6 +52,9 @@ func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvid
 }
 
 type createAddonTask struct {
+	// Context should ideally be passed to methods and not be a struct field,
+	// but the current task code requires it to be passed this way.
+	ctx             context.Context
 	info            string
 	cfg             *api.ClusterConfig
 	clusterProvider *eks.ClusterProvider
@@ -60,12 +66,12 @@ type createAddonTask struct {
 func (t *createAddonTask) Describe() string { return t.info }
 
 func (t *createAddonTask) Do(errorCh chan error) error {
-	oidc, err := t.clusterProvider.NewOpenIDConnectManager(t.cfg)
+	oidc, err := t.clusterProvider.NewOpenIDConnectManager(t.ctx, t.cfg)
 	if err != nil {
 		return err
 	}
 
-	oidcProviderExists, err := oidc.CheckProviderExists()
+	oidcProviderExists, err := oidc.CheckProviderExists(t.ctx)
 	if err != nil {
 		return err
 	}
@@ -76,7 +82,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 	if err != nil {
 		return err
 	}
-	addonManager, err := New(t.cfg, t.clusterProvider.Provider.EKS(), stackManager, oidcProviderExists, oidc, clientSet, t.timeout)
+	addonManager, err := New(t.cfg, t.clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, clientSet)
 	if err != nil {
 		return err
 	}
@@ -85,7 +91,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		if t.forceAll {
 			a.Force = true
 		}
-		err := addonManager.Create(a, t.wait)
+		err := addonManager.Create(t.ctx, a, t.timeout)
 		if err != nil {
 			go func() {
 				errorCh <- err

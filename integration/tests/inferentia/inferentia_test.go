@@ -10,16 +10,17 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
@@ -42,63 +43,58 @@ func TestInferentia(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
+const initNG = "inf1-ng-0"
+
+var _ = BeforeSuite(func() {
+	params.KubeconfigTemp = false
+	if params.KubeconfigPath == "" {
+		wd, _ := os.Getwd()
+		f, _ := os.CreateTemp(wd, "kubeconfig-")
+		params.KubeconfigPath = f.Name()
+		params.KubeconfigTemp = true
+	}
+
+	clusterWithoutPlugin = noInstallCluster
+	clusterWithNeuronPlugin = defaultCluster
+
+	if !params.SkipCreate {
+		cmd := params.EksctlCreateCmd.WithArgs(
+			"cluster",
+			"--verbose", "4",
+			"--name", clusterWithoutPlugin,
+			"--tags", "alpha.eksctl.io/description=eksctl integration test",
+			"--install-neuron-plugin=false",
+			"--nodegroup-name", initNG,
+			"--node-labels", "ng-name="+initNG,
+			"--nodes", "1",
+			"--node-type", "inf1.xlarge",
+			"--version", params.Version,
+			"--zones", "us-west-2a,us-west-2c,us-west-2d",
+			"--kubeconfig", params.KubeconfigPath,
+		)
+		Expect(cmd).To(RunSuccessfully())
+
+		cmd = params.EksctlCreateCmd.WithArgs(
+			"cluster",
+			"--verbose", "4",
+			"--name", clusterWithNeuronPlugin,
+			"--tags", "alpha.eksctl.io/description=eksctl integration test",
+			"--nodegroup-name", initNG,
+			"--node-labels", "ng-name="+initNG,
+			"--nodes", "1",
+			"--node-type", "inf1.xlarge",
+			"--version", params.Version,
+			"--zones", "us-west-2a,us-west-2c,us-west-2d",
+			"--kubeconfig", params.KubeconfigPath,
+		)
+		Expect(cmd).To(RunSuccessfully())
+	}
+})
+
 var _ = Describe("(Integration) Inferentia nodes", func() {
 	const (
-		initNG = "inf1-ng-0"
-		newNG  = "inf1-ng-1"
+		newNG = "inf1-ng-1"
 	)
-	BeforeSuite(func() {
-		params.KubeconfigTemp = false
-		if params.KubeconfigPath == "" {
-			wd, _ := os.Getwd()
-			f, _ := os.CreateTemp(wd, "kubeconfig-")
-			params.KubeconfigPath = f.Name()
-			params.KubeconfigTemp = true
-		}
-
-		clusterWithoutPlugin = noInstallCluster
-		clusterWithNeuronPlugin = defaultCluster
-
-		if !params.SkipCreate {
-			cmd := params.EksctlCreateCmd.WithArgs(
-				"cluster",
-				"--verbose", "4",
-				"--name", clusterWithoutPlugin,
-				"--tags", "alpha.eksctl.io/description=eksctl integration test",
-				"--install-neuron-plugin=false",
-				"--nodegroup-name", initNG,
-				"--node-labels", "ng-name="+initNG,
-				"--nodes", "1",
-				"--node-type", "inf1.xlarge",
-				"--version", params.Version,
-				"--kubeconfig", params.KubeconfigPath,
-			)
-			Expect(cmd).To(RunSuccessfully())
-
-			cmd = params.EksctlCreateCmd.WithArgs(
-				"cluster",
-				"--verbose", "4",
-				"--name", clusterWithNeuronPlugin,
-				"--tags", "alpha.eksctl.io/description=eksctl integration test",
-				"--nodegroup-name", initNG,
-				"--node-labels", "ng-name="+initNG,
-				"--nodes", "1",
-				"--node-type", "inf1.xlarge",
-				"--version", params.Version,
-				"--kubeconfig", params.KubeconfigPath,
-			)
-			Expect(cmd).To(RunSuccessfully())
-		}
-	})
-
-	AfterSuite(func() {
-		params.DeleteClusters()
-		gexec.KillAndWait()
-		if params.KubeconfigTemp {
-			os.Remove(params.KubeconfigPath)
-		}
-		os.RemoveAll(params.TestDirectory)
-	})
 
 	Context("cluster with inf1 nodes", func() {
 		Context("by default", func() {
@@ -166,17 +162,27 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 	})
 })
 
-func newClientSet(name string) *kubernetes.Clientset {
+var _ = AfterSuite(func() {
+	params.DeleteClusters()
+	gexec.KillAndWait()
+	if params.KubeconfigTemp {
+		os.Remove(params.KubeconfigPath)
+	}
+	os.RemoveAll(params.TestDirectory)
+})
+
+func newClientSet(name string) kubernetes.Interface {
 	cfg := &api.ClusterConfig{
 		Metadata: &api.ClusterMeta{
 			Name:   name,
 			Region: params.Region,
 		},
 	}
-	ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+	ctx := context.Background()
+	ctl, err := eks.New(ctx, &api.ProviderConfig{Region: params.Region}, cfg)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = ctl.RefreshClusterStatus(cfg)
+	err = ctl.RefreshClusterStatus(ctx, cfg)
 	Expect(err).ShouldNot(HaveOccurred())
 
 	clientSet, err := ctl.NewStdClientSet(cfg)

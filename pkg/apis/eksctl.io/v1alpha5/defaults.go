@@ -6,7 +6,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 const (
@@ -68,7 +69,7 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 // IAM SAs that need to be explicitly deleted.
 func IAMServiceAccountsWithImplicitServiceAccounts(cfg *ClusterConfig) []*ClusterIAMServiceAccount {
 	serviceAccounts := cfg.IAM.ServiceAccounts
-	if IsEnabled(cfg.IAM.WithOIDC) && !vpccniAddonSpecified(cfg) {
+	if IsEnabled(cfg.IAM.WithOIDC) && !vpcCNIAddonSpecified(cfg) {
 		var found bool
 		for _, sa := range cfg.IAM.ServiceAccounts {
 			found = found || (sa.Name == AWSNodeMeta.Name && sa.Namespace == AWSNodeMeta.Namespace)
@@ -86,7 +87,7 @@ func IAMServiceAccountsWithImplicitServiceAccounts(cfg *ClusterConfig) []*Cluste
 	return serviceAccounts
 }
 
-func vpccniAddonSpecified(cfg *ClusterConfig) bool {
+func vpcCNIAddonSpecified(cfg *ClusterConfig) bool {
 	for _, a := range cfg.Addons {
 		if strings.ToLower(a.Name) == "vpc-cni" {
 			return true
@@ -96,22 +97,15 @@ func vpccniAddonSpecified(cfg *ClusterConfig) bool {
 }
 
 // SetNodeGroupDefaults will set defaults for a given nodegroup
-func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
+func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta, controlPlaneOnOutposts bool) {
 	setNodeGroupBaseDefaults(ng.NodeGroupBase, meta)
-	if ng.InstanceType == "" {
-		if HasMixedInstances(ng) || !ng.InstanceSelector.IsZero() {
-			ng.InstanceType = "mixed"
-		} else {
-			ng.InstanceType = DefaultNodeType
-		}
-	}
 
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = DefaultNodeImageFamily
 	}
 
-	setVolumeDefaults(ng.NodeGroupBase, nil)
-	setDefaultsForAdditionalVolumes(ng.NodeGroupBase)
+	setVolumeDefaults(ng.NodeGroupBase, controlPlaneOnOutposts, nil)
+	setDefaultsForAdditionalVolumes(ng.NodeGroupBase, controlPlaneOnOutposts)
 
 	if ng.SecurityGroups.WithLocal == nil {
 		ng.SecurityGroups.WithLocal = Enabled()
@@ -120,17 +114,17 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.SecurityGroups.WithShared = Enabled()
 	}
 
-	setContainerRuntimeDefault(ng)
+	setContainerRuntimeDefault(ng, meta.Version)
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
-func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
+func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta, controlPlaneOnOutposts bool) {
 	setNodeGroupBaseDefaults(ng.NodeGroupBase, meta)
-	if ng.AMIFamily == "" {
+
+	// When using custom AMIs, we want the user to explicitly specify AMI family.
+	// Thus, we only setup default AMI family when no custom AMI is being used.
+	if ng.AMIFamily == "" && ng.AMI == "" {
 		ng.AMIFamily = NodeImageFamilyAmazonLinux2
-	}
-	if ng.LaunchTemplate == nil && ng.InstanceType == "" && len(ng.InstanceTypes) == 0 && ng.InstanceSelector.IsZero() {
-		ng.InstanceType = DefaultNodeType
 	}
 
 	if ng.Tags == nil {
@@ -139,8 +133,8 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
 	ng.Tags[NodeGroupNameTag] = ng.Name
 	ng.Tags[NodeGroupTypeTag] = string(NodeGroupTypeManaged)
 
-	setVolumeDefaults(ng.NodeGroupBase, ng.LaunchTemplate)
-	setDefaultsForAdditionalVolumes(ng.NodeGroupBase)
+	setVolumeDefaults(ng.NodeGroupBase, controlPlaneOnOutposts, ng.LaunchTemplate)
+	setDefaultsForAdditionalVolumes(ng.NodeGroupBase, controlPlaneOnOutposts)
 }
 
 func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
@@ -177,39 +171,44 @@ func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 	if ng.InstanceSelector == nil {
 		ng.InstanceSelector = &InstanceSelector{}
 	}
+	normalizeAMIFamily(ng)
 	if ng.AMIFamily == NodeImageFamilyBottlerocket {
 		setBottlerocketNodeGroupDefaults(ng)
 	}
 }
 
-func setVolumeDefaults(ng *NodeGroupBase, template *LaunchTemplate) {
+func setVolumeDefaults(ng *NodeGroupBase, controlPlaneOnOutposts bool, template *LaunchTemplate) {
 	if ng.VolumeType == nil {
-		ng.VolumeType = &DefaultNodeVolumeType
+		ng.VolumeType = aws.String(getDefaultVolumeType(controlPlaneOnOutposts || ng.OutpostARN != ""))
 	}
 	if ng.VolumeSize == nil && template == nil {
 		ng.VolumeSize = &DefaultNodeVolumeSize
 	}
-	if *ng.VolumeType == NodeVolumeTypeGP3 {
+
+	switch *ng.VolumeType {
+	case NodeVolumeTypeGP3:
 		if ng.VolumeIOPS == nil {
 			ng.VolumeIOPS = aws.Int(DefaultNodeVolumeGP3IOPS)
 		}
 		if ng.VolumeThroughput == nil {
 			ng.VolumeThroughput = aws.Int(DefaultNodeVolumeThroughput)
 		}
+	case NodeVolumeTypeIO1:
+		if ng.VolumeIOPS == nil {
+			ng.VolumeIOPS = aws.Int(DefaultNodeVolumeIO1IOPS)
+		}
 	}
-	if *ng.VolumeType == NodeVolumeTypeIO1 && ng.VolumeIOPS == nil {
-		ng.VolumeIOPS = aws.Int(DefaultNodeVolumeIO1IOPS)
-	}
+
 	if ng.AMIFamily == NodeImageFamilyBottlerocket && !IsSetAndNonEmptyString(ng.VolumeName) {
 		ng.AdditionalEncryptedVolume = bottlerocketOSDisk
 		ng.VolumeName = aws.String(bottlerocketDataDisk)
 	}
 }
 
-func setDefaultsForAdditionalVolumes(ng *NodeGroupBase) {
+func setDefaultsForAdditionalVolumes(ng *NodeGroupBase, controlPlaneOnOutposts bool) {
 	for i, av := range ng.AdditionalVolumes {
 		if av.VolumeType == nil {
-			ng.AdditionalVolumes[i].VolumeType = &DefaultNodeVolumeType
+			ng.AdditionalVolumes[i].VolumeType = aws.String(getDefaultVolumeType(controlPlaneOnOutposts))
 		}
 		if av.VolumeSize == nil {
 			ng.AdditionalVolumes[i].VolumeSize = &DefaultNodeVolumeSize
@@ -228,9 +227,28 @@ func setDefaultsForAdditionalVolumes(ng *NodeGroupBase) {
 	}
 }
 
-func setContainerRuntimeDefault(ng *NodeGroup) {
-	if ng.ContainerRuntime == nil {
-		ng.ContainerRuntime = &DefaultContainerRuntime
+func getDefaultVolumeType(nodeGroupOnOutposts bool) string {
+	if nodeGroupOnOutposts {
+		return NodeVolumeTypeGP2
+	}
+	return DefaultNodeVolumeType
+}
+
+func setContainerRuntimeDefault(ng *NodeGroup, clusterVersion string) {
+	if ng.ContainerRuntime != nil {
+		return
+	}
+
+	// since clusterVersion is standardised beforehand, we can safely ignore the error
+	isDockershimDeprecated, _ := utils.IsMinVersion(DockershimDeprecationVersion, clusterVersion)
+
+	if isDockershimDeprecated {
+		ng.ContainerRuntime = aws.String(ContainerRuntimeContainerD)
+	} else {
+		ng.ContainerRuntime = aws.String(ContainerRuntimeDockerD)
+		if IsWindowsImage(ng.AMIFamily) {
+			ng.ContainerRuntime = aws.String(ContainerRuntimeDockerForWindows)
+		}
 	}
 }
 
@@ -321,16 +339,18 @@ func DefaultClusterNAT() *ClusterNAT {
 
 // SetClusterEndpointAccessDefaults sets the default values for cluster endpoint access
 func SetClusterEndpointAccessDefaults(vpc *ClusterVPC) {
+	endpointAccess := ClusterEndpointAccessDefaults()
 	if vpc.ClusterEndpoints == nil {
-		vpc.ClusterEndpoints = ClusterEndpointAccessDefaults()
+		vpc.ClusterEndpoints = endpointAccess
+		return
 	}
 
 	if vpc.ClusterEndpoints.PublicAccess == nil {
-		vpc.ClusterEndpoints.PublicAccess = ClusterEndpointAccessDefaults().PublicAccess
+		vpc.ClusterEndpoints.PublicAccess = endpointAccess.PublicAccess
 	}
 
 	if vpc.ClusterEndpoints.PrivateAccess == nil {
-		vpc.ClusterEndpoints.PrivateAccess = ClusterEndpointAccessDefaults().PrivateAccess
+		vpc.ClusterEndpoints.PrivateAccess = endpointAccess.PrivateAccess
 	}
 }
 

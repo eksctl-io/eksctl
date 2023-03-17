@@ -1,9 +1,9 @@
 package v1alpha5
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	. "github.com/onsi/ginkgo/v2"
+
 	. "github.com/onsi/gomega"
 )
 
@@ -14,7 +14,7 @@ type nodeGroupCase struct {
 
 var _ = Describe("Managed Nodegroup Validation", func() {
 	DescribeTable("Supported and unsupported field combinations", func(n *nodeGroupCase) {
-		SetManagedNodeGroupDefaults(n.ng, &ClusterMeta{Name: "managed-cluster"})
+		SetManagedNodeGroupDefaults(n.ng, &ClusterMeta{Name: "managed-cluster"}, false)
 		err := ValidateManagedNodeGroup(0, n.ng)
 		if n.errMsg == "" {
 			Expect(err).NotTo(HaveOccurred())
@@ -24,16 +24,22 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 		Expect(err.Error()).To(ContainSubstring(n.errMsg))
 
 	},
-		Entry("Unsupported AMI family", &nodeGroupCase{
+		Entry("Supported Windows as AMI family", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMIFamily: "WindowsServer2022FullContainer",
+				},
+			},
+		}),
+		Entry("Unsupported OverrideBootstrapCommand for Windows AMI", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
 				NodeGroupBase: &NodeGroupBase{
 					AMI:                      "",
-					OverrideBootstrapCommand: nil,
-					PreBootstrapCommands:     nil,
-					AMIFamily:                "WindowsServer2019FullContainer",
+					OverrideBootstrapCommand: aws.String(`bootstrap.sh`),
+					AMIFamily:                "WindowsServer2019CoreContainer",
 				},
 			},
-			errMsg: `"WindowsServer2019FullContainer" is not supported for managed nodegroups`,
+			errMsg: "overrideBootstrapCommand is not supported for WindowsServer2019CoreContainer nodegroups",
 		}),
 		Entry("Supported AMI family", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
@@ -42,18 +48,46 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				},
 			},
 		}),
-		Entry("Custom AMI without overrideBootstrapCommand", &nodeGroupCase{
+		Entry("Custom AMI without AMI Family", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
 				NodeGroupBase: &NodeGroupBase{
 					AMI: "ami-custom",
 				},
 			},
+			errMsg: "when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag",
+		}),
+		Entry("Custom AMI without overrideBootstrapCommand", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMI:       "ami-custom",
+					AMIFamily: DefaultNodeImageFamily,
+				},
+			},
 			errMsg: "overrideBootstrapCommand is required when using a custom AMI",
+		}),
+		Entry("Custom AMI with Windows AMI family without overrideBootstrapCommand", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMI:       "ami-custom",
+					AMIFamily: "WindowsServer2019FullContainer",
+				},
+			},
+			errMsg: "cannot set amiFamily to WindowsServer2019FullContainer when using a custom AMI",
+		}),
+		Entry("Custom AMI with Bottlerocket AMI family without overrideBootstrapCommand", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMI:       "ami-custom",
+					AMIFamily: "Bottlerocket",
+				},
+			},
+			errMsg: "cannot set amiFamily to Bottlerocket when using a custom AMI",
 		}),
 		Entry("Custom AMI with overrideBootstrapCommand", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
 				NodeGroupBase: &NodeGroupBase{
 					AMI:                      "ami-custom",
+					AMIFamily:                DefaultNodeImageFamily,
 					OverrideBootstrapCommand: aws.String(`bootstrap.sh`),
 				},
 			},
@@ -133,7 +167,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				ID: "lt-custom",
 			},
 		}
-		SetManagedNodeGroupDefaults(mng, &ClusterMeta{Name: "managed-cluster"})
+		SetManagedNodeGroupDefaults(mng, &ClusterMeta{Name: "managed-cluster"}, false)
 		err := ValidateManagedNodeGroup(0, mng)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("cannot set instanceType, ami, ssh.allow, ssh.enableSSM, ssh.sourceSecurityGroupIds, securityGroups, " +
@@ -186,7 +220,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				MaxUnavailablePercentage: e.unavailablePercentage,
 			},
 		}
-		SetManagedNodeGroupDefaults(mng, &ClusterMeta{Name: "managed-cluster"})
+		SetManagedNodeGroupDefaults(mng, &ClusterMeta{Name: "managed-cluster"}, false)
 		err := ValidateManagedNodeGroup(0, mng)
 		if e.valid {
 			Expect(err).NotTo(HaveOccurred())

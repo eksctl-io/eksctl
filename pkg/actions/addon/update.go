@@ -1,12 +1,13 @@
 package addon
 
 import (
-	"errors"
+	"context"
 	"fmt"
+	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/google/uuid"
 	"github.com/kris-nova/logger"
 
@@ -14,22 +15,27 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
-func (a *Manager) Update(addon *api.Addon, wait bool) error {
+func (a *Manager) Update(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
 	logger.Debug("addon: %v", addon)
 
+	var configurationValues *string
+	if addon.ConfigurationValues != "" {
+		configurationValues = &addon.ConfigurationValues
+	}
 	updateAddonInput := &eks.UpdateAddonInput{
-		AddonName:   &addon.Name,
-		ClusterName: &a.clusterConfig.Metadata.Name,
-		//ResolveConflicts: 		"enum":["OVERWRITE","NONE"]
+		AddonName:           &addon.Name,
+		ClusterName:         &a.clusterConfig.Metadata.Name,
+		ResolveConflicts:    addon.ResolveConflicts,
+		ConfigurationValues: configurationValues,
 	}
 
 	if addon.Force {
-		updateAddonInput.ResolveConflicts = aws.String("overwrite")
-		logger.Debug("setting resolve conflicts to overwrite")
-
+		updateAddonInput.ResolveConflicts = ekstypes.ResolveConflictsOverwrite
 	}
 
-	summary, err := a.Get(addon)
+	logger.Debug("resolve conflicts set to %s", updateAddonInput.ResolveConflicts)
+
+	summary, err := a.Get(ctx, addon)
 	if err != nil {
 		return err
 	}
@@ -41,7 +47,7 @@ func (a *Manager) Update(addon *api.Addon, wait bool) error {
 
 		updateAddonInput.AddonVersion = &summary.Version
 	} else {
-		version, err := a.getLatestMatchingVersion(addon)
+		version, err := a.getLatestMatchingVersion(ctx, addon)
 		if err != nil {
 			return fmt.Errorf("failed to fetch addon version: %w", err)
 		}
@@ -57,7 +63,7 @@ func (a *Manager) Update(addon *api.Addon, wait bool) error {
 	if addon.ServiceAccountRoleARN != "" {
 		updateAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
 	} else if hasPoliciesSet(addon) {
-		serviceAccountRoleARN, err := a.updateWithNewPolicies(addon)
+		serviceAccountRoleARN, err := a.updateWithNewPolicies(ctx, addon)
 		if err != nil {
 			return err
 		}
@@ -70,27 +76,26 @@ func (a *Manager) Update(addon *api.Addon, wait bool) error {
 	}
 
 	logger.Info("updating addon")
-	logger.Debug(updateAddonInput.String())
+	logger.Debug("%+v", updateAddonInput)
 
-	output, err := a.eksAPI.UpdateAddon(updateAddonInput)
+	output, err := a.eksAPI.UpdateAddon(ctx, updateAddonInput)
 	if err != nil {
 		return fmt.Errorf("failed to update addon %q: %v", addon.Name, err)
 	}
 	if output != nil {
-		logger.Debug(output.String())
+		logger.Debug("%+v", output.Update)
 	}
-	if wait {
-		return a.waitForAddonToBeActive(addon)
+	if waitTimeout > 0 {
+		return a.waitForAddonToBeActive(ctx, addon, waitTimeout)
 	}
 	return nil
 }
 
-func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
+func (a *Manager) updateWithNewPolicies(ctx context.Context, addon *api.Addon) (string, error) {
 	stackName := a.makeAddonName(addon.Name)
-	stack, err := a.stackManager.DescribeStack(&manager.Stack{StackName: aws.String(stackName)})
+	stack, err := a.stackManager.DescribeStack(ctx, &manager.Stack{StackName: aws.String(stackName)})
 	if err != nil {
-		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); !ok || ok &&
-			awsError.Code() != "ValidationError" {
+		if manager.IsStackDoesNotExistError(err) {
 			return "", fmt.Errorf("failed to get stack: %w", err)
 		}
 	}
@@ -98,7 +103,7 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
 	if stack == nil {
-		return a.createRole(addon, namespace, serviceAccount)
+		return a.createRole(ctx, addon, namespace, serviceAccount)
 	}
 
 	createNewTemplate, err := a.createNewTemplate(addon, namespace, serviceAccount)
@@ -106,7 +111,7 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 		return "", err
 	}
 	var templateBody manager.TemplateBody = createNewTemplate
-	err = a.stackManager.UpdateStack(manager.UpdateStackOptions{
+	err = a.stackManager.UpdateStack(ctx, manager.UpdateStackOptions{
 		Stack:         stack,
 		ChangeSetName: fmt.Sprintf("updating-policy-%s", uuid.NewString()),
 		Description:   "updating policies",
@@ -117,7 +122,7 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 		return "", err
 	}
 
-	stack, err = a.stackManager.DescribeStack(&manager.Stack{StackName: aws.String(stackName)})
+	stack, err = a.stackManager.DescribeStack(ctx, &manager.Stack{StackName: aws.String(stackName)})
 	if err != nil {
 		return "", err
 	}

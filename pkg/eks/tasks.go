@@ -6,10 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 
+	"github.com/weaveworks/eksctl/pkg/actions/iamidentitymapping"
 	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
+
 	"github.com/weaveworks/eksctl/pkg/windows"
 
 	"github.com/kris-nova/logger"
@@ -73,6 +75,7 @@ func (w *WindowsIPAMTask) Describe() string {
 
 // VPCControllerTask represents a task to install the VPC controller
 type VPCControllerTask struct {
+	Context         context.Context
 	Info            string
 	ClusterProvider *ClusterProvider
 	ClusterConfig   *api.ClusterConfig
@@ -89,12 +92,12 @@ func (v *VPCControllerTask) Do(errCh chan error) error {
 	if err != nil {
 		return err
 	}
-	oidc, err := v.ClusterProvider.NewOpenIDConnectManager(v.ClusterConfig)
+	oidc, err := v.ClusterProvider.NewOpenIDConnectManager(v.Context, v.ClusterConfig)
 	if err != nil {
 		return err
 	}
 
-	stackCollection := manager.NewStackCollection(v.ClusterProvider.Provider, v.ClusterConfig)
+	stackCollection := manager.NewStackCollection(v.ClusterProvider.AWSProvider, v.ClusterConfig)
 
 	clientSet, err := v.ClusterProvider.NewStdClientSet(v.ClusterConfig)
 	if err != nil {
@@ -104,8 +107,8 @@ func (v *VPCControllerTask) Do(errCh chan error) error {
 	irsa := addons.NewIRSAHelper(oidc, stackCollection, irsaManager, v.ClusterConfig.Metadata.Name)
 
 	// TODO PlanMode doesn't work as intended
-	vpcController := addons.NewVPCController(rawClient, irsa, v.ClusterConfig.Status, v.ClusterProvider.Provider.Region(), v.PlanMode)
-	if err := vpcController.Deploy(); err != nil {
+	vpcController := addons.NewVPCController(rawClient, irsa, v.ClusterConfig.Status, v.ClusterProvider.AWSProvider.Region(), v.PlanMode)
+	if err := vpcController.Deploy(v.Context); err != nil {
 		return errors.Wrap(err, "error installing VPC controller")
 	}
 	return nil
@@ -127,7 +130,7 @@ func (n *devicePluginTask) Do(errCh chan error) error {
 	if err != nil {
 		return err
 	}
-	devicePlugin := n.mkPlugin(rawClient, n.clusterProvider.Provider.Region(), false)
+	devicePlugin := n.mkPlugin(rawClient, n.clusterProvider.AWSProvider.Region(), false, n.spec)
 	if err := devicePlugin.Deploy(); err != nil {
 		return errors.Wrap(err, "error installing device plugin")
 	}
@@ -218,8 +221,8 @@ func (t *restartDaemonsetTask) Do(errCh chan error) error {
 	return nil
 }
 
-// CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration not depending on the control plane availability
-func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig) *tasks.TaskTree {
+// CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration
+func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg *api.ClusterConfig) *tasks.TaskTree {
 	newTasks := &tasks.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
@@ -228,14 +231,17 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig) 
 	newTasks.Append(&tasks.GenericTask{
 		Description: "wait for control plane to become ready",
 		Doer: func() error {
-			clientSet, err := c.NewStdClientSet(cfg)
+			clientSet, err := c.NewRawClient(cfg)
 			if err != nil {
-				return errors.Wrap(err, "error creating Clientset")
-			}
-			if err := c.WaitForControlPlane(cfg.Metadata, clientSet); err != nil {
+				if _, ok := err.(*kubernetes.APIServerUnreachableError); ok {
+					logger.Warning("API server is unreachable")
+				} else {
+					return fmt.Errorf("error creating Clientset: %w", err)
+				}
+			} else if err := c.KubeProvider.WaitForControlPlane(cfg.Metadata, clientSet, c.AWSProvider.WaitTimeout()); err != nil {
 				return err
 			}
-			return c.RefreshClusterStatus(cfg)
+			return c.RefreshClusterStatus(ctx, cfg)
 		},
 	})
 
@@ -245,10 +251,10 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig) 
 				info: "update CloudWatch log retention",
 				spec: cfg,
 				call: func(clusterConfig *api.ClusterConfig) error {
-					_, err := c.Provider.CloudWatchLogs().PutRetentionPolicy(&cloudwatchlogs.PutRetentionPolicyInput{
+					_, err := c.AWSProvider.CloudWatchLogs().PutRetentionPolicy(ctx, &cloudwatchlogs.PutRetentionPolicyInput{
 						// The format for log group name is documented here: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html
 						LogGroupName:    aws.String(fmt.Sprintf("/aws/eks/%s/cluster", cfg.Metadata.Name)),
-						RetentionInDays: aws.Int64(int64(logRetentionDays)),
+						RetentionInDays: aws.Int32(int32(logRetentionDays)),
 					})
 					if err != nil {
 						return errors.Wrap(err, "error updating log retention settings")
@@ -261,21 +267,50 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig) 
 	}
 
 	if cfg.IsFargateEnabled() {
-		manager := fargate.NewFromProvider(cfg.Metadata.Name, c.Provider, c.NewStackManager(cfg))
+		manager := fargate.NewFromProvider(cfg.Metadata.Name, c.AWSProvider, c.NewStackManager(cfg))
 		newTasks.Append(&fargateProfilesTask{
 			info:            "create fargate profiles",
 			spec:            cfg,
 			clusterProvider: c,
 			manager:         &manager,
+			ctx:             ctx,
 		})
 	}
 
 	if api.IsEnabled(cfg.IAM.WithOIDC) {
-		c.appendCreateTasksForIAMServiceAccounts(cfg, newTasks)
+		c.appendCreateTasksForIAMServiceAccounts(ctx, cfg, newTasks)
 	}
 
 	if len(cfg.IdentityProviders) > 0 {
-		newTasks.Append(identityproviders.NewAssociateProvidersTask(*cfg.Metadata, cfg.IdentityProviders, c.Provider.EKS()))
+		newTasks.Append(identityproviders.NewAssociateProvidersTask(ctx, *cfg.Metadata, cfg.IdentityProviders, c.AWSProvider.EKS()))
+	}
+
+	if len(cfg.IAMIdentityMappings) > 0 {
+		newTasks.Append(&tasks.GenericTask{
+			Description: "create IAM identity mappings",
+			Doer: func() error {
+				clientSet, err := c.NewStdClientSet(cfg)
+				if err != nil {
+					return errors.Wrap(err, "error creating Clientset")
+				}
+
+				rawClient, err := c.NewRawClient(cfg)
+				if err != nil {
+					return errors.Wrap(err, "error creating rawClient")
+				}
+				m, err := iamidentitymapping.New(cfg, clientSet, rawClient, cfg.Metadata.Region)
+				if err != nil {
+					return errors.Wrap(err, "error initialising iamidentitymapping")
+				}
+
+				for _, mapping := range cfg.IAMIdentityMappings {
+					if err := m.Create(ctx, mapping); err != nil {
+						return err
+					}
+				}
+				return c.RefreshClusterStatus(ctx, cfg)
+			},
+		})
 	}
 
 	if cfg.HasWindowsNodeGroup() {
@@ -337,7 +372,7 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 	var clusterRequiresNeuronDevicePlugin, clusterRequiresNvidiaDevicePlugin, efaEnabled bool
 	for _, ng := range cfg.NodeGroups {
 		clusterRequiresNeuronDevicePlugin = clusterRequiresNeuronDevicePlugin ||
-			api.HasInstanceType(ng, instanceutils.IsInferentiaInstanceType)
+			api.HasInstanceType(ng, instanceutils.IsNeuronInstanceType)
 		// Only AL2 requires the NVIDIA device plugin
 		clusterRequiresNvidiaDevicePlugin = clusterRequiresNvidiaDevicePlugin ||
 			(api.HasInstanceType(ng, instanceutils.IsNvidiaInstanceType) &&
@@ -346,7 +381,7 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 	}
 	for _, ng := range cfg.ManagedNodeGroups {
 		clusterRequiresNeuronDevicePlugin = clusterRequiresNeuronDevicePlugin ||
-			api.HasInstanceTypeManaged(ng, instanceutils.IsInferentiaInstanceType)
+			api.HasInstanceTypeManaged(ng, instanceutils.IsNeuronInstanceType)
 		// Only AL2 requires the NVIDIA device plugin
 		clusterRequiresNvidiaDevicePlugin = clusterRequiresNvidiaDevicePlugin ||
 			(api.HasInstanceTypeManaged(ng, instanceutils.IsNvidiaInstanceType) &&
@@ -390,7 +425,7 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 	return tasks
 }
 
-func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.ClusterConfig, tasks *tasks.TaskTree) {
+func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(ctx context.Context, cfg *api.ClusterConfig, tasks *tasks.TaskTree) {
 	// we don't have all the information to construct full iamoidc.OpenIDConnectManager now,
 	// instead we just create a reference that gets updated when first task runs, and gets
 	// used by this would be more elegant if it was all done via CloudFormation and we didn't
@@ -401,11 +436,11 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 		info: "associate IAM OIDC provider",
 		spec: cfg,
 		call: func(cfg *api.ClusterConfig) error {
-			oidc, err := c.NewOpenIDConnectManager(cfg)
+			oidc, err := c.NewOpenIDConnectManager(ctx, cfg)
 			if err != nil {
 				return err
 			}
-			if err := oidc.CreateProvider(); err != nil {
+			if err := oidc.CreateProvider(ctx); err != nil {
 				return err
 			}
 			*oidcPlaceholder = *oidc

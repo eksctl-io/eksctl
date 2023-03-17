@@ -3,9 +3,11 @@ package eks_test
 import (
 	"fmt"
 	"strings"
+	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	. "github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -13,7 +15,10 @@ import (
 )
 
 var _ = Describe("eks auth helpers", func() {
-	var ctl *ClusterProvider
+	var (
+		ctl          *ClusterProvider
+		kubeProvider *KubernetesProvider
+	)
 
 	Describe("construct client configs", func() {
 		Context("with a mock provider", func() {
@@ -22,10 +27,18 @@ var _ = Describe("eks auth helpers", func() {
 			BeforeEach(func() {
 
 				p := mockprovider.NewMockProvider()
+				kubeProvider = &KubernetesProvider{
+					WaitTimeout: 1 * time.Second,
+					RoleARN:     "role",
+					Signer:      p.STSPresigner(),
+				}
 
 				ctl = &ClusterProvider{
-					Provider: p,
-					Status:   &ProviderStatus{},
+					AWSProvider: p,
+					Status: &ProviderStatus{
+						IAMRoleARN: "eksctl",
+					},
+					KubeProvider: kubeProvider,
 				}
 
 			})
@@ -43,7 +56,7 @@ var _ = Describe("eks auth helpers", func() {
 				}
 
 				testAuthenticatorConfig := func(roleARN string) {
-					clientConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), roleARN, ctl.Provider.Profile())
+					clientConfig := kubeconfig.NewForKubectl(cfg, GetUsername(ctl.Status.IAMRoleARN), roleARN, ctl.AWSProvider.Profile().Name)
 					Expect(clientConfig).To(Not(BeNil()))
 					ctx := clientConfig.CurrentContext
 					cluster := strings.Split(ctx, "@")[1]
@@ -72,15 +85,13 @@ var _ = Describe("eks auth helpers", func() {
 					// TODO: This test depends on which authenticator(s) is(are) installed and
 					// the code deciding which one should be picked up. Ideally we'd like to
 					// test all combinations, probably best done with a unit test.
-					Expect(k.AuthInfos[ctx].Exec.Command).To(MatchRegexp("(heptio-authenticator-aws|aws-iam-authenticator|aws)"))
+					Expect(k.AuthInfos[ctx].Exec.Command).To(BeElementOf("aws-iam-authenticator", "aws"))
 
 					var expectedArgs, roleARNArg string
 					switch k.AuthInfos[ctx].Exec.Command {
 					case "aws":
 						expectedArgs = "eks get-token --cluster-name auth-test-cluster --region eu-west-3"
 						roleARNArg = "--role-arn"
-					case "heptio-authenticator-aws":
-						fallthrough
 					case "aws-iam-authenticator":
 						expectedArgs = "token -i auth-test-cluster"
 						roleARNArg = "-r"
@@ -101,11 +112,6 @@ var _ = Describe("eks auth helpers", func() {
 				It("should create config with authenticator", func() {
 					testAuthenticatorConfig("")
 					testAuthenticatorConfig("arn:aws:iam::111111111111:role/eksctl")
-				})
-
-				It("should create config with embedded token", func() {
-					// TODO: cannot test this, as token generator uses STS directly, we cannot pass the interface
-					// we can probably fix the package itself
 				})
 			})
 		})
