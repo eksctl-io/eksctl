@@ -85,6 +85,8 @@ var _ = Describe("AWS Local Zones", Ordered, func() {
 		DeferCleanup(params.DeleteClusters)
 	})
 
+	params.LogStacksEventsOnFailure()
+
 	It("should create unmanaged nodegroups in local zones", func() {
 		desiredCapacity := 2
 		clusterConfig.NodeGroups = append(clusterConfig.NodeGroups, &api.NodeGroup{
