@@ -17,7 +17,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.24.3
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.20.6
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.22.5
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.89.1
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.90.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.27.7
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.5
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.6
