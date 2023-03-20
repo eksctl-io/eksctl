@@ -138,12 +138,12 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer pri
 func StackEventToString(event *types.StackEvent) string {
 	internalEvent := struct {
 		TimeStamp            time.Time
-		LogicalId            string
+		LogicalID            string
 		ResourceStatus       string
 		ResourceStatusReason string
 	}{
 		TimeStamp:      *event.Timestamp,
-		LogicalId:      *event.LogicalResourceId,
+		LogicalID:      *event.LogicalResourceId,
 		ResourceStatus: string(event.ResourceStatus),
 	}
 	if event.ResourceStatusReason != nil {
