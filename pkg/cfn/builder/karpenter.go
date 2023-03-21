@@ -57,7 +57,7 @@ const (
 	// SQS
 	sqsDeleteMessage      = "sqs:DeleteMessage"
 	sqsGetQueueAttributes = "sqs:GetQueueAttributes"
-	sqsGetQueueUrl        = "sqs:GetQueueUrl"
+	sqsGetQueueURL        = "sqs:GetQueueUrl"
 	sqsReceiveMessage     = "sqs:ReceiveMessage"
 	sqsSendMessage        = "sqs:SendMessage"
 )
@@ -175,7 +175,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 			"Action": []string{
 				sqsDeleteMessage,
 				sqsGetQueueAttributes,
-				sqsGetQueueUrl,
+				sqsGetQueueURL,
 				sqsReceiveMessage,
 			},
 		},
