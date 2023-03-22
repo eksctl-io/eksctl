@@ -96,7 +96,7 @@ var expectedTemplate = `{
             "Arn": {
               "Fn::GetAtt": [
                 "KarpenterInterruptionQueue",
-                "ARN"
+                "Arn"
               ]
             },
             "Id": "KarpenterInterruptionQueueTarget"
@@ -146,7 +146,7 @@ var expectedTemplate = `{
               "Resource": {
                 "Fn::GetAtt": [
                   "KarpenterInterruptionQueue",
-                  "ARN"
+                  "Arn"
                 ]
               }
             }
@@ -189,7 +189,7 @@ var expectedTemplate = `{
               "Resource": {
                 "Fn::GetAtt": [
                   "KarpenterInterruptionQueue",
-                  "ARN"
+                  "Arn"
                 ]
               }
             }
@@ -284,7 +284,7 @@ var expectedTemplate = `{
             "Arn": {
               "Fn::GetAtt": [
                 "KarpenterInterruptionQueue",
-                "ARN"
+                "Arn"
               ]
             },
             "Id": "KarpenterInterruptionQueueTarget"
@@ -308,7 +308,7 @@ var expectedTemplate = `{
             "Arn": {
               "Fn::GetAtt": [
                 "KarpenterInterruptionQueue",
-                "ARN"
+                "Arn"
               ]
             },
             "Id": "KarpenterInterruptionQueueTarget"
@@ -332,7 +332,7 @@ var expectedTemplate = `{
             "Arn": {
               "Fn::GetAtt": [
                 "KarpenterInterruptionQueue",
-                "ARN"
+                "Arn"
               ]
             },
             "Id": "KarpenterInterruptionQueueTarget"
@@ -382,7 +382,7 @@ var expectedTemplateWithPermissionBoundary = `{
             "Arn": {
               "Fn::GetAtt": [
                 "KarpenterInterruptionQueue",
-                "ARN"
+                "Arn"
               ]
             },
             "Id": "KarpenterInterruptionQueueTarget"
@@ -432,7 +432,7 @@ var expectedTemplateWithPermissionBoundary = `{
               "Resource": {
                 "Fn::GetAtt": [
                   "KarpenterInterruptionQueue",
-                  "ARN"
+                  "Arn"
                 ]
               }
             }
@@ -475,7 +475,7 @@ var expectedTemplateWithPermissionBoundary = `{
               "Resource": {
                 "Fn::GetAtt": [
                   "KarpenterInterruptionQueue",
-                  "ARN"
+                  "Arn"
                 ]
               }
             }
@@ -571,7 +571,7 @@ var expectedTemplateWithPermissionBoundary = `{
             "Arn": {
               "Fn::GetAtt": [
                 "KarpenterInterruptionQueue",
-                "ARN"
+                "Arn"
               ]
             },
             "Id": "KarpenterInterruptionQueueTarget"
@@ -595,7 +595,7 @@ var expectedTemplateWithPermissionBoundary = `{
             "Arn": {
               "Fn::GetAtt": [
                 "KarpenterInterruptionQueue",
-                "ARN"
+                "Arn"
               ]
             },
             "Id": "KarpenterInterruptionQueueTarget"
@@ -619,7 +619,7 @@ var expectedTemplateWithPermissionBoundary = `{
             "Arn": {
               "Fn::GetAtt": [
                 "KarpenterInterruptionQueue",
-                "ARN"
+                "Arn"
               ]
             },
             "Id": "KarpenterInterruptionQueueTarget"

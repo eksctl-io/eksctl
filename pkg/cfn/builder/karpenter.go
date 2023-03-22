@@ -171,7 +171,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		},
 		{
 			"Effect":   effectAllow,
-			"Resource": gfnt.MakeFnGetAtt(KarpenterInterruptionQueue, gfnt.NewString("ARN")),
+			"Resource": gfnt.MakeFnGetAtt(KarpenterInterruptionQueue, gfnt.NewString("Arn")),
 			"Action": []string{
 				sqsDeleteMessage,
 				sqsGetQueueAttributes,
@@ -200,7 +200,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 				sqsService,
 			},
 		},
-		"Resource": gfnt.MakeFnGetAtt(KarpenterInterruptionQueue, gfnt.NewString("ARN")),
+		"Resource": gfnt.MakeFnGetAtt(KarpenterInterruptionQueue, gfnt.NewString("Arn")),
 		"Action": []string{
 			sqsSendMessage,
 		},
@@ -219,7 +219,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		Targets: []gfnevents.Rule_Target{
 			{
 				Id:  gfnt.NewString(KarpenterInterruptionQueueTarget),
-				Arn: gfnt.MakeFnGetAtt(KarpenterInterruptionQueue, gfnt.NewString("ARN")),
+				Arn: gfnt.MakeFnGetAtt(KarpenterInterruptionQueue, gfnt.NewString("Arn")),
 			},
 		},
 	}
@@ -233,7 +233,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		Targets: []gfnevents.Rule_Target{
 			{
 				Id:  gfnt.NewString(KarpenterInterruptionQueueTarget),
-				Arn: gfnt.MakeFnGetAtt(KarpenterInterruptionQueue, gfnt.NewString("ARN")),
+				Arn: gfnt.MakeFnGetAtt(KarpenterInterruptionQueue, gfnt.NewString("Arn")),
 			},
 		},
 	}
@@ -247,7 +247,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		Targets: []gfnevents.Rule_Target{
 			{
 				Id:  gfnt.NewString(KarpenterInterruptionQueueTarget),
-				Arn: gfnt.MakeFnGetAtt(KarpenterInterruptionQueue, gfnt.NewString("ARN")),
+				Arn: gfnt.MakeFnGetAtt(KarpenterInterruptionQueue, gfnt.NewString("Arn")),
 			},
 		},
 	}
@@ -261,7 +261,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		Targets: []gfnevents.Rule_Target{
 			{
 				Id:  gfnt.NewString(KarpenterInterruptionQueueTarget),
-				Arn: gfnt.MakeFnGetAtt(KarpenterInterruptionQueue, gfnt.NewString("ARN")),
+				Arn: gfnt.MakeFnGetAtt(KarpenterInterruptionQueue, gfnt.NewString("Arn")),
 			},
 		},
 	}
