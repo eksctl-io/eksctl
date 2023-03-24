@@ -209,7 +209,6 @@ nodeGroups:
 
 
 ## Features unsupported on local clusters
-* [Fully-private clusters](/usage/eks-private-cluster)
 * [Addons](/usage/addons)
 * [IAM Roles for Service Accounts](/usage/iamserviceaccounts)
 * [IPv6](/usage/vpc-ip-family)

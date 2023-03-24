@@ -2,10 +2,12 @@ package nodegroup
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
@@ -42,7 +44,7 @@ func (m *Manager) Scale(ctx context.Context, ng *api.NodeGroupBase) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("failed to scale nodegroup for cluster %q, error: %v", m.cfg.Metadata.Name, err)
+		return fmt.Errorf("failed to scale nodegroup %q for cluster %q, error: %v", ng.Name, m.cfg.Metadata.Name, err)
 	}
 
 	return nil
@@ -59,6 +61,10 @@ func (m *Manager) scaleUnmanagedNodeGroup(ctx context.Context, ng *api.NodeGroup
 
 	if asgName == "" {
 		return fmt.Errorf("failed to find NodeGroup auto scaling group")
+	}
+
+	if err := validateNodeGroupAMI(ctx, m.ctl.AWSProvider, asgName); err != nil {
+		return err
 	}
 
 	input := &autoscaling.UpdateAutoScalingGroupInput{
@@ -122,5 +128,49 @@ func (m *Manager) scaleManagedNodeGroup(ctx context.Context, ng *api.NodeGroupBa
 	}
 
 	logger.Info("nodegroup successfully scaled")
+	return nil
+}
+
+func validateNodeGroupAMI(ctx context.Context, awsProvider api.ClusterProvider, asgName string) error {
+	asg, err := awsProvider.ASG().DescribeAutoScalingGroups(ctx, &autoscaling.DescribeAutoScalingGroupsInput{
+		AutoScalingGroupNames: []string{asgName},
+	})
+	if err != nil {
+		return fmt.Errorf("error describing Auto Scaling group %q for nodegroup: %w", asgName, err)
+	}
+	if len(asg.AutoScalingGroups) != 1 {
+		return fmt.Errorf("expected to find exactly one Auto Scaling group for nodegroup; got %d", len(asg.AutoScalingGroups))
+	}
+	lt := asg.AutoScalingGroups[0].LaunchTemplate
+	if lt == nil {
+		logger.Warning("nodegroup with Auto Scaling group %q does not have a launch template", asgName)
+		return nil
+	}
+
+	ltData, err := awsProvider.EC2().DescribeLaunchTemplateVersions(ctx, &ec2.DescribeLaunchTemplateVersionsInput{
+		LaunchTemplateId: lt.LaunchTemplateId,
+		Versions:         []string{aws.ToString(lt.Version)},
+	})
+	if err != nil {
+		return fmt.Errorf("error describing launch template %q for Auto Scaling group %q: %w", aws.ToString(lt.LaunchTemplateId), asgName, err)
+	}
+	if len(ltData.LaunchTemplateVersions) != 1 {
+		return fmt.Errorf("expected to find exactly one launch template %q with version %q for Auto Scaling group %q; got %d", aws.ToString(lt.LaunchTemplateId), aws.ToString(lt.Version), asgName, len(ltData.LaunchTemplateVersions))
+	}
+	imageID := ltData.LaunchTemplateVersions[0].LaunchTemplateData.ImageId
+	if imageID == nil {
+		logger.Warning("nodegroup with launch template %q does not have an AMI", aws.ToString(lt.LaunchTemplateId))
+		return nil
+	}
+
+	describeImagesOutput, err := awsProvider.EC2().DescribeImages(ctx, &ec2.DescribeImagesInput{
+		ImageIds: []string{aws.ToString(imageID)},
+	})
+	if err != nil {
+		return fmt.Errorf("error describing AMI for launch template %q: %w", aws.ToString(lt.LaunchTemplateId), err)
+	}
+	if len(describeImagesOutput.Images) == 0 {
+		return errors.New("AMI associated with the nodegroup is either deprecated or removed; please upgrade the nodegroup before scaling it: https://eksctl.io/usage/nodegroup-upgrade/")
+	}
 	return nil
 }
