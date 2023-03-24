@@ -54,6 +54,7 @@ var _ = BeforeSuite(func() {
 
 var _ = Describe("(Integration) Create & Delete before Active", func() {
 	const initNG = "ng-0"
+	params.LogStacksEventsOnFailure()
 
 	Context("when deleting the cluster in process of being created", func() {
 		It("deleting cluster should have a zero exitcode", func() {
