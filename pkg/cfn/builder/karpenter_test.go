@@ -80,6 +80,30 @@ var expectedTemplate = `{
     }
   },
   "Resources": {
+    "InstanceStateChangeRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "EventPattern": {
+          "detail-type": [
+            "EC2 Instance State-change Notification"
+          ],
+          "source": [
+            "aws.ec2"
+          ]
+        },
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "KarpenterInterruptionQueue",
+                "Arn"
+              ]
+            },
+            "Id": "KarpenterInterruptionQueueTarget"
+          }
+        ]
+      }
+    },
     "KarpenterControllerPolicy": {
       "Type": "AWS::IAM::ManagedPolicy",
       "Properties": {
@@ -110,10 +134,73 @@ var expectedTemplate = `{
               ],
               "Effect": "Allow",
               "Resource": "*"
+            },
+            {
+              "Action": [
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes",
+                "sqs:GetQueueUrl",
+                "sqs:ReceiveMessage"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "KarpenterInterruptionQueue",
+                  "Arn"
+                ]
+              }
             }
           ],
           "Version": "2012-10-17"
         }
+      }
+    },
+    "KarpenterInterruptionQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "MessageRetentionPeriod": 300,
+        "QueueName": "test-karpenter",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${AWS::StackName}/KarpenterInterruptionQueue"
+            }
+          }
+        ]
+      }
+    },
+    "KarpenterInterruptionQueuePolicy": {
+      "Type": "AWS::SQS::QueuePolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "sqs:SendMessage"
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "events.amazonaws.com",
+                  "sqs.amazonaws.com"
+                ]
+              },
+              "Resource": {
+                "Fn::GetAtt": [
+                  "KarpenterInterruptionQueue",
+                  "Arn"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "Queues": [
+          {
+            "Ref": "KarpenterInterruptionQueue"
+          }
+        ]
       }
     },
     "KarpenterNodeInstanceProfile": {
@@ -180,6 +267,78 @@ var expectedTemplate = `{
           }
         ]
       }
+    },
+    "RebalanceRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "EventPattern": {
+          "detail-type": [
+            "EC2 Instance Rebalance Recommendation"
+          ],
+          "source": [
+            "aws.ec2"
+          ]
+        },
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "KarpenterInterruptionQueue",
+                "Arn"
+              ]
+            },
+            "Id": "KarpenterInterruptionQueueTarget"
+          }
+        ]
+      }
+    },
+    "ScheduledChangeRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "EventPattern": {
+          "detail-type": [
+            "AWS Health Event"
+          ],
+          "source": [
+            "aws.health"
+          ]
+        },
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "KarpenterInterruptionQueue",
+                "Arn"
+              ]
+            },
+            "Id": "KarpenterInterruptionQueueTarget"
+          }
+        ]
+      }
+    },
+    "SpotInterruptionRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "EventPattern": {
+          "detail-type": [
+            "EC2 Spot Instance Interruption Warning"
+          ],
+          "source": [
+            "aws.ec2"
+          ]
+        },
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "KarpenterInterruptionQueue",
+                "Arn"
+              ]
+            },
+            "Id": "KarpenterInterruptionQueueTarget"
+          }
+        ]
+      }
     }
   }
 }`
@@ -207,6 +366,30 @@ var expectedTemplateWithPermissionBoundary = `{
     }
   },
   "Resources": {
+    "InstanceStateChangeRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "EventPattern": {
+          "detail-type": [
+            "EC2 Instance State-change Notification"
+          ],
+          "source": [
+            "aws.ec2"
+          ]
+        },
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "KarpenterInterruptionQueue",
+                "Arn"
+              ]
+            },
+            "Id": "KarpenterInterruptionQueueTarget"
+          }
+        ]
+      }
+    },
     "KarpenterControllerPolicy": {
       "Type": "AWS::IAM::ManagedPolicy",
       "Properties": {
@@ -237,10 +420,73 @@ var expectedTemplateWithPermissionBoundary = `{
               ],
               "Effect": "Allow",
               "Resource": "*"
+            },
+            {
+              "Action": [
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes",
+                "sqs:GetQueueUrl",
+                "sqs:ReceiveMessage"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "KarpenterInterruptionQueue",
+                  "Arn"
+                ]
+              }
             }
           ],
           "Version": "2012-10-17"
         }
+      }
+    },
+    "KarpenterInterruptionQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "MessageRetentionPeriod": 300,
+        "QueueName": "test-karpenter",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${AWS::StackName}/KarpenterInterruptionQueue"
+            }
+          }
+        ]
+      }
+    },
+    "KarpenterInterruptionQueuePolicy": {
+      "Type": "AWS::SQS::QueuePolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "sqs:SendMessage"
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "events.amazonaws.com",
+                  "sqs.amazonaws.com"
+                ]
+              },
+              "Resource": {
+                "Fn::GetAtt": [
+                  "KarpenterInterruptionQueue",
+                  "Arn"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "Queues": [
+          {
+            "Ref": "KarpenterInterruptionQueue"
+          }
+        ]
       }
     },
     "KarpenterNodeInstanceProfile": {
@@ -305,6 +551,78 @@ var expectedTemplateWithPermissionBoundary = `{
             "Value": {
               "Fn::Sub": "${AWS::StackName}/KarpenterNodeRole"
             }
+          }
+        ]
+      }
+    },
+    "RebalanceRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "EventPattern": {
+          "detail-type": [
+            "EC2 Instance Rebalance Recommendation"
+          ],
+          "source": [
+            "aws.ec2"
+          ]
+        },
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "KarpenterInterruptionQueue",
+                "Arn"
+              ]
+            },
+            "Id": "KarpenterInterruptionQueueTarget"
+          }
+        ]
+      }
+    },
+    "ScheduledChangeRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "EventPattern": {
+          "detail-type": [
+            "AWS Health Event"
+          ],
+          "source": [
+            "aws.health"
+          ]
+        },
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "KarpenterInterruptionQueue",
+                "Arn"
+              ]
+            },
+            "Id": "KarpenterInterruptionQueueTarget"
+          }
+        ]
+      }
+    },
+    "SpotInterruptionRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "EventPattern": {
+          "detail-type": [
+            "EC2 Spot Instance Interruption Warning"
+          ],
+          "source": [
+            "aws.ec2"
+          ]
+        },
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "KarpenterInterruptionQueue",
+                "Arn"
+              ]
+            },
+            "Id": "KarpenterInterruptionQueueTarget"
           }
         ]
       }
