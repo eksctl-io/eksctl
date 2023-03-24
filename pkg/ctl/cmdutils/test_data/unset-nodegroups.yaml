@@ -1,0 +1,24 @@
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: unset-nodegroups
+  region: us-west-2
+
+nodeGroups:
+  - name: test
+  -
+  - name: test2
+
+managedNodeGroups:
+  - name: ng-1
+    instanceType: m5.large
+    desiredCapacity: 1
+    labels:
+      key: value
+  - name: ng-2
+    instanceType: m5.large
+    desiredCapacity: 1
+    labels:
+      key2: value2
