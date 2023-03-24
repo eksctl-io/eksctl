@@ -67,6 +67,8 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 		Fails   bool
 	}
 
+	params.LogStacksEventsOnFailure()
+
 	DescribeTable("Can create/update Cluster Endpoint Access",
 		func(e endpointAccessCase) {
 			//create clusterconfig
@@ -77,6 +79,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 				clName = params.NewClusterName(e.Name)
 				clusterNames[e.Name] = clName
 			}
+			params.ClusterName = clName
 			setEndpointConfig(cfg, e.Private, e.Public)
 			setMetadata(cfg, clName, params.Region)
 

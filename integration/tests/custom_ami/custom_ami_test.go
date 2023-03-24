@@ -73,6 +73,7 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = Describe("(Integration) [Test Custom AMI]", func() {
+	params.LogStacksEventsOnFailure()
 
 	Context("override bootstrap command for managed and un-managed nodegroups", func() {
 
