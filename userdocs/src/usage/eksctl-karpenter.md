@@ -43,6 +43,7 @@ karpenter:
   version: 'v0.18.0'
   createServiceAccount: true # default is false
   defaultInstanceProfile: 'KarpenterNodeInstanceProfile' # default is to use the IAM instance profile created by eksctl
+  withSpotInterruptionQueue: true # adds all required policies and rules for supporting Spot Interruption Queue, default is false
 ```
 
 OIDC must be defined in order to install Karpenter.
