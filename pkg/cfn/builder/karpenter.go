@@ -169,7 +169,10 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 				pricingGetProducts,
 			},
 		},
-		{
+	}
+
+	if api.IsEnabled(k.clusterSpec.Karpenter.WithSpotInterruptionQueue) {
+		rolePolicyStatements = append(rolePolicyStatements, cft.MapOfInterfaces{
 			"Effect":   effectAllow,
 			"Resource": gfnt.MakeFnGetAtt(KarpenterInterruptionQueue, gfnt.NewString("Arn")),
 			"Action": []string{
@@ -178,14 +181,20 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 				sqsGetQueueURL,
 				sqsReceiveMessage,
 			},
-		},
+		})
+		k.addSpotInterruptionQueueWithRules()
 	}
+
 	managedPolicy := gfniam.ManagedPolicy{
 		ManagedPolicyName: managedPolicyName,
 		PolicyDocument:    cft.MakePolicyDocument(rolePolicyStatements...),
 	}
 	k.newResource(KarpenterManagedPolicy, &managedPolicy)
 
+	return nil
+}
+
+func (k *KarpenterResourceSet) addSpotInterruptionQueueWithRules() {
 	interruptionQueue := gfnsqs.Queue{
 		QueueName:              gfnt.NewString(k.clusterSpec.Metadata.Name),
 		MessageRetentionPeriod: gfnt.NewInteger(defaultMessageRetentionPeriod),
@@ -266,8 +275,6 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		},
 	}
 	k.newResource(InstanceStateChangeRule, &instanceStateChangeRule)
-
-	return nil
 }
 
 // WithIAM implements the ResourceSet interface

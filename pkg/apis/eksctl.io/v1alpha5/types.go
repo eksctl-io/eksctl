@@ -943,6 +943,9 @@ type Karpenter struct {
 	// DefaultInstanceProfile override the default IAM instance profile
 	// +optional
 	DefaultInstanceProfile *string `json:"defaultInstanceProfile,omitempty"`
+	// WithSpotInterruptionQueue if true, adds all required policies and rules
+	// for supporting Spot Interruption Queue on Karpenter deployments
+	WithSpotInterruptionQueue *bool `json:"withSportInterruptionQueue,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
