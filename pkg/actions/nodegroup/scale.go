@@ -2,7 +2,6 @@ package nodegroup
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -12,6 +11,7 @@ import (
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -89,6 +89,13 @@ func (m *Manager) scaleUnmanagedNodeGroup(ctx context.Context, ng *api.NodeGroup
 	logger.Info("initiated scaling of nodegroup")
 
 	if wait {
+
+		if counter, err := eks.GetNodes(m.clientSet, ng); err != nil {
+			return errors.Wrap(err, "listing nodes")
+		} else if counter >= *ng.MinSize {
+			logger.Warning("when scaling down an ASG, passing the --wait flag currently has no effect")
+		}
+
 		timeoutCtx, cancel := context.WithTimeout(ctx, m.ctl.AWSProvider.WaitTimeout())
 		defer cancel()
 		if err := eks.WaitForNodes(timeoutCtx, m.clientSet, ng); err != nil {
