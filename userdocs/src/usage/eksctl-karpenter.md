@@ -21,7 +21,7 @@ iam:
   withOIDC: true # required
 
 karpenter:
-  version: 'v0.18.0' # Exact version must be specified
+  version: 'v0.20.0' # Exact version must be specified
 
 managedNodeGroups:
   - name: managed-ng-1
@@ -35,7 +35,7 @@ to be set:
 
 ```yaml
 karpenter:
-  version: 'v0.18.0'
+  version: 'v0.20.0'
   createServiceAccount: true # default is false
   defaultInstanceProfile: 'KarpenterNodeInstanceProfile' # default is to use the IAM instance profile created by eksctl
   withSpotInterruptionQueue: true # adds all required policies and rules for supporting Spot Interruption Queue, default is false
