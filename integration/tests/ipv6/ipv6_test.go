@@ -97,6 +97,7 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = Describe("(Integration) [EKS IPv6 test]", func() {
+	params.LogStacksEventsOnFailure()
 
 	Context("Creating a cluster with IPv6", func() {
 		clusterName := params.ClusterName

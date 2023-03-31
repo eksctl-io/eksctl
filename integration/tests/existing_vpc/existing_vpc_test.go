@@ -74,6 +74,7 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = Describe("(Integration) [using existing VPC]", func() {
+	params.LogStacksEventsOnFailure()
 
 	It("supports creating managed and unmanaged nodegroups in the existing VPC", func() {
 		cfg.NodeGroups = []*api.NodeGroup{{

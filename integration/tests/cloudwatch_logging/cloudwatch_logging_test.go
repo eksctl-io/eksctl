@@ -40,6 +40,8 @@ func TestCloudWatchLogging(t *testing.T) {
 
 var _ = Describe("(Integration) [CloudWatch Logging test]", func() {
 	Describe("CloudWatch logging", func() {
+		params.LogStacksEventsOnFailure()
+
 		It("should create a cluster with CloudWatch logging enabled and log retention set", func() {
 			cmd := params.EksctlCreateCmd.
 				WithArgs(

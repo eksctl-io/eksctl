@@ -202,6 +202,17 @@ var _ = Describe("cmdutils configfile", func() {
 			}
 		})
 
+		It("should return an error for unset nodegroups", func() {
+			cmd := &Cmd{
+				CobraCommand:      newCmd(),
+				ClusterConfigFile: filepath.Join("test_data", "unset-nodegroups.yaml"),
+				ClusterConfig:     api.NewClusterConfig(),
+				ProviderConfig:    api.ProviderConfig{},
+			}
+			params := &CreateClusterCmdParams{}
+			Expect(NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, params).Load()).To(MatchError("invalid ClusterConfig: nodeGroups[1] is not set"))
+		})
+
 		When("using zones and node-zones together", func() {
 			var (
 				flagSet *pflag.FlagSet
