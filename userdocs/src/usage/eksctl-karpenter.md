@@ -1,7 +1,7 @@
 # Karpenter Support
 
 `eksctl` provides adding [Karpenter](https://karpenter.sh/) to a newly created cluster. It will create all the necessary
-prerequisites outlined in Karpenter's [Getting Started](https://karpenter.sh/docs/getting-started/getting-started-with-eksctl/) section including installing
+prerequisites outlined in Karpenter's [Getting Started](https://karpenter.sh/docs/getting-started/) section including installing
 Karpenter itself using Helm. We currently support installing versions starting `0.20.0` and above.
 
 To that end, a new configuration value has been introduced into `eksctl` cluster config called `karpenter`. The following
