@@ -375,10 +375,10 @@ type IAM interface {
 	// instance profile that is associated with a running instance will break any
 	// applications running on the instance.
 	DeleteRole(ctx context.Context, params *DeleteRoleInput, optFns ...func(*Options)) (*DeleteRoleOutput, error)
-	// Deletes the permissions boundary for the specified IAM role. Deleting the
-	// permissions boundary for a role might increase its permissions. For example, it
-	// might allow anyone who assumes the role to perform all the actions granted in
-	// its permissions policies.
+	// Deletes the permissions boundary for the specified IAM role. You cannot set the
+	// boundary for a service-linked role. Deleting the permissions boundary for a role
+	// might increase its permissions. For example, it might allow anyone who assumes
+	// the role to perform all the actions granted in its permissions policies.
 	DeleteRolePermissionsBoundary(ctx context.Context, params *DeleteRolePermissionsBoundaryInput, optFns ...func(*Options)) (*DeleteRolePermissionsBoundaryOutput, error)
 	// Deletes the specified inline policy that is embedded in the specified IAM role.
 	// A role can also have managed policies attached to it. To detach a managed policy
