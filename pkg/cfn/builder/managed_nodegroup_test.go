@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/stretchr/testify/require"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
@@ -115,6 +116,10 @@ func TestManagedPolicyResources(t *testing.T) {
 			bootstrapper.UserDataStub = func() (string, error) {
 				return "", nil
 			}
+			MockSubnets(clusterConfig, p,
+				[]string{"us-west-2a"},
+				[]string{},
+				[]ec2types.InstanceType{api.DefaultNodeType})
 			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, ng, nil, bootstrapper, false, fakeVPCImporter)
 			err := stack.AddAllResources(context.Background())
 			require.Nil(err)
@@ -203,6 +208,10 @@ func TestManagedNodeRole(t *testing.T) {
 			fakeVPCImporter := new(vpcfakes.FakeImporter)
 			bootstrapper, err := nodebootstrap.NewManagedBootstrapper(clusterConfig, tt.nodeGroup)
 			require.NoError(err)
+			MockSubnets(clusterConfig, p,
+				[]string{"us-west-2a"},
+				[]string{},
+				[]ec2types.InstanceType{api.DefaultNodeType})
 			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, tt.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)
 			err = stack.AddAllResources(context.Background())
 			require.NoError(err)

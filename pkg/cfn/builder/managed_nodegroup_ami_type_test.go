@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -31,6 +32,16 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 	fakeVPCImporter := new(vpcfakes.FakeImporter)
 	bootstrapper, err := nodebootstrap.NewManagedBootstrapper(clusterConfig, e.nodeGroup)
 	Expect(err).NotTo(HaveOccurred())
+	MockSubnets(clusterConfig, p,
+		[]string{"us-west-2a"},
+		[]string{},
+		[]ec2types.InstanceType{
+			ec2types.InstanceTypeM5Large,
+			ec2types.InstanceTypeP2Xlarge,
+			ec2types.InstanceTypeA12xlarge,
+			ec2types.InstanceTypeG5gXlarge,
+			ec2types.InstanceTypeG4dnXlarge,
+		})
 	stack := NewManagedNodeGroup(p.EC2(), clusterConfig, e.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)
 
 	Expect(stack.AddAllResources(context.Background())).To(Succeed())

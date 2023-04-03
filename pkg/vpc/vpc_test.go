@@ -1353,7 +1353,7 @@ var _ = Describe("VPC", func() {
 
 	DescribeTable("select subnets",
 		func(e selectSubnetsCase) {
-			ids, err := selectNodeGroupZoneSubnets(e.nodegroupAZs, e.subnets)
+			ids, err := selectNodeGroupZoneSubnets(e.nodegroupAZs, e.subnets, func(zone string) error { return nil })
 			Expect(err).NotTo(HaveOccurred())
 			Expect(ids).To(ConsistOf(e.expectIDs))
 		},
@@ -1387,7 +1387,7 @@ var _ = Describe("VPC", func() {
 	DescribeTable("select subnets by id",
 		func(e selectSubnetsByIDCase) {
 			subnetIDs, err := selectNodeGroupSubnetsFromIDs(context.Background(), e.ng, e.publicSubnetMapping, e.privateSubnetMapping,
-				&api.ClusterConfig{}, mockprovider.NewMockProvider().EC2(), func(zone string) error { return nil })
+				&api.ClusterConfig{}, mockprovider.NewMockProvider().EC2(), func(zone string) error { return nil }, func(zone string) error { return nil })
 
 			if e.expectedErr != nil {
 				Expect(err.Error()).To(Equal(e.expectedErr.Error()))

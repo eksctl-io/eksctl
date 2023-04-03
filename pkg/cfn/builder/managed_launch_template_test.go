@@ -36,6 +36,84 @@ type mngCase struct {
 	errMsg      string
 }
 
+func MockSubnets(
+	cfg *api.ClusterConfig,
+	provider *mockprovider.MockProvider,
+	availabilityZones []string,
+	localZones []string,
+	instanceTypes []ec2types.InstanceType,
+) {
+	azs := []ec2types.AvailabilityZone{}
+	offerings := []ec2types.InstanceTypeOffering{}
+
+	publicSubnetMapping := api.AZSubnetMapping{}
+	privateSubnetMapping := api.AZSubnetMapping{}
+	for _, azName := range availabilityZones {
+		publicSubnetMapping[azName] = api.AZSubnetSpec{
+			ID: fmt.Sprintf("subnet-public-%s", azName),
+			AZ: azName,
+		}
+		privateSubnetMapping[azName] = api.AZSubnetSpec{
+			ID: fmt.Sprintf("subnet-private-%s", azName),
+			AZ: azName,
+		}
+		azs = append(azs, ec2types.AvailabilityZone{
+			ZoneType: aws.String("availability-zone"),
+			ZoneName: aws.String(azName),
+		})
+		for _, instance := range instanceTypes {
+			offerings = append(offerings, ec2types.InstanceTypeOffering{
+				InstanceType: instance,
+				Location:     aws.String(azName),
+				LocationType: ec2types.LocationTypeAvailabilityZone,
+			})
+		}
+	}
+	cfg.AvailabilityZones = availabilityZones
+	cfg.VPC.Subnets = &api.ClusterSubnets{
+		Public:  publicSubnetMapping,
+		Private: privateSubnetMapping,
+	}
+
+	publicSubnetMapping = api.AZSubnetMapping{}
+	privateSubnetMapping = api.AZSubnetMapping{}
+	for _, lzName := range localZones {
+		publicSubnetMapping[lzName] = api.AZSubnetSpec{
+			ID: fmt.Sprintf("subnet-public-%s", lzName),
+			AZ: lzName,
+		}
+		privateSubnetMapping[lzName] = api.AZSubnetSpec{
+			ID: fmt.Sprintf("subnet-private-%s", lzName),
+			AZ: lzName,
+		}
+		azs = append(azs, ec2types.AvailabilityZone{
+			ZoneType: aws.String("local-zone"),
+			ZoneName: aws.String(lzName),
+		})
+		for _, instance := range instanceTypes {
+			offerings = append(offerings, ec2types.InstanceTypeOffering{
+				InstanceType: instance,
+				Location:     aws.String(lzName),
+				LocationType: ec2types.LocationTypeAvailabilityZone,
+			})
+		}
+	}
+	cfg.VPC.LocalZoneSubnets = &api.ClusterSubnets{
+		Public:  publicSubnetMapping,
+		Private: privateSubnetMapping,
+	}
+
+	provider.MockEC2().On("DescribeAvailabilityZones", mock.Anything, mock.Anything).Return(
+		&ec2.DescribeAvailabilityZonesOutput{
+			AvailabilityZones: azs,
+		}, nil)
+	provider.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).Return(
+		&ec2.DescribeInstanceTypeOfferingsOutput{
+			InstanceTypeOfferings: offerings,
+			NextToken:             nil,
+		}, nil)
+}
+
 var _ = Describe("ManagedNodeGroup builder", func() {
 	DescribeTable("Add resources", func(m *mngCase) {
 		clusterConfig := api.NewClusterConfig()
@@ -51,7 +129,6 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 		fakeVPCImporter := new(vpcfakes.FakeImporter)
 		fakeVPCImporter.VPCReturns(gfnt.MakeFnImportValueString("eksctl-lt::VPC"))
 		fakeVPCImporter.SecurityGroupsReturns(gfnt.Slice{gfnt.MakeFnImportValueString("eksctl-lt::ClusterSecurityGroupId")})
-		fakeVPCImporter.SubnetsPublicReturns(gfnt.MakeFnSplit(",", gfnt.MakeFnImportValueString("eksctl-lt::SubnetsPublic")))
 
 		bootstrapper := &fakes.FakeBootstrapper{}
 		bootstrapper.UserDataStub = func() (string, error) {
@@ -61,6 +138,21 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 			userData := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(`/etc/eks/bootstrap.sh %s`, clusterConfig.Metadata.Name)))
 			return userData, nil
 		}
+
+		MockSubnets(clusterConfig, provider,
+			[]string{"us-west-2a"},
+			[]string{},
+			[]ec2types.InstanceType{
+				ec2types.InstanceTypeM5Large,
+				ec2types.InstanceTypeM5Xlarge,
+				ec2types.InstanceTypeT2Medium,
+				ec2types.InstanceTypeC3Large,
+				ec2types.InstanceTypeC4Large,
+				ec2types.InstanceTypeC5Large,
+				ec2types.InstanceTypeC5aLarge,
+				ec2types.InstanceTypeC5dLarge,
+				ec2types.InstanceTypeC5nLarge,
+			})
 
 		stack := NewManagedNodeGroup(provider.MockEC2(), clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, fakeVPCImporter)
 		err := stack.AddAllResources(context.Background())
