@@ -993,7 +993,7 @@
           "description": "defines the Karpenter version to install",
           "x-intellij-html-description": "defines the Karpenter version to install"
         },
-        "withSportInterruptionQueue": {
+        "withSpotInterruptionQueue": {
           "type": "boolean",
           "description": "if true, adds all required policies and rules for supporting Spot Interruption Queue on Karpenter deployments",
           "x-intellij-html-description": "if true, adds all required policies and rules for supporting Spot Interruption Queue on Karpenter deployments"
@@ -1003,7 +1003,7 @@
         "version",
         "createServiceAccount",
         "defaultInstanceProfile",
-        "withSportInterruptionQueue"
+        "withSpotInterruptionQueue"
       ],
       "additionalProperties": false,
       "description": "provides configuration options",
