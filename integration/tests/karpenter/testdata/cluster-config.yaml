@@ -5,7 +5,7 @@ metadata:
   name: <generated>
 
 karpenter:
-  version: 'v0.18.0'
+  version: 'v0.20.0'
 
 iam:
   withOIDC: true
