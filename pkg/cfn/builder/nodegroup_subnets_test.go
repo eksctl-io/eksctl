@@ -25,12 +25,13 @@ import (
 
 var _ = Describe("AssignSubnets", func() {
 	type assignSubnetsEntry struct {
-		np                  api.NodePool
-		updateEC2Mocks      func(*mocksv2.EC2)
-		updateClusterConfig func(config *api.ClusterConfig)
-		localZones          []string
-		availabilityZones   []string
-		instanceTypes       []ec2types.InstanceType
+		np                    api.NodePool
+		updateEC2Mocks        func(*mocksv2.EC2)
+		updateClusterConfig   func(config *api.ClusterConfig)
+		localZones            []string
+		availabilityZones     []string
+		instanceTypes         []ec2types.InstanceType
+		customInstanceSupport bool
 
 		expectedErr       string
 		expectedSubnetIDs []string
@@ -53,7 +54,10 @@ var _ = Describe("AssignSubnets", func() {
 		clusterConfig.VPC.ID = vpcID
 
 		provider := mockprovider.NewMockProvider()
-		builder.MockSubnets(clusterConfig, provider, e.availabilityZones, e.localZones, e.instanceTypes)
+		if !e.customInstanceSupport {
+			builder.MockSubnets(clusterConfig, provider, e.availabilityZones, e.localZones, e.instanceTypes)
+		}
+
 		if e.updateEC2Mocks != nil {
 			e.updateEC2Mocks(provider.MockEC2())
 		}
@@ -61,7 +65,7 @@ var _ = Describe("AssignSubnets", func() {
 			e.updateClusterConfig(clusterConfig)
 		}
 
-		subnetRefs, err := builder.AssignSubnets(context.Background(), e.np, nil, clusterConfig, provider.EC2())
+		subnetRefs, err := builder.AssignSubnets(context.Background(), e.np, clusterConfig, provider.EC2())
 		if e.expectedErr != "" {
 			Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
 			return
@@ -238,6 +242,170 @@ var _ = Describe("AssignSubnets", func() {
 				}
 			},
 			expectedSubnetIDs: []string{"subnet-1a", "subnet-1b", "subnet-1c"},
+		}),
+
+		Entry("managed nodegroup without AZs, local zones or subnets, but not all AZs support the required instance type", assignSubnetsEntry{
+			np: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					InstanceType: "g4dn.xlarge",
+				},
+			},
+			updateClusterConfig: func(config *api.ClusterConfig) {
+				config.AvailabilityZones = []string{"us-west-2a", "us-west-2d"}
+				config.VPC.Subnets = &api.ClusterSubnets{
+					Public: api.AZSubnetMapping{
+						"us-west-2a": api.AZSubnetSpec{
+							ID: "subnet-1",
+							AZ: "us-west-2a",
+						},
+						"us-west-2d": api.AZSubnetSpec{
+							ID: "subnet-2",
+							AZ: "us-west-2d",
+						},
+					},
+					Private: api.NewAZSubnetMapping(),
+				}
+			},
+			updateEC2Mocks: func(e *mocksv2.EC2) {
+				e.On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).
+					Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+						InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
+							{
+								InstanceType: ec2types.InstanceTypeG4dnXlarge,
+								Location:     aws.String("us-west-2a"),
+								LocationType: ec2types.LocationTypeAvailabilityZone,
+							},
+							{
+								InstanceType: api.DefaultNodeType,
+								Location:     aws.String("us-west-2d"),
+								LocationType: ec2types.LocationTypeAvailabilityZone,
+							},
+						},
+					}, nil)
+				e.On("DescribeAvailabilityZones", mock.Anything, mock.Anything).
+					Return(&ec2.DescribeAvailabilityZonesOutput{
+						AvailabilityZones: []ec2types.AvailabilityZone{
+							{
+								ZoneType: aws.String("availability-zone"),
+								ZoneName: aws.String("us-west-2a"),
+							},
+							{
+								ZoneType: aws.String("availability-zone"),
+								ZoneName: aws.String("us-west-2d"),
+							},
+						},
+					}, nil)
+			},
+			customInstanceSupport: true,
+			expectedSubnetIDs:     []string{"subnet-1"},
+		}),
+
+		Entry("managed nodegroup with subnets that are in unsuppoted AZs", assignSubnetsEntry{
+			np: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "my-nodegroup",
+					InstanceType: "g4dn.xlarge",
+					Subnets:      []string{"subnet-1"},
+				},
+			},
+			updateClusterConfig: func(config *api.ClusterConfig) {
+				config.AvailabilityZones = []string{"us-west-2a", "us-west-2d"}
+				config.VPC.Subnets = &api.ClusterSubnets{
+					Public: api.AZSubnetMapping{
+						"us-west-2d": api.AZSubnetSpec{
+							ID: "subnet-1",
+							AZ: "us-west-2d",
+						},
+					},
+					Private: api.NewAZSubnetMapping(),
+				}
+			},
+			updateEC2Mocks: func(e *mocksv2.EC2) {
+				e.On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).
+					Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+						InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
+							{
+								InstanceType: ec2types.InstanceTypeG4dnXlarge,
+								Location:     aws.String("us-west-2a"),
+								LocationType: ec2types.LocationTypeAvailabilityZone,
+							},
+							{
+								InstanceType: api.DefaultNodeType,
+								Location:     aws.String("us-west-2d"),
+								LocationType: ec2types.LocationTypeAvailabilityZone,
+							},
+						},
+					}, nil)
+				e.On("DescribeAvailabilityZones", mock.Anything, mock.Anything).
+					Return(&ec2.DescribeAvailabilityZonesOutput{
+						AvailabilityZones: []ec2types.AvailabilityZone{
+							{
+								ZoneType: aws.String("availability-zone"),
+								ZoneName: aws.String("us-west-2d"),
+							},
+						},
+					}, nil)
+			},
+			customInstanceSupport: true,
+			expectedErr:           "failed to select subnet subnet-1: cannot create nodegroup my-nodegroup in availability zone us-west-2d as it does not support all required instance types",
+		}),
+
+		Entry("managed nodegroup with AZs that don't support all required instance types", assignSubnetsEntry{
+			np: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:              "my-nodegroup",
+					InstanceType:      "g4dn.xlarge",
+					AvailabilityZones: []string{"us-west-2a", "us-west-2d"},
+				},
+			},
+			updateClusterConfig: func(config *api.ClusterConfig) {
+				config.AvailabilityZones = []string{"us-west-2a", "us-west-2d"}
+				config.VPC.Subnets = &api.ClusterSubnets{
+					Public: api.AZSubnetMapping{
+						"us-west-2a": api.AZSubnetSpec{
+							ID: "subnet-1",
+							AZ: "us-west-2a",
+						},
+						"us-west-2d": api.AZSubnetSpec{
+							ID: "subnet-2",
+							AZ: "us-west-2d",
+						},
+					},
+					Private: api.NewAZSubnetMapping(),
+				}
+			},
+			updateEC2Mocks: func(e *mocksv2.EC2) {
+				e.On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).
+					Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+						InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
+							{
+								InstanceType: ec2types.InstanceTypeG4dnXlarge,
+								Location:     aws.String("us-west-2a"),
+								LocationType: ec2types.LocationTypeAvailabilityZone,
+							},
+							{
+								InstanceType: api.DefaultNodeType,
+								Location:     aws.String("us-west-2d"),
+								LocationType: ec2types.LocationTypeAvailabilityZone,
+							},
+						},
+					}, nil)
+				e.On("DescribeAvailabilityZones", mock.Anything, mock.Anything).
+					Return(&ec2.DescribeAvailabilityZonesOutput{
+						AvailabilityZones: []ec2types.AvailabilityZone{
+							{
+								ZoneType: aws.String("availability-zone"),
+								ZoneName: aws.String("us-west-2a"),
+							},
+							{
+								ZoneType: aws.String("availability-zone"),
+								ZoneName: aws.String("us-west-2d"),
+							},
+						},
+					}, nil)
+			},
+			customInstanceSupport: true,
+			expectedErr:           "cannot create nodegroup my-nodegroup in availability zone us-west-2d as it does not support all required instance types",
 		}),
 
 		Entry("EKS on Outposts but subnets not on Outposts", assignSubnetsEntry{

@@ -103,14 +103,15 @@ func MockSubnets(
 		Private: privateSubnetMapping,
 	}
 
-	provider.MockEC2().On("DescribeAvailabilityZones", mock.Anything, mock.Anything).Return(
-		&ec2.DescribeAvailabilityZonesOutput{
+	provider.MockEC2().
+		On("DescribeAvailabilityZones", mock.Anything, mock.Anything).
+		Return(&ec2.DescribeAvailabilityZonesOutput{
 			AvailabilityZones: azs,
 		}, nil)
-	provider.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).Return(
-		&ec2.DescribeInstanceTypeOfferingsOutput{
+	provider.MockEC2().
+		On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).
+		Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 			InstanceTypeOfferings: offerings,
-			NextToken:             nil,
 		}, nil)
 }
 

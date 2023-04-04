@@ -735,12 +735,11 @@ func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig 
 				return fmt.Errorf("managed nodegroups cannot be launched in local zones: %q", ng.Name)
 			}
 			return nil
-		} else {
-			if zoneType == ZoneTypeAvailabilityZone {
-				logger.Warning("subnets contain a mix of both local and availability zones")
-			}
-			return nil
 		}
+		if zoneType == ZoneTypeAvailabilityZone {
+			logger.Warning("subnets contain a mix of both local and availability zones")
+		}
+		return nil
 	}
 
 	validateZoneInstanceSupport := func(zone string) error {
@@ -764,8 +763,8 @@ func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig 
 		}
 		// only validate instance support for availability zones
 		if zoneType == ZoneTypeAvailabilityZone && !slice.Contains(*supportedZones, zone) {
-			return fmt.Errorf("cannot create nodegroup %s in availability zone %s as it does not support the specified instance type %s",
-				np.BaseNodeGroup().Name, zone, np.BaseNodeGroup().InstanceType)
+			return fmt.Errorf("cannot create nodegroup %s in availability zone %s as it does not support all required instance types",
+				np.BaseNodeGroup().Name, zone)
 		}
 		return nil
 	}
