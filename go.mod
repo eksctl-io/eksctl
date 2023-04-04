@@ -8,24 +8,24 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.2.0
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.1
-	github.com/aws/aws-sdk-go v1.44.225
-	github.com/aws/aws-sdk-go-v2 v1.17.6
-	github.com/aws/aws-sdk-go-v2/config v1.18.18
-	github.com/aws/aws-sdk-go-v2/credentials v1.13.17
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.27.3
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.26.5
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.24.3
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.20.6
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.22.5
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.90.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.27.7
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.5
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.6
-	github.com/aws/aws-sdk-go-v2/service/iam v1.19.6
-	github.com/aws/aws-sdk-go-v2/service/kms v1.20.7
-	github.com/aws/aws-sdk-go-v2/service/outposts v1.27.5
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.35.6
-	github.com/aws/aws-sdk-go-v2/service/sts v1.18.6
+	github.com/aws/aws-sdk-go v1.44.234
+	github.com/aws/aws-sdk-go-v2 v1.17.7
+	github.com/aws/aws-sdk-go-v2/config v1.18.19
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.18
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.0
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.26.6
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.24.4
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.20.7
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.22.6
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.92.1
+	github.com/aws/aws-sdk-go-v2/service/eks v1.27.8
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.6
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.7
+	github.com/aws/aws-sdk-go-v2/service/iam v1.19.8
+	github.com/aws/aws-sdk-go-v2/service/kms v1.20.8
+	github.com/aws/aws-sdk-go-v2/service/outposts v1.27.6
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.18.7
 	github.com/aws/smithy-go v1.13.5
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
@@ -50,8 +50,8 @@ require (
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.1
-	github.com/onsi/ginkgo/v2 v2.9.1
-	github.com/onsi/gomega v1.27.4
+	github.com/onsi/ginkgo/v2 v2.9.2
+	github.com/onsi/gomega v1.27.6
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/otiai10/copy v1.9.0
 	github.com/pelletier/go-toml v1.9.5
@@ -145,13 +145,13 @@ require (
 	github.com/ashanbrown/makezero v1.1.1 // indirect
 	github.com/atc0005/go-teams-notify/v2 v2.6.1 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.0 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.30 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.24 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.31 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.24 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.12.5 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.5 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.1 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.31 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.25 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.32 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.25 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.12.6 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.6 // indirect
 	github.com/awslabs/goformation/v4 v4.19.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
@@ -225,11 +225,11 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2 // indirect
 	github.com/go-gorp/gorp/v3 v3.0.5 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
-	github.com/go-logr/logr v1.2.3 // indirect
+	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
-	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
+	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible // indirect
 	github.com/go-toolsmith/astcast v1.0.0 // indirect
 	github.com/go-toolsmith/astcopy v1.0.2 // indirect
@@ -263,7 +263,7 @@ require (
 	github.com/google/go-github/v43 v43.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/pprof v0.0.0-20230309165930-d61513b1440d // indirect
+	github.com/google/pprof v0.0.0-20230323073829-e72429f035bd // indirect
 	github.com/google/rpmpack v0.0.0-20211125064518-d0ed9b1b61b9 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/wire v0.5.0 // indirect
