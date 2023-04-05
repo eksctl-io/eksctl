@@ -55,7 +55,19 @@ var _ = Describe("GPU instance support", func() {
 		}),
 		Entry("Bottlerocket", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyBottlerocket,
+			gpuInstanceType:      "inf2.xlarge",
+			expectUnsupportedErr: true,
+			instanceTypeName:     "Inferentia",
+		}),
+		Entry("Bottlerocket", gpuInstanceEntry{
+			amiFamily:            api.NodeImageFamilyBottlerocket,
 			gpuInstanceType:      "trn1.2xlarge",
+			expectUnsupportedErr: true,
+			instanceTypeName:     "Trainium",
+		}),
+		Entry("Bottlerocket", gpuInstanceEntry{
+			amiFamily:            api.NodeImageFamilyBottlerocket,
+			gpuInstanceType:      "trn1n.32xlarge",
 			expectUnsupportedErr: true,
 			instanceTypeName:     "Trainium",
 		}),
@@ -81,7 +93,15 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
 		Entry("AL2", gpuInstanceEntry{
+			gpuInstanceType: "inf2.xlarge",
+			amiFamily:       api.NodeImageFamilyAmazonLinux2,
+		}),
+		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "trn1.2xlarge",
+			amiFamily:       api.NodeImageFamilyAmazonLinux2,
+		}),
+		Entry("AL2", gpuInstanceEntry{
+			gpuInstanceType: "trn1n.32xlarge",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
 		Entry("AMI unset", gpuInstanceEntry{
@@ -98,7 +118,17 @@ var _ = Describe("GPU instance support", func() {
 		}),
 		Entry("Bottlerocket infra", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyBottlerocket,
+			gpuInstanceType:      "inf2.xlarge",
+			expectUnsupportedErr: true,
+		}),
+		Entry("Bottlerocket infra", gpuInstanceEntry{
+			amiFamily:            api.NodeImageFamilyBottlerocket,
 			gpuInstanceType:      "trn1.2xlarge",
+			expectUnsupportedErr: true,
+		}),
+		Entry("Bottlerocket infra", gpuInstanceEntry{
+			amiFamily:            api.NodeImageFamilyBottlerocket,
+			gpuInstanceType:      "trn1n.32xlarge",
 			expectUnsupportedErr: true,
 		}),
 		Entry("Bottlerocket nvidia", gpuInstanceEntry{
