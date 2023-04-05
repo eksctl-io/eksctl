@@ -762,7 +762,9 @@ func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig 
 			return fmt.Errorf("unexpected error finding zone type for zone %q", zone)
 		}
 		// only validate instance support for availability zones
-		if zoneType == ZoneTypeAvailabilityZone && !slice.Contains(*supportedZones, zone) {
+		if zoneType == ZoneTypeAvailabilityZone &&
+			slice.Contains(clusterConfig.AvailabilityZones, zone) && // for now, we won't validate support for user specified new zones
+			!slice.Contains(*supportedZones, zone) {
 			return fmt.Errorf("cannot create nodegroup %s in availability zone %s as it does not support all required instance types",
 				np.BaseNodeGroup().Name, zone)
 		}
