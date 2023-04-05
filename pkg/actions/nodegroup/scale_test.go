@@ -3,12 +3,14 @@ package nodegroup_test
 import (
 	"context"
 	"fmt"
+	"time"
 
 	autoscalingtypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
 	"github.com/stretchr/testify/mock"
+	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
@@ -49,7 +51,8 @@ var _ = Describe("Scale", func() {
 				DesiredCapacity: aws.Int(3),
 			},
 		}
-		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil, nil)
+
+		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, fake.NewSimpleClientset(), nil)
 		fakeStackManager = new(fakes.FakeStackManager)
 		m.SetStackManager(fakeStackManager)
 		p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil, nil)
@@ -85,17 +88,24 @@ var _ = Describe("Scale", func() {
 				NodegroupName: &ngName,
 			}).Return(nil, nil)
 
-			p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
-				ClusterName:   &clusterName,
-				NodegroupName: &ngName,
-			}, mock.Anything).Return(&awseks.DescribeNodegroupOutput{
-				Nodegroup: &ekstypes.Nodegroup{
-					Status: ekstypes.NodegroupStatusActive,
-				},
-			}, nil)
-
-			err := m.Scale(context.Background(), ng)
+			err := m.Scale(context.Background(), ng, false)
 			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("waits for scaling and times out", func() {
+			p.MockEKS().On("UpdateNodegroupConfig", mock.Anything, mock.Anything).Return(nil, nil)
+
+			p.MockEKS().On("DescribeNodegroup", mock.Anything, mock.Anything, mock.Anything).Return(
+				&awseks.DescribeNodegroupOutput{
+					Nodegroup: &ekstypes.Nodegroup{
+						Status: ekstypes.NodegroupStatusUpdating,
+					},
+				}, nil)
+
+			p.SetWaitTimeout(1 * time.Millisecond)
+
+			err := m.Scale(context.Background(), ng, true)
+			Expect(err).To(MatchError(fmt.Sprintf("failed to scale nodegroup %q for cluster %q, error: exceeded max wait time for NodegroupActive waiter", ngName, clusterName)))
 		})
 
 		When("update fails", func() {
@@ -109,7 +119,7 @@ var _ = Describe("Scale", func() {
 					NodegroupName: &ngName,
 				}).Return(nil, fmt.Errorf("foo"))
 
-				err := m.Scale(context.Background(), ng)
+				err := m.Scale(context.Background(), ng, false)
 				Expect(err).To(MatchError(fmt.Sprintf("failed to scale nodegroup %q for cluster %q, error: foo", ngName, clusterName)))
 			})
 		})
@@ -201,8 +211,14 @@ var _ = Describe("Scale", func() {
 			})
 
 			It("scales the nodegroup", func() {
-				err := m.Scale(context.Background(), ng)
+				err := m.Scale(context.Background(), ng, false)
 				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("waits for scaling and times out", func() {
+				p.SetWaitTimeout(1 * time.Millisecond)
+				err := m.Scale(context.Background(), ng, true)
+				Expect(err).To(MatchError(fmt.Sprintf("failed to scale nodegroup %q for cluster %q, error: timed out waiting for at least %d nodes to join the cluster and become ready in %q: context deadline exceeded", ng.Name, clusterName, *ng.ScalingConfig.MinSize, ng.Name)))
 			})
 		})
 
@@ -229,7 +245,7 @@ var _ = Describe("Scale", func() {
 			})
 
 			It("returns an error", func() {
-				err := m.Scale(context.Background(), ng)
+				err := m.Scale(context.Background(), ng, false)
 				Expect(err).To(MatchError(ContainSubstring("failed to find NodeGroup auto scaling group")))
 			})
 		})
@@ -243,7 +259,7 @@ var _ = Describe("Scale", func() {
 			const asgName = "asg-1234"
 			mockNodeGroupStack(ngName, asgName)
 			mockNodeGroupAMI(e.deprecated, asgName)
-			err := m.Scale(context.Background(), ng)
+			err := m.Scale(context.Background(), ng, false)
 			if e.expectedErr != "" {
 				Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
 			} else {
