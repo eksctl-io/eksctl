@@ -537,7 +537,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					ContainElement(ContainSubstring("MaxSize: 5")),
 					ContainElement(ContainSubstring("MinSize: 5")),
 					ContainElement(ContainSubstring("DesiredCapacity: 5")),
-					ContainElement(ContainSubstring("Status: ACTIVE")),
+					ContainElement(ContainSubstring("Status: CREATE_COMPLETE")),
 				))
 			})
 		})
