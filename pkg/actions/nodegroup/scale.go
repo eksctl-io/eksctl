@@ -2,23 +2,24 @@ package nodegroup
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/eks"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-func (m *Manager) Scale(ctx context.Context, ng *api.NodeGroupBase) error {
+func (m *Manager) Scale(ctx context.Context, ng *api.NodeGroupBase, wait bool) error {
 	logger.Info("scaling nodegroup %q in cluster %s", ng.Name, m.cfg.Metadata.Name)
 
 	nodegroupStackInfos, err := m.stackManager.DescribeNodeGroupStacksAndResources(ctx)
@@ -38,9 +39,9 @@ func (m *Manager) Scale(ctx context.Context, ng *api.NodeGroupBase) error {
 	}
 
 	if isUnmanagedNodegroup {
-		err = m.scaleUnmanagedNodeGroup(ctx, ng, stackInfo)
+		err = m.scaleUnmanagedNodeGroup(ctx, ng, stackInfo, wait)
 	} else {
-		err = m.scaleManagedNodeGroup(ctx, ng)
+		err = m.scaleManagedNodeGroup(ctx, ng, wait)
 	}
 
 	if err != nil {
@@ -50,7 +51,7 @@ func (m *Manager) Scale(ctx context.Context, ng *api.NodeGroupBase) error {
 	return nil
 }
 
-func (m *Manager) scaleUnmanagedNodeGroup(ctx context.Context, ng *api.NodeGroupBase, stackInfo manager.StackInfo) error {
+func (m *Manager) scaleUnmanagedNodeGroup(ctx context.Context, ng *api.NodeGroupBase, stackInfo manager.StackInfo, wait bool) error {
 	asgName := ""
 	for _, resource := range stackInfo.Resources {
 		if *resource.LogicalResourceId == "NodeGroup" {
@@ -58,7 +59,6 @@ func (m *Manager) scaleUnmanagedNodeGroup(ctx context.Context, ng *api.NodeGroup
 			break
 		}
 	}
-
 	if asgName == "" {
 		return fmt.Errorf("failed to find NodeGroup auto scaling group")
 	}
@@ -83,51 +83,72 @@ func (m *Manager) scaleUnmanagedNodeGroup(ctx context.Context, ng *api.NodeGroup
 		input.DesiredCapacity = aws.Int32(int32(*ng.DesiredCapacity))
 	}
 
-	_, err := m.ctl.AWSProvider.ASG().UpdateAutoScalingGroup(ctx, input)
-	if err != nil {
+	if _, err := m.ctl.AWSProvider.ASG().UpdateAutoScalingGroup(ctx, input); err != nil {
 		return err
 	}
-	logger.Info("nodegroup successfully scaled")
+	logger.Info("initiated scaling of nodegroup")
 
+	if wait {
+
+		if counter, err := eks.GetNodes(m.clientSet, ng); err != nil {
+			return errors.Wrap(err, "listing nodes")
+		} else if counter >= *ng.MinSize {
+			logger.Warning("when scaling down an ASG, passing the --wait flag currently has no effect")
+		}
+
+		timeoutCtx, cancel := context.WithTimeout(ctx, m.ctl.AWSProvider.WaitTimeout())
+		defer cancel()
+		if err := eks.WaitForNodes(timeoutCtx, m.clientSet, ng); err != nil {
+			return err
+		}
+
+		logger.Info("nodegroup successfully scaled")
+	} else {
+		logger.Info("to see the status of the scaling run `eksctl get nodegroup --cluster %s --region %s --name %s`", m.cfg.Metadata.Name, m.ctl.AWSProvider.Region(), ng.Name)
+	}
 	return nil
 }
 
-func (m *Manager) scaleManagedNodeGroup(ctx context.Context, ng *api.NodeGroupBase) error {
-	scalingConfig := &ekstypes.NodegroupScalingConfig{}
+func (m *Manager) scaleManagedNodeGroup(ctx context.Context, ng *api.NodeGroupBase, wait bool) error {
+
+	input := &awseks.UpdateNodegroupConfigInput{
+		ScalingConfig: &ekstypes.NodegroupScalingConfig{},
+		ClusterName:   &m.cfg.Metadata.Name,
+		NodegroupName: &ng.Name,
+	}
 
 	if ng.MaxSize != nil {
-		scalingConfig.MaxSize = aws.Int32(int32(*ng.MaxSize))
+		input.ScalingConfig.MaxSize = aws.Int32(int32(*ng.MaxSize))
 	}
 
 	if ng.MinSize != nil {
-		scalingConfig.MinSize = aws.Int32(int32(*ng.MinSize))
+		input.ScalingConfig.MinSize = aws.Int32(int32(*ng.MinSize))
 	}
 
 	if ng.DesiredCapacity != nil {
-		scalingConfig.DesiredSize = aws.Int32(int32(*ng.DesiredCapacity))
+		input.ScalingConfig.DesiredSize = aws.Int32(int32(*ng.DesiredCapacity))
 	}
 
-	_, err := m.ctl.AWSProvider.EKS().UpdateNodegroupConfig(ctx, &eks.UpdateNodegroupConfigInput{
-		ScalingConfig: scalingConfig,
-		ClusterName:   &m.cfg.Metadata.Name,
-		NodegroupName: &ng.Name,
-	})
-
-	if err != nil {
+	if _, err := m.ctl.AWSProvider.EKS().UpdateNodegroupConfig(ctx, input); err != nil {
 		return err
 	}
+	logger.Info("initiated scaling of nodegroup")
 
-	logger.Info("waiting for scaling of nodegroup %q to complete", ng.Name)
+	if wait {
+		logger.Info("waiting for scaling of nodegroup %q to complete", ng.Name)
 
-	waiter := eks.NewNodegroupActiveWaiter(m.ctl.AWSProvider.EKS())
-	if err := waiter.Wait(ctx, &eks.DescribeNodegroupInput{
-		ClusterName:   &m.cfg.Metadata.Name,
-		NodegroupName: &ng.Name,
-	}, m.ctl.AWSProvider.WaitTimeout()); err != nil {
-		return err
+		waiter := awseks.NewNodegroupActiveWaiter(m.ctl.AWSProvider.EKS())
+		if err := waiter.Wait(ctx, &awseks.DescribeNodegroupInput{
+			ClusterName:   input.ClusterName,
+			NodegroupName: input.NodegroupName,
+		}, m.ctl.AWSProvider.WaitTimeout()); err != nil {
+			return err
+		}
+
+		logger.Info("nodegroup successfully scaled")
+	} else {
+		logger.Info("to see the status of the scaling run `eksctl get nodegroup --cluster %s --region %s --name %s`", *input.ClusterName, m.ctl.AWSProvider.Region(), ng.Name)
 	}
-
-	logger.Info("nodegroup successfully scaled")
 	return nil
 }
 

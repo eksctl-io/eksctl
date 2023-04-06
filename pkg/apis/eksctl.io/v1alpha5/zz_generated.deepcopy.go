@@ -959,6 +959,11 @@ func (in *Karpenter) DeepCopyInto(out *Karpenter) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.WithSpotInterruptionQueue != nil {
+		in, out := &in.WithSpotInterruptionQueue, &out.WithSpotInterruptionQueue
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

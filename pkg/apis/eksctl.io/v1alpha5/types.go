@@ -406,7 +406,7 @@ const (
 
 // supported version of Karpenter
 const (
-	supportedKarpenterVersion = "v0.17.0"
+	supportedKarpenterVersion = "v0.20.0"
 )
 
 // Values for Capacity Reservation Preference
@@ -943,6 +943,9 @@ type Karpenter struct {
 	// DefaultInstanceProfile override the default IAM instance profile
 	// +optional
 	DefaultInstanceProfile *string `json:"defaultInstanceProfile,omitempty"`
+	// WithSpotInterruptionQueue if true, adds all required policies and rules
+	// for supporting Spot Interruption Queue on Karpenter deployments
+	WithSpotInterruptionQueue *bool `json:"withSpotInterruptionQueue,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
