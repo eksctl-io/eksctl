@@ -1,4 +1,4 @@
-package builder
+package builder_test
 
 import (
 	"context"
@@ -18,6 +18,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+
 	"github.com/weaveworks/goformation/v4"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
@@ -34,85 +36,6 @@ type mngCase struct {
 
 	hasUserData bool
 	errMsg      string
-}
-
-func MockSubnets(
-	cfg *api.ClusterConfig,
-	provider *mockprovider.MockProvider,
-	availabilityZones []string,
-	localZones []string,
-	instanceTypes []ec2types.InstanceType,
-) {
-	azs := []ec2types.AvailabilityZone{}
-	offerings := []ec2types.InstanceTypeOffering{}
-
-	publicSubnetMapping := api.AZSubnetMapping{}
-	privateSubnetMapping := api.AZSubnetMapping{}
-	for _, azName := range availabilityZones {
-		publicSubnetMapping[azName] = api.AZSubnetSpec{
-			ID: fmt.Sprintf("subnet-public-%s", azName),
-			AZ: azName,
-		}
-		privateSubnetMapping[azName] = api.AZSubnetSpec{
-			ID: fmt.Sprintf("subnet-private-%s", azName),
-			AZ: azName,
-		}
-		azs = append(azs, ec2types.AvailabilityZone{
-			ZoneType: aws.String("availability-zone"),
-			ZoneName: aws.String(azName),
-		})
-		for _, instance := range instanceTypes {
-			offerings = append(offerings, ec2types.InstanceTypeOffering{
-				InstanceType: instance,
-				Location:     aws.String(azName),
-				LocationType: ec2types.LocationTypeAvailabilityZone,
-			})
-		}
-	}
-	cfg.AvailabilityZones = availabilityZones
-	cfg.VPC.Subnets = &api.ClusterSubnets{
-		Public:  publicSubnetMapping,
-		Private: privateSubnetMapping,
-	}
-
-	publicSubnetMapping = api.AZSubnetMapping{}
-	privateSubnetMapping = api.AZSubnetMapping{}
-	for _, lzName := range localZones {
-		publicSubnetMapping[lzName] = api.AZSubnetSpec{
-			ID: fmt.Sprintf("subnet-public-%s", lzName),
-			AZ: lzName,
-		}
-		privateSubnetMapping[lzName] = api.AZSubnetSpec{
-			ID: fmt.Sprintf("subnet-private-%s", lzName),
-			AZ: lzName,
-		}
-		azs = append(azs, ec2types.AvailabilityZone{
-			ZoneType: aws.String("local-zone"),
-			ZoneName: aws.String(lzName),
-		})
-		for _, instance := range instanceTypes {
-			offerings = append(offerings, ec2types.InstanceTypeOffering{
-				InstanceType: instance,
-				Location:     aws.String(lzName),
-				LocationType: ec2types.LocationTypeAvailabilityZone,
-			})
-		}
-	}
-	cfg.VPC.LocalZoneSubnets = &api.ClusterSubnets{
-		Public:  publicSubnetMapping,
-		Private: privateSubnetMapping,
-	}
-
-	provider.MockEC2().
-		On("DescribeAvailabilityZones", mock.Anything, mock.Anything).
-		Return(&ec2.DescribeAvailabilityZonesOutput{
-			AvailabilityZones: azs,
-		}, nil)
-	provider.MockEC2().
-		On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).
-		Return(&ec2.DescribeInstanceTypeOfferingsOutput{
-			InstanceTypeOfferings: offerings,
-		}, nil)
 }
 
 var _ = Describe("ManagedNodeGroup builder", func() {
@@ -140,9 +63,9 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 			return userData, nil
 		}
 
-		MockSubnets(clusterConfig, provider,
+		mockSubnetsAndAZInstanceSupport(clusterConfig, provider,
 			[]string{"us-west-2a"},
-			[]string{},
+			[]string{}, // local zones
 			[]ec2types.InstanceType{
 				ec2types.InstanceTypeM5Large,
 				ec2types.InstanceTypeM5Xlarge,
@@ -155,7 +78,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 				ec2types.InstanceTypeC5nLarge,
 			})
 
-		stack := NewManagedNodeGroup(provider.MockEC2(), clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, fakeVPCImporter)
+		stack := builder.NewManagedNodeGroup(provider.MockEC2(), clusterConfig, m.ng, builder.NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, fakeVPCImporter)
 		err := stack.AddAllResources(context.Background())
 		if m.errMsg != "" {
 			Expect(err).To(HaveOccurred())

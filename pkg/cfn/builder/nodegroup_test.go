@@ -42,9 +42,9 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 		fakeVPCImporter = new(vpcfakes.FakeImporter)
 		fakeBootstrapper = new(bootstrapfakes.FakeBootstrapper)
 		cfg, ng = newClusterAndNodeGroup()
-		builder.MockSubnets(cfg, p,
+		mockSubnetsAndAZInstanceSupport(cfg, p,
 			[]string{"us-west-2a"},
-			[]string{},
+			[]string{}, // local zones
 			[]ec2types.InstanceType{
 				api.DefaultNodeType,
 			})

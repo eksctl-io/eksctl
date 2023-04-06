@@ -55,7 +55,7 @@ var _ = Describe("AssignSubnets", func() {
 
 		provider := mockprovider.NewMockProvider()
 		if !e.customInstanceSupport {
-			builder.MockSubnets(clusterConfig, provider, e.availabilityZones, e.localZones, e.instanceTypes)
+			mockSubnetsAndAZInstanceSupport(clusterConfig, provider, e.availabilityZones, e.localZones, e.instanceTypes)
 		}
 
 		if e.updateEC2Mocks != nil {
@@ -484,4 +484,83 @@ func mockDescribeSubnetsWithOutpost(ec2Mock *mocksv2.EC2, zoneName, vpcID string
 			},
 		}
 	}, nil)
+}
+
+func mockSubnetsAndAZInstanceSupport(
+	cfg *api.ClusterConfig,
+	provider *mockprovider.MockProvider,
+	availabilityZones []string,
+	localZones []string,
+	instanceTypes []ec2types.InstanceType,
+) {
+	azs := []ec2types.AvailabilityZone{}
+	offerings := []ec2types.InstanceTypeOffering{}
+
+	publicSubnetMapping := api.AZSubnetMapping{}
+	privateSubnetMapping := api.AZSubnetMapping{}
+	for _, azName := range availabilityZones {
+		publicSubnetMapping[azName] = api.AZSubnetSpec{
+			ID: fmt.Sprintf("subnet-public-%s", azName),
+			AZ: azName,
+		}
+		privateSubnetMapping[azName] = api.AZSubnetSpec{
+			ID: fmt.Sprintf("subnet-private-%s", azName),
+			AZ: azName,
+		}
+		azs = append(azs, ec2types.AvailabilityZone{
+			ZoneType: aws.String("availability-zone"),
+			ZoneName: aws.String(azName),
+		})
+		for _, instance := range instanceTypes {
+			offerings = append(offerings, ec2types.InstanceTypeOffering{
+				InstanceType: instance,
+				Location:     aws.String(azName),
+				LocationType: ec2types.LocationTypeAvailabilityZone,
+			})
+		}
+	}
+	cfg.AvailabilityZones = availabilityZones
+	cfg.VPC.Subnets = &api.ClusterSubnets{
+		Public:  publicSubnetMapping,
+		Private: privateSubnetMapping,
+	}
+
+	publicSubnetMapping = api.AZSubnetMapping{}
+	privateSubnetMapping = api.AZSubnetMapping{}
+	for _, lzName := range localZones {
+		publicSubnetMapping[lzName] = api.AZSubnetSpec{
+			ID: fmt.Sprintf("subnet-public-%s", lzName),
+			AZ: lzName,
+		}
+		privateSubnetMapping[lzName] = api.AZSubnetSpec{
+			ID: fmt.Sprintf("subnet-private-%s", lzName),
+			AZ: lzName,
+		}
+		azs = append(azs, ec2types.AvailabilityZone{
+			ZoneType: aws.String("local-zone"),
+			ZoneName: aws.String(lzName),
+		})
+		for _, instance := range instanceTypes {
+			offerings = append(offerings, ec2types.InstanceTypeOffering{
+				InstanceType: instance,
+				Location:     aws.String(lzName),
+				LocationType: ec2types.LocationTypeAvailabilityZone,
+			})
+		}
+	}
+	cfg.VPC.LocalZoneSubnets = &api.ClusterSubnets{
+		Public:  publicSubnetMapping,
+		Private: privateSubnetMapping,
+	}
+
+	provider.MockEC2().
+		On("DescribeAvailabilityZones", mock.Anything, mock.Anything).
+		Return(&ec2.DescribeAvailabilityZonesOutput{
+			AvailabilityZones: azs,
+		}, nil)
+	provider.MockEC2().
+		On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).
+		Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+			InstanceTypeOfferings: offerings,
+		}, nil)
 }

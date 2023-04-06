@@ -1,4 +1,4 @@
-package builder
+package builder_test
 
 import (
 	"context"
@@ -20,6 +20,8 @@ import (
 
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 
 	_ "embed"
 
@@ -60,10 +62,11 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			provider = mockprovider.NewMockProvider()
 		}
 
-		rs := newResourceSet()
-		var vpcResourceSet VPCResourceSet = NewIPv4VPCResourceSet(rs, vc.clusterConfig, provider.EC2(), false)
+		rs := builder.NewRS()
+		template := builder.GetTemplate(rs)
+		var vpcResourceSet builder.VPCResourceSet = builder.NewIPv4VPCResourceSet(rs, vc.clusterConfig, provider.EC2(), false)
 		if vc.clusterConfig.VPC.ID != "" {
-			vpcResourceSet = NewExistingVPCResourceSet(rs, vc.clusterConfig, provider.EC2())
+			vpcResourceSet = builder.NewExistingVPCResourceSet(rs, vc.clusterConfig, provider.EC2())
 		}
 		vpcID, subnetDetails, err := vpcResourceSet.CreateTemplate(context.Background())
 		if vc.err != "" {
@@ -74,21 +77,21 @@ var _ = Describe("VPC Endpoint Builder", func() {
 
 		Expect(err).NotTo(HaveOccurred())
 		if vc.clusterConfig.PrivateCluster.Enabled {
-			vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider.EC2(), provider.Region(), rs, vc.clusterConfig, vpcID, subnetDetails.Private, gfnt.NewString("sg-test"))
+			vpcEndpointResourceSet := builder.NewVPCEndpointResourceSet(provider.EC2(), provider.Region(), rs, vc.clusterConfig, vpcID, subnetDetails.Private, gfnt.NewString("sg-test"))
 			Expect(vpcEndpointResourceSet.AddResources(context.Background())).To(Succeed())
-			s3Endpoint := rs.template.Resources["VPCEndpointS3"].(*gfnec2.VPCEndpoint)
+			s3Endpoint := template.Resources["VPCEndpointS3"].(*gfnec2.VPCEndpoint)
 			routeIdsSlice, ok := s3Endpoint.RouteTableIds.Raw().(gfnt.Slice)
 			Expect(ok).To(BeTrue())
 			sort.Slice(routeIdsSlice, func(i, j int) bool {
 				return routeIdsSlice[i].String() < routeIdsSlice[j].String()
 			})
 		} else if vc.clusterConfig.VPC.ID != "" {
-			Expect(rs.template.Resources).To(BeEmpty())
+			Expect(template.Resources).To(BeEmpty())
 			return
 		}
 
-		rs.template.Outputs = nil
-		resourceJSON, err := rs.template.JSON()
+		template.Outputs = nil
+		resourceJSON, err := template.JSON()
 		Expect(err).NotTo(HaveOccurred())
 
 		expectedJSON, err := os.ReadFile("testdata/" + vc.expectedFile)

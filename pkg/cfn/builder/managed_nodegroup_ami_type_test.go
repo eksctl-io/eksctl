@@ -1,4 +1,4 @@
-package builder
+package builder_test
 
 import (
 	"context"
@@ -11,6 +11,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 
 	"github.com/weaveworks/goformation/v4"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
@@ -32,9 +34,9 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 	fakeVPCImporter := new(vpcfakes.FakeImporter)
 	bootstrapper, err := nodebootstrap.NewManagedBootstrapper(clusterConfig, e.nodeGroup)
 	Expect(err).NotTo(HaveOccurred())
-	MockSubnets(clusterConfig, p,
+	mockSubnetsAndAZInstanceSupport(clusterConfig, p,
 		[]string{"us-west-2a"},
-		[]string{},
+		[]string{}, // local zones
 		[]ec2types.InstanceType{
 			ec2types.InstanceTypeM5Large,
 			ec2types.InstanceTypeP2Xlarge,
@@ -42,7 +44,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 			ec2types.InstanceTypeG5gXlarge,
 			ec2types.InstanceTypeG4dnXlarge,
 		})
-	stack := NewManagedNodeGroup(p.EC2(), clusterConfig, e.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)
+	stack := builder.NewManagedNodeGroup(p.EC2(), clusterConfig, e.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)
 
 	Expect(stack.AddAllResources(context.Background())).To(Succeed())
 	bytes, err := stack.RenderJSON()
