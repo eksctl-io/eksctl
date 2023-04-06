@@ -357,7 +357,11 @@ func AssignSubnets(ctx context.Context, np api.NodePool, clusterConfig *api.Clus
 
 	subnetIDs := []string{}
 	// only assign a subnet if the AZ to which it belongs supports all required instance types
-	for az, subnetSpec := range subnetMapping {
+	for key, subnetSpec := range subnetMapping {
+		az := subnetSpec.AZ
+		if az == "" {
+			az = key
+		}
 		if !slices.Contains(supportedZones, az) {
 			continue
 		}
