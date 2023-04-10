@@ -148,7 +148,7 @@
           "alpha.eksctl.io/nodegroup-name": "br",
           "alpha.eksctl.io/nodegroup-type": "managed"
         },
-        "Version": "1.25"
+        "Version": "1.26"
       }
     },
     "NodeInstanceRole": {
