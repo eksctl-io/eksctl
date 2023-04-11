@@ -36,11 +36,11 @@ var _ = Describe("scale", func() {
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(count).To(Equal(1))
 			},
-			Entry("with all the valid flags", "nodegroup", "--cluster", "clusterName", "--name", "nodeGroup", "--nodes", "2", "--nodes-max", "3", "--nodes-min", "1"),
-			Entry("with config file and name", "nodegroup", "nodeGroup", "-f", "dummyConfigFile.yaml"),
-			Entry("with config file and name flags", "nodegroup", "--name", "nodeGroup", "-f", "dummyConfigFile.yaml"),
-			Entry("without --nodes-min flags", "nodegroup", "--cluster", "clusterName", "--name", "nodeGroup", "--nodes", "2", "--nodes-max", "3"),
-			Entry("without --nodes-max flags", "nodegroup", "--cluster", "clusterName", "--name", "nodeGroup", "--nodes", "2", "--nodes-min", "1"),
+			Entry("with all the valid flags", "nodegroup", "--cluster", "clusterName", "--name", "nodeGroup", "--nodes", "2", "--nodes-max", "3", "--nodes-min", "1", "--wait", "--timeout", "25m"),
+			Entry("with config file and name without wait flag", "nodegroup", "nodeGroup", "-f", "dummyConfigFile.yaml"),
+			Entry("with name flag and config file without wait flag", "nodegroup", "--name", "nodeGroup", "-f", "dummyConfigFile.yaml"),
+			Entry("without --nodes-min and wait flags", "nodegroup", "--cluster", "clusterName", "--name", "nodeGroup", "--nodes", "2", "--nodes-max", "3"),
+			Entry("without --nodes-max and wait flags", "nodegroup", "--cluster", "clusterName", "--name", "nodeGroup", "--nodes", "2", "--nodes-min", "1"),
 		)
 
 		DescribeTable("invalid flags or arguments",
