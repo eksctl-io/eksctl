@@ -199,6 +199,12 @@ Minor releases of `eksctl` should be expected every two weeks and patch releases
 
 One or more release candidate(s) (RC) builds will be made available prior to each minor release. RC builds are intended only for testing purposes.
 
+## [Security Policy](SECURITY.md)
+If you discover a potential security issue in `eksctl` project, please
+follow [AWS Vulnerability Reporting process.](https://aws.amazon.com/security/vulnerability-reporting/)
+
+Do not open security related issues in the open source project.
+
 ## Get in touch
 
 [Create an issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)][slackchan] ([signup][slackjoin]).
