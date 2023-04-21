@@ -31,7 +31,7 @@ var _ = Describe("Flux", func() {
 		fluxClient, err = flux.NewClient(opts)
 		Expect(err).NotTo(HaveOccurred())
 		fluxClient.SetExecutor(fakeExecutor)
-		fakeExecutor.ExecWithOutReturns([]byte("flux version 0.13.3\n"), nil)
+		fakeExecutor.ExecWithOutReturns([]byte("flux version 2.0.0-rc.1\n"), nil)
 
 		binDir, err := os.MkdirTemp("", "bin")
 		Expect(err).NotTo(HaveOccurred())
@@ -96,7 +96,7 @@ var _ = Describe("Flux", func() {
 				})
 
 				It("returns an error saying older versions are not supported", func() {
-					Expect(fluxClient.PreFlight()).To(MatchError("found flux version 0.13.2, eksctl requires >= 0.13.3"))
+					Expect(fluxClient.PreFlight()).To(MatchError(ContainSubstring("found flux version 0.13.2, eksctl requires >= 0.13.3")))
 				})
 			})
 
@@ -116,7 +116,7 @@ var _ = Describe("Flux", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(fluxClient.PreFlight()).To(MatchError("Invalid Semantic Version"))
+					Expect(fluxClient.PreFlight()).To(MatchError(ContainSubstring("failed to parse Flux version")))
 				})
 			})
 		})

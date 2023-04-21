@@ -35,7 +35,7 @@ func isNodeReady(node *corev1.Node) bool {
 	return false
 }
 
-func getNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) (int, error) {
+func GetNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) (int, error) {
 	nodes, err := clientSet.CoreV1().Nodes().List(context.TODO(), ng.ListOptions())
 	if err != nil {
 		return 0, err

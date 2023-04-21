@@ -39,10 +39,12 @@ const (
 
 	Version1_25 = "1.25"
 
+	Version1_26 = "1.26"
+
 	// DefaultVersion (default)
 	DefaultVersion = Version1_25
 
-	LatestVersion = Version1_25
+	LatestVersion = Version1_26
 
 	DockershimDeprecationVersion = Version1_24
 )
@@ -88,8 +90,8 @@ const (
 
 // Not yet supported versions
 const (
-	// Version1_26 represents Kubernetes version 1.26.x
-	Version1_26 = "1.26"
+	// Version1_27 represents Kubernetes version 1.27.x
+	Version1_27 = "1.27"
 )
 
 const (
@@ -406,7 +408,7 @@ const (
 
 // supported version of Karpenter
 const (
-	supportedKarpenterVersion = "v0.17.0"
+	supportedKarpenterVersion = "v0.20.0"
 )
 
 // Values for Capacity Reservation Preference
@@ -547,6 +549,7 @@ func SupportedVersions() []string {
 		Version1_23,
 		Version1_24,
 		Version1_25,
+		Version1_26,
 	}
 }
 
@@ -943,6 +946,9 @@ type Karpenter struct {
 	// DefaultInstanceProfile override the default IAM instance profile
 	// +optional
 	DefaultInstanceProfile *string `json:"defaultInstanceProfile,omitempty"`
+	// WithSpotInterruptionQueue if true, adds all required policies and rules
+	// for supporting Spot Interruption Queue on Karpenter deployments
+	WithSpotInterruptionQueue *bool `json:"withSpotInterruptionQueue,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

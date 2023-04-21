@@ -27,12 +27,10 @@ type Outposts interface {
 	// Amazon Web Services uses this action to install Outpost servers. Gets
 	// information about the specified connection. Use CloudTrail to monitor this
 	// action or Amazon Web Services managed policy for Amazon Web Services Outposts to
-	// secure it. For more information, see  Amazon Web Services managed policies for
-	// Amazon Web Services Outposts
-	// (https://docs.aws.amazon.com/outposts/latest/userguide/security-iam-awsmanpol.html)
-	// and  Logging Amazon Web Services Outposts API calls with Amazon Web Services
-	// CloudTrail
-	// (https://docs.aws.amazon.com/outposts/latest/userguide/logging-using-cloudtrail.html)
+	// secure it. For more information, see Amazon Web Services managed policies for
+	// Amazon Web Services Outposts (https://docs.aws.amazon.com/outposts/latest/userguide/security-iam-awsmanpol.html)
+	// and Logging Amazon Web Services Outposts API calls with Amazon Web Services
+	// CloudTrail (https://docs.aws.amazon.com/outposts/latest/userguide/logging-using-cloudtrail.html)
 	// in the Amazon Web Services Outposts User Guide.
 	GetConnection(ctx context.Context, params *GetConnectionInput, optFns ...func(*Options)) (*GetConnectionOutput, error)
 	// Gets information about the specified order.
@@ -77,12 +75,10 @@ type Outposts interface {
 	// Amazon Web Services uses this action to install Outpost servers. Starts the
 	// connection required for Outpost server installation. Use CloudTrail to monitor
 	// this action or Amazon Web Services managed policy for Amazon Web Services
-	// Outposts to secure it. For more information, see  Amazon Web Services managed
-	// policies for Amazon Web Services Outposts
-	// (https://docs.aws.amazon.com/outposts/latest/userguide/security-iam-awsmanpol.html)
-	// and  Logging Amazon Web Services Outposts API calls with Amazon Web Services
-	// CloudTrail
-	// (https://docs.aws.amazon.com/outposts/latest/userguide/logging-using-cloudtrail.html)
+	// Outposts to secure it. For more information, see Amazon Web Services managed
+	// policies for Amazon Web Services Outposts (https://docs.aws.amazon.com/outposts/latest/userguide/security-iam-awsmanpol.html)
+	// and Logging Amazon Web Services Outposts API calls with Amazon Web Services
+	// CloudTrail (https://docs.aws.amazon.com/outposts/latest/userguide/logging-using-cloudtrail.html)
 	// in the Amazon Web Services Outposts User Guide.
 	StartConnection(ctx context.Context, params *StartConnectionInput, optFns ...func(*Options)) (*StartConnectionOutput, error)
 	// Adds tags to the specified resource.
@@ -100,10 +96,9 @@ type Outposts interface {
 	UpdateSiteAddress(ctx context.Context, params *UpdateSiteAddressInput, optFns ...func(*Options)) (*UpdateSiteAddressOutput, error)
 	// Update the physical and logistical details for a rack at a site. For more
 	// information about hardware requirements for racks, see Network readiness
-	// checklist
-	// (https://docs.aws.amazon.com/outposts/latest/userguide/outposts-requirements.html#checklist)
+	// checklist (https://docs.aws.amazon.com/outposts/latest/userguide/outposts-requirements.html#checklist)
 	// in the Amazon Web Services Outposts User Guide. To update a rack at a site with
-	// an order of IN_PROGRESS, you must wait for the order to complete or cancel the
+	// an order of IN_PROGRESS , you must wait for the order to complete or cancel the
 	// order.
 	UpdateSiteRackPhysicalProperties(ctx context.Context, params *UpdateSiteRackPhysicalPropertiesInput, optFns ...func(*Options)) (*UpdateSiteRackPhysicalPropertiesOutput, error)
 }

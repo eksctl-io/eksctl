@@ -1,13 +1,13 @@
 # Karpenter Support
 
 `eksctl` provides adding [Karpenter](https://karpenter.sh/) to a newly created cluster. It will create all the necessary
-prerequisites outlined in Karpenter's [Getting Started](https://karpenter.sh/docs/getting-started/getting-started-with-eksctl/) section including installing
-Karpenter itself using Helm. We currently support installing versions starting `0.17.0` and above.
+prerequisites outlined in Karpenter's [Getting Started](https://karpenter.sh/docs/getting-started/) section including installing
+Karpenter itself using Helm. We currently support installing versions starting `0.20.0` and above.
 
 ???+ info
     With [v0.17.0](https://karpenter.sh/docs/upgrade-guide/#upgrading-to-v0170) Karpenter’s Helm chart package is now stored in Karpenter’s OCI (Open Container Initiative) registry.
-    Eksctl therefore is not supporting lower versions of Karpenter for new cluster creation. Previously created clusters shouldn't be affected by this change.
-    If you wish to upgrade your current installation of Karpenter please refer to the [upgrade guide](https://karpenter.sh/docs/upgrade-guide/)
+    Clusters created on previous versions shouldn't be affected by this change. If you wish to upgrade your current installation of Karpenter please refer to the [upgrade guide](https://karpenter.sh/docs/upgrade-guide/)
+    You have to be logged out of ECR repositories to be able to pull the OCI artifact by running `helm registry logout public.ecr.aws` or `docker logout public.ecr.aws`, failure to do so will result in a 403 error when trying to pull the chart.
 
 To that end, a new configuration value has been introduced into `eksctl` cluster config called `karpenter`. The following
 yaml outlines a typical installation configuration:
@@ -26,7 +26,7 @@ iam:
   withOIDC: true # required
 
 karpenter:
-  version: 'v0.18.0' # Exact version must be specified
+  version: 'v0.20.0' # Exact version must be specified
 
 managedNodeGroups:
   - name: managed-ng-1
@@ -40,9 +40,10 @@ to be set:
 
 ```yaml
 karpenter:
-  version: 'v0.18.0'
+  version: 'v0.20.0'
   createServiceAccount: true # default is false
   defaultInstanceProfile: 'KarpenterNodeInstanceProfile' # default is to use the IAM instance profile created by eksctl
+  withSpotInterruptionQueue: true # adds all required policies and rules for supporting Spot Interruption Queue, default is false
 ```
 
 OIDC must be defined in order to install Karpenter.

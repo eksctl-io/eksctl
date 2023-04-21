@@ -137,6 +137,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 			})
 
 			When("adding an unmanaged nodegroup by default", func() {
+				params.LogStacksEventsOnFailure()
 				It("should install without error", func() {
 					cmd := params.EksctlCreateCmd.WithArgs(
 						"nodegroup",

@@ -12,8 +12,9 @@ iam:
   withOIDC: true
 
 karpenter:
-  version: 'v0.18.0' # Exact version must be provided
+  version: 'v0.20.0' # Exact version must be provided
   createServiceAccount: true # default is false
+  withSpotInterruptionQueue: true # adds all required policies and rules for supporting Spot Interruption Queue, default is false
 
 managedNodeGroups:
   - name: managed-ng-1
