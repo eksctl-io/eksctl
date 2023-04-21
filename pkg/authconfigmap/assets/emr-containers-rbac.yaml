@@ -26,7 +26,10 @@ rules:
     verbs: ["get", "list", "watch", "describe", "create", "edit", "delete", "deletecollection", "annotate", "patch", "label"]
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
-    verbs: ["create", "list", "delete"]   
+    verbs: ["create", "list", "delete"]
+  - apiGroups: ["scheduling.volcano.sh"]
+    resources: ["podgroups"]
+    verbs: ["get", "list", "watch", "create", "delete", "update"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
