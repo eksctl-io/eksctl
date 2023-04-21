@@ -16,12 +16,9 @@ privateCluster:
 ```
 
 ???+ note
-    Post cluster creation, not all eksctl commands will be supported, especially commands that need access to the Kubernetes API server.
-    Creating managed nodegroups will continue to work, however, creating self-managed nodegroups will not work as it needs access to the API server.
-    Even if the command is run from within the cluster's VPC, a peered VPC or using some other means like AWS Direct Connect, some commands may fail
-    because they'll need private access to the EKS API (`DescribeCluster`), and the AWS EKS service does not offer an interface endpoint.
-    If your setup can reach the EKS API server endpoint via its private address, and has outbound internet access (for `EKS:DescribeCluster`),
-    all eksctl commands should work.
+    You can now use [AWS PrivateLink](https://docs.aws.amazon.com/vpc/latest/privatelink/getting-started.html) to privately access the Amazon Elastic Kubernetes Service (Amazon EKS) management APIs from your Amazon Virtual Private Cloud (VPC). 
+    Post cluster creation, not all eksctl commands will be supported, especially commands that need access to the OpenID Connect provider URL since the endpoint is publicly reachable. You will need to execute the oidc related commands from outside of your cluster's VPC once you've enabled AWS PrivateLink for Amazon EKS.
+    Creating managed nodegroups will continue to work, and creating self-managed nodegroups will work as it needs access to the API server via the EKS [interface endpoint](https://aws.amazon.com/about-aws/whats-new/2022/12/amazon-eks-supports-aws-privatelink/) if the command is run from within the cluster's VPC, a peered VPC or using some other means like AWS Direct Connect. 
 
 ???+ info
     VPC endpoints are charged by the hour and based on usage. More details about pricing can be found at
@@ -34,6 +31,7 @@ privateCluster:
 
 To enable worker nodes to access AWS services privately, eksctl creates VPC endpoints for the following services:
 
+- An interface endpoint for EKS to privately access the EKS management APIs
 - Interface endpoints for ECR (both `ecr.api` and `ecr.dkr`) to pull container images (AWS CNI plugin etc)
 - A gateway endpoint for S3 to pull the actual image layers
 - An interface endpoint for EC2 required by the `aws-cloud-provider` integration
