@@ -16,7 +16,7 @@ privateCluster:
 ```
 
 ???+ note
-    You can now use AWS PrivateLink to privately access the Amazon Elastic Kubernetes Service (Amazon EKS) management APIs from your Amazon Virtual Private Cloud (VPC). 
+    You can now use [AWS PrivateLink](https://docs.aws.amazon.com/vpc/latest/privatelink/getting-started.html) to privately access the Amazon Elastic Kubernetes Service (Amazon EKS) management APIs from your Amazon Virtual Private Cloud (VPC). 
     Post cluster creation, not all eksctl commands will be supported, especially commands that need access to the OpenID Connect provider URL since the endpoint is publicly reachable. You will need to execute the oidc related commands from outside of your cluster's VPC once you've enabled AWS PrivateLink for Amazon EKS.
     Creating managed nodegroups will continue to work, and creating self-managed nodegroups will work as it needs access to the API server via the EKS [interface endpoint](https://aws.amazon.com/about-aws/whats-new/2022/12/amazon-eks-supports-aws-privatelink/) if the command is run from within the cluster's VPC, a peered VPC or using some other means like AWS Direct Connect. 
 
