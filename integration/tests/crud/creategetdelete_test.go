@@ -29,6 +29,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
+	"github.com/weaveworks/eksctl/integration/runner"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
@@ -448,10 +449,38 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				By("passing the name of the nodegroup as a flag")
 				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
 					"--cluster", params.ClusterName,
+					"--nodes-min", "3",
+					"--nodes", "3",
+					"--nodes-max", "3",
+					"--name", mngNG1,
+				)
+				Expect(cmd).To(RunSuccessfully())
+
+				Eventually(func() runner.Cmd {
+					getMngNgCmd := params.EksctlGetCmd.WithArgs(
+						"nodegroup",
+						"--cluster", params.ClusterName,
+						"--name", mngNG1,
+						"-o", "yaml",
+					)
+					return getMngNgCmd
+				}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(
+					ContainElement(ContainSubstring("Type: managed")),
+					ContainElement(ContainSubstring("MaxSize: 3")),
+					ContainElement(ContainSubstring("MinSize: 3")),
+					ContainElement(ContainSubstring("DesiredCapacity: 3")),
+					ContainElement(ContainSubstring("Status: ACTIVE")),
+				))
+			})
+
+			It("should scale a single nodegroup with wait flag", func() {
+				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
+					"--cluster", params.ClusterName,
 					"--nodes-min", "4",
 					"--nodes", "4",
 					"--nodes-max", "4",
 					"--name", mngNG1,
+					"--wait",
 				)
 				Expect(cmd).To(RunSuccessfully())
 
@@ -466,8 +495,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					ContainElement(ContainSubstring("MaxSize: 4")),
 					ContainElement(ContainSubstring("MinSize: 4")),
 					ContainElement(ContainSubstring("DesiredCapacity: 4")),
-				),
-				)
+					ContainElement(ContainSubstring("Status: ACTIVE")),
+				))
 			})
 
 			It("should scale all nodegroups", func() {
@@ -479,36 +508,36 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/scale-nodegroups.yaml"))
 				Expect(cmd).To(RunSuccessfully())
 
-				getMngNgCmd := params.EksctlGetCmd.WithArgs(
-					"nodegroup",
-					"--cluster", params.ClusterName,
-					"--name", mngNG1,
-					"-o", "yaml",
-				)
-
-				Expect(getMngNgCmd).To(SatisfyAll(
-					RunSuccessfullyWithOutputStringLines(
-						ContainElement(ContainSubstring("MaxSize: 5")),
-						ContainElement(ContainSubstring("MinSize: 5")),
-						ContainElement(ContainSubstring("DesiredCapacity: 5")),
-						ContainElement(ContainSubstring("Type: managed")),
-					),
+				Eventually(func() runner.Cmd {
+					getMngNgCmd := params.EksctlGetCmd.WithArgs(
+						"nodegroup",
+						"--cluster", params.ClusterName,
+						"--name", mngNG1,
+						"-o", "yaml",
+					)
+					return getMngNgCmd
+				}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(
+					ContainElement(ContainSubstring("Type: managed")),
+					ContainElement(ContainSubstring("MaxSize: 5")),
+					ContainElement(ContainSubstring("MinSize: 5")),
+					ContainElement(ContainSubstring("DesiredCapacity: 5")),
+					ContainElement(ContainSubstring("Status: ACTIVE")),
 				))
 
-				getUnmNgCmd := params.EksctlGetCmd.WithArgs(
-					"nodegroup",
-					"--cluster", params.ClusterName,
-					"--name", unmNG1,
-					"-o", "yaml",
-				)
-
-				Expect(getUnmNgCmd).To(SatisfyAll(
-					RunSuccessfullyWithOutputStringLines(
-						ContainElement(ContainSubstring("MaxSize: 5")),
-						ContainElement(ContainSubstring("MinSize: 5")),
-						ContainElement(ContainSubstring("DesiredCapacity: 5")),
-						ContainElement(ContainSubstring("Type: unmanaged")),
-					),
+				Eventually(func() runner.Cmd {
+					getUnmNgCmd := params.EksctlGetCmd.WithArgs(
+						"nodegroup",
+						"--cluster", params.ClusterName,
+						"--name", unmNG1,
+						"-o", "yaml",
+					)
+					return getUnmNgCmd
+				}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(
+					ContainElement(ContainSubstring("Type: unmanaged")),
+					ContainElement(ContainSubstring("MaxSize: 5")),
+					ContainElement(ContainSubstring("MinSize: 5")),
+					ContainElement(ContainSubstring("DesiredCapacity: 5")),
+					ContainElement(ContainSubstring("Status: CREATE_COMPLETE")),
 				))
 			})
 		})
@@ -1224,6 +1253,22 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--name", mngNG1,
 				)
 				Expect(cmd).To(RunSuccessfully())
+
+				Eventually(func() runner.Cmd {
+					getMngNgCmd := params.EksctlGetCmd.WithArgs(
+						"nodegroup",
+						"--cluster", params.ClusterName,
+						"--name", mngNG1,
+						"-o", "yaml",
+					)
+					return getMngNgCmd
+				}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(
+					ContainElement(ContainSubstring("Type: managed")),
+					ContainElement(ContainSubstring("MaxSize: 1")),
+					ContainElement(ContainSubstring("MinSize: 1")),
+					ContainElement(ContainSubstring("DesiredCapacity: 1")),
+					ContainElement(ContainSubstring("Status: ACTIVE")),
+				))
 			})
 		})
 

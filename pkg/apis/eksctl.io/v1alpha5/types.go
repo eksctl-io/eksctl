@@ -39,10 +39,12 @@ const (
 
 	Version1_25 = "1.25"
 
+	Version1_26 = "1.26"
+
 	// DefaultVersion (default)
 	DefaultVersion = Version1_25
 
-	LatestVersion = Version1_25
+	LatestVersion = Version1_26
 
 	DockershimDeprecationVersion = Version1_24
 )
@@ -88,8 +90,8 @@ const (
 
 // Not yet supported versions
 const (
-	// Version1_26 represents Kubernetes version 1.26.x
-	Version1_26 = "1.26"
+	// Version1_27 represents Kubernetes version 1.27.x
+	Version1_27 = "1.27"
 )
 
 const (
@@ -547,6 +549,7 @@ func SupportedVersions() []string {
 		Version1_23,
 		Version1_24,
 		Version1_25,
+		Version1_26,
 	}
 }
 
