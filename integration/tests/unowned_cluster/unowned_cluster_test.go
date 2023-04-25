@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -367,27 +368,43 @@ func createClusterWithNodeGroup(ctx context.Context, clusterName, stackName, ng1
 	newVPC := api.NewClusterVPC(false)
 	newVPC.ID = vpcID
 	newVPC.SecurityGroup = securityGroup
+
+	output, err := ctl.EC2().DescribeSubnets(ctx, &ec2.DescribeSubnetsInput{
+		SubnetIds: append(publicSubnets, privateSubnets...),
+	})
+	Expect(err).NotTo(HaveOccurred())
+	subnetToAZMap := map[string]string{}
+	for _, s := range output.Subnets {
+		subnetToAZMap[*s.SubnetId] = *s.AvailabilityZone
+	}
+
 	newVPC.Subnets = &api.ClusterSubnets{
 		Public: api.AZSubnetMapping{
 			"public1": api.AZSubnetSpec{
 				ID: publicSubnets[0],
+				AZ: subnetToAZMap[publicSubnets[0]],
 			},
 			"public2": api.AZSubnetSpec{
 				ID: publicSubnets[1],
+				AZ: subnetToAZMap[publicSubnets[1]],
 			},
 			"public3": api.AZSubnetSpec{
 				ID: publicSubnets[2],
+				AZ: subnetToAZMap[publicSubnets[2]],
 			},
 		},
 		Private: api.AZSubnetMapping{
 			"private4": api.AZSubnetSpec{
 				ID: privateSubnets[0],
+				AZ: subnetToAZMap[privateSubnets[0]],
 			},
 			"private5": api.AZSubnetSpec{
 				ID: privateSubnets[1],
+				AZ: subnetToAZMap[privateSubnets[1]],
 			},
 			"private6": api.AZSubnetSpec{
 				ID: privateSubnets[2],
+				AZ: subnetToAZMap[privateSubnets[2]],
 			},
 		},
 	}

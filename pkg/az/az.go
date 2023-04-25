@@ -135,7 +135,7 @@ func GetInstanceTypeOfferings(ctx context.Context, ec2API awsapi.EC2, instances 
 		MaxResults:   aws.Int32(100),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to list offerings for instance types %w", err)
+		return nil, fmt.Errorf("unable to list offerings for instance types: %w", err)
 	}
 
 	// zoneToInstanceMap['us-west-1b']['t2.small']=struct{}{}
