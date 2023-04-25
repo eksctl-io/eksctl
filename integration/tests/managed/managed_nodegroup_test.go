@@ -623,7 +623,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				}
 
 				upgradeNg(initialAl2Nodegroup)
-				// upgradeNg(bottlerocketNodegroup) See https://github.com/weaveworks/eksctl/issues/6544.
+				upgradeNg(bottlerocketNodegroup)
 			})
 		})
 
