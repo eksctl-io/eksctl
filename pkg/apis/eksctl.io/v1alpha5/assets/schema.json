@@ -1770,7 +1770,9 @@
           "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
         },
         "instanceProfileARN": {
-          "type": "string"
+          "type": "string",
+          "description": "holds the ARN of instance profile, not supported for Managed NodeGroups",
+          "x-intellij-html-description": "holds the ARN of instance profile, not supported for Managed NodeGroups"
         },
         "instanceRoleARN": {
           "type": "string"
