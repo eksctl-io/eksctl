@@ -1947,8 +1947,8 @@
         },
         "withShared": {
           "type": "boolean",
-          "description": "attach the security group shared among all nodegroups in the cluster",
-          "x-intellij-html-description": "attach the security group shared among all nodegroups in the cluster",
+          "description": "attach the security group shared among all nodegroups in the cluster Not supported for managed nodegroups",
+          "x-intellij-html-description": "attach the security group shared among all nodegroups in the cluster Not supported for managed nodegroups",
           "default": true
         }
       },
