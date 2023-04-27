@@ -1294,6 +1294,7 @@ type (
 		AttachIDs []string `json:"attachIDs,omitempty"`
 		// WithShared attach the security group
 		// shared among all nodegroups in the cluster
+		// Not supported for managed nodegroups
 		// Defaults to `true`
 		// +optional
 		WithShared *bool `json:"withShared"`
@@ -1312,6 +1313,7 @@ type (
 		// list of ARNs of the IAM policies to attach
 		// +optional
 		AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
+		// InstanceProfileARN holds the ARN of instance profile, not supported for Managed NodeGroups
 		// +optional
 		InstanceProfileARN string `json:"instanceProfileARN,omitempty"`
 		// +optional
