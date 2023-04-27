@@ -322,20 +322,6 @@ var _ = Describe("create cluster", func() {
 			},
 			updateMocks: func(p *mockprovider.MockProvider) {
 				updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup)(p)
-				p.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
-					InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
-						{
-							InstanceType: "g3.xlarge",
-							Location:     aws.String("us-west-2-1b"),
-							LocationType: "availability-zone",
-						},
-						{
-							InstanceType: "g3.xlarge",
-							Location:     aws.String("us-west-2-1a"),
-							LocationType: "availability-zone",
-						},
-					},
-				}, nil)
 			},
 			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
 				rawClient, err := kubernetes.NewRawClient(kubefake.NewSimpleClientset(), &rest.Config{})
@@ -780,6 +766,20 @@ var (
 
 	updateMocksForNodegroups = func(status cftypes.StackStatus, outputs []cftypes.Output) func(mp *mockprovider.MockProvider) {
 		return func(mp *mockprovider.MockProvider) {
+			mp.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+				InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
+					{
+						InstanceType: "g3.xlarge",
+						Location:     aws.String("us-west-2-1b"),
+						LocationType: "availability-zone",
+					},
+					{
+						InstanceType: "g3.xlarge",
+						Location:     aws.String("us-west-2-1a"),
+						LocationType: "availability-zone",
+					},
+				},
+			}, nil)
 			mp.MockCloudFormation().On("CreateStack", mock.Anything, mock.Anything).Return(&cloudformation.CreateStackOutput{
 				StackId: aws.String(nodeGroupStackName),
 			}, nil).Once()

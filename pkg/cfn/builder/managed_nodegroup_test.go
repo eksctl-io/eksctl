@@ -1,4 +1,4 @@
-package builder
+package builder_test
 
 import (
 	"context"
@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"testing"
 
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/stretchr/testify/require"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
@@ -115,7 +117,11 @@ func TestManagedPolicyResources(t *testing.T) {
 			bootstrapper.UserDataStub = func() (string, error) {
 				return "", nil
 			}
-			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, ng, nil, bootstrapper, false, fakeVPCImporter)
+			mockSubnetsAndAZInstanceSupport(clusterConfig, p,
+				[]string{"us-west-2a"},
+				[]string{}, // local zones
+				[]ec2types.InstanceType{api.DefaultNodeType})
+			stack := builder.NewManagedNodeGroup(p.EC2(), clusterConfig, ng, nil, bootstrapper, false, fakeVPCImporter)
 			err := stack.AddAllResources(context.Background())
 			require.Nil(err)
 
@@ -125,7 +131,7 @@ func TestManagedPolicyResources(t *testing.T) {
 			template, err := goformation.ParseJSON(bytes)
 			require.NoError(err)
 
-			role, err := template.GetIAMRoleWithName(cfnIAMInstanceRoleName)
+			role, err := template.GetIAMRoleWithName(builder.GetIAMRoleName())
 			require.NoError(err)
 
 			require.ElementsMatch(tt.expectedManagedPolicies, role.ManagedPolicyArns.Raw().(gfnt.Slice))
@@ -166,7 +172,7 @@ func TestManagedNodeRole(t *testing.T) {
 				NodeGroupBase: &api.NodeGroupBase{},
 			},
 			expectedNewRole:     true,
-			expectedNodeRoleARN: gfnt.MakeFnGetAtt(cfnIAMInstanceRoleName, gfnt.NewString("Arn")), // creating new role
+			expectedNodeRoleARN: gfnt.MakeFnGetAtt(builder.GetIAMRoleName(), gfnt.NewString("Arn")), // creating new role
 		},
 		{
 			description: "InstanceRoleARN is provided",
@@ -203,7 +209,11 @@ func TestManagedNodeRole(t *testing.T) {
 			fakeVPCImporter := new(vpcfakes.FakeImporter)
 			bootstrapper, err := nodebootstrap.NewManagedBootstrapper(clusterConfig, tt.nodeGroup)
 			require.NoError(err)
-			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, tt.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)
+			mockSubnetsAndAZInstanceSupport(clusterConfig, p,
+				[]string{"us-west-2a"},
+				[]string{}, // local zones
+				[]ec2types.InstanceType{api.DefaultNodeType})
+			stack := builder.NewManagedNodeGroup(p.EC2(), clusterConfig, tt.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)
 			err = stack.AddAllResources(context.Background())
 			require.NoError(err)
 
@@ -212,13 +222,13 @@ func TestManagedNodeRole(t *testing.T) {
 
 			template, err := goformation.ParseJSON(bytes)
 			require.NoError(err)
-			ngResource, ok := template.Resources[ManagedNodeGroupResourceName]
+			ngResource, ok := template.Resources[builder.ManagedNodeGroupResourceName]
 			require.True(ok)
 			ng, ok := ngResource.(*gfneks.Nodegroup)
 			require.True(ok)
 			require.Equal(tt.expectedNodeRoleARN, ng.NodeRole)
 
-			_, ok = template.GetAllIAMRoleResources()[cfnIAMInstanceRoleName]
+			_, ok = template.GetAllIAMRoleResources()[builder.GetIAMRoleName()]
 			require.Equal(tt.expectedNewRole, ok)
 		})
 	}
