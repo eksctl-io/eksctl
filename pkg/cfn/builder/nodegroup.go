@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"k8s.io/utils/strings/slices"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
@@ -18,6 +19,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
+	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -243,7 +245,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) err
 		LaunchTemplateData: launchTemplateData,
 	})
 
-	vpcZoneIdentifier, err := AssignSubnets(ctx, n.spec, n.vpcImporter, n.clusterSpec, n.ec2API)
+	vpcZoneIdentifier, err := AssignSubnets(ctx, n.spec, n.clusterSpec, n.ec2API)
 	if err != nil {
 		return err
 	}
@@ -333,23 +335,47 @@ func generateNodeName(ng *api.NodeGroupBase, meta *api.ClusterMeta) string {
 }
 
 // AssignSubnets assigns subnets based on the availability zones, local zones and subnet IDs in the specified nodegroup.
-func AssignSubnets(ctx context.Context, np api.NodePool, vpcImporter vpc.Importer, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2) (*gfnt.Value, error) {
-	// Currently, goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
-	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
-
+func AssignSubnets(ctx context.Context, np api.NodePool, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2) (*gfnt.Value, error) {
 	ng := np.BaseNodeGroup()
-	if nodeGroup, ok := np.(*api.NodeGroup); (!ok || len(nodeGroup.LocalZones) == 0) && len(ng.AvailabilityZones) == 0 && len(ng.Subnets) == 0 && (ng.OutpostARN == "" || clusterConfig.IsControlPlaneOnOutposts()) {
-		if ng.PrivateNetworking {
-			return vpcImporter.SubnetsPrivate(), nil
+	if !shouldImportSubnetsFromVPC(np, clusterConfig) {
+		subnetIDs, err := vpc.SelectNodeGroupSubnets(ctx, np, clusterConfig, ec2API)
+		if err != nil {
+			return nil, err
 		}
-		return vpcImporter.SubnetsPublic(), nil
+		return gfnt.NewStringSlice(subnetIDs...), nil
 	}
 
-	subnetIDs, err := vpc.SelectNodeGroupSubnets(ctx, np, clusterConfig, ec2API)
+	supportedZones, err := az.FilterBasedOnAvailability(ctx, clusterConfig.AvailabilityZones, []api.NodePool{np}, ec2API)
 	if err != nil {
 		return nil, err
 	}
+
+	subnetMapping := clusterConfig.VPC.Subnets.Public
+	if ng.PrivateNetworking {
+		subnetMapping = clusterConfig.VPC.Subnets.Private
+	}
+
+	subnetIDs := []string{}
+	// only assign a subnet if the AZ to which it belongs supports all required instance types
+	for key, subnetSpec := range subnetMapping {
+		az := subnetSpec.AZ
+		if az == "" {
+			az = key
+		}
+		if !slices.Contains(supportedZones, az) {
+			continue
+		}
+		subnetIDs = append(subnetIDs, subnetSpec.ID)
+	}
 	return gfnt.NewStringSlice(subnetIDs...), nil
+}
+
+func shouldImportSubnetsFromVPC(np api.NodePool, cfg *api.ClusterConfig) bool {
+	ng := np.BaseNodeGroup()
+	if nodeGroup, ok := np.(*api.NodeGroup); (!ok || len(nodeGroup.LocalZones) == 0) && len(ng.AvailabilityZones) == 0 && len(ng.Subnets) == 0 && (ng.OutpostARN == "" || cfg.IsControlPlaneOnOutposts()) {
+		return true
+	}
+	return false
 }
 
 // GetAllOutputs collects all outputs of the nodegroup

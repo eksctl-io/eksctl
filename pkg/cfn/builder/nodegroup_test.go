@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -21,7 +22,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
-	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
 	bootstrapfakes "github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 )
@@ -34,8 +34,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 		forceAddCNIPolicy bool
 		fakeVPCImporter   *vpcfakes.FakeImporter
 		fakeBootstrapper  *bootstrapfakes.FakeBootstrapper
-		mockEC2           = &mocksv2.EC2{}
-		mockIAM           = &mocksv2.IAM{}
+		p                 = mockprovider.NewMockProvider()
 	)
 
 	BeforeEach(func() {
@@ -43,10 +42,16 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 		fakeVPCImporter = new(vpcfakes.FakeImporter)
 		fakeBootstrapper = new(bootstrapfakes.FakeBootstrapper)
 		cfg, ng = newClusterAndNodeGroup()
+		mockSubnetsAndAZInstanceSupport(cfg, p,
+			[]string{"us-west-2a"},
+			[]string{}, // local zones
+			[]ec2types.InstanceType{
+				api.DefaultNodeType,
+			})
 	})
 
 	JustBeforeEach(func() {
-		ngrs = builder.NewNodeGroupResourceSet(mockEC2, mockIAM, cfg, ng, fakeBootstrapper, forceAddCNIPolicy, fakeVPCImporter)
+		ngrs = builder.NewNodeGroupResourceSet(p.MockEC2(), p.MockIAM(), cfg, ng, fakeBootstrapper, forceAddCNIPolicy, fakeVPCImporter)
 	})
 
 	Describe("AddAllResources", func() {
@@ -604,7 +609,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			Context("ng.EFA is enabled", func() {
 				BeforeEach(func() {
 					ng.EFAEnabled = aws.Bool(true)
-					mockEC2.On("DescribeInstanceTypes",
+					p.MockEC2().On("DescribeInstanceTypes",
 						mock.Anything,
 						&ec2.DescribeInstanceTypesInput{
 							InstanceTypes: []ec2types.InstanceType{ec2types.InstanceTypeM5Large},

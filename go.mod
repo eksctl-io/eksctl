@@ -8,24 +8,24 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.2.0
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.1
-	github.com/aws/aws-sdk-go v1.44.240
-	github.com/aws/aws-sdk-go-v2 v1.17.8
+	github.com/aws/aws-sdk-go v1.44.250
+	github.com/aws/aws-sdk-go-v2 v1.18.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.19
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.20
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.3
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.27.2
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.24.6
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.20.9
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.5
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.27.3
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.24.7
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.20.10
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.22.8
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.93.2
-	github.com/aws/aws-sdk-go-v2/service/eks v1.27.10
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.8
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.9
-	github.com/aws/aws-sdk-go-v2/service/iam v1.19.10
-	github.com/aws/aws-sdk-go-v2/service/kms v1.20.10
-	github.com/aws/aws-sdk-go-v2/service/outposts v1.27.8
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.2
-	github.com/aws/aws-sdk-go-v2/service/sts v1.18.9
+	github.com/aws/aws-sdk-go-v2/service/eks v1.27.11
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.9
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.10
+	github.com/aws/aws-sdk-go-v2/service/iam v1.19.11
+	github.com/aws/aws-sdk-go-v2/service/kms v1.20.12
+	github.com/aws/aws-sdk-go-v2/service/outposts v1.27.9
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.3
+	github.com/aws/aws-sdk-go-v2/service/sts v1.18.10
 	github.com/aws/smithy-go v1.13.5
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
@@ -146,10 +146,10 @@ require (
 	github.com/atc0005/go-teams-notify/v2 v2.6.1 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.2 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.32 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.26 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.33 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.27 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.32 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.26 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.27 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.12.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.8 // indirect
 	github.com/awslabs/goformation/v4 v4.19.5 // indirect

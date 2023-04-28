@@ -116,14 +116,9 @@
                 "MaxSize":2,
                 "MinSize":2
             },
-            "Subnets":{
-                "Fn::Split":[
-                    ",",
-                    {
-                        "Fn::ImportValue":"eksctl-lt::SubnetsPublic"
-                    }
-                ]
-            },
+            "Subnets": [
+                "subnet-public-us-west-2a"
+            ],
             "Tags":{
                 "alpha.eksctl.io/nodegroup-name":"capacity-test",
                 "alpha.eksctl.io/nodegroup-type":"managed"

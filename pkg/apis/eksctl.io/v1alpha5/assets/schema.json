@@ -1770,7 +1770,9 @@
           "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
         },
         "instanceProfileARN": {
-          "type": "string"
+          "type": "string",
+          "description": "holds the ARN of instance profile, not supported for Managed NodeGroups",
+          "x-intellij-html-description": "holds the ARN of instance profile, not supported for Managed NodeGroups"
         },
         "instanceRoleARN": {
           "type": "string"
@@ -1945,8 +1947,8 @@
         },
         "withShared": {
           "type": "boolean",
-          "description": "attach the security group shared among all nodegroups in the cluster",
-          "x-intellij-html-description": "attach the security group shared among all nodegroups in the cluster",
+          "description": "attach the security group shared among all nodegroups in the cluster Not supported for managed nodegroups",
+          "x-intellij-html-description": "attach the security group shared among all nodegroups in the cluster Not supported for managed nodegroups",
           "default": true
         }
       },
