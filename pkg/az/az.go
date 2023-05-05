@@ -82,39 +82,49 @@ func getZones(ctx context.Context, ec2API awsapi.EC2, region string, spec *api.C
 	}
 
 	filteredZones := filterZones(region, output.AvailabilityZones)
-	return filterBasedOnAvailability(ctx, filteredZones, spec, ec2API)
+	return FilterBasedOnAvailability(ctx, filteredZones, nodes.ToNodePools(spec), ec2API)
 }
 
-func filterBasedOnAvailability(ctx context.Context, zones []string, spec *api.ClusterConfig, ec2API awsapi.EC2) ([]string, error) {
-	var (
-		instanceList []string
-		instances    = make(map[string]struct{}, 0)
-	)
-
-	nodePools := nodes.ToNodePools(spec)
-	for _, ng := range nodePools {
-		for _, i := range ng.InstanceTypeList() {
-			if _, ok := instances[i]; !ok {
-				instanceList = append(instanceList, i)
-			}
-			instances[i] = struct{}{}
-		}
-	}
+func FilterBasedOnAvailability(ctx context.Context, zones []string, np []api.NodePool, ec2API awsapi.EC2) ([]string, error) {
+	uniqueInstances := nodes.CollectUniqueInstanceTypes(np)
 
 	// Do an early exit if we don't have anything.
-	if len(instances) == 0 {
+	if len(uniqueInstances) == 0 {
 		// nothing to do
 		return zones, nil
 	}
 
-	// This list count will not exceed a 100, so it's not necessary to paginate it.
-	// I doubt that there is a config out there with 20 different distinct instances defined in them.
-	// If you find yourself reading this comment with that exact problem... You deserve a cookie.
-	input := &ec2.DescribeInstanceTypeOfferingsInput{
+	zoneToInstanceMap, err := GetInstanceTypeOfferings(ctx, ec2API, uniqueInstances, zones)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if a randomly selected zone supports all selected instances.
+	// If we find an instance that is not supported by the selected zone,
+	// we do not return that zone.
+	var filteredList []string
+	for _, zone := range zones {
+		var noSupport []string
+		for _, instance := range uniqueInstances {
+			if _, ok := zoneToInstanceMap[zone][instance]; !ok {
+				noSupport = append(noSupport, instance)
+			}
+		}
+		if len(noSupport) == 0 {
+			filteredList = append(filteredList, zone)
+		} else {
+			logger.Info("skipping %s from selection because it doesn't support the following instance type(s): %s", zone, gostrings.Join(noSupport, ","))
+		}
+	}
+	return filteredList, nil
+}
+
+func GetInstanceTypeOfferings(ctx context.Context, ec2API awsapi.EC2, instances []string, zones []string) (map[string]map[string]struct{}, error) {
+	output, err := ec2API.DescribeInstanceTypeOfferings(ctx, &ec2.DescribeInstanceTypeOfferingsInput{
 		Filters: []ec2types.Filter{
 			{
 				Name:   aws.String("instance-type"),
-				Values: instanceList,
+				Values: instances,
 			},
 			{
 				Name:   aws.String("location"),
@@ -123,8 +133,7 @@ func filterBasedOnAvailability(ctx context.Context, zones []string, spec *api.Cl
 		},
 		LocationType: ec2types.LocationTypeAvailabilityZone,
 		MaxResults:   aws.Int32(100),
-	}
-	output, err := ec2API.DescribeInstanceTypeOfferings(ctx, input)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to list offerings for instance types: %w", err)
 	}
@@ -139,24 +148,7 @@ func filterBasedOnAvailability(ctx context.Context, zones []string, spec *api.Cl
 		zoneToInstanceMap[aws.ToString(offer.Location)][string(offer.InstanceType)] = struct{}{}
 	}
 
-	// check if a randomly selected zone supports all selected instances.
-	// If we find an instance that is not supported by the selected zone,
-	// we do not return that zone.
-	var filteredList []string
-	for _, zone := range zones {
-		var noSupport []string
-		for _, instance := range instanceList {
-			if _, ok := zoneToInstanceMap[zone][instance]; !ok {
-				noSupport = append(noSupport, instance)
-			}
-		}
-		if len(noSupport) == 0 {
-			filteredList = append(filteredList, zone)
-		} else {
-			logger.Info("skipping %s from selection because it doesn't support the following instance type(s): %s", zone, gostrings.Join(noSupport, ","))
-		}
-	}
-	return filteredList, nil
+	return zoneToInstanceMap, nil
 }
 
 func filterZones(region string, zones []ec2types.AvailabilityZone) []string {

@@ -90,7 +90,7 @@ var _ = Describe("eks auth helpers", func() {
 					var expectedArgs, roleARNArg string
 					switch k.AuthInfos[ctx].Exec.Command {
 					case "aws":
-						expectedArgs = "eks get-token --cluster-name auth-test-cluster --region eu-west-3"
+						expectedArgs = "eks get-token --output json --cluster-name auth-test-cluster --region eu-west-3"
 						roleARNArg = "--role-arn"
 					case "aws-iam-authenticator":
 						expectedArgs = "token -i auth-test-cluster"

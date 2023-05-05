@@ -12,14 +12,17 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/bxcodec/faker/support/slice"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
+	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
+	"github.com/weaveworks/eksctl/pkg/utils/nodes"
 )
 
 // SetSubnets defines CIDRs for each of the subnets,
@@ -685,6 +688,8 @@ func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig 
 		publicSubnetMapping  api.AZSubnetMapping
 		privateSubnetMapping api.AZSubnetMapping
 		zones                []string
+		supportedZones       *[]string
+		zoneTypeMapping      *map[string]ZoneType
 	)
 
 	ng := np.BaseNodeGroup()
@@ -713,45 +718,69 @@ func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig 
 		return fmt.Sprintf("(allSubnets=%#v localZones=%#v subnets=%#v)", subnetMapping, zones, ng.Subnets)
 	}
 
+	validateZoneType := func(zone string) error {
+		if zoneTypeMapping == nil {
+			output, err := DiscoverZoneTypes(ctx, ec2API, clusterConfig.Metadata.Region)
+			if err != nil {
+				return fmt.Errorf("error discovering zone types: %w", err)
+			}
+			zoneTypeMapping = &output
+		}
+		zoneType, ok := (*zoneTypeMapping)[zone]
+		if !ok {
+			return fmt.Errorf("unexpected error finding zone type for zone %q", zone)
+		}
+		if nodes.IsManaged(np) {
+			if zoneType == ZoneTypeLocalZone {
+				return fmt.Errorf("managed nodegroups cannot be launched in local zones: %q", ng.Name)
+			}
+			return nil
+		}
+		if zoneType == ZoneTypeAvailabilityZone {
+			logger.Warning("subnets contain a mix of both local and availability zones")
+		}
+		return nil
+	}
+
+	validateZoneInstanceSupport := func(zone string) error {
+		if supportedZones == nil {
+			output, err := az.FilterBasedOnAvailability(ctx, clusterConfig.AvailabilityZones, []api.NodePool{np}, ec2API)
+			if err != nil {
+				return err
+			}
+			supportedZones = &output
+		}
+		if zoneTypeMapping == nil {
+			output, err := DiscoverZoneTypes(ctx, ec2API, clusterConfig.Metadata.Region)
+			if err != nil {
+				return fmt.Errorf("error discovering zone types: %w", err)
+			}
+			zoneTypeMapping = &output
+		}
+		zoneType, ok := (*zoneTypeMapping)[zone]
+		if !ok {
+			return fmt.Errorf("unexpected error finding zone type for zone %q", zone)
+		}
+		// only validate instance support for availability zones
+		if zoneType == ZoneTypeAvailabilityZone &&
+			slice.Contains(clusterConfig.AvailabilityZones, zone) && // for now, we won't validate support for user specified new zones
+			!slice.Contains(*supportedZones, zone) {
+			return fmt.Errorf("cannot create nodegroup %s in availability zone %s as it does not support all required instance types",
+				np.BaseNodeGroup().Name, zone)
+		}
+		return nil
+	}
+
 	var subnetIDs []string
 	if len(zones) > 0 {
 		var err error
-		if subnetIDs, err = selectNodeGroupZoneSubnets(zones, subnetMapping); err != nil {
+		if subnetIDs, err = selectNodeGroupZoneSubnets(zones, subnetMapping, validateZoneInstanceSupport); err != nil {
 			return nil, fmt.Errorf("could not find %s subnets for zones %q %s: %w", getNetworkType(ng), zones, makeErrorDesc(), err)
 		}
 	}
 
 	if len(ng.Subnets) > 0 {
-		zoneTypeMapping, err := DiscoverZoneTypes(ctx, ec2API, clusterConfig.Metadata.Region)
-		if err != nil {
-			return nil, fmt.Errorf("error discovering zone types: %w", err)
-		}
-
-		var validateZoneType func(ZoneType) error
-
-		if _, ok := np.(*api.NodeGroup); !ok {
-			validateZoneType = func(zoneType ZoneType) error {
-				if zoneType == ZoneTypeLocalZone {
-					return fmt.Errorf("managed nodegroups cannot be launched in local zones: %q", ng.Name)
-				}
-				return nil
-			}
-		} else {
-			validateZoneType = func(zoneType ZoneType) error {
-				if zoneType == ZoneTypeAvailabilityZone {
-					logger.Warning("subnets contain a mix of both local and availability zones")
-				}
-				return nil
-			}
-		}
-
-		subnetsFromIDs, err := selectNodeGroupSubnetsFromIDs(ctx, ng, publicSubnetMapping, privateSubnetMapping, clusterConfig, ec2API, func(zone string) error {
-			zoneType, ok := zoneTypeMapping[zone]
-			if !ok {
-				return fmt.Errorf("unexpected error finding zone type for zone %q", zone)
-			}
-			return validateZoneType(zoneType)
-		})
+		subnetsFromIDs, err := selectNodeGroupSubnetsFromIDs(ctx, ng, publicSubnetMapping, privateSubnetMapping, clusterConfig, ec2API, validateZoneType, validateZoneInstanceSupport)
 		if err != nil {
 			return nil, fmt.Errorf("could not select subnets from subnet IDs %s: %w", makeErrorDesc(), err)
 		}
@@ -771,7 +800,9 @@ func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig 
 	return subnetIDs, nil
 }
 
-func selectNodeGroupZoneSubnets(nodeGroupZones []string, subnetMapping api.AZSubnetMapping) ([]string, error) {
+func selectNodeGroupZoneSubnets(nodeGroupZones []string,
+	subnetMapping api.AZSubnetMapping,
+	validateSubnetZoneInstanceSupport func(zone string) error) ([]string, error) {
 	makeErrorDesc := func() string {
 		return fmt.Sprintf("(allSubnets=%#v zones=%#v)", subnetMapping, nodeGroupZones)
 	}
@@ -784,6 +815,9 @@ func selectNodeGroupZoneSubnets(nodeGroupZones []string, subnetMapping api.AZSub
 		found := false
 		for _, s := range subnetMapping {
 			if s.AZ == zone {
+				if err := validateSubnetZoneInstanceSupport(zone); err != nil {
+					return nil, fmt.Errorf("failed to select subnet %s: %w", zone, err)
+				}
 				subnetIDs = append(subnetIDs, s.ID)
 				found = true
 			}
@@ -803,14 +837,23 @@ func selectNodeGroupSubnetsFromIDs(
 	privateSubnetMapping api.AZSubnetMapping,
 	clusterConfig *api.ClusterConfig,
 	ec2API awsapi.EC2,
-	validateSubnetZone func(zone string) error) ([]string, error) {
-	var selectedSubnetIDs []string
-	var foundInPublic, foundInPrivate bool
+	validateSubnetZoneType func(zone string) error,
+	validateSubnetZoneInstanceSupport func(zone string) error) ([]string, error) {
+	var (
+		mappedSubnet      *api.AZSubnetSpec
+		ec2Subnet         ec2types.Subnet
+		selectedSubnetIDs []string
+		subnetID          string
+		subnetOutpostARN  string
+		subnetZone        string
+		foundInPrivate    bool
+		foundInPublic     bool
+		err               error
+	)
+
 	outpostARN := getOutpostARN(clusterConfig, ng)
 
 	for _, subnetName := range ng.Subnets {
-		var mappedSubnet *api.AZSubnetSpec
-
 		// first try to find the specified subnet as part of the VPC inside ClusterConfig, if existent
 		if ng.PrivateNetworking {
 			if mappedSubnet, foundInPrivate = findInConfiguredVPC(subnetName, privateSubnetMapping); !foundInPrivate {
@@ -827,34 +870,34 @@ func selectNodeGroupSubnetsFromIDs(
 		}
 
 		if mappedSubnet != nil {
-			if outpostARN != "" {
-				if err := validateSubnetOnOutposts(mappedSubnet.ID, mappedSubnet.OutpostARN, outpostARN); err != nil {
-					return nil, err
-				}
-			}
-			selectedSubnetIDs = append(selectedSubnetIDs, mappedSubnet.ID)
-			continue
-		}
-
-		// otherwise try to find the subnet as part of the AWS Account
-		subnet, err := getSubnetByID(ctx, ec2API, subnetName)
-		if err != nil {
-			return nil, err
-		}
-		if subnet.VpcId != nil && *subnet.VpcId != clusterConfig.VPC.ID {
-			return nil, fmt.Errorf("subnet with ID %q is not in the attached VPC with ID %q", *subnet.SubnetId, clusterConfig.VPC.ID)
-		}
-		if err := validateSubnetZone(*subnet.AvailabilityZone); err != nil {
-			return nil, err
-		}
-
-		if outpostARN != "" {
-			if err := validateSubnetOnOutposts(*subnet.SubnetId, aws.ToString(subnet.OutpostArn), outpostARN); err != nil {
+			subnetID = mappedSubnet.ID
+			subnetOutpostARN = mappedSubnet.OutpostARN
+			subnetZone = mappedSubnet.AZ
+		} else {
+			// otherwise try to find the subnet as part of the AWS Account
+			ec2Subnet, err = getSubnetByID(ctx, ec2API, subnetName)
+			if err != nil {
 				return nil, err
 			}
+			if ec2Subnet.VpcId != nil && *ec2Subnet.VpcId != clusterConfig.VPC.ID {
+				return nil, fmt.Errorf("subnet with ID %q is not in the attached VPC with ID %q", *ec2Subnet.SubnetId, clusterConfig.VPC.ID)
+			}
+			subnetID = *ec2Subnet.SubnetId
+			subnetOutpostARN = aws.ToString(ec2Subnet.OutpostArn)
+			subnetZone = *ec2Subnet.AvailabilityZone
 		}
 
-		selectedSubnetIDs = append(selectedSubnetIDs, *subnet.SubnetId)
+		if err := validateSubnetZoneType(subnetZone); err != nil {
+			return nil, fmt.Errorf("failed to select subnet %s: %w", subnetName, err)
+		}
+		if err := validateSubnetZoneInstanceSupport(subnetZone); err != nil {
+			return nil, fmt.Errorf("failed to select subnet %s: %w", subnetName, err)
+		}
+		if err := validateSubnetOnOutposts(subnetID, subnetOutpostARN, outpostARN); err != nil {
+			return nil, fmt.Errorf("failed to select subnet %s: %w", subnetName, err)
+		}
+
+		selectedSubnetIDs = append(selectedSubnetIDs, subnetID)
 	}
 
 	return selectedSubnetIDs, nil
@@ -891,6 +934,9 @@ func getOutpostARN(clusterConfig *api.ClusterConfig, ng *api.NodeGroupBase) stri
 }
 
 func validateSubnetOnOutposts(subnetID, subnetOutpostARN, outpostARN string) error {
+	if outpostARN == "" {
+		return nil
+	}
 	if subnetOutpostARN == "" {
 		return fmt.Errorf("subnet %q is not on Outposts", subnetID)
 	}
