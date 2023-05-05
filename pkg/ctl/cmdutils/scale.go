@@ -97,19 +97,23 @@ func ValidateNumberOfNodes(ng *api.NodeGroupBase) error {
 		ng.ScalingConfig = &api.ScalingConfig{}
 	}
 
-	if ng.DesiredCapacity == nil || *ng.DesiredCapacity < 0 {
+	if ng.DesiredCapacity != nil && *ng.DesiredCapacity < 0 {
 		return fmt.Errorf("number of nodes must be 0 or greater")
+	}
+
+	if ng.DesiredCapacity == nil && ng.MinSize == nil && ng.MaxSize == nil {
+		return fmt.Errorf("at least one of minimum, maximum and desired nodes must be set")
 	}
 
 	if ng.MaxSize != nil && *ng.MaxSize < 0 {
 		return fmt.Errorf("maximum number of nodes must be 0 or greater")
 	}
 
-	if ng.MaxSize != nil && ng.MinSize != nil && (*ng.MinSize > *ng.DesiredCapacity || *ng.MaxSize < *ng.DesiredCapacity) {
+	if ng.DesiredCapacity != nil && ng.MaxSize != nil && ng.MinSize != nil && (*ng.MinSize > *ng.DesiredCapacity || *ng.MaxSize < *ng.DesiredCapacity) {
 		return fmt.Errorf("number of nodes must be within range of min nodes and max nodes")
 	}
 
-	if ng.MaxSize != nil && *ng.MaxSize < *ng.DesiredCapacity {
+	if ng.DesiredCapacity != nil && ng.MaxSize != nil && *ng.MaxSize < *ng.DesiredCapacity {
 		return fmt.Errorf("maximum number of nodes must be greater than or equal to number of nodes")
 	}
 
@@ -117,7 +121,7 @@ func ValidateNumberOfNodes(ng *api.NodeGroupBase) error {
 		return fmt.Errorf("minimum number of nodes must be 0 or greater")
 	}
 
-	if ng.MinSize != nil && *ng.MinSize > *ng.DesiredCapacity {
+	if ng.DesiredCapacity != nil && ng.MinSize != nil && *ng.MinSize > *ng.DesiredCapacity {
 		return fmt.Errorf("minimum number of nodes must be less than or equal to number of nodes")
 	}
 
