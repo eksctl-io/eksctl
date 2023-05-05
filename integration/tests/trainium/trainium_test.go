@@ -37,21 +37,22 @@ var (
 	clusterWithoutPlugin    string
 	nodeZones               string
 	clusterZones            string
+	selectedNodeType        string
 )
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
-	params = tests.NewParams("trn1")
+	params = tests.NewParams("trn")
 	defaultCluster = params.ClusterName
-	noInstallCluster = params.NewClusterName("trn1-no-plugin")
+	noInstallCluster = params.NewClusterName("trn-no-plugin")
 }
 
 func TestTrainium(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-const initNG = "trn1-ng-0"
+const initNG = "trn-ng-0"
 
 var _ = BeforeSuite(func() {
 	params.KubeconfigTemp = false
@@ -71,6 +72,12 @@ var _ = BeforeSuite(func() {
 		ec2API := ec2.NewFromConfig(cfg)
 		nodeZones, clusterZones = getAvailabilityZones(ctx, ec2API)
 
+		var selectedNodeType = "trn1.2xlarge"
+		currentDay := time.Now().Day()
+		if currentDay%2 == 0 {
+			selectedNodeType = "trn1n.32xlarge"
+		}
+
 		cmd := params.EksctlCreateCmd.WithArgs(
 			"cluster",
 			"--verbose", "4",
@@ -81,7 +88,7 @@ var _ = BeforeSuite(func() {
 			"--nodegroup-name", initNG,
 			"--node-labels", "ng-name="+initNG,
 			"--nodes", "1",
-			"--node-type", "trn1.2xlarge",
+			"--node-type", selectedNodeType,
 			"--node-zones", nodeZones,
 			"--version", params.Version,
 			"--kubeconfig", params.KubeconfigPath,
@@ -97,7 +104,7 @@ var _ = BeforeSuite(func() {
 			"--nodegroup-name", initNG,
 			"--node-labels", "ng-name="+initNG,
 			"--nodes", "1",
-			"--node-type", "trn1.2xlarge",
+			"--node-type", selectedNodeType,
 			"--node-zones", nodeZones,
 			"--version", params.Version,
 			"--kubeconfig", params.KubeconfigPath,
@@ -108,10 +115,10 @@ var _ = BeforeSuite(func() {
 
 var _ = Describe("(Integration) Trainium nodes", func() {
 	const (
-		newNG = "trn1-ng-1"
+		newNG = "trn-ng-1"
 	)
 
-	Context("cluster with trn1 nodes", func() {
+	Context("cluster with trn nodes", func() {
 		Context("by default", func() {
 			BeforeEach(func() {
 				cmd := params.EksctlUtilsCmd.WithArgs(
@@ -165,7 +172,7 @@ var _ = Describe("(Integration) Trainium nodes", func() {
 						"--tags", "alpha.eksctl.io/description=eksctl integration test",
 						"--node-labels", "ng-name="+newNG,
 						"--nodes", "1",
-						"--node-type", "trn1.2xlarge",
+						"--node-type", selectedNodeType,
 						"--node-zones", nodeZones,
 						"--version", params.Version,
 					)
