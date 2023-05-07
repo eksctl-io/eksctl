@@ -3,7 +3,7 @@ package nodegroup
 import (
 	"context"
 	"fmt"
-	"os"
+	"io"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -28,9 +28,14 @@ type CreateOpts struct {
 	UpdateAuthConfigMap       bool
 	InstallNeuronDevicePlugin bool
 	InstallNvidiaDevicePlugin bool
-	DryRun                    bool
+	DryRunSettings            DryRunSettings
 	SkipOutdatedAddonsCheck   bool
 	ConfigFileProvided        bool
+}
+
+type DryRunSettings struct {
+	DryRun    bool
+	OutStream io.Writer
 }
 
 // Create creates a new nodegroup with the given options.
@@ -95,7 +100,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return err
 	}
 
-	if !options.DryRun {
+	if !options.DryRunSettings.DryRun {
 		if err := nodeGroupService.Normalize(ctx, nodePools, cfg); err != nil {
 			return err
 		}
@@ -133,15 +138,15 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		logMsg("managed nodegroups", len(cfg.ManagedNodeGroups))
 	}
 
-	if options.DryRun {
+	if options.DryRunSettings.DryRun {
 		clusterConfigCopy := cfg.DeepCopy()
 		// Set filtered nodegroups
 		clusterConfigCopy.NodeGroups = cfg.NodeGroups
 		clusterConfigCopy.ManagedNodeGroups = cfg.ManagedNodeGroups
 		if options.ConfigFileProvided {
-			return cmdutils.PrintDryRunConfig(clusterConfigCopy, os.Stdout)
+			return cmdutils.PrintDryRunConfig(clusterConfigCopy, options.DryRunSettings.OutStream)
 		}
-		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
+		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, options.DryRunSettings.OutStream)
 	}
 
 	if err := m.nodeCreationTasks(ctx, isOwnedCluster); err != nil {

@@ -72,9 +72,12 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 			InstallNeuronDevicePlugin: options.InstallNeuronDevicePlugin,
 			InstallNvidiaDevicePlugin: options.InstallNvidiaDevicePlugin,
 			UpdateAuthConfigMap:       options.UpdateAuthConfigMap,
-			DryRun:                    options.DryRun,
-			SkipOutdatedAddonsCheck:   options.SkipOutdatedAddonsCheck,
-			ConfigFileProvided:        cmd.ClusterConfigFile != "",
+			DryRunSettings: nodegroup.DryRunSettings{
+				DryRun:    options.DryRun,
+				OutStream: cmd.CobraCommand.OutOrStdout(),
+			},
+			SkipOutdatedAddonsCheck: options.SkipOutdatedAddonsCheck,
+			ConfigFileProvided:      cmd.ClusterConfigFile != "",
 		}, ngFilter)
 	})
 }

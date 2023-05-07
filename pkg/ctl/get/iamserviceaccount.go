@@ -93,7 +93,7 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, options IAMServiceAccountOptions)
 		addIAMServiceAccountSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	return printer.PrintObjWithKind("iamserviceaccounts", serviceAccounts, os.Stdout)
+	return printer.PrintObjWithKind("iamserviceaccounts", serviceAccounts, cmd.CobraCommand.OutOrStdout())
 }
 
 func addIAMServiceAccountSummaryTableColumns(printer *printers.TablePrinter) {
