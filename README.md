@@ -77,7 +77,11 @@ The `eksctl` executable is placed in `$HOME/bin`, which is in `$PATH` from Git B
 
 ### Docker
 
-For every release and RC, a docker image is pushed to [weaveworks/eksctl - Docker Image | Docker Hub](https://hub.docker.com/r/weaveworks/eksctl).
+For every release and RC a container image is pushed to ECR repository `public.ecr.aws/eksctl/eksctl`. Learn more about the usage on [ECR Public Gallery - eksctl](https://gallery.ecr.aws/eksctl/eksctl). For example,
+
+```bash
+docker run --rm -it public.ecr.aws/eksctl/eksctl version
+```
 
 ### Third-Party Installers (Not Recommended)
 
