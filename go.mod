@@ -71,7 +71,7 @@ require (
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	github.com/xgfone/netaddr v0.5.1
 	golang.org/x/crypto v0.8.0
-	golang.org/x/oauth2 v0.7.0
+	golang.org/x/oauth2 v0.8.0
 	golang.org/x/sync v0.2.0
 	golang.org/x/tools v0.8.0
 	gopkg.in/yaml.v2 v2.4.0
