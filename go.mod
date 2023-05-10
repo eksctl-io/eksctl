@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.259
 	github.com/aws/aws-sdk-go-v2 v1.18.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.24
-	github.com/aws/aws-sdk-go-v2/credentials v1.13.23
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.24
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.7
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.27.4
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.24.8
