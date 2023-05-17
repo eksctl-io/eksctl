@@ -541,6 +541,16 @@ func efsCSIControllerStatements() []cft.MapOfInterfaces {
 		{
 			"Effect":   effectAllow,
 			"Resource": resourceAll,
+			"Action":   []string{"elasticfilesystem:TagResource"},
+			"Condition": map[string]interface{}{
+				"StringLike": map[string]string{
+					"aws:RequestTag/efs.csi.aws.com/cluster": "true",
+				},
+			},
+		},
+		{
+			"Effect":   effectAllow,
+			"Resource": resourceAll,
 			"Action":   []string{"elasticfilesystem:DeleteAccessPoint"},
 			"Condition": map[string]interface{}{
 				"StringLike": map[string]string{
