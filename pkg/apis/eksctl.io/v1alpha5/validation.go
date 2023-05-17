@@ -1177,7 +1177,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		if ng.InstanceType != "" || ng.AMI != "" || IsEnabled(ng.SSH.Allow) || IsEnabled(ng.SSH.EnableSSM) || len(ng.SSH.SourceSecurityGroupIDs) > 0 ||
 			ng.VolumeSize != nil || len(ng.PreBootstrapCommands) > 0 || ng.OverrideBootstrapCommand != nil ||
 			len(ng.SecurityGroups.AttachIDs) > 0 || ng.InstanceName != "" || ng.InstancePrefix != "" || ng.MaxPodsPerNode != 0 ||
-			IsEnabled(ng.DisableIMDSv1) || IsEnabled(ng.DisablePodIMDS) || ng.Placement != nil {
+			IsDisabled(ng.DisableIMDSv1) || IsEnabled(ng.DisablePodIMDS) || ng.Placement != nil {
 
 			incompatibleFields := []string{
 				"instanceType", "ami", "ssh.allow", "ssh.enableSSM", "ssh.sourceSecurityGroupIds", "securityGroups",

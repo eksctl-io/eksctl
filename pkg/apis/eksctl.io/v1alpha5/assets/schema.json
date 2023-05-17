@@ -1124,7 +1124,7 @@
           "type": "boolean",
           "description": "requires requests to the metadata service to use IMDSv2 tokens",
           "x-intellij-html-description": "requires requests to the metadata service to use IMDSv2 tokens",
-          "default": false
+          "default": true
         },
         "disablePodIMDS": {
           "type": "boolean",
@@ -1485,7 +1485,7 @@
           "type": "boolean",
           "description": "requires requests to the metadata service to use IMDSv2 tokens",
           "x-intellij-html-description": "requires requests to the metadata service to use IMDSv2 tokens",
-          "default": false
+          "default": true
         },
         "disablePodIMDS": {
           "type": "boolean",
