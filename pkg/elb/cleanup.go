@@ -124,7 +124,7 @@ func Cleanup(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancer
 
 		lb, err := getIngressLoadBalancer(ctx, ec2API, elbAPI, elbv2API, clusterConfig.Metadata.Name, i)
 		if err != nil {
-			return fmt.Errorf("cannot obtain information for ALB from Ingress %s/%s: %s",
+			return fmt.Errorf("cannot obtain information for ALB from Ingress %s/%s: %w",
 				ingressMetadata.Namespace, ingressMetadata.Name, err)
 		}
 		if lb == nil {
@@ -227,10 +227,10 @@ func getIngressLoadBalancer(ctx context.Context, ec2API awsapi.EC2, elbAPI Descr
 		name = name[:32]
 	}
 	ctx, cleanup := context.WithTimeout(ctx, 30*time.Second)
+	defer cleanup()
 	securityGroupIDs, err := getSecurityGroupsOwnedByLoadBalancer(ctx, ec2API, elbAPI, elbv2API, clusterName, name, application)
-	cleanup()
 	if err != nil {
-		return nil, fmt.Errorf("cannot obtain security groups for ALB %s: %s", name, err)
+		return nil, fmt.Errorf("cannot obtain security groups for ALB %s: %w", name, err)
 	}
 	return &loadBalancer{
 		name:                  name,
@@ -379,7 +379,8 @@ func describeSecurityGroupsByID(ctx context.Context, ec2API awsapi.EC2, groupIDs
 func tagsIncludeClusterName(tags []ec2types.Tag, clusterName string) bool {
 	k8sClusterTagKey := tagNameKubernetesClusterPrefix + clusterName
 	for _, tag := range tags {
-		if aws.ToString(tag.Key) == k8sClusterTagKey || aws.ToString(tag.Key) == elbv2ClusterTagKey {
+		switch aws.ToString(tag.Key) {
+		case k8sClusterTagKey, elbv2ClusterTagKey:
 			return true
 		}
 	}
@@ -389,7 +390,7 @@ func tagsIncludeClusterName(tags []ec2types.Tag, clusterName string) bool {
 func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI,
 	elbv2API DescribeLoadBalancersAPIV2, clusterName string, loadBalancerName string, loadBalancerKind loadBalancerKind) (map[string]struct{}, error) {
 
-	groupIds := []string{}
+	var groupIDs []string
 
 	switch loadBalancerKind {
 	case network:
@@ -405,7 +406,7 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API awsapi.EC2
 			// The load balancer wasn't found
 			return map[string]struct{}{}, nil
 		}
-		groupIds = alb.SecurityGroups
+		groupIDs = alb.SecurityGroups
 
 	case classic:
 		clb, err := describeClassicLoadBalancer(ctx, elbAPI, loadBalancerName)
@@ -417,10 +418,10 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API awsapi.EC2
 			// The load balancer wasn't found
 			return map[string]struct{}{}, nil
 		}
-		groupIds = clb.SecurityGroups
+		groupIDs = clb.SecurityGroups
 	}
 
-	sgResponse, err := describeSecurityGroupsByID(ctx, ec2API, groupIds)
+	sgResponse, err := describeSecurityGroupsByID(ctx, ec2API, groupIDs)
 
 	if err != nil {
 		return nil, fmt.Errorf("error obtaining security groups for ELB: %s", err)
@@ -497,7 +498,7 @@ func describeApplicationLoadBalancer(ctx context.Context, elbv2API DescribeLoadB
 		Names: []string{name},
 	})
 	if err != nil {
-		if isELBNotFoundErr(err) {
+		if isELBv2NotFoundErr(err) {
 			return nil, nil
 		}
 		return nil, err
@@ -555,5 +556,10 @@ func elbV2Exists(ctx context.Context, api DescribeLoadBalancersAPIV2, name strin
 
 func isELBNotFoundErr(err error) bool {
 	var notFoundErr *elbtypes.AccessPointNotFoundException
+	return errors.As(err, &notFoundErr)
+}
+
+func isELBv2NotFoundErr(err error) bool {
+	var notFoundErr *elbv2types.LoadBalancerNotFoundException
 	return errors.As(err, &notFoundErr)
 }
