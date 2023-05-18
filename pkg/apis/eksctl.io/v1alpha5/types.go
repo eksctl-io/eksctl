@@ -1104,7 +1104,7 @@ func NewNodeGroup() *NodeGroup {
 				WithLocal:  Enabled(),
 				WithShared: Enabled(),
 			},
-			DisableIMDSv1:    Disabled(),
+			DisableIMDSv1:    Enabled(),
 			DisablePodIMDS:   Disabled(),
 			InstanceSelector: &InstanceSelector{},
 		},
@@ -1593,7 +1593,7 @@ type NodeGroupBase struct {
 	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
 
 	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
-	// Defaults to `false`
+	// Defaults to `true`
 	// +optional
 	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
 
