@@ -21,7 +21,7 @@ kind: ClusterConfig
 managedNodeGroups:
 - amiFamily: AmazonLinux2
   desiredCapacity: 2
-  disableIMDSv1: true
+  disableIMDSv1: false
   disablePodIMDS: false
   iam:
     withAddonPolicies:

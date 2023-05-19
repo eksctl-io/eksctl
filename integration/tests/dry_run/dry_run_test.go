@@ -68,7 +68,7 @@ kubernetesNetworkConfig:
 nodeGroups:
 - amiFamily: AmazonLinux2
   containerRuntime: containerd
-  disableIMDSv1: true
+  disableIMDSv1: false
   disablePodIMDS: false
   instanceSelector: {}
   iam:
@@ -104,7 +104,7 @@ nodeGroups:
 managedNodeGroups:
 - amiFamily: AmazonLinux2
   desiredCapacity: 2
-  disableIMDSv1: true
+  disableIMDSv1: false
   disablePodIMDS: false
   instanceSelector: {}
   iam:
