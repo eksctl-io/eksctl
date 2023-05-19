@@ -16,7 +16,7 @@
                 ],
                 "MetadataOptions": {
                     "HttpPutResponseHopLimit": 2,
-                    "HttpTokens": "required"
+                    "HttpTokens": "optional"
                 },
                 "Placement": {
                   "GroupName": "test"
