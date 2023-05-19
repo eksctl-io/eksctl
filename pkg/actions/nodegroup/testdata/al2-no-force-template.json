@@ -38,7 +38,7 @@
           ],
           "MetadataOptions": {
             "HttpPutResponseHopLimit": 2,
-            "HttpTokens": "required"
+            "HttpTokens": "optional"
           },
           "SecurityGroupIds": [
             {
