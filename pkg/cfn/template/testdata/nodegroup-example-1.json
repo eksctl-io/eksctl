@@ -136,7 +136,7 @@
                     "KeyName": "eksctl-test-nodegroup-n5-bd:d8:ab:d8:3a:09:95:22:91:61:9f:1c:92:b5:dc:2e",
                     "MetadataOptions": {
                         "HttpPutResponseHopLimit": 2,
-                        "HttpTokens": "optional"
+                        "HttpTokens": "required"
                     },
                     "NetworkInterfaces": [
                         {

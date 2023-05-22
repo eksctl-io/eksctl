@@ -667,7 +667,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				Expect(properties.LaunchTemplateData.UserData).To(Equal("lovely data right here"))
 				Expect(properties.LaunchTemplateData.InstanceType).To(Equal("m5.large"))
 				Expect(properties.LaunchTemplateData.MetadataOptions.HTTPPutResponseHopLimit).To(Equal(float64(2)))
-				Expect(properties.LaunchTemplateData.MetadataOptions.HTTPTokens).To(Equal("optional"))
+				Expect(properties.LaunchTemplateData.MetadataOptions.HTTPTokens).To(Equal("required"))
 				Expect(properties.LaunchTemplateData.TagSpecifications).To(HaveLen(3))
 				Expect(properties.LaunchTemplateData.TagSpecifications[0].ResourceType).To(Equal(aws.String("instance")))
 				Expect(properties.LaunchTemplateData.TagSpecifications[0].Tags[0].Key).To(Equal("Name"))
@@ -748,14 +748,14 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				})
 			})
 
-			Context("ng.DisableIMDSv1 is enabled", func() {
+			Context("ng.DisableIMDSv1 is disabled", func() {
 				BeforeEach(func() {
-					ng.DisableIMDSv1 = aws.Bool(true)
+					ng.DisableIMDSv1 = aws.Bool(false)
 				})
 
-				It("sets HttpTokens to required on the LaunchTemplateData MetadataOptions", func() {
+				It("sets HttpTokens to optional on the LaunchTemplateData MetadataOptions", func() {
 					properties := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties
-					Expect(properties.LaunchTemplateData.MetadataOptions.HTTPTokens).To(Equal("required"))
+					Expect(properties.LaunchTemplateData.MetadataOptions.HTTPTokens).To(Equal("optional"))
 				})
 			})
 

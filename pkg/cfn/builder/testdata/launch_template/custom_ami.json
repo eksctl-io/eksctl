@@ -17,7 +17,7 @@
                 "ImageId": "ami-custom",
                 "MetadataOptions": {
                     "HttpPutResponseHopLimit": 2,
-                    "HttpTokens": "optional"
+                    "HttpTokens": "required"
                 },
                 "SecurityGroupIds": [
                     {
