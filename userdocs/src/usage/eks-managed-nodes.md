@@ -136,7 +136,8 @@ managedNodeGroups:
     volumeSize: 100
     volumeName: /dev/xvda
     volumeEncrypted: true
-    disableIMDSv1: true
+    # defaults to true, which enforces the use of IMDSv2 tokens
+    disableIMDSv1: false  
     overrideBootstrapCommand: |
       #!/bin/bash
       /etc/eks/bootstrap.sh managed-cluster --kubelet-extra-args '--node-labels=eks.amazonaws.com/nodegroup=custom-ng,eks.amazonaws.com/nodegroup-image=ami-0e124de4755b2734d'

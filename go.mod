@@ -8,24 +8,24 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.2.0
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.1
-	github.com/aws/aws-sdk-go v1.44.250
+	github.com/aws/aws-sdk-go v1.44.264
 	github.com/aws/aws-sdk-go-v2 v1.18.0
-	github.com/aws/aws-sdk-go-v2/config v1.18.19
-	github.com/aws/aws-sdk-go-v2/credentials v1.13.20
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.5
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.27.3
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.24.7
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.20.10
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.22.8
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.93.2
-	github.com/aws/aws-sdk-go-v2/service/eks v1.27.11
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.9
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.10
-	github.com/aws/aws-sdk-go-v2/service/iam v1.19.11
-	github.com/aws/aws-sdk-go-v2/service/kms v1.20.12
-	github.com/aws/aws-sdk-go-v2/service/outposts v1.27.9
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.3
-	github.com/aws/aws-sdk-go-v2/service/sts v1.18.10
+	github.com/aws/aws-sdk-go-v2/config v1.18.25
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.24
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.7
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.27.4
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.24.8
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.20.11
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.22.10
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.97.0
+	github.com/aws/aws-sdk-go-v2/service/eks v1.27.12
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.10
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.11
+	github.com/aws/aws-sdk-go-v2/service/iam v1.19.12
+	github.com/aws/aws-sdk-go-v2/service/kms v1.21.1
+	github.com/aws/aws-sdk-go-v2/service/outposts v1.27.10
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.4
+	github.com/aws/aws-sdk-go-v2/service/sts v1.19.0
 	github.com/aws/smithy-go v1.13.5
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
@@ -50,7 +50,7 @@ require (
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.1
-	github.com/onsi/ginkgo/v2 v2.9.2
+	github.com/onsi/ginkgo/v2 v2.9.4
 	github.com/onsi/gomega v1.27.6
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/otiai10/copy v1.9.0
@@ -64,16 +64,16 @@ require (
 	github.com/tidwall/gjson v1.14.4
 	github.com/tidwall/sjson v1.2.5
 	github.com/tj/assert v0.0.3
-	github.com/vburenin/ifacemaker v1.2.1-0.20220402060045-b2018d8549dc
+	github.com/vburenin/ifacemaker v1.2.1
 	github.com/vektra/mockery v1.1.2
 	github.com/weaveworks/goformation/v4 v4.10.2-0.20221208090411-a71cb48c37d5
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	github.com/xgfone/netaddr v0.5.1
-	golang.org/x/crypto v0.8.0
-	golang.org/x/oauth2 v0.7.0
-	golang.org/x/sync v0.1.0
-	golang.org/x/tools v0.8.0
+	golang.org/x/crypto v0.9.0
+	golang.org/x/oauth2 v0.8.0
+	golang.org/x/sync v0.2.0
+	golang.org/x/tools v0.9.1
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.11.2
 	k8s.io/api v0.26.0
@@ -145,13 +145,13 @@ require (
 	github.com/ashanbrown/makezero v1.1.1 // indirect
 	github.com/atc0005/go-teams-notify/v2 v2.6.1 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.2 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.33 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.27 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.32 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.34 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.27 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.12.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.8 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.12.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.10 // indirect
 	github.com/awslabs/goformation/v4 v4.19.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
@@ -196,7 +196,7 @@ require (
 	github.com/dghubble/sling v1.4.0 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/docker/cli v20.10.21+incompatible // indirect
-	github.com/docker/distribution v2.8.1+incompatible // indirect
+	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/docker/docker v20.10.24+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.7.0 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
@@ -263,7 +263,7 @@ require (
 	github.com/google/go-github/v43 v43.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/pprof v0.0.0-20230323073829-e72429f035bd // indirect
+	github.com/google/pprof v0.0.0-20230508170847-c6d6667b8fd4 // indirect
 	github.com/google/rpmpack v0.0.0-20211125064518-d0ed9b1b61b9 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/wire v0.5.0 // indirect
@@ -386,7 +386,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
+	github.com/opencontainers/image-spec v1.1.0-rc3 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
@@ -495,9 +495,9 @@ require (
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
 	golang.org/x/exp/typeparams v0.0.0-20220827204233-334a2380cb91 // indirect
 	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/net v0.9.0 // indirect
-	golang.org/x/sys v0.7.0 // indirect
-	golang.org/x/term v0.7.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/term v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect

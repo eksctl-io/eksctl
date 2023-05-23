@@ -411,7 +411,7 @@ const expected = `
 				  "cloudWatch": false
 			    }
 			  },
-			  "disableIMDSv1": false,
+			  "disableIMDSv1": true,
 			  "disablePodIMDS": false,
 			  "instanceSelector": {},
 			  "containerRuntime": "containerd"
@@ -456,7 +456,7 @@ const expected = `
 				  "cloudWatch": false
 			    }
 			  },
-			  "disableIMDSv1": false,
+			  "disableIMDSv1": true,
 			  "disablePodIMDS": false,
 			  "instanceSelector": {},
 			  "containerRuntime": "containerd"
@@ -502,7 +502,7 @@ const expected = `
 			    }
 			  },
 			  "clusterDNS": "1.2.3.4",
-			  "disableIMDSv1": false,
+			  "disableIMDSv1": true,
 			  "disablePodIMDS": false,
 			  "instanceSelector": {},
 			  "containerRuntime": "containerd"
@@ -547,7 +547,7 @@ const expected = `
 				  "cloudWatch": false
 			    }
 			  },
-			  "disableIMDSv1": false,
+			  "disableIMDSv1": true,
 			  "disablePodIMDS": false,
 			  "instanceSelector": {},
 			  "containerRuntime": "containerd"
@@ -596,7 +596,7 @@ const expected = `
 			    }
 			  },
 			  "clusterDNS": "4.2.8.14",
-			  "disableIMDSv1": false,
+			  "disableIMDSv1": true,
 			  "disablePodIMDS": false,
 			  "instanceSelector": {},
 			  "containerRuntime": "containerd"
@@ -644,7 +644,7 @@ const expected = `
 				  "cloudWatch": false
 			    }
 			  },
-			  "disableIMDSv1": false,
+			  "disableIMDSv1": true,
 			  "disablePodIMDS": false,
 			  "instanceSelector": {},
 			  "containerRuntime": "containerd"

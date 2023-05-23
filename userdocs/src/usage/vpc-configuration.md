@@ -207,7 +207,7 @@ vpc:
 
 ## NAT Gateway
 
-The NAT Gateway for a cluster can be configured to be `Disabled`, `Single` (default) or `HighlyAvailable`.
+The NAT Gateway for a cluster can be configured to be `Disable`, `Single` (default) or `HighlyAvailable`.
 The `HighlyAvailable` option will deploy a NAT Gateway in each Availability Zone of the Region, so that if
 an AZ is down, nodes in the other AZs will still be able to communicate to the Internet.
 
