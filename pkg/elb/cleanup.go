@@ -400,7 +400,7 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API awsapi.EC2
 		alb, err := describeApplicationLoadBalancer(ctx, elbv2API, loadBalancerName)
 
 		if err != nil {
-			return nil, fmt.Errorf("cannot describe ELB: %s", err)
+			return nil, fmt.Errorf("cannot describe ELB: %w", err)
 		}
 		if alb == nil {
 			// The load balancer wasn't found
@@ -412,7 +412,7 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API awsapi.EC2
 		clb, err := describeClassicLoadBalancer(ctx, elbAPI, loadBalancerName)
 
 		if err != nil {
-			return nil, fmt.Errorf("cannot describe ELB: %s", err)
+			return nil, fmt.Errorf("cannot describe ELB: %w", err)
 		}
 		if clb == nil {
 			// The load balancer wasn't found
