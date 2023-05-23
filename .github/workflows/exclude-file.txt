@@ -16,3 +16,5 @@ eks.amazonaws.com
 raw.githubusercontent.com
 creating-and-managing-clusters
 schema.js
+weave-community.slack.com
+netlify.com

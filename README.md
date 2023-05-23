@@ -1,6 +1,6 @@
 # `eksctl` - The official CLI for Amazon EKS
 
-[![Coverage Status](https://coveralls.io/repos/github/weaveworks/eksctl/badge.svg?branch=main)](https://coveralls.io/github/weaveworks/eksctl?branch=main) [![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/eksctl)](https://goreportcard.com/report/github.com/weaveworks/eksctl)
+[![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/eksctl)](https://goreportcard.com/report/github.com/weaveworks/eksctl)
 
 `eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2. It is written in Go, and uses CloudFormation.
 
@@ -12,48 +12,103 @@ _Need help? Join [Weave Community Slack][slackjoin]._
 
 ## Installation
 
+`eksctl` is available to install from official releases as described below. We recommend that you install `eksctl` from only the official GitHub releases. You may opt to use a third-party installer, but please be advised that AWS does not maintain nor support these methods of installation. Use them at your own discretion.
+
+### For Unix
 To download the latest release, run:
 
-```
-curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+```sh
+# for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
+ARCH=amd64
+PLATFORM=$(uname -s)_$ARCH
+
+curl -sLO "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+
+# (Optional) Verify checksum
+curl -sL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+
+tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+
 sudo mv /tmp/eksctl /usr/local/bin
 ```
 
-For ARM system, please change ARCH (e.g. armv6, armv7 or arm64) accordingly
+### For Windows
 
-```
-curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_arm64.tar.gz" | tar xz -C /tmp
-sudo mv /tmp/eksctl /usr/local/bin
+#### Direct download (latest release): [AMD64/x86_64](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_amd64.zip) - [ARMv6](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_armv6.zip) - [ARMv7](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_armv7.zip) - [ARM64](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_arm64.zip)
+Make sure to unzip the archive to a folder in the `PATH` variable. 
+
+Optionally, verify the checksum: 
+
+1. Download the checksum file: [latest](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_checksums.txt)
+2. Use Command Prompt to manually compare `CertUtil`'s output to the checksum file downloaded. 
+  ```cmd
+  REM Replace amd64 with armv6, armv7 or arm64
+  CertUtil -hashfile eksctl_Windows_amd64.zip SHA256
+  ```
+3. Using PowerShell to automate the verification using the `-eq` operator to get a `True` or `False` result:
+```pwsh
+# Replace amd64 with armv6, armv7 or arm64
+ (Get-FileHash -Algorithm SHA256 .\eksctl_Windows_amd64.zip).Hash -eq ((Get-Content .\eksctl_checksums.txt) -match 'eksctl_Windows_amd64.zip' -split ' ')[0]
+ ```
+
+#### Using Git Bash: 
+```sh
+# for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
+ARCH=amd64
+PLATFORM=windows_$ARCH
+
+curl -sLO "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$PLATFORM.zip"
+
+# (Optional) Verify checksum
+curl -sL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+
+unzip eksctl_$PLATFORM.zip -d $HOME/bin
+
+rm eksctl_$PLATFORM.zip
 ```
 
-Alternatively, macOS users can use [Homebrew](https://brew.sh):
+The `eksctl` executable is placed in `$HOME/bin`, which is in `$PATH` from Git Bash.
+
+### Docker
+
+For every release and RC, a docker image is pushed to [weaveworks/eksctl - Docker Image | Docker Hub](https://hub.docker.com/r/weaveworks/eksctl). 
+
+### Third-Party Installers (Not Recommended)
+#### For MacOS
+[Homebrew](https://brew.sh)
 
 ```
 brew tap weaveworks/tap
 brew install weaveworks/tap/eksctl
 ```
 
-and Windows users can use [chocolatey](https://chocolatey.org):
+[MacPorts](https://www.macports.org)
+
+```
+port install eksctl
+```
+#### For Windows
+[chocolatey](https://chocolatey.org)
 
 ```
 chocolatey install eksctl
 ```
 
-or [scoop](https://scoop.sh):
+[scoop](https://scoop.sh)
 
 ```
 scoop install eksctl
 ```
 
-### AWS Account
+## Prerequisite
 
-You will need to have AWS API credentials configured. What works for AWS CLI or any other tools (kops, Terraform etc), should be sufficient. You can use [`~/.aws/credentials` file][awsconfig]
+You will need to have AWS API credentials configured. What works for AWS CLI or any other tools (kops, Terraform, etc.) should be sufficient. You can use [`~/.aws/credentials` file][awsconfig]
 or [environment variables][awsenv]. For more information read [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html).
 
 [awsenv]: https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html
 [awsconfig]: https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html
 
-You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `aws eks get-token` (available in version 1.16.156 or greater of AWS CLI) in your `PATH`.
+You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `aws eks get-token` (available in version 1.16.156 or greater of AWS CLI) in your `PATH`. 
 
 The IAM account used for EKS cluster creation should have these minimal access levels. 
 
@@ -68,10 +123,6 @@ The IAM account used for EKS cluster creation should have these minimal access l
 
 
 The inline policy json is listed in [Minimal IAM Policies](https://eksctl.io/usage/minimum-iam-policies/).
-
-### Docker
-
-For every release and RC a docker image is pushed to [weaveworks/eksctl](https://hub.docker.com/r/weaveworks/eksctl).
 
 ## Basic usage
 
@@ -89,8 +140,8 @@ A cluster will be created with default parameters
 - `us-west-2` region
 - dedicated VPC (check your quotas)
 
-Once you have created a cluster, you will find that cluster credentials were added in `~/.kube/config`. If you have `kubectl` v1.10.x as well as `aws-iam-authenticator` commands in your PATH, you should be
-able to use `kubectl`. You will need to make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions. If you installed `eksctl` via Homebrew, you should have all of these dependencies installed already.
+Once you have created a cluster, you will find that cluster credentials were added in `~/.kube/config`. If you have `kubectl` as well as `aws-iam-authenticator` commands in your `PATH`, you should be
+able to use `kubectl`. You will need to make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions. 
 
 [ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
@@ -129,7 +180,7 @@ $ eksctl create cluster
 $
 ```
 
-Install `eksctl` following the [installation instructions](https://eksctl.io/introduction/#installation).
+Install `eksctl` following the [installation instructions](https://eksctl.io/introduction/#installation). 
 
 To learn more about what `eksctl` can do check [eksctl.io](https://eksctl.io). A good place to start is
 [Getting Started](https://eksctl.io/introduction/#getting-started). The full list of features can be found
@@ -147,6 +198,12 @@ We follow the [CNCF Code of Conduct](CODE_OF_CONDUCT.md).
 Minor releases of `eksctl` should be expected every two weeks and patch releases will be made available as needed.
 
 One or more release candidate(s) (RC) builds will be made available prior to each minor release. RC builds are intended only for testing purposes.
+
+## [Security Policy](SECURITY.md)
+If you discover a potential security issue in `eksctl` project, please
+follow [AWS Vulnerability Reporting process.](https://aws.amazon.com/security/vulnerability-reporting/)
+
+Do not open security related issues in the open source project.
 
 ## Get in touch
 

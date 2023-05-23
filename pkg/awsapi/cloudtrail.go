@@ -10,8 +10,8 @@ import (
 
 // CloudTrail provides an interface to the AWS CloudTrail service.
 type CloudTrail interface {
-	// Adds one or more tags to a trail, event data store, or channel, up to a limit of
-	// 50. Overwrites an existing tag's value when a new value is specified for an
+	// Adds one or more tags to a trail, event data store, or channel, up to a limit
+	// of 50. Overwrites an existing tag's value when a new value is specified for an
 	// existing tag key. Tag key names must be unique; you cannot have two keys with
 	// the same name but different values. If you specify a key without a value, the
 	// tag will be created with the specified key and a value of null. You can tag a
@@ -19,10 +19,10 @@ type CloudTrail interface {
 	// from the Region in which the trail or event data store was created (also known
 	// as its home region).
 	AddTags(ctx context.Context, params *AddTagsInput, optFns ...func(*Options)) (*AddTagsOutput, error)
-	// Cancels a query if the query is not in a terminated state, such as CANCELLED,
-	// FAILED, TIMED_OUT, or FINISHED. You must specify an ARN value for
-	// EventDataStore. The ID of the query that you want to cancel is also required.
-	// When you run CancelQuery, the query status might show as CANCELLED even if the
+	// Cancels a query if the query is not in a terminated state, such as CANCELLED ,
+	// FAILED , TIMED_OUT , or FINISHED . You must specify an ARN value for
+	// EventDataStore . The ID of the query that you want to cancel is also required.
+	// When you run CancelQuery , the query status might show as CANCELLED even if the
 	// operation is not yet finished.
 	CancelQuery(ctx context.Context, params *CancelQueryInput, optFns ...func(*Options)) (*CancelQueryOutput, error)
 	// Creates a channel for CloudTrail to ingest events from a partner or external
@@ -36,31 +36,31 @@ type CloudTrail interface {
 	CreateTrail(ctx context.Context, params *CreateTrailInput, optFns ...func(*Options)) (*CreateTrailOutput, error)
 	// Deletes a channel.
 	DeleteChannel(ctx context.Context, params *DeleteChannelInput, optFns ...func(*Options)) (*DeleteChannelOutput, error)
-	// Disables the event data store specified by EventDataStore, which accepts an
-	// event data store ARN. After you run DeleteEventDataStore, the event data store
+	// Disables the event data store specified by EventDataStore , which accepts an
+	// event data store ARN. After you run DeleteEventDataStore , the event data store
 	// enters a PENDING_DELETION state, and is automatically deleted after a wait
 	// period of seven days. TerminationProtectionEnabled must be set to False on the
 	// event data store; this operation cannot work if TerminationProtectionEnabled is
-	// True. After you run DeleteEventDataStore on an event data store, you cannot run
-	// ListQueries, DescribeQuery, or GetQueryResults on queries that are using an
-	// event data store in a PENDING_DELETION state. An event data store in the
+	// True . After you run DeleteEventDataStore on an event data store, you cannot
+	// run ListQueries , DescribeQuery , or GetQueryResults on queries that are using
+	// an event data store in a PENDING_DELETION state. An event data store in the
 	// PENDING_DELETION state does not incur costs.
 	DeleteEventDataStore(ctx context.Context, params *DeleteEventDataStoreInput, optFns ...func(*Options)) (*DeleteEventDataStoreOutput, error)
 	// Deletes the resource-based policy attached to the CloudTrail channel.
 	DeleteResourcePolicy(ctx context.Context, params *DeleteResourcePolicyInput, optFns ...func(*Options)) (*DeleteResourcePolicyOutput, error)
 	// Deletes a trail. This operation must be called from the region in which the
-	// trail was created. DeleteTrail cannot be called on the shadow trails (replicated
-	// trails in other regions) of a trail that is enabled in all regions.
+	// trail was created. DeleteTrail cannot be called on the shadow trails
+	// (replicated trails in other regions) of a trail that is enabled in all regions.
 	DeleteTrail(ctx context.Context, params *DeleteTrailInput, optFns ...func(*Options)) (*DeleteTrailOutput, error)
 	// Removes CloudTrail delegated administrator permissions from a member account in
 	// an organization.
 	DeregisterOrganizationDelegatedAdmin(ctx context.Context, params *DeregisterOrganizationDelegatedAdminInput, optFns ...func(*Options)) (*DeregisterOrganizationDelegatedAdminOutput, error)
-	// Returns metadata about a query, including query run time in milliseconds, number
-	// of events scanned and matched, and query status. You must specify an ARN for
-	// EventDataStore, and a value for QueryID.
+	// Returns metadata about a query, including query run time in milliseconds,
+	// number of events scanned and matched, and query status. You must specify an ARN
+	// for EventDataStore , and a value for QueryID .
 	DescribeQuery(ctx context.Context, params *DescribeQueryInput, optFns ...func(*Options)) (*DescribeQueryOutput, error)
-	// Retrieves settings for one or more trails associated with the current region for
-	// your account.
+	// Retrieves settings for one or more trails associated with the current region
+	// for your account.
 	DescribeTrails(ctx context.Context, params *DescribeTrailsInput, optFns ...func(*Options)) (*DescribeTrailsOutput, error)
 	// Returns information about a specific channel.
 	GetChannel(ctx context.Context, params *GetChannelInput, optFns ...func(*Options)) (*GetChannelOutput, error)
@@ -68,29 +68,18 @@ type CloudTrail interface {
 	// ID portion of the ARN.
 	GetEventDataStore(ctx context.Context, params *GetEventDataStoreInput, optFns ...func(*Options)) (*GetEventDataStoreOutput, error)
 	// Describes the settings for the event selectors that you configured for your
-	// trail. The information returned for your event selectors includes the
-	// following:
+	// trail. The information returned for your event selectors includes the following:
 	//
-	// * If your event selector includes read-only events, write-only
-	// events, or all events. This applies to both management events and data
-	// events.
-	//
-	// * If your event selector includes management events.
-	//
-	// * If your event
-	// selector includes data events, the resources on which you are logging data
-	// events.
+	//   - If your event selector includes read-only events, write-only events, or all
+	//     events. This applies to both management events and data events.
+	//   - If your event selector includes management events.
+	//   - If your event selector includes data events, the resources on which you are
+	//     logging data events.
 	//
 	// For more information about logging management and data events, see the
 	// following topics in the CloudTrail User Guide:
-	//
-	// * Logging management events for
-	// trails
-	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-management-events-with-cloudtrail.html)
-	//
-	// *
-	// Logging data events for trails
-	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html)
+	//   - Logging management events for trails  (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-management-events-with-cloudtrail.html)
+	//   - Logging data events for trails  (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html)
 	GetEventSelectors(ctx context.Context, params *GetEventSelectorsInput, optFns ...func(*Options)) (*GetEventSelectorsOutput, error)
 	// Returns information about a specific import.
 	GetImport(ctx context.Context, params *GetImportInput, optFns ...func(*Options)) (*GetImportOutput, error)
@@ -99,12 +88,11 @@ type CloudTrail interface {
 	// enabled on the trail, and if it is, which insight types are enabled. If you run
 	// GetInsightSelectors on a trail that does not have Insights events enabled, the
 	// operation throws the exception InsightNotEnabledException For more information,
-	// see Logging CloudTrail Insights Events for Trails
-	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-insights-events-with-cloudtrail.html)
+	// see Logging CloudTrail Insights Events for Trails  (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-insights-events-with-cloudtrail.html)
 	// in the CloudTrail User Guide.
 	GetInsightSelectors(ctx context.Context, params *GetInsightSelectorsInput, optFns ...func(*Options)) (*GetInsightSelectorsOutput, error)
 	// Gets event data results of a query. You must specify the QueryID value returned
-	// by the StartQuery operation, and an ARN for EventDataStore.
+	// by the StartQuery operation, and an ARN for EventDataStore .
 	GetQueryResults(ctx context.Context, params *GetQueryResultsInput, optFns ...func(*Options)) (*GetQueryResultsOutput, error)
 	// Retrieves the JSON text of the resource-based policy document attached to the
 	// CloudTrail channel.
@@ -125,7 +113,7 @@ type CloudTrail interface {
 	// Returns a list of failures for the specified import.
 	ListImportFailures(ctx context.Context, params *ListImportFailuresInput, optFns ...func(*Options)) (*ListImportFailuresOutput, error)
 	// Returns information on all imports, or a select set of imports by ImportStatus
-	// or Destination.
+	// or Destination .
 	ListImports(ctx context.Context, params *ListImportsInput, optFns ...func(*Options)) (*ListImportsOutput, error)
 	// Returns all public keys whose private keys were used to sign the digest files
 	// within the specified time range. The public key is needed to validate digest
@@ -136,56 +124,41 @@ type CloudTrail interface {
 	// key.
 	ListPublicKeys(ctx context.Context, params *ListPublicKeysInput, optFns ...func(*Options)) (*ListPublicKeysOutput, error)
 	// Returns a list of queries and query statuses for the past seven days. You must
-	// specify an ARN value for EventDataStore. Optionally, to shorten the list of
+	// specify an ARN value for EventDataStore . Optionally, to shorten the list of
 	// results, you can specify a time range, formatted as timestamps, by adding
 	// StartTime and EndTime parameters, and a QueryStatus value. Valid values for
-	// QueryStatus include QUEUED, RUNNING, FINISHED, FAILED, TIMED_OUT, or CANCELLED.
+	// QueryStatus include QUEUED , RUNNING , FINISHED , FAILED , TIMED_OUT , or
+	// CANCELLED .
 	ListQueries(ctx context.Context, params *ListQueriesInput, optFns ...func(*Options)) (*ListQueriesOutput, error)
 	// Lists the tags for the trail, event data store, or channel in the current
 	// region.
 	ListTags(ctx context.Context, params *ListTagsInput, optFns ...func(*Options)) (*ListTagsOutput, error)
 	// Lists trails that are in the current account.
 	ListTrails(ctx context.Context, params *ListTrailsInput, optFns ...func(*Options)) (*ListTrailsOutput, error)
-	// Looks up management events
-	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html#cloudtrail-concepts-management-events)
-	// or CloudTrail Insights events
-	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html#cloudtrail-concepts-insights-events)
+	// Looks up management events (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html#cloudtrail-concepts-management-events)
+	// or CloudTrail Insights events (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html#cloudtrail-concepts-insights-events)
 	// that are captured by CloudTrail. You can look up events that occurred in a
 	// region within the last 90 days. Lookup supports the following attributes for
 	// management events:
-	//
-	// * Amazon Web Services access key
-	//
-	// * Event ID
-	//
-	// * Event
-	// name
-	//
-	// * Event source
-	//
-	// * Read only
-	//
-	// * Resource name
-	//
-	// * Resource type
-	//
-	// * User
-	// name
+	//   - Amazon Web Services access key
+	//   - Event ID
+	//   - Event name
+	//   - Event source
+	//   - Read only
+	//   - Resource name
+	//   - Resource type
+	//   - User name
 	//
 	// Lookup supports the following attributes for Insights events:
+	//   - Event ID
+	//   - Event name
+	//   - Event source
 	//
-	// * Event
-	// ID
-	//
-	// * Event name
-	//
-	// * Event source
-	//
-	// All attributes are optional. The default
-	// number of results returned is 50, with a maximum of 50 possible. The response
-	// includes a token that you can use to get the next page of results. The rate of
-	// lookup requests is limited to two per second, per account, per region. If this
-	// limit is exceeded, a throttling error occurs.
+	// All attributes are optional. The default number of results returned is 50, with
+	// a maximum of 50 possible. The response includes a token that you can use to get
+	// the next page of results. The rate of lookup requests is limited to two per
+	// second, per account, per region. If this limit is exceeded, a throttling error
+	// occurs.
 	LookupEvents(ctx context.Context, params *LookupEventsInput, optFns ...func(*Options)) (*LookupEventsOutput, error)
 	// Configures an event selector or advanced event selectors for your trail. Use
 	// event selectors or advanced event selectors to specify management and data event
@@ -196,53 +169,41 @@ type CloudTrail interface {
 	// the event matches any event selector, the trail processes and logs the event. If
 	// the event doesn't match any event selector, the trail doesn't log the event.
 	// Example
+	//   - You create an event selector for a trail and specify that you want
+	//     write-only events.
+	//   - The EC2 GetConsoleOutput and RunInstances API operations occur in your
+	//     account.
+	//   - CloudTrail evaluates whether the events match your event selectors.
+	//   - The RunInstances is a write-only event and it matches your event selector.
+	//     The trail logs the event.
+	//   - The GetConsoleOutput is a read-only event that doesn't match your event
+	//     selector. The trail doesn't log the event.
 	//
-	// * You create an event selector for a trail and specify that you want
-	// write-only events.
-	//
-	// * The EC2 GetConsoleOutput and RunInstances API operations
-	// occur in your account.
-	//
-	// * CloudTrail evaluates whether the events match your
-	// event selectors.
-	//
-	// * The RunInstances is a write-only event and it matches your
-	// event selector. The trail logs the event.
-	//
-	// * The GetConsoleOutput is a read-only
-	// event that doesn't match your event selector. The trail doesn't log the
-	// event.
-	//
-	// The PutEventSelectors operation must be called from the region in which
-	// the trail was created; otherwise, an InvalidHomeRegionException exception is
+	// The PutEventSelectors operation must be called from the region in which the
+	// trail was created; otherwise, an InvalidHomeRegionException exception is
 	// thrown. You can configure up to five event selectors for each trail. For more
-	// information, see Logging management events for trails
-	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-management-events-with-cloudtrail.html),
-	// Logging data events for trails
-	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html),
-	// and Quotas in CloudTrail
-	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/WhatIsCloudTrail-Limits.html)
+	// information, see Logging management events for trails  (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-management-events-with-cloudtrail.html)
+	// , Logging data events for trails  (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html)
+	// , and Quotas in CloudTrail (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/WhatIsCloudTrail-Limits.html)
 	// in the CloudTrail User Guide. You can add advanced event selectors, and
 	// conditions for your advanced event selectors, up to a maximum of 500 values for
 	// all conditions and selectors on a trail. You can use either
-	// AdvancedEventSelectors or EventSelectors, but not both. If you apply
+	// AdvancedEventSelectors or EventSelectors , but not both. If you apply
 	// AdvancedEventSelectors to a trail, any existing EventSelectors are overwritten.
-	// For more information about advanced event selectors, see Logging data events for
-	// trails
-	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html)
+	// For more information about advanced event selectors, see Logging data events
+	// for trails (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html)
 	// in the CloudTrail User Guide.
 	PutEventSelectors(ctx context.Context, params *PutEventSelectorsInput, optFns ...func(*Options)) (*PutEventSelectorsOutput, error)
-	// Lets you enable Insights event logging by specifying the Insights selectors that
-	// you want to enable on an existing trail. You also use PutInsightSelectors to
-	// turn off Insights event logging, by passing an empty list of insight types. The
-	// valid Insights event types in this release are ApiErrorRateInsight and
-	// ApiCallRateInsight.
+	// Lets you enable Insights event logging by specifying the Insights selectors
+	// that you want to enable on an existing trail. You also use PutInsightSelectors
+	// to turn off Insights event logging, by passing an empty list of insight types.
+	// The valid Insights event types in this release are ApiErrorRateInsight and
+	// ApiCallRateInsight .
 	PutInsightSelectors(ctx context.Context, params *PutInsightSelectorsInput, optFns ...func(*Options)) (*PutInsightSelectorsOutput, error)
-	// Attaches a resource-based permission policy to a CloudTrail channel that is used
-	// for an integration with an event source outside of Amazon Web Services. For more
-	// information about resource-based policies, see CloudTrail resource-based policy
-	// examples
-	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/security_iam_resource-based-policy-examples.html)
+	// Attaches a resource-based permission policy to a CloudTrail channel that is
+	// used for an integration with an event source outside of Amazon Web Services. For
+	// more information about resource-based policies, see CloudTrail resource-based
+	// policy examples (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/security_iam_resource-based-policy-examples.html)
 	// in the CloudTrail User Guide.
 	PutResourcePolicy(ctx context.Context, params *PutResourcePolicyInput, optFns ...func(*Options)) (*PutResourcePolicyOutput, error)
 	// Registers an organization’s member account as the CloudTrail delegated
@@ -250,28 +211,26 @@ type CloudTrail interface {
 	RegisterOrganizationDelegatedAdmin(ctx context.Context, params *RegisterOrganizationDelegatedAdminInput, optFns ...func(*Options)) (*RegisterOrganizationDelegatedAdminOutput, error)
 	// Removes the specified tags from a trail, event data store, or channel.
 	RemoveTags(ctx context.Context, params *RemoveTagsInput, optFns ...func(*Options)) (*RemoveTagsOutput, error)
-	// Restores a deleted event data store specified by EventDataStore, which accepts
+	// Restores a deleted event data store specified by EventDataStore , which accepts
 	// an event data store ARN. You can only restore a deleted event data store within
 	// the seven-day wait period after deletion. Restoring an event data store can take
 	// several minutes, depending on the size of the event data store.
 	RestoreEventDataStore(ctx context.Context, params *RestoreEventDataStoreInput, optFns ...func(*Options)) (*RestoreEventDataStoreOutput, error)
-	// Starts an import of logged trail events from a source S3 bucket to a destination
-	// event data store. By default, CloudTrail only imports events contained in the S3
-	// bucket's CloudTrail prefix and the prefixes inside the CloudTrail prefix, and
-	// does not check prefixes for other Amazon Web Services services. If you want to
-	// import CloudTrail events contained in another prefix, you must include the
-	// prefix in the S3LocationUri. For more considerations about importing trail
-	// events, see Considerations
-	// (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-copy-trail-to-lake.html#cloudtrail-trail-copy-considerations).
-	// When you start a new import, the Destinations and ImportSource parameters are
+	// Starts an import of logged trail events from a source S3 bucket to a
+	// destination event data store. By default, CloudTrail only imports events
+	// contained in the S3 bucket's CloudTrail prefix and the prefixes inside the
+	// CloudTrail prefix, and does not check prefixes for other Amazon Web Services
+	// services. If you want to import CloudTrail events contained in another prefix,
+	// you must include the prefix in the S3LocationUri . For more considerations about
+	// importing trail events, see Considerations (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-copy-trail-to-lake.html#cloudtrail-trail-copy-considerations)
+	// . When you start a new import, the Destinations and ImportSource parameters are
 	// required. Before starting a new import, disable any access control lists (ACLs)
 	// attached to the source S3 bucket. For more information about disabling ACLs, see
-	// Controlling ownership of objects and disabling ACLs for your bucket
-	// (https://docs.aws.amazon.com/AmazonS3/latest/userguide/about-object-ownership.html).
-	// When you retry an import, the ImportID parameter is required. If the destination
-	// event data store is for an organization, you must use the management account to
-	// import trail events. You cannot use the delegated administrator account for the
-	// organization.
+	// Controlling ownership of objects and disabling ACLs for your bucket (https://docs.aws.amazon.com/AmazonS3/latest/userguide/about-object-ownership.html)
+	// . When you retry an import, the ImportID parameter is required. If the
+	// destination event data store is for an organization, you must use the management
+	// account to import trail events. You cannot use the delegated administrator
+	// account for the organization.
 	StartImport(ctx context.Context, params *StartImportInput, optFns ...func(*Options)) (*StartImportOutput, error)
 	// Starts the recording of Amazon Web Services API calls and log file delivery for
 	// a trail. For a trail that is enabled in all regions, this operation must be
@@ -302,8 +261,8 @@ type CloudTrail interface {
 	// in days, and valid values are integers between 90 and 2557. By default,
 	// TerminationProtection is enabled. For event data stores for CloudTrail events,
 	// AdvancedEventSelectors includes or excludes management and data events in your
-	// event data store. For more information about AdvancedEventSelectors, see
-	// PutEventSelectorsRequest$AdvancedEventSelectors. For event data stores for
+	// event data store. For more information about AdvancedEventSelectors , see
+	// PutEventSelectorsRequest$AdvancedEventSelectors . For event data stores for
 	// Config configuration items, Audit Manager evidence, or non-Amazon Web Services
 	// events, AdvancedEventSelectors includes events of that type in your event data
 	// store.

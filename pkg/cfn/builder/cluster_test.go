@@ -368,7 +368,18 @@ var _ = Describe("Cluster Template Builder", func() {
 			BeforeEach(func() {
 				cfg.PrivateCluster = &api.PrivateCluster{Enabled: true}
 
-				detailsJSON := serviceDetailsJSON
+				detailsJSON := `
+				{
+				  "ServiceNames": [ "com.amazonaws.us-west-2.ec2" ],
+				  "ServiceDetails": [
+					{
+					  "ServiceType": [ { "ServiceType": "Interface" } ],
+					  "ServiceName": "com.amazonaws.us-west-2.ec2",
+					  "BaseEndpointDnsNames": [ "ec2.us-west-2.vpce.amazonaws.com" ]
+					}
+				  ]
+				}
+				`
 				var output *ec2.DescribeVpcEndpointServicesOutput
 				Expect(json.Unmarshal([]byte(detailsJSON), &output)).To(Succeed())
 				provider.MockEC2().On("DescribeVpcEndpointServices", mock.Anything, mock.MatchedBy(func(e *ec2.DescribeVpcEndpointServicesInput) bool {
@@ -560,6 +571,7 @@ var _ = Describe("Cluster Template Builder", func() {
 
 		Context("when fargate profiles are configured", func() {
 			BeforeEach(func() {
+				cfg.Metadata.AccountID = "111122223333"
 				cfg.FargateProfiles = []*api.FargateProfile{{
 					Name: "fp-default",
 					Selectors: []api.FargateProfileSelector{
@@ -672,19 +684,3 @@ func makePolicyARNRef(policy string) map[string]interface{} {
 		"Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/" + policy,
 	}
 }
-
-//go:embed testdata/service_details_outposts.json
-var serviceDetailsOutpostsJSON []byte
-
-var serviceDetailsJSON = `
-{
-  "ServiceNames": [ "com.amazonaws.us-west-2.ec2" ],
-  "ServiceDetails": [
-    {
-      "ServiceType": [ { "ServiceType": "Interface" } ],
-      "ServiceName": "com.amazonaws.us-west-2.ec2",
-      "BaseEndpointDnsNames": [ "ec2.us-west-2.vpce.amazonaws.com" ]
-    }
-  ]
-}
-`

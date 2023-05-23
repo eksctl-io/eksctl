@@ -5,14 +5,14 @@ sponsored by [![Weaveworks](img/empty.svg#wwinline)](https://www.weave.works/) a
 !!! tip "New for 2023"
     `eksctl` now supports creating fully private clusters on [AWS Outposts](/usage/outposts).
 
-    `eksctl` now supports new regions - Zurich(`eu-central-2`), Spain(`eu-south-2`) and Hyderabad(`ap-south-2`)
+    `eksctl` now supports new regions - Zurich (`eu-central-2`), Spain (`eu-south-2`), Hyderabad (`ap-south-2`) and  Melbourne (`ap-southeast-4`).
 
 `eksctl` is a simple CLI tool for creating and managing clusters on EKS - Amazon's managed Kubernetes service for EC2.
 It is written in Go, uses CloudFormation, was created by [Weaveworks](https://www.weave.works/) and it welcomes
-contributions from the community. 
+contributions from the community.
 
-!!! example "Create a basic cluster in minutes with just one command" 
-    ```  
+!!! example "Create a basic cluster in minutes with just one command"
+    ```
     eksctl create cluster
     ```
     ![eksctl create cluster](img/eksctl-gopher.png){ align=right }
@@ -24,7 +24,7 @@ contributions from the community.
     - use the official AWS [EKS AMI](https://github.com/awslabs/amazon-eks-ami)
     - `us-west-2` region
     - a dedicated VPC (check your quotas)
-   
+
 Example output:
 
 ```

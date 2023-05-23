@@ -43,6 +43,7 @@ type MockState struct {
 type MockProvider struct {
 	Client *MockAWSClient
 
+	waitTimeout    *time.Duration
 	region         string
 	cfnRoleARN     string
 	asg            *mocksv2.ASG
@@ -209,7 +210,16 @@ func (m *MockProvider) SetRegion(r string) {
 }
 
 // WaitTimeout returns current timeout setting
-func (m MockProvider) WaitTimeout() time.Duration { return ProviderConfig.WaitTimeout }
+func (m MockProvider) WaitTimeout() time.Duration {
+	if m.waitTimeout != nil {
+		return *m.waitTimeout
+	}
+	return ProviderConfig.WaitTimeout
+}
+
+func (m *MockProvider) SetWaitTimeout(t time.Duration) {
+	m.waitTimeout = &t
+}
 
 // ConfigProvider returns a representation of the ConfigProvider
 func (m MockProvider) ConfigProvider() client.ConfigProvider {

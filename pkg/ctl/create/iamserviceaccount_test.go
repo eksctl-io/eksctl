@@ -14,7 +14,7 @@ var _ = Describe("create iamserviceaccount", func() {
 			cmd := newMockEmptyCmd(commandArgs...)
 			count := 0
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				createIAMServiceAccountCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, overrideExistingServiceAccounts bool) error {
+				createIAMServiceAccountCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, _, _ bool) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
 					Expect(cmd.ClusterConfig.IAM.ServiceAccounts[0].Name).To(Equal("serviceAccountName"))
 					Expect(cmd.ClusterConfig.IAM.ServiceAccounts[0].AttachPolicyARNs).To(ContainElement("dummyPolicyArn"))

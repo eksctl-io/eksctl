@@ -15,6 +15,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
 	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	. "github.com/weaveworks/eksctl/integration/runner"
 
 	"github.com/weaveworks/eksctl/integration/runner"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -227,6 +230,19 @@ func NewParams(clusterNamePrefix string) *Params {
 	}
 	params.GenerateCommands()
 	return &params
+}
+
+// LogStacksEventsOnFailure lists stacks and their events in case the current suite has failed
+func (p *Params) LogStacksEventsOnFailure() bool {
+	return AfterEach(func() {
+		if CurrentSpecReport().Failed() {
+			Expect(p.EksctlUtilsCmd.WithArgs(
+				"describe-stacks",
+				"--cluster", p.ClusterName,
+				"--events",
+			)).To(RunSuccessfully())
+		}
+	})
 }
 
 // attemptSettingUserID will attempt to fetch the first 4 characters of the userID running the

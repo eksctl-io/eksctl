@@ -1,4 +1,4 @@
-package builder
+package builder_test
 
 import (
 	"context"
@@ -17,6 +17,8 @@ import (
 
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 
 	"github.com/weaveworks/goformation/v4"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -51,7 +53,6 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 		fakeVPCImporter := new(vpcfakes.FakeImporter)
 		fakeVPCImporter.VPCReturns(gfnt.MakeFnImportValueString("eksctl-lt::VPC"))
 		fakeVPCImporter.SecurityGroupsReturns(gfnt.Slice{gfnt.MakeFnImportValueString("eksctl-lt::ClusterSecurityGroupId")})
-		fakeVPCImporter.SubnetsPublicReturns(gfnt.MakeFnSplit(",", gfnt.MakeFnImportValueString("eksctl-lt::SubnetsPublic")))
 
 		bootstrapper := &fakes.FakeBootstrapper{}
 		bootstrapper.UserDataStub = func() (string, error) {
@@ -62,7 +63,22 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 			return userData, nil
 		}
 
-		stack := NewManagedNodeGroup(provider.MockEC2(), clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, fakeVPCImporter)
+		mockSubnetsAndAZInstanceSupport(clusterConfig, provider,
+			[]string{"us-west-2a"},
+			[]string{}, // local zones
+			[]ec2types.InstanceType{
+				ec2types.InstanceTypeM5Large,
+				ec2types.InstanceTypeM5Xlarge,
+				ec2types.InstanceTypeT2Medium,
+				ec2types.InstanceTypeC3Large,
+				ec2types.InstanceTypeC4Large,
+				ec2types.InstanceTypeC5Large,
+				ec2types.InstanceTypeC5aLarge,
+				ec2types.InstanceTypeC5dLarge,
+				ec2types.InstanceTypeC5nLarge,
+			})
+
+		stack := builder.NewManagedNodeGroup(provider.MockEC2(), clusterConfig, m.ng, builder.NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, fakeVPCImporter)
 		err := stack.AddAllResources(context.Background())
 		if m.errMsg != "" {
 			Expect(err).To(HaveOccurred())

@@ -75,6 +75,7 @@ var _ = BeforeSuite(func() {
 
 var _ = Describe("(Integration) [EKS kms test]", func() {
 	Context("Creating a cluster and enabling kms", func() {
+		params.LogStacksEventsOnFailure()
 
 		It("supports enabling KMS encryption", func() {
 			enableEncryptionCMD := func() Cmd {

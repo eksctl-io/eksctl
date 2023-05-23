@@ -194,7 +194,7 @@ func AppendAuthenticator(config *clientcmdapi.Config, cluster ClusterInfo, authe
 		} else if awsCLIIsBetaVersion {
 			execConfig.APIVersion = betaAPIVersion
 		}
-		args = []string{"eks", "get-token", "--cluster-name", cluster.ID()}
+		args = []string{"eks", "get-token", "--output", "json", "--cluster-name", cluster.ID()}
 		roleARNFlag = "--role-arn"
 		if meta.Region != "" {
 			args = append(args, "--region", meta.Region)
