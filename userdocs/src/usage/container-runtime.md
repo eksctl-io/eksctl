@@ -1,7 +1,7 @@
 # Define Container Runtime
 
 !!! warning
-    Starting with Kubernetes version `1.24`, dockershim support has been deprecated. Therefore, if you create a cluster using `eksctl` on version `1.24` or higher, the information below no longer applies, and the only suppoted container runtime is `containerd`. Trying to set it otherwise will return a validation error.
+    Starting with Kubernetes version `1.24`, dockershim support has been deprecated. Therefore, if you create a cluster using `eksctl` on version `1.24` or higher, the information below no longer applies, and the only supported container runtime is `containerd`. Trying to set it otherwise will return a validation error.
     
     At some point, we will completely remove the option to set `containerRuntime` in config file, together with the support for older Kubernetes versions support (i.e. `1.22` or `1.23`).
 
