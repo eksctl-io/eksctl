@@ -45,6 +45,7 @@ managedNodeGroups:
     privateNetworking: true
 
   - name: custom-ami
+    amiFamily: AmazonLinux2
     ami: ami-custom
     preBootstrapCommands:
       # disable hyperthreading
