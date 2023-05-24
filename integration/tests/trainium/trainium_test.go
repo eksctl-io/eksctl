@@ -152,7 +152,7 @@ var _ = Describe("(Integration) Trainium nodes", func() {
 			})
 
 			When("adding an unmanaged nodegroup by default", func() {
-				params.LogStacksEventsOnFailure()
+				params.LogStacksEventsOnFailureForCluster(clusterWithoutPlugin)
 
 				It("should install without error", func() {
 					cmd := params.EksctlCreateCmd.WithArgs(

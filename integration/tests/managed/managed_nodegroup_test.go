@@ -433,7 +433,9 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				Expect(nodeList.Items).NotTo(BeEmpty())
 				for _, node := range nodeList.Items {
 					Expect(node.Status.NodeInfo.OSImage).To(ContainSubstring("Bottlerocket"))
-					Expect(node.Labels["kubernetes.io/hostname"]).To(Equal("custom-bottlerocket-host"))
+					// On k8s 1.26, --hostname-override flag is passed to kubelet to allow nodes to join the cluster.
+					// For further reference please see: https://github.com/bottlerocket-os/bottlerocket/pull/3033.
+					Expect(node.Labels["kubernetes.io/hostname"]).To(ContainSubstring(fmt.Sprintf("%s.compute.internal", params.Region)))
 				}
 				kubeTest.Close()
 			})
