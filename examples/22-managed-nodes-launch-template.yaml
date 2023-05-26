@@ -24,6 +24,7 @@ managedNodeGroups:
 - name: custom-nodegroup
   instanceType: m5.xlarge
   desiredCapacity: 2
+  amiFamily: AmazonLinux2
   ami: ami-0e124de4755b2734d
   ssh:
     allow: true

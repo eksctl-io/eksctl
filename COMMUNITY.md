@@ -1,6 +1,6 @@
 # eksctl community
 
-Welcome to the eksctl community. We are very happy to have you here :tada: .
+Welcome to the `eksctl` community. We are very happy to have you here :tada: .
 
 This document contains the following information:
 
@@ -16,6 +16,8 @@ Ready to start contributing? Head over to our [contribution docs](CONTRIBUTING.m
 
 The core team of maintainers are Chetan Patwal ([@cPu1](https://github.com/cPu1)),
 Tiberiu Copaciu ([@TiberiuGC](https://github.com/TiberiuGC)),
+Amine Hilaly ([@A-Hilaly](https://github.com/a-hilaly)),
+Yu Xiang Zhang ([@yuxiang-zhang](https://github.com/yuxiang-zhang))
 and Himangini Daware ([@Himangini](https://github.com/Himangini)).
 
 ## Join us!

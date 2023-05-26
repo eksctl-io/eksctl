@@ -234,11 +234,15 @@ func NewParams(clusterNamePrefix string) *Params {
 
 // LogStacksEventsOnFailure lists stacks and their events in case the current suite has failed
 func (p *Params) LogStacksEventsOnFailure() bool {
+	return p.LogStacksEventsOnFailureForCluster(p.ClusterName)
+}
+
+func (p *Params) LogStacksEventsOnFailureForCluster(clusterName string) bool {
 	return AfterEach(func() {
 		if CurrentSpecReport().Failed() {
 			Expect(p.EksctlUtilsCmd.WithArgs(
 				"describe-stacks",
-				"--cluster", p.ClusterName,
+				"--cluster", clusterName,
 				"--events",
 			)).To(RunSuccessfully())
 		}

@@ -5,11 +5,11 @@
             "LaunchTemplateData": {
                 "BlockDeviceMappings": [
                     {
-                        "DeviceName": "/dev/xvdb",
+                        "DeviceName": "/dev/sda1",
                         "Ebs": {
                             "Iops": 3000,
                             "Throughput": 125,
-                            "VolumeSize": 142,
+                            "VolumeSize": 200,
                             "VolumeType": "gp3"
                         }
                     }
@@ -29,11 +29,11 @@
                         "Tags": [
                             {
                                 "Key": "Name",
-                                "Value": "lt-bottlerocket-volume-Node"
+                                "Value": "lt-windows-Node"
                             },
                             {
                                 "Key": "alpha.eksctl.io/nodegroup-name",
-                                "Value": "bottlerocket-volume"
+                                "Value": "windows"
                             },
                             {
                                 "Key": "alpha.eksctl.io/nodegroup-type",
@@ -44,35 +44,35 @@
                     {
                         "ResourceType": "volume",
                         "Tags": [
-                        {
-                            "Key": "Name",
-                            "Value": "lt-bottlerocket-volume-Node"
-                        },
-                        {
-                            "Key": "alpha.eksctl.io/nodegroup-name",
-                            "Value": "bottlerocket-volume"
-                        },
-                        {
-                            "Key": "alpha.eksctl.io/nodegroup-type",
-                            "Value": "managed"
-                        }
+                            {
+                                "Key": "Name",
+                                "Value": "lt-windows-Node"
+                            },
+                            {
+                                "Key": "alpha.eksctl.io/nodegroup-name",
+                                "Value": "windows"
+                            },
+                            {
+                                "Key": "alpha.eksctl.io/nodegroup-type",
+                                "Value": "managed"
+                            }
                         ]
                     },
                     {
                         "ResourceType": "network-interface",
                         "Tags": [
-                        {
-                            "Key": "Name",
-                            "Value": "lt-bottlerocket-volume-Node"
-                        },
-                        {
-                            "Key": "alpha.eksctl.io/nodegroup-name",
-                            "Value": "bottlerocket-volume"
-                        },
-                        {
-                            "Key": "alpha.eksctl.io/nodegroup-type",
-                            "Value": "managed"
-                        }
+                            {
+                                "Key": "Name",
+                                "Value": "lt-windows-Node"
+                            },
+                            {
+                                "Key": "alpha.eksctl.io/nodegroup-name",
+                                "Value": "windows"
+                            },
+                            {
+                                "Key": "alpha.eksctl.io/nodegroup-type",
+                                "Value": "managed"
+                            }
                         ]
                     }
                 ]
@@ -85,20 +85,27 @@
     "ManagedNodeGroup": {
         "Type": "AWS::EKS::Nodegroup",
         "Properties": {
-            "AmiType": "BOTTLEROCKET_x86_64",
+            "AmiType": "WINDOWS_CORE_2019_x86_64",
             "ClusterName": "lt",
+            "InstanceTypes": [
+                "m5.xlarge"
+            ],
             "Labels": {
                 "alpha.eksctl.io/cluster-name": "lt",
-                "alpha.eksctl.io/nodegroup-name": "bottlerocket-volume"
+                "alpha.eksctl.io/nodegroup-name": "windows"
             },
-            "InstanceTypes": ["m5.xlarge"],
+            "LaunchTemplate": {
+                "Id": {
+                    "Ref": "LaunchTemplate"
+                }
+            },
             "NodeRole": {
                 "Fn::GetAtt": [
                     "NodeInstanceRole",
                     "Arn"
                 ]
             },
-            "NodegroupName": "bottlerocket-volume",
+            "NodegroupName": "windows",
             "ScalingConfig": {
                 "DesiredSize": 2,
                 "MaxSize": 2,
@@ -108,13 +115,8 @@
                 "subnet-public-us-west-2a"
             ],
             "Tags": {
-                "alpha.eksctl.io/nodegroup-name": "bottlerocket-volume",
+                "alpha.eksctl.io/nodegroup-name": "windows",
                 "alpha.eksctl.io/nodegroup-type": "managed"
-            },
-            "LaunchTemplate": {
-                "Id": {
-                    "Ref": "LaunchTemplate"
-                }
             }
         }
     },
