@@ -41,10 +41,12 @@ const (
 
 	Version1_26 = "1.26"
 
+	Version1_27 = "1.27"
+
 	// DefaultVersion (default)
 	DefaultVersion = Version1_25
 
-	LatestVersion = Version1_26
+	LatestVersion = Version1_27
 
 	DockershimDeprecationVersion = Version1_24
 )
@@ -90,8 +92,8 @@ const (
 
 // Not yet supported versions
 const (
-	// Version1_27 represents Kubernetes version 1.27.x
-	Version1_27 = "1.27"
+	// Version1_28 represents Kubernetes version 1.28.x
+	Version1_28 = "1.28"
 )
 
 const (
@@ -550,6 +552,7 @@ func SupportedVersions() []string {
 		Version1_24,
 		Version1_25,
 		Version1_26,
+		Version1_27,
 	}
 }
 
@@ -1104,7 +1107,7 @@ func NewNodeGroup() *NodeGroup {
 				WithLocal:  Enabled(),
 				WithShared: Enabled(),
 			},
-			DisableIMDSv1:    Disabled(),
+			DisableIMDSv1:    Enabled(),
 			DisablePodIMDS:   Disabled(),
 			InstanceSelector: &InstanceSelector{},
 		},
@@ -1593,7 +1596,7 @@ type NodeGroupBase struct {
 	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
 
 	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
-	// Defaults to `false`
+	// Defaults to `true`
 	// +optional
 	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
 
