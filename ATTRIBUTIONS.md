@@ -1334,7 +1334,7 @@ Subdependencies:
 
 #### bitbucket.org/liamstask/goose
 
-Copyright (c) <2012> <Liam Staskawicz>
+Copyright (c) <2012> Liam Staskawicz
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -1791,6 +1791,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 Mozilla Public License Version 2.0
 ==================================
+```
 
 1. Definitions
 --------------
@@ -2162,7 +2163,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
   This Source Code Form is "Incompatible With Secondary Licenses", as
   defined by the Mozilla Public License, v. 2.0.
-
+```
 #### github.com/golang/glog
 
 Apache License version 2.0
@@ -2313,7 +2314,7 @@ SOFTWARE.
 
 #### github.com/kisielk/sqlstruct
 
-Copyright 2012 Kamil Kisiel <kamil@kamilkisiel.net>
+Copyright 2012 Kamil Kisiel
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -16313,7 +16314,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Gocheck - A rich testing framework for Go
  
-Copyright (c) 2010-2013 Gustavo Niemeyer <gustavo@niemeyer.net>
+Copyright (c) 2010-2013 Gustavo Niemeyer 
 
 All rights reserved.
 
