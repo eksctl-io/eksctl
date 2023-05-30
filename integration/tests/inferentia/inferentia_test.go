@@ -24,8 +24,6 @@ import (
 )
 
 var (
-	defaultCluster          string
-	noInstallCluster        string
 	params                  *tests.Params
 	clusterWithNeuronPlugin string
 	clusterWithoutPlugin    string
@@ -35,8 +33,8 @@ func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
 	params = tests.NewParams("inf1")
-	defaultCluster = params.ClusterName
-	noInstallCluster = params.NewClusterName("inf1-no-plugin")
+	clusterWithNeuronPlugin = params.ClusterName
+	clusterWithoutPlugin = params.NewClusterName("inf1-no-plugin")
 }
 
 func TestInferentia(t *testing.T) {
@@ -53,9 +51,6 @@ var _ = BeforeSuite(func() {
 		params.KubeconfigPath = f.Name()
 		params.KubeconfigTemp = true
 	}
-
-	clusterWithoutPlugin = noInstallCluster
-	clusterWithNeuronPlugin = defaultCluster
 
 	if !params.SkipCreate {
 		cmd := params.EksctlCreateCmd.WithArgs(
@@ -137,7 +132,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 			})
 
 			When("adding an unmanaged nodegroup by default", func() {
-				params.LogStacksEventsOnFailure()
+				params.LogStacksEventsOnFailureForCluster(clusterWithoutPlugin)
 				It("should install without error", func() {
 					cmd := params.EksctlCreateCmd.WithArgs(
 						"nodegroup",

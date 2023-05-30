@@ -365,6 +365,19 @@ API_SERVER_URL=https://test.com
 			resourcesFilename: "bottlerocket_additional_encrypted_volume.json",
 		}),
 
+		Entry("Windows AMI Family", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "windows",
+					AMIFamily:    api.NodeImageFamilyWindowsServer2019CoreContainer,
+					InstanceType: "m5.xlarge",
+					VolumeType:   aws.String(api.NodeVolumeTypeGP3),
+					VolumeSize:   aws.Int(200),
+				},
+			},
+			resourcesFilename: "windows.json",
+		}),
+
 		Entry("CapacityReservationID is set", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
