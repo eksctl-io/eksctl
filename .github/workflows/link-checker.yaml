@@ -38,4 +38,4 @@ jobs:
         uses: lycheeverse/lychee-action@ec3ed119d4f44ad2673a7232460dc7dff59d2421 #v1.8.0
         with:
           fail: true
-          args: --exclude-all-private --exclude-file .github/workflows/exclude-file.txt --verbose --no-progress './**/*.md' './**/*.html'
+          args: --exclude-all-private --exclude-file --exclude-mail .github/workflows/exclude-file.txt --verbose --no-progress './**/*.md' './**/*.html'

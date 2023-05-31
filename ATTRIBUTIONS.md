@@ -11946,7 +11946,7 @@ Exhibit B - “Incompatible With Secondary Licenses” Notice
 
 #### github.com/kisielk/gotool
 
-Copyright (c) 2013 Kamil Kisiel <kamil@kamilkisiel.net>
+Copyright (c) 2013 Kamil Kisiel
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
