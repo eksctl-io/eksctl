@@ -12,6 +12,7 @@ metadata:
 vpc:
   cidr: 10.10.0.0/16
   autoAllocateIPv6: true
+  hostnameType: resource-name
   # disable public access to endpoint and only allow private access
   clusterEndpoints:
     publicAccess: false
