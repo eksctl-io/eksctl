@@ -176,8 +176,13 @@ func (c *ClusterProvider) NewOpenIDConnectManager(ctx context.Context, spec *api
 		return nil, fmt.Errorf("unknown EKS ARN: %q", spec.Status.ARN)
 	}
 
-	return iamoidc.NewOpenIDConnectManager(c.AWSProvider.IAM(), parsedARN.AccountID,
-		*c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer, parsedARN.Partition, sharedTags(c.Status.ClusterInfo.Cluster))
+	tprint := ""
+	if spec != nil && spec.IAM != nil && spec.IAM.OIDCThumbprint != nil {
+		tprint = *spec.IAM.OIDCThumbprint
+	}
+
+	return iamoidc.NewOpenIDConnectManager(c.AWSProvider.IAM(), c.AWSProvider.CloudFormation(), parsedARN.AccountID,
+		*c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer, parsedARN.Partition, sharedTags(c.Status.ClusterInfo.Cluster), tprint)
 }
 
 func sharedTags(cluster *ekstypes.Cluster) map[string]string {

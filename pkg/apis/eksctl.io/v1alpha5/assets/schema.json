@@ -385,6 +385,11 @@
           "description": "permissions boundary for the fargate pod execution role`. See [EKS Fargate Support](/usage/fargate-support/)",
           "x-intellij-html-description": "permissions boundary for the fargate pod execution role`. See <a href=\"/usage/fargate-support/\">EKS Fargate Support</a>"
         },
+        "oidcThumbprint": {
+          "type": "string",
+          "description": "thumbprint for the OIDC provider If provided will be used instead of trying to obtain the thumbprint from the certificate of the oidc endpoint Meant to be used in air-gapped installations, where the OIDC endpoint is not reachable",
+          "x-intellij-html-description": "thumbprint for the OIDC provider If provided will be used instead of trying to obtain the thumbprint from the certificate of the oidc endpoint Meant to be used in air-gapped installations, where the OIDC endpoint is not reachable"
+        },
         "serviceAccounts": {
           "items": {
             "$ref": "#/definitions/ClusterIAMServiceAccount"
@@ -419,6 +424,7 @@
         "fargatePodExecutionRoleARN",
         "fargatePodExecutionRolePermissionsBoundary",
         "withOIDC",
+        "oidcThumbprint",
         "serviceAccounts",
         "vpcResourceControllerPolicy"
       ],

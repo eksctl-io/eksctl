@@ -5,20 +5,24 @@ import (
 	"crypto/sha1"
 	"crypto/tls"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/smithy-go"
+	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
+	cf "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
+	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 	"net/http"
 	"net/url"
-
-	"github.com/aws/smithy-go"
+	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
-
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/pkg/errors"
-
-	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 )
 
 const defaultAudience = "sts.amazonaws.com"
@@ -33,10 +37,12 @@ type OpenIDConnectManager struct {
 	issuerURL          *url.URL
 	insecureSkipVerify bool
 	issuerCAThumbprint string
+	oidcThumbprint     string
 
 	ProviderARN string
 
 	iam awsapi.IAM
+	cf  awsapi.CloudFormation
 }
 
 // UnsupportedOIDCError represents an unsupported OIDC error
@@ -50,7 +56,7 @@ func (u *UnsupportedOIDCError) Error() string {
 
 // NewOpenIDConnectManager constructs a new IAM OIDC manager instance.
 // It returns an error if the issuer URL is invalid
-func NewOpenIDConnectManager(iamapi awsapi.IAM, accountID, issuer, partition string, tags map[string]string) (*OpenIDConnectManager, error) {
+func NewOpenIDConnectManager(iamapi awsapi.IAM, cf awsapi.CloudFormation, accountID, issuer, partition string, tags map[string]string, oidcThumbprint string) (*OpenIDConnectManager, error) {
 	issuerURL, err := url.Parse(issuer)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing OIDC issuer URL")
@@ -65,19 +71,39 @@ func NewOpenIDConnectManager(iamapi awsapi.IAM, accountID, issuer, partition str
 	}
 
 	m := &OpenIDConnectManager{
-		iam:       iamapi,
-		accountID: accountID,
-		partition: partition,
-		tags:      tags,
-		audience:  defaultAudience,
-		issuerURL: issuerURL,
+		iam:            iamapi,
+		accountID:      accountID,
+		partition:      partition,
+		tags:           tags,
+		audience:       defaultAudience,
+		issuerURL:      issuerURL,
+		cf:             cf,
+		oidcThumbprint: oidcThumbprint,
 	}
+
+	if oidcThumbprint != "" {
+		m.issuerCAThumbprint = oidcThumbprint
+	}
+
 	return m, nil
 }
 
 // CheckProviderExists will return true when the provider exists, it may return errors
 // if it was unable to call IAM API
 func (m *OpenIDConnectManager) CheckProviderExists(ctx context.Context) (bool, error) {
+	if m.oidcThumbprint != "" {
+		arn, err := m.getIDPArn()
+		if err != nil {
+			return false, err
+		}
+
+		if arn == "" {
+			return false, nil
+		}
+
+		return true, nil
+	}
+
 	input := &iam.GetOpenIDConnectProviderInput{
 		OpenIDConnectProviderArn: aws.String(
 			fmt.Sprintf("arn:%s:iam::%s:oidc-provider/%s", m.partition, m.accountID, m.hostnameAndPath()),
@@ -95,6 +121,51 @@ func (m *OpenIDConnectManager) CheckProviderExists(ctx context.Context) (bool, e
 	return true, nil
 }
 
+func (m *OpenIDConnectManager) getStackName() *string {
+	for k, v := range m.tags {
+		if k == "alpha.eksctl.io/cluster-name" {
+			return aws.String(fmt.Sprintf("eksctl-%s-oidc-provider", v))
+		}
+	}
+
+	return aws.String(fmt.Sprintf("oidc-provider-unknown"))
+}
+
+func (m *OpenIDConnectManager) getIDPArn() (string, error) {
+	_, err := m.cf.DescribeStacks(context.Background(), &cloudformation.DescribeStacksInput{
+		StackName: m.getStackName(),
+	})
+
+	if err != nil {
+		//var stackNotFound *types.StackNotFoundException
+		//if errors.As(err, &stackNotFound) {
+		if strings.Contains(err.Error(), "does not exist") {
+			return "", nil
+		}
+		return "", err
+	}
+
+	// The stack exists, get the OIDC Provider ARN
+	response, err := m.cf.DescribeStackResources(context.Background(), &cloudformation.DescribeStackResourcesInput{
+		StackName: m.getStackName(),
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	for _, resource := range response.StackResources {
+		provider := gfniam.OIDCProvider{}
+		if resource.ResourceType != nil && *resource.ResourceType == provider.AWSCloudFormationType() {
+			fmt.Printf("OIDC Provider ARN: %s\n", *resource.PhysicalResourceId)
+			m.ProviderARN = *resource.PhysicalResourceId
+			break
+		}
+	}
+
+	return m.ProviderARN, nil
+}
+
 // CreateProvider will retrieve CA root certificate and compute its thumbprint for the
 // by connecting to it and create the provider using IAM API
 func (m *OpenIDConnectManager) CreateProvider(ctx context.Context) error {
@@ -108,6 +179,90 @@ func (m *OpenIDConnectManager) CreateProvider(ctx context.Context) error {
 			Key:   aws.String(k),
 			Value: aws.String(v),
 		})
+	}
+
+	if m.oidcThumbprint != "" {
+		var t []cf.Tag
+		for k, v := range m.tags {
+			t = append(t, cf.Tag{
+				Key:   gfnt.NewString(k),
+				Value: gfnt.NewString(v),
+			})
+		}
+
+		hostWithoutPort := strings.Split(m.issuerURL.Host, ":")[0]
+		newURL := *m.issuerURL
+		newURL.Host = hostWithoutPort
+
+		fmt.Println(m.issuerURL.String())
+		fmt.Println(hostWithoutPort)
+		fmt.Println(newURL.String())
+
+		oidcProvider := &gfniam.OIDCProvider{
+			ClientIdList:   gfnt.NewStringSlice(m.audience),
+			Tags:           t,
+			ThumbprintList: gfnt.NewStringSlice(m.oidcThumbprint),
+			Url:            gfnt.NewString(newURL.String()),
+		}
+
+		body, err := oidcProvider.MarshalJSON()
+		if err != nil {
+			return err
+		}
+
+		template := fmt.Sprintf(`{
+	"Resources": {
+		"MyOIDCProvider": %s
+	}
+}`, string(string(body)))
+
+		stack := &cloudformation.CreateStackInput{
+			StackName:    m.getStackName(),
+			TemplateBody: aws.String(string(template)),
+		}
+
+		output, err := m.cf.CreateStack(ctx, stack)
+		if err != nil {
+			return err
+		}
+
+		for {
+			stack, err := m.cf.DescribeStacks(ctx, &cloudformation.DescribeStacksInput{
+				StackName: m.getStackName(),
+			})
+
+			if err != nil {
+				return err
+			}
+
+			if len(stack.Stacks) == 0 {
+				continue
+			}
+
+			fmt.Println(stack.Stacks[0].StackStatus)
+
+			if stack.Stacks[0].StackStatus == types.StackStatusCreateComplete {
+				fmt.Println("Stack creation complete")
+				break
+			} else if stack.Stacks[0].StackStatus == types.StackStatusRollbackComplete || stack.Stacks[0].StackStatus == types.StackStatusRollbackFailed || stack.Stacks[0].StackStatus == types.StackStatusCreateFailed {
+				fmt.Println("Stack creation failed")
+				break
+			}
+
+			// Wait for 5 seconds before checking the status again
+			time.Sleep(5 * time.Second)
+			fmt.Println("waiting for stack to complete")
+		}
+
+		fmt.Println("created oidc stack")
+		fmt.Println(output)
+
+		_, err = m.getIDPArn()
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 
 	input := &iam.CreateOpenIDConnectProviderInput{
@@ -128,6 +283,13 @@ func (m *OpenIDConnectManager) CreateProvider(ctx context.Context) error {
 // DeleteProvider will delete the provider using IAM API, it may return an error
 // the API call fails
 func (m *OpenIDConnectManager) DeleteProvider(ctx context.Context) error {
+	if m.oidcThumbprint != "" {
+		_, err := m.cf.DeleteStack(ctx, &cloudformation.DeleteStackInput{
+			StackName: m.getStackName(),
+		}, nil)
+
+		return err
+	}
 	// TODO: the ARN is deterministic, but we need to consider tracking
 	// it somehow; it's possible to get a dangling resource if cluster
 	// deletion was done by a version of eksctl that is not OIDC-aware,
@@ -145,6 +307,10 @@ func (m *OpenIDConnectManager) DeleteProvider(ctx context.Context) error {
 // getIssuerCAThumbprint obtains thumbprint of root CA by connecting to the
 // OIDC issuer and parsing certificates
 func (m *OpenIDConnectManager) getIssuerCAThumbprint() error {
+	if m.issuerCAThumbprint != "" {
+		return nil
+	}
+
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{

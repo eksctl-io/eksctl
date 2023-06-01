@@ -35,6 +35,12 @@ type ClusterIAM struct {
 	// +optional
 	WithOIDC *bool `json:"withOIDC,omitempty"`
 
+	// OIDCThumbprint is the thumbprint for the OIDC provider
+	// If provided will be used instead of trying to obtain the thumbprint from the certificate of the oidc endpoint
+	// Meant to be used in air-gapped installations, where the OIDC endpoint is not reachable
+	// +optional
+	OIDCThumbprint *string `json:"oidcThumbprint,omitempty"`
+
 	// service accounts to create in the cluster.
 	// See [IAM Service Accounts](/usage/iamserviceaccounts/#usage-with-config-files)
 	// +optional

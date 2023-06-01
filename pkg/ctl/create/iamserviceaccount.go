@@ -22,6 +22,10 @@ func createIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 	})
 }
 
+var (
+	discoverIDPFromCF bool
+)
+
 func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, overrideExistingServiceAccounts, roleOnly bool) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
@@ -52,6 +56,7 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 		fs.StringVar(&serviceAccount.AttachRoleARN, "attach-role-arn", "", "ARN of the role to attach to the iamserviceaccount")
 		fs.StringVar(&serviceAccount.RoleName, "role-name", "", "Set a custom name for the created role")
 		fs.BoolVar(roleOnly, "role-only", false, "disable service account creation, only the role will be created")
+		fs.BoolVar(&discoverIDPFromCF, "discover-cf-idp", false, "discover the idp from cf template")
 
 		cmdutils.AddStringToStringVarPFlag(fs, &serviceAccount.Tags, "tags", "", map[string]string{}, "Used to tag the IAM role")
 
@@ -76,6 +81,14 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
+
+	if discoverIDPFromCF {
+		// just set this to a dummy value, which would prompt the oidc manager to discover
+		// the role ARN from the cf template
+		// doesnt' seem to be used anywhere else
+		dummy := "blbalb"
+		cfg.IAM.OIDCThumbprint = &dummy
+	}
 
 	printer := printers.NewJSONPrinter()
 
