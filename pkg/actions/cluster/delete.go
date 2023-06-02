@@ -26,6 +26,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	ssh "github.com/weaveworks/eksctl/pkg/ssh/client"
+	"github.com/weaveworks/eksctl/pkg/utils/apierrors"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
@@ -83,7 +84,7 @@ func deleteFargateProfiles(ctx context.Context, clusterMeta *api.ClusterMeta, ct
 	)
 	profileNames, err := manager.ListProfiles(ctx)
 	if err != nil {
-		if fargate.IsUnauthorizedError(err) {
+		if apierrors.IsAccessDeniedError(err) {
 			logger.Debug("Fargate: unauthorized error: %v", err)
 			logger.Info("either account is not authorized to use Fargate or region %s is not supported. Ignoring error",
 				clusterMeta.Region)
