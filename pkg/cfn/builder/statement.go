@@ -14,8 +14,8 @@ const (
 func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 	return []cft.MapOfInterfaces{
 		{
-			"Effect": effectAllow,
-			"Action": []string{"iam:CreateServiceLinkedRole"},
+			"Effect":   effectAllow,
+			"Action":   []string{"iam:CreateServiceLinkedRole"},
 			"Resource": resourceAll,
 			"Condition": map[string]interface{}{
 				"StringEquals": map[string]string{
@@ -24,229 +24,229 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 			},
 		},
 		{
-            "Effect": effectAllow,
-            "Action": []string{
-                "ec2:DescribeAccountAttributes",
-                "ec2:DescribeAddresses",
-                "ec2:DescribeAvailabilityZones",
-                "ec2:DescribeInternetGateways",
-                "ec2:DescribeVpcs",
-                "ec2:DescribeVpcPeeringConnections",
-                "ec2:DescribeSubnets",
-                "ec2:DescribeSecurityGroups",
-                "ec2:DescribeInstances",
-                "ec2:DescribeNetworkInterfaces",
-                "ec2:DescribeTags",
-                "ec2:GetCoipPoolUsage",
-                "ec2:DescribeCoipPools",
-                "elasticloadbalancing:DescribeLoadBalancers",
-                "elasticloadbalancing:DescribeLoadBalancerAttributes",
-                "elasticloadbalancing:DescribeListeners",
-                "elasticloadbalancing:DescribeListenerCertificates",
-                "elasticloadbalancing:DescribeSSLPolicies",
-                "elasticloadbalancing:DescribeRules",
-                "elasticloadbalancing:DescribeTargetGroups",
-                "elasticloadbalancing:DescribeTargetGroupAttributes",
-                "elasticloadbalancing:DescribeTargetHealth",
-                "elasticloadbalancing:DescribeTags",
+			"Effect": effectAllow,
+			"Action": []string{
+				"ec2:DescribeAccountAttributes",
+				"ec2:DescribeAddresses",
+				"ec2:DescribeAvailabilityZones",
+				"ec2:DescribeInternetGateways",
+				"ec2:DescribeVpcs",
+				"ec2:DescribeVpcPeeringConnections",
+				"ec2:DescribeSubnets",
+				"ec2:DescribeSecurityGroups",
+				"ec2:DescribeInstances",
+				"ec2:DescribeNetworkInterfaces",
+				"ec2:DescribeTags",
+				"ec2:GetCoipPoolUsage",
+				"ec2:DescribeCoipPools",
+				"elasticloadbalancing:DescribeLoadBalancers",
+				"elasticloadbalancing:DescribeLoadBalancerAttributes",
+				"elasticloadbalancing:DescribeListeners",
+				"elasticloadbalancing:DescribeListenerCertificates",
+				"elasticloadbalancing:DescribeSSLPolicies",
+				"elasticloadbalancing:DescribeRules",
+				"elasticloadbalancing:DescribeTargetGroups",
+				"elasticloadbalancing:DescribeTargetGroupAttributes",
+				"elasticloadbalancing:DescribeTargetHealth",
+				"elasticloadbalancing:DescribeTags",
 			},
-            "Resource": resourceAll,
-        },
+			"Resource": resourceAll,
+		},
 		{
-            "Effect": effectAllow,
-            "Action": []string{
-                "cognito-idp:DescribeUserPoolClient",
-                "acm:ListCertificates",
-                "acm:DescribeCertificate",
-                "iam:ListServerCertificates",
-                "iam:GetServerCertificate",
-                "waf-regional:GetWebACL",
-                "waf-regional:GetWebACLForResource",
-                "waf-regional:AssociateWebACL",
-                "waf-regional:DisassociateWebACL",
-                "wafv2:GetWebACL",
-                "wafv2:GetWebACLForResource",
-                "wafv2:AssociateWebACL",
-                "wafv2:DisassociateWebACL",
-                "shield:GetSubscriptionState",
-                "shield:DescribeProtection",
-                "shield:CreateProtection",
-                "shield:DeleteProtection",
+			"Effect": effectAllow,
+			"Action": []string{
+				"cognito-idp:DescribeUserPoolClient",
+				"acm:ListCertificates",
+				"acm:DescribeCertificate",
+				"iam:ListServerCertificates",
+				"iam:GetServerCertificate",
+				"waf-regional:GetWebACL",
+				"waf-regional:GetWebACLForResource",
+				"waf-regional:AssociateWebACL",
+				"waf-regional:DisassociateWebACL",
+				"wafv2:GetWebACL",
+				"wafv2:GetWebACLForResource",
+				"wafv2:AssociateWebACL",
+				"wafv2:DisassociateWebACL",
+				"shield:GetSubscriptionState",
+				"shield:DescribeProtection",
+				"shield:CreateProtection",
+				"shield:DeleteProtection",
 			},
-            "Resource": resourceAll,
-        },
-        {
-            "Effect": effectAllow,
-            "Action": []string{
-                "ec2:AuthorizeSecurityGroupIngress",
-                "ec2:RevokeSecurityGroupIngress",
-			},
-            "Resource": resourceAll,
-        },
+			"Resource": resourceAll,
+		},
 		{
-            "Effect": effectAllow,
-            "Action": []string{
-                "ec2:CreateSecurityGroup",
+			"Effect": effectAllow,
+			"Action": []string{
+				"ec2:AuthorizeSecurityGroupIngress",
+				"ec2:RevokeSecurityGroupIngress",
 			},
-            "Resource": resourceAll,
-        },
+			"Resource": resourceAll,
+		},
 		{
-            "Effect": effectAllow,
-            "Action": []string{
-                "ec2:CreateTags",
+			"Effect": effectAllow,
+			"Action": []string{
+				"ec2:CreateSecurityGroup",
 			},
-            "Resource": addARNPartitionPrefix("ec2:*:*:security-group/*"),
-            "Condition": map[string]interface{}{
-                "StringEquals": map[string]interface{}{
-                    "ec2:CreateAction": "CreateSecurityGroup",
-                },
-                "Null": map[string]string{
-                    "aws:RequestTag/elbv2.k8s.aws/cluster": "false",
-                },
-            },
-        },
+			"Resource": resourceAll,
+		},
 		{
-            "Effect": effectAllow,
-            "Action": []string{
-                "ec2:CreateTags",
-                "ec2:DeleteTags",
+			"Effect": effectAllow,
+			"Action": []string{
+				"ec2:CreateTags",
 			},
-            "Resource": addARNPartitionPrefix("ec2:*:*:security-group/*"),
-            "Condition": map[string]interface{}{
-                "Null": map[string]string{
-                    "aws:RequestTag/elbv2.k8s.aws/cluster": "true",
-                    "aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
-                },
-            },
-        },
+			"Resource": addARNPartitionPrefix("ec2:*:*:security-group/*"),
+			"Condition": map[string]interface{}{
+				"StringEquals": map[string]interface{}{
+					"ec2:CreateAction": "CreateSecurityGroup",
+				},
+				"Null": map[string]string{
+					"aws:RequestTag/elbv2.k8s.aws/cluster": "false",
+				},
+			},
+		},
 		{
-            "Effect": effectAllow,
-            "Action": []string{
-                "ec2:AuthorizeSecurityGroupIngress",
-                "ec2:RevokeSecurityGroupIngress",
-                "ec2:DeleteSecurityGroup",
+			"Effect": effectAllow,
+			"Action": []string{
+				"ec2:CreateTags",
+				"ec2:DeleteTags",
 			},
-            "Resource": resourceAll,
-            "Condition": map[string]interface{}{
-                "Null": map[string]string{
-                    "aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
-                },
-            },
-        },
+			"Resource": addARNPartitionPrefix("ec2:*:*:security-group/*"),
+			"Condition": map[string]interface{}{
+				"Null": map[string]string{
+					"aws:RequestTag/elbv2.k8s.aws/cluster":  "true",
+					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
+				},
+			},
+		},
 		{
-            "Effect": effectAllow,
-            "Action": []string{
-                "elasticloadbalancing:CreateLoadBalancer",
-                "elasticloadbalancing:CreateTargetGroup",
+			"Effect": effectAllow,
+			"Action": []string{
+				"ec2:AuthorizeSecurityGroupIngress",
+				"ec2:RevokeSecurityGroupIngress",
+				"ec2:DeleteSecurityGroup",
 			},
-            "Resource": resourceAll,
-            "Condition": map[string]interface{}{
-                "Null": map[string]string{
-                    "aws:RequestTag/elbv2.k8s.aws/cluster": "false",
-                },
-            },
-        },
-        {
-            "Effect": effectAllow,
-            "Action": []string{
-                "elasticloadbalancing:CreateListener",
-                "elasticloadbalancing:DeleteListener",
-                "elasticloadbalancing:CreateRule",
-                "elasticloadbalancing:DeleteRule",
+			"Resource": resourceAll,
+			"Condition": map[string]interface{}{
+				"Null": map[string]string{
+					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
+				},
 			},
-            "Resource": resourceAll,
-        },
-        {
-            "Effect": effectAllow,
-            "Action": []string{
-                "elasticloadbalancing:AddTags",
-                "elasticloadbalancing:RemoveTags",
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"elasticloadbalancing:CreateLoadBalancer",
+				"elasticloadbalancing:CreateTargetGroup",
 			},
-            "Resource": []*gfnt.Value{
-                addARNPartitionPrefix("elasticloadbalancing:*:*:targetgroup/*/*"),
-                addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/net/*/*"),
-                addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/app/*/*"),
+			"Resource": resourceAll,
+			"Condition": map[string]interface{}{
+				"Null": map[string]string{
+					"aws:RequestTag/elbv2.k8s.aws/cluster": "false",
+				},
 			},
-            "Condition": map[string]interface{}{
-                "Null": map[string]string{
-                    "aws:RequestTag/elbv2.k8s.aws/cluster": "true",
-                    "aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
-                },
-            },
-        },
-        {
-            "Effect": effectAllow,
-            "Action": []string{
-                "elasticloadbalancing:AddTags",
-                "elasticloadbalancing:RemoveTags",
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"elasticloadbalancing:CreateListener",
+				"elasticloadbalancing:DeleteListener",
+				"elasticloadbalancing:CreateRule",
+				"elasticloadbalancing:DeleteRule",
 			},
-            "Resource": []*gfnt.Value{
-                addARNPartitionPrefix("elasticloadbalancing:*:*:listener/net/*/*/*"),
-                addARNPartitionPrefix("elasticloadbalancing:*:*:listener/app/*/*/*"),
-                addARNPartitionPrefix("elasticloadbalancing:*:*:listener-rule/net/*/*/*"),
-                addARNPartitionPrefix("elasticloadbalancing:*:*:listener-rule/app/*/*/*"),
+			"Resource": resourceAll,
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"elasticloadbalancing:AddTags",
+				"elasticloadbalancing:RemoveTags",
 			},
-        },
-        {
-            "Effect": effectAllow,
-            "Action": []string{
-                "elasticloadbalancing:ModifyLoadBalancerAttributes",
-                "elasticloadbalancing:SetIpAddressType",
-                "elasticloadbalancing:SetSecurityGroups",
-                "elasticloadbalancing:SetSubnets",
-                "elasticloadbalancing:DeleteLoadBalancer",
-                "elasticloadbalancing:ModifyTargetGroup",
-                "elasticloadbalancing:ModifyTargetGroupAttributes",
-                "elasticloadbalancing:DeleteTargetGroup",
+			"Resource": []*gfnt.Value{
+				addARNPartitionPrefix("elasticloadbalancing:*:*:targetgroup/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/net/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/app/*/*"),
 			},
-            "Resource": resourceAll,
-            "Condition": map[string]interface{}{
-                "Null": map[string]string{
-                    "aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
-                },
-            },
-        },
-        {
-            "Effect": effectAllow,
-            "Action": []string{
-                "elasticloadbalancing:AddTags",
+			"Condition": map[string]interface{}{
+				"Null": map[string]string{
+					"aws:RequestTag/elbv2.k8s.aws/cluster":  "true",
+					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
+				},
 			},
-            "Resource": []*gfnt.Value{
-                addARNPartitionPrefix("elasticloadbalancing:*:*:targetgroup/*/*"),
-                addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/net/*/*"),
-                addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/app/*/*"),
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"elasticloadbalancing:AddTags",
+				"elasticloadbalancing:RemoveTags",
 			},
-            "Condition": map[string]interface{}{
-                "StringEquals": map[string]interface{}{
-                    "elasticloadbalancing:CreateAction": []string{
-                        "CreateTargetGroup",
-                        "CreateLoadBalancer",
+			"Resource": []*gfnt.Value{
+				addARNPartitionPrefix("elasticloadbalancing:*:*:listener/net/*/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:listener/app/*/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:listener-rule/net/*/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:listener-rule/app/*/*/*"),
+			},
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"elasticloadbalancing:ModifyLoadBalancerAttributes",
+				"elasticloadbalancing:SetIpAddressType",
+				"elasticloadbalancing:SetSecurityGroups",
+				"elasticloadbalancing:SetSubnets",
+				"elasticloadbalancing:DeleteLoadBalancer",
+				"elasticloadbalancing:ModifyTargetGroup",
+				"elasticloadbalancing:ModifyTargetGroupAttributes",
+				"elasticloadbalancing:DeleteTargetGroup",
+			},
+			"Resource": resourceAll,
+			"Condition": map[string]interface{}{
+				"Null": map[string]string{
+					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
+				},
+			},
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"elasticloadbalancing:AddTags",
+			},
+			"Resource": []*gfnt.Value{
+				addARNPartitionPrefix("elasticloadbalancing:*:*:targetgroup/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/net/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/app/*/*"),
+			},
+			"Condition": map[string]interface{}{
+				"StringEquals": map[string]interface{}{
+					"elasticloadbalancing:CreateAction": []string{
+						"CreateTargetGroup",
+						"CreateLoadBalancer",
 					},
-                },
-                "Null": map[string]string{
-                    "aws:RequestTag/elbv2.k8s.aws/cluster": "false",
-                },
-            },
-        },
-        {
-            "Effect": effectAllow,
-            "Action": []string{
-                "elasticloadbalancing:RegisterTargets",
-                "elasticloadbalancing:DeregisterTargets",
+				},
+				"Null": map[string]string{
+					"aws:RequestTag/elbv2.k8s.aws/cluster": "false",
+				},
 			},
-            "Resource": addARNPartitionPrefix("elasticloadbalancing:*:*:targetgroup/*/*"),
-        },
-        {
-            "Effect": effectAllow,
-            "Action": []string{
-                "elasticloadbalancing:SetWebAcl",
-                "elasticloadbalancing:ModifyListener",
-                "elasticloadbalancing:AddListenerCertificates",
-                "elasticloadbalancing:RemoveListenerCertificates",
-                "elasticloadbalancing:ModifyRule",
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"elasticloadbalancing:RegisterTargets",
+				"elasticloadbalancing:DeregisterTargets",
 			},
-            "Resource": resourceAll,
-        },
+			"Resource": addARNPartitionPrefix("elasticloadbalancing:*:*:targetgroup/*/*"),
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"elasticloadbalancing:SetWebAcl",
+				"elasticloadbalancing:ModifyListener",
+				"elasticloadbalancing:AddListenerCertificates",
+				"elasticloadbalancing:RemoveListenerCertificates",
+				"elasticloadbalancing:ModifyRule",
+			},
+			"Resource": resourceAll,
+		},
 	}
 }
 
