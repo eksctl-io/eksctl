@@ -191,7 +191,7 @@ func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartiti
 		elbTagKey = "kubernetes.io/role/internal-elb"
 	}
 
-	return v.rs.newResource(subnetKey, &gfnec2.Subnet{
+	subnet := &gfnec2.Subnet{
 		AWSCloudFormationDependsOn:  []string{IPv6CIDRBlockKey},
 		AvailabilityZone:            gfnt.NewString(az),
 		CidrBlock:                   gfnt.MakeFnSelect(gfnt.NewInteger(i), getSubnetIPv4CIDRBlock(cidrPartitions, v.clusterConfig.VPC.Network.CIDR)),
@@ -203,5 +203,8 @@ func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartiti
 			Key:   gfnt.NewString(elbTagKey),
 			Value: gfnt.NewString("1"),
 		}},
-	})
+	}
+	maybeSetHostnameType(v.clusterConfig.VPC, subnet)
+	return v.rs.newResource(subnetKey, subnet)
+
 }

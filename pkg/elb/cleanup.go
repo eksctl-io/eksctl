@@ -49,6 +49,7 @@ type loadBalancer struct {
 const (
 	serviceAnnotationLoadBalancerType = "service.beta.kubernetes.io/aws-load-balancer-type"
 	tagNameKubernetesClusterPrefix    = "kubernetes.io/cluster/"
+	elbv2ClusterTagKey                = "elbv2.k8s.aws/cluster"
 )
 
 // DescribeLoadBalancersAPI provides an interface to the AWS ELB service.
@@ -90,12 +91,12 @@ func Cleanup(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancer
 		return errors.New(errStr)
 	}
 
-	// Delete Services of type 'LoadBalancer' and Ingresses kubernetes.io/ingress.class: alb
+	// Delete Services of type 'LoadBalancer' and Ingresses with IngressClass of alb
 	// collecting their ELBs, NLBs and ALBs to wait for them to be deleted later on.
 	awsLoadBalancers := map[string]loadBalancer{}
 	// For k8s kind Service
 	for _, s := range services.Items {
-		lb, err := getServiceLoadBalancer(ctx, ec2API, elbAPI, clusterConfig.Metadata.Name, &s)
+		lb, err := getServiceLoadBalancer(ctx, ec2API, elbAPI, elbv2API, clusterConfig.Metadata.Name, &s)
 		if err != nil {
 			return fmt.Errorf("cannot obtain information for ELB %s from LoadBalancer Service %s/%s: %s",
 				cloudprovider.DefaultLoadBalancerName(&s), s.Namespace, s.Name, err)
@@ -119,8 +120,13 @@ func Cleanup(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancer
 	}
 	// For k8s Kind Ingress
 	for _, i := range ingresses {
-		lb := getIngressLoadBalancer(i)
 		ingressMetadata := i.GetMetadata()
+
+		lb, err := getIngressLoadBalancer(ctx, ec2API, elbAPI, elbv2API, clusterConfig.Metadata.Name, i)
+		if err != nil {
+			return fmt.Errorf("cannot obtain information for ALB from Ingress %s/%s: %w",
+				ingressMetadata.Namespace, ingressMetadata.Name, err)
+		}
 		if lb == nil {
 			continue
 		}
@@ -129,7 +135,7 @@ func Cleanup(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancer
 			lb.name, lb.kind, convertStringSetToSlice(lb.ownedSecurityGroupIDs),
 		)
 		awsLoadBalancers[lb.name] = *lb
-		logger.Debug("deleting 'kubernetes.io/ingress.class: alb' Ingress %s/%s", ingressMetadata.Namespace, ingressMetadata.Name)
+		logger.Debug("deleting ALB Ingress %s/%s", ingressMetadata.Namespace, ingressMetadata.Name)
 		if err := i.Delete(kubernetesCS); err != nil {
 			errStr := fmt.Sprintf("cannot delete Kubernetes Ingress %s/%s: %s", ingressMetadata.Namespace, ingressMetadata.Name, err)
 			if k8serrors.IsForbidden(err) {
@@ -172,15 +178,15 @@ func Cleanup(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancer
 	return nil
 }
 
-func getServiceLoadBalancer(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI, clusterName string,
-	service *corev1.Service) (*loadBalancer, error) {
+func getServiceLoadBalancer(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI, elbv2API DescribeLoadBalancersAPIV2,
+	clusterName string, service *corev1.Service) (*loadBalancer, error) {
 	if service.Spec.Type != corev1.ServiceTypeLoadBalancer {
 		return nil, nil
 	}
 	name := cloudprovider.DefaultLoadBalancerName(service)
 	kind := getLoadBalancerKind(service)
 	ctx, cleanup := context.WithTimeout(ctx, 30*time.Second)
-	securityGroupIDs, err := getSecurityGroupsOwnedByLoadBalancer(ctx, ec2API, elbAPI, clusterName, name, kind)
+	securityGroupIDs, err := getSecurityGroupsOwnedByLoadBalancer(ctx, ec2API, elbAPI, elbv2API, clusterName, name, kind)
 	cleanup()
 	if err != nil {
 		return nil, fmt.Errorf("cannot obtain security groups for ELB %s: %s", name, err)
@@ -193,12 +199,13 @@ func getServiceLoadBalancer(ctx context.Context, ec2API awsapi.EC2, elbAPI Descr
 	return &lb, nil
 }
 
-func getIngressLoadBalancer(ingress Ingress) (lb *loadBalancer) {
+func getIngressLoadBalancer(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI, elbv2API DescribeLoadBalancersAPIV2,
+	clusterName string, ingress Ingress) (*loadBalancer, error) {
 	metadata := ingress.GetMetadata()
-	ingressCls := "kubernetes.io/ingress.class"
-	if metadata.Annotations[ingressCls] != "alb" {
-		logger.Debug("%s is not ALB Ingress, it is '%s': '%s', skip", metadata.Name, ingressCls, metadata.Annotations[ingressCls])
-		return nil
+
+	if ingress.GetIngressClass() != "alb" {
+		logger.Debug("%s is not ALB Ingress, Ingress Class is '%s', skip", metadata.Name, ingress.GetIngressClass())
+		return nil, nil
 	}
 
 	// Check if field status.loadBalancer.ingress[].hostname is set, value corresponds with name for AWS ALB
@@ -206,24 +213,30 @@ func getIngressLoadBalancer(ingress Ingress) (lb *loadBalancer) {
 	hosts := ingress.GetLoadBalancersHosts()
 	if len(hosts) == 0 {
 		logger.Debug("%s is ALB Ingress, but probably not provisioned, skip", metadata.Name)
-		return nil
+		return nil, nil
 	}
 	// Expected e.g. bf647c9e-default-appingres-350b-1622159649.eu-central-1.elb.amazonaws.com where AWS ALB name is
 	// bf647c9e-default-appingres-350b (cannot be longer than 32 characters).
 	hostNameParts := strings.Split(hosts[0], ".")
 	if len(hostNameParts[0]) == 0 {
 		logger.Debug("%s is ALB Ingress, but probably not provisioned or something other unexpected, skip", metadata.Name)
-		return nil
+		return nil, nil
 	}
 	name := strings.TrimPrefix(hostNameParts[0], "internal-") // Trim 'internal-' prefix for ALB DNS name which is not a part of name.
-	if len(name) > 31 {
-		name = name[:31]
+	if len(name) > 32 {
+		name = name[:32]
+	}
+	ctx, cleanup := context.WithTimeout(ctx, 30*time.Second)
+	defer cleanup()
+	securityGroupIDs, err := getSecurityGroupsOwnedByLoadBalancer(ctx, ec2API, elbAPI, elbv2API, clusterName, name, application)
+	if err != nil {
+		return nil, fmt.Errorf("cannot obtain security groups for ALB %s: %w", name, err)
 	}
 	return &loadBalancer{
 		name:                  name,
 		kind:                  application,
-		ownedSecurityGroupIDs: map[string]struct{}{},
-	}
+		ownedSecurityGroupIDs: securityGroupIDs,
+	}, nil
 }
 
 func convertStringSetToSlice(set map[string]struct{}) []string {
@@ -364,9 +377,10 @@ func describeSecurityGroupsByID(ctx context.Context, ec2API awsapi.EC2, groupIDs
 }
 
 func tagsIncludeClusterName(tags []ec2types.Tag, clusterName string) bool {
-	clusterTagKey := tagNameKubernetesClusterPrefix + clusterName
+	k8sClusterTagKey := tagNameKubernetesClusterPrefix + clusterName
 	for _, tag := range tags {
-		if aws.ToString(tag.Key) == clusterTagKey {
+		switch aws.ToString(tag.Key) {
+		case k8sClusterTagKey, elbv2ClusterTagKey:
 			return true
 		}
 	}
@@ -374,22 +388,40 @@ func tagsIncludeClusterName(tags []ec2types.Tag, clusterName string) bool {
 }
 
 func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI,
-	clusterName string, loadBalancerName string, loadBalancerKind loadBalancerKind) (map[string]struct{}, error) {
-	if loadBalancerKind == network {
+	elbv2API DescribeLoadBalancersAPIV2, clusterName string, loadBalancerName string, loadBalancerKind loadBalancerKind) (map[string]struct{}, error) {
+
+	var groupIDs []string
+
+	switch loadBalancerKind {
+	case network:
 		// V2 ELBs just use the Security Group of the EC2 instances
 		return map[string]struct{}{}, nil
+	case application:
+		alb, err := describeApplicationLoadBalancer(ctx, elbv2API, loadBalancerName)
+
+		if err != nil {
+			return nil, fmt.Errorf("cannot describe ELB: %w", err)
+		}
+		if alb == nil {
+			// The load balancer wasn't found
+			return map[string]struct{}{}, nil
+		}
+		groupIDs = alb.SecurityGroups
+
+	case classic:
+		clb, err := describeClassicLoadBalancer(ctx, elbAPI, loadBalancerName)
+
+		if err != nil {
+			return nil, fmt.Errorf("cannot describe ELB: %w", err)
+		}
+		if clb == nil {
+			// The load balancer wasn't found
+			return map[string]struct{}{}, nil
+		}
+		groupIDs = clb.SecurityGroups
 	}
 
-	lb, err := describeClassicLoadBalancer(ctx, elbAPI, loadBalancerName)
-	if err != nil {
-		return nil, fmt.Errorf("cannot describe ELB: %s", err)
-	}
-	if lb == nil {
-		// The load balancer wasn't found
-		return map[string]struct{}{}, nil
-	}
-
-	sgResponse, err := describeSecurityGroupsByID(ctx, ec2API, lb.SecurityGroups)
+	sgResponse, err := describeSecurityGroupsByID(ctx, ec2API, groupIDs)
 
 	if err != nil {
 		return nil, fmt.Errorf("error obtaining security groups for ELB: %s", err)
@@ -459,6 +491,30 @@ func elbExists(ctx context.Context, elbAPI DescribeLoadBalancersAPI, elbv2API De
 	return desc != nil, err
 }
 
+func describeApplicationLoadBalancer(ctx context.Context, elbv2API DescribeLoadBalancersAPIV2,
+	name string) (*elbv2types.LoadBalancer, error) {
+
+	response, err := elbv2API.DescribeLoadBalancers(ctx, &elasticloadbalancingv2.DescribeLoadBalancersInput{
+		Names: []string{name},
+	})
+	if err != nil {
+		if isELBv2NotFoundErr(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	var ret elbv2types.LoadBalancer
+	switch {
+	case len(response.LoadBalancers) > 1:
+		logger.Warning("found multiple load balancers with name: %s", name)
+		fallthrough
+	case len(response.LoadBalancers) > 0:
+		ret = response.LoadBalancers[0]
+	}
+	return &ret, nil
+}
+
 func describeClassicLoadBalancer(ctx context.Context, elbAPI DescribeLoadBalancersAPI,
 	name string) (*elbtypes.LoadBalancerDescription, error) {
 
@@ -500,5 +556,10 @@ func elbV2Exists(ctx context.Context, api DescribeLoadBalancersAPIV2, name strin
 
 func isELBNotFoundErr(err error) bool {
 	var notFoundErr *elbtypes.AccessPointNotFoundException
+	return errors.As(err, &notFoundErr)
+}
+
+func isELBv2NotFoundErr(err error) bool {
+	var notFoundErr *elbv2types.LoadBalancerNotFoundException
 	return errors.As(err, &notFoundErr)
 }

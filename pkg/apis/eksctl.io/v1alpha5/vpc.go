@@ -142,6 +142,9 @@ type (
 		// This field is used internally and is not part of the ClusterConfig schema.
 		LocalZoneSubnets *ClusterSubnets `json:"-"`
 
+		// HostnameType is the type of hostname to use for EC2 instances.
+		HostnameType string `json:"hostnameType,omitempty"`
+
 		// for additional CIDR associations, e.g. a CIDR for
 		// private subnets or any ad-hoc subnets
 		// +optional

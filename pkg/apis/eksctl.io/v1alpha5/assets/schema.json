@@ -671,6 +671,11 @@
           "description": "for additional IPv6 CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
           "x-intellij-html-description": "for additional IPv6 CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets"
         },
+        "hostnameType": {
+          "type": "string",
+          "description": "type of hostname to use for EC2 instances.",
+          "x-intellij-html-description": "type of hostname to use for EC2 instances."
+        },
         "id": {
           "type": "string"
         },
@@ -720,6 +725,7 @@
         "ipv6Pool",
         "securityGroup",
         "subnets",
+        "hostnameType",
         "extraCIDRs",
         "extraIPv6CIDRs",
         "sharedNodeSecurityGroup",

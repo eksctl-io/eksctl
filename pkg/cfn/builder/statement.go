@@ -85,6 +85,28 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 			},
 		},
 		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"elasticloadbalancing:AddTags",
+			},
+			"Resource": []*gfnt.Value{
+				addARNPartitionPrefix("elasticloadbalancing:*:*:targetgroup/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/net/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/app/*/*"),
+			},
+			"Condition": map[string]interface{}{
+				"StringEquals": map[string]interface{}{
+					"elasticloadbalancing:CreateAction": []string{
+						"CreateTargetGroup",
+						"CreateLoadBalancer",
+					},
+				},
+				"Null": map[string]string{
+					"aws:RequestTag/elbv2.k8s.aws/cluster": "false",
+				},
+			},
+		},
+		{
 			"Effect":   effectAllow,
 			"Resource": resourceAll,
 			"Action": []string{
