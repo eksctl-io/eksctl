@@ -10,6 +10,7 @@ nodeGroups:
   - name: ng-1
     minSize: 1
     maxSize: 2
+    amiFamily: AmazonLinux2
     ami: ami-12345
     desiredCapacity: 1
     overrideBootstrapCommand: |

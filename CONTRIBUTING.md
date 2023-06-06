@@ -21,33 +21,34 @@ right at the top: **Always be kind!**
 
 Looking forward to seeing you in the repo! :sparkles:
 
-# Table of Contents
+## Table of Contents
 
 - [Legal bits](#legal-bits)
 - [Where can I get involved?](#where-can-i-get-involved)
-	- [The eksctl roadmap](#the-eksctl-roadmap)
+  - [The eksctl roadmap](#the-eksctl-roadmap)
 - [Opening Issues](#opening-issues)
-	- [Bug report guide](#bug-report-guide)
-	- [Feature request guide](#feature-request-guide)
-	- [Help request guide](#help-request-guide)
+  - [Bug report guide](#bug-report-guide)
+  - [Feature request guide](#feature-request-guide)
+  - [Help request guide](#help-request-guide)
 - [Submitting PRs](#submitting-prs)
-	- [Choosing something to work on](#choosing-something-to-work-on)
-	- [Developing eksctl](#developing-eksctl)
-	- [Asking for help](#asking-for-help)
-	- [PR submission guidelines](#pr-submission-guidelines)
+  - [Choosing something to work on](#choosing-something-to-work-on)
+  - [Developing eksctl](#developing-eksctl)
+  - [Asking for help](#asking-for-help)
+  - [PR submission guidelines](#pr-submission-guidelines)
 - [How the Maintainers process contributions](#how-the-maintainers-process-contributions)
-	- [Prioritizing issues](#prioritizing-issues)
-	- [Reviewing PRs](#reviewing-prs)
+  - [Prioritizing issues](#prioritizing-issues)
+  - [Reviewing PRs](#reviewing-prs)
 - [Proposals](#proposals)
 
 ---
 
-# Legal bits
+## Legal bits
 
-## License
+### License
+
 `eksctl` is [Apache 2.0 licensed](LICENSE).
 
-## Certificate of Origin
+### Certificate of Origin
 
 By contributing to this project you agree to the Developer Certificate of
 Origin (DCO). This document was created by the Linux Kernel community and is a
@@ -57,19 +58,19 @@ contribution. No action from you is required, but it's a good idea to see the
 
 ---
 
-# Where can I get involved?
+## Where can I get involved?
 
 We are happy to see people in pretty much all areas of eksctl's development.
 Here is a non-exhaustive list of ways you can help out:
 
-1. Open a [PR](#submitting-prs). :woman_technologist:
+1. Open a [PR](#submitting-prs).
 
     Beyond fixing bugs and submitting new features, there are other things you can submit
     which, while less flashy, will be deeply appreciated by all who interact with the codebase:
 
-      - Backfilling tests! (our coverage is super low right now.)
-      - Refactoring! (omigod such tech debt.)
-      - Reviewing and updating [documentation](https://eksctl.io/)! (seems to be we only notice the documentation that doesn't exist.)
+      - Backfilling tests!
+      - Refactoring!
+      - Reviewing and updating [documentation](https://eksctl.io/)!
 
    (See also [Choosing something to work on](#choosing-something-to-work-on) below.)
 1. Open an [issue](#opening-issues). :interrobang:
@@ -83,9 +84,9 @@ Here is a non-exhaustive list of ways you can help out:
 1. Review old issues; poke or suggest closing ones which are stale or follow up those which still look good. :speech_balloon:
 1. Think deeply about the future of `eksctl`, then [talk about it](#proposals). :crystal_ball:
 
-## The eksctl roadmap
+### The eksctl roadmap
 
-... can be found [here](https://eksctl.io/community/).
+`eksctl` roadmap can be found [here](https://eksctl.io/community/).
 
 This is the general long game we are playing. Contributions which steer us further towards
 these overarching goals will be enthusiastically welcomed, while contributions which are
@@ -95,7 +96,7 @@ For bonus points, please highlight how feature requests/PRs fit into the roadmap
 
 ---
 
-# Opening Issues
+## Opening Issues
 
 These guides aim to help you write issues in a way which will ensure that they are processed
 as quickly as possible.
@@ -121,11 +122,12 @@ _See below for [how issues are prioritized](#prioritizing-issues)_.
   everyone's negativity bias, so throw in some emoji when in doubt :+1: :smiley: :rocket: :tada:.
 
 **Dedicated guides**:
+
 - [Bug report guide](#bug-report-guide)
 - [Feature request guide](#feature-request-guide)
 - [Help request guide](#help-request-guide)
 
-## Bug report guide
+### Bug report guide
 
 We hope to get to bug reports within a couple of working days, but please wait for at least
 7 before nudging. (Unless it is a super critical end-of-the world bug, then by all means
@@ -166,15 +168,15 @@ information. Add more that what is asked for if you can :smiley:.
 1. If you already have a fix in mind, note that on the report and go ahead and open a
   PR whenever you are ready. A core team-member will assign the issue to you.
 
-## Feature request guide
+### Feature request guide
 
 We hope to respond to and prioritize new feature requests within 7 working days. Please wait for
 up to 14 before nudging us.
 
 A feature request is the start of a discussion, so don't be put off if it is not
 accepted. Features which either do not contribute to or directly work against
-the project [goals](#the-eksctl-vision) will likely be rejected, as will highly
-specialised usecases.
+the project goals will likely be rejected, as will highly
+specialised use-cases.
 
 Once you have opened the ticket, feel free to post it in the community
 [slack channel](https://weave-community.slack.com/messages/CAYBZBWGL/) to get more opinions on it.
@@ -190,7 +192,7 @@ Below are the steps we encourage people to take when creating a new feature requ
   nicely with [code blocks](https://docs.github.com/en/free-pro-team@latest/github/writing-on-github/creating-and-highlighting-code-blocks).
   If you have strong ideas, be as detailed as you like.
 
-1. Explain how this feature would work towards the [project's vision](#the-eksctl-vision),
+1. Explain how this feature would work towards the project's vision,
   or how it would benefit the community.
 
 1. Note the deliverable of this issue: should the outcome be a simple PR to implement the
@@ -200,7 +202,7 @@ Below are the steps we encourage people to take when creating a new feature requ
   a solution in mind, explain what you plan to do on the issue and open a PR!
   A core team member will assign the task to you.
 
-## Help request guide
+### Help request guide
 
 While you can ask for general help with `eksctl` usage in the [slack channel](https://weave-community.slack.com/messages/CAYBZBWGL/),
 opening an issue creates a more searchable history for the community.
@@ -226,8 +228,9 @@ Please following these steps when opening a new help issue:
 
 ---
 
-# Submitting PRs
-## Choosing something to work on
+## Submitting PRs
+
+### Choosing something to work on
 
 If you are not here to report a bug, ask for help or request some new behaviour, this
 is the section for you. We have curated a set of issues for anyone who simply
@@ -256,9 +259,10 @@ wants to build up their open-source cred :muscle:.
 - All other issues labelled `kind/<x>` or `priority/<x>` are also up for grabs, but
   are likely to require a fair amount of context.
 
-## Developing eksctl
+### Developing eksctl
 
 **Sections:**
+
 - [Getting started](#getting-started)
 - [Setting up your Go environment](#setting-up-your-go-environment)
 - [Forking the repo](#forking-the-repo)
@@ -270,13 +274,13 @@ wants to build up their open-source cred :muscle:.
 > WARNING: All commands in this section have only been tested on Linux/Unix systems.
 > There is no guarantee that they will work on Windows.
 
-### Getting started
+#### Getting started
 
 Before you begin writing code, you may want to have a play with `eksctl` to get familiar
 with the tool. Check out the [README](README.md) for basic installation and usage,
 then head to the [main docs](https://eksctl.io/) for more information.
 
-### Setting up your Go environment
+#### Setting up your Go environment
 
 This project is written in Go. To be able to contribute you will need:
 
@@ -289,7 +293,7 @@ This project is written in Go. To be able to contribute you will need:
 3. (Optional) [User documentation](https://eksctl.io) is built and generated with [mkdocs](https://www.mkdocs.org/).
    Please make sure you have python3 and pip installed on your local system.
 
-### Forking the repo
+#### Forking the repo
 
 Make a fork of this repository and clone it by running:
 
@@ -303,17 +307,17 @@ It is not recommended to clone under your `GOPATH` (if you define one), otherwis
 You may also want to add the original repo to your remotes to keep up to date
 with changes.
 
-### Building eksctl
+#### Building eksctl
 
 > NOTE: If you are working on Windows, you cannot use `make` at the moment,
 > as the `Makefile` is currently not portable.
 > However, if you have Git and Go installed, you can still build a binary
 > and run unit tests.
+>
 > ```
 > go build .\cmd\eksctl
 > go test .\pkg\...
 > ```
-
 
 Once in your cloned repo, you can install the dependencies and build the binary.
 The binary will be created in the root of your repo `./eksctl`.
@@ -332,7 +336,7 @@ make build-pages
 make serve-pages
 ```
 
-### Running the unit tests
+#### Running the unit tests
 
 To run the tests simply run the following after `install-build-deps`:
 
@@ -343,7 +347,7 @@ make test
 If you prefer to use Docker, the same way it is used in CI, you can use the
 following command:
 
-```
+```bash
 make -f Makefile.docker test
 ```
 
@@ -353,7 +357,7 @@ make -f Makefile.docker test
 > It is recommended to use `make build` etc, unless there is an issue in CI
 > that need troubleshooting.
 
-### Running the integration tests
+#### Running the integration tests
 
 > NOTE: Some parts of the integration tests are not configurable and therefore
 > cannot be run by folks outside the core team. If you are NOT contributing to the
@@ -368,6 +372,7 @@ The integration tests are long and unfortunately there are some flakes (help is 
 welcome!).
 
 There are several ways to run the tests. Requirements are:
+
 - An AWS account (it is recommended to use [gsts](https://github.com/ruimarinho/gsts) to authenticate)
   which you are logged in to with a session token which won't expire for at least 2 hours.
 - An empty repository for testing gitops operations
@@ -403,7 +408,7 @@ To run a specific suite:
 ginkgo -tags integration -v --progress integration/tests/<suite name>/... -- -test.v -ginkgo.v
 ```
 
-### Writing your solution
+#### Writing your solution
 
 Once you have your environment set up and have completed a clean run of the unit
 tests you can get to work :tada: .
@@ -451,7 +456,7 @@ tests you can get to work :tada: .
   running `make test` again. You can then commit the generated files as part of your
   PR.
 
-## Asking for help
+### Asking for help
 
 If you need help at any stage of your work, please don't hesitate to ask!
 
@@ -462,7 +467,7 @@ If you need help at any stage of your work, please don't hesitate to ask!
 
 - If you are struggling with something while working on your PR, or aren't quite
   sure of your approach, you can open a [draft](https://github.blog/2019-02-14-introducing-draft-pull-requests/)
-  (prefix the title with `WIP: `) and explain what you are thinking.
+  (prefix the title with `WIP:`) and explain what you are thinking.
   You can tag in one of the core team, or drop the PR link into [slack](https://weave-community.slack.com/messages/eksctl/) and get
   help from the community.
 
@@ -470,7 +475,7 @@ If you need help at any stage of your work, please don't hesitate to ask!
   implementation. You can ping us directly, or head to the [channel](https://weave-community.slack.com/messages/eksctl/)
   to see if anyone in the community is up for being a buddy :smiley: .
 
-## PR submission guidelines
+### PR submission guidelines
 
 Push your changes to the branch on your fork and submit a pull request to the original repository
 against the `main` branch.
@@ -527,13 +532,12 @@ PRs which adhere to our guidelines are more likely to be accepted
 1. **There are well-written commit messages** ([see below](#commit-message-formatting))
   which will make future debugging fun.
 
-
 In general, we will merge a PR once a maintainer has reviewed and approved it.
 Trivial changes (e.g., corrections to spelling) may get waved through.
 For substantial changes, more people may become involved, and you might get asked to resubmit the PR or divide the
 changes into more than one PR.
 
-### Commit message formatting
+#### Commit message formatting
 
 _For more on how to write great commit messages, and why you should, check out
 [this excellent blog post](https://cbea.ms/git-commit/)._
@@ -579,9 +583,9 @@ This allows the message to be easier to read on GitHub as well as in various git
 
 ---
 
-# How the Maintainers process contributions
+## How the Maintainers process contributions
 
-## Prioritizing issues
+### Prioritizing issues
 
 The core team regularly processes incoming issues. There may be some delay over holiday periods.
 
@@ -614,14 +618,14 @@ Every issue will be assigned a `priority/<x>` label. The levels of priorities ar
 
 These priority categories have been inspired by [the Kubernetes contributing guide](https://github.com/kubernetes/community/blob/master/contributors/guide/issue-triage.md).
 
-## Reviewing PRs
+### Reviewing PRs
 
 The core team aims to clear the PR queue as quickly as possible. Community members
 should also feel free to keep an eye on things and provide their own thoughts and expertise.
 
 ---
 
-# Proposals
+## Proposals
 
 For chunky features which require Serious Thought™, the first step is the submission
 of a design proposal to the [docs](docs/) folder through the standard PR process.
@@ -694,4 +698,4 @@ Each proposal/design doc should cover the following _at a minimum_:
 
 ---
 
-# :rocket: :tada: Thanks for reading! :tada: :rocket:
+## :rocket: :tada: Thanks for reading! :tada: :rocket

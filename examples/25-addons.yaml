@@ -19,3 +19,6 @@ addons:
   version: latest # auto discovers the latest available
 - name: kube-proxy
   version: latest
+- name: aws-ebs-csi-driver
+  wellKnownPolicies:      # add IAM and service account
+    ebsCSIController: true

@@ -37,10 +37,14 @@ const (
 
 	Version1_25 = "1.25"
 
+	Version1_26 = "1.26"
+
+	Version1_27 = "1.27"
+
 	// DefaultVersion (default)
 	DefaultVersion = Version1_25
 
-	LatestVersion = Version1_25
+	LatestVersion = Version1_27
 
 	DockershimDeprecationVersion = Version1_24
 )
@@ -86,8 +90,8 @@ const (
 
 // Not yet supported versions
 const (
-	// Version1_26 represents Kubernetes version 1.26.x
-	Version1_26 = "1.26"
+	// Version1_28 represents Kubernetes version 1.28.x
+	Version1_28 = "1.28"
 )
 
 const (
@@ -404,7 +408,7 @@ const (
 
 // supported version of Karpenter
 const (
-	supportedKarpenterVersion = "v0.17.0"
+	supportedKarpenterVersion = "v0.20.0"
 )
 
 // Values for Capacity Reservation Preference
@@ -545,6 +549,8 @@ func SupportedVersions() []string {
 		Version1_23,
 		Version1_24,
 		Version1_25,
+		Version1_26,
+		Version1_27,
 	}
 }
 
@@ -941,6 +947,9 @@ type Karpenter struct {
 	// DefaultInstanceProfile override the default IAM instance profile
 	// +optional
 	DefaultInstanceProfile *string `json:"defaultInstanceProfile,omitempty"`
+	// WithSpotInterruptionQueue if true, adds all required policies and rules
+	// for supporting Spot Interruption Queue on Karpenter deployments
+	WithSpotInterruptionQueue *bool `json:"withSpotInterruptionQueue,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -1096,7 +1105,7 @@ func NewNodeGroup() *NodeGroup {
 				WithLocal:  Enabled(),
 				WithShared: Enabled(),
 			},
-			DisableIMDSv1:    Disabled(),
+			DisableIMDSv1:    Enabled(),
 			DisablePodIMDS:   Disabled(),
 			InstanceSelector: &InstanceSelector{},
 		},
@@ -1286,6 +1295,7 @@ type (
 		AttachIDs []string `json:"attachIDs,omitempty"`
 		// WithShared attach the security group
 		// shared among all nodegroups in the cluster
+		// Not supported for managed nodegroups
 		// Defaults to `true`
 		// +optional
 		WithShared *bool `json:"withShared"`
@@ -1304,6 +1314,7 @@ type (
 		// list of ARNs of the IAM policies to attach
 		// +optional
 		AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
+		// InstanceProfileARN holds the ARN of instance profile, not supported for Managed NodeGroups
 		// +optional
 		InstanceProfileARN string `json:"instanceProfileARN,omitempty"`
 		// +optional
@@ -1583,7 +1594,7 @@ type NodeGroupBase struct {
 	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
 
 	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
-	// Defaults to `false`
+	// Defaults to `true`
 	// +optional
 	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
 

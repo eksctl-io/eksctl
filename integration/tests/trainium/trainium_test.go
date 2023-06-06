@@ -30,8 +30,6 @@ import (
 )
 
 var (
-	defaultCluster          string
-	noInstallCluster        string
 	params                  *tests.Params
 	clusterWithNeuronPlugin string
 	clusterWithoutPlugin    string
@@ -43,8 +41,8 @@ func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
 	params = tests.NewParams("trn1")
-	defaultCluster = params.ClusterName
-	noInstallCluster = params.NewClusterName("trn1-no-plugin")
+	clusterWithNeuronPlugin = params.ClusterName
+	clusterWithoutPlugin = params.NewClusterName("trn1-no-plugin")
 }
 
 func TestTrainium(t *testing.T) {
@@ -61,9 +59,6 @@ var _ = BeforeSuite(func() {
 		params.KubeconfigPath = f.Name()
 		params.KubeconfigTemp = true
 	}
-
-	clusterWithoutPlugin = noInstallCluster
-	clusterWithNeuronPlugin = defaultCluster
 
 	if !params.SkipCreate {
 		cfg := NewConfig(params.Region)
@@ -152,6 +147,8 @@ var _ = Describe("(Integration) Trainium nodes", func() {
 			})
 
 			When("adding an unmanaged nodegroup by default", func() {
+				params.LogStacksEventsOnFailureForCluster(clusterWithoutPlugin)
+
 				It("should install without error", func() {
 					cmd := params.EksctlCreateCmd.WithArgs(
 						"nodegroup",

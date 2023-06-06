@@ -34,6 +34,7 @@ type MockState struct {
 
 // MockProvider stores the mocked APIs
 type MockProvider struct {
+	waitTimeout         *time.Duration
 	region              string
 	cfnRoleARN          string
 	asg                 *mocksv2.ASG
@@ -206,7 +207,16 @@ func (m *MockProvider) SetRegion(r string) {
 }
 
 // WaitTimeout returns current timeout setting
-func (m MockProvider) WaitTimeout() time.Duration { return ProviderConfig.WaitTimeout }
+func (m MockProvider) WaitTimeout() time.Duration {
+	if m.waitTimeout != nil {
+		return *m.waitTimeout
+	}
+	return ProviderConfig.WaitTimeout
+}
+
+func (m *MockProvider) SetWaitTimeout(t time.Duration) {
+	m.waitTimeout = &t
+}
 
 func (m MockProvider) AWSConfig() *awsv2.Config {
 	options := []func(options *config.LoadOptions) error{

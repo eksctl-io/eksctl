@@ -14,8 +14,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+const ingressClassAnnotation = "kubernetes.io/ingress.class"
+
 type Ingress interface {
 	Delete(kubernetesCS kubernetes.Interface) error
+	GetIngressClass() string
 	GetMetadata() metav1.ObjectMeta
 	GetLoadBalancersHosts() []string
 }
@@ -26,6 +29,13 @@ type v1BetaIngress struct {
 
 func (i *v1BetaIngress) Delete(kubernetesCS kubernetes.Interface) error {
 	return kubernetesCS.NetworkingV1beta1().Ingresses(i.ingress.Namespace).Delete(context.TODO(), i.ingress.Name, metav1.DeleteOptions{})
+}
+
+func (i *v1BetaIngress) GetIngressClass() string {
+	if i.ingress.Spec.IngressClassName != nil {
+		return *i.ingress.Spec.IngressClassName
+	}
+	return i.ingress.ObjectMeta.Annotations[ingressClassAnnotation]
 }
 
 func (i *v1BetaIngress) GetMetadata() metav1.ObjectMeta {
@@ -47,6 +57,13 @@ type v1Ingress struct {
 
 func (i *v1Ingress) Delete(kubernetesCS kubernetes.Interface) error {
 	return kubernetesCS.NetworkingV1().Ingresses(i.ingress.Namespace).Delete(context.TODO(), i.ingress.Name, metav1.DeleteOptions{})
+}
+
+func (i *v1Ingress) GetIngressClass() string {
+	if i.ingress.Spec.IngressClassName != nil {
+		return *i.ingress.Spec.IngressClassName
+	}
+	return i.ingress.ObjectMeta.Annotations[ingressClassAnnotation]
 }
 
 func (i *v1Ingress) GetMetadata() metav1.ObjectMeta {

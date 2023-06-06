@@ -2,7 +2,9 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
@@ -116,7 +118,7 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer pri
 				logger.Critical(err.Error())
 			}
 			for i, e := range events {
-				logger.Info("CloudFormation.events/%s[%d] = %#v", *s.StackName, i, e)
+				logger.Info("CloudFormation.events/%s[%d] = %s", *s.StackName, i, StackEventToString(&e))
 			}
 		}
 		if trail {
@@ -131,4 +133,21 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer pri
 	}
 
 	return nil
+}
+
+func StackEventToString(event *types.StackEvent) string {
+	internalEvent := struct {
+		TimeStamp            time.Time
+		LogicalID            string
+		ResourceStatus       string
+		ResourceStatusReason string
+	}{
+		TimeStamp:      *event.Timestamp,
+		LogicalID:      *event.LogicalResourceId,
+		ResourceStatus: string(event.ResourceStatus),
+	}
+	if event.ResourceStatusReason != nil {
+		internalEvent.ResourceStatusReason = *event.ResourceStatusReason
+	}
+	return fmt.Sprintf("%+v", internalEvent)
 }

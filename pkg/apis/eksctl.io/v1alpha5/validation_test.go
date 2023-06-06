@@ -668,6 +668,56 @@ var _ = Describe("ClusterConfig validation", func() {
 		}),
 	)
 
+	type vpcHostnameTypeEntry struct {
+		vpc         *api.ClusterVPC
+		expectedErr string
+	}
+
+	DescribeTable("vpc.hostnameType", func(v vpcHostnameTypeEntry) {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.VPC = v.vpc
+		err := api.ValidateClusterConfig(clusterConfig)
+		if v.expectedErr != "" {
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(v.expectedErr)))
+		} else {
+			Expect(err).NotTo(HaveOccurred())
+		}
+	},
+		Entry("invalid value", vpcHostnameTypeEntry{
+			vpc: &api.ClusterVPC{
+				HostnameType: "invalid",
+			},
+			expectedErr: `invalid value "invalid" for vpc.hostnameType; supported values are`,
+		}),
+
+		Entry("valid value", vpcHostnameTypeEntry{
+			vpc: &api.ClusterVPC{
+				HostnameType: "ip-name",
+			},
+		}),
+
+		Entry("valid value", vpcHostnameTypeEntry{
+			vpc: &api.ClusterVPC{
+				HostnameType: "resource-name",
+			},
+		}),
+
+		Entry("hostnameType with a pre-existing VPC", vpcHostnameTypeEntry{
+			vpc: &api.ClusterVPC{
+				HostnameType: "resource-name",
+				Subnets: &api.ClusterSubnets{
+					Private: map[string]api.AZSubnetSpec{
+						"us-west-2a": {
+							ID: "subnet-1234",
+						},
+					},
+				},
+			},
+			expectedErr: "vpc.hostnameType is not supported with a pre-existing VPC",
+		}),
+	)
+
 	Describe("Cluster Endpoint access", func() {
 		var cfg *api.ClusterConfig
 
@@ -1929,7 +1979,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("returns an error when OIDC is not set", func() {
 			cfg := api.NewClusterConfig()
 			cfg.Karpenter = &api.Karpenter{
-				Version: "0.17.0",
+				Version: "0.20.0",
 			}
 			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate Karpenter config: iam.withOIDC must be enabled with Karpenter")))
 		})
@@ -1953,9 +2003,9 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg := api.NewClusterConfig()
 			cfg.IAM.WithOIDC = aws.Bool(true)
 			cfg.Karpenter = &api.Karpenter{
-				Version: "v0.14.1",
+				Version: "v0.17.0",
 			}
-			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate Karpenter config: minimum supported version is v0.17.0")))
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate Karpenter config: minimum supported version is v0.20.0")))
 		})
 	})
 

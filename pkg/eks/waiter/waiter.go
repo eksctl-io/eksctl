@@ -18,6 +18,7 @@ import (
 	smithywaiter "github.com/aws/smithy-go/waiter"
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
+	"github.com/weaveworks/eksctl/pkg/utils/apierrors"
 )
 
 type UpdateWaiterOptions struct {
@@ -73,7 +74,10 @@ func NewUpdateWaiter(client awsapi.EKS, optFns ...func(options *UpdateWaiterOpti
 	}
 	options.Retryable = func(ctx context.Context, input *eks.DescribeUpdateInput, output *eks.DescribeUpdateOutput, err error) (bool, error) {
 		if err != nil {
-			return true, nil
+			if apierrors.IsRetriableError(err) {
+				return true, nil
+			}
+			return false, err
 		}
 
 		switch output.Update.Status {

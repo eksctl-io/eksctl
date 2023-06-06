@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/Masterminds/semver/v3"
+	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/executor"
@@ -14,7 +14,7 @@ import (
 
 const (
 	fluxBin             = "flux"
-	minSupportedVersion = ">= 0.13.3"
+	minSupportedVersion = "0.13.3"
 )
 
 type Client struct {
@@ -65,7 +65,7 @@ func (c *Client) runFluxCmd(args ...string) error {
 }
 
 func (c *Client) checkFluxVersion() error {
-	logger.Debug(fmt.Sprintf("checking flux version is %s", minSupportedVersion))
+	logger.Debug(fmt.Sprintf("checking flux version is greater than minimum supported version %s", minSupportedVersion))
 	out, err := c.executor.ExecWithOut(fluxBin, "--version")
 	if err != nil {
 		return err
@@ -77,19 +77,18 @@ func (c *Client) checkFluxVersion() error {
 		return fmt.Errorf("unexpected format returned from 'flux --version': %s", parts)
 	}
 
-	v, err := semver.NewVersion(parts[2])
+	v, err := version.NewVersion(parts[2])
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse Flux version %q: %w", parts[2], err)
 	}
 
-	constraint, err := semver.NewConstraint(minSupportedVersion)
+	supportedVersion, err := version.NewVersion(minSupportedVersion)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse supported Flux version %s: %w", minSupportedVersion, err)
 	}
 
-	withinBounds := constraint.Check(v)
-	if !withinBounds {
-		return fmt.Errorf("found flux version 0.13.2, eksctl requires %s", minSupportedVersion)
+	if v.LessThan(supportedVersion) {
+		return fmt.Errorf("found flux version %s, eksctl requires >= %s", v.String(), minSupportedVersion)
 	}
 
 	return nil

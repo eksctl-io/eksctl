@@ -54,6 +54,7 @@ func scaleNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddWaitFlag(fs, &cmd.Wait, "wait for update to finish")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
@@ -90,6 +91,10 @@ func scaleNodegroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
 	cfg := cmd.ClusterConfig
 	ctx := context.Background()
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
+	if err != nil {
+		return err
+	}
+	clientSet, err := ctl.NewStdClientSet(cmd.ClusterConfig)
 	if err != nil {
 		return err
 	}

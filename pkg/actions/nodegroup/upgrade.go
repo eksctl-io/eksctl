@@ -117,11 +117,14 @@ func (m *Manager) upgradeUsingAPI(ctx context.Context, options UpgradeOptions, n
 		return err
 	}
 
-	if usesCustomAMI && options.KubernetesVersion != "" {
-		return errors.New("cannot specify kubernetes-version when using a custom AMI")
+	if usesCustomAMI && (options.KubernetesVersion != "" || options.ReleaseVersion != "") {
+		return errors.New("cannot specify kubernetes-version or release-version when using a custom AMI")
 	}
 
 	if !usesCustomAMI {
+		if options.ReleaseVersion != "" {
+			input.ReleaseVersion = &options.ReleaseVersion
+		}
 		if options.KubernetesVersion != "" {
 			input.Version = &options.KubernetesVersion
 		} else {

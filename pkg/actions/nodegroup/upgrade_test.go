@@ -114,6 +114,8 @@ var _ = Describe("Upgrade", func() {
 			})
 			When("using a custom AMI", func() {
 				BeforeEach(func() {
+					options.ReleaseVersion = ""
+					options.KubernetesVersion = ""
 					p.MockEC2().On("DescribeLaunchTemplateVersions", mock.Anything, &ec2.DescribeLaunchTemplateVersionsInput{
 						LaunchTemplateId: aws.String("id-123"),
 						Versions:         []string{"2"},
@@ -130,7 +132,12 @@ var _ = Describe("Upgrade", func() {
 				It("returns an error if kubernetes version is specified", func() {
 					options.KubernetesVersion = api.DefaultVersion
 					err := m.Upgrade(context.Background(), options)
-					Expect(err).To(MatchError(ContainSubstring("cannot specify kubernetes-version when using a custom AMI")))
+					Expect(err).To(MatchError(ContainSubstring("cannot specify kubernetes-version or release-version when using a custom AMI")))
+				})
+				It("returns an error if release version is specified", func() {
+					options.ReleaseVersion = *eksReleaseVersion
+					err := m.Upgrade(context.Background(), options)
+					Expect(err).To(MatchError(ContainSubstring("cannot specify kubernetes-version or release-version when using a custom AMI")))
 				})
 				It("upgrades the nodegroup version and lt by calling the EKS API", func() {
 					p.MockEKS().On("UpdateNodegroupVersion", mock.Anything, &awseks.UpdateNodegroupVersionInput{
@@ -142,7 +149,6 @@ var _ = Describe("Upgrade", func() {
 							Version: aws.String("2"),
 						},
 					}).Return(&awseks.UpdateNodegroupVersionOutput{}, nil)
-					options.KubernetesVersion = ""
 					options.LaunchTemplateVersion = "2"
 					Expect(m.Upgrade(context.Background(), options)).To(Succeed())
 				})
@@ -172,9 +178,11 @@ var _ = Describe("Upgrade", func() {
 							Id:      aws.String("id-123"),
 							Version: aws.String("2"),
 						},
+						ReleaseVersion: eksReleaseVersion,
 					}).Return(&awseks.UpdateNodegroupVersionOutput{}, nil)
 					options.KubernetesVersion = api.Version1_22
 					options.LaunchTemplateVersion = "2"
+					options.ReleaseVersion = *eksReleaseVersion
 					Expect(m.Upgrade(context.Background(), options)).To(Succeed())
 				})
 			})
