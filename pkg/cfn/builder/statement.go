@@ -15,10 +15,89 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 	return []cft.MapOfInterfaces{
 		{
 			"Effect":   effectAllow,
-			"Resource": addARNPartitionPrefix("ec2:*:*:security-group/*"),
-			"Action":   []string{"ec2:CreateTags"},
+			"Action":   []string{"iam:CreateServiceLinkedRole"},
+			"Resource": resourceAll,
 			"Condition": map[string]interface{}{
 				"StringEquals": map[string]string{
+					"iam:AWSServiceName": "elasticloadbalancing.amazonaws.com",
+				},
+			},
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"ec2:DescribeAccountAttributes",
+				"ec2:DescribeAddresses",
+				"ec2:DescribeAvailabilityZones",
+				"ec2:DescribeInternetGateways",
+				"ec2:DescribeVpcs",
+				"ec2:DescribeVpcPeeringConnections",
+				"ec2:DescribeSubnets",
+				"ec2:DescribeSecurityGroups",
+				"ec2:DescribeInstances",
+				"ec2:DescribeNetworkInterfaces",
+				"ec2:DescribeTags",
+				"ec2:GetCoipPoolUsage",
+				"ec2:DescribeCoipPools",
+				"elasticloadbalancing:DescribeLoadBalancers",
+				"elasticloadbalancing:DescribeLoadBalancerAttributes",
+				"elasticloadbalancing:DescribeListeners",
+				"elasticloadbalancing:DescribeListenerCertificates",
+				"elasticloadbalancing:DescribeSSLPolicies",
+				"elasticloadbalancing:DescribeRules",
+				"elasticloadbalancing:DescribeTargetGroups",
+				"elasticloadbalancing:DescribeTargetGroupAttributes",
+				"elasticloadbalancing:DescribeTargetHealth",
+				"elasticloadbalancing:DescribeTags",
+			},
+			"Resource": resourceAll,
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"cognito-idp:DescribeUserPoolClient",
+				"acm:ListCertificates",
+				"acm:DescribeCertificate",
+				"iam:ListServerCertificates",
+				"iam:GetServerCertificate",
+				"waf-regional:GetWebACL",
+				"waf-regional:GetWebACLForResource",
+				"waf-regional:AssociateWebACL",
+				"waf-regional:DisassociateWebACL",
+				"wafv2:GetWebACL",
+				"wafv2:GetWebACLForResource",
+				"wafv2:AssociateWebACL",
+				"wafv2:DisassociateWebACL",
+				"shield:GetSubscriptionState",
+				"shield:DescribeProtection",
+				"shield:CreateProtection",
+				"shield:DeleteProtection",
+			},
+			"Resource": resourceAll,
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"ec2:AuthorizeSecurityGroupIngress",
+				"ec2:RevokeSecurityGroupIngress",
+			},
+			"Resource": resourceAll,
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"ec2:CreateSecurityGroup",
+			},
+			"Resource": resourceAll,
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"ec2:CreateTags",
+			},
+			"Resource": addARNPartitionPrefix("ec2:*:*:security-group/*"),
+			"Condition": map[string]interface{}{
+				"StringEquals": map[string]interface{}{
 					"ec2:CreateAction": "CreateSecurityGroup",
 				},
 				"Null": map[string]string{
@@ -27,12 +106,12 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 			},
 		},
 		{
-			"Effect":   effectAllow,
-			"Resource": addARNPartitionPrefix("ec2:*:*:security-group/*"),
+			"Effect": effectAllow,
 			"Action": []string{
 				"ec2:CreateTags",
 				"ec2:DeleteTags",
 			},
+			"Resource": addARNPartitionPrefix("ec2:*:*:security-group/*"),
 			"Condition": map[string]interface{}{
 				"Null": map[string]string{
 					"aws:RequestTag/elbv2.k8s.aws/cluster":  "true",
@@ -41,12 +120,26 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 			},
 		},
 		{
-			"Effect":   effectAllow,
+			"Effect": effectAllow,
+			"Action": []string{
+				"ec2:AuthorizeSecurityGroupIngress",
+				"ec2:RevokeSecurityGroupIngress",
+				"ec2:DeleteSecurityGroup",
+			},
 			"Resource": resourceAll,
+			"Condition": map[string]interface{}{
+				"Null": map[string]string{
+					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
+				},
+			},
+		},
+		{
+			"Effect": effectAllow,
 			"Action": []string{
 				"elasticloadbalancing:CreateLoadBalancer",
 				"elasticloadbalancing:CreateTargetGroup",
 			},
+			"Resource": resourceAll,
 			"Condition": map[string]interface{}{
 				"Null": map[string]string{
 					"aws:RequestTag/elbv2.k8s.aws/cluster": "false",
@@ -55,14 +148,24 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 		},
 		{
 			"Effect": effectAllow,
+			"Action": []string{
+				"elasticloadbalancing:CreateListener",
+				"elasticloadbalancing:DeleteListener",
+				"elasticloadbalancing:CreateRule",
+				"elasticloadbalancing:DeleteRule",
+			},
+			"Resource": resourceAll,
+		},
+		{
+			"Effect": effectAllow,
+			"Action": []string{
+				"elasticloadbalancing:AddTags",
+				"elasticloadbalancing:RemoveTags",
+			},
 			"Resource": []*gfnt.Value{
 				addARNPartitionPrefix("elasticloadbalancing:*:*:targetgroup/*/*"),
 				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/net/*/*"),
 				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/app/*/*"),
-			},
-			"Action": []string{
-				"elasticloadbalancing:AddTags",
-				"elasticloadbalancing:RemoveTags",
 			},
 			"Condition": map[string]interface{}{
 				"Null": map[string]string{
@@ -73,15 +176,34 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 		},
 		{
 			"Effect": effectAllow,
+			"Action": []string{
+				"elasticloadbalancing:AddTags",
+				"elasticloadbalancing:RemoveTags",
+			},
 			"Resource": []*gfnt.Value{
 				addARNPartitionPrefix("elasticloadbalancing:*:*:listener/net/*/*/*"),
 				addARNPartitionPrefix("elasticloadbalancing:*:*:listener/app/*/*/*"),
 				addARNPartitionPrefix("elasticloadbalancing:*:*:listener-rule/net/*/*/*"),
 				addARNPartitionPrefix("elasticloadbalancing:*:*:listener-rule/app/*/*/*"),
 			},
+		},
+		{
+			"Effect": effectAllow,
 			"Action": []string{
-				"elasticloadbalancing:AddTags",
-				"elasticloadbalancing:RemoveTags",
+				"elasticloadbalancing:ModifyLoadBalancerAttributes",
+				"elasticloadbalancing:SetIpAddressType",
+				"elasticloadbalancing:SetSecurityGroups",
+				"elasticloadbalancing:SetSubnets",
+				"elasticloadbalancing:DeleteLoadBalancer",
+				"elasticloadbalancing:ModifyTargetGroup",
+				"elasticloadbalancing:ModifyTargetGroupAttributes",
+				"elasticloadbalancing:DeleteTargetGroup",
+			},
+			"Resource": resourceAll,
+			"Condition": map[string]interface{}{
+				"Null": map[string]string{
+					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
+				},
 			},
 		},
 		{
@@ -107,91 +229,23 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 			},
 		},
 		{
-			"Effect":   effectAllow,
-			"Resource": resourceAll,
-			"Action": []string{
-				"ec2:AuthorizeSecurityGroupIngress",
-				"ec2:RevokeSecurityGroupIngress",
-				"ec2:DeleteSecurityGroup",
-				"elasticloadbalancing:ModifyLoadBalancerAttributes",
-				"elasticloadbalancing:SetIpAddressType",
-				"elasticloadbalancing:SetSecurityGroups",
-				"elasticloadbalancing:SetSubnets",
-				"elasticloadbalancing:DeleteLoadBalancer",
-				"elasticloadbalancing:ModifyTargetGroup",
-				"elasticloadbalancing:ModifyTargetGroupAttributes",
-				"elasticloadbalancing:DeleteTargetGroup",
-			},
-			"Condition": map[string]interface{}{
-				"Null": map[string]string{
-					"aws:ResourceTag/elbv2.k8s.aws/cluster": "false",
-				},
-			},
-		},
-		{
-			"Effect":   effectAllow,
-			"Resource": addARNPartitionPrefix("elasticloadbalancing:*:*:targetgroup/*/*"),
+			"Effect": effectAllow,
 			"Action": []string{
 				"elasticloadbalancing:RegisterTargets",
 				"elasticloadbalancing:DeregisterTargets",
 			},
+			"Resource": addARNPartitionPrefix("elasticloadbalancing:*:*:targetgroup/*/*"),
 		},
 		{
-			"Effect":   effectAllow,
-			"Resource": resourceAll,
+			"Effect": effectAllow,
 			"Action": []string{
-				"iam:CreateServiceLinkedRole",
-				"ec2:DescribeAccountAttributes",
-				"ec2:DescribeAddresses",
-				"ec2:DescribeAvailabilityZones",
-				"ec2:DescribeInternetGateways",
-				"ec2:DescribeVpcs",
-				"ec2:DescribeSubnets",
-				"ec2:DescribeSecurityGroups",
-				"ec2:DescribeInstances",
-				"ec2:DescribeNetworkInterfaces",
-				"ec2:DescribeTags",
-				"ec2:DescribeVpcPeeringConnections",
-				"elasticloadbalancing:DescribeLoadBalancers",
-				"elasticloadbalancing:DescribeLoadBalancerAttributes",
-				"elasticloadbalancing:DescribeListeners",
-				"elasticloadbalancing:DescribeListenerCertificates",
-				"elasticloadbalancing:DescribeSSLPolicies",
-				"elasticloadbalancing:DescribeRules",
-				"elasticloadbalancing:DescribeTargetGroups",
-				"elasticloadbalancing:DescribeTargetGroupAttributes",
-				"elasticloadbalancing:DescribeTargetHealth",
-				"elasticloadbalancing:DescribeTags",
-				"cognito-idp:DescribeUserPoolClient",
-				"acm:ListCertificates",
-				"acm:DescribeCertificate",
-				"iam:ListServerCertificates",
-				"iam:GetServerCertificate",
-				"waf-regional:GetWebACL",
-				"waf-regional:GetWebACLForResource",
-				"waf-regional:AssociateWebACL",
-				"waf-regional:DisassociateWebACL",
-				"wafv2:GetWebACL",
-				"wafv2:GetWebACLForResource",
-				"wafv2:AssociateWebACL",
-				"wafv2:DisassociateWebACL",
-				"shield:GetSubscriptionState",
-				"shield:DescribeProtection",
-				"shield:CreateProtection",
-				"shield:DeleteProtection",
-				"ec2:AuthorizeSecurityGroupIngress",
-				"ec2:RevokeSecurityGroupIngress",
-				"ec2:CreateSecurityGroup",
-				"elasticloadbalancing:CreateListener",
-				"elasticloadbalancing:DeleteListener",
-				"elasticloadbalancing:CreateRule",
-				"elasticloadbalancing:DeleteRule",
 				"elasticloadbalancing:SetWebAcl",
 				"elasticloadbalancing:ModifyListener",
 				"elasticloadbalancing:AddListenerCertificates",
 				"elasticloadbalancing:RemoveListenerCertificates",
 				"elasticloadbalancing:ModifyRule",
 			},
+			"Resource": resourceAll,
 		},
 	}
 }
@@ -282,11 +336,21 @@ func autoScalerStatements() []cft.MapOfInterfaces {
 				"autoscaling:DescribeAutoScalingGroups",
 				"autoscaling:DescribeAutoScalingInstances",
 				"autoscaling:DescribeLaunchConfigurations",
+				"autoscaling:DescribeScalingActivities",
 				"autoscaling:DescribeTags",
-				"autoscaling:SetDesiredCapacity",
-				"autoscaling:TerminateInstanceInAutoScalingGroup",
 				"ec2:DescribeInstanceTypes",
 				"ec2:DescribeLaunchTemplateVersions",
+			},
+		},
+		{
+			"Effect":   effectAllow,
+			"Resource": resourceAll,
+			"Action": []string{
+				"autoscaling:SetDesiredCapacity",
+				"autoscaling:TerminateInstanceInAutoScalingGroup",
+				"ec2:DescribeImages",
+				"ec2:GetInstanceTypesFromInstanceRequirements",
+				"eks:DescribeNodegroup",
 			},
 		},
 	}
