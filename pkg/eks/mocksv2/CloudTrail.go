@@ -1095,6 +1095,36 @@ func (_m *CloudTrail) RestoreEventDataStore(ctx context.Context, params *cloudtr
 	return r0, r1
 }
 
+// StartEventDataStoreIngestion provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) StartEventDataStoreIngestion(ctx context.Context, params *cloudtrail.StartEventDataStoreIngestionInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.StartEventDataStoreIngestionOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.StartEventDataStoreIngestionOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.StartEventDataStoreIngestionInput, ...func(*cloudtrail.Options)) *cloudtrail.StartEventDataStoreIngestionOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.StartEventDataStoreIngestionOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.StartEventDataStoreIngestionInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // StartImport provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) StartImport(ctx context.Context, params *cloudtrail.StartImportInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.StartImportOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1177,6 +1207,36 @@ func (_m *CloudTrail) StartQuery(ctx context.Context, params *cloudtrail.StartQu
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.StartQueryInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StopEventDataStoreIngestion provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) StopEventDataStoreIngestion(ctx context.Context, params *cloudtrail.StopEventDataStoreIngestionInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.StopEventDataStoreIngestionOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.StopEventDataStoreIngestionOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.StopEventDataStoreIngestionInput, ...func(*cloudtrail.Options)) *cloudtrail.StopEventDataStoreIngestionOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.StopEventDataStoreIngestionOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.StopEventDataStoreIngestionInput, ...func(*cloudtrail.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
