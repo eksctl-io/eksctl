@@ -791,7 +791,7 @@ type ClusterProvider interface {
 	Profile() Profile
 	WaitTimeout() time.Duration
 	CredentialsProvider() aws.CredentialsProvider
-	AWSConfig() *aws.Config
+	AWSConfig() aws.Config
 
 	ELB() awsapi.ELB
 	ELBV2() awsapi.ELBV2

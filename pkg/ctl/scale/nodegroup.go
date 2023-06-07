@@ -99,5 +99,10 @@ func scaleNodegroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
 		return err
 	}
 
-	return nodegroup.New(cfg, ctl, nil, selector.New(nil /* TODO - use ctl.AWSProvider.AWSConfig() */)).Scale(ctx, ng)
+	instanceSelector, err := selector.New(ctx, ctl.AWSProvider.AWSConfig())
+	if err != nil {
+		return err
+	}
+
+	return nodegroup.New(cfg, ctl, clientSet, instanceSelector).Scale(ctx, ng, cmd.Wait)
 }

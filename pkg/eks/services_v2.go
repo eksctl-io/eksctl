@@ -159,8 +159,8 @@ func (s *ServicesV2) Outposts() awsapi.Outposts {
 	return s.outposts
 }
 
-func (s *ServicesV2) AWSConfig() *aws.Config {
-	return &s.config
+func (s *ServicesV2) AWSConfig() aws.Config {
+	return s.config
 }
 
 func (s *ServicesV2) CredentialsProvider() aws.CredentialsProvider {

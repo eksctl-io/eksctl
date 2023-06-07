@@ -12,6 +12,8 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -31,7 +33,7 @@ const maxInstanceTypes = 40
 //counterfeiter:generate -o fakes/fake_instance_selector.go . InstanceSelector
 type InstanceSelector interface {
 	// Filter returns a set of instance types matching the specified instance selector filters.
-	Filter(selector.Filters) ([]string, error)
+	Filter(context.Context, selector.Filters) ([]string, error)
 }
 
 // A NodeGroupService provides helpers for nodegroup creation.
@@ -170,10 +172,10 @@ func (n *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 }
 
 func (n *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs []string) ([]string, error) {
-	makeRange := func(val int) *selector.IntRangeFilter {
-		return &selector.IntRangeFilter{
-			LowerBound: val,
-			UpperBound: val,
+	makeRange := func(val int) *selector.Int32RangeFilter {
+		return &selector.Int32RangeFilter{
+			LowerBound: int32(val),
+			UpperBound: int32(val),
 		}
 	}
 
@@ -201,9 +203,10 @@ func (n *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	if cpuArch == "" {
 		cpuArch = defaultCPUArch
 	}
-	filters.CPUArchitecture = aws.String(cpuArch)
 
-	instanceTypes, err := n.instanceSelector.Filter(filters)
+	filters.CPUArchitecture = (*ec2types.ArchitectureType)(aws.String(cpuArch))
+
+	instanceTypes, err := n.instanceSelector.Filter(context.TODO(), filters)
 	if err != nil {
 		return nil, errors.Wrap(err, "error querying instance types for the specified instance selector criteria")
 	}

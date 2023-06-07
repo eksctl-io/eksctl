@@ -63,15 +63,16 @@ func NewMockProvider() *MockProvider {
 		cloudtrail:     &mocksv2.CloudTrail{},
 		cloudwatchlogs: &mocksv2.CloudWatchLogs{},
 
-		sts:          &mocksv2.STS{},
-		stsPresigner: &fakes.FakeSTSPresigner{},
-		cfn:          &mocksv2.CloudFormation{},
-		elb:          &mocksv2.ELB{},
-		elbV2:        &mocksv2.ELBV2{},
-		ssm:          &mocksv2.SSM{},
-		iam:          &mocksv2.IAM{},
-		ec2:          &mocksv2.EC2{},
-		outposts:     &mocksv2.Outposts{},
+		sts:                 &mocksv2.STS{},
+		stsPresigner:        &fakes.FakeSTSPresigner{},
+		cfn:                 &mocksv2.CloudFormation{},
+		elb:                 &mocksv2.ELB{},
+		elbV2:               &mocksv2.ELBV2{},
+		ssm:                 &mocksv2.SSM{},
+		iam:                 &mocksv2.IAM{},
+		ec2:                 &mocksv2.EC2{},
+		outposts:            &mocksv2.Outposts{},
+		credentialsProvider: &mocksv2.CredentialsProvider{},
 	}
 }
 
@@ -218,7 +219,7 @@ func (m *MockProvider) SetWaitTimeout(t time.Duration) {
 	m.waitTimeout = &t
 }
 
-func (m MockProvider) AWSConfig() *awsv2.Config {
+func (m MockProvider) AWSConfig() awsv2.Config {
 	options := []func(options *config.LoadOptions) error{
 		config.WithRegion(ProviderConfig.Region),
 	}
@@ -226,5 +227,5 @@ func (m MockProvider) AWSConfig() *awsv2.Config {
 	if err != nil {
 		panic(err)
 	}
-	return &cfg
+	return cfg
 }

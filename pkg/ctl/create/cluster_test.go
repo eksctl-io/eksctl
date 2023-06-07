@@ -939,6 +939,12 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 	p.MockCloudFormation().On("CreateStack", mock.Anything, mock.Anything).Return(&cloudformation.CreateStackOutput{
 		StackId: aws.String(clusterStackName),
 	}, nil).Once()
+
+	p.MockCredentialsProvider().On("Retrieve", mock.Anything).Return(aws.Credentials{
+		AccessKeyID:     "key-id",
+		SecretAccessKey: "secret-access-key",
+		SessionToken:    "token",
+	}, nil)
 }
 
 func mockOutposts(provider *mockprovider.MockProvider, outpostID string) {

@@ -236,8 +236,8 @@ func (c *ClusterProvider) IsSupportedRegion() bool {
 }
 
 // GetCredentialsEnv returns the AWS credentials for env usage
-func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
-	creds, err := c.AWSProvider.CredentialsProvider().Retrieve(context.Background())
+func (c *ClusterProvider) GetCredentialsEnv(ctx context.Context) ([]string, error) {
+	creds, err := c.AWSProvider.CredentialsProvider().Retrieve(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting effective credentials")
 	}
