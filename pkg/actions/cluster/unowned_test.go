@@ -429,6 +429,7 @@ var _ = Describe("Delete", func() {
 			p.MockEKS().On("DeleteCluster", mock.Anything, mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
 
 			c, err := cluster.NewUnownedCluster(ctx, cfg, ctl, fakeStackManager)
+			Expect(err).NotTo(HaveOccurred())
 			err = c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
