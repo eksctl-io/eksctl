@@ -81,7 +81,7 @@ func doGetIdentityProvider(cmd *cmdutils.Cmd, params getCmdParams, name string) 
 		addIdentityProviderTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	return printer.PrintObjWithKind("identity provider summary", summaries, os.Stdout)
+	return printer.PrintObjWithKind("identity provider summary", summaries, cmd.CobraCommand.OutOrStdout())
 }
 
 func addIdentityProviderTableColumns(printer *printers.TablePrinter) {

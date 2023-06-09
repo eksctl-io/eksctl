@@ -17,7 +17,7 @@ type CloudTrail interface {
 	// tag will be created with the specified key and a value of null. You can tag a
 	// trail or event data store that applies to all Amazon Web Services Regions only
 	// from the Region in which the trail or event data store was created (also known
-	// as its home region).
+	// as its home Region).
 	AddTags(ctx context.Context, params *AddTagsInput, optFns ...func(*Options)) (*AddTagsOutput, error)
 	// Cancels a query if the query is not in a terminated state, such as CANCELLED ,
 	// FAILED , TIMED_OUT , or FINISHED . You must specify an ARN value for
@@ -48,9 +48,9 @@ type CloudTrail interface {
 	DeleteEventDataStore(ctx context.Context, params *DeleteEventDataStoreInput, optFns ...func(*Options)) (*DeleteEventDataStoreOutput, error)
 	// Deletes the resource-based policy attached to the CloudTrail channel.
 	DeleteResourcePolicy(ctx context.Context, params *DeleteResourcePolicyInput, optFns ...func(*Options)) (*DeleteResourcePolicyOutput, error)
-	// Deletes a trail. This operation must be called from the region in which the
+	// Deletes a trail. This operation must be called from the Region in which the
 	// trail was created. DeleteTrail cannot be called on the shadow trails
-	// (replicated trails in other regions) of a trail that is enabled in all regions.
+	// (replicated trails in other Regions) of a trail that is enabled in all Regions.
 	DeleteTrail(ctx context.Context, params *DeleteTrailInput, optFns ...func(*Options)) (*DeleteTrailOutput, error)
 	// Removes CloudTrail delegated administrator permissions from a member account in
 	// an organization.
@@ -59,7 +59,7 @@ type CloudTrail interface {
 	// number of events scanned and matched, and query status. You must specify an ARN
 	// for EventDataStore , and a value for QueryID .
 	DescribeQuery(ctx context.Context, params *DescribeQueryInput, optFns ...func(*Options)) (*DescribeQueryOutput, error)
-	// Retrieves settings for one or more trails associated with the current region
+	// Retrieves settings for one or more trails associated with the current Region
 	// for your account.
 	DescribeTrails(ctx context.Context, params *DescribeTrailsInput, optFns ...func(*Options)) (*DescribeTrailsOutput, error)
 	// Returns information about a specific channel.
@@ -102,13 +102,13 @@ type CloudTrail interface {
 	// Returns a JSON-formatted list of information about the specified trail. Fields
 	// include information on delivery errors, Amazon SNS and Amazon S3 errors, and
 	// start and stop logging times for each trail. This operation returns trail status
-	// from a single region. To return trail status from all regions, you must call the
-	// operation on each region.
+	// from a single Region. To return trail status from all Regions, you must call the
+	// operation on each Region.
 	GetTrailStatus(ctx context.Context, params *GetTrailStatusInput, optFns ...func(*Options)) (*GetTrailStatusOutput, error)
 	// Lists the channels in the current account, and their source names.
 	ListChannels(ctx context.Context, params *ListChannelsInput, optFns ...func(*Options)) (*ListChannelsOutput, error)
 	// Returns information about all event data stores in the account, in the current
-	// region.
+	// Region.
 	ListEventDataStores(ctx context.Context, params *ListEventDataStoresInput, optFns ...func(*Options)) (*ListEventDataStoresOutput, error)
 	// Returns a list of failures for the specified import.
 	ListImportFailures(ctx context.Context, params *ListImportFailuresInput, optFns ...func(*Options)) (*ListImportFailuresOutput, error)
@@ -118,9 +118,9 @@ type CloudTrail interface {
 	// Returns all public keys whose private keys were used to sign the digest files
 	// within the specified time range. The public key is needed to validate digest
 	// files that were signed with its corresponding private key. CloudTrail uses
-	// different private and public key pairs per region. Each digest file is signed
-	// with a private key unique to its region. When you validate a digest file from a
-	// specific region, you must look in the same region for its corresponding public
+	// different private and public key pairs per Region. Each digest file is signed
+	// with a private key unique to its Region. When you validate a digest file from a
+	// specific Region, you must look in the same Region for its corresponding public
 	// key.
 	ListPublicKeys(ctx context.Context, params *ListPublicKeysInput, optFns ...func(*Options)) (*ListPublicKeysOutput, error)
 	// Returns a list of queries and query statuses for the past seven days. You must
@@ -130,15 +130,15 @@ type CloudTrail interface {
 	// QueryStatus include QUEUED , RUNNING , FINISHED , FAILED , TIMED_OUT , or
 	// CANCELLED .
 	ListQueries(ctx context.Context, params *ListQueriesInput, optFns ...func(*Options)) (*ListQueriesOutput, error)
-	// Lists the tags for the trail, event data store, or channel in the current
-	// region.
+	// Lists the tags for the specified trails, event data stores, or channels in the
+	// current Region.
 	ListTags(ctx context.Context, params *ListTagsInput, optFns ...func(*Options)) (*ListTagsOutput, error)
 	// Lists trails that are in the current account.
 	ListTrails(ctx context.Context, params *ListTrailsInput, optFns ...func(*Options)) (*ListTrailsOutput, error)
 	// Looks up management events (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html#cloudtrail-concepts-management-events)
 	// or CloudTrail Insights events (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html#cloudtrail-concepts-insights-events)
 	// that are captured by CloudTrail. You can look up events that occurred in a
-	// region within the last 90 days. Lookup supports the following attributes for
+	// Region within the last 90 days. Lookup supports the following attributes for
 	// management events:
 	//   - Amazon Web Services access key
 	//   - Event ID
@@ -157,7 +157,7 @@ type CloudTrail interface {
 	// All attributes are optional. The default number of results returned is 50, with
 	// a maximum of 50 possible. The response includes a token that you can use to get
 	// the next page of results. The rate of lookup requests is limited to two per
-	// second, per account, per region. If this limit is exceeded, a throttling error
+	// second, per account, per Region. If this limit is exceeded, a throttling error
 	// occurs.
 	LookupEvents(ctx context.Context, params *LookupEventsInput, optFns ...func(*Options)) (*LookupEventsOutput, error)
 	// Configures an event selector or advanced event selectors for your trail. Use
@@ -183,7 +183,7 @@ type CloudTrail interface {
 	//   - The GetConsoleOutput is a read-only event that doesn't match your event
 	//     selector. The trail doesn't log the event.
 	//
-	// The PutEventSelectors operation must be called from the region in which the
+	// The PutEventSelectors operation must be called from the Region in which the
 	// trail was created; otherwise, an InvalidHomeRegionException exception is
 	// thrown. You can configure up to five event selectors for each trail. For more
 	// information, see Logging management events (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-management-events-with-cloudtrail.html)
@@ -223,6 +223,11 @@ type CloudTrail interface {
 	// the seven-day wait period after deletion. Restoring an event data store can take
 	// several minutes, depending on the size of the event data store.
 	RestoreEventDataStore(ctx context.Context, params *RestoreEventDataStoreInput, optFns ...func(*Options)) (*RestoreEventDataStoreOutput, error)
+	// Starts the ingestion of live events on an event data store specified as either
+	// an ARN or the ID portion of the ARN. To start ingestion, the event data store
+	// Status must be STOPPED_INGESTION and the eventCategory must be Management , Data
+	// , or ConfigurationItem .
+	StartEventDataStoreIngestion(ctx context.Context, params *StartEventDataStoreIngestionInput, optFns ...func(*Options)) (*StartEventDataStoreIngestionOutput, error)
 	// Starts an import of logged trail events from a source S3 bucket to a
 	// destination event data store. By default, CloudTrail only imports events
 	// contained in the S3 bucket's CloudTrail prefix and the prefixes inside the
@@ -240,25 +245,30 @@ type CloudTrail interface {
 	// account for the organization.
 	StartImport(ctx context.Context, params *StartImportInput, optFns ...func(*Options)) (*StartImportOutput, error)
 	// Starts the recording of Amazon Web Services API calls and log file delivery for
-	// a trail. For a trail that is enabled in all regions, this operation must be
-	// called from the region in which the trail was created. This operation cannot be
-	// called on the shadow trails (replicated trails in other regions) of a trail that
-	// is enabled in all regions.
+	// a trail. For a trail that is enabled in all Regions, this operation must be
+	// called from the Region in which the trail was created. This operation cannot be
+	// called on the shadow trails (replicated trails in other Regions) of a trail that
+	// is enabled in all Regions.
 	StartLogging(ctx context.Context, params *StartLoggingInput, optFns ...func(*Options)) (*StartLoggingOutput, error)
 	// Starts a CloudTrail Lake query. The required QueryStatement parameter provides
 	// your SQL query, enclosed in single quotation marks. Use the optional
 	// DeliveryS3Uri parameter to deliver the query results to an S3 bucket.
 	StartQuery(ctx context.Context, params *StartQueryInput, optFns ...func(*Options)) (*StartQueryOutput, error)
+	// Stops the ingestion of live events on an event data store specified as either
+	// an ARN or the ID portion of the ARN. To stop ingestion, the event data store
+	// Status must be ENABLED and the eventCategory must be Management , Data , or
+	// ConfigurationItem .
+	StopEventDataStoreIngestion(ctx context.Context, params *StopEventDataStoreIngestionInput, optFns ...func(*Options)) (*StopEventDataStoreIngestionOutput, error)
 	// Stops a specified import.
 	StopImport(ctx context.Context, params *StopImportInput, optFns ...func(*Options)) (*StopImportOutput, error)
 	// Suspends the recording of Amazon Web Services API calls and log file delivery
 	// for the specified trail. Under most circumstances, there is no need to use this
 	// action. You can update a trail without stopping it first. This action is the
-	// only way to stop recording. For a trail enabled in all regions, this operation
-	// must be called from the region in which the trail was created, or an
+	// only way to stop recording. For a trail enabled in all Regions, this operation
+	// must be called from the Region in which the trail was created, or an
 	// InvalidHomeRegionException will occur. This operation cannot be called on the
-	// shadow trails (replicated trails in other regions) of a trail enabled in all
-	// regions.
+	// shadow trails (replicated trails in other Regions) of a trail enabled in all
+	// Regions.
 	StopLogging(ctx context.Context, params *StopLoggingInput, optFns ...func(*Options)) (*StopLoggingOutput, error)
 	// Updates a channel specified by a required channel ARN or UUID.
 	UpdateChannel(ctx context.Context, params *UpdateChannelInput, optFns ...func(*Options)) (*UpdateChannelOutput, error)
@@ -278,7 +288,7 @@ type CloudTrail interface {
 	// handle log files. Changes to a trail do not require stopping the CloudTrail
 	// service. Use this action to designate an existing bucket for log delivery. If
 	// the existing bucket has previously been a target for CloudTrail log files, an
-	// IAM policy exists for the bucket. UpdateTrail must be called from the region in
+	// IAM policy exists for the bucket. UpdateTrail must be called from the Region in
 	// which the trail was created; otherwise, an InvalidHomeRegionException is thrown.
 	UpdateTrail(ctx context.Context, params *UpdateTrailInput, optFns ...func(*Options)) (*UpdateTrailOutput, error)
 }

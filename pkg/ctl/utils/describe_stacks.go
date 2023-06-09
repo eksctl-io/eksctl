@@ -104,7 +104,7 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer pri
 	}
 
 	if printer != nil {
-		return printer.PrintObj(stacks, os.Stdout)
+		return printer.PrintObj(stacks, cmd.CobraCommand.OutOrStdout())
 	}
 
 	for _, s := range stacks {

@@ -10,16 +10,20 @@ import (
 
 // CloudFormation provides an interface to the AWS CloudFormation service.
 type CloudFormation interface {
+	// Activate trusted access with Organizations. With trusted access between
+	// StackSets and Organizations activated, the management account has permissions to
+	// create and manage StackSets for your organization.
+	ActivateOrganizationsAccess(ctx context.Context, params *ActivateOrganizationsAccessInput, optFns ...func(*Options)) (*ActivateOrganizationsAccessOutput, error)
 	// Activates a public third-party extension, making it available for use in stack
 	// templates. For more information, see Using public extensions (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry-public.html)
 	// in the CloudFormation User Guide. Once you have activated a public third-party
-	// extension in your account and region, use SetTypeConfiguration to specify
-	// configuration properties for the extension. For more information, see
+	// extension in your account and Region, use SetTypeConfiguration (https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_SetTypeConfiguration.html)
+	// to specify configuration properties for the extension. For more information, see
 	// Configuring extensions at the account level (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry-register.html#registry-set-configuration)
 	// in the CloudFormation User Guide.
 	ActivateType(ctx context.Context, params *ActivateTypeInput, optFns ...func(*Options)) (*ActivateTypeOutput, error)
 	// Returns configuration data for the specified CloudFormation extensions, from
-	// the CloudFormation registry for the account and region. For more information,
+	// the CloudFormation registry for the account and Region. For more information,
 	// see Configuring extensions at the account level (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry-register.html#registry-set-configuration)
 	// in the CloudFormation User Guide.
 	BatchDescribeTypeConfigurations(ctx context.Context, params *BatchDescribeTypeConfigurationsInput, optFns ...func(*Options)) (*BatchDescribeTypeConfigurationsOutput, error)
@@ -70,8 +74,12 @@ type CloudFormation interface {
 	CreateStackInstances(ctx context.Context, params *CreateStackInstancesInput, optFns ...func(*Options)) (*CreateStackInstancesOutput, error)
 	// Creates a stack set.
 	CreateStackSet(ctx context.Context, params *CreateStackSetInput, optFns ...func(*Options)) (*CreateStackSetOutput, error)
+	// Deactivates trusted access with Organizations. If trusted access is
+	// deactivated, the management account does not have permissions to create and
+	// manage service-managed StackSets for your organization.
+	DeactivateOrganizationsAccess(ctx context.Context, params *DeactivateOrganizationsAccessInput, optFns ...func(*Options)) (*DeactivateOrganizationsAccessOutput, error)
 	// Deactivates a public extension that was previously activated in this account
-	// and region. Once deactivated, an extension can't be used in any CloudFormation
+	// and Region. Once deactivated, an extension can't be used in any CloudFormation
 	// operation. This includes stack update operations where the stack template
 	// includes the extension, even if no updates are being made to the extension. In
 	// addition, deactivated extensions aren't automatically updated if a new version
@@ -122,6 +130,11 @@ type CloudFormation interface {
 	// Returns hook-related information for the change set and a list of changes that
 	// CloudFormation makes when you run the change set.
 	DescribeChangeSetHooks(ctx context.Context, params *DescribeChangeSetHooksInput, optFns ...func(*Options)) (*DescribeChangeSetHooksOutput, error)
+	// Retrieves information about the account's OrganizationAccess status. This API
+	// can be called either by the management account or the delegated administrator by
+	// using the CallAs parameter. This API can also be called without the CallAs
+	// parameter by the management account.
+	DescribeOrganizationsAccess(ctx context.Context, params *DescribeOrganizationsAccessInput, optFns ...func(*Options)) (*DescribeOrganizationsAccessOutput, error)
 	// Returns information about a CloudFormation extension publisher. If you don't
 	// supply a PublisherId , and you have registered as an extension publisher,
 	// DescribePublisher returns information about your own publisher account. For more
@@ -132,7 +145,7 @@ type CloudFormation interface {
 	DescribePublisher(ctx context.Context, params *DescribePublisherInput, optFns ...func(*Options)) (*DescribePublisherOutput, error)
 	// Returns information about a stack drift detection operation. A stack drift
 	// detection operation detects whether a stack's actual configuration differs, or
-	// has drifted, from it's expected configuration, as defined in the stack template
+	// has drifted, from its expected configuration, as defined in the stack template
 	// and any values specified as template parameters. A stack is considered to have
 	// drifted if one or more of its resources have drifted. For more information about
 	// stack and resource drift, see Detecting Unregulated Configuration Changes to
@@ -149,9 +162,9 @@ type CloudFormation interface {
 	// failed to create or have been deleted by specifying the unique stack identifier
 	// (stack ID).
 	DescribeStackEvents(ctx context.Context, params *DescribeStackEventsInput, optFns ...func(*Options)) (*DescribeStackEventsOutput, error)
-	// Returns the stack instance that's associated with the specified stack set,
-	// Amazon Web Services account, and Region. For a list of stack instances that are
-	// associated with a specific stack set, use ListStackInstances .
+	// Returns the stack instance that's associated with the specified StackSet,
+	// Amazon Web Services account, and Amazon Web Services Region. For a list of stack
+	// instances that are associated with a specific StackSet, use ListStackInstances .
 	DescribeStackInstance(ctx context.Context, params *DescribeStackInstanceInput, optFns ...func(*Options)) (*DescribeStackInstanceOutput, error)
 	// Returns a description of the specified resource in the specified stack. For
 	// deleted stacks, DescribeStackResource returns resource information for up to 90
@@ -182,9 +195,9 @@ type CloudFormation interface {
 	// . A ValidationError is returned if you specify both StackName and
 	// PhysicalResourceId in the same request.
 	DescribeStackResources(ctx context.Context, params *DescribeStackResourcesInput, optFns ...func(*Options)) (*DescribeStackResourcesOutput, error)
-	// Returns the description of the specified stack set.
+	// Returns the description of the specified StackSet.
 	DescribeStackSet(ctx context.Context, params *DescribeStackSetInput, optFns ...func(*Options)) (*DescribeStackSetOutput, error)
-	// Returns the description of the specified stack set operation.
+	// Returns the description of the specified StackSet operation.
 	DescribeStackSetOperation(ctx context.Context, params *DescribeStackSetOperationInput, optFns ...func(*Options)) (*DescribeStackSetOperationOutput, error)
 	// Returns the description for the specified stack; if no stack name was
 	// specified, then it returns the description for all the stacks created. If the
@@ -203,7 +216,7 @@ type CloudFormation interface {
 	// extension.
 	DescribeTypeRegistration(ctx context.Context, params *DescribeTypeRegistrationInput, optFns ...func(*Options)) (*DescribeTypeRegistrationOutput, error)
 	// Detects whether a stack's actual configuration differs, or has drifted, from
-	// it's expected configuration, as defined in the stack template and any values
+	// its expected configuration, as defined in the stack template and any values
 	// specified as template parameters. For each resource in the stack that supports
 	// drift detection, CloudFormation compares the actual configuration of the
 	// resource with its expected template configuration. Only resource properties
@@ -224,7 +237,7 @@ type CloudFormation interface {
 	// stack. Perform DetectStackDrift directly on the nested stack itself.
 	DetectStackDrift(ctx context.Context, params *DetectStackDriftInput, optFns ...func(*Options)) (*DetectStackDriftOutput, error)
 	// Returns information about whether a resource's actual configuration differs, or
-	// has drifted, from it's expected configuration, as defined in the stack template
+	// has drifted, from its expected configuration, as defined in the stack template
 	// and any values specified as template parameters. This information includes
 	// actual and expected property values for resources in which CloudFormation
 	// detects drift. Only resource properties explicitly defined in the stack template
@@ -297,8 +310,7 @@ type CloudFormation interface {
 	// Import existing stacks into a new stack sets. Use the stack import operation to
 	// import up to 10 stacks into a new stack set in the same account as the source
 	// stack or in a different administrator account and Region, by specifying the
-	// stack ID of the stack you intend to import. ImportStacksToStackSet is only
-	// supported by self-managed permissions.
+	// stack ID of the stack you intend to import.
 	ImportStacksToStackSet(ctx context.Context, params *ImportStacksToStackSetInput, optFns ...func(*Options)) (*ImportStacksToStackSetOutput, error)
 	// Returns the ID and status of each active change set for a stack. For example,
 	// CloudFormation lists change sets that are in the CREATE_IN_PROGRESS or
@@ -355,7 +367,7 @@ type CloudFormation interface {
 	// CloudFormation.
 	ListTypes(ctx context.Context, params *ListTypesInput, optFns ...func(*Options)) (*ListTypesOutput, error)
 	// Publishes the specified extension to the CloudFormation registry as a public
-	// extension in this region. Public extensions are available for use by all
+	// extension in this Region. Public extensions are available for use by all
 	// CloudFormation users. For more information about publishing extensions, see
 	// Publishing extensions to make them available for public use (https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/publish-extension.html)
 	// in the CloudFormation CLI User Guide. To publish an extension, you must be
@@ -386,13 +398,13 @@ type CloudFormation interface {
 	// registration, see Creating Resource Providers (https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-types.html)
 	// in the CloudFormation CLI User Guide. You can have a maximum of 50 resource
 	// extension versions registered at a time. This maximum is per account and per
-	// region. Use DeregisterType to deregister specific extension versions if
-	// necessary. Once you have initiated a registration request using RegisterType ,
-	// you can use DescribeTypeRegistration to monitor the progress of the
-	// registration request. Once you have registered a private extension in your
-	// account and region, use SetTypeConfiguration to specify configuration
-	// properties for the extension. For more information, see Configuring extensions
-	// at the account level (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry-register.html#registry-set-configuration)
+	// Region. Use DeregisterType (https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DeregisterType.html)
+	// to deregister specific extension versions if necessary. Once you have initiated
+	// a registration request using RegisterType , you can use DescribeTypeRegistration
+	// to monitor the progress of the registration request. Once you have registered a
+	// private extension in your account and Region, use SetTypeConfiguration (https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_SetTypeConfiguration.html)
+	// to specify configuration properties for the extension. For more information, see
+	// Configuring extensions at the account level (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry-register.html#registry-set-configuration)
 	// in the CloudFormation User Guide.
 	RegisterType(ctx context.Context, params *RegisterTypeInput, optFns ...func(*Options)) (*RegisterTypeOutput, error)
 	// When specifying RollbackStack , you preserve the state of previously provisioned
@@ -411,9 +423,9 @@ type CloudFormation interface {
 	// Sets a stack policy for a specified stack.
 	SetStackPolicy(ctx context.Context, params *SetStackPolicyInput, optFns ...func(*Options)) (*SetStackPolicyOutput, error)
 	// Specifies the configuration data for a registered CloudFormation extension, in
-	// the given account and region. To view the current configuration data for an
-	// extension, refer to the ConfigurationSchema element of DescribeType . For more
-	// information, see Configuring extensions at the account level (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry-register.html#registry-set-configuration)
+	// the given account and Region. To view the current configuration data for an
+	// extension, refer to the ConfigurationSchema element of DescribeType (https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeType.html)
+	// . For more information, see Configuring extensions at the account level (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry-register.html#registry-set-configuration)
 	// in the CloudFormation User Guide. It's strongly recommended that you use dynamic
 	// references to restrict sensitive configuration definitions, such as third-party
 	// credentials. For more details on dynamic references, see Using dynamic
@@ -444,10 +456,11 @@ type CloudFormation interface {
 	// For more information, see Testing your public extension prior to publishing (https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/publish-extension.html#publish-extension-testing)
 	// in the CloudFormation CLI User Guide. If you don't specify a version,
 	// CloudFormation uses the default version of the extension in your account and
-	// region for testing. To perform testing, CloudFormation assumes the execution
+	// Region for testing. To perform testing, CloudFormation assumes the execution
 	// role specified when the type was registered. For more information, see
-	// RegisterType . Once you've initiated testing on an extension using TestType ,
-	// you can pass the returned TypeVersionArn into DescribeType (https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeType.html)
+	// RegisterType (https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_RegisterType.html)
+	// . Once you've initiated testing on an extension using TestType , you can pass
+	// the returned TypeVersionArn into DescribeType (https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeType.html)
 	// to monitor the current test status and test status description for the
 	// extension. An extension must have a test status of PASSED before it can be
 	// published. For more information, see Publishing extensions to make them

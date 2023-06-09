@@ -83,9 +83,9 @@ type IAM interface {
 	// associated user and then create new keys.
 	CreateAccessKey(ctx context.Context, params *CreateAccessKeyInput, optFns ...func(*Options)) (*CreateAccessKeyOutput, error)
 	// Creates an alias for your Amazon Web Services account. For information about
-	// using an Amazon Web Services account alias, see Using an alias for your Amazon
-	// Web Services account ID (https://docs.aws.amazon.com/IAM/latest/UserGuide/AccountAlias.html)
-	// in the IAM User Guide.
+	// using an Amazon Web Services account alias, see Creating, deleting, and listing
+	// an Amazon Web Services account alias (https://docs.aws.amazon.com/signin/latest/userguide/CreateAccountAlias.html)
+	// in the Amazon Web Services Sign-In User Guide.
 	CreateAccountAlias(ctx context.Context, params *CreateAccountAliasInput, optFns ...func(*Options)) (*CreateAccountAliasOutput, error)
 	// Creates a new group. For information about the number of groups you can create,
 	// see IAM and STS quotas (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html)
@@ -231,9 +231,9 @@ type IAM interface {
 	// if the Amazon Web Services account has no associated users.
 	DeleteAccessKey(ctx context.Context, params *DeleteAccessKeyInput, optFns ...func(*Options)) (*DeleteAccessKeyOutput, error)
 	// Deletes the specified Amazon Web Services account alias. For information about
-	// using an Amazon Web Services account alias, see Using an alias for your Amazon
-	// Web Services account ID (https://docs.aws.amazon.com/IAM/latest/UserGuide/AccountAlias.html)
-	// in the IAM User Guide.
+	// using an Amazon Web Services account alias, see Creating, deleting, and listing
+	// an Amazon Web Services account alias (https://docs.aws.amazon.com/signin/latest/userguide/CreateAccountAlias.html)
+	// in the Amazon Web Services Sign-In User Guide.
 	DeleteAccountAlias(ctx context.Context, params *DeleteAccountAliasInput, optFns ...func(*Options)) (*DeleteAccountAliasOutput, error)
 	// Deletes the password policy for the Amazon Web Services account. There are no
 	// parameters.
@@ -840,8 +840,9 @@ type IAM interface {
 	ListAccessKeys(ctx context.Context, params *ListAccessKeysInput, optFns ...func(*Options)) (*ListAccessKeysOutput, error)
 	// Lists the account alias associated with the Amazon Web Services account (Note:
 	// you can have only one). For information about using an Amazon Web Services
-	// account alias, see Using an alias for your Amazon Web Services account ID (https://docs.aws.amazon.com/IAM/latest/UserGuide/AccountAlias.html)
-	// in the IAM User Guide.
+	// account alias, see Creating, deleting, and listing an Amazon Web Services
+	// account alias (https://docs.aws.amazon.com/signin/latest/userguide/CreateAccountAlias.html)
+	// in the Amazon Web Services Sign-In User Guide.
 	ListAccountAliases(ctx context.Context, params *ListAccountAliasesInput, optFns ...func(*Options)) (*ListAccountAliasesOutput, error)
 	// Lists all managed policies that are attached to the specified IAM group. An IAM
 	// group can also have inline policies embedded with it. To list the inline
