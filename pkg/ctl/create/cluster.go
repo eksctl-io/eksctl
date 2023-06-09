@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"sync"
 
@@ -297,7 +296,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	}
 
 	if params.DryRun {
-		return cmdutils.PrintDryRunConfig(cfg, os.Stdout)
+		return cmdutils.PrintDryRunConfig(cfg, cmd.CobraCommand.OutOrStdout())
 	}
 
 	if err := nodeGroupService.Normalize(ctx, nodePools, cfg); err != nil {
