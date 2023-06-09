@@ -109,7 +109,7 @@ func getAddon(cmd *cmdutils.Cmd, a *api.Addon, params *getCmdParams) error {
 		addAddonSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	if err := printer.PrintObjWithKind("addons", summaries, os.Stdout); err != nil {
+	if err := printer.PrintObjWithKind("addons", summaries, cmd.CobraCommand.OutOrStdout()); err != nil {
 		return err
 	}
 

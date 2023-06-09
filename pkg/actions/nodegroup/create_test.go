@@ -3,6 +3,7 @@ package nodegroup_test
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -204,7 +205,10 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			})
 		},
 		opts: nodegroup.CreateOpts{
-			DryRun:                    true,
+			DryRunSettings: nodegroup.DryRunSettings{
+				DryRun:    true,
+				OutStream: os.Stdout,
+			},
 			UpdateAuthConfigMap:       true,
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
@@ -228,7 +232,10 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			})
 		},
 		opts: nodegroup.CreateOpts{
-			DryRun:                    true,
+			DryRunSettings: nodegroup.DryRunSettings{
+				DryRun:    true,
+				OutStream: os.Stdout,
+			},
 			UpdateAuthConfigMap:       true,
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
@@ -257,7 +264,10 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			})
 		},
 		opts: nodegroup.CreateOpts{
-			DryRun:                    true,
+			DryRunSettings: nodegroup.DryRunSettings{
+				DryRun:    true,
+				OutStream: os.Stdout,
+			},
 			UpdateAuthConfigMap:       true,
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
@@ -283,7 +293,10 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			defaultProviderMocks(p, defaultOutput)
 		},
 		opts: nodegroup.CreateOpts{
-			DryRun:                    true,
+			DryRunSettings: nodegroup.DryRunSettings{
+				DryRun:    true,
+				OutStream: os.Stdout,
+			},
 			UpdateAuthConfigMap:       true,
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
@@ -310,7 +323,10 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			})
 		},
 		opts: nodegroup.CreateOpts{
-			DryRun:                    true,
+			DryRunSettings: nodegroup.DryRunSettings{
+				DryRun:    true,
+				OutStream: os.Stdout,
+			},
 			UpdateAuthConfigMap:       true,
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
@@ -347,7 +363,10 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			}, nil)
 		},
 		opts: nodegroup.CreateOpts{
-			DryRun:                    true,
+			DryRunSettings: nodegroup.DryRunSettings{
+				DryRun:    true,
+				OutStream: os.Stdout,
+			},
 			UpdateAuthConfigMap:       true,
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
@@ -373,7 +392,10 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			})
 		},
 		opts: nodegroup.CreateOpts{
-			DryRun:                    true,
+			DryRunSettings: nodegroup.DryRunSettings{
+				DryRun:    true,
+				OutStream: os.Stdout,
+			},
 			UpdateAuthConfigMap:       true,
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
@@ -407,7 +429,10 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			defaultProviderMocks(p, defaultOutput)
 		},
 		opts: nodegroup.CreateOpts{
-			DryRun:                    true,
+			DryRunSettings: nodegroup.DryRunSettings{
+				DryRun:    true,
+				OutStream: os.Stdout,
+			},
 			UpdateAuthConfigMap:       true,
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
