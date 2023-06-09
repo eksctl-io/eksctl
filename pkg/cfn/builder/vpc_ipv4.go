@@ -265,6 +265,8 @@ func (v *IPv4VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTo
 			CidrBlock:        gfnt.NewString(s.CIDR.String()),
 			VpcId:            v.vpcID,
 		}
+		maybeSetHostnameType(v.clusterConfig.VPC, subnet)
+
 		if v.clusterConfig.IsControlPlaneOnOutposts() {
 			subnet.OutpostArn = gfnt.NewString(v.clusterConfig.Outpost.ControlPlaneOutpostARN)
 		} else if s.OutpostARN != "" {
@@ -435,4 +437,13 @@ func forEachNATSubnet(clusterVPC *api.ClusterVPC, fn func(subnetAlias string)) {
 
 func makeAZResourceName(subnetAZ string) string {
 	return strings.ToUpper(strings.ReplaceAll(subnetAZ, "-", ""))
+}
+
+func maybeSetHostnameType(vpc *api.ClusterVPC, subnet *gfnec2.Subnet) {
+	if hostnameType := vpc.HostnameType; hostnameType != "" {
+		subnet.PrivateDnsNameOptionsOnLaunch = &gfnec2.Subnet_PrivateDnsNameOptionsOnLaunch{
+			HostnameType: gfnt.NewString(hostnameType),
+		}
+	}
+
 }

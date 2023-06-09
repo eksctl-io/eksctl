@@ -7,7 +7,10 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-const rootDevice = "/dev/xvda"
+const (
+	rootDeviceForLinux   = "/dev/xvda"
+	rootDeviceForWindows = "/dev/sda1"
+)
 
 func makeBlockDeviceMappings(ng *api.NodeGroupBase) []gfnec2.LaunchTemplate_BlockDeviceMapping {
 	var (
@@ -17,8 +20,10 @@ func makeBlockDeviceMappings(ng *api.NodeGroupBase) []gfnec2.LaunchTemplate_Bloc
 
 	if ng.VolumeName != nil {
 		baseVolumeName = *ng.VolumeName
+	} else if api.IsWindowsImage(ng.AMIFamily) {
+		baseVolumeName = rootDeviceForWindows
 	} else {
-		baseVolumeName = rootDevice
+		baseVolumeName = rootDeviceForLinux
 	}
 
 	mapping := makeBlockDeviceMapping(&api.VolumeMapping{

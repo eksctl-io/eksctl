@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/aws/smithy-go"
-
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 
@@ -192,10 +190,4 @@ func (m *OpenIDConnectManager) MakeAssumeRolePolicyDocument() cft.MapOfInterface
 
 func (m *OpenIDConnectManager) hostnameAndPath() string {
 	return m.issuerURL.Hostname() + m.issuerURL.Path
-}
-
-// IsAccessDeniedError returns true if err is an AccessDenied error.
-func IsAccessDeniedError(err error) bool {
-	var apiErr smithy.APIError
-	return errors.As(err, &apiErr) && apiErr.ErrorCode() == "AccessDenied"
 }

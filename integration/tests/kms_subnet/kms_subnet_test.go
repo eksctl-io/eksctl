@@ -1,15 +1,17 @@
 //go:build integration
 // +build integration
 
-package kms
+//revive:disable Not changing package name
+package kms_subnet
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
@@ -19,8 +21,10 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
@@ -29,27 +33,25 @@ var params *tests.Params
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
-	params = tests.NewParams("kms")
+	params = tests.NewParams("kms-subnet")
+	if err := api.Register(); err != nil {
+		panic("unexpected error registering API scheme")
+	}
 }
 
-func TestEKSKMS(t *testing.T) {
+func TestKMSSubnet(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
 var (
 	kmsKeyARN *string
-	ctl       api.ClusterProvider
+	awsConfig aws.Config
 )
 
 var _ = BeforeSuite(func() {
-	clusterConfig := api.NewClusterConfig()
-	clusterConfig.Metadata.Name = params.ClusterName
-	clusterConfig.Metadata.Version = "latest"
-	clusterConfig.Metadata.Region = params.Region
+	awsConfig = NewConfig(params.Region)
 
-	data, err := json.Marshal(clusterConfig)
-	Expect(err).NotTo(HaveOccurred())
-
+	By("enabling resource-based hostname for subnets")
 	cmd := params.EksctlCreateCmd.
 		WithArgs(
 			"cluster",
@@ -57,15 +59,10 @@ var _ = BeforeSuite(func() {
 			"--verbose", "4",
 		).
 		WithoutArg("--region", params.Region).
-		WithStdin(bytes.NewReader(data))
+		WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/kms-subnet-cluster.yaml"))
 	Expect(cmd).To(RunSuccessfully())
 
-	clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, clusterConfig)
-	Expect(err).NotTo(HaveOccurred())
-	ctl = clusterProvider.AWSProvider
-
-	cfg := NewConfig(params.Region)
-	kmsClient := kms.NewFromConfig(cfg)
+	kmsClient := kms.NewFromConfig(awsConfig)
 	output, err := kmsClient.CreateKey(context.Background(), &kms.CreateKeyInput{
 		Description: aws.String(fmt.Sprintf("Key to test KMS encryption on EKS cluster %s", params.ClusterName)),
 	})
@@ -73,8 +70,8 @@ var _ = BeforeSuite(func() {
 	kmsKeyARN = output.KeyMetadata.Arn
 })
 
-var _ = Describe("(Integration) [EKS kms test]", func() {
-	Context("Creating a cluster and enabling kms", func() {
+var _ = Describe("(Integration) [EKS KMS and subnet test]", func() {
+	Context("creating a cluster and enabling KMS", func() {
 		params.LogStacksEventsOnFailure()
 
 		It("supports enabling KMS encryption", func() {
@@ -103,6 +100,19 @@ var _ = Describe("(Integration) [EKS kms test]", func() {
 			))
 		})
 	})
+
+	Context("nodes launched in the VPC's subnets", func() {
+		It("should have a resource-based hostname", func() {
+			clientSet := makeClientSet()
+			nodeList := tests.ListNodes(clientSet, "mng-1")
+			Expect(nodeList.Items).To(HaveLen(2))
+			for _, node := range nodeList.Items {
+				instanceID, err := getInstanceID(node)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(node.Name).To(Equal(fmt.Sprintf("%s.%s.compute.internal", instanceID, params.Region)))
+			}
+		})
+	})
 })
 
 var _ = AfterSuite(func() {
@@ -112,11 +122,35 @@ var _ = AfterSuite(func() {
 	)
 	Expect(cmd).To(RunSuccessfully())
 
-	cfg := NewConfig(params.Region)
-	kmsClient := kms.NewFromConfig(cfg)
+	kmsClient := kms.NewFromConfig(awsConfig)
 	_, err := kmsClient.ScheduleKeyDeletion(context.Background(), &kms.ScheduleKeyDeletionInput{
 		KeyId:               kmsKeyARN,
 		PendingWindowInDays: aws.Int32(7),
 	})
 	Expect(err).NotTo(HaveOccurred())
 })
+
+func getInstanceID(node corev1.Node) (string, error) {
+	providerID := node.Spec.ProviderID
+	idx := strings.LastIndex(providerID, "/")
+	if idx == -1 || idx == len(providerID)-1 {
+		return "", fmt.Errorf("unexpected format for node.spec.providerID %q", providerID)
+	}
+	return providerID[idx+1:], nil
+}
+
+func makeClientSet() kubernetes.Interface {
+	clusterConfig := &api.ClusterConfig{
+		Metadata: &api.ClusterMeta{
+			Name:   params.ClusterName,
+			Region: params.Region,
+		},
+	}
+	ctx := context.Background()
+	clusterProvider, err := eks.New(ctx, &api.ProviderConfig{Region: params.Region}, clusterConfig)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(clusterProvider.RefreshClusterStatus(ctx, clusterConfig)).To(Succeed())
+	clientSet, err := clusterProvider.NewStdClientSet(clusterConfig)
+	Expect(err).NotTo(HaveOccurred())
+	return clientSet
+}
