@@ -186,8 +186,8 @@ eksctl delete cluster --name=<name> [--region=<region>]
 
 Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](https://github.com/weaveworks/eksctl/blob/master/CONTRIBUTING.md).
 
-_Need help? Join [Weave Community Slack][slackjoin]._
-[slackjoin]: https://slack.weave.works/
+_Need help? Join [Eksctl Slack][slackjoin]._
+[slackjoin]: https://slack.k8s.io/
 
 
 ## Installation
