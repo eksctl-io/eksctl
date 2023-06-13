@@ -8,21 +8,21 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.1
-	github.com/aws/aws-sdk-go v1.44.277
+	github.com/aws/aws-sdk-go v1.44.281
 	github.com/aws/aws-sdk-go-v2 v1.18.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.25
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.24
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.7
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.28.0
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.29.0
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.26.0
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.20.11
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.21.0
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.22.10
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.98.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.99.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.27.12
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.10
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.11
 	github.com/aws/aws-sdk-go-v2/service/iam v1.20.0
-	github.com/aws/aws-sdk-go-v2/service/kms v1.21.1
+	github.com/aws/aws-sdk-go-v2/service/kms v1.22.0
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.27.10
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.4
 	github.com/aws/aws-sdk-go-v2/service/sts v1.19.0
@@ -51,7 +51,7 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.1
 	github.com/onsi/ginkgo/v2 v2.10.0
-	github.com/onsi/gomega v1.27.7
+	github.com/onsi/gomega v1.27.8
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/otiai10/copy v1.9.0
 	github.com/pelletier/go-toml v1.9.5
@@ -506,7 +506,7 @@ require (
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/term v0.8.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/text v0.10.0 // indirect
 	golang.org/x/time v0.1.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.107.0 // indirect
