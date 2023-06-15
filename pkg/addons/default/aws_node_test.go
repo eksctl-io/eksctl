@@ -5,6 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -33,7 +34,7 @@ var _ = Describe("AWS Node", func() {
 			input.ControlPlaneVersion = "1.15.0"
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), input)
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), rawClient.ClientSet())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeFalse())
 		})
@@ -42,7 +43,7 @@ var _ = Describe("AWS Node", func() {
 			loadSamples(rawClient, "testdata/sample-1.16-eksbuild.1.json")
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), input)
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), rawClient.ClientSet())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})
@@ -51,7 +52,7 @@ var _ = Describe("AWS Node", func() {
 			loadSamples(rawClient, "testdata/sample-1.16-v1.7.json")
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), input)
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), rawClient.ClientSet())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})

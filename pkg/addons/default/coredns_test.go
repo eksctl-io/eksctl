@@ -68,34 +68,6 @@ var _ = Describe("default addons - coredns", func() {
 			)
 		})
 	})
-
-	Context("IsCoreDNSUpToDate", func() {
-		BeforeEach(func() {
-			createCoreDNSFromTestSample(rawClient, kubernetesVersion)
-			_, err := da.UpdateCoreDNS(context.Background(), input, false)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		Context("when CoreDNS is NOT up to date", func() {
-			BeforeEach(func() {
-				input.ControlPlaneVersion = "1.22.x"
-			})
-
-			It("reports 'false'", func() {
-				isUpToDate, err := da.IsCoreDNSUpToDate(context.Background(), input)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(isUpToDate).To(Equal(false))
-			})
-		})
-
-		Context("when CoreDNS is up to date", func() {
-			It("reports 'true'", func() {
-				isUpToDate, err := da.IsCoreDNSUpToDate(context.Background(), input)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(isUpToDate).To(Equal(true))
-			})
-		})
-	})
 })
 
 func createCoreDNSFromTestSample(rawClient *testutils.FakeRawClient, kubernetesVersion string) {

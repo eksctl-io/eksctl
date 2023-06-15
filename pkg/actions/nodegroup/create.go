@@ -89,7 +89,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return err
 	}
 
-	if err := m.checkARMSupport(ctx, ctl, rawClient, cfg, options.SkipOutdatedAddonsCheck); err != nil {
+	if err := m.checkARMSupport(ctx, rawClient, cfg, options.SkipOutdatedAddonsCheck); err != nil {
 		return err
 	}
 
@@ -287,14 +287,9 @@ func (m *Manager) postNodeCreationTasks(ctx context.Context, clientSet kubernete
 	return nil
 }
 
-func (m *Manager) checkARMSupport(ctx context.Context, ctl *eks.ClusterProvider, rawClient *kubernetes.RawClient, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
-	kubeProvider := m.ctl
-	kubernetesVersion, err := kubeProvider.ServerVersion(rawClient)
-	if err != nil {
-		return err
-	}
+func (m *Manager) checkARMSupport(ctx context.Context, rawClient *kubernetes.RawClient, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
 	if api.ClusterHasInstanceType(cfg, instanceutils.IsARMInstanceType) {
-		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(ctx, ctl.AWSProvider.EKS(), rawClient, kubernetesVersion, ctl.AWSProvider.Region())
+		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(ctx, rawClient.ClientSet())
 		if err != nil {
 			return err
 		}
