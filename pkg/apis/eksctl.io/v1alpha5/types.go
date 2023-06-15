@@ -1237,6 +1237,10 @@ type NodeGroup struct {
 	// The cluster should have been created with all of the local zones specified in this field.
 	// +optional
 	LocalZones []string `json:"localZones,omitempty"`
+
+	// EnclaveEnabled determines if the EC2 instance will be Nitro enclave enabled
+	// +optional
+	EnclaveEnabled bool `json:"enclaveEnabled,omitempty"`
 }
 
 // GetContainerRuntime returns the container runtime.

@@ -439,6 +439,9 @@ func newLaunchTemplateData(ctx context.Context, n *NodeGroupResourceSet) (*gfnec
 		UserData:          gfnt.NewString(userData),
 		MetadataOptions:   makeMetadataOptions(n.spec.NodeGroupBase),
 		TagSpecifications: makeTags(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
+		EnclaveOptions: &gfnec2.LaunchTemplate_EnclaveOptions{
+			Enabled: gfnt.NewBoolean(n.spec.EnclaveEnabled),
+		},
 	}
 
 	if n.spec.CapacityReservation != nil {

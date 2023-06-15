@@ -1515,6 +1515,12 @@
           "description": "Enable EC2 detailed monitoring",
           "x-intellij-html-description": "Enable EC2 detailed monitoring"
         },
+        "enclaveEnabled": {
+          "type": "boolean",
+          "description": "determines if the EC2 instance will be Nitro enclave enabled",
+          "x-intellij-html-description": "determines if the EC2 instance will be Nitro enclave enabled",
+          "default": "false"
+        },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
         },
@@ -1736,7 +1742,8 @@
         "kubeletExtraConfig",
         "containerRuntime",
         "maxInstanceLifetime",
-        "localZones"
+        "localZones",
+        "enclaveEnabled"
       ],
       "additionalProperties": false,
       "description": "holds configuration attributes that are specific to an unmanaged nodegroup",
