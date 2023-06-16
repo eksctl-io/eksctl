@@ -15,6 +15,36 @@ type CloudFormation struct {
 	mock.Mock
 }
 
+// ActivateOrganizationsAccess provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) ActivateOrganizationsAccess(ctx context.Context, params *cloudformation.ActivateOrganizationsAccessInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ActivateOrganizationsAccessOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudformation.ActivateOrganizationsAccessOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ActivateOrganizationsAccessInput, ...func(*cloudformation.Options)) *cloudformation.ActivateOrganizationsAccessOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.ActivateOrganizationsAccessOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ActivateOrganizationsAccessInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ActivateType provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ActivateType(ctx context.Context, params *cloudformation.ActivateTypeInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ActivateTypeOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -247,6 +277,36 @@ func (_m *CloudFormation) CreateStackSet(ctx context.Context, params *cloudforma
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.CreateStackSetInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeactivateOrganizationsAccess provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) DeactivateOrganizationsAccess(ctx context.Context, params *cloudformation.DeactivateOrganizationsAccessInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DeactivateOrganizationsAccessOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudformation.DeactivateOrganizationsAccessOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DeactivateOrganizationsAccessInput, ...func(*cloudformation.Options)) *cloudformation.DeactivateOrganizationsAccessOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.DeactivateOrganizationsAccessOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DeactivateOrganizationsAccessInput, ...func(*cloudformation.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -517,6 +577,36 @@ func (_m *CloudFormation) DescribeChangeSetHooks(ctx context.Context, params *cl
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeChangeSetHooksInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeOrganizationsAccess provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) DescribeOrganizationsAccess(ctx context.Context, params *cloudformation.DescribeOrganizationsAccessInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DescribeOrganizationsAccessOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudformation.DescribeOrganizationsAccessOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeOrganizationsAccessInput, ...func(*cloudformation.Options)) *cloudformation.DescribeOrganizationsAccessOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.DescribeOrganizationsAccessOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeOrganizationsAccessInput, ...func(*cloudformation.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)

@@ -1,4 +1,4 @@
-## Community Code of Conduct
+# Community Code of Conduct
 
 eksctl follows the [CNCF Code of Conduct](https://github.com/cncf/foundation/blob/master/code-of-conduct.md).
 

@@ -2,7 +2,6 @@ package get
 
 import (
 	"context"
-	"os"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/managed"
@@ -64,7 +63,7 @@ func getLabels(cmd *cmdutils.Cmd, nodeGroupName string) error {
 
 	printer := printers.NewTablePrinter()
 	addColumns(printer.(*printers.TablePrinter))
-	return printer.PrintObjWithKind("labels", labels, os.Stdout)
+	return printer.PrintObjWithKind("labels", labels, cmd.CobraCommand.OutOrStdout())
 }
 
 func addColumns(printer *printers.TablePrinter) {

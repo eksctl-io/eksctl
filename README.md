@@ -15,6 +15,7 @@ _Need help? Join [Weave Community Slack][slackjoin]._
 `eksctl` is available to install from official releases as described below. We recommend that you install `eksctl` from only the official GitHub releases. You may opt to use a third-party installer, but please be advised that AWS does not maintain nor support these methods of installation. Use them at your own discretion.
 
 ### For Unix
+
 To download the latest release, run:
 
 ```sh
@@ -35,23 +36,28 @@ sudo mv /tmp/eksctl /usr/local/bin
 ### For Windows
 
 #### Direct download (latest release): [AMD64/x86_64](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_amd64.zip) - [ARMv6](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_armv6.zip) - [ARMv7](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_armv7.zip) - [ARM64](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_arm64.zip)
-Make sure to unzip the archive to a folder in the `PATH` variable. 
 
-Optionally, verify the checksum: 
+Make sure to unzip the archive to a folder in the `PATH` variable.
+
+Optionally, verify the checksum:
 
 1. Download the checksum file: [latest](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_checksums.txt)
-2. Use Command Prompt to manually compare `CertUtil`'s output to the checksum file downloaded. 
+2. Use Command Prompt to manually compare `CertUtil`'s output to the checksum file downloaded.
+
   ```cmd
   REM Replace amd64 with armv6, armv7 or arm64
   CertUtil -hashfile eksctl_Windows_amd64.zip SHA256
   ```
+
 3. Using PowerShell to automate the verification using the `-eq` operator to get a `True` or `False` result:
+
 ```pwsh
 # Replace amd64 with armv6, armv7 or arm64
  (Get-FileHash -Algorithm SHA256 .\eksctl_Windows_amd64.zip).Hash -eq ((Get-Content .\eksctl_checksums.txt) -match 'eksctl_Windows_amd64.zip' -split ' ')[0]
  ```
 
-#### Using Git Bash: 
+#### Using Git Bash
+
 ```sh
 # for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
 ARCH=amd64
@@ -71,32 +77,36 @@ The `eksctl` executable is placed in `$HOME/bin`, which is in `$PATH` from Git B
 
 ### Docker
 
-For every release and RC, a docker image is pushed to [weaveworks/eksctl - Docker Image | Docker Hub](https://hub.docker.com/r/weaveworks/eksctl). 
+For every release and RC, a docker image is pushed to [weaveworks/eksctl - Docker Image | Docker Hub](https://hub.docker.com/r/weaveworks/eksctl).
 
 ### Third-Party Installers (Not Recommended)
+
 #### For MacOS
+
 [Homebrew](https://brew.sh)
 
-```
+```bash
 brew tap weaveworks/tap
 brew install weaveworks/tap/eksctl
 ```
 
 [MacPorts](https://www.macports.org)
 
-```
+```bash
 port install eksctl
 ```
+
 #### For Windows
+
 [chocolatey](https://chocolatey.org)
 
-```
+```bash
 chocolatey install eksctl
 ```
 
 [scoop](https://scoop.sh)
 
-```
+```bash
 scoop install eksctl
 ```
 
@@ -108,9 +118,9 @@ or [environment variables][awsenv]. For more information read [AWS documentation
 [awsenv]: https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html
 [awsconfig]: https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html
 
-You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `aws eks get-token` (available in version 1.16.156 or greater of AWS CLI) in your `PATH`. 
+You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `aws eks get-token` (available in version 1.16.156 or greater of AWS CLI) in your `PATH`.
 
-The IAM account used for EKS cluster creation should have these minimal access levels. 
+The IAM account used for EKS cluster creation should have these minimal access levels.
 
 | AWS Service      | Access Level                                           |
 |------------------|--------------------------------------------------------|
@@ -121,14 +131,13 @@ The IAM account used for EKS cluster creation should have these minimal access l
 | IAM              | **Limited:** List, Read, Write, Permissions Management |
 | Systems Manager  | **Limited:** List, Read                                |
 
-
 The inline policy json is listed in [Minimal IAM Policies](https://eksctl.io/usage/minimum-iam-policies/).
 
 ## Basic usage
 
 To create a basic cluster, run:
 
-```
+```bash
 eksctl create cluster
 ```
 
@@ -141,46 +150,56 @@ A cluster will be created with default parameters
 - dedicated VPC (check your quotas)
 
 Once you have created a cluster, you will find that cluster credentials were added in `~/.kube/config`. If you have `kubectl` as well as `aws-iam-authenticator` commands in your `PATH`, you should be
-able to use `kubectl`. You will need to make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions. 
+able to use `kubectl`. You will need to make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions.
 
 [ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
 Example output:
 
-```
-$ eksctl create cluster
-[ℹ]  eksctl version 0.6.0
-[ℹ]  using region us-west-2
-[ℹ]  setting availability zones to [us-west-2a us-west-2c us-west-2b]
-[ℹ]  subnets for us-west-2a - public:192.168.0.0/19 private:192.168.96.0/19
-[ℹ]  subnets for us-west-2c - public:192.168.32.0/19 private:192.168.128.0/19
-[ℹ]  subnets for us-west-2b - public:192.168.64.0/19 private:192.168.160.0/19
-[ℹ]  nodegroup "ng-98b3b83a" will use "ami-05ecac759c81e0b0c" [AmazonLinux2/1.11]
-[ℹ]  creating EKS cluster "floral-unicorn-1540567338" in "us-west-2" region
-[ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
-[ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-west-2 --cluster=floral-unicorn-1540567338'
-[ℹ]  2 sequential tasks: { create cluster control plane "floral-unicorn-1540567338", create managed nodegroup "ng-98b3b83a" }
-[ℹ]  building cluster stack "eksctl-floral-unicorn-1540567338-cluster"
-[ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-cluster"
-[ℹ]  building nodegroup stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
-[ℹ]  --nodes-min=2 was set automatically for nodegroup ng-98b3b83a
-[ℹ]  --nodes-max=2 was set automatically for nodegroup ng-98b3b83a
-[ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
-[✔]  all EKS cluster resources for "floral-unicorn-1540567338" have been created
-[✔]  saved kubeconfig as "~/.kube/config"
-[ℹ]  adding role "arn:aws:iam::376248598259:role/eksctl-ridiculous-sculpture-15547-NodeInstanceRole-1F3IHNVD03Z74" to auth ConfigMap
-[ℹ]  nodegroup "ng-98b3b83a" has 1 node(s)
-[ℹ]  node "ip-192-168-64-220.us-west-2.compute.internal" is not ready
-[ℹ]  waiting for at least 2 node(s) to become ready in "ng-98b3b83a"
-[ℹ]  nodegroup "ng-98b3b83a" has 2 node(s)
-[ℹ]  node "ip-192-168-64-220.us-west-2.compute.internal" is ready
-[ℹ]  node "ip-192-168-8-135.us-west-2.compute.internal" is ready
-[ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
-[✔]  EKS cluster "floral-unicorn-1540567338" in "us-west-2" region is ready
+```bash
+ $ eksctl create cluster
+[ℹ]  eksctl version 0.143.0
+[ℹ]  using region eu-west-2
+[ℹ]  setting availability zones to [eu-west-2a eu-west-2c eu-west-2b]
+[ℹ]  subnets for eu-west-2a - public:192.168.0.0/19 private:192.168.96.0/19
+[ℹ]  subnets for eu-west-2c - public:192.168.32.0/19 private:192.168.128.0/19
+[ℹ]  subnets for eu-west-2b - public:192.168.64.0/19 private:192.168.160.0/19
+[ℹ]  nodegroup "ng-ac4c787c" will use "" [AmazonLinux2/1.25]
+[ℹ]  using Kubernetes version 1.25
+[ℹ]  creating EKS cluster "attractive-sculpture-1685534556" in "eu-west-2" region with managed nodes
+[ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial managed nodegroup
+[ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=eu-west-2 --cluster=attractive-sculpture-1685534556'
+[ℹ]  Kubernetes API endpoint access will use default of {publicAccess=true, privateAccess=false} for cluster "attractive-sculpture-1685534556" in "eu-west-2"
+[ℹ]  CloudWatch logging will not be enabled for cluster "attractive-sculpture-1685534556" in "eu-west-2"
+[ℹ]  you can enable it with 'eksctl utils update-cluster-logging --enable-types={SPECIFY-YOUR-LOG-TYPES-HERE (e.g. all)} --region=eu-west-2 --cluster=attractive-sculpture-1685534556'
+[ℹ]  
+2 sequential tasks: { create cluster control plane "attractive-sculpture-1685534556", 
+    2 sequential sub-tasks: { 
+        wait for control plane to become ready,
+        create managed nodegroup "ng-ac4c787c",
+    } 
+}
+[ℹ]  building cluster stack "eksctl-attractive-sculpture-1685534556-cluster"
+[ℹ]  deploying stack "eksctl-attractive-sculpture-1685534556-cluster"
+[ℹ]  waiting for CloudFormation stack "eksctl-attractive-sculpture-1685534556-cluster"
+[ℹ]  building managed nodegroup stack "eksctl-attractive-sculpture-1685534556-nodegroup-ng-ac4c787c"
+[ℹ]  deploying stack "eksctl-attractive-sculpture-1685534556-nodegroup-ng-ac4c787c"
+[ℹ]  waiting for CloudFormation stack "eksctl-attractive-sculpture-1685534556-nodegroup-ng-ac4c787c"
+[ℹ]  waiting for the control plane to become ready
+[✔]  all EKS cluster resources for "attractive-sculpture-1685534556" have been created
+[ℹ]  nodegroup "ng-ac4c787c" has 2 node(s)
+[ℹ]  node "ip-192-168-20-235.eu-west-2.compute.internal" is ready
+[ℹ]  node "ip-192-168-80-49.eu-west-2.compute.internal" is ready
+[ℹ]  waiting for at least 2 node(s) to become ready in "ng-ac4c787c"
+[ℹ]  nodegroup "ng-ac4c787c" has 2 node(s)
+[ℹ]  node "ip-192-168-20-235.eu-west-2.compute.internal" is ready
+[ℹ]  node "ip-192-168-80-49.eu-west-2.compute.internal" is ready
+[ℹ]  kubectl command should work with ".../.kube/config", try 'kubectl get nodes'
+[✔]  EKS cluster "attractive-sculpture-1685534556" in "eu-west-2" region is ready
 $
 ```
 
-Install `eksctl` following the [installation instructions](https://eksctl.io/introduction/#installation). 
+Install `eksctl` following the [installation instructions](https://eksctl.io/introduction/#installation).
 
 To learn more about what `eksctl` can do check [eksctl.io](https://eksctl.io). A good place to start is
 [Getting Started](https://eksctl.io/introduction/#getting-started). The full list of features can be found
@@ -200,6 +219,7 @@ Minor releases of `eksctl` should be expected every two weeks and patch releases
 One or more release candidate(s) (RC) builds will be made available prior to each minor release. RC builds are intended only for testing purposes.
 
 ## [Security Policy](SECURITY.md)
+
 If you discover a potential security issue in `eksctl` project, please
 follow [AWS Vulnerability Reporting process.](https://aws.amazon.com/security/vulnerability-reporting/)
 
