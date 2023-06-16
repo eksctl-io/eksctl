@@ -165,6 +165,36 @@ func (_m *CloudWatchLogs) CreateLogStream(ctx context.Context, params *cloudwatc
 	return r0, r1
 }
 
+// DeleteAccountPolicy provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) DeleteAccountPolicy(ctx context.Context, params *cloudwatchlogs.DeleteAccountPolicyInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DeleteAccountPolicyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudwatchlogs.DeleteAccountPolicyOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.DeleteAccountPolicyInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.DeleteAccountPolicyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.DeleteAccountPolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.DeleteAccountPolicyInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteDataProtectionPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudWatchLogs) DeleteDataProtectionPolicy(ctx context.Context, params *cloudwatchlogs.DeleteDataProtectionPolicyInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DeleteDataProtectionPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -427,6 +457,36 @@ func (_m *CloudWatchLogs) DeleteSubscriptionFilter(ctx context.Context, params *
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.DeleteSubscriptionFilterInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeAccountPolicies provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) DescribeAccountPolicies(ctx context.Context, params *cloudwatchlogs.DescribeAccountPoliciesInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeAccountPoliciesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudwatchlogs.DescribeAccountPoliciesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.DescribeAccountPoliciesInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.DescribeAccountPoliciesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.DescribeAccountPoliciesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.DescribeAccountPoliciesInput, ...func(*cloudwatchlogs.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -967,6 +1027,36 @@ func (_m *CloudWatchLogs) ListTagsLogGroup(ctx context.Context, params *cloudwat
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.ListTagsLogGroupInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PutAccountPolicy provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) PutAccountPolicy(ctx context.Context, params *cloudwatchlogs.PutAccountPolicyInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.PutAccountPolicyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudwatchlogs.PutAccountPolicyOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.PutAccountPolicyInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.PutAccountPolicyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.PutAccountPolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.PutAccountPolicyInput, ...func(*cloudwatchlogs.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
