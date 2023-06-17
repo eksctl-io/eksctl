@@ -70,7 +70,7 @@
                   "--v=2",
                   "--config=/var/lib/kube-proxy-config/config"
                 ],
-                "image": "602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.22.1-eksbuild.1",
+                "image": "602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.23.1-eksbuild.1",
                 "imagePullPolicy": "IfNotPresent",
                 "name": "kube-proxy",
                 "resources": {

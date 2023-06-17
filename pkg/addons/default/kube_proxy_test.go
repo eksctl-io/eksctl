@@ -24,8 +24,8 @@ var _ = Describe("KubeProxy", func() {
 		clientSet           kubernetes.Interface
 		input               da.AddonInput
 		mockProvider        *mockprovider.MockProvider
-		kubernetesVersion   = aws.String("1.22")
-		controlPlaneVersion = "1.22.1"
+		kubernetesVersion   = aws.String("1.23")
+		controlPlaneVersion = "1.23.1"
 	)
 
 	Context("IsKubeProxyUpToDate", func() {
@@ -77,7 +77,7 @@ var _ = Describe("KubeProxy", func() {
 
 		When("when its up-to-date", func() {
 			BeforeEach(func() {
-				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.22.json")
+				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.23.json")
 				input.RawClient = rawClient
 				clientSet = rawClient.ClientSet()
 			})
@@ -119,7 +119,7 @@ var _ = Describe("KubeProxy", func() {
 
 	Context("UpdateKubeProxyImageTag", func() {
 		BeforeEach(func() {
-			rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.22.json")
+			rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.23.json")
 			clientSet = rawClient.ClientSet()
 			mockProvider = mockprovider.NewMockProvider()
 			input = da.AddonInput{
@@ -189,14 +189,14 @@ var _ = Describe("KubeProxy", func() {
 						},
 						{
 							// Latest, unordered list to ensure we sort correctly.
-							AddonVersion: aws.String("v1.22.1-eksbuild.2"),
+							AddonVersion: aws.String("v1.23.1-eksbuild.2"),
 						},
 						{
-							AddonVersion: aws.String("v1.22.1-eksbuild.1"),
+							AddonVersion: aws.String("v1.23.1-eksbuild.1"),
 						},
 					},
 				},
-				expectedImageTag: "v1.22.1-minimal-eksbuild.2",
+				expectedImageTag: "v1.23.1-minimal-eksbuild.2",
 			}),
 
 			Entry("a more up-to-date version that lacks a pre-release version should be returned unchanged", versionUpdateEntry{
@@ -207,15 +207,15 @@ var _ = Describe("KubeProxy", func() {
 							AddonVersion: aws.String("v1.17.0"),
 						},
 						{
-							AddonVersion: aws.String("v1.22.2"),
+							AddonVersion: aws.String("v1.23.2"),
 						},
 						{
-							AddonVersion: aws.String("v1.22.1"),
+							AddonVersion: aws.String("v1.23.1"),
 						},
 					},
 				},
 
-				expectedImageTag: "v1.22.2",
+				expectedImageTag: "v1.23.2",
 			}),
 
 			Entry("a more up-to-date version that lacks a `v` prefix should not have a `v` prefix", versionUpdateEntry{
@@ -227,15 +227,15 @@ var _ = Describe("KubeProxy", func() {
 						},
 						{
 							// Latest, unordered list to ensure we sort correctly.
-							AddonVersion: aws.String("1.22.1-eksbuild.2"),
+							AddonVersion: aws.String("1.23.1-eksbuild.2"),
 						},
 						{
-							AddonVersion: aws.String("1.22.1-eksbuild.1"),
+							AddonVersion: aws.String("1.23.1-eksbuild.1"),
 						},
 					},
 				},
 
-				expectedImageTag: "1.22.1-minimal-eksbuild.2",
+				expectedImageTag: "1.23.1-minimal-eksbuild.2",
 			}),
 
 			Entry("version that is behind the default cluster version should not be used", versionUpdateEntry{
@@ -256,7 +256,7 @@ var _ = Describe("KubeProxy", func() {
 					},
 				},
 
-				expectedImageTag: "v1.22.1-eksbuild.1",
+				expectedImageTag: "v1.23.1-eksbuild.1",
 			}),
 		)
 

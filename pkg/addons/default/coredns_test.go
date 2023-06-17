@@ -25,8 +25,8 @@ var _ = Describe("default addons - coredns", func() {
 		rawClient = testutils.NewFakeRawClient()
 		rawClient.UseUnionTracker = true
 		region = "eu-west-2"
-		controlPlaneVersion = "1.23.x"
-		kubernetesVersion = "1.22"
+		controlPlaneVersion = "1.24.x"
+		kubernetesVersion = "1.23"
 
 		input = da.AddonInput{
 			RawClient:           rawClient,
@@ -78,7 +78,7 @@ var _ = Describe("default addons - coredns", func() {
 
 		Context("when CoreDNS is NOT up to date", func() {
 			BeforeEach(func() {
-				input.ControlPlaneVersion = "1.22.x"
+				input.ControlPlaneVersion = "1.23.x"
 			})
 
 			It("reports 'false'", func() {
