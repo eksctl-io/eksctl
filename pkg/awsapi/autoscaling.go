@@ -633,4 +633,3 @@ type ASG interface {
 	// calling the PutScalingPolicy API.
 	UpdateAutoScalingGroup(ctx context.Context, params *UpdateAutoScalingGroupInput, optFns ...func(*Options)) (*UpdateAutoScalingGroupOutput, error)
 }
-

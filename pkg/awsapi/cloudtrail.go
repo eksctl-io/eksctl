@@ -299,4 +299,3 @@ type CloudTrail interface {
 	// which the trail was created; otherwise, an InvalidHomeRegionException is thrown.
 	UpdateTrail(ctx context.Context, params *UpdateTrailInput, optFns ...func(*Options)) (*UpdateTrailOutput, error)
 }
-

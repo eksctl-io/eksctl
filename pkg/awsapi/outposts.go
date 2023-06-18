@@ -102,4 +102,3 @@ type Outposts interface {
 	// order.
 	UpdateSiteRackPhysicalProperties(ctx context.Context, params *UpdateSiteRackPhysicalPropertiesInput, optFns ...func(*Options)) (*UpdateSiteRackPhysicalPropertiesOutput, error)
 }
-

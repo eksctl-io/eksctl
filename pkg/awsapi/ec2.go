@@ -3798,4 +3798,3 @@ type EC2 interface {
 	// propagation delays.
 	WithdrawByoipCidr(ctx context.Context, params *WithdrawByoipCidrInput, optFns ...func(*Options)) (*WithdrawByoipCidrOutput, error)
 }
-

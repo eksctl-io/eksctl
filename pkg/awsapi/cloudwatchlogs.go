@@ -469,4 +469,3 @@ type CloudWatchLogs interface {
 	// Removes one or more tags from the specified resource.
 	UntagResource(ctx context.Context, params *UntagResourceInput, optFns ...func(*Options)) (*UntagResourceOutput, error)
 }
-

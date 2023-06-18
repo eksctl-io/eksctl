@@ -1007,10 +1007,14 @@ type IAM interface {
 	// operation returns an empty list. For more information about roles, see Working
 	// with roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/WorkingWithRoles.html)
 	// . IAM resource-listing operations return a subset of the available attributes
-	// for the resource. For example, this operation does not return tags, even though
-	// they are an attribute of the returned object. To view all of the information for
-	// a role, see GetRole . You can paginate the results using the MaxItems and Marker
-	// parameters.
+	// for the resource. This operation does not return the following attributes, even
+	// though they are an attribute of the returned object:
+	//   - PermissionsBoundary
+	//   - RoleLastUsed
+	//   - Tags
+	//
+	// To view all of the information for a role, see GetRole . You can paginate the
+	// results using the MaxItems and Marker parameters.
 	ListRoles(ctx context.Context, params *ListRolesInput, optFns ...func(*Options)) (*ListRolesOutput, error)
 	// Lists the tags that are attached to the specified Security Assertion Markup
 	// Language (SAML) identity provider. The returned list of tags is sorted by tag
@@ -1089,10 +1093,14 @@ type IAM interface {
 	// Lists the IAM users that have the specified path prefix. If no path prefix is
 	// specified, the operation returns all users in the Amazon Web Services account.
 	// If there are none, the operation returns an empty list. IAM resource-listing
-	// operations return a subset of the available attributes for the resource. For
-	// example, this operation does not return tags, even though they are an attribute
-	// of the returned object. To view all of the information for a user, see GetUser .
-	// You can paginate the results using the MaxItems and Marker parameters.
+	// operations return a subset of the available attributes for the resource. This
+	// operation does not return the following attributes, even though they are an
+	// attribute of the returned object:
+	//   - PermissionsBoundary
+	//   - Tags
+	//
+	// To view all of the information for a user, see GetUser . You can paginate the
+	// results using the MaxItems and Marker parameters.
 	ListUsers(ctx context.Context, params *ListUsersInput, optFns ...func(*Options)) (*ListUsersOutput, error)
 	// Lists the virtual MFA devices defined in the Amazon Web Services account by
 	// assignment status. If you do not specify an assignment status, the operation
@@ -1707,4 +1715,3 @@ type IAM interface {
 	// in the IAM User Guide.
 	UploadSigningCertificate(ctx context.Context, params *UploadSigningCertificateInput, optFns ...func(*Options)) (*UploadSigningCertificateOutput, error)
 }
-
