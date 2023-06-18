@@ -8,7 +8,7 @@ You can create a cluster in minutes with just one command – **`eksctl create c
 
 ![Gophers: E, K, S, C, T, & L](logo/eksctl.png)
 
-_Need help? Join [Weave Community Slack][slackjoin]._
+_Need help? Join [Eksctl Slack][slackjoin]._
 
 ## Installation
 
@@ -208,7 +208,6 @@ To learn more about what `eksctl` can do check [eksctl.io](https://eksctl.io). A
 ## Contributions
 
 Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](CONTRIBUTING.md).
-Or join the discussion on our [mailing list][maillist].
 
 We follow the [CNCF Code of Conduct](CODE_OF_CONDUCT.md).
 
@@ -227,11 +226,10 @@ Do not open security related issues in the open source project.
 
 ## Get in touch
 
-[Create an issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)][slackchan] ([signup][slackjoin]).
+[Create an issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Eksctl Community Slack (#eksctl)][slackchan] ([signup][slackjoin]).
 
-[slackjoin]: https://slack.weave.works/
-[slackchan]: https://weave-community.slack.com/messages/eksctl/
-[maillist]: https://groups.google.com/forum/#!forum/eksctl
+[slackjoin]: https://slack.k8s.io/
+[slackchan]: https://slack.k8s.io/messages/eksctl/
 
 > **_Logo Credits_**
 >

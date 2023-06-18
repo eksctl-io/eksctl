@@ -18,3 +18,4 @@ creating-and-managing-clusters
 schema.js
 weave-community.slack.com
 netlify.com
+slack.k8s.io
