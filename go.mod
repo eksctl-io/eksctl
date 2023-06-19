@@ -72,7 +72,7 @@ require (
 	github.com/xgfone/netaddr v0.5.1
 	golang.org/x/crypto v0.9.0
 	golang.org/x/oauth2 v0.8.0
-	golang.org/x/sync v0.2.0
+	golang.org/x/sync v0.3.0
 	golang.org/x/tools v0.9.3
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.11.2
