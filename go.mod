@@ -49,7 +49,7 @@ require (
 	github.com/kris-nova/lolgopher v0.0.0-20210112022122-73f0047e8b65
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.1
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.2
 	github.com/onsi/ginkgo/v2 v2.10.0
 	github.com/onsi/gomega v1.27.8
 	github.com/orcaman/concurrent-map v1.0.0
@@ -70,7 +70,7 @@ require (
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xgfone/netaddr v0.5.1
-	golang.org/x/crypto v0.9.0
+	golang.org/x/crypto v0.10.0
 	golang.org/x/oauth2 v0.8.0
 	golang.org/x/sync v0.2.0
 	golang.org/x/tools v0.9.3
@@ -502,10 +502,10 @@ require (
 	gocloud.dev v0.26.0 // indirect
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
 	golang.org/x/exp/typeparams v0.0.0-20220827204233-334a2380cb91 // indirect
-	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/term v0.8.0 // indirect
+	golang.org/x/mod v0.11.0 // indirect
+	golang.org/x/net v0.11.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
+	golang.org/x/term v0.9.0 // indirect
 	golang.org/x/text v0.10.0 // indirect
 	golang.org/x/time v0.1.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
