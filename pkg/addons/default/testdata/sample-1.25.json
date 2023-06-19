@@ -361,7 +361,7 @@
                 "livenessProbe": {
                   "failureThreshold": 5,
                   "httpGet": {
-                    "path": "/ready",
+                    "path": "/health",
                     "port": 8181,
                     "scheme": "HTTP"
                   },
@@ -391,7 +391,7 @@
                 "readinessProbe": {
                   "failureThreshold": 3,
                   "httpGet": {
-                    "path": "/health",
+                    "path": "/ready",
                     "port": 8080,
                     "scheme": "HTTP"
                   },
