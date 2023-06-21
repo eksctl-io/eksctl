@@ -62,10 +62,10 @@ type CloudWatchLogs interface {
 	// using the KMS key. This association is stored as long as the data encrypted with
 	// the KMS key is still within CloudWatch Logs. This enables CloudWatch Logs to
 	// decrypt this data whenever it is requested. If you attempt to associate a KMS
-	// key with the log group but the KMS keydoes not exist or the KMS key is disabled,
-	// you receive an InvalidParameterException error. CloudWatch Logs supports only
-	// symmetric KMS keys. Do not associate an asymmetric KMS key with your log group.
-	// For more information, see Using Symmetric and Asymmetric Keys (https://docs.aws.amazon.com/kms/latest/developerguide/symmetric-asymmetric.html)
+	// key with the log group but the KMS key does not exist or the KMS key is
+	// disabled, you receive an InvalidParameterException error. CloudWatch Logs
+	// supports only symmetric KMS keys. Do not associate an asymmetric KMS key with
+	// your log group. For more information, see Using Symmetric and Asymmetric Keys (https://docs.aws.amazon.com/kms/latest/developerguide/symmetric-asymmetric.html)
 	// .
 	CreateLogGroup(ctx context.Context, params *CreateLogGroupInput, optFns ...func(*Options)) (*CreateLogGroupOutput, error)
 	// Creates a log stream for the specified log group. A log stream is a sequence of
@@ -78,6 +78,10 @@ type CloudWatchLogs interface {
 	//   - Log stream names can be between 1 and 512 characters long.
 	//   - Don't use ':' (colon) or '*' (asterisk) characters.
 	CreateLogStream(ctx context.Context, params *CreateLogStreamInput, optFns ...func(*Options)) (*CreateLogStreamOutput, error)
+	// Deletes a CloudWatch Logs account policy. To use this operation, you must be
+	// signed on with the logs:DeleteDataProtectionPolicy and logs:DeleteAccountPolicy
+	// permissions.
+	DeleteAccountPolicy(ctx context.Context, params *DeleteAccountPolicyInput, optFns ...func(*Options)) (*DeleteAccountPolicyOutput, error)
 	// Deletes the data protection policy from the specified log group. For more
 	// information about data protection policies, see PutDataProtectionPolicy (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDataProtectionPolicy.html)
 	// .
@@ -107,6 +111,8 @@ type CloudWatchLogs interface {
 	DeleteRetentionPolicy(ctx context.Context, params *DeleteRetentionPolicyInput, optFns ...func(*Options)) (*DeleteRetentionPolicyOutput, error)
 	// Deletes the specified subscription filter.
 	DeleteSubscriptionFilter(ctx context.Context, params *DeleteSubscriptionFilterInput, optFns ...func(*Options)) (*DeleteSubscriptionFilterOutput, error)
+	// Returns a list of all CloudWatch Logs account policies in the account.
+	DescribeAccountPolicies(ctx context.Context, params *DescribeAccountPoliciesInput, optFns ...func(*Options)) (*DescribeAccountPoliciesOutput, error)
 	// Lists all your destinations. The results are ASCII-sorted by destination name.
 	DescribeDestinations(ctx context.Context, params *DescribeDestinationsInput, optFns ...func(*Options)) (*DescribeDestinationsOutput, error)
 	// Lists the specified export tasks. You can list all your export tasks or filter
@@ -163,7 +169,7 @@ type CloudWatchLogs interface {
 	DisassociateKmsKey(ctx context.Context, params *DisassociateKmsKeyInput, optFns ...func(*Options)) (*DisassociateKmsKeyOutput, error)
 	// Lists log events from the specified log group. You can list all the log events
 	// or filter the results using a filter pattern, a time range, and the name of the
-	// log stream. You must have the logs;FilterLogEvents permission to perform this
+	// log stream. You must have the logs:FilterLogEvents permission to perform this
 	// operation. You can specify the log group to search by using either
 	// logGroupIdentifier or logGroupName . You must include one of these two
 	// parameters, but you can't include both. By default, this operation returns as
@@ -237,6 +243,35 @@ type CloudWatchLogs interface {
 	//
 	// Deprecated: Please use the generic tagging API ListTagsForResource
 	ListTagsLogGroup(ctx context.Context, params *ListTagsLogGroupInput, optFns ...func(*Options)) (*ListTagsLogGroupOutput, error)
+	// Creates an account-level data protection policy that applies to all log groups
+	// in the account. A data protection policy can help safeguard sensitive data
+	// that's ingested by your log groups by auditing and masking the sensitive log
+	// data. Each account can have only one account-level policy. Sensitive data is
+	// detected and masked when it is ingested into a log group. When you set a data
+	// protection policy, log events ingested into the log groups before that time are
+	// not masked. If you use PutAccountPolicy to create a data protection policy for
+	// your whole account, it applies to both existing log groups and all log groups
+	// that are created later in this account. The account policy is applied to
+	// existing log groups with eventual consistency. It might take up to 5 minutes
+	// before sensitive data in existing log groups begins to be masked. By default,
+	// when a user views a log event that includes masked data, the sensitive data is
+	// replaced by asterisks. A user who has the logs:Unmask permission can use a
+	// GetLogEvents (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogEvents.html)
+	// or FilterLogEvents (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_FilterLogEvents.html)
+	// operation with the unmask parameter set to true to view the unmasked log
+	// events. Users with the logs:Unmask can also view unmasked data in the
+	// CloudWatch Logs console by running a CloudWatch Logs Insights query with the
+	// unmask query command. For more information, including a list of types of data
+	// that can be audited and masked, see Protect sensitive log data with masking (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data.html)
+	// . To use the PutAccountPolicy operation, you must be signed on with the
+	// logs:PutDataProtectionPolicy and logs:PutAccountPolicy permissions. The
+	// PutAccountPolicy operation applies to all log groups in the account. You can
+	// also use PutDataProtectionPolicy (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDataProtectionPolicy.html)
+	// to create a data protection policy that applies to just one log group. If a log
+	// group has its own data protection policy and the account also has an
+	// account-level data protection policy, then the two policies are cumulative. Any
+	// sensitive term specified in either policy is masked.
+	PutAccountPolicy(ctx context.Context, params *PutAccountPolicyInput, optFns ...func(*Options)) (*PutAccountPolicyOutput, error)
 	// Creates a data protection policy for the specified log group. A data protection
 	// policy can help safeguard sensitive data that's ingested by the log group by
 	// auditing and masking the sensitive log data. Sensitive data is detected and
@@ -251,7 +286,13 @@ type CloudWatchLogs interface {
 	// CloudWatch Logs console by running a CloudWatch Logs Insights query with the
 	// unmask query command. For more information, including a list of types of data
 	// that can be audited and masked, see Protect sensitive log data with masking (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data.html)
-	// .
+	// . The PutDataProtectionPolicy operation applies to only the specified log
+	// group. You can also use PutAccountPolicy (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutAccountPolicy.html)
+	// to create an account-level data protection policy that applies to all log groups
+	// in the account, including both existing log groups and log groups that are
+	// created level. If a log group has its own data protection policy and the account
+	// also has an account-level data protection policy, then the two policies are
+	// cumulative. Any sensitive term specified in either policy is masked.
 	PutDataProtectionPolicy(ctx context.Context, params *PutDataProtectionPolicyInput, optFns ...func(*Options)) (*PutDataProtectionPolicyOutput, error)
 	// Creates or updates a destination. This operation is used only to create
 	// destinations for cross-account subscriptions. A destination encapsulates a
@@ -291,6 +332,7 @@ type CloudWatchLogs interface {
 	//     2017-09-15T13:45:30 .)
 	//   - A batch of log events in a single request cannot span more than 24 hours.
 	//     Otherwise, the operation fails.
+	//   - Each log event can be no larger than 256 KB.
 	//   - The maximum number of log events in a batch is 10,000.
 	//   - The quota of five requests per second per log stream has been removed.
 	//     Instead, PutLogEvents actions are throttled based on a per-second per-account
@@ -362,19 +404,19 @@ type CloudWatchLogs interface {
 	//
 	// Each log group can have up to two subscription filters associated with it. If
 	// you are updating an existing filter, you must specify the correct name in
-	// filterName . To perform a PutSubscriptionFilter operation, you must also have
-	// the iam:PassRole permission.
+	// filterName . To perform a PutSubscriptionFilter operation for any destination
+	// except a Lambda function, you must also have the iam:PassRole permission.
 	PutSubscriptionFilter(ctx context.Context, params *PutSubscriptionFilterInput, optFns ...func(*Options)) (*PutSubscriptionFilterOutput, error)
 	// Schedules a query of a log group using CloudWatch Logs Insights. You specify
 	// the log group and time range to query and the query string to use. For more
 	// information, see CloudWatch Logs Insights Query Syntax (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html)
-	// . Queries time out after 15 minutes of runtime. If your queries are timing out,
+	// . Queries time out after 60 minutes of runtime. If your queries are timing out,
 	// reduce the time range being searched or partition your query into a number of
 	// queries. If you are using CloudWatch cross-account observability, you can use
 	// this operation in a monitoring account to start a query in a linked source
 	// account. For more information, see CloudWatch cross-account observability (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html)
 	// . For a cross-account StartQuery operation, the query definition must be
-	// defined in the monitoring account. You can have up to 20 concurrent CloudWatch
+	// defined in the monitoring account. You can have up to 30 concurrent CloudWatch
 	// Logs insights queries, including queries that have been added to dashboards.
 	StartQuery(ctx context.Context, params *StartQueryInput, optFns ...func(*Options)) (*StartQueryOutput, error)
 	// Stops a CloudWatch Logs Insights query that is in progress. If the query has
