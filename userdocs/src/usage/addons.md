@@ -6,7 +6,7 @@ CNI plugin through the EKS API
 
 ## Creating addons
 
-You can specify what addons you want and what policies (if required) to attach to them in your config file:
+In your config file, you can specify the addons you want and (if required) the policies to attach to them:
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
@@ -20,13 +20,17 @@ iam:
 
 addons:
 - name: vpc-cni
-  version: 1.7.5 # optional
-  attachPolicyARNs: #optional
-  - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-  serviceAccountRoleARN: arn:aws:iam::aws:policy/AmazonEKSCNIAccess # optional
-  tags: # optional
+  # all below properties are optional
+  version: 1.7.5
+  tags:
     team: eks
-  attachPolicy: # optional
+  # you can specify at most one of
+  attachPolicyARNs:
+  - arn:aws:iam::account:policy/AmazonEKS_CNI_Policy
+  # or
+  serviceAccountRoleARN: arn:aws:iam::account:role/AmazonEKSCNIAccess
+  # or
+  attachPolicy:
     Statement:
     - Effect: Allow
       Action:
@@ -58,17 +62,17 @@ You can then either have these addons created during the cluster creation proces
 eksctl create cluster -f config.yaml
 ```
 
-Or you can create after cluster creation using the config file or CLI flags:
+Or create the addons explicitly after cluster creation using the config file or CLI flags:
 
 ```console
 eksctl create addon -f config.yaml
 ```
 
 ```console
-eksctl create addon --name vpc-cni --version 1.7.5 --service-account-role-arn=<role-arn>
+eksctl create addon --name vpc-cni --version 1.7.5 --service-account-role-arn <role-arn>
 ```
 
-During addon creation, if a self-managed version of the addon already exists on the cluster, you can choose how potential `configMap` conflicts shall be resolved by setting `resolveConflicts` option via the config file. e.g.,
+During addon creation, if a self-managed version of the addon already exists on the cluster, you can choose how potential `configMap` conflicts shall be resolved by setting `resolveConflicts` option via the config file, e.g.
 
 ```yaml
 addons:
@@ -78,10 +82,11 @@ addons:
   resolveConflicts: overwrite
 ```
 
-For addon create, the `resolveConflicts` field supports two distinct values.
+For addon create, the `resolveConflicts` field supports three distinct values:
 
-- `overwrite` - EKS overwrites any config changes back to EKS default values
-- `none` - EKS doesn't change the value. The create might fail.
+- `none` - EKS doesn't change the value. The create might fail. 
+- `overwrite` - EKS overwrites any config changes back to EKS default values. 
+- `preserve` - EKS doesn't change the value. The create might fail. (Similarly to `none`, but different from [`preserve` in updating addons](#updating-addons))
 
 ## Listing enabled addons
 
@@ -180,7 +185,7 @@ eksctl update addon -f config.yaml
 ```
 
 ```console
-eksctl update addon --name vpc-cni --version 1.8.0 --service-account-role-arn=<new-role>
+eksctl update addon --name vpc-cni --version 1.8.0 --service-account-role-arn <new-role>
 ```
 
 Similarly to addon creation, When updating an addon, you have full control over the config changes that you may have previously applied on that add-on's `configMap`. Specifically, you can preserve, or overwrite them. This optional functionality is available via the same config file field `resolveConflicts`. e.g.,
@@ -194,16 +199,16 @@ addons:
   resolveConflicts: preserve
 ```
 
-For addon update, the `resolveConflicts` field accepts three distinct values.
+For addon update, the `resolveConflicts` field accepts three distinct values: 
 
-- `preserve` - EKS preserves the value. If you choose this option, we recommend that you test any field and value changes on a non-production cluster before updating the add-on on your production cluster.
-- `overwrite` - EKS overwrites any config changes back to EKS default values
 - `none` - EKS doesn't change the value. The update might fail.
+- `overwrite` - EKS overwrites any config changes back to EKS default values. 
+- `preserve` - EKS preserves the value. If you choose this option, we recommend that you test any field and value changes on a non-production cluster before updating the add-on on your production cluster.
 
 ## Deleting addons
 You can delete an addon by running:
 ```console
-eksctl delete addon --cluster <cluster-name> --name <addon-name
+eksctl delete addon --cluster <cluster-name> --name <addon-name>
 ```
 This will delete the addon and any IAM roles associated to it.
 
