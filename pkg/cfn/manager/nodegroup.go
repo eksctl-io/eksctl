@@ -362,3 +362,50 @@ func GetNodegroupTagName(tags []types.Tag) string {
 	}
 	return ""
 }
+
+// makeNodeGroupScheduledScalingStackName generates the name of the nodegroup stack identified by its name, isolated by the cluster this StackCollection operates on
+func (c *StackCollection) makeNodeGroupScheduledScalingStackName(name string) string {
+	return fmt.Sprintf("eksctl-%s-asg-%s-scheduledscaling", c.spec.Metadata.Name, name)
+}
+
+func (c *StackCollection) createNodeGroupScheduledScalingActionTask(ctx context.Context, errorCh chan error, ng *api.NodeGroup) error {
+	ngStack, err := c.DescribeNodeGroupStack(ctx, ng.Name)
+	if err != nil {
+		return err
+	}
+
+	asgName, err := c.GetAutoScalingGroupName(ctx, ngStack)
+	if err != nil {
+		return err
+	}
+
+	stackName := c.makeNodeGroupScheduledScalingStackName(asgName)
+
+	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, ng, nil, false, nil)
+	if err := stack.AddNodeGroupScheduledScalingResource(asgName); err != nil {
+		return err
+	}
+
+	return c.CreateStack(ctx, stackName, stack, ng.Tags, nil, errorCh)
+}
+
+func (c *StackCollection) createManagedNodeGroupScheduledScalingActionTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup) error {
+	ngStack, err := c.DescribeNodeGroupStack(ctx, ng.Name)
+	if err != nil {
+		return err
+	}
+
+	asgName, err := c.GetAutoScalingGroupName(ctx, ngStack)
+	if err != nil {
+		return err
+	}
+
+	stackName := c.makeNodeGroupScheduledScalingStackName(asgName)
+
+	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, nil, nil, false, nil)
+	if err := stack.AddManagedNodeGroupScheduledScalingResource(asgName); err != nil {
+		return err
+	}
+
+	return c.CreateStack(ctx, stackName, stack, ng.Tags, nil, errorCh)
+}

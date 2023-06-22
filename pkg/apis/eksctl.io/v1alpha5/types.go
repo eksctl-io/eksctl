@@ -1524,6 +1524,9 @@ type NodeGroupBase struct {
 	*ScalingConfig
 
 	// +optional
+	ScheduledScalingConfig *ScheduledScalingConfig `json:"scheduledScalingConfig,omitempty"`
+
+	// +optional
 	// VolumeSize gigabytes
 	// Defaults to `80`
 	VolumeSize *int `json:"volumeSize,omitempty"`
@@ -1656,6 +1659,17 @@ type CapacityReservationTarget struct {
 // Placement specifies placement group information
 type Placement struct {
 	GroupName string `json:"groupName,omitempty"`
+}
+
+// ScheduledScalingConfig specifies scheduled scaling configuration for ASG
+type ScheduledScalingConfig struct {
+	MinSize         *int   `json:"minSize,omitempty"`
+	MaxSize         *int   `json:"maxSize,omitempty"`
+	DesiredCapacity *int   `json:"desiredCapacity,omitempty"`
+	StartTime       string `json:"startTime,omitempty"`
+	EndTime         string `json:"endTime,omitempty"`
+	Recurrence      string `json:"recurrence,omitempty"`
+	Timezone        string `json:"timezone,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup

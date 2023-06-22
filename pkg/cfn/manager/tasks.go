@@ -68,6 +68,30 @@ func (t *managedNodeGroupTagsToASGPropagationTask) Do(errorCh chan error) error 
 	return t.stackCollection.propagateManagedNodeGroupTagsToASGTask(t.ctx, errorCh, t.nodeGroup, t.stackCollection.PropagateManagedNodeGroupTagsToASG)
 }
 
+type nodeGroupScheduledScalingActionTask struct {
+	info            string
+	nodeGroup       *api.NodeGroup
+	stackCollection *StackCollection
+	ctx             context.Context
+}
+
+func (t *nodeGroupScheduledScalingActionTask) Describe() string { return t.info }
+func (t *nodeGroupScheduledScalingActionTask) Do(errorCh chan error) error {
+	return t.stackCollection.createNodeGroupScheduledScalingActionTask(t.ctx, errorCh, t.nodeGroup)
+}
+
+type managedNodeGroupScheduledScalingActionTask struct {
+	info            string
+	nodeGroup       *api.ManagedNodeGroup
+	stackCollection *StackCollection
+	ctx             context.Context
+}
+
+func (t *managedNodeGroupScheduledScalingActionTask) Describe() string { return t.info }
+func (t *managedNodeGroupScheduledScalingActionTask) Do(errorCh chan error) error {
+	return t.stackCollection.createManagedNodeGroupScheduledScalingActionTask(t.ctx, errorCh, t.nodeGroup)
+}
+
 type taskWithClusterIAMServiceAccountSpec struct {
 	info            string
 	stackCollection *StackCollection

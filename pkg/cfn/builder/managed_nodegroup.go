@@ -334,3 +334,42 @@ func (m *ManagedNodeGroupResourceSet) WithIAM() bool {
 func (m *ManagedNodeGroupResourceSet) WithNamedIAM() bool {
 	return m.nodeGroup.IAM.InstanceRoleName != ""
 }
+
+func (n *ManagedNodeGroupResourceSet) AddManagedNodeGroupScheduledScalingResource(asgName string) error {
+	ngScheduledScalingProps := map[string]interface{}{}
+
+	ngScheduledScalingProps["AutoScalingGroupName"] = asgName
+	if n.nodeGroup.ScheduledScalingConfig.DesiredCapacity != nil {
+		ngScheduledScalingProps["DesiredCapacity"] = fmt.Sprintf("%d", *n.nodeGroup.ScheduledScalingConfig.DesiredCapacity)
+	}
+	if n.nodeGroup.ScheduledScalingConfig.MinSize != nil {
+		ngScheduledScalingProps["MinSize"] = fmt.Sprintf("%d", *n.nodeGroup.ScheduledScalingConfig.MinSize)
+	}
+	if n.nodeGroup.ScheduledScalingConfig.MaxSize != nil {
+		ngScheduledScalingProps["MaxSize"] = fmt.Sprintf("%d", *n.nodeGroup.ScheduledScalingConfig.MaxSize)
+	}
+
+	if n.nodeGroup.ScheduledScalingConfig.StartTime != "" {
+		ngScheduledScalingProps["StartTime"] = n.nodeGroup.ScheduledScalingConfig.StartTime
+	}
+
+	if n.nodeGroup.ScheduledScalingConfig.EndTime != "" {
+		ngScheduledScalingProps["EndTime"] = n.nodeGroup.ScheduledScalingConfig.EndTime
+	}
+
+	if n.nodeGroup.ScheduledScalingConfig.Timezone != "" {
+		ngScheduledScalingProps["Timezone"] = n.nodeGroup.ScheduledScalingConfig.Timezone
+	}
+
+	if n.nodeGroup.ScheduledScalingConfig.Recurrence != "" {
+		ngScheduledScalingProps["Recurrence"] = n.nodeGroup.ScheduledScalingConfig.Recurrence
+	}
+
+	cfnResource := &awsCloudFormationResource{
+		Type:       "AWS::AutoScaling::ScheduledAction",
+		Properties: ngScheduledScalingProps,
+	}
+
+	n.newResource("ManagedNodeGroupScheduledScaling", cfnResource)
+	return nil
+}

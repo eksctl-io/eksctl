@@ -76,7 +76,11 @@ func (c *StackCollection) NewUnmanagedNodeGroupTask(ctx context.Context, nodeGro
 	taskTree := &tasks.TaskTree{Parallel: true}
 
 	for _, ng := range nodeGroups {
-		taskTree.Append(&nodeGroupTask{
+		subTask := &tasks.TaskTree{
+			Parallel:  false,
+			IsSubTask: true,
+		}
+		subTask.Append(&nodeGroupTask{
 			info:              fmt.Sprintf("create nodegroup %q", ng.NameString()),
 			ctx:               ctx,
 			nodeGroup:         ng,
@@ -84,6 +88,15 @@ func (c *StackCollection) NewUnmanagedNodeGroupTask(ctx context.Context, nodeGro
 			forceAddCNIPolicy: forceAddCNIPolicy,
 			vpcImporter:       vpcImporter,
 		})
+		if ng.ScheduledScalingConfig != nil {
+			subTask.Append(&nodeGroupScheduledScalingActionTask{
+				info:            fmt.Sprintf("create scheduled scaling action for nodegroup %q", ng.NameString()),
+				nodeGroup:       ng,
+				stackCollection: c,
+				ctx:             ctx,
+			})
+		}
+		taskTree.Append(subTask)
 		// TODO: move authconfigmap tasks here using kubernetesTask and kubernetes.CallbackClientSet
 	}
 
@@ -113,6 +126,14 @@ func (c *StackCollection) NewManagedNodeGroupTask(ctx context.Context, nodeGroup
 				stackCollection: c,
 				nodeGroup:       ng,
 				info:            fmt.Sprintf("propagate tags to ASG for managed nodegroup %q", ng.Name),
+				ctx:             ctx,
+			})
+		}
+		if ng.ScheduledScalingConfig != nil {
+			subTask.Append(&managedNodeGroupScheduledScalingActionTask{
+				info:            fmt.Sprintf("create scheduled scaling for managed nodegroup %q", ng.NameString()),
+				nodeGroup:       ng,
+				stackCollection: c,
 				ctx:             ctx,
 			})
 		}

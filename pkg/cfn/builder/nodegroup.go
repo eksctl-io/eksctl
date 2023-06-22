@@ -588,3 +588,42 @@ func metricsCollectionResource(asgMetricsCollection []api.MetricsCollection) []m
 	}
 	return metricsCollections
 }
+
+func (n *NodeGroupResourceSet) AddNodeGroupScheduledScalingResource(asgName string) error {
+	ngScheduledScalingProps := map[string]interface{}{}
+
+	ngScheduledScalingProps["AutoScalingGroupName"] = asgName
+	if n.spec.ScheduledScalingConfig.DesiredCapacity != nil {
+		ngScheduledScalingProps["DesiredCapacity"] = fmt.Sprintf("%d", *n.spec.ScheduledScalingConfig.DesiredCapacity)
+	}
+	if n.spec.ScheduledScalingConfig.MinSize != nil {
+		ngScheduledScalingProps["MinSize"] = fmt.Sprintf("%d", *n.spec.ScheduledScalingConfig.MinSize)
+	}
+	if n.spec.ScheduledScalingConfig.MaxSize != nil {
+		ngScheduledScalingProps["MaxSize"] = fmt.Sprintf("%d", *n.spec.ScheduledScalingConfig.MaxSize)
+	}
+
+	if n.spec.ScheduledScalingConfig.StartTime != "" {
+		ngScheduledScalingProps["StartTime"] = n.spec.ScheduledScalingConfig.StartTime
+	}
+
+	if n.spec.ScheduledScalingConfig.EndTime != "" {
+		ngScheduledScalingProps["EndTime"] = n.spec.ScheduledScalingConfig.EndTime
+	}
+
+	if n.spec.ScheduledScalingConfig.Timezone != "" {
+		ngScheduledScalingProps["Timezone"] = n.spec.ScheduledScalingConfig.Timezone
+	}
+
+	if n.spec.ScheduledScalingConfig.Recurrence != "" {
+		ngScheduledScalingProps["Recurrence"] = n.spec.ScheduledScalingConfig.Recurrence
+	}
+
+	cfnResource := &awsCloudFormationResource{
+		Type:       "AWS::AutoScaling::ScheduledAction",
+		Properties: ngScheduledScalingProps,
+	}
+
+	n.newResource("NodeGroupScheduledScaling", cfnResource)
+	return nil
+}
