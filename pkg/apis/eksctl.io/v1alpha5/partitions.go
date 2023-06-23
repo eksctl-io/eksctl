@@ -99,7 +99,7 @@ func (p partitions) GetEndpointServiceDomainPrefix(endpointService EndpointServi
 						return pt.endpointServiceDomainPrefix
 					}
 					return standardPartitionServiceDomainPrefix
-				case PartitionISO:
+				case PartitionISO, PartitionISOB:
 					if endpointService.RequiresISOPrefix {
 						return pt.endpointServiceDomainPrefix
 					}
