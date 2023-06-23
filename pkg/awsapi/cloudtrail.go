@@ -56,8 +56,11 @@ type CloudTrail interface {
 	// an organization.
 	DeregisterOrganizationDelegatedAdmin(ctx context.Context, params *DeregisterOrganizationDelegatedAdminInput, optFns ...func(*Options)) (*DeregisterOrganizationDelegatedAdminOutput, error)
 	// Returns metadata about a query, including query run time in milliseconds,
-	// number of events scanned and matched, and query status. You must specify an ARN
-	// for EventDataStore , and a value for QueryID .
+	// number of events scanned and matched, and query status. If the query results
+	// were delivered to an S3 bucket, the response also provides the S3 URI and the
+	// delivery status. You must specify either a QueryID or a QueryAlias . Specifying
+	// the QueryAlias parameter returns information about the last query run for the
+	// alias.
 	DescribeQuery(ctx context.Context, params *DescribeQueryInput, optFns ...func(*Options)) (*DescribeQueryOutput, error)
 	// Retrieves settings for one or more trails associated with the current Region
 	// for your account.
@@ -92,7 +95,7 @@ type CloudTrail interface {
 	// in the CloudTrail User Guide.
 	GetInsightSelectors(ctx context.Context, params *GetInsightSelectorsInput, optFns ...func(*Options)) (*GetInsightSelectorsOutput, error)
 	// Gets event data results of a query. You must specify the QueryID value returned
-	// by the StartQuery operation, and an ARN for EventDataStore .
+	// by the StartQuery operation.
 	GetQueryResults(ctx context.Context, params *GetQueryResultsInput, optFns ...func(*Options)) (*GetQueryResultsOutput, error)
 	// Retrieves the JSON text of the resource-based policy document attached to the
 	// CloudTrail channel.
@@ -250,9 +253,13 @@ type CloudTrail interface {
 	// called on the shadow trails (replicated trails in other Regions) of a trail that
 	// is enabled in all Regions.
 	StartLogging(ctx context.Context, params *StartLoggingInput, optFns ...func(*Options)) (*StartLoggingOutput, error)
-	// Starts a CloudTrail Lake query. The required QueryStatement parameter provides
+	// Starts a CloudTrail Lake query. Use the QueryStatement parameter to provide
 	// your SQL query, enclosed in single quotation marks. Use the optional
-	// DeliveryS3Uri parameter to deliver the query results to an S3 bucket.
+	// DeliveryS3Uri parameter to deliver the query results to an S3 bucket. StartQuery
+	// requires you specify either the QueryStatement parameter, or a QueryAlias and
+	// any QueryParameters . In the current release, the QueryAlias and QueryParameters
+	// parameters are used only for the queries that populate the CloudTrail Lake
+	// dashboards.
 	StartQuery(ctx context.Context, params *StartQueryInput, optFns ...func(*Options)) (*StartQueryOutput, error)
 	// Stops the ingestion of live events on an event data store specified as either
 	// an ARN or the ID portion of the ARN. To stop ingestion, the event data store
@@ -279,10 +286,10 @@ type CloudTrail interface {
 	// TerminationProtection is enabled. For event data stores for CloudTrail events,
 	// AdvancedEventSelectors includes or excludes management and data events in your
 	// event data store. For more information about AdvancedEventSelectors , see
-	// PutEventSelectorsRequest$AdvancedEventSelectors . For event data stores for
-	// Config configuration items, Audit Manager evidence, or non-Amazon Web Services
-	// events, AdvancedEventSelectors includes events of that type in your event data
-	// store.
+	// AdvancedEventSelectors (https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedEventSelector.html)
+	// . For event data stores for Config configuration items, Audit Manager evidence,
+	// or non-Amazon Web Services events, AdvancedEventSelectors includes events of
+	// that type in your event data store.
 	UpdateEventDataStore(ctx context.Context, params *UpdateEventDataStoreInput, optFns ...func(*Options)) (*UpdateEventDataStoreOutput, error)
 	// Updates trail settings that control what events you are logging, and how to
 	// handle log files. Changes to a trail do not require stopping the CloudTrail
