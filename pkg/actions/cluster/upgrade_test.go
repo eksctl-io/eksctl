@@ -56,7 +56,7 @@ var _ = Describe("upgrade cluster", func() {
 
 		Entry("upgrades to the next version when specified", upgradeCase{
 			givenVersion:           "1.23",
-			eksVersion:             "W",
+			eksVersion:             "1.22",
 			expectedUpgradeVersion: "1.23",
 			expectedUpgrade:        true,
 		}),
