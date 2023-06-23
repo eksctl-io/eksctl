@@ -32,7 +32,7 @@ type stackUpdater interface {
 }
 
 // ClusterToExtend represents a cluster that needs to be extended.
-//
+
 //counterfeiter:generate -o fakes . ClusterToExtend
 type ClusterToExtend interface {
 	// IsControlPlaneOnOutposts returns true if the control plane is on Outposts.
