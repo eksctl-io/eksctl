@@ -21,10 +21,9 @@ Yu Xiang Zhang ([@yuxiang-zhang](https://github.com/yuxiang-zhang))
 and Himangini Daware ([@Himangini](https://github.com/Himangini)).
 
 ## Join us!
-
 The project uses Slack. If you get stuck or just have a question then you are encouraged to join the
-[Weave Community](https://slack.weave.works/) Slack workspace and use the
-[#eksctl](https://weave-community.slack.com/messages/eksctl/) channel.
+[Kubernetes Slack](https://slack.k8s.io/) workspace and use the
+[#eksctl](https://slack.k8s.io/messages/eksctl/) channel.
 
 ## How eksctl is run
 

@@ -5,10 +5,10 @@ For more information, please head to our [Community][community] and [Contributin
 
 ## Get in touch
 
-[Create an issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)][slackchan] ([signup][slackjoin]).
+[Create an issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Eksctl Slack (#eksctl)][slackchan] ([signup][slackjoin]).
 
-[slackjoin]: https://slack.weave.works/
-[slackchan]: https://weave-community.slack.com/messages/CAYBZBWGL/
+[slackjoin]: https://slack.k8s.io/
+[slackchan]: https://slack.k8s.io/messages/eksctl/
 
 ## Release Cadence
 
