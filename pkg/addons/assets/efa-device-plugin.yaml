@@ -37,7 +37,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: "beta.kubernetes.io/instance-type"
+                  - key: "node.kubernetes.io/instance-type"
                     operator: In
                     values:
                       - c5n.18xlarge
@@ -62,6 +62,7 @@ spec:
                       - g6.24xlarge
                       - g6.48xlarge
                       - hpc6a.48xlarge
+                      - hpc7g.16xlarge
                       - i3en.12xlarge
                       - i3en.24xlarge
                       - i3en.metal
@@ -124,6 +125,7 @@ spec:
                       - g6.24xlarge
                       - g6.48xlarge
                       - hpc6a.48xlarge
+                      - hpc7g.16xlarge
                       - i3en.12xlarge
                       - i3en.24xlarge
                       - i3en.metal
@@ -175,3 +177,4 @@ spec:
         - name: device-plugin
           hostPath:
             path: /var/lib/kubelet/device-plugins
+
