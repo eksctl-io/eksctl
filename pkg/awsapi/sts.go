@@ -439,3 +439,4 @@ type STS interface {
 	// in the IAM User Guide.
 	GetSessionToken(ctx context.Context, params *GetSessionTokenInput, optFns ...func(*Options)) (*GetSessionTokenOutput, error)
 }
+

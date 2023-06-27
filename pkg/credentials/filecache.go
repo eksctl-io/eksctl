@@ -22,6 +22,7 @@ const (
 	EksctlCacheFilenameEnvName = "EKSCTL_CREDENTIAL_CACHE_FILENAME"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 // Clock implements Now to return the current time.
 //counterfeiter:generate -o fakes/fake_clock.go . Clock
 type Clock interface {

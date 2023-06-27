@@ -7,7 +7,7 @@ import (
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-
+//counterfeiter:generate -o fakes/fake_executor.go . Executor
 // Executor executes commands shelling out and binding the stdout and stderr to the os ones
 type Executor interface {
 	Exec(command string, args ...string) error
