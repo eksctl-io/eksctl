@@ -39,7 +39,6 @@ type Options struct {
 }
 
 // ChartInstaller defines a functionality to install Karpenter.
-//
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_chart_installer.go . ChartInstaller
 type ChartInstaller interface {

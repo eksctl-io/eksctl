@@ -5,8 +5,7 @@ import (
 	_ "embed"
 )
 
-// BootstrapAl2Sh holds the bootstrap.al2.sh contents
-//
+//BootstrapAl2Sh holds the bootstrap.al2.sh contents
 //go:embed scripts/bootstrap.al2.sh
 var BootstrapAl2Sh string
 

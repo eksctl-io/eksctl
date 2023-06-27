@@ -9,7 +9,6 @@ import (
 )
 
 // URLGetter is an interface to support GET to the specified URL.
-//
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_helm_getter.go . URLGetter
 type URLGetter interface {

@@ -23,8 +23,6 @@ const (
 )
 
 // Clock implements Now to return the current time.
-//
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_clock.go . Clock
 type Clock interface {
 	Now() time.Time
@@ -41,7 +39,6 @@ func (r *RealClock) Now() time.Time {
 // Flock provides an interface to handle file locking.
 // It defines an interface for the Flock type from github.com/gofrs/flock.
 // Refer to https://pkg.go.dev/github.com/gofrs/flock?utm_source=godoc#Flock for documentation.
-//
 //counterfeiter:generate -o fakes/fake_flock.go . Flock
 type Flock interface {
 	// TryRLockContext repeatedly tries to take a shared lock until one of the
