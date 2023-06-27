@@ -28,7 +28,6 @@ type InstallChartOpts struct {
 }
 
 // HelmInstaller deals with setting up Helm related resources.
-//
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_helm_installer.go . HelmInstaller
 type HelmInstaller interface {

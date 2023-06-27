@@ -31,6 +31,7 @@ type stackUpdater interface {
 	AppendNewClusterStackResource(ctx context.Context, extendForOutposts, plan bool) (bool, error)
 }
 
+//counterfeiter:generate -o fakes . ClusterToExtend
 // ClusterToExtend represents a cluster that needs to be extended.
 type ClusterToExtend interface {
 	// IsControlPlaneOnOutposts returns true if the control plane is on Outposts.
