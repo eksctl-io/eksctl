@@ -245,3 +245,4 @@ type EKS interface {
 	// nodes as a result of a pod disruption budget issue.
 	UpdateNodegroupVersion(ctx context.Context, params *UpdateNodegroupVersionInput, optFns ...func(*Options)) (*UpdateNodegroupVersionOutput, error)
 }
+

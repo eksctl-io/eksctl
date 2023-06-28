@@ -1715,3 +1715,4 @@ type IAM interface {
 	// in the IAM User Guide.
 	UploadSigningCertificate(ctx context.Context, params *UploadSigningCertificateInput, optFns ...func(*Options)) (*UploadSigningCertificateOutput, error)
 }
+
