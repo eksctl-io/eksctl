@@ -1,4 +1,4 @@
-# `eksctl` - The official CLI for Amazon EKS
+# `eksctl` - The official CLI for Amazon EKS ! <img src="userdocs/theme/assets/images/logo.png" alt="eksctl" width="4%"/>
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/eksctl)](https://goreportcard.com/report/github.com/weaveworks/eksctl)
 
