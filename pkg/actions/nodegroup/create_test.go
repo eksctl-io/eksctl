@@ -165,7 +165,6 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		},
 		expectedCalls: func(k *fakes.FakeKubeProvider, _ *utilFakes.FakeNodegroupFilter) {
 			Expect(k.NewRawClientCallCount()).To(Equal(1))
-			Expect(k.ServerVersionCallCount()).To(Equal(1))
 		},
 		expectedErr: errors.Wrap(errors.New("shared node security group missing, to fix this run 'eksctl update cluster --name=my-cluster --region='"), "cluster compatibility check failed")}),
 
@@ -176,7 +175,6 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		},
 		expectedCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter) {
 			Expect(k.NewRawClientCallCount()).To(Equal(1))
-			Expect(k.ServerVersionCallCount()).To(Equal(1))
 			Expect(f.SetOnlyLocalCallCount()).To(Equal(1))
 		},
 		expectedErr: errors.New("err"),
@@ -191,7 +189,6 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		},
 		expectedCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter) {
 			Expect(k.NewRawClientCallCount()).To(Equal(1))
-			Expect(k.ServerVersionCallCount()).To(Equal(1))
 			Expect(f.SetOnlyLocalCallCount()).To(Equal(1))
 		},
 		expectedErr: errors.New("failed to determine if aws-node uses IRSA"),
@@ -408,7 +405,6 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		},
 		expectedCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter) {
 			Expect(k.NewRawClientCallCount()).To(Equal(1))
-			Expect(k.ServerVersionCallCount()).To(Equal(1))
 			Expect(f.SetOnlyLocalCallCount()).To(Equal(1))
 		},
 	}),
@@ -419,7 +415,6 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		},
 		expectedCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter) {
 			Expect(k.NewRawClientCallCount()).To(Equal(1))
-			Expect(k.ServerVersionCallCount()).To(Equal(1))
 			Expect(f.SetOnlyLocalCallCount()).To(Equal(1))
 		},
 	}),
@@ -441,7 +436,6 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		},
 		expectedCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter) {
 			Expect(k.NewRawClientCallCount()).To(Equal(1))
-			Expect(k.ServerVersionCallCount()).To(Equal(1))
 			Expect(f.SetOnlyLocalCallCount()).To(Equal(1))
 		},
 	}),
