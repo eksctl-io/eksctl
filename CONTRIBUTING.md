@@ -77,7 +77,7 @@ Here is a non-exhaustive list of ways you can help out:
 
     We have 3 forms of issue: [bug reports](#bug-report-guide), [feature requests](#feature-request-guide) and [help requests](#help-request-guide).
     If you are not sure which category you need, just make the best guess and provide as much information as possible.
-1. Help out others in the [community slack channel](https://weave-community.slack.com/messages/CAYBZBWGL/). :sos:
+1. Help out others in the [eksctl slack channel](https://slack.k8s.io/messages/eksctl/). :sos:
 1. Chime in on [bugs](https://github.com/weaveworks/eksctl/issues?q=is%3Aopen+is%3Aissue+label%3Akind%2Fbug+), [feature requests](https://github.com/weaveworks/eksctl/issues?q=is%3Aopen+is%3Aissue+label%3Akind%2Ffeature) and asks for [help](https://github.com/weaveworks/eksctl/issues?q=is%3Aopen+is%3Aissue+label%3Akind%2Fhelp). :thought_balloon:
 1. Dig into some [`needs-investigation` issues](https://github.com/weaveworks/eksctl/labels/needs-investigation) :detective:
 1. Get involved in some [PR reviews](https://github.com/weaveworks/eksctl/pulls). :nerd_face:
@@ -179,7 +179,7 @@ the project goals will likely be rejected, as will highly
 specialised use-cases.
 
 Once you have opened the ticket, feel free to post it in the community
-[slack channel](https://weave-community.slack.com/messages/CAYBZBWGL/) to get more opinions on it.
+[slack channel](https://slack.k8s.io/messages/eksctl/) to get more opinions on it.
 
 Below are the steps we encourage people to take when creating a new feature request:
 
@@ -204,7 +204,7 @@ Below are the steps we encourage people to take when creating a new feature requ
 
 ### Help request guide
 
-While you can ask for general help with `eksctl` usage in the [slack channel](https://weave-community.slack.com/messages/CAYBZBWGL/),
+While you can ask for general help with `eksctl` usage in the [slack channel](https://slack.k8s.io/messages/eksctl/),
 opening an issue creates a more searchable history for the community.
 
 We hope to respond to requests for help within a couple of working days, but please wait
@@ -468,11 +468,11 @@ If you need help at any stage of your work, please don't hesitate to ask!
 - If you are struggling with something while working on your PR, or aren't quite
   sure of your approach, you can open a [draft](https://github.blog/2019-02-14-introducing-draft-pull-requests/)
   (prefix the title with `WIP:`) and explain what you are thinking.
-  You can tag in one of the core team, or drop the PR link into [slack](https://weave-community.slack.com/messages/eksctl/) and get
+  You can tag in one of the core team, or drop the PR link into [slack](https://slack.k8s.io/messages/eksctl/) and get
   help from the community.
 
 - We are happy to pair with contributors over a slack call to help them fine-tune their
-  implementation. You can ping us directly, or head to the [channel](https://weave-community.slack.com/messages/eksctl/)
+  implementation. You can ping us directly, or head to the [channel](https://slack.k8s.io/messages/eksctl/)
   to see if anyone in the community is up for being a buddy :smiley: .
 
 ### PR submission guidelines

@@ -94,5 +94,5 @@ To learn more about how to create clusters and other features continue reading t
 
 [ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
-_Need help? Join [Weave Community Slack][slackjoin]._
-[slackjoin]: https://slack.weave.works/
+_Need help? Join [Eksctl Slack][slackjoin]._
+[slackjoin]: https://slack.k8s.io/

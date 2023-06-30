@@ -3,7 +3,7 @@ package nodegroup
 import (
 	"context"
 	"fmt"
-	"os"
+	"io"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -28,9 +28,14 @@ type CreateOpts struct {
 	UpdateAuthConfigMap       bool
 	InstallNeuronDevicePlugin bool
 	InstallNvidiaDevicePlugin bool
-	DryRun                    bool
+	DryRunSettings            DryRunSettings
 	SkipOutdatedAddonsCheck   bool
 	ConfigFileProvided        bool
+}
+
+type DryRunSettings struct {
+	DryRun    bool
+	OutStream io.Writer
 }
 
 // Create creates a new nodegroup with the given options.
@@ -84,7 +89,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return err
 	}
 
-	if err := m.checkARMSupport(ctx, ctl, rawClient, cfg, options.SkipOutdatedAddonsCheck); err != nil {
+	if err := m.checkARMSupport(ctx, rawClient, cfg, options.SkipOutdatedAddonsCheck); err != nil {
 		return err
 	}
 
@@ -95,7 +100,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return err
 	}
 
-	if !options.DryRun {
+	if !options.DryRunSettings.DryRun {
 		if err := nodeGroupService.Normalize(ctx, nodePools, cfg); err != nil {
 			return err
 		}
@@ -133,15 +138,15 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		logMsg("managed nodegroups", len(cfg.ManagedNodeGroups))
 	}
 
-	if options.DryRun {
+	if options.DryRunSettings.DryRun {
 		clusterConfigCopy := cfg.DeepCopy()
 		// Set filtered nodegroups
 		clusterConfigCopy.NodeGroups = cfg.NodeGroups
 		clusterConfigCopy.ManagedNodeGroups = cfg.ManagedNodeGroups
 		if options.ConfigFileProvided {
-			return cmdutils.PrintDryRunConfig(clusterConfigCopy, os.Stdout)
+			return cmdutils.PrintDryRunConfig(clusterConfigCopy, options.DryRunSettings.OutStream)
 		}
-		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
+		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, options.DryRunSettings.OutStream)
 	}
 
 	if err := m.nodeCreationTasks(ctx, isOwnedCluster); err != nil {
@@ -282,14 +287,9 @@ func (m *Manager) postNodeCreationTasks(ctx context.Context, clientSet kubernete
 	return nil
 }
 
-func (m *Manager) checkARMSupport(ctx context.Context, ctl *eks.ClusterProvider, rawClient *kubernetes.RawClient, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
-	kubeProvider := m.ctl
-	kubernetesVersion, err := kubeProvider.ServerVersion(rawClient)
-	if err != nil {
-		return err
-	}
+func (m *Manager) checkARMSupport(ctx context.Context, rawClient *kubernetes.RawClient, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
 	if api.ClusterHasInstanceType(cfg, instanceutils.IsARMInstanceType) {
-		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(ctx, ctl.AWSProvider.EKS(), rawClient, kubernetesVersion, ctl.AWSProvider.Region())
+		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(ctx, rawClient.ClientSet())
 		if err != nil {
 			return err
 		}

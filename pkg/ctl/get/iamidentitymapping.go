@@ -104,7 +104,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 		addIAMIdentityMappingTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	return printer.PrintObjWithKind("iamidentitymappings", identities, os.Stdout)
+	return printer.PrintObjWithKind("iamidentitymappings", identities, cmd.CobraCommand.OutOrStdout())
 }
 
 func addIAMIdentityMappingTableColumns(printer *printers.TablePrinter) {

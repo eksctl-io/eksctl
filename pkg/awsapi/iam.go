@@ -83,9 +83,9 @@ type IAM interface {
 	// associated user and then create new keys.
 	CreateAccessKey(ctx context.Context, params *CreateAccessKeyInput, optFns ...func(*Options)) (*CreateAccessKeyOutput, error)
 	// Creates an alias for your Amazon Web Services account. For information about
-	// using an Amazon Web Services account alias, see Using an alias for your Amazon
-	// Web Services account ID (https://docs.aws.amazon.com/IAM/latest/UserGuide/AccountAlias.html)
-	// in the IAM User Guide.
+	// using an Amazon Web Services account alias, see Creating, deleting, and listing
+	// an Amazon Web Services account alias (https://docs.aws.amazon.com/signin/latest/userguide/CreateAccountAlias.html)
+	// in the Amazon Web Services Sign-In User Guide.
 	CreateAccountAlias(ctx context.Context, params *CreateAccountAliasInput, optFns ...func(*Options)) (*CreateAccountAliasOutput, error)
 	// Creates a new group. For information about the number of groups you can create,
 	// see IAM and STS quotas (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html)
@@ -231,9 +231,9 @@ type IAM interface {
 	// if the Amazon Web Services account has no associated users.
 	DeleteAccessKey(ctx context.Context, params *DeleteAccessKeyInput, optFns ...func(*Options)) (*DeleteAccessKeyOutput, error)
 	// Deletes the specified Amazon Web Services account alias. For information about
-	// using an Amazon Web Services account alias, see Using an alias for your Amazon
-	// Web Services account ID (https://docs.aws.amazon.com/IAM/latest/UserGuide/AccountAlias.html)
-	// in the IAM User Guide.
+	// using an Amazon Web Services account alias, see Creating, deleting, and listing
+	// an Amazon Web Services account alias (https://docs.aws.amazon.com/signin/latest/userguide/CreateAccountAlias.html)
+	// in the Amazon Web Services Sign-In User Guide.
 	DeleteAccountAlias(ctx context.Context, params *DeleteAccountAliasInput, optFns ...func(*Options)) (*DeleteAccountAliasOutput, error)
 	// Deletes the password policy for the Amazon Web Services account. There are no
 	// parameters.
@@ -840,8 +840,9 @@ type IAM interface {
 	ListAccessKeys(ctx context.Context, params *ListAccessKeysInput, optFns ...func(*Options)) (*ListAccessKeysOutput, error)
 	// Lists the account alias associated with the Amazon Web Services account (Note:
 	// you can have only one). For information about using an Amazon Web Services
-	// account alias, see Using an alias for your Amazon Web Services account ID (https://docs.aws.amazon.com/IAM/latest/UserGuide/AccountAlias.html)
-	// in the IAM User Guide.
+	// account alias, see Creating, deleting, and listing an Amazon Web Services
+	// account alias (https://docs.aws.amazon.com/signin/latest/userguide/CreateAccountAlias.html)
+	// in the Amazon Web Services Sign-In User Guide.
 	ListAccountAliases(ctx context.Context, params *ListAccountAliasesInput, optFns ...func(*Options)) (*ListAccountAliasesOutput, error)
 	// Lists all managed policies that are attached to the specified IAM group. An IAM
 	// group can also have inline policies embedded with it. To list the inline
@@ -1006,10 +1007,14 @@ type IAM interface {
 	// operation returns an empty list. For more information about roles, see Working
 	// with roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/WorkingWithRoles.html)
 	// . IAM resource-listing operations return a subset of the available attributes
-	// for the resource. For example, this operation does not return tags, even though
-	// they are an attribute of the returned object. To view all of the information for
-	// a role, see GetRole . You can paginate the results using the MaxItems and Marker
-	// parameters.
+	// for the resource. This operation does not return the following attributes, even
+	// though they are an attribute of the returned object:
+	//   - PermissionsBoundary
+	//   - RoleLastUsed
+	//   - Tags
+	//
+	// To view all of the information for a role, see GetRole . You can paginate the
+	// results using the MaxItems and Marker parameters.
 	ListRoles(ctx context.Context, params *ListRolesInput, optFns ...func(*Options)) (*ListRolesOutput, error)
 	// Lists the tags that are attached to the specified Security Assertion Markup
 	// Language (SAML) identity provider. The returned list of tags is sorted by tag
@@ -1088,10 +1093,14 @@ type IAM interface {
 	// Lists the IAM users that have the specified path prefix. If no path prefix is
 	// specified, the operation returns all users in the Amazon Web Services account.
 	// If there are none, the operation returns an empty list. IAM resource-listing
-	// operations return a subset of the available attributes for the resource. For
-	// example, this operation does not return tags, even though they are an attribute
-	// of the returned object. To view all of the information for a user, see GetUser .
-	// You can paginate the results using the MaxItems and Marker parameters.
+	// operations return a subset of the available attributes for the resource. This
+	// operation does not return the following attributes, even though they are an
+	// attribute of the returned object:
+	//   - PermissionsBoundary
+	//   - Tags
+	//
+	// To view all of the information for a user, see GetUser . You can paginate the
+	// results using the MaxItems and Marker parameters.
 	ListUsers(ctx context.Context, params *ListUsersInput, optFns ...func(*Options)) (*ListUsersOutput, error)
 	// Lists the virtual MFA devices defined in the Amazon Web Services account by
 	// assignment status. If you do not specify an assignment status, the operation

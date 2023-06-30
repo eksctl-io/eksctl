@@ -5,6 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -33,7 +34,7 @@ var _ = Describe("AWS Node", func() {
 			input.ControlPlaneVersion = "1.15.0"
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), input)
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), rawClient.ClientSet())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeFalse())
 		})
@@ -42,7 +43,7 @@ var _ = Describe("AWS Node", func() {
 			loadSamples(rawClient, "testdata/sample-1.16-eksbuild.1.json")
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), input)
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), rawClient.ClientSet())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})
@@ -51,7 +52,7 @@ var _ = Describe("AWS Node", func() {
 			loadSamples(rawClient, "testdata/sample-1.16-v1.7.json")
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), input)
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), rawClient.ClientSet())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})
@@ -78,11 +79,11 @@ var _ = Describe("AWS Node", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
-					Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni:v1.11.3"),
+					Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni:v1.12.6"),
 				)
 				Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
-					Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni-init:v1.11.3"),
+					Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni-init:v1.12.6"),
 				)
 			})
 		})
@@ -98,11 +99,11 @@ var _ = Describe("AWS Node", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
-					Equal("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni:v1.11.3"),
+					Equal("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni:v1.12.6"),
 				)
 				Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
-					Equal("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni-init:v1.11.3"),
+					Equal("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni-init:v1.12.6"),
 				)
 			})
 		})

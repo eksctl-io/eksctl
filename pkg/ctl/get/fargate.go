@@ -79,7 +79,7 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 	if err != nil {
 		return err
 	}
-	return fargate.PrintProfiles(profiles, os.Stdout, options.output)
+	return fargate.PrintProfiles(profiles, cmd.CobraCommand.OutOrStdout(), options.output)
 }
 
 func getProfiles(ctx context.Context, manager *fargate.Client, name string) ([]*api.FargateProfile, error) {

@@ -111,7 +111,7 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		addSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	return printer.PrintObjWithKind("nodegroups", summaries, os.Stdout)
+	return printer.PrintObjWithKind("nodegroups", summaries, cmd.CobraCommand.OutOrStdout())
 }
 
 func addSummaryTableColumns(printer *printers.TablePrinter) {
