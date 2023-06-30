@@ -1904,6 +1904,36 @@ func (_m *IAM) GetLoginProfile(ctx context.Context, params *iam.GetLoginProfileI
 	return r0, r1
 }
 
+// GetMFADevice provides a mock function with given fields: ctx, params, optFns
+func (_m *IAM) GetMFADevice(ctx context.Context, params *iam.GetMFADeviceInput, optFns ...func(*iam.Options)) (*iam.GetMFADeviceOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.GetMFADeviceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetMFADeviceInput, ...func(*iam.Options)) *iam.GetMFADeviceOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.GetMFADeviceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetMFADeviceInput, ...func(*iam.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetOpenIDConnectProvider provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetOpenIDConnectProvider(ctx context.Context, params *iam.GetOpenIDConnectProviderInput, optFns ...func(*iam.Options)) (*iam.GetOpenIDConnectProviderOutput, error) {
 	_va := make([]interface{}, len(optFns))
