@@ -119,7 +119,7 @@ func UpdateCoreDNS(ctx context.Context, input AddonInput, plan bool) (bool, erro
 
 func getCoreDNS(ctx context.Context, clientSet kubernetes.Interface) (*appsv1.Deployment, error) {
 	d, err := clientSet.AppsV1().Deployments(metav1.NamespaceSystem).Get(ctx, CoreDNS, metav1.GetOptions{})
-	return d, makeGetError(err, CoreDNS)
+	return makeGetError(d, err, CoreDNS)
 }
 
 func loadAssetCoreDNS(controlPlaneVersion string) (*metav1.List, error) {
