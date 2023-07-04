@@ -15,7 +15,6 @@ import (
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/outposts"
 	outpoststypes "github.com/aws/aws-sdk-go-v2/service/outposts/types"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/smithy-go"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -250,14 +249,12 @@ var _ = Describe("create cluster", func() {
 			ce.updateKubeProvider(fk)
 		}
 
-		msp := &mockSessionProvider{}
 		ctl := &eks.ClusterProvider{
 			AWSProvider: p,
 			Status: &eks.ProviderStatus{
 				ClusterInfo: &eks.ClusterInfo{
 					Cluster: testutils.NewFakeCluster(clusterName, ""),
 				},
-				SessionCreds: msp,
 			},
 			KubeProvider: fk,
 		}
@@ -942,6 +939,12 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 	p.MockCloudFormation().On("CreateStack", mock.Anything, mock.Anything).Return(&cloudformation.CreateStackOutput{
 		StackId: aws.String(clusterStackName),
 	}, nil).Once()
+
+	p.MockCredentialsProvider().On("Retrieve", mock.Anything).Return(aws.Credentials{
+		AccessKeyID:     "key-id",
+		SecretAccessKey: "secret-access-key",
+		SessionToken:    "token",
+	}, nil)
 }
 
 func mockOutposts(provider *mockprovider.MockProvider, outpostID string) {
@@ -978,16 +981,4 @@ func mockOutposts(provider *mockprovider.MockProvider, outpostID string) {
 			},
 		},
 	}, nil)
-}
-
-type mockSessionProvider struct {
-}
-
-func (m *mockSessionProvider) Get() (credentials.Value, error) {
-	return credentials.Value{
-		AccessKeyID:     "key-id",
-		SecretAccessKey: "secret-access-key",
-		SessionToken:    "token",
-		ProviderName:    "aws",
-	}, nil
 }

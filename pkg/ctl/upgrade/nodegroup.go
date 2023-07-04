@@ -81,5 +81,9 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options nodegroup.UpgradeOptions) error
 		return err
 	}
 
-	return nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session())).Upgrade(ctx, options)
+	instanceSelector, err := selector.New(ctx, ctl.AWSProvider.AWSConfig())
+	if err != nil {
+		return err
+	}
+	return nodegroup.New(cfg, ctl, clientSet, instanceSelector).Upgrade(ctx, options)
 }

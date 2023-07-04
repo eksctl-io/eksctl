@@ -32,8 +32,9 @@ type IAM interface {
 	AddUserToGroup(ctx context.Context, params *AddUserToGroupInput, optFns ...func(*Options)) (*AddUserToGroupOutput, error)
 	// Attaches the specified managed policy to the specified IAM group. You use this
 	// operation to attach a managed policy to a group. To embed an inline policy in a
-	// group, use PutGroupPolicy . As a best practice, you can validate your IAM
-	// policies. To learn more, see Validating IAM policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_policy-validator.html)
+	// group, use PutGroupPolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_PutGroupPolicy.html)
+	// . As a best practice, you can validate your IAM policies. To learn more, see
+	// Validating IAM policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_policy-validator.html)
 	// in the IAM User Guide. For more information about policies, see Managed
 	// policies and inline policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html)
 	// in the IAM User Guide.
@@ -42,18 +43,20 @@ type IAM interface {
 	// attach a managed policy to a role, the managed policy becomes part of the role's
 	// permission (access) policy. You cannot use a managed policy as the role's trust
 	// policy. The role's trust policy is created at the same time as the role, using
-	// CreateRole . You can update a role's trust policy using UpdateAssumeRolePolicy .
-	// Use this operation to attach a managed policy to a role. To embed an inline
-	// policy in a role, use PutRolePolicy . For more information about policies, see
-	// Managed policies and inline policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html)
+	// CreateRole (https://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateRole.html)
+	// . You can update a role's trust policy using UpdateAssumerolePolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_UpdateAssumeRolePolicy.html)
+	// . Use this operation to attach a managed policy to a role. To embed an inline
+	// policy in a role, use PutRolePolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_PutRolePolicy.html)
+	// . For more information about policies, see Managed policies and inline policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html)
 	// in the IAM User Guide. As a best practice, you can validate your IAM policies.
 	// To learn more, see Validating IAM policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_policy-validator.html)
 	// in the IAM User Guide.
 	AttachRolePolicy(ctx context.Context, params *AttachRolePolicyInput, optFns ...func(*Options)) (*AttachRolePolicyOutput, error)
 	// Attaches the specified managed policy to the specified user. You use this
 	// operation to attach a managed policy to a user. To embed an inline policy in a
-	// user, use PutUserPolicy . As a best practice, you can validate your IAM
-	// policies. To learn more, see Validating IAM policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_policy-validator.html)
+	// user, use PutUserPolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_PutUserPolicy.html)
+	// . As a best practice, you can validate your IAM policies. To learn more, see
+	// Validating IAM policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_policy-validator.html)
 	// in the IAM User Guide. For more information about policies, see Managed
 	// policies and inline policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html)
 	// in the IAM User Guide.
@@ -659,6 +662,8 @@ type IAM interface {
 	// A user with programmatic access does not have a login profile unless you create
 	// a password for the user to access the Amazon Web Services Management Console.
 	GetLoginProfile(ctx context.Context, params *GetLoginProfileInput, optFns ...func(*Options)) (*GetLoginProfileOutput, error)
+	// Retrieves information about an MFA device for a specified user.
+	GetMFADevice(ctx context.Context, params *GetMFADeviceInput, optFns ...func(*Options)) (*GetMFADeviceOutput, error)
 	// Returns information about the specified OpenID Connect (OIDC) provider resource
 	// object in IAM.
 	GetOpenIDConnectProvider(ctx context.Context, params *GetOpenIDConnectProviderInput, optFns ...func(*Options)) (*GetOpenIDConnectProviderOutput, error)
@@ -1113,9 +1118,9 @@ type IAM interface {
 	ListVirtualMFADevices(ctx context.Context, params *ListVirtualMFADevicesInput, optFns ...func(*Options)) (*ListVirtualMFADevicesOutput, error)
 	// Adds or updates an inline policy document that is embedded in the specified IAM
 	// group. A user can also have managed policies attached to it. To attach a managed
-	// policy to a group, use AttachGroupPolicy . To create a new managed policy, use
-	// CreatePolicy . For information about policies, see Managed policies and inline
-	// policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html)
+	// policy to a group, use AttachGroupPolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_AttachGroupPolicy.html)
+	// . To create a new managed policy, use CreatePolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_CreatePolicy.html)
+	// . For information about policies, see Managed policies and inline policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html)
 	// in the IAM User Guide. For information about the maximum number of inline
 	// policies that you can embed in a group, see IAM and STS quotas (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html)
 	// in the IAM User Guide. Because policy documents can be large, you should use
@@ -1137,13 +1142,14 @@ type IAM interface {
 	// Adds or updates an inline policy document that is embedded in the specified IAM
 	// role. When you embed an inline policy in a role, the inline policy is used as
 	// part of the role's access (permissions) policy. The role's trust policy is
-	// created at the same time as the role, using CreateRole . You can update a role's
-	// trust policy using UpdateAssumeRolePolicy . For more information about IAM
-	// roles, see Using roles to delegate permissions and federate identities (https://docs.aws.amazon.com/IAM/latest/UserGuide/roles-toplevel.html)
+	// created at the same time as the role, using CreateRole (https://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateRole.html)
+	// . You can update a role's trust policy using UpdateAssumerolePolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_UpdateAssumeRolePolicy.html)
+	// . For more information about IAM roles, see Using roles to delegate permissions
+	// and federate identities (https://docs.aws.amazon.com/IAM/latest/UserGuide/roles-toplevel.html)
 	// . A role can also have a managed policy attached to it. To attach a managed
-	// policy to a role, use AttachRolePolicy . To create a new managed policy, use
-	// CreatePolicy . For information about policies, see Managed policies and inline
-	// policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html)
+	// policy to a role, use AttachRolePolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_AttachRolePolicy.html)
+	// . To create a new managed policy, use CreatePolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_CreatePolicy.html)
+	// . For information about policies, see Managed policies and inline policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html)
 	// in the IAM User Guide. For information about the maximum number of inline
 	// policies that you can embed with a role, see IAM and STS quotas (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html)
 	// in the IAM User Guide. Because policy documents can be large, you should use
@@ -1163,9 +1169,9 @@ type IAM interface {
 	PutUserPermissionsBoundary(ctx context.Context, params *PutUserPermissionsBoundaryInput, optFns ...func(*Options)) (*PutUserPermissionsBoundaryOutput, error)
 	// Adds or updates an inline policy document that is embedded in the specified IAM
 	// user. An IAM user can also have a managed policy attached to it. To attach a
-	// managed policy to a user, use AttachUserPolicy . To create a new managed policy,
-	// use CreatePolicy . For information about policies, see Managed policies and
-	// inline policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html)
+	// managed policy to a user, use AttachUserPolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_AttachUserPolicy.html)
+	// . To create a new managed policy, use CreatePolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_CreatePolicy.html)
+	// . For information about policies, see Managed policies and inline policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html)
 	// in the IAM User Guide. For information about the maximum number of inline
 	// policies that you can embed in a user, see IAM and STS quotas (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html)
 	// in the IAM User Guide. Because policy documents can be large, you should use

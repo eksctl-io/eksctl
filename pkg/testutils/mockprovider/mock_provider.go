@@ -1,18 +1,15 @@
 package mockprovider
 
 import (
+	"context"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/client"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/awstesting"
+	awsv2 "github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5/fakes"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
-	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
 )
 
@@ -27,10 +24,6 @@ var ProviderConfig = &api.ProviderConfig{
 
 var _ api.ClusterProvider = &MockProvider{}
 
-type MockAWSClient struct {
-	*client.Client
-}
-
 type MockInput struct{}
 type MockOutput struct {
 	States []*MockState
@@ -41,16 +34,14 @@ type MockState struct {
 
 // MockProvider stores the mocked APIs
 type MockProvider struct {
-	Client *MockAWSClient
-
-	waitTimeout    *time.Duration
-	region         string
-	cfnRoleARN     string
-	asg            *mocksv2.ASG
-	eks            *mocksv2.EKS
-	cloudtrail     *mocksv2.CloudTrail
-	cloudwatchlogs *mocksv2.CloudWatchLogs
-	configProvider *mocks.ConfigProvider
+	waitTimeout         *time.Duration
+	region              string
+	cfnRoleARN          string
+	asg                 *mocksv2.ASG
+	eks                 *mocksv2.EKS
+	cloudtrail          *mocksv2.CloudTrail
+	cloudwatchlogs      *mocksv2.CloudWatchLogs
+	credentialsProvider *mocksv2.CredentialsProvider
 
 	cfn          *mocksv2.CloudFormation
 	sts          *mocksv2.STS
@@ -66,23 +57,22 @@ type MockProvider struct {
 // NewMockProvider returns a new MockProvider
 func NewMockProvider() *MockProvider {
 	return &MockProvider{
-		Client: NewMockAWSClient(),
 
 		asg:            &mocksv2.ASG{},
 		eks:            &mocksv2.EKS{},
 		cloudtrail:     &mocksv2.CloudTrail{},
 		cloudwatchlogs: &mocksv2.CloudWatchLogs{},
-		configProvider: &mocks.ConfigProvider{},
 
-		sts:          &mocksv2.STS{},
-		stsPresigner: &fakes.FakeSTSPresigner{},
-		cfn:          &mocksv2.CloudFormation{},
-		elb:          &mocksv2.ELB{},
-		elbV2:        &mocksv2.ELBV2{},
-		ssm:          &mocksv2.SSM{},
-		iam:          &mocksv2.IAM{},
-		ec2:          &mocksv2.EC2{},
-		outposts:     &mocksv2.Outposts{},
+		sts:                 &mocksv2.STS{},
+		stsPresigner:        &fakes.FakeSTSPresigner{},
+		cfn:                 &mocksv2.CloudFormation{},
+		elb:                 &mocksv2.ELB{},
+		elbV2:               &mocksv2.ELBV2{},
+		ssm:                 &mocksv2.SSM{},
+		iam:                 &mocksv2.IAM{},
+		ec2:                 &mocksv2.EC2{},
+		outposts:            &mocksv2.Outposts{},
+		credentialsProvider: &mocksv2.CredentialsProvider{},
 	}
 }
 
@@ -185,6 +175,14 @@ func (m MockProvider) MockCloudWatchLogs() *mocksv2.CloudWatchLogs {
 	return m.CloudWatchLogs().(*mocksv2.CloudWatchLogs)
 }
 
+func (m MockProvider) CredentialsProvider() awsv2.CredentialsProvider {
+	return m.credentialsProvider
+}
+
+func (m MockProvider) MockCredentialsProvider() *mocksv2.CredentialsProvider {
+	return m.CredentialsProvider().(*mocksv2.CredentialsProvider)
+}
+
 // Outposts returns a representation of the Outposts API
 func (m MockProvider) Outposts() awsapi.Outposts { return m.outposts }
 
@@ -221,71 +219,13 @@ func (m *MockProvider) SetWaitTimeout(t time.Duration) {
 	m.waitTimeout = &t
 }
 
-// ConfigProvider returns a representation of the ConfigProvider
-func (m MockProvider) ConfigProvider() client.ConfigProvider {
-	return m.configProvider
-}
-
-// MockConfigProvider returns a mocked ConfigProvider
-func (m MockProvider) MockConfigProvider() client.ConfigProvider {
-	return m.configProvider
-}
-
-func (m MockProvider) Session() *session.Session {
-	client := awstesting.NewClient(&aws.Config{
-		Region: &ProviderConfig.Region,
-	})
-	s, err := session.NewSession(&client.Config)
+func (m MockProvider) AWSConfig() awsv2.Config {
+	options := []func(options *config.LoadOptions) error{
+		config.WithRegion(ProviderConfig.Region),
+	}
+	cfg, err := config.LoadDefaultConfig(context.TODO(), options...)
 	if err != nil {
 		panic(err)
 	}
-	return s
-}
-
-func NewMockAWSClient() *MockAWSClient {
-	m := &MockAWSClient{
-		Client: awstesting.NewClient(&aws.Config{
-			Region: &ProviderConfig.Region,
-		}),
-	}
-
-	m.Handlers.Send.Clear()
-	m.Handlers.Unmarshal.Clear()
-	m.Handlers.UnmarshalMeta.Clear()
-	m.Handlers.ValidateResponse.Clear()
-
-	return m
-}
-
-func (m *MockAWSClient) MockRequestForMockOutput(input *MockInput) (*request.Request, *MockOutput) {
-	op := &request.Operation{
-		Name:       "Mock",
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-	}
-
-	if input == nil {
-		input = &MockInput{}
-	}
-
-	output := &MockOutput{}
-	req := m.NewRequest(op, input, output)
-	req.Data = output
-	return req, output
-}
-
-func (m *MockAWSClient) MockRequestForGivenOutput(input, output interface{}) *request.Request {
-	op := &request.Operation{
-		Name:       "Mock",
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-	}
-
-	if input == nil {
-		input = &MockInput{}
-	}
-
-	req := m.NewRequest(op, input, output)
-	req.Data = output
-	return req
+	return cfg
 }

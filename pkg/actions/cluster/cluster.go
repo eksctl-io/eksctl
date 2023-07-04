@@ -37,7 +37,7 @@ func New(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider) 
 
 	if clusterStack != nil {
 		logger.Debug("cluster %q was created by eksctl", cfg.Metadata.Name)
-		return NewOwnedCluster(cfg, ctl, clusterStack, stackManager), nil
+		return NewOwnedCluster(ctx, cfg, ctl, clusterStack, stackManager)
 	}
 
 	if !clusterExists {
@@ -46,5 +46,5 @@ func New(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider) 
 
 	logger.Debug("cluster %q was not created by eksctl", cfg.Metadata.Name)
 
-	return NewUnownedCluster(cfg, ctl, stackManager), nil
+	return NewUnownedCluster(ctx, cfg, ctl, stackManager)
 }
