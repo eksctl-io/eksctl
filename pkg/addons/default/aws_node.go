@@ -172,5 +172,5 @@ func UpdateAWSNode(ctx context.Context, input AddonInput, plan bool) (bool, erro
 
 func getAWSNode(ctx context.Context, clientSet kubernetes.Interface) (*appsv1.DaemonSet, error) {
 	d, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(ctx, AWSNode, metav1.GetOptions{})
-	return d, makeGetError(err, AWSNode)
+	return makeGetError(d, err, AWSNode)
 }

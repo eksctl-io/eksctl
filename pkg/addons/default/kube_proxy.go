@@ -96,7 +96,7 @@ func UpdateKubeProxy(ctx context.Context, input AddonInput, plan bool) (bool, er
 
 func getKubeProxy(ctx context.Context, clientSet kubernetes.Interface) (*v1.DaemonSet, error) {
 	d, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(ctx, KubeProxy, metav1.GetOptions{})
-	return d, makeGetError(err, KubeProxy)
+	return makeGetError(d, err, KubeProxy)
 }
 
 func addArm64NodeSelector(daemonSet *v1.DaemonSet) error {
