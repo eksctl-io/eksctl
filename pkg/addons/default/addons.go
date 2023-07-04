@@ -71,15 +71,15 @@ func supportsMultiArch(podSec corev1.PodSpec) bool {
 	return false
 }
 
-func makeGetError(err error, resourceName string) error {
+func makeGetError[T any](resource *T, err error, resourceName string) (*T, error) {
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Warning("%q was not found", resourceName)
-			return nil
+			return nil, nil
 		}
-		return fmt.Errorf("getting %q: %w", resourceName, err)
+		return nil, fmt.Errorf("getting %q: %w", resourceName, err)
 	}
-	return nil
+	return resource, nil
 }
 
 // LoadAsset return embedded manifest as a runtime.Object
