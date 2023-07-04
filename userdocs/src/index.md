@@ -15,7 +15,7 @@ contributions from the community.
     ```
     eksctl create cluster
     ```
-    ![eksctl create cluster](img/eksctl-gopher.png){ align=right }
+    ![eksctl create cluster](img/eksctl-gopher.png){ align=right width=25% }
 
     A cluster will be created with default parameters:
 
