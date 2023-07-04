@@ -28,7 +28,11 @@ type OwnedCluster struct {
 	newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer
 }
 
-func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager) *OwnedCluster {
+func NewOwnedCluster(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager) (*OwnedCluster, error) {
+	instanceSelector, err := selector.New(context.Background(), ctl.AWSProvider.AWSConfig())
+	if err != nil {
+		return nil, err
+	}
 	return &OwnedCluster{
 		cfg:          cfg,
 		ctl:          ctl,
@@ -38,9 +42,9 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterSt
 			return ctl.NewStdClientSet(cfg)
 		},
 		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
-			return nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
+			return nodegroup.New(cfg, ctl, clientSet, instanceSelector)
 		},
-	}
+	}, nil
 }
 
 func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
