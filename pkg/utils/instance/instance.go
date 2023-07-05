@@ -53,12 +53,12 @@ func IsNvidiaInstanceType(instanceType string) bool {
 
 // IsInferentiaInstanceType returns true if the instance type requires AWS Neuron
 func IsInferentiaInstanceType(instanceType string) bool {
-	return strings.HasPrefix(instanceType, "inf1")
+	return strings.HasPrefix(instanceType, "inf1") || strings.HasPrefix(instanceType, "inf2")
 }
 
 // IsTrainiumnstanceType returns true if the instance type requires AWS Neuron
 func IsTrainiumInstanceType(instanceType string) bool {
-	return strings.HasPrefix(instanceType, "trn1")
+	return strings.HasPrefix(instanceType, "trn1n") || strings.HasPrefix(instanceType, "trn1")
 }
 
 // GetSmallestInstanceType returns the smallest instance type in instanceTypes.
