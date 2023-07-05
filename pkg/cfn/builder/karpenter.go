@@ -120,7 +120,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		iamPolicyAmazonEC2ContainerRegistryReadOnly,
 		iamPolicyAmazonSSMManagedInstanceCore,
 	)
-	k.Template().Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
+	k.Template().Mappings[servicePrincipalPartitionMapName] = api.Partitions.ServicePrincipalPartitionMappings()
 	roleName := gfnt.NewString(fmt.Sprintf("eksctl-%s-%s", KarpenterNodeRoleName, k.clusterSpec.Metadata.Name))
 	role := gfniam.Role{
 		RoleName:                 roleName,

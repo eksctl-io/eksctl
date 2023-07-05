@@ -42,11 +42,13 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		api.SetClusterConfigDefaults(vc.clusterConfig)
 
 		if len(vc.clusterConfig.AvailabilityZones) == 0 {
-			switch api.Partition(vc.clusterConfig.Metadata.Region) {
+			switch api.Partitions.ForRegion(vc.clusterConfig.Metadata.Region) {
 			case api.PartitionAWS:
-				vc.clusterConfig.AvailabilityZones = []string{"us-west-2a", "us-west-2b", "us-west-2c", "us-west-2d"}
+				vc.clusterConfig.AvailabilityZones = makeZones("us-west-2", 4)
 			case api.PartitionChina:
-				vc.clusterConfig.AvailabilityZones = []string{"cn-north-1a", "cn-north-1b"}
+				vc.clusterConfig.AvailabilityZones = makeZones("cn-north-1", 2)
+			case api.PartitionISO:
+				vc.clusterConfig.AvailabilityZones = makeZones("us-iso-east-1", 2)
 			default:
 				panic("not supported in tests")
 			}
@@ -114,7 +116,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			},
 			createProvider: func() api.ClusterProvider {
 				provider := mockprovider.NewMockProvider()
-				mockDescribeVPCEndpoints(provider, false, false)
+				mockDescribeVPCEndpoints(provider, serviceDetailsJSON)
 				return provider
 			},
 			expectedFile: "vpc_private.json",
@@ -131,7 +133,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			},
 			createProvider: func() api.ClusterProvider {
 				provider := mockprovider.NewMockProvider()
-				mockDescribeVPCEndpoints(provider, true, false)
+				mockDescribeVPCEndpoints(provider, serviceDetailsChinaJSON)
 				provider.SetRegion("cn-north-1")
 				return provider
 			},
@@ -193,7 +195,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			createProvider: func() api.ClusterProvider {
 				provider := mockprovider.NewMockProvider()
 				mockDescribeVPC(provider)
-				mockDescribeVPCEndpoints(provider, false, false)
+				mockDescribeVPCEndpoints(provider, serviceDetailsJSON)
 				mockDescribeRouteTables(provider, []string{"subnet-custom1", "subnet-custom2"})
 				return provider
 			},
@@ -226,7 +228,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			createProvider: func() api.ClusterProvider {
 				provider := mockprovider.NewMockProvider()
 				mockDescribeVPC(provider)
-				mockDescribeVPCEndpoints(provider, false, false)
+				mockDescribeVPCEndpoints(provider, serviceDetailsJSON)
 				mockDescribeRouteTablesSame(provider, []string{"subnet-custom1", "subnet-custom2"})
 				return provider
 			},
@@ -302,7 +304,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			},
 			createProvider: func() api.ClusterProvider {
 				provider := mockprovider.NewMockProvider()
-				mockDescribeVPCEndpoints(provider, false, true)
+				mockDescribeVPCEndpoints(provider, serviceDetailsOutpostsJSON)
 				mockOutposts(provider, "arn:aws:outposts:us-west-2:1234:outpost/op-1234", "us-west-2a")
 				return provider
 			},
@@ -326,12 +328,31 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			},
 			createProvider: func() api.ClusterProvider {
 				provider := mockprovider.NewMockProvider()
-				mockDescribeVPCEndpoints(provider, true, true)
+				mockDescribeVPCEndpoints(provider, serviceDetailsOutpostsChinaJSON)
 				mockOutposts(provider, "arn:aws:outposts:cn-north-1:1234:outpost/op-1234", "cn-north-1a")
 				provider.SetRegion("cn-north-1")
 				return provider
 			},
 			expectedFile: "vpc_private_outposts_china.json",
+		}),
+
+		Entry("Private cluster in an ISO region", vpcResourceSetCase{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Region: "us-iso-east-1",
+				},
+				VPC: api.NewClusterVPC(false),
+				PrivateCluster: &api.PrivateCluster{
+					Enabled: true,
+				},
+			},
+			createProvider: func() api.ClusterProvider {
+				provider := mockprovider.NewMockProvider()
+				mockDescribeVPCEndpoints(provider, serviceDetailsISOJSON)
+				provider.SetRegion("us-iso-east-1")
+				return provider
+			},
+			expectedFile: "vpc_private_iso.json",
 		}),
 	)
 })
@@ -340,13 +361,16 @@ var _ = Describe("VPC Endpoint Builder", func() {
 var serviceDetailsJSON []byte
 
 //go:embed testdata/service_details_china.json
-var serviceDetailsJSONChina []byte
+var serviceDetailsChinaJSON []byte
 
 //go:embed testdata/service_details_outposts.json
 var serviceDetailsOutpostsJSON []byte
 
 //go:embed testdata/service_details_outposts_china.json
 var serviceDetailsOutpostsChinaJSON []byte
+
+//go:embed testdata/service_details_iso.json
+var serviceDetailsISOJSON []byte
 
 func mockDescribeVPC(provider *mockprovider.MockProvider) {
 	provider.MockEC2().On("DescribeVpcs", mock.Anything, &ec2.DescribeVpcsInput{
@@ -365,21 +389,9 @@ func mockDescribeVPC(provider *mockprovider.MockProvider) {
 	}, nil)
 }
 
-func mockDescribeVPCEndpoints(provider *mockprovider.MockProvider, china, outposts bool) {
-	var detailsJSON []byte
-	switch {
-	case outposts && china:
-		detailsJSON = serviceDetailsOutpostsChinaJSON
-	case outposts:
-		detailsJSON = serviceDetailsOutpostsJSON
-	case china:
-		detailsJSON = serviceDetailsJSONChina
-	default:
-		detailsJSON = serviceDetailsJSON
-	}
-
+func mockDescribeVPCEndpoints(provider *mockprovider.MockProvider, serviceDetailsJSON []byte) {
 	var output *ec2.DescribeVpcEndpointServicesOutput
-	Expect(json.Unmarshal(detailsJSON, &output)).To(Succeed())
+	Expect(json.Unmarshal(serviceDetailsJSON, &output)).To(Succeed())
 
 	provider.MockEC2().On("DescribeVpcEndpointServices", mock.Anything, mock.MatchedBy(func(e *ec2.DescribeVpcEndpointServicesInput) bool {
 		return reflect.DeepEqual(e.ServiceNames, output.ServiceNames)
@@ -455,4 +467,12 @@ func mockDescribeRouteTablesSame(provider *mockprovider.MockProvider, subnetIDs 
 	provider.MockEC2().On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 		return len(input.Filters) > 0
 	})).Return(output, nil)
+}
+
+func makeZones(region string, count int) []string {
+	var ret []string
+	for i := 0; i < count; i++ {
+		ret = append(ret, fmt.Sprintf("%s%c", region, 'a'+i))
+	}
+	return ret
 }
