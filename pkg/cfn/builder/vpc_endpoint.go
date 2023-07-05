@@ -118,9 +118,8 @@ func (e *VPCEndpointResourceSet) routeTableIDs() []*gfnt.Value {
 // buildVPCEndpointServices builds a slice of VPCEndpointServiceDetails for the specified endpoint names.
 func (e *VPCEndpointResourceSet) buildVPCEndpointServices(ctx context.Context, endpointServices []api.EndpointService) ([]VPCEndpointServiceDetails, error) {
 	serviceNames := make([]string, len(endpointServices))
-	serviceDomain := fmt.Sprintf("com.amazonaws.%s", e.region)
 	for i, endpoint := range endpointServices {
-		serviceNames[i] = makeServiceName(serviceDomain, e.region, endpoint)
+		serviceNames[i] = makeServiceName(endpoint, e.region)
 	}
 
 	var (
@@ -158,7 +157,7 @@ func (e *VPCEndpointResourceSet) buildVPCEndpointServices(ctx context.Context, e
 	}
 
 	var ret []VPCEndpointServiceDetails
-	s3ServiceName := makeServiceName(serviceDomain, e.region, api.EndpointServiceS3)
+	s3ServiceName := makeServiceName(api.EndpointServiceS3, e.region)
 	for _, sd := range serviceDetails {
 		if len(sd.ServiceType) > 1 {
 			return nil, fmt.Errorf("endpoint service %q with multiple service types isn't supported", *sd.ServiceName)
@@ -172,12 +171,10 @@ func (e *VPCEndpointResourceSet) buildVPCEndpointServices(ctx context.Context, e
 			continue
 		}
 
-		// Trim the domain (potentially with a partition-specific part) from the `ServiceName`.
-		parts := strings.Split(*sd.ServiceName, fmt.Sprintf("%s.", serviceDomain))
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("error parsing service name %s %s", *sd.ServiceName, serviceDomain)
+		readableName, err := makeReadableName(*sd.ServiceName, e.region)
+		if err != nil {
+			return nil, err
 		}
-		readableName := parts[1]
 
 		ret = append(ret, VPCEndpointServiceDetails{
 			ServiceName:         *sd.ServiceName,
@@ -190,6 +187,15 @@ func (e *VPCEndpointResourceSet) buildVPCEndpointServices(ctx context.Context, e
 	return ret, nil
 }
 
+func makeReadableName(serviceName, region string) (string, error) {
+	search := fmt.Sprintf(".%s.", region)
+	idx := strings.Index(serviceName, search)
+	if idx == -1 {
+		return "", fmt.Errorf("unexpected format for endpoint service name: %q", serviceName)
+	}
+	return serviceName[idx+len(search)-1:], nil
+}
+
 // serviceEndpointTypeExpected returns true if the endpoint service is expected to use the specified endpoint type.
 func serviceEndpointTypeExpected(serviceName string, endpointType ec2types.ServiceType, s3ServiceName string) bool {
 	if serviceName == s3ServiceName {
@@ -198,10 +204,7 @@ func serviceEndpointTypeExpected(serviceName string, endpointType ec2types.Servi
 	return endpointType == ec2types.ServiceTypeInterface
 }
 
-func makeServiceName(domain, region string, endpointService api.EndpointService) string {
-	serviceName := fmt.Sprintf("%s.%s", domain, endpointService.Name)
-	if endpointService.RequiresChinaPrefix && api.Partition(region) == api.PartitionChina {
-		serviceName = "cn." + serviceName
-	}
-	return serviceName
+func makeServiceName(endpointService api.EndpointService, region string) string {
+	serviceDomainPrefix := api.Partitions.GetEndpointServiceDomainPrefix(endpointService, region)
+	return fmt.Sprintf("%s.%s.%s", serviceDomainPrefix, region, endpointService.Name)
 }
