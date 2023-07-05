@@ -4,6 +4,8 @@ sponsored by [![Weaveworks](img/empty.svg#wwinline)](https://www.weave.works/) a
 
 !!! tip "New for 2023"
     `eksctl` now supports creating fully private clusters on [AWS Outposts](/usage/outposts).
+    
+    `eksctl` now supports new ISO regions `us-iso-east-1` and `us-isob-east-1`.
 
     `eksctl` now supports new regions - Zurich (`eu-central-2`), Spain (`eu-south-2`), Hyderabad (`ap-south-2`) and  Melbourne (`ap-southeast-4`).
 

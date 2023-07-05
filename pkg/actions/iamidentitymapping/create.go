@@ -26,7 +26,7 @@ func (m *Manager) Create(ctx context.Context, mapping *api.IAMIdentityMapping) e
 			return errors.Wrap(err, "error parsing cluster ARN")
 		}
 		sa := authconfigmap.NewServiceAccess(m.rawClient, acm, parsedARN.AccountID)
-		return sa.Grant(mapping.ServiceName, mapping.Namespace, api.Partition(m.region))
+		return sa.Grant(mapping.ServiceName, mapping.Namespace, api.Partitions.ForRegion(m.region))
 	}
 
 	if mapping.Account == "" {

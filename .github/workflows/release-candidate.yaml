@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
+          token: ${{ secrets.EKSCTLBOT_TOKEN }}
           fetch-depth: 0
       - name: Cache go-build and mod
         uses: actions/cache@v3
@@ -23,9 +23,9 @@ jobs:
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: |
             go-
-      - name: Setup identity as weaveworksbot
+      - name: Setup identity as eksctl-bot
         uses: ./.github/actions/setup-identity
         with:
-          token: "${{ secrets.WEAVEWORKSBOT_TOKEN }}"
+          token: "${{ secrets.EKSCTLBOT_TOKEN }}"
       - name: Push tag and open PR to default branch
         run: make prepare-release-candidate
