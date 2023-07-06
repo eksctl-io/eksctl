@@ -36,3 +36,7 @@ img[src$="#wwinline"] {
 .md-typeset .md-button {
     padding: 0.3em 0.3em;
 }
+
+.md-header__button.md-logo img, .md-header__button.md-logo svg {
+    height: 2.2rem;
+}

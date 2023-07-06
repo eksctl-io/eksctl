@@ -306,6 +306,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 	l.validateWithoutConfigFile = func() error {
 		meta := l.ClusterConfig.Metadata
+		meta.Region = cmd.ProviderConfig.Region
 
 		// generate cluster name or use either flag or argument
 		if names.ForCluster(meta.Name, l.NameArg) == "" {
@@ -556,6 +557,9 @@ func normalizeBaseNodeGroup(np api.NodePool, cmd *cobra.Command) {
 	}
 	if !flags.Changed("enable-ssm") {
 		ng.SSH.EnableSSM = nil
+	}
+	if !flags.Changed("node-volume-type") {
+		ng.VolumeType = nil
 	}
 }
 

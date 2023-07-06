@@ -24,7 +24,7 @@ theme:
         toggle:
           icon: fontawesome/solid/moon
           name: Switch to dark mode
-        primary: white
+        primary: black
         accent: indigo
       - media: "(prefers-color-scheme: dark)"
         scheme: slate

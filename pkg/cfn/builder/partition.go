@@ -6,28 +6,10 @@ import (
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
-var servicePrincipalPartitionMappings = map[string]map[string]string{
-	"aws": {
-		"EC2":            "ec2.amazonaws.com",
-		"EKS":            "eks.amazonaws.com",
-		"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
-	},
-	"aws-us-gov": {
-		"EC2":            "ec2.amazonaws.com",
-		"EKS":            "eks.amazonaws.com",
-		"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
-	},
-	"aws-cn": {
-		"EC2":            "ec2.amazonaws.com.cn",
-		"EKS":            "eks.amazonaws.com",
-		"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
-	},
-}
-
 const servicePrincipalPartitionMapName = "ServicePrincipalPartitionMap"
 
 // MakeServiceRef returns a reference to an intrinsic map function that looks up the servicePrincipalName
-// in servicePrincipalPartitionMappings
+// in ServicePrincipalPartitionMap.
 func MakeServiceRef(servicePrincipalName string) *gfnt.Value {
 	return gfnt.MakeFnFindInMap(
 		gfnt.NewString(servicePrincipalPartitionMapName), gfnt.RefPartition, gfnt.NewString(servicePrincipalName),

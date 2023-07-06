@@ -45,7 +45,8 @@ var _ = Describe("Instance Selector", func() {
 		Expect(instanceSelectorFake.FilterCallCount()).To(Equal(len(isc.nodeGroups)))
 
 		for i := range isc.nodeGroups {
-			Expect(*instanceSelectorFake.FilterArgsForCall(i).AvailabilityZones).To(Equal(isc.expectedAZs))
+			_, arg := instanceSelectorFake.FilterArgsForCall(i)
+			Expect(*arg.AvailabilityZones).To(Equal(isc.expectedAZs))
 		}
 
 		Expect(err).NotTo(HaveOccurred())

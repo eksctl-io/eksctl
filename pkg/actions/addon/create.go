@@ -251,9 +251,9 @@ func (a *Manager) getRecommendedPolicies(addon *api.Addon) (api.InlineDocument, 
 	switch addon.CanonicalName() {
 	case api.VPCCNIAddon:
 		if a.clusterConfig.IPv6Enabled() {
-			return makeIPv6VPCCNIPolicyDocument(api.Partition(a.clusterConfig.Metadata.Region)), nil, nil
+			return makeIPv6VPCCNIPolicyDocument(api.Partitions.ForRegion(a.clusterConfig.Metadata.Region)), nil, nil
 		}
-		return nil, []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}, nil
+		return nil, []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partitions.ForRegion(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}, nil
 	case api.AWSEBSCSIDriverAddon:
 		return nil, nil, &api.WellKnownPolicies{
 			EBSCSIController: true,
