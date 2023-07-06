@@ -19,7 +19,7 @@ import (
 )
 
 var zoneIDsToAvoid = map[string][]string{
-	api.RegionCNNorth1: {"cnn1-az4"}, // https://github.com/weaveworks/eksctl/issues/3916
+	api.RegionCNNorth1: {"cnn1-az4"}, // https://github.com/eksctl-io/eksctl/issues/3916
 }
 
 func GetAvailabilityZones(ctx context.Context, ec2API awsapi.EC2, region string, spec *api.ClusterConfig) ([]string, error) {

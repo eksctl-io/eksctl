@@ -8,7 +8,7 @@ builds:
     env:
       - CGO_ENABLED=0
     ldflags:
-      - -s -w -X github.com/weaveworks/eksctl/pkg/version.buildDate={{.Date}} -X github.com/weaveworks/eksctl/pkg/version.gitCommit={{.ShortCommit}}
+      - -s -w -X github.com/eksctl-io/eksctl/pkg/version.buildDate={{.Date}} -X github.com/eksctl-io/eksctl/pkg/version.gitCommit={{.ShortCommit}}
     goos:
       - windows
       - darwin

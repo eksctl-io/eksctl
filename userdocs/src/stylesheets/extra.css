@@ -40,3 +40,15 @@ img[src$="#wwinline"] {
 .md-header__button.md-logo img, .md-header__button.md-logo svg {
     height: 2.2rem;
 }
+
+@keyframes heart {
+    0%, 40%, 80%, 100% {
+      transform: scale(1);
+    }
+    20%, 60% {
+      transform: scale(1.15);
+    }
+  }
+  .heart {
+    animation: heart 1000ms infinite;
+  }
