@@ -35,28 +35,21 @@ var (
 	clusterWithoutPlugin    string
 	nodeZones               string
 	clusterZones            string
-	selectedNodeType        string
 )
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
-	params = tests.NewParams("trn")
+	params = tests.NewParams("trn1")
 	clusterWithNeuronPlugin = params.ClusterName
-	clusterWithoutPlugin = params.NewClusterName("trn-no-plugin")
-
-	selectedNodeType = "trn1n.32xlarge"
-	currentDay := time.Now().Day()
-	if currentDay%2 == 0 {
-		selectedNodeType = "trn1.2xlarge"
-	}
+	clusterWithoutPlugin = params.NewClusterName("trn1-no-plugin")
 }
 
 func TestTrainium(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-const initNG = "trn-ng-0"
+const initNG = "trn1-ng-0"
 
 var _ = BeforeSuite(func() {
 	params.KubeconfigTemp = false
@@ -83,7 +76,7 @@ var _ = BeforeSuite(func() {
 			"--nodegroup-name", initNG,
 			"--node-labels", "ng-name="+initNG,
 			"--nodes", "1",
-			"--node-type", selectedNodeType,
+			"--node-type", "trn1.2xlarge",
 			"--node-zones", nodeZones,
 			"--version", params.Version,
 			"--kubeconfig", params.KubeconfigPath,
@@ -99,7 +92,7 @@ var _ = BeforeSuite(func() {
 			"--nodegroup-name", initNG,
 			"--node-labels", "ng-name="+initNG,
 			"--nodes", "1",
-			"--node-type", selectedNodeType,
+			"--node-type", "trn1.2xlarge",
 			"--node-zones", nodeZones,
 			"--version", params.Version,
 			"--kubeconfig", params.KubeconfigPath,
@@ -110,10 +103,10 @@ var _ = BeforeSuite(func() {
 
 var _ = Describe("(Integration) Trainium nodes", func() {
 	const (
-		newNG = "trn-ng-1"
+		newNG = "trn1-ng-1"
 	)
 
-	Context("cluster with trn nodes", func() {
+	Context("cluster with trn1 nodes", func() {
 		Context("by default", func() {
 			BeforeEach(func() {
 				cmd := params.EksctlUtilsCmd.WithArgs(
@@ -167,7 +160,7 @@ var _ = Describe("(Integration) Trainium nodes", func() {
 						"--tags", "alpha.eksctl.io/description=eksctl integration test",
 						"--node-labels", "ng-name="+newNG,
 						"--nodes", "1",
-						"--node-type", selectedNodeType,
+						"--node-type", "trn1.2xlarge",
 						"--node-zones", nodeZones,
 						"--version", params.Version,
 					)
@@ -211,7 +204,7 @@ func newClientSet(name string) kubernetes.Interface {
 }
 
 func getAvailabilityZones(ctx context.Context, ec2API awsapi.EC2) (string, string) {
-	// Trn instance types are only available in one AZ per region at this time
+	// Trn1 instance types are only available in one AZ per region at this time
 	// TODO: dynamically discover zones as part of the core codebase
 	trnInstanceZones := map[string]string{
 		"us-west-2": "usw2-az4",

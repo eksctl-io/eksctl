@@ -64,7 +64,6 @@ spec:
                       - i4i.metal
                       - im4gn.16xlarge
                       - inf1.24xlarge
-                      - inf2.24xlarge
                       - m5dn.24xlarge
                       - m5dn.metal
                       - m5n.24xlarge
@@ -122,7 +121,6 @@ spec:
                       - i4i.metal
                       - im4gn.16xlarge
                       - inf1.24xlarge
-                      - inf2.24xlarge
                       - m5dn.24xlarge
                       - m5dn.metal
                       - m5n.24xlarge
