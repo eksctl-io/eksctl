@@ -100,13 +100,8 @@ spec:
                       - inf1.2xlarge
                       - inf1.6xlarge
                       - inf1.24xlarge
-                      - inf2.24xlarge
-                      - inf2.48xlarge
-                      - inf2.8xlarge
-                      - inf2.xlarge
                       - trn1.2xlarge
                       - trn1.32xlarge
-                      - trn1n.32xlarge
               - matchExpressions:
                   - key: "node.kubernetes.io/instance-type"
                     operator: In
@@ -115,13 +110,8 @@ spec:
                       - inf1.2xlarge
                       - inf1.6xlarge
                       - inf1.24xlarge
-                      - inf2.24xlarge
-                      - inf2.48xlarge
-                      - inf2.8xlarge
-                      - inf2.xlarge
                       - trn1.2xlarge
                       - trn1.32xlarge
-                      - trn1n.32xlarge
       containers:
         - image: "public.ecr.aws/neuron/neuron-device-plugin:2.1.2.0"
           imagePullPolicy: Always

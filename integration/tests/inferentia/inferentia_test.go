@@ -7,7 +7,6 @@ import (
 	"context"
 	"os"
 	"testing"
-	"time"
 
 	"k8s.io/client-go/kubernetes"
 
@@ -28,28 +27,21 @@ var (
 	params                  *tests.Params
 	clusterWithNeuronPlugin string
 	clusterWithoutPlugin    string
-	selectedNodeType        string
 )
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
-	params = tests.NewParams("inf")
+	params = tests.NewParams("inf1")
 	clusterWithNeuronPlugin = params.ClusterName
-	clusterWithoutPlugin = params.NewClusterName("inf-no-plugin")
-
-	selectedNodeType = "inf2.xlarge"
-	currentDay := time.Now().Day()
-	if currentDay%2 == 0 {
-		selectedNodeType = "inf1.xlarge"
-	}
+	clusterWithoutPlugin = params.NewClusterName("inf1-no-plugin")
 }
 
 func TestInferentia(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-const initNG = "inf-ng-0"
+const initNG = "inf1-ng-0"
 
 var _ = BeforeSuite(func() {
 	params.KubeconfigTemp = false
@@ -70,7 +62,7 @@ var _ = BeforeSuite(func() {
 			"--nodegroup-name", initNG,
 			"--node-labels", "ng-name="+initNG,
 			"--nodes", "1",
-			"--node-type", selectedNodeType,
+			"--node-type", "inf1.xlarge",
 			"--version", params.Version,
 			"--zones", "us-west-2a,us-west-2c,us-west-2d",
 			"--kubeconfig", params.KubeconfigPath,
@@ -85,7 +77,7 @@ var _ = BeforeSuite(func() {
 			"--nodegroup-name", initNG,
 			"--node-labels", "ng-name="+initNG,
 			"--nodes", "1",
-			"--node-type", selectedNodeType,
+			"--node-type", "inf1.xlarge",
 			"--version", params.Version,
 			"--zones", "us-west-2a,us-west-2c,us-west-2d",
 			"--kubeconfig", params.KubeconfigPath,
@@ -96,10 +88,10 @@ var _ = BeforeSuite(func() {
 
 var _ = Describe("(Integration) Inferentia nodes", func() {
 	const (
-		newNG = "inf-ng-1"
+		newNG = "inf1-ng-1"
 	)
 
-	Context("cluster with inf nodes", func() {
+	Context("cluster with inf1 nodes", func() {
 		Context("by default", func() {
 			BeforeEach(func() {
 				cmd := params.EksctlUtilsCmd.WithArgs(
@@ -152,7 +144,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 						"--tags", "alpha.eksctl.io/description=eksctl integration test",
 						"--node-labels", "ng-name="+newNG,
 						"--nodes", "1",
-						"--node-type", selectedNodeType,
+						"--node-type", "inf1.xlarge",
 						"--version", params.Version,
 					)
 					Expect(cmd).To(RunSuccessfully())
