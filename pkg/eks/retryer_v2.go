@@ -12,6 +12,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	maxRetries = 13
+)
+
 // RetryerV2 implements aws.Retryer
 type RetryerV2 struct {
 	aws.Retryer

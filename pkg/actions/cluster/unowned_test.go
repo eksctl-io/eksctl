@@ -43,6 +43,7 @@ func (d *drainerMockUnowned) Drain(ctx context.Context, input *nodegroup.DrainIn
 var _ = Describe("Delete", func() {
 	var (
 		clusterName              string
+		ctx                      context.Context
 		p                        *mockprovider.MockProvider
 		cfg                      *api.ClusterConfig
 		fakeStackManager         *fakes.FakeStackManager
@@ -52,6 +53,7 @@ var _ = Describe("Delete", func() {
 
 	BeforeEach(func() {
 		clusterName = "my-cluster"
+		ctx = context.Background()
 		p = mockprovider.NewMockProvider()
 		cfg = api.NewClusterConfig()
 		cfg.Metadata.Name = clusterName
@@ -147,14 +149,15 @@ var _ = Describe("Delete", func() {
 			p.MockEKS().On("DeleteNodegroup", mock.Anything, &awseks.DeleteNodegroupInput{ClusterName: &clusterName, NodegroupName: aws.String("ng-2")}).Return(&awseks.DeleteNodegroupOutput{}, nil)
 
 			p.MockEKS().On("DeleteCluster", mock.Anything, mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
-			c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
+			c, err := cluster.NewUnownedCluster(ctx, cfg, ctl, fakeStackManager)
+			Expect(err).NotTo(HaveOccurred())
 			fakeClientSet := fake.NewSimpleClientset()
 
 			c.SetNewClientSet(func() (kubernetes.Interface, error) {
 				return fakeClientSet, nil
 			})
 
-			err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
+			err = c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deleteCallCount).To(Equal(1))
 			Expect(unownedDeleteCallCount).To(Equal(1))
@@ -238,7 +241,8 @@ var _ = Describe("Delete", func() {
 						},
 					},
 				}
-				c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
+				c, err := cluster.NewUnownedCluster(ctx, cfg, ctl, fakeStackManager)
+				Expect(err).NotTo(HaveOccurred())
 				fakeClientSet := fake.NewSimpleClientset()
 
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -257,7 +261,7 @@ var _ = Describe("Delete", func() {
 					return mockedDrainer
 				})
 
-				err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, true, false, 1)
+				err = c.Delete(context.Background(), time.Microsecond, time.Second*0, false, true, false, 1)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(deleteCallCount).To(Equal(0))
 				Expect(unownedDeleteCallCount).To(Equal(0))
@@ -333,7 +337,8 @@ var _ = Describe("Delete", func() {
 				p.MockEKS().On("DeleteNodegroup", mock.Anything, nil).Return(&awseks.DeleteNodegroupOutput{}, nil)
 
 				p.MockEKS().On("DeleteCluster", mock.Anything, mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
-				c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
+				c, err := cluster.NewUnownedCluster(ctx, cfg, ctl, fakeStackManager)
+				Expect(err).NotTo(HaveOccurred())
 				fakeClientSet := fake.NewSimpleClientset()
 
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -360,7 +365,7 @@ var _ = Describe("Delete", func() {
 					return mockedDrainer
 				})
 
-				err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
+				err = c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
 				Expect(err).To(MatchError(errorMessage))
 				Expect(deleteCallCount).To(Equal(0))
 				Expect(unownedDeleteCallCount).To(Equal(0))
@@ -423,8 +428,9 @@ var _ = Describe("Delete", func() {
 
 			p.MockEKS().On("DeleteCluster", mock.Anything, mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
 
-			c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
-			err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
+			c, err := cluster.NewUnownedCluster(ctx, cfg, ctl, fakeStackManager)
+			Expect(err).NotTo(HaveOccurred())
+			err = c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(deleteCallCount).To(Equal(1))

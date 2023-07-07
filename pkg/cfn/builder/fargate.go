@@ -5,11 +5,12 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
-	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 const (
@@ -36,7 +37,7 @@ func NewFargateResourceSet(spec *api.ClusterConfig) *FargateResourceSet {
 }
 
 func (rs *FargateResourceSet) AddAllResources() error {
-	rs.rs.template.Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
+	rs.rs.template.Mappings[servicePrincipalPartitionMapName] = api.Partitions.ServicePrincipalPartitionMappings()
 
 	rs.rs.template.Description = fmt.Sprintf(
 		"%s %s",

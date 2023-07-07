@@ -99,7 +99,7 @@ func (c *ClusterResourceSet) AddAllResources(ctx context.Context) error {
 		return nil
 	})
 
-	c.Template().Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
+	c.Template().Mappings[servicePrincipalPartitionMapName] = api.Partitions.ServicePrincipalPartitionMappings()
 
 	c.rs.template.Description = fmt.Sprintf(
 		"%s (dedicated VPC: %v, dedicated IAM: %v) %s",

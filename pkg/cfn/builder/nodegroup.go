@@ -78,7 +78,7 @@ func (n *NodeGroupResourceSet) AddAllResources(ctx context.Context) error {
 		n.spec.AMIFamily, api.IsEnabled(n.spec.SSH.Allow), n.spec.PrivateNetworking,
 		templateDescriptionSuffix)
 
-	n.Template().Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
+	n.Template().Mappings[servicePrincipalPartitionMapName] = api.Partitions.ServicePrincipalPartitionMappings()
 
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureSharedSecurityGroup, n.spec.SecurityGroups.WithShared, false)
