@@ -42,7 +42,7 @@ var _ = Describe("default addons - coredns", func() {
 
 		BeforeEach(func() {
 			createCoreDNSFromTestSample(rawClient, kubernetesVersion)
-			expectedImageTag = "v1.8.7-eksbuild.2"
+			expectedImageTag = "v1.8.7-eksbuild.3"
 		})
 
 		It("updates coredns to the correct version", func() {
