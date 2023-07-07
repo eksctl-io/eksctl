@@ -17,4 +17,4 @@ jobs:
       - name: Rebase
         uses: cirrus-actions/rebase@1.8
         env:
-          GITHUB_TOKEN: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.EKSCTLBOT_TOKEN }}

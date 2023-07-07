@@ -7,11 +7,11 @@ inputs:
   name:
     description: "Git config name"
     required: false
-    default: "weaveworksbot"
+    default: "eksctl-bot"
   email:
     description: "Git config email"
     required: false
-    default: "weaveworksbot@users.noreply.github.com"
+    default: "53547694+eksctl-bot@users.noreply.github.com"
 outputs: {}
 runs:
   using: "composite"

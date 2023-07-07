@@ -29,7 +29,11 @@ type UnownedCluster struct {
 	newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer
 }
 
-func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) *UnownedCluster {
+func NewUnownedCluster(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) (*UnownedCluster, error) {
+	instanceSelector, err := selector.New(context.Background(), ctl.AWSProvider.AWSConfig())
+	if err != nil {
+		return nil, err
+	}
 	return &UnownedCluster{
 		cfg:          cfg,
 		ctl:          ctl,
@@ -38,9 +42,9 @@ func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMa
 			return ctl.NewStdClientSet(cfg)
 		},
 		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
-			return nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
+			return nodegroup.New(cfg, ctl, clientSet, instanceSelector)
 		},
-	}
+	}, nil
 }
 
 func (c *UnownedCluster) Upgrade(ctx context.Context, dryRun bool) error {

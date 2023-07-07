@@ -142,5 +142,9 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 		DisableEviction:       disableEviction,
 		Parallel:              parallel,
 	}
-	return nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session())).Drain(ctx, drainInput)
+	instanceSelector, err := selector.New(ctx, ctl.AWSProvider.AWSConfig())
+	if err != nil {
+		return err
+	}
+	return nodegroup.New(cfg, ctl, clientSet, instanceSelector).Drain(ctx, drainInput)
 }
