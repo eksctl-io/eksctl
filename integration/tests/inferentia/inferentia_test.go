@@ -35,6 +35,8 @@ func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
 	params = tests.NewParams("inf")
+	// Hardcoding the region for this integration test, as inf2.xlarge instance type support is limited.
+	params.Region = api.RegionUSEast2
 	clusterWithNeuronPlugin = params.ClusterName
 	clusterWithoutPlugin = params.NewClusterName("inf-no-plugin")
 
@@ -72,7 +74,7 @@ var _ = BeforeSuite(func() {
 			"--nodes", "1",
 			"--node-type", selectedNodeType,
 			"--version", params.Version,
-			"--zones", "us-west-2a,us-west-2c,us-west-2d",
+			"--zones", "us-east-2a,us-west-2b",
 			"--kubeconfig", params.KubeconfigPath,
 		)
 		Expect(cmd).To(RunSuccessfully())
@@ -87,7 +89,7 @@ var _ = BeforeSuite(func() {
 			"--nodes", "1",
 			"--node-type", selectedNodeType,
 			"--version", params.Version,
-			"--zones", "us-west-2a,us-west-2c,us-west-2d",
+			"--zones", "us-east-2a,us-west-2b",
 			"--kubeconfig", params.KubeconfigPath,
 		)
 		Expect(cmd).To(RunSuccessfully())
