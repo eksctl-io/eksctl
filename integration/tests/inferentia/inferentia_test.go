@@ -74,7 +74,8 @@ var _ = BeforeSuite(func() {
 			"--nodes", "1",
 			"--node-type", selectedNodeType,
 			"--version", params.Version,
-			"--zones", "us-east-2a,us-west-2b",
+			"--region", params.Region,
+			"--zones", "us-east-2a,us-east-2b",
 			"--kubeconfig", params.KubeconfigPath,
 		)
 		Expect(cmd).To(RunSuccessfully())
@@ -89,7 +90,8 @@ var _ = BeforeSuite(func() {
 			"--nodes", "1",
 			"--node-type", selectedNodeType,
 			"--version", params.Version,
-			"--zones", "us-east-2a,us-west-2b",
+			"--region", params.Region,
+			"--zones", "us-east-2a,us-east-2b",
 			"--kubeconfig", params.KubeconfigPath,
 		)
 		Expect(cmd).To(RunSuccessfully())
@@ -107,6 +109,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				cmd := params.EksctlUtilsCmd.WithArgs(
 					"write-kubeconfig",
 					"--verbose", "4",
+					"--region", params.Region,
 					"--cluster", clusterWithoutPlugin,
 					"--kubeconfig", params.KubeconfigPath,
 				)
@@ -130,6 +133,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				cmd := params.EksctlUtilsCmd.WithArgs(
 					"write-kubeconfig",
 					"--verbose", "4",
+					"--region", params.Region,
 					"--cluster", clusterWithoutPlugin,
 					"--kubeconfig", params.KubeconfigPath,
 				)
@@ -146,6 +150,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				It("should install without error", func() {
 					cmd := params.EksctlCreateCmd.WithArgs(
 						"nodegroup",
+						"--region", params.Region,
 						"--cluster", clusterWithoutPlugin,
 						"--managed=false",
 						"--nodes", "1",
