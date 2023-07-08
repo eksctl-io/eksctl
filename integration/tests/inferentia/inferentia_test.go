@@ -36,7 +36,7 @@ func init() {
 	testing.Init()
 	params = tests.NewParams("inf")
 	// Hardcoding the region for this integration test, as inf2.xlarge instance type support is limited.
-	params.Region = api.RegionUSEast2
+	params.SetRegion(api.RegionUSEast2)
 	clusterWithNeuronPlugin = params.ClusterName
 	clusterWithoutPlugin = params.NewClusterName("inf-no-plugin")
 
@@ -74,7 +74,6 @@ var _ = BeforeSuite(func() {
 			"--nodes", "1",
 			"--node-type", selectedNodeType,
 			"--version", params.Version,
-			"--region", params.Region,
 			"--zones", "us-east-2a,us-east-2b",
 			"--kubeconfig", params.KubeconfigPath,
 		)
@@ -90,7 +89,6 @@ var _ = BeforeSuite(func() {
 			"--nodes", "1",
 			"--node-type", selectedNodeType,
 			"--version", params.Version,
-			"--region", params.Region,
 			"--zones", "us-east-2a,us-east-2b",
 			"--kubeconfig", params.KubeconfigPath,
 		)
@@ -109,7 +107,6 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				cmd := params.EksctlUtilsCmd.WithArgs(
 					"write-kubeconfig",
 					"--verbose", "4",
-					"--region", params.Region,
 					"--cluster", clusterWithoutPlugin,
 					"--kubeconfig", params.KubeconfigPath,
 				)
@@ -133,7 +130,6 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				cmd := params.EksctlUtilsCmd.WithArgs(
 					"write-kubeconfig",
 					"--verbose", "4",
-					"--region", params.Region,
 					"--cluster", clusterWithoutPlugin,
 					"--kubeconfig", params.KubeconfigPath,
 				)
@@ -150,7 +146,6 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				It("should install without error", func() {
 					cmd := params.EksctlCreateCmd.WithArgs(
 						"nodegroup",
-						"--region", params.Region,
 						"--cluster", clusterWithoutPlugin,
 						"--managed=false",
 						"--nodes", "1",
