@@ -17,7 +17,7 @@ generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deep
 generated_code_aws_sdk_mocks := $(wildcard pkg/eks/mocks/*API.go)
 
 conditionally_generated_files := \
-  $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks) $(generated_code_aws_sdk_v2_mocks)
+  $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks)
 
 .DEFAULT_GOAL := help
 
@@ -144,6 +144,7 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 	go generate ./pkg/authconfigmap
 	go generate ./pkg/awsapi/...
 	go generate ./pkg/eks
+	AWS_SDK_V2_GO_DIR=$(AWS_SDK_V2_GO_DIR) go generate ./pkg/eks/mocksv2
 	go generate ./pkg/drain
 	go generate ./pkg/actions/...
 	go generate ./pkg/executor
@@ -172,8 +173,6 @@ $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kuber
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go) ## Generate AWS SDK mocks
 	AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
 
-$(generated_code_aws_sdk_v2_mocks): $(call godeps,pkg/eks/mockv2s/generate.go) ## Generate AWS SDK V2 mocks
-	AWS_SDK_GO_DIR=$(AWS_SDK_V2_GO_DIR) go generate ./pkg/eks/mocksv2
 
 .PHONY: generate-kube-reserved
 generate-kube-reserved: ## Update instance list with respective specs
