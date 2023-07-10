@@ -140,6 +140,10 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 		return nil, err
 	}
 
+	if spec.Region == "" {
+		spec.Region = cfg.Region
+	}
+
 	provider.ServicesV2 = &ServicesV2{
 		config: cfg,
 	}
