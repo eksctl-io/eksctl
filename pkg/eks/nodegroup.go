@@ -90,9 +90,7 @@ func LogWindowsCompatibility(nodeGroups []KubeNodeGroup, clusterMeta *api.Cluste
 	}
 }
 
-// KubeNodeGroup defines a set of Kubernetes Nodes
-//
-//go:generate "${GOBIN}/mockery" --name=KubeNodeGroup --output=mocks/
+// KubeNodeGroup defines a set of Kubernetes nodes.
 type KubeNodeGroup interface {
 	// NameString returns the name
 	NameString() string
