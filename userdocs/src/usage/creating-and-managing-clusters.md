@@ -124,7 +124,7 @@ eksctl delete cluster -f cluster.yaml
     eksctl delete cluster -f cluster.yaml --disable-nodegroup-eviction
     ```
 
-See [`examples/`](https://github.com/weaveworks/eksctl/tree/master/examples) directory for more sample config files.
+See [`examples/`](https://github.com/eksctl-io/eksctl/tree/master/examples) directory for more sample config files.
 
 ## Dry Run
 The dry-run feature enables generating a ClusterConfig file that skips cluster creation and outputs a ClusterConfig file that

@@ -99,5 +99,5 @@ nodeGroups:
       - private-one
 ```
 
-See [here](https://github.com/weaveworks/eksctl/blob/master/examples/24-nodegroup-subnets.yaml) for a full
+See [here](https://github.com/eksctl-io/eksctl/blob/master/examples/24-nodegroup-subnets.yaml) for a full
 configuration example.

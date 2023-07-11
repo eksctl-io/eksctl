@@ -20,7 +20,7 @@ brews:
       - aws-iam-authenticator
 
     custom_block: |
-      head "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_Darwin_amd64.tar.gz"
+      head "https://github.com/eksctl-io/eksctl/releases/download/latest_release/eksctl_Darwin_amd64.tar.gz"
 
     install: |
         bin.install "eksctl"

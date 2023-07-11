@@ -175,8 +175,8 @@ nodeGroups:
 
 More examples can be found in the repo's `examples` folder:
 
-- [using an existing VPC](https://github.com/weaveworks/eksctl/blob/master/examples/04-existing-vpc.yaml)
-- [using a custom VPC CIDR](https://github.com/weaveworks/eksctl/blob/master/examples/02-custom-vpc-cidr-no-nodes.yaml)
+- [using an existing VPC](https://github.com/eksctl-io/eksctl/blob/master/examples/04-existing-vpc.yaml)
+- [using a custom VPC CIDR](https://github.com/eksctl-io/eksctl/blob/master/examples/02-custom-vpc-cidr-no-nodes.yaml)
 
 ## Custom Shared Node Security Group
 
@@ -220,7 +220,7 @@ vpc:
     gateway: HighlyAvailable # other options: Disable, Single (default)
 ```
 
-See the complete example [here](https://github.com/weaveworks/eksctl/blob/master/examples/09-nat-gateways.yaml).
+See the complete example [here](https://github.com/eksctl-io/eksctl/blob/master/examples/09-nat-gateways.yaml).
 
 **Note**: Specifying the NAT Gateway is only supported during cluster creation. It isn't touched during a cluster
 upgrade. There are plans to support changing between different modes on cluster update in the future.
