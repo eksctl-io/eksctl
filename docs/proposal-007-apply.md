@@ -152,7 +152,7 @@ delete any not listed in the config.
 ##### `terraform`-style state
 
 Storing some kind of state/config "somewhere" is another option and has been discussed in
-https://github.com/weaveworks/eksctl/issues/642
+https://github.com/eksctl-io/eksctl/issues/642
 
 #### Ignore resource option
 

@@ -7,7 +7,7 @@ How to use this template:
 - Open a PR to eksctl
 - Merge early and iterate
 
-For more tips see the Contributing docs: https://github.com/weaveworks/eksctl/blob/master/CONTRIBUTING.md#proposals
+For more tips see the Contributing docs: https://github.com/eksctl-io/eksctl/blob/master/CONTRIBUTING.md#proposals
 -->
 
 # Short, descriptive title

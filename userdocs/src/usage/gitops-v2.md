@@ -8,7 +8,7 @@
     There are significant API changes from the `0.38.0-0.52.0` support with this release, please refer to this documentation.
 
     Disruptions are still likely until development has stabilised.
-    All changes will be noted in [releases](https://github.com/weaveworks/eksctl/releases).
+    All changes will be noted in [releases](https://github.com/eksctl-io/eksctl/releases).
 
 [Gitops][gitops] is a way to do Kubernetes application delivery. It
 works by using Git as a single source of truth for Kubernetes resources
@@ -21,7 +21,7 @@ application deployments and operations tasks to Kubernetes.
 ## Installing Flux v2 (GitOps Toolkit)
 
 _Initial Flux v2 support was released in `0.38.0`, but the API has undergone significant changes. An older
-example can be found [here](https://github.com/weaveworks/eksctl/blob/a854bdbd3e47059d860a78600c2c1813281f4ebf/examples/12-gitops-toolkit.yaml)._
+example can be found [here](https://github.com/eksctl-io/eksctl/blob/a854bdbd3e47059d860a78600c2c1813281f4ebf/examples/12-gitops-toolkit.yaml)._
 
 From version `0.53.0`, `eksctl` provides an option to alternatively bootstrap [Flux v2](https://toolkit.fluxcd.io/)
 components into an EKS cluster, with the `enable flux` subcommand.
@@ -64,7 +64,7 @@ gitops:
       team: "team1,team2"
 ```
 
-This example configuration can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/12-gitops-toolkit.yaml).
+This example configuration can be found [here](https://github.com/eksctl-io/eksctl/blob/main/examples/12-gitops-toolkit.yaml).
 
 ???+ note
     Flux v2 configuration can **only** be provided via configuration file; no flags
