@@ -33,7 +33,7 @@ type IdentityProviderInterface interface {
 // with `.(type)` to get access to the specific type
 
 // IdentityProvider holds an identity provider configuration.
-// See [the example eksctl config](https://github.com/weaveworks/eksctl/blob/main/examples/27-oidc-provider.yaml).
+// See [the example eksctl config](https://github.com/eksctl-io/eksctl/blob/main/examples/27-oidc-provider.yaml).
 // Schema type is one of `OIDCIdentityProvider`
 type IdentityProvider struct {
 	// Valid variants are:

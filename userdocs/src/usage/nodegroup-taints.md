@@ -12,4 +12,4 @@ To apply [taints](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-
         effect: NoExecute
 ```
 
-A full example can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/34-taints.yaml).
+A full example can be found [here](https://github.com/eksctl-io/eksctl/blob/main/examples/34-taints.yaml).

@@ -11,11 +11,11 @@ Since then, many users asked for various features in relation to custom VPC.
 
 There a few specific use-cases:
 
-1. co-location with kops [#50](https://github.com/weaveworks/eksctl/issues/50)
-2. set custom CIDR [#279](https://github.com/weaveworks/eksctl/issues/279)
-3. private/public subnets [#120](https://github.com/weaveworks/eksctl/issues/120)
-4. use any existing VPC [#42](https://github.com/weaveworks/eksctl/issues/42)
-5. use same subnet/AZ for a nodegroup [#232](https://github.com/weaveworks/eksctl/issues/232)
+1. co-location with kops [#50](https://github.com/eksctl-io/eksctl/issues/50)
+2. set custom CIDR [#279](https://github.com/eksctl-io/eksctl/issues/279)
+3. private/public subnets [#120](https://github.com/eksctl-io/eksctl/issues/120)
+4. use any existing VPC [#42](https://github.com/eksctl-io/eksctl/issues/42)
+5. use same subnet/AZ for a nodegroup [#232](https://github.com/eksctl-io/eksctl/issues/232)
 
 Out of the above, we already have support for 1 & 2 (as of 0.1.8) as well as 3 (as of 0.1.9).
 

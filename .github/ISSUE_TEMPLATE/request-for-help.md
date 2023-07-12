@@ -14,7 +14,7 @@ Before creating a new request for help, please search existing issue to see if y
 If there is a similar feature request please up-vote it and/or add your comments to it instead
 
 For more information on how to request help on eksctl, please refer to our community docs.
-https://github.com/weaveworks/eksctl/blob/main/CONTRIBUTING.md#opening-issues
+https://github.com/eksctl-io/eksctl/blob/main/CONTRIBUTING.md#opening-issues
 -->
 
 ### What help do you need?

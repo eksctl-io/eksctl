@@ -40,7 +40,7 @@ We welcome all contributions and user feedback to the project.
 - End users. In other words the reason why we are all here!
 - Community contributors. These could be end users themselves, or those working
   on their open-source game.
-- Maintainers. _See [the maintainer docs](https://github.com/weaveworks/eksctl-handbook) for a list
+- Maintainers. _See [the maintainer docs](https://github.com/eksctl-io/eksctl-handbook) for a list
   of maintainer responsibilities._
 
 Decisions are made by Maintainers with input from both Amazon and the community.

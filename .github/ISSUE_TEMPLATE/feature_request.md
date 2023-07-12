@@ -14,7 +14,7 @@ In order to help us process this request faster, please provide as much detail a
 Before creating a feature request, please search existing issues to see if this request has already been made. If there is a similar feature request please up-vote it and/or add your comments to it instead.
 
 For more information on how to contribute to eksctl, please refer to our contributing docs.
-https://github.com/weaveworks/eksctl/blob/main/CONTRIBUTING.md#opening-issues
+https://github.com/eksctl-io/eksctl/blob/main/CONTRIBUTING.md#opening-issues
 -->
 
 ### What feature/behavior/change do you want?

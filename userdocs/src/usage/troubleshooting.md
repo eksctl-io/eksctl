@@ -60,4 +60,4 @@ or
 Error from server (InternalError): Internal error occurred: Authorization error (user=kube-apiserver-kubelet-client, verb=get, resource=nodes, subresource=proxy)
 ```
 
-and your nodes are deployed in a private subnet you may need to set [enableDnsHostnames](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-support). More details can be found in [this issue](https://github.com/weaveworks/eksctl/issues/4645).
+and your nodes are deployed in a private subnet you may need to set [enableDnsHostnames](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-support). More details can be found in [this issue](https://github.com/eksctl-io/eksctl/issues/4645).

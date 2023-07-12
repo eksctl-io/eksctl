@@ -63,7 +63,7 @@ managedNodeGroups:
     minSize: 2
     maxSize: 3
 ```
-Another example of a config file for creating a managed nodegroup can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/15-managed-nodes.yaml).
+Another example of a config file for creating a managed nodegroup can be found [here](https://github.com/eksctl-io/eksctl/blob/main/examples/15-managed-nodes.yaml).
 
 It's possible to have a cluster with both managed and unmanaged nodegroups. Unmanaged nodegroups do not show up in
 the AWS EKS console but `eksctl get nodegroup` will list both types of nodegroups.
@@ -235,7 +235,7 @@ eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release
       ```
 
 ## Handling parallel upgrades for nodes
-Multiple managed nodes can be upgraded simultaneously. To configure parallel upgrades, define the `updateConfig` of a nodegroup when creating the nodegroup. An example `updateConfig` can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/15-managed-nodes.yaml).
+Multiple managed nodes can be upgraded simultaneously. To configure parallel upgrades, define the `updateConfig` of a nodegroup when creating the nodegroup. An example `updateConfig` can be found [here](https://github.com/eksctl-io/eksctl/blob/main/examples/15-managed-nodes.yaml).
 
 To avoid any downtime to your workloads due to upgrading multiple nodes at once, you can limit the number of nodes that can become unavailable during an upgrade by specifying this in the `maxUnavailable` field of an `updateConfig`. Alternatively, use `maxUnavailablePercentage`, which defines the maximum number of unavailable nodes as a percentage of the total number of nodes.
 
