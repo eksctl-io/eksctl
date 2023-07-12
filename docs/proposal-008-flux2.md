@@ -100,10 +100,10 @@ The unofficial motivations of this proposal are:
 
 ### Linked Docs
 
-[Original PR](https://github.com/weaveworks/eksctl/pull/3066).
+[Original PR](https://github.com/eksctl-io/eksctl/pull/3066).
 [Current eksctl docs](https://eksctl.io/usage/gitops/#experimental-installing-flux-v2-gitops-toolkit).
-[Current Flux api object in eksctl](https://github.com/weaveworks/eksctl/blob/ab702daa671a87dc926b70348481ce336638f064/pkg/apis/eksctl.io/v1alpha5/types.go#L901-L937).
-[Expansion issue](https://github.com/weaveworks/eksctl/issues/3238).
+[Current Flux api object in eksctl](https://github.com/eksctl-io/eksctl/blob/ab702daa671a87dc926b70348481ce336638f064/pkg/apis/eksctl.io/v1alpha5/types.go#L901-L937).
+[Expansion issue](https://github.com/eksctl-io/eksctl/issues/3238).
 
 ## Details
 

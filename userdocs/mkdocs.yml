@@ -4,8 +4,8 @@ site_description: 'The official CLI for Amazon EKS'
 site_author: 'eksctl authors'
 
 # Repository
-repo_name: 'weaveworks/eksctl'
-repo_url: 'https://github.com/weaveworks/eksctl'
+repo_name: 'eksctl-io/eksctl'
+repo_url: 'https://github.com/eksctl-io/eksctl'
 docs_dir: src
 edit_uri: ""
 
@@ -90,6 +90,9 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.tasklist:
       custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
   - attr_list
   - md_in_html
 
@@ -153,5 +156,5 @@ nav:
   - Announcements:
     - announcements/managed-nodegroups-announcement.md
     - announcements/nodegroup-override-announcement.md
-  - Examples: "https://github.com/weaveworks/eksctl/tree/main/examples"
+  - Examples: "https://github.com/eksctl-io/eksctl/tree/main/examples"
   - Community: community.md

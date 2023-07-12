@@ -21,7 +21,7 @@ Before you start writing:
 2. Download the latest version of eksctl to see whether the problem has already been fixed.
 
 For more information on how to open a bug report in eksctl, please refer to our issue submission guide.
-https://github.com/weaveworks/eksctl/blob/main/CONTRIBUTING.md#opening-issues
+https://github.com/eksctl-io/eksctl/blob/main/CONTRIBUTING.md#opening-issues
 -->
 
 ### What were you trying to accomplish?

@@ -11,7 +11,7 @@ jobs:
   update_aws_node:
     name: Update aws-node and open PR
     runs-on: ubuntu-latest
-    container: weaveworks/eksctl-build:dd26c9e3baf8c275667bc15b1ce08aff6424a709
+    container: weaveworks/eksctl-build:65360e688586a01e7cb4d254eb57d05f0b2c199f
     env:
       UPDATE_BRANCH: update-aws-node
       GOPRIVATE: ""
@@ -54,13 +54,13 @@ jobs:
         with:
           github-token: ${{ secrets.EKSCTLBOT_TOKEN }}
           script: |
-            const { data: pr } = await github.pulls.create({
+            const { data: pr } = await github.rest.pulls.create({
               ...context.repo,
               title: "Update aws-node",
               head: "${{ env.UPDATE_BRANCH }}",
               base: "${{ env.DEFAULT_BRANCH }}",
             });
-            await github.issues.addLabels({
+            await github.rest.issues.addLabels({
               ...context.repo,
               issue_number: pr.number,
               labels: ["kind/improvement"],
