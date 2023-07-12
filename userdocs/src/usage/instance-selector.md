@@ -62,7 +62,7 @@ The following instance selector CLI options are supported by `eksctl create clus
 
 `--instance-selector-vcpus`, `--instance-selector-memory`, `--instance-selector-gpus` and `instance-selector-cpu-architecture`
 
-An example file can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/28-instance-selector.yaml).
+An example file can be found [here](https://github.com/eksctl-io/eksctl/blob/main/examples/28-instance-selector.yaml).
 
 ### Dry Run
 The [dry-run](/usage/dry-run) feature allows you to inspect and change the instances matched by the instance selector before proceeding

@@ -85,7 +85,7 @@ You won't need a separate nodegroup for each AZ if your environment meets the fo
 - No required nodeAffinity on zone label.
 - No nodeSelector on a zone label.
 
-(Read more [here](https://github.com/kubernetes/autoscaler/pull/1802#issuecomment-474295002) and [here](https://github.com/weaveworks/eksctl/pull/647#issuecomment-474698054).)
+(Read more [here](https://github.com/kubernetes/autoscaler/pull/1802#issuecomment-474295002) and [here](https://github.com/eksctl-io/eksctl/pull/647#issuecomment-474698054).)
 
 If you meet all of the above requirements (and possibly others) then you should be safe with a single nodegroup which spans multiple AZs. Otherwise you'll want to create separate, single-AZ nodegroups:
 

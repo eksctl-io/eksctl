@@ -10,7 +10,7 @@ The original solution involved:
 
 Publishing build and final images hasn't been automated, but some users requested it.
 
-When we switched [to modules](https://github.com/weaveworks/eksctl/pull/917), we have increased the
+When we switched [to modules](https://github.com/eksctl-io/eksctl/pull/917), we have increased the
 compexity of how build image worked. It's hard for a new person to understand it, e.g. for a new
 contributor.
 
@@ -54,7 +54,7 @@ and can be reproduced any other CI environment.
 
 ### Details
 
-This proposal [#1200](https://github.com/weaveworks/eksctl/pull/1200) aims to streamline the following
+This proposal [#1200](https://github.com/eksctl-io/eksctl/pull/1200) aims to streamline the following
 aspects:
 
 - automate build image versioning through deterministic git object hashes (see `Makefile.docker`)
@@ -106,17 +106,17 @@ Overall, there is a definite 2m speed-up.
 
 ## Simplifications
 
-We currently have rather complicated [CircleCI config](https://github.com/weaveworks/eksctl/blob/950f9bc695234107725234b9e1a9c9d2ee54e51f/.circleci/config.yml#L3-L38),
-and [`Makefile`](https://github.com/weaveworks/eksctl/blob/950f9bc695234107725234b9e1a9c9d2ee54e51f/Makefile#L188-L204).
+We currently have rather complicated [CircleCI config](https://github.com/eksctl-io/eksctl/blob/950f9bc695234107725234b9e1a9c9d2ee54e51f/.circleci/config.yml#L3-L38),
+and [`Makefile`](https://github.com/eksctl-io/eksctl/blob/950f9bc695234107725234b9e1a9c9d2ee54e51f/Makefile#L188-L204).
 
 
-New configuration is much simpler, in [CircleCI config](https://github.com/weaveworks/eksctl/blob/d3b6988562b14c9d91f4e1bf7dd2c086e06c2383/.circleci/config.yml#L3-L24)
-it comes down to running [`make test`](https://github.com/weaveworks/eksctl/blob/1be26b314333467d1b67a44c77d1cd27460eaa70/Makefile#L68-L73) followed by `make build`.
+New configuration is much simpler, in [CircleCI config](https://github.com/eksctl-io/eksctl/blob/d3b6988562b14c9d91f4e1bf7dd2c086e06c2383/.circleci/config.yml#L3-L24)
+it comes down to running [`make test`](https://github.com/eksctl-io/eksctl/blob/1be26b314333467d1b67a44c77d1cd27460eaa70/Makefile#L68-L73) followed by `make build`.
 
 ## Further Improvements
 
 - [x] stop using `docker run` and `docker commit`, use another `Dockerfile` instead of `eksctl-image-builder.sh`
 - [x] push images to a registry (GitHub offering could be a good fit, otherwise consider ECR)
-- [ ] automate other workflows with bots and GitHub Actions (e.g. cherry-picking [#1284](https://github.com/weaveworks/eksctl/issues/1284), AMI updates [#314](https://github.com/weaveworks/eksctl/issues/314))
+- [ ] automate other workflows with bots and GitHub Actions (e.g. cherry-picking [#1284](https://github.com/eksctl-io/eksctl/issues/1284), AMI updates [#314](https://github.com/eksctl-io/eksctl/issues/314))
 - [x] automate integration tests
 - [ ] allow running integration tests on PRs from contributors upon PR approval

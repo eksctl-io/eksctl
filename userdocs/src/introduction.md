@@ -184,7 +184,7 @@ eksctl delete cluster --name=<name> [--region=<region>]
 
 ## Contributions
 
-Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](https://github.com/weaveworks/eksctl/blob/master/CONTRIBUTING.md).
+Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](https://github.com/eksctl-io/eksctl/blob/master/CONTRIBUTING.md).
 
 _Need help? Join [Eksctl Slack][slackjoin]._
 [slackjoin]: https://slack.k8s.io/
@@ -223,10 +223,10 @@ To download the latest release, run:
 ARCH=amd64
 PLATFORM=$(uname -s)_$ARCH
 
-curl -sLO "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
 
 # (Optional) Verify checksum
-curl -sL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
 
 tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
 
@@ -235,12 +235,12 @@ sudo mv /tmp/eksctl /usr/local/bin
 
 ### For Windows
 
-#### Direct download (latest release): [AMD64/x86_64](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_amd64.zip) - [ARMv6](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_armv6.zip) - [ARMv7](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_armv7.zip) - [ARM64](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_arm64.zip)
+#### Direct download (latest release): [AMD64/x86_64](https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_windows_amd64.zip) - [ARMv6](https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_windows_armv6.zip) - [ARMv7](https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_windows_armv7.zip) - [ARM64](https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_windows_arm64.zip)
 Make sure to unzip the archive to a folder in the `PATH` variable. 
 
 Optionally, verify the checksum: 
 
-1. Download the checksum file: [latest](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_checksums.txt)
+1. Download the checksum file: [latest](https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt)
 2. Use Command Prompt to manually compare `CertUtil`'s output to the checksum file downloaded. 
   ```cmd
   REM Replace amd64 with armv6, armv7 or arm64
@@ -258,10 +258,10 @@ Optionally, verify the checksum:
 ARCH=amd64
 PLATFORM=windows_$ARCH
 
-curl -sLO "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$PLATFORM.zip"
+curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.zip"
 
 # (Optional) Verify checksum
-curl -sL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
 
 unzip eksctl_$PLATFORM.zip -d $HOME/bin
 
@@ -272,7 +272,7 @@ The `eksctl` executable is placed in `$HOME/bin`, which is in `$PATH` from Git B
 
 ### Docker
 
-For every release and RC, a docker image is pushed to [weaveworks/eksctl - Docker Image | Docker Hub](https://hub.docker.com/r/weaveworks/eksctl). 
+For every release and RC, a docker image is pushed to [eksctl-io/eksctl - Docker Image | Docker Hub](https://hub.docker.com/r/eksctl-io/eksctl). 
 
 ### Third-Party Installers (Not Recommended)
 #### For MacOS
