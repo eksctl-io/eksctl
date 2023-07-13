@@ -79,6 +79,33 @@ managedNodeGroups:
 
 The `--node-ami-family` flag can also be used with `eksctl create nodegroup`. `eksctl` requires AMI Family to be explicitly set via config file or via `--node-ami-family` CLI flag, whenever working with a custom AMI.
 
+## Windows custom AMI support
+Only self-managed Windows nodegroups can specify a custom AMI. `amiFamily` should be set to a valid Windows AMI family.
+
+The following PowerShell variables will be available to the bootstrap script:
+
+```
+$EKSBootstrapScriptFile
+$EKSClusterName
+$APIServerEndpoint
+$Base64ClusterCA
+$ServiceCIDR
+$KubeletExtraArgs
+$KubeletExtraArgsMap: A hashtable containing arguments for the kubelet, e.g., @{ 'node-labels' = ''; 'register-with-taints' = ''; 'max-pods' = '10'}
+$DNSClusterIP
+$ContainerRuntime
+```
+
+Config file example:
+```yaml
+nodeGroups:
+  - name: custom-windows
+    amiFamily: WindowsServer2022FullContainer
+    ami: ami-01579b74557facaf7
+    overrideBootstrapCommand: |
+      & $EKSBootstrapScriptFile -EKSClusterName "$EKSClusterName" -APIServerEndpoint "$APIServerEndpoint" -Base64ClusterCA "$Base64ClusterCA" -ContainerRuntime "containerd" -KubeletExtraArgs "$KubeletExtraArgs" 3>&1 4>&1 5>&1 6>&1
+```
+
 ## Bottlerocket custom AMI support
 
 For Bottlerocket nodes, the `overrideBootstrapCommand` is not supported. Instead, to designate their own bootstrap container, one should use the `bottlerocket` field as part of the configuration file. E.g.
