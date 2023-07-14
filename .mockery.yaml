@@ -1,0 +1,31 @@
+mockname: "{{.InterfaceName}}"
+structname: "{{.InterfaceName}}.go"
+filename: "{{.InterfaceName}}.go"
+with-expecter: false
+packages:
+  github.com/weaveworks/eksctl/pkg/awsapi:
+    config:
+      all: true
+      dir: "./pkg/eks/mocksv2"
+      outpkg: mocksv2
+
+  github.com/weaveworks/eksctl/pkg/eks:
+    interfaces:
+      KubeNodeGroup:
+        config:
+          dir: "{{.InterfaceDir}}/mocks"
+          outpkg: mocks
+  
+  github.com/aws/aws-sdk-go-v2/aws:
+    interfaces:
+      CredentialsProvider:
+        config:
+          dir: "./pkg/eks/mocksv2"
+          outpkg: mocksv2
+
+  github.com/aws/aws-sdk-go/aws/client:
+    interfaces:
+      ConfigProvider:
+        config:
+          dir: "./pkg/eks/mocks"
+          outpkg: mocks
