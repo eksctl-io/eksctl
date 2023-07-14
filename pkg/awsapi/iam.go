@@ -24,9 +24,10 @@ type IAM interface {
 	// and then associate the instance profile (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AssociateIamInstanceProfile.html)
 	// , or you can stop your instance and then restart it. The caller of this
 	// operation must be granted the PassRole permission on the IAM role by a
-	// permissions policy. For more information about roles, see Working with roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/WorkingWithRoles.html)
-	// . For more information about instance profiles, see About instance profiles (https://docs.aws.amazon.com/IAM/latest/UserGuide/AboutInstanceProfiles.html)
-	// .
+	// permissions policy. For more information about roles, see IAM roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html)
+	// in the IAM User Guide. For more information about instance profiles, see Using
+	// instance profiles (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html)
+	// in the IAM User Guide.
 	AddRoleToInstanceProfile(ctx context.Context, params *AddRoleToInstanceProfileInput, optFns ...func(*Options)) (*AddRoleToInstanceProfileOutput, error)
 	// Adds the specified user to the specified group.
 	AddUserToGroup(ctx context.Context, params *AddUserToGroupInput, optFns ...func(*Options)) (*AddUserToGroupOutput, error)
@@ -130,14 +131,14 @@ type IAM interface {
 	//
 	// You get all of this information from the OIDC IdP you want to use to access
 	// Amazon Web Services. Amazon Web Services secures communication with some OIDC
-	// identity providers (IdPs) through our library of trusted certificate authorities
-	// (CAs) instead of using a certificate thumbprint to verify your IdP server
-	// certificate. These OIDC IdPs include Google, Auth0, and those that use an Amazon
-	// S3 bucket to host a JSON Web Key Set (JWKS) endpoint. In these cases, your
-	// legacy thumbprint remains in your configuration, but is no longer used for
-	// validation. The trust for the OIDC provider is derived from the IAM provider
-	// that this operation creates. Therefore, it is best to limit access to the
-	// CreateOpenIDConnectProvider operation to highly privileged users.
+	// identity providers (IdPs) through our library of trusted root certificate
+	// authorities (CAs) instead of using a certificate thumbprint to verify your IdP
+	// server certificate. These OIDC IdPs include Auth0, GitHub, Google, and those
+	// that use an Amazon S3 bucket to host a JSON Web Key Set (JWKS) endpoint. In
+	// these cases, your legacy thumbprint remains in your configuration, but is no
+	// longer used for validation. The trust for the OIDC provider is derived from the
+	// IAM provider that this operation creates. Therefore, it is best to limit access
+	// to the CreateOpenIDConnectProvider operation to highly privileged users.
 	CreateOpenIDConnectProvider(ctx context.Context, params *CreateOpenIDConnectProviderInput, optFns ...func(*Options)) (*CreateOpenIDConnectProviderOutput, error)
 	// Creates a new managed policy for your Amazon Web Services account. This
 	// operation creates a policy version with a version identifier of v1 and sets v1
@@ -160,9 +161,9 @@ type IAM interface {
 	// in the IAM User Guide.
 	CreatePolicyVersion(ctx context.Context, params *CreatePolicyVersionInput, optFns ...func(*Options)) (*CreatePolicyVersionOutput, error)
 	// Creates a new role for your Amazon Web Services account. For more information
-	// about roles, see IAM roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/WorkingWithRoles.html)
-	// . For information about quotas for role names and the number of roles you can
-	// create, see IAM and STS quotas (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html)
+	// about roles, see IAM roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html)
+	// in the IAM User Guide. For information about quotas for role names and the
+	// number of roles you can create, see IAM and STS quotas (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html)
 	// in the IAM User Guide.
 	CreateRole(ctx context.Context, params *CreateRoleInput, optFns ...func(*Options)) (*CreateRoleOutput, error)
 	// Creates an IAM resource that describes an identity provider (IdP) that supports
@@ -255,8 +256,8 @@ type IAM interface {
 	// with the instance profile you are about to delete. Deleting a role or instance
 	// profile that is associated with a running instance will break any applications
 	// running on the instance. For more information about instance profiles, see
-	// About instance profiles (https://docs.aws.amazon.com/IAM/latest/UserGuide/AboutInstanceProfiles.html)
-	// .
+	// Using instance profiles (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html)
+	// in the IAM User Guide.
 	DeleteInstanceProfile(ctx context.Context, params *DeleteInstanceProfileInput, optFns ...func(*Options)) (*DeleteInstanceProfileOutput, error)
 	// Deletes the password for the specified IAM user, For more information, see
 	// Managing passwords for IAM users (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_passwords_admin-change-user.html)
@@ -648,7 +649,7 @@ type IAM interface {
 	GetGroupPolicy(ctx context.Context, params *GetGroupPolicyInput, optFns ...func(*Options)) (*GetGroupPolicyOutput, error)
 	// Retrieves information about the specified instance profile, including the
 	// instance profile's path, GUID, ARN, and role. For more information about
-	// instance profiles, see About instance profiles (https://docs.aws.amazon.com/IAM/latest/UserGuide/AboutInstanceProfiles.html)
+	// instance profiles, see Using instance profiles (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html)
 	// in the IAM User Guide.
 	GetInstanceProfile(ctx context.Context, params *GetInstanceProfileInput, optFns ...func(*Options)) (*GetInstanceProfileOutput, error)
 	// Retrieves the user name for the specified IAM user. A login profile is created
@@ -713,12 +714,13 @@ type IAM interface {
 	GetPolicyVersion(ctx context.Context, params *GetPolicyVersionInput, optFns ...func(*Options)) (*GetPolicyVersionOutput, error)
 	// Retrieves information about the specified role, including the role's path,
 	// GUID, ARN, and the role's trust policy that grants permission to assume the
-	// role. For more information about roles, see Working with roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/WorkingWithRoles.html)
-	// . Policies returned by this operation are URL-encoded compliant with RFC 3986 (https://tools.ietf.org/html/rfc3986)
-	// . You can use a URL decoding method to convert the policy back to plain JSON
-	// text. For example, if you use Java, you can use the decode method of the
-	// java.net.URLDecoder utility class in the Java SDK. Other languages and SDKs
-	// provide similar functionality.
+	// role. For more information about roles, see IAM roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html)
+	// in the IAM User Guide. Policies returned by this operation are URL-encoded
+	// compliant with RFC 3986 (https://tools.ietf.org/html/rfc3986) . You can use a
+	// URL decoding method to convert the policy back to plain JSON text. For example,
+	// if you use Java, you can use the decode method of the java.net.URLDecoder
+	// utility class in the Java SDK. Other languages and SDKs provide similar
+	// functionality.
 	GetRole(ctx context.Context, params *GetRoleInput, optFns ...func(*Options)) (*GetRoleOutput, error)
 	// Retrieves the specified inline policy document that is embedded with the
 	// specified IAM role. Policies returned by this operation are URL-encoded
@@ -731,9 +733,8 @@ type IAM interface {
 	// determine the policy's default version, then use GetPolicyVersion to retrieve
 	// the policy document. For more information about policies, see Managed policies
 	// and inline policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html)
-	// in the IAM User Guide. For more information about roles, see Using roles to
-	// delegate permissions and federate identities (https://docs.aws.amazon.com/IAM/latest/UserGuide/roles-toplevel.html)
-	// .
+	// in the IAM User Guide. For more information about roles, see IAM roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html)
+	// in the IAM User Guide.
 	GetRolePolicy(ctx context.Context, params *GetRolePolicyInput, optFns ...func(*Options)) (*GetRolePolicyOutput, error)
 	// Returns the SAML provider metadocument that was uploaded when the IAM SAML
 	// provider resource object was created or updated. This operation requires
@@ -907,17 +908,18 @@ type IAM interface {
 	ListInstanceProfileTags(ctx context.Context, params *ListInstanceProfileTagsInput, optFns ...func(*Options)) (*ListInstanceProfileTagsOutput, error)
 	// Lists the instance profiles that have the specified path prefix. If there are
 	// none, the operation returns an empty list. For more information about instance
-	// profiles, see About instance profiles (https://docs.aws.amazon.com/IAM/latest/UserGuide/AboutInstanceProfiles.html)
-	// . IAM resource-listing operations return a subset of the available attributes
-	// for the resource. For example, this operation does not return tags, even though
-	// they are an attribute of the returned object. To view all of the information for
-	// an instance profile, see GetInstanceProfile . You can paginate the results using
-	// the MaxItems and Marker parameters.
+	// profiles, see Using instance profiles (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html)
+	// in the IAM User Guide. IAM resource-listing operations return a subset of the
+	// available attributes for the resource. For example, this operation does not
+	// return tags, even though they are an attribute of the returned object. To view
+	// all of the information for an instance profile, see GetInstanceProfile . You can
+	// paginate the results using the MaxItems and Marker parameters.
 	ListInstanceProfiles(ctx context.Context, params *ListInstanceProfilesInput, optFns ...func(*Options)) (*ListInstanceProfilesOutput, error)
 	// Lists the instance profiles that have the specified associated IAM role. If
 	// there are none, the operation returns an empty list. For more information about
-	// instance profiles, go to About instance profiles (https://docs.aws.amazon.com/IAM/latest/UserGuide/AboutInstanceProfiles.html)
-	// . You can paginate the results using the MaxItems and Marker parameters.
+	// instance profiles, go to Using instance profiles (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html)
+	// in the IAM User Guide. You can paginate the results using the MaxItems and
+	// Marker parameters.
 	ListInstanceProfilesForRole(ctx context.Context, params *ListInstanceProfilesForRoleInput, optFns ...func(*Options)) (*ListInstanceProfilesForRoleOutput, error)
 	// Lists the tags that are attached to the specified IAM virtual multi-factor
 	// authentication (MFA) device. The returned list of tags is sorted by tag key. For
@@ -1009,11 +1011,10 @@ type IAM interface {
 	// IAM User Guide.
 	ListRoleTags(ctx context.Context, params *ListRoleTagsInput, optFns ...func(*Options)) (*ListRoleTagsOutput, error)
 	// Lists the IAM roles that have the specified path prefix. If there are none, the
-	// operation returns an empty list. For more information about roles, see Working
-	// with roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/WorkingWithRoles.html)
-	// . IAM resource-listing operations return a subset of the available attributes
-	// for the resource. This operation does not return the following attributes, even
-	// though they are an attribute of the returned object:
+	// operation returns an empty list. For more information about roles, see IAM roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html)
+	// in the IAM User Guide. IAM resource-listing operations return a subset of the
+	// available attributes for the resource. This operation does not return the
+	// following attributes, even though they are an attribute of the returned object:
 	//   - PermissionsBoundary
 	//   - RoleLastUsed
 	//   - Tags
@@ -1143,11 +1144,10 @@ type IAM interface {
 	// role. When you embed an inline policy in a role, the inline policy is used as
 	// part of the role's access (permissions) policy. The role's trust policy is
 	// created at the same time as the role, using CreateRole (https://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateRole.html)
-	// . You can update a role's trust policy using UpdateAssumerolePolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_UpdateAssumeRolePolicy.html)
-	// . For more information about IAM roles, see Using roles to delegate permissions
-	// and federate identities (https://docs.aws.amazon.com/IAM/latest/UserGuide/roles-toplevel.html)
-	// . A role can also have a managed policy attached to it. To attach a managed
-	// policy to a role, use AttachRolePolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_AttachRolePolicy.html)
+	// . You can update a role's trust policy using UpdateAssumeRolePolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_UpdateAssumeRolePolicy.html)
+	// . For more information about roles, see IAM roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/roles-toplevel.html)
+	// in the IAM User Guide. A role can also have a managed policy attached to it. To
+	// attach a managed policy to a role, use AttachRolePolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_AttachRolePolicy.html)
 	// . To create a new managed policy, use CreatePolicy (https://docs.aws.amazon.com/IAM/latest/APIReference/API_CreatePolicy.html)
 	// . For information about policies, see Managed policies and inline policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html)
 	// in the IAM User Guide. For information about the maximum number of inline
@@ -1188,10 +1188,10 @@ type IAM interface {
 	// sure that you do not have any Amazon EC2 instances running with the role you are
 	// about to remove from the instance profile. Removing a role from an instance
 	// profile that is associated with a running instance might break any applications
-	// running on the instance. For more information about IAM roles, see Working with
-	// roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/WorkingWithRoles.html) .
-	// For more information about instance profiles, see About instance profiles (https://docs.aws.amazon.com/IAM/latest/UserGuide/AboutInstanceProfiles.html)
-	// .
+	// running on the instance. For more information about roles, see IAM roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html)
+	// in the IAM User Guide. For more information about instance profiles, see Using
+	// instance profiles (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html)
+	// in the IAM User Guide.
 	RemoveRoleFromInstanceProfile(ctx context.Context, params *RemoveRoleFromInstanceProfileInput, optFns ...func(*Options)) (*RemoveRoleFromInstanceProfileOutput, error)
 	// Removes the specified user from the specified group.
 	RemoveUserFromGroup(ctx context.Context, params *RemoveUserFromGroupInput, optFns ...func(*Options)) (*RemoveUserFromGroupOutput, error)
@@ -1601,15 +1601,15 @@ type IAM interface {
 	// rarely. However, if the provider's certificate does change, any attempt to
 	// assume an IAM role that specifies the OIDC provider as a principal fails until
 	// the certificate thumbprint is updated. Amazon Web Services secures communication
-	// with some OIDC identity providers (IdPs) through our library of trusted
+	// with some OIDC identity providers (IdPs) through our library of trusted root
 	// certificate authorities (CAs) instead of using a certificate thumbprint to
-	// verify your IdP server certificate. These OIDC IdPs include Google, Auth0, and
-	// those that use an Amazon S3 bucket to host a JSON Web Key Set (JWKS) endpoint.
-	// In these cases, your legacy thumbprint remains in your configuration, but is no
-	// longer used for validation. Trust for the OIDC provider is derived from the
-	// provider certificate and is validated by the thumbprint. Therefore, it is best
-	// to limit access to the UpdateOpenIDConnectProviderThumbprint operation to
-	// highly privileged users.
+	// verify your IdP server certificate. These OIDC IdPs include Auth0, GitHub,
+	// Google, and those that use an Amazon S3 bucket to host a JSON Web Key Set (JWKS)
+	// endpoint. In these cases, your legacy thumbprint remains in your configuration,
+	// but is no longer used for validation. Trust for the OIDC provider is derived
+	// from the provider certificate and is validated by the thumbprint. Therefore, it
+	// is best to limit access to the UpdateOpenIDConnectProviderThumbprint operation
+	// to highly privileged users.
 	UpdateOpenIDConnectProviderThumbprint(ctx context.Context, params *UpdateOpenIDConnectProviderThumbprintInput, optFns ...func(*Options)) (*UpdateOpenIDConnectProviderThumbprintOutput, error)
 	// Updates the description or maximum session duration setting of a role.
 	UpdateRole(ctx context.Context, params *UpdateRoleInput, optFns ...func(*Options)) (*UpdateRoleOutput, error)
