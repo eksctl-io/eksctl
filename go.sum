@@ -333,8 +333,8 @@ github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.22.1 h1:qm8LnOQM9yHwfGI7k
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.22.1/go.mod h1:4tbPbziIVYtGAoIqr939uQmg6G/RAbZtU9j4384r1LI=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.22.12 h1:i1oP53k35gC9uZhl0u8eE3UOTsjYm+DGKsdhczje/Y8=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.22.12/go.mod h1:dDhcdDt2jrZOIqeZxhum4xsH6Tauyt4yiclYXkC9WP8=
-github.com/aws/aws-sdk-go-v2/service/ec2 v1.103.0 h1:T0m2UzMD5l+yxqlaI46FJiHwAvvS7+X6Fkv5MZVHBYM=
-github.com/aws/aws-sdk-go-v2/service/ec2 v1.103.0/go.mod h1:tIctCeX9IbzsUTKHt53SVEcgyfxV2ElxJeEB+QUbc4M=
+github.com/aws/aws-sdk-go-v2/service/ec2 v1.104.0 h1:ZAMo7nKaJM9kkCEc9YkldTvMJgJa+4mizrqe4EqTRPs=
+github.com/aws/aws-sdk-go-v2/service/ec2 v1.104.0/go.mod h1:/0btVmMZJ0sn9JQ2N96XszlQNeRCJhhXOS/sPZgDeew=
 github.com/aws/aws-sdk-go-v2/service/eks v1.27.15 h1:Q48ivwZJ136hfkk8Dua1fMM7m1e1s/0rBRyRX/J9XAY=
 github.com/aws/aws-sdk-go-v2/service/eks v1.27.15/go.mod h1:9mqDBj08MtFxKFQWUEMm4iFnIdM9gFpnSJvHUEIfsiU=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.13 h1:iGBC7Z41yj6NvDreXhFtxtyjPuxS+l4qAtP4sWb5j2M=
