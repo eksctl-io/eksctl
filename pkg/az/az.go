@@ -120,7 +120,8 @@ func FilterBasedOnAvailability(ctx context.Context, zones []string, np []api.Nod
 }
 
 func GetInstanceTypeOfferings(ctx context.Context, ec2API awsapi.EC2, instances []string, zones []string) (map[string]map[string]struct{}, error) {
-	output, err := ec2API.DescribeInstanceTypeOfferings(ctx, &ec2.DescribeInstanceTypeOfferingsInput{
+	var instanceTypeOfferings []ec2types.InstanceTypeOffering
+	p := ec2.NewDescribeInstanceTypeOfferingsPaginator(ec2API, &ec2.DescribeInstanceTypeOfferingsInput{
 		Filters: []ec2types.Filter{
 			{
 				Name:   aws.String("instance-type"),
@@ -134,14 +135,18 @@ func GetInstanceTypeOfferings(ctx context.Context, ec2API awsapi.EC2, instances 
 		LocationType: ec2types.LocationTypeAvailabilityZone,
 		MaxResults:   aws.Int32(100),
 	})
-	if err != nil {
-		return nil, fmt.Errorf("unable to list offerings for instance types: %w", err)
+	for p.HasMorePages() {
+		output, err := p.NextPage(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("unable to list offerings for instance types %w", err)
+		}
+		instanceTypeOfferings = append(instanceTypeOfferings, output.InstanceTypeOfferings...)
 	}
 
 	// zoneToInstanceMap['us-west-1b']['t2.small']=struct{}{}
 	// zoneToInstanceMap['us-west-1b']['t2.large']=struct{}{}
 	zoneToInstanceMap := make(map[string]map[string]struct{})
-	for _, offer := range output.InstanceTypeOfferings {
+	for _, offer := range instanceTypeOfferings {
 		if _, ok := zoneToInstanceMap[aws.ToString(offer.Location)]; !ok {
 			zoneToInstanceMap[aws.ToString(offer.Location)] = make(map[string]struct{})
 		}
