@@ -428,7 +428,7 @@ func ImportSubnets(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConf
 		}
 	}
 
-	// as subnetMapping will be populated / altered withing ImportSubnet,
+	// as subnetMapping will be populated / altered within ImportSubnet,
 	// we want to keep an unchanged copy for local against remote VPC config validation
 	localSubnetConfig := api.AZSubnetMapping{}
 	for k, v := range subnetMapping {
