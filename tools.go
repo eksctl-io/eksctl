@@ -12,7 +12,7 @@ import (
 	_ "github.com/goreleaser/goreleaser"
 	_ "github.com/maxbrunsfeld/counterfeiter/v6"
 	_ "github.com/vburenin/ifacemaker"
-	_ "github.com/vektra/mockery/cmd/mockery"
+	_ "github.com/vektra/mockery/v2"
 	_ "golang.org/x/tools/cmd/stringer"
 	_ "k8s.io/code-generator/cmd/client-gen"
 	_ "k8s.io/code-generator/cmd/deepcopy-gen"
