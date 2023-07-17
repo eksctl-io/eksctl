@@ -73,7 +73,7 @@ extra:
       link: https://www.youtube.com/c/WeaveWorksInc
     analytics:
       provider: google
-      property: G-EQKYCQY5Q
+      property: G-EQKYCQY5Q2
 
 extra_css:
   - stylesheets/extra.css
