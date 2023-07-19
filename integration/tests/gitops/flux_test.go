@@ -5,6 +5,7 @@ package integration_test
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
@@ -77,6 +78,7 @@ var _ = Describe("Enable GitOps", func() {
 						"owner":      params.GitopsOwner,
 						"branch":     branch,
 						"repository": repository,
+						"personal":   strconv.FormatBool(params.IsGitopsOwnerPersonal),
 					},
 				},
 			},

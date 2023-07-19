@@ -42,6 +42,7 @@ type Params struct {
 	SkipDelete               bool
 	KubeconfigPath           string
 	GitopsOwner              string
+	IsGitopsOwnerPersonal    bool
 	KubeconfigTemp           bool
 	TestDirectory            string
 	EksctlCmd                runner.Cmd
@@ -212,6 +213,7 @@ func NewParams(clusterNamePrefix string) *Params {
 	flag.BoolVar(&params.SkipDelete, "eksctl.skip.delete", false, "Skip the cleanup after the tests have run")
 	flag.StringVar(&params.KubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create a temporary file)")
 	flag.StringVar(&params.GitopsOwner, "eksctl.owner", "", "User or org name to create gitops repo under")
+	flag.BoolVar(&params.IsGitopsOwnerPersonal, "eksctl.personal", false, "Whether the gitops repo is associated to an org or not")
 
 	// go1.13+ testing flags regression fix: https://github.com/golang/go/issues/31859
 	flag.Parse()
