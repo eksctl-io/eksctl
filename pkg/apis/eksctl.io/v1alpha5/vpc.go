@@ -280,10 +280,10 @@ func ImportSubnet(subnets AZSubnetMapping, localSubnetsConfig AZSubnetMapping, s
 
 	// if a VPC config was provided as part of the config file,
 	// we need to validate it against the remote config
-	// and return an error in case of missmatch
+	// and return an error in case of mismatch
 	subnetKey, err := validateLocalConfigAgainstRemote(localSubnetsConfig, remoteSubnet, makeSubnetAlias(subnet))
 	if err != nil {
-		return fmt.Errorf("missmatch found between local and remote VPC config: %w", err)
+		return fmt.Errorf("mismatch found between local and remote VPC config: %w", err)
 	}
 
 	subnets[subnetKey] = remoteSubnet

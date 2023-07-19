@@ -135,7 +135,7 @@ var _ = Describe("VPC Configuration", func() {
 			az:       "us-east-1a",
 			subnetID: "subnet-1",
 			cidr:     "192.168.0.0/16",
-			err:      "missmatch found between local and remote VPC config: subnet ID",
+			err:      "mismatch found between local and remote VPC config: subnet ID",
 		}),
 		Entry("Conflicting existing subnets by CIDR", subnetCase{
 			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
@@ -153,7 +153,7 @@ var _ = Describe("VPC Configuration", func() {
 			az:       "us-east-1a",
 			subnetID: "subnet-1",
 			cidr:     "192.168.0.0/16",
-			err:      "missmatch found between local and remote VPC config: subnet CIDR",
+			err:      "mismatch found between local and remote VPC config: subnet CIDR",
 		}),
 		Entry("Named subnets placeholder", subnetCase{
 			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
@@ -197,7 +197,7 @@ var _ = Describe("VPC Configuration", func() {
 			az:       "us-east-1a",
 			subnetID: "subnet-1",
 			cidr:     "192.168.0.0/16",
-			err:      "missmatch found between local and remote VPC config: unable to unambiguously import subnet by ID",
+			err:      "mismatch found between local and remote VPC config: unable to unambiguously import subnet by ID",
 		}),
 		Entry("Ambiguous CIDR+AZ list", subnetCase{
 			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
@@ -219,7 +219,7 @@ var _ = Describe("VPC Configuration", func() {
 			az:       "us-east-1a",
 			subnetID: "subnet-1",
 			cidr:     "192.168.0.0/16",
-			err:      "missmatch found between local and remote VPC config: unable to unambiguously import subnet by <AZ,CIDR> pair",
+			err:      "mismatch found between local and remote VPC config: unable to unambiguously import subnet by <AZ,CIDR> pair",
 		}),
 		Entry("CIDR+AZ differentiated list", subnetCase{
 			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
