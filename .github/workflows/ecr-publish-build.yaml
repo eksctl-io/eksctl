@@ -1,0 +1,52 @@
+name: Publish ECR eksctl-build image
+
+on: workflow_dispatch
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-push-to-registry:
+    name: Build and push container image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@5fd3084fc36e372ff1fff382a39b10d03659f355 # v2.2.0
+        with:
+          aws-region: us-east-1
+          role-duration-seconds: 7200
+          role-session-name: eksctl-build-ecr-publisher
+          role-to-assume: ${{ secrets.ECR_PUBLISH_ROLE_ARN }}
+
+      - name: Login to Amazon ECR Public
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@fc3959cb4cf5a821ab7a5a636ea4f1e855b05180 # v1
+        with:
+          registry-type: public
+
+      - name: Cache go-build and mod
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: go-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            go-
+
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 #v4.0.0
+        with:
+          go-version: 1.18.x
+
+      - name: Setup deps
+        run: |
+          make install-build-deps
+
+      - name: Build and push image
+        run: |
+          PATH=$PATH:$(go env GOPATH)/bin make -f Makefile.docker push-build-image

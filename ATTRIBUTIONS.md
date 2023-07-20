@@ -79,7 +79,7 @@ License version 2.0, we include the full text of the package's License below.
 * `github.com/tidwall/sjson`
 * `github.com/tj/assert`
 * `github.com/vburenin/ifacemaker`
-* `github.com/vektra/mockery`
+* `github.com/vektra/mockery/v2`
 * `github.com/weaveworks/goformation/v4`
 * `github.com/weaveworks/launcher`
 * `github.com/weaveworks/schemer`
@@ -16886,7 +16886,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT
 OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-### github.com/vektra/mockery
+### github.com/vektra/mockery/v2
 
 Copyright (c) 2014, Opinionated Architecture
 All rights reserved.
