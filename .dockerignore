@@ -2,6 +2,7 @@
 !.git
 !.goreleaser*
 !.golangci*
+!.mockery.yaml
 !build/scripts
 !cmd
 !examples

@@ -202,7 +202,7 @@ or [environment variables][awsenv]. For more information read [AWS documentation
 [awsenv]: https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html
 [awsconfig]: https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html
 
-You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `aws eks get-token` (available in version 1.16.156 or greater of AWS CLI) in your `PATH`. 
+You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `aws eks get-token` (available in version 1.16.156 or greater of AWS CLI) in your `PATH`.
 
 The IAM account used for EKS cluster creation should have these minimal access levels. 
 
@@ -272,7 +272,10 @@ The `eksctl` executable is placed in `$HOME/bin`, which is in `$PATH` from Git B
 
 ### Docker
 
-For every release and RC, a docker image is pushed to [eksctl-io/eksctl - Docker Image | Docker Hub](https://hub.docker.com/r/eksctl-io/eksctl). 
+For every release and RC a container image is pushed to ECR repository `public.ecr.aws/eksctl/eksctl`. Learn more about the usage on [ECR Public Gallery - eksctl](https://gallery.ecr.aws/eksctl/eksctl). For example, 
+```bash
+docker run --rm -it public.ecr.aws/eksctl/eksctl version
+```
 
 ### Third-Party Installers (Not Recommended)
 #### For MacOS

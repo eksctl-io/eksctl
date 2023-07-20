@@ -268,75 +268,95 @@ func DefaultCIDR() ipnet.IPNet {
 //
 // If a user specifies a subnet by AZ without CIDR and ID but multiple subnets
 // exist in this VPC, one will be arbitrarily chosen.
-func ImportSubnet(subnets AZSubnetMapping, subnet *ec2types.Subnet, makeSubnetAlias func(*ec2types.Subnet) string) error {
-	if subnets == nil {
+func ImportSubnet(subnets AZSubnetMapping, localSubnetsConfig AZSubnetMapping, subnet *ec2types.Subnet, makeSubnetAlias func(*ec2types.Subnet) string) error {
+	if localSubnetsConfig == nil {
 		return nil
 	}
 
+	remoteSubnet, err := remoteSubnetToAZSubnetSpec(subnet)
+	if err != nil {
+		return err
+	}
+
+	// if a VPC config was provided as part of the config file,
+	// we need to validate it against the remote config
+	// and return an error in case of mismatch
+	subnetKey, err := validateLocalConfigAgainstRemote(localSubnetsConfig, remoteSubnet, makeSubnetAlias(subnet))
+	if err != nil {
+		return fmt.Errorf("mismatch found between local and remote VPC config: %w", err)
+	}
+
+	subnets[subnetKey] = remoteSubnet
+
+	return nil
+}
+
+func validateLocalConfigAgainstRemote(localSubnetsConfig AZSubnetMapping, remoteSubnet AZSubnetSpec, subnetAlias string) (string, error) {
+	if len(localSubnetsConfig) == 0 {
+		return subnetAlias, nil
+	}
+
+	// if the subnet is found by alias in config file, validate ID and CIDR
+	if localSubnet, ok := localSubnetsConfig[subnetAlias]; ok {
+		if localSubnet.ID != "" && localSubnet.ID != remoteSubnet.ID {
+			return "", fmt.Errorf("subnet ID %q, found in config file, is not the same as subnet ID %q, found in remote VPC config", localSubnet.ID, remoteSubnet.ID)
+		}
+		if localSubnet.CIDR.String() != "" && localSubnet.CIDR.String() != remoteSubnet.CIDR.String() {
+			return "", fmt.Errorf("subnet CIDR %q, found in config file, is not the same as subnet CIDR %q, found in remote VPC config", localSubnet.CIDR.String(), remoteSubnet.CIDR.String())
+		}
+		return subnetAlias, nil
+	}
+
+	// otherwise look up the remote subnet by ID or <AZ,CIDR> pair
+	var foundByIDKey string
+	var foundByAZCIDRKey string
+	for k, s := range localSubnetsConfig {
+		if s.ID == remoteSubnet.ID {
+			if s.CIDR.String() != "" && s.CIDR.String() != remoteSubnet.CIDR.String() {
+				return "", fmt.Errorf("subnet CIDR %q, found in config file, is not the same as subnet CIDR %q, found in remote VPC config", s.CIDR.String(), remoteSubnet.CIDR.String())
+			}
+			if foundByIDKey != "" {
+				return "", fmt.Errorf("unable to unambiguously import subnet by ID, found both %s and %s", foundByIDKey, k)
+			}
+			foundByIDKey = k
+		} else if s.ID == "" {
+			if s.AZ != remoteSubnet.AZ || (s.CIDR.String() != "" && s.CIDR.String() != remoteSubnet.CIDR.String()) {
+				continue
+			}
+			if foundByAZCIDRKey != "" {
+				return "", fmt.Errorf("unable to unambiguously import subnet by <AZ,CIDR> pair, found both %s and %s", foundByAZCIDRKey, k)
+			}
+			foundByAZCIDRKey = k
+		}
+	}
+
+	if foundByIDKey != "" {
+		return foundByIDKey, nil
+	}
+	if foundByAZCIDRKey != "" {
+		return foundByAZCIDRKey, nil
+	}
+
+	return subnetAlias, nil
+}
+
+func remoteSubnetToAZSubnetSpec(subnet *ec2types.Subnet) (AZSubnetSpec, error) {
 	subnetCIDR, err := ipnet.ParseCIDR(*subnet.CidrBlock)
 	if err != nil {
-		return fmt.Errorf("unexpected error parsing subnet CIDR %q: %w", *subnet.CidrBlock, err)
+		return AZSubnetSpec{}, fmt.Errorf("unexpected error parsing subnet CIDR %q: %w", *subnet.CidrBlock, err)
 	}
 
-	var (
-		subnetID = *subnet.SubnetId
-		az       = *subnet.AvailabilityZone
-	)
-
-	subnetAlias := makeSubnetAlias(subnet)
-	if network, ok := subnets[subnetAlias]; !ok {
-		newS := AZSubnetSpec{ID: subnetID, AZ: az, CIDR: subnetCIDR}
-		// Used if we find an exact ID match
-		var idKey string
-		// Used if we match to AZ/CIDR
-		var guessKey string
-		for k, s := range subnets {
-			if s.ID == "" {
-				if s.AZ != az || (s.CIDR.String() != "" && s.CIDR.String() != subnetCIDR.String()) {
-					continue
-				}
-				if guessKey != "" {
-					return fmt.Errorf("unable to unambiguously import subnet, found both %s and %s", guessKey, k)
-				}
-				guessKey = k
-			} else if s.ID == subnetID {
-				if s.CIDR.String() != "" && s.CIDR.String() != subnetCIDR.String() {
-					return fmt.Errorf("subnet CIDR %q is not the same as %q", s.CIDR.String(), subnetCIDR.String())
-				}
-				if idKey != "" {
-					return fmt.Errorf("unable to unambiguously import subnet, found both %s and %s", idKey, k)
-				}
-				idKey = k
-			}
-		}
-		if idKey != "" {
-			subnets[idKey] = newS
-		} else if guessKey != "" {
-			subnets[guessKey] = newS
-		} else {
-			if subnet.OutpostArn != nil {
-				newS.OutpostARN = *subnet.OutpostArn
-			}
-			subnets[subnetAlias] = newS
-		}
-	} else {
-		if network.ID == "" {
-			network.ID = subnetID
-		} else if network.ID != subnetID {
-			return fmt.Errorf("subnet ID %q is not the same as %q", network.ID, subnetID)
-		}
-		if network.CIDR == nil {
-			network.CIDR = subnetCIDR
-		} else if network.CIDR.String() != subnetCIDR.String() {
-			return fmt.Errorf("subnet CIDR %q is not the same as %q", network.CIDR.String(), subnetCIDR.String())
-		}
-		network.AZ = az
-		if subnet.OutpostArn != nil {
-			network.OutpostARN = *subnet.OutpostArn
-		}
-		subnets[subnetAlias] = network
+	subnetSpec := AZSubnetSpec{
+		ID:   *subnet.SubnetId,
+		AZ:   *subnet.AvailabilityZone,
+		CIDR: subnetCIDR,
 	}
-	return nil
+
+	if subnet.OutpostArn != nil {
+		subnetSpec.OutpostARN = *subnet.OutpostArn
+	}
+
+	return subnetSpec, nil
 }
 
 // SelectOutpostSubnetIDs returns all subnets that are on Outposts.

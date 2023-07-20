@@ -10,15 +10,38 @@ import (
 
 // CloudWatchLogs provides an interface to the AWS CloudWatchLogs service.
 type CloudWatchLogs interface {
-	// Associates the specified KMS key with the specified log group. Associating a
-	// KMS key with a log group overrides any existing associations between the log
-	// group and a KMS key. After a KMS key is associated with a log group, all newly
-	// ingested data for the log group is encrypted using the KMS key. This association
-	// is stored as long as the data encrypted with the KMS keyis still within
-	// CloudWatch Logs. This enables CloudWatch Logs to decrypt this data whenever it
-	// is requested. CloudWatch Logs supports only symmetric KMS keys. Do not use an
-	// associate an asymmetric KMS key with your log group. For more information, see
-	// Using Symmetric and Asymmetric Keys (https://docs.aws.amazon.com/kms/latest/developerguide/symmetric-asymmetric.html)
+	// Associates the specified KMS key with either one log group in the account, or
+	// with all stored CloudWatch Logs query insights results in the account. When you
+	// use AssociateKmsKey , you specify either the logGroupName parameter or the
+	// resourceIdentifier parameter. You can't specify both of those parameters in the
+	// same operation.
+	//   - Specify the logGroupName parameter to cause all log events stored in the log
+	//     group to be encrypted with that key. Only the log events ingested after the key
+	//     is associated are encrypted with that key. Associating a KMS key with a log
+	//     group overrides any existing associations between the log group and a KMS key.
+	//     After a KMS key is associated with a log group, all newly ingested data for the
+	//     log group is encrypted using the KMS key. This association is stored as long as
+	//     the data encrypted with the KMS key is still within CloudWatch Logs. This
+	//     enables CloudWatch Logs to decrypt this data whenever it is requested.
+	//     Associating a key with a log group does not cause the results of queries of that
+	//     log group to be encrypted with that key. To have query results encrypted with a
+	//     KMS key, you must use an AssociateKmsKey operation with the resourceIdentifier
+	//     parameter that specifies a query-result resource.
+	//   - Specify the resourceIdentifier parameter with a query-result resource, to
+	//     use that key to encrypt the stored results of all future StartQuery (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartQuery.html)
+	//     operations in the account. The response from a GetQueryResults (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetQueryResults.html)
+	//     operation will still return the query results in plain text. Even if you have
+	//     not associated a key with your query results, the query results are encrypted
+	//     when stored, using the default CloudWatch Logs method. If you run a query from a
+	//     monitoring account that queries logs in a source account, the query results key
+	//     from the monitoring account, if any, is used.
+	//
+	// If you delete the key that is used to encrypt log events or log group query
+	// results, then all the associated stored log events or query results that were
+	// encrypted with that key will be unencryptable and unusable. CloudWatch Logs
+	// supports only symmetric KMS keys. Do not use an associate an asymmetric KMS key
+	// with your log group or query results. For more information, see Using Symmetric
+	// and Asymmetric Keys (https://docs.aws.amazon.com/kms/latest/developerguide/symmetric-asymmetric.html)
 	// . It can take up to 5 minutes for this operation to take effect. If you attempt
 	// to associate a KMS key with a log group but the KMS key does not exist or the
 	// KMS key is disabled, you receive an InvalidParameterException error.
@@ -160,12 +183,26 @@ type CloudWatchLogs interface {
 	// the subscription filters or filter the results by prefix. The results are
 	// ASCII-sorted by filter name.
 	DescribeSubscriptionFilters(ctx context.Context, params *DescribeSubscriptionFiltersInput, optFns ...func(*Options)) (*DescribeSubscriptionFiltersOutput, error)
-	// Disassociates the associated KMS key from the specified log group. After the
-	// KMS key is disassociated from the log group, CloudWatch Logs stops encrypting
-	// newly ingested data for the log group. All previously ingested data remains
-	// encrypted, and CloudWatch Logs requires permissions for the KMS key whenever the
-	// encrypted data is requested. Note that it can take up to 5 minutes for this
-	// operation to take effect.
+	// Disassociates the specified KMS key from the specified log group or from all
+	// CloudWatch Logs Insights query results in the account. When you use
+	// DisassociateKmsKey , you specify either the logGroupName parameter or the
+	// resourceIdentifier parameter. You can't specify both of those parameters in the
+	// same operation.
+	//   - Specify the logGroupName parameter to stop using the KMS key to encrypt
+	//     future log events ingested and stored in the log group. Instead, they will be
+	//     encrypted with the default CloudWatch Logs method. The log events that were
+	//     ingested while the key was associated with the log group are still encrypted
+	//     with that key. Therefore, CloudWatch Logs will need permissions for the key
+	//     whenever that data is accessed.
+	//   - Specify the resourceIdentifier parameter with the query-result resource to
+	//     stop using the KMS key to encrypt the results of all future StartQuery (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartQuery.html)
+	//     operations in the account. They will instead be encrypted with the default
+	//     CloudWatch Logs method. The results from queries that ran while the key was
+	//     associated with the account are still encrypted with that key. Therefore,
+	//     CloudWatch Logs will need permissions for the key whenever that data is
+	//     accessed.
+	//
+	// It can take up to 5 minutes for this operation to take effect.
 	DisassociateKmsKey(ctx context.Context, params *DisassociateKmsKeyInput, optFns ...func(*Options)) (*DisassociateKmsKeyOutput, error)
 	// Lists log events from the specified log group. You can list all the log events
 	// or filter the results using a filter pattern, a time range, and the name of the
@@ -395,8 +432,9 @@ type CloudWatchLogs interface {
 	// format. The following destinations are supported for subscription filters:
 	//   - An Amazon Kinesis data stream belonging to the same account as the
 	//     subscription filter, for same-account delivery.
-	//   - A logical destination that belongs to a different account, for
-	//     cross-account delivery.
+	//   - A logical destination created with PutDestination (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDestination.html)
+	//     that belongs to a different account, for cross-account delivery. We currently
+	//     support Kinesis Data Streams and Kinesis Data Firehose as logical destinations.
 	//   - An Amazon Kinesis Data Firehose delivery stream that belongs to the same
 	//     account as the subscription filter, for same-account delivery.
 	//   - An Lambda function that belongs to the same account as the subscription
@@ -410,11 +448,19 @@ type CloudWatchLogs interface {
 	// Schedules a query of a log group using CloudWatch Logs Insights. You specify
 	// the log group and time range to query and the query string to use. For more
 	// information, see CloudWatch Logs Insights Query Syntax (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html)
-	// . Queries time out after 60 minutes of runtime. If your queries are timing out,
-	// reduce the time range being searched or partition your query into a number of
-	// queries. If you are using CloudWatch cross-account observability, you can use
-	// this operation in a monitoring account to start a query in a linked source
-	// account. For more information, see CloudWatch cross-account observability (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html)
+	// . After you run a query using StartQuery , the query results are stored by
+	// CloudWatch Logs. You can use GetQueryResults (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetQueryResults.html)
+	// to retrieve the results of a query, using the queryId that StartQuery returns.
+	// If you have associated a KMS key with the query results in this account, then
+	// StartQuery (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartQuery.html)
+	// uses that key to encrypt the results when it stores them. If no key is
+	// associated with query results, the query results are encrypted with the default
+	// CloudWatch Logs encryption method. Queries time out after 60 minutes of runtime.
+	// If your queries are timing out, reduce the time range being searched or
+	// partition your query into a number of queries. If you are using CloudWatch
+	// cross-account observability, you can use this operation in a monitoring account
+	// to start a query in a linked source account. For more information, see
+	// CloudWatch cross-account observability (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html)
 	// . For a cross-account StartQuery operation, the query definition must be
 	// defined in the monitoring account. You can have up to 30 concurrent CloudWatch
 	// Logs insights queries, including queries that have been added to dashboards.

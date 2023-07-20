@@ -144,7 +144,7 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 	go generate ./pkg/authconfigmap
 	go generate ./pkg/awsapi/...
 	go generate ./pkg/eks
-	AWS_SDK_V2_GO_DIR=$(AWS_SDK_V2_GO_DIR) go generate ./pkg/eks/mocksv2
+	${GOBIN}/mockery
 	go generate ./pkg/drain
 	go generate ./pkg/actions/...
 	go generate ./pkg/executor

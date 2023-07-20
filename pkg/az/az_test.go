@@ -201,6 +201,7 @@ var _ = Describe("AZ", func() {
 					createAvailabilityZone(region, ec2types.AvailabilityZoneStateAvailable, "zone4"),
 				},
 			}, nil)
+			// split DescribeInstanceTypeOfferings response in two pages so we unit test the use of the paginator at the same time
 			p.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, &ec2.DescribeInstanceTypeOfferingsInput{
 				Filters: []ec2types.Filter{
 					{
@@ -215,6 +216,7 @@ var _ = Describe("AZ", func() {
 				LocationType: ec2types.LocationTypeAvailabilityZone,
 				MaxResults:   aws.Int32(100),
 			}).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+				NextToken: aws.String("token"),
 				InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 					{
 						InstanceType: "t2.small",
@@ -231,6 +233,24 @@ var _ = Describe("AZ", func() {
 						Location:     aws.String("zone4"),
 						LocationType: "availability-zone",
 					},
+				},
+			}, nil)
+			p.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, &ec2.DescribeInstanceTypeOfferingsInput{
+				Filters: []ec2types.Filter{
+					{
+						Name:   aws.String("instance-type"),
+						Values: []string{"t2.small", "t2.medium"},
+					},
+					{
+						Name:   aws.String("location"),
+						Values: []string{"zone1", "zone2", "zone3", "zone4"},
+					},
+				},
+				LocationType: ec2types.LocationTypeAvailabilityZone,
+				MaxResults:   aws.Int32(100),
+				NextToken:    aws.String("token"),
+			}).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+				InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 					{
 						InstanceType: "t2.medium",
 						Location:     aws.String("zone1"),
