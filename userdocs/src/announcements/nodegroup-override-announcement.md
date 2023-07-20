@@ -1,10 +1,10 @@
 # Nodegroup Bootstrap Override For Custom AMIs
 
 This change was announced in the issue [Breaking: overrideBootstrapCommand soon...](https://github.com/eksctl-io/eksctl/issues/3563).
-Now, it has come to pass in [this](https://github.com/eksctl-io/eksctl/pull/4968) PR. Please read the attached issue carefully about 
+Now, it has come to pass in [this](https://github.com/eksctl-io/eksctl/pull/4968) PR. Please read the attached issue carefully about
 why we decided to move away from supporting custom AMIs without bootstrap scripts or with partial bootstrap scripts.
 
-We still provide a helper! Migrating hopefully is not that painful. `eksctl` still provides a script, which when sourced, 
+We still provide a helper! Migrating hopefully is not that painful. `eksctl` still provides a script, which when sourced,
 will export a couple of helpful environment properties and settings. This script is located [here](https://github.com/eksctl-io/eksctl/blob/70a289d62e3c82e6177930cf2469c2572c82e104/pkg/nodebootstrap/assets/scripts/bootstrap.helper.sh).
 
 The following environment properties will be at your disposal:

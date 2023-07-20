@@ -15,6 +15,12 @@ nodeGroups:
     maxSize: 3
     containerRuntime: containerd
 
+  - name: custom-windows
+    amiFamily: WindowsServer2022FullContainer
+    ami: ami-01579b74557facaf7
+    overrideBootstrapCommand: |
+      & $EKSBootstrapScriptFile -EKSClusterName "$EKSClusterName" -APIServerEndpoint "$APIServerEndpoint" -Base64ClusterCA "$Base64ClusterCA" -ContainerRuntime "containerd" -KubeletExtraArgs "$KubeletExtraArgs" 3>&1 4>&1 5>&1 6>&1
+
 managedNodeGroups:
   - name: linux-ng
     instanceType: t2.large

@@ -807,40 +807,35 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		}
 	}
 
-	if IsWindowsImage(ng.AMIFamily) || ng.AMIFamily == NodeImageFamilyBottlerocket {
-		fieldNotSupported := func(field string) error {
-			return &unsupportedFieldError{
-				ng:    ng.NodeGroupBase,
-				path:  path,
-				field: field,
-			}
+	fieldNotSupported := func(field string) error {
+		return &unsupportedFieldError{
+			ng:    ng.NodeGroupBase,
+			path:  path,
+			field: field,
 		}
+	}
 
+	if IsWindowsImage(ng.AMIFamily) {
 		if ng.KubeletExtraConfig != nil {
 			return fieldNotSupported("kubeletExtraConfig")
 		}
-
-		if IsWindowsImage(ng.AMIFamily) && ng.OverrideBootstrapCommand != nil {
+	} else if ng.AMIFamily == NodeImageFamilyBottlerocket {
+		if ng.KubeletExtraConfig != nil {
+			return fieldNotSupported("kubeletExtraConfig")
+		}
+		if ng.PreBootstrapCommands != nil {
+			return fieldNotSupported("preBootstrapCommands")
+		}
+		if ng.OverrideBootstrapCommand != nil {
 			return fieldNotSupported("overrideBootstrapCommand")
 		}
-
-		if ng.AMIFamily == NodeImageFamilyBottlerocket {
-			if ng.PreBootstrapCommands != nil {
-				return fieldNotSupported("preBootstrapCommands")
-			}
-			if ng.OverrideBootstrapCommand != nil {
-				return fieldNotSupported("overrideBootstrapCommand")
+		if ng.Bottlerocket != nil {
+			if err := checkBottlerocketSettings(ng.Bottlerocket.Settings, path); err != nil {
+				return err
 			}
 		}
 	} else if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
 		return err
-	}
-
-	if ng.AMIFamily == NodeImageFamilyBottlerocket && ng.Bottlerocket != nil {
-		err := checkBottlerocketSettings(ng.Bottlerocket.Settings, path)
-		if err != nil {
-			return err
-		}
 	}
 
 	if instanceutils.IsARMGPUInstanceType(SelectInstanceType(ng)) && ng.AMIFamily != NodeImageFamilyBottlerocket {
