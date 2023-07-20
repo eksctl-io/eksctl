@@ -9,6 +9,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/powershell"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/utils"
 )
 
@@ -16,11 +17,6 @@ type Windows struct {
 	clusterConfig *api.ClusterConfig
 	np            api.NodePool
 	clusterDNS    string
-}
-
-type keyValue struct {
-	key   string
-	value string
 }
 
 func NewWindowsBootstrapper(clusterConfig *api.ClusterConfig, np api.NodePool, clusterDNS string) *Windows {
@@ -32,106 +28,95 @@ func NewWindowsBootstrapper(clusterConfig *api.ClusterConfig, np api.NodePool, c
 }
 
 func (b *Windows) UserData() (string, error) {
-	bootstrapCommands := []string{
+	ng := b.np.BaseNodeGroup()
+	bootstrapCommands := append([]string{
 		`<powershell>
 [string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"`,
+	}, ng.PreBootstrapCommands...)
+
+	if ng.OverrideBootstrapCommand != nil {
+		bootstrapCommands = append(bootstrapCommands,
+			b.makeBootstrapParams(true),
+			*ng.OverrideBootstrapCommand,
+		)
+	} else {
+		bootstrapCommands = append(bootstrapCommands, fmt.Sprintf("& $EKSBootstrapScriptFile %s 3>&1 4>&1 5>&1 6>&1", b.makeBootstrapParams(false)))
 	}
-	ng := b.np.BaseNodeGroup()
-	bootstrapCommands = append(bootstrapCommands, ng.PreBootstrapCommands...)
-	eksBootstrapCommand := fmt.Sprintf("& $EKSBootstrapScriptFile %s 3>&1 4>&1 5>&1 6>&1", b.makeBootstrapParams())
-	bootstrapCommands = append(bootstrapCommands,
-		eksBootstrapCommand,
-		"</powershell>",
-	)
 
+	bootstrapCommands = append(bootstrapCommands, "</powershell>")
 	userData := base64.StdEncoding.EncodeToString([]byte(strings.Join(bootstrapCommands, "\n")))
-
 	logger.Debug("user-data = %s", userData)
 	return userData, nil
 }
 
-func (b *Windows) makeBootstrapParams() string {
-	params := []keyValue{
+func (b *Windows) makeBootstrapParams(hasBootstrapCommand bool) string {
+	params := []powershell.KeyValue{
 		{
-			key:   "EKSClusterName",
-			value: b.clusterConfig.Metadata.Name,
+			Key:   "EKSClusterName",
+			Value: b.clusterConfig.Metadata.Name,
 		},
 		{
-			key:   "APIServerEndpoint",
-			value: b.clusterConfig.Status.Endpoint,
+			Key:   "APIServerEndpoint",
+			Value: b.clusterConfig.Status.Endpoint,
 		},
 		{
-			key:   "Base64ClusterCA",
-			value: base64.StdEncoding.EncodeToString(b.clusterConfig.Status.CertificateAuthorityData),
+			Key:   "Base64ClusterCA",
+			Value: base64.StdEncoding.EncodeToString(b.clusterConfig.Status.CertificateAuthorityData),
 		},
 		{
-			key:   "ServiceCIDR",
-			value: b.clusterConfig.Status.KubernetesNetworkConfig.ServiceIPv4CIDR,
+			Key:   "ServiceCIDR",
+			Value: b.clusterConfig.Status.KubernetesNetworkConfig.ServiceIPv4CIDR,
 		},
 	}
 	if unmanaged, ok := b.np.(*api.NodeGroup); ok {
 		// DNSClusterIP is only configurable for self-managed nodegroups.
 		if b.clusterDNS != "" {
-			params = append(params, keyValue{
-				key:   "DNSClusterIP",
-				value: b.clusterDNS,
+			params = append(params, powershell.KeyValue{
+				Key:   "DNSClusterIP",
+				Value: b.clusterDNS,
 			})
 		}
 		// ContainerRuntime is only configurable for self-managed nodegroups.
 		if unmanaged.ContainerRuntime != nil {
-			params = append(params, keyValue{
-				key:   "ContainerRuntime",
-				value: *unmanaged.ContainerRuntime,
+			params = append(params, powershell.KeyValue{
+				Key:   "ContainerRuntime",
+				Value: *unmanaged.ContainerRuntime,
 			})
 		}
 	}
 
-	params = append(params, keyValue{
-		key:   "KubeletExtraArgs",
-		value: b.makeKubeletOptions(),
+	kubeletOptions := b.makeKubeletOptions()
+
+	params = append(params, powershell.KeyValue{
+		Key:   "KubeletExtraArgs",
+		Value: powershell.ToCLIArgs(kubeletOptions),
 	})
-	return formatWindowsParams(params)
+
+	if hasBootstrapCommand {
+		return powershell.JoinVariables(powershell.FormatStringVariables(params), powershell.FormatHashTable(kubeletOptions, "KubeletExtraArgsMap"))
+	}
+	return powershell.FormatParams(params)
 }
 
-func (b *Windows) makeKubeletOptions() string {
+func (b *Windows) makeKubeletOptions() []powershell.KeyValue {
 	ng := b.np.BaseNodeGroup()
 
-	kubeletOptions := []keyValue{
+	kubeletOptions := []powershell.KeyValue{
 		{
-			key:   "node-labels",
-			value: formatLabels(ng.Labels),
+			Key:   "node-labels",
+			Value: formatLabels(ng.Labels),
 		},
 		{
-			key:   "register-with-taints",
-			value: utils.FormatTaints(b.np.NGTaints()),
+			Key:   "register-with-taints",
+			Value: utils.FormatTaints(b.np.NGTaints()),
 		},
 	}
 
 	if ng.MaxPodsPerNode != 0 {
-		kubeletOptions = append(kubeletOptions, keyValue{
-			key:   "max-pods",
-			value: strconv.Itoa(ng.MaxPodsPerNode),
+		kubeletOptions = append(kubeletOptions, powershell.KeyValue{
+			Key:   "max-pods",
+			Value: strconv.Itoa(ng.MaxPodsPerNode),
 		})
 	}
-
-	return toCLIArgs(kubeletOptions)
-}
-
-// formatWindowsParams formats params into `-key "value"`, ignoring keys with empty values
-func formatWindowsParams(params []keyValue) string {
-	var args []string
-	for _, param := range params {
-		if param.value != "" {
-			args = append(args, fmt.Sprintf("-%s %q", param.key, param.value))
-		}
-	}
-	return strings.Join(args, " ")
-}
-
-func toCLIArgs(params []keyValue) string {
-	var args []string
-	for _, param := range params {
-		args = append(args, fmt.Sprintf("--%s=%s", param.key, param.value))
-	}
-	return strings.Join(args, " ")
+	return kubeletOptions
 }
