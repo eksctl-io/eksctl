@@ -1,4 +1,4 @@
-ARG BUILD_IMAGE=public.ecr.aws/eksctl/eksctl-build:23601df136dfb53b31a3e54f54d8fa9f5a9262f8
+ARG BUILD_IMAGE=public.ecr.aws/eksctl/eksctl-build:b06c1f3d2a18a98695327e6f8da535ded95083b7
 FROM $BUILD_IMAGE as build
 
 WORKDIR /src
