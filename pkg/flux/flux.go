@@ -14,7 +14,7 @@ import (
 
 const (
 	fluxBin             = "flux"
-	minSupportedVersion = "0.13.3"
+	minSupportedVersion = "0.32.0"
 )
 
 type Client struct {
