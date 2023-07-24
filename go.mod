@@ -13,7 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.18.28
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.27
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.10
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.30.1
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.31.0
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.27.2
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.22.1
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.23.0
