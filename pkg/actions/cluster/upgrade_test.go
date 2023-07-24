@@ -35,15 +35,15 @@ var _ = Describe("upgrade cluster", func() {
 
 		Entry("upgrades by default when the version is not specified", upgradeCase{
 			givenVersion:           "",
-			eksVersion:             "1.22",
-			expectedUpgradeVersion: "1.23",
+			eksVersion:             "1.23",
+			expectedUpgradeVersion: "1.24",
 			expectedUpgrade:        true,
 		}),
 
 		Entry("upgrades by default when the version is auto", upgradeCase{
 			givenVersion:           "auto",
-			eksVersion:             "1.22",
-			expectedUpgradeVersion: "1.23",
+			eksVersion:             "1.23",
+			expectedUpgradeVersion: "1.24",
 			expectedUpgrade:        true,
 		}),
 
@@ -55,9 +55,9 @@ var _ = Describe("upgrade cluster", func() {
 		}),
 
 		Entry("upgrades to the next version when specified", upgradeCase{
-			givenVersion:           "1.22",
-			eksVersion:             "1.21",
-			expectedUpgradeVersion: "1.22",
+			givenVersion:           "1.23",
+			eksVersion:             "1.22",
+			expectedUpgradeVersion: "1.23",
 			expectedUpgrade:        true,
 		}),
 

@@ -428,6 +428,13 @@ func ImportSubnets(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConf
 		}
 	}
 
+	// as subnetMapping will be populated / altered within ImportSubnet,
+	// we want to keep an unchanged copy for local against remote VPC config validation
+	localSubnetConfig := api.AZSubnetMapping{}
+	for k, v := range subnetMapping {
+		localSubnetConfig[k] = v
+	}
+
 	for _, sn := range subnets {
 		if spec.VPC.ID == "" {
 			// if VPC wasn't defined, import it based on VPC of the first
@@ -439,7 +446,7 @@ func ImportSubnets(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConf
 			return fmt.Errorf("given %s is in %s, not in %s", *sn.SubnetId, *sn.VpcId, spec.VPC.ID)
 		}
 
-		if err := api.ImportSubnet(subnetMapping, &sn, makeSubnetAlias); err != nil {
+		if err := api.ImportSubnet(subnetMapping, localSubnetConfig, &sn, makeSubnetAlias); err != nil {
 			return fmt.Errorf("could not import subnet %s: %w", *sn.SubnetId, err)
 		}
 		spec.AppendAvailabilityZone(*sn.AvailabilityZone)

@@ -164,6 +164,52 @@ start /wait msiexec.exe /qb /i "amazon-cloudwatch-agent.msi"
 </powershell>
 `,
 		}),
+
+		Entry("with overrideBootstrapCommand", windowsEntry{
+			updateNodeGroup: func(ng *api.NodeGroup) {
+				ng.OverrideBootstrapCommand = aws.String(`& $EKSBootstrapScriptFile -EKSClusterName "$EKSClusterName" -APIServerEndpoint "$APIServerEndpoint" -Base64ClusterCA "$Base64ClusterCA" -ServiceCIDR "10.100.0.0/16" -DNSClusterIP "10.100.0.10" -ContainerRuntime "containerd" -KubeletExtraArgs "$KubeletExtraArgs" 3>&1 4>&1 5>&1 6>&1`)
+			},
+
+			expectedUserData: `
+<powershell>
+[string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
+[string]$EKSClusterName = 'windohs'
+[string]$APIServerEndpoint = 'https://test.com'
+[string]$Base64ClusterCA = 'dGVzdA=='
+[string]$ServiceCIDR = '10.100.0.0/16'
+[string]$ContainerRuntime = 'docker'
+[string]$KubeletExtraArgs = '--node-labels= --register-with-taints='
+$KubeletExtraArgsMap = @{ 'node-labels' = ''; 'register-with-taints' = ''}
+& $EKSBootstrapScriptFile -EKSClusterName "$EKSClusterName" -APIServerEndpoint "$APIServerEndpoint" -Base64ClusterCA "$Base64ClusterCA" -ServiceCIDR "10.100.0.0/16" -DNSClusterIP "10.100.0.10" -ContainerRuntime "containerd" -KubeletExtraArgs "$KubeletExtraArgs" 3>&1 4>&1 5>&1 6>&1
+</powershell>
+`,
+		}),
+
+		Entry("with overrideBootstrapCommand and preBootstrapCommands", windowsEntry{
+			updateNodeGroup: func(ng *api.NodeGroup) {
+				ng.OverrideBootstrapCommand = aws.String(`& $EKSBootstrapScriptFile -EKSClusterName "$EKSClusterName" -APIServerEndpoint "$APIServerEndpoint" -Base64ClusterCA "$Base64ClusterCA" -ServiceCIDR "10.100.0.0/16" -DNSClusterIP "10.100.0.10" -ContainerRuntime "containerd" -KubeletExtraArgs "$KubeletExtraArgs" 3>&1 4>&1 5>&1 6>&1`)
+				ng.PreBootstrapCommands = []string{
+					`wget -UseBasicParsing -O amazon-cloudwatch-agent.msi https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi`,
+					`start /wait msiexec.exe /qb /i "amazon-cloudwatch-agent.msi`,
+				}
+			},
+
+			expectedUserData: `
+<powershell>
+[string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
+wget -UseBasicParsing -O amazon-cloudwatch-agent.msi https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi
+start /wait msiexec.exe /qb /i "amazon-cloudwatch-agent.msi
+[string]$EKSClusterName = 'windohs'
+[string]$APIServerEndpoint = 'https://test.com'
+[string]$Base64ClusterCA = 'dGVzdA=='
+[string]$ServiceCIDR = '10.100.0.0/16'
+[string]$ContainerRuntime = 'docker'
+[string]$KubeletExtraArgs = '--node-labels= --register-with-taints='
+$KubeletExtraArgsMap = @{ 'node-labels' = ''; 'register-with-taints' = ''}
+& $EKSBootstrapScriptFile -EKSClusterName "$EKSClusterName" -APIServerEndpoint "$APIServerEndpoint" -Base64ClusterCA "$Base64ClusterCA" -ServiceCIDR "10.100.0.0/16" -DNSClusterIP "10.100.0.10" -ContainerRuntime "containerd" -KubeletExtraArgs "$KubeletExtraArgs" 3>&1 4>&1 5>&1 6>&1
+</powershell>
+`,
+		}),
 	)
 
 })
