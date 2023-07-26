@@ -8,16 +8,16 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8c1e
-	github.com/aws/aws-sdk-go v1.44.300
+	github.com/aws/aws-sdk-go v1.44.306
 	github.com/aws/aws-sdk-go-v2 v1.19.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.28
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.27
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.10
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.30.1
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.32.0
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.27.2
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.22.1
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.23.0
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.104.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.105.1
 	github.com/aws/aws-sdk-go-v2/service/eks v1.27.15
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.13
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.14
@@ -25,7 +25,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.23.1
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.28.1
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.8
-	github.com/aws/aws-sdk-go-v2/service/sts v1.19.3
+	github.com/aws/aws-sdk-go-v2/service/sts v1.20.0
 	github.com/aws/smithy-go v1.13.5
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
@@ -51,7 +51,7 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.2
 	github.com/onsi/ginkgo/v2 v2.11.0
-	github.com/onsi/gomega v1.27.8
+	github.com/onsi/gomega v1.27.10
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/otiai10/copy v1.12.0
 	github.com/pelletier/go-toml v1.9.5

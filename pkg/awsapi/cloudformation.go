@@ -329,6 +329,11 @@ type CloudFormation interface {
 	// Fn::ImportValue (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-importvalue.html)
 	// function.
 	ListImports(ctx context.Context, params *ListImportsInput, optFns ...func(*Options)) (*ListImportsOutput, error)
+	// Returns drift information for resources in a stack instance.
+	// ListStackInstanceResourceDrifts returns drift information for the most recent
+	// drift detection operation. If an operation is in progress, it may only return
+	// partial results.
+	ListStackInstanceResourceDrifts(ctx context.Context, params *ListStackInstanceResourceDriftsInput, optFns ...func(*Options)) (*ListStackInstanceResourceDriftsOutput, error)
 	// Returns summary information about stack instances that are associated with the
 	// specified stack set. You can filter for stack instances that are associated with
 	// a specific Amazon Web Services account name or Region, or that have a specific
