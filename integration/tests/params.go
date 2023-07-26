@@ -246,7 +246,7 @@ func (p *Params) LogStacksEventsOnFailureForCluster(clusterName string) bool {
 				"describe-stacks",
 				"--cluster", clusterName,
 				"--events",
-				"--resource-status", "CREATE_FAILED,DELETE_FAILED,UPDATE_FAILED,UPDATE_ROLLBACK_FAILED,ROLLBACK_FAILED"
+				"--resource-status", "CREATE_FAILED,DELETE_FAILED,UPDATE_FAILED,UPDATE_ROLLBACK_FAILED,ROLLBACK_FAILED",
 			)).To(RunSuccessfully())
 		}
 	})
