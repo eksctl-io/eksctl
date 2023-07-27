@@ -30,12 +30,15 @@ Config file example:
 nodeGroups:
   - name: ng1
     instanceType: p2.xlarge
+    amiFamily: AmazonLinux2
     ami: auto
   - name: ng2
     instanceType: m5.large
+    amiFamily: AmazonLinux2
     ami: ami-custom1234
 managedNodeGroups:
   - name: m-ng-2
+    amiFamily: AmazonLinux2
     ami: ami-custom1234
     instanceType: m5.large
     overrideBootstrapCommand: |
@@ -78,6 +81,9 @@ managedNodeGroups:
 ```
 
 The `--node-ami-family` flag can also be used with `eksctl create nodegroup`. `eksctl` requires AMI Family to be explicitly set via config file or via `--node-ami-family` CLI flag, whenever working with a custom AMI.
+
+???+ note
+    At the moment, EKS managed nodegroups only support the following AMI Families when working with custom AMIs: `AmazonLinux2`, `Ubuntu1804` and `Ubuntu2004`
 
 ## Windows custom AMI support
 Only self-managed Windows nodegroups can specify a custom AMI. `amiFamily` should be set to a valid Windows AMI family.

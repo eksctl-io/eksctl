@@ -1207,8 +1207,8 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		if ng.AMIFamily == "" {
 			return errors.Errorf("when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag")
 		}
-		if ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
-			return errors.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s is supported", ng.AMIFamily, NodeImageFamilyAmazonLinux2)
+		if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyUbuntu1804 && ng.AMIFamily != NodeImageFamilyUbuntu2004 {
+			return errors.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s, %s and %s are supported", ng.AMIFamily, NodeImageFamilyAmazonLinux2, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004)
 		}
 		if ng.OverrideBootstrapCommand == nil {
 			return errors.Errorf("%s.overrideBootstrapCommand is required when using a custom AMI (%s.ami)", path, path)
