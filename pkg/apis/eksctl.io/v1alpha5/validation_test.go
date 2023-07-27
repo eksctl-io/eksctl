@@ -1927,6 +1927,30 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer, WindowsServer2022CoreContainer, WindowsServer2022FullContainer"))
 		})
 
+		It("fails when the AmiFamily is not supported for managed nodes with custom AMI", func() {
+			mng := api.NewManagedNodeGroup()
+			mng.AMI = "ami-1234"
+			mng.OverrideBootstrapCommand = aws.String("bootstrap command")
+
+			mng.AMIFamily = api.NodeImageFamilyAmazonLinux2
+			err := api.ValidateManagedNodeGroup(0, mng)
+			Expect(err).NotTo(HaveOccurred())
+
+			mng.AMIFamily = api.NodeImageFamilyUbuntu1804
+			err = api.ValidateManagedNodeGroup(0, mng)
+			Expect(err).NotTo(HaveOccurred())
+
+			mng.AMIFamily = api.NodeImageFamilyUbuntu2004
+			err = api.ValidateManagedNodeGroup(0, mng)
+			Expect(err).NotTo(HaveOccurred())
+
+			mng.AMIFamily = api.NodeImageFamilyBottlerocket
+			mng.OverrideBootstrapCommand = nil
+			err = api.ValidateManagedNodeGroup(0, mng)
+			errorMsg := fmt.Sprintf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s, %s and %s are supported", mng.AMIFamily, api.NodeImageFamilyAmazonLinux2, api.NodeImageFamilyUbuntu1804, api.NodeImageFamilyUbuntu2004)
+			Expect(err).To(MatchError(errorMsg))
+		})
+
 		It("fails when the AMIFamily is WindowsServer2004CoreContainer", func() {
 			ng.AMIFamily = api.NodeImageFamilyWindowsServer2004CoreContainer
 			err := api.ValidateNodeGroup(0, ng, cfg)
