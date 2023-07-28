@@ -1,7 +1,7 @@
 name: Build all distros
 on:
   schedule:
-    - cron: '0 9 * * *'
+    - cron: '0 9 * * 1-5'
   workflow_dispatch: {}
 
 jobs:
@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 #v3.5.3
         with:
           fetch-depth: 0
       - name: Cache go-build and mod
-        uses: actions/cache@v3
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
         with:
           path: |
             ~/.cache/go-build/
@@ -35,7 +35,7 @@ jobs:
           make build-all
       - name: slack on failure
         if: failure()
-        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a #v1.1.0 #v1.1.0
         with:
           slack_token: ${{ secrets.WEAVEWORKS_SLACK_EKSCTLBOT_TOKEN }}
           message: ":ahhhhhhhhh: build-all-distros has failed"
