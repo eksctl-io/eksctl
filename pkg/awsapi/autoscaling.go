@@ -104,7 +104,7 @@ type ASG interface {
 	//   - If you finish before the timeout period ends, send a callback by using the
 	//     CompleteLifecycleAction API call.
 	//
-	// For more information, see Amazon EC2 Auto Scaling lifecycle hooks (https://docs.aws.amazon.com/autoscaling/ec2/userguide/lifecycle-hooks.html)
+	// For more information, see Complete a lifecycle action (https://docs.aws.amazon.com/autoscaling/ec2/userguide/completing-lifecycle-hooks.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	CompleteLifecycleAction(ctx context.Context, params *CompleteLifecycleActionInput, optFns ...func(*Options)) (*CompleteLifecycleActionOutput, error)
 	// We strongly recommend using a launch template when calling this operation to
@@ -376,10 +376,10 @@ type ASG interface {
 	// balancer using the DescribeLoadBalancers API call. The instances remain running.
 	DetachLoadBalancers(ctx context.Context, params *DetachLoadBalancersInput, optFns ...func(*Options)) (*DetachLoadBalancersOutput, error)
 	// Detaches one or more traffic sources from the specified Auto Scaling group.
-	// When you detach a taffic, it enters the Removing state while deregistering the
-	// instances in the group. When all instances are deregistered, then you can no
-	// longer describe the traffic source using the DescribeTrafficSources API call.
-	// The instances continue to run.
+	// When you detach a traffic source, it enters the Removing state while
+	// deregistering the instances in the group. When all instances are deregistered,
+	// then you can no longer describe the traffic source using the
+	// DescribeTrafficSources API call. The instances continue to run.
 	DetachTrafficSources(ctx context.Context, params *DetachTrafficSourcesInput, optFns ...func(*Options)) (*DetachTrafficSourcesOutput, error)
 	// Disables group metrics collection for the specified Auto Scaling group.
 	DisableMetricsCollection(ctx context.Context, params *DisableMetricsCollectionInput, optFns ...func(*Options)) (*DisableMetricsCollectionOutput, error)
