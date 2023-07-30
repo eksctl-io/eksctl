@@ -325,8 +325,8 @@ github.com/aws/aws-sdk-go-v2/internal/ini v1.3.37 h1:BXiqvN7WuV/pMhz8CivhO8cG8ic
 github.com/aws/aws-sdk-go-v2/internal/ini v1.3.37/go.mod h1:d4GZ62cjnz/hjKFdAu11gAwK73bdhqaFv2O4J1gaqIs=
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.29.1 h1:Vf4CXOP7bm8kpGxx+Pds0hxHsh2dK12bpbjAh+bToD8=
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.29.1/go.mod h1:fjhObLujGllTkE0lQ6s34qg47Vhz7cP6KymDBLwGh14=
-github.com/aws/aws-sdk-go-v2/service/cloudformation v1.32.1 h1:bgLFMeMO65M6HWfCAMTcPGfCmlJODvMJOciuthQ4EA0=
-github.com/aws/aws-sdk-go-v2/service/cloudformation v1.32.1/go.mod h1:2zwiJAq4maZsS8uFYQ0wPVnUkLi1SjxS24nVsVznRSA=
+github.com/aws/aws-sdk-go-v2/service/cloudformation v1.33.0 h1:qPs87+IEtc61ug1XDlFlRahCYI31sG0u982fJi/tIbk=
+github.com/aws/aws-sdk-go-v2/service/cloudformation v1.33.0/go.mod h1:2zwiJAq4maZsS8uFYQ0wPVnUkLi1SjxS24nVsVznRSA=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.27.3 h1:1cSelqs0V7hjR0VTt1gA0MMh0Y/oUXjFcstvDRXU+Tw=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.27.3/go.mod h1:Q4y+yNq9h4RjnDIBLIxNldzAwzLKpxhpSbVdZ7OKEvM=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.22.2 h1:JQbAFLQot7wxsD5HQY9FA5YGJMQeG1TOMcjGi0hv18w=
