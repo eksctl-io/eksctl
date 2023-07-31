@@ -30,7 +30,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	ekscreds "github.com/weaveworks/eksctl/pkg/credentials"
+	"github.com/weaveworks/eksctl/pkg/credentials"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/nodes"
@@ -114,51 +114,29 @@ type ProviderStatus struct {
 	ClusterInfo *ClusterInfo
 }
 
+func New(
+	ctx context.Context,
+	spec *api.ProviderConfig,
+	clusterSpec *api.ClusterConfig,
+) (*ClusterProvider, error) {
+	return newHelper(ctx, spec, clusterSpec, newAWSProvider)
+}
+
 // New creates a new setup of the used AWS APIs
-func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProvider, error) {
-	provider := &ProviderServices{
-		spec: spec,
-	}
-	c := &ClusterProvider{
-		AWSProvider: provider,
-	}
-
-	cacheCredentials := os.Getenv(ekscreds.EksctlGlobalEnableCachingEnvName) != ""
-	var (
-		credentialsCacheFilePath string
-		err                      error
-	)
-	if cacheCredentials {
-		credentialsCacheFilePath, err = ekscreds.GetCacheFilePath()
-		if err != nil {
-			return nil, fmt.Errorf("error getting cache file path: %w", err)
-		}
-	}
-
-	cfg, err := newV2Config(spec, credentialsCacheFilePath)
+func newHelper(
+	ctx context.Context,
+	spec *api.ProviderConfig,
+	clusterSpec *api.ClusterConfig,
+	awsProviderBuilder func(*api.ProviderConfig, AWSConfigurationLoader) (api.ClusterProvider, error),
+) (*ClusterProvider, error) {
+	provider, err := awsProviderBuilder(spec, &ConfigurationLoader{})
 	if err != nil {
 		return nil, err
 	}
 
-	if spec.Region == "" {
-		spec.Region = cfg.Region
-	}
-
-	provider.ServicesV2 = &ServicesV2{
-		config: cfg,
-	}
-
-	c.Status = &ProviderStatus{}
-
-	provider.asg = autoscaling.NewFromConfig(cfg)
-	provider.cloudwatchlogs = cloudwatchlogs.NewFromConfig(cfg)
-	provider.cloudtrail = cloudtrail.NewFromConfig(cfg)
-
-	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
-		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)
-		provider.cloudtrail = cloudtrail.NewFromConfig(cfg, func(o *cloudtrail.Options) {
-			o.EndpointResolver = cloudtrail.EndpointResolverFromURL(endpoint)
-		})
+	c := &ClusterProvider{
+		AWSProvider: provider,
+		Status:      &ProviderStatus{},
 	}
 
 	stsOutput, err := c.checkAuth(ctx)
@@ -183,6 +161,51 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 	c.KubeProvider = kubeProvider
 
 	return c, nil
+}
+
+func newAWSProvider(spec *api.ProviderConfig, configurationLoader AWSConfigurationLoader) (api.ClusterProvider, error) {
+	var (
+		credentialsCacheFilePath string
+		err                      error
+	)
+
+	provider := &ProviderServices{
+		spec: spec,
+	}
+
+	cacheCredentials := os.Getenv(credentials.EksctlGlobalEnableCachingEnvName) != ""
+	if cacheCredentials {
+		credentialsCacheFilePath, err = credentials.GetCacheFilePath()
+		if err != nil {
+			return nil, fmt.Errorf("error getting cache file path: %w", err)
+		}
+	}
+
+	cfg, err := newV2Config(spec, credentialsCacheFilePath, configurationLoader)
+	if err != nil {
+		return nil, err
+	}
+
+	if spec.Region == "" {
+		spec.Region = cfg.Region
+	}
+
+	provider.ServicesV2 = &ServicesV2{
+		config: cfg,
+	}
+
+	provider.asg = autoscaling.NewFromConfig(cfg)
+	provider.cloudwatchlogs = cloudwatchlogs.NewFromConfig(cfg)
+	provider.cloudtrail = cloudtrail.NewFromConfig(cfg)
+
+	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
+		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)
+		provider.cloudtrail = cloudtrail.NewFromConfig(cfg, func(o *cloudtrail.Options) {
+			o.EndpointResolver = cloudtrail.EndpointResolverFromURL(endpoint)
+		})
+	}
+
+	return provider, nil
 }
 
 // ParseConfig parses data into a ClusterConfig
