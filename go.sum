@@ -291,6 +291,8 @@ github.com/aws/aws-sdk-go v1.37.0/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zK
 github.com/aws/aws-sdk-go v1.43.31/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
 github.com/aws/aws-sdk-go v1.44.308 h1:XKu+76UHsD5LaiU2Zb1q42uWakw80Az7x39jJXXahos=
 github.com/aws/aws-sdk-go v1.44.308/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
+github.com/aws/aws-sdk-go v1.44.312 h1:llrElfzeqG/YOLFFKjg1xNpZCFJ2xraIi3PqSuP+95k=
+github.com/aws/aws-sdk-go v1.44.312/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/aws/aws-sdk-go-v2 v0.18.0/go.mod h1:JWVYvqSMppoMJC0x5wdwiImzgXTI9FuZwxzkQq9wy+g=
 github.com/aws/aws-sdk-go-v2 v1.16.2/go.mod h1:ytwTPBG6fXTZLxxeeCCWj2/EMYp/xDUgX+OET6TLNNU=
 github.com/aws/aws-sdk-go-v2 v1.16.15/go.mod h1:SwiyXi/1zTUZ6KIAmLK5V5ll8SiURNUYOqTerZPaF9k=
@@ -327,14 +329,20 @@ github.com/aws/aws-sdk-go-v2/service/autoscaling v1.29.1 h1:Vf4CXOP7bm8kpGxx+Pds
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.29.1/go.mod h1:fjhObLujGllTkE0lQ6s34qg47Vhz7cP6KymDBLwGh14=
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.32.1 h1:bgLFMeMO65M6HWfCAMTcPGfCmlJODvMJOciuthQ4EA0=
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.32.1/go.mod h1:2zwiJAq4maZsS8uFYQ0wPVnUkLi1SjxS24nVsVznRSA=
+github.com/aws/aws-sdk-go-v2/service/cloudformation v1.33.0 h1:qPs87+IEtc61ug1XDlFlRahCYI31sG0u982fJi/tIbk=
+github.com/aws/aws-sdk-go-v2/service/cloudformation v1.33.0/go.mod h1:2zwiJAq4maZsS8uFYQ0wPVnUkLi1SjxS24nVsVznRSA=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.27.3 h1:1cSelqs0V7hjR0VTt1gA0MMh0Y/oUXjFcstvDRXU+Tw=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.27.3/go.mod h1:Q4y+yNq9h4RjnDIBLIxNldzAwzLKpxhpSbVdZ7OKEvM=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.22.2 h1:JQbAFLQot7wxsD5HQY9FA5YGJMQeG1TOMcjGi0hv18w=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.22.2/go.mod h1:EAORUwYYBhprpW83TuEgdMapQ0/ezHbRAGeDtR0Lptk=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.23.0 h1:duuTZRVQHwQZsH4TnK2q3Gr/y2S2zqil0Itkg69QvHQ=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.23.0/go.mod h1:1ObmNic2RK0BZg20466bTpGNXjauAlNsX+0px/DSlDU=
+github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.23.1 h1:JZYu2WUpLqcGX4bRMAXmnoaS1WESDTmlXSpmHu5QaoQ=
+github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.23.1/go.mod h1:SA9qpodSCY+8QZytgKG/uZmb4RSoqyZI3l56Iy77P34=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.107.0 h1:8SNgWuPRKJo8uZkpXjwp7b2d8spR9N5nWi+tB28AXrg=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.107.0/go.mod h1:/0btVmMZJ0sn9JQ2N96XszlQNeRCJhhXOS/sPZgDeew=
+github.com/aws/aws-sdk-go-v2/service/ec2 v1.108.1 h1:MjJ0awfjn1gFjqzhDvUdByTthjUU32H3E+CtPFZWh6M=
+github.com/aws/aws-sdk-go-v2/service/ec2 v1.108.1/go.mod h1:8Aoo2v3cl15jY1/EL5e7Uq0/U9kiVJla8C2xCjtFSaI=
 github.com/aws/aws-sdk-go-v2/service/eks v1.28.1 h1:SA+98Rnehl2KXewvGXc2Lw2ns3Y4t9jdMHmEY5hcNws=
 github.com/aws/aws-sdk-go-v2/service/eks v1.28.1/go.mod h1:cQRkgJKg6s9AIzFZ+i4pXdm+/3Fw4MuPNqCdMvSaqns=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.14 h1:bO9XNq+cM/wmg3U7p9z2ooTZofa7hAxjbcwEZDkeGhY=
@@ -356,6 +364,8 @@ github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.3/go.mod h1:Bm/v2Ia
 github.com/aws/aws-sdk-go-v2/service/kms v1.16.3/go.mod h1:QuiHPBqlOFCi4LqdSskYYAWpQlx3PKmohy+rE2F+o5g=
 github.com/aws/aws-sdk-go-v2/service/kms v1.23.1 h1:u9A03kEyjBCt44Tg3NMtWJL2SnIvMpipDIoQYtXYzMA=
 github.com/aws/aws-sdk-go-v2/service/kms v1.23.1/go.mod h1:BuDl6WtqaDJbd9c29q/EFHrZjuWlrJN7oMNy5Yd5n7Q=
+github.com/aws/aws-sdk-go-v2/service/kms v1.23.2 h1:aSPKnujf6JLrVHxwWRg0gz0IWTAn6LZIuwcZC9Z2C44=
+github.com/aws/aws-sdk-go-v2/service/kms v1.23.2/go.mod h1:bIc/wWqsXNClO3O3XmXuzsMWJC/5MOWFVjwO+o5Bfa0=
 github.com/aws/aws-sdk-go-v2/service/outposts v1.28.2 h1:WEPHrVeAqp8g4p3sJFp/SkiDtdbdK3Qi5SGcydoY7zE=
 github.com/aws/aws-sdk-go-v2/service/outposts v1.28.2/go.mod h1:ne/DVILNUD1GWT+LfU11wT4+I2tZSresq+4t5Cpp76k=
 github.com/aws/aws-sdk-go-v2/service/pricing v1.17.0 h1:RQOMvPwte2H4ZqsiZmrla1crhBWDFnW8bZynkec5cGU=
@@ -1872,6 +1882,8 @@ github.com/tetafro/godot v1.4.11/go.mod h1:LR3CJpxDVGlYOWn3ZZg1PgNZdTUvzsZWu8xaE
 github.com/tidwall/gjson v1.14.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/gjson v1.14.4 h1:uo0p8EbA09J7RQaflQ1aBRffTR7xedD2bcIVSYxLnkM=
 github.com/tidwall/gjson v1.14.4/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
+github.com/tidwall/gjson v1.15.0 h1:5n/pM+v3r5ujuNl4YLZLsQ+UE5jlkLVm7jMzT5Mpolw=
+github.com/tidwall/gjson v1.15.0/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/match v1.1.1 h1:+Ho715JplO36QYgwN9PGYNhgZvoUSc9X2c80KVTi+GA=
 github.com/tidwall/match v1.1.1/go.mod h1:eRSPERbgtNPcGhD8UCthc6PmLEQXEWd3PRB5JTxsfmM=
 github.com/tidwall/pretty v1.2.0/go.mod h1:ITEVvHYasfjBbM0u2Pg8T2nJnzm8xPwvNhhsoaGGjNU=
