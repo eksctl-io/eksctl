@@ -114,6 +114,7 @@ type ProviderStatus struct {
 	ClusterInfo *ClusterInfo
 }
 
+// New creates a new setup of the used AWS APIs
 func New(
 	ctx context.Context,
 	spec *api.ProviderConfig,
@@ -122,7 +123,6 @@ func New(
 	return newHelper(ctx, spec, clusterSpec, newAWSProvider)
 }
 
-// New creates a new setup of the used AWS APIs
 func newHelper(
 	ctx context.Context,
 	spec *api.ProviderConfig,
