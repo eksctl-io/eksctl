@@ -9,23 +9,23 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8c1e
 	github.com/aws/aws-sdk-go v1.44.308
-	github.com/aws/aws-sdk-go-v2 v1.19.0
-	github.com/aws/aws-sdk-go-v2/config v1.18.28
-	github.com/aws/aws-sdk-go-v2/credentials v1.13.27
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.10
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.32.0
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.27.2
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.22.1
+	github.com/aws/aws-sdk-go-v2 v1.19.1
+	github.com/aws/aws-sdk-go-v2/config v1.18.30
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.29
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.29.1
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.32.1
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.27.3
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.22.2
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.23.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.107.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.27.15
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.13
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.14
-	github.com/aws/aws-sdk-go-v2/service/iam v1.21.1
+	github.com/aws/aws-sdk-go-v2/service/eks v1.28.1
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.14
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.15
+	github.com/aws/aws-sdk-go-v2/service/iam v1.21.2
 	github.com/aws/aws-sdk-go-v2/service/kms v1.23.1
-	github.com/aws/aws-sdk-go-v2/service/outposts v1.28.1
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.8
-	github.com/aws/aws-sdk-go-v2/service/sts v1.20.0
+	github.com/aws/aws-sdk-go-v2/service/outposts v1.28.2
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.9
+	github.com/aws/aws-sdk-go-v2/service/sts v1.20.1
 	github.com/aws/smithy-go v1.13.5
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
@@ -141,19 +141,19 @@ require (
 	github.com/atc0005/go-teams-notify/v2 v2.6.1 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.1 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.5 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.6 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.3 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.35 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.29 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.36 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.36 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.30 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.37 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.29 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.30 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.17.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.12.13 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.13 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.12.14 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.14 // indirect
 	github.com/awslabs/goformation/v4 v4.19.5 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -576,7 +576,7 @@ replace (
 	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.25.11
 	k8s.io/kubectl => k8s.io/kubectl v0.25.5
 	k8s.io/kubelet => k8s.io/kubelet v0.25.11
-	k8s.io/kubernetes => k8s.io/kubernetes v0.25.11
+	k8s.io/kubernetes => k8s.io/kubernetes v1.25.11
 	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.25.11
 	k8s.io/metrics => k8s.io/metrics v0.25.11
 	k8s.io/mount-utils => k8s.io/mount-utils v0.25.11
