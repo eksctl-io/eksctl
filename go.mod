@@ -8,21 +8,21 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8c1e
-	github.com/aws/aws-sdk-go v1.44.308
+	github.com/aws/aws-sdk-go v1.44.312
 	github.com/aws/aws-sdk-go-v2 v1.19.1
 	github.com/aws/aws-sdk-go-v2/config v1.18.30
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.29
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.29.1
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.32.1
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.33.0
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.27.3
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.22.2
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.23.0
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.107.0
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.23.1
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.108.1
 	github.com/aws/aws-sdk-go-v2/service/eks v1.28.1
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.15.14
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.15
 	github.com/aws/aws-sdk-go-v2/service/iam v1.21.2
-	github.com/aws/aws-sdk-go-v2/service/kms v1.23.1
+	github.com/aws/aws-sdk-go-v2/service/kms v1.23.2
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.28.2
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.9
 	github.com/aws/aws-sdk-go-v2/service/sts v1.20.1
@@ -61,7 +61,7 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
-	github.com/tidwall/gjson v1.14.4
+	github.com/tidwall/gjson v1.15.0
 	github.com/tidwall/sjson v1.2.5
 	github.com/tj/assert v0.0.3
 	github.com/vburenin/ifacemaker v1.2.1
