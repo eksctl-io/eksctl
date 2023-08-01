@@ -95,7 +95,6 @@ var _ = Describe("eksctl API", func() {
 				Expect(os.Chmod(cacheFilePath, 0777)).NotTo(HaveOccurred())
 				Expect(os.Setenv(credentials.EksctlGlobalEnableCachingEnvName, "1")).NotTo(HaveOccurred())
 				Expect(os.Setenv(credentials.EksctlCacheFilenameEnvName, cacheFilePath)).NotTo(HaveOccurred())
-				Expect(os.Chmod(cacheFilePath, 0777)).NotTo(HaveOccurred())
 				return func() {
 					Expect(os.Chmod(cacheFilePath, info.Mode())).NotTo(HaveOccurred())
 					Expect(os.Unsetenv(credentials.EksctlGlobalEnableCachingEnvName)).NotTo(HaveOccurred())
