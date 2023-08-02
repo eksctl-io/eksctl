@@ -128,7 +128,6 @@ IamLimitedAccess
                 "iam:DeleteRole",
                 "iam:AttachRolePolicy",
                 "iam:PutRolePolicy",
-                "iam:ListInstanceProfiles",
                 "iam:AddRoleToInstanceProfile",
                 "iam:ListInstanceProfilesForRole",
                 "iam:PassRole",
