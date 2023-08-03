@@ -25,7 +25,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.24.0
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.29.0
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.37.0
-	github.com/aws/aws-sdk-go-v2/service/sts v1.21.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.21.1
 	github.com/aws/smithy-go v1.14.0
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
