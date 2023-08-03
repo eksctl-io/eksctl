@@ -7,7 +7,7 @@ sponsored by [![Weaveworks](img/empty.svg#wwinline)](https://www.weave.works/) a
     
     `eksctl` now supports new ISO regions `us-iso-east-1` and `us-isob-east-1`.
 
-    `eksctl` now supports new regions - Zurich (`eu-central-2`), Spain (`eu-south-2`), Hyderabad (`ap-south-2`) and  Melbourne (`ap-southeast-4`).
+    `eksctl` now supports new regions - Zurich (`eu-central-2`), Spain (`eu-south-2`), Hyderabad (`ap-south-2`),  Melbourne (`ap-southeast-4`) and Tel Aviv (`il-central-1`).
 
 `eksctl` is a simple CLI tool for creating and managing clusters on EKS - Amazon's managed Kubernetes service for EC2.
 It is written in Go, uses CloudFormation, was created by [Weaveworks](https://www.weave.works/) and it welcomes
