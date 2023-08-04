@@ -47,8 +47,8 @@ func TestE2E(t *testing.T) {
 
 var (
 	stackName, ng1, mng1, mng2 string
-	version                    = "1.22"
-	upgradeVersion             = "1.23"
+	version                    = "1.23"
+	upgradeVersion             = "1.24"
 	ctl                        api.ClusterProvider
 	cfg                        *api.ClusterConfig
 )

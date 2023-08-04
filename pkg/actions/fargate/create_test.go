@@ -64,7 +64,7 @@ var _ = Describe("Fargate", func() {
 			ClusterInfo: &eks.ClusterInfo{
 				Cluster: &ekstypes.Cluster{
 					Status:  ekstypes.ClusterStatusActive,
-					Version: aws.String("1.22"),
+					Version: aws.String("1.23"),
 				},
 			},
 		}}
