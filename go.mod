@@ -8,24 +8,24 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8c1e
-	github.com/aws/aws-sdk-go v1.44.313
+	github.com/aws/aws-sdk-go v1.44.316
 	github.com/aws/aws-sdk-go-v2 v1.20.0
-	github.com/aws/aws-sdk-go-v2/config v1.18.31
-	github.com/aws/aws-sdk-go-v2/credentials v1.13.30
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.30.0
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.34.0
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.28.0
+	github.com/aws/aws-sdk-go-v2/config v1.18.32
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.31
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.30.2
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.34.1
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.28.1
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.23.0
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.24.0
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.109.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.29.0
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.16.0
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.20.0
-	github.com/aws/aws-sdk-go-v2/service/iam v1.22.0
-	github.com/aws/aws-sdk-go-v2/service/kms v1.24.0
-	github.com/aws/aws-sdk-go-v2/service/outposts v1.29.0
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.25.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.110.0
+	github.com/aws/aws-sdk-go-v2/service/eks v1.29.1
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.16.1
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.20.1
+	github.com/aws/aws-sdk-go-v2/service/iam v1.22.1
+	github.com/aws/aws-sdk-go-v2/service/kms v1.24.1
+	github.com/aws/aws-sdk-go-v2/service/outposts v1.29.1
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.37.0
-	github.com/aws/aws-sdk-go-v2/service/sts v1.21.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.21.1
 	github.com/aws/smithy-go v1.14.0
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
@@ -153,8 +153,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.17.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.13.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.15.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.13.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.15.1 // indirect
 	github.com/awslabs/goformation/v4 v4.19.5 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
