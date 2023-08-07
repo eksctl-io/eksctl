@@ -19,6 +19,7 @@ import (
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	"github.com/weaveworks/eksctl/pkg/actions/cloudwatch"
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
 	"github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -340,7 +341,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 	logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
 
-	eks.LogEnabledFeatures(cfg)
+	cloudwatch.LogEnabledFeatures(cfg)
 	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(ctx, cfg)
 
 	var preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
