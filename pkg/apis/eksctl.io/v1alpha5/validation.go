@@ -790,7 +790,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 	}
 
 	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyBottlerocket && !IsWindowsImage(ng.AMIFamily) {
-		return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI (%[1]s.ami)", path)
+		return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 	}
 
 	if err := validateTaints(ng.Taints); err != nil {
@@ -1211,7 +1211,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 			return errors.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s, %s and %s are supported", ng.AMIFamily, NodeImageFamilyAmazonLinux2, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004)
 		}
 		if ng.OverrideBootstrapCommand == nil {
-			return errors.Errorf("%s.overrideBootstrapCommand is required when using a custom AMI (%s.ami)", path, path)
+			return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 		}
 		notSupportedWithCustomAMIErr := func(field string) error {
 			return errors.Errorf("%s.%s is not supported when using a custom AMI (%s.ami)", path, field, path)
