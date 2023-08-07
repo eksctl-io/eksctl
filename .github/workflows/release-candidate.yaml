@@ -7,15 +7,15 @@ jobs:
   rc:
     name: Trigger release candidate build
     runs-on: ubuntu-latest
-    container: public.ecr.aws/eksctl/eksctl-build:b06c1f3d2a18a98695327e6f8da535ded95083b7
+    container: public.ecr.aws/eksctl/eksctl-build:7b4e42f61d4655dcfac75894275b2a0c4d7bfe2c
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 #v3.5.3
         with:
           token: ${{ secrets.EKSCTLBOT_TOKEN }}
           fetch-depth: 0
       - name: Cache go-build and mod
-        uses: actions/cache@v3
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
         with:
           path: |
             ~/.cache/go-build/

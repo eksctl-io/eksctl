@@ -1,3 +1,4 @@
+name: Publish Release type
 on:
   workflow_call:
     inputs:
@@ -27,9 +28,9 @@ jobs:
           echo "Available storage:"
           df -h
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 #v3.5.3
       - name: Cache go-build and mod
-        uses: actions/cache@v3
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
         with:
           path: |
             ~/.cache/go-build/
@@ -61,7 +62,7 @@ jobs:
         run: echo "version=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
       - name: slack on success - team-pitch-black
         if: ${{ success() }}
-        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a #v1.1.0
         with:
           slack_token: ${{ secrets.slackToken }}
           message: ":cool-doge: ${{ inputs.name }} successful for tag <https://github.com/eksctl-io/eksctl/releases/tag/${{ steps.get_version.outputs.version }}|${{ steps.get_version.outputs.version }}>"
@@ -70,7 +71,7 @@ jobs:
           verbose: false
       - name: slack on failure - team-pitch-black
         if: ${{ failure() }}
-        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a #v1.1.0
         with:
           slack_token: ${{ secrets.slackToken }}
           message: ":ahhhhhhhhh: ${{ inputs.name }} has failed for tag <https://github.com/eksctl-io/eksctl/releases/tag/${{ steps.get_version.outputs.version }}|${{ steps.get_version.outputs.version }}>"
@@ -79,7 +80,7 @@ jobs:
           verbose: true
       - name: slack on success - aws-dev
         if: ${{ success() }}
-        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a #v1.1.0
         with:
           slack_token: ${{ secrets.slackToken }}
           message: ":tada: <https://github.com/eksctl-io/eksctl/releases/tag/${{ steps.get_version.outputs.version }}|${{ steps.get_version.outputs.version }}> released!"
