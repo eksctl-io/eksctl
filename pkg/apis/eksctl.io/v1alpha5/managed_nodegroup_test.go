@@ -65,7 +65,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 					AMIFamily: DefaultNodeImageFamily,
 				},
 			},
-			errMsg: fmt.Sprintf("overrideBootstrapCommand is required when using a %s custom AMI", DefaultNodeImageFamily),
+			errMsg: fmt.Sprintf("overrideBootstrapCommand is required when using a custom AMI based on %s", DefaultNodeImageFamily),
 		}),
 		Entry("Custom AMI with Windows AMI family without overrideBootstrapCommand", &nodeGroupCase{
 			ng: &ManagedNodeGroup{

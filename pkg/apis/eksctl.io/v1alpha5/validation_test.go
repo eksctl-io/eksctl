@@ -153,7 +153,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0.Name = "node-group"
 			ng0.AMI = "ami-1234"
 			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2
-			errMsg := fmt.Sprintf("overrideBootstrapCommand is required when using a %s custom AMI", ng0.AMIFamily)
+			errMsg := fmt.Sprintf("overrideBootstrapCommand is required when using a custom AMI based on %s", ng0.AMIFamily)
 			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(MatchError(ContainSubstring(errMsg)))
 		})
 		It("should not require overrideBootstrapCommand if ami is set and type is Bottlerocket", func() {
