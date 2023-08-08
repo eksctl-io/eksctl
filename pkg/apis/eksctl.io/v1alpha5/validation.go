@@ -829,8 +829,8 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		if ng.OverrideBootstrapCommand != nil {
 			return fieldNotSupported("overrideBootstrapCommand")
 		}
-		if ng.Bottlerocket != nil {
-			if err := checkBottlerocketSettings(ng.Bottlerocket.Settings, path); err != nil {
+		if ng.Bottlerocket != nil && ng.Bottlerocket.Settings != nil {
+			if err := checkBottlerocketSettings(ng, path); err != nil {
 				return err
 			}
 		}
@@ -1484,17 +1484,13 @@ func (fps FargateProfileSelector) Validate() error {
 	return nil
 }
 
-func checkBottlerocketSettings(doc *InlineDocument, path string) error {
-	if doc == nil {
-		return nil
-	}
-
+func checkBottlerocketSettings(ng *NodeGroup, path string) error {
 	overlapErr := func(key, ngField string) error {
 		return errors.Errorf("invalid Bottlerocket setting: use %s.%s instead (path=%s)", path, ngField, key)
 	}
 
 	// Dig into kubernetes settings if provided.
-	kubeVal, ok := (*doc)["kubernetes"]
+	kubeVal, ok := (*ng.Bottlerocket.Settings)["kubernetes"]
 	if !ok {
 		return nil
 	}
@@ -1505,10 +1501,9 @@ func checkBottlerocketSettings(doc *InlineDocument, path string) error {
 	}
 
 	checkMapping := map[string]string{
-		"node-labels":    "labels",
-		"node-taints":    "taints",
-		"max-pods":       "maxPodsPerNode",
-		"cluster-dns-ip": "clusterDNS",
+		"node-labels": "labels",
+		"node-taints": "taints",
+		"max-pods":    "maxPodsPerNode",
 	}
 
 	for checkKey, shouldUse := range checkMapping {
@@ -1516,6 +1511,10 @@ func checkBottlerocketSettings(doc *InlineDocument, path string) error {
 		if ok {
 			return overlapErr(path+".kubernetes."+checkKey, shouldUse)
 		}
+	}
+
+	if _, ok := kube["cluster-dns-ip"]; ok && ng.ClusterDNS != "" {
+		return fmt.Errorf("only one of %[1]s.bottlerocket.settings.kubernetes.cluster-dns-ip or %[1]s.clusterDNS can be set", path)
 	}
 
 	return nil
