@@ -38,7 +38,7 @@ func vpcConfig() *api.ClusterVPC {
 		},
 		ClusterEndpoints: api.ClusterEndpointAccessDefaults(),
 		Subnets: &api.ClusterSubnets{
-			Public: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+			Public: azSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 				azB: {
 					ID: publicSubnet2,
 					CIDR: &ipnet.IPNet{
@@ -58,7 +58,7 @@ func vpcConfig() *api.ClusterVPC {
 					},
 				},
 			}),
-			Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+			Private: azSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 				azB: {
 					ID: privateSubnet2,
 					CIDR: &ipnet.IPNet{

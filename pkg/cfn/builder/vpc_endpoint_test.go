@@ -30,6 +30,14 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
+var (
+	azSubnetMappingFromMap = func(spec map[string]api.AZSubnetSpec) api.AZSubnetMapping {
+		m, err := api.AZSubnetMappingFromMap(spec)
+		Expect(err).NotTo(HaveOccurred())
+		return m
+	}
+)
+
 type vpcResourceSetCase struct {
 	clusterConfig  *api.ClusterConfig
 	expectedFile   string
@@ -149,7 +157,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 						ID: "vpc-custom",
 					},
 					Subnets: &api.ClusterSubnets{
-						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+						Private: azSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 							"us-west-2a": {
 								ID: "subnet-custom1",
 							},
@@ -157,7 +165,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 								ID: "subnet-custom2",
 							},
 						}),
-						Public: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{}),
+						Public: azSubnetMappingFromMap(map[string]api.AZSubnetSpec{}),
 					},
 				},
 				AvailabilityZones: []string{"us-west-2a", "us-west-2b"},
@@ -178,7 +186,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 						ID: "vpc-custom",
 					},
 					Subnets: &api.ClusterSubnets{
-						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+						Private: azSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 							"us-west-2a": {
 								ID: "subnet-custom1",
 							},
@@ -211,7 +219,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 						ID: "vpc-custom",
 					},
 					Subnets: &api.ClusterSubnets{
-						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+						Private: azSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 							"us-west-2a": {
 								ID: "subnet-custom1",
 							},
@@ -244,7 +252,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 						ID: "vpc-custom",
 					},
 					Subnets: &api.ClusterSubnets{
-						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+						Private: azSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 							"us-west-2a": {
 								ID: "subnet-custom1",
 							},

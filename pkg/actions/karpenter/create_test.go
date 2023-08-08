@@ -384,6 +384,11 @@ var (
 	azA, azB                       = "us-west-2a", "us-west-2b"
 	privateSubnet1, privateSubnet2 = "subnet-1", "subnet-2"
 	publicSubnet1, publicSubnet2   = "subnet-3", "subnet-4"
+	azSubnetMappingFromMap         = func(spec map[string]api.AZSubnetSpec) api.AZSubnetMapping {
+		m, err := api.AZSubnetMappingFromMap(spec)
+		Expect(err).NotTo(HaveOccurred())
+		return m
+	}
 )
 
 func vpcConfig() *api.ClusterVPC {
@@ -393,7 +398,7 @@ func vpcConfig() *api.ClusterVPC {
 			Gateway: &disable,
 		},
 		Subnets: &api.ClusterSubnets{
-			Public: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+			Public: azSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 				azB: {
 					ID: publicSubnet2,
 					CIDR: &ipnet.IPNet{
@@ -413,7 +418,7 @@ func vpcConfig() *api.ClusterVPC {
 					},
 				},
 			}),
-			Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+			Private: azSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 				azB: {
 					ID: privateSubnet2,
 					CIDR: &ipnet.IPNet{

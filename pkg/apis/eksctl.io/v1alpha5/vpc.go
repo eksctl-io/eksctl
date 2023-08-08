@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"reflect"
+	"regexp"
 
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
@@ -39,15 +40,28 @@ func NewAZSubnetMapping() AZSubnetMapping {
 	return make(map[string]AZSubnetSpec)
 }
 
-func AZSubnetMappingFromMap(m map[string]AZSubnetSpec) AZSubnetMapping {
+func AZSubnetMappingFromMap(m map[string]AZSubnetSpec) (AZSubnetMapping, error) {
 	for k := range m {
 		v := m[k]
 		if v.AZ == "" {
+			if !isValidZoneName(k) {
+				return nil, fmt.Errorf("%s is not a valid zone name: either explicitly specify subnet.AZ, or configure the subnet key to be a valid zone name", k)
+			}
 			v.AZ = k
 			m[k] = v
 		}
 	}
-	return m
+	return m, nil
+}
+
+func isValidZoneName(zoneName string) bool {
+	// matches against all availability zones and local zones e.g. "us-west-2a", "us-west-2-lax-1a"
+	zonePattern := `^(us|eu|ap|sa|ca|af|me|cn|il)-[a-z]+-[0-9][a-z]?(-[a-z]+-[0-9][a-z])?$`
+	regex, err := regexp.Compile(zonePattern)
+	if err != nil {
+		return false
+	}
+	return regex.MatchString(zoneName)
 }
 
 func (m *AZSubnetMapping) Set(name string, spec AZSubnetSpec) {
@@ -112,13 +126,18 @@ func (m *AZSubnetMapping) WithAZs() []string {
 
 // UnmarshalJSON parses JSON data into a value
 func (m *AZSubnetMapping) UnmarshalJSON(b []byte) error {
-	// TODO we need to validate that the AZ property is maintained
-	var raw map[string]AZSubnetSpec
+	var (
+		raw map[string]AZSubnetSpec
+		err error
+	)
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
 
-	*m = AZSubnetMappingFromMap(raw)
+	if *m, err = AZSubnetMappingFromMap(raw); err != nil {
+		return fmt.Errorf("error creating subnet mapping: %w", err)
+	}
+
 	return nil
 }
 

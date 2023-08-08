@@ -614,8 +614,6 @@ func ImportSubnetsFromSpec(ctx context.Context, provider api.ClusterProvider, sp
 	if err := importSubnetsForTopology(ctx, provider.EC2(), spec, api.SubnetTopologyPublic); err != nil {
 		return err
 	}
-	// to clean up invalid subnets based on AZ after importing both private and public subnets
-	cleanupSubnets(spec)
 	return nil
 }
 
@@ -635,25 +633,6 @@ func UseEndpointAccessFromCluster(ctx context.Context, provider api.ClusterProvi
 	spec.VPC.ClusterEndpoints.PublicAccess = &output.Cluster.ResourcesVpcConfig.EndpointPublicAccess
 	spec.VPC.ClusterEndpoints.PrivateAccess = &output.Cluster.ResourcesVpcConfig.EndpointPrivateAccess
 	return nil
-}
-
-// cleanupSubnets clean up subnet entries having invalid AZ
-func cleanupSubnets(spec *api.ClusterConfig) {
-	availabilityZones := make(map[string]struct{})
-	for _, az := range spec.AvailabilityZones {
-		availabilityZones[az] = struct{}{}
-	}
-
-	cleanup := func(subnets *api.AZSubnetMapping) {
-		for name, subnet := range *subnets {
-			if _, ok := availabilityZones[subnet.AZ]; !ok {
-				delete(*subnets, name)
-			}
-		}
-	}
-
-	cleanup(&spec.VPC.Subnets.Private)
-	cleanup(&spec.VPC.Subnets.Public)
 }
 
 func validatePublicSubnet(subnets []ec2types.Subnet) error {
