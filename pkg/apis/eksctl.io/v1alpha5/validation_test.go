@@ -1803,23 +1803,55 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).To(MatchError(ContainSubstring(`bottlerocket config can only be used with amiFamily "Bottlerocket"`)))
 		})
 
-		It("returns an error with unsupported fields", func() {
-			cmd := "/usr/bin/some-command"
-			doc := api.InlineDocument{
-				"cgroupDriver": "systemd",
-			}
+		type bottlerocketEntry struct {
+			ng          *api.NodeGroup
+			expectedErr string
+		}
 
-			ngs := map[string]*api.NodeGroup{
-				"PreBootstrapCommands": {
+		DescribeTable("field validation", func(be bottlerocketEntry) {
+			if be.ng.NodeGroupBase == nil {
+				be.ng.NodeGroupBase = &api.NodeGroupBase{}
+			}
+			be.ng.AMIFamily = api.NodeImageFamilyBottlerocket
+			err := api.ValidateNodeGroup(0, be.ng, api.NewClusterConfig())
+			if be.expectedErr != "" {
+				Expect(err).To(MatchError(be.expectedErr))
+			} else {
+				Expect(err).NotTo(HaveOccurred())
+			}
+		},
+			Entry("preBootstrapCommands", bottlerocketEntry{
+				ng: &api.NodeGroup{
 					NodeGroupBase: &api.NodeGroupBase{
 						PreBootstrapCommands: []string{"/usr/bin/env true"},
-					}},
-				"OverrideBootstrapCommand": {
+					},
+				},
+
+				expectedErr: "preBootstrapCommands is not supported for Bottlerocket nodegroups (path=nodeGroups[0].preBootstrapCommands)",
+			}),
+
+			Entry("overrideBootstrapCommand", bottlerocketEntry{
+				ng: &api.NodeGroup{
 					NodeGroupBase: &api.NodeGroupBase{
-						OverrideBootstrapCommand: &cmd,
-					}},
-				"KubeletExtraConfig": {KubeletExtraConfig: &doc},
-				"overlapping Bottlerocket settings": {
+						OverrideBootstrapCommand: aws.String("/usr/bin/some-command"),
+					},
+				},
+
+				expectedErr: "overrideBootstrapCommand is not supported for Bottlerocket nodegroups (path=nodeGroups[0].overrideBootstrapCommand)",
+			}),
+
+			Entry("kubeletExtraConfig", bottlerocketEntry{
+				ng: &api.NodeGroup{
+					KubeletExtraConfig: &api.InlineDocument{
+						"cgroupDriver": "systemd",
+					},
+				},
+
+				expectedErr: "kubeletExtraConfig is not supported for Bottlerocket nodegroups (path=nodeGroups[0].kubeletExtraConfig)",
+			}),
+
+			Entry("overlapping settings", bottlerocketEntry{
+				ng: &api.NodeGroup{
 					NodeGroupBase: &api.NodeGroupBase{
 						Bottlerocket: &api.NodeGroupBottlerocket{
 							Settings: &api.InlineDocument{
@@ -1832,39 +1864,49 @@ var _ = Describe("ClusterConfig validation", func() {
 						},
 					},
 				},
-			}
 
-			cfg := api.NewClusterConfig()
-			for name, ng := range ngs {
-				if ng.NodeGroupBase == nil {
-					ng.NodeGroupBase = &api.NodeGroupBase{}
-				}
-				ng.AMIFamily = api.NodeImageFamilyBottlerocket
-				err := api.ValidateNodeGroup(0, ng, cfg)
-				Expect(err).To(HaveOccurred(), "foo", name)
-			}
-		})
+				expectedErr: "invalid Bottlerocket setting: use nodeGroups[0].labels instead (path=nodeGroups[0].kubernetes.node-labels)",
+			}),
 
-		It("has no error with supported fields", func() {
-			x := 32
-			ngs := []*api.NodeGroup{
-				{NodeGroupBase: &api.NodeGroupBase{Labels: map[string]string{"label": "label-value"}}},
-				{NodeGroupBase: &api.NodeGroupBase{MaxPodsPerNode: x}},
-				{
+			Entry("both clusterDNS and cluster-dns-ip set", bottlerocketEntry{
+				ng: &api.NodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{
+						Bottlerocket: &api.NodeGroupBottlerocket{
+							Settings: &api.InlineDocument{
+								"kubernetes": map[string]interface{}{
+									"cluster-dns-ip": "10.100.0.10",
+								},
+							},
+						},
+					},
+					ClusterDNS: "10.100.0.10",
+				},
+
+				expectedErr: "only one of nodeGroups[0].bottlerocket.settings.kubernetes.cluster-dns-ip or nodeGroups[0].clusterDNS can be set",
+			}),
+
+			Entry("labels", bottlerocketEntry{
+				ng: &api.NodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{Labels: map[string]string{"label": "label-value"}},
+				},
+			}),
+
+			Entry("maxPods", bottlerocketEntry{
+				ng: &api.NodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{MaxPodsPerNode: 32},
+				},
+			}),
+
+			Entry("maxPods", bottlerocketEntry{
+				ng: &api.NodeGroup{
 					NodeGroupBase: &api.NodeGroupBase{
 						ScalingConfig: &api.ScalingConfig{
-							MinSize: &x,
+							MinSize: aws.Int(5),
 						},
 					},
 				},
-			}
-
-			cfg := api.NewClusterConfig()
-			for i, ng := range ngs {
-				ng.AMIFamily = api.NodeImageFamilyBottlerocket
-				Expect(api.ValidateNodeGroup(i, ng, cfg)).To(Succeed())
-			}
-		})
+			}),
+		)
 	})
 
 	type kmsFieldCase struct {
