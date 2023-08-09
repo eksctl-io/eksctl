@@ -790,7 +790,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 	}
 
 	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyBottlerocket && !IsWindowsImage(ng.AMIFamily) {
-		return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI (%[1]s.ami)", path)
+		return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 	}
 
 	if err := validateTaints(ng.Taints); err != nil {
@@ -829,8 +829,8 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		if ng.OverrideBootstrapCommand != nil {
 			return fieldNotSupported("overrideBootstrapCommand")
 		}
-		if ng.Bottlerocket != nil {
-			if err := checkBottlerocketSettings(ng.Bottlerocket.Settings, path); err != nil {
+		if ng.Bottlerocket != nil && ng.Bottlerocket.Settings != nil {
+			if err := checkBottlerocketSettings(ng, path); err != nil {
 				return err
 			}
 		}
@@ -1211,7 +1211,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 			return errors.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s, %s and %s are supported", ng.AMIFamily, NodeImageFamilyAmazonLinux2, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004)
 		}
 		if ng.OverrideBootstrapCommand == nil {
-			return errors.Errorf("%s.overrideBootstrapCommand is required when using a custom AMI (%s.ami)", path, path)
+			return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 		}
 		notSupportedWithCustomAMIErr := func(field string) error {
 			return errors.Errorf("%s.%s is not supported when using a custom AMI (%s.ami)", path, field, path)
@@ -1484,17 +1484,13 @@ func (fps FargateProfileSelector) Validate() error {
 	return nil
 }
 
-func checkBottlerocketSettings(doc *InlineDocument, path string) error {
-	if doc == nil {
-		return nil
-	}
-
+func checkBottlerocketSettings(ng *NodeGroup, path string) error {
 	overlapErr := func(key, ngField string) error {
 		return errors.Errorf("invalid Bottlerocket setting: use %s.%s instead (path=%s)", path, ngField, key)
 	}
 
 	// Dig into kubernetes settings if provided.
-	kubeVal, ok := (*doc)["kubernetes"]
+	kubeVal, ok := (*ng.Bottlerocket.Settings)["kubernetes"]
 	if !ok {
 		return nil
 	}
@@ -1505,10 +1501,9 @@ func checkBottlerocketSettings(doc *InlineDocument, path string) error {
 	}
 
 	checkMapping := map[string]string{
-		"node-labels":    "labels",
-		"node-taints":    "taints",
-		"max-pods":       "maxPodsPerNode",
-		"cluster-dns-ip": "clusterDNS",
+		"node-labels": "labels",
+		"node-taints": "taints",
+		"max-pods":    "maxPodsPerNode",
 	}
 
 	for checkKey, shouldUse := range checkMapping {
@@ -1516,6 +1511,10 @@ func checkBottlerocketSettings(doc *InlineDocument, path string) error {
 		if ok {
 			return overlapErr(path+".kubernetes."+checkKey, shouldUse)
 		}
+	}
+
+	if _, ok := kube["cluster-dns-ip"]; ok && ng.ClusterDNS != "" {
+		return fmt.Errorf("only one of %[1]s.bottlerocket.settings.kubernetes.cluster-dns-ip or %[1]s.clusterDNS can be set", path)
 	}
 
 	return nil

@@ -492,7 +492,7 @@ changes and give you feedback as soon as possible. We also encourage people to p
 links to their PRs in slack to get more eyes on the work.
 
 We recommend that you regularly rebase from `main` of the original repo to keep your
-branch up to date. You have the option to do so by simply commenting `/rebase` on your PR to trigger a GitHub action. Please refer to https://github.com/cirrus-actions/rebase.
+branch up to date.
 
 Please ensure that `Allow edits and access to secrets by maintainers` is checked.
 While the maintainers will of course wait for you to edit your own work, if you are
