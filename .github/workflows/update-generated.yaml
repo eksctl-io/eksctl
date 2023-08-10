@@ -12,7 +12,7 @@ jobs:
   update_aws_node:
     name: Update aws-node and open PR
     runs-on: ubuntu-latest
-    container: public.ecr.aws/eksctl/eksctl-build:7b4e42f61d4655dcfac75894275b2a0c4d7bfe2c
+    container: public.ecr.aws/eksctl/eksctl-build:6f5a31f2ec61d6ee0f96751824dde5636b489c76
     env:
       GOPRIVATE: ""
     steps:
