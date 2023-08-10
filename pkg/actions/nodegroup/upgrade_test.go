@@ -336,7 +336,7 @@ var _ = Describe("Upgrade", func() {
 							Status:         ekstypes.NodegroupStatusActive,
 							AmiType:        ekstypes.AMITypesBottlerocketX8664,
 							Version:        eksVersion,
-							ReleaseVersion: eksReleaseVersion,
+							ReleaseVersion: aws.String("1.13.1-2913d3b6"),
 						},
 					}, nil)
 
@@ -344,7 +344,7 @@ var _ = Describe("Upgrade", func() {
 						Name: aws.String(fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/x86_64/latest/image_version", latestEKSVersion)),
 					}).Return(&ssm.GetParameterOutput{
 						Parameter: &ssmtypes.Parameter{
-							Value: aws.String("1.5.2-1602f3a8"),
+							Value: aws.String("1.14.2-1602f3a8"),
 						},
 					}, nil)
 				})

@@ -201,7 +201,7 @@ func newAWSProvider(spec *api.ProviderConfig, configurationLoader AWSConfigurati
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
 		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)
 		provider.cloudtrail = cloudtrail.NewFromConfig(cfg, func(o *cloudtrail.Options) {
-			o.EndpointResolver = cloudtrail.EndpointResolverFromURL(endpoint)
+			o.BaseEndpoint = &endpoint
 		})
 	}
 

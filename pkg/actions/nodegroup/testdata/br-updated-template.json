@@ -141,6 +141,7 @@
           ]
         },
         "NodegroupName": "br",
+        "ReleaseVersion": "1.14.2-1602f3a8",
         "ScalingConfig": {
           "DesiredSize": 4,
           "MaxSize": 4,
@@ -157,8 +158,7 @@
         "Tags": {
           "alpha.eksctl.io/nodegroup-name": "br",
           "alpha.eksctl.io/nodegroup-type": "managed"
-        },
-        "Version": "1.27"
+        }
       }
     },
     "NodeInstanceRole": {

@@ -11,7 +11,7 @@ jobs:
     name: Merge release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 #v3.5.3
         with:
           fetch-depth: 0
       - name: Setup identity as eksctl-bot
@@ -28,7 +28,7 @@ jobs:
           EDITOR=true git merge --continue
           ! git diff --exit-code $DEFAULT_BRANCH...HEAD || exit 1
           git push --set-upstream origin HEAD
-      - uses: actions/github-script@v6.4.1
+      - uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 #v6.4.1
         name: Open PR to ${{env.DEFAULT_BRANCH}}
         with:
           github-token: ${{ secrets.EKSCTLBOT_TOKEN }}
