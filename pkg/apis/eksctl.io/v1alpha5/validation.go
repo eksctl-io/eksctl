@@ -952,7 +952,7 @@ func validateLabels(labels map[string]string) error {
 	}
 
 	if len(disallowedKubernetesLabels) > 0 {
-		return fmt.Errorf("the following nodegroup labels are disallowd as they have reserved prefixes [kubernetes.io/, k8s.io/]: %v", disallowedKubernetesLabels)
+		return fmt.Errorf("the following nodegroup labels are disallowed as they have reserved prefixes [kubernetes.io/, k8s.io/]: %v", disallowedKubernetesLabels)
 	}
 	return nil
 }
