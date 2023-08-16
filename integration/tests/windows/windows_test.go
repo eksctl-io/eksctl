@@ -33,16 +33,16 @@ func TestWindowsCluster(t *testing.T) {
 var params *tests.Params
 
 var _ = BeforeSuite(func() {
-	params = tests.NewParams("windows")
+	params = tests.NewParams(fmt.Sprintf("windows-%d", GinkgoParallelProcess()))
 })
 
 var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 
-	createCluster := func(withOIDC bool, ami, containerRuntime, clusterName string) {
+	createCluster := func(withOIDC bool, ami, clusterName string) {
 		By("creating a new cluster with Windows nodegroups")
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = clusterName
-		clusterConfig.Metadata.Version = api.Version1_23
+		clusterConfig.Metadata.Version = api.LatestVersion
 		clusterConfig.Metadata.Region = api.DefaultRegion
 		clusterConfig.IAM.WithOIDC = &withOIDC
 
@@ -54,7 +54,6 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 					VolumeSize:   aws.Int(120),
 					InstanceType: "t3a.xlarge",
 				},
-				ContainerRuntime: &containerRuntime,
 			},
 		}
 		clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
@@ -90,7 +89,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 	}
 
 	deleteCluster := func(clusterName string) {
-		By("deleting the windows cluster")
+		By("deleting the Windows cluster")
 		cmd := params.EksctlDeleteCmd.WithArgs(
 			"cluster",
 			"--name", clusterName,
@@ -99,16 +98,14 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 	}
 
 	Context("When creating a cluster with Windows nodegroups", func() {
-		DescribeTable("it should be able to run Windows pods", func(withOIDC bool, ami, workload, containerRuntime, clusterName string) {
-			createCluster(withOIDC, ami, containerRuntime, clusterName)
+		DescribeTable("it should be able to run Windows pods", func(withOIDC bool, ami, workload, clusterName string) {
+			createCluster(withOIDC, ami, clusterName)
 			runWindowsPod(workload)
 			deleteCluster(clusterName)
 		},
-			Entry("windows when withOIDC is disabled", false, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeDockerForWindows, "windows-cluster1"),
-			Entry("windows when withOIDC is enabled", true, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeDockerForWindows, "windows-cluster2"),
-
-			Entry("Windows Server 2022 when withOIDC is enabled", true, api.NodeImageFamilyWindowsServer2022FullContainer, "windows-server-iis-2022.yaml", api.ContainerRuntimeDockerForWindows, "windows-cluster3"),
-			Entry("Windows Server 2022 with containerd", true, api.NodeImageFamilyWindowsServer2022FullContainer, "windows-server-iis-2022.yaml", api.ContainerRuntimeContainerD, "windows-cluster4"),
+			Entry("Windows when withOIDC is disabled", false, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml", "windows-cluster1"),
+			Entry("Windows when withOIDC is enabled", true, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml", "windows-cluster2"),
+			Entry("Windows Server 2022 when withOIDC is enabled", true, api.NodeImageFamilyWindowsServer2022FullContainer, "windows-server-iis-2022.yaml", "windows-cluster3"),
 		)
 	})
 
