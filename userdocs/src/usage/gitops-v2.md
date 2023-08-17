@@ -1,4 +1,4 @@
-# New: GitOps with Flux v2
+# GitOps with Flux v2
 
 [Gitops](https://www.weave.works/technologies/gitops/) is a way to do Kubernetes application delivery. It
 works by using Git as a single source of truth for Kubernetes resources
@@ -91,3 +91,7 @@ Quickstart profiles will **not** be supported with Flux v2.
 ## Further reading
 
 To learn more about gitops and Flux, check out [Flux official webpage](https://fluxcd.io/).
+
+For Enterprise support with SLA guarantees for open source Flux and eksctl explore [Weave GitOps Assured](https://www.weave.works/product/gitops/).
+
+For a trusted, fleet-scale commercial GitOps automation solution explore [Weave GitOps Enterprise](https://www.weave.works/product/gitops-enterprise/).
