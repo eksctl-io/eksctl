@@ -208,15 +208,6 @@ const (
 	DefaultRegion = RegionUSWest2
 )
 
-func defaultVolumeTypeForRegion(region string) string {
-	switch region {
-	case RegionUSISOEast1, RegionUSISOBEast1:
-		return NodeVolumeTypeIO1
-	default:
-		return DefaultNodeVolumeType
-	}
-}
-
 // Values for `NodeAMIFamily`
 // All valid values of supported families should go in this block
 const (
