@@ -90,7 +90,7 @@ Quickstart profiles will **not** be supported with Flux v2.
 
 ## Further reading
 
-To learn more about gitops and Flux, check out [Flux official webpage](https://fluxcd.io/).
+To learn more about gitops and Flux, check out [Flux official webpage](https://fluxcd.io/flux/).
 
 For Enterprise support with SLA guarantees for open source Flux and eksctl explore [Weave GitOps Assured](https://www.weave.works/product/gitops/).
 
