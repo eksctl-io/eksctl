@@ -78,7 +78,7 @@ eksctl create cluster --config-file <config-file>
 
 #### Environment variables
 
-Before running `eksctl enable flux`, ensure that you have read the [Flux getting started docs](https://fluxcd.io/docs/get-started/). If you are using Github or Gitlab as your git provider, either `GITHUB_TOKEN` or `GITLAB_TOKEN` must be exported with your Personal Access Token in your session. Please refer to the Flux docs for any other requirements.
+Before running `eksctl enable flux`, ensure that you have read the [Flux getting started docs](https://fluxcd.io/flux/get-started/). If you are using Github or Gitlab as your git provider, either `GITHUB_TOKEN` or `GITLAB_TOKEN` must be exported with your Personal Access Token in your session. Please refer to the Flux docs for any other requirements.
 
 #### Flux version
 
