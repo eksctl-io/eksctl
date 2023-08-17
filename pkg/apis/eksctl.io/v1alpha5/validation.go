@@ -1485,8 +1485,8 @@ func (fps FargateProfileSelector) Validate() error {
 }
 
 func checkBottlerocketSettings(ng *NodeGroup, path string) error {
-	overlapErr := func(key, ngField string) error {
-		return errors.Errorf("invalid Bottlerocket setting: use %s.%s instead (path=%s)", path, ngField, key)
+	overlapErr := func(kubernetesField, ngField string) error {
+		return fmt.Errorf("invalid Bottlerocket setting: use %[1]s.%[2]s instead (path=%[1]s.bottlerocket.settings.kubernetes.%[3]s)", path, ngField, kubernetesField)
 	}
 
 	// Dig into kubernetes settings if provided.
@@ -1509,7 +1509,7 @@ func checkBottlerocketSettings(ng *NodeGroup, path string) error {
 	for checkKey, shouldUse := range checkMapping {
 		_, ok := kube[checkKey]
 		if ok {
-			return overlapErr(path+".kubernetes."+checkKey, shouldUse)
+			return overlapErr(checkKey, shouldUse)
 		}
 	}
 
