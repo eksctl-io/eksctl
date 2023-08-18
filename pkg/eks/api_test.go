@@ -3,24 +3,164 @@ package eks_test
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gomegatypes "github.com/onsi/gomega/types"
 	"github.com/stretchr/testify/mock"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/credentials"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	. "github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/eks/fakes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
+const (
+	genericError  = "generic error"
+	cacheFilePath = "testdata/cached-credentials.yaml"
+)
+
+type newAWSProviderEntry struct {
+	updateFakes func(*fakes.FakeAWSConfigurationLoader)
+	updateEnv   func() func()
+	err         string
+}
+
+type newClusterProviderEntry struct {
+	updateMocks                     func(*mockprovider.MockProvider)
+	overwriteAWSProviderBuilderMock func(pc *api.ProviderConfig, acl AWSConfigurationLoader) (api.ClusterProvider, error)
+	err                             string
+}
+
 var _ = Describe("eksctl API", func() {
+
+	DescribeTable("creating the AWS provider", func(e newAWSProviderEntry) {
+		fakeConfigurationLoader := fakes.FakeAWSConfigurationLoader{}
+		fakeConfigurationLoader.LoadDefaultConfigReturns(aws.Config{
+			Region: api.DefaultRegion,
+		}, nil)
+		if e.updateFakes != nil {
+			e.updateFakes(&fakeConfigurationLoader)
+		}
+
+		if e.updateEnv != nil {
+			resetEnv := e.updateEnv()
+			defer resetEnv()
+		}
+
+		awsProvider, err := eks.NewAWSProvider(&api.ProviderConfig{}, &fakeConfigurationLoader)
+		if e.err != "" {
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(e.err))
+			return
+		}
+		Expect(err).NotTo(HaveOccurred())
+
+		// check that all provider services were or can be (lazily) initialized properly
+		Expect(awsProvider.CloudFormation()).NotTo(BeNil())
+		Expect(awsProvider.ASG()).NotTo(BeNil())
+		Expect(awsProvider.EKS()).NotTo(BeNil())
+		Expect(awsProvider.SSM()).NotTo(BeNil())
+		Expect(awsProvider.CloudTrail()).NotTo(BeNil())
+		Expect(awsProvider.CloudWatchLogs()).NotTo(BeNil())
+		Expect(awsProvider.IAM()).NotTo(BeNil())
+		Expect(awsProvider.ELB()).NotTo(BeNil())
+		Expect(awsProvider.ELBV2()).NotTo(BeNil())
+		Expect(awsProvider.STS()).NotTo(BeNil())
+		Expect(awsProvider.STSPresigner()).NotTo(BeNil())
+		Expect(awsProvider.EC2()).NotTo(BeNil())
+		Expect(awsProvider.Outposts()).NotTo(BeNil())
+
+		// check that region was setup properly
+		Expect(awsProvider.Region()).To(Equal(api.DefaultRegion))
+	},
+		Entry("fails to load default config", newAWSProviderEntry{
+			updateFakes: func(fal *fakes.FakeAWSConfigurationLoader) {
+				fal.LoadDefaultConfigReturns(*aws.NewConfig(), fmt.Errorf(genericError))
+			},
+			err: genericError,
+		}),
+		Entry("cached credentials file has wrong permissions", newAWSProviderEntry{
+			updateEnv: func() func() {
+				info, err := os.Stat(cacheFilePath)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(os.Chmod(cacheFilePath, 0777)).NotTo(HaveOccurred())
+				Expect(os.Setenv(credentials.EksctlGlobalEnableCachingEnvName, "1")).NotTo(HaveOccurred())
+				Expect(os.Setenv(credentials.EksctlCacheFilenameEnvName, cacheFilePath)).NotTo(HaveOccurred())
+				return func() {
+					Expect(os.Chmod(cacheFilePath, info.Mode())).NotTo(HaveOccurred())
+					Expect(os.Unsetenv(credentials.EksctlGlobalEnableCachingEnvName)).NotTo(HaveOccurred())
+					Expect(os.Unsetenv(credentials.EksctlCacheFilenameEnvName)).NotTo(HaveOccurred())
+				}
+			},
+			err: fmt.Sprintf("cache file %s is not private", cacheFilePath),
+		}),
+		Entry("creates the AWS provider successfully", newAWSProviderEntry{}),
+	)
+
+	DescribeTable("creating the EKS provider", func(e newClusterProviderEntry) {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Metadata = &api.ClusterMeta{}
+
+		mockProvider := mockprovider.NewMockProvider()
+		mockProvider.MockSTS().On("GetCallerIdentity", mock.Anything, mock.Anything).Return(
+			&sts.GetCallerIdentityOutput{
+				Account: aws.String("accountId"),
+				Arn:     aws.String("arn"),
+			},
+			nil,
+		).Once()
+		if e.updateMocks != nil {
+			e.updateMocks(mockProvider)
+		}
+
+		awsProviderBuilderMock := func(pc *api.ProviderConfig, acl AWSConfigurationLoader) (api.ClusterProvider, error) {
+			return mockProvider, nil
+		}
+		if e.overwriteAWSProviderBuilderMock != nil {
+			awsProviderBuilderMock = e.overwriteAWSProviderBuilderMock
+		}
+
+		clusterProvider, err := eks.NewHelper(context.Background(), &api.ProviderConfig{}, clusterConfig, awsProviderBuilderMock)
+		if e.err != "" {
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(e.err))
+			return
+		}
+		Expect(err).NotTo(HaveOccurred())
+
+		// check that cluster config was setup properly
+		Expect(clusterConfig.Metadata.AccountID).To(Equal("accountId"))
+		Expect(clusterConfig.Metadata.Region).To(Equal(api.DefaultRegion))
+
+		// check that kube provider was setup properly
+		Expect(clusterProvider.KubeProvider).NotTo(BeNil())
+	},
+		Entry("fails to create the AWS provider", newClusterProviderEntry{
+			overwriteAWSProviderBuilderMock: func(pc *api.ProviderConfig, acl AWSConfigurationLoader) (api.ClusterProvider, error) {
+				return nil, fmt.Errorf(genericError)
+			},
+			err: genericError,
+		}),
+		Entry("fails to validate auth", newClusterProviderEntry{
+			updateMocks: func(mp *mockprovider.MockProvider) {
+				_, _ = mp.STS().GetCallerIdentity(context.Background(), nil)
+				mp.MockSTS().On("GetCallerIdentity", mock.Anything, mock.Anything).Return(
+					nil, fmt.Errorf(genericError),
+				).Once()
+			},
+			err: fmt.Sprintf("checking AWS STS access – cannot get role ARN for current session: %s", genericError),
+		}),
+		Entry("creates the EKS provider successfully", newClusterProviderEntry{}),
+	)
 
 	Context("loading config files", func() {
 
