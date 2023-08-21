@@ -9,13 +9,13 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8c1e
 	github.com/aws/aws-sdk-go v1.44.320
-	github.com/aws/aws-sdk-go-v2 v1.20.1
+	github.com/aws/aws-sdk-go-v2 v1.20.3
 	github.com/aws/aws-sdk-go-v2/config v1.18.33
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.32
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.30.3
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.34.2
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.28.2
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.23.2
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.23.4
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.25.1
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.110.1
 	github.com/aws/aws-sdk-go-v2/service/eks v1.29.2
@@ -26,7 +26,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.29.2
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.37.2
 	github.com/aws/aws-sdk-go-v2/service/sts v1.21.2
-	github.com/aws/smithy-go v1.14.1
+	github.com/aws/smithy-go v1.14.2
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
@@ -144,8 +144,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.1 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.8 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.3 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.38 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.32 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.40 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.34 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.39 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.3 // indirect
