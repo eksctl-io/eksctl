@@ -558,9 +558,6 @@ func normalizeBaseNodeGroup(np api.NodePool, cmd *cobra.Command) {
 	if !flags.Changed("enable-ssm") {
 		ng.SSH.EnableSSM = nil
 	}
-	if !flags.Changed("node-volume-type") {
-		ng.VolumeType = nil
-	}
 }
 
 // NewDeleteAndDrainNodeGroupLoader will load config or use flags for 'eksctl delete nodegroup'
