@@ -9,6 +9,7 @@ import (
 )
 
 // URLGetter is an interface to support GET to the specified URL.
+//
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_helm_getter.go . URLGetter
 type URLGetter interface {
@@ -28,7 +29,7 @@ type InstallChartOpts struct {
 }
 
 // HelmInstaller deals with setting up Helm related resources.
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//
 //counterfeiter:generate -o fakes/fake_helm_installer.go . HelmInstaller
 type HelmInstaller interface {
 	// InstallChart takes a releaseName's name and a chart name and installs it. If namespace is not empty
