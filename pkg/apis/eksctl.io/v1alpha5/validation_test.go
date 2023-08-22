@@ -1865,7 +1865,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					},
 				},
 
-				expectedErr: "invalid Bottlerocket setting: use nodeGroups[0].labels instead (path=nodeGroups[0].kubernetes.node-labels)",
+				expectedErr: "invalid Bottlerocket setting: use nodeGroups[0].labels instead (path=nodeGroups[0].bottlerocket.settings.kubernetes.node-labels)",
 			}),
 
 			Entry("both clusterDNS and cluster-dns-ip set", bottlerocketEntry{

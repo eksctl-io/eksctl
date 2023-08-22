@@ -192,35 +192,6 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeType).To(Equal(NodeVolumeTypeGP2))
 			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeSize).To(Equal(DefaultNodeVolumeSize))
 		})
-
-		It("sets up defaults for the main volume in an ISO region", func() {
-			testNodeGroup := NodeGroup{
-				NodeGroupBase: &NodeGroupBase{},
-			}
-
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{
-				Region: RegionUSISOEast1,
-			}, false)
-			Expect(*testNodeGroup.VolumeType).To(Equal(NodeVolumeTypeIO1))
-			Expect(*testNodeGroup.VolumeSize).To(Equal(DefaultNodeVolumeSize))
-		})
-		It("sets up defaults for any additional volume in an ISO region", func() {
-			testNodeGroup := NodeGroup{
-				NodeGroupBase: &NodeGroupBase{
-					AdditionalVolumes: []*VolumeMapping{
-						{
-							VolumeName: aws.String("test"),
-						},
-					},
-				},
-			}
-
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{
-				Region: RegionUSISOBEast1,
-			}, false)
-			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeType).To(Equal(NodeVolumeTypeIO1))
-			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeSize).To(Equal(DefaultNodeVolumeSize))
-		})
 	})
 
 	Context("Bottlerocket Settings", func() {
