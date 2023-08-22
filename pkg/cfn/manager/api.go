@@ -204,13 +204,7 @@ func (c *StackCollection) createClusterStack(ctx context.Context, stackName stri
 		ctx, cancelFunc := context.WithTimeout(context.Background(), c.waitTimeout)
 		defer cancelFunc()
 
-		stack, err := waiter.WaitForStack(ctx, c.cloudformationAPI, *stack.StackId, *stack.StackName, func(attempts int) time.Duration {
-			// Wait 30s for the first two requests, and 1m for subsequent requests.
-			if attempts <= 2 {
-				return 30 * time.Second
-			}
-			return 1 * time.Minute
-		})
+		stack, err := waiter.WaitForStack(ctx, c.cloudformationAPI, *stack.StackId, *stack.StackName, waiter.ClusterCreationNextDelay)
 
 		if err != nil {
 			troubleshoot()
