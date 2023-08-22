@@ -127,7 +127,7 @@ func runGinkgo(ctx context.Context, wg *sync.WaitGroup, summaries chan []string,
 	if ginkgoArgs := os.Getenv("GINKGO_ARGS"); ginkgoArgs != "" {
 		args = strings.Split(ginkgoArgs, " ")
 	}
-	args = append(args, "--no-color", fmt.Sprintf("--timeout=%s", suiteTimeout), "-tags", "integration", "-v", "--progress")
+	args = append(args, "--no-color", fmt.Sprintf("--timeout=%s", suiteTimeout), "-tags", "integration", "-v", "--show-node-events", "--poll-progress-after", "30m")
 	if focus := os.Getenv("INTEGRATION_TEST_FOCUS"); focus != "" {
 		args = append(args, fmt.Sprintf(`--focus="%s"`, focus))
 	}
