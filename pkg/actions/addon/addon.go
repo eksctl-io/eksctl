@@ -39,9 +39,12 @@ func New(clusterConfig *api.ClusterConfig, eksAPI awsapi.EKS, stackManager manag
 }
 
 func (a *Manager) waitForAddonToBeActive(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
-	// Don't wait for coredns or aws-ebs-csi-driver if there are no nodegroups.
+	// Don't wait for coredns, aws-ebs-csi-driver or aws-efs-csi-driver if there are no nodegroups.
 	// They will be in degraded state until nodegroups are added.
-	if (addon.Name == api.CoreDNSAddon || addon.Name == api.AWSEBSCSIDriverAddon) && !a.clusterConfig.HasNodes() {
+	if (addon.Name == api.CoreDNSAddon ||
+		addon.Name == api.AWSEBSCSIDriverAddon ||
+		addon.Name == api.AWSEFSCSIDriverAddon) &&
+		!a.clusterConfig.HasNodes() {
 		return nil
 	}
 	activeWaiter := eks.NewAddonActiveWaiter(a.eksAPI)

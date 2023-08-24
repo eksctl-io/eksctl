@@ -258,6 +258,10 @@ func (a *Manager) getRecommendedPolicies(addon *api.Addon) (api.InlineDocument, 
 		return nil, nil, &api.WellKnownPolicies{
 			EBSCSIController: true,
 		}
+	case api.AWSEFSCSIDriverAddon:
+		return nil, nil, &api.WellKnownPolicies{
+			EFSCSIController: true,
+		}
 	default:
 		return nil, nil, nil
 	}
