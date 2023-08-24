@@ -345,7 +345,12 @@ func UseFromClusterStack(ctx context.Context, provider api.ClusterProvider, stac
 		}
 	}
 
-	return outputs.Collect(*stack, requiredCollectors, optionalCollectors)
+	if err := outputs.Collect(*stack, requiredCollectors, optionalCollectors); err != nil {
+		return err
+	}
+	// to clean up invalid subnets based on AZ after importing valid subnets from stack
+	cleanupSubnets(spec)
+	return nil
 }
 
 // MakeExtendedSubnetAliasFunc returns a function for creating an alias for a subnet that was added as part of extending

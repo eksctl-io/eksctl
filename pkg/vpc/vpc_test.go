@@ -106,6 +106,15 @@ func newFakeClusterWithEndpoints(private, public bool, name string) *ekstypes.Cl
 	return cluster
 }
 
+func clusterConfigWithSubnets(publicSubnets, privateSubnets api.AZSubnetMapping) *api.ClusterConfig {
+	cfg := api.NewClusterConfig()
+	cfg.VPC.Subnets = &api.ClusterSubnets{
+		Private: privateSubnets,
+		Public:  publicSubnets,
+	}
+	return cfg
+}
+
 var _ = Describe("VPC", func() {
 	Describe("SplitInto16", func() {
 		It("splits the block into 16", func() {
@@ -595,6 +604,113 @@ var _ = Describe("VPC", func() {
 						},
 					},
 				}, nil)
+			},
+		}),
+
+		Entry("cluster spec provided - subnets with invalid AZs", useFromClusterCase{
+			cfg: clusterConfigWithSubnets(
+				api.AZSubnetMapping{
+					"public-1": {
+						ID: "subnet-public-1",
+					},
+					// public-2 will not be on the stack,
+					// hence fetching config from stack
+					// won't resolve the AZ for this subnet
+					"public-2": {
+						ID: "subnet-public-2",
+					},
+				},
+				api.AZSubnetMapping{
+					"private-1": {
+						ID: "subnet-private-1",
+					},
+					// private-2 will not be on the stack,
+					// hence fetching config from stack
+					// won't resolve the AZ for this subnet
+					"private-2": {
+						ID: "subnet-private-2",
+					},
+				}),
+			stack: &cfntypes.Stack{
+				Outputs: []cfntypes.Output{
+					{
+						OutputKey:   aws.String("VPC"),
+						OutputValue: aws.String("vpc-123"),
+					},
+					{
+						OutputKey:   aws.String("SecurityGroup"),
+						OutputValue: aws.String("sg-123"),
+					},
+					{
+						OutputKey:   aws.String("SubnetsPublic"),
+						OutputValue: aws.String("subnet-public-1"),
+					},
+					{
+						OutputKey:   aws.String("SubnetsPrivate"),
+						OutputValue: aws.String("subnet-private-1"),
+					},
+				},
+			},
+			mockEC2: func(ec2Mock *mocksv2.EC2) {
+				ec2Mock.On("DescribeSubnets", Anything, Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
+					subnet := ec2types.Subnet{
+						SubnetId: aws.String(input.SubnetIds[0]),
+						VpcId:    aws.String("vpc-123"),
+					}
+					if input.SubnetIds[0] == "subnet-public-1" {
+						subnet.AvailabilityZone = aws.String("us-west-2a")
+						subnet.CidrBlock = aws.String("192.168.0.0/20")
+					} else {
+						subnet.AvailabilityZone = aws.String("us-west-2a")
+						subnet.CidrBlock = aws.String("192.168.0.16/20")
+					}
+					return &ec2.DescribeSubnetsOutput{
+						Subnets: []ec2types.Subnet{subnet},
+					}
+				}, nil).On("DescribeVpcs", Anything, Anything).Return(&ec2.DescribeVpcsOutput{
+					Vpcs: []ec2types.Vpc{
+						{
+							VpcId:     aws.String("vpc-123"),
+							CidrBlock: aws.String("192.168.0.0/20"),
+						},
+					},
+				}, nil)
+			},
+			expectedVPC: &api.ClusterVPC{
+				Network: api.Network{
+					ID:   "vpc-123",
+					CIDR: ipnet.MustParseCIDR("192.168.0.0/20"),
+				},
+				SecurityGroup: "sg-123",
+				Subnets: &api.ClusterSubnets{
+					Public: api.AZSubnetMapping{
+						"public-1": api.AZSubnetSpec{
+							ID:   "subnet-public-1",
+							AZ:   "us-west-2a",
+							CIDR: ipnet.MustParseCIDR("192.168.0.0/20"),
+						},
+					},
+					Private: api.AZSubnetMapping{
+						"private-1": api.AZSubnetSpec{
+							ID:   "subnet-private-1",
+							AZ:   "us-west-2a",
+							CIDR: ipnet.MustParseCIDR("192.168.0.16/20"),
+						},
+					},
+				},
+				LocalZoneSubnets: &api.ClusterSubnets{
+					Private: api.NewAZSubnetMapping(),
+					Public:  api.NewAZSubnetMapping(),
+				},
+				ManageSharedNodeSecurityGroupRules: aws.Bool(true),
+				AutoAllocateIPv6:                   aws.Bool(false),
+				NAT: &api.ClusterNAT{
+					Gateway: aws.String("Single"),
+				},
+				ClusterEndpoints: &api.ClusterEndpoints{
+					PublicAccess:  aws.Bool(true),
+					PrivateAccess: aws.Bool(true),
+				},
 			},
 		}),
 	)
