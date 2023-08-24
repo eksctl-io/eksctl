@@ -33,6 +33,7 @@ import (
 	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	karpenterfakes "github.com/weaveworks/eksctl/pkg/actions/karpenter/fakes"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -936,6 +937,10 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 			},
 		},
 	}, nil)
+
+	waiter.ClusterCreationNextDelay = func(_ int) time.Duration {
+		return 0
+	}
 	p.MockCloudFormation().On("CreateStack", mock.Anything, mock.Anything).Return(&cloudformation.CreateStackOutput{
 		StackId: aws.String(clusterStackName),
 	}, nil).Once()

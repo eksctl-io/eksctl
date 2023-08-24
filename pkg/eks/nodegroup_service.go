@@ -26,8 +26,6 @@ import (
 // a CloudFormation template.
 const maxInstanceTypes = 40
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-
 // InstanceSelector selects a set of instance types matching the specified instance selector criteria.
 //
 //counterfeiter:generate -o fakes/fake_instance_selector.go . InstanceSelector

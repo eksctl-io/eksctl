@@ -13,6 +13,14 @@ import (
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 )
 
+var ClusterCreationNextDelay = func(attempts int) time.Duration {
+	// Wait 30s for the first two requests, and 1m for subsequent requests.
+	if attempts <= 2 {
+		return 30 * time.Second
+	}
+	return 1 * time.Minute
+}
+
 // NextDelay returns the amount of time to wait before the next retry given the number of attempts.
 type NextDelay func(attempts int) time.Duration
 
