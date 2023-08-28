@@ -9,14 +9,14 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8c1e
 	github.com/aws/aws-sdk-go v1.44.327
-	github.com/aws/aws-sdk-go-v2 v1.20.3
+	github.com/aws/aws-sdk-go-v2 v1.21.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.35
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.34
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.30.3
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.34.2
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.28.5
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.23.4
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.25.3
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.25.4
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.113.1
 	github.com/aws/aws-sdk-go-v2/service/eks v1.29.4
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.16.2
@@ -144,8 +144,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.1 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.10 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.3 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.40 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.34 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.41 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.35 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.41 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.3 // indirect
