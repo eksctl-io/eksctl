@@ -92,7 +92,10 @@ test: ## Lint, generate and run unit tests. Also ensure that integration tests c
 	$(MAKE) build-integration-test
 
 .PHONY: unit-test
-unit-test: check-all-generated-files-up-to-date ## Run unit test only
+unit-test: check-all-generated-files-up-to-date unit-test-no-generate
+
+.PHONY: unit-test-no-generate ## Run unit test only
+unit-test-no-generate:
 	CGO_ENABLED=0 go test  -tags=release ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: unit-test-race

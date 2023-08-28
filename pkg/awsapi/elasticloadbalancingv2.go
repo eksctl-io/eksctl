@@ -80,6 +80,7 @@ type ELBV2 interface {
 	DeleteTargetGroup(ctx context.Context, params *DeleteTargetGroupInput, optFns ...func(*Options)) (*DeleteTargetGroupOutput, error)
 	// Deregisters the specified targets from the specified target group. After the
 	// targets are deregistered, they no longer receive traffic from the load balancer.
+	// Note: If the specified target does not exist, the action returns successfully.
 	DeregisterTargets(ctx context.Context, params *DeregisterTargetsInput, optFns ...func(*Options)) (*DeregisterTargetsOutput, error)
 	// Describes the current Elastic Load Balancing resource limits for your Amazon
 	// Web Services account. For more information, see the following:
@@ -189,9 +190,11 @@ type ELBV2 interface {
 	// do not specify retain their current priority.
 	SetRulePriorities(ctx context.Context, params *SetRulePrioritiesInput, optFns ...func(*Options)) (*SetRulePrioritiesOutput, error)
 	// Associates the specified security groups with the specified Application Load
-	// Balancer. The specified security groups override the previously associated
-	// security groups. You can't specify a security group for a Network Load Balancer
-	// or Gateway Load Balancer.
+	// Balancer or Network Load Balancer. The specified security groups override the
+	// previously associated security groups. You can't perform this operation on a
+	// Network Load Balancer unless you specified a security group for the load
+	// balancer when you created it. You can't associate a security group with a
+	// Gateway Load Balancer.
 	SetSecurityGroups(ctx context.Context, params *SetSecurityGroupsInput, optFns ...func(*Options)) (*SetSecurityGroupsOutput, error)
 	// Enables the Availability Zones for the specified public subnets for the
 	// specified Application Load Balancer or Network Load Balancer. The specified

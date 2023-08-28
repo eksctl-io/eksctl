@@ -18,7 +18,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fargate_client.go . FargateClient
 type FargateClient interface {
 	CreateProfile(ctx context.Context, profile *api.FargateProfile, waitForCreation bool) error
