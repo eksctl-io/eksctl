@@ -991,10 +991,54 @@ var _ = Describe("VPC", func() {
 		AvailabilityZones: []string{"az1", "az2", "az3"},
 	}
 
+	cfgWithAllAZAndNGs := &api.ClusterConfig{
+		NodeGroups: []*api.NodeGroup{
+			{
+				NodeGroupBase: &api.NodeGroupBase{
+					Subnets: []string{"invalid id"},
+				},
+			},
+		},
+		ManagedNodeGroups: []*api.ManagedNodeGroup{
+			{
+				NodeGroupBase: &api.NodeGroupBase{
+					Subnets: []string{"invalid id"},
+				},
+			},
+		},
+		VPC: &api.ClusterVPC{
+			Subnets: &api.ClusterSubnets{
+				Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+					"az1": {
+						ID: "private1",
+					},
+					"az2": {
+						ID: "private2",
+					},
+					"az3": {
+						ID: "private3",
+					},
+				}),
+				Public: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+					"az1": {
+						ID: "public1",
+					},
+					"az2": {
+						ID: "public2",
+					},
+					"az3": {
+						ID: "public3",
+					},
+				}),
+			},
+		},
+		AvailabilityZones: []string{"az1", "az2", "az3"},
+	}
+
 	DescribeTable("clean up the subnets details in spec if given AZ is invalid",
 		func(e cleanupSubnetsCase) {
 			cleanupSubnets(e.cfg)
-			Expect(e.cfg).To(Equal(cfgWithAllAZ))
+			Expect(e.cfg).To(Equal(e.want))
 		},
 
 		Entry("All AZs are valid", cleanupSubnetsCase{
@@ -1027,10 +1071,25 @@ var _ = Describe("VPC", func() {
 				},
 				AvailabilityZones: []string{"az1", "az2", "az3"},
 			},
+			want: cfgWithAllAZ,
 		}),
 
 		Entry("Private subnet with invalid AZ", cleanupSubnetsCase{
 			cfg: &api.ClusterConfig{
+				NodeGroups: []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Subnets: []string{"invalid AZ"},
+						},
+					},
+				},
+				ManagedNodeGroups: []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Subnets: []string{"invalid AZ"},
+						},
+					},
+				},
 				VPC: &api.ClusterVPC{
 					Subnets: &api.ClusterSubnets{
 						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
@@ -1044,7 +1103,7 @@ var _ = Describe("VPC", func() {
 								ID: "private3",
 							},
 							"invalid AZ": {
-								ID: "invalid private id",
+								ID: "invalid id",
 							},
 						}),
 						Public: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
@@ -1062,10 +1121,24 @@ var _ = Describe("VPC", func() {
 				},
 				AvailabilityZones: []string{"az1", "az2", "az3"},
 			},
-			want: cfgWithAllAZ,
+			want: cfgWithAllAZAndNGs,
 		}),
 		Entry("Public subnet with invalid AZ", cleanupSubnetsCase{
 			cfg: &api.ClusterConfig{
+				NodeGroups: []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Subnets: []string{"invalid AZ"},
+						},
+					},
+				},
+				ManagedNodeGroups: []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Subnets: []string{"invalid AZ"},
+						},
+					},
+				},
 				VPC: &api.ClusterVPC{
 					Subnets: &api.ClusterSubnets{
 						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
@@ -1090,14 +1163,14 @@ var _ = Describe("VPC", func() {
 								ID: "public3",
 							},
 							"invalid AZ": {
-								ID: "invalid public id",
+								ID: "invalid id",
 							},
 						}),
 					},
 				},
 				AvailabilityZones: []string{"az1", "az2", "az3"},
 			},
-			want: cfgWithAllAZ,
+			want: cfgWithAllAZAndNGs,
 		}),
 	)
 

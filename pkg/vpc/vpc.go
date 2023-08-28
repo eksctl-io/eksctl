@@ -652,6 +652,14 @@ func cleanupSubnets(spec *api.ClusterConfig) {
 	cleanup := func(subnets *api.AZSubnetMapping) {
 		for name, subnet := range *subnets {
 			if _, ok := availabilityZones[subnet.AZ]; !ok {
+				// since we're removing the subnet with invalid AZ from spec, we want to reference it by ID in any subsequent nodegroup creation task
+				for _, node := range nodes.ToNodePools(spec) {
+					for i, subnetRef := range node.BaseNodeGroup().Subnets {
+						if subnetRef == name {
+							node.BaseNodeGroup().Subnets[i] = subnet.ID
+						}
+					}
+				}
 				delete(*subnets, name)
 			}
 		}
@@ -887,6 +895,7 @@ func selectNodeGroupSubnetsFromIDs(
 			subnetZone = mappedSubnet.AZ
 		} else {
 			// otherwise try to find the subnet as part of the AWS Account
+			logger.Info(fmt.Sprint(subnetName))
 			ec2Subnet, err = getSubnetByID(ctx, ec2API, subnetName)
 			if err != nil {
 				return nil, err
