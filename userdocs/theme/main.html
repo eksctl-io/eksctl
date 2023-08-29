@@ -8,3 +8,20 @@
     and <a class="md-button" href="https://aws.amazon.com/blogs/opensource/weaveworks-and-aws-joining-forces-to-maintain-open-source-eksctl/">AWS Blog</a> posts.
   </p>
 {% endblock %}
+
+{% block scripts %}
+  <!-- Add scripts that need to run before here -->
+  {{ super() }}
+<script>
+document.addEventListener( 'DOMContentLoaded', function() {
+    new Glide('.adopters', {
+        type: 'carousel',
+        autoplay: 4000,
+        hoverpause: false,
+        perView: 3,
+        animationTimingFunc: 'linear',
+        animationDuration: 1000
+    }).mount()
+});
+</script>
+{% endblock %}
