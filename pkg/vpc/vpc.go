@@ -895,7 +895,6 @@ func selectNodeGroupSubnetsFromIDs(
 			subnetZone = mappedSubnet.AZ
 		} else {
 			// otherwise try to find the subnet as part of the AWS Account
-			logger.Info(fmt.Sprint(subnetName))
 			ec2Subnet, err = getSubnetByID(ctx, ec2API, subnetName)
 			if err != nil {
 				return nil, err
