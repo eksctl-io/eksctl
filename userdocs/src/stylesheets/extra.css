@@ -48,7 +48,31 @@ img[src$="#wwinline"] {
     20%, 60% {
       transform: scale(1.15);
     }
-  }
-  .heart {
+ }
+
+.heart {
     animation: heart 1000ms infinite;
-  }
+}
+
+.glide__slide img {
+    height: 50px;
+}
+
+.glide__slides {
+    list-style-type: none !important;
+}
+
+.glide {
+    width: 100%;
+    padding: .4rem 0;
+    text-align: center; 
+    margin: auto 0.6rem;
+}
+
+.md-copyright {
+    width: 100% !important;
+}
+
+ol:not([hidden]).glide__slides, ul:not([hidden]).glide__slides {
+    display: flex !important;
+}

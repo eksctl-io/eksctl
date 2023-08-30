@@ -79,6 +79,9 @@ extra_css:
   - stylesheets/extra.css
   - stylesheets/schema.css
 
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/@glidejs/glide
+
 # Extensions
 markdown_extensions:
   - toc:
@@ -158,3 +161,4 @@ nav:
     - announcements/nodegroup-override-announcement.md
   - Examples: "https://github.com/eksctl-io/eksctl/tree/main/examples"
   - Community: community.md
+  - Adopters: adopters.md
