@@ -345,7 +345,12 @@ func UseFromClusterStack(ctx context.Context, provider api.ClusterProvider, stac
 		}
 	}
 
-	return outputs.Collect(*stack, requiredCollectors, optionalCollectors)
+	if err := outputs.Collect(*stack, requiredCollectors, optionalCollectors); err != nil {
+		return err
+	}
+	// to clean up invalid subnets based on AZ after importing valid subnets from stack
+	cleanupSubnets(spec)
+	return nil
 }
 
 // MakeExtendedSubnetAliasFunc returns a function for creating an alias for a subnet that was added as part of extending
@@ -647,6 +652,14 @@ func cleanupSubnets(spec *api.ClusterConfig) {
 	cleanup := func(subnets *api.AZSubnetMapping) {
 		for name, subnet := range *subnets {
 			if _, ok := availabilityZones[subnet.AZ]; !ok {
+				// since we're removing the subnet with invalid AZ from spec, we want to reference it by ID in any subsequent nodegroup creation task
+				for _, node := range nodes.ToNodePools(spec) {
+					for i, subnetRef := range node.BaseNodeGroup().Subnets {
+						if subnetRef == name {
+							node.BaseNodeGroup().Subnets[i] = subnet.ID
+						}
+					}
+				}
 				delete(*subnets, name)
 			}
 		}
