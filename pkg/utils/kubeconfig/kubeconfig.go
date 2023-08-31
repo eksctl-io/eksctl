@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -19,6 +20,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
+	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 )
 
 const (
@@ -205,9 +207,9 @@ func AppendAuthenticator(config *clientcmdapi.Config, cluster ClusterInfo, authe
 	// kubectl 1.24.0 removes the alpha API version, so it will never work
 	// Therefore as a best effort try the beta version even if it might not work
 	if execConfig.APIVersion == alphaAPIVersion {
-		if kubectlVersion := getKubectlVersion(); kubectlVersion != "" {
+		if clientVersion, err := kubectl.NewClient().GetClientVersion(); err == nil {
 			// Silently ignore errors because kubectl is not required to run eksctl
-			compareVersions, err := utils.CompareVersions(kubectlVersion, "1.24.0")
+			compareVersions, err := utils.CompareVersions(strings.TrimLeft(clientVersion, "v"), "1.24.0")
 			if err == nil && compareVersions >= 0 {
 				execConfig.APIVersion = betaAPIVersion
 			}
@@ -295,44 +297,6 @@ func getAWSIAMAuthenticatorVersion() (string, error) {
 		return "", fmt.Errorf("failed to parse version information: %w", err)
 	}
 	return parsedVersion.Version, nil
-}
-
-/*
-KubectlVersionFormat is the format used by kubectl version --format=json, example output:
-
-	{
-	  "clientVersion": {
-	    "major": "1",
-	    "minor": "23",
-	    "gitVersion": "v1.23.6",
-	    "gitCommit": "ad3338546da947756e8a88aa6822e9c11e7eac22",
-	    "gitTreeState": "archive",
-	    "buildDate": "2022-04-29T06:39:16Z",
-	    "goVersion": "go1.18.1",
-	    "compiler": "gc",
-	    "platform": "linux/amd64"
-	  }
-	}
-*/
-type KubectlVersionData struct {
-	Version string `json:"gitVersion"`
-}
-
-type KubectlVersionFormat struct {
-	ClientVersion KubectlVersionData `json:"clientVersion"`
-}
-
-func getKubectlVersion() string {
-	cmd := execCommand("kubectl", "version", "--client", "--output=json")
-	output, err := cmd.Output()
-	if err != nil {
-		return ""
-	}
-	var parsedVersion KubectlVersionFormat
-	if err := json.Unmarshal(output, &parsedVersion); err != nil {
-		return ""
-	}
-	return strings.TrimLeft(parsedVersion.ClientVersion.Version, "v")
 }
 
 func lockFileName(filePath string) string {
@@ -578,4 +542,54 @@ func LookupAuthenticator() (string, bool) {
 		}
 	}
 	return "", false
+}
+
+// CheckAllCommands check version of kubectl, and if it can be used with either
+// of the authenticator commands; most importantly it validates if kubectl can
+// use kubeconfig we've created for it
+func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName string, env []string) error {
+	ktl := kubectl.NewClient()
+	if err := ktl.CheckKubectlVersion(); err != nil {
+		return err
+	}
+
+	authenticator, found := LookupAuthenticator()
+	if !found {
+		return fmt.Errorf("could not find any of the authenticator commands: %s", strings.Join(AuthenticatorCommands(), ", "))
+	}
+	logger.Debug("found authenticator: %s", authenticator)
+
+	if kubeconfigPath != "" {
+		// setup client to retrieve server version
+		ktl.Env = env
+		if kubeconfigPath != clientcmd.RecommendedHomeFile {
+			ktl.GlobalArgs = append(ktl.GlobalArgs, fmt.Sprintf("--kubeconfig=%s", kubeconfigPath))
+		}
+		if !isContextSet {
+			ktl.GlobalArgs = append(ktl.GlobalArgs, fmt.Sprintf("--context=%s", contextName))
+		}
+
+		suggestion := fmt.Sprintf("(check '%s')", ktl.FmtCmd("version"))
+
+		serverVersion, err := ktl.GetServerVersion()
+		if err != nil {
+			return errors.Wrapf(err, "unable to use kubectl with the EKS cluster %s", suggestion)
+		}
+		version, err := semver.Parse(strings.TrimLeft(serverVersion, "v"))
+		if err != nil {
+			return errors.Wrapf(err, "parsing Kubernetes version string %q return by the EKS API server", version)
+		}
+		if version.Compare(semver.Version{
+			Major: 1,
+			Minor: 10,
+		}) < 0 {
+			return fmt.Errorf("kubernetes version %s found, v1.10.0 or newer is expected with EKS %s", serverVersion, suggestion)
+		}
+
+		logger.Info("kubectl command should work with %q, try '%s'", kubeconfigPath, ktl.FmtCmd("get", "nodes"))
+	} else {
+		logger.Debug("skipping kubectl integration checks, as writing kubeconfig file is disabled")
+	}
+
+	return nil
 }
