@@ -132,6 +132,34 @@ func (n *NodeGroupResourceSet) AddAllResources(ctx context.Context) error {
 	return n.addResourcesForNodeGroup(ctx)
 }
 
+// A PartialEgressRule represents a partial security group egress rule.
+type PartialEgressRule struct {
+	FromPort   int
+	ToPort     int
+	IPProtocol string
+}
+
+var controlPlaneEgressInterCluster = PartialEgressRule{
+	FromPort:   1025,
+	ToPort:     65535,
+	IPProtocol: "tcp",
+}
+
+var controlPlaneEgressInterClusterAPI = PartialEgressRule{
+	FromPort:   443,
+	ToPort:     443,
+	IPProtocol: "tcp",
+}
+
+// ControlPlaneNodeGroupEgressRules is a slice of egress rules attached to the control plane security group.
+var ControlPlaneNodeGroupEgressRules = []PartialEgressRule{
+	controlPlaneEgressInterCluster,
+	controlPlaneEgressInterClusterAPI,
+}
+
+// ControlPlaneEgressRuleDescriptionPrefix is the prefix applied to the description for control plane security group egress rules.
+var ControlPlaneEgressRuleDescriptionPrefix = "Allow control plane to communicate with "
+
 func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	for _, id := range n.spec.SecurityGroups.AttachIDs {
 		n.securityGroups = append(n.securityGroups, gfnt.NewString(id))
@@ -169,18 +197,18 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	n.newResource("EgressInterCluster", &gfnec2.SecurityGroupEgress{
 		GroupId:                    refControlPlaneSG,
 		DestinationSecurityGroupId: refNodeGroupLocalSG,
-		Description:                gfnt.NewString("Allow control plane to communicate with " + desc + " (kubelet and workload TCP ports)"),
-		IpProtocol:                 sgProtoTCP,
-		FromPort:                   sgMinNodePort,
-		ToPort:                     sgMaxNodePort,
+		Description:                gfnt.NewString(ControlPlaneEgressRuleDescriptionPrefix + desc + " (kubelet and workload TCP ports)"),
+		IpProtocol:                 gfnt.NewString(controlPlaneEgressInterCluster.IPProtocol),
+		FromPort:                   gfnt.NewInteger(controlPlaneEgressInterCluster.FromPort),
+		ToPort:                     gfnt.NewInteger(controlPlaneEgressInterCluster.ToPort),
 	})
 	n.newResource("EgressInterClusterAPI", &gfnec2.SecurityGroupEgress{
 		GroupId:                    refControlPlaneSG,
 		DestinationSecurityGroupId: refNodeGroupLocalSG,
-		Description:                gfnt.NewString("Allow control plane to communicate with " + desc + " (workloads using HTTPS port, commonly used with extension API servers)"),
-		IpProtocol:                 sgProtoTCP,
-		FromPort:                   sgPortHTTPS,
-		ToPort:                     sgPortHTTPS,
+		Description:                gfnt.NewString(ControlPlaneEgressRuleDescriptionPrefix + desc + " (workloads using HTTPS port, commonly used with extension API servers)"),
+		IpProtocol:                 gfnt.NewString(controlPlaneEgressInterClusterAPI.IPProtocol),
+		FromPort:                   gfnt.NewInteger(controlPlaneEgressInterClusterAPI.FromPort),
+		ToPort:                     gfnt.NewInteger(controlPlaneEgressInterClusterAPI.ToPort),
 	})
 	n.newResource("IngressInterClusterCP", &gfnec2.SecurityGroupIngress{
 		GroupId:               refControlPlaneSG,
@@ -197,16 +225,16 @@ func makeNodeIngressRules(ng *api.NodeGroupBase, controlPlaneSG *gfnt.Value, vpc
 		{
 			SourceSecurityGroupId: controlPlaneSG,
 			Description:           gfnt.NewString(fmt.Sprintf("[IngressInterCluster] Allow %s to communicate with control plane (kubelet and workload TCP ports)", description)),
-			IpProtocol:            sgProtoTCP,
-			FromPort:              sgMinNodePort,
-			ToPort:                sgMaxNodePort,
+			IpProtocol:            gfnt.NewString(controlPlaneEgressInterCluster.IPProtocol),
+			FromPort:              gfnt.NewInteger(controlPlaneEgressInterCluster.FromPort),
+			ToPort:                gfnt.NewInteger(controlPlaneEgressInterCluster.ToPort),
 		},
 		{
 			SourceSecurityGroupId: controlPlaneSG,
 			Description:           gfnt.NewString(fmt.Sprintf("[IngressInterClusterAPI] Allow %s to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)", description)),
-			IpProtocol:            sgProtoTCP,
-			FromPort:              sgPortHTTPS,
-			ToPort:                sgPortHTTPS,
+			IpProtocol:            gfnt.NewString(controlPlaneEgressInterClusterAPI.IPProtocol),
+			FromPort:              gfnt.NewInteger(controlPlaneEgressInterClusterAPI.FromPort),
+			ToPort:                gfnt.NewInteger(controlPlaneEgressInterClusterAPI.ToPort),
 		},
 	}
 

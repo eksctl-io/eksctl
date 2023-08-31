@@ -4,12 +4,19 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
@@ -311,11 +318,58 @@ func loadVPCFromConfig(ctx context.Context, provider api.ClusterProvider, cfg *a
 	if err := vpc.ImportSubnetsFromSpec(ctx, provider, cfg); err != nil {
 		return err
 	}
-
 	if err := cfg.HasSufficientSubnets(); err != nil {
 		logger.Critical("unable to use given %s", cfg.SubnetInfo())
 		return err
 	}
+	if err := cfg.CanUseForPrivateNodeGroups(); err != nil {
+		return err
+	}
+	return validateSecurityGroup(ctx, provider.EC2(), cfg.VPC.SecurityGroup)
+}
 
-	return cfg.CanUseForPrivateNodeGroups()
+func validateSecurityGroup(ctx context.Context, ec2API awsapi.EC2, securityGroupID string) error {
+	paginator := ec2.NewDescribeSecurityGroupRulesPaginator(ec2API, &ec2.DescribeSecurityGroupRulesInput{
+		Filters: []ec2types.Filter{
+			{
+				Name:   aws.String("group-id"),
+				Values: []string{securityGroupID},
+			},
+		},
+	})
+	var sgRules []ec2types.SecurityGroupRule
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			return err
+		}
+		sgRules = append(sgRules, output.SecurityGroupRules...)
+	}
+
+	makeError := func(sgRuleID string) error {
+		return fmt.Errorf("vpc.securityGroup (%s) has egress rules that were not attached by eksctl; "+
+			"vpc.securityGroup should not contain any external egress rules on a cluster not created by eksctl (rule ID: %s)", securityGroupID, sgRuleID)
+	}
+
+	for _, sgRule := range sgRules {
+		if !aws.ToBool(sgRule.IsEgress) {
+			continue
+		}
+		if !strings.HasPrefix(aws.ToString(sgRule.Description), builder.ControlPlaneEgressRuleDescriptionPrefix) {
+			return makeError(aws.ToString(sgRule.SecurityGroupRuleId))
+		}
+		matched := false
+		for _, egressRule := range builder.ControlPlaneNodeGroupEgressRules {
+			if aws.ToString(sgRule.IpProtocol) == egressRule.IPProtocol &&
+				aws.ToInt32(sgRule.FromPort) == int32(egressRule.FromPort) &&
+				aws.ToInt32(sgRule.ToPort) == int32(egressRule.ToPort) {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return makeError(aws.ToString(sgRule.SecurityGroupRuleId))
+		}
+	}
+	return nil
 }
