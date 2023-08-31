@@ -12,7 +12,7 @@ import (
 )
 
 var _ = Describe("Kubectl", func() {
-	var client kubectl.KubectlClient
+	var client kubectl.KubernetesClient
 	var genericError = "genericError"
 
 	Context("FmtCmd", func() {

@@ -40,7 +40,7 @@ const (
 )
 
 type ExecCommandFunc func(name string, arg ...string) *exec.Cmd
-type NewKubectlClientFunc func() kubectl.KubectlClient
+type NewKubectlClientFunc func() kubectl.KubernetesClient
 
 var (
 	execCommand         = exec.Command

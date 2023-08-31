@@ -7,7 +7,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 )
 
-type FakeKubectlClient struct {
+type FakeKubernetesClient struct {
 	AppendArgForNextCmdStub        func(string)
 	appendArgForNextCmdMutex       sync.RWMutex
 	appendArgForNextCmdArgsForCall []struct {
@@ -67,7 +67,7 @@ type FakeKubectlClient struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeKubectlClient) AppendArgForNextCmd(arg1 string) {
+func (fake *FakeKubernetesClient) AppendArgForNextCmd(arg1 string) {
 	fake.appendArgForNextCmdMutex.Lock()
 	fake.appendArgForNextCmdArgsForCall = append(fake.appendArgForNextCmdArgsForCall, struct {
 		arg1 string
@@ -80,26 +80,26 @@ func (fake *FakeKubectlClient) AppendArgForNextCmd(arg1 string) {
 	}
 }
 
-func (fake *FakeKubectlClient) AppendArgForNextCmdCallCount() int {
+func (fake *FakeKubernetesClient) AppendArgForNextCmdCallCount() int {
 	fake.appendArgForNextCmdMutex.RLock()
 	defer fake.appendArgForNextCmdMutex.RUnlock()
 	return len(fake.appendArgForNextCmdArgsForCall)
 }
 
-func (fake *FakeKubectlClient) AppendArgForNextCmdCalls(stub func(string)) {
+func (fake *FakeKubernetesClient) AppendArgForNextCmdCalls(stub func(string)) {
 	fake.appendArgForNextCmdMutex.Lock()
 	defer fake.appendArgForNextCmdMutex.Unlock()
 	fake.AppendArgForNextCmdStub = stub
 }
 
-func (fake *FakeKubectlClient) AppendArgForNextCmdArgsForCall(i int) string {
+func (fake *FakeKubernetesClient) AppendArgForNextCmdArgsForCall(i int) string {
 	fake.appendArgForNextCmdMutex.RLock()
 	defer fake.appendArgForNextCmdMutex.RUnlock()
 	argsForCall := fake.appendArgForNextCmdArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeKubectlClient) CheckKubectlVersion() error {
+func (fake *FakeKubernetesClient) CheckKubectlVersion() error {
 	fake.checkKubectlVersionMutex.Lock()
 	ret, specificReturn := fake.checkKubectlVersionReturnsOnCall[len(fake.checkKubectlVersionArgsForCall)]
 	fake.checkKubectlVersionArgsForCall = append(fake.checkKubectlVersionArgsForCall, struct {
@@ -117,19 +117,19 @@ func (fake *FakeKubectlClient) CheckKubectlVersion() error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeKubectlClient) CheckKubectlVersionCallCount() int {
+func (fake *FakeKubernetesClient) CheckKubectlVersionCallCount() int {
 	fake.checkKubectlVersionMutex.RLock()
 	defer fake.checkKubectlVersionMutex.RUnlock()
 	return len(fake.checkKubectlVersionArgsForCall)
 }
 
-func (fake *FakeKubectlClient) CheckKubectlVersionCalls(stub func() error) {
+func (fake *FakeKubernetesClient) CheckKubectlVersionCalls(stub func() error) {
 	fake.checkKubectlVersionMutex.Lock()
 	defer fake.checkKubectlVersionMutex.Unlock()
 	fake.CheckKubectlVersionStub = stub
 }
 
-func (fake *FakeKubectlClient) CheckKubectlVersionReturns(result1 error) {
+func (fake *FakeKubernetesClient) CheckKubectlVersionReturns(result1 error) {
 	fake.checkKubectlVersionMutex.Lock()
 	defer fake.checkKubectlVersionMutex.Unlock()
 	fake.CheckKubectlVersionStub = nil
@@ -138,7 +138,7 @@ func (fake *FakeKubectlClient) CheckKubectlVersionReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeKubectlClient) CheckKubectlVersionReturnsOnCall(i int, result1 error) {
+func (fake *FakeKubernetesClient) CheckKubectlVersionReturnsOnCall(i int, result1 error) {
 	fake.checkKubectlVersionMutex.Lock()
 	defer fake.checkKubectlVersionMutex.Unlock()
 	fake.CheckKubectlVersionStub = nil
@@ -152,7 +152,7 @@ func (fake *FakeKubectlClient) CheckKubectlVersionReturnsOnCall(i int, result1 e
 	}{result1}
 }
 
-func (fake *FakeKubectlClient) FmtCmd(arg1 []string) string {
+func (fake *FakeKubernetesClient) FmtCmd(arg1 []string) string {
 	var arg1Copy []string
 	if arg1 != nil {
 		arg1Copy = make([]string, len(arg1))
@@ -176,26 +176,26 @@ func (fake *FakeKubectlClient) FmtCmd(arg1 []string) string {
 	return fakeReturns.result1
 }
 
-func (fake *FakeKubectlClient) FmtCmdCallCount() int {
+func (fake *FakeKubernetesClient) FmtCmdCallCount() int {
 	fake.fmtCmdMutex.RLock()
 	defer fake.fmtCmdMutex.RUnlock()
 	return len(fake.fmtCmdArgsForCall)
 }
 
-func (fake *FakeKubectlClient) FmtCmdCalls(stub func([]string) string) {
+func (fake *FakeKubernetesClient) FmtCmdCalls(stub func([]string) string) {
 	fake.fmtCmdMutex.Lock()
 	defer fake.fmtCmdMutex.Unlock()
 	fake.FmtCmdStub = stub
 }
 
-func (fake *FakeKubectlClient) FmtCmdArgsForCall(i int) []string {
+func (fake *FakeKubernetesClient) FmtCmdArgsForCall(i int) []string {
 	fake.fmtCmdMutex.RLock()
 	defer fake.fmtCmdMutex.RUnlock()
 	argsForCall := fake.fmtCmdArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeKubectlClient) FmtCmdReturns(result1 string) {
+func (fake *FakeKubernetesClient) FmtCmdReturns(result1 string) {
 	fake.fmtCmdMutex.Lock()
 	defer fake.fmtCmdMutex.Unlock()
 	fake.FmtCmdStub = nil
@@ -204,7 +204,7 @@ func (fake *FakeKubectlClient) FmtCmdReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeKubectlClient) FmtCmdReturnsOnCall(i int, result1 string) {
+func (fake *FakeKubernetesClient) FmtCmdReturnsOnCall(i int, result1 string) {
 	fake.fmtCmdMutex.Lock()
 	defer fake.fmtCmdMutex.Unlock()
 	fake.FmtCmdStub = nil
@@ -218,7 +218,7 @@ func (fake *FakeKubectlClient) FmtCmdReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeKubectlClient) GetClientVersion() (string, error) {
+func (fake *FakeKubernetesClient) GetClientVersion() (string, error) {
 	fake.getClientVersionMutex.Lock()
 	ret, specificReturn := fake.getClientVersionReturnsOnCall[len(fake.getClientVersionArgsForCall)]
 	fake.getClientVersionArgsForCall = append(fake.getClientVersionArgsForCall, struct {
@@ -236,19 +236,19 @@ func (fake *FakeKubectlClient) GetClientVersion() (string, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeKubectlClient) GetClientVersionCallCount() int {
+func (fake *FakeKubernetesClient) GetClientVersionCallCount() int {
 	fake.getClientVersionMutex.RLock()
 	defer fake.getClientVersionMutex.RUnlock()
 	return len(fake.getClientVersionArgsForCall)
 }
 
-func (fake *FakeKubectlClient) GetClientVersionCalls(stub func() (string, error)) {
+func (fake *FakeKubernetesClient) GetClientVersionCalls(stub func() (string, error)) {
 	fake.getClientVersionMutex.Lock()
 	defer fake.getClientVersionMutex.Unlock()
 	fake.GetClientVersionStub = stub
 }
 
-func (fake *FakeKubectlClient) GetClientVersionReturns(result1 string, result2 error) {
+func (fake *FakeKubernetesClient) GetClientVersionReturns(result1 string, result2 error) {
 	fake.getClientVersionMutex.Lock()
 	defer fake.getClientVersionMutex.Unlock()
 	fake.GetClientVersionStub = nil
@@ -258,7 +258,7 @@ func (fake *FakeKubectlClient) GetClientVersionReturns(result1 string, result2 e
 	}{result1, result2}
 }
 
-func (fake *FakeKubectlClient) GetClientVersionReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeKubernetesClient) GetClientVersionReturnsOnCall(i int, result1 string, result2 error) {
 	fake.getClientVersionMutex.Lock()
 	defer fake.getClientVersionMutex.Unlock()
 	fake.GetClientVersionStub = nil
@@ -274,7 +274,7 @@ func (fake *FakeKubectlClient) GetClientVersionReturnsOnCall(i int, result1 stri
 	}{result1, result2}
 }
 
-func (fake *FakeKubectlClient) GetServerVersion() (string, error) {
+func (fake *FakeKubernetesClient) GetServerVersion() (string, error) {
 	fake.getServerVersionMutex.Lock()
 	ret, specificReturn := fake.getServerVersionReturnsOnCall[len(fake.getServerVersionArgsForCall)]
 	fake.getServerVersionArgsForCall = append(fake.getServerVersionArgsForCall, struct {
@@ -292,19 +292,19 @@ func (fake *FakeKubectlClient) GetServerVersion() (string, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeKubectlClient) GetServerVersionCallCount() int {
+func (fake *FakeKubernetesClient) GetServerVersionCallCount() int {
 	fake.getServerVersionMutex.RLock()
 	defer fake.getServerVersionMutex.RUnlock()
 	return len(fake.getServerVersionArgsForCall)
 }
 
-func (fake *FakeKubectlClient) GetServerVersionCalls(stub func() (string, error)) {
+func (fake *FakeKubernetesClient) GetServerVersionCalls(stub func() (string, error)) {
 	fake.getServerVersionMutex.Lock()
 	defer fake.getServerVersionMutex.Unlock()
 	fake.GetServerVersionStub = stub
 }
 
-func (fake *FakeKubectlClient) GetServerVersionReturns(result1 string, result2 error) {
+func (fake *FakeKubernetesClient) GetServerVersionReturns(result1 string, result2 error) {
 	fake.getServerVersionMutex.Lock()
 	defer fake.getServerVersionMutex.Unlock()
 	fake.GetServerVersionStub = nil
@@ -314,7 +314,7 @@ func (fake *FakeKubectlClient) GetServerVersionReturns(result1 string, result2 e
 	}{result1, result2}
 }
 
-func (fake *FakeKubectlClient) GetServerVersionReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeKubernetesClient) GetServerVersionReturnsOnCall(i int, result1 string, result2 error) {
 	fake.getServerVersionMutex.Lock()
 	defer fake.getServerVersionMutex.Unlock()
 	fake.GetServerVersionStub = nil
@@ -330,7 +330,7 @@ func (fake *FakeKubectlClient) GetServerVersionReturnsOnCall(i int, result1 stri
 	}{result1, result2}
 }
 
-func (fake *FakeKubectlClient) SetEnv(arg1 []string) {
+func (fake *FakeKubernetesClient) SetEnv(arg1 []string) {
 	var arg1Copy []string
 	if arg1 != nil {
 		arg1Copy = make([]string, len(arg1))
@@ -348,26 +348,26 @@ func (fake *FakeKubectlClient) SetEnv(arg1 []string) {
 	}
 }
 
-func (fake *FakeKubectlClient) SetEnvCallCount() int {
+func (fake *FakeKubernetesClient) SetEnvCallCount() int {
 	fake.setEnvMutex.RLock()
 	defer fake.setEnvMutex.RUnlock()
 	return len(fake.setEnvArgsForCall)
 }
 
-func (fake *FakeKubectlClient) SetEnvCalls(stub func([]string)) {
+func (fake *FakeKubernetesClient) SetEnvCalls(stub func([]string)) {
 	fake.setEnvMutex.Lock()
 	defer fake.setEnvMutex.Unlock()
 	fake.SetEnvStub = stub
 }
 
-func (fake *FakeKubectlClient) SetEnvArgsForCall(i int) []string {
+func (fake *FakeKubernetesClient) SetEnvArgsForCall(i int) []string {
 	fake.setEnvMutex.RLock()
 	defer fake.setEnvMutex.RUnlock()
 	argsForCall := fake.setEnvArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeKubectlClient) Invocations() map[string][][]interface{} {
+func (fake *FakeKubernetesClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.appendArgForNextCmdMutex.RLock()
@@ -389,7 +389,7 @@ func (fake *FakeKubectlClient) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeKubectlClient) recordInvocation(key string, args []interface{}) {
+func (fake *FakeKubernetesClient) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -401,4 +401,4 @@ func (fake *FakeKubectlClient) recordInvocation(key string, args []interface{}) 
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ kubectl.KubectlClient = new(FakeKubectlClient)
+var _ kubectl.KubernetesClient = new(FakeKubernetesClient)

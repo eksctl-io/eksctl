@@ -33,8 +33,8 @@ type kubectlInfo struct {
 }
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-//counterfeiter:generate -o fakes/fake_kubectl_client.go . KubectlClient
-type KubectlClient interface {
+//counterfeiter:generate -o fakes/fake_kubectl_client.go . KubernetesClient
+type KubernetesClient interface {
 	GetClientVersion() (string, error)
 	GetServerVersion() (string, error)
 	CheckKubectlVersion() error
@@ -50,7 +50,7 @@ type Client struct {
 }
 
 // NewClient return a new kubectl client
-func NewClient() KubectlClient {
+func NewClient() KubernetesClient {
 	return &Client{}
 }
 
