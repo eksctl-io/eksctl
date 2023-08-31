@@ -199,6 +199,26 @@ func getServiceLoadBalancer(ctx context.Context, ec2API awsapi.EC2, elbAPI Descr
 	return &lb, nil
 }
 
+func getIngressELBName(ctx context.Context, metadataName string, hosts []string) string {
+	// Expected e.g. bf647c9e-default-appingres-350b-1622159649.eu-central-1.elb.amazonaws.com where AWS ALB name is
+	// bf647c9e-default-appingres-350b (cannot be longer than 32 characters).
+	hostNameParts := strings.Split(hosts[0], ".")
+	if len(hostNameParts[0]) == 0 {
+		logger.Debug("%s is ALB Ingress, but probably not provisioned or something other unexpected, skip", metadataName)
+		return ""
+	}
+	name := strings.TrimPrefix(hostNameParts[0], "internal-") // Trim 'internal-' prefix for ALB DNS name which is not a part of name.
+	idIdx := strings.LastIndex(name, "-")
+	if (idIdx) != -1 {
+		name = name[:idIdx] // Remove the ELB ID and last hyphen at the end of the hostname (ELB name cannot end with a hyphen)
+	}
+	if len(name) > 32 {
+		name = name[:32]
+	}
+	logger.Debug("ALB resource name: %s", name)
+	return name
+}
+
 func getIngressLoadBalancer(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI, elbv2API DescribeLoadBalancersAPIV2,
 	clusterName string, ingress Ingress) (*loadBalancer, error) {
 	metadata := ingress.GetMetadata()
@@ -215,17 +235,7 @@ func getIngressLoadBalancer(ctx context.Context, ec2API awsapi.EC2, elbAPI Descr
 		logger.Debug("%s is ALB Ingress, but probably not provisioned, skip", metadata.Name)
 		return nil, nil
 	}
-	// Expected e.g. bf647c9e-default-appingres-350b-1622159649.eu-central-1.elb.amazonaws.com where AWS ALB name is
-	// bf647c9e-default-appingres-350b (cannot be longer than 32 characters).
-	hostNameParts := strings.Split(hosts[0], ".")
-	if len(hostNameParts[0]) == 0 {
-		logger.Debug("%s is ALB Ingress, but probably not provisioned or something other unexpected, skip", metadata.Name)
-		return nil, nil
-	}
-	name := strings.TrimPrefix(hostNameParts[0], "internal-") // Trim 'internal-' prefix for ALB DNS name which is not a part of name.
-	if len(name) > 32 {
-		name = name[:32]
-	}
+	name := getIngressELBName(ctx, metadata.Name, hosts)
 	ctx, cleanup := context.WithTimeout(ctx, 30*time.Second)
 	defer cleanup()
 	securityGroupIDs, err := getSecurityGroupsOwnedByLoadBalancer(ctx, ec2API, elbAPI, elbv2API, clusterName, name, application)
