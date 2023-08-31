@@ -15,7 +15,11 @@ import (
 
 const command = "kubectl"
 
-var versionArgs = []string{"version", "--output=json"}
+var (
+	versionArgs  = []string{"version", "--output=json"}
+	execCommand  = exec.Command
+	execLookPath = exec.LookPath
+)
 
 // gitVersion holds git version info of kubectl client/server
 type gitVersion struct {
@@ -91,7 +95,7 @@ func (ktl *Client) GetServerVersion() (string, error) {
 
 // getVersion returns the kubectl version
 func (ktl *Client) getVersion() (string, string, error) {
-	cmd := exec.Command(command, versionArgs...)
+	cmd := execCommand(command, versionArgs...)
 	cmd.Args = append(cmd.Args, ktl.args...)
 	cmd.Env = append(os.Environ(), ktl.env...)
 
@@ -110,7 +114,7 @@ func (ktl *Client) getVersion() (string, string, error) {
 
 // CheckKubectlVersion checks version of kubectl
 func (ktl *Client) CheckKubectlVersion() error {
-	kubectlPath, err := exec.LookPath(command)
+	kubectlPath, err := execLookPath(command)
 	if err != nil {
 		return fmt.Errorf("kubectl not found, v1.10.0 or newer is required")
 	}
