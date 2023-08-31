@@ -28,23 +28,47 @@ type kubectlInfo struct {
 	ServerVersion gitVersion `json:"serverVersion"`
 }
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_kubectl_client.go . KubectlClient
+type KubectlClient interface {
+	GetClientVersion() (string, error)
+	GetServerVersion() (string, error)
+	CheckKubectlVersion() error
+	FmtCmd(args []string) string
+	SetEnv(env []string)
+	AppendArgForNextCmd(arg string)
+}
+
 // Client implements Kubectl
 type Client struct {
-	GlobalArgs []string
-	Env        []string
+	args []string
+	env  []string
 }
 
 // NewClient return a new kubectl client
-func NewClient() *Client {
+func NewClient() KubectlClient {
 	return &Client{}
+}
+
+// SetEnv sets env
+func (ktl *Client) SetEnv(env []string) {
+	ktl.env = env
+}
+
+// AppendArgForNextCmd adds args for the next command to be run
+func (ktl *Client) AppendArgForNextCmd(arg string) {
+	ktl.args = append(ktl.args, arg)
+}
+
+// cleanupArgs removes all args that the current command used
+func (ktl *Client) cleanupArgs() {
+	ktl.args = []string{}
 }
 
 // GetClientVersion returns the kubectl client version
 func (ktl *Client) GetClientVersion() (string, error) {
-	ktl.GlobalArgs = []string{"--client"}
-	defer func() {
-		ktl.GlobalArgs = []string{}
-	}()
+	ktl.AppendArgForNextCmd("--client")
+	defer ktl.cleanupArgs()
 	clientVersion, _, err := ktl.getVersion()
 	if err != nil {
 		return "", err
@@ -54,9 +78,10 @@ func (ktl *Client) GetClientVersion() (string, error) {
 
 // GetServerVersion returns the kubernetes version on server
 func (ktl *Client) GetServerVersion() (string, error) {
-	if len(ktl.Env) == 0 {
+	if len(ktl.env) == 0 {
 		return "", fmt.Errorf("client env should be set before trying to fetch server version")
 	}
+	defer ktl.cleanupArgs()
 	_, serverVersion, err := ktl.getVersion()
 	if err != nil {
 		return "", err
@@ -67,8 +92,8 @@ func (ktl *Client) GetServerVersion() (string, error) {
 // getVersion returns the kubectl version
 func (ktl *Client) getVersion() (string, string, error) {
 	cmd := exec.Command(command, versionArgs...)
-	cmd.Args = append(cmd.Args, ktl.GlobalArgs...)
-	cmd.Env = append(os.Environ(), ktl.Env...)
+	cmd.Args = append(cmd.Args, ktl.args...)
+	cmd.Env = append(os.Environ(), ktl.env...)
 
 	out, err := cmd.Output()
 	if err != nil {
@@ -115,9 +140,8 @@ func (ktl *Client) CheckKubectlVersion() error {
 	return nil
 }
 
-func (ktl *Client) FmtCmd(cmds ...string) string {
-	args := []string{command}
-	args = append(args, ktl.GlobalArgs...)
-	args = append(args, cmds...)
-	return shellquote.Join(args...)
+func (ktl *Client) FmtCmd(args []string) string {
+	cmd := []string{command}
+	cmd = append(cmd, args...)
+	return shellquote.Join(cmd...)
 }
