@@ -797,7 +797,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		return err
 	}
 
-	if err := validateNodeGroupLabels(ng.Labels); err != nil {
+	if err := validateLabels(ng.Labels); err != nil {
 		return err
 	}
 
@@ -918,16 +918,16 @@ func validateOutpostARN(val string) error {
 	return nil
 }
 
-// validateNodeGroupLabels uses proper Kubernetes label validation,
-// it's designed to make sure users don't pass weird labels to the
-// nodes, which would prevent kubelets to startup properly
-func validateNodeGroupLabels(labels map[string]string) error {
+// validateLabels uses proper Kubernetes label validation,
+// it's designed to make sure users don't pass invalid or disallowed labels,
+// which would prevent kubelets to startup properly
+func validateLabels(labels map[string]string) error {
 	// compact version based on:
 	// - https://github.com/kubernetes/kubernetes/blob/v1.13.2/cmd/kubelet/app/options/options.go#L257-L267
 	// - https://github.com/kubernetes/kubernetes/blob/v1.13.2/pkg/kubelet/apis/well_known_labels.go
 	// we cannot import those packages because they break other dependencies
 
-	unknownKubernetesLabels := []string{}
+	disallowedKubernetesLabels := []string{}
 
 	for label := range labels {
 		labelParts := strings.Split(label, "/")
@@ -946,13 +946,13 @@ func validateNodeGroupLabels(labels map[string]string) error {
 		if len(labelParts) == 2 {
 			namespace := labelParts[0]
 			if isKubernetesLabel(namespace) && !kubeletapis.IsKubeletLabel(label) {
-				unknownKubernetesLabels = append(unknownKubernetesLabels, label)
+				disallowedKubernetesLabels = append(disallowedKubernetesLabels, label)
 			}
 		}
 	}
 
-	if len(unknownKubernetesLabels) > 0 {
-		return fmt.Errorf("unknown 'kubernetes.io' or 'k8s.io' labels were specified: %v", unknownKubernetesLabels)
+	if len(disallowedKubernetesLabels) > 0 {
+		return fmt.Errorf("the following nodegroup labels are disallowed as they have reserved prefixes [kubernetes.io/, k8s.io/]: %v", disallowedKubernetesLabels)
 	}
 	return nil
 }
@@ -1167,6 +1167,10 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 	}
 
 	if err := validateTaints(ng.Taints); err != nil {
+		return err
+	}
+
+	if err := validateLabels(ng.Labels); err != nil {
 		return err
 	}
 

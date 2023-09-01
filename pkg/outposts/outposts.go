@@ -98,10 +98,9 @@ func (o *Service) describeOutpostInstanceTypes(ctx context.Context) ([]ec2types.
 	return o.instanceTypeInfoList, nil
 }
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-//counterfeiter:generate -o fakes . OutpostInstance
-
 // OutpostInstance represents an instance running on Outposts.
+//
+//counterfeiter:generate -o fakes . OutpostInstance
 type OutpostInstance interface {
 	// SetInstanceType sets the instance type.
 	SetInstanceType(instanceType string)

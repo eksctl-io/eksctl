@@ -15,5 +15,5 @@
 "sigs.k8s.io/mdtoc v1.1.0"
 "github.com/vburenin/ifacemaker v1.2.1"
 100644 blob 73037af40e41f5241efaa821aec1e4bf930e9979	build/docker/Dockerfile
-100644 blob b097bb369defa4cd14965008ba727b4f861bbdea	.requirements
+100644 blob 65ddbaa95ddc2c29f38e769a4d49a529a542796d	.requirements
 100755 blob c1129ff1ff85ac2c53f908a577675ea59a9325a7	build/scripts/install-build-deps.sh

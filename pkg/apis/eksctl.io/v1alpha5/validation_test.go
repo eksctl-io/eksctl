@@ -2086,7 +2086,19 @@ var _ = Describe("ClusterConfig validation", func() {
 		ng := newNodeGroup()
 		ng.Labels = e.labels
 		ng.Taints = e.taints
+
+		mng := api.NewManagedNodeGroup()
+		mng.Labels = e.labels
+		mng.Taints = e.taints
+
 		err := api.ValidateNodeGroup(0, ng, api.NewClusterConfig())
+		if e.valid {
+			Expect(err).NotTo(HaveOccurred())
+		} else {
+			Expect(err).To(HaveOccurred())
+		}
+
+		err = api.ValidateManagedNodeGroup(0, mng)
 		if e.valid {
 			Expect(err).NotTo(HaveOccurred())
 		} else {

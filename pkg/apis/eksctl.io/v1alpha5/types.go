@@ -204,18 +204,12 @@ const (
 	// RegionUSISOBEast1 represents the region US ISOB East (Ohio).
 	RegionUSISOBEast1 = "us-isob-east-1"
 
+	// RegionUSISOWest1 represents the region US ISOB West.
+	RegionUSISOWest1 = "us-iso-west-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 )
-
-func defaultVolumeTypeForRegion(region string) string {
-	switch region {
-	case RegionUSISOEast1, RegionUSISOBEast1:
-		return NodeVolumeTypeIO1
-	default:
-		return DefaultNodeVolumeType
-	}
-}
 
 // Values for `NodeAMIFamily`
 // All valid values of supported families should go in this block
@@ -375,6 +369,9 @@ const (
 
 	// eksResourceAccountUSISOBEast1 defines the AWS EKS account ID that provides node resources in us-isob-east-1
 	eksResourceAccountUSISOBEast1 = "187977181151"
+
+	// eksResourceAccountUSISOWest1 defines the AWS EKS account ID that provides node resources in us-iso-west-1
+	eksResourceAccountUSISOWest1 = "608367168043"
 )
 
 // Values for `VolumeType`
@@ -521,6 +518,7 @@ func SupportedRegions() []string {
 		RegionUSGovEast1,
 		RegionUSISOEast1,
 		RegionUSISOBEast1,
+		RegionUSISOWest1,
 	}
 }
 
@@ -650,6 +648,8 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountUSISOEast1
 	case RegionUSISOBEast1:
 		return eksResourceAccountUSISOBEast1
+	case RegionUSISOWest1:
+		return eksResourceAccountUSISOWest1
 	default:
 		return eksResourceAccountStandard
 	}

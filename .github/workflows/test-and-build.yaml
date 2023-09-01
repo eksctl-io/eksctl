@@ -32,7 +32,7 @@ jobs:
       - name: Unit test
         run: |
           PATH=$PATH:$(go env GOPATH)/bin make build
-          PATH=$PATH:$(go env GOPATH)/bin make unit-test
+          PATH=$PATH:$(go env GOPATH)/bin make unit-test-no-generate
   lint:
     name: Lint
     runs-on: ubuntu-latest
