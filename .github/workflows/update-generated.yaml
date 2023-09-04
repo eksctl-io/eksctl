@@ -41,7 +41,7 @@ jobs:
         run: |
           git checkout $DEFAULT_BRANCH
           git checkout -B $UPDATE_BRANCH
-          git add -u
+          git add .
           if ! EDITOR=true git commit -m "Update aws-node"; then
             echo "changes=false" >> $GITHUB_OUTPUT
             exit 0
