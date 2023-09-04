@@ -49,7 +49,7 @@ type stackManagerDelegate struct {
 	manager.StackManager
 }
 
-func (s *stackManagerDelegate) NewUnmanagedNodeGroupTask(context.Context, []*api.NodeGroup, bool, vpc.Importer) *tasks.TaskTree {
+func (s *stackManagerDelegate) NewUnmanagedNodeGroupTask(context.Context, []*api.NodeGroup, bool, bool, vpc.Importer) *tasks.TaskTree {
 	return &tasks.TaskTree{
 		Tasks: []tasks.Task{noopTask},
 	}
@@ -158,7 +158,26 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			})
 
 		},
-		expectedErr: fmt.Errorf("loading VPC spec for cluster %q: vpc.securityGroup (sg-custom) has egress rules that were not attached by eksctl; vpc.securityGroup should not contain any external egress rules on a cluster not created by eksctl (rule ID: sgr-5)", "my-cluster"),
+		expectedErr: errors.New("vpc.securityGroup (sg-custom) has egress rules that were not attached by eksctl; vpc.securityGroup should not contain any non-default external egress rules on a cluster not created by eksctl (rule ID: sgr-5)"),
+	}),
+
+	Entry("when cluster is unowned and vpc.securityGroup contains a default egress rule, it passes validation but fails if DescribeImages fails", ngEntry{
+		updateClusterConfig: makeUnownedClusterConfig,
+		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
+			mockProviderForUnownedCluster(p, k, ec2types.SecurityGroupRule{
+				Description:         aws.String(""),
+				CidrIpv4:            aws.String("0.0.0.0/0"),
+				FromPort:            aws.Int32(-1),
+				ToPort:              aws.Int32(-1),
+				GroupId:             aws.String("sg-custom"),
+				IpProtocol:          aws.String("-1"),
+				IsEgress:            aws.Bool(true),
+				SecurityGroupRuleId: aws.String("sgr-5"),
+			})
+			p.MockEC2().On("DescribeImages", mock.Anything, mock.Anything).Return(nil, errors.New("DescribeImages error"))
+
+		},
+		expectedErr: errors.New("DescribeImages error"),
 	}),
 
 	Entry("when cluster is unowned and vpc.securityGroup contains no external egress rules, it passes validation but fails if DescribeImages fails", ngEntry{

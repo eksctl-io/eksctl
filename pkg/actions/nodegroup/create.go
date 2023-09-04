@@ -59,7 +59,11 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return errors.New(msg)
 	}
 
-	isOwnedCluster := true
+	var (
+		isOwnedCluster  = true
+		skipEgressRules = false
+	)
+
 	clusterStack, err := m.stackManager.DescribeClusterStack(ctx)
 	if err != nil {
 		switch err.(type) {
@@ -72,6 +76,10 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 				return errors.Wrapf(err, "loading VPC spec for cluster %q", meta.Name)
 			}
 			isOwnedCluster = false
+			skipEgressRules, err = validateSecurityGroup(ctx, ctl.AWSProvider.EC2(), cfg.VPC.SecurityGroup)
+			if err != nil {
+				return err
+			}
 
 		default:
 			return fmt.Errorf("getting existing configuration for cluster %q: %w", meta.Name, err)
@@ -156,7 +164,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, options.DryRunSettings.OutStream)
 	}
 
-	if err := m.nodeCreationTasks(ctx, isOwnedCluster); err != nil {
+	if err := m.nodeCreationTasks(ctx, isOwnedCluster, skipEgressRules); err != nil {
 		return err
 	}
 
@@ -188,7 +196,7 @@ func makeOutpostsService(clusterConfig *api.ClusterConfig, provider api.ClusterP
 	}
 }
 
-func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) error {
+func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster, skipEgressRules bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 
@@ -242,7 +250,7 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) er
 	allNodeGroupTasks := &tasks.TaskTree{
 		Parallel: true,
 	}
-	nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(ctx, cfg.NodeGroups, !awsNodeUsesIRSA, vpcImporter)
+	nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(ctx, cfg.NodeGroups, !awsNodeUsesIRSA, skipEgressRules, vpcImporter)
 	if nodeGroupTasks.Len() > 0 {
 		allNodeGroupTasks.Append(nodeGroupTasks)
 	}
@@ -322,13 +330,10 @@ func loadVPCFromConfig(ctx context.Context, provider api.ClusterProvider, cfg *a
 		logger.Critical("unable to use given %s", cfg.SubnetInfo())
 		return err
 	}
-	if err := cfg.CanUseForPrivateNodeGroups(); err != nil {
-		return err
-	}
-	return validateSecurityGroup(ctx, provider.EC2(), cfg.VPC.SecurityGroup)
+	return cfg.CanUseForPrivateNodeGroups()
 }
 
-func validateSecurityGroup(ctx context.Context, ec2API awsapi.EC2, securityGroupID string) error {
+func validateSecurityGroup(ctx context.Context, ec2API awsapi.EC2, securityGroupID string) (hasDefaultEgressRule bool, err error) {
 	paginator := ec2.NewDescribeSecurityGroupRulesPaginator(ec2API, &ec2.DescribeSecurityGroupRulesInput{
 		Filters: []ec2types.Filter{
 			{
@@ -341,22 +346,30 @@ func validateSecurityGroup(ctx context.Context, ec2API awsapi.EC2, securityGroup
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			return err
+			return false, err
 		}
 		sgRules = append(sgRules, output.SecurityGroupRules...)
 	}
 
 	makeError := func(sgRuleID string) error {
 		return fmt.Errorf("vpc.securityGroup (%s) has egress rules that were not attached by eksctl; "+
-			"vpc.securityGroup should not contain any external egress rules on a cluster not created by eksctl (rule ID: %s)", securityGroupID, sgRuleID)
+			"vpc.securityGroup should not contain any non-default external egress rules on a cluster not created by eksctl (rule ID: %s)", securityGroupID, sgRuleID)
+	}
+
+	isDefaultEgressRule := func(sgRule ec2types.SecurityGroupRule) bool {
+		return aws.ToString(sgRule.IpProtocol) == "-1" && aws.ToInt32(sgRule.FromPort) == -1 && aws.ToInt32(sgRule.ToPort) == -1 && aws.ToString(sgRule.CidrIpv4) == "0.0.0.0/0"
 	}
 
 	for _, sgRule := range sgRules {
 		if !aws.ToBool(sgRule.IsEgress) {
 			continue
 		}
+		if !hasDefaultEgressRule && isDefaultEgressRule(sgRule) {
+			hasDefaultEgressRule = true
+			continue
+		}
 		if !strings.HasPrefix(aws.ToString(sgRule.Description), builder.ControlPlaneEgressRuleDescriptionPrefix) {
-			return makeError(aws.ToString(sgRule.SecurityGroupRuleId))
+			return false, makeError(aws.ToString(sgRule.SecurityGroupRuleId))
 		}
 		matched := false
 		for _, egressRule := range builder.ControlPlaneNodeGroupEgressRules {
@@ -368,8 +381,8 @@ func validateSecurityGroup(ctx context.Context, ec2API awsapi.EC2, securityGroup
 			}
 		}
 		if !matched {
-			return makeError(aws.ToString(sgRule.SecurityGroupRuleId))
+			return false, makeError(aws.ToString(sgRule.SecurityGroupRuleId))
 		}
 	}
-	return nil
+	return hasDefaultEgressRule, nil
 }
