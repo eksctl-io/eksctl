@@ -1,7 +1,6 @@
 package kubectl_test
 
 import (
-	"fmt"
 	"os/exec"
 	"path/filepath"
 
@@ -12,24 +11,13 @@ import (
 )
 
 var _ = Describe("Kubectl", func() {
-	var client kubectl.KubernetesClient
-	var genericError = "genericError"
-
-	Context("FmtCmd", func() {
-		BeforeEach(func() {
-			client = kubectl.NewClient()
-		})
-
-		It("should properly format the command", func() {
-			args := []string{"arg1", "arg2"}
-			Expect(client.FmtCmd(args)).To(Equal("kubectl arg1 arg2"))
-		})
-	})
+	var manager kubectl.KubernetesVersionManager
+	// var genericError = "genericError"
 
 	Context("GetClientVersion", func() {
 
 		BeforeEach(func() {
-			client = kubectl.NewClient()
+			manager = kubectl.NewVersionManager()
 		})
 		AfterEach(func() {
 			kubectl.SetExecCommand(exec.Command)
@@ -39,7 +27,7 @@ var _ = Describe("Kubectl", func() {
 			kubectl.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
 				return exec.Command(filepath.Join("testdata", "fake-version"), `fail`)
 			})
-			_, err := client.GetClientVersion()
+			_, err := manager.ClientVersion()
 			Expect(err).To(MatchError(ContainSubstring("error running `kubectl version`: exit status 1")))
 		})
 
@@ -47,7 +35,7 @@ var _ = Describe("Kubectl", func() {
 			kubectl.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
 				return exec.Command(filepath.Join("testdata", "fake-version"), invalidCommandOutput)
 			})
-			_, err := client.GetClientVersion()
+			_, err := manager.ClientVersion()
 			Expect(err).To(MatchError(ContainSubstring("error parsing `kubectl version` output")))
 		})
 
@@ -55,97 +43,69 @@ var _ = Describe("Kubectl", func() {
 			kubectl.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
 				return exec.Command(filepath.Join("testdata", "fake-version"), commandOutput)
 			})
-			clientVersion, err := client.GetClientVersion()
+			clientVersion, err := manager.ClientVersion()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(clientVersion).To(Equal("v1.28.1"))
 		})
 	})
 
-	Context("GetServerVersion", func() {
+	Context("ServerVersion", func() {
 		BeforeEach(func() {
-			client = kubectl.NewClient()
+			manager = kubectl.NewVersionManager()
 		})
 		AfterEach(func() {
 			kubectl.SetExecCommand(exec.Command)
 		})
 
-		It("should return an error if env is not set", func() {
-			_, err := client.GetServerVersion()
-			Expect(err).To(MatchError(ContainSubstring("client env should be set before trying to fetch server version")))
+		It("should return an error if kubectl call fails", func() {
+			kubectl.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
+				return exec.Command(filepath.Join("testdata", "fake-version"), `fail`)
+			})
+			_, err := manager.ServerVersion([]string{}, []string{})
+			Expect(err).To(MatchError(ContainSubstring("error running `kubectl version`: exit status 1")))
 		})
 
-		Context("env is set appropriately", func() {
-			BeforeEach(func() {
-				client.SetEnv([]string{"env"})
+		It("should return an error if parsing the version fails", func() {
+			kubectl.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
+				return exec.Command(filepath.Join("testdata", "fake-version"), invalidCommandOutput)
 			})
+			_, err := manager.ServerVersion([]string{}, []string{})
+			Expect(err).To(MatchError(ContainSubstring("error parsing `kubectl version` output")))
+		})
 
-			It("should return an error if kubectl call fails", func() {
-				kubectl.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
-					return exec.Command(filepath.Join("testdata", "fake-version"), `fail`)
-				})
-				_, err := client.GetServerVersion()
-				Expect(err).To(MatchError(ContainSubstring("error running `kubectl version`: exit status 1")))
+		It("should return the version successfully", func() {
+			kubectl.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
+				return exec.Command(filepath.Join("testdata", "fake-version"), commandOutput)
 			})
-
-			It("should return an error if parsing the version fails", func() {
-				kubectl.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
-					return exec.Command(filepath.Join("testdata", "fake-version"), invalidCommandOutput)
-				})
-				_, err := client.GetServerVersion()
-				Expect(err).To(MatchError(ContainSubstring("error parsing `kubectl version` output")))
-			})
-
-			It("should return the version successfully", func() {
-				kubectl.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
-					return exec.Command(filepath.Join("testdata", "fake-version"), commandOutput)
-				})
-				serverVersion, err := client.GetServerVersion()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(serverVersion).To(Equal("v1.24.16-eks-2d98532"))
-			})
+			serverVersion, err := manager.ServerVersion([]string{}, []string{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(serverVersion).To(Equal("v1.24.16-eks-2d98532"))
 		})
 	})
 
-	Context("CheckKubectlVersion", func() {
+	Context("ValidateVersion", func() {
 		BeforeEach(func() {
-			client = kubectl.NewClient()
-		})
-		It("should return an error if kubectl is not present", func() {
-			kubectl.SetExecLookPath(func(file string) (string, error) {
-				return "", fmt.Errorf(genericError)
-			})
-			Expect(client.CheckKubectlVersion()).To(MatchError(ContainSubstring("kubectl not found, v1.10.0 or newer is required")))
+			manager = kubectl.NewVersionManager()
 		})
 
-		Context("kubectl is present", func() {
-			BeforeEach(func() {
-				kubectl.SetExecLookPath(func(file string) (string, error) {
-					return "path", nil
-				})
-			})
+		It("should return an error if it fails to parse kubectl version", func() {
+			err := manager.ValidateVersion("", kubectl.Client)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring("parsing kubernetes client version string")))
+		})
 
-			It("should return an error if it fails to parse kubectl version", func() {
-				kubectl.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
-					return exec.Command(filepath.Join("testdata", "fake-version"), invalidClientVersionCommandOutput)
-				})
-				Expect(client.CheckKubectlVersion()).To(MatchError(ContainSubstring("parsing kubectl version string")))
-			})
+		It("should return an error if kubectl version is not supported", func() {
+			err := manager.ValidateVersion("v1.9.4", kubectl.Client)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring("kubernetes client version v1.9.4 was found, minimum required version is v1.10.0")))
+		})
 
-			It("should return an error if kubectl version is not supported", func() {
-				kubectl.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
-					return exec.Command(filepath.Join("testdata", "fake-version"), oldClientVersionCommandOutput)
-				})
-				Expect(client.CheckKubectlVersion()).To(MatchError(ContainSubstring("kubectl version 1.9.0 was found at \"path\", minimum required version to use EKS is v1.10.0")))
-			})
-
-			It("should finish successfully", func() {
-				kubectl.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
-					return exec.Command(filepath.Join("testdata", "fake-version"), commandOutput)
-				})
-				Expect(client.CheckKubectlVersion()).NotTo(HaveOccurred())
-			})
+		It("should finish successfully", func() {
+			err := manager.ValidateVersion("v1.28.0", kubectl.Client)
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
+
 })
 
 var commandOutput = `{

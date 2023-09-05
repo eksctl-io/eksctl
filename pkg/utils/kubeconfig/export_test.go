@@ -1,11 +1,21 @@
 package kubeconfig
 
-func SetExecCommand(f ExecCommandFunc) {
+import (
+	"os/exec"
+
+	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
+)
+
+func SetExecCommand(f func(name string, arg ...string) *exec.Cmd) {
 	execCommand = f
 }
 
-func SetNewKubectlClient(f NewKubectlClientFunc) {
-	newKubectlClient = f
+func SetExecLookPath(f func(file string) (string, error)) {
+	execLookPath = f
+}
+
+func SetNewVersionManager(f func() kubectl.KubernetesVersionManager) {
+	newVersionManager = f
 }
 
 func SetLookupAuthenticator(f func() (string, bool)) {

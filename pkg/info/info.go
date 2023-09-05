@@ -33,7 +33,7 @@ func getEksctlVersion() string {
 }
 
 func getKubectlVersion() string {
-	clientVersion, err := kubectl.NewClient().GetClientVersion()
+	clientVersion, err := kubectl.NewVersionManager().ClientVersion()
 	if err != nil {
 		return err.Error()
 	}

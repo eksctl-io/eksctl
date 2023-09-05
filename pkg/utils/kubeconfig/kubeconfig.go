@@ -10,8 +10,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/blang/semver"
 	"github.com/gofrs/flock"
+	"github.com/kballard/go-shellquote"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/tools/clientcmd"
@@ -39,12 +39,10 @@ const (
 	betaAPIVersion  = "client.authentication.k8s.io/v1beta1"
 )
 
-type ExecCommandFunc func(name string, arg ...string) *exec.Cmd
-type NewKubectlClientFunc func() kubectl.KubernetesClient
-
 var (
 	execCommand         = exec.Command
-	newKubectlClient    = kubectl.NewClient
+	execLookPath        = exec.LookPath
+	newVersionManager   = kubectl.NewVersionManager
 	lookupAuthenticator = func() (string, bool) {
 		for _, cmd := range authenticatorCommands() {
 			_, err := exec.LookPath(cmd)
@@ -220,7 +218,7 @@ func AppendAuthenticator(config *clientcmdapi.Config, cluster ClusterInfo, authe
 	// kubectl 1.24.0 removes the alpha API version, so it will never work
 	// Therefore as a best effort try the beta version even if it might not work
 	if execConfig.APIVersion == alphaAPIVersion {
-		if clientVersion, err := newKubectlClient().GetClientVersion(); err == nil {
+		if clientVersion, err := newVersionManager().ClientVersion(); err == nil {
 			// Silently ignore errors because kubectl is not required to run eksctl
 			compareVersions, err := utils.CompareVersions(strings.TrimLeft(clientVersion, "v"), "1.24.0")
 			if err == nil && compareVersions >= 0 {
@@ -550,54 +548,60 @@ func deleteClusterInfo(existing *clientcmdapi.Config, meta *api.ClusterMeta) boo
 // of the authenticator commands; most importantly it validates if kubectl can
 // use kubeconfig we've created for it
 func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName string, env []string) error {
-	ktl := newKubectlClient()
-	if err := ktl.CheckKubectlVersion(); err != nil {
-		return fmt.Errorf("error checking kubectl version: %w", err)
-	}
-
 	authenticator, found := lookupAuthenticator()
 	if !found {
 		return fmt.Errorf("could not find any of the authenticator commands: %s", strings.Join(authenticatorCommands(), ", "))
 	}
 	logger.Debug("found authenticator: %s", authenticator)
 
+	kubectlPath, err := execLookPath(kubectl.Command)
+	if err != nil {
+		return fmt.Errorf("kubectl not found, v1.10.0 or newer is required")
+	}
+	logger.Debug("kubectl: %q", kubectlPath)
+
+	vm := newVersionManager()
+	clientVersion, err := vm.ClientVersion()
+	if err != nil {
+		return fmt.Errorf("getting kubectl version: %w", err)
+	}
+	logger.Debug("kubectl version: %s", clientVersion)
+
+	err = vm.ValidateVersion(clientVersion, kubectl.Client)
+	if err != nil {
+		return fmt.Errorf("validating kubectl version: %w", err)
+	}
+
 	if kubeconfigPath != "" {
 		var args []string
-
-		// setup client to retrieve server version
-		ktl.SetEnv(env)
 		if kubeconfigPath != clientcmd.RecommendedHomeFile {
-			kubeconfigArg := fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)
-			ktl.AppendArgForNextCmd(kubeconfigArg)
-			args = append(args, kubeconfigArg)
+			args = append(args, fmt.Sprintf("--kubeconfig=%s", kubeconfigPath))
 		}
 		if !isContextSet {
-			contextArg := fmt.Sprintf("--context=%s", contextName)
-			ktl.AppendArgForNextCmd(contextArg)
-			args = append(args, contextArg)
+			args = append(args, fmt.Sprintf("--context=%s", contextName))
 		}
 
-		suggestion := fmt.Sprintf("(check '%s')", ktl.FmtCmd(append(args, "version")))
+		suggestion := fmt.Sprintf("(check '%s')", fmtCmd(append(args, "version")))
 
-		serverVersion, err := ktl.GetServerVersion()
+		serverVersion, err := vm.ServerVersion(env, args)
 		if err != nil {
-			return errors.Wrapf(err, "unable to use kubectl with the EKS cluster %s", suggestion)
+			return fmt.Errorf("getting Kubernetes version on EKS cluster: %w %s", err, suggestion)
 		}
-		version, err := semver.Parse(strings.TrimLeft(serverVersion, "v"))
+		err = vm.ValidateVersion(serverVersion, kubectl.Server)
 		if err != nil {
-			return errors.Wrapf(err, "parsing Kubernetes version string %q returned by the EKS API server", version)
-		}
-		if version.Compare(semver.Version{
-			Major: 1,
-			Minor: 10,
-		}) < 0 {
-			return fmt.Errorf("kubernetes version %s found, 1.10.0 or newer is expected with EKS %s", serverVersion, suggestion)
+			return fmt.Errorf("validating Kubernetes version returned by EKS API: %w", err)
 		}
 
-		logger.Info("kubectl command should work with %q, try '%s'", kubeconfigPath, ktl.FmtCmd(append(args, "get", "nodes")))
+		logger.Info("kubectl command should work with %q, try '%s'", kubeconfigPath, fmtCmd(append(args, "get", "nodes")))
 	} else {
 		logger.Debug("skipping kubectl integration checks, as writing kubeconfig file is disabled")
 	}
 
 	return nil
+}
+
+func fmtCmd(args []string) string {
+	cmd := []string{kubectl.Command}
+	cmd = append(cmd, args...)
+	return shellquote.Join(cmd...)
 }
