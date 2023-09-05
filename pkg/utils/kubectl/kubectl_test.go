@@ -137,15 +137,3 @@ var commandOutput = `{
 var invalidCommandOutput = `{
 	-
 }`
-
-var invalidClientVersionCommandOutput = `{
-	"clientVersion": {
-		"gitVersion": ""
-	  }
-}`
-
-var oldClientVersionCommandOutput = `{	
-	"clientVersion": {
-		"gitVersion": "1.9.0"
-	  }
-}`
