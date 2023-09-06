@@ -75,7 +75,7 @@ func NewVersionManager() KubernetesVersionManager {
 
 // ClientVersion returns the kubectl client version
 func (vm *VersionManager) ClientVersion() (string, error) {
-	clientVersion, _, err := getVersion([]string{}, []string{"client"})
+	clientVersion, _, err := getVersion([]string{}, []string{"--client"})
 	if err != nil {
 		return "", err
 	}
@@ -84,7 +84,7 @@ func (vm *VersionManager) ClientVersion() (string, error) {
 
 // ServerVersion returns the kubernetes version on server
 func (vm *VersionManager) ServerVersion(env []string, args []string) (string, error) {
-	_, serverVersion, err := getVersion(env, args)
+	_, serverVersion, err := getVersion(append(os.Environ(), env...), args)
 	if err != nil {
 		return "", err
 	}
@@ -107,8 +107,8 @@ func (vm *VersionManager) ValidateVersion(version string, vType VersionType) err
 // getVersion returns the kubernetes client / server version
 func getVersion(env []string, args []string) (string, string, error) {
 	cmd := execCommand(Command, versionArgs...)
-	cmd.Env = append(os.Environ(), env...)
 	cmd.Args = append(cmd.Args, args...)
+	cmd.Env = env
 
 	out, err := cmd.Output()
 	if err != nil {
