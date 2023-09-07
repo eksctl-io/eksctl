@@ -49,7 +49,7 @@ type stackManagerDelegate struct {
 	manager.StackManager
 }
 
-func (s *stackManagerDelegate) NewUnmanagedNodeGroupTask(context.Context, []*api.NodeGroup, bool, vpc.Importer) *tasks.TaskTree {
+func (s *stackManagerDelegate) NewUnmanagedNodeGroupTask(context.Context, []*api.NodeGroup, bool, bool, vpc.Importer) *tasks.TaskTree {
 	return &tasks.TaskTree{
 		Tasks: []tasks.Task{noopTask},
 	}
@@ -142,6 +142,52 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			}, nil)
 		},
 		expectedErr: errors.Wrapf(errors.New("VPC configuration required for creating nodegroups on clusters not owned by eksctl: vpc.subnets, vpc.id, vpc.securityGroup"), "loading VPC spec for cluster %q", "my-cluster"),
+	}),
+
+	Entry("when cluster is unowned and vpc.securityGroup contains external egress rules, it fails validation", ngEntry{
+		updateClusterConfig: makeUnownedClusterConfig,
+		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
+			mockProviderForUnownedCluster(p, k, ec2types.SecurityGroupRule{
+				Description:         aws.String("Allow control plane to communicate with a custom nodegroup on a custom port"),
+				FromPort:            aws.Int32(8443),
+				ToPort:              aws.Int32(8443),
+				GroupId:             aws.String("sg-custom"),
+				IpProtocol:          aws.String("https"),
+				IsEgress:            aws.Bool(true),
+				SecurityGroupRuleId: aws.String("sgr-5"),
+			})
+
+		},
+		expectedErr: errors.New("vpc.securityGroup (sg-custom) has egress rules that were not attached by eksctl; vpc.securityGroup should not contain any non-default external egress rules on a cluster not created by eksctl (rule ID: sgr-5)"),
+	}),
+
+	Entry("when cluster is unowned and vpc.securityGroup contains a default egress rule, it passes validation but fails if DescribeImages fails", ngEntry{
+		updateClusterConfig: makeUnownedClusterConfig,
+		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
+			mockProviderForUnownedCluster(p, k, ec2types.SecurityGroupRule{
+				Description:         aws.String(""),
+				CidrIpv4:            aws.String("0.0.0.0/0"),
+				FromPort:            aws.Int32(-1),
+				ToPort:              aws.Int32(-1),
+				GroupId:             aws.String("sg-custom"),
+				IpProtocol:          aws.String("-1"),
+				IsEgress:            aws.Bool(true),
+				SecurityGroupRuleId: aws.String("sgr-5"),
+			})
+			p.MockEC2().On("DescribeImages", mock.Anything, mock.Anything).Return(nil, errors.New("DescribeImages error"))
+
+		},
+		expectedErr: errors.New("DescribeImages error"),
+	}),
+
+	Entry("when cluster is unowned and vpc.securityGroup contains no external egress rules, it passes validation but fails if DescribeImages fails", ngEntry{
+		updateClusterConfig: makeUnownedClusterConfig,
+		mockCalls: func(k *fakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
+			mockProviderForUnownedCluster(p, k)
+			p.MockEC2().On("DescribeImages", mock.Anything, mock.Anything).Return(nil, errors.New("DescribeImages error"))
+
+		},
+		expectedErr: errors.New("DescribeImages error"),
 	}),
 
 	Entry("fails when cluster is not compatible with ng config", ngEntry{
@@ -586,4 +632,123 @@ func mockProviderWithConfig(p *mockprovider.MockProvider, describeStacksOutput [
 				},
 			},
 		}, nil)
+}
+
+func mockProviderForUnownedCluster(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, extraSGRules ...ec2types.SecurityGroupRule) {
+	k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
+	k.ServerVersionReturns("1.27", nil)
+	p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+		StackSummaries: []cftypes.StackSummary{
+			{
+				StackName:   aws.String("eksctl-my-cluster-cluster"),
+				StackStatus: "CREATE_COMPLETE",
+			},
+		},
+	}, nil)
+	p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.Anything).Return(&cloudformation.DescribeStacksOutput{
+		Stacks: []cftypes.Stack{
+			{
+				StackName:   aws.String("eksctl-my-cluster-cluster"),
+				StackStatus: "CREATE_COMPLETE",
+			},
+		},
+	}, nil)
+
+	vpcID := aws.String("vpc-custom")
+	p.MockEC2().On("DescribeVpcs", mock.Anything, mock.Anything).Return(&ec2.DescribeVpcsOutput{
+		Vpcs: []ec2types.Vpc{
+			{
+				CidrBlock: aws.String("192.168.0.0/19"),
+				VpcId:     vpcID,
+				CidrBlockAssociationSet: []ec2types.VpcCidrBlockAssociation{
+					{
+						CidrBlock: aws.String("192.168.0.0/19"),
+					},
+				},
+			},
+		},
+	}, nil)
+	p.MockEC2().On("DescribeSubnets", mock.Anything, mock.Anything).Return(&ec2.DescribeSubnetsOutput{
+		Subnets: []ec2types.Subnet{
+			{
+				SubnetId:         aws.String("subnet-custom1"),
+				CidrBlock:        aws.String("192.168.160.0/19"),
+				AvailabilityZone: aws.String("us-west-2a"),
+				VpcId:            vpcID,
+			},
+			{
+				SubnetId:         aws.String("subnet-custom2"),
+				CidrBlock:        aws.String("192.168.96.0/19"),
+				AvailabilityZone: aws.String("us-west-2b"),
+				VpcId:            vpcID,
+			},
+		},
+	}, nil)
+
+	sgID := aws.String("sg-custom")
+	p.MockEC2().On("DescribeSecurityGroupRules", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeSecurityGroupRulesInput) bool {
+		if len(input.Filters) != 1 {
+			return false
+		}
+		filter := input.Filters[0]
+		return *filter.Name == "group-id" && len(filter.Values) == 1 && filter.Values[0] == *sgID
+	})).Return(&ec2.DescribeSecurityGroupRulesOutput{
+		SecurityGroupRules: append([]ec2types.SecurityGroupRule{
+			{
+				Description:         aws.String("Allow control plane to communicate with worker nodes in group ng-1 (kubelet and workload TCP ports"),
+				FromPort:            aws.Int32(1025),
+				ToPort:              aws.Int32(65535),
+				GroupId:             sgID,
+				IpProtocol:          aws.String("tcp"),
+				IsEgress:            aws.Bool(true),
+				SecurityGroupRuleId: aws.String("sgr-1"),
+			},
+			{
+				Description:         aws.String("Allow control plane to communicate with worker nodes in group ng-1 (workload using HTTPS port, commonly used with extension API servers"),
+				FromPort:            aws.Int32(443),
+				ToPort:              aws.Int32(443),
+				GroupId:             sgID,
+				IpProtocol:          aws.String("tcp"),
+				IsEgress:            aws.Bool(true),
+				SecurityGroupRuleId: aws.String("sgr-2"),
+			},
+			{
+				Description:         aws.String("Allow control plane to receive API requests from worker nodes in group ng-1"),
+				FromPort:            aws.Int32(443),
+				ToPort:              aws.Int32(443),
+				GroupId:             sgID,
+				IpProtocol:          aws.String("tcp"),
+				IsEgress:            aws.Bool(false),
+				SecurityGroupRuleId: aws.String("sgr-3"),
+			},
+			{
+				Description:         aws.String("Allow control plane to communicate with worker nodes in group ng-2 (workload using HTTPS port, commonly used with extension API servers"),
+				FromPort:            aws.Int32(443),
+				ToPort:              aws.Int32(443),
+				GroupId:             sgID,
+				IpProtocol:          aws.String("tcp"),
+				IsEgress:            aws.Bool(true),
+				SecurityGroupRuleId: aws.String("sgr-4"),
+			},
+		}, extraSGRules...),
+	}, nil)
+}
+
+func makeUnownedClusterConfig(clusterConfig *api.ClusterConfig) {
+	clusterConfig.VPC = &api.ClusterVPC{
+		SecurityGroup: "sg-custom",
+		Network: api.Network{
+			ID: "vpc-custom",
+		},
+		Subnets: &api.ClusterSubnets{
+			Private: api.AZSubnetMapping{
+				"us-west-2a": api.AZSubnetSpec{
+					ID: "subnet-custom1",
+				},
+				"us-west-2b": api.AZSubnetSpec{
+					ID: "subnet-custom2",
+				},
+			},
+		},
+	}
 }

@@ -33,11 +33,12 @@ type nodeGroupTask struct {
 	forceAddCNIPolicy bool
 	vpcImporter       vpc.Importer
 	stackCollection   *StackCollection
+	skipEgressRules   bool
 }
 
 func (t *nodeGroupTask) Describe() string { return t.info }
 func (t *nodeGroupTask) Do(errs chan error) error {
-	return t.stackCollection.createNodeGroupTask(t.ctx, errs, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
+	return t.stackCollection.createNodeGroupTask(t.ctx, errs, t.nodeGroup, t.forceAddCNIPolicy, t.skipEgressRules, t.vpcImporter)
 }
 
 type managedNodeGroupTask struct {
