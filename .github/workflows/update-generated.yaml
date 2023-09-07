@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac #v4.0.0
         with:
-          token: "${{ secrets.EKSCTLBOT_TOKEN }}"
+          token: ${{ secrets.EKSCTLBOT_TOKEN }}
           fetch-depth: 0
       - name: Setup identity as eksctl-bot
         uses: ./.github/actions/setup-identity
