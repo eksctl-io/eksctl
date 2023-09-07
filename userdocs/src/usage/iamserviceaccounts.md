@@ -98,7 +98,7 @@ The `eksctl create iamserviceaccount` command supports `--include` and `--exclud
 And the `eksctl delete iamserviceaccount` command supports `--only-missing` as well, so you can perform deletions the same way as nodegroups.
 
 ???+ note
-    Bear in mind that IAM service accounts are scoped within a namespace, i.e. two service accounts with the same name may exist in different namespaces. Thus, to uniquely define a service account as part of `--include`, `--exclude` flags, you will need to pass the name string in the `namespace/name` format. E.g.
+    IAM service accounts are scoped within a namespace, i.e. two service accounts with the same name may exist in different namespaces. Thus, to uniquely define a service account as part of `--include`, `--exclude` flags, you will need to pass the name string in the `namespace/name` format. E.g.
 
     ```
     eksctl create iamserviceaccount --config-file=<path> --include backend-apps/s3-reader
