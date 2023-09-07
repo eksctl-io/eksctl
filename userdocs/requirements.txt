@@ -12,10 +12,3 @@ cairosvg
 mkdocs-material-extensions>=1.1
 pygments>=2.12
 markdown>=3.2
-libcairo2-dev 
-libfreetype6-dev 
-libffi-dev 
-libjpeg-dev 
-libpng-dev 
-libz-dev
-pngquant
