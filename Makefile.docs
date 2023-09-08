@@ -7,6 +7,7 @@ userdocs/src/usage/schema.json: pkg/apis/eksctl.io/v1alpha5/assets/schema.json
 .PHONY: install-site-deps
 install-site-deps: ## Install dependencies for user docs
 	pip3 install -r userdocs/requirements.txt
+	sudo apt-get install libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev pngquant
 
 .PHONY: serve-pages
 serve-pages: ## Serve the site locally
