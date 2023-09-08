@@ -12,12 +12,12 @@ jobs:
   update_aws_node:
     name: Update aws-node and open PR
     runs-on: ubuntu-latest
-    container: public.ecr.aws/eksctl/eksctl-build:77d3571c10e2c5e264fb4ca368dda33c724e0c95
+    container: public.ecr.aws/eksctl/eksctl-build:3bc50a51eae54e2e768a06a6845de5da940549a4
     env:
       GOPRIVATE: ""
     steps:
       - name: Checkout
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 #v3.5.3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
         with:
           fetch-depth: 0
       - name: Setup identity as eksctl-bot

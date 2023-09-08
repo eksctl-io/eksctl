@@ -698,4 +698,4 @@ Each proposal/design doc should cover the following _at a minimum_:
 
 ---
 
-## :rocket: :tada: Thanks for reading! :tada: :rocket
+## :rocket: :tada: Thanks for reading! :tada: :rocket:
