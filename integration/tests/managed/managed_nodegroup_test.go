@@ -40,7 +40,7 @@ func TestManaged(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-const initialAl2Nodegroup = "al2-1"
+const initialAl2Nodegroup = "ng-al2"
 
 var _ = SynchronizedBeforeSuite(func() {
 	fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
@@ -64,11 +64,12 @@ var _ = SynchronizedBeforeSuite(func() {
 var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 	const (
-		bottlerocketGPU       = "bottlerocket-gpu"
-		bottlerocketNodegroup = "bottlerocket-1"
-		ubuntuNodegroup       = "ubuntu-1"
-		newPublicNodeGroup    = "ng-public-1"
-		newPrivateNodeGroup   = "ng-private-1"
+		updateConfigNodegroup    = "ng-update-config"
+		bottlerocketNodegroup    = "ng-bottlerocket"
+		bottlerocketGPUNodegroup = "ng-bottlerocket-gpu"
+		ubuntuNodegroup          = "ng-ubuntu"
+		publicNodeGroup          = "ng-public"
+		privateNodeGroup         = "ng-private"
 	)
 
 	var (
@@ -208,19 +209,19 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				"--nodes", "4",
 				"--managed",
 				"--instance-types", "t3a.xlarge",
-				newPublicNodeGroup,
+				publicNodeGroup,
 			)
 			Expect(cmd).To(RunSuccessfully())
 
 			By("ensuring it is healthy")
-			checkNg(newPublicNodeGroup)
+			checkNg(publicNodeGroup)
 
 			By("deleting it")
 			cmd = params.EksctlDeleteCmd.WithArgs(
 				"nodegroup",
 				"--verbose", "4",
 				"--cluster", params.ClusterName,
-				newPublicNodeGroup,
+				publicNodeGroup,
 			)
 			Expect(cmd).To(RunSuccessfully())
 		})
@@ -234,19 +235,19 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				"--managed",
 				"--instance-types", "t3a.xlarge",
 				"--node-private-networking",
-				newPrivateNodeGroup,
+				privateNodeGroup,
 			)
 			Expect(cmd).To(RunSuccessfully())
 
 			By("ensuring it is healthy")
-			checkNg(newPrivateNodeGroup)
+			checkNg(privateNodeGroup)
 
 			By("deleting it")
 			cmd = params.EksctlDeleteCmd.WithArgs(
 				"nodegroup",
 				"--verbose", "4",
 				"--cluster", params.ClusterName,
-				newPrivateNodeGroup,
+				privateNodeGroup,
 			)
 			Expect(cmd).To(RunSuccessfully())
 		})
@@ -326,7 +327,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
 				{
 					NodeGroupBase: &api.NodeGroupBase{
-						Name:         bottlerocketGPU,
+						Name:         bottlerocketGPUNodegroup,
 						VolumeSize:   aws.Int(35),
 						AMIFamily:    "Bottlerocket",
 						InstanceType: "g4dn.xlarge",
@@ -356,7 +357,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			Expect(cmd).To(RunSuccessfully())
 
 			By("ensuring it is healthy")
-			checkNg(bottlerocketGPU)
+			checkNg(bottlerocketGPUNodegroup)
 		})
 
 		It("supports bottlerocket and ubuntu nodegroups with additional volumes", func() {
@@ -443,7 +444,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
 				{
 					NodeGroupBase: &api.NodeGroupBase{
-						Name: "update-config-ng",
+						Name: updateConfigNodegroup,
 					},
 					UpdateConfig: updateConfig,
 				},
@@ -461,7 +462,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			Expect(cmd).To(RunSuccessfully())
 
 			By("ensuring it is healthy")
-			checkNg("update-config-ng")
+			checkNg(updateConfigNodegroup)
 
 			ctx := context.Background()
 			clusterProvider, err := eks.New(ctx, &api.ProviderConfig{Region: params.Region}, clusterConfig)
@@ -469,7 +470,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			ctl := clusterProvider.AWSProvider
 			out, err := ctl.EKS().DescribeNodegroup(ctx, &awseks.DescribeNodegroupInput{
 				ClusterName:   &params.ClusterName,
-				NodegroupName: aws.String("update-config-ng"),
+				NodegroupName: aws.String(updateConfigNodegroup),
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(out.Nodegroup.UpdateConfig.MaxUnavailable).Should(Equal(aws.Int32(2)))
@@ -489,13 +490,14 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				WithoutArg("--region", params.Region).
 				WithStdin(clusterutils.Reader(clusterConfig))
 
+			msg := fmt.Sprintf("unchanged fields for nodegroup %s: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: Spot", updateConfigNodegroup)
 			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-				ContainElement(ContainSubstring("unchanged fields for nodegroup update-config-ng: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: Spot")),
+				ContainElement(ContainSubstring(msg)),
 			))
 
 			out, err = ctl.EKS().DescribeNodegroup(ctx, &awseks.DescribeNodegroupInput{
 				ClusterName:   &params.ClusterName,
-				NodegroupName: aws.String("update-config-ng"),
+				NodegroupName: aws.String(updateConfigNodegroup),
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(out.Nodegroup.UpdateConfig.MaxUnavailable).Should(Equal(aws.Int32(1)))
