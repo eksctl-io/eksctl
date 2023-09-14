@@ -1,4 +1,4 @@
-# `eksctl` - The official CLI for Amazon EKS ! <img src="userdocs/theme/assets/images/logo.png" alt="eksctl" width="4%"/>
+# `eksctl` - The official CLI for Amazon EKS ! <img src="userdocs/src/img/logo.png" alt="eksctl" width="4%"/>
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/eksctl-io/eksctl)](https://goreportcard.com/report/github.com/eksctl-io/eksctl)
 
@@ -105,7 +105,7 @@ port install eksctl
 [chocolatey](https://chocolatey.org)
 
 ```bash
-chocolatey install eksctl
+choco install eksctl
 ```
 
 [scoop](https://scoop.sh)
