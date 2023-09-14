@@ -241,8 +241,8 @@ github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8
 github.com/aws/aws-sdk-go v1.15.27/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=
 github.com/aws/aws-sdk-go v1.37.0/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
 github.com/aws/aws-sdk-go v1.43.31/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
-github.com/aws/aws-sdk-go v1.45.5 h1:bxilnhv9FngUgdPNJmOIv2bk+2sP0dpqX3e4olhWcGM=
-github.com/aws/aws-sdk-go v1.45.5/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
+github.com/aws/aws-sdk-go v1.45.9 h1:ks4nMaagM/0jeOFUxWxx9C009vkrdgm3lgcnciet1YU=
+github.com/aws/aws-sdk-go v1.45.9/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/aws/aws-sdk-go-v2 v1.16.2/go.mod h1:ytwTPBG6fXTZLxxeeCCWj2/EMYp/xDUgX+OET6TLNNU=
 github.com/aws/aws-sdk-go-v2 v1.16.15/go.mod h1:SwiyXi/1zTUZ6KIAmLK5V5ll8SiURNUYOqTerZPaF9k=
 github.com/aws/aws-sdk-go-v2 v1.21.0 h1:gMT0IW+03wtYJhRqTVYn0wLzwdnK9sRMcxmtfGzRdJc=
@@ -1630,8 +1630,6 @@ github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
 github.com/weaveworks/goformation/v4 v4.10.2-0.20230526082129-5f5eaa9609b8 h1:qjATkrajxxCgWIQaVgOmG8RiRwGGn1mOm6szwVty7zA=
 github.com/weaveworks/goformation/v4 v4.10.2-0.20230526082129-5f5eaa9609b8/go.mod h1:x92o12+Azh6DQ4yoXT5oEuE7dhQHR5V2vy/fmZ6pO7k=
-github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15 h1:i/RhLevywqC6cuUWtGdoaNrsJd+/zWh3PXbkXZIyZsU=
-github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15/go.mod h1:w9Z1vnQmPobkEZ0F3oyiqRYP+62qDqTGnK6t5uhe1kg=
 github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848 h1:I7S+IHZIU49skVgTNArf9bIdy07mCn1Z0zv1r07ROws=
 github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848/go.mod h1:y8Luzq6JDsYVoIV0QAlnvIiq8bSaap0myMjWKyzVFTY=
 github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1 h1:+dBg5k7nuTE38VVdoroRsT0Z88fmvdYrI2EjzJst35I=
