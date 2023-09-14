@@ -1,101 +1,124 @@
 package kubectl
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/kballard/go-shellquote"
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-
-	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
-	"github.com/weaveworks/launcher/pkg/kubectl"
-
-	"k8s.io/client-go/tools/clientcmd"
 )
 
-func fmtKubectlCmd(ktl *kubectl.LocalClient, cmds ...string) string {
-	args := []string{kubectl.Command}
-	args = append(args, ktl.GlobalArgs...)
-	args = append(args, cmds...)
-	return shellquote.Join(args...)
+const Command = "kubectl"
+
+var (
+	versionArgs = []string{"version", "--output=json"}
+	execCommand = exec.Command
+)
+
+type VersionType string
+
+var (
+	Client           VersionType = "client"
+	Server           VersionType = "server"
+	minClientVersion             = semver.Version{
+		Major: 1,
+		Minor: 10,
+	}
+	minServerVersion = semver.Version{
+		Major: 1,
+		Minor: 10,
+	}
+)
+
+func getMinVersionForType(vType VersionType) semver.Version {
+	switch vType {
+	case Client:
+		return minClientVersion
+	case Server:
+		return minServerVersion
+	default:
+		return semver.Version{
+			Major: 1,
+			Minor: 10,
+		}
+	}
 }
 
-// checkKubectlVersion checks version of kubectl
-func checkKubectlVersion(env []string) error {
-	ktl := &kubectl.LocalClient{Env: env}
-	kubectlPath, err := ktl.LookPath()
-	if err != nil {
-		return fmt.Errorf("kubectl not found, v1.10.0 or newer is required")
-	}
-	logger.Debug("kubectl: %q", kubectlPath)
+// gitVersion holds git version info of kubectl client/server
+type gitVersion struct {
+	GitVersion string `json:"gitVersion"`
+}
 
-	clientVersion, _, ignoredErr := kubectl.GetVersionInfo(ktl)
-	logger.Debug("kubectl version: %s", clientVersion)
-	if ignoredErr != nil {
-		logger.Debug("ignored error: %s", ignoredErr)
-	}
+// kubectlInfo holds version info of kubectl client & server
+type kubectlInfo struct {
+	ClientVersion gitVersion `json:"clientVersion"`
+	ServerVersion gitVersion `json:"serverVersion"`
+}
 
-	version, err := semver.Parse(strings.TrimLeft(clientVersion, "v"))
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_kubernetes_version_getter.go . KubernetesVersionManager
+type KubernetesVersionManager interface {
+	ClientVersion() (string, error)
+	ServerVersion(env []string, args []string) (string, error)
+	ValidateVersion(version string, vType VersionType) error
+}
+
+// VersionManager implements KubernetesVersionManager
+type VersionManager struct{}
+
+func NewVersionManager() KubernetesVersionManager {
+	return &VersionManager{}
+}
+
+// ClientVersion returns the kubectl client version
+func (vm *VersionManager) ClientVersion() (string, error) {
+	clientVersion, _, err := getVersion([]string{}, []string{"--client"})
 	if err != nil {
-		if ignoredErr != nil {
-			return errors.Wrapf(err, "parsing kubectl version string %s (upstream error: %s) / %q", clientVersion, ignoredErr, version)
-		}
-		return errors.Wrapf(err, "parsing kubectl version string %s / %q", clientVersion, version)
+		return "", err
 	}
-	if version.Major == 1 && version.Minor < 10 {
-		return fmt.Errorf("kubectl version %s was found at %q, minimum required version to use EKS is v1.10.0", clientVersion, kubectlPath)
+	return clientVersion, nil
+}
+
+// ServerVersion returns the kubernetes version on server
+func (vm *VersionManager) ServerVersion(env []string, args []string) (string, error) {
+	_, serverVersion, err := getVersion(append(os.Environ(), env...), args)
+	if err != nil {
+		return "", err
+	}
+	return serverVersion, nil
+}
+
+// ValidateVersion checks that the client / server version is valid and supported
+func (vm *VersionManager) ValidateVersion(version string, vType VersionType) error {
+	parsedVersion, err := semver.Parse(strings.TrimLeft(version, "v"))
+	if err != nil {
+		return errors.Wrapf(err, "parsing kubernetes %s version string %s / %q", vType, version, parsedVersion)
+	}
+	minVersion := getMinVersionForType(vType)
+	if parsedVersion.Compare(getMinVersionForType(vType)) < 0 {
+		return fmt.Errorf("kubernetes %s version %s was found, minimum required version is v%s", vType, version, minVersion)
 	}
 	return nil
 }
 
-// CheckAllCommands check version of kubectl, and if it can be used with either
-// of the authenticator commands; most importantly it validates if kubectl can
-// use kubeconfig we've created for it
-func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName string, env []string) error {
-	if err := checkKubectlVersion(env); err != nil {
-		return err
+// getVersion returns the kubernetes client / server version
+func getVersion(env []string, args []string) (string, string, error) {
+	cmd := execCommand(Command, versionArgs...)
+	cmd.Args = append(cmd.Args, args...)
+	cmd.Env = env
+
+	out, err := cmd.Output()
+	if err != nil {
+		return "", "", fmt.Errorf("error running `kubectl version`: %w", err)
 	}
 
-	{
-		authenticator, found := kubeconfig.LookupAuthenticator()
-		if !found {
-			return fmt.Errorf("could not find any of the authenticator commands: %s", strings.Join(kubeconfig.AuthenticatorCommands(), ", "))
-		}
-		logger.Debug("found authenticator: %s", authenticator)
+	var info kubectlInfo
+	if err := json.Unmarshal(out, &info); err != nil {
+		return "", "", fmt.Errorf("error parsing `kubectl version` output: %w", err)
 	}
 
-	if kubeconfigPath != "" {
-		ktl := &kubectl.LocalClient{
-			GlobalArgs: []string{},
-			Env:        env,
-		}
-		if kubeconfigPath != clientcmd.RecommendedHomeFile {
-			ktl.GlobalArgs = append(ktl.GlobalArgs, fmt.Sprintf("--kubeconfig=%s", kubeconfigPath))
-		}
-		if !isContextSet {
-			ktl.GlobalArgs = append(ktl.GlobalArgs, fmt.Sprintf("--context=%s", contextName))
-		}
-
-		suggestion := fmt.Sprintf("(check '%s')", fmtKubectlCmd(ktl, "version"))
-
-		_, serverVersion, err := kubectl.GetVersionInfo(ktl)
-		if err != nil {
-			return errors.Wrapf(err, "unable to use kubectl with the EKS cluster %s", suggestion)
-		}
-		version, err := semver.Parse(strings.TrimLeft(serverVersion, "v"))
-		if err != nil {
-			return errors.Wrapf(err, "parsing Kubernetes version string %q return by the EKS API server", version)
-		}
-		if version.Major == 1 && version.Minor < 10 {
-			return fmt.Errorf("Kubernetes version %s found, v1.10.0 or newer is expected with EKS %s", serverVersion, suggestion)
-		}
-
-		logger.Info("kubectl command should work with %q, try '%s'", kubeconfigPath, fmtKubectlCmd(ktl, "get", "nodes"))
-	} else {
-		logger.Debug("skipping kubectl integration checks, as writing kubeconfig file is disabled")
-	}
-
-	return nil
+	return info.ClientVersion.GitVersion, info.ServerVersion.GitVersion, nil
 }
