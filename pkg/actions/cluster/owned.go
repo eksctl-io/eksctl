@@ -9,6 +9,7 @@ import (
 
 	"github.com/kris-nova/logger"
 
+	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -119,7 +120,8 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 	newOIDCManager := func() (*iamoidc.OpenIDConnectManager, error) {
 		return c.ctl.NewOpenIDConnectManager(ctx, c.cfg)
 	}
-	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, clusterOperable, newOIDCManager, c.ctl.Status.ClusterInfo.Cluster, kubernetes.NewCachedClientSet(clientSet), wait, force, func(errs chan error, _ string) error {
+	newTasksToDeleteAddonIAM := addon.NewRemover(c.stackManager).DeleteAddonIAMTasks
+	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, clusterOperable, newOIDCManager, newTasksToDeleteAddonIAM, c.ctl.Status.ClusterInfo.Cluster, kubernetes.NewCachedClientSet(clientSet), wait, force, func(errs chan error, _ string) error {
 		logger.Info("trying to cleanup dangling network interfaces")
 		stack, err := c.stackManager.DescribeClusterStack(ctx)
 		if err != nil {
