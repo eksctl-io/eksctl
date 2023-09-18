@@ -81,7 +81,6 @@ License version 2.0, we include the full text of the package's License below.
 * `github.com/vburenin/ifacemaker`
 * `github.com/vektra/mockery/v2`
 * `github.com/weaveworks/goformation/v4`
-* `github.com/weaveworks/launcher`
 * `github.com/weaveworks/schemer`
 * `github.com/xgfone/netaddr`
 * `golang.org/x/crypto`
