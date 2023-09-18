@@ -1,7 +1,7 @@
 "github.com/maxbrunsfeld/counterfeiter/v6 v6.6.2"
 "github.com/cloudflare/cfssl v1.6.4"
 "github.com/cloudflare/cfssl v1.6.4"
-"github.com/golangci/golangci-lint v1.50.1"
+"github.com/golangci/golangci-lint v1.54.2"
 "github.com/goreleaser/goreleaser v1.11.5"
 "github.com/onsi/ginkgo/v2 v2.12.0"
 "github.com/vektra/mockery/v2 v2.33.1"
@@ -14,6 +14,6 @@
 "k8s.io/code-generator v0.25.11"
 "sigs.k8s.io/mdtoc v1.1.0"
 "github.com/vburenin/ifacemaker v1.2.1"
-100644 blob 73037af40e41f5241efaa821aec1e4bf930e9979	build/docker/Dockerfile
-100644 blob d94ab874534caa366b6220b6e11e4c4fd355fe28	.requirements
+100644 blob 80fe0de3dabc122dacbf9fd528653fab7c25af4b	build/docker/Dockerfile
+100644 blob 57d81a0f47058dcb0e20aad51364b50e89331aaa	.requirements
 100755 blob c1129ff1ff85ac2c53f908a577675ea59a9325a7	build/scripts/install-build-deps.sh
