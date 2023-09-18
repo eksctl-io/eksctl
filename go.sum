@@ -273,8 +273,8 @@ github.com/aws/aws-sdk-go-v2/internal/ini v1.3.42 h1:GPUcE/Yq7Ur8YSUk6lVkoIMWnJN
 github.com/aws/aws-sdk-go-v2/internal/ini v1.3.42/go.mod h1:rzfdUlfA+jdgLDmPKjd3Chq9V7LVLYo1Nz++Wb91aRo=
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.30.6 h1:OuxP8FzE3++AjQ8wabMcwJxtS25inpTIblMPNzV3nB8=
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.30.6/go.mod h1:iHCpld+TvQd0odwp6BiwtL9H9LbU41kPW1i9oBy3iOo=
-github.com/aws/aws-sdk-go-v2/service/cloudformation v1.34.5 h1:nsF/NEmPtncCv7WGx3TSACPrDizn7xaegd5O+iPEIqM=
-github.com/aws/aws-sdk-go-v2/service/cloudformation v1.34.5/go.mod h1:iPAjggk9ynV18SdJiX+aqGDbVCU9Bw5idzfha5To46E=
+github.com/aws/aws-sdk-go-v2/service/cloudformation v1.34.6 h1:4FqKc1OByxKy+sOBtQ3FRxK3cnIG94UxF0cR1xinsz8=
+github.com/aws/aws-sdk-go-v2/service/cloudformation v1.34.6/go.mod h1:iPAjggk9ynV18SdJiX+aqGDbVCU9Bw5idzfha5To46E=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.29.0 h1:ojGlrHw6lCi4JsYAf6W+gTC+iKddOBnVkwGf6HreJPI=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.29.0/go.mod h1:XJCjyzVD3XB6efz0N4LkqRAM/m8yg+BfaJD0m6l9oY8=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.23.5 h1:/rXnxd9VGnTc5fLuSFKkWCy+kDP6CxXAIMvfJQEfx8U=
@@ -1630,8 +1630,6 @@ github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
 github.com/weaveworks/goformation/v4 v4.10.2-0.20230526082129-5f5eaa9609b8 h1:qjATkrajxxCgWIQaVgOmG8RiRwGGn1mOm6szwVty7zA=
 github.com/weaveworks/goformation/v4 v4.10.2-0.20230526082129-5f5eaa9609b8/go.mod h1:x92o12+Azh6DQ4yoXT5oEuE7dhQHR5V2vy/fmZ6pO7k=
-github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15 h1:i/RhLevywqC6cuUWtGdoaNrsJd+/zWh3PXbkXZIyZsU=
-github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15/go.mod h1:w9Z1vnQmPobkEZ0F3oyiqRYP+62qDqTGnK6t5uhe1kg=
 github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848 h1:I7S+IHZIU49skVgTNArf9bIdy07mCn1Z0zv1r07ROws=
 github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848/go.mod h1:y8Luzq6JDsYVoIV0QAlnvIiq8bSaap0myMjWKyzVFTY=
 github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1 h1:+dBg5k7nuTE38VVdoroRsT0Z88fmvdYrI2EjzJst35I=
