@@ -124,7 +124,7 @@ func ValidateNumberOfNodes(ng *api.NodeGroupBase) error {
 	return nil
 }
 
-//only 1 of desired/min/max has to be set on the cli
+// only 1 of desired/min/max has to be set on the cli
 func validateNumberOfNodesCLI(ng *api.NodeGroupBase) error {
 	if ng.ScalingConfig == nil {
 		ng.ScalingConfig = &api.ScalingConfig{}

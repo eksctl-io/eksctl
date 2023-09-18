@@ -45,7 +45,7 @@ const (
 	defaultDesiredMaskSize = defaultSubnetMask - defaultPrefix
 )
 
-//VPCResourceSet interface for creating cloudformation resource sets for generating VPC resources
+// VPCResourceSet interface for creating cloudformation resource sets for generating VPC resources
 type VPCResourceSet interface {
 	// CreateTemplate generates all of the resources & outputs required for the VPC. Returns the
 	CreateTemplate(ctx context.Context) (vpcID *gfnt.Value, subnetDetails *SubnetDetails, err error)
