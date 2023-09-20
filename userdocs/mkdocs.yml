@@ -44,6 +44,10 @@ theme:
       - navigation.instant
       - navigation.sections
       - navigation.top
+      - navigation.tabs
+      - navigation.tracking
+      - navigation.tabs.sticky
+      - navigation.footer
       - search.highlight
       - search.share
       - search.suggest
@@ -104,6 +108,7 @@ extra:
 extra_css:
   - stylesheets/extra.css
   - stylesheets/schema.css
+  #- stylesheets/custom/layout/_hero.css
 
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/@glidejs/glide
@@ -127,7 +132,10 @@ markdown_extensions:
 
 # Page tree
 nav:
-  - Introduction: introduction.md
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started.md
+    - Introduction: introduction.md
   - Usage:
       - Clusters:
           - usage/creating-and-managing-clusters.md
