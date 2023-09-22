@@ -8,24 +8,24 @@ go 1.20
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8c1e
-	github.com/aws/aws-sdk-go v1.45.10
+	github.com/aws/aws-sdk-go v1.45.14
 	github.com/aws/aws-sdk-go-v2 v1.21.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.39
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.37
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.30.6
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.34.6
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.29.0
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.23.5
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.24.0
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.26.1
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.117.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.119.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.29.5
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.16.5
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.17.0
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.21.4
 	github.com/aws/aws-sdk-go-v2/service/iam v1.22.5
 	github.com/aws/aws-sdk-go-v2/service/kms v1.24.5
-	github.com/aws/aws-sdk-go-v2/service/outposts v1.29.6
+	github.com/aws/aws-sdk-go-v2/service/outposts v1.30.0
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.37.5
-	github.com/aws/aws-sdk-go-v2/service/sts v1.21.5
+	github.com/aws/aws-sdk-go-v2/service/sts v1.22.0
 	github.com/aws/smithy-go v1.14.2
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
@@ -35,7 +35,7 @@ require (
 	github.com/dave/dst v0.27.1
 	github.com/dave/jennifer v1.7.0
 	github.com/dlespiau/kube-test-harness v0.0.0-20200915102055-a03579200ae8
-	github.com/evanphx/json-patch/v5 v5.6.0
+	github.com/evanphx/json-patch/v5 v5.7.0
 	github.com/fatih/color v1.15.0
 	github.com/github-release/github-release v0.10.0
 	github.com/gobwas/glob v0.2.3
@@ -70,7 +70,7 @@ require (
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xgfone/netaddr v0.5.1
 	golang.org/x/crypto v0.13.0
-	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
+	golang.org/x/exp v0.0.0-20230510235704-dd950f8aeaea
 	golang.org/x/oauth2 v0.12.0
 	golang.org/x/sync v0.3.0
 	golang.org/x/tools v0.12.0
