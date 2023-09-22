@@ -1,6 +1,7 @@
 package kubeconfig_test
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path"
@@ -9,25 +10,28 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/tools/clientcmd/api"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-
 	eksctlapi "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
+	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
+
+	kubectlfakes "github.com/weaveworks/eksctl/pkg/utils/kubectl/fakes"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
+
+var errGeneric = fmt.Errorf("generic error")
 
 var _ = Describe("Kubeconfig", func() {
 	var configFile *os.File
 
 	var contextName = "test-context"
 
-	var testConfig = api.Config{
-		AuthInfos: map[string]*api.AuthInfo{
+	var testConfig = clientcmdapi.Config{
+		AuthInfos: map[string]*clientcmdapi.AuthInfo{
 			"test-user": {Token: "test-token"}},
-		Clusters: map[string]*api.Cluster{
+		Clusters: map[string]*clientcmdapi.Cluster{
 			"test-cluster": {Server: "https://127.0.0.1:8443"}},
-		Contexts: map[string]*api.Context{
+		Contexts: map[string]*clientcmdapi.Context{
 			contextName: {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
 		CurrentContext: contextName,
 	}
@@ -314,8 +318,8 @@ var _ = Describe("Kubeconfig", func() {
 
 	It("safely handles concurrent read-modify-write operations", func() {
 		var (
-			oneCluster  *api.Config
-			twoClusters *api.Config
+			oneCluster  *clientcmdapi.Config
+			twoClusters *clientcmdapi.Config
 		)
 		ChangeKubeconfig()
 
@@ -372,7 +376,16 @@ var _ = Describe("Kubeconfig", func() {
 					Name:   "name",
 				},
 			}
+			kubeconfig.SetNewVersionManager(func() kubectl.KubernetesVersionManager {
+				fakeClient := &kubectlfakes.FakeKubernetesVersionManager{}
+				fakeClient.ClientVersionReturns("", errGeneric)
+				return fakeClient
+			})
 		})
+		AfterEach(func() {
+			kubeconfig.SetNewVersionManager(kubectl.NewVersionManager)
+		})
+
 		It("writes the right api version if aws-iam-authenticator version is below 0.5.3", func() {
 			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
 				return exec.Command(filepath.Join("testdata", "fake-version"), `{"Version":"0.5.1","Commit":"85e50980d9d916ae95882176c18f14ae145f916f"}`)
@@ -416,18 +429,19 @@ var _ = Describe("Kubeconfig", func() {
 			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
 		})
 		It("defaults to beta1 if we detect kubectl 1.24.0 or above", func() {
-			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
-				return exec.Command(filepath.Join("testdata", "fake-version"), `{"clientVersion": {"gitVersion": "v1.24.0"}}`)
+			kubeconfig.SetNewVersionManager(func() kubectl.KubernetesVersionManager {
+				fakeClient := &kubectlfakes.FakeKubernetesVersionManager{}
+				fakeClient.ClientVersionReturns("1.24.0", nil)
+				return fakeClient
 			})
 			kubeconfig.AppendAuthenticator(config, clusterInfo, kubeconfig.AWSEKSAuthenticator, "", "")
 			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
 		})
-		It("doesn't default to beta1 if we detect kubectl 1.23.0 or below", func() {
-			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
-				if name == "kubectl" {
-					return exec.Command(filepath.Join("testdata", "fake-version"), `{"clientVersion": {"gitVersion": "v1.23.6"}}`)
-				}
-				return exec.Command(filepath.Join("testdata", "fake-version"), "fail")
+		It("doesn't default to beta1 if we detect kubectl version lower than 1.24.0", func() {
+			kubeconfig.SetNewVersionManager(func() kubectl.KubernetesVersionManager {
+				fakeClient := &kubectlfakes.FakeKubernetesVersionManager{}
+				fakeClient.ClientVersionReturns("1.23.6", nil)
+				return fakeClient
 			})
 			kubeconfig.AppendAuthenticator(config, clusterInfo, kubeconfig.AWSIAMAuthenticator, "", "")
 			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
@@ -461,4 +475,155 @@ var _ = Describe("Kubeconfig", func() {
 			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
 		})
 	})
+
+	type checkAllCommandsEntry struct {
+		kubeconfigPath                  string
+		mockKubernetesVersionManager    func() (mockManagerFunc func() kubectl.KubernetesVersionManager, assertFakeManagerCalls func())
+		overrideExecLookPath            func(file string) (string, error)
+		overrideAuthenticatorLookupMock func() (string, bool)
+		expectedErr                     string
+	}
+
+	DescribeTable("CheckAllCommands", func(e checkAllCommandsEntry) {
+		kubeconfig.SetExecLookPath(func(file string) (string, error) {
+			return "path", nil
+		})
+		if e.overrideExecLookPath != nil {
+			kubeconfig.SetExecLookPath(e.overrideExecLookPath)
+		}
+
+		kubeconfig.SetLookupAuthenticator(func() (string, bool) {
+			return kubeconfig.AWSIAMAuthenticator, true
+		})
+		if e.overrideAuthenticatorLookupMock != nil {
+			kubeconfig.SetLookupAuthenticator(e.overrideAuthenticatorLookupMock)
+		}
+
+		mockManagerFunc, assertFakeManagerCalls := e.mockKubernetesVersionManager()
+		kubeconfig.SetNewVersionManager(mockManagerFunc)
+
+		err := kubeconfig.CheckAllCommands(
+			e.kubeconfigPath,
+			/* isContextSet */ false,
+			/* contextName */ "ctx-name",
+			/* env */ []string{"env"},
+		)
+		if e.expectedErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
+			return
+		}
+		Expect(err).NotTo(HaveOccurred())
+		assertFakeManagerCalls()
+	},
+		Entry("fails to lookup authenticator", checkAllCommandsEntry{
+			overrideAuthenticatorLookupMock: func() (string, bool) {
+				return "", false
+			},
+			mockKubernetesVersionManager: func() (mockManagerFunc func() kubectl.KubernetesVersionManager, assertFakeManagerCalls func()) {
+				return mockManagerFunc, assertFakeManagerCalls
+			},
+			expectedErr: "could not find any of the authenticator commands",
+		}),
+
+		Entry("fails to lookup kubectl", checkAllCommandsEntry{
+			overrideExecLookPath: func(file string) (string, error) {
+				return "", errGeneric
+			},
+			mockKubernetesVersionManager: func() (mockManagerFunc func() kubectl.KubernetesVersionManager, assertFakeManagerCalls func()) {
+				return mockManagerFunc, assertFakeManagerCalls
+			},
+			expectedErr: "kubectl not found, v1.10.0 or newer is required",
+		}),
+
+		Entry("fails to fetch client version", checkAllCommandsEntry{
+			mockKubernetesVersionManager: func() (mockManagerFunc func() kubectl.KubernetesVersionManager, assertFakeManagerCalls func()) {
+				fakeManager := &kubectlfakes.FakeKubernetesVersionManager{}
+				fakeManager.ClientVersionReturns("", errGeneric)
+				mockManagerFunc = func() kubectl.KubernetesVersionManager {
+					return fakeManager
+				}
+				return mockManagerFunc, assertFakeManagerCalls
+			},
+			expectedErr: "getting kubectl version",
+		}),
+
+		Entry("fails to validate client version", checkAllCommandsEntry{
+			mockKubernetesVersionManager: func() (mockManagerFunc func() kubectl.KubernetesVersionManager, assertFakeManagerCalls func()) {
+				fakeManager := &kubectlfakes.FakeKubernetesVersionManager{}
+				fakeManager.ClientVersionReturns("v1.27.4", nil)
+				fakeManager.ValidateVersionReturns(errGeneric)
+				mockManagerFunc = func() kubectl.KubernetesVersionManager {
+					return fakeManager
+				}
+				return mockManagerFunc, assertFakeManagerCalls
+			},
+			expectedErr: "validating kubectl version",
+		}),
+
+		Entry("finishes successfully when kubeconfigPath is not set", checkAllCommandsEntry{
+			mockKubernetesVersionManager: func() (mockManagerFunc func() kubectl.KubernetesVersionManager, assertFakeManagerCalls func()) {
+				fakeManager := &kubectlfakes.FakeKubernetesVersionManager{}
+				fakeManager.ClientVersionReturns("v1.27.4", nil)
+				fakeManager.ValidateVersionReturns(nil)
+				mockManagerFunc = func() kubectl.KubernetesVersionManager {
+					return fakeManager
+				}
+				assertFakeManagerCalls = func() {
+					Expect(fakeManager.ServerVersionCallCount()).To(Equal(0))
+				}
+				return mockManagerFunc, assertFakeManagerCalls
+			},
+		}),
+
+		Entry("fails to fetch server version", checkAllCommandsEntry{
+			mockKubernetesVersionManager: func() (mockManagerFunc func() kubectl.KubernetesVersionManager, assertFakeManagerCalls func()) {
+				fakeManager := &kubectlfakes.FakeKubernetesVersionManager{}
+				fakeManager.ClientVersionReturns("v1.27.4", nil)
+				fakeManager.ValidateVersionReturns(nil)
+				fakeManager.ServerVersionReturns("", errGeneric)
+				mockManagerFunc = func() kubectl.KubernetesVersionManager {
+					return fakeManager
+				}
+				return mockManagerFunc, assertFakeManagerCalls
+			},
+			kubeconfigPath: "path",
+			expectedErr:    "getting Kubernetes version on EKS cluster",
+		}),
+
+		Entry("fails to validate server version", checkAllCommandsEntry{
+			mockKubernetesVersionManager: func() (mockManagerFunc func() kubectl.KubernetesVersionManager, assertFakeManagerCalls func()) {
+				fakeManager := &kubectlfakes.FakeKubernetesVersionManager{}
+				fakeManager.ClientVersionReturns("v1.27.4", nil)
+				fakeManager.ValidateVersionReturnsOnCall(0, nil)
+				fakeManager.ServerVersionReturns("1.24.7-eks-2f45561", nil)
+				fakeManager.ValidateVersionReturnsOnCall(1, errGeneric)
+				mockManagerFunc = func() kubectl.KubernetesVersionManager {
+					return fakeManager
+				}
+				return mockManagerFunc, assertFakeManagerCalls
+			},
+			kubeconfigPath: "path",
+			expectedErr:    "validating Kubernetes version returned by EKS API",
+		}),
+
+		Entry("finishes successfully when kubeconfigPath is set", checkAllCommandsEntry{
+			mockKubernetesVersionManager: func() (mockManagerFunc func() kubectl.KubernetesVersionManager, assertFakeManagerCalls func()) {
+				fakeManager := &kubectlfakes.FakeKubernetesVersionManager{}
+				fakeManager.ClientVersionReturns("v1.27.4", nil)
+				fakeManager.ValidateVersionReturnsOnCall(0, nil)
+				fakeManager.ServerVersionReturns("v1.26.3", nil)
+				fakeManager.ValidateVersionReturnsOnCall(1, nil)
+				mockManagerFunc = func() kubectl.KubernetesVersionManager {
+					return fakeManager
+				}
+				assertFakeManagerCalls = func() {
+					env, args := fakeManager.ServerVersionArgsForCall(0)
+					Expect(env).To(Equal([]string{"env"}))
+					Expect(args).To(Equal([]string{"--kubeconfig=path", "--context=ctx-name"}))
+				}
+				return mockManagerFunc, assertFakeManagerCalls
+			},
+			kubeconfigPath: "path",
+		}),
+	)
 })
