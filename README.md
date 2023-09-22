@@ -105,7 +105,7 @@ port install eksctl
 [chocolatey](https://chocolatey.org)
 
 ```bash
-chocolatey install eksctl
+choco install eksctl
 ```
 
 [scoop](https://scoop.sh)
