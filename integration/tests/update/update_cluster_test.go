@@ -200,6 +200,17 @@ var _ = Describe("(Integration) Update addons", func() {
 			Expect(cmd).To(RunSuccessfully())
 		})
 
+		It("should upgrade the nodegroup to the next version", func() {
+			cmd := params.EksctlUpgradeCmd.WithArgs(
+				"nodegroup",
+				"--verbose", "4",
+				"--cluster", params.ClusterName,
+				"--name", initNG,
+				"--kubernetes-version", nextEKSVersion,
+				"--timeout=60m", // wait for CF stacks to finish update
+			)
+			ExpectWithOffset(1, cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("nodegroup successfully upgraded")))
+		})
 	})
 })
 

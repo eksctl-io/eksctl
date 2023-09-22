@@ -163,7 +163,11 @@ func (p *Params) GenerateCommands() {
 // adds the cluster to the list of clusters to eventually delete, once the test
 // suite has run.
 func (p *Params) NewClusterName(prefix string) string {
-	return p.formatClusterName(prefix, names.ForCluster("", ""))
+	return p.newClusterName(prefix, "")
+}
+
+func (p *Params) newClusterName(prefix string, givenName string) string {
+	return p.formatClusterName(prefix, names.ForCluster(givenName, ""))
 }
 
 func (p *Params) formatClusterName(prefix string, name string) string {
@@ -201,6 +205,10 @@ const (
 
 // NewParams creates a new Test instance from CLI args, grouping all test parameters.
 func NewParams(clusterNamePrefix string) *Params {
+	return NewParamsWithGivenClusterName(clusterNamePrefix, "")
+}
+
+func NewParamsWithGivenClusterName(clusterNamePrefix string, givenName string) *Params {
 	params := Params{clusterNamePrefix: clusterNamePrefix}
 
 	flag.StringVar(&params.EksctlPath, "eksctl.path", "../../../eksctl", "Path to eksctl")
@@ -220,7 +228,7 @@ func NewParams(clusterNamePrefix string) *Params {
 
 	params.attemptSettingUserID()
 	if params.ClusterName == "" {
-		params.ClusterName = params.NewClusterName(clusterNamePrefix)
+		params.ClusterName = params.newClusterName(clusterNamePrefix, givenName)
 	} else {
 		params.addToDeleteList(params.ClusterName)
 	}
