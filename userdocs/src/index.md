@@ -3,16 +3,7 @@ template: home.html
 title: eksctl - The official CLI for Amazon EKS
 ---
 
-# eksctl - The official CLI for Amazon EKS
-
-sponsored by [![Weaveworks](img/empty.svg#wwinline)](https://www.weave.works/) and built by [![Contributors](img/gophers.png#inline)](https://github.com/eksctl-io/eksctl/graphs/contributors) on [![Github](img/empty.svg#gitinline)](https://github.com/eksctl-io/eksctl)
-
-!!! tip "New for 2023"
-    `eksctl` now supports creating fully private clusters on [AWS Outposts](/usage/outposts).
-    
-    `eksctl` now supports new ISO regions `us-iso-east-1` and `us-isob-east-1`.
-
-    `eksctl` now supports new regions - Zurich (`eu-central-2`), Spain (`eu-south-2`), Hyderabad (`ap-south-2`),  Melbourne (`ap-southeast-4`) and Tel Aviv (`il-central-1`).
+eksctl - The official CLI for Amazon EKS
 
 `eksctl` is a simple CLI tool for creating and managing clusters on EKS - Amazon's managed Kubernetes service for EC2.
 It is written in Go, uses CloudFormation, was created by [Weaveworks](https://www.weave.works/) and it welcomes

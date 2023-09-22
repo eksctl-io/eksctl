@@ -1,3 +1,7 @@
+---
+hide:
+  - navigation
+---
 # eksctl Adopters :fontawesome-solid-handshake-simple:
 
 Are you and your organisation using `eksctl`?

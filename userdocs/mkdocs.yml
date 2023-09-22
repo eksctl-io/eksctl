@@ -43,11 +43,11 @@ theme:
       - header.autohide
       - navigation.instant
       - navigation.sections
+      - navigation.expand
       - navigation.top
       - navigation.tabs
       - navigation.tracking
       - navigation.tabs.sticky
-      - navigation.footer
       - search.highlight
       - search.share
       - search.suggest
@@ -108,7 +108,6 @@ extra:
 extra_css:
   - stylesheets/extra.css
   - stylesheets/schema.css
-  #- stylesheets/custom/layout/_hero.css
 
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/@glidejs/glide
@@ -134,8 +133,11 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting Started:
-    - Installation: getting-started.md
-    - Introduction: introduction.md
+    - Introduction: getting-started.md
+    - Installation: installation.md
+    - Announcements:
+      - announcements/managed-nodegroups-announcement.md
+      - announcements/nodegroup-override-announcement.md
   - Usage:
       - Clusters:
           - usage/creating-and-managing-clusters.md
@@ -190,9 +192,6 @@ nav:
       - usage/eksctl-karpenter.md
       - usage/troubleshooting.md
       - FAQ: usage/faq.md
-  - Announcements:
-    - announcements/managed-nodegroups-announcement.md
-    - announcements/nodegroup-override-announcement.md
   - Examples: "https://github.com/eksctl-io/eksctl/tree/main/examples"
   - Community: community.md
   - Adopters: adopters.md
