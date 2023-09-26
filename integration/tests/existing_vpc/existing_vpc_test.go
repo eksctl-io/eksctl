@@ -6,7 +6,7 @@ package unowned
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -166,7 +166,7 @@ func createVPC(stackName string, ctl api.ClusterProvider) *api.ClusterVPC {
 }
 
 func createVPCStackAndGetOutputs(stackName string, ctl api.ClusterProvider) ([]string, []string, string, string) {
-	templateBody, err := ioutil.ReadFile("cf-template.yaml")
+	templateBody, err := os.ReadFile("cf-template.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	createStackInput := &cfn.CreateStackInput{
 		StackName: &stackName,

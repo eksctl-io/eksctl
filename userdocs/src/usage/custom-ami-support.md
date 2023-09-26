@@ -124,7 +124,7 @@ For Bottlerocket nodes, the `overrideBootstrapCommand` is not supported. Instead
     bottlerocket:
       enableAdminContainer: true
       settings:
-        bootstrap-containers
-          bootstrap
+        bootstrap-containers:
+          bootstrap:
             source: <MY-CONTAINER-URI>
 ```
