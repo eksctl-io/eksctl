@@ -3,7 +3,7 @@ package helm
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -51,7 +51,7 @@ var _ = Describe("HelmInstaller", func() {
 			}
 			getters = append(getters, provider)
 			store := storage.Init(driver.NewMemory())
-			fakeKubeClient = &fakes.PrintingKubeClient{Out: ioutil.Discard}
+			fakeKubeClient = &fakes.PrintingKubeClient{Out: io.Discard}
 			actionConfig = &action.Configuration{
 				Releases:     store,
 				KubeClient:   fakeKubeClient,

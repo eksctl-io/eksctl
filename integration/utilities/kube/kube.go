@@ -4,12 +4,14 @@
 package kube
 
 import (
+	"fmt"
+
 	harness "github.com/dlespiau/kube-test-harness"
 	"github.com/dlespiau/kube-test-harness/logger"
 	"github.com/onsi/ginkgo/v2"
 )
 
-type tHelper struct{ ginkgo.GinkgoTInterface }
+type tHelper struct{ ginkgo.FullGinkgoTInterface }
 
 func (t *tHelper) Helper()      {}
 func (t *tHelper) Name() string { return "eksctl-test" }
@@ -26,6 +28,7 @@ func NewTest(kubeconfigPath string) (*harness.Test, error) {
 		return nil, err
 	}
 	test := h.NewTest(t)
+	test.Namespace += fmt.Sprintf("-%d", t.ParallelProcess())
 	test.Setup()
 	return test, nil
 }
