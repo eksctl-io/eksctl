@@ -272,7 +272,7 @@ func (p *Params) attemptSettingUserID() {
 		},
 	})
 
-	msg := "Warning: failed to get UserID, proceeding without configuring cluster name prefix. Error: %w"
+	msg := "Warning: failed to get UserID, proceeding without configuring cluster name prefix. Error: %v"
 	if err != nil {
 		fmt.Fprintf(GinkgoWriter, msg, err)
 		return
