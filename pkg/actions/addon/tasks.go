@@ -127,7 +127,7 @@ func (t *deleteAddonIAMTask) Do(errorCh chan error) error {
 		return nil
 	}
 	if _, err := t.stackManager.DeleteStackBySpec(t.ctx, t.stack); err != nil {
-		return fmt.Errorf("%s:%w", errMsg, err)
+		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 	return nil
 }
