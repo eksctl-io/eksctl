@@ -47,8 +47,8 @@ func TestE2E(t *testing.T) {
 
 var (
 	stackName, ng1, mng1, mng2 string
-	version                    = "1.23"
-	upgradeVersion             = "1.24"
+	version                    string
+	upgradeVersion             string
 	ctl                        api.ClusterProvider
 	cfg                        *api.ClusterConfig
 )
@@ -58,6 +58,9 @@ var _ = BeforeSuite(func() {
 	mng1 = "mng-1"
 	mng2 = "mng-2"
 	stackName = fmt.Sprintf("eksctl-%s", params.ClusterName)
+
+	version, upgradeVersion = clusterutils.GetCurrentAndNextVersionsForUpgrade(params.Version)
+
 	cfg = &api.ClusterConfig{
 		TypeMeta: api.ClusterConfigTypeMeta(),
 		Metadata: &api.ClusterMeta{

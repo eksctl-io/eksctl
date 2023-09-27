@@ -16,6 +16,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -88,13 +89,7 @@ var _ = BeforeSuite(func() {
 
 	fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
 
-	supportedVersions := api.SupportedVersions()
-	if len(supportedVersions) < 2 {
-		Fail("Update cluster test requires at least two supported EKS versions")
-	}
-
-	// Use the lowest supported version
-	eksVersion, nextEKSVersion = supportedVersions[0], supportedVersions[1]
+	eksVersion, nextEKSVersion = clusterutils.GetCurrentAndNextVersionsForUpgrade(params.Version)
 
 	cmd := params.EksctlCreateCmd.WithArgs(
 		"cluster",
