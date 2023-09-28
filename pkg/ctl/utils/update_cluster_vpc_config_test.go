@@ -21,6 +21,6 @@ var _ = DescribeTable("invalid usage of update-cluster-vpc-config", func(e updat
 
 	Entry("missing a required parameter", updateClusterVPCEntry{
 		args:        []string{"--cluster", "test"},
-		expectedErr: "at least one of --public-access, --private-access and --public-access-cidrs must be specified",
+		expectedErr: "at least one of these options must be specified: --private-access, --public-access, --public-access-cidrs, --control-plane-subnet-ids, --control-plane-security-group-ids",
 	}),
 )

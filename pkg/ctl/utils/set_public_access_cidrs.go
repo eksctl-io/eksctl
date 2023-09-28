@@ -56,6 +56,8 @@ func doUpdatePublicAccessCIDRs(cmd *cmdutils.Cmd) error {
 	}
 
 	cfg.VPC.ClusterEndpoints = nil
+	cfg.VPC.ControlPlaneSubnetIDs = nil
+	cfg.VPC.ControlPlaneSecurityGroupIDs = nil
 	vpcHelper := &VPCHelper{
 		VPCUpdater:  ctl,
 		ClusterMeta: cfg.Metadata,

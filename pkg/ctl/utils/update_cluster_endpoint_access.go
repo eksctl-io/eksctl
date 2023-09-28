@@ -61,6 +61,8 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	}
 
 	cfg.VPC.PublicAccessCIDRs = nil
+	cfg.VPC.ControlPlaneSubnetIDs = nil
+	cfg.VPC.ControlPlaneSecurityGroupIDs = nil
 	vpcHelper := &VPCHelper{
 		VPCUpdater:  ctl,
 		ClusterMeta: cfg.Metadata,
