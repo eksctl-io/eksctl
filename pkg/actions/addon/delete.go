@@ -84,17 +84,13 @@ func NewRemover(stackManager StackManager) *Remover {
 func (ar *Remover) DeleteAddonIAMTasks(ctx context.Context, wait bool) (*tasks.TaskTree, error) {
 	stacks, err := ar.stackManager.GetIAMAddonsStacks(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch addons stacks %v", err)
 	}
 	taskTree := &tasks.TaskTree{Parallel: true}
 	for _, s := range stacks {
-		deleteStackTasks := &tasks.TaskTree{
-			Parallel:  false,
-			IsSubTask: true,
-		}
-		deleteStackTasks.Append(&deleteAddonIAMTask{
+		taskTree.Append(&deleteAddonIAMTask{
 			ctx:          ctx,
-			info:         fmt.Sprintf("deleting addon IAM %q", *s.StackName),
+			info:         fmt.Sprintf("delete addon IAM %q", *s.StackName),
 			stack:        s,
 			stackManager: ar.stackManager,
 			wait:         wait,
