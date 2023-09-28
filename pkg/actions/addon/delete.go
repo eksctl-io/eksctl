@@ -84,7 +84,7 @@ func NewRemover(stackManager StackManager) *Remover {
 func (ar *Remover) DeleteAddonIAMTasks(ctx context.Context, wait bool) (*tasks.TaskTree, error) {
 	stacks, err := ar.stackManager.GetIAMAddonsStacks(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch addons stacks %v", err)
+		return nil, fmt.Errorf("failed to fetch addons stacks: %v", err)
 	}
 	taskTree := &tasks.TaskTree{Parallel: true}
 	for _, s := range stacks {

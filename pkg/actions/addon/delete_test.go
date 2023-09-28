@@ -18,8 +18,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	"github.com/weaveworks/eksctl/pkg/actions/addon/fakes"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
