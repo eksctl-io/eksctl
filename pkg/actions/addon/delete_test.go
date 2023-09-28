@@ -18,8 +18,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	"github.com/weaveworks/eksctl/pkg/actions/addon/fakes"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
@@ -220,6 +220,41 @@ var _ = Describe("Delete", func() {
 				})
 
 				Expect(err).To(MatchError(`failed to delete addon "my-addon": foo`))
+			})
+		})
+	})
+
+	Describe("DeleteAddonIAMTasks", func() {
+		var (
+			ar *addon.Remover
+		)
+		BeforeEach(func() {
+			fakeStackManager = new(fakes.FakeStackManager)
+			ar = addon.NewRemover(fakeStackManager)
+		})
+
+		When("it fails to fetch addons stacks", func() {
+			It("returns an error", func() {
+				fakeStackManager.GetIAMAddonsStacksReturns(nil, fmt.Errorf("foo"))
+				_, err := ar.DeleteAddonIAMTasks(context.Background(), false)
+				Expect(err).To(MatchError(ContainSubstring("failed to fetch addons stacks")))
+			})
+		})
+
+		When("there are multiple addons stacks", func() {
+			It("returns a tasktree with all expected tasks", func() {
+				fakeStackManager.GetIAMAddonsStacksReturns([]*types.Stack{
+					{
+						StackName: aws.String("eksctl-it-cluster-addon-vpc-cni"),
+					},
+					{
+						StackName: aws.String("eksctl-it-cluster-addon-coredns"),
+					},
+				}, nil)
+				taskTree, err := ar.DeleteAddonIAMTasks(context.Background(), false)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(taskTree.Parallel).To(Equal(true))
+				Expect(len(taskTree.Tasks)).To(Equal(2))
 			})
 		})
 	})
