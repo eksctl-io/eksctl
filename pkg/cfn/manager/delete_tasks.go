@@ -26,8 +26,21 @@ func deleteAll(_ string) bool { return true }
 
 type NewOIDCManager func() (*iamoidc.OpenIDConnectManager, error)
 
+// NewTasksToDeleteAddonIAM temporary type, to be removed after moving NewTasksToDeleteClusterWithNodeGroups to actions package
+type NewTasksToDeleteAddonIAM func(ctx context.Context, wait bool) (*tasks.TaskTree, error)
+
 // NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete the given cluster along with all of its resources
-func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(ctx context.Context, clusterStack *Stack, nodeGroupStacks []NodeGroupStack, clusterOperable bool, newOIDCManager NewOIDCManager, cluster *ekstypes.Cluster, clientSetGetter kubernetes.ClientSetGetter, wait, force bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
+func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(
+	ctx context.Context,
+	clusterStack *Stack,
+	nodeGroupStacks []NodeGroupStack,
+	clusterOperable bool,
+	newOIDCManager NewOIDCManager,
+	newTasksToDeleteAddonIAM NewTasksToDeleteAddonIAM,
+	cluster *ekstypes.Cluster,
+	clientSetGetter kubernetes.ClientSetGetter,
+	wait, force bool,
+	cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
 	taskTree := &tasks.TaskTree{Parallel: false}
 
 	nodeGroupTasks, err := c.NewTasksToDeleteNodeGroups(nodeGroupStacks, deleteAll, true, cleanup)
@@ -52,7 +65,7 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(ctx context.Cont
 		}
 	}
 
-	deleteAddonIAMTasks, err := c.NewTaskToDeleteAddonIAM(ctx, wait)
+	deleteAddonIAMTasks, err := newTasksToDeleteAddonIAM(ctx, wait)
 	if err != nil {
 		return nil, err
 	}
@@ -321,39 +334,6 @@ func stacksToServiceAccountMap(stacks []*types.Stack) map[string]*types.Stack {
 	}
 
 	return stackMap
-}
-
-// NewTaskToDeleteAddonIAM defines tasks required to delete all of the addons
-func (c *StackCollection) NewTaskToDeleteAddonIAM(ctx context.Context, wait bool) (*tasks.TaskTree, error) {
-	stacks, err := c.GetIAMAddonsStacks(ctx)
-	if err != nil {
-		return nil, err
-	}
-	taskTree := &tasks.TaskTree{Parallel: true}
-	for _, s := range stacks {
-		info := fmt.Sprintf("delete addon IAM %q", *s.StackName)
-
-		deleteStackTasks := &tasks.TaskTree{
-			Parallel:  false,
-			IsSubTask: true,
-		}
-		if wait {
-			deleteStackTasks.Append(&taskWithStackSpec{
-				info:  info,
-				stack: s,
-				call:  c.DeleteStackBySpecSync,
-			})
-		} else {
-			deleteStackTasks.Append(&asyncTaskWithStackSpec{
-				info:  info,
-				stack: s,
-				call:  c.DeleteStackBySpec,
-			})
-		}
-		taskTree.Append(deleteStackTasks)
-	}
-	return taskTree, nil
-
 }
 
 func clusterHasOIDCProvider(cluster *ekstypes.Cluster) (hasOIDC bool, found bool) {

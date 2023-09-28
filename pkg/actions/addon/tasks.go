@@ -2,9 +2,11 @@ package addon
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
@@ -103,5 +105,31 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 	go func() {
 		errorCh <- nil
 	}()
+	return nil
+}
+
+type deleteAddonIAMTask struct {
+	ctx          context.Context
+	info         string
+	stack        *cfntypes.Stack
+	stackManager StackManager
+	wait         bool
+}
+
+func (t *deleteAddonIAMTask) Describe() string { return t.info }
+
+func (t *deleteAddonIAMTask) Do(errorCh chan error) error {
+	defer close(errorCh)
+
+	errMsg := fmt.Sprintf("deleting addon IAM %q", *t.stack.StackName)
+	if t.wait {
+		if err := t.stackManager.DeleteStackBySpecSync(t.ctx, t.stack, errorCh); err != nil {
+			return fmt.Errorf("%s: %w", errMsg, err)
+		}
+		return nil
+	}
+	if _, err := t.stackManager.DeleteStackBySpec(t.ctx, t.stack); err != nil {
+		return fmt.Errorf("%s: %w", errMsg, err)
+	}
 	return nil
 }
