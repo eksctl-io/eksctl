@@ -16,29 +16,16 @@ img[src$="#wwinline"] {
     vertical-align: middle;
   }
 
-.md-header-nav__title {
-  padding: 0px;
-}
-
 [data-md-color-scheme="slate"] {
   --md-default-fg-color: #c8cad5;
 }
 
-[data-md-color-scheme="slate"] img[src$="#wwinline"] {
-  background: url("../img/weaveworks-light.svg") no-repeat;
-}
-
-[data-md-color-scheme="slate"] img[src$="#gitinline"] {
-  height: 30px;
-  background: url("../img/octocat-light.svg") no-repeat;
-}
-
-.md-typeset .md-button {
+a.md-button.announce {
     padding: 0.3em 0.3em;
 }
 
 .md-header__button.md-logo img, .md-header__button.md-logo svg {
-    height: 2.2rem;
+    height: 1.9rem;
 }
 
 @keyframes heart {

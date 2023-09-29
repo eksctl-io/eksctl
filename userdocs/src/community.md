@@ -1,6 +1,11 @@
+---
+hide:
+  - navigation
+---
 # eksctl Community :fontawesome-solid-people-group:
 
-For more information, please head to our [Community][community] and [Contributing][contributing] docs in Github. :octicons-heart-fill-24:{ .heart }
+We welcome contributions from the community. :octicons-heart-fill-24:{ .heart }
+For more information, please head to our [Community][community] and [Contributing][contributing] docs in Github.
 
 [community]: https://github.com/eksctl-io/eksctl/blob/main/COMMUNITY.md
 [contributing]: https://github.com/eksctl-io/eksctl/blob/main/CONTRIBUTING.md
