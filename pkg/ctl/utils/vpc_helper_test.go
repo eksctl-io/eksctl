@@ -197,4 +197,148 @@ var _ = DescribeTable("VPCHelper", func(e vpcHelperEntry) {
 
 		expectedErr: "this operation is not supported on Outposts clusters",
 	}),
+
+	Entry("cluster matches desired config when subnets and security groups are specified", vpcHelperEntry{
+		clusterVPC: &ekstypes.VpcConfigResponse{
+			EndpointPublicAccess:  true,
+			EndpointPrivateAccess: false,
+			PublicAccessCidrs:     []string{"0.0.0.0/0"},
+			SecurityGroupIds:      []string{"sg-1234"},
+			SubnetIds:             []string{"subnet-1234"},
+		},
+		vpc: &api.ClusterVPC{
+			ClusterEndpoints: &api.ClusterEndpoints{
+				PublicAccess:  api.Enabled(),
+				PrivateAccess: api.Disabled(),
+			},
+			ControlPlaneSecurityGroupIDs: []string{"sg-1234"},
+			ControlPlaneSubnetIDs:        []string{"subnet-1234"},
+		},
+	}),
+
+	Entry("cluster security groups do not match desired config", vpcHelperEntry{
+		clusterVPC: &ekstypes.VpcConfigResponse{
+			EndpointPublicAccess:  true,
+			EndpointPrivateAccess: false,
+			PublicAccessCidrs:     []string{"0.0.0.0/0"},
+			SecurityGroupIds:      []string{"sg-1234"},
+			SubnetIds:             []string{"subnet-1234"},
+		},
+		vpc: &api.ClusterVPC{
+			ClusterEndpoints: &api.ClusterEndpoints{
+				PublicAccess:  api.Enabled(),
+				PrivateAccess: api.Disabled(),
+			},
+			ControlPlaneSecurityGroupIDs: []string{"sg-1234", "sg-5678"},
+			ControlPlaneSubnetIDs:        []string{"subnet-1234"},
+		},
+
+		expectedUpdates: []*eks.UpdateClusterConfigInput{
+			{
+				Name: aws.String("test"),
+				ResourcesVpcConfig: &ekstypes.VpcConfigRequest{
+					SecurityGroupIds: []string{"sg-1234", "sg-5678"},
+					SubnetIds:        []string{"subnet-1234"},
+				},
+			},
+		},
+	}),
+
+	Entry("cluster subnets do not match desired config", vpcHelperEntry{
+		clusterVPC: &ekstypes.VpcConfigResponse{
+			EndpointPublicAccess:  true,
+			EndpointPrivateAccess: false,
+			PublicAccessCidrs:     []string{"0.0.0.0/0"},
+			SecurityGroupIds:      []string{"sg-1234", "sg-5678"},
+			SubnetIds:             []string{"subnet-1234"},
+		},
+		vpc: &api.ClusterVPC{
+			ClusterEndpoints: &api.ClusterEndpoints{
+				PublicAccess:  api.Enabled(),
+				PrivateAccess: api.Disabled(),
+			},
+			ControlPlaneSecurityGroupIDs: []string{"sg-1234", "sg-5678"},
+			ControlPlaneSubnetIDs:        []string{"subnet-1234", "subnet-5678"},
+		},
+
+		expectedUpdates: []*eks.UpdateClusterConfigInput{
+			{
+				Name: aws.String("test"),
+				ResourcesVpcConfig: &ekstypes.VpcConfigRequest{
+					SecurityGroupIds: []string{"sg-1234", "sg-5678"},
+					SubnetIds:        []string{"subnet-1234", "subnet-5678"},
+				},
+			},
+		},
+	}),
+
+	Entry("cluster security group and subnets do not match desired config", vpcHelperEntry{
+		clusterVPC: &ekstypes.VpcConfigResponse{
+			EndpointPublicAccess:  true,
+			EndpointPrivateAccess: false,
+			PublicAccessCidrs:     []string{"0.0.0.0/0"},
+			SecurityGroupIds:      []string{"sg-1234", "sg-5678"},
+			SubnetIds:             []string{"subnet-1234"},
+		},
+		vpc: &api.ClusterVPC{
+			ClusterEndpoints: &api.ClusterEndpoints{
+				PublicAccess:  api.Enabled(),
+				PrivateAccess: api.Disabled(),
+			},
+			ControlPlaneSecurityGroupIDs: []string{"sg-1234", "sg-5678"},
+			ControlPlaneSubnetIDs:        []string{"subnet-1234", "subnet-5678"},
+		},
+
+		expectedUpdates: []*eks.UpdateClusterConfigInput{
+			{
+				Name: aws.String("test"),
+				ResourcesVpcConfig: &ekstypes.VpcConfigRequest{
+					SecurityGroupIds: []string{"sg-1234", "sg-5678"},
+					SubnetIds:        []string{"subnet-1234", "subnet-5678"},
+				},
+			},
+		},
+	}),
+
+	Entry("no fields match desired config", vpcHelperEntry{
+		clusterVPC: &ekstypes.VpcConfigResponse{
+			EndpointPublicAccess:  false,
+			EndpointPrivateAccess: true,
+			PublicAccessCidrs:     []string{"0.0.0.0/0"},
+			SecurityGroupIds:      []string{"sg-1234"},
+			SubnetIds:             []string{"subnet-1234"},
+		},
+		vpc: &api.ClusterVPC{
+			ClusterEndpoints: &api.ClusterEndpoints{
+				PublicAccess:  api.Enabled(),
+				PrivateAccess: api.Disabled(),
+			},
+			PublicAccessCIDRs:            []string{"1.1.1.1/1"},
+			ControlPlaneSecurityGroupIDs: []string{"sg-1234", "sg-5678"},
+			ControlPlaneSubnetIDs:        []string{"subnet-1234", "subnet-5678"},
+		},
+
+		expectedUpdates: []*eks.UpdateClusterConfigInput{
+			{
+				Name: aws.String("test"),
+				ResourcesVpcConfig: &ekstypes.VpcConfigRequest{
+					EndpointPublicAccess:  api.Enabled(),
+					EndpointPrivateAccess: api.Disabled(),
+				},
+			},
+			{
+				Name: aws.String("test"),
+				ResourcesVpcConfig: &ekstypes.VpcConfigRequest{
+					PublicAccessCidrs: []string{"1.1.1.1/1"},
+				},
+			},
+			{
+				Name: aws.String("test"),
+				ResourcesVpcConfig: &ekstypes.VpcConfigRequest{
+					SecurityGroupIds: []string{"sg-1234", "sg-5678"},
+					SubnetIds:        []string{"subnet-1234", "subnet-5678"},
+				},
+			},
+		},
+	}),
 )
