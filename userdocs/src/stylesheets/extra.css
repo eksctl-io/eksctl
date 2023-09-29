@@ -20,15 +20,6 @@ img[src$="#wwinline"] {
   --md-default-fg-color: #c8cad5;
 }
 
-[data-md-color-scheme="slate"] img[src$="#wwinline"] {
-  background: url("../img/weaveworks-light.svg") no-repeat;
-}
-
-[data-md-color-scheme="slate"] img[src$="#gitinline"] {
-  height: 30px;
-  background: url("../img/octocat-light.svg") no-repeat;
-}
-
 a.md-button.announce {
     padding: 0.3em 0.3em;
 }

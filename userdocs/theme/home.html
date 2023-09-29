@@ -20,13 +20,8 @@
             background: linear-gradient(to bottom, var(--md-primary-fg-color), rgb(8, 12, 233) 99%,#fff 99%)
         }
 
-        .tx-hero__content {
-            padding-bottom: 1rem;
-            margin: 0 auto;
-        }
-
         .tx-hero__image{
-            height:34rem;
+            height:inherit;
             display: block;
         }
 
@@ -554,7 +549,7 @@
                                     Tel Aviv (<code>il-central-1</code>), 
                                     US ISO - (<code>us-iso-east-1</code> and <code>us-isob-east-1</code>)
                             </p>
-                            <p>EKS supported versions <code>1.25</code> (default), <code>1.26</code>, <code>1.27</code> and <code>1.28</code>.</p> 
+                            <p>EKS supported versions <code>1.25</code>, <code>1.26</code>, <code>1.27</code> (default) and <code>1.28</code>.</p> 
                             <p><a href="/usage/creating-and-managing-clusters/" aria-label="Usage"> 
                                 <span class="twemoji"> 
                                     {% include ".icons/octicons/arrow-right-16.svg" %} 
@@ -638,7 +633,7 @@
                     <figure class="mdx-users__testimonial"><a href="https://github.com/a-hilaly"><img src="https://avatars.githubusercontent.com/u/10897901?v=4" title="a-hilaly" alt="a-hilaly" loading="lazy"></a></figure>
                 </div>
                 <header class="md-typeset">
-                    <h3>Thank you for all your contributions.<span class="twemoji">{% include ".icons/octicons/star-16.svg" %}</span></h3>
+                    <h3>Thank you <a href="https://github.com/eksctl-io/eksctl/graphs/contributors">eksctl contributors</a> all your contributions.<span class="twemoji">{% include ".icons/octicons/star-16.svg" %}</span></h3>
                 </header>
                 <div class="contributors" id="contributors"></div>
             </div> 
