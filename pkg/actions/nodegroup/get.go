@@ -250,7 +250,7 @@ func (m *Manager) mapStackToNodeGroupSummary(ctx context.Context, stack *manager
 		}
 		collectorSet := outputs.NewCollectorSet(collectors)
 		if err := collectorSet.MustCollect(*stack); err != nil {
-			logger.Warning(fmt.Errorf("error collecting Cloudformation outputs for stack %s: %w", *stack.StackName, err).Error())
+			logger.Warning("error collecting Cloudformation outputs for stack %s: %v", *stack.StackName, err)
 		}
 	}
 

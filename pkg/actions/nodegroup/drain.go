@@ -42,7 +42,7 @@ func (m *Manager) Drain(ctx context.Context, input *DrainInput) error {
 	}
 	err := g.Wait()
 	if err != nil {
-		logger.Critical("Node group drain failed: %w", err)
+		logger.Critical("Node group drain failed: %v", err)
 	}
 	waitForAllRoutinesToFinish(ctx, sem, parallelLimit)
 	return err
