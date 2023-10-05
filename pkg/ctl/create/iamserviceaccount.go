@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
@@ -132,5 +133,6 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 		return err
 	}
 
-	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).CreateIAMServiceAccount(filteredServiceAccounts, cmd.Plan)
+	irsaCreator := irsa.NewCreator(cfg.Metadata.Name, cfg.Metadata.Region, kubernetes.NewCachedClientSet(clientSet), oidc, stackManager)
+	return irsaCreator.CreateIAMServiceAccounts(ctx, filteredServiceAccounts, cmd.Plan)
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -28,6 +29,7 @@ type UnownedCluster struct {
 	stackManager        manager.StackManager
 	newClientSet        func() (kubernetes.Interface, error)
 	newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer
+	newIRSARemover      func(clientSetGetter kubernetes.ClientSetGetter, stackManager irsa.StackManager) irsa.DeleteTasksBuilder
 }
 
 func NewUnownedCluster(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) (*UnownedCluster, error) {
@@ -44,6 +46,9 @@ func NewUnownedCluster(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.Clu
 		},
 		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
 			return nodegroup.New(cfg, ctl, clientSet, instanceSelector)
+		},
+		newIRSARemover: func(clientSetGetter kubernetes.ClientSetGetter, stackManager irsa.StackManager) irsa.DeleteTasksBuilder {
+			return irsa.NewRemover(clientSetGetter, stackManager)
 		},
 	}, nil
 }
@@ -174,7 +179,8 @@ func (c *UnownedCluster) deleteIAMAndOIDC(ctx context.Context, wait bool, cluste
 		newOIDCManager := func() (*iamoidc.OpenIDConnectManager, error) {
 			return c.ctl.NewOpenIDConnectManager(ctx, c.cfg)
 		}
-		serviceAccountAndOIDCTasks, err := c.stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx, newOIDCManager, c.ctl.Status.ClusterInfo.Cluster, clientSetGetter, force)
+		newTasksToDeleteIAMServiceAccounts := c.newIRSARemover(clientSetGetter, c.stackManager).DeleteIAMServiceAccountsTasks
+		serviceAccountAndOIDCTasks, err := c.stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx, newOIDCManager, newTasksToDeleteIAMServiceAccounts, c.ctl.Status.ClusterInfo.Cluster, force)
 		if err != nil {
 			return err
 		}

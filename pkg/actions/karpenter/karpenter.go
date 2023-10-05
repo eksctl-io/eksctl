@@ -9,6 +9,7 @@ import (
 	"github.com/kris-nova/logger"
 	kubeclient "k8s.io/client-go/kubernetes"
 
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -36,6 +37,7 @@ type Installer struct {
 	Wait               WaitFunc
 	KarpenterInstaller karpenter.ChartInstaller
 	ClientSet          kubernetes.Interface
+	IRSACreator        irsa.CreateTasksBuilder
 	OIDC               *iamoidc.OpenIDConnectManager
 }
 
@@ -69,6 +71,17 @@ func NewInstaller(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterP
 		logger.Warning("no IAM OIDC provider associated with cluster, try 'eksctl utils associate-iam-oidc-provider --region=%s --cluster=%s'", cfg.Metadata.Region, cfg.Metadata.Name)
 	}
 
+	irsaCreator := irsa.NewCreator(
+		cfg.Metadata.Name,
+		cfg.Metadata.Region,
+		&kubernetes.CallbackClientSet{
+			Callback: func() (kubernetes.Interface, error) {
+				return clientSet, nil
+			},
+		},
+		oidc,
+		stackManager)
+
 	return &Installer{
 		StackManager:       stackManager,
 		CTL:                ctl,
@@ -76,6 +89,7 @@ func NewInstaller(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterP
 		Wait:               waiters.Wait,
 		KarpenterInstaller: karpenterInstaller,
 		ClientSet:          clientSet,
+		IRSACreator:        irsaCreator,
 		OIDC:               oidc,
 	}, nil
 }

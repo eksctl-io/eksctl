@@ -2,42 +2,13 @@ package manager
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
-	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
-
-// makeIAMServiceAccountStackName generates the name of the iamserviceaccount stack identified by its name, isolated by the cluster this StackCollection operates on and 'addon' suffix
-func (c *StackCollection) makeIAMServiceAccountStackName(namespace, name string) string {
-	return fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-%s-%s", c.spec.Metadata.Name, namespace, name)
-}
-
-// createIAMServiceAccountTask creates the iamserviceaccount in CloudFormation
-func (c *StackCollection) createIAMServiceAccountTask(ctx context.Context, errs chan error, spec *api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager) error {
-	name := c.makeIAMServiceAccountStackName(spec.Namespace, spec.Name)
-	logger.Info("building iamserviceaccount stack %q", name)
-	stack := builder.NewIAMRoleResourceSetForServiceAccount(spec, oidc)
-	if err := stack.AddAllResources(); err != nil {
-		return err
-	}
-
-	if spec.Tags == nil {
-		spec.Tags = make(map[string]string)
-	}
-	spec.Tags[api.IAMServiceAccountNameTag] = spec.NameString()
-
-	if err := c.CreateStack(ctx, name, stack, spec.Tags, nil, errs); err != nil {
-		logger.Info("an error occurred creating the stack, to cleanup resources, run 'eksctl delete iamserviceaccount --region=%s --name=%s --namespace=%s'", c.spec.Metadata.Region, spec.Name, spec.Namespace)
-		return err
-	}
-	return nil
-}
 
 // DescribeIAMServiceAccountStacks calls ListStacks and filters out iamserviceaccounts
 func (c *StackCollection) DescribeIAMServiceAccountStacks(ctx context.Context) ([]*Stack, error) {

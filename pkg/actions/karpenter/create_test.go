@@ -24,6 +24,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 	core "k8s.io/client-go/testing"
 
+	irsafakes "github.com/weaveworks/eksctl/pkg/actions/irsa/fakes"
 	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -54,6 +55,7 @@ var _ = Describe("Create", func() {
 			p                      *mockprovider.MockProvider
 			cfg                    *api.ClusterConfig
 			fakeStackManager       *managerfakes.FakeStackManager
+			fakeIRSACreator        *irsafakes.FakeCreateTasksBuilder
 			ctl                    *eks.ClusterProvider
 			fakeKarpenterInstaller *karpenterfakes.FakeChartInstaller
 			fakeClientSet          *fake.Clientset
@@ -72,6 +74,7 @@ var _ = Describe("Create", func() {
 			cfg.Karpenter = &api.Karpenter{
 				Version: "0.4.3",
 			}
+			fakeIRSACreator = &irsafakes.FakeCreateTasksBuilder{}
 			fakeStackManager = &fakes.FakeStackManager{}
 			fakeKarpenterInstaller = &karpenterfakes.FakeChartInstaller{}
 			ctl = &eks.ClusterProvider{
@@ -113,6 +116,7 @@ var _ = Describe("Create", func() {
 				Config:             cfg,
 				KarpenterInstaller: fakeKarpenterInstaller,
 				ClientSet:          fakeClientSet,
+				IRSACreator:        fakeIRSACreator,
 			}
 			Expect(install.Create(context.Background())).To(Succeed())
 			Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
@@ -142,6 +146,7 @@ var _ = Describe("Create", func() {
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
+					IRSACreator:        fakeIRSACreator,
 				}
 				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("failed to install Karpenter on cluster")))
@@ -157,6 +162,7 @@ var _ = Describe("Create", func() {
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
+					IRSACreator:        fakeIRSACreator,
 				}
 				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("nope")))
@@ -183,6 +189,7 @@ var _ = Describe("Create", func() {
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
+					IRSACreator:        fakeIRSACreator,
 				}
 				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("failed to install Karpenter on cluster")))
@@ -200,6 +207,7 @@ var _ = Describe("Create", func() {
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
+					IRSACreator:        fakeIRSACreator,
 				}
 				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("unexpected or invalid ARN")))
@@ -211,7 +219,7 @@ var _ = Describe("Create", func() {
 				ft := &fakeTask{
 					err: errors.New("nope"),
 				}
-				fakeStackManager.NewTasksToCreateIAMServiceAccountsReturns(&tasks.TaskTree{
+				fakeIRSACreator.CreateIAMServiceAccountsTasksReturns(&tasks.TaskTree{
 					Tasks: []tasks.Task{ft},
 				})
 			})
@@ -222,6 +230,7 @@ var _ = Describe("Create", func() {
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
+					IRSACreator:        fakeIRSACreator,
 				}
 				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("failed to create/attach service account: failed to install Karpenter on cluster")))
@@ -241,6 +250,7 @@ var _ = Describe("Create", func() {
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
+					IRSACreator:        fakeIRSACreator,
 				}
 				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("failed to create client for auth config: getting auth ConfigMap: nope")))
@@ -260,6 +270,7 @@ var _ = Describe("Create", func() {
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
+					IRSACreator:        fakeIRSACreator,
 				}
 				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("failed to save the identity config: nope")))
@@ -291,6 +302,7 @@ var _ = Describe("Create", func() {
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
+					IRSACreator:        fakeIRSACreator,
 				}
 				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("failed to save the identity config: nope")))
@@ -308,10 +320,11 @@ var _ = Describe("Create", func() {
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
+					IRSACreator:        fakeIRSACreator,
 				}
 				Expect(install.Create(context.Background())).To(Succeed())
 				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
-				accounts, _, _ := fakeStackManager.NewTasksToCreateIAMServiceAccountsArgsForCall(0)
+				_, accounts := fakeIRSACreator.CreateIAMServiceAccountsTasksArgsForCall(0)
 				Expect(accounts).NotTo(BeEmpty())
 				Expect(api.IsEnabled(accounts[0].RoleOnly)).To(BeTrue())
 			})
@@ -328,10 +341,11 @@ var _ = Describe("Create", func() {
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
+					IRSACreator:        fakeIRSACreator,
 				}
 				Expect(install.Create(context.Background())).To(Succeed())
 				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
-				accounts, _, _ := fakeStackManager.NewTasksToCreateIAMServiceAccountsArgsForCall(0)
+				_, accounts := fakeIRSACreator.CreateIAMServiceAccountsTasksArgsForCall(0)
 				Expect(accounts).NotTo(BeEmpty())
 				Expect(accounts[0].RoleOnly).To(BeNil())
 				policyARN := fmt.Sprintf("arn:aws:iam::123456789012:policy/eksctl-%s-%s", builder.KarpenterManagedPolicy, cfg.Metadata.Name)
@@ -350,6 +364,7 @@ var _ = Describe("Create", func() {
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
+					IRSACreator:        fakeIRSACreator,
 				}
 				Expect(install.Create(context.Background())).To(Succeed())
 				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
@@ -370,6 +385,7 @@ var _ = Describe("Create", func() {
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
+					IRSACreator:        fakeIRSACreator,
 				}
 				Expect(install.Create(context.Background())).To(Succeed())
 				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))

@@ -12,6 +12,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
@@ -111,10 +112,8 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 
 	saSubset, _ := saFilter.MatchAll(cfg.IAM.ServiceAccounts)
 
-	irsaManager := irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet)
-
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
-	return irsaManager.Delete(ctx, saSubset.List(), cmd.Plan, cmd.Wait)
+	return irsa.NewRemover(kubernetes.NewCachedClientSet(clientSet), stackManager).Delete(ctx, saSubset.List(), cmd.Plan, cmd.Wait)
 }

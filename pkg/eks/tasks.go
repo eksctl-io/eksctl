@@ -104,7 +104,8 @@ func (v *VPCControllerTask) Do(errCh chan error) error {
 		return err
 	}
 	irsaManager := irsa.New(v.ClusterConfig.Metadata.Name, stackCollection, oidc, clientSet)
-	irsa := addons.NewIRSAHelper(oidc, stackCollection, irsaManager, v.ClusterConfig.Metadata.Name)
+	irsaCreator := irsa.NewCreator(v.ClusterConfig.Metadata.Name, v.ClusterConfig.Metadata.Region, kubernetes.NewCachedClientSet(clientSet), oidc, stackCollection)
+	irsa := addons.NewIRSAHelper(oidc, stackCollection, irsaManager, irsaCreator, v.ClusterConfig.Metadata.Name)
 
 	// TODO PlanMode doesn't work as intended
 	vpcController := addons.NewVPCController(rawClient, irsa, v.ClusterConfig.Status, v.ClusterProvider.AWSProvider.Region(), v.PlanMode)
@@ -457,11 +458,8 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(ctx context.Con
 	// as this is non-CloudFormation context, we need to construct a new stackManager,
 	// given a clientSet getter and OpenIDConnectManager reference we can build out
 	// the list of tasks for each of the service accounts that need to be created
-	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(
-		api.IAMServiceAccountsWithImplicitServiceAccounts(cfg),
-		oidcPlaceholder,
-		clientSet,
-	)
+	irsaCreator := irsa.NewCreator(cfg.Metadata.Name, cfg.Metadata.Region, clientSet, oidcPlaceholder, c.NewStackManager(cfg))
+	newTasks := irsaCreator.CreateIAMServiceAccountsTasks(ctx, api.IAMServiceAccountsWithImplicitServiceAccounts(cfg))
 	newTasks.IsSubTask = true
 	tasks.Append(newTasks)
 	tasks.Append(&restartDaemonsetTask{

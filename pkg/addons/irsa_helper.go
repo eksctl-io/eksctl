@@ -22,16 +22,18 @@ type IRSAHelper interface {
 type irsaHelper struct {
 	oidc         *iamoidc.OpenIDConnectManager
 	irsaManager  *irsa.Manager
+	irsaCreator  *irsa.Creator
 	stackManager manager.StackManager
 	clusterName  string
 }
 
 // NewIRSAHelper creates a new IRSAHelper
-func NewIRSAHelper(oidc *iamoidc.OpenIDConnectManager, stackManager manager.StackManager, irsaManager *irsa.Manager, clusterName string) IRSAHelper {
+func NewIRSAHelper(oidc *iamoidc.OpenIDConnectManager, stackManager manager.StackManager, irsaManager *irsa.Manager, irsaCreator *irsa.Creator, clusterName string) IRSAHelper {
 	return &irsaHelper{
 		oidc:         oidc,
 		stackManager: stackManager,
 		irsaManager:  irsaManager,
+		irsaCreator:  irsaCreator,
 		clusterName:  clusterName,
 	}
 }
@@ -56,7 +58,7 @@ func (h *irsaHelper) CreateOrUpdate(ctx context.Context, sa *api.ClusterIAMServi
 		}
 	}
 	if stack == nil {
-		err = h.irsaManager.CreateIAMServiceAccount(serviceAccounts, false)
+		err = h.irsaCreator.CreateIAMServiceAccounts(ctx, serviceAccounts, false)
 	} else {
 		err = h.irsaManager.UpdateIAMServiceAccounts(ctx, serviceAccounts, []*manager.Stack{stack}, false)
 	}

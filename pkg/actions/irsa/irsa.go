@@ -1,19 +1,38 @@
 package irsa
 
 import (
+	"context"
 	"fmt"
 
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
+	kubeclient "k8s.io/client-go/kubernetes"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-	kubeclient "k8s.io/client-go/kubernetes"
 )
+
+// StackManager manages CloudFormation stacks for IAM Service Accounts.
+//
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_stack_manager.go . StackManager
+type StackManager interface {
+	CreateStack(ctx context.Context, name string, stack builder.ResourceSetReader, tags, parameters map[string]string, errs chan error) error
+	DeleteStackBySpec(ctx context.Context, s *cfntypes.Stack) (*cfntypes.Stack, error)
+	DeleteStackBySpecSync(ctx context.Context, s *cfntypes.Stack, errs chan error) error
+	DescribeIAMServiceAccountStacks(ctx context.Context) ([]*cfntypes.Stack, error)
+	GetIAMServiceAccounts(ctx context.Context) ([]*api.ClusterIAMServiceAccount, error)
+	GetStackTemplate(ctx context.Context, stackName string) (string, error)
+	UpdateStack(ctx context.Context, options manager.UpdateStackOptions) error
+}
 
 type Manager struct {
 	clusterName  string
 	oidcManager  *iamoidc.OpenIDConnectManager
-	stackManager manager.StackManager
+	stackManager StackManager
 	clientSet    kubeclient.Interface
 }
 
@@ -25,7 +44,7 @@ const (
 	actionUpdate action = "update"
 )
 
-func New(clusterName string, stackManager manager.StackManager, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) *Manager {
+func New(clusterName string, stackManager StackManager, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) *Manager {
 	return &Manager{
 		clusterName:  clusterName,
 		oidcManager:  oidcManager,

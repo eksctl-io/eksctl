@@ -14,7 +14,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/karpenter"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 // Create creates a Karpenter installer task and waits for it to finish.
@@ -23,11 +22,6 @@ func (i *Installer) Create(ctx context.Context) error {
 	parsedARN, err := arn.Parse(i.Config.Status.ARN)
 	if err != nil {
 		return fmt.Errorf("unexpected or invalid ARN: %q, %w", i.Config.Status.ARN, err)
-	}
-	clientSetGetter := &kubernetes.CallbackClientSet{
-		Callback: func() (kubernetes.Interface, error) {
-			return i.ClientSet, nil
-		},
 	}
 	instanceProfileName := fmt.Sprintf("eksctl-%s-%s", builder.KarpenterNodeInstanceProfile, i.Config.Metadata.Name)
 	if i.Config.Karpenter.DefaultInstanceProfile != nil {
@@ -58,7 +52,7 @@ func (i *Installer) Create(ctx context.Context) error {
 		// Create the service account role only.
 		iamServiceAccount.RoleOnly = api.Enabled()
 	}
-	karpenterServiceAccountTaskTree := i.StackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{iamServiceAccount}, i.OIDC, clientSetGetter)
+	karpenterServiceAccountTaskTree := i.IRSACreator.CreateIAMServiceAccountsTasks(ctx, []*api.ClusterIAMServiceAccount{iamServiceAccount})
 	logger.Info(karpenterServiceAccountTaskTree.Describe())
 	if err := doTasks(karpenterServiceAccountTaskTree); err != nil {
 		return fmt.Errorf("failed to create/attach service account: %w", err)

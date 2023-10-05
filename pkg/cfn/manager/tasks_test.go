@@ -19,6 +19,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 )
 
@@ -240,7 +241,14 @@ var _ = Describe("StackCollection Tasks", func() {
 		})
 
 		stackManager = NewStackCollection(p, cfg)
-		_, err := stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(context.Background(), newOIDCManager, e.cluster, nil, false)
+		_, err := stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(
+			context.Background(),
+			newOIDCManager,
+			func(ctx context.Context, serviceAccounts []string, wait bool) (*tasks.TaskTree, error) {
+				return &tasks.TaskTree{}, nil
+			},
+			e.cluster,
+			false)
 		if e.expectedErr != "" {
 			Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
 		} else {
