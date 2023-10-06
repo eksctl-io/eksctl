@@ -44,3 +44,6 @@ dist/
 # Debug logs
 logs/*
 .DS_Store
+
+# Ignore social cards cache
+userdocs/.cache/*

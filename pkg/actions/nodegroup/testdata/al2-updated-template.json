@@ -140,7 +140,7 @@
           ]
         },
         "NodegroupName": "amazonlinux2",
-        "ReleaseVersion": "1.27-20201212",
+        "ReleaseVersion": "1.28-20201212",
         "ScalingConfig": {
           "DesiredSize": 4,
           "MaxSize": 4,

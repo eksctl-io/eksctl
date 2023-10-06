@@ -36,7 +36,7 @@ func (c *StackCollection) makeNodeGroupStackName(name string) string {
 }
 
 // createNodeGroupTask creates the nodegroup
-func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan error, ng *api.NodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
+func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan error, ng *api.NodeGroup, forceAddCNIPolicy, skipEgressRules bool, vpcImporter vpc.Importer) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 
 	logger.Info("building nodegroup stack %q", name)
@@ -44,7 +44,14 @@ func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan err
 	if err != nil {
 		return errors.Wrap(err, "error creating bootstrapper")
 	}
-	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, ng, bootstrapper, forceAddCNIPolicy, vpcImporter)
+	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, builder.NodeGroupOptions{
+		ClusterConfig:     c.spec,
+		NodeGroup:         ng,
+		Bootstrapper:      bootstrapper,
+		ForceAddCNIPolicy: forceAddCNIPolicy,
+		VPCImporter:       vpcImporter,
+		SkipEgressRules:   skipEgressRules,
+	})
 	if err := stack.AddAllResources(ctx); err != nil {
 		return err
 	}
@@ -195,7 +202,6 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources(ctx context.Contex
 }
 
 func (c *StackCollection) GetAutoScalingGroupName(ctx context.Context, s *Stack) (string, error) {
-
 	nodeGroupType, err := GetNodeGroupType(s.Tags)
 	if err != nil {
 		return "", err
@@ -220,7 +226,7 @@ func (c *StackCollection) GetAutoScalingGroupName(ctx context.Context, s *Stack)
 	}
 }
 
-// GetNodeGroupAutoScalingGroupName returns the unmanaged nodegroup's AutoScalingGroupName
+// GetUnmanagedNodeGroupAutoScalingGroupName returns the unmanaged nodegroup's AutoScalingGroupName.
 func (c *StackCollection) GetUnmanagedNodeGroupAutoScalingGroupName(ctx context.Context, s *Stack) (string, error) {
 	input := &cfn.DescribeStackResourceInput{
 		StackName:         s.StackName,

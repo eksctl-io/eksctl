@@ -1,4 +1,4 @@
-# `eksctl` - The official CLI for Amazon EKS ! <img src="userdocs/theme/assets/images/logo.png" alt="eksctl" width="4%"/>
+# `eksctl` - The official CLI for Amazon EKS ! <img src="userdocs/src/img/logo.png" alt="eksctl" width="4%"/>
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/eksctl-io/eksctl)](https://goreportcard.com/report/github.com/eksctl-io/eksctl)
 
@@ -13,6 +13,29 @@ _Need help? Join [Eksctl Slack][slackjoin]._
 ## Installation
 
 `eksctl` is available to install from official releases as described below. We recommend that you install `eksctl` from only the official GitHub releases. You may opt to use a third-party installer, but please be advised that AWS does not maintain nor support these methods of installation. Use them at your own discretion.
+
+### Prerequisite
+
+You will need to have AWS API credentials configured. What works for AWS CLI or any other tools (kops, Terraform, etc.) should be sufficient. You can use [`~/.aws/credentials` file][awsconfig]
+or [environment variables][awsenv]. For more information read [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html).
+
+[awsenv]: https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html
+[awsconfig]: https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html
+
+You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `aws eks get-token` (available in version 1.16.156 or greater of AWS CLI) in your `PATH`.
+
+The IAM account used for EKS cluster creation should have these minimal access levels.
+
+| AWS Service      | Access Level                                           |
+|------------------|--------------------------------------------------------|
+| CloudFormation   | Full Access                                            |
+| EC2              | **Full:** Tagging **Limited:** List, Read, Write       |
+| EC2 Auto Scaling | **Limited:** List, Write                               |
+| EKS              | Full Access                                            |
+| IAM              | **Limited:** List, Read, Write, Permissions Management |
+| Systems Manager  | **Limited:** List, Read                                |
+
+The inline policy json is listed in [Minimal IAM Policies](https://eksctl.io/usage/minimum-iam-policies/).
 
 ### For Unix
 
@@ -105,7 +128,7 @@ port install eksctl
 [chocolatey](https://chocolatey.org)
 
 ```bash
-chocolatey install eksctl
+choco install eksctl
 ```
 
 [scoop](https://scoop.sh)
@@ -113,29 +136,6 @@ chocolatey install eksctl
 ```bash
 scoop install eksctl
 ```
-
-## Prerequisite
-
-You will need to have AWS API credentials configured. What works for AWS CLI or any other tools (kops, Terraform, etc.) should be sufficient. You can use [`~/.aws/credentials` file][awsconfig]
-or [environment variables][awsenv]. For more information read [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html).
-
-[awsenv]: https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html
-[awsconfig]: https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html
-
-You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `aws eks get-token` (available in version 1.16.156 or greater of AWS CLI) in your `PATH`.
-
-The IAM account used for EKS cluster creation should have these minimal access levels.
-
-| AWS Service      | Access Level                                           |
-|------------------|--------------------------------------------------------|
-| CloudFormation   | Full Access                                            |
-| EC2              | **Full:** Tagging **Limited:** List, Read, Write       |
-| EC2 Auto Scaling | **Limited:** List, Write                               |
-| EKS              | Full Access                                            |
-| IAM              | **Limited:** List, Read, Write, Permissions Management |
-| Systems Manager  | **Limited:** List, Read                                |
-
-The inline policy json is listed in [Minimal IAM Policies](https://eksctl.io/usage/minimum-iam-policies/).
 
 ## Basic usage
 
