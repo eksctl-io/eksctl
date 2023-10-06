@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
@@ -45,7 +44,7 @@ func (r *Remover) Delete(ctx context.Context, serviceAccounts []string, plan, wa
 func (r *Remover) DeleteIAMServiceAccountsTasks(ctx context.Context, serviceAccounts []string, wait bool) (*tasks.TaskTree, error) {
 	serviceAccountStacks, err := r.stackManager.DescribeIAMServiceAccountStacks(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to describe IAM Service Account CFN Stacks: %v", err)
 	}
 
 	stacksMap := stacksToServiceAccountMap(serviceAccountStacks)
@@ -59,7 +58,7 @@ func (r *Remover) DeleteIAMServiceAccountsTasks(ctx context.Context, serviceAcco
 
 		if s, ok := stacksMap[serviceAccount]; ok {
 			info := fmt.Sprintf("delete IAM role for serviceaccount %q", serviceAccount)
-			saTasks.Append(&deleteIAMServiceAccountTask{
+			saTasks.Append(&deleteIAMRoleForServiceAccountTask{
 				ctx:          ctx,
 				info:         info,
 				stack:        s,
@@ -84,8 +83,8 @@ func (r *Remover) DeleteIAMServiceAccountsTasks(ctx context.Context, serviceAcco
 	return taskTree, nil
 }
 
-func stacksToServiceAccountMap(stacks []*types.Stack) map[string]*types.Stack {
-	stackMap := make(map[string]*types.Stack)
+func stacksToServiceAccountMap(stacks []*cfntypes.Stack) map[string]*cfntypes.Stack {
+	stackMap := make(map[string]*cfntypes.Stack)
 	for _, stack := range stacks {
 		stackMap[getIAMServiceAccountName(stack)] = stack
 	}
@@ -93,7 +92,7 @@ func stacksToServiceAccountMap(stacks []*types.Stack) map[string]*types.Stack {
 	return stackMap
 }
 
-func getIAMServiceAccountName(s *types.Stack) string {
+func getIAMServiceAccountName(s *cfntypes.Stack) string {
 	for _, tag := range s.Tags {
 		if *tag.Key == api.IAMServiceAccountNameTag {
 			return *tag.Value

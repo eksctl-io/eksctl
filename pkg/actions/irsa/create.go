@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	managedByKubernetesLabelKey   = "app.kubernetes.io/managed-by"
-	managedByKubernetesLabelValue = "eksctl"
+	managedByKubernetesLabelKey               = "app.kubernetes.io/managed-by"
+	managedByKubernetesLabelValue             = "eksctl"
+	maybeCreateServiceAccountOrUpdateMetadata = kubernetes.MaybeCreateServiceAccountOrUpdateMetadata
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -69,7 +70,7 @@ func (c *Creator) CreateIAMServiceAccountsTasks(ctx context.Context, serviceAcco
 		}
 
 		if sa.AttachRoleARN == "" {
-			saTasks.Append(&createIAMServiceAccountTask{
+			saTasks.Append(&createIAMRoleForServiceAccountTask{
 				ctx:          ctx,
 				info:         fmt.Sprintf("create IAM role for serviceaccount %q", sa.NameString()),
 				clusterName:  c.clusterName,
@@ -98,7 +99,7 @@ func (c *Creator) CreateIAMServiceAccountsTasks(ctx context.Context, serviceAcco
 					sa.SetAnnotations()
 					objectMeta.SetAnnotations(sa.AsObjectMeta().Annotations)
 					objectMeta.SetLabels(sa.AsObjectMeta().Labels)
-					if err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, objectMeta); err != nil {
+					if err := maybeCreateServiceAccountOrUpdateMetadata(clientSet, objectMeta); err != nil {
 						return errors.Wrapf(err, "failed to create service account %s/%s", objectMeta.GetNamespace(), objectMeta.GetName())
 					}
 					return nil

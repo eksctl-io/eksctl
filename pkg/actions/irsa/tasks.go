@@ -45,7 +45,7 @@ func NewUpdateIAMServiceAccountTask(clusterName string, sa *api.ClusterIAMServic
 	return taskTree, nil
 }
 
-type createIAMServiceAccountTask struct {
+type createIAMRoleForServiceAccountTask struct {
 	ctx          context.Context
 	info         string
 	clusterName  string
@@ -55,8 +55,8 @@ type createIAMServiceAccountTask struct {
 	oidc         *iamoidc.OpenIDConnectManager
 }
 
-func (t *createIAMServiceAccountTask) Describe() string { return t.info }
-func (t *createIAMServiceAccountTask) Do(errs chan error) error {
+func (t *createIAMRoleForServiceAccountTask) Describe() string { return t.info }
+func (t *createIAMRoleForServiceAccountTask) Do(errs chan error) error {
 	name := makeIAMServiceAccountStackName(t.clusterName, t.sa.Namespace, t.sa.Name)
 	logger.Info("building iamserviceaccount stack %q", name)
 	stack := builder.NewIAMRoleResourceSetForServiceAccount(t.sa, t.oidc)
@@ -102,7 +102,7 @@ func (t *updateIAMServiceAccountTask) Do(errorCh chan error) error {
 	})
 }
 
-type deleteIAMServiceAccountTask struct {
+type deleteIAMRoleForServiceAccountTask struct {
 	ctx          context.Context
 	info         string
 	stack        *cfntypes.Stack
@@ -110,9 +110,9 @@ type deleteIAMServiceAccountTask struct {
 	wait         bool
 }
 
-func (t *deleteIAMServiceAccountTask) Describe() string { return t.info }
+func (t *deleteIAMRoleForServiceAccountTask) Describe() string { return t.info }
 
-func (t *deleteIAMServiceAccountTask) Do(errorCh chan error) error {
+func (t *deleteIAMRoleForServiceAccountTask) Do(errorCh chan error) error {
 	defer close(errorCh)
 
 	errMsg := fmt.Sprintf("deleting IAM role for serviceaccount %q", *t.stack.StackName)
