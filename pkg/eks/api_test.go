@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -81,6 +83,19 @@ var _ = Describe("eksctl API", func() {
 
 		// check that region was setup properly
 		Expect(awsProvider.Region()).To(Equal(api.DefaultRegion))
+
+		// check that load config options were setup properly
+		_, options := fakeConfigurationLoader.LoadDefaultConfigArgsForCall(0)
+		lo := &config.LoadOptions{}
+		for _, loadOptionsFunc := range options {
+			Expect(loadOptionsFunc(lo)).NotTo(HaveOccurred())
+		}
+
+		// check that credentials cache was setup properly
+		cco := &aws.CredentialsCacheOptions{}
+		lo.CredentialsCacheOptions(cco)
+		Expect(cco.ExpiryWindow).To(Equal(30 * time.Minute))
+		Expect(cco.ExpiryWindowJitterFrac).To(Equal(float64(0)))
 	},
 		Entry("fails to load default config", newAWSProviderEntry{
 			updateFakes: func(fal *fakes.FakeAWSConfigurationLoader) {

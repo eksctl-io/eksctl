@@ -74,6 +74,15 @@ func newV2Config(pc *api.ProviderConfig, credentialsCacheFilePath string, config
 		config.WithAPIOptions([]func(stack *middleware.Stack) error{
 			middlewarev2.AddUserAgentKeyValue("eksctl", version.String()),
 		}),
+		// Some CloudFormation operations can take a long time to complete, and we
+		// don't want any temporary credentials to expire before this occurs. So if
+		// it's less than 30 minutes before the current credentials will expire, try
+		// to renew them first.
+		config.WithCredentialsCacheOptions(func(o *aws.CredentialsCacheOptions) {
+			logger.Debug("Setting credentials expiry window to 30 minutes")
+			o.ExpiryWindow = 30 * time.Minute
+			o.ExpiryWindowJitterFrac = 0
+		}),
 	)...)
 
 	if err != nil {
