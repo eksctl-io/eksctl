@@ -1,0 +1,673 @@
+{% extends "main.html" %}
+
+<!-- Render hero under tabs -->
+{% block tabs %}
+  {{ super() }}
+    <!-- Additional styles for landing page -->
+    <style>
+
+        .md-main {
+            flex-grow: 0
+        }
+
+        .md-main__inner {
+            display: flex;
+            height: 100%;
+        }
+
+        .tx-container {
+            padding-top: .0rem;
+            background: linear-gradient(to bottom, var(--md-primary-fg-color), rgb(8, 12, 233) 99%,#fff 99%)
+        }
+
+        .tx-hero__image{
+            height:inherit;
+            display: block;
+        }
+
+        .md-typeset h2 {
+            font-weight: 700;
+            margin-top: .175em
+        }
+
+        .md-typeset h2+h3 {
+            font-size: 1em;
+            margin-top: -.8em
+        }
+
+        .md-typeset :target {
+            --md-scroll-margin: 5.2rem
+        }
+
+        .md-main__inner {
+            margin: 0
+        }
+
+        .md-main__inner>.md-content,.md-main__inner>.md-sidebar--secondary {
+            display: none
+        }
+
+        .md-content__inner {
+            margin-bottom: 0;
+            padding: 5.2rem 0
+        }
+
+        .md-content__inner:before {
+            display: none
+        }
+
+        .md-content header {
+            display: block;
+            transition: opacity .75s
+        }
+
+        .md-typeset .md-button {
+            background-color: #dd2e57;
+            border-width: 0;
+            color: var(--md-primary-bg-color);
+            margin-right: .5rem;
+            margin-top: .5rem;
+        }
+
+        .md-typeset .md-button--secondary {
+            background-color: initial
+        }
+
+        .md-header--shadow {
+            transition: background-color .25s,transform .25s cubic-bezier(.1,.7,.1,1),box-shadow .25s
+        }
+
+        :root {
+            --md-parallax-perspective: 2.5rem
+        }
+
+        .mdx-parallax {
+            height: 100vh;
+            margin-top: -2.4rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior-y: none;
+            perspective: var(--md-parallax-perspective);
+            scroll-behavior: smooth;
+            width: 100vw
+        }
+
+        .mdx-parallax__group {
+            background-color: var(--md-default-bg-color);
+            color: var(--md-typeset-color);
+            display: block;
+            position: relative;
+            transform-style: preserve-3d
+        }
+
+        .mdx-parallax__group:first-child {
+            background-color: initial;
+            contain: strict;
+            height: 100vh
+        }
+
+        .safari .mdx-parallax__group:first-child {
+            contain: none
+        }
+
+        @media (min-width: 125vh) {
+            .mdx-parallax__group:first-child {
+                height:110vw
+            }
+        }
+
+        @media (min-width: 137.5vh) {
+            .mdx-parallax__group:first-child {
+                height:115vw
+            }
+        }
+
+        @media (min-width: 150vh) {
+            .mdx-parallax__group:first-child {
+                height:30vw
+            }
+        }
+
+        @media (min-width: 162.5vh) {
+            .mdx-parallax__group:first-child {
+                height:35vw
+            }
+        }
+
+        @media (min-width: 175vh) {
+            .mdx-parallax__group:first-child {
+                height:40vw
+            }
+        }
+
+        @media (min-width: 187.5vh) {
+            .mdx-parallax__group:first-child {
+                height:45vw
+            }
+        }
+
+        @media (min-width: 200vh) {
+            .mdx-parallax__group:first-child {
+                height:47vw
+            }
+        }
+
+        .mdx-parallax__group:last-child {
+            background-color: var(--md-default-bg-color)
+        }
+
+        .mdx-content__column:last-child {
+            margin-top: 2.4rem
+        }
+
+        .mdx-content__column p:last-child {
+            margin-bottom: 0
+        }
+
+        @media screen and (min-width: 60em) {
+            .mdx-content__inner {
+                display:flex;
+                flex-wrap: nowrap;
+                gap: 6.4rem
+            }
+
+            .mdx-content__column {
+                margin-top: 0
+            }
+
+            .mdx-content__column:first-child {
+                flex: 2 0
+            }
+
+            .mdx-content__column:last-child {
+                flex: 1 0;
+                margin-top: 0
+            }
+        }
+
+        .mdx-connect {
+            display: block;
+            transition: transform .75s cubic-bezier(.075,.85,.175,1) 125ms,opacity .75s 125ms
+        }
+
+        .mdx-connect .mdx-connect__link {
+            color: var(--md-default-fg-color);
+            display: block
+        }
+
+        .mdx-connect .mdx-connect__link span {
+            margin-right: .2rem
+        }
+
+        .mdx-expect {
+            margin: 2.4rem 0
+        }
+
+        .mdx-expect__list {
+            display: flex;
+            flex-flow: row wrap;
+            gap: 1.6rem;
+            padding: 0
+        }
+
+        .mdx-expect__item {
+            display: flex;
+            flex: 1 0 48%;
+            gap: .6rem;
+            margin: 0;
+            transition: transform .75s cubic-bezier(.075,.85,.175,1),opacity .75s
+        }
+
+        .mdx-expect__item:first-child {
+            transition-delay: .2s
+        }
+
+        .mdx-expect__item:nth-child(2) {
+            transition-delay: 275ms
+        }
+
+        .mdx-expect__item:nth-child(3) {
+            transition-delay: .35s
+        }
+
+        .mdx-expect__item:nth-child(4) {
+            transition-delay: 425ms
+        }
+
+        .mdx-expect__item:nth-child(5) {
+            transition-delay: .5s
+        }
+
+        .mdx-expect__item:nth-child(6) {
+            transition-delay: 575ms
+        }
+
+        .mdx-expect__icon {
+            fill: currentcolor;
+            background-color: var(--md-default-fg-color--lightest);
+            border-radius: 100%;
+            flex-shrink: 0;
+            height: 2.2rem;
+            padding: .4rem;
+            width: 2.2rem
+        }
+
+        .mdx-expect__description>:last-child {
+            margin-bottom: 0
+        }
+
+        @media screen and (max-width: 76.1875em) {
+            .mdx-expect__description>:last-child {
+                margin-left:-2.8rem
+            }
+        }
+
+        .mdx-hero {
+            display: block;
+            height: inherit
+        }
+
+        .mdx-hero__scrollwrap {
+            height: 100vh;
+            margin-bottom: -100vh;
+            position: sticky;
+            top: 0;
+            z-index: 9
+        }
+
+        .mdx-hero__inner {
+            bottom: 3.2rem;
+            display: block;
+            position: absolute;
+            transition: transform .4s cubic-bezier(.1,.7,.1,1),opacity .25s;
+            width: 100%
+        }
+
+        @media screen and (max-width: 44.9375em) {
+            .mdx-hero__inner {
+                bottom:6.4rem
+            }
+        }
+
+        .mdx-hero__teaser :not(.md-button) {
+            text-shadow: 0 0 .2rem #211d2dcc
+        }
+
+        .mdx-hero__teaser {
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            color: var(--md-primary-bg-color);
+            margin: 0 .8rem;
+            max-width: 24rem;
+        }
+
+        .mdx-hero__teaser h1 {
+            color: inherit;
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+
+        .mdx-hero .mdx-hero__attribution {
+            background-color: var(--md-default-bg-color--light);
+            border-radius: .1rem;
+            bottom: -2.4rem;
+            color: var(--md-default-fg-color);
+            font-size: .5rem;
+            padding: .1rem .4rem;
+            position: absolute;
+            right: .8rem;
+            transition: color 125ms,background-color 125ms
+        }
+
+        .mdx-hero .mdx-hero__attribution:focus,.mdx-hero .mdx-hero__attribution:hover {
+            background-color: var(--md-accent-fg-color);
+            color: var(--md-accent-bg-color)
+        }
+
+        .mdx-hero__more {
+            bottom: -2.4rem;
+            display: block;
+            left: 50%;
+            margin-left: -.6rem;
+            pointer-events: none;
+            position: absolute;
+            text-align: center
+        }
+
+        .mdx-hero__more svg {
+            fill: #fff;
+            height: 1.2rem;
+            width: 1.2rem
+        }
+
+        .mdx-spotlight {
+            margin: 2em 0
+        }
+
+        .mdx-spotlight__feature {
+            display: flex;
+            flex: 1 0 48%;
+            flex-flow: row nowrap;
+            gap: 3.2rem;
+            margin: 0 0 3.2rem
+        }
+
+        @media screen and (max-width: 59.9375em) {
+            .mdx-spotlight__feature {
+                flex-direction:column;
+                gap: 0
+            }
+        }
+
+        @media screen and (min-width: 60em) {
+            .mdx-spotlight__feature:nth-child(odd) {
+                flex-direction:row-reverse
+            }
+        }
+
+        .mdx-spotlight__feature:last-child {
+            margin-bottom: 1em
+        }
+
+        .mdx-spotlight__feature>a {
+            display: block;
+            flex-shrink: 0;
+            transition: transform .5s cubic-bezier(.075,.85,.175,1)
+        }
+
+        @media screen and (max-width: 59.9375em) {
+            .mdx-spotlight__feature>a {
+                margin-left:auto;
+                margin-right: auto
+            }
+        }
+
+        .mdx-spotlight__feature>a:hover {
+            transform: scale(1.025)
+        }
+
+        .mdx-spotlight__feature a>img {
+            border-radius: .2rem;
+            box-shadow: var(--md-shadow-z2);
+            display: block;
+            height: auto;
+            max-width: 100%;
+            width: 25rem
+        }
+
+        .mdx-spotlight__feature a>img,.mdx-spotlight__feature figcaption {
+            transition: transform .75s cubic-bezier(.075,.85,.175,1) 125ms,opacity .75s 125ms
+        }
+
+        .mdx-trust {
+            display: block;
+            max-width: 40rem;
+            transition: transform .75s cubic-bezier(.075,.85,.175,1) 125ms,opacity .75s 125ms
+        }
+
+        .mdx-users {
+            display: flex;
+            gap: 2.2rem;
+            margin: 2.4rem 0
+        }
+
+        @media screen and (max-width: 59.9375em) {
+            .mdx-users {
+                flex-direction:column
+            }
+        }
+
+        .mdx-users__testimonial {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 1.2rem;
+            margin: 0;
+            text-align: center
+        }
+
+        .mdx-users__testimonial:first-child {
+            transition-delay: .2s
+        }
+
+        .mdx-users__testimonial:nth-child(2) {
+            transition-delay: 275ms
+        }
+
+        .mdx-users__testimonial:nth-child(3) {
+            transition-delay: .35s
+        }
+
+        .mdx-users__testimonial img {
+            border-radius: 5rem;
+            height: auto;
+            margin-left: auto;
+            margin-right: auto;
+            width: 4rem
+        }
+
+        .mdx-users__testimonial figcaption,.mdx-users__testimonial img {
+            transition: transform .75s cubic-bezier(.075,.85,.175,1),opacity .75s;
+            transition-delay: inherit
+        }
+
+        .mdx-users__testimonial figcaption {
+            display: block
+        }
+
+        @media screen and (min-width: 60em) {
+            .md-sidebar--secondary {
+                display:none
+            }
+        }
+
+        @media screen and (min-width: 76.25em) {
+            .md-sidebar--primary {
+                display:none
+            }
+        }
+
+        .md-tabs {
+            background-color: initial;
+            position: absolute;
+            top: 2.4rem
+        }
+
+        .md-banner {
+            display: none;
+        }
+
+        .contributors img {
+            width: 3rem;
+            padding: .2rem;
+        }
+    </style>
+
+<div class="mdx-parallax" data-mdx-component="parallax">
+<!-- Main site hero -->
+    <section class="mdx-parallax__group tx-container" data-md-color-scheme="slate">
+        <div class="mdx-hero" data-mdx-component="hero">
+            <picture class="tx-hero__image"> 
+                <!-- <img src="assets/images/illustration.png" draggable="false"> Todo: Add a nicer illustration -->
+            </picture>
+            <div class="md-grid">
+                <div class="mdx-hero__inner"> 
+                    <div class="mdx-hero__teaser md-typeset"> 
+                        <h1>{{ config.site_description }}.</h1> 
+                        <p>eksctl is a simple CLI tool for creating and managing clusters on EKS - Amazon's managed Kubernetes service for EC2.</p> 
+                        <a href="/getting-started/" class="md-button"> Get started </a> 
+                        <a href="#create-cluster-in-minutes" class="md-button md-button--secondary"> Learn more </a>
+                    </div>
+                    <div class="mdx-hero__more"> 
+                        <span class="twemoji"> 
+                            {% include ".icons/fontawesome/solid/arrow-down-long.svg" %} 
+                        </span>
+                    </div> 
+                </div>
+            </div>
+        </div>
+    </section>
+
+<!-- Highlights -->
+    <section class="mdx-parallax__group" data-md-color-scheme="default" data-md-color-primary="indigo"> 
+        <div class="md-content md-grid" data-md-component="content"> 
+            <div class="md-content__inner"> 
+                <header class="md-typeset"> 
+                <h1 id="create-cluster-in-minutes">Create a basic cluster in minutes with just one command.
+                    <a href="#create-cluster-in-minutes" class="headerlink" title="Permanent link"> ¶ </a>
+                </h1> 
+                </header> 
+                <div class="mdx-spotlight"> 
+                    <figure class="mdx-spotlight__feature"> 
+                        <a href="/getting-started/" tabindex="-1" title="Getting started"><img src="assets/images/cluster-demo.png" alt="Getting started" loading="lazy"></a>
+                        <figcaption class="md-typeset">
+                            <h2><code>eksctl create cluster</code></h2> 
+                            <p>A cluster will be created with default parameters:</p> 
+                            <ul> 
+                                <li>exciting auto-generated name, e.g., <code>fabulous-mushroom-1527688624</code></li> 
+                                <li>two <code>m5.large</code> worker nodes (this instance type suits most common use-cases, and is good value for money)</li> 
+                                <li>use the official AWS <a href="https://github.com/awslabs/amazon-eks-ami">EKS AMI</a></li> 
+                                <li><code>us-west-2</code> region</li> 
+                                <li>a dedicated VPC (check your quotas)</li> 
+                            </ul> 
+                            <p><a href="/getting-started/" aria-label="Getting started"> 
+                                <span class="twemoji"> 
+                                    {% include ".icons/octicons/arrow-right-16.svg" %} 
+                                </span> Learn more </a> 
+                            </p> 
+                        </figcaption> 
+                    </figure>
+                    <figure class="mdx-spotlight__feature"> 
+                        <a href="/usage/outposts" tabindex="-1" title="Usage Outposts"><img src="assets/images/outposts.png" alt="Usage Outposts" loading="lazy"></a>
+                        <figcaption class="md-typeset">
+                            <h2>New for {{ build_date_utc.strftime('%Y') }}</h2>
+                            <p>Creating fully private clusters on <a href="/usage/outposts">AWS Outposts</a>.</p> 
+                            <p>Supported Regions - Zurich (<code>eu-central-2</code>), 
+                                    Spain (<code>eu-south-2</code>), 
+                                    Hyderabad (<code>ap-south-2</code>), 
+                                    Melbourne (<code>ap-southeast-4</code>), 
+                                    Tel Aviv (<code>il-central-1</code>), 
+                                    US ISO - (<code>us-iso-east-1</code> and <code>us-isob-east-1</code>)
+                            </p>
+                            <p>EKS supported versions <code>1.25</code>, <code>1.26</code>, <code>1.27</code> (default) and <code>1.28</code>.</p> 
+                            <p><a href="/usage/creating-and-managing-clusters/" aria-label="Usage"> 
+                                <span class="twemoji"> 
+                                    {% include ".icons/octicons/arrow-right-16.svg" %} 
+                                </span> Learn more </a> 
+                            </p>
+                        </figcaption>
+                    </figure>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Community -->
+    <section class="mdx-parallax__group" data-md-color-scheme="slate" data-md-color-primary="indigo">
+        <div class="md-content md-grid" data-md-component="content"> 
+            <div class="md-content__inner">
+                <header class="md-typeset"> 
+                    <h1 id="community"> Community 
+                        <span class="twemoji heart-fill-24 heart">
+                            {% include ".icons/octicons/heart-fill-24.svg" %} 
+                        </span>
+                        <a href="#community" class="headerlink" title="Permanent link"> ¶ </a>
+                    </h1> 
+                </header> 
+                <div class="mdx-expect"> 
+                    <ul class="mdx-expect__list"> 
+                        <li class="mdx-expect__item md-typeset"> 
+                            <div class="mdx-expect__icon"> 
+                                <span> 
+                                    {% include ".icons/fontawesome/brands/github.svg" %} 
+                                </span>
+                            </div> 
+                            <div class="mdx-expect__description"> 
+                                <h2>Github</h2> 
+                                <p>Create an <a href="https://github.com/eksctl-io/eksctl/issues/new">issue</a> to Propose a feature request, Suggest an improvement, Report a Bug or Open a Help ticket on Github. </p> 
+                            </div> 
+                        </li> 
+                        <li class="mdx-expect__item md-typeset">
+                            <div class="mdx-expect__icon">
+                                <span>
+                                    {% include ".icons/fontawesome/brands/slack.svg" %} 
+                                </span>
+                            </div> 
+                            <div class="mdx-expect__description"> 
+                                <h2>Slack</h2> 
+                                <p>Have a question or need help? Ask a question on our <a href="https://slack.k8s.io/messages/eksctl/">Slack channel</a> and get in touch with our community by joining <a href="https://slack.k8s.io/">Kubernetes Slack</a>.</p>
+                            </div>
+                        </li>
+                        <li class="mdx-expect__item md-typeset">
+                            <div class="mdx-expect__icon">
+                                <span>
+                                    {% include ".icons/octicons/git-pull-request-16.svg" %} 
+                                </span>
+                            </div> 
+                            <div class="mdx-expect__description"> 
+                                <h2>Contributing</h2> 
+                                <p>Read more about Contributing to eksctl repository <a href="https://github.com/eksctl-io/eksctl/blob/main/CONTRIBUTING.md">here</a>.</p>
+                            </div>
+                        </li>
+                        <li class="mdx-expect__item md-typeset">
+                            <div class="mdx-expect__icon">
+                                <span> 
+                                    {% include ".icons/octicons/people-16.svg" %} 
+                                </span>
+                            </div> 
+                            <div class="mdx-expect__description"> 
+                                <h2>Code of Conduct</h2> 
+                                <p>Find out more about eksctl Community and Code of Conduct <a href="https://github.com/eksctl-io/eksctl/blob/main/COMMUNITY.md">here</a>.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <header class="md-typeset"> 
+                    <h2>Eksctl Maintainers</h2>
+                </header>
+                <div class="mdx-users">
+                    <figure class="mdx-users__testimonial"><a href="https://github.com/Himangini"><img src="https://avatars.githubusercontent.com/u/10995114?v=4" title="Himangini" alt="Himangini" loading="lazy"></a></figure>
+                    <figure class="mdx-users__testimonial"><a href="https://github.com/cPu1"><img src="https://avatars.githubusercontent.com/u/6298307?v=4" title="cPu1" alt="cPu1" loading="lazy"></a></figure>
+                    <figure class="mdx-users__testimonial"><a href="https://github.com/TiberiuGC"><img src="https://avatars.githubusercontent.com/u/110664232?v=4" title="TiberiuGC" alt="TiberiuGC" loading="lazy"></a></figure>
+                    <figure class="mdx-users__testimonial"><a href="https://github.com/yuxiang-zhang"><img src="https://avatars.githubusercontent.com/u/23327251?v=4" title="yuxiang-zhang" alt="yuxiang-zhang" loading="lazy"></a></figure>
+                    <figure class="mdx-users__testimonial"><a href="https://github.com/a-hilaly"><img src="https://avatars.githubusercontent.com/u/10897901?v=4" title="a-hilaly" alt="a-hilaly" loading="lazy"></a></figure>
+                </div>
+                <header class="md-typeset">
+                    <h3>Thank you <a href="https://github.com/eksctl-io/eksctl/graphs/contributors">eksctl contributors</a> all your contributions.<span class="twemoji">{% include ".icons/octicons/star-16.svg" %}</span></h3>
+                </header>
+                <div class="contributors" id="contributors"></div>
+            </div> 
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <section class="mdx-parallax__group" data-md-color-scheme="default" data-md-color-primary="indigo">
+        <div class="md-content md-grid" data-md-component="content"> 
+            <div class="md-content__inner">
+                <div class="md-typeset">
+                    <p>sponsored by <a href="https://www.weave.works/"><img alt="Weaveworks" src="/img/empty.svg#wwinline"></a> 
+                        and built by <a href="https://github.com/eksctl-io/eksctl/graphs/contributors">contributors <img alt="Contributors" src="/img/gophers.png#inline"></a> 
+                        on <a href="https://github.com/eksctl-io/eksctl"><img alt="Github" src="/img/empty.svg#gitinline"></a>
+                    </p>
+                    <p>
+                        Site powered by <a href="https://netlify.com">Netlify &copy;</a>
+                        <br>
+                        Copyright &copy; {{ build_date_utc.strftime('%Y') }} Weaveworks
+                        <br>
+                        Made with
+                        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+                        Material for MkDocs
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+<!-- Content -->
+{% block content %}{% endblock %}
+
+<!-- Application footer -->
+{% block footer %}{% endblock %}

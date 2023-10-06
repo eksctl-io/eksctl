@@ -23,6 +23,7 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/pkg/addons"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -88,13 +89,7 @@ var _ = BeforeSuite(func() {
 
 	fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
 
-	supportedVersions := api.SupportedVersions()
-	if len(supportedVersions) < 2 {
-		Fail("Update cluster test requires at least two supported EKS versions")
-	}
-
-	// Use the lowest supported version
-	eksVersion, nextEKSVersion = supportedVersions[0], supportedVersions[1]
+	eksVersion, nextEKSVersion = clusterutils.GetCurrentAndNextVersionsForUpgrade(params.Version)
 
 	cmd := params.EksctlCreateCmd.WithArgs(
 		"cluster",
