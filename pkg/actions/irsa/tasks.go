@@ -57,6 +57,8 @@ type createIAMRoleForServiceAccountTask struct {
 
 func (t *createIAMRoleForServiceAccountTask) Describe() string { return t.info }
 func (t *createIAMRoleForServiceAccountTask) Do(errs chan error) error {
+	defer close(errs)
+
 	name := makeIAMServiceAccountStackName(t.clusterName, t.sa.Namespace, t.sa.Name)
 	logger.Info("building iamserviceaccount stack %q", name)
 	stack := builder.NewIAMRoleResourceSetForServiceAccount(t.sa, t.oidc)
@@ -137,6 +139,8 @@ type kubernetesTask struct {
 
 func (t *kubernetesTask) Describe() string { return t.info }
 func (t *kubernetesTask) Do(errs chan error) error {
+	defer close(errs)
+
 	if t.kubernetes == nil {
 		return fmt.Errorf("cannot start task %q as Kubernetes client configurtaion wasn't provided", t.Describe())
 	}
@@ -145,6 +149,5 @@ func (t *kubernetesTask) Do(errs chan error) error {
 		return err
 	}
 	err = t.call(clientSet, t.objectMeta)
-	close(errs)
 	return err
 }
