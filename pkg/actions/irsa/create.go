@@ -42,6 +42,8 @@ func NewCreator(
 	oidcManager *iamoidc.OpenIDConnectManager,
 	stackManager StackManager) *Creator {
 	return &Creator{
+		clusterName:     clusterName,
+		region:          region,
 		clientSetGetter: clientSetGetter,
 		oidcManager:     oidcManager,
 		stackManager:    stackManager,

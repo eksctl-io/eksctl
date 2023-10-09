@@ -57,8 +57,6 @@ type createIAMRoleForServiceAccountTask struct {
 
 func (t *createIAMRoleForServiceAccountTask) Describe() string { return t.info }
 func (t *createIAMRoleForServiceAccountTask) Do(errs chan error) error {
-	defer close(errs)
-
 	name := makeIAMServiceAccountStackName(t.clusterName, t.sa.Namespace, t.sa.Name)
 	logger.Info("building iamserviceaccount stack %q", name)
 	stack := builder.NewIAMRoleResourceSetForServiceAccount(t.sa, t.oidc)
@@ -115,8 +113,6 @@ type deleteIAMRoleForServiceAccountTask struct {
 func (t *deleteIAMRoleForServiceAccountTask) Describe() string { return t.info }
 
 func (t *deleteIAMRoleForServiceAccountTask) Do(errorCh chan error) error {
-	defer close(errorCh)
-
 	errMsg := fmt.Sprintf("deleting IAM role for serviceaccount %q", *t.stack.StackName)
 	if t.wait {
 		if err := t.stackManager.DeleteStackBySpecSync(t.ctx, t.stack, errorCh); err != nil {
@@ -124,6 +120,8 @@ func (t *deleteIAMRoleForServiceAccountTask) Do(errorCh chan error) error {
 		}
 		return nil
 	}
+
+	defer close(errorCh)
 	if _, err := t.stackManager.DeleteStackBySpec(t.ctx, t.stack); err != nil {
 		return fmt.Errorf("%s: %w", errMsg, err)
 	}
