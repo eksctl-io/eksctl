@@ -69,11 +69,11 @@ require (
 	github.com/weaveworks/goformation/v4 v4.10.2-0.20230526082129-5f5eaa9609b8
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xgfone/netaddr v0.5.1
-	golang.org/x/crypto v0.13.0
+	golang.org/x/crypto v0.14.0
 	golang.org/x/exp v0.0.0-20230510235704-dd950f8aeaea
 	golang.org/x/oauth2 v0.12.0
-	golang.org/x/sync v0.3.0
-	golang.org/x/tools v0.13.0
+	golang.org/x/sync v0.4.0
+	golang.org/x/tools v0.14.0
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.11.2
 	k8s.io/api v0.26.0
@@ -476,10 +476,10 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	gocloud.dev v0.26.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230307190834-24139beb5833 // indirect
-	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/net v0.15.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
-	golang.org/x/term v0.12.0 // indirect
+	golang.org/x/mod v0.13.0 // indirect
+	golang.org/x/net v0.16.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.1.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
