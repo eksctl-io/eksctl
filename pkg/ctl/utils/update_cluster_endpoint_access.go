@@ -15,6 +15,7 @@ func updateClusterEndpointsCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
+	cmd.CobraCommand.Deprecated = "this command is deprecated and will be removed soon. Use `eksctl utils update-cluster-vpc-config --public-access=<> --private-access=<> instead."
 	cmd.SetDescription("update-cluster-endpoints", "Update Kubernetes API endpoint access configuration", "")
 
 	var (
