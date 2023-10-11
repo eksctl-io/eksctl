@@ -1,6 +1,8 @@
 # Getting started
 
 !!! tip "New for 2023"
+    `eksctl` now supports [updating the subnets and security groups](/usage/cluster-subnets-security-groups) associated with the EKS control plane.
+    
     `eksctl` now supports creating fully private clusters on [AWS Outposts](/usage/outposts).
 
     `eksctl` now supports new ISO regions `us-iso-east-1` and `us-isob-east-1`.
