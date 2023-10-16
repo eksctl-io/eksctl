@@ -2,13 +2,16 @@ package defaultaddons_test
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	da "github.com/weaveworks/eksctl/pkg/addons/default"
-
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
@@ -25,12 +28,12 @@ var _ = Describe("default addons - coredns", func() {
 		rawClient = testutils.NewFakeRawClient()
 		rawClient.UseUnionTracker = true
 		region = "eu-west-2"
-		controlPlaneVersion = "1.24.x"
-		kubernetesVersion = "1.23"
+		kubernetesVersion = "1.25"
+		controlPlaneVersion = "1.26"
 
 		input = da.AddonInput{
 			RawClient:           rawClient,
-			ControlPlaneVersion: controlPlaneVersion,
+			ControlPlaneVersion: controlPlaneVersion + ".x",
 			Region:              region,
 		}
 	})
@@ -42,7 +45,12 @@ var _ = Describe("default addons - coredns", func() {
 
 		BeforeEach(func() {
 			createCoreDNSFromTestSample(rawClient, kubernetesVersion)
-			expectedImageTag = "v1.8.7-eksbuild.3"
+
+			coreFile, err := os.ReadFile(filepath.Join("assets", fmt.Sprintf("coredns-%s.json", controlPlaneVersion)))
+			Expect(err).NotTo(HaveOccurred())
+
+			expectedImageTag = regexp.MustCompile(`v\d+\.\d+\.\d+-eksbuild\.\d+`).FindString(string(coreFile))
+			Expect(expectedImageTag).NotTo(BeEmpty())
 		})
 
 		It("updates coredns to the correct version", func() {
