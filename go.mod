@@ -9,7 +9,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8c1e
 	github.com/aws/aws-sdk-go v1.45.24
-	github.com/aws/aws-sdk-go-v2 v1.21.1
+	github.com/aws/aws-sdk-go-v2 v1.21.2
 	github.com/aws/aws-sdk-go-v2/config v1.18.44
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.42
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.30.7
@@ -25,7 +25,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.24.6
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.30.1
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.38.1
-	github.com/aws/aws-sdk-go-v2/service/sts v1.23.1
+	github.com/aws/aws-sdk-go-v2/service/sts v1.23.2
 	github.com/aws/smithy-go v1.15.0
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
@@ -146,12 +146,12 @@ require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.1 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.12 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.3 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.42 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.36 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.43 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.37 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.44 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.36 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.37 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.17.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.3 // indirect
