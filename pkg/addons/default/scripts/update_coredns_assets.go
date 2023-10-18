@@ -78,7 +78,7 @@ func replaceCurrentVersionIfOutdated(latestVersion string, kubernetesVersion str
 	regexpVersion := regexp.MustCompile(`v\d+\.\d+\.\d+-eksbuild\.\d+`)
 	currentVersion := regexpVersion.FindString(string(coreFile))
 	if currentVersion == "" {
-		log.Fatalf("cloudn't find coredns version in coredns-%s.json", kubernetesVersion)
+		log.Fatalf("couldn't find coredns version in coredns-%s.json", kubernetesVersion)
 	}
 
 	updatedCoreFile := regexpVersion.ReplaceAllString(string(coreFile), latestVersion)
