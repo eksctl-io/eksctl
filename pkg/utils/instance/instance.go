@@ -46,6 +46,7 @@ func IsNvidiaInstanceType(instanceType string) bool {
 	return strings.HasPrefix(instanceType, "p2") ||
 		strings.HasPrefix(instanceType, "p3") ||
 		strings.HasPrefix(instanceType, "p4") ||
+		strings.HasPrefix(instanceType, "p5") ||
 		strings.HasPrefix(instanceType, "g3") ||
 		strings.HasPrefix(instanceType, "g4") ||
 		strings.HasPrefix(instanceType, "g5")
