@@ -6,13 +6,13 @@ metadata:
   name: <generated>
 
 nodeGroups:
-  - name: unm-1
+  - name: ng-scale-multiple
     desiredCapacity: 5
     maxSize: 5
     minSize: 5
 
 managedNodeGroups:
-  - name: mng-1
+  - name: mng-scale-multiple
     desiredCapacity: 5
     maxSize: 5
     minSize: 5

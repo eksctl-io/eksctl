@@ -6,12 +6,12 @@ metadata:
   name: <generated>
 
 nodeGroups:
-- name: unm-1
+- name: ng-taints-1
   taints:
     key1: val1:NoSchedule
     key2: :NoExecute
   maxPodsPerNode: 123
-- name: unm-2
+- name: ng-taints-2
   volumeSize: 35
   taints:
   - key: key1
