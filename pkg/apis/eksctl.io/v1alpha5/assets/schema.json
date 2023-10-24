@@ -655,6 +655,22 @@
           "description": "See [managing access to API](/usage/vpc-networking/#managing-access-to-the-kubernetes-api-server-endpoints)",
           "x-intellij-html-description": "See <a href=\"/usage/vpc-networking/#managing-access-to-the-kubernetes-api-server-endpoints\">managing access to API</a>"
         },
+        "controlPlaneSecurityGroupIDs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "configures the security groups for the control plane.",
+          "x-intellij-html-description": "configures the security groups for the control plane."
+        },
+        "controlPlaneSubnetIDs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "configures the subnets for the control plane.",
+          "x-intellij-html-description": "configures the subnets for the control plane."
+        },
         "extraCIDRs": {
           "items": {
             "type": "string"
@@ -733,7 +749,9 @@
         "autoAllocateIPv6",
         "nat",
         "clusterEndpoints",
-        "publicAccessCIDRs"
+        "publicAccessCIDRs",
+        "controlPlaneSubnetIDs",
+        "controlPlaneSecurityGroupIDs"
       ],
       "additionalProperties": false,
       "description": "holds global subnet and all child subnets",

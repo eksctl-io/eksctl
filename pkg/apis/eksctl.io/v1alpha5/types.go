@@ -957,6 +957,9 @@ type OutpostInfo interface {
 	GetOutpost() *Outpost
 }
 
+// ErrUnsupportedLocalCluster is an error for when an unsupported operation is attempted on a local cluster.
+var ErrUnsupportedLocalCluster = errors.New("this operation is not supported on Outposts clusters")
+
 // Karpenter provides configuration options
 type Karpenter struct {
 	// Version defines the Karpenter version to install

@@ -11,17 +11,17 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-var (
-	private bool
-	public  bool
-)
-
 func updateClusterEndpointsCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
+	cmd.CobraCommand.Deprecated = "this command is deprecated and will be removed soon. Use `eksctl utils update-cluster-vpc-config --public-access=<> --private-access=<> instead."
 	cmd.SetDescription("update-cluster-endpoints", "Update Kubernetes API endpoint access configuration", "")
 
+	var (
+		private bool
+		public  bool
+	)
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, _ []string) error {
 		return doUpdateClusterEndpoints(cmd, private, public)
 	}
@@ -57,69 +57,19 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	}
 	logger.Info("using region %s", meta.Region)
 
-	if cfg.IsControlPlaneOnOutposts() {
-		return errUnsupportedLocalCluster
-	}
-
 	if ok, err := ctl.CanUpdate(cfg); !ok {
 		return err
 	}
 
-	clusterVPCConfig, err := ctl.GetCurrentClusterVPCConfig(ctx, cfg)
-	if err != nil {
-		return err
+	cfg.VPC.PublicAccessCIDRs = nil
+	cfg.VPC.ControlPlaneSubnetIDs = nil
+	cfg.VPC.ControlPlaneSecurityGroupIDs = nil
+	vpcHelper := &VPCHelper{
+		VPCUpdater:  ctl,
+		ClusterMeta: cfg.Metadata,
+		Cluster:     ctl.Status.ClusterInfo.Cluster,
+		PlanMode:    cmd.Plan,
 	}
 
-	curPrivate, curPublic := *clusterVPCConfig.ClusterEndpoints.PrivateAccess, *clusterVPCConfig.ClusterEndpoints.PublicAccess
-
-	logger.Info("current Kubernetes API endpoint access: privateAccess=%v, publicAccess=%v",
-		curPrivate, curPublic)
-
-	if cfg.VPC.ClusterEndpoints.PrivateAccess == nil {
-		newPrivate = curPrivate
-	} else {
-		newPrivate = *cfg.VPC.ClusterEndpoints.PrivateAccess
-	}
-	if cfg.VPC.ClusterEndpoints.PublicAccess == nil {
-		newPublic = curPublic
-	} else {
-		newPublic = *cfg.VPC.ClusterEndpoints.PublicAccess
-	}
-
-	// Nothing changed?
-	if newPrivate == curPrivate && newPublic == curPublic {
-		logger.Success("Kubernetes API endpoint access for cluster %q in %q is already up to date",
-			meta.Name, meta.Region)
-		return nil
-	}
-
-	cfg.VPC.ClusterEndpoints.PrivateAccess = &newPrivate
-	cfg.VPC.ClusterEndpoints.PublicAccess = &newPublic
-
-	cmdutils.LogIntendedAction(
-		cmd.Plan, "update Kubernetes API endpoint access for cluster %q in %q to: privateAccess=%v, publicAccess=%v",
-		meta.Name, meta.Region, newPrivate, newPublic)
-
-	if err := cfg.ValidateClusterEndpointConfig(); err != nil {
-		return err
-	}
-
-	// if it's a private only cluster warn the user
-	if api.PrivateOnly(cfg.VPC.ClusterEndpoints) {
-		logger.Warning(api.ErrClusterEndpointPrivateOnly.Error())
-	}
-
-	if !cmd.Plan {
-		if err := ctl.UpdateClusterConfigForEndpoints(ctx, cfg); err != nil {
-			return err
-		}
-		cmdutils.LogCompletedAction(
-			false,
-			"the Kubernetes API endpoint access for cluster %q in %q has been updated to: "+
-				"privateAccess=%v, publicAccess=%v",
-			meta.Name, meta.Region, newPrivate, newPublic)
-	}
-	cmdutils.LogPlanModeWarning(cmd.Plan)
-
-	return nil
+	return vpcHelper.UpdateClusterVPCConfig(ctx, cfg.VPC)
 }

@@ -179,6 +179,7 @@ nav:
       - usage/vpc-configuration.md
       - usage/vpc-subnet-settings.md
       - usage/vpc-cluster-access.md
+      - usage/cluster-subnets-security-groups.md
       - usage/vpc-ip-family.md
     - IAM:
       - usage/minimum-iam-policies.md
