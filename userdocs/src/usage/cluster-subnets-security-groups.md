@@ -80,4 +80,4 @@ vpc:
 eksctl utils update-cluster-vpc-config -f config.yaml
 ```
 
-For a complete example, refer to [https://github.com/eksctl-io/eksctl/blob/main/examples/38-cluster-subnets-sgs.yaml](cluster-subnets-sgs.yaml).
+For a complete example, refer to [cluster-subnets-sgs.yaml](https://github.com/eksctl-io/eksctl/blob/main/examples/38-cluster-subnets-sgs.yaml).
