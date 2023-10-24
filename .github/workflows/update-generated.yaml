@@ -4,15 +4,21 @@ on:
   schedule:
     - cron: "0 5 * * Thu"
 
+permissions:
+  id-token: write
+
 env:
   DEFAULT_BRANCH: main
-  UPDATE_BRANCH: update-aws-node
 
 jobs:
-  update_aws_node:
-    name: Update aws-node and open PR
+  update_generated_file:
+    strategy:
+      fail-fast: false
+      matrix:
+        resource: ["coredns", "aws-node"]    
+    name: Update ${{ matrix.resource }} and open PR
     runs-on: ubuntu-latest
-    container: public.ecr.aws/eksctl/eksctl-build:afe6db5efec79e26d6267f1e7b28ce4416644ca6
+    container: public.ecr.aws/eksctl/eksctl-build:516ded83aa5dbd3e3c4e25c5d410e2dba3b5e668
     env:
       GOPRIVATE: ""
     steps:
@@ -21,6 +27,14 @@ jobs:
         with:
           token: ${{ secrets.EKSCTLBOT_TOKEN }}
           fetch-depth: 0
+      - name: Configure AWS credentials for coredns update
+        if: ${{ matrix.resource == 'coredns' }}
+        uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+        with:
+          aws-region: us-west-2
+          role-duration-seconds: 900
+          role-session-name: eksctl-update-coredns-assets
+          role-to-assume: ${{ secrets.UPDATE_COREDNS_ROLE_ARN }}
       - name: Setup identity as eksctl-bot
         uses: ./.github/actions/setup-identity
         with:
@@ -34,15 +48,15 @@ jobs:
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: |
             go-
-      - name: Update aws-node
-        run: make update-aws-node
+      - name: Update ${{ matrix.resource }}
+        run: make update-${{ matrix.resource }}
       - name: Commit changes
         id: commit
         run: |
           git checkout $DEFAULT_BRANCH
-          git checkout -B $UPDATE_BRANCH
+          git checkout -B update-${{ matrix.resource }}
           git add -u
-          if ! EDITOR=true git commit -m "Update aws-node"; then
+          if ! EDITOR=true git commit -m "Update ${{ matrix.resource }}"; then
             echo "changes=false" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -57,8 +71,8 @@ jobs:
           script: |
             const { data: pr } = await github.rest.pulls.create({
               ...context.repo,
-              title: "Update aws-node",
-              head: "${{ env.UPDATE_BRANCH }}",
+              title: "Update ${{ matrix.resource }}",
+              head: "update-${{ matrix.resource }}",
               base: "${{ env.DEFAULT_BRANCH }}",
             });
             await github.rest.issues.addLabels({
