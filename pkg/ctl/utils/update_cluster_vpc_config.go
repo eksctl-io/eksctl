@@ -46,6 +46,10 @@ func updateClusterVPCConfigWithHandler(cmd *cmdutils.Cmd, handler func(cmd *cmdu
 	cmd.FlagSetGroup.InFlagSet("Public Access CIDRs", func(fs *pflag.FlagSet) {
 		fs.StringSliceVar(&options.PublicAccessCIDRs, "public-access-cidrs", nil, "CIDR blocks that EKS uses to create a security group on the public endpoint")
 	})
+	cmd.FlagSetGroup.InFlagSet("Control plane subnets and security groups", func(fs *pflag.FlagSet) {
+		fs.StringSliceVar(&options.ControlPlaneSubnetIDs, "control-plane-subnet-ids", nil, "Subnet IDs for the control plane")
+		fs.StringSliceVar(&options.ControlPlaneSecurityGroupIDs, "control-plane-security-group-ids", nil, "Security group IDs for the control plane")
+	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }

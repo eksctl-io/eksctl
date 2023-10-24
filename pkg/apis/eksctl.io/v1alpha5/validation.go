@@ -318,6 +318,10 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		c.VPC.ExtraIPv6CIDRs = cidrs
 	}
 
+	if c.VPC.SecurityGroup != "" && len(c.VPC.ControlPlaneSecurityGroupIDs) > 0 {
+		return errors.New("only one of vpc.securityGroup and vpc.controlPlaneSecurityGroupIDs can be specified")
+	}
+
 	if (c.VPC.IPv6Cidr != "" || c.VPC.IPv6Pool != "") && !c.IPv6Enabled() {
 		return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6")
 	}

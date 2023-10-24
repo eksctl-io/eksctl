@@ -15,6 +15,7 @@ func publicAccessCIDRsCmdWithHandler(cmd *cmdutils.Cmd, handler func(cmd *cmduti
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
+	cmd.CobraCommand.Deprecated = "this command is deprecated and will be removed soon. Use `eksctl utils update-cluster-vpc-config --public-access-cidrs=<> instead."
 	cmd.SetDescription("set-public-access-cidrs", "Update public access CIDRs", "CIDR blocks that EKS uses to create a security group on the public endpoint")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
@@ -56,6 +57,8 @@ func doUpdatePublicAccessCIDRs(cmd *cmdutils.Cmd) error {
 	}
 
 	cfg.VPC.ClusterEndpoints = nil
+	cfg.VPC.ControlPlaneSubnetIDs = nil
+	cfg.VPC.ControlPlaneSecurityGroupIDs = nil
 	vpcHelper := &VPCHelper{
 		VPCUpdater:  ctl,
 		ClusterMeta: cfg.Metadata,
