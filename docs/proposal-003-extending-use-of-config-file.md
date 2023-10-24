@@ -82,7 +82,7 @@ eksctl create ng --config-file=cluster.yaml --include=ng1-public  ## only one no
 eksctl create ng --config-file=cluster.yaml --include=ng1-public,ng2-private ## both nodegroups will be created
 ```
 
-The `eksctl create cluster` cli will be updated to optionally ignore all nodegroups in the cluster config. https://github.com/weaveworks/eksctl/issues/555
+The `eksctl create cluster` cli will be updated to optionally ignore all nodegroups in the cluster config. https://github.com/eksctl-io/eksctl/issues/555
 
 By using a single configuration file, users can keep their cluster definitions together and most importantly checked into source control.
 

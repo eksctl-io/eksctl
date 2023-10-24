@@ -2,9 +2,14 @@ package defaultaddons
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -18,37 +23,63 @@ type AddonInput struct {
 }
 
 // DoAddonsSupportMultiArch checks if the coredns/kubeproxy/awsnode support multi arch nodegroups
-// We know that AWS node requires 1.6.3+ to work, so we check for that
-// Kubeproxy/coredns we don't know what version adds support, so we just ensure its up-to-date before proceeding.
-// TODO: we should know what versions of kubeproxy/coredns added support, rather than always erroring if they are out of date
-func DoAddonsSupportMultiArch(ctx context.Context, eksAPI awsapi.EKS, rawClient kubernetes.RawClientInterface, controlPlaneVersion string, region string) (bool, error) {
-	input := AddonInput{
-		RawClient:           rawClient,
-		ControlPlaneVersion: controlPlaneVersion,
-		Region:              region,
-		EKSAPI:              eksAPI,
-	}
-	kubeProxyUpToDate, err := IsKubeProxyUpToDate(ctx, input)
+// We know that AWS node requires 1.6.3+ to work, so we check for that.
+// For kube-proxy and CoreDNS, we do not know what version adds support, so we just ensure they contain a node affinity
+// that allows them to be scheduled on ARM64 nodes.
+func DoAddonsSupportMultiArch(ctx context.Context, clientSet kubernetes.Interface) (bool, error) {
+	kubeProxy, err := getKubeProxy(ctx, clientSet)
 	if err != nil {
-		return true, err
+		return false, err
 	}
-	if !kubeProxyUpToDate {
+
+	if kubeProxy != nil && !supportsMultiArch(kubeProxy.Spec.Template.Spec) {
 		return false, nil
 	}
 
-	awsNodeUpToDate, err := DoesAWSNodeSupportMultiArch(ctx, input)
+	awsNodeSupportsMultiArch, err := DoesAWSNodeSupportMultiArch(ctx, clientSet)
 	if err != nil {
-		return true, err
+		return false, err
 	}
-	if !awsNodeUpToDate {
+	if !awsNodeSupportsMultiArch {
 		return false, nil
 	}
 
-	coreDNSUpToDate, err := IsCoreDNSUpToDate(ctx, input)
+	coreDNS, err := getCoreDNS(ctx, clientSet)
 	if err != nil {
-		return true, err
+		return false, err
 	}
-	return coreDNSUpToDate, nil
+	return coreDNS == nil || supportsMultiArch(coreDNS.Spec.Template.Spec), nil
+}
+
+// supportsMultiArch returns true if the PodSpec contains a node affinity that allows the pod to be scheduled on
+// multiple architectures.
+func supportsMultiArch(podSec corev1.PodSpec) bool {
+	if podSec.Affinity == nil || podSec.Affinity.NodeAffinity == nil || podSec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution == nil {
+		return false
+	}
+	for _, nodeSelectorTerm := range podSec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
+		for _, me := range nodeSelectorTerm.MatchExpressions {
+			if me.Key == corev1.LabelArchStable && me.Operator == corev1.NodeSelectorOpIn {
+				for _, val := range me.Values {
+					if val == "arm64" {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
+func makeGetError[T any](resource *T, err error, resourceName string) (*T, error) {
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			logger.Warning("%q was not found", resourceName)
+			return nil, nil
+		}
+		return nil, fmt.Errorf("getting %q: %w", resourceName, err)
+	}
+	return resource, nil
 }
 
 // LoadAsset return embedded manifest as a runtime.Object

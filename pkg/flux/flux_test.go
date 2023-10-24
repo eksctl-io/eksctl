@@ -90,13 +90,13 @@ var _ = Describe("Flux", func() {
 		})
 
 		Context("checking the flux version", func() {
-			When("the flux version is < 0.13.3", func() {
+			When("the flux version is < 0.32.0", func() {
 				BeforeEach(func() {
-					fakeExecutor.ExecWithOutReturns([]byte("flux version 0.13.2\n"), nil)
+					fakeExecutor.ExecWithOutReturns([]byte("flux version 0.31.5\n"), nil)
 				})
 
 				It("returns an error saying older versions are not supported", func() {
-					Expect(fluxClient.PreFlight()).To(MatchError(ContainSubstring("found flux version 0.13.2, eksctl requires >= 0.13.3")))
+					Expect(fluxClient.PreFlight()).To(MatchError(ContainSubstring("found flux version 0.31.5, eksctl requires >= 0.32.0")))
 				})
 			})
 

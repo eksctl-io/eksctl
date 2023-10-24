@@ -16,15 +16,14 @@ Ready to start contributing? Head over to our [contribution docs](CONTRIBUTING.m
 
 The core team of maintainers are Chetan Patwal ([@cPu1](https://github.com/cPu1)),
 Tiberiu Copaciu ([@TiberiuGC](https://github.com/TiberiuGC)),
-Amine Hilaly ([@A-Hilaly](https://github.com/a-hilaly)),
+Amine Hilaly ([@a-hilaly](https://github.com/a-hilaly)),
 Yu Xiang Zhang ([@yuxiang-zhang](https://github.com/yuxiang-zhang))
 and Himangini Daware ([@Himangini](https://github.com/Himangini)).
 
 ## Join us!
-
 The project uses Slack. If you get stuck or just have a question then you are encouraged to join the
-[Weave Community](https://slack.weave.works/) Slack workspace and use the
-[#eksctl](https://weave-community.slack.com/messages/eksctl/) channel.
+[Kubernetes Slack](https://slack.k8s.io/) workspace and use the
+[#eksctl](https://slack.k8s.io/messages/eksctl/) channel.
 
 ## How eksctl is run
 
@@ -41,7 +40,7 @@ We welcome all contributions and user feedback to the project.
 - End users. In other words the reason why we are all here!
 - Community contributors. These could be end users themselves, or those working
   on their open-source game.
-- Maintainers. _See [the maintainer docs](https://github.com/weaveworks/eksctl-handbook) for a list
+- Maintainers. _See [the maintainer docs](https://github.com/eksctl-io/eksctl-handbook) for a list
   of maintainer responsibilities._
 
 Decisions are made by Maintainers with input from both Amazon and the community.

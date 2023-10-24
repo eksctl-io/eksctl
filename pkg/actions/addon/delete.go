@@ -12,6 +12,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
 func (a *Manager) DeleteWithPreserve(ctx context.Context, addon *api.Addon) error {
@@ -68,4 +69,32 @@ func (a *Manager) deleteAddon(ctx context.Context, addon *api.Addon, preserve bo
 		return true, fmt.Errorf("failed to delete addon %q: %v", addon.Name, err)
 	}
 	return true, nil
+}
+
+type Remover struct {
+	stackManager StackManager
+}
+
+func NewRemover(stackManager StackManager) *Remover {
+	return &Remover{
+		stackManager: stackManager,
+	}
+}
+
+func (ar *Remover) DeleteAddonIAMTasks(ctx context.Context, wait bool) (*tasks.TaskTree, error) {
+	stacks, err := ar.stackManager.GetIAMAddonsStacks(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch addons stacks: %v", err)
+	}
+	taskTree := &tasks.TaskTree{Parallel: true}
+	for _, s := range stacks {
+		taskTree.Append(&deleteAddonIAMTask{
+			ctx:          ctx,
+			info:         fmt.Sprintf("delete addon IAM %q", *s.StackName),
+			stack:        s,
+			stackManager: ar.stackManager,
+			wait:         wait,
+		})
+	}
+	return taskTree, nil
 }

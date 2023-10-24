@@ -19,6 +19,7 @@
         "namespace": "kube-system"
       },
       "spec": {
+        "internalTrafficPolicy": "Cluster",
         "ipFamilies": [
           "IPv4"
         ],
@@ -60,7 +61,7 @@
     {
       "apiVersion": "v1",
       "data": {
-        "Corefile": ".:53 {\n    errors\n    health {\n      lameduck 5s\n    }\n    ready\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n      pods insecure\n      fallthrough in-addr.arpa ip6.arpa\n    }\n    prometheus :9153\n    forward . /etc/resolv.conf\n    cache 30\n    loop\n    reload\n    loadbalance\n}\n"
+        "Corefile": ".:53 {\n    errors\n    health {\n        lameduck 5s\n      }\n    ready\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n      pods insecure\n      fallthrough in-addr.arpa ip6.arpa\n    }\n    prometheus :9153\n    forward . /etc/resolv.conf\n    cache 30\n    loop\n    reload\n    loadbalance\n}\n"
       },
       "kind": "ConfigMap",
       "metadata": {
@@ -106,8 +107,11 @@
         "template": {
           "metadata": {
             "annotations": {
-              "eks.amazonaws.com/compute-type": "ec2"
+              "cluster-autoscaler.kubernetes.io/safe-to-evict": "false",
+              "eks.amazonaws.com/compute-type": "ec2",
+              "karpenter.sh/do-not-evict": "true"
             },
+            "creationTimestamp": null,
             "labels": {
               "eks.amazonaws.com/component": "coredns",
               "k8s-app": "kube-dns"
@@ -168,7 +172,7 @@
                   "-conf",
                   "/etc/coredns/Corefile"
                 ],
-                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.8.7-eksbuild.1",
+                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.10.1-eksbuild.4",
                 "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "failureThreshold": 5,
@@ -207,7 +211,6 @@
                     "port": 8181,
                     "scheme": "HTTP"
                   },
-                  "initialDelaySeconds": 30,
                   "periodSeconds": 10,
                   "successThreshold": 1,
                   "timeoutSeconds": 1

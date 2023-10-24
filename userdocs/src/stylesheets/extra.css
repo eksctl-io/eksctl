@@ -16,23 +16,50 @@ img[src$="#wwinline"] {
     vertical-align: middle;
   }
 
-.md-header-nav__title {
-  padding: 0px;
-}
-
 [data-md-color-scheme="slate"] {
   --md-default-fg-color: #c8cad5;
 }
 
-[data-md-color-scheme="slate"] img[src$="#wwinline"] {
-  background: url("../img/weaveworks-light.svg") no-repeat;
-}
-
-[data-md-color-scheme="slate"] img[src$="#gitinline"] {
-  height: 30px;
-  background: url("../img/octocat-light.svg") no-repeat;
-}
-
-.md-typeset .md-button {
+a.md-button.announce {
     padding: 0.3em 0.3em;
+}
+
+.md-header__button.md-logo img, .md-header__button.md-logo svg {
+    height: 1.9rem;
+}
+
+@keyframes heart {
+    0%, 40%, 80%, 100% {
+      transform: scale(1);
+    }
+    20%, 60% {
+      transform: scale(1.15);
+    }
+ }
+
+.heart {
+    animation: heart 1000ms infinite;
+}
+
+.glide__slide img {
+    height: 50px;
+}
+
+.glide__slides {
+    list-style-type: none !important;
+}
+
+.glide {
+    width: 100%;
+    padding: .4rem 0;
+    text-align: center; 
+    margin: auto 0.6rem;
+}
+
+.md-copyright {
+    width: 100% !important;
+}
+
+ol:not([hidden]).glide__slides, ul:not([hidden]).glide__slides {
+    display: flex !important;
 }

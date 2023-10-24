@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -11,7 +14,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	da "github.com/weaveworks/eksctl/pkg/addons/default"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -24,102 +26,13 @@ var _ = Describe("KubeProxy", func() {
 		clientSet           kubernetes.Interface
 		input               da.AddonInput
 		mockProvider        *mockprovider.MockProvider
-		kubernetesVersion   = aws.String("1.22")
-		controlPlaneVersion = "1.22.1"
+		kubernetesVersion   = aws.String("1.23")
+		controlPlaneVersion = "1.23.1"
 	)
-
-	Context("IsKubeProxyUpToDate", func() {
-		BeforeEach(func() {
-			mockProvider = mockprovider.NewMockProvider()
-			input = da.AddonInput{
-				Region:              "eu-west-1",
-				EKSAPI:              mockProvider.EKS(),
-				ControlPlaneVersion: controlPlaneVersion,
-			}
-
-			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
-				AddonName:         aws.String("kube-proxy"),
-				KubernetesVersion: kubernetesVersion,
-			}).Return(&awseks.DescribeAddonVersionsOutput{
-				Addons: []ekstypes.AddonInfo{
-					{
-						AddonName: aws.String("kube-proxy"),
-						AddonVersions: []ekstypes.AddonVersionInfo{
-							{
-								AddonVersion: aws.String("v1.17.0-eksbuild.1"),
-							},
-							{
-								//latest, unordered list to ensure we sort correctly
-								AddonVersion: aws.String("v1.18.1-eksbuild.2"),
-							},
-							{
-								AddonVersion: aws.String("v1.18.1-eksbuild.1"),
-							},
-						},
-					},
-				},
-			}, nil)
-		})
-
-		When("its not up-to-date", func() {
-			BeforeEach(func() {
-				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.16-eksbuild.1.json")
-				input.RawClient = rawClient
-				clientSet = rawClient.ClientSet()
-			})
-
-			It("returns false", func() {
-				needsUpdating, err := da.IsKubeProxyUpToDate(context.Background(), input)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(needsUpdating).To(BeFalse())
-			})
-		})
-
-		When("when its up-to-date", func() {
-			BeforeEach(func() {
-				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.22.json")
-				input.RawClient = rawClient
-				clientSet = rawClient.ClientSet()
-			})
-
-			It("returns true", func() {
-				needsUpdating, err := da.IsKubeProxyUpToDate(context.Background(), input)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(needsUpdating).To(BeTrue())
-			})
-		})
-
-		When("it doesn't exist", func() {
-			BeforeEach(func() {
-				rawClient := testutils.NewFakeRawClient()
-				input.RawClient = rawClient
-				clientSet = rawClient.ClientSet()
-			})
-
-			// if it doesn't exist it doesn't need updating, so its up to date ¯\_(ツ)_/¯ according to #2667
-			It("returns true", func() {
-				needsUpdating, err := da.IsKubeProxyUpToDate(context.Background(), input)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(needsUpdating).To(BeTrue())
-			})
-		})
-
-		When("it has an existing invalid image tag", func() {
-			BeforeEach(func() {
-				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.15-invalid-image.json")
-				input.RawClient = rawClient
-				clientSet = rawClient.ClientSet()
-			})
-			It("errors", func() {
-				_, err := da.IsKubeProxyUpToDate(context.Background(), input)
-				Expect(err).To(HaveOccurred())
-			})
-		})
-	})
 
 	Context("UpdateKubeProxyImageTag", func() {
 		BeforeEach(func() {
-			rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.22.json")
+			rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.23.json")
 			clientSet = rawClient.ClientSet()
 			mockProvider = mockprovider.NewMockProvider()
 			input = da.AddonInput{
@@ -189,14 +102,14 @@ var _ = Describe("KubeProxy", func() {
 						},
 						{
 							// Latest, unordered list to ensure we sort correctly.
-							AddonVersion: aws.String("v1.22.1-eksbuild.2"),
+							AddonVersion: aws.String("v1.23.1-eksbuild.2"),
 						},
 						{
-							AddonVersion: aws.String("v1.22.1-eksbuild.1"),
+							AddonVersion: aws.String("v1.23.1-eksbuild.1"),
 						},
 					},
 				},
-				expectedImageTag: "v1.22.1-minimal-eksbuild.2",
+				expectedImageTag: "v1.23.1-minimal-eksbuild.2",
 			}),
 
 			Entry("a more up-to-date version that lacks a pre-release version should be returned unchanged", versionUpdateEntry{
@@ -207,15 +120,15 @@ var _ = Describe("KubeProxy", func() {
 							AddonVersion: aws.String("v1.17.0"),
 						},
 						{
-							AddonVersion: aws.String("v1.22.2"),
+							AddonVersion: aws.String("v1.23.2"),
 						},
 						{
-							AddonVersion: aws.String("v1.22.1"),
+							AddonVersion: aws.String("v1.23.1"),
 						},
 					},
 				},
 
-				expectedImageTag: "v1.22.2",
+				expectedImageTag: "v1.23.2",
 			}),
 
 			Entry("a more up-to-date version that lacks a `v` prefix should not have a `v` prefix", versionUpdateEntry{
@@ -227,15 +140,15 @@ var _ = Describe("KubeProxy", func() {
 						},
 						{
 							// Latest, unordered list to ensure we sort correctly.
-							AddonVersion: aws.String("1.22.1-eksbuild.2"),
+							AddonVersion: aws.String("1.23.1-eksbuild.2"),
 						},
 						{
-							AddonVersion: aws.String("1.22.1-eksbuild.1"),
+							AddonVersion: aws.String("1.23.1-eksbuild.1"),
 						},
 					},
 				},
 
-				expectedImageTag: "1.22.1-minimal-eksbuild.2",
+				expectedImageTag: "1.23.1-minimal-eksbuild.2",
 			}),
 
 			Entry("version that is behind the default cluster version should not be used", versionUpdateEntry{
@@ -256,7 +169,7 @@ var _ = Describe("KubeProxy", func() {
 					},
 				},
 
-				expectedImageTag: "v1.22.1-eksbuild.1",
+				expectedImageTag: "v1.23.1-eksbuild.1",
 			}),
 		)
 
@@ -340,7 +253,7 @@ func kubeProxyNodeSelectorValues(clientSet kubernetes.Interface) []string {
 	Expect(kubeProxy).NotTo(BeNil())
 
 	for _, nodeSelector := range kubeProxy.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions {
-		if nodeSelector.Key == "kubernetes.io/arch" {
+		if nodeSelector.Key == corev1.LabelArchStable {
 			return nodeSelector.Values
 		}
 	}

@@ -80,6 +80,18 @@ type ELBV2 interface {
 	DeleteTargetGroup(ctx context.Context, params *DeleteTargetGroupInput, optFns ...func(*Options)) (*DeleteTargetGroupOutput, error)
 	// Deregisters the specified targets from the specified target group. After the
 	// targets are deregistered, they no longer receive traffic from the load balancer.
+	// The load balancer stops sending requests to targets that are deregistering, but
+	// uses connection draining to ensure that in-flight traffic completes on the
+	// existing connections. This deregistration delay is configured by default but can
+	// be updated for each target group. For more information, see the following:
+	//   - Deregistration delay (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html#deregistration-delay)
+	//     in the Application Load Balancers User Guide
+	//   - Deregistration delay (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html#deregistration-delay)
+	//     in the Network Load Balancers User Guide
+	//   - Deregistration delay (https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/target-groups.html#deregistration-delay)
+	//     in the Gateway Load Balancers User Guide
+	//
+	// Note: If the specified target does not exist, the action returns successfully.
 	DeregisterTargets(ctx context.Context, params *DeregisterTargetsInput, optFns ...func(*Options)) (*DeregisterTargetsOutput, error)
 	// Describes the current Elastic Load Balancing resource limits for your Amazon
 	// Web Services account. For more information, see the following:
@@ -189,15 +201,18 @@ type ELBV2 interface {
 	// do not specify retain their current priority.
 	SetRulePriorities(ctx context.Context, params *SetRulePrioritiesInput, optFns ...func(*Options)) (*SetRulePrioritiesOutput, error)
 	// Associates the specified security groups with the specified Application Load
-	// Balancer. The specified security groups override the previously associated
-	// security groups. You can't specify a security group for a Network Load Balancer
-	// or Gateway Load Balancer.
+	// Balancer or Network Load Balancer. The specified security groups override the
+	// previously associated security groups. You can't perform this operation on a
+	// Network Load Balancer unless you specified a security group for the load
+	// balancer when you created it. You can't associate a security group with a
+	// Gateway Load Balancer.
 	SetSecurityGroups(ctx context.Context, params *SetSecurityGroupsInput, optFns ...func(*Options)) (*SetSecurityGroupsOutput, error)
 	// Enables the Availability Zones for the specified public subnets for the
-	// specified Application Load Balancer or Network Load Balancer. The specified
-	// subnets replace the previously enabled subnets. When you specify subnets for a
-	// Network Load Balancer, you must include all subnets that were enabled
-	// previously, with their existing configurations, plus any additional subnets.
+	// specified Application Load Balancer, Network Load Balancer or Gateway Load
+	// Balancer. The specified subnets replace the previously enabled subnets. When you
+	// specify subnets for a Network Load Balancer, or Gateway Load Balancer you must
+	// include all subnets that were enabled previously, with their existing
+	// configurations, plus any additional subnets.
 	SetSubnets(ctx context.Context, params *SetSubnetsInput, optFns ...func(*Options)) (*SetSubnetsOutput, error)
 }
 

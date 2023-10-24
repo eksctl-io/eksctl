@@ -64,7 +64,7 @@ func getNodeGroupHealth(cmd *cmdutils.Cmd, nodeGroupName string) error {
 	}
 
 	if cfg.IsControlPlaneOnOutposts() {
-		return errUnsupportedLocalCluster
+		return api.ErrUnsupportedLocalCluster
 	}
 	stackCollection := manager.NewStackCollection(ctl.AWSProvider, cfg)
 	managedService := managed.NewService(ctl.AWSProvider.EKS(), ctl.AWSProvider.EC2(), stackCollection, cfg.Metadata.Name)

@@ -7,12 +7,12 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
+
 	appsv1 "k8s.io/api/apps/v1"
-	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/weaveworks/eksctl/pkg/addons"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
 	// For go:embed
 	_ "embed"
@@ -30,14 +30,13 @@ const (
 var latestAWSNodeYaml []byte
 
 // DoesAWSNodeSupportMultiArch makes sure awsnode supports ARM nodes
-func DoesAWSNodeSupportMultiArch(ctx context.Context, input AddonInput) (bool, error) {
-	clusterDaemonSet, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(ctx, AWSNode, metav1.GetOptions{})
+func DoesAWSNodeSupportMultiArch(ctx context.Context, clientSet kubernetes.Interface) (bool, error) {
+	clusterDaemonSet, err := getAWSNode(ctx, clientSet)
 	if err != nil {
-		if apierrs.IsNotFound(err) {
-			logger.Warning("%q was not found", AWSNode)
-			return true, nil
-		}
-		return false, errors.Wrapf(err, "getting %q", AWSNode)
+		return false, err
+	}
+	if clusterDaemonSet == nil {
+		return true, nil
 	}
 
 	minVersion := semver.Version{
@@ -71,13 +70,12 @@ func DoesAWSNodeSupportMultiArch(ctx context.Context, input AddonInput) (bool, e
 // UpdateAWSNode will update the `aws-node` add-on and returns true
 // if an update is available.
 func UpdateAWSNode(ctx context.Context, input AddonInput, plan bool) (bool, error) {
-	clusterDaemonSet, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(ctx, AWSNode, metav1.GetOptions{})
+	clusterDaemonSet, err := getAWSNode(ctx, input.RawClient.ClientSet())
 	if err != nil {
-		if apierrs.IsNotFound(err) {
-			logger.Warning("%q was not found", AWSNode)
-			return false, nil
-		}
-		return false, errors.Wrapf(err, "getting %q", AWSNode)
+		return false, err
+	}
+	if clusterDaemonSet == nil {
+		return false, nil
 	}
 
 	resourceList, err := newList(latestAWSNodeYaml)
@@ -170,4 +168,9 @@ func UpdateAWSNode(ctx context.Context, input AddonInput, plan bool) (bool, erro
 
 	logger.Info("%q is now up-to-date", AWSNode)
 	return false, nil
+}
+
+func getAWSNode(ctx context.Context, clientSet kubernetes.Interface) (*appsv1.DaemonSet, error) {
+	d, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(ctx, AWSNode, metav1.GetOptions{})
+	return makeGetError(d, err, AWSNode)
 }

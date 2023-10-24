@@ -1,7 +1,7 @@
 name: Build all distros
 on:
   schedule:
-    - cron: '0 9 * * *'
+    - cron: '0 9 * * 1-5'
   workflow_dispatch: {}
 
 jobs:
@@ -9,21 +9,39 @@ jobs:
     name: build all distros
     runs-on: ubuntu-latest
     steps:
+        # Clean unnecessary files to save disk space
+      - name: clean unncessary files to save space
+        run: |
+          docker rmi `docker images -q`
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/sudo apt/sources.list.d
+          sudo apt -y autoremove --purge
+          sudo apt -y autoclean
+          sudo apt clean
+          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
+          df -h
+      # Free up disk space on Ubuntu
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@f68fdb76e2ea636224182cfb7377ff9a1708f9b8 #v1.3.0
+        with:
+          # This might remove tools that are actually needed, if set to "true" but frees about 6 GB
+          tool-cache: false
+          large-packages: true
+          swap-storage: true
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 #v4.1.0
         with:
           fetch-depth: 0
       - name: Cache go-build and mod
-        uses: actions/cache@v3
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 #v3.3.2
         with:
           path: |
             ~/.cache/go-build/
             ~/go/pkg/mod/
           key: ${{ hashFiles('go.sum') }}
       - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 #v4.0.0
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe #v4.1.0
         with:
-          go-version: 1.18.x
+          go-version: 1.20.x
       - name: Setup deps
         run: |
           make install-build-deps
@@ -35,7 +53,7 @@ jobs:
           make build-all
       - name: slack on failure
         if: failure()
-        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a #v1.1.0
         with:
           slack_token: ${{ secrets.WEAVEWORKS_SLACK_EKSCTLBOT_TOKEN }}
           message: ":ahhhhhhhhh: build-all-distros has failed"

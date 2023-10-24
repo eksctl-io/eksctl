@@ -16,9 +16,9 @@ privateCluster:
 ```
 
 ???+ note
-    You can now use [AWS PrivateLink](https://docs.aws.amazon.com/vpc/latest/privatelink/getting-started.html) to privately access the Amazon Elastic Kubernetes Service (Amazon EKS) management APIs from your Amazon Virtual Private Cloud (VPC). 
-    Post cluster creation, not all eksctl commands will be supported, especially commands that need access to the OpenID Connect provider URL since the endpoint is publicly reachable. You will need to execute the oidc related commands from outside of your cluster's VPC once you've enabled AWS PrivateLink for Amazon EKS.
-    Creating managed nodegroups will continue to work, and creating self-managed nodegroups will work as it needs access to the API server via the EKS [interface endpoint](https://aws.amazon.com/about-aws/whats-new/2022/12/amazon-eks-supports-aws-privatelink/) if the command is run from within the cluster's VPC, a peered VPC or using some other means like AWS Direct Connect. 
+    Post cluster creation, eksctl commands that need access to the Kubernetes API server will have to be run from within the cluster's VPC, a peered VPC or using some other means like AWS Direct Connect. eksctl commands that need access to the EKS APIs will not work if they're being run from within the cluster's VPC. To fix this, [create an interface endpoint for Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/vpc-interface-endpoints.html) to privately access the Amazon Elastic Kubernetes Service (Amazon EKS) management APIs from your Amazon Virtual Private Cloud (VPC). In a future release, eksctl will add support to create this endpoint so it does not need to be manually created.
+    Commands that need access to the OpenID Connect provider URL will need to be run from outside of your cluster's VPC once you've enabled AWS PrivateLink for Amazon EKS.
+    Creating managed nodegroups will continue to work, and creating self-managed nodegroups will work as it needs access to the API server via the EKS [interface endpoint](https://aws.amazon.com/about-aws/whats-new/2022/12/amazon-eks-supports-aws-privatelink/) if the command is run from within the cluster's VPC, a peered VPC or using some other means like AWS Direct Connect.
 
 ???+ info
     VPC endpoints are charged by the hour and based on usage. More details about pricing can be found at
@@ -31,7 +31,6 @@ privateCluster:
 
 To enable worker nodes to access AWS services privately, eksctl creates VPC endpoints for the following services:
 
-- An interface endpoint for EKS to privately access the EKS management APIs
 - Interface endpoints for ECR (both `ecr.api` and `ecr.dkr`) to pull container images (AWS CNI plugin etc)
 - A gateway endpoint for S3 to pull the actual image layers
 - An interface endpoint for EC2 required by the `aws-cloud-provider` integration

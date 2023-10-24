@@ -285,11 +285,15 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("can add a nodegroup into a new subnet", func() {
 			var (
-				subnet        *types.Subnet
-				nodegroupName string
+				subnet                  *types.Subnet
+				nodegroupNameCLI        string
+				nodegroupNameConfigFile string
+				subnetName              string
 			)
 			BeforeEach(func() {
-				nodegroupName = "test-extra-nodegroup"
+				nodegroupNameCLI = "test-extra-nodegroup-cli"
+				nodegroupNameConfigFile = "text-extra-nodegroup-config-file"
+				subnetName = "new-subnet"
 			})
 			AfterEach(func() {
 				cmd := params.EksctlDeleteCmd.WithArgs(
@@ -297,7 +301,16 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--verbose", "4",
 					"--cluster", params.ClusterName,
 					"--wait",
-					nodegroupName,
+					nodegroupNameCLI,
+				)
+				Expect(cmd).To(RunSuccessfully())
+
+				cmd = params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"--wait",
+					nodegroupNameConfigFile,
 				)
 				Expect(cmd).To(RunSuccessfully())
 				config := NewConfig(params.Region)
@@ -343,6 +356,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						tags = append(tags, t)
 					}
 				}
+				// create a new subnet in that given vpc and zone.
 				output, err := ec2.CreateSubnet(context.Background(), &awsec2.CreateSubnetInput{
 					AvailabilityZone: aws.String("us-west-2a"),
 					CidrBlock:        aws.String(cidr),
@@ -380,7 +394,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 				Expect(err).NotTo(HaveOccurred(), routput)
 
-				// create a new subnet in that given vpc and zone.
+				// create a nodegroup into the new subnet via CLI
 				cmd := params.EksctlCreateCmd.WithArgs(
 					"nodegroup",
 					"--timeout", nodegroupTimeout,
@@ -388,8 +402,45 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--nodes", "1",
 					"--node-type", "p2.xlarge",
 					"--subnet-ids", *subnet.SubnetId,
-					nodegroupName,
+					nodegroupNameCLI,
 				)
+				Expect(cmd).To(RunSuccessfully())
+
+				// create a nodegroup into the new subnet via config file
+				clusterConfig := makeClusterConfig()
+				clusterConfig.VPC = &api.ClusterVPC{
+					Network: api.Network{
+						ID: *s.VpcId,
+					},
+					Subnets: &api.ClusterSubnets{
+						Public: api.AZSubnetMapping{
+							subnetName: api.AZSubnetSpec{
+								ID: *subnet.SubnetId,
+							},
+						},
+					},
+				}
+				clusterConfig.NodeGroups = []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name: nodegroupNameConfigFile,
+							ScalingConfig: &api.ScalingConfig{
+								DesiredCapacity: aws.Int(1),
+							},
+							Subnets: []string{subnetName},
+						},
+					},
+				}
+
+				cmd = params.EksctlCreateCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--verbose", "4",
+						"--timeout", nodegroupTimeout,
+					).
+					WithoutArg("--region", params.Region).
+					WithStdin(clusterutils.Reader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 			})
 		})

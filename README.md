@@ -1,6 +1,6 @@
-# `eksctl` - The official CLI for Amazon EKS
+# `eksctl` - The official CLI for Amazon EKS ! <img src="userdocs/src/img/logo.png" alt="eksctl" width="4%"/>
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/eksctl)](https://goreportcard.com/report/github.com/weaveworks/eksctl)
+[![Go Report Card](https://goreportcard.com/badge/github.com/eksctl-io/eksctl)](https://goreportcard.com/report/github.com/eksctl-io/eksctl)
 
 `eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2. It is written in Go, and uses CloudFormation.
 
@@ -8,11 +8,34 @@ You can create a cluster in minutes with just one command – **`eksctl create c
 
 ![Gophers: E, K, S, C, T, & L](logo/eksctl.png)
 
-_Need help? Join [Weave Community Slack][slackjoin]._
+_Need help? Join [Eksctl Slack][slackjoin]._
 
 ## Installation
 
 `eksctl` is available to install from official releases as described below. We recommend that you install `eksctl` from only the official GitHub releases. You may opt to use a third-party installer, but please be advised that AWS does not maintain nor support these methods of installation. Use them at your own discretion.
+
+### Prerequisite
+
+You will need to have AWS API credentials configured. What works for AWS CLI or any other tools (kops, Terraform, etc.) should be sufficient. You can use [`~/.aws/credentials` file][awsconfig]
+or [environment variables][awsenv]. For more information read [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html).
+
+[awsenv]: https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html
+[awsconfig]: https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html
+
+You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `aws eks get-token` (available in version 1.16.156 or greater of AWS CLI) in your `PATH`.
+
+The IAM account used for EKS cluster creation should have these minimal access levels.
+
+| AWS Service      | Access Level                                           |
+|------------------|--------------------------------------------------------|
+| CloudFormation   | Full Access                                            |
+| EC2              | **Full:** Tagging **Limited:** List, Read, Write       |
+| EC2 Auto Scaling | **Limited:** List, Write                               |
+| EKS              | Full Access                                            |
+| IAM              | **Limited:** List, Read, Write, Permissions Management |
+| Systems Manager  | **Limited:** List, Read                                |
+
+The inline policy json is listed in [Minimal IAM Policies](https://eksctl.io/usage/minimum-iam-policies/).
 
 ### For Unix
 
@@ -23,10 +46,10 @@ To download the latest release, run:
 ARCH=amd64
 PLATFORM=$(uname -s)_$ARCH
 
-curl -sLO "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
 
 # (Optional) Verify checksum
-curl -sL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
 
 tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
 
@@ -35,13 +58,13 @@ sudo mv /tmp/eksctl /usr/local/bin
 
 ### For Windows
 
-#### Direct download (latest release): [AMD64/x86_64](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_amd64.zip) - [ARMv6](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_armv6.zip) - [ARMv7](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_armv7.zip) - [ARM64](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_windows_arm64.zip)
+#### Direct download (latest release): [AMD64/x86_64](https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_windows_amd64.zip) - [ARMv6](https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_windows_armv6.zip) - [ARMv7](https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_windows_armv7.zip) - [ARM64](https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_windows_arm64.zip)
 
 Make sure to unzip the archive to a folder in the `PATH` variable.
 
 Optionally, verify the checksum:
 
-1. Download the checksum file: [latest](https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_checksums.txt)
+1. Download the checksum file: [latest](https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt)
 2. Use Command Prompt to manually compare `CertUtil`'s output to the checksum file downloaded.
 
   ```cmd
@@ -63,10 +86,10 @@ Optionally, verify the checksum:
 ARCH=amd64
 PLATFORM=windows_$ARCH
 
-curl -sLO "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$PLATFORM.zip"
+curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.zip"
 
 # (Optional) Verify checksum
-curl -sL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
 
 unzip eksctl_$PLATFORM.zip -d $HOME/bin
 
@@ -77,7 +100,11 @@ The `eksctl` executable is placed in `$HOME/bin`, which is in `$PATH` from Git B
 
 ### Docker
 
-For every release and RC, a docker image is pushed to [weaveworks/eksctl - Docker Image | Docker Hub](https://hub.docker.com/r/weaveworks/eksctl).
+For every release and RC a container image is pushed to ECR repository `public.ecr.aws/eksctl/eksctl`. Learn more about the usage on [ECR Public Gallery - eksctl](https://gallery.ecr.aws/eksctl/eksctl). For example,
+
+```bash
+docker run --rm -it public.ecr.aws/eksctl/eksctl version
+```
 
 ### Third-Party Installers (Not Recommended)
 
@@ -101,7 +128,7 @@ port install eksctl
 [chocolatey](https://chocolatey.org)
 
 ```bash
-chocolatey install eksctl
+choco install eksctl
 ```
 
 [scoop](https://scoop.sh)
@@ -109,29 +136,6 @@ chocolatey install eksctl
 ```bash
 scoop install eksctl
 ```
-
-## Prerequisite
-
-You will need to have AWS API credentials configured. What works for AWS CLI or any other tools (kops, Terraform, etc.) should be sufficient. You can use [`~/.aws/credentials` file][awsconfig]
-or [environment variables][awsenv]. For more information read [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html).
-
-[awsenv]: https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html
-[awsconfig]: https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html
-
-You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `aws eks get-token` (available in version 1.16.156 or greater of AWS CLI) in your `PATH`.
-
-The IAM account used for EKS cluster creation should have these minimal access levels.
-
-| AWS Service      | Access Level                                           |
-|------------------|--------------------------------------------------------|
-| CloudFormation   | Full Access                                            |
-| EC2              | **Full:** Tagging **Limited:** List, Read, Write       |
-| EC2 Auto Scaling | **Limited:** List, Write                               |
-| EKS              | Full Access                                            |
-| IAM              | **Limited:** List, Read, Write, Permissions Management |
-| Systems Manager  | **Limited:** List, Read                                |
-
-The inline policy json is listed in [Minimal IAM Policies](https://eksctl.io/usage/minimum-iam-policies/).
 
 ## Basic usage
 
@@ -208,7 +212,6 @@ To learn more about what `eksctl` can do check [eksctl.io](https://eksctl.io). A
 ## Contributions
 
 Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](CONTRIBUTING.md).
-Or join the discussion on our [mailing list][maillist].
 
 We follow the [CNCF Code of Conduct](CODE_OF_CONDUCT.md).
 
@@ -227,11 +230,10 @@ Do not open security related issues in the open source project.
 
 ## Get in touch
 
-[Create an issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)][slackchan] ([signup][slackjoin]).
+[Create an issue](https://github.com/eksctl-io/eksctl/issues/new), or login to [Eksctl Community Slack (#eksctl)][slackchan] ([signup][slackjoin]).
 
-[slackjoin]: https://slack.weave.works/
-[slackchan]: https://weave-community.slack.com/messages/eksctl/
-[maillist]: https://groups.google.com/forum/#!forum/eksctl
+[slackjoin]: https://slack.k8s.io/
+[slackchan]: https://slack.k8s.io/messages/eksctl/
 
 > **_Logo Credits_**
 >

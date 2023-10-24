@@ -57,7 +57,7 @@ for any other purpose.
 ## Current Design
 
 Summary:
-- all configuration files along with [the bootstrap script](https://github.com/weaveworks/eksctl/blob/70041a226bb8ef5c51a229d587235551a2410eda/pkg/nodebootstrap/assets/bootstrap.al2.sh) are passed to the node as cloud-init config
+- all configuration files along with [the bootstrap script](https://github.com/eksctl-io/eksctl/blob/70041a226bb8ef5c51a229d587235551a2410eda/pkg/nodebootstrap/assets/bootstrap.al2.sh) are passed to the node as cloud-init config
 - all configuration files are written to `/etc/eksctl` directory
 - the only remote API that's used is the EC2 metadata service, required to obtain instance ID, type and IP address
 - the behavior is fully determined by:
@@ -85,7 +85,7 @@ The main files are the [bootstrap script](#bootstrap-script-for-amazon-linux-2),
 [kubelet.yaml](#kubelet-configuration) and the [kubeconfig.yalm](#kubeconfig).
 
 
-### [Bootstrap Script for Amazon Linux 2](https://github.com/weaveworks/eksctl/blob/master/pkg/nodebootstrap/assets/bootstrap.al2.sh)
+### [Bootstrap Script for Amazon Linux 2](https://github.com/eksctl-io/eksctl/blob/master/pkg/nodebootstrap/assets/bootstrap.al2.sh)
 
 This is sent as one of the `runScript`s  in the `userData` and it is used to bootstrap the node. It can also be
 [overwritten](/usage/schema/#nodeGroups-overrideBootstrapCommand) by the user or appended with
@@ -142,11 +142,11 @@ systemctl start kubelet
 </pre>
 
 
-### [Bootstrap Script for Ubuntu](https://github.com/weaveworks/eksctl/blob/master/pkg/nodebootstrap/assets/bootstrap.ubuntu.sh)
+### [Bootstrap Script for Ubuntu](https://github.com/eksctl-io/eksctl/blob/master/pkg/nodebootstrap/assets/bootstrap.ubuntu.sh)
 
 Same as above, but Ubuntu-specific commands are used instead of `systemctl` and the drop-in unit.
 
-### [Systemd Unit for Amazon Linux](https://github.com/weaveworks/eksctl/blob/70041a226bb8ef5c51a229d587235551a2410eda/pkg/nodebootstrap/assets/10-eksclt.al2.conf)
+### [Systemd Unit for Amazon Linux](https://github.com/eksctl-io/eksctl/blob/70041a226bb8ef5c51a229d587235551a2410eda/pkg/nodebootstrap/assets/10-eksclt.al2.conf)
 
 This is the systemd unit file used to start the kubelet service. It makes use of other configuration files sent by
 eksctl and it is stored in `etc/systemd/system/kubelet.service.d/10-eksctl.al2.conf`.
@@ -177,7 +177,7 @@ ExecStart=/usr/bin/kubelet \
 </pre>
 
 
-### [Kubelet configuration](https://github.com/weaveworks/eksctl/blob/70041a226bb8ef5c51a229d587235551a2410eda/pkg/nodebootstrap/assets/kubelet.yaml)
+### [Kubelet configuration](https://github.com/eksctl-io/eksctl/blob/70041a226bb8ef5c51a229d587235551a2410eda/pkg/nodebootstrap/assets/kubelet.yaml)
 
 The configuration for the kubelet is stored in `/etc/eksctl/kubelet.yaml`.
 

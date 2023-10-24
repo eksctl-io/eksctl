@@ -11,7 +11,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	awsv2 "github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
@@ -19,16 +18,8 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/client"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/runtime"
 	k8sclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -39,11 +30,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	ekscreds "github.com/weaveworks/eksctl/pkg/credentials"
+	"github.com/weaveworks/eksctl/pkg/credentials"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/nodes"
-	"github.com/weaveworks/eksctl/pkg/version"
 )
 
 // ClusterProvider stores information about the cluster
@@ -81,7 +71,6 @@ type ProviderServices struct {
 
 	cloudtrail     awsapi.CloudTrail
 	cloudwatchlogs awsapi.CloudWatchLogs
-	session        *session.Session
 
 	*ServicesV2
 }
@@ -114,89 +103,40 @@ func (p ProviderServices) Profile() api.Profile { return p.spec.Profile }
 // WaitTimeout returns provider-level duration after which any wait operation has to timeout
 func (p ProviderServices) WaitTimeout() time.Duration { return p.spec.WaitTimeout }
 
-func (p ProviderServices) ConfigProvider() client.ConfigProvider {
-	return p.session
-}
-
-func (p ProviderServices) Session() *session.Session {
-	return p.session
-}
-
 // ClusterInfo provides information about the cluster.
 type ClusterInfo struct {
 	Cluster *ekstypes.Cluster
 }
 
-// SessionProvider abstracts an aws credentials.Value provider.
-type SessionProvider interface {
-	Get() (credentials.Value, error)
-}
-
 // ProviderStatus stores information about the used IAM role and the resulting session
 type ProviderStatus struct {
-	IAMRoleARN   string
-	ClusterInfo  *ClusterInfo
-	SessionCreds SessionProvider
+	IAMRoleARN  string
+	ClusterInfo *ClusterInfo
 }
 
 // New creates a new setup of the used AWS APIs
-func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProvider, error) {
-	provider := &ProviderServices{
-		spec: spec,
-	}
-	c := &ClusterProvider{
-		AWSProvider: provider,
-	}
-	// Create a new session and save credentials for possible
-	// later re-use if overriding sessions due to custom URL
-	s := c.newSession(spec)
+func New(
+	ctx context.Context,
+	spec *api.ProviderConfig,
+	clusterSpec *api.ClusterConfig,
+) (*ClusterProvider, error) {
+	return newHelper(ctx, spec, clusterSpec, newAWSProvider)
+}
 
-	cacheCredentials := os.Getenv(ekscreds.EksctlGlobalEnableCachingEnvName) != ""
-	var (
-		credentialsCacheFilePath string
-		err                      error
-	)
-	if cacheCredentials {
-		if s.Config == nil {
-			return nil, errors.New("expected Session.Config to be non-nil")
-		}
-		credentialsCacheFilePath, err = ekscreds.GetCacheFilePath()
-		if err != nil {
-			return nil, fmt.Errorf("error getting cache file path: %w", err)
-		}
-		if cachedProvider, err := ekscreds.NewFileCacheProvider(spec.Profile.Name, s.Config.Credentials, &ekscreds.RealClock{}, afero.NewOsFs(), func(path string) ekscreds.Flock {
-			return flock.New(path)
-		}, credentialsCacheFilePath); err == nil {
-			s.Config.Credentials = credentials.NewCredentials(&cachedProvider)
-		} else {
-			logger.Warning("Failed to use cached provider: ", err)
-		}
-	}
-
-	provider.session = s
-
-	cfg, err := newV2Config(spec, c.AWSProvider.Region(), credentialsCacheFilePath)
+func newHelper(
+	ctx context.Context,
+	spec *api.ProviderConfig,
+	clusterSpec *api.ClusterConfig,
+	awsProviderBuilder func(*api.ProviderConfig, AWSConfigurationLoader) (api.ClusterProvider, error),
+) (*ClusterProvider, error) {
+	provider, err := awsProviderBuilder(spec, &ConfigurationLoader{})
 	if err != nil {
 		return nil, err
 	}
 
-	provider.ServicesV2 = &ServicesV2{
-		config: cfg,
-	}
-
-	c.Status = &ProviderStatus{
-		SessionCreds: s.Config.Credentials,
-	}
-
-	provider.asg = autoscaling.NewFromConfig(cfg)
-	provider.cloudwatchlogs = cloudwatchlogs.NewFromConfig(cfg)
-	provider.cloudtrail = cloudtrail.NewFromConfig(cfg)
-
-	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
-		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)
-		provider.cloudtrail = cloudtrail.NewFromConfig(cfg, func(o *cloudtrail.Options) {
-			o.EndpointResolver = cloudtrail.EndpointResolverFromURL(endpoint)
-		})
+	c := &ClusterProvider{
+		AWSProvider: provider,
+		Status:      &ProviderStatus{},
 	}
 
 	stsOutput, err := c.checkAuth(ctx)
@@ -221,6 +161,51 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 	c.KubeProvider = kubeProvider
 
 	return c, nil
+}
+
+func newAWSProvider(spec *api.ProviderConfig, configurationLoader AWSConfigurationLoader) (api.ClusterProvider, error) {
+	var (
+		credentialsCacheFilePath string
+		err                      error
+	)
+
+	provider := &ProviderServices{
+		spec: spec,
+	}
+
+	cacheCredentials := os.Getenv(credentials.EksctlGlobalEnableCachingEnvName) != ""
+	if cacheCredentials {
+		credentialsCacheFilePath, err = credentials.GetCacheFilePath()
+		if err != nil {
+			return nil, fmt.Errorf("error getting cache file path: %w", err)
+		}
+	}
+
+	cfg, err := newV2Config(spec, credentialsCacheFilePath, configurationLoader)
+	if err != nil {
+		return nil, err
+	}
+
+	if spec.Region == "" {
+		spec.Region = cfg.Region
+	}
+
+	provider.ServicesV2 = &ServicesV2{
+		config: cfg,
+	}
+
+	provider.asg = autoscaling.NewFromConfig(cfg)
+	provider.cloudwatchlogs = cloudwatchlogs.NewFromConfig(cfg)
+	provider.cloudtrail = cloudtrail.NewFromConfig(cfg)
+
+	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
+		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)
+		provider.cloudtrail = cloudtrail.NewFromConfig(cfg, func(o *cloudtrail.Options) {
+			o.BaseEndpoint = &endpoint
+		})
+	}
+
+	return provider, nil
 }
 
 // ParseConfig parses data into a ClusterConfig
@@ -278,8 +263,8 @@ func (c *ClusterProvider) IsSupportedRegion() bool {
 }
 
 // GetCredentialsEnv returns the AWS credentials for env usage
-func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
-	creds, err := c.Status.SessionCreds.Get()
+func (c *ClusterProvider) GetCredentialsEnv(ctx context.Context) ([]string, error) {
+	creds, err := c.AWSProvider.CredentialsProvider().Retrieve(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting effective credentials")
 	}
@@ -483,61 +468,6 @@ func ValidateLocalZones(ctx context.Context, ec2API awsapi.EC2, localZones []str
 		}
 	}
 	return nil
-}
-
-func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session {
-	// we might want to use bits from kops, although right now it seems like too many things we
-	// don't want yet
-	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
-	config := aws.NewConfig().WithCredentialsChainVerboseErrors(true)
-
-	if c.AWSProvider.Region() != "" {
-		config = config.WithRegion(c.AWSProvider.Region()).WithSTSRegionalEndpoint(endpoints.RegionalSTSEndpoint)
-	}
-
-	config = request.WithRetryer(config, newLoggingRetryer())
-	if logger.Level >= api.AWSDebugLevel {
-		config = config.WithLogLevel(aws.LogDebug |
-			aws.LogDebugWithHTTPBody |
-			aws.LogDebugWithRequestRetries |
-			aws.LogDebugWithRequestErrors |
-			aws.LogDebugWithEventStreamBody)
-		config = config.WithLogger(aws.LoggerFunc(func(args ...interface{}) {
-			logger.Debug(fmt.Sprintln(args...))
-		}))
-	}
-
-	// Create the options for the session
-	opts := session.Options{
-		Config:                  *config,
-		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 spec.Profile.Name,
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-	}
-
-	stscreds.DefaultDuration = 30 * time.Minute
-
-	s := session.Must(session.NewSessionWithOptions(opts))
-
-	s.Handlers.Build.PushFrontNamed(request.NamedHandler{
-		Name: "eksctlUserAgent",
-		Fn: request.MakeAddToUserAgentHandler(
-			"eksctl", version.String()),
-	})
-
-	if spec.Region == "" {
-		if api.IsSetAndNonEmptyString(s.Config.Region) {
-			// set cluster config region, based on session config
-			spec.Region = *s.Config.Region
-		} else {
-			// if session config doesn't have region set, make recursive call forcing default region
-			logger.Debug("no region specified in flags or config, setting to %s", api.DefaultRegion)
-			spec.Region = api.DefaultRegion
-			return c.newSession(spec)
-		}
-	}
-
-	return s
 }
 
 // NewStackManager returns a new stack manager

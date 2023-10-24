@@ -96,8 +96,8 @@ type SSM interface {
 	// 5 PM.
 	CreateMaintenanceWindow(ctx context.Context, params *CreateMaintenanceWindowInput, optFns ...func(*Options)) (*CreateMaintenanceWindowOutput, error)
 	// Creates a new OpsItem. You must have permission in Identity and Access
-	// Management (IAM) to create a new OpsItem. For more information, see Getting
-	// started with OpsCenter (https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-getting-started.html)
+	// Management (IAM) to create a new OpsItem. For more information, see Set up
+	// OpsCenter (https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-setup.html)
 	// in the Amazon Web Services Systems Manager User Guide. Operations engineers and
 	// IT professionals use Amazon Web Services Systems Manager OpsCenter to view,
 	// investigate, and remediate operational issues impacting the performance and
@@ -225,15 +225,16 @@ type SSM interface {
 	DescribeEffectivePatchesForPatchBaseline(ctx context.Context, params *DescribeEffectivePatchesForPatchBaselineInput, optFns ...func(*Options)) (*DescribeEffectivePatchesForPatchBaselineOutput, error)
 	// The status of the associations for the managed node(s).
 	DescribeInstanceAssociationsStatus(ctx context.Context, params *DescribeInstanceAssociationsStatusInput, optFns ...func(*Options)) (*DescribeInstanceAssociationsStatusOutput, error)
-	// Describes one or more of your managed nodes, including information about the
-	// operating system platform, the version of SSM Agent installed on the managed
-	// node, node status, and so on. If you specify one or more managed node IDs, it
+	// Provides information about one or more of your managed nodes, including the
+	// operating system platform, SSM Agent version, association status, and IP
+	// address. This operation does not return information for nodes that are either
+	// Stopped or Terminated. If you specify one or more node IDs, the operation
 	// returns information for those managed nodes. If you don't specify node IDs, it
 	// returns information for all your managed nodes. If you specify a node ID that
 	// isn't valid or a node that you don't own, you receive an error. The IamRole
-	// field for this API operation is the Identity and Access Management (IAM) role
-	// assigned to on-premises managed nodes. This call doesn't return the IAM role for
-	// EC2 instances.
+	// field returned for this API operation is the Identity and Access Management
+	// (IAM) role assigned to on-premises managed nodes. This operation does not return
+	// the IAM role for EC2 instances.
 	DescribeInstanceInformation(ctx context.Context, params *DescribeInstanceInformationInput, optFns ...func(*Options)) (*DescribeInstanceInformationOutput, error)
 	// Retrieves the high-level patch state of one or more managed nodes.
 	DescribeInstancePatchStates(ctx context.Context, params *DescribeInstancePatchStatesInput, optFns ...func(*Options)) (*DescribeInstancePatchStatesOutput, error)
@@ -270,8 +271,8 @@ type SSM interface {
 	// managed node is associated with.
 	DescribeMaintenanceWindowsForTarget(ctx context.Context, params *DescribeMaintenanceWindowsForTargetInput, optFns ...func(*Options)) (*DescribeMaintenanceWindowsForTargetOutput, error)
 	// Query a set of OpsItems. You must have permission in Identity and Access
-	// Management (IAM) to query a list of OpsItems. For more information, see Getting
-	// started with OpsCenter (https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-getting-started.html)
+	// Management (IAM) to query a list of OpsItems. For more information, see Set up
+	// OpsCenter (https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-setup.html)
 	// in the Amazon Web Services Systems Manager User Guide. Operations engineers and
 	// IT professionals use Amazon Web Services Systems Manager OpsCenter to view,
 	// investigate, and remediate operational issues impacting the performance and
@@ -386,7 +387,7 @@ type SSM interface {
 	GetMaintenanceWindowTask(ctx context.Context, params *GetMaintenanceWindowTaskInput, optFns ...func(*Options)) (*GetMaintenanceWindowTaskOutput, error)
 	// Get information about an OpsItem by using the ID. You must have permission in
 	// Identity and Access Management (IAM) to view information about an OpsItem. For
-	// more information, see Getting started with OpsCenter (https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-getting-started.html)
+	// more information, see Set up OpsCenter (https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-setup.html)
 	// in the Amazon Web Services Systems Manager User Guide. Operations engineers and
 	// IT professionals use Amazon Web Services Systems Manager OpsCenter to view,
 	// investigate, and remediate operational issues impacting the performance and
@@ -730,8 +731,8 @@ type SSM interface {
 	// information, see CreateActivation .
 	UpdateManagedInstanceRole(ctx context.Context, params *UpdateManagedInstanceRoleInput, optFns ...func(*Options)) (*UpdateManagedInstanceRoleOutput, error)
 	// Edit or change an OpsItem. You must have permission in Identity and Access
-	// Management (IAM) to update an OpsItem. For more information, see Getting
-	// started with OpsCenter (https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-getting-started.html)
+	// Management (IAM) to update an OpsItem. For more information, see Set up
+	// OpsCenter (https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-setup.html)
 	// in the Amazon Web Services Systems Manager User Guide. Operations engineers and
 	// IT professionals use Amazon Web Services Systems Manager OpsCenter to view,
 	// investigate, and remediate operational issues impacting the performance and

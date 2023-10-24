@@ -3,9 +3,9 @@ package info
 import (
 	"encoding/json"
 	"fmt"
-	"os/exec"
 	"runtime"
 
+	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
 
@@ -16,16 +16,6 @@ type Info struct {
 	EksctlVersion  string
 	KubectlVersion string
 	OS             string
-}
-
-// clientVersion holds git version info of kubectl client
-type clientVersion struct {
-	GitVersion string `json:"gitVersion"`
-}
-
-// kubectlInfo holds version info of kubectl client
-type kubectlInfo struct {
-	ClientVersion clientVersion `json:"clientVersion"`
 }
 
 // GetInfo returns versions info
@@ -42,25 +32,12 @@ func getEksctlVersion() string {
 	return version.GetVersion()
 }
 
-// getKubectlVersion returns the kubectl version
 func getKubectlVersion() string {
-	cmd := exec.Command("kubectl", "version", "--client", "--output", "json")
-	out, err := cmd.CombinedOutput()
+	clientVersion, err := kubectl.NewVersionManager().ClientVersion()
 	if err != nil {
-		return fmt.Sprintf("error : %v", err)
+		return err.Error()
 	}
-
-	var info kubectlInfo
-
-	if err := json.Unmarshal(out, &info); err != nil {
-		return fmt.Sprintf("error parsing `kubectl version` output: %v", err)
-	}
-
-	if info.ClientVersion.GitVersion == "" {
-		return "unknown version"
-	}
-
-	return info.ClientVersion.GitVersion
+	return clientVersion
 }
 
 // String return info as JSON

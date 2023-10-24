@@ -32,7 +32,7 @@ template: |
   Weaveworks would like to sincerely thank:
   $CONTRIBUTORS
 replacers:
-  - search: '/@(Himangini|TiberiuGC|A-Hilaly|yuxiang-zhang|cPu1|weaveworksbot|dependabot(?:\[bot\])?)(?:,| |$)/gm'
+  - search: '/@(Himangini|TiberiuGC|a-hilaly|yuxiang-zhang|cPu1|eksctl-bot|dependabot(?:\[bot\])?)(?:,| |$)/gm'
     replace: ''
 exclude-labels:
   - 'skip-release-notes'

@@ -61,7 +61,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 		api.IsEnabled(m.nodeGroup.SSH.Allow),
 		"[created by eksctl]")
 
-	m.template.Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
+	m.template.Mappings[servicePrincipalPartitionMapName] = api.Partitions.ServicePrincipalPartitionMappings()
 
 	var nodeRole *gfnt.Value
 	if m.nodeGroup.IAM.InstanceRoleARN == "" {

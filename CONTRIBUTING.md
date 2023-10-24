@@ -14,7 +14,7 @@ clear, we also accept contributions to this contribution doc :smile:.
 For information on how to get in touch, or how the project is run, please see
 the [Community page](COMMUNITY.md).
 
-_(If you are a Maintainer, head over to the [Maintainer's guide](https://github.com/weaveworks/eksctl-handbook).)_
+_(If you are a Maintainer, head over to the [Maintainer's guide](https://github.com/eksctl-io/eksctl-handbook).)_
 
 Reading docs is often tedious, so we'll put our most important contributing rule
 right at the top: **Always be kind!**
@@ -77,10 +77,10 @@ Here is a non-exhaustive list of ways you can help out:
 
     We have 3 forms of issue: [bug reports](#bug-report-guide), [feature requests](#feature-request-guide) and [help requests](#help-request-guide).
     If you are not sure which category you need, just make the best guess and provide as much information as possible.
-1. Help out others in the [community slack channel](https://weave-community.slack.com/messages/CAYBZBWGL/). :sos:
-1. Chime in on [bugs](https://github.com/weaveworks/eksctl/issues?q=is%3Aopen+is%3Aissue+label%3Akind%2Fbug+), [feature requests](https://github.com/weaveworks/eksctl/issues?q=is%3Aopen+is%3Aissue+label%3Akind%2Ffeature) and asks for [help](https://github.com/weaveworks/eksctl/issues?q=is%3Aopen+is%3Aissue+label%3Akind%2Fhelp). :thought_balloon:
-1. Dig into some [`needs-investigation` issues](https://github.com/weaveworks/eksctl/labels/needs-investigation) :detective:
-1. Get involved in some [PR reviews](https://github.com/weaveworks/eksctl/pulls). :nerd_face:
+1. Help out others in the [eksctl slack channel](https://slack.k8s.io/messages/eksctl/). :sos:
+1. Chime in on [bugs](https://github.com/eksctl-io/eksctl/issues?q=is%3Aopen+is%3Aissue+label%3Akind%2Fbug+), [feature requests](https://github.com/eksctl-io/eksctl/issues?q=is%3Aopen+is%3Aissue+label%3Akind%2Ffeature) and asks for [help](https://github.com/eksctl-io/eksctl/issues?q=is%3Aopen+is%3Aissue+label%3Akind%2Fhelp). :thought_balloon:
+1. Dig into some [`needs-investigation` issues](https://github.com/eksctl-io/eksctl/labels/needs-investigation) :detective:
+1. Get involved in some [PR reviews](https://github.com/eksctl-io/eksctl/pulls). :nerd_face:
 1. Review old issues; poke or suggest closing ones which are stale or follow up those which still look good. :speech_balloon:
 1. Think deeply about the future of `eksctl`, then [talk about it](#proposals). :crystal_ball:
 
@@ -179,7 +179,7 @@ the project goals will likely be rejected, as will highly
 specialised use-cases.
 
 Once you have opened the ticket, feel free to post it in the community
-[slack channel](https://weave-community.slack.com/messages/CAYBZBWGL/) to get more opinions on it.
+[slack channel](https://slack.k8s.io/messages/eksctl/) to get more opinions on it.
 
 Below are the steps we encourage people to take when creating a new feature request:
 
@@ -204,7 +204,7 @@ Below are the steps we encourage people to take when creating a new feature requ
 
 ### Help request guide
 
-While you can ask for general help with `eksctl` usage in the [slack channel](https://weave-community.slack.com/messages/CAYBZBWGL/),
+While you can ask for general help with `eksctl` usage in the [slack channel](https://slack.k8s.io/messages/eksctl/),
 opening an issue creates a more searchable history for the community.
 
 We hope to respond to requests for help within a couple of working days, but please wait
@@ -236,7 +236,7 @@ If you are not here to report a bug, ask for help or request some new behaviour,
 is the section for you. We have curated a set of issues for anyone who simply
 wants to build up their open-source cred :muscle:.
 
-- Issues labelled [`good first issue`](https://github.com/weaveworks/eksctl/labels/good%20first%20issue)
+- Issues labelled [`good first issue`](https://github.com/eksctl-io/eksctl/labels/good%20first%20issue)
   should be accessible to folks new to the repo, as well as to open source in general.
 
   These issues should present a low/non-existent barrier to entry with a thorough description,
@@ -252,7 +252,7 @@ wants to build up their open-source cred :muscle:.
 
   See more on [asking for help](#asking-for-help) below!
 
-- [`help wanted` issues](https://github.com/weaveworks/eksctl/labels/help%20wanted)
+- [`help wanted` issues](https://github.com/eksctl-io/eksctl/labels/help%20wanted)
   are for those a little more familiar with the code base, but should still be accessible enough
   to newcomers.
 
@@ -422,7 +422,7 @@ tests you can get to work :tada: .
 
 1. Write your solution. Try to align with existing patterns and standards.
   _However_, there is significant tech debt, so any refactoring or changes which would
-  improve things even a little would be very welcome. (See [#2931](https://github.com/weaveworks/eksctl/issues/2931)
+  improve things even a little would be very welcome. (See [#2931](https://github.com/eksctl-io/eksctl/issues/2931)
   for our current efforts.)
 
 1. Try to commit in small chunks so that changes are well described
@@ -430,7 +430,7 @@ tests you can get to work :tada: .
   the future.
   Make sure commit messages are in the [proper format](#commit-message-formatting).
 
-1. Be sure to include at least unit tests to cover your changes. See the [addon](https://github.com/weaveworks/eksctl/blob/main/pkg/actions/addon)
+1. Be sure to include at least unit tests to cover your changes. See the [addon](https://github.com/eksctl-io/eksctl/blob/main/pkg/actions/addon)
   package for a good example of tests.
 
       > NOTE: We are trying to move away from using [`mockery`](https://github.com/vektra/mockery)
@@ -468,11 +468,11 @@ If you need help at any stage of your work, please don't hesitate to ask!
 - If you are struggling with something while working on your PR, or aren't quite
   sure of your approach, you can open a [draft](https://github.blog/2019-02-14-introducing-draft-pull-requests/)
   (prefix the title with `WIP:`) and explain what you are thinking.
-  You can tag in one of the core team, or drop the PR link into [slack](https://weave-community.slack.com/messages/eksctl/) and get
+  You can tag in one of the core team, or drop the PR link into [slack](https://slack.k8s.io/messages/eksctl/) and get
   help from the community.
 
 - We are happy to pair with contributors over a slack call to help them fine-tune their
-  implementation. You can ping us directly, or head to the [channel](https://weave-community.slack.com/messages/eksctl/)
+  implementation. You can ping us directly, or head to the [channel](https://slack.k8s.io/messages/eksctl/)
   to see if anyone in the community is up for being a buddy :smiley: .
 
 ### PR submission guidelines
@@ -591,7 +591,7 @@ The core team regularly processes incoming issues. There may be some delay over 
 
 Every issue will be assigned a `priority/<x>` label. The levels of priorities are:
 
-- [`critical`](https://github.com/weaveworks/eksctl/labels/priority%2Fcritical): These are time sensitive issues which should be picked up immediately.
+- [`critical`](https://github.com/eksctl-io/eksctl/labels/priority%2Fcritical): These are time sensitive issues which should be picked up immediately.
   If an issue labelled `critical` is not assigned or being actively worked on,
   someone is expected to drop what they're doing immediately to work on it.
   This usually means the core team, but community members are welcome to claim
@@ -600,18 +600,18 @@ Every issue will be assigned a `priority/<x>` label. The levels of priorities ar
   they will be paired with a core team-member to manage the tracking, communication and release of any fix
   as well as to assume responsibility of all progess._
 
-- [`important-soon`](https://github.com/weaveworks/eksctl/labels/priority%2Fimportant-soon): Must be assigned as soon as capacity becomes available.
+- [`important-soon`](https://github.com/eksctl-io/eksctl/labels/priority%2Fimportant-soon): Must be assigned as soon as capacity becomes available.
   Ideally something should be delivered in time for the next release.
 
-- [`important-longterm`](https://github.com/weaveworks/eksctl/labels/priority%2Fimportant-longterm): Important over the long term, but may not be currently
+- [`important-longterm`](https://github.com/eksctl-io/eksctl/labels/priority%2Fimportant-longterm): Important over the long term, but may not be currently
   staffed and/or may require multiple releases to complete.
 
-- [`backlog`](https://github.com/weaveworks/eksctl/labels/priority%2Fbacklog): There appears to be general agreement that this would be good to have,
+- [`backlog`](https://github.com/eksctl-io/eksctl/labels/priority%2Fbacklog): There appears to be general agreement that this would be good to have,
   but we may not have anyone available to work on it right now or in the immediate future.
   PRs are still very welcome, although it might take a while to get them reviewed if
   reviewers are fully occupied with higher priority issues, for example immediately before a release.
 
-- [`needs-investigation`](https://github.com/weaveworks/eksctl/labels/needs-investigation):  There is currently insufficient information to either categorize properly,
+- [`needs-investigation`](https://github.com/eksctl-io/eksctl/labels/needs-investigation):  There is currently insufficient information to either categorize properly,
   or to understand and implement a solution. This could be because the issue opener did
   not provide enough relevant information, or because more in-depth research is required
   before work can begin.
@@ -698,4 +698,4 @@ Each proposal/design doc should cover the following _at a minimum_:
 
 ---
 
-## :rocket: :tada: Thanks for reading! :tada: :rocket
+## :rocket: :tada: Thanks for reading! :tada: :rocket:

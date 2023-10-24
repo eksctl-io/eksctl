@@ -11,61 +11,34 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
+
 	v1 "k8s.io/api/apps/v1"
-	apierrs "k8s.io/apimachinery/pkg/api/errors"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/weaveworks/eksctl/pkg/addons"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
 const (
 	// KubeProxy is the name of the kube-proxy addon
 	KubeProxy = "kube-proxy"
-	ArchLabel = "kubernetes.io/arch"
 )
-
-func IsKubeProxyUpToDate(ctx context.Context, input AddonInput) (bool, error) {
-	d, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(ctx, KubeProxy, metav1.GetOptions{})
-	if err != nil {
-		if apierrs.IsNotFound(err) {
-			logger.Warning("%q was not found", KubeProxy)
-			return true, nil
-		}
-		return false, errors.Wrapf(err, "getting %q", KubeProxy)
-	}
-	if numContainers := len(d.Spec.Template.Spec.Containers); !(numContainers >= 1) {
-		return false, fmt.Errorf("%s has %d containers, expected at least 1", KubeProxy, numContainers)
-	}
-
-	desiredTag, err := getLatestKubeProxyImage(ctx, input)
-	if err != nil {
-		return false, err
-	}
-	image := d.Spec.Template.Spec.Containers[0].Image
-	imageTag, err := addons.ImageTag(image)
-	if err != nil {
-		return false, err
-	}
-	return desiredTag == imageTag, nil
-}
 
 // UpdateKubeProxy updates image tag for kube-system:daemonset/kube-proxy based to match ControlPlaneVersion
 func UpdateKubeProxy(ctx context.Context, input AddonInput, plan bool) (bool, error) {
 	printer := printers.NewJSONPrinter()
 
-	d, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), KubeProxy, metav1.GetOptions{})
+	d, err := getKubeProxy(ctx, input.RawClient.ClientSet())
 	if err != nil {
-		if apierrs.IsNotFound(err) {
-			logger.Warning("%q was not found", KubeProxy)
-			return false, nil
-		}
-		return false, errors.Wrapf(err, "getting %q", KubeProxy)
+		return false, err
+	}
+	if d == nil {
+		return false, nil
 	}
 
-	hasArm64NodeSelector := daemeonSetHasArm64NodeSelector(d)
+	hasArm64NodeSelector := supportsMultiArch(d.Spec.Template.Spec)
 	if !hasArm64NodeSelector {
 		logger.Info("missing arm64 nodeSelector value")
 	}
@@ -121,23 +94,9 @@ func UpdateKubeProxy(ctx context.Context, input AddonInput, plan bool) (bool, er
 	return false, nil
 }
 
-func daemeonSetHasArm64NodeSelector(daemonSet *v1.DaemonSet) bool {
-	if daemonSet.Spec.Template.Spec.Affinity != nil &&
-		daemonSet.Spec.Template.Spec.Affinity.NodeAffinity != nil &&
-		daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
-		for _, nodeSelectorTerms := range daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
-			for _, nodeSelector := range nodeSelectorTerms.MatchExpressions {
-				if nodeSelector.Key == ArchLabel {
-					for _, value := range nodeSelector.Values {
-						if value == "arm64" {
-							return true
-						}
-					}
-				}
-			}
-		}
-	}
-	return false
+func getKubeProxy(ctx context.Context, clientSet kubernetes.Interface) (*v1.DaemonSet, error) {
+	d, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(ctx, KubeProxy, metav1.GetOptions{})
+	return makeGetError(d, err, KubeProxy)
 }
 
 func addArm64NodeSelector(daemonSet *v1.DaemonSet) error {
@@ -145,7 +104,7 @@ func addArm64NodeSelector(daemonSet *v1.DaemonSet) error {
 		for nodeSelectorTermsIndex, nodeSelectorTerms := range daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.
 			RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
 			for nodeSelectorIndex, nodeSelector := range nodeSelectorTerms.MatchExpressions {
-				if nodeSelector.Key == ArchLabel {
+				if nodeSelector.Key == corev1.LabelArchStable {
 					daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.
 						NodeSelectorTerms[nodeSelectorTermsIndex].MatchExpressions[nodeSelectorIndex].Values = append(nodeSelector.Values, "arm64")
 				}

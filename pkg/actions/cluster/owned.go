@@ -9,6 +9,7 @@ import (
 
 	"github.com/kris-nova/logger"
 
+	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -28,7 +29,11 @@ type OwnedCluster struct {
 	newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer
 }
 
-func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager) *OwnedCluster {
+func NewOwnedCluster(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager) (*OwnedCluster, error) {
+	instanceSelector, err := selector.New(context.Background(), ctl.AWSProvider.AWSConfig())
+	if err != nil {
+		return nil, err
+	}
 	return &OwnedCluster{
 		cfg:          cfg,
 		ctl:          ctl,
@@ -38,9 +43,9 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterSt
 			return ctl.NewStdClientSet(cfg)
 		},
 		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
-			return nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
+			return nodegroup.New(cfg, ctl, clientSet, instanceSelector)
 		},
-	}
+	}, nil
 }
 
 func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
@@ -115,7 +120,8 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 	newOIDCManager := func() (*iamoidc.OpenIDConnectManager, error) {
 		return c.ctl.NewOpenIDConnectManager(ctx, c.cfg)
 	}
-	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, clusterOperable, newOIDCManager, c.ctl.Status.ClusterInfo.Cluster, kubernetes.NewCachedClientSet(clientSet), wait, force, func(errs chan error, _ string) error {
+	newTasksToDeleteAddonIAM := addon.NewRemover(c.stackManager).DeleteAddonIAMTasks
+	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, clusterOperable, newOIDCManager, newTasksToDeleteAddonIAM, c.ctl.Status.ClusterInfo.Cluster, kubernetes.NewCachedClientSet(clientSet), wait, force, func(errs chan error, _ string) error {
 		logger.Info("trying to cleanup dangling network interfaces")
 		stack, err := c.stackManager.DescribeClusterStack(ctx)
 		if err != nil {

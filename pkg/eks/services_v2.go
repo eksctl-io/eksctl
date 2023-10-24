@@ -46,7 +46,7 @@ func (s *ServicesV2) STS() awsapi.STS {
 	if s.sts == nil {
 		s.sts = sts.NewFromConfig(s.config, func(o *sts.Options) {
 			// Disable retryer for STS
-			// (see https://github.com/weaveworks/eksctl/issues/705)
+			// (see https://github.com/eksctl-io/eksctl/issues/705)
 			o.Retryer = aws.NopRetryer{}
 		})
 	}
@@ -61,7 +61,7 @@ func (s *ServicesV2) STSPresigner() api.STSPresigner {
 	if s.stsPresigned == nil {
 		client := sts.NewFromConfig(s.config, func(o *sts.Options) {
 			// Disable retryer for STS
-			// (see https://github.com/weaveworks/eksctl/issues/705)
+			// (see https://github.com/eksctl-io/eksctl/issues/705)
 			o.Retryer = aws.NopRetryer{}
 		})
 		s.stsPresigned = sts.NewPresignClient(client)
@@ -157,4 +157,12 @@ func (s *ServicesV2) Outposts() awsapi.Outposts {
 		s.outposts = outposts.NewFromConfig(s.config)
 	}
 	return s.outposts
+}
+
+func (s *ServicesV2) AWSConfig() aws.Config {
+	return s.config
+}
+
+func (s *ServicesV2) CredentialsProvider() aws.CredentialsProvider {
+	return s.config.Credentials
 }

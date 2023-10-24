@@ -11,6 +11,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -29,7 +30,11 @@ type UnownedCluster struct {
 	newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer
 }
 
-func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) *UnownedCluster {
+func NewUnownedCluster(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) (*UnownedCluster, error) {
+	instanceSelector, err := selector.New(context.Background(), ctl.AWSProvider.AWSConfig())
+	if err != nil {
+		return nil, err
+	}
 	return &UnownedCluster{
 		cfg:          cfg,
 		ctl:          ctl,
@@ -38,9 +43,9 @@ func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMa
 			return ctl.NewStdClientSet(cfg)
 		},
 		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
-			return nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
+			return nodegroup.New(cfg, ctl, clientSet, instanceSelector)
 		},
-	}
+	}, nil
 }
 
 func (c *UnownedCluster) Upgrade(ctx context.Context, dryRun bool) error {
@@ -180,7 +185,7 @@ func (c *UnownedCluster) deleteIAMAndOIDC(ctx context.Context, wait bool, cluste
 		}
 	}
 
-	deleteAddonIAMTasks, err := c.stackManager.NewTaskToDeleteAddonIAM(ctx, wait)
+	deleteAddonIAMTasks, err := addon.NewRemover(c.stackManager).DeleteAddonIAMTasks(ctx, wait)
 	if err != nil {
 		return err
 	}

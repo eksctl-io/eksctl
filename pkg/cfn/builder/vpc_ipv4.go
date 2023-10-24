@@ -335,7 +335,6 @@ var (
 	sgSourceAnywhereIPv6 = gfnt.NewString("::/0")
 
 	sgPortZero    = gfnt.NewInteger(0)
-	sgMinNodePort = gfnt.NewInteger(1025)
 	sgMaxNodePort = gfnt.NewInteger(65535)
 
 	sgPortHTTPS = gfnt.NewInteger(443)

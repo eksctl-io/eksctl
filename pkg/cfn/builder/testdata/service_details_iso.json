@@ -1,0 +1,162 @@
+{
+  "ServiceNames": [
+    "gov.ic.c2s.us-iso-east-1.ec2",
+    "gov.ic.c2s.us-iso-east-1.ecr.api",
+    "gov.ic.c2s.us-iso-east-1.ecr.dkr",
+    "com.amazonaws.us-iso-east-1.s3",
+    "com.amazonaws.us-iso-east-1.sts"
+  ],
+  "ServiceDetails": [
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Interface"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "PrivateDnsName": "ec2.us-iso-east-1.amazonaws.com",
+      "ServiceName": "gov.ic.c2s.us-iso-east-1.ec2",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-1",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-iso-east-1a",
+        "us-iso-east-1b"
+      ],
+      "AcceptanceRequired": false,
+      "BaseEndpointDnsNames": [
+        "ec2.us-iso-east-1.vpce.amazonaws.com"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Interface"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "PrivateDnsName": "api.ecr.us-iso-east-1.amazonaws.com",
+      "ServiceName": "gov.ic.c2s.us-iso-east-1.ecr.api",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-2",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-iso-east-1a",
+        "us-iso-east-1b"
+      ],
+      "AcceptanceRequired": false,
+      "BaseEndpointDnsNames": [
+        "api.ecr.us-iso-east-1.vpce.amazonaws.com"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Interface"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "PrivateDnsName": "*.dkr.ecr.us-iso-east-1.amazonaws.com",
+      "ServiceName": "gov.ic.c2s.us-iso-east-1.ecr.dkr",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-3",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-iso-east-1a",
+        "us-iso-east-1b"
+      ],
+      "AcceptanceRequired": false,
+      "BaseEndpointDnsNames": [
+        "dkr.ecr.us-iso-east-1.vpce.amazonaws.com"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Gateway"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "AcceptanceRequired": false,
+      "ServiceName": "com.amazonaws.us-iso-east-1.s3",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-4",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-iso-east-1a",
+        "us-iso-east-1b"
+      ],
+      "BaseEndpointDnsNames": [
+        "s3.us-iso-east-1.amazonaws.com"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Interface"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "AcceptanceRequired": false,
+      "ServiceName": "com.amazonaws.us-iso-east-1.s3",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-5",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-iso-east-1a",
+        "us-iso-east-1b"
+      ],
+      "BaseEndpointDnsNames": [
+        "s3.us-iso-east-1.amazonaws.com"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Interface"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "PrivateDnsName": "sts.us-iso-east-1.amazonaws.com",
+      "ServiceName": "com.amazonaws.us-iso-east-1.sts",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-6",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-iso-east-1a",
+        "us-iso-east-1b"
+      ],
+      "AcceptanceRequired": false,
+      "BaseEndpointDnsNames": [
+        "sts.us-iso-east-1.vpce.amazonaws.com"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Gateway"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "AcceptanceRequired": false,
+      "ServiceName": "gov.ic.c2s.us-iso-east-1.ec2",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-non-existing-endpoint-type",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-iso-east-1a",
+        "us-iso-east-1b"
+      ],
+      "BaseEndpointDnsNames": [
+        "ec2.us-iso-east-1.amazonaws.com"
+      ]
+    }
+  ]
+}

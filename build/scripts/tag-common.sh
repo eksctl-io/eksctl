@@ -24,7 +24,7 @@ function release_generate() {
 }
 
 function check_origin() {
-  if [[ ! "$(git remote get-url origin)" =~ weaveworks/eksctl(\-private)?(\.git)?$ ]] ; then
+  if [[ ! "$(git remote get-url origin)" =~ eksctl\-io/eksctl(\-private)?(\.git)?$ ]] ; then
     echo "Invalid origin: $(git remote get-url origin)"
     exit 3
   fi

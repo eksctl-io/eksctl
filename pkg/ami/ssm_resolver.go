@@ -88,6 +88,10 @@ func MakeManagedSSMParameterName(version string, amiType ekstypes.AMITypes) (str
 	case ekstypes.AMITypesAl2X8664Gpu:
 		imageType := utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2) + "-gpu"
 		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/release_version", version, imageType), nil
+	case ekstypes.AMITypesBottlerocketArm64, ekstypes.AMITypesBottlerocketArm64Nvidia:
+		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/arm64/latest/image_version", version), nil
+	case ekstypes.AMITypesBottlerocketX8664, ekstypes.AMITypesBottlerocketX8664Nvidia:
+		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/x86_64/latest/image_version", version), nil
 	}
 	return "", nil
 }

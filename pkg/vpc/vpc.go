@@ -345,7 +345,12 @@ func UseFromClusterStack(ctx context.Context, provider api.ClusterProvider, stac
 		}
 	}
 
-	return outputs.Collect(*stack, requiredCollectors, optionalCollectors)
+	if err := outputs.Collect(*stack, requiredCollectors, optionalCollectors); err != nil {
+		return err
+	}
+	// to clean up invalid subnets based on AZ after importing valid subnets from stack
+	cleanupSubnets(spec)
+	return nil
 }
 
 // MakeExtendedSubnetAliasFunc returns a function for creating an alias for a subnet that was added as part of extending
@@ -428,6 +433,13 @@ func ImportSubnets(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConf
 		}
 	}
 
+	// as subnetMapping will be populated / altered within ImportSubnet,
+	// we want to keep an unchanged copy for local against remote VPC config validation
+	localSubnetConfig := api.AZSubnetMapping{}
+	for k, v := range subnetMapping {
+		localSubnetConfig[k] = v
+	}
+
 	for _, sn := range subnets {
 		if spec.VPC.ID == "" {
 			// if VPC wasn't defined, import it based on VPC of the first
@@ -439,7 +451,7 @@ func ImportSubnets(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConf
 			return fmt.Errorf("given %s is in %s, not in %s", *sn.SubnetId, *sn.VpcId, spec.VPC.ID)
 		}
 
-		if err := api.ImportSubnet(subnetMapping, &sn, makeSubnetAlias); err != nil {
+		if err := api.ImportSubnet(subnetMapping, localSubnetConfig, &sn, makeSubnetAlias); err != nil {
 			return fmt.Errorf("could not import subnet %s: %w", *sn.SubnetId, err)
 		}
 		spec.AppendAvailabilityZone(*sn.AvailabilityZone)
@@ -640,6 +652,14 @@ func cleanupSubnets(spec *api.ClusterConfig) {
 	cleanup := func(subnets *api.AZSubnetMapping) {
 		for name, subnet := range *subnets {
 			if _, ok := availabilityZones[subnet.AZ]; !ok {
+				// since we're removing the subnet with invalid AZ from spec, we want to reference it by ID in any subsequent nodegroup creation task
+				for _, node := range nodes.ToNodePools(spec) {
+					for i, subnetRef := range node.BaseNodeGroup().Subnets {
+						if subnetRef == name {
+							node.BaseNodeGroup().Subnets[i] = subnet.ID
+						}
+					}
+				}
 				delete(*subnets, name)
 			}
 		}

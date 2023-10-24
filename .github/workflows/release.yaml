@@ -7,15 +7,15 @@ jobs:
   rc:
     name: Trigger release build
     runs-on: ubuntu-latest
-    container: weaveworks/eksctl-build:4639938e287f84b816c3442206436324730eef46
+    container: public.ecr.aws/eksctl/eksctl-build:516ded83aa5dbd3e3c4e25c5d410e2dba3b5e668
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 #v4.1.0
         with:
-          token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
+          token: ${{ secrets.EKSCTLBOT_TOKEN }}
           fetch-depth: 0
       - name: Cache go-build and mod
-        uses: actions/cache@v3
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 #v3.3.2
         with:
           path: |
             ~/.cache/go-build/
@@ -23,9 +23,9 @@ jobs:
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: |
             go-
-      - name: Setup identity as weaveworksbot
+      - name: Setup identity as eksctl-bot
         uses: ./.github/actions/setup-identity
         with:
-          token: "${{ secrets.WEAVEWORKSBOT_TOKEN }}"
+          token: "${{ secrets.EKSCTLBOT_TOKEN }}"
       - name: Push tag and open PR to default branch
         run: make prepare-release

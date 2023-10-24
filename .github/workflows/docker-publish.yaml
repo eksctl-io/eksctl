@@ -10,19 +10,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 #v4.1.0
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@818d4b7b91585d195f67373fd9cb0332e31a7175 #4.6.0
+        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 #5.0.0
         with:
           images: weaveworks/eksctl
       - name: Log in to Docker Hub
-        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d #v3.0.0
         with:
           username: weaveworkseksctlci
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Build and push Docker image
-        uses: docker/build-push-action@44ea916f6c540f9302d50c2b1e5a8dc071f15cdf #4.1.0
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 #5.0.0
         with:
           context: .
           push: true

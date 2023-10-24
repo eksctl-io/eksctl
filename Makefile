@@ -10,6 +10,7 @@ gocache := $(shell go env GOCACHE)
 export GOBIN ?= $(gopath)/bin
 
 AWS_SDK_GO_DIR ?= $(shell go list -m -f '{{.Dir}}' 'github.com/aws/aws-sdk-go')
+AWS_SDK_V2_GO_DIR ?= $(shell go list -m -f '{{.Dir}}' 'github.com/aws/aws-sdk-go-v2')
 
 generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
 
@@ -91,7 +92,10 @@ test: ## Lint, generate and run unit tests. Also ensure that integration tests c
 	$(MAKE) build-integration-test
 
 .PHONY: unit-test
-unit-test: check-all-generated-files-up-to-date ## Run unit test only
+unit-test: check-all-generated-files-up-to-date unit-test-no-generate
+
+.PHONY: unit-test-no-generate ## Run unit test only
+unit-test-no-generate:
 	CGO_ENABLED=0 go test  -tags=release ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: unit-test-race
@@ -143,7 +147,7 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 	go generate ./pkg/authconfigmap
 	go generate ./pkg/awsapi/...
 	go generate ./pkg/eks
-	go generate ./pkg/eks/mocksv2
+	${GOBIN}/mockery
 	go generate ./pkg/drain
 	go generate ./pkg/actions/...
 	go generate ./pkg/executor
@@ -165,12 +169,17 @@ pkg/addons/default/assets/aws-node.yaml:
 update-aws-node: ## Re-download the aws-node manifests from AWS
 	go generate ./pkg/addons/default/aws_node_generate.go
 
+.PHONY:
+update-coredns: ## get latest coredns builds for each available eks version
+	@go run pkg/addons/default/scripts/update_coredns_assets.go
+
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers
 	build/scripts/update-codegen.sh
 
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go) ## Generate AWS SDK mocks
 	AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
+
 
 .PHONY: generate-kube-reserved
 generate-kube-reserved: ## Update instance list with respective specs

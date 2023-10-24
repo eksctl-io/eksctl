@@ -1,0 +1,49 @@
+name: Publish ECR image
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-push-to-registry:
+    name: Build and push container image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 #v4.1.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+        with:
+          aws-region: us-east-1
+          role-duration-seconds: 7200
+          role-session-name: eksctl-ecr-publisher
+          role-to-assume: ${{ secrets.ECR_PUBLISH_ROLE_ARN }}
+
+      - name: Login to Amazon ECR Public
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v1
+        with:
+          registry-type: public
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 #5.0.0
+        env:
+          REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
+          REGISTRY_ALIAS: eksctl
+          REPOSITORY: eksctl
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_ALIAS }}/${{ env.REPOSITORY }}
+
+      - name: Build and push container image to ECR
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 #5.0.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

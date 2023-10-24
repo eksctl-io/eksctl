@@ -42,6 +42,7 @@ type Params struct {
 	SkipDelete               bool
 	KubeconfigPath           string
 	GitopsOwner              string
+	IsGitopsOwnerPersonal    bool
 	KubeconfigTemp           bool
 	TestDirectory            string
 	EksctlCmd                runner.Cmd
@@ -162,7 +163,11 @@ func (p *Params) GenerateCommands() {
 // adds the cluster to the list of clusters to eventually delete, once the test
 // suite has run.
 func (p *Params) NewClusterName(prefix string) string {
-	return p.formatClusterName(prefix, names.ForCluster("", ""))
+	return p.newClusterName(prefix, "")
+}
+
+func (p *Params) newClusterName(prefix string, givenName string) string {
+	return p.formatClusterName(prefix, names.ForCluster(givenName, ""))
 }
 
 func (p *Params) formatClusterName(prefix string, name string) string {
@@ -200,6 +205,10 @@ const (
 
 // NewParams creates a new Test instance from CLI args, grouping all test parameters.
 func NewParams(clusterNamePrefix string) *Params {
+	return NewParamsWithGivenClusterName(clusterNamePrefix, "")
+}
+
+func NewParamsWithGivenClusterName(clusterNamePrefix string, givenName string) *Params {
 	params := Params{clusterNamePrefix: clusterNamePrefix}
 
 	flag.StringVar(&params.EksctlPath, "eksctl.path", "../../../eksctl", "Path to eksctl")
@@ -212,13 +221,14 @@ func NewParams(clusterNamePrefix string) *Params {
 	flag.BoolVar(&params.SkipDelete, "eksctl.skip.delete", false, "Skip the cleanup after the tests have run")
 	flag.StringVar(&params.KubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create a temporary file)")
 	flag.StringVar(&params.GitopsOwner, "eksctl.owner", "", "User or org name to create gitops repo under")
+	flag.BoolVar(&params.IsGitopsOwnerPersonal, "eksctl.personal", false, "Whether the gitops repo is associated to an org or not")
 
 	// go1.13+ testing flags regression fix: https://github.com/golang/go/issues/31859
 	flag.Parse()
 
 	params.attemptSettingUserID()
 	if params.ClusterName == "" {
-		params.ClusterName = params.NewClusterName(clusterNamePrefix)
+		params.ClusterName = params.newClusterName(clusterNamePrefix, givenName)
 	} else {
 		params.addToDeleteList(params.ClusterName)
 	}
@@ -244,6 +254,7 @@ func (p *Params) LogStacksEventsOnFailureForCluster(clusterName string) bool {
 				"describe-stacks",
 				"--cluster", clusterName,
 				"--events",
+				"--resource-status", "CREATE_FAILED,DELETE_FAILED,UPDATE_FAILED,UPDATE_ROLLBACK_FAILED,ROLLBACK_FAILED",
 			)).To(RunSuccessfully())
 		}
 	})
@@ -261,7 +272,7 @@ func (p *Params) attemptSettingUserID() {
 		},
 	})
 
-	msg := "Warning: failed to get UserID, proceeding without configuring cluster name prefix. Error: %w"
+	msg := "Warning: failed to get UserID, proceeding without configuring cluster name prefix. Error: %v"
 	if err != nil {
 		fmt.Fprintf(GinkgoWriter, msg, err)
 		return

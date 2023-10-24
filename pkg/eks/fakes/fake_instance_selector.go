@@ -2,6 +2,7 @@
 package fakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
@@ -9,10 +10,11 @@ import (
 )
 
 type FakeInstanceSelector struct {
-	FilterStub        func(selector.Filters) ([]string, error)
+	FilterStub        func(context.Context, selector.Filters) ([]string, error)
 	filterMutex       sync.RWMutex
 	filterArgsForCall []struct {
-		arg1 selector.Filters
+		arg1 context.Context
+		arg2 selector.Filters
 	}
 	filterReturns struct {
 		result1 []string
@@ -26,18 +28,19 @@ type FakeInstanceSelector struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeInstanceSelector) Filter(arg1 selector.Filters) ([]string, error) {
+func (fake *FakeInstanceSelector) Filter(arg1 context.Context, arg2 selector.Filters) ([]string, error) {
 	fake.filterMutex.Lock()
 	ret, specificReturn := fake.filterReturnsOnCall[len(fake.filterArgsForCall)]
 	fake.filterArgsForCall = append(fake.filterArgsForCall, struct {
-		arg1 selector.Filters
-	}{arg1})
+		arg1 context.Context
+		arg2 selector.Filters
+	}{arg1, arg2})
 	stub := fake.FilterStub
 	fakeReturns := fake.filterReturns
-	fake.recordInvocation("Filter", []interface{}{arg1})
+	fake.recordInvocation("Filter", []interface{}{arg1, arg2})
 	fake.filterMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -51,17 +54,17 @@ func (fake *FakeInstanceSelector) FilterCallCount() int {
 	return len(fake.filterArgsForCall)
 }
 
-func (fake *FakeInstanceSelector) FilterCalls(stub func(selector.Filters) ([]string, error)) {
+func (fake *FakeInstanceSelector) FilterCalls(stub func(context.Context, selector.Filters) ([]string, error)) {
 	fake.filterMutex.Lock()
 	defer fake.filterMutex.Unlock()
 	fake.FilterStub = stub
 }
 
-func (fake *FakeInstanceSelector) FilterArgsForCall(i int) selector.Filters {
+func (fake *FakeInstanceSelector) FilterArgsForCall(i int) (context.Context, selector.Filters) {
 	fake.filterMutex.RLock()
 	defer fake.filterMutex.RUnlock()
 	argsForCall := fake.filterArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeInstanceSelector) FilterReturns(result1 []string, result2 error) {

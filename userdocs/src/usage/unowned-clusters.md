@@ -11,7 +11,7 @@ not created by `eksctl`.
 The following commands can be used against clusters created by any means other than `eksctl`.
 The commands, flags and config file options can be used in exactly the same way.
 
-If we have missed some functionality, please [let us know](https://github.com/weaveworks/eksctl/issues).
+If we have missed some functionality, please [let us know](https://github.com/eksctl-io/eksctl/issues).
 
 - [x] Create:
     - [x] `eksctl create nodegroup` ([see note below](#creating-nodegroups))

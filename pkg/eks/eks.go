@@ -170,9 +170,7 @@ func (c *ClusterProvider) NewOpenIDConnectManager(ctx context.Context, spec *api
 	if err != nil {
 		return nil, errors.Wrapf(err, "unexpected invalid ARN: %q", spec.Status.ARN)
 	}
-	switch parsedARN.Partition {
-	case "aws", "aws-cn", "aws-us-gov":
-	default:
+	if !api.Partitions.IsSupported(parsedARN.Partition) {
 		return nil, fmt.Errorf("unknown EKS ARN: %q", spec.Status.ARN)
 	}
 
