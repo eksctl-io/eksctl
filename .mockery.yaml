@@ -15,7 +15,7 @@ packages:
         config:
           dir: "{{.InterfaceDir}}/mocks"
           outpkg: mocks
-  
+
   github.com/aws/aws-sdk-go-v2/aws:
     interfaces:
       CredentialsProvider:
@@ -28,4 +28,11 @@ packages:
       ConfigProvider:
         config:
           dir: "./pkg/eks/mocks"
+          outpkg: mocks
+
+  github.com/weaveworks/eksctl/pkg/ctl/utils:
+    interfaces:
+      VPCConfigUpdater:
+        config:
+          dir: "{{.InterfaceDir}}/mocks"
           outpkg: mocks

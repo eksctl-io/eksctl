@@ -1,0 +1,22 @@
+# An example config for updating API server endpoint access, public access CIDRs, and control plane subnets and security groups.
+# To perform the update, run `eksctl utils update-cluster-vpc-config -f 38-cluster-subnets-sgs.yaml`
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: cluster-38
+  region: us-west-2
+
+iam:
+  withOIDC: true
+
+vpc:
+  controlPlaneSubnetIDs: [subnet-1234, subnet-5678]
+  controlPlaneSecurityGroupIDs: [sg-1234, sg-5678]
+  clusterEndpoints:
+    publicAccess: true
+    privateAccess: true
+  publicAccessCIDRs: ["1.1.1.1/32"]
+
+managedNodeGroups:
+  - name: mng1

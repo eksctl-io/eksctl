@@ -4,10 +4,8 @@ import (
 	"context"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -17,6 +15,7 @@ func publicAccessCIDRsCmdWithHandler(cmd *cmdutils.Cmd, handler func(cmd *cmduti
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
+	cmd.CobraCommand.Deprecated = "this command is deprecated and will be removed soon. Use `eksctl utils update-cluster-vpc-config --public-access-cidrs=<> instead."
 	cmd.SetDescription("set-public-access-cidrs", "Update public access CIDRs", "CIDR blocks that EKS uses to create a security group on the public endpoint")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
@@ -57,40 +56,14 @@ func doUpdatePublicAccessCIDRs(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	clusterVPCConfig, err := ctl.GetCurrentClusterVPCConfig(ctx, cfg)
-	if err != nil {
-		return err
+	cfg.VPC.ClusterEndpoints = nil
+	cfg.VPC.ControlPlaneSubnetIDs = nil
+	cfg.VPC.ControlPlaneSecurityGroupIDs = nil
+	vpcHelper := &VPCHelper{
+		VPCUpdater:  ctl,
+		ClusterMeta: cfg.Metadata,
+		Cluster:     ctl.Status.ClusterInfo.Cluster,
+		PlanMode:    cmd.Plan,
 	}
-
-	if cfg.IsControlPlaneOnOutposts() {
-		return errUnsupportedLocalCluster
-	}
-
-	logger.Info("current public access CIDRs: %v", clusterVPCConfig.PublicAccessCIDRs)
-
-	if cidrsEqual(clusterVPCConfig.PublicAccessCIDRs, cfg.VPC.PublicAccessCIDRs) {
-		logger.Success("Public Endpoint Restrictions for cluster %q in %q is already up to date",
-			meta.Name, meta.Region)
-		return nil
-	}
-
-	cmdutils.LogIntendedAction(
-		cmd.Plan, "update Public Endpoint Restrictions for cluster %q in %q to: %v",
-		meta.Name, meta.Region, cfg.VPC.PublicAccessCIDRs)
-
-	if !cmd.Plan {
-		if err := ctl.UpdatePublicAccessCIDRs(ctx, cfg); err != nil {
-			return errors.Wrap(err, "error updating CIDRs for public access")
-		}
-		cmdutils.LogCompletedAction(
-			false,
-			"Public Endpoint Restrictions for cluster %q in %q have been updated to: %v",
-			meta.Name, meta.Region, cfg.VPC.PublicAccessCIDRs)
-	}
-	cmdutils.LogPlanModeWarning(cmd.Plan)
-	return nil
-}
-
-func cidrsEqual(currentValues, newValues []string) bool {
-	return sets.NewString(currentValues...).Equal(sets.NewString(newValues...))
+	return vpcHelper.UpdateClusterVPCConfig(ctx, cfg.VPC)
 }

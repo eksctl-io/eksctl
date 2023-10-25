@@ -724,6 +724,16 @@ func (in *ClusterVPC) DeepCopyInto(out *ClusterVPC) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.ControlPlaneSubnetIDs != nil {
+		in, out := &in.ControlPlaneSubnetIDs, &out.ControlPlaneSubnetIDs
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
+	if in.ControlPlaneSecurityGroupIDs != nil {
+		in, out := &in.ControlPlaneSecurityGroupIDs, &out.ControlPlaneSecurityGroupIDs
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 
