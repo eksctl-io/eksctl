@@ -55,7 +55,7 @@ func init() {
 	if err := api.Register(); err != nil {
 		panic(errors.Wrap(err, "unexpected error registering API scheme"))
 	}
-	params = tests.NewParamsWithGivenClusterName("crud", "test-crud")
+	params = tests.NewParamsWithGivenClusterName("crud", "test-cluster")
 }
 
 func TestCRUD(t *testing.T) {
