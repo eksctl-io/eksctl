@@ -346,7 +346,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			Expect(awsConfig).To(HaveExistingStack(stackNamePrefix + test.Namespace + "-s3-reader"))
 			Expect(awsConfig).To(HaveExistingStack(stackNamePrefix + "app1-app-cache-access"))
 
-			sa, err := clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), "s3-reader", metav1.GetOptions{})
+			sa, err := clientSet.CoreV1().ServiceAccounts(test.Namespace).Get(context.TODO(), "s3-reader", metav1.GetOptions{})
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(sa.Annotations).To(HaveLen(1))
 			Expect(sa.Annotations).To(HaveKey(api.AnnotationEKSRoleARN))
