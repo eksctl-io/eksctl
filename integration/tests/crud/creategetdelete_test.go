@@ -55,7 +55,7 @@ func init() {
 	if err := api.Register(); err != nil {
 		panic(errors.Wrap(err, "unexpected error registering API scheme"))
 	}
-	params = tests.NewParamsWithGivenClusterName("crud", "test-cluster")
+	params = tests.NewParamsWithGivenClusterName("crud", "test")
 }
 
 func TestCRUD(t *testing.T) {
@@ -204,12 +204,29 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			var stacks []*cfntypes.Stack
 			Expect(yaml.Unmarshal(session.Out.Contents(), &stacks)).To(Succeed())
 			Expect(stacks).To(HaveLen(6))
-			//nodegroupStack := stacks[0]
-			//clusterStack := stacks[5]
-			//Expect(aws.ToString(clusterStack.StackName)).To(ContainSubstring(params.ClusterName))
-			//Expect(aws.ToString(nodegroupStack.StackName)).To(ContainSubstring(params.ClusterName))
-			//Expect(aws.ToString(clusterStack.Description)).To(Equal("EKS cluster (dedicated VPC: true, dedicated IAM: true) [created and managed by eksctl]"))
-			//Expect(aws.ToString(nodegroupStack.Description)).To(Equal("EKS Managed Nodes (SSH access: false) [created by eksctl]"))
+
+			var (
+				names, descriptions []string
+				ngPrefix            = params.ClusterName + "-nodegroup-"
+			)
+			for _, s := range stacks {
+				names = append(names, *s.StackName)
+				descriptions = append(descriptions, *s.Description)
+			}
+
+			Expect(names).To(ContainElements(
+				ContainSubstring(params.ClusterName+"-cluster"),
+				ContainSubstring(ngPrefix+deleteNg),
+				ContainSubstring(ngPrefix+scaleSingleNg),
+				ContainSubstring(ngPrefix+scaleMultipleNg),
+				ContainSubstring(ngPrefix+scaleMultipleMng),
+				ContainSubstring(ngPrefix+drainMng),
+			))
+			Expect(descriptions).To(ContainElements(
+				"EKS cluster (dedicated VPC: true, dedicated IAM: true) [created and managed by eksctl]",
+				"EKS Managed Nodes (SSH access: false) [created by eksctl]",
+				"EKS nodes (AMI family: AmazonLinux2, SSH access: false, private networking: false) [created and managed by eksctl]",
+			))
 		})
 	})
 
