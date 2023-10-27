@@ -203,11 +203,14 @@ Example output:
 $
 ```
 
-Install `eksctl` following the [installation instructions](https://eksctl.io/introduction/#installation).
+Install `eksctl` by following the [installation instructions](https://eksctl.io/installation).
 
-To learn more about what `eksctl` can do check [eksctl.io](https://eksctl.io). A good place to start is
-[Getting Started](https://eksctl.io/introduction/#getting-started). The full list of features can be found
-[here](https://eksctl.io/introduction/#features).
+To discover the full range of capabilities that eksctl offers, visit [eksctl.io](https://eksctl.io).
+
+A great starting point is the [Getting Started](https://eksctl.io/getting-started/) guide.
+
+You can find a comprehensive list of features [here](https://eksctl.io/installation/#features).
+
 
 ## Contributions
 
