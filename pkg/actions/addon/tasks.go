@@ -119,8 +119,6 @@ type deleteAddonIAMTask struct {
 func (t *deleteAddonIAMTask) Describe() string { return t.info }
 
 func (t *deleteAddonIAMTask) Do(errorCh chan error) error {
-	defer close(errorCh)
-
 	errMsg := fmt.Sprintf("deleting addon IAM %q", *t.stack.StackName)
 	if t.wait {
 		if err := t.stackManager.DeleteStackBySpecSync(t.ctx, t.stack, errorCh); err != nil {
@@ -128,6 +126,7 @@ func (t *deleteAddonIAMTask) Do(errorCh chan error) error {
 		}
 		return nil
 	}
+	defer close(errorCh)
 	if _, err := t.stackManager.DeleteStackBySpec(t.ctx, t.stack); err != nil {
 		return fmt.Errorf("%s: %w", errMsg, err)
 	}

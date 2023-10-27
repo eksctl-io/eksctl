@@ -175,6 +175,12 @@ type (
 		// k8s API endpoint
 		// +optional
 		PublicAccessCIDRs []string `json:"publicAccessCIDRs,omitempty"`
+		// ControlPlaneSubnetIDs configures the subnets for the control plane.
+		// +optional
+		ControlPlaneSubnetIDs []string `json:"controlPlaneSubnetIDs,omitempty"`
+		// ControlPlaneSecurityGroupIDs configures the security groups for the control plane.
+		// +optional
+		ControlPlaneSecurityGroupIDs []string `json:"controlPlaneSecurityGroupIDs,omitempty"`
 	}
 	// ClusterSubnets holds private and public subnets
 	ClusterSubnets struct {

@@ -1332,6 +1332,41 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 		})
+
+		type vpcSecurityGroupEntry struct {
+			updateVPC   func(*api.ClusterVPC)
+			expectedErr string
+		}
+		DescribeTable("vpc.securityGroup and vpc.controlPlaneSecurityGroupIDs", func(e vpcSecurityGroupEntry) {
+			e.updateVPC(cfg.VPC)
+			err := cfg.ValidateVPCConfig()
+			if e.expectedErr != "" {
+				Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
+			} else {
+				Expect(err).NotTo(HaveOccurred())
+			}
+		},
+			Entry("both set", vpcSecurityGroupEntry{
+				updateVPC: func(v *api.ClusterVPC) {
+					v.SecurityGroup = "sg-1234"
+					v.ControlPlaneSecurityGroupIDs = []string{"sg-1234"}
+				},
+				expectedErr: "only one of vpc.securityGroup and vpc.controlPlaneSecurityGroupIDs can be specified",
+			}),
+			Entry("vpc.securityGroup set", vpcSecurityGroupEntry{
+				updateVPC: func(v *api.ClusterVPC) {
+					v.SecurityGroup = "sg-1234"
+				},
+			}),
+			Entry("vpc.controlPlaneSecurityGroupIDs set", vpcSecurityGroupEntry{
+				updateVPC: func(v *api.ClusterVPC) {
+					v.ControlPlaneSecurityGroupIDs = []string{"sg-1234"}
+				},
+			}),
+			Entry("neither set", vpcSecurityGroupEntry{
+				updateVPC: func(v *api.ClusterVPC) {},
+			}),
+		)
 	})
 
 	Describe("ValidatePrivateCluster", func() {

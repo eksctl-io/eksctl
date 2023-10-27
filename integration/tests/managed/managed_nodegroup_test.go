@@ -6,10 +6,13 @@ package managed
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 
 	harness "github.com/dlespiau/kube-test-harness"
@@ -27,6 +30,7 @@ import (
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
@@ -517,6 +521,107 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				"--nodes", "3",
 				"--nodes-max", "4",
 				"--name", initialAl2Nodegroup,
+			)
+			Expect(cmd).To(RunSuccessfully())
+		})
+	})
+
+	Context("eksctl utils update-cluster-vpc-config", Serial, func() {
+		makeAWSProvider := func(ctx context.Context, clusterConfig *api.ClusterConfig) api.ClusterProvider {
+			clusterProvider, err := eks.New(ctx, &api.ProviderConfig{Region: params.Region}, clusterConfig)
+			Expect(err).NotTo(HaveOccurred())
+			return clusterProvider.AWSProvider
+		}
+		getPrivateSubnetIDs := func(ctx context.Context, ec2API awsapi.EC2, vpcID string) []string {
+			out, err := ec2API.DescribeSubnets(ctx, &ec2.DescribeSubnetsInput{
+				Filters: []ec2types.Filter{
+					{
+						Name:   aws.String("vpc-id"),
+						Values: []string{vpcID},
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			var subnetIDs []string
+			for _, s := range out.Subnets {
+				if !*s.MapPublicIpOnLaunch {
+					subnetIDs = append(subnetIDs, *s.SubnetId)
+				}
+			}
+			return subnetIDs
+		}
+		It("should update the VPC config", func() {
+			clusterConfig := makeClusterConfig()
+			ctx := context.Background()
+			awsProvider := makeAWSProvider(ctx, clusterConfig)
+			cluster, err := awsProvider.EKS().DescribeCluster(ctx, &awseks.DescribeClusterInput{
+				Name: aws.String(params.ClusterName),
+			})
+			Expect(err).NotTo(HaveOccurred(), "error describing cluster")
+			clusterSubnetIDs := getPrivateSubnetIDs(ctx, awsProvider.EC2(), *cluster.Cluster.ResourcesVpcConfig.VpcId)
+			Expect(len(cluster.Cluster.ResourcesVpcConfig.SecurityGroupIds) > 0).To(BeTrue(), "at least one security group ID must be associated with the cluster")
+
+			clusterVPC := &api.ClusterVPC{
+				ClusterEndpoints: &api.ClusterEndpoints{
+					PrivateAccess: api.Enabled(),
+					PublicAccess:  api.Enabled(),
+				},
+				PublicAccessCIDRs:            []string{"127.0.0.1/32"},
+				ControlPlaneSubnetIDs:        clusterSubnetIDs,
+				ControlPlaneSecurityGroupIDs: []string{cluster.Cluster.ResourcesVpcConfig.SecurityGroupIds[0]},
+			}
+			By("accepting CLI options")
+			cmd := params.EksctlUtilsCmd.WithArgs(
+				"update-cluster-vpc-config",
+				"--cluster", params.ClusterName,
+				"--private-access",
+				"--public-access",
+				"--public-access-cidrs", strings.Join(clusterVPC.PublicAccessCIDRs, ","),
+				"--control-plane-subnet-ids", strings.Join(clusterVPC.ControlPlaneSubnetIDs, ","),
+				"--control-plane-security-group-ids", strings.Join(clusterVPC.ControlPlaneSecurityGroupIDs, ","),
+				"-v4",
+				"--approve",
+			).
+				WithTimeout(45 * time.Minute)
+			session := cmd.Run()
+			Expect(session.ExitCode()).To(Equal(0))
+
+			formatWithClusterAndRegion := func(format string, values ...any) string {
+				return fmt.Sprintf(format, append([]any{params.ClusterName, params.Region}, values...)...)
+			}
+			Expect(strings.Split(string(session.Buffer().Contents()), "\n")).To(ContainElements(
+				ContainSubstring(formatWithClusterAndRegion("control plane subnets and security groups for cluster %q in %q have been updated to: "+
+					"controlPlaneSubnetIDs=%v, controlPlaneSecurityGroupIDs=%v", clusterVPC.ControlPlaneSubnetIDs, clusterVPC.ControlPlaneSecurityGroupIDs)),
+				ContainSubstring(formatWithClusterAndRegion("Kubernetes API endpoint access for cluster %q in %q has been updated to: privateAccess=%v, publicAccess=%v",
+					*clusterVPC.ClusterEndpoints.PrivateAccess, *clusterVPC.ClusterEndpoints.PublicAccess)),
+				ContainSubstring(formatWithClusterAndRegion("public access CIDRs for cluster %q in %q have been updated to: %v", clusterVPC.PublicAccessCIDRs)),
+			))
+
+			By("accepting a config file")
+			clusterConfig.VPC = clusterVPC
+			cmd = params.EksctlUtilsCmd.WithArgs(
+				"update-cluster-vpc-config",
+				"--config-file", "-",
+				"-v4",
+				"--approve",
+			).
+				WithoutArg("--region", params.Region).
+				WithStdin(clusterutils.Reader(clusterConfig))
+			session = cmd.Run()
+			Expect(session.ExitCode()).To(Equal(0))
+			Expect(strings.Split(string(session.Buffer().Contents()), "\n")).To(ContainElements(
+				ContainSubstring(formatWithClusterAndRegion("Kubernetes API endpoint access for cluster %q in %q is already up-to-date")),
+				ContainSubstring(formatWithClusterAndRegion("control plane subnet IDs for cluster %q in %q are already up-to-date")),
+				ContainSubstring(formatWithClusterAndRegion("control plane security group IDs for cluster %q in %q are already up-to-date")),
+			))
+
+			By("resetting public access CIDRs")
+			cmd = params.EksctlUtilsCmd.WithArgs(
+				"update-cluster-vpc-config",
+				"--cluster", params.ClusterName,
+				"--public-access-cidrs", "0.0.0.0/0",
+				"-v4",
+				"--approve",
 			)
 			Expect(cmd).To(RunSuccessfully())
 		})

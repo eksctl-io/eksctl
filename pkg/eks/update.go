@@ -83,12 +83,7 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(ctx context.Context, cfg
 			},
 		},
 	}
-
-	output, err := c.AWSProvider.EKS().UpdateClusterConfig(ctx, input)
-	if err != nil {
-		return err
-	}
-	if err := c.waitForUpdateToSucceed(ctx, cfg.Metadata.Name, output.Update); err != nil {
+	if err := c.UpdateClusterConfig(ctx, input); err != nil {
 		return err
 	}
 
@@ -147,12 +142,7 @@ func (c *ClusterProvider) UpdateClusterConfigForEndpoints(ctx context.Context, c
 		},
 	}
 
-	output, err := c.AWSProvider.EKS().UpdateClusterConfig(ctx, input)
-	if err != nil {
-		return err
-	}
-
-	return c.waitForUpdateToSucceed(ctx, cfg.Metadata.Name, output.Update)
+	return c.UpdateClusterConfig(ctx, input)
 }
 
 // UpdatePublicAccessCIDRs calls eks.UpdateClusterConfig and updates the CIDRs for public access
@@ -163,11 +153,16 @@ func (c *ClusterProvider) UpdatePublicAccessCIDRs(ctx context.Context, clusterCo
 			PublicAccessCidrs: clusterConfig.VPC.PublicAccessCIDRs,
 		},
 	}
+	return c.UpdateClusterConfig(ctx, input)
+}
+
+// UpdateClusterConfig calls EKS.UpdateClusterConfig and waits for the update to complete.
+func (c *ClusterProvider) UpdateClusterConfig(ctx context.Context, input *eks.UpdateClusterConfigInput) error {
 	output, err := c.AWSProvider.EKS().UpdateClusterConfig(ctx, input)
 	if err != nil {
 		return err
 	}
-	return c.waitForUpdateToSucceed(ctx, clusterConfig.Metadata.Name, output.Update)
+	return c.waitForUpdateToSucceed(ctx, *input.Name, output.Update)
 }
 
 // EnableKMSEncryption enables KMS encryption for the specified cluster
