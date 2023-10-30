@@ -87,7 +87,7 @@ require (
 	k8s.io/kubelet v0.25.5
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
 	sigs.k8s.io/mdtoc v1.1.0
-	sigs.k8s.io/yaml v1.3.0
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
