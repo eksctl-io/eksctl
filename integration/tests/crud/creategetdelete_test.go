@@ -1056,30 +1056,38 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				"nodegroup",
 				"--cluster", params.ClusterName,
 				"--name", deleteNg,
+				"--wait",
 			)).To(RunSuccessfully())
+		})
+	})
+
+	Context("fetching nodegroup(s)", Serial, func() {
+		It("should be able to get all expected nodegroups", func() {
+			Expect(params.EksctlGetCmd.WithArgs(
+				"nodegroup",
+				"-o", "json",
+				"--cluster", params.ClusterName,
+			)).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
+				ContainElement(taintsNg1),
+				ContainElement(taintsNg2),
+				ContainElement(scaleSingleNg),
+				ContainElement(scaleMultipleNg),
+				ContainElement(scaleMultipleMng),
+				ContainElement(GPUMng),
+				ContainElement(drainMng),
+				ContainElement(newSubnetCLIMng),
+				ContainElement(newSubnetConfigFileMng),
+			)))
 		})
 	})
 })
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
-	Expect(params.EksctlGetCmd.WithArgs(
-		"nodegroup",
-		"-o", "json",
-		"--cluster", params.ClusterName,
-	)).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
-		// HaveLen(9),
-		ContainElement(taintsNg1),
-		ContainElement(taintsNg2),
-		ContainElement(scaleSingleNg),
-		ContainElement(scaleMultipleNg),
-		ContainElement(scaleMultipleMng),
-		ContainElement(GPUMng),
-		ContainElement(drainMng),
-		ContainElement(newSubnetCLIMng),
-		ContainElement(newSubnetConfigFileMng),
-	)))
+	Expect(params.EksctlDeleteCmd.WithArgs(
+		"cluster", params.ClusterName,
+		"--wait",
+	)).To(RunSuccessfully())
 
-	params.DeleteClusters()
 	gexec.KillAndWait()
 	if params.KubeconfigTemp {
 		os.Remove(params.KubeconfigPath)
