@@ -45,7 +45,7 @@ func doCreateAccessEntry(cmd *cmdutils.Cmd) error {
 	if err != nil {
 		return err
 	}
-	if !api.IsAccessEntryEnabled(clusterProvider.Status.ClusterInfo.Cluster) {
+	if !clusterProvider.IsAccessEntryEnabled() {
 		return errors.New("Access Entry is not currently enabled; please enable it using `eksctl utils update-authentication-mode`")
 	}
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
