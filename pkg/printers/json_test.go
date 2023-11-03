@@ -43,12 +43,11 @@ var _ = Describe("JSON Printer", func() {
 			)
 
 			BeforeEach(func() {
-				created := &time.Time{}
 				cluster = &ekstypes.Cluster{
 					Name:      aws.String("test-cluster"),
 					Status:    ekstypes.ClusterStatusActive,
 					Arn:       aws.String("arn-12345678"),
-					CreatedAt: created,
+					CreatedAt: &time.Time{},
 					ResourcesVpcConfig: &ekstypes.VpcConfigResponse{
 						VpcId:     aws.String("vpc-1234"),
 						SubnetIds: []string{"sub1", "sub2"},

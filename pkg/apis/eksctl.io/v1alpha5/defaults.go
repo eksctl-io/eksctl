@@ -53,6 +53,9 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 		cfg.CloudWatch.ClusterLogging.EnableTypes = SupportedCloudWatchClusterLogTypes()
 	}
 
+	if cfg.AccessConfig == nil {
+		cfg.AccessConfig = &AccessConfig{}
+	}
 	if cfg.PrivateCluster == nil {
 		cfg.PrivateCluster = &PrivateCluster{}
 	}
