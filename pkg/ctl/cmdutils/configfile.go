@@ -391,8 +391,8 @@ func validateAuthConfigMapFlag(cmd *cobra.Command, options *NodeGroupOptions) er
 		if *options.UpdateAuthConfigMap {
 			logger.Warning("%s; the recommended way to authorize nodes is by creating EKS access entries", deprecationMsg)
 		} else {
-			logger.Warning("%s; eksctl now uses EKS Access Entries to authorize nodes", deprecationMsg)
-			logger.Warning("access entry for nodegroup(s) will not be added")
+			logger.Warning("%s; eksctl now uses EKS Access Entries to authorize nodes if it is enabled on the cluster", deprecationMsg)
+			logger.Warning("access entry for nodegroup(s) will not be added if cluster's authenticationMode is set to API_AND_CONFIG_MAP or CONFIG_MAP")
 		}
 	} else {
 		options.UpdateAuthConfigMap = nil

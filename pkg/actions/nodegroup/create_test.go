@@ -23,10 +23,12 @@ import (
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	ngfakes "github.com/weaveworks/eksctl/pkg/actions/nodegroup/fakes"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	utilFakes "github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter/fakes"
+	utilfakes "github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter/fakes"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	eksfakes "github.com/weaveworks/eksctl/pkg/eks/fakes"
+	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -37,13 +39,27 @@ import (
 type ngEntry struct {
 	version             string
 	opts                nodegroup.CreateOpts
-	mockCalls           func(*eksfakes.FakeKubeProvider, *utilFakes.FakeNodegroupFilter, *mockprovider.MockProvider, *fake.Clientset)
+	mockCalls           func(mockCalls)
 	refreshCluster      bool
 	updateClusterConfig func(*api.ClusterConfig)
 
-	expectedCalls      func(*eksfakes.FakeKubeProvider, *utilFakes.FakeNodegroupFilter, *ngfakes.FakeNodeGroupTaskCreator)
+	expectedCalls      func(expectedCalls)
 	expectedErr        error
 	expectedRefreshErr string
+}
+
+type mockCalls struct {
+	kubeProvider    *eksfakes.FakeKubeProvider
+	nodeGroupFilter *utilfakes.FakeNodegroupFilter
+	mockProvider    *mockprovider.MockProvider
+	clientset       *fake.Clientset
+}
+
+type expectedCalls struct {
+	kubeProvider         *eksfakes.FakeKubeProvider
+	nodeGroupFilter      *utilfakes.FakeNodegroupFilter
+	nodeGroupTaskCreator *ngfakes.FakeNodeGroupTaskCreator
+	clientset            *fake.Clientset
 }
 
 //counterfeiter:generate -o fakes/fake_nodegroup_task_creator.go . nodeGroupTaskCreator
@@ -107,10 +123,16 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 	}
 	m.SetStackManager(stackManager)
 
-	ngFilter := utilFakes.FakeNodegroupFilter{}
+	var ngFilter utilfakes.FakeNodegroupFilter
+	ngFilter.MatchReturns(true)
 
 	if t.mockCalls != nil {
-		t.mockCalls(k, &ngFilter, p, clientset)
+		t.mockCalls(mockCalls{
+			kubeProvider:    k,
+			nodeGroupFilter: &ngFilter,
+			mockProvider:    p,
+			clientset:       clientset,
+		})
 	}
 	if t.refreshCluster {
 		err := ctl.RefreshClusterStatus(context.Background(), cfg)
@@ -129,14 +151,19 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		Expect(err).NotTo(HaveOccurred())
 	}
 	if t.expectedCalls != nil {
-		t.expectedCalls(k, &ngFilter, &ngTaskCreator)
+		t.expectedCalls(expectedCalls{
+			kubeProvider:         k,
+			nodeGroupFilter:      &ngFilter,
+			nodeGroupTaskCreator: &ngTaskCreator,
+			clientset:            clientset,
+		})
 	}
 },
 	Entry("when cluster is unowned, fails to load VPC from config if config is not supplied", ngEntry{
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
-			k.ServerVersionReturns("1.17", nil)
-			p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+		mockCalls: func(m mockCalls) {
+			m.kubeProvider.NewRawClientReturns(&kubernetes.RawClient{}, nil)
+			m.kubeProvider.ServerVersionReturns("1.17", nil)
+			m.mockProvider.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
 				StackSummaries: []cftypes.StackSummary{
 					{
 						StackName:   aws.String("eksctl-my-cluster-cluster"),
@@ -144,7 +171,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 					},
 				},
 			}, nil)
-			p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.Anything).Return(&cloudformation.DescribeStacksOutput{
+			m.mockProvider.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.Anything).Return(&cloudformation.DescribeStacksOutput{
 				Stacks: []cftypes.Stack{
 					{
 						StackName:   aws.String("eksctl-my-cluster-cluster"),
@@ -158,8 +185,8 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	Entry("when cluster is unowned and vpc.securityGroup contains external egress rules, it fails validation", ngEntry{
 		updateClusterConfig: makeUnownedClusterConfig,
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			mockProviderForUnownedCluster(p, k, ec2types.SecurityGroupRule{
+		mockCalls: func(m mockCalls) {
+			mockProviderForUnownedCluster(m.mockProvider, m.kubeProvider, ec2types.SecurityGroupRule{
 				Description:         aws.String("Allow control plane to communicate with a custom nodegroup on a custom port"),
 				FromPort:            aws.Int32(8443),
 				ToPort:              aws.Int32(8443),
@@ -175,8 +202,8 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	Entry("when cluster is unowned and vpc.securityGroup contains a default egress rule, it passes validation but fails if DescribeImages fails", ngEntry{
 		updateClusterConfig: makeUnownedClusterConfig,
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			mockProviderForUnownedCluster(p, k, ec2types.SecurityGroupRule{
+		mockCalls: func(m mockCalls) {
+			mockProviderForUnownedCluster(m.mockProvider, m.kubeProvider, ec2types.SecurityGroupRule{
 				Description:         aws.String(""),
 				CidrIpv4:            aws.String("0.0.0.0/0"),
 				FromPort:            aws.Int32(-1),
@@ -186,7 +213,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				IsEgress:            aws.Bool(true),
 				SecurityGroupRuleId: aws.String("sgr-5"),
 			})
-			p.MockEC2().On("DescribeImages", mock.Anything, mock.Anything).Return(nil, errors.New("DescribeImages error"))
+			m.mockProvider.MockEC2().On("DescribeImages", mock.Anything, mock.Anything).Return(nil, errors.New("DescribeImages error"))
 
 		},
 		expectedErr: errors.New("DescribeImages error"),
@@ -194,16 +221,16 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	Entry("when cluster is unowned and vpc.securityGroup contains no external egress rules, it passes validation but fails if DescribeImages fails", ngEntry{
 		updateClusterConfig: makeUnownedClusterConfig,
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			mockProviderForUnownedCluster(p, k)
-			p.MockEC2().On("DescribeImages", mock.Anything, mock.Anything).Return(nil, errors.New("DescribeImages error"))
+		mockCalls: func(m mockCalls) {
+			mockProviderForUnownedCluster(m.mockProvider, m.kubeProvider)
+			m.mockProvider.MockEC2().On("DescribeImages", mock.Anything, mock.Anything).Return(nil, errors.New("DescribeImages error"))
 
 		},
 		expectedErr: errors.New("DescribeImages error"),
 	}),
 
 	Entry("fails when cluster is not compatible with ng config", ngEntry{
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
+		mockCalls: func(m mockCalls) {
 			// no shared security group will trigger a compatibility check failure later in the call chain.
 			output := []cftypes.Output{
 				{
@@ -219,42 +246,42 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 					OutputValue: aws.String("vpc-1"),
 				},
 			}
-			defaultProviderMocks(p, output)
+			defaultProviderMocks(m.mockProvider, output)
 		},
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, _ *utilFakes.FakeNodegroupFilter, _ *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(1))
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(1))
 		},
 		expectedErr: errors.Wrap(errors.New("shared node security group missing, to fix this run 'eksctl update cluster --name=my-cluster --region='"), "cluster compatibility check failed")}),
 
 	Entry("fails when existing local ng stacks in config file is not listed", ngEntry{
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			f.SetOnlyLocalReturns(errors.New("err"))
-			defaultProviderMocks(p, defaultOutput)
+		mockCalls: func(m mockCalls) {
+			m.nodeGroupFilter.SetOnlyLocalReturns(errors.New("err"))
+			defaultProviderMocks(m.mockProvider, defaultOutput)
 		},
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, _ *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(1))
-			Expect(f.SetOnlyLocalCallCount()).To(Equal(1))
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(1))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(1))
 		},
 		expectedErr: errors.New("err"),
 	}),
 
 	Entry("fails to evaluate whether aws-node uses IRSA", ngEntry{
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, c *fake.Clientset) {
-			c.PrependReactor("get", "serviceaccounts", func(action core.Action) (bool, runtime.Object, error) {
+		mockCalls: func(m mockCalls) {
+			m.clientset.PrependReactor("get", "serviceaccounts", func(action core.Action) (bool, runtime.Object, error) {
 				return true, nil, errors.New("failed to determine if aws-node uses IRSA")
 			})
-			defaultProviderMocks(p, defaultOutput)
+			defaultProviderMocks(m.mockProvider, defaultOutput)
 		},
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, _ *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(1))
-			Expect(f.SetOnlyLocalCallCount()).To(Equal(1))
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(1))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(1))
 		},
 		expectedErr: errors.New("failed to determine if aws-node uses IRSA"),
 	}),
 
 	Entry("fails to create managed nodegroups on Outposts", ngEntry{
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
+		mockCalls: func(m mockCalls) {
+			mockProviderWithOutpostConfig(m.mockProvider, defaultOutput, &ekstypes.OutpostConfigResponse{
 				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-1234"},
 				ControlPlaneInstanceType: aws.String("m5a.large"),
 			})
@@ -271,17 +298,17 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			ConfigFileProvided:        false,
 		},
 		refreshCluster: true,
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, _ *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(0))
-			Expect(k.ServerVersionCallCount()).To(Equal(0))
-			Expect(f.SetOnlyLocalCallCount()).To(Equal(0))
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(0))
+			Expect(e.kubeProvider.ServerVersionCallCount()).To(Equal(0))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(0))
 		},
 		expectedErr: errors.New("Managed Nodegroups are not supported on Outposts; please rerun the command with --managed=false"),
 	}),
 
 	Entry("fails to create managed nodegroups on Outposts with a config file", ngEntry{
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
+		mockCalls: func(m mockCalls) {
+			mockProviderWithOutpostConfig(m.mockProvider, defaultOutput, &ekstypes.OutpostConfigResponse{
 				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-1234"},
 				ControlPlaneInstanceType: aws.String("m5a.large"),
 			})
@@ -298,10 +325,10 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			ConfigFileProvided:        true,
 		},
 		refreshCluster: true,
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, _ *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(0))
-			Expect(k.ServerVersionCallCount()).To(Equal(0))
-			Expect(f.SetOnlyLocalCallCount()).To(Equal(0))
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(0))
+			Expect(e.kubeProvider.ServerVersionCallCount()).To(Equal(0))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(0))
 		},
 		expectedErr: errors.New("Managed Nodegroups are not supported on Outposts"),
 	}),
@@ -312,8 +339,8 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 			}
 		},
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
+		mockCalls: func(m mockCalls) {
+			mockProviderWithOutpostConfig(m.mockProvider, defaultOutput, &ekstypes.OutpostConfigResponse{
 				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-5678"},
 				ControlPlaneInstanceType: aws.String("m5a.large"),
 			})
@@ -330,10 +357,10 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			ConfigFileProvided:        true,
 		},
 		refreshCluster: true,
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, _ *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(0))
-			Expect(k.ServerVersionCallCount()).To(Equal(0))
-			Expect(f.SetOnlyLocalCallCount()).To(Equal(0))
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(0))
+			Expect(e.kubeProvider.ServerVersionCallCount()).To(Equal(0))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(0))
 		},
 		expectedRefreshErr: fmt.Sprintf("outpost.controlPlaneOutpostARN %q does not match the cluster's Outpost ARN %q", "arn:aws:outposts:us-west-2:1234:outpost/op-1234", "arn:aws:outposts:us-west-2:1234:outpost/op-5678"),
 	}),
@@ -344,8 +371,8 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 			}
 		},
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			defaultProviderMocks(p, defaultOutput)
+		mockCalls: func(m mockCalls) {
+			defaultProviderMocks(m.mockProvider, defaultOutput)
 		},
 		opts: nodegroup.CreateOpts{
 			DryRunSettings: nodegroup.DryRunSettings{
@@ -359,20 +386,20 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			ConfigFileProvided:        true,
 		},
 		refreshCluster: true,
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, _ *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(0))
-			Expect(k.ServerVersionCallCount()).To(Equal(0))
-			Expect(f.SetOnlyLocalCallCount()).To(Equal(0))
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(0))
+			Expect(e.kubeProvider.ServerVersionCallCount()).To(Equal(0))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(0))
 		},
 		expectedRefreshErr: "outpost.controlPlaneOutpostARN is set but control plane is not on Outposts",
 	}),
 
 	Entry("API server unreachable when creating a nodegroup on Outposts", ngEntry{
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			k.NewRawClientReturns(nil, &kubernetes.APIServerUnreachableError{
+		mockCalls: func(m mockCalls) {
+			m.kubeProvider.NewRawClientReturns(nil, &kubernetes.APIServerUnreachableError{
 				Err: errors.New("timeout"),
 			})
-			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
+			mockProviderWithOutpostConfig(m.mockProvider, defaultOutput, &ekstypes.OutpostConfigResponse{
 				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-1234"},
 				ControlPlaneInstanceType: aws.String("m5a.large"),
 			})
@@ -395,8 +422,8 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 			}
 		},
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, _ *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(1))
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(1))
 		},
 		expectedErr: errors.New("eksctl requires connectivity to the API server to create nodegroups;" +
 			" please ensure the Outpost VPC is associated with your local gateway and you are able to connect to" +
@@ -404,11 +431,11 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 	}),
 
 	Entry("API server unreachable in a cluster with private-only endpoint access", ngEntry{
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			k.NewRawClientReturns(nil, &kubernetes.APIServerUnreachableError{
+		mockCalls: func(m mockCalls) {
+			m.kubeProvider.NewRawClientReturns(nil, &kubernetes.APIServerUnreachableError{
 				Err: errors.New("timeout"),
 			})
-			mockProviderWithConfig(p, defaultOutput, &ekstypes.VpcConfigResponse{
+			mockProviderWithConfig(m.mockProvider, defaultOutput, &ekstypes.VpcConfigResponse{
 				ClusterSecurityGroupId: aws.String("csg-1234"),
 				EndpointPublicAccess:   false,
 				EndpointPrivateAccess:  true,
@@ -432,16 +459,16 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		updateClusterConfig: func(c *api.ClusterConfig) {
 			c.ManagedNodeGroups = nil
 		},
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, _ *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(1))
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(1))
 		},
 		expectedErr: errors.New("eksctl requires connectivity to the API server to create nodegroups;" +
 			" please run eksctl from an environment that has access to the API server: timeout"),
 	}),
 
 	Entry("creates nodegroups on Outposts", ngEntry{
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			mockProviderWithOutpostConfig(p, defaultOutput, &ekstypes.OutpostConfigResponse{
+		mockCalls: func(m mockCalls) {
+			mockProviderWithOutpostConfig(m.mockProvider, defaultOutput, &ekstypes.OutpostConfigResponse{
 				OutpostArns:              []string{"arn:aws:outposts:us-west-2:1234:outpost/op-1234"},
 				ControlPlaneInstanceType: aws.String("m5a.large"),
 			})
@@ -461,60 +488,154 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		updateClusterConfig: func(c *api.ClusterConfig) {
 			c.ManagedNodeGroups = nil
 		},
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, _ *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(1))
-			Expect(f.SetOnlyLocalCallCount()).To(Equal(1))
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(1))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(1))
 		},
 	}),
 
-	Entry("creates nodegroup using access entries when access entries is enabled and updateAuthConfigMap is disabled", ngEntry{
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			mockProviderWithConfig(p, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
-				AuthenticationMode:                      ekstypes.AuthenticationModeApiAndConfigMap,
-				BootstrapClusterCreatorAdminPermissions: api.Enabled(),
-			})
-			defaultProviderMocks(p, defaultOutput)
+	Entry("fails to create nodegroup when authenticationMode is API and updateAuthConfigMap is false", ngEntry{
+		opts: nodegroup.CreateOpts{
+			UpdateAuthConfigMap: api.Disabled(),
 		},
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, stackManager *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(1))
-			Expect(f.SetOnlyLocalCallCount()).To(Equal(1))
-			Expect(stackManager.NewUnmanagedNodeGroupTaskCallCount()).To(Equal(1))
-			_, _, _, _, disableAccessEntryCreation, _ := stackManager.NewUnmanagedNodeGroupTaskArgsForCall(0)
+		mockCalls: func(m mockCalls) {
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+				AuthenticationMode: ekstypes.AuthenticationModeApi,
+			})
+			defaultProviderMocks(m.mockProvider, defaultOutput)
+		},
+		refreshCluster: true,
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(0))
+			Expect(e.kubeProvider.ServerVersionCallCount()).To(Equal(0))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(0))
+		},
+
+		expectedErr: errors.New("--update-auth-configmap is not supported when authenticationMode is set to API"),
+	}),
+
+	Entry("fails to create nodegroup when authenticationMode is API and updateAuthConfigMap is true", ngEntry{
+		opts: nodegroup.CreateOpts{
+			UpdateAuthConfigMap: api.Enabled(),
+		},
+		mockCalls: func(m mockCalls) {
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+				AuthenticationMode: ekstypes.AuthenticationModeApi,
+			})
+			defaultProviderMocks(m.mockProvider, defaultOutput)
+		},
+		refreshCluster: true,
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(0))
+			Expect(e.kubeProvider.ServerVersionCallCount()).To(Equal(0))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(0))
+		},
+
+		expectedErr: errors.New("--update-auth-configmap is not supported when authenticationMode is set to API"),
+	}),
+
+	Entry("creates nodegroup using access entries when authenticationMode is API_AND_CONFIG_MAP and updateAuthConfigMap is not supplied", ngEntry{
+		mockCalls: func(m mockCalls) {
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+				AuthenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
+			})
+			defaultProviderMocks(m.mockProvider, defaultOutput)
+		},
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(1))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(1))
+			Expect(e.nodeGroupTaskCreator.NewUnmanagedNodeGroupTaskCallCount()).To(Equal(1))
+			_, _, _, _, disableAccessEntryCreation, _ := e.nodeGroupTaskCreator.NewUnmanagedNodeGroupTaskArgsForCall(0)
 			Expect(disableAccessEntryCreation).To(BeFalse())
+			Expect(getIAMIdentities(e.clientset)).To(HaveLen(0))
 		},
 	}),
 
-	Entry("creates nodegroup using access entries when access entries is enabled and updateAuthConfigMap is disabled", ngEntry{
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			mockProviderWithConfig(p, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
-				AuthenticationMode:                      ekstypes.AuthenticationModeApiAndConfigMap,
-				BootstrapClusterCreatorAdminPermissions: api.Enabled(),
+	Entry("creates nodegroup using aws-auth ConfigMap when authenticationMode is CONFIG_MAP and updateAuthConfigMap is true", ngEntry{
+		mockCalls: func(m mockCalls) {
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+				AuthenticationMode: ekstypes.AuthenticationModeConfigMap,
 			})
-			defaultProviderMocks(p, defaultOutput)
+			defaultProviderMocks(m.mockProvider, defaultOutput)
 		},
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, stackManager *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(1))
-			Expect(f.SetOnlyLocalCallCount()).To(Equal(1))
-			Expect(stackManager.NewUnmanagedNodeGroupTaskCallCount()).To(Equal(1))
-			_, _, _, _, disableAccessEntryCreation, _ := stackManager.NewUnmanagedNodeGroupTaskArgsForCall(0)
-			Expect(disableAccessEntryCreation).To(BeFalse())
+		opts: nodegroup.CreateOpts{
+			UpdateAuthConfigMap: api.Enabled(),
+		},
+		refreshCluster: true,
+		expectedCalls:  expectedCallsForAWSAuth,
+	}),
+
+	Entry("creates nodegroup using aws-auth ConfigMap when authenticationMode is CONFIG_MAP and updateAuthConfigMap is not supplied", ngEntry{
+		mockCalls: func(m mockCalls) {
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+				AuthenticationMode: ekstypes.AuthenticationModeConfigMap,
+			})
+			defaultProviderMocks(m.mockProvider, defaultOutput)
+		},
+		opts: nodegroup.CreateOpts{
+			UpdateAuthConfigMap: api.Enabled(),
+		},
+		refreshCluster: true,
+		expectedCalls:  expectedCallsForAWSAuth,
+	}),
+
+	Entry("creates nodegroup but does not use either aws-auth ConfigMap or access entries when authenticationMode is API_AND_CONFIG_MAP and updateAuthConfigMap is set to false", ngEntry{
+		mockCalls: func(m mockCalls) {
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+				AuthenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
+			})
+			defaultProviderMocks(m.mockProvider, defaultOutput)
+		},
+		refreshCluster: true,
+		opts: nodegroup.CreateOpts{
+			UpdateAuthConfigMap: api.Disabled(),
+		},
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(1))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(1))
+			Expect(e.nodeGroupTaskCreator.NewUnmanagedNodeGroupTaskCallCount()).To(Equal(1))
+			_, _, _, _, disableAccessEntryCreation, _ := e.nodeGroupTaskCreator.NewUnmanagedNodeGroupTaskArgsForCall(0)
+			Expect(disableAccessEntryCreation).To(BeTrue())
+			Expect(getIAMIdentities(e.clientset)).To(HaveLen(0))
+		},
+	}),
+
+	Entry("creates nodegroup but does not use either aws-auth ConfigMap or access entries when authenticationMode is CONFIG_MAP and updateAuthConfigMap is set to false", ngEntry{
+		mockCalls: func(m mockCalls) {
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+				AuthenticationMode: ekstypes.AuthenticationModeConfigMap,
+			})
+			defaultProviderMocks(m.mockProvider, defaultOutput)
+		},
+		refreshCluster: true,
+		opts: nodegroup.CreateOpts{
+			UpdateAuthConfigMap: api.Disabled(),
+		},
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(1))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(1))
+			Expect(e.nodeGroupTaskCreator.NewUnmanagedNodeGroupTaskCallCount()).To(Equal(1))
+			_, _, _, _, disableAccessEntryCreation, _ := e.nodeGroupTaskCreator.NewUnmanagedNodeGroupTaskArgsForCall(0)
+			Expect(disableAccessEntryCreation).To(BeTrue())
+			Expect(getIAMIdentities(e.clientset)).To(HaveLen(0))
 		},
 	}),
 
 	Entry("[happy path] creates nodegroup with no options", ngEntry{
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			defaultProviderMocks(p, defaultOutput)
+		mockCalls: func(m mockCalls) {
+			defaultProviderMocks(m.mockProvider, defaultOutput)
 		},
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, _ *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(1))
-			Expect(f.SetOnlyLocalCallCount()).To(Equal(1))
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(1))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(1))
 		},
 	}),
 
 	Entry("[happy path] creates nodegroup with all the options", ngEntry{
-		mockCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, p *mockprovider.MockProvider, _ *fake.Clientset) {
-			defaultProviderMocks(p, defaultOutput)
+		mockCalls: func(m mockCalls) {
+			defaultProviderMocks(m.mockProvider, defaultOutput)
 		},
+		refreshCluster: true,
 		opts: nodegroup.CreateOpts{
 			DryRunSettings: nodegroup.DryRunSettings{
 				DryRun:    true,
@@ -526,9 +647,9 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			SkipOutdatedAddonsCheck:   true,
 			ConfigFileProvided:        true,
 		},
-		expectedCalls: func(k *eksfakes.FakeKubeProvider, f *utilFakes.FakeNodegroupFilter, _ *ngfakes.FakeNodeGroupTaskCreator) {
-			Expect(k.NewRawClientCallCount()).To(Equal(1))
-			Expect(f.SetOnlyLocalCallCount()).To(Equal(1))
+		expectedCalls: func(e expectedCalls) {
+			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(1))
+			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(1))
 		},
 	}),
 )
@@ -564,6 +685,10 @@ func newClusterConfig() *api.ClusterConfig {
 				AMI:              "ami-123",
 				SSH:              &api.NodeGroupSSH{Allow: api.Disabled()},
 				InstanceSelector: &api.InstanceSelector{},
+				ScalingConfig:    &api.ScalingConfig{},
+				IAM: &api.NodeGroupIAM{
+					InstanceRoleARN: "arn:aws:iam::1234567890:role/my-ng",
+				},
 			}},
 		},
 		ManagedNodeGroups: []*api.ManagedNodeGroup{{
@@ -572,6 +697,7 @@ func newClusterConfig() *api.ClusterConfig {
 				AMIFamily:        api.NodeImageFamilyAmazonLinux2,
 				SSH:              &api.NodeGroupSSH{Allow: api.Disabled()},
 				InstanceSelector: &api.InstanceSelector{},
+				ScalingConfig:    &api.ScalingConfig{},
 			}},
 		},
 	}
@@ -594,6 +720,35 @@ var defaultOutput = []cftypes.Output{
 		OutputKey:   aws.String("SharedNodeSecurityGroup"),
 		OutputValue: aws.String("sg-1"),
 	},
+}
+
+func getIAMIdentities(clientset kubernetes.Interface) []iam.Identity {
+	acm, err := authconfigmap.NewFromClientSet(clientset)
+	Expect(err).NotTo(HaveOccurred())
+	identities, err := acm.GetIdentities()
+	Expect(err).NotTo(HaveOccurred())
+	return identities
+}
+
+func expectedCallsForAWSAuth(e expectedCalls) {
+	Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(1))
+	Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(1))
+	Expect(e.nodeGroupTaskCreator.NewUnmanagedNodeGroupTaskCallCount()).To(Equal(1))
+	_, _, _, _, disableAccessEntryCreation, _ := e.nodeGroupTaskCreator.NewUnmanagedNodeGroupTaskArgsForCall(0)
+	Expect(disableAccessEntryCreation).To(BeTrue())
+	identities := getIAMIdentities(e.clientset)
+	Expect(identities).To(HaveLen(1))
+	for _, id := range identities {
+		roleIdentity, ok := id.(iam.RoleIdentity)
+		Expect(ok).To(BeTrue())
+		Expect(roleIdentity).To(Equal(iam.RoleIdentity{
+			RoleARN: "arn:aws:iam::1234567890:role/my-ng",
+			KubernetesIdentity: iam.KubernetesIdentity{
+				KubernetesUsername: "system:node:{{EC2PrivateDNSName}}",
+				KubernetesGroups:   []string{"system:bootstrappers", "system:nodes"},
+			},
+		}))
+	}
 }
 
 func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output) {
@@ -636,6 +791,11 @@ func mockProviderWithConfig(p *mockprovider.MockProvider, describeStacksOutput [
 			SecurityGroupIds:       []string{"sg-1", "sg-2"},
 			SubnetIds:              []string{"sub-1", "sub-2"},
 			VpcId:                  aws.String("vpc-1"),
+		}
+	}
+	if accessConfig == nil {
+		accessConfig = &ekstypes.AccessConfigResponse{
+			AuthenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
 		}
 	}
 	p.MockEKS().On("DescribeCluster", mock.Anything, mock.Anything).Return(&awseks.DescribeClusterOutput{

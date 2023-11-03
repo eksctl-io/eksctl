@@ -1164,7 +1164,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				createNgArgs: []string{"--update-auth-configmap=false"},
 
 				expectedCreateNgOutput: "--update-auth-configmap is deprecated and will be removed soon; eksctl now uses " +
-					"EKS Access Entries to authorize nodes",
+					"EKS Access Entries to authorize nodes if it is enabled on the cluster",
 			}),
 		)
 	})

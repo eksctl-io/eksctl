@@ -58,6 +58,9 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		}
 		return errors.New(msg)
 	}
+	if ctl.IsAWSAuthDisabled() && options.UpdateAuthConfigMap != nil {
+		return errors.New("--update-auth-configmap is not supported when authenticationMode is set to API")
+	}
 
 	var (
 		isOwnedCluster  = true
@@ -250,7 +253,7 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster, skipEgr
 	allNodeGroupTasks := &tasks.TaskTree{
 		Parallel: true,
 	}
-	disableAccessEntryCreation := !api.IsAccessEntryEnabled(m.ctl.Status.ClusterInfo.Cluster) || updateAuthConfigMap != nil
+	disableAccessEntryCreation := !m.ctl.IsAccessEntryEnabled() || updateAuthConfigMap != nil
 	nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(ctx, cfg.NodeGroups, !awsNodeUsesIRSA, skipEgressRules, disableAccessEntryCreation, vpcImporter)
 	if nodeGroupTasks.Len() > 0 {
 		allNodeGroupTasks.Append(nodeGroupTasks)
@@ -282,7 +285,7 @@ func (m *Manager) postNodeCreationTasks(ctx context.Context, clientSet kubernete
 	timeoutCtx, cancel := context.WithTimeout(ctx, m.ctl.AWSProvider.WaitTimeout())
 	defer cancel()
 
-	if api.IsEnabled(options.UpdateAuthConfigMap) {
+	if !m.ctl.IsAccessEntryEnabled() && !api.IsDisabled(options.UpdateAuthConfigMap) {
 		if err := eks.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet); err != nil {
 			return err
 		}
