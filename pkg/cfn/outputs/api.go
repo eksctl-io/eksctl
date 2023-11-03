@@ -44,6 +44,7 @@ const (
 	NodeGroupFeaturePrivateNetworking   = "FeaturePrivateNetworking"
 	NodeGroupFeatureSharedSecurityGroup = "FeatureSharedSecurityGroup"
 	NodeGroupFeatureLocalSecurityGroup  = "FeatureLocalSecurityGroup"
+	NodeGroupUsesAccessEntry            = "NodeGroupUsesAccessEntry"
 
 	// outputs from Fargate stack:
 	FargatePodExecutionRoleARN = "FargatePodExecutionRoleARN"

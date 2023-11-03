@@ -385,6 +385,21 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 	return l
 }
 
+func validateAuthConfigMapFlag(cmd *cobra.Command, options *NodeGroupOptions) error {
+	if f := cmd.Flag(updateAuthConfigMapFlagName); f != nil && f.Changed {
+		deprecationMsg := fmt.Sprintf("--%s is deprecated and will be removed soon", updateAuthConfigMapFlagName)
+		if *options.UpdateAuthConfigMap {
+			logger.Warning("%s; the recommended way to authorize nodes is by creating EKS access entries", deprecationMsg)
+		} else {
+			logger.Warning("%s; eksctl now uses EKS Access Entries to authorize nodes", deprecationMsg)
+			logger.Warning("access entry for nodegroup(s) will not be added")
+		}
+	} else {
+		options.UpdateAuthConfigMap = nil
+	}
+	return nil
+}
+
 func validateZonesAndNodeZones(cmd *cobra.Command) error {
 	if nodeZonesFlag := cmd.Flag("node-zones"); nodeZonesFlag != nil && nodeZonesFlag.Changed {
 		zonesFlag := cmd.Flag("zones")
@@ -413,19 +428,21 @@ func validateDryRunOptions(cmd *cobra.Command, incompatibleFlags []string) error
 	return nil
 }
 
+const updateAuthConfigMapFlagName = "update-auth-configmap"
+
 // NewCreateNodeGroupLoader will load config or use flags for 'eksctl create nodegroup'
-func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter, ngOptions CreateNGOptions, mngOptions CreateManagedNGOptions) ClusterConfigLoader {
+func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter, options *NodeGroupOptions) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(commonNGFlagsIncompatibleWithConfigFile...)
 
 	validateDryRun := func() error {
-		if !ngOptions.DryRun {
+		if !options.DryRun {
 			return nil
 		}
 		// Filters (--include / --exclude) cannot be represented in ClusterConfig, however, they affect the output, so they're allowed
 		flagsIncompatibleWithDryRun := append([]string{
-			"update-auth-configmap",
+			updateAuthConfigMapFlagName,
 		}, commonCreateFlagsIncompatibleWithDryRun...)
 
 		return validateDryRunOptions(l.CobraCommand, flagsIncompatibleWithDryRun)
@@ -438,6 +455,9 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 		if err := ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.GetAllNodeGroupNames()); err != nil {
 			return err
 		}
+		if err := validateAuthConfigMapFlag(l.CobraCommand, options); err != nil {
+			return err
+		}
 		return validateDryRun()
 	}
 
@@ -445,20 +465,23 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 		if l.ClusterConfig.Metadata.Name == "" {
 			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
-		if err := validateManagedNGFlags(l.CobraCommand, mngOptions.Managed); err != nil {
+		if err := validateManagedNGFlags(l.CobraCommand, options.Managed); err != nil {
 			return err
 		}
-		if err := validateUnmanagedNGFlags(l.CobraCommand, mngOptions.Managed); err != nil {
+		if err := validateUnmanagedNGFlags(l.CobraCommand, options); err != nil {
 			return err
 		}
-		if mngOptions.Managed {
-			l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng, mngOptions)}
+		if err := validateAuthConfigMapFlag(l.CobraCommand, options); err != nil {
+			return err
+		}
+		if options.Managed {
+			l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng, options.CreateManagedNGOptions)}
 		} else {
 			l.ClusterConfig.NodeGroups = []*api.NodeGroup{ng}
 		}
 
 		// Validate both filtered and unfiltered nodegroups
-		if mngOptions.Managed {
+		if options.Managed {
 			for _, ng := range l.ClusterConfig.ManagedNodeGroups {
 				if err := validateUnsupportedCLIFeatures(ng); err != nil {
 					return err
@@ -525,7 +548,6 @@ func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
 	if managed {
 		return nil
 	}
-
 	flagsValidOnlyWithMNG := []string{"spot", "instance-types"}
 	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithMNG); found {
 		return errors.Errorf("--%s is only valid with managed nodegroups (--managed)", flagName)
@@ -533,11 +555,10 @@ func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
 	return nil
 }
 
-func validateUnmanagedNGFlags(cmd *cobra.Command, managed bool) error {
-	if !managed {
+func validateUnmanagedNGFlags(cmd *cobra.Command, options *NodeGroupOptions) error {
+	if !options.Managed {
 		return nil
 	}
-
 	flagsValidOnlyWithUnmanagedNG := []string{"version"}
 	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithUnmanagedNG); found {
 		return fmt.Errorf("--%s is only valid with unmanaged nodegroups", flagName)

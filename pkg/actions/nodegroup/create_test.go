@@ -49,7 +49,7 @@ type stackManagerDelegate struct {
 	manager.StackManager
 }
 
-func (s *stackManagerDelegate) NewUnmanagedNodeGroupTask(context.Context, []*api.NodeGroup, bool, bool, vpc.Importer) *tasks.TaskTree {
+func (s *stackManagerDelegate) NewUnmanagedNodeGroupTask(context.Context, []*api.NodeGroup, bool, bool, bool, vpc.Importer) *tasks.TaskTree {
 	return &tasks.TaskTree{
 		Tasks: []tasks.Task{noopTask},
 	}
@@ -252,7 +252,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				DryRun:    true,
 				OutStream: os.Stdout,
 			},
-			UpdateAuthConfigMap:       true,
+			UpdateAuthConfigMap:       api.Enabled(),
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
 			SkipOutdatedAddonsCheck:   true,
@@ -279,7 +279,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				DryRun:    true,
 				OutStream: os.Stdout,
 			},
-			UpdateAuthConfigMap:       true,
+			UpdateAuthConfigMap:       api.Enabled(),
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
 			SkipOutdatedAddonsCheck:   true,
@@ -311,7 +311,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				DryRun:    true,
 				OutStream: os.Stdout,
 			},
-			UpdateAuthConfigMap:       true,
+			UpdateAuthConfigMap:       api.Enabled(),
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
 			SkipOutdatedAddonsCheck:   true,
@@ -340,7 +340,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				DryRun:    true,
 				OutStream: os.Stdout,
 			},
-			UpdateAuthConfigMap:       true,
+			UpdateAuthConfigMap:       api.Enabled(),
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
 			SkipOutdatedAddonsCheck:   true,
@@ -370,7 +370,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				DryRun:    true,
 				OutStream: os.Stdout,
 			},
-			UpdateAuthConfigMap:       true,
+			UpdateAuthConfigMap:       api.Enabled(),
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
 			SkipOutdatedAddonsCheck:   true,
@@ -410,7 +410,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				DryRun:    true,
 				OutStream: os.Stdout,
 			},
-			UpdateAuthConfigMap:       true,
+			UpdateAuthConfigMap:       api.Enabled(),
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
 			SkipOutdatedAddonsCheck:   true,
@@ -439,7 +439,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				DryRun:    true,
 				OutStream: os.Stdout,
 			},
-			UpdateAuthConfigMap:       true,
+			UpdateAuthConfigMap:       api.Enabled(),
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
 			SkipOutdatedAddonsCheck:   true,
@@ -474,7 +474,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				DryRun:    true,
 				OutStream: os.Stdout,
 			},
-			UpdateAuthConfigMap:       true,
+			UpdateAuthConfigMap:       api.Enabled(),
 			InstallNeuronDevicePlugin: true,
 			InstallNvidiaDevicePlugin: true,
 			SkipOutdatedAddonsCheck:   true,

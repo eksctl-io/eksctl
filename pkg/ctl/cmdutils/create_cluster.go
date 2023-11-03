@@ -23,6 +23,15 @@ type CreateClusterCmdParams struct {
 	CreateManagedNGOptions
 }
 
+// NodeGroupOptions holds options for creating nodegroups.
+type NodeGroupOptions struct {
+	CreateNGOptions
+	CreateManagedNGOptions
+	UpdateAuthConfigMap     *bool
+	SkipOutdatedAddonsCheck bool
+	SubnetIDs               []string
+}
+
 // CreateManagedNGOptions holds options for creating a managed nodegroup
 type CreateManagedNGOptions struct {
 	Managed       bool

@@ -27,18 +27,19 @@ func (t *createClusterTask) Do(errorCh chan error) error {
 }
 
 type nodeGroupTask struct {
-	info              string
-	ctx               context.Context
-	nodeGroup         *api.NodeGroup
-	forceAddCNIPolicy bool
-	vpcImporter       vpc.Importer
-	stackCollection   *StackCollection
-	skipEgressRules   bool
+	info                       string
+	ctx                        context.Context
+	nodeGroup                  *api.NodeGroup
+	forceAddCNIPolicy          bool
+	disableAccessEntryCreation bool
+	skipEgressRules            bool
+	vpcImporter                vpc.Importer
+	stackCollection            *StackCollection
 }
 
 func (t *nodeGroupTask) Describe() string { return t.info }
 func (t *nodeGroupTask) Do(errs chan error) error {
-	return t.stackCollection.createNodeGroupTask(t.ctx, errs, t.nodeGroup, t.forceAddCNIPolicy, t.skipEgressRules, t.vpcImporter)
+	return t.stackCollection.createNodeGroupTask(t.ctx, errs, t.nodeGroup, t.forceAddCNIPolicy, t.skipEgressRules, t.disableAccessEntryCreation, t.vpcImporter)
 }
 
 type managedNodeGroupTask struct {

@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/awsapi"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -116,7 +116,6 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(nodeGroupStacks []NodeGroup
 	taskTree := &tasks.TaskTree{Parallel: true}
 
 	for _, s := range nodeGroupStacks {
-
 		if !shouldDelete(s.NodeGroupName) {
 			continue
 		}
@@ -146,19 +145,33 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(nodeGroupStacks []NodeGroup
 	return taskTree, nil
 }
 
+func usesAccessEntry(stack *Stack) bool {
+	for _, output := range stack.Outputs {
+		if *output.OutputKey == outputs.NodeGroupUsesAccessEntry {
+			return *output.OutputValue == "true"
+		}
+	}
+	return false
+}
+
 type DeleteWaitCondition struct {
 	Condition func() (bool, error)
 	Timeout   time.Duration
 	Interval  time.Duration
 }
 
+//counterfeiter:generate -o fakes/fake_nodegroup_deleter.go . NodeGroupDeleter
+type NodeGroupDeleter interface {
+	DeleteNodegroup(ctx context.Context, params *awseks.DeleteNodegroupInput, optFns ...func(*awseks.Options)) (*awseks.DeleteNodegroupOutput, error)
+}
+
 type DeleteUnownedNodegroupTask struct {
-	cluster   string
-	nodegroup string
-	wait      *DeleteWaitCondition
-	info      string
-	eksAPI    awsapi.EKS
-	ctx       context.Context
+	cluster          string
+	nodegroup        string
+	wait             *DeleteWaitCondition
+	info             string
+	nodeGroupDeleter NodeGroupDeleter
+	ctx              context.Context
 }
 
 func (d *DeleteUnownedNodegroupTask) Describe() string {
@@ -166,7 +179,7 @@ func (d *DeleteUnownedNodegroupTask) Describe() string {
 }
 
 func (d *DeleteUnownedNodegroupTask) Do() error {
-	out, err := d.eksAPI.DeleteNodegroup(d.ctx, &awseks.DeleteNodegroupInput{
+	out, err := d.nodeGroupDeleter.DeleteNodegroup(d.ctx, &awseks.DeleteNodegroupInput{
 		ClusterName:   &d.cluster,
 		NodegroupName: &d.nodegroup,
 	})
@@ -196,15 +209,15 @@ func (d *DeleteUnownedNodegroupTask) Do() error {
 	return nil
 }
 
-func (c *StackCollection) NewTaskToDeleteUnownedNodeGroup(ctx context.Context, clusterName, nodegroup string, eksAPI awsapi.EKS, waitCondition *DeleteWaitCondition) tasks.Task {
+func (c *StackCollection) NewTaskToDeleteUnownedNodeGroup(ctx context.Context, clusterName, nodegroup string, nodeGroupDeleter NodeGroupDeleter, waitCondition *DeleteWaitCondition) tasks.Task {
 	return tasks.SynchronousTask{
 		SynchronousTaskIface: &DeleteUnownedNodegroupTask{
-			cluster:   clusterName,
-			nodegroup: nodegroup,
-			eksAPI:    eksAPI,
-			wait:      waitCondition,
-			info:      fmt.Sprintf("delete unowned nodegroup %s", nodegroup),
-			ctx:       ctx,
+			cluster:          clusterName,
+			nodegroup:        nodegroup,
+			nodeGroupDeleter: nodeGroupDeleter,
+			wait:             waitCondition,
+			info:             fmt.Sprintf("delete unowned nodegroup %s", nodegroup),
+			ctx:              ctx,
 		}}
 }
 

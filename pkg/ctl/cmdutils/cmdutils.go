@@ -185,8 +185,8 @@ func AddWaitFlagWithFullDescription(fs *pflag.FlagSet, wait *bool, description s
 }
 
 // AddUpdateAuthConfigMap adds common --update-auth-configmap flag
-func AddUpdateAuthConfigMap(fs *pflag.FlagSet, updateAuthConfigMap *bool, description string) {
-	fs.BoolVar(updateAuthConfigMap, "update-auth-configmap", true, description)
+func AddUpdateAuthConfigMap(fs *pflag.FlagSet, description string) *bool {
+	return fs.Bool("update-auth-configmap", true, description)
 }
 
 // AddSubnetIDs adds common --subnet-ids flag
@@ -202,7 +202,7 @@ func AddCommonFlagsForKubeconfig(fs *pflag.FlagSet, outputPath, authenticatorRol
 	fs.BoolVar(autoPath, "auto-kubeconfig", false, fmt.Sprintf("save kubeconfig file by cluster name, e.g. %q", kubeconfig.AutoPath(exampleName)))
 }
 
-// AddCommonFlagsForGetCmd adds common flafs for get commands
+// AddCommonFlagsForGetCmd adds common flags for get commands.
 func AddCommonFlagsForGetCmd(fs *pflag.FlagSet, chunkSize *int, outputMode *printers.Type) {
 	fs.IntVar(chunkSize, "chunk-size", 100, "return large lists in chunks rather than all at once, pass 0 to disable")
 	fs.StringVarP(outputMode, "output", "o", "table", "specifies the output format (valid option: table, json, yaml)")

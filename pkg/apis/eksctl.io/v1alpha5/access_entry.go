@@ -1,6 +1,7 @@
 package v1alpha5
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -52,6 +53,11 @@ func (a ARN) String() string {
 // Type returns the type.
 func (a *ARN) Type() string {
 	return "string"
+}
+
+// MarshalJSON implements json.Marshaler.
+func (a ARN) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.String())
 }
 
 // IsZero reports whether a is the zero value.
