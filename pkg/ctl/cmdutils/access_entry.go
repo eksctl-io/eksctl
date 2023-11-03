@@ -4,7 +4,10 @@ import (
 	"errors"
 	"fmt"
 
+	"golang.org/x/exp/slices"
 	"k8s.io/apimachinery/pkg/util/sets"
+
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -100,6 +103,48 @@ func NewDeleteAccessEntryLoader(cmd *Cmd) ClusterConfigLoader {
 			return fmt.Errorf("must specify access entry principalArn")
 		}
 		return nil
+	}
+
+	return l
+}
+
+// NewUtilsUpdateAuthenticationModeLoader loads config or uses flags for `eksctl utils update-autentication-mode`
+func NewUtilsUpdateAuthenticationModeLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.flagsIncompatibleWithConfigFile.Insert(
+		"cluster",
+		"authentication-mode",
+	)
+
+	validateAuthenticationMode := func(authenticationMode ekstypes.AuthenticationMode) error {
+		if authenticationMode == "" {
+			return ErrMustBeSet("--authentication-mode")
+		}
+		if !slices.Contains(authenticationMode.Values(), cmd.ClusterConfig.AccessConfig.AuthenticationMode) {
+			return fmt.Errorf("invalid value %s provided for authenticationMode, choose one of: CONFIG_MAP, API_AND_CONFIG_MAP, API", authenticationMode)
+		}
+		return nil
+	}
+
+	l.validateWithoutConfigFile = func() error {
+		meta := cmd.ClusterConfig.Metadata
+		authenticationMode := cmd.ClusterConfig.AccessConfig.AuthenticationMode
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+		if cmd.NameArg != "" {
+			return ErrUnsupportedNameArg()
+		}
+		return validateAuthenticationMode(authenticationMode)
+	}
+
+	l.validateWithConfigFile = func() error {
+		meta := cmd.ClusterConfig.Metadata
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+		return validateAuthenticationMode(cmd.ClusterConfig.AccessConfig.AuthenticationMode)
 	}
 
 	return l
