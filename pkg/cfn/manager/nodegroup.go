@@ -153,7 +153,7 @@ func (c *StackCollection) ListNodeGroupStacks(ctx context.Context) ([]*Stack, er
 	return nodeGroupStacks, nil
 }
 
-// ListNodeGroupStacks returns a list of NodeGroupStacks
+// ListNodeGroupStacksWithStatuses returns a list of NodeGroupStacks.
 func (c *StackCollection) ListNodeGroupStacksWithStatuses(ctx context.Context) ([]NodeGroupStack, error) {
 	stacks, err := c.ListNodeGroupStacks(ctx)
 	if err != nil {

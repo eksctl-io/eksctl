@@ -884,7 +884,7 @@ type ClusterConfig struct {
 
 	// AccessConfig specifies the access config for a cluster.
 	// +optional
-	AccessConfig *AccessConfig
+	AccessConfig *AccessConfig `json:"accessConfig,omitempty"`
 
 	// +optional
 	VPC *ClusterVPC `json:"vpc,omitempty"`
@@ -1949,7 +1949,20 @@ func (t *taintsWrapper) UnmarshalJSON(data []byte) error {
 
 // AccessConfig specifies the access config for a cluster.
 type AccessConfig struct {
-	BootstrapClusterCreatorAdminPermissions *bool
+	// AuthenticationMode specifies the authentication mode for a cluster.
+	AuthenticationMode ekstypes.AuthenticationMode `json:"authenticationMode,omitempty"`
+
+	// BootstrapClusterCreatorAdminPermissions specifies whether the cluster creator IAM principal was set as a cluster
+	// admin access entry during cluster creation time.
+	BootstrapClusterCreatorAdminPermissions *bool `json:"bootstrapClusterCreatorAdminPermissions,omitempty"`
+
+	// AccessEntries specifies a list of access entries for the cluster.
+	// +optional
+	AccessEntries []AccessEntry `json:"accessEntries,omitempty"`
+}
+
+func IsAccessEntryEnabled(cluster *ekstypes.Cluster) bool {
+	return cluster.AccessConfig.AuthenticationMode != ekstypes.AuthenticationModeConfigMap
 }
 
 // UnsupportedFeatureError is an error that represents an unsupported feature

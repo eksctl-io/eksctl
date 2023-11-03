@@ -198,7 +198,7 @@ func (c *StackCollection) createClusterStack(ctx context.Context, stackName stri
 			}
 
 			logger.Critical("unexpected status %q while waiting for CloudFormation stack %q", stack.StackStatus, *stack.StackName)
-			c.troubleshootStackFailureCause(ctx, stack, string(types.StackStatusCreateComplete))
+			c.TroubleshootStackFailureCause(ctx, stack, types.StackStatusCreateComplete)
 		}
 
 		ctx, cancelFunc := context.WithTimeout(context.Background(), c.waitTimeout)
@@ -509,6 +509,11 @@ func (c *StackCollection) ListStackNames(ctx context.Context, regExp string) ([]
 // ListClusterStackNames gets all stack names matching regex
 func (c *StackCollection) ListClusterStackNames(ctx context.Context) ([]string, error) {
 	return c.ListStackNames(ctx, clusterStackRegex)
+}
+
+// ListAccessEntryStackNames lists the stack names for all access entries in the specified cluster.
+func (c *StackCollection) ListAccessEntryStackNames(ctx context.Context, clusterName string) ([]string, error) {
+	return c.ListStackNames(ctx, fmt.Sprintf("^eksctl-%s-accessentry-*", clusterName))
 }
 
 // ListStacksWithStatuses gets all of CloudFormation stacks
