@@ -35,6 +35,7 @@ var _ = Describe("Cluster Template Builder", func() {
 		provider = mockprovider.NewMockProvider()
 		existingStack = nil
 		cfg = api.NewClusterConfig()
+		api.SetClusterConfigDefaults(cfg)
 		cfg.VPC = vpcConfig()
 		cfg.AvailabilityZones = []string{"us-west-2a", "us-west-2b"}
 		cfg.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
@@ -71,14 +72,16 @@ var _ = Describe("Cluster Template Builder", func() {
 
 		It("should add control plane resources", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.Name).To(Equal(cfg.Metadata.Name))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.Version).To(Equal(cfg.Metadata.Version))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SecurityGroupIds[0]).To(ContainElement("ControlPlaneSecurityGroup"))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SubnetIds).To(HaveLen(4))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.RoleArn).To(ContainElement([]interface{}{"ServiceRole", "Arn"}))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.EncryptionConfig).To(BeNil())
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.KubernetesNetworkConfig.ServiceIPv4CIDR).To(Equal("131.10.55.70/18"))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.KubernetesNetworkConfig.IPFamily).To(Equal("ipv4"))
+			controlPlane := clusterTemplate.Resources["ControlPlane"].Properties
+			Expect(controlPlane.Name).To(Equal(cfg.Metadata.Name))
+			Expect(controlPlane.Version).To(Equal(cfg.Metadata.Version))
+			Expect(controlPlane.ResourcesVpcConfig.SecurityGroupIds[0]).To(ContainElement("ControlPlaneSecurityGroup"))
+			Expect(controlPlane.ResourcesVpcConfig.SubnetIds).To(HaveLen(4))
+			Expect(controlPlane.RoleArn).To(ContainElement([]interface{}{"ServiceRole", "Arn"}))
+			Expect(controlPlane.EncryptionConfig).To(BeNil())
+			Expect(controlPlane.KubernetesNetworkConfig.ServiceIPv4CIDR).To(Equal("131.10.55.70/18"))
+			Expect(controlPlane.KubernetesNetworkConfig.IPFamily).To(Equal("ipv4"))
+			Expect(controlPlane.AccessConfig.BootstrapClusterCreatorAdminPermissions).To(BeTrue())
 		})
 
 		It("should add vpc resources", func() {
@@ -647,6 +650,16 @@ var _ = Describe("Cluster Template Builder", func() {
 
 			It("should return the error", func() {
 				Expect(addErr).To(MatchError(ContainSubstring("insufficient number of subnets")))
+			})
+		})
+
+		Context("bootstrapClusterCreatorAdminPermissions", func() {
+			BeforeEach(func() {
+				cfg.AccessConfig.BootstrapClusterCreatorAdminPermissions = api.Disabled()
+			})
+
+			It("should have bootstrapClusterCreatorAdminPermissions set to false in the CFN template", func() {
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.AccessConfig.BootstrapClusterCreatorAdminPermissions).To(BeFalse())
 			})
 		})
 	})
