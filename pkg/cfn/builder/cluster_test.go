@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -653,13 +654,26 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 		})
 
-		Context("bootstrapClusterCreatorAdminPermissions", func() {
+		Context("accessConfig with default values", func() {
+			It("should set bootstrapClusterCreatorAdminPermissions to true and authenticationMode to API_AND_CONFIG_MAP in the CFN template", func() {
+				accessConfig := clusterTemplate.Resources["ControlPlane"].Properties.AccessConfig
+				Expect(accessConfig.BootstrapClusterCreatorAdminPermissions).To(BeTrue())
+				Expect(accessConfig.AuthenticationMode).To(Equal(string(ekstypes.AuthenticationModeApiAndConfigMap)))
+			})
+		})
+
+		Context("accessConfig with non-default values", func() {
 			BeforeEach(func() {
-				cfg.AccessConfig.BootstrapClusterCreatorAdminPermissions = api.Disabled()
+				cfg.AccessConfig = &api.AccessConfig{
+					AuthenticationMode:                      ekstypes.AuthenticationModeApi,
+					BootstrapClusterCreatorAdminPermissions: api.Disabled(),
+				}
 			})
 
-			It("should have bootstrapClusterCreatorAdminPermissions set to false in the CFN template", func() {
-				Expect(clusterTemplate.Resources["ControlPlane"].Properties.AccessConfig.BootstrapClusterCreatorAdminPermissions).To(BeFalse())
+			It("should set the authenticationMode to API and bootstrapClusterCreatorAdminPermissions to false in the CFN template", func() {
+				accessConfig := clusterTemplate.Resources["ControlPlane"].Properties.AccessConfig
+				Expect(accessConfig.AuthenticationMode).To(Equal(string(ekstypes.AuthenticationModeApi)))
+				Expect(accessConfig.BootstrapClusterCreatorAdminPermissions).To(BeFalse())
 			})
 		})
 	})
