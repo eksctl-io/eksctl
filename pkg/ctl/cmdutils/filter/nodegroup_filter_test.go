@@ -369,6 +369,7 @@ const expected = `
 			"enabled": false,
 			"skipEndpointCreation": false
 		},
+		"accessConfig": {},
 		"nodeGroups": [
 		  {
 			  "name": "test-ng1a",

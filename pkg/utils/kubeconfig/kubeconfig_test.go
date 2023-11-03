@@ -10,13 +10,15 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	eksctlapi "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 
-	kubectlfakes "github.com/weaveworks/eksctl/pkg/utils/kubectl/fakes"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+
+	kubectlfakes "github.com/weaveworks/eksctl/pkg/utils/kubectl/fakes"
 )
 
 var errGeneric = fmt.Errorf("generic error")
