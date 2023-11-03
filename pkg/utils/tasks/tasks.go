@@ -8,7 +8,10 @@ import (
 	"github.com/kris-nova/logger"
 )
 
-// Task is a common interface for the stack manager tasks
+// Task is a common interface for the stack manager tasks.
+//
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_task.go . Task
 type Task interface {
 	Describe() string
 	Do(chan error) error

@@ -10,7 +10,7 @@
           "viewers"
         ],
         "Username": "user1",
-        "Policies": [
+        "AccessPolicies": [
           {
             "PolicyArn": "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy",
             "AccessScope": {

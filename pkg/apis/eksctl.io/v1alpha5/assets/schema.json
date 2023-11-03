@@ -3,11 +3,6 @@
   "type": "object",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
-    "ARN": {
-      "$ref": "#/definitions/github.com|aws|aws-sdk-go-v2|aws|arn.ARN",
-      "description": "provides custom unmarshalling for an AWS ARN.",
-      "x-intellij-html-description": "provides custom unmarshalling for an AWS ARN."
-    },
     "AZSubnetMapping": {
       "additionalProperties": {
         "$ref": "#/definitions/AZSubnetSpec"
@@ -35,70 +30,6 @@
         "id",
         "az",
         "cidr"
-      ],
-      "additionalProperties": false
-    },
-    "AccessEntry": {
-      "properties": {
-        "accessPolicies": {
-          "items": {
-            "$ref": "#/definitions/AccessPolicy"
-          },
-          "type": "array"
-        },
-        "kubernetesGroups": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "kubernetesUsername": {
-          "type": "string"
-        },
-        "principalARN": {
-          "$ref": "#/definitions/ARN"
-        }
-      },
-      "preferredOrder": [
-        "principalARN",
-        "kubernetesGroups",
-        "kubernetesUsername",
-        "accessPolicies"
-      ],
-      "additionalProperties": false,
-      "description": "represents an access entry for managing access to a cluster.",
-      "x-intellij-html-description": "represents an access entry for managing access to a cluster."
-    },
-    "AccessPolicy": {
-      "properties": {
-        "accessScope": {
-          "$ref": "#/definitions/AccessScope"
-        },
-        "policyARN": {
-          "$ref": "#/definitions/ARN"
-        }
-      },
-      "preferredOrder": [
-        "policyARN",
-        "accessScope"
-      ],
-      "additionalProperties": false
-    },
-    "AccessScope": {
-      "properties": {
-        "namespaces": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "type": {
-          "type": "string"
-        }
-      },
-      "preferredOrder": [
-        "type",
-        "namespaces"
       ],
       "additionalProperties": false
     },
@@ -285,12 +216,6 @@
         "apiVersion"
       ],
       "properties": {
-        "accessEntries": {
-          "items": {
-            "$ref": "#/definitions/AccessEntry"
-          },
-          "type": "array"
-        },
         "addons": {
           "items": {
             "$ref": "#/definitions/Addon"
@@ -406,7 +331,6 @@
         "iam",
         "iamIdentityMappings",
         "identityProviders",
-        "accessEntries",
         "vpc",
         "addons",
         "privateCluster",
@@ -2485,10 +2409,6 @@
       "additionalProperties": false,
       "description": "for attaching common IAM policies",
       "x-intellij-html-description": "for attaching common IAM policies"
-    },
-    "github.com|aws|aws-sdk-go-v2|aws|arn.ARN": {
-      "description": "captures the individual fields of an Amazon Resource Name. See http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html for more information.",
-      "x-intellij-html-description": "captures the individual fields of an Amazon Resource Name. See http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html for more information."
     },
     "github.com|aws|aws-sdk-go-v2|service|eks|types.ResolveConflicts": {
       "type": "string"

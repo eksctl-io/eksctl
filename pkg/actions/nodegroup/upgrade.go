@@ -56,7 +56,6 @@ func (m *Manager) Upgrade(ctx context.Context, options UpgradeOptions) error {
 	if err != nil {
 		return err
 	}
-	hasStack := m.hasStacks(stacks, options.NodegroupName)
 
 	if options.KubernetesVersion != "" {
 		if _, err := semver.ParseTolerant(options.KubernetesVersion); err != nil {
@@ -86,8 +85,8 @@ func (m *Manager) Upgrade(ctx context.Context, options UpgradeOptions) error {
 		return fmt.Errorf("nodegroup must be in %q state when upgrading a nodegroup; got state %q", ekstypes.NodegroupStatusActive, nodegroupOutput.Nodegroup.Status)
 	}
 
-	if hasStack != nil {
-		options.Stack = hasStack
+	if stack := findStack(stacks, options.NodegroupName); stack != nil {
+		options.Stack = stack
 		return m.upgradeUsingStack(ctx, options, nodegroupOutput.Nodegroup)
 	}
 

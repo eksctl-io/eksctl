@@ -38,7 +38,7 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.
 	}
 }
 
-func (m *Manager) hasStacks(stacks []manager.NodeGroupStack, name string) *manager.NodeGroupStack {
+func findStack(stacks []manager.NodeGroupStack, name string) *manager.NodeGroupStack {
 	for _, stack := range stacks {
 		if stack.NodeGroupName == name {
 			return &stack

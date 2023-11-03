@@ -32,7 +32,7 @@ import (
 
 // CreateOpts controls specific steps of node group creation
 type CreateOpts struct {
-	UpdateAuthConfigMap       bool
+	UpdateAuthConfigMap       *bool
 	InstallNeuronDevicePlugin bool
 	InstallNvidiaDevicePlugin bool
 	DryRunSettings            DryRunSettings
@@ -164,7 +164,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, options.DryRunSettings.OutStream)
 	}
 
-	if err := m.nodeCreationTasks(ctx, isOwnedCluster, skipEgressRules); err != nil {
+	if err := m.nodeCreationTasks(ctx, isOwnedCluster, skipEgressRules, options.UpdateAuthConfigMap); err != nil {
 		return err
 	}
 
@@ -196,7 +196,7 @@ func makeOutpostsService(clusterConfig *api.ClusterConfig, provider api.ClusterP
 	}
 }
 
-func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster, skipEgressRules bool) error {
+func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster, skipEgressRules bool, updateAuthConfigMap *bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 
@@ -282,9 +282,16 @@ func (m *Manager) postNodeCreationTasks(ctx context.Context, clientSet kubernete
 	timeoutCtx, cancel := context.WithTimeout(ctx, m.ctl.AWSProvider.WaitTimeout())
 	defer cancel()
 
-	if options.UpdateAuthConfigMap {
-		if err := eks.UpdateAuthConfigMap(timeoutCtx, m.cfg.NodeGroups, clientSet); err != nil {
+	if api.IsEnabled(options.UpdateAuthConfigMap) {
+		if err := eks.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet); err != nil {
 			return err
+		}
+	}
+	if !api.IsDisabled(options.UpdateAuthConfigMap) {
+		for _, ng := range m.cfg.NodeGroups {
+			if err := eks.WaitForNodes(timeoutCtx, clientSet, ng); err != nil {
+				return err
+			}
 		}
 	}
 	logger.Success("created %d nodegroup(s) in cluster %q", len(m.cfg.NodeGroups), m.cfg.Metadata.Name)

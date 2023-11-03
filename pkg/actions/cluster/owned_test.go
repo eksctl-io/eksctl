@@ -41,7 +41,6 @@ func (d *drainerMockOwned) Drain(ctx context.Context, input *nodegroup.DrainInpu
 var _ = Describe("Delete", func() {
 	var (
 		clusterName              string
-		ctx                      context.Context
 		p                        *mockprovider.MockProvider
 		cfg                      *api.ClusterConfig
 		fakeStackManager         *fakes.FakeStackManager
@@ -53,7 +52,6 @@ var _ = Describe("Delete", func() {
 
 	BeforeEach(func() {
 		clusterName = "my-cluster"
-		ctx = context.Background()
 		p = mockprovider.NewMockProvider()
 		cfg = api.NewClusterConfig()
 		cfg.Metadata.Name = clusterName
@@ -114,20 +112,19 @@ var _ = Describe("Delete", func() {
 
 			fakeStackManager.GetKarpenterStackReturns(karpenterStack, nil)
 
-			c, err := cluster.NewOwnedCluster(ctx, cfg, ctl, nil, fakeStackManager)
-			Expect(err).NotTo(HaveOccurred())
+			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 			fakeClientSet = fake.NewSimpleClientset()
 
 			c.SetNewClientSet(func() (kubernetes.Interface, error) {
 				return fakeClientSet, nil
 			})
-			c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
+			c.SetNewNodeGroupDrainer(func(clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 				mockedDrainer := &drainerMockOwned{}
 				mockedDrainer.On("Drain", mock.Anything).Return(nil)
 				return mockedDrainer
 			})
 
-			err = c.Delete(context.Background(), time.Microsecond, 0, false, false, false, 1)
+			err := c.Delete(context.Background(), time.Microsecond, 0, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
@@ -183,8 +180,7 @@ var _ = Describe("Delete", func() {
 					Tasks: []tasks.Task{},
 				}, nil)
 
-				c, err := cluster.NewOwnedCluster(ctx, cfg, ctl, nil, fakeStackManager)
-				Expect(err).NotTo(HaveOccurred())
+				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 				fakeClientSet = fake.NewSimpleClientset()
 
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -199,11 +195,11 @@ var _ = Describe("Delete", func() {
 
 				mockedDrainer := &drainerMockOwned{}
 				mockedDrainer.On("Drain", mockedDrainInput).Return(errors.New("Mocked error"))
-				c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
+				c.SetNewNodeGroupDrainer(func(clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 					return mockedDrainer
 				})
 
-				err = c.Delete(context.Background(), time.Microsecond, 0, false, true, false, 1)
+				err := c.Delete(context.Background(), time.Microsecond, 0, false, true, false, 1)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 				Expect(ranDeleteDeprecatedTasks).To(BeFalse())
@@ -249,8 +245,7 @@ var _ = Describe("Delete", func() {
 					Tasks: []tasks.Task{},
 				}, nil)
 
-				c, err := cluster.NewOwnedCluster(ctx, cfg, ctl, nil, fakeStackManager)
-				Expect(err).NotTo(HaveOccurred())
+				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 				fakeClientSet = fake.NewSimpleClientset()
 
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -273,11 +268,11 @@ var _ = Describe("Delete", func() {
 				errorMessage := "Mocked error"
 				mockedDrainer := &drainerMockOwned{}
 				mockedDrainer.On("Drain", mockedDrainInput).Return(errors.New(errorMessage))
-				c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
+				c.SetNewNodeGroupDrainer(func(clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 					return mockedDrainer
 				})
 
-				err = c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
+				err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
 				Expect(err).To(MatchError(errorMessage))
 				Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(0))
 				Expect(ranDeleteDeprecatedTasks).To(BeFalse())
@@ -320,9 +315,8 @@ var _ = Describe("Delete", func() {
 				}}},
 			}, nil)
 
-			c, err := cluster.NewOwnedCluster(ctx, cfg, ctl, nil, fakeStackManager)
-			Expect(err).NotTo(HaveOccurred())
-			c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
+			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+			c.SetNewNodeGroupDrainer(func(clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 				mockedDrainer := &drainerMockOwned{}
 				mockedDrainer.On("Drain", mock.Anything).Return(nil)
 				return mockedDrainer
@@ -331,7 +325,7 @@ var _ = Describe("Delete", func() {
 				return fake.NewSimpleClientset(), nil
 			})
 
-			err = c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
+			err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())

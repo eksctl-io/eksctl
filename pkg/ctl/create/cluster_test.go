@@ -348,14 +348,6 @@ var _ = Describe("create cluster", func() {
 			expectedErr: "failed to create clientset",
 		}),
 
-		Entry("[Cluster with NodeGroups] fails to add a nodegroup IAM role in the auth ConfigMap", createClusterEntry{
-			updateClusterConfig: func(c *api.ClusterConfig) {
-				c.NodeGroups = append(c.NodeGroups, getDefaultNodeGroup())
-			},
-			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateComplete, wrongARNOutputForNodeGroup),
-			expectedErr: "arn is neither user nor role",
-		}),
-
 		Entry("[Cluster with NodeGroups] times out waiting for nodes to join the cluster", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
 				c.NodeGroups = append(c.NodeGroups, getDefaultNodeGroup())
@@ -648,28 +640,9 @@ var (
 			OutputKey:   aws.String(outputs.NodeGroupFeatureSharedSecurityGroup),
 			OutputValue: aws.String("ngssg"),
 		},
-	}
-
-	wrongARNOutputForNodeGroup = []cftypes.Output{
 		{
-			OutputKey:   aws.String(outputs.NodeGroupInstanceRoleARN),
-			OutputValue: aws.String("arn:aws:iam::083751696308:account/eksctl-my-cluster-cluster-nodegroup-my-nodegroup-NodeInstanceRole-1IYQ3JS8OKPX1"),
-		},
-		{
-			OutputKey:   aws.String(outputs.NodeGroupInstanceProfileARN),
-			OutputValue: aws.String("arn:aws:iam::083751696308:account/eksctl-my-cluster-cluster-nodegroup-my-nodegroup-NodeInstanceProfile-1IYQ3JS8OKPX1"),
-		},
-		{
-			OutputKey:   aws.String(outputs.NodeGroupFeaturePrivateNetworking),
-			OutputValue: aws.String("ngfpn"),
-		},
-		{
-			OutputKey:   aws.String(outputs.NodeGroupFeatureLocalSecurityGroup),
-			OutputValue: aws.String("nglsg"),
-		},
-		{
-			OutputKey:   aws.String(outputs.NodeGroupFeatureSharedSecurityGroup),
-			OutputValue: aws.String("ngssg"),
+			OutputKey:   aws.String(outputs.NodeGroupUsesAccessEntry),
+			OutputValue: aws.String("true"),
 		},
 	}
 
