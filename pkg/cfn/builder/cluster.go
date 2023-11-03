@@ -297,6 +297,11 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		}
 	}
 
+	authenticationMode := c.spec.AccessConfig.AuthenticationMode
+	if authenticationMode == "" {
+		authenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
+	}
+
 	cluster := gfneks.Cluster{
 		EncryptionConfig:   encryptionConfigs,
 		Logging:            makeClusterLogging(c.spec),
@@ -304,7 +309,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		ResourcesVpcConfig: clusterVPC,
 		RoleArn:            serviceRoleARN,
 		AccessConfig: &gfneks.Cluster_AccessConfig{
-			AuthenticationMode:                      gfnt.NewString(string(ekstypes.AuthenticationModeApiAndConfigMap)),
+			AuthenticationMode:                      gfnt.NewString(string(authenticationMode)),
 			BootstrapClusterCreatorAdminPermissions: gfnt.NewBoolean(!api.IsDisabled(c.spec.AccessConfig.BootstrapClusterCreatorAdminPermissions)),
 		},
 		Tags:    makeCFNTags(c.spec),

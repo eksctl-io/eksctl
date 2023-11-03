@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/weaveworks/eksctl/pkg/actions/accessentry"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -20,21 +21,26 @@ const (
 	managedByKubernetesLabelValue = "eksctl"
 )
 
-// NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
+// NewTasksToCreateCluster defines all tasks required to create a cluster along
 // with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works.
-func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(ctx context.Context, nodeGroups []*api.NodeGroup,
-	managedNodeGroups []*api.ManagedNodeGroup, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree {
-
+func (c *StackCollection) NewTasksToCreateCluster(ctx context.Context, nodeGroups []*api.NodeGroup,
+	managedNodeGroups []*api.ManagedNodeGroup, accessEntries []api.AccessEntry, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree {
 	taskTree := tasks.TaskTree{Parallel: false}
 
-	taskTree.Append(
-		&createClusterTask{
-			info:                 fmt.Sprintf("create cluster control plane %q", c.spec.Metadata.Name),
-			stackCollection:      c,
-			supportsManagedNodes: true,
-			ctx:                  ctx,
-		},
-	)
+	taskTree.Append(&createClusterTask{
+		info:                 fmt.Sprintf("create cluster control plane %q", c.spec.Metadata.Name),
+		stackCollection:      c,
+		supportsManagedNodes: true,
+		ctx:                  ctx,
+	})
+
+	if len(accessEntries) > 0 {
+		accessEntryCreator := &accessentry.Creator{
+			ClusterName:  c.spec.Metadata.Name,
+			StackCreator: c,
+		}
+		taskTree.Append(accessEntryCreator.CreateTasks(ctx, accessEntries))
+	}
 
 	appendNodeGroupTasksTo := func(taskTree *tasks.TaskTree) {
 		vpcImporter := vpc.NewStackConfigImporter(c.MakeClusterStackName())

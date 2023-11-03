@@ -250,7 +250,8 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster, skipEgr
 	allNodeGroupTasks := &tasks.TaskTree{
 		Parallel: true,
 	}
-	nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(ctx, cfg.NodeGroups, !awsNodeUsesIRSA, skipEgressRules, vpcImporter)
+	disableAccessEntryCreation := !api.IsAccessEntryEnabled(m.ctl.Status.ClusterInfo.Cluster) || updateAuthConfigMap != nil
+	nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(ctx, cfg.NodeGroups, !awsNodeUsesIRSA, skipEgressRules, disableAccessEntryCreation, vpcImporter)
 	if nodeGroupTasks.Len() > 0 {
 		allNodeGroupTasks.Append(nodeGroupTasks)
 	}

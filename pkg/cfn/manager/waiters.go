@@ -6,16 +6,28 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
-func (c *StackCollection) troubleshootStackFailureCause(ctx context.Context, i *Stack, desiredStatus string) {
+// TroubleshootStackFailureCause identifies the cause of the stack's failure and prints the stack events
+// leading to the failure.
+func (c *StackCollection) TroubleshootStackFailureCause(ctx context.Context, s *cfntypes.Stack, desiredStatus cfntypes.StackStatus) {
+	stack, err := c.DescribeStack(ctx, s)
+	if err != nil {
+		logger.Info("error describing stack to troubleshoot the cause of the failure; "+
+			"check the CloudFormation console for further details", err)
+		return
+	}
+
+	logger.Critical("unexpected status %q while waiting for CloudFormation stack %q", stack.StackStatus, *stack.StackName)
+
 	logger.Info("fetching stack events in attempt to troubleshoot the root cause of the failure")
-	events, err := c.DescribeStackEvents(ctx, i)
+	events, err := c.DescribeStackEvents(ctx, s)
 	if err != nil {
 		logger.Critical("cannot fetch stack events: %v", err)
 		return
@@ -26,20 +38,20 @@ func (c *StackCollection) troubleshootStackFailureCause(ctx context.Context, i *
 			msg = fmt.Sprintf("%s – %#v", msg, *e.ResourceStatusReason)
 		}
 		switch desiredStatus {
-		case string(types.StackStatusCreateComplete):
-			switch string(e.ResourceStatus) {
-			case string(types.ResourceStatusCreateFailed):
+		case cfntypes.StackStatusCreateComplete:
+			switch e.ResourceStatus {
+			case cfntypes.ResourceStatusCreateFailed:
 				logger.Critical(msg)
-			case string(types.ResourceStatusDeleteInProgress):
+			case cfntypes.ResourceStatusDeleteInProgress:
 				logger.Warning(msg)
 			default:
 				logger.Debug(msg) // only output this when verbose logging is enabled
 			}
-		case string(types.StackStatusDeleteComplete):
-			switch string(e.ResourceStatus) {
-			case string(types.ResourceStatusDeleteFailed):
+		case cfntypes.StackStatusDeleteComplete:
+			switch e.ResourceStatus {
+			case cfntypes.ResourceStatusDeleteFailed:
 				logger.Critical(msg)
-			case string(types.ResourceStatusDeleteSkipped):
+			case cfntypes.ResourceStatusDeleteSkipped:
 				logger.Warning(msg)
 			default:
 				logger.Debug(msg) // only output this when verbose logging is enabled

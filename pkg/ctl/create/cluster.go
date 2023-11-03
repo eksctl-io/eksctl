@@ -349,7 +349,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		postClusterCreationTasks.Append(preNodegroupAddons)
 	}
 
-	taskTree := stackManager.NewTasksToCreateClusterWithNodeGroups(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, postClusterCreationTasks)
+	taskTree := stackManager.NewTasksToCreateCluster(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, cfg.AccessConfig.AccessEntries, postClusterCreationTasks)
 
 	logger.Info(taskTree.Describe())
 	if errs := taskTree.DoAllSync(); len(errs) > 0 {

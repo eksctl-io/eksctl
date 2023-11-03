@@ -7,21 +7,22 @@ import (
 	"strconv"
 	"strings"
 
-	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
-	"github.com/weaveworks/eksctl/pkg/utils"
-	"github.com/weaveworks/eksctl/pkg/utils/taints"
 	corev1 "k8s.io/api/core/v1"
-
 	"k8s.io/apimachinery/pkg/util/validation"
 	kubeletapis "k8s.io/kubelet/pkg/apis"
+
+	"github.com/weaveworks/eksctl/pkg/utils"
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
+	"github.com/weaveworks/eksctl/pkg/utils/taints"
 )
 
 // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping-ebs.html
@@ -201,6 +202,17 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 
 	if err := validateIAMIdentityMappings(cfg); err != nil {
 		return err
+	}
+
+	if len(cfg.AccessConfig.AccessEntries) > 0 {
+		switch cfg.AccessConfig.AuthenticationMode {
+		case "", ekstypes.AuthenticationModeConfigMap:
+			return fmt.Errorf("accessConfig.authenticationMode must be set to either %s or %s to create access entries",
+				ekstypes.AuthenticationModeApiAndConfigMap, ekstypes.AuthenticationModeApi)
+		}
+		if err := validateAccessEntries(cfg.AccessConfig.AccessEntries); err != nil {
+			return err
+		}
 	}
 
 	if err := validateKarpenterConfig(cfg); err != nil {
