@@ -1083,6 +1083,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 })
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
+	// before deleting the cluster, first delete the additioanl subnet
+	ec2 := awsec2.NewFromConfig(NewConfig(params.Region))
+	_, err := ec2.DeleteSubnet(context.Background(), &awsec2.DeleteSubnetInput{
+		SubnetId: &extraSubnetID,
+	})
+	Expect(err).NotTo(HaveOccurred())
+
 	Expect(params.EksctlDeleteCmd.WithArgs(
 		"cluster", params.ClusterName,
 		"--wait",
