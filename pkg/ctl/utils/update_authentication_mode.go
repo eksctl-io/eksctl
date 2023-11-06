@@ -52,6 +52,7 @@ func doUpdateAuthenticationMode(cmd *cmdutils.Cmd, authenticationMode string) er
 		return err
 	}
 
+	logger.Info("setting cluster's authentication mode to %s", authenticationMode)
 	clusterName := cmd.ClusterConfig.Metadata.Name
 	output, err := clusterProvider.AWSProvider.EKS().UpdateClusterConfig(ctx, &awseks.UpdateClusterConfigInput{
 		Name: aws.String(clusterName),

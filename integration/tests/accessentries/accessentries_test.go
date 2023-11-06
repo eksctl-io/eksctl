@@ -26,7 +26,6 @@ import (
 )
 
 const (
-	nodePolicyARN  = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSNodePolicy"
 	viewPolicyARN  = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
 	editPolicyARN  = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
 	adminPolicyARN = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
@@ -96,7 +95,7 @@ var _ = BeforeSuite(func() {
 	roleARN = *roleOutput.Role.Arn
 
 	cfg := getInitialClusterConfig()
-	cfg.AccessEntries = []api.AccessEntry{
+	cfg.AccessConfig.AccessEntries = []api.AccessEntry{
 		{
 			PrincipalARN: api.MustParseARN(userARN),
 			AccessPolicies: []api.AccessPolicy{
@@ -153,7 +152,7 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 
 		It("Should be able to create a new access entry", func() {
 			clusterConfig := getInitialClusterConfig()
-			clusterConfig.AccessEntries = append(clusterConfig.AccessEntries,
+			clusterConfig.AccessConfig.AccessEntries = append(clusterConfig.AccessConfig.AccessEntries,
 				api.AccessEntry{
 					PrincipalARN:     api.MustParseARN(roleARN),
 					KubernetesGroups: []string{"default"},
@@ -183,7 +182,7 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 					WithArgs(
 						"accessentry",
 						"--cluster", params.ClusterName,
-						"--principalARN", roleARN,
+						"--principal-arn", roleARN,
 						"--output", "yaml",
 					)
 				return cmd
@@ -198,14 +197,14 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 				WithArgs(
 					"accessentry",
 					"--cluster", params.ClusterName,
-					"--principalARN", roleARN,
+					"--principal-arn", roleARN,
 				)
 			Expect(cmd).To(RunSuccessfully())
 		})
 
 		It("Should be able to delete an access entry via config file", func() {
 			clusterConfig := getInitialClusterConfig()
-			clusterConfig.AccessEntries = append(clusterConfig.AccessEntries,
+			clusterConfig.AccessConfig.AccessEntries = append(clusterConfig.AccessConfig.AccessEntries,
 				api.AccessEntry{
 					PrincipalARN: api.MustParseARN(userARN),
 				})
@@ -224,15 +223,14 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 		})
 	})
 
-	Describe("Managed nodegroup authorization via access entries", func() {
-		It("Should create a manage nodegroup and associated access entry", func() {
-			Skip("skipping until this functionality is merged") //TODO: remove this
-
+	Describe("Self-managed nodegroup authorization via access entries", func() {
+		const ngName = "ng"
+		It("Should create a self-managed nodegroup and associated access entry", func() {
 			clusterConfig := getInitialClusterConfig()
-			clusterConfig.ManagedNodeGroups = append(clusterConfig.ManagedNodeGroups,
-				&api.ManagedNodeGroup{
+			clusterConfig.NodeGroups = append(clusterConfig.NodeGroups,
+				&api.NodeGroup{
 					NodeGroupBase: &api.NodeGroupBase{
-						Name: "mng",
+						Name: ngName,
 					},
 				})
 			data, err := json.Marshal(clusterConfig)
@@ -257,18 +255,15 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 				return cmd
 			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(SatisfyAll(
 				ContainElement(ContainSubstring("NodeInstanceRole")),
-				ContainElement(ContainSubstring(nodePolicyARN)),
 			)))
 		})
 
-		It("Should delete the managed nodegroup and associated access entry", func() {
-			Skip("skipping until this functionality is merged") //TODO: remove this
-
+		It("Should delete the self-managed nodegroup and associated access entry", func() {
 			cmd := params.EksctlDeleteCmd.
 				WithArgs(
 					"nodegroup",
 					"--cluster", params.ClusterName,
-					"--name", "mng",
+					"--name", ngName,
 				)
 			Expect(cmd).To(RunSuccessfully())
 		})
