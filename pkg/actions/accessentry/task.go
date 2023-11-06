@@ -16,11 +16,22 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
+var (
+	ErrDisabledAccessEntryAPI = fmt.Errorf("access entries API is not currently enabled; please enable it using `eksctl utils update-authentication-mode --cluster <> --authenticationMode=API_AND_CONFIG_MAP`")
+)
+
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_stack_creator.go . StackCreator
 type StackCreator interface {
 	CreateStack(ctx context.Context, stackName string, resourceSet builder.ResourceSetReader, tags, parameters map[string]string, errs chan error) error
 	TroubleshootStackFailureCause(ctx context.Context, stack *cfntypes.Stack, desiredStatus cfntypes.StackStatus)
+}
+
+//counterfeiter:generate -o fakes/fake_stack_remover.go . StackRemover
+type StackRemover interface {
+	DescribeStack(ctx context.Context, s *cfntypes.Stack) (*cfntypes.Stack, error)
+	DeleteStackBySpec(ctx context.Context, s *cfntypes.Stack) (*cfntypes.Stack, error)
+	ListAccessEntryStackNames(ctx context.Context, clusterName string) ([]string, error)
 }
 
 type accessEntryTask struct {
@@ -98,7 +109,7 @@ func (t *deleteUnownedAccessEntryTask) Do(errorCh chan error) error {
 type deleteOwnedAccessEntryTask struct {
 	info         string
 	stackName    string
-	stackManager StackManager
+	stackRemover StackRemover
 	principalARN api.ARN
 	ctx          context.Context
 }
@@ -110,13 +121,13 @@ func (t *deleteOwnedAccessEntryTask) Describe() string {
 func (t *deleteOwnedAccessEntryTask) Do(errorCh chan error) error {
 	defer close(errorCh)
 
-	stack, err := t.stackManager.DescribeStack(t.ctx, &cfntypes.Stack{StackName: &t.stackName})
+	stack, err := t.stackRemover.DescribeStack(t.ctx, &cfntypes.Stack{StackName: &t.stackName})
 	if err != nil {
 		// the stack should not be missing as we retrieved its name at a previous point
 		return fmt.Errorf("failed to describe stack for access entry with principal ARN %s: %w", t.principalARN, err)
 	}
 
-	if _, err := t.stackManager.DeleteStackBySpec(t.ctx, stack); err != nil {
+	if _, err := t.stackRemover.DeleteStackBySpec(t.ctx, stack); err != nil {
 		return fmt.Errorf("deleting access entry with principalArn %s: %w", t.principalARN, err)
 	}
 	logger.Info("deleted access entry with principalArn %q", t.principalARN)

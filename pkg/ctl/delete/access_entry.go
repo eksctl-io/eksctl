@@ -54,6 +54,10 @@ func doDeleteAccessEntry(cmd *cmdutils.Cmd, principalARN string) error {
 		return err
 	}
 
+	if !clusterProvider.IsAccessEntryEnabled() {
+		return accessentry.ErrDisabledAccessEntryAPI
+	}
+
 	accessEntryManager := accessentry.NewRemover(
 		cmd.ClusterConfig,
 		clusterProvider.NewStackManager(cmd.ClusterConfig),

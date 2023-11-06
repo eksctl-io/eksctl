@@ -60,6 +60,10 @@ func doGetAccessEntry(cmd *cmdutils.Cmd, principalARN string, params *getCmdPara
 		return err
 	}
 
+	if !clusterProvider.IsAccessEntryEnabled() {
+		return accessentry.ErrDisabledAccessEntryAPI
+	}
+
 	accessEntryGetter := accessentry.NewGetter(cmd.ClusterConfig, clusterProvider.AWSProvider.EKS())
 
 	summaries, err := accessEntryGetter.Get(ctx, principalARN)

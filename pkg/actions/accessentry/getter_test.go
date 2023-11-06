@@ -72,21 +72,6 @@ var _ = Describe("Get", func() {
 			expectedErr: "calling EKS API to list access entries",
 		}),
 
-		Entry("returns an error if calling ListAccessEntries returns PlaceHolderEKSErr", getAccessEntryTest{
-			mockEKS: func(provider *mockprovider.MockProvider) {
-				provider.MockEKS().
-					On("ListAccessEntries", mock.Anything, mock.Anything).
-					Run(func(args mock.Arguments) {
-						Expect(args).To(HaveLen(2))
-						Expect(args[1]).To(BeAssignableToTypeOf(&eks.ListAccessEntriesInput{}))
-					}).
-					Return(nil, &ekstypes.InvalidRequestException{
-						Message: aws.String(accessentry.AuthenticationModeErr),
-					})
-			},
-			expectedErr: accessentry.ErrDisabledAccessEntryAPI.Error(),
-		}),
-
 		Entry("returns an error if calling DescribeAccessEntry fails", getAccessEntryTest{
 			principalARN: mockPrincipalArn1,
 			mockEKS: func(provider *mockprovider.MockProvider) {
@@ -99,22 +84,6 @@ var _ = Describe("Get", func() {
 					Return(nil, eksErr)
 			},
 			expectedErr: fmt.Sprintf("calling EKS API to describe access entry with principal ARN %s", mockPrincipalArn1),
-		}),
-
-		Entry("returns an error if calling DescribeAccessEntry returns PlaceHolderEKSErr", getAccessEntryTest{
-			principalARN: mockPrincipalArn1,
-			mockEKS: func(provider *mockprovider.MockProvider) {
-				provider.MockEKS().
-					On("DescribeAccessEntry", mock.Anything, mock.Anything).
-					Run(func(args mock.Arguments) {
-						Expect(args).To(HaveLen(2))
-						Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAccessEntryInput{}))
-					}).
-					Return(nil, &ekstypes.InvalidRequestException{
-						Message: aws.String(accessentry.AuthenticationModeErr),
-					})
-			},
-			expectedErr: accessentry.ErrDisabledAccessEntryAPI.Error(),
 		}),
 
 		Entry("returns an error if calling ListAssociatedAccessPolicies fails", getAccessEntryTest{
