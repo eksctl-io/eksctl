@@ -947,6 +947,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				).
 					WithoutArg("--region", params.Region).
 					WithStdin(clusterutils.Reader(clusterConfig))).To(RunSuccessfully())
+
+				Expect(params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"--wait",
+					newSubnetConfigFileMng,
+				)).To(RunSuccessfully())
 			})
 
 			It("should be able to create a nodegroup in a new subnet via CLI", func() {
@@ -957,6 +965,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--nodes", "1",
 					"--node-type", "p2.xlarge",
 					"--subnet-ids", extraSubnetID,
+					newSubnetCLIMng,
+				)).To(RunSuccessfully())
+
+				Expect(params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"--wait",
 					newSubnetCLIMng,
 				)).To(RunSuccessfully())
 			})
@@ -1075,8 +1091,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				ContainElement(scaleMultipleMng),
 				ContainElement(GPUMng),
 				ContainElement(drainMng),
-				ContainElement(newSubnetCLIMng),
-				ContainElement(newSubnetConfigFileMng),
 			)))
 		})
 	})
