@@ -26,19 +26,48 @@ func NewRemover(clusterConfig *api.ClusterConfig, stackRemover StackRemover, eks
 	}
 }
 
-func (aer *Remover) Delete(ctx context.Context, entries []api.AccessEntry) error {
-	tasks := &tasks.TaskTree{Parallel: true}
-
-	stacks, err := aer.stackRemover.ListAccessEntryStackNames(ctx, aer.clusterName)
+func (aer *Remover) Delete(ctx context.Context, accessEntries []api.AccessEntry) error {
+	tasks, err := aer.DeleteTasks(ctx, accessEntries)
 	if err != nil {
-		return fmt.Errorf("listing access entry stacks: %w", err)
+		return err
 	}
 
-	for _, e := range entries {
+	logger.Info(tasks.Describe())
+	if errs := tasks.DoAllSync(); len(errs) > 0 {
+		return handleErrors(errs, "accessentry(ies)")
+	}
+	return nil
+}
+
+func (aer Remover) DeleteTasks(ctx context.Context, accessEntries []api.AccessEntry) (*tasks.TaskTree, error) {
+	stacks, err := aer.stackRemover.ListAccessEntryStackNames(ctx, aer.clusterName)
+	if err != nil {
+		return nil, fmt.Errorf("listing access entry stacks: %w", err)
+	}
+
+	tasks := &tasks.TaskTree{
+		Parallel: true,
+	}
+
+	// this is true during cluster deletion, when no access entry is given as user input.
+	if len(accessEntries) == 0 {
+		for _, s := range stacks {
+			tasks.Append(&deleteOwnedAccessEntryTask{
+				info:         fmt.Sprintf("delete access entry for principal ARN %s", unknownARN.String()),
+				stackName:    s,
+				stackRemover: aer.stackRemover,
+				principalARN: unknownARN,
+				ctx:          ctx,
+			})
+		}
+		return tasks, nil
+	}
+
+	for _, e := range accessEntries {
 		stackName := MakeStackName(aer.clusterName, e)
 		if !slice.Contains(stacks, stackName) {
 			tasks.Append(&deleteUnownedAccessEntryTask{
-				info:         fmt.Sprintf("delete access entry for principal ARN %s", e.PrincipalARN),
+				info:         fmt.Sprintf("delete access entry for principal ARN %s", e.PrincipalARN.String()),
 				clusterName:  aer.clusterName,
 				principalARN: e.PrincipalARN,
 				eksAPI:       aer.eksAPI,
@@ -47,7 +76,7 @@ func (aer *Remover) Delete(ctx context.Context, entries []api.AccessEntry) error
 			continue
 		}
 		tasks.Append(&deleteOwnedAccessEntryTask{
-			info:         fmt.Sprintf("delete access entry for principal ARN %s", e.PrincipalARN),
+			info:         fmt.Sprintf("delete access entry for principal ARN %s", e.PrincipalARN.String()),
 			stackName:    stackName,
 			stackRemover: aer.stackRemover,
 			principalARN: e.PrincipalARN,
@@ -55,11 +84,7 @@ func (aer *Remover) Delete(ctx context.Context, entries []api.AccessEntry) error
 		})
 	}
 
-	logger.Info(tasks.Describe())
-	if errs := tasks.DoAllSync(); len(errs) > 0 {
-		return handleErrors(errs, "accessentry(ies)")
-	}
-	return nil
+	return tasks, nil
 }
 
 func handleErrors(errs []error, subject string) error {

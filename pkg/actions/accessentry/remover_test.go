@@ -96,7 +96,7 @@ var _ = Describe("Delete", func() {
 					StackName: &stackName,
 				}, nil)
 
-				stackManager.DeleteStackBySpecReturns(nil, genericErr)
+				stackManager.DeleteStackBySpecSyncReturns(genericErr)
 			},
 			expectedErr: "failed to delete accessentry(ies)",
 		}),
@@ -129,9 +129,7 @@ var _ = Describe("Delete", func() {
 				stackManager.DescribeStackReturns(&types.Stack{
 					StackName: &stackName,
 				}, nil)
-				stackManager.DeleteStackBySpecReturns(&types.Stack{
-					StackName: &stackName,
-				}, nil)
+				stackManager.DeleteStackBySpecSyncReturns(nil)
 			},
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				provider.MockEKS().

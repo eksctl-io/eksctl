@@ -12,6 +12,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	"github.com/weaveworks/eksctl/pkg/actions/accessentry"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
@@ -83,10 +84,19 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(
 	if err != nil {
 		return nil, err
 	}
-
 	if deletePodIdentityRoleTasks.Len() > 0 {
 		deletePodIdentityRoleTasks.IsSubTask = true
 		taskTree.Append(deletePodIdentityRoleTasks)
+	
+	deleteAccessEntriesTasks, err := accessentry.
+		NewRemover(c.spec, c, c.eksAPI).
+		DeleteTasks(ctx, []api.AccessEntry{})
+	if err != nil {
+		return nil, err
+	}
+	if deleteAccessEntriesTasks.Len() > 0 {
+		deleteAccessEntriesTasks.IsSubTask = true
+		taskTree.Append(deleteAccessEntriesTasks)
 	}
 
 	if clusterStack == nil {

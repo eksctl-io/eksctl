@@ -10,19 +10,18 @@ import (
 )
 
 type FakeStackRemover struct {
-	DeleteStackBySpecStub        func(context.Context, *types.Stack) (*types.Stack, error)
-	deleteStackBySpecMutex       sync.RWMutex
-	deleteStackBySpecArgsForCall []struct {
+	DeleteStackBySpecSyncStub        func(context.Context, *types.Stack, chan error) error
+	deleteStackBySpecSyncMutex       sync.RWMutex
+	deleteStackBySpecSyncArgsForCall []struct {
 		arg1 context.Context
 		arg2 *types.Stack
+		arg3 chan error
 	}
-	deleteStackBySpecReturns struct {
-		result1 *types.Stack
-		result2 error
+	deleteStackBySpecSyncReturns struct {
+		result1 error
 	}
-	deleteStackBySpecReturnsOnCall map[int]struct {
-		result1 *types.Stack
-		result2 error
+	deleteStackBySpecSyncReturnsOnCall map[int]struct {
+		result1 error
 	}
 	DescribeStackStub        func(context.Context, *types.Stack) (*types.Stack, error)
 	describeStackMutex       sync.RWMutex
@@ -56,69 +55,67 @@ type FakeStackRemover struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeStackRemover) DeleteStackBySpec(arg1 context.Context, arg2 *types.Stack) (*types.Stack, error) {
-	fake.deleteStackBySpecMutex.Lock()
-	ret, specificReturn := fake.deleteStackBySpecReturnsOnCall[len(fake.deleteStackBySpecArgsForCall)]
-	fake.deleteStackBySpecArgsForCall = append(fake.deleteStackBySpecArgsForCall, struct {
+func (fake *FakeStackRemover) DeleteStackBySpecSync(arg1 context.Context, arg2 *types.Stack, arg3 chan error) error {
+	fake.deleteStackBySpecSyncMutex.Lock()
+	ret, specificReturn := fake.deleteStackBySpecSyncReturnsOnCall[len(fake.deleteStackBySpecSyncArgsForCall)]
+	fake.deleteStackBySpecSyncArgsForCall = append(fake.deleteStackBySpecSyncArgsForCall, struct {
 		arg1 context.Context
 		arg2 *types.Stack
-	}{arg1, arg2})
-	stub := fake.DeleteStackBySpecStub
-	fakeReturns := fake.deleteStackBySpecReturns
-	fake.recordInvocation("DeleteStackBySpec", []interface{}{arg1, arg2})
-	fake.deleteStackBySpecMutex.Unlock()
+		arg3 chan error
+	}{arg1, arg2, arg3})
+	stub := fake.DeleteStackBySpecSyncStub
+	fakeReturns := fake.deleteStackBySpecSyncReturns
+	fake.recordInvocation("DeleteStackBySpecSync", []interface{}{arg1, arg2, arg3})
+	fake.deleteStackBySpecSyncMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
-	return fakeReturns.result1, fakeReturns.result2
+	return fakeReturns.result1
 }
 
-func (fake *FakeStackRemover) DeleteStackBySpecCallCount() int {
-	fake.deleteStackBySpecMutex.RLock()
-	defer fake.deleteStackBySpecMutex.RUnlock()
-	return len(fake.deleteStackBySpecArgsForCall)
+func (fake *FakeStackRemover) DeleteStackBySpecSyncCallCount() int {
+	fake.deleteStackBySpecSyncMutex.RLock()
+	defer fake.deleteStackBySpecSyncMutex.RUnlock()
+	return len(fake.deleteStackBySpecSyncArgsForCall)
 }
 
-func (fake *FakeStackRemover) DeleteStackBySpecCalls(stub func(context.Context, *types.Stack) (*types.Stack, error)) {
-	fake.deleteStackBySpecMutex.Lock()
-	defer fake.deleteStackBySpecMutex.Unlock()
-	fake.DeleteStackBySpecStub = stub
+func (fake *FakeStackRemover) DeleteStackBySpecSyncCalls(stub func(context.Context, *types.Stack, chan error) error) {
+	fake.deleteStackBySpecSyncMutex.Lock()
+	defer fake.deleteStackBySpecSyncMutex.Unlock()
+	fake.DeleteStackBySpecSyncStub = stub
 }
 
-func (fake *FakeStackRemover) DeleteStackBySpecArgsForCall(i int) (context.Context, *types.Stack) {
-	fake.deleteStackBySpecMutex.RLock()
-	defer fake.deleteStackBySpecMutex.RUnlock()
-	argsForCall := fake.deleteStackBySpecArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+func (fake *FakeStackRemover) DeleteStackBySpecSyncArgsForCall(i int) (context.Context, *types.Stack, chan error) {
+	fake.deleteStackBySpecSyncMutex.RLock()
+	defer fake.deleteStackBySpecSyncMutex.RUnlock()
+	argsForCall := fake.deleteStackBySpecSyncArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeStackRemover) DeleteStackBySpecReturns(result1 *types.Stack, result2 error) {
-	fake.deleteStackBySpecMutex.Lock()
-	defer fake.deleteStackBySpecMutex.Unlock()
-	fake.DeleteStackBySpecStub = nil
-	fake.deleteStackBySpecReturns = struct {
-		result1 *types.Stack
-		result2 error
-	}{result1, result2}
+func (fake *FakeStackRemover) DeleteStackBySpecSyncReturns(result1 error) {
+	fake.deleteStackBySpecSyncMutex.Lock()
+	defer fake.deleteStackBySpecSyncMutex.Unlock()
+	fake.DeleteStackBySpecSyncStub = nil
+	fake.deleteStackBySpecSyncReturns = struct {
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeStackRemover) DeleteStackBySpecReturnsOnCall(i int, result1 *types.Stack, result2 error) {
-	fake.deleteStackBySpecMutex.Lock()
-	defer fake.deleteStackBySpecMutex.Unlock()
-	fake.DeleteStackBySpecStub = nil
-	if fake.deleteStackBySpecReturnsOnCall == nil {
-		fake.deleteStackBySpecReturnsOnCall = make(map[int]struct {
-			result1 *types.Stack
-			result2 error
+func (fake *FakeStackRemover) DeleteStackBySpecSyncReturnsOnCall(i int, result1 error) {
+	fake.deleteStackBySpecSyncMutex.Lock()
+	defer fake.deleteStackBySpecSyncMutex.Unlock()
+	fake.DeleteStackBySpecSyncStub = nil
+	if fake.deleteStackBySpecSyncReturnsOnCall == nil {
+		fake.deleteStackBySpecSyncReturnsOnCall = make(map[int]struct {
+			result1 error
 		})
 	}
-	fake.deleteStackBySpecReturnsOnCall[i] = struct {
-		result1 *types.Stack
-		result2 error
-	}{result1, result2}
+	fake.deleteStackBySpecSyncReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeStackRemover) DescribeStack(arg1 context.Context, arg2 *types.Stack) (*types.Stack, error) {
@@ -254,8 +251,8 @@ func (fake *FakeStackRemover) ListAccessEntryStackNamesReturnsOnCall(i int, resu
 func (fake *FakeStackRemover) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.deleteStackBySpecMutex.RLock()
-	defer fake.deleteStackBySpecMutex.RUnlock()
+	fake.deleteStackBySpecSyncMutex.RLock()
+	defer fake.deleteStackBySpecSyncMutex.RUnlock()
 	fake.describeStackMutex.RLock()
 	defer fake.describeStackMutex.RUnlock()
 	fake.listAccessEntryStackNamesMutex.RLock()

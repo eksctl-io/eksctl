@@ -18,7 +18,7 @@ var (
 )
 
 // NewCreateAccessEntryLoader creates a new loader for access entries.
-func NewCreateAccessEntryLoader(cmd *Cmd, accessEntry api.AccessEntry) ClusterConfigLoader {
+func NewCreateAccessEntryLoader(cmd *Cmd, accessEntry *api.AccessEntry) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	const principalARNFlag = "principal-arn"
@@ -42,7 +42,7 @@ func NewCreateAccessEntryLoader(cmd *Cmd, accessEntry api.AccessEntry) ClusterCo
 		if accessEntry.PrincipalARN.Partition == "" {
 			return fmt.Errorf("--%s is required", principalARNFlag)
 		}
-		l.ClusterConfig.AccessConfig.AccessEntries = []api.AccessEntry{accessEntry}
+		l.ClusterConfig.AccessConfig.AccessEntries = []api.AccessEntry{*accessEntry}
 		return nil
 	}
 

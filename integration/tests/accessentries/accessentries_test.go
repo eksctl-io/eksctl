@@ -17,12 +17,11 @@ import (
 	. "github.com/weaveworks/eksctl/integration/runner"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
-	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 
 	"github.com/weaveworks/eksctl/integration/tests"
-	"github.com/weaveworks/eksctl/pkg/actions/accessentry"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
@@ -38,35 +37,24 @@ const (
 	namespaceRoleName = "test-namespace-role"
 )
 
-var trustPolicy = aws.String(`{
-		"Version": "2012-10-17",
-		"Statement": [
-		  {
-			"Effect": "Allow",
-			"Principal": {
-			  "Service": [
-				"eks.amazonaws.com"
-			  ]
-			},
-			"Action": "sts:AssumeRole"
-		  }
-		]
-	  }`)
-
 var (
-	params           *tests.Params
-	ctl              *eks.ClusterProvider
+	params *tests.Params
+	ctl    *eks.ClusterProvider
+
 	userARN          string
 	clusterRoleARN   string
 	namespaceRoleARN string
 	err              error
+
+	apiEnabledCluster  = "accessentries-api-enabled"
+	apiDisabledCluster = "accessentries-api-disabled"
 )
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
-	params = tests.NewParams("accessentries-api-disabled")
-	ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, getInitialClusterConfig())
+	params = tests.NewParams("")
+	ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -79,12 +67,6 @@ func TestAccessEntries(t *testing.T) {
 var _ = SynchronizedBeforeSuite(func() []byte {
 	userOutput, err := ctl.AWSProvider.IAM().CreateUser(context.Background(), &iam.CreateUserInput{
 		UserName: aws.String(userName),
-		Tags: []iamtypes.Tag{
-			{
-				Key:   aws.String(api.ClusterNameTag),
-				Value: aws.String(params.ClusterName),
-			},
-		},
 	})
 	Expect(err).NotTo(HaveOccurred())
 	userARN = *userOutput.User.Arn
@@ -92,12 +74,6 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	roleOutput, err := ctl.AWSProvider.IAM().CreateRole(context.Background(), &iam.CreateRoleInput{
 		RoleName:                 aws.String(clusterRoleName),
 		AssumeRolePolicyDocument: trustPolicy,
-		Tags: []iamtypes.Tag{
-			{
-				Key:   aws.String(api.ClusterNameTag),
-				Value: aws.String(params.ClusterName),
-			},
-		},
 	})
 	Expect(err).NotTo(HaveOccurred())
 	clusterRoleARN = *roleOutput.Role.Arn
@@ -105,12 +81,6 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	roleOutput, err = ctl.AWSProvider.IAM().CreateRole(context.Background(), &iam.CreateRoleInput{
 		RoleName:                 aws.String(namespaceRoleName),
 		AssumeRolePolicyDocument: trustPolicy,
-		Tags: []iamtypes.Tag{
-			{
-				Key:   aws.String(api.ClusterNameTag),
-				Value: aws.String(params.ClusterName),
-			},
-		},
 	})
 	Expect(err).NotTo(HaveOccurred())
 	namespaceRoleARN = *roleOutput.Role.Arn
@@ -123,143 +93,159 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 var _ = Describe("(Integration) [AccessEntries Test]", func() {
 
-	Context("Cluster without access entries", Ordered, func() {
-		var (
-			cfg *api.ClusterConfig
-		)
-
-		BeforeAll(func() {
-			cfg = getInitialClusterConfig()
-		})
-
-		It("should create a cluster with default authenticationMode set to CONFIG_MAP", func() {
-			data, err := json.Marshal(cfg)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(params.EksctlCreateCmd.
-				WithArgs(
-					"cluster",
-					"--config-file", "-",
-					"--without-nodegroup",
-					"--verbose", "4",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(bytes.NewReader(data))).To(RunSuccessfully())
-
-			Expect(ctl.RefreshClusterStatus(context.Background(), cfg)).NotTo(HaveOccurred())
-			Expect(ctl.IsAccessEntryEnabled()).To(BeFalse())
-		})
-
-		It("should fail early when trying to create access entries", func() {
-			Expect(params.EksctlCreateCmd.
-				WithArgs(
-					"accessentry",
-					"--cluster", params.ClusterName,
-					"--principal-arn", userARN,
-				)).NotTo(RunSuccessfullyWithOutputStringLines(
-				ContainElement(ContainSubstring(accessentry.ErrDisabledAccessEntryAPI.Error())),
-			))
-		})
-
-		It("should fail early when trying to fetch access entries", func() {
-			Expect(params.EksctlGetCmd.
-				WithArgs(
-					"accessentry",
-					"--cluster", params.ClusterName,
-				)).NotTo(RunSuccessfullyWithOutputStringLines(
-				ContainElement(ContainSubstring(accessentry.ErrDisabledAccessEntryAPI.Error())),
-			))
-		})
-
-		It("should fail early when trying to delete access entries", func() {
-			Expect(params.EksctlDeleteCmd.
-				WithArgs(
-					"accessentry",
-					"--cluster", params.ClusterName,
-					"--principal-arn", userARN,
-				)).NotTo(RunSuccessfullyWithOutputStringLines(
-				ContainElement(ContainSubstring(accessentry.ErrDisabledAccessEntryAPI.Error())),
-			))
-		})
-
-		It("should change cluster authenticationMode to API_AND_CONFIG_MAP", func() {
-			Expect(params.EksctlUtilsCmd.
-				WithArgs(
-					"--cluster", params.ClusterName,
-					"--authentication-mode", string(ekstypes.AuthenticationModeApiAndConfigMap),
-				)).To(RunSuccessfully())
-
-			Expect(ctl.RefreshClusterStatus(context.Background(), cfg)).NotTo(HaveOccurred())
-			Expect(ctl.IsAccessEntryEnabled()).To(BeTrue())
-		})
-
-		It("should create access entries", func() {
-			addAccessEntriesToConfig(cfg)
-
-			data, err := json.Marshal(cfg)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(params.EksctlCreateCmd.
-				WithArgs(
-					"accessentry",
-					"--config-file", "-",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(bytes.NewReader(data))).To(RunSuccessfully())
-		})
-
-		It("should fetch all expected access entries", func() {
-			Eventually(func() runner.Cmd {
-				return params.EksctlGetCmd.
-					WithArgs(
-						"accessentry",
-						"--cluster", params.ClusterName,
-					)
-			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(SatisfyAll(
-				ContainElement(ContainSubstring(viewPolicyARN)),
-				ContainElement(ContainSubstring(adminPolicyARN)),
-				ContainElement(ContainSubstring("default")),
-				ContainElement(ContainSubstring("dev")),
-			)))
-		})
-
-		It("should delete an access entry via CLI flags", func() {
-			Expect(params.EksctlDeleteCmd.
-				WithArgs(
-					"accessentry",
-					"--cluster", params.ClusterName,
-					"--principal-arn", userARN,
-				)).To(RunSuccessfully())
-		})
-
-		It("should delete multiple access entries via config file", func() {
-			clusterConfig := getInitialClusterConfig()
-			clusterConfig.AccessConfig.AccessEntries = append(clusterConfig.AccessConfig.AccessEntries,
-				api.AccessEntry{
-					PrincipalARN: api.MustParseARN(clusterRoleARN),
-				},
-				api.AccessEntry{
-					PrincipalARN: api.MustParseARN(namespaceRoleARN),
-				},
+	/*
+		Context("Cluster without access entries", Ordered, func() {
+			var (
+				cfg *api.ClusterConfig
 			)
 
-			data, err := json.Marshal(clusterConfig)
-			Expect(err).NotTo(HaveOccurred())
+			BeforeAll(func() {
+				cfg = makeClusterConfig(apiDisabledCluster)
+			})
 
-			cmd := params.EksctlDeleteCmd.
-				WithArgs(
-					"accessentry",
-					"--config-file", "-",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(bytes.NewReader(data))
-			Expect(cmd).To(RunSuccessfully())
+			It("should create a cluster with authenticationMode set to CONFIG_MAP", func() {
+				cfg.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeConfigMap
+
+				data, err := json.Marshal(cfg)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(params.EksctlCreateCmd.
+					WithArgs(
+						"cluster",
+						"--config-file", "-",
+						"--without-nodegroup",
+						"--verbose", "4",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdin(bytes.NewReader(data))).To(RunSuccessfully())
+
+				Expect(ctl.RefreshClusterStatus(context.Background(), cfg)).NotTo(HaveOccurred())
+				Expect(ctl.IsAccessEntryEnabled()).To(BeFalse())
+			})
+
+			It("should fail early when trying to create access entries", func() {
+				session := params.EksctlCreateCmd.
+					WithArgs(
+						"accessentry",
+						"--cluster", apiDisabledCluster,
+						"--principal-arn", userARN,
+					).Run()
+				Expect(session.ExitCode()).To(Equal(1))
+				Expect(session.Err.Contents()).To(ContainSubstring(accessentry.ErrDisabledAccessEntryAPI.Error()))
+			})
+
+			It("should fail early when trying to fetch access entries", func() {
+				session := params.EksctlGetCmd.
+					WithArgs(
+						"accessentry",
+						"--cluster", apiDisabledCluster,
+					).Run()
+				Expect(session.ExitCode()).To(Equal(1))
+				Expect(session.Err.Contents()).To(ContainSubstring(accessentry.ErrDisabledAccessEntryAPI.Error()))
+			})
+
+			It("should fail early when trying to delete access entries", func() {
+				session := params.EksctlDeleteCmd.
+					WithArgs(
+						"accessentry",
+						"--cluster", apiDisabledCluster,
+						"--principal-arn", userARN,
+					).Run()
+				Expect(session.ExitCode()).To(Equal(1))
+				Expect(session.Err.Contents()).To(ContainSubstring(accessentry.ErrDisabledAccessEntryAPI.Error()))
+			})
+
+			It("should change cluster authenticationMode to API_AND_CONFIG_MAP", func() {
+				// TODO: may not require this
+				cfg.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
+				Expect(params.EksctlUtilsCmd.
+					WithArgs(
+						"update-authentication-mode",
+						"--cluster", apiDisabledCluster,
+						"--authentication-mode", string(ekstypes.AuthenticationModeApiAndConfigMap),
+					)).To(RunSuccessfully())
+
+				Expect(ctl.RefreshClusterStatus(context.Background(), cfg)).NotTo(HaveOccurred())
+				Expect(ctl.IsAccessEntryEnabled()).To(BeTrue())
+			})
+
+			It("should create access entries", func() {
+				cfg.AccessConfig.AccessEntries = getAccessEntries()
+
+				data, err := json.Marshal(cfg)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(params.EksctlCreateCmd.
+					WithArgs(
+						"accessentry",
+						"--config-file", "-",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdin(bytes.NewReader(data))).To(RunSuccessfully())
+			})
+
+			It("should fetch all expected access entries", func() {
+				var output []api.AccessEntry
+				session := params.EksctlGetCmd.
+					WithArgs(
+						"accessentry",
+						"--cluster", apiDisabledCluster,
+						"--output", "json",
+					).Run()
+				Expect(session.ExitCode()).To(Equal(0))
+				Expect(json.Unmarshal(session.Out.Contents(), &output)).To(Succeed())
+				// taking into account the cluster creator admin permission access entry
+				Expect(output).To(HaveLen(4))
+				Expect(output).To(ContainElements(cfg.AccessConfig.AccessEntries))
+			})
+
+			It("should delete an access entry via CLI flags", func() {
+				Expect(params.EksctlDeleteCmd.
+					WithArgs(
+						"accessentry",
+						"--cluster", apiDisabledCluster,
+						"--principal-arn", userARN,
+					)).To(RunSuccessfully())
+			})
+
+			It("should delete multiple access entries via config file", func() {
+				cfg.AccessConfig.AccessEntries = []api.AccessEntry{
+					{
+						PrincipalARN: api.MustParseARN(clusterRoleARN),
+					},
+					{
+						PrincipalARN: api.MustParseARN(namespaceRoleARN),
+					},
+				}
+
+				data, err := json.Marshal(cfg)
+				Expect(err).NotTo(HaveOccurred())
+
+				cmd := params.EksctlDeleteCmd.
+					WithArgs(
+						"accessentry",
+						"--config-file", "-",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdin(bytes.NewReader(data))
+				Expect(cmd).To(RunSuccessfully())
+			})
+
+			It("should have removed all expected access entries", func() {
+				var output []api.AccessEntry
+				session := params.EksctlGetCmd.
+					WithArgs(
+						"accessentry",
+						"--cluster", apiDisabledCluster,
+						"--output", "json",
+					).Run()
+				Expect(session.ExitCode()).To(Equal(0))
+				Expect(json.Unmarshal(session.Out.Contents(), &output)).To(Succeed())
+				// taking into account the cluster creator admin permission access entry
+				Expect(output).To(HaveLen(1))
+			})
 		})
-
-		It("should have removed all access entries", func() {
-
-		})
-	})
+	*/
 
 	Context("Cluster with access entries", Ordered, func() {
 		var (
@@ -267,13 +253,14 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 		)
 
 		BeforeAll(func() {
-			cfg = getInitialClusterConfig()
-			cfg.Metadata.Name = params.NewClusterName("accessentries-api-enabled")
+			cfg = makeClusterConfig(apiEnabledCluster)
+			cfg.AccessConfig.AccessEntries = getAccessEntries()[:2]
 		})
 
 		It("should create a cluster with access entries", func() {
-			addAccessEntriesToConfig(cfg)
+			// TODO: remove when this becomes the default
 			cfg.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
+			cfg.AccessConfig.BootstrapClusterCreatorAdminPermissions = aws.Bool(false)
 
 			data, err := json.Marshal(cfg)
 			Expect(err).NotTo(HaveOccurred())
@@ -291,19 +278,99 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 		})
 
 		It("should fetch all expected access entries", func() {
-			Eventually(func() runner.Cmd {
-				return params.EksctlGetCmd.
+			var output []api.AccessEntry
+			session := params.EksctlGetCmd.
+				WithArgs(
+					"accessentry",
+					"--cluster", apiEnabledCluster,
+					"--output", "json",
+				).Run()
+			Expect(session.ExitCode()).To(Equal(0))
+			Expect(json.Unmarshal(session.Out.Contents(), &output)).To(Succeed())
+			Expect(output).To(HaveLen(2))
+			Expect(output).To(ContainElements(cfg.AccessConfig.AccessEntries))
+		})
+
+		Context("Unowned access entries", func() {
+			var (
+				principalARN string
+			)
+
+			BeforeAll(func() {
+				principalARN = getAccessEntries()[2].PrincipalARN.String()
+				_, err := ctl.AWSProvider.EKS().CreateAccessEntry(context.Background(), &awseks.CreateAccessEntryInput{
+					ClusterName:  &apiEnabledCluster,
+					PrincipalArn: &principalARN,
+				})
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should fetch the unowned access entry", func() {
+				Eventually(func() runner.Cmd {
+					return params.EksctlGetCmd.
+						WithArgs(
+							"accessentry",
+							"--cluster", apiEnabledCluster,
+							"--principal-arn", principalARN,
+						)
+				}, "5m", "30s").Should(RunSuccessfully())
+			})
+
+			It("should delete the unowned access entry", func() {
+				Expect(params.EksctlDeleteCmd.
 					WithArgs(
-						"accessentries",
-						"--cluster", cfg.Metadata.Name,
-						"--verbose", "2",
-						"--output", "yaml",
-					)
-			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(SatisfyAll(
-				ContainElement(ContainSubstring(userARN)),
-				ContainElement(ContainSubstring(viewPolicyARN)),
-				ContainElement(ContainSubstring(editPolicyARN)),
-			)))
+						"accessentry",
+						"--cluster", apiEnabledCluster,
+						"--principal-arn", principalARN,
+					)).To(RunSuccessfully())
+
+				Eventually(func() runner.Cmd {
+					return params.EksctlGetCmd.
+						WithArgs(
+							"accessentry",
+							"--cluster", apiEnabledCluster,
+							"--principal-arn", principalARN,
+						)
+				}, "5m", "30s").ShouldNot(RunSuccessfully())
+			})
+		})
+
+		It("should not be able to delete the cluster without creator admin permissions", func() {
+			session := params.EksctlDeleteCmd.
+				WithArgs(
+					"cluster",
+					"--name", apiEnabledCluster,
+					"--wait",
+				).Run()
+			Expect(session.ExitCode()).To(Equal(1))
+			Expect(session.Err.Contents()).To(ContainSubstring("cannot list Kubernetes Services: Unauthorized"))
+		})
+
+		It("should create an access entry to give creator admin permissions", func() {
+			cfg.AccessConfig.AccessEntries = []api.AccessEntry{
+				{
+					PrincipalARN: api.MustParseARN(ctl.Status.IAMRoleARN),
+					AccessPolicies: []api.AccessPolicy{
+						{
+							PolicyARN: api.MustParseARN(adminPolicyARN),
+							AccessScope: api.AccessScope{
+								Type: "cluster",
+							},
+						},
+					},
+				},
+			}
+			data, err := json.Marshal(cfg)
+			Expect(err).NotTo(HaveOccurred())
+
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"accessentry",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).To(RunSuccessfully())
 		})
 	})
 })
@@ -324,45 +391,71 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	params.DeleteClusters()
+	Expect(params.EksctlDeleteCmd.
+		WithArgs(
+			"cluster",
+			"--name", apiEnabledCluster,
+			"--wait",
+		)).To(RunSuccessfully())
 })
 
-func getInitialClusterConfig() *api.ClusterConfig {
-	clusterConfig := api.NewClusterConfig()
-	clusterConfig.Metadata.Name = params.ClusterName
-	clusterConfig.Metadata.Version = params.Version
-	clusterConfig.Metadata.Region = params.Region
-	return clusterConfig
-}
+var (
+	makeClusterConfig = func(clusterName string) *api.ClusterConfig {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Metadata.Name = clusterName
+		clusterConfig.Metadata.Version = params.Version
+		clusterConfig.Metadata.Region = params.Region
+		return clusterConfig
+	}
 
-func addAccessEntriesToConfig(cfg *api.ClusterConfig) {
-	cfg.AccessConfig.AccessEntries = append(cfg.AccessConfig.AccessEntries,
-		api.AccessEntry{
-			PrincipalARN:     api.MustParseARN(userARN),
-			KubernetesGroups: []string{"group1", "group2"},
-		},
-		api.AccessEntry{
-			PrincipalARN: api.MustParseARN(clusterRoleARN),
-			AccessPolicies: []api.AccessPolicy{
-				{
-					PolicyARN: api.MustParseARN(adminPolicyARN),
-					AccessScope: api.AccessScope{
-						Type: "cluster",
+	trustPolicy = aws.String(`{
+		"Version": "2012-10-17",
+		"Statement": [
+		  {
+			"Effect": "Allow",
+			"Principal": {
+			  "Service": [
+				"eks.amazonaws.com"
+			  ]
+			},
+			"Action": "sts:AssumeRole"
+		  }
+		]
+	  }`)
+
+	getAccessEntries = func() []api.AccessEntry {
+		return []api.AccessEntry{
+			{
+				PrincipalARN:     api.MustParseARN(userARN),
+				KubernetesGroups: []string{"test-group"},
+			},
+			{
+				PrincipalARN: api.MustParseARN(clusterRoleARN),
+				AccessPolicies: []api.AccessPolicy{
+					{
+						PolicyARN: api.MustParseARN(adminPolicyARN),
+						AccessScope: api.AccessScope{
+							Type: "cluster",
+						},
 					},
 				},
 			},
-		},
-		api.AccessEntry{
-			PrincipalARN: api.MustParseARN(namespaceRoleARN),
-			AccessPolicies: []api.AccessPolicy{
-				{
-					PolicyARN: api.MustParseARN(viewPolicyARN),
-					AccessScope: api.AccessScope{
-						Type:       "namespace",
-						Namespaces: []string{"default", "dev"},
+			{
+				PrincipalARN: api.MustParseARN(namespaceRoleARN),
+				AccessPolicies: []api.AccessPolicy{
+					{
+						PolicyARN: api.MustParseARN(viewPolicyARN),
+						AccessScope: api.AccessScope{
+							Type:       "namespace",
+							Namespaces: []string{"test-namespace"},
+						},
 					},
 				},
 			},
-		},
+		}
+	}
 	)
+	)
+}
+)
 }

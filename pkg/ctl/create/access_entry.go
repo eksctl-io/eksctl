@@ -2,7 +2,6 @@ package create
 
 import (
 	"context"
-	"errors"
 
 	"github.com/kris-nova/logger"
 
@@ -24,7 +23,9 @@ func createAccessEntryCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmduti
 		"",
 	)
 
-	accessEntry := configureCreateAccessEntryCmd(cmd)
+	accessEntry := &api.AccessEntry{}
+	configureCreateAccessEntryCmd(cmd, accessEntry)
+
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
 		if err := cmdutils.NewCreateAccessEntryLoader(cmd, accessEntry).Load(); err != nil {
@@ -72,9 +73,7 @@ func doCreateAccessEntry(cmd *cmdutils.Cmd) error {
 	return accessEntryCreator.Create(ctx, accessEntries)
 }
 
-func configureCreateAccessEntryCmd(cmd *cmdutils.Cmd) api.AccessEntry {
-	var accessEntry api.AccessEntry
-
+func configureCreateAccessEntryCmd(cmd *cmdutils.Cmd, accessEntry *api.AccessEntry) {
 	cmd.FlagSetGroup.InFlagSet("Access Entry", func(fs *pflag.FlagSet) {
 		fs.VarP(&accessEntry.PrincipalARN, "principal-arn", "", "Principal ARN")
 		fs.StringSliceVar(&accessEntry.KubernetesGroups, "kubernetes-groups", nil, "A set of Kubernetes groups to map to the principal ARN")
@@ -87,7 +86,6 @@ func configureCreateAccessEntryCmd(cmd *cmdutils.Cmd) api.AccessEntry {
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
-	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 
-	return accessEntry
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 }
