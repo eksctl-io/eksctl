@@ -12,6 +12,8 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
+const principalARNFlag = "principal-arn"
+
 var (
 	accessEntryFlagsIncompatibleWithoutConfigFile = []string{}
 	accessEntryFlagsIncompatibleWithConfigFile    = []string{"principal-arn"}
@@ -21,7 +23,6 @@ var (
 func NewCreateAccessEntryLoader(cmd *Cmd, accessEntry *api.AccessEntry) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
-	const principalARNFlag = "principal-arn"
 	l.flagsIncompatibleWithConfigFile = sets.NewString(
 		principalARNFlag,
 		"kubernetes-groups",
@@ -70,7 +71,7 @@ func NewGetAccessEntryLoader(cmd *Cmd) ClusterConfigLoader {
 }
 
 // NewDeleteAccessEntryLoader loads config file and validates command for `eksctl delete accessentry`.
-func NewDeleteAccessEntryLoader(cmd *Cmd) ClusterConfigLoader {
+func NewDeleteAccessEntryLoader(cmd *Cmd, accessEntry api.AccessEntry) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 	l.flagsIncompatibleWithConfigFile.Insert(accessEntryFlagsIncompatibleWithConfigFile...)
 	l.flagsIncompatibleWithoutConfigFile.Insert(accessEntryFlagsIncompatibleWithoutConfigFile...)
@@ -96,12 +97,10 @@ func NewDeleteAccessEntryLoader(cmd *Cmd) ClusterConfigLoader {
 		if cmd.ClusterConfig.Metadata.Name == "" {
 			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
-		if len(cmd.ClusterConfig.AccessConfig.AccessEntries) == 0 {
-			return fmt.Errorf("no access entries specified")
+		if accessEntry.PrincipalARN.IsZero() {
+			return ErrMustBeSet(fmt.Sprintf("--%s", principalARNFlag))
 		}
-		if cmd.ClusterConfig.AccessConfig.AccessEntries[0].PrincipalARN.IsZero() {
-			return fmt.Errorf("must specify access entry principalArn")
-		}
+		l.ClusterConfig.AccessConfig.AccessEntries = []api.AccessEntry{accessEntry}
 		return nil
 	}
 

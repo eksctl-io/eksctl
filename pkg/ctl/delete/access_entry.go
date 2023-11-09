@@ -21,9 +21,9 @@ func deleteAccessEntryCmd(cmd *cmdutils.Cmd) {
 		"accessentries",
 	)
 
-	var principalARN string
+	var accessEntry api.AccessEntry
 	cmd.FlagSetGroup.InFlagSet("AccessEntry", func(fs *pflag.FlagSet) {
-		fs.StringVar(&principalARN, "principal-arn", "", "principal ARN to which the access entry is associated")
+		fs.VarP(&accessEntry.PrincipalARN, "principal-arn", "", "principal ARN to which the access entry is associated")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -34,20 +34,14 @@ func deleteAccessEntryCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doDeleteAccessEntry(cmd, principalARN)
+		if err := cmdutils.NewDeleteAccessEntryLoader(cmd, accessEntry).Load(); err != nil {
+			return err
+		}
+		return doDeleteAccessEntry(cmd)
 	}
 }
 
-func doDeleteAccessEntry(cmd *cmdutils.Cmd, principalARN string) error {
-	cmd.ClusterConfig.AccessConfig.AccessEntries = []api.AccessEntry{{}}
-	if principalARN != "" {
-		cmd.ClusterConfig.AccessConfig.AccessEntries[0].PrincipalARN = api.MustParseARN(principalARN)
-	}
-
-	if err := cmdutils.NewDeleteAccessEntryLoader(cmd).Load(); err != nil {
-		return err
-	}
-
+func doDeleteAccessEntry(cmd *cmdutils.Cmd) error {
 	ctx := context.Background()
 	clusterProvider, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {

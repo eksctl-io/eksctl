@@ -24,6 +24,10 @@ var _ = Describe("get access entry", func() {
 			expectedErr: "Error: name argument is not supported",
 			args:        []string{"--cluster", "test", "entry-name"},
 		}),
+		Entry("setting invalid value for --principal-arn", getAccessEntryTest{
+			expectedErr: "Error: invalid argument \"invalid\" for \"--principal-arn\" flag",
+			args:        []string{"--cluster", "test", "--principal-arn", "invalid"},
+		}),
 		Entry("setting --name and --config-file at the same time", getAccessEntryTest{
 			expectedErr: "Error: cannot use --principal-arn when --config-file/-f is set",
 			args:        []string{"--principal-arn", "arn:aws:iam::123456:role/testing-role", "--config-file", "../../../examples/01-simple-cluster.yaml"},

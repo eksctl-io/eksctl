@@ -26,9 +26,9 @@ func getAccessEntryCmd(cmd *cmdutils.Cmd) {
 		"accessentries",
 	)
 
-	var principalARN string
+	var principalARN api.ARN
 	cmd.FlagSetGroup.InFlagSet("AccessEntry", func(fs *pflag.FlagSet) {
-		fs.StringVar(&principalARN, "principal-arn", "", "principal ARN to which the access entry is associated")
+		fs.VarP(&principalARN, "principal-arn", "", "principal ARN to which the access entry is associated")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -44,7 +44,7 @@ func getAccessEntryCmd(cmd *cmdutils.Cmd) {
 	}
 }
 
-func doGetAccessEntry(cmd *cmdutils.Cmd, principalARN string, params *getCmdParams) error {
+func doGetAccessEntry(cmd *cmdutils.Cmd, principalARN api.ARN, params *getCmdParams) error {
 	if err := cmdutils.NewGetAccessEntryLoader(cmd).Load(); err != nil {
 		return err
 	}

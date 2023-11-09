@@ -17,7 +17,7 @@ import (
 )
 
 type getAccessEntryTest struct {
-	principalARN   string
+	principalARN   api.ARN
 	mockEKS        func(provider *mockprovider.MockProvider)
 	expectedOutput []accessentry.Summary
 	expectedErr    string
@@ -73,7 +73,7 @@ var _ = Describe("Get", func() {
 		}),
 
 		Entry("returns an error if calling DescribeAccessEntry fails", getAccessEntryTest{
-			principalARN: mockPrincipalArn1,
+			principalARN: api.MustParseARN(mockPrincipalArn1),
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				provider.MockEKS().
 					On("DescribeAccessEntry", mock.Anything, mock.Anything).
@@ -87,7 +87,7 @@ var _ = Describe("Get", func() {
 		}),
 
 		Entry("returns an error if calling ListAssociatedAccessPolicies fails", getAccessEntryTest{
-			principalARN: mockPrincipalArn1,
+			principalARN: api.MustParseARN(mockPrincipalArn1),
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				provider.MockEKS().
 					On("DescribeAccessEntry", mock.Anything, mock.Anything).
@@ -111,7 +111,7 @@ var _ = Describe("Get", func() {
 		}),
 
 		Entry("returns access entry matching principal arn", getAccessEntryTest{
-			principalARN: mockPrincipalArn1,
+			principalARN: api.MustParseARN(mockPrincipalArn1),
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				provider.MockEKS().
 					On("DescribeAccessEntry", mock.Anything, mock.Anything).

@@ -28,11 +28,11 @@ type Summary struct {
 	AccessPolicies   []api.AccessPolicy `json:"accessPolicies,omitempty"`
 }
 
-func (aeg *Getter) Get(ctx context.Context, principalARN string) ([]Summary, error) {
+func (aeg *Getter) Get(ctx context.Context, principalARN api.ARN) ([]Summary, error) {
 
-	toBeFetched := []string{principalARN}
+	toBeFetched := []string{principalARN.String()}
 	// if no principal ARN was specified, we fetch all entries for the cluster
-	if principalARN == "" {
+	if principalARN.IsZero() {
 		out, err := aeg.eksAPI.ListAccessEntries(ctx, &eks.ListAccessEntriesInput{
 			ClusterName: &aeg.clusterName,
 		})

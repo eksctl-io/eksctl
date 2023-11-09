@@ -21,8 +21,12 @@ var _ = Describe("delete access entry", func() {
 			expectedErr: "Error: --cluster must be set",
 		}),
 		Entry("missing required flag --principal-arn", deleteAccessEntryTest{
-			expectedErr: "Error: must specify access entry principalArn",
+			expectedErr: "Error: --principal-arn must be set",
 			args:        []string{"--cluster", "test"},
+		}),
+		Entry("setting invalid value for --principal-arn", deleteAccessEntryTest{
+			expectedErr: "Error: invalid argument \"invalid\" for \"--principal-arn\" flag",
+			args:        []string{"--cluster", "test", "--principal-arn", "invalid"},
 		}),
 		Entry("setting --principal-arn and --config-file at the same time", deleteAccessEntryTest{
 			expectedErr: "Error: cannot use --principal-arn when --config-file/-f is set",
