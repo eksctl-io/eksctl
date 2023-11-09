@@ -206,8 +206,8 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 
 	if len(cfg.AccessConfig.AccessEntries) > 0 {
 		switch cfg.AccessConfig.AuthenticationMode {
-		case "", ekstypes.AuthenticationModeConfigMap:
-			return fmt.Errorf("accessConfig.authenticationMode must be set to either %s or %s to create access entries",
+		case ekstypes.AuthenticationModeConfigMap:
+			return fmt.Errorf("accessConfig.authenticationMode must be set to either %s or %s to use access entries",
 				ekstypes.AuthenticationModeApiAndConfigMap, ekstypes.AuthenticationModeApi)
 		}
 		if err := validateAccessEntries(cfg.AccessConfig.AccessEntries); err != nil {

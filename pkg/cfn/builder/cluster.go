@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -309,7 +307,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		ResourcesVpcConfig: clusterVPC,
 		RoleArn:            serviceRoleARN,
 		AccessConfig: &gfneks.Cluster_AccessConfig{
-			AuthenticationMode:                      gfnt.NewString(string(authenticationMode)),
+			AuthenticationMode:                      gfnt.NewString(string(c.spec.AccessConfig.AuthenticationMode)),
 			BootstrapClusterCreatorAdminPermissions: gfnt.NewBoolean(!api.IsDisabled(c.spec.AccessConfig.BootstrapClusterCreatorAdminPermissions)),
 		},
 		Tags:    makeCFNTags(c.spec),
