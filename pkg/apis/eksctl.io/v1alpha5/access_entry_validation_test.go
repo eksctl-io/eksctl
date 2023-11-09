@@ -44,7 +44,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 			},
 		},
 
-		expectedErr: "accessConfig.authenticationMode must be set to either API_AND_CONFIG_MAP or API to create access entries",
+		expectedErr: "accessConfig.authenticationMode must be set to either API_AND_CONFIG_MAP or API to use access entries",
 	}),
 
 	Entry("empty principal ARN", accessEntryTest{
