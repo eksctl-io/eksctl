@@ -17,24 +17,25 @@ import (
 )
 
 type deleteAccessEntryTest struct {
-	toBeDeleted []api.AccessEntry
-	mockCFN     func(stackManager *fakes.FakeStackRemover)
-	mockEKS     func(provider *mockprovider.MockProvider)
-	expectedErr string
+	toBeDeleted              []api.AccessEntry
+	mockEKS                  func(provider *mockprovider.MockProvider)
+	mockCFN                  func(stackManager *fakes.FakeStackRemover)
+	expectedDeleteStackCalls int
+	expectedErr              string
 }
 
 var _ = Describe("Delete", func() {
 	var (
 		manager          *accessentry.Remover
-		FakeStackRemover *fakes.FakeStackRemover
+		fakeStackRemover *fakes.FakeStackRemover
 		mockProvider     *mockprovider.MockProvider
 	)
 	genericErr := fmt.Errorf("ERR")
 
 	DescribeTable("Delete", func(t deleteAccessEntryTest) {
-		FakeStackRemover = new(fakes.FakeStackRemover)
+		fakeStackRemover = new(fakes.FakeStackRemover)
 		if t.mockCFN != nil {
-			t.mockCFN(FakeStackRemover)
+			t.mockCFN(fakeStackRemover)
 		}
 
 		mockProvider = mockprovider.NewMockProvider()
@@ -44,7 +45,7 @@ var _ = Describe("Delete", func() {
 
 		manager = accessentry.NewRemover(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 			Name: clusterName,
-		}}, FakeStackRemover, mockProvider.MockEKS())
+		}}, fakeStackRemover, mockProvider.MockEKS())
 
 		err := manager.Delete(context.Background(), t.toBeDeleted)
 		if t.expectedErr != "" {
@@ -52,27 +53,11 @@ var _ = Describe("Delete", func() {
 			return
 		}
 		Expect(err).ToNot(HaveOccurred())
+		Expect(fakeStackRemover.DeleteStackBySpecSyncCallCount()).To(Equal(t.expectedDeleteStackCalls))
 	},
-		Entry("returns an error if calling ListAccessEntry fails", deleteAccessEntryTest{
-			mockEKS: func(provider *mockprovider.MockProvider) {
-				provider.MockEKS().
-					On("ListAccessEntries", mock.Anything, mock.Anything).
-					Run(func(args mock.Arguments) {
-						Expect(args).To(HaveLen(2))
-						Expect(args[1]).To(BeAssignableToTypeOf(&eks.ListAccessEntriesInput{}))
-					}).
-					Return(nil, genericErr)
-			},
-			expectedErr: "calling EKS API to list access entries",
-		}),
 
 		Entry("returns an error if listing stack names fails", deleteAccessEntryTest{
 			toBeDeleted: []api.AccessEntry{{PrincipalARN: api.MustParseARN(mockPrincipalArn1)}},
-			mockEKS: func(provider *mockprovider.MockProvider) {
-				provider.MockEKS().
-					On("ListAccessEntries", mock.Anything, mock.Anything).
-					Return(nil, nil)
-			},
 			mockCFN: func(stackManager *fakes.FakeStackRemover) {
 				stackManager.ListAccessEntryStackNamesReturns(nil, genericErr)
 			},
@@ -81,11 +66,6 @@ var _ = Describe("Delete", func() {
 
 		Entry("returns an error if deleting an owned access entry fails", deleteAccessEntryTest{
 			toBeDeleted: []api.AccessEntry{{PrincipalARN: api.MustParseARN(mockPrincipalArn1)}},
-			mockEKS: func(provider *mockprovider.MockProvider) {
-				provider.MockEKS().
-					On("ListAccessEntries", mock.Anything, mock.Anything).
-					Return(nil, nil)
-			},
 			mockCFN: func(stackManager *fakes.FakeStackRemover) {
 				stackName := accessentry.MakeStackName(clusterName, api.AccessEntry{
 					PrincipalARN: api.MustParseARN(mockPrincipalArn1),
@@ -96,19 +76,20 @@ var _ = Describe("Delete", func() {
 					StackName: &stackName,
 				}, nil)
 
-				stackManager.DeleteStackBySpecSyncReturns(genericErr)
+				stackManager.DeleteStackBySpecSyncStub = func(ctx context.Context, s *types.Stack, c chan error) error {
+					defer close(c)
+					return genericErr
+				}
 			},
 			expectedErr: "failed to delete accessentry(ies)",
 		}),
+
 		Entry("returns an error if deleting an unowned access entry fails", deleteAccessEntryTest{
 			toBeDeleted: []api.AccessEntry{{PrincipalARN: api.MustParseARN(mockPrincipalArn1)}},
 			mockCFN: func(stackManager *fakes.FakeStackRemover) {
 				stackManager.ListAccessEntryStackNamesReturns([]string{}, nil)
 			},
 			mockEKS: func(provider *mockprovider.MockProvider) {
-				provider.MockEKS().
-					On("ListAccessEntries", mock.Anything, mock.Anything).
-					Return(nil, nil)
 				provider.MockEKS().
 					On("DeleteAccessEntry", mock.Anything, mock.Anything).
 					Run(func(args mock.Arguments) {
@@ -119,7 +100,8 @@ var _ = Describe("Delete", func() {
 			},
 			expectedErr: "failed to delete accessentry(ies)",
 		}),
-		Entry("deletes all access entries successfully", deleteAccessEntryTest{
+
+		Entry("deletes all user provided access entries successfully", deleteAccessEntryTest{
 			toBeDeleted: []api.AccessEntry{{PrincipalARN: api.MustParseARN(mockPrincipalArn1)}, {PrincipalARN: api.MustParseARN(mockPrincipalArn2)}},
 			mockCFN: func(stackManager *fakes.FakeStackRemover) {
 				stackName := accessentry.MakeStackName(clusterName, api.AccessEntry{
@@ -129,20 +111,43 @@ var _ = Describe("Delete", func() {
 				stackManager.DescribeStackReturns(&types.Stack{
 					StackName: &stackName,
 				}, nil)
-				stackManager.DeleteStackBySpecSyncReturns(nil)
+				stackManager.DeleteStackBySpecSyncStub = func(ctx context.Context, s *types.Stack, c chan error) error {
+					defer close(c)
+					return nil
+				}
 			},
+			expectedDeleteStackCalls: 1,
 			mockEKS: func(provider *mockprovider.MockProvider) {
-				provider.MockEKS().
-					On("ListAccessEntries", mock.Anything, mock.Anything).
-					Return(nil, nil)
 				provider.MockEKS().
 					On("DeleteAccessEntry", mock.Anything, mock.Anything).
 					Run(func(args mock.Arguments) {
 						Expect(args).To(HaveLen(2))
 						Expect(args[1]).To(BeAssignableToTypeOf(&eks.DeleteAccessEntryInput{}))
 					}).
-					Return(&eks.DeleteAccessEntryOutput{}, nil)
+					Return(&eks.DeleteAccessEntryOutput{}, nil).
+					Once()
 			},
+		}),
+
+		Entry("deletes all access entry stacks on cluster deletion", deleteAccessEntryTest{
+			toBeDeleted: []api.AccessEntry{},
+			mockCFN: func(stackManager *fakes.FakeStackRemover) {
+				stackName1 := accessentry.MakeStackName(clusterName, api.AccessEntry{
+					PrincipalARN: api.MustParseARN(mockPrincipalArn1),
+				})
+				stackName2 := accessentry.MakeStackName(clusterName, api.AccessEntry{
+					PrincipalARN: api.MustParseARN(mockPrincipalArn2),
+				})
+				stackManager.ListAccessEntryStackNamesReturns([]string{stackName1, stackName2}, nil)
+				stackManager.DescribeStackStub = func(ctx context.Context, s *types.Stack) (*types.Stack, error) {
+					return s, nil
+				}
+				stackManager.DeleteStackBySpecSyncStub = func(ctx context.Context, s *types.Stack, c chan error) error {
+					defer close(c)
+					return nil
+				}
+			},
+			expectedDeleteStackCalls: 2,
 		}),
 	)
 })
