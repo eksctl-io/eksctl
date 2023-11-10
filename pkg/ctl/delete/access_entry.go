@@ -5,10 +5,11 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/eksctl/pkg/actions/accessentry"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 
+	"github.com/weaveworks/eksctl/pkg/accessentry"
+	accessentryactions "github.com/weaveworks/eksctl/pkg/actions/accessentry"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 func deleteAccessEntryCmd(cmd *cmdutils.Cmd) {
@@ -48,11 +49,14 @@ func doDeleteAccessEntry(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	if !clusterProvider.IsAccessEntryEnabled() {
+	accessEntry := &accessentry.Service{
+		ClusterStateGetter: clusterProvider,
+	}
+	if !accessEntry.IsEnabled() {
 		return accessentry.ErrDisabledAccessEntryAPI
 	}
 
-	accessEntryManager := accessentry.NewRemover(
+	accessEntryManager := accessentryactions.NewRemover(
 		cmd.ClusterConfig,
 		clusterProvider.NewStackManager(cmd.ClusterConfig),
 		clusterProvider.AWSProvider.EKS(),

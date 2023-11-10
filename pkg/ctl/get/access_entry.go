@@ -8,11 +8,12 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	"github.com/weaveworks/eksctl/pkg/accessentry"
+	accessentryactions "github.com/weaveworks/eksctl/pkg/actions/accessentry"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/printers"
-
-	accessentry "github.com/weaveworks/eksctl/pkg/actions/accessentry"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 func getAccessEntryCmd(cmd *cmdutils.Cmd) {
@@ -60,11 +61,14 @@ func doGetAccessEntry(cmd *cmdutils.Cmd, principalARN api.ARN, params *getCmdPar
 		return err
 	}
 
-	if !clusterProvider.IsAccessEntryEnabled() {
+	accessEntry := &accessentry.Service{
+		ClusterStateGetter: clusterProvider,
+	}
+	if !accessEntry.IsEnabled() {
 		return accessentry.ErrDisabledAccessEntryAPI
 	}
 
-	accessEntryGetter := accessentry.NewGetter(cmd.ClusterConfig, clusterProvider.AWSProvider.EKS())
+	accessEntryGetter := accessentryactions.NewGetter(cmd.ClusterConfig, clusterProvider.AWSProvider.EKS())
 
 	summaries, err := accessEntryGetter.Get(ctx, principalARN)
 	if err != nil {
@@ -89,13 +93,13 @@ func doGetAccessEntry(cmd *cmdutils.Cmd, principalARN api.ARN, params *getCmdPar
 }
 
 func addAccessEntrySummaryTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("PRINCIPAL ARN", func(s accessentry.Summary) string {
+	printer.AddColumn("PRINCIPAL ARN", func(s accessentryactions.Summary) string {
 		return s.PrincipalARN
 	})
-	printer.AddColumn("KUBERNETES GROUPS", func(s accessentry.Summary) int {
+	printer.AddColumn("KUBERNETES GROUPS", func(s accessentryactions.Summary) int {
 		return len(s.KubernetesGroups)
 	})
-	printer.AddColumn("ACCESS POLICIES", func(s accessentry.Summary) int {
+	printer.AddColumn("ACCESS POLICIES", func(s accessentryactions.Summary) int {
 		return len(s.AccessPolicies)
 	})
 }

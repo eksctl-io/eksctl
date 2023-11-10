@@ -22,7 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 
 	"github.com/weaveworks/eksctl/integration/tests"
-	"github.com/weaveworks/eksctl/pkg/actions/accessentry"
+	"github.com/weaveworks/eksctl/pkg/accessentry"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
