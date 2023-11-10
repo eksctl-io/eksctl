@@ -579,7 +579,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		expectedCalls:  expectedCallsForAWSAuth,
 	}),
 
-	Entry("creates nodegroup but does not use either aws-auth ConfigMap or access entries when authenticationMode is API_AND_CONFIG_MAP and updateAuthConfigMap is set to false", ngEntry{
+	Entry("creates nodegroup but does not use either aws-auth ConfigMap or access entries when authenticationMode is API_AND_CONFIG_MAP and updateAuthConfigMap is false", ngEntry{
 		mockCalls: func(m mockCalls) {
 			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
 				AuthenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
@@ -600,7 +600,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		},
 	}),
 
-	Entry("creates nodegroup but does not use either aws-auth ConfigMap or access entries when authenticationMode is CONFIG_MAP and updateAuthConfigMap is set to false", ngEntry{
+	Entry("creates nodegroup but does not use either aws-auth ConfigMap or access entries when authenticationMode is CONFIG_MAP and updateAuthConfigMap is false", ngEntry{
 		mockCalls: func(m mockCalls) {
 			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
 				AuthenticationMode: ekstypes.AuthenticationModeConfigMap,
@@ -619,6 +619,20 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			Expect(disableAccessEntryCreation).To(BeTrue())
 			Expect(getIAMIdentities(e.clientset)).To(HaveLen(0))
 		},
+	}),
+
+	Entry("authorizes nodegroups using aws-auth ConfigMap when authenticationMode is API_AND_CONFIG_MAP and updateAuthConfigMap is true", ngEntry{
+		mockCalls: func(m mockCalls) {
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+				AuthenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
+			})
+			defaultProviderMocks(m.mockProvider, defaultOutput)
+		},
+		refreshCluster: true,
+		opts: nodegroup.CreateOpts{
+			UpdateAuthConfigMap: api.Enabled(),
+		},
+		expectedCalls: expectedCallsForAWSAuth,
 	}),
 
 	Entry("[happy path] creates nodegroup with no options", ngEntry{

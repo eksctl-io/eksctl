@@ -12,6 +12,17 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
+// CreatorInterface creates access entries.
+//
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_creator.go . CreatorInterface
+type CreatorInterface interface {
+	// Create creates access entries.
+	Create(ctx context.Context, accessEntries []api.AccessEntry) error
+	// CreateTasks creates a TaskTree for creating access entries.
+	CreateTasks(ctx context.Context, accessEntries []api.AccessEntry) *tasks.TaskTree
+}
+
 // A Creator creates access entries.
 type Creator struct {
 	ClusterName  string
