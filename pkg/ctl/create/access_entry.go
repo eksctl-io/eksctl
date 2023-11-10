@@ -9,7 +9,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/weaveworks/eksctl/pkg/actions/accessentry"
+	"github.com/weaveworks/eksctl/pkg/accessentry"
+	accessentryactions "github.com/weaveworks/eksctl/pkg/actions/accessentry"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
@@ -45,7 +46,10 @@ func doCreateAccessEntry(cmd *cmdutils.Cmd) error {
 	if err != nil {
 		return err
 	}
-	if !clusterProvider.IsAccessEntryEnabled() {
+	accessEntry := &accessentry.Service{
+		ClusterStateGetter: clusterProvider,
+	}
+	if !accessEntry.IsEnabled() {
 		return errors.New("Access Entry is not currently enabled; please enable it using `eksctl utils update-authentication-mode`")
 	}
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
@@ -61,7 +65,7 @@ func doCreateAccessEntry(cmd *cmdutils.Cmd) error {
 		logger.Info("access entries already up-to-date")
 		return nil
 	}
-	accessEntryCreator := &accessentry.Creator{
+	accessEntryCreator := &accessentryactions.Creator{
 		ClusterName:  cmd.ClusterConfig.Metadata.Name,
 		StackCreator: stackManager,
 	}

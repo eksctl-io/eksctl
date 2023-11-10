@@ -18,6 +18,7 @@ import (
 	kubeclient "k8s.io/client-go/kubernetes"
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 
+	"github.com/weaveworks/eksctl/pkg/accessentry"
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
 	"github.com/weaveworks/eksctl/pkg/actions/karpenter"
@@ -251,6 +252,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		eks.LogWindowsCompatibility(kubeNodeGroups, cfg.Metadata)
 	}
 
+	if err := accessentry.ValidateAPIServerAccess(cfg); err != nil {
+		return err
+	}
+
 	var outpostsService *outposts.Service
 
 	if cfg.IsControlPlaneOnOutposts() {
@@ -398,25 +403,33 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		}
 		logger.Success("all EKS cluster resources for %q have been created", meta.Name)
 
-		// create Kubernetes client
-		clientSet, err := ctl.NewStdClientSet(cfg)
-		if err != nil {
-			return err
-		}
-
+		makeClientSet := clientSetCreator(ctl, cfg)
 		{
-			ngCtx, cancel := context.WithTimeout(ctx, cmd.ProviderConfig.WaitTimeout)
-			defer cancel()
-			for _, ng := range cfg.NodeGroups {
-				// wait for nodes to join
-				if err := eks.WaitForNodes(ngCtx, clientSet, ng); err != nil {
+			clientSet, err := makeClientSet()
+			if err != nil {
+				if !api.IsDisabled(cfg.AccessConfig.BootstrapClusterCreatorAdminPermissions) {
 					return err
 				}
-			}
-
-			for _, ng := range cfg.ManagedNodeGroups {
-				if err := eks.WaitForNodes(ngCtx, clientSet, ng); err != nil {
+				if !accessentry.IsEnabled(cfg.AccessConfig.AuthenticationMode) {
 					return err
+				}
+				if len(cfg.NodeGroups) > 0 {
+					logger.Warning("not waiting for self-managed nodes to become ready as API server is not accessible; run `kubectl get nodes` to ensure the nodes are ready: %v", err)
+				}
+			} else {
+				ngCtx, cancel := context.WithTimeout(ctx, cmd.ProviderConfig.WaitTimeout)
+				defer cancel()
+				for _, ng := range cfg.NodeGroups {
+					// wait for nodes to join
+					if err := eks.WaitForNodes(ngCtx, clientSet, ng); err != nil {
+						return err
+					}
+				}
+
+				for _, ng := range cfg.ManagedNodeGroups {
+					if err := eks.WaitForNodes(ngCtx, clientSet, ng); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -447,12 +460,20 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			if err != nil {
 				return errors.Wrap(err, "generating kubeconfig")
 			}
+			clientSet, err := makeClientSet()
+			if err != nil {
+				return fmt.Errorf("error installing Karpenter: %w", err)
+			}
 			if err := installKarpenter(ctx, ctl, cfg, stackManager, clientSet, kubernetes.NewRESTClientGetter("karpenter", string(kubeConfigBytes))); err != nil {
 				return err
 			}
 		}
 
 		if cfg.HasGitOpsFluxConfigured() {
+			clientSet, err := makeClientSet()
+			if err != nil {
+				return fmt.Errorf("error installing Flux: %w", err)
+			}
 			installer, err := flux.New(clientSet, cfg.GitOps)
 			logger.Info("gitops configuration detected, setting installer to Flux v2")
 			if err != nil {
@@ -617,6 +638,20 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 	logger.Success("using existing %s", cfg.SubnetInfo())
 	logger.Warning(customNetworkingNotice)
 	return nil
+}
+
+func clientSetCreator(ctl *eks.ClusterProvider, cfg *api.ClusterConfig) func() (kubernetes.Interface, error) {
+	var (
+		err       error
+		clientSet kubernetes.Interface
+	)
+	return func() (kubernetes.Interface, error) {
+		if clientSet != nil || err != nil {
+			return clientSet, err
+		}
+		clientSet, err = ctl.NewStdClientSet(cfg)
+		return clientSet, err
+	}
 }
 
 func checkSubnetsGivenAsFlags(params *cmdutils.CreateClusterCmdParams) bool {

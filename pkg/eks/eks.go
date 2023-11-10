@@ -218,14 +218,17 @@ func (c *ClusterProvider) GetCluster(ctx context.Context, clusterName string) (*
 	return output.Cluster, nil
 }
 
-// IsAccessEntryEnabled reports whether the cluster has access entries enabled.
-func (c *ClusterProvider) IsAccessEntryEnabled() bool {
-	accessConfig := c.Status.ClusterInfo.Cluster.AccessConfig
-	return accessConfig != nil && accessConfig.AuthenticationMode != ekstypes.AuthenticationModeConfigMap
+// GetClusterState returns the EKS cluster state.
+func (c *ClusterProvider) GetClusterState() *ekstypes.Cluster {
+	return c.Status.ClusterInfo.Cluster
 }
 
-// IsAWSAuthDisabled reports whether the cluster has authentication mode set to API.
-func (c *ClusterProvider) IsAWSAuthDisabled() bool {
-	accessConfig := c.Status.ClusterInfo.Cluster.AccessConfig
-	return accessConfig == nil || accessConfig.AuthenticationMode == ekstypes.AuthenticationModeApi
+// IsAccessEntryEnabled reports whether the cluster has access entries enabled.
+func (c *ClusterProvider) IsAccessEntryEnabled() bool {
+	return IsAccessEntryEnabled(c.Status.ClusterInfo.Cluster.AccessConfig)
+}
+
+// IsAccessEntryEnabled reports whether the specified accessConfig has access entries enabled.
+func IsAccessEntryEnabled(accessConfig *ekstypes.AccessConfigResponse) bool {
+	return accessConfig != nil && accessConfig.AuthenticationMode != ekstypes.AuthenticationModeConfigMap
 }
