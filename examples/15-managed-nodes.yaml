@@ -6,6 +6,7 @@ kind: ClusterConfig
 metadata:
   name: cluster-15
   region: us-west-2
+  version: "1.28"
 
 managedNodeGroups:
   - name: managed-ng-public

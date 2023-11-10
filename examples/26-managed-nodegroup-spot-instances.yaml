@@ -6,6 +6,7 @@ kind: ClusterConfig
 metadata:
   name: cluster-26
   region: us-west-2
+  version: "1.28"
 
 managedNodeGroups:
 - name: spot

@@ -21,8 +21,8 @@ metadata:
   name: cluster-23
   # choose your region wisely, this will significantly impact the cost incurred
   region: us-east-1
-  # 1.14 Kubernetes version since Kubeflow 1.0 officially supports the same
-  version: '1.14'
+  # Required >= 1.14 Kubernetes version since Kubeflow 1.0 officially supports the same
+  version: "1.28"
   tags:
     # Add more cloud tags if needed for billing
     environment: staging

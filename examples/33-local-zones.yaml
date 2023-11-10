@@ -5,6 +5,7 @@ kind: ClusterConfig
 metadata:
   name: cluster-33
   region: us-west-2
+  version: "1.28"
 
 localZones: ["us-west-2-lax-1a", "us-west-2-lax-1b"]
 

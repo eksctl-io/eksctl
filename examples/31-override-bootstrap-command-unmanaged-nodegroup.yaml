@@ -4,7 +4,7 @@ kind: ClusterConfig
 metadata:
   name: override-unmanaged-nodegroup-bootstrap
   region: us-west-2
-  version: '1.21'
+  version: "1.28"
 
 nodeGroups:
   - name: ng-1

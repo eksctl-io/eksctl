@@ -1,11 +1,12 @@
 # An example of ClusterConfig object using an existing VPC:
---- 
+---
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
   name: cluster-4
   region: eu-north-1
+  version: "1.28"
 
 vpc:
   id: "vpc-0dd338ecf29863c55"  # (optional, must match VPC ID used for each subnet below)

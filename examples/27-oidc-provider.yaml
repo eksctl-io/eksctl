@@ -3,8 +3,9 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: cluster-26
+  name: cluster-27
   region: us-west-2
+  version: "1.28"
 
 nodeGroups:
   - name: ng-1

@@ -6,6 +6,7 @@ kind: ClusterConfig
 metadata:
   name: cluster-24
   region: us-west-2
+  version: "1.28"
 
 vpc:
   id: vpc-0c24b1cc77da8f463

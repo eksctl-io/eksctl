@@ -4,9 +4,9 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: cluster-2
+  name: cluster-30
   region: us-west-2
-  version: "1.21"
+  version: "1.28"
 
 kubernetesNetworkConfig:
   ipFamily: IPv6

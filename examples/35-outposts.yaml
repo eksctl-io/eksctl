@@ -10,6 +10,7 @@ kind: ClusterConfig
 metadata:
   name: outpost
   region: us-west-2
+  version: "1.28"
 
 nodeGroups:
   - name: ng

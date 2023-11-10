@@ -5,6 +5,7 @@ kind: ClusterConfig
 metadata:
   name: cluster-28
   region: us-west-2
+  version: "1.28"
 
 nodeGroups:
 - name: ng

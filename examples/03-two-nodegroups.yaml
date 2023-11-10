@@ -1,11 +1,12 @@
 # A simple example of ClusterConfig object with two nodegroups:
---- 
+---
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
   name: cluster-3
   region: eu-north-1
+  version: "1.28"
 
 nodeGroups:
   - name: ng1-public

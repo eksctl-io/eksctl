@@ -10,7 +10,7 @@ kind: ClusterConfig
 metadata:
   name: outpost-fully-private
   region: us-west-2
-  version: "1.21"
+  version: "1.28"
 
 privateCluster:
   enabled: true

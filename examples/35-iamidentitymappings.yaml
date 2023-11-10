@@ -5,6 +5,7 @@ kind: ClusterConfig
 metadata:
   name: cluster-with-iamidentitymappings
   region: us-east-1
+  version: "1.28"
 
 iamIdentityMappings:
   - arn: arn:aws:iam::000000000000:role/myAdminRole

@@ -10,6 +10,7 @@ kind: ClusterConfig
 metadata:
   name: cluster-17
   region: us-west-2
+  version: "1.28"
 
 iam:
   withOIDC: true

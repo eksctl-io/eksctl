@@ -6,6 +6,7 @@ kind: ClusterConfig
 metadata:
   name: outpost-vpc
   region: us-west-2
+  version: "1.28"
 
 vpc:
   id: vpc-1234

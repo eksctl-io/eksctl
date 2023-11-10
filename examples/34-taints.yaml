@@ -5,6 +5,7 @@ kind: ClusterConfig
 metadata:
   name: taints-1
   region: us-west-1
+  version: "1.28"
 
 # Unmanaged nodegroups with and without taints.
 nodeGroups:
