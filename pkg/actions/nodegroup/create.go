@@ -285,7 +285,7 @@ func (m *Manager) postNodeCreationTasks(ctx context.Context, clientSet kubernete
 	timeoutCtx, cancel := context.WithTimeout(ctx, m.ctl.AWSProvider.WaitTimeout())
 	defer cancel()
 
-	if !m.accessEntry.IsEnabled() && !api.IsDisabled(options.UpdateAuthConfigMap) {
+	if (!m.accessEntry.IsEnabled() && !api.IsDisabled(options.UpdateAuthConfigMap)) || api.IsEnabled(options.UpdateAuthConfigMap) {
 		if err := eks.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet); err != nil {
 			return err
 		}
