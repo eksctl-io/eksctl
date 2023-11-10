@@ -18,9 +18,9 @@ type Remover struct {
 	eksAPI       awsapi.EKS
 }
 
-func NewRemover(clusterConfig *api.ClusterConfig, stackRemover StackRemover, eksAPI awsapi.EKS) *Remover {
+func NewRemover(clusterName string, stackRemover StackRemover, eksAPI awsapi.EKS) *Remover {
 	return &Remover{
-		clusterName:  clusterConfig.Metadata.Name,
+		clusterName:  clusterName,
 		stackRemover: stackRemover,
 		eksAPI:       eksAPI,
 	}

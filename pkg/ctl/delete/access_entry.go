@@ -57,7 +57,7 @@ func doDeleteAccessEntry(cmd *cmdutils.Cmd) error {
 	}
 
 	accessEntryManager := accessentryactions.NewRemover(
-		cmd.ClusterConfig,
+		cmd.ClusterConfig.Metadata.Name,
 		clusterProvider.NewStackManager(cmd.ClusterConfig),
 		clusterProvider.AWSProvider.EKS(),
 	)

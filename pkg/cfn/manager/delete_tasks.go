@@ -89,7 +89,7 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(
 		taskTree.Append(deletePodIdentityRoleTasks)
 	
 	deleteAccessEntriesTasks, err := accessentry.
-		NewRemover(c.spec, c, c.eksAPI).
+		NewRemover(c.spec.Metadata.Name, c, c.eksAPI).
 		DeleteTasks(ctx, []api.AccessEntry{})
 	if err != nil {
 		return nil, err

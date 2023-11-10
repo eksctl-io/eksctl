@@ -15,9 +15,9 @@ type Getter struct {
 	eksAPI      awsapi.EKS
 }
 
-func NewGetter(clusterConfig *api.ClusterConfig, eksAPI awsapi.EKS) *Getter {
+func NewGetter(clusterName string, eksAPI awsapi.EKS) *Getter {
 	return &Getter{
-		clusterName: clusterConfig.Metadata.Name,
+		clusterName: clusterName,
 		eksAPI:      eksAPI,
 	}
 }

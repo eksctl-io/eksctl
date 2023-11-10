@@ -43,9 +43,7 @@ var _ = Describe("Delete", func() {
 			t.mockEKS(mockProvider)
 		}
 
-		manager = accessentry.NewRemover(&api.ClusterConfig{Metadata: &api.ClusterMeta{
-			Name: clusterName,
-		}}, fakeStackRemover, mockProvider.MockEKS())
+		manager = accessentry.NewRemover(clusterName, fakeStackRemover, mockProvider.MockEKS())
 
 		err := manager.Delete(context.Background(), t.toBeDeleted)
 		if t.expectedErr != "" {

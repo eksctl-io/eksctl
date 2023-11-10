@@ -46,10 +46,7 @@ var _ = Describe("Get", func() {
 		mockProvider = mockprovider.NewMockProvider()
 		t.mockEKS(mockProvider)
 
-		manager = accessentry.NewGetter(
-			&api.ClusterConfig{Metadata: &api.ClusterMeta{
-				Name: clusterName,
-			}}, mockProvider.EKS())
+		manager = accessentry.NewGetter(clusterName, mockProvider.EKS())
 
 		summaries, err := manager.Get(context.Background(), t.principalARN)
 		if t.expectedErr != "" {
