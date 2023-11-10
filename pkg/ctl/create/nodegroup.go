@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/weaveworks/eksctl/pkg/accessentry"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -56,6 +57,12 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 		clientSet, err := ctl.NewStdClientSet(cmd.ClusterConfig)
 		if err != nil {
+			accessEntry := &accessentry.Service{
+				ClusterStateGetter: ctl,
+			}
+			if accessEntry.IsEnabled() {
+				return fmt.Errorf("write access to Kubernetes resources is required when creating nodegroups: %w", err)
+			}
 			return err
 		}
 
