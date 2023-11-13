@@ -1,5 +1,4 @@
 - Id: null
-  AccessConfig: null
   Arn: arn-12345678
   CertificateAuthority: null
   ClientRequestToken: null
@@ -32,7 +31,6 @@
   Tags: null
   Version: null
 - Id: null
-  AccessConfig: null
   Arn: arn-87654321
   CertificateAuthority: null
   ClientRequestToken: null
