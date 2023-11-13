@@ -85,11 +85,7 @@ func doGetAccessEntry(cmd *cmdutils.Cmd, principalARN api.ARN, params *getCmdPar
 		logger.Info("to get a detailed view of Kubernetes groups or policies associated with each access entry, use --output yaml or json")
 	}
 
-	if err := printer.PrintObjWithKind("accessentries", summaries, os.Stdout); err != nil {
-		return err
-	}
-
-	return nil
+	return printer.PrintObjWithKind("accessentries", summaries, os.Stdout)
 }
 
 func addAccessEntrySummaryTableColumns(printer *printers.TablePrinter) {

@@ -62,9 +62,5 @@ func doDeleteAccessEntry(cmd *cmdutils.Cmd) error {
 		clusterProvider.AWSProvider.EKS(),
 	)
 
-	if err = accessEntryManager.Delete(ctx, cmd.ClusterConfig.AccessConfig.AccessEntries); err != nil {
-		return err
-	}
-
-	return nil
+	return accessEntryManager.Delete(ctx, cmd.ClusterConfig.AccessConfig.AccessEntries)
 }
