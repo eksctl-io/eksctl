@@ -33,7 +33,7 @@ func (s *Service) IsAWSAuthDisabled() bool {
 	return accessConfig == nil || accessConfig.AuthenticationMode == ekstypes.AuthenticationModeApi
 }
 
-// IsEnabled reports whether the authenticationMode indicates that access entries is disabled.
+// IsEnabled reports whether the authenticationMode indicates that the cluster has access entries enabled.
 func IsEnabled(authenticationMode ekstypes.AuthenticationMode) bool {
 	return authenticationMode != ekstypes.AuthenticationModeConfigMap
 }
