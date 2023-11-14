@@ -94,7 +94,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 var _ = Describe("(Integration) [AccessEntries Test]", func() {
 
-	Context("Cluster without access entries", Ordered, func() {
+	Context("Cluster with access entries API disabled", Ordered, func() {
 		var (
 			cfg *api.ClusterConfig
 		)
@@ -245,7 +245,7 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 		})
 	})
 
-	Context("Cluster with access entries", Ordered, func() {
+	Context("Cluster with access entries API enabled", Ordered, func() {
 		var (
 			cfg *api.ClusterConfig
 		)
@@ -256,12 +256,12 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 		})
 
 		It("should create a cluster with access entries", func() {
-			// TODO: consider adding an integration test with the setting below
-			// cfg.AccessConfig.BootstrapClusterCreatorAdminPermissions = aws.Bool(false)
+			cfg.AccessConfig.BootstrapClusterCreatorAdminPermissions = aws.Bool(false)
 
 			data, err := json.Marshal(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
+			// cluster creation tasks that require access to K8s API will fail
 			cmd := params.EksctlCreateCmd.
 				WithArgs(
 					"cluster",
@@ -271,7 +271,7 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 				).
 				WithoutArg("--region", params.Region).
 				WithStdin(bytes.NewReader(data))
-			Expect(cmd).To(RunSuccessfully())
+			Expect(cmd).NotTo(RunSuccessfully())
 		})
 
 		It("should fetch all expected access entries", func() {
@@ -284,8 +284,45 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 				).Run()
 			Expect(session.ExitCode()).To(Equal(0))
 			Expect(json.Unmarshal(session.Out.Contents(), &output)).To(Succeed())
-			Expect(output).To(HaveLen(3))
+			Expect(output).To(HaveLen(2))
 			Expect(output).To(ContainElements(cfg.AccessConfig.AccessEntries))
+		})
+
+		It("should fail to delete the cluster without access to K8s API server", func() {
+			session := params.EksctlDeleteCmd.
+				WithArgs(
+					"cluster",
+					"--name", apiEnabledCluster,
+					"--wait",
+				).Run()
+			Expect(session.ExitCode()).To(Equal(1))
+			Expect(session.Err.Contents()).To(ContainSubstring("Unauthorized"))
+		})
+
+		It("should create an access entry to give admin permissions to cluster creator", func() {
+			cfg.AccessConfig.AccessEntries = []api.AccessEntry{
+				{
+					PrincipalARN: api.MustParseARN(extractIAMRoleARN(ctl.Status.IAMRoleARN)),
+					AccessPolicies: []api.AccessPolicy{
+						{
+							PolicyARN: api.MustParseARN(adminPolicyARN),
+							AccessScope: api.AccessScope{
+								Type: "cluster",
+							},
+						},
+					},
+				},
+			}
+			data, err := json.Marshal(cfg)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(params.EksctlCreateCmd.
+				WithArgs(
+					"accessentry",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))).To(RunSuccessfully())
 		})
 
 		Context("Unowned access entries", func() {
@@ -388,6 +425,16 @@ var (
 		  }
 		]
 	  }`)
+
+	extractIAMRoleARN = func(assumedRoleARN string) string {
+		roleARN := strings.Replace(assumedRoleARN, "assumed-role", "role", 1)
+		roleARN = strings.Replace(roleARN, "sts", "iam", 1)
+		parts := strings.Split(roleARN, "/")
+		if len(parts) > 2 {
+			return strings.Join(parts[:2], "/")
+		}
+		return roleARN
+	}
 
 	getAccessEntries = func() []api.AccessEntry {
 		return []api.AccessEntry{
