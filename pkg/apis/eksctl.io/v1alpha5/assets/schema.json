@@ -385,6 +385,14 @@
           "description": "permissions boundary for the fargate pod execution role`. See [EKS Fargate Support](/usage/fargate-support/)",
           "x-intellij-html-description": "permissions boundary for the fargate pod execution role`. See <a href=\"/usage/fargate-support/\">EKS Fargate Support</a>"
         },
+        "podIdentityAssociations": {
+          "items": {
+            "$ref": "#/definitions/PodIdentityAssociation"
+          },
+          "type": "array",
+          "description": "pod identity associations to create in the cluster. See [Pod Identity Associations](TBD)",
+          "x-intellij-html-description": "pod identity associations to create in the cluster. See <a href=\"TBD\">Pod Identity Associations</a>"
+        },
         "serviceAccounts": {
           "items": {
             "$ref": "#/definitions/ClusterIAMServiceAccount"
@@ -420,6 +428,7 @@
         "fargatePodExecutionRolePermissionsBoundary",
         "withOIDC",
         "serviceAccounts",
+        "podIdentityAssociations",
         "vpcResourceControllerPolicy"
       ],
       "additionalProperties": false,
@@ -2171,6 +2180,56 @@
       "additionalProperties": false,
       "description": "specifies placement group information",
       "x-intellij-html-description": "specifies placement group information"
+    },
+    "PodIdentityAssociation": {
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "permissionPolicy": {
+          "$ref": "#/definitions/InlineDocument"
+        },
+        "permissionPolicyARNs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "permissionsBoundaryARN": {
+          "type": "string"
+        },
+        "roleARN": {
+          "type": "string"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "serviceAccountName": {
+          "type": "string"
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "default": "{}"
+        },
+        "wellKnownPolicies": {
+          "$ref": "#/definitions/WellKnownPolicies"
+        }
+      },
+      "preferredOrder": [
+        "namespace",
+        "serviceAccountName",
+        "roleARN",
+        "roleName",
+        "permissionsBoundaryARN",
+        "permissionPolicyARNs",
+        "permissionPolicy",
+        "wellKnownPolicies",
+        "tags"
+      ],
+      "additionalProperties": false
     },
     "PrivateCluster": {
       "properties": {

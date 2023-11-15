@@ -53,3 +53,17 @@ func MakeAssumeRoleWithWebIdentityPolicyDocument(providerARN string, condition M
 		"Condition": condition,
 	})
 }
+
+// MakeAssumeRolePolicyDocumentForPodIdentity constructs a trust policy for roles used in pods identity associations
+func MakeAssumeRolePolicyDocumentForPodIdentity() MapOfInterfaces {
+	return MakePolicyDocument(MapOfInterfaces{
+		"Effect": "Allow",
+		"Action": []string{
+			"sts:AssumeRole",
+			"sts:TagSession",
+		},
+		"Principal": map[string]string{
+			"Service": "beta.pods.eks.aws.internal",
+		},
+	})
+}
