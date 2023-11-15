@@ -57,6 +57,8 @@ func NewCreatePodIdentityAssociationLoader(cmd *Cmd, podIdentityAssociation *api
 				return fmt.Errorf("--well-known-policies cannot be specified when --role-arn is set")
 			}
 		}
+
+		l.Cmd.ClusterConfig.IAM.PodIdentityAssociations = []api.PodIdentityAssociation{*podIdentityAssociation}
 		return nil
 	}
 
