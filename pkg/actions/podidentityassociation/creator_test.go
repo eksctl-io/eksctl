@@ -24,7 +24,7 @@ type createPodIdentityAssociationEntry struct {
 	expectedErr              string
 }
 
-var _ = Describe("Delete", func() {
+var _ = Describe("Create", func() {
 	var (
 		creator          *podidentityassociation.Creator
 		fakeStackManager *fakes.FakeStackManager
@@ -38,26 +38,26 @@ var _ = Describe("Delete", func() {
 		roleARN             = "arn:aws:iam::111122223333:role/TestRole"
 	)
 
-	DescribeTable("Delete", func(t createPodIdentityAssociationEntry) {
+	DescribeTable("Create", func(e createPodIdentityAssociationEntry) {
 		fakeStackManager = new(fakes.FakeStackManager)
-		if t.mockCFN != nil {
-			t.mockCFN(fakeStackManager)
+		if e.mockCFN != nil {
+			e.mockCFN(fakeStackManager)
 		}
 
 		mockProvider = mockprovider.NewMockProvider()
-		if t.mockEKS != nil {
-			t.mockEKS(mockProvider)
+		if e.mockEKS != nil {
+			e.mockEKS(mockProvider)
 		}
 
 		creator = podidentityassociation.NewCreator(clusterName, fakeStackManager, mockProvider.MockEKS())
 
-		err := creator.CreatePodIdentityAssociations(context.Background(), t.toBeCreated)
-		if t.expectedErr != "" {
-			Expect(err).To(MatchError(ContainSubstring(t.expectedErr)))
+		err := creator.CreatePodIdentityAssociations(context.Background(), e.toBeCreated)
+		if e.expectedErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
 			return
 		}
 		Expect(err).ToNot(HaveOccurred())
-		Expect(fakeStackManager.CreateStackCallCount()).To(Equal(t.expectedCreateStackCalls))
+		Expect(fakeStackManager.CreateStackCallCount()).To(Equal(e.expectedCreateStackCalls))
 	},
 		Entry("returns an error if creating the IAM role fails", createPodIdentityAssociationEntry{
 			toBeCreated: []api.PodIdentityAssociation{
@@ -80,7 +80,7 @@ var _ = Describe("Delete", func() {
 			expectedErr: "creating IAM role for pod identity association",
 		}),
 
-		Entry("returns an error if creating the pod identity association fails", createPodIdentityAssociationEntry{
+		Entry("returns an error if creating the association fails", createPodIdentityAssociationEntry{
 			toBeCreated: []api.PodIdentityAssociation{
 				{
 					Namespace:          namespace,
@@ -101,7 +101,7 @@ var _ = Describe("Delete", func() {
 			expectedErr: "creating pod identity association",
 		}),
 
-		Entry("creates all expected roles and pod identity associations successfully", createPodIdentityAssociationEntry{
+		Entry("creates all expected roles and associations successfully", createPodIdentityAssociationEntry{
 			toBeCreated: []api.PodIdentityAssociation{
 				{
 					Namespace:          namespace,

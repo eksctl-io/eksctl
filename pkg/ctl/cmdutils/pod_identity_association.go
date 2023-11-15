@@ -57,10 +57,24 @@ func NewCreatePodIdentityAssociationLoader(cmd *Cmd, podIdentityAssociation *api
 				return fmt.Errorf("--well-known-policies cannot be specified when --role-arn is set")
 			}
 		}
-
 		l.Cmd.ClusterConfig.IAM.PodIdentityAssociations = []api.PodIdentityAssociation{*podIdentityAssociation}
 		return nil
 	}
 
+	return l
+}
+
+func NewGetPodIdentityAssociationLoader(cmd *Cmd, pia *api.PodIdentityAssociation) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithoutConfigFile = func() error {
+		if cmd.ClusterConfig.Metadata.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+		if pia.Namespace == "" && pia.ServiceAccountName != "" {
+			return fmt.Errorf("--namespace must be set in order to specify --service-account-name")
+		}
+		return nil
+	}
 	return l
 }

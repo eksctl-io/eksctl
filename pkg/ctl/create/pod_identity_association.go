@@ -58,26 +58,27 @@ func doCreatePodIdentityAssociation(cmd *cmdutils.Cmd) error {
 		if !errors.As(err, &notFoundErr) {
 			return fmt.Errorf("error calling `EKS::DescribeAddon::%s`: %v", api.PodIdentityAgentAddon, err)
 		}
-		return api.ErrPodIdentityAgentNotInstalled
+		suggestion := fmt.Sprintf("please enable it using `eksctl create addon --cluster=%s --name=%s`", cmd.ClusterConfig.Metadata.Name, api.PodIdentityAgentAddon)
+		return api.ErrPodIdentityAgentNotInstalled(suggestion)
 	}
 
 	return podidentityassociation.NewCreator(cmd.ClusterConfig.Metadata.Name, ctl.NewStackManager(cfg), ctl.AWSProvider.EKS()).
 		CreatePodIdentityAssociations(ctx, cmd.ClusterConfig.IAM.PodIdentityAssociations)
 }
 
-func configureCreatePodIdentityAssociationCmd(cmd *cmdutils.Cmd, podIdentityAssociation *api.PodIdentityAssociation) {
+func configureCreatePodIdentityAssociationCmd(cmd *cmdutils.Cmd, pia *api.PodIdentityAssociation) {
 	cmd.FlagSetGroup.InFlagSet("PodIdentityAssociation", func(fs *pflag.FlagSet) {
-		fs.StringVar(&podIdentityAssociation.Namespace, "namespace", "", "Namespace the service account belongs to")
-		fs.StringVar(&podIdentityAssociation.ServiceAccountName, "service-account-name", "", "Name of the service account")
-		fs.StringVar(&podIdentityAssociation.RoleARN, "role-arn", "", "ARN of the IAM role to be associated with the service account")
-		fs.StringVar(&podIdentityAssociation.RoleName, "role-name", "", "Set a custom name for the created role")
-		fs.StringVar(&podIdentityAssociation.PermissionsBoundaryARN, "permission-boundary-arn", "", "ARN of the policy that is used to set the permission boundary for the role")
+		fs.StringVar(&pia.Namespace, "namespace", "", "Namespace the service account belongs to")
+		fs.StringVar(&pia.ServiceAccountName, "service-account-name", "", "Name of the service account")
+		fs.StringVar(&pia.RoleARN, "role-arn", "", "ARN of the IAM role to be associated with the service account")
+		fs.StringVar(&pia.RoleName, "role-name", "", "Set a custom name for the created role")
+		fs.StringVar(&pia.PermissionsBoundaryARN, "permission-boundary-arn", "", "ARN of the policy that is used to set the permission boundary for the role")
 
-		fs.StringSliceVar(&podIdentityAssociation.PermissionPolicyARNs, "permission-policy-arns", []string{}, "List of ARNs of the IAM permission policies to attach")
+		fs.StringSliceVar(&pia.PermissionPolicyARNs, "permission-policy-arns", []string{}, "List of ARNs of the IAM permission policies to attach")
 
-		fs.VarP(&podIdentityAssociation.WellKnownPolicies, "well-known-policies", "", "Used to attach common IAM policies")
+		fs.VarP(&pia.WellKnownPolicies, "well-known-policies", "", "Used to attach common IAM policies")
 
-		cmdutils.AddStringToStringVarPFlag(fs, &podIdentityAssociation.Tags, "tags", "", map[string]string{}, "AWS tags to attach to the PodIdentityAssosciation")
+		cmdutils.AddStringToStringVarPFlag(fs, &pia.Tags, "tags", "", map[string]string{}, "AWS tags to attach to the PodIdentityAssosciation")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {

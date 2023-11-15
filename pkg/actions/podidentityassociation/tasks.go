@@ -75,5 +75,5 @@ func (t *createPodIdentityAssociationTask) Do(errorCh chan error) error {
 
 // MakeStackName creates a stack name for the specified access entry.
 func MakeStackName(clusterName, namespace, serviceAccountName string) string {
-	return fmt.Sprintf("eksctl-%s-IAM-role-for-PIA-%s-%s", clusterName, namespace, serviceAccountName)
+	return fmt.Sprintf("eksctl-%s-podidentityrole-ns-%s-sa-%s", clusterName, namespace, serviceAccountName)
 }
