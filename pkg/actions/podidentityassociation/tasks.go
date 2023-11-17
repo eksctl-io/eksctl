@@ -68,14 +68,19 @@ func (t *createPodIdentityAssociationTask) Do(errorCh chan error) error {
 		ServiceAccount: &t.podIdentityAssociation.ServiceAccountName,
 		Tags:           t.podIdentityAssociation.Tags,
 	}); err != nil {
-		return fmt.Errorf("creating pod identity association for service account %s in namespace %s: %w",
+		return fmt.Errorf(
+			"creating pod identity association for service account %s in namespace %s: %w",
 			t.podIdentityAssociation.ServiceAccountName, t.podIdentityAssociation.Namespace, err)
 	}
 
 	return nil
 }
 
+func makeStackNamePrefix(clusterName string) string {
+	return fmt.Sprintf("eksctl-%s-podidentityrole-ns-", clusterName)
+}
+
 // MakeStackName creates a stack name for the specified access entry.
 func MakeStackName(clusterName, namespace, serviceAccountName string) string {
-	return fmt.Sprintf("eksctl-%s-podidentityrole-ns-%s-sa-%s", clusterName, namespace, serviceAccountName)
+	return fmt.Sprintf("%s%s-sa-%s", makeStackNamePrefix(clusterName), namespace, serviceAccountName)
 }

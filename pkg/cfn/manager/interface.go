@@ -79,6 +79,7 @@ type StackManager interface {
 	ListStacks(ctx context.Context) ([]*Stack, error)
 	ListStacksWithStatuses(ctx context.Context, statusFilters ...cfntypes.StackStatus) ([]*Stack, error)
 	ListStacksMatching(ctx context.Context, nameRegex string, statusFilters ...cfntypes.StackStatus) ([]*Stack, error)
+	ListStackNames(ctx context.Context, regExp string) ([]string, error)
 	LookupCloudTrailEvents(ctx context.Context, i *Stack) ([]cttypes.Event, error)
 	MakeChangeSetName(action string) string
 	MakeClusterStackName() string
@@ -96,4 +97,5 @@ type StackManager interface {
 	StackStatusIsNotTransitional(s *Stack) bool
 	UpdateNodeGroupStack(ctx context.Context, nodeGroupName, template string, wait bool) error
 	UpdateStack(ctx context.Context, options UpdateStackOptions) error
+	MustUpdateStack(ctx context.Context, options UpdateStackOptions) error
 }

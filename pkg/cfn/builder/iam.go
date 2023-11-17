@@ -8,7 +8,6 @@ import (
 	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/iam"
-	"github.com/weaveworks/eksctl/pkg/utils/names"
 
 	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -232,7 +231,7 @@ func NewIAMRoleResourceSetForPodIdentity(spec *api.PodIdentityAssociation) *IAMR
 		serviceAccount:      spec.ServiceAccountName,
 		namespace:           spec.Namespace,
 		wellKnownPolicies:   spec.WellKnownPolicies,
-		roleName:            names.ForIAMRole(spec.RoleName),
+		roleName:            spec.RoleName,
 		permissionsBoundary: spec.PermissionsBoundaryARN,
 		description: fmt.Sprintf(
 			"IAM role for pod identity association %s",

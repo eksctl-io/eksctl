@@ -326,6 +326,10 @@ func (c *StackCollection) checkASGTagsNumber(ngName, asgName string, propagatedT
 
 // UpdateStack will update a CloudFormation stack by creating and executing a ChangeSet
 func (c *StackCollection) UpdateStack(ctx context.Context, options UpdateStackOptions) error {
+	return c.updateStack(ctx, options, true)
+}
+
+func (c *StackCollection) updateStack(ctx context.Context, options UpdateStackOptions, ignoreNoChangeError bool) error {
 	logger.Info(options.Description)
 	if options.Stack == nil {
 		i := &Stack{StackName: &options.StackName}
@@ -350,8 +354,11 @@ func (c *StackCollection) UpdateStack(ctx context.Context, options UpdateStackOp
 		return err
 	}
 	if err := c.doWaitUntilChangeSetIsCreated(ctx, options.Stack, options.ChangeSetName); err != nil {
-		if _, ok := err.(*noChangeError); ok {
-			return nil
+		if _, ok := err.(*NoChangeError); ok {
+			if ignoreNoChangeError {
+				return nil
+			}
+			return err
 		}
 		return err
 	}
@@ -368,6 +375,11 @@ func (c *StackCollection) UpdateStack(ctx context.Context, options UpdateStackOp
 		return c.doWaitUntilStackIsUpdated(ctx, options.Stack)
 	}
 	return nil
+}
+
+// MustUpdateStack is like UpdateStack but returns a NoChangeError if there are no changes to execute.
+func (c *StackCollection) MustUpdateStack(ctx context.Context, options UpdateStackOptions) error {
+	return c.updateStack(ctx, options, false)
 }
 
 // DescribeStack describes a cloudformation stack.
@@ -468,19 +480,16 @@ func (c *StackCollection) ListStacksMatching(ctx context.Context, nameRegex stri
 	return stacks, nil
 }
 
-// ListClusterStackNames gets all stack names matching regex
-func (c *StackCollection) ListClusterStackNames(ctx context.Context) ([]string, error) {
-	var stacks []string
-	re, err := regexp.Compile(clusterStackRegex)
+// ListStackNames lists all stack names matching regExp.
+func (c *StackCollection) ListStackNames(ctx context.Context, regExp string) ([]string, error) {
+	re, err := regexp.Compile(regExp)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot list stacks")
+		return nil, fmt.Errorf("unexpected error compiling RegExp: %w", err)
 	}
-	input := &cloudformation.ListStacksInput{
+	paginator := cloudformation.NewListStacksPaginator(c.cloudformationAPI, &cloudformation.ListStacksInput{
 		StackStatusFilter: defaultStackStatusFilter(),
-	}
-
-	paginator := cloudformation.NewListStacksPaginator(c.cloudformationAPI, input)
-
+	})
+	var stackNames []string
 	for paginator.HasMorePages() {
 		out, err := paginator.NextPage(ctx)
 		if err != nil {
@@ -489,12 +498,17 @@ func (c *StackCollection) ListClusterStackNames(ctx context.Context) ([]string, 
 
 		for _, s := range out.StackSummaries {
 			if re.MatchString(*s.StackName) {
-				stacks = append(stacks, *s.StackName)
+				stackNames = append(stackNames, *s.StackName)
 			}
 		}
 	}
 
-	return stacks, nil
+	return stackNames, nil
+}
+
+// ListClusterStackNames gets all stack names matching regex
+func (c *StackCollection) ListClusterStackNames(ctx context.Context) ([]string, error) {
+	return c.ListStackNames(ctx, clusterStackRegex)
 }
 
 // ListStacksWithStatuses gets all of CloudFormation stacks
@@ -583,7 +597,7 @@ func matchesCluster(clusterName string, tags []types.Tag) bool {
 
 // DeleteStackBySpecSync sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
 // any errors will be written to errs channel, assume completion when nil is written, do not expect
-// more then one error value on the channel, it's closed immediately after it is written to
+// more than one error value on the channel, it's closed immediately after it is written to
 func (c *StackCollection) DeleteStackBySpecSync(ctx context.Context, s *Stack, errs chan error) error {
 	i, err := c.DeleteStackBySpec(ctx, s)
 	if err != nil {
