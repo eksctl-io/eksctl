@@ -1,0 +1,163 @@
+package podidentityassociation
+
+import (
+	"context"
+	"fmt"
+	"strings"
+
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+
+	"golang.org/x/exp/slices"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+
+	"github.com/kris-nova/logger"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+)
+
+// A StackLister lists and describes CloudFormation stacks.
+type StackLister interface {
+	ListStackNames(ctx context.Context, regExp string) ([]string, error)
+	DescribeStack(ctx context.Context, stack *manager.Stack) (*manager.Stack, error)
+}
+
+// A StackDeleter lists and deletes CloudFormation stacks.
+type StackDeleter interface {
+	StackLister
+	DeleteStackBySpecSync(ctx context.Context, stack *cfntypes.Stack, errCh chan error) error
+}
+
+// APILister lists pod identity associations using the EKS API.
+type APILister interface {
+	ListPodIdentityAssociations(ctx context.Context, params *eks.ListPodIdentityAssociationsInput, optFns ...func(*eks.Options)) (*eks.ListPodIdentityAssociationsOutput, error)
+}
+
+// APIDeleter lists and deletes pod identity associations using the EKS API.
+type APIDeleter interface {
+	APILister
+	DeletePodIdentityAssociation(ctx context.Context, params *eks.DeletePodIdentityAssociationInput, optFns ...func(*eks.Options)) (*eks.DeletePodIdentityAssociationOutput, error)
+}
+
+// A Deleter deletes pod identity associations.
+type Deleter struct {
+	// ClusterName is the cluster name.
+	ClusterName string
+	// StackDeleter is used to delete stacks.
+	StackDeleter StackDeleter
+	// APIDeleter deletes pod identity associations using the EKS API.
+	APIDeleter APIDeleter
+}
+
+// Identifier represents a pod identity association.
+type Identifier struct {
+	// Namespace is the namespace the service account belongs to.
+	Namespace string
+	// ServiceAccountName is the name of the Kubernetes ServiceAccount.
+	ServiceAccountName string
+}
+
+// Delete deletes the specified podIdentityAssociations.
+func (d *Deleter) Delete(ctx context.Context, podIDs []Identifier) error {
+	roleStackNames, err := d.StackDeleter.ListStackNames(ctx, fmt.Sprintf("^%s*", makeStackNamePrefix(d.ClusterName)))
+	if err != nil {
+		return fmt.Errorf("error listing stack names for pod identity associations: %w", err)
+	}
+	taskTree := &tasks.TaskTree{Parallel: true}
+	for _, p := range podIDs {
+		taskTree.Append(d.makeDeleteTask(ctx, p, roleStackNames))
+	}
+
+	logger.Info(taskTree.Describe())
+	return runAllTasks(taskTree)
+}
+
+func (d *Deleter) makeDeleteTask(ctx context.Context, p Identifier, roleStackNames []string) tasks.Task {
+	podIdentityAssociationID := makeID(p.Namespace, p.ServiceAccountName)
+	return &tasks.GenericTask{
+		Description: fmt.Sprintf("delete pod identity association %q", podIdentityAssociationID),
+		Doer: func() error {
+			if err := d.deletePodIdentityAssociation(ctx, p, roleStackNames, podIdentityAssociationID); err != nil {
+				return fmt.Errorf("error deleting pod identity association %q: %w", podIdentityAssociationID, err)
+			}
+			return nil
+		},
+	}
+}
+
+func (d *Deleter) deletePodIdentityAssociation(ctx context.Context, p Identifier, roleStackNames []string, podIdentityAssociationID string) error {
+	output, err := d.APIDeleter.ListPodIdentityAssociations(ctx, &eks.ListPodIdentityAssociationsInput{
+		ClusterName:    aws.String(d.ClusterName),
+		Namespace:      aws.String(p.Namespace),
+		ServiceAccount: aws.String(p.ServiceAccountName),
+	})
+	if err != nil {
+		return fmt.Errorf("listing pod identity associations: %w", err)
+	}
+	switch len(output.Associations) {
+	case 0:
+		logger.Warning("pod identity association %q not found", podIdentityAssociationID)
+	default:
+		return fmt.Errorf("expected to find only 1 pod identity association for %q; got %d", podIdentityAssociationID, len(output.Associations))
+	case 1:
+		if _, err := d.APIDeleter.DeletePodIdentityAssociation(ctx, &eks.DeletePodIdentityAssociationInput{
+			ClusterName:   aws.String(d.ClusterName),
+			AssociationId: output.Associations[0].AssociationId,
+		}); err != nil {
+			return fmt.Errorf("deleting pod identity association: %w", err)
+		}
+	}
+
+	stackName := MakeStackName(d.ClusterName, p.Namespace, p.ServiceAccountName)
+	if !slices.Contains(roleStackNames, stackName) {
+		return nil
+	}
+	logger.Info("deleting IAM resources stack %q for pod identity association %q", stackName, podIdentityAssociationID)
+	stack, err := d.StackDeleter.DescribeStack(ctx, &manager.Stack{
+		StackName: aws.String(stackName),
+	})
+	if err != nil {
+		return fmt.Errorf("describing stack %q: %w", stackName, err)
+	}
+
+	deleteStackCh := make(chan error)
+	if err := d.StackDeleter.DeleteStackBySpecSync(ctx, stack, deleteStackCh); err != nil {
+		return fmt.Errorf("deleting stack %q for IAM role: %w", stackName, err)
+	}
+	select {
+	case err := <-deleteStackCh:
+		return err
+	case <-ctx.Done():
+		return fmt.Errorf("timed out waiting for deletion of pod identity association: %w", ctx.Err())
+	}
+}
+
+func runAllTasks(taskTree *tasks.TaskTree) error {
+	if errs := taskTree.DoAllSync(); len(errs) > 0 {
+		var allErrs []string
+		for _, err := range errs {
+			allErrs = append(allErrs, err.Error())
+		}
+		return fmt.Errorf(strings.Join(allErrs, "\n"))
+	}
+	return nil
+}
+
+// ToIdentifiers maps a list of PodIdentityAssociations to a list of Identifiers.
+func ToIdentifiers(podIdentityAssociations []api.PodIdentityAssociation) []Identifier {
+	identifiers := make([]Identifier, len(podIdentityAssociations))
+	for i, p := range podIdentityAssociations {
+		identifiers[i] = Identifier{
+			Namespace:          p.Namespace,
+			ServiceAccountName: p.ServiceAccountName,
+		}
+	}
+	return identifiers
+}
+
+func makeID(namespace, serviceAccountName string) string {
+	return fmt.Sprintf("%s/%s", namespace, serviceAccountName)
+}
