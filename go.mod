@@ -82,7 +82,7 @@ require (
 	k8s.io/cli-runtime v0.28.2
 	k8s.io/client-go v0.28.2
 	k8s.io/cloud-provider v0.28.0
-	k8s.io/code-generator v0.28.0
+	k8s.io/code-generator v0.28.4
 	k8s.io/kops v1.28.1
 	k8s.io/kubelet v0.28.1
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
