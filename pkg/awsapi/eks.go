@@ -48,6 +48,12 @@ type EKS interface {
 	// and Launching Amazon EKS nodes (https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html)
 	// in the Amazon EKS User Guide.
 	CreateCluster(ctx context.Context, params *CreateClusterInput, optFns ...func(*Options)) (*CreateClusterOutput, error)
+	// Creates an EKS Anywhere subscription. When a subscription is created, it is a
+	// contract agreement for the length of the term specified in the request. Licenses
+	// that are used to validate support are provisioned in Amazon Web Services License
+	// Manager and the caller account is granted access to EKS Anywhere Curated
+	// Packages.
+	CreateEksAnywhereSubscription(ctx context.Context, params *CreateEksAnywhereSubscriptionInput, optFns ...func(*Options)) (*CreateEksAnywhereSubscriptionOutput, error)
 	// Creates an Fargate profile for your Amazon EKS cluster. You must have at least
 	// one Fargate profile in a cluster to be able to run pods on Fargate. The Fargate
 	// profile allows an administrator to declare which pods run on Fargate and specify
@@ -59,7 +65,7 @@ type EKS interface {
 	// selectors in the Fargate profile, then that pod is run on Fargate. When you
 	// create a Fargate profile, you must specify a pod execution role to use with the
 	// pods that are scheduled with the profile. This role is added to the cluster's
-	// Kubernetes Role Based Access Control (https://kubernetes.io/docs/admin/authorization/rbac/)
+	// Kubernetes Role Based Access Control (https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
 	// (RBAC) for authorization so that the kubelet that is running on the Fargate
 	// infrastructure can register with your Amazon EKS cluster so that it can appear
 	// in your cluster as a node. The pod execution role also provides IAM permissions
@@ -75,13 +81,10 @@ type EKS interface {
 	CreateFargateProfile(ctx context.Context, params *CreateFargateProfileInput, optFns ...func(*Options)) (*CreateFargateProfileOutput, error)
 	// Creates a managed node group for an Amazon EKS cluster. You can only create a
 	// node group for your cluster that is equal to the current Kubernetes version for
-	// the cluster. All node groups are created with the latest AMI release version for
-	// the respective minor Kubernetes version of the cluster, unless you deploy a
-	// custom AMI using a launch template. For more information about using launch
-	// templates, see Launch template support (https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html)
-	// . An Amazon EKS managed node group is an Amazon EC2 Auto Scaling group and
-	// associated Amazon EC2 instances that are managed by Amazon Web Services for an
-	// Amazon EKS cluster. For more information, see Managed node groups (https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html)
+	// the cluster. An Amazon EKS managed node group is an Amazon EC2 Auto Scaling
+	// group and associated Amazon EC2 instances that are managed by Amazon Web
+	// Services for an Amazon EKS cluster. For more information, see Managed node
+	// groups (https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html)
 	// in the Amazon EKS User Guide. Windows AMI types are only supported for
 	// commercial Regions that support Windows Amazon EKS.
 	CreateNodegroup(ctx context.Context, params *CreateNodegroupInput, optFns ...func(*Options)) (*CreateNodegroupOutput, error)
@@ -99,6 +102,12 @@ type EKS interface {
 	// profiles attached to the cluster, you must delete them first. For more
 	// information, see DeleteNodegroup and DeleteFargateProfile .
 	DeleteCluster(ctx context.Context, params *DeleteClusterInput, optFns ...func(*Options)) (*DeleteClusterOutput, error)
+	// Deletes an expired / inactive subscription. Deleting inactive subscriptions
+	// removes them from the Amazon Web Services Management Console view and from
+	// list/describe API responses. Subscriptions can only be cancelled within 7 days
+	// of creation, and are cancelled by creating a ticket in the Amazon Web Services
+	// Support Center.
+	DeleteEksAnywhereSubscription(ctx context.Context, params *DeleteEksAnywhereSubscriptionInput, optFns ...func(*Options)) (*DeleteEksAnywhereSubscriptionOutput, error)
 	// Deletes an Fargate profile. When you delete a Fargate profile, any pods running
 	// on Fargate that were created with the profile are deleted. If those pods match
 	// another Fargate profile, then they are scheduled on Fargate with that profile.
@@ -127,6 +136,8 @@ type EKS interface {
 	// . The API server endpoint and certificate authority data aren't available until
 	// the cluster reaches the ACTIVE state.
 	DescribeCluster(ctx context.Context, params *DescribeClusterInput, optFns ...func(*Options)) (*DescribeClusterOutput, error)
+	// Returns descriptive information about a subscription.
+	DescribeEksAnywhereSubscription(ctx context.Context, params *DescribeEksAnywhereSubscriptionInput, optFns ...func(*Options)) (*DescribeEksAnywhereSubscriptionOutput, error)
 	// Returns descriptive information about an Fargate profile.
 	DescribeFargateProfile(ctx context.Context, params *DescribeFargateProfileInput, optFns ...func(*Options)) (*DescribeFargateProfileOutput, error)
 	// Returns descriptive information about an identity provider configuration.
@@ -141,13 +152,16 @@ type EKS interface {
 	// Disassociates an identity provider configuration from a cluster. If you
 	// disassociate an identity provider from your cluster, users included in the
 	// provider can no longer access the cluster. However, you can still access the
-	// cluster with Amazon Web Services IAM users.
+	// cluster with IAM principals (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_terms-and-concepts.html)
+	// .
 	DisassociateIdentityProviderConfig(ctx context.Context, params *DisassociateIdentityProviderConfigInput, optFns ...func(*Options)) (*DisassociateIdentityProviderConfigOutput, error)
-	// Lists the available add-ons.
+	// Lists the installed add-ons.
 	ListAddons(ctx context.Context, params *ListAddonsInput, optFns ...func(*Options)) (*ListAddonsOutput, error)
 	// Lists the Amazon EKS clusters in your Amazon Web Services account in the
 	// specified Region.
 	ListClusters(ctx context.Context, params *ListClustersInput, optFns ...func(*Options)) (*ListClustersOutput, error)
+	// Displays the full description of the subscription.
+	ListEksAnywhereSubscriptions(ctx context.Context, params *ListEksAnywhereSubscriptionsInput, optFns ...func(*Options)) (*ListEksAnywhereSubscriptionsOutput, error)
 	// Lists the Fargate profiles associated with the specified cluster in your Amazon
 	// Web Services account in the specified Region.
 	ListFargateProfiles(ctx context.Context, params *ListFargateProfilesInput, optFns ...func(*Options)) (*ListFargateProfilesOutput, error)
@@ -217,6 +231,9 @@ type EKS interface {
 	// Kubernetes versions must match the cluster’s Kubernetes version in order to
 	// update the cluster to a new Kubernetes version.
 	UpdateClusterVersion(ctx context.Context, params *UpdateClusterVersionInput, optFns ...func(*Options)) (*UpdateClusterVersionOutput, error)
+	// Update an EKS Anywhere Subscription. Only auto renewal and tags can be updated
+	// after subscription creation.
+	UpdateEksAnywhereSubscription(ctx context.Context, params *UpdateEksAnywhereSubscriptionInput, optFns ...func(*Options)) (*UpdateEksAnywhereSubscriptionOutput, error)
 	// Updates an Amazon EKS managed node group configuration. Your node group
 	// continues to function during the update. The response output includes an update
 	// ID that you can use to track the status of your node group update with the
