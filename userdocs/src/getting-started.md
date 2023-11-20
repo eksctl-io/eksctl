@@ -1,6 +1,8 @@
 # Getting started
 
 !!! tip "New for 2023"
+    `eksctl` now supportes configuring fine-grained permissions to EKS-running apps via [EKS Pod Identity Associations](/usage/pod-identity-as sociations)
+
     `eksctl` now supports [updating the subnets and security groups](/usage/cluster-subnets-security-groups) associated with the EKS control plane.
     
     `eksctl` now supports creating fully private clusters on [AWS Outposts](/usage/outposts).
