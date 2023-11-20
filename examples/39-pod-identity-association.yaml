@@ -10,6 +10,9 @@ metadata:
 managedNodeGroups:
   - name: mng1
 
+addons:
+  name: eks-pod-identity-agent
+
 iam:  
   podIdentityAssociations: 
   # roleARN is given, eksctl will only create the pod identity association 

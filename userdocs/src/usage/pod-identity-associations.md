@@ -8,7 +8,11 @@ As a result, IAM roles no longer need to reference an [OIDC provider](/usage/iam
 
 ## Prerequisites
 
-Creating pod identity associations requires the `eks-pod-identity-agent` addon pre-installed on the cluster. This addon can [be created using `eksctl`](/usage/addons/#creating-addons) in the same fashion it is used for creating any other supported addon.
+Behind the scenes, the implementation of pod identity associations is running an agent as a daemonset on the worker nodes. To run the pre-requisite agent on the cluster, EKS provides a new add-on called EKS Pod Identity Agent. Therefore, creating pod identity associations (with `eksctl`) requires the `eks-pod-identity-agent` addon pre-installed on the cluster. This addon can be [created using `eksctl`](/usage/addons/#creating-addons) in the same fashion any other supported addon is, e.g.
+
+```
+eksctl create addon --cluster my-cluster --name eks-pod-identity-agent
+```
 
 Additionally, if using a pre-existing IAM role when creating a pod identity association, the user must configure the role to trust the newly introduced EKS service principal (`eks-pods.amazonaws.com`). An example IAM trust policy can be found below:
 
@@ -78,7 +82,7 @@ eksctl create podidentityassociation \
     --service-account-name s3-reader \
     --permission-policy-arns="arn:aws:iam::111122223333:policy/permission-policy-1, arn:aws:iam::111122223333:policy/permission-policy-2"
     --well-known-policies="autoScaler,externalDNS" \
-    --permissions-boundary-arn arn:aws:iam::111122223333:policy/boundary-policy
+    --permissions-boundary-arn arn:aws:iam::111122223333:policy/permissions-boundary
 ``` 
 ```
 
