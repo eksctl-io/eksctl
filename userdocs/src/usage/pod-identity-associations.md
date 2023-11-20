@@ -86,8 +86,6 @@ eksctl create podidentityassociation \
 ``` 
 ```
 
-
-
 ???+ note
     Only a single IAM role can be associated to a service account at a time. Therefore, trying to create a second pod identity associations for the same service account will result in an error.
 
@@ -169,3 +167,4 @@ eksctl delete podidentityassociation --cluster my-cluster --namespace default --
 
 ## Further references
 
+TBD AWS Official Docs
