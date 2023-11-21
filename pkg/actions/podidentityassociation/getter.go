@@ -29,50 +29,38 @@ func NewGetter(clusterName string, eksAPI awsapi.EKS) *Getter {
 
 func (g *Getter) GetPodIdentityAssociations(ctx context.Context, namespace, serviceAccountName string) ([]Summary, error) {
 	var (
-		summaries      []Summary
-		associationIDs []*string
+		summaries []Summary
 	)
 
-	output, err := g.eksAPI.ListPodIdentityAssociations(ctx, &awseks.ListPodIdentityAssociationsInput{
-		ClusterName: &g.clusterName,
-	})
+	input := &awseks.ListPodIdentityAssociationsInput{ClusterName: &g.clusterName}
+	if namespace != "" {
+		input.Namespace = &namespace
+	}
+	if serviceAccountName != "" {
+		input.ServiceAccount = &serviceAccountName
+	}
+
+	listOut, err := g.eksAPI.ListPodIdentityAssociations(ctx, input)
 	if err != nil {
 		return summaries, fmt.Errorf("failed to list pod identity associations: %w", err)
 	}
 
-	for _, a := range output.Associations {
-		associationIDs = append(associationIDs, a.AssociationId)
-	}
-
-	for _, id := range associationIDs {
-		output, err := g.eksAPI.DescribePodIdentityAssociation(ctx, &awseks.DescribePodIdentityAssociationInput{
+	for _, a := range listOut.Associations {
+		describeOut, err := g.eksAPI.DescribePodIdentityAssociation(ctx, &awseks.DescribePodIdentityAssociationInput{
 			ClusterName:   &g.clusterName,
-			AssociationId: id,
+			AssociationId: a.AssociationId,
 		})
 		if err != nil {
-			return summaries, fmt.Errorf("failed to describe pod identity association with associationID: %s", *id)
-		}
-
-		if !shouldFetchPodIdentityAssociation(output, namespace, serviceAccountName) {
-			continue
+			return summaries, fmt.Errorf("failed to describe pod identity association with associationID: %s", *a.AssociationId)
 		}
 
 		summaries = append(summaries, Summary{
-			AssociationARN:     *output.Association.AssociationArn,
-			Namespace:          *output.Association.Namespace,
-			ServiceAccountName: *output.Association.ServiceAccount,
-			RoleARN:            *output.Association.RoleArn,
+			AssociationARN:     *describeOut.Association.AssociationArn,
+			Namespace:          *describeOut.Association.Namespace,
+			ServiceAccountName: *describeOut.Association.ServiceAccount,
+			RoleARN:            *describeOut.Association.RoleArn,
 		})
 	}
 
 	return summaries, nil
-}
-
-func shouldFetchPodIdentityAssociation(output *awseks.DescribePodIdentityAssociationOutput, namespace, serviceAccount string) bool {
-	if namespace == "" ||
-		(*output.Association.Namespace == namespace && serviceAccount == "") ||
-		(*output.Association.Namespace == namespace && *output.Association.ServiceAccount == serviceAccount) {
-		return true
-	}
-	return false
 }
