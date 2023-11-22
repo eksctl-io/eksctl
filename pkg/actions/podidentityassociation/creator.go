@@ -3,9 +3,6 @@ package podidentityassociation
 import (
 	"context"
 	"fmt"
-	"strings"
-
-	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -28,19 +25,7 @@ func NewCreator(clusterName string, stackManager StackManager, eksAPI awsapi.EKS
 }
 
 func (c *Creator) CreatePodIdentityAssociations(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation) error {
-	taskTree := c.CreateTasks(ctx, podIdentityAssociations)
-	logger.Info(taskTree.Describe())
-
-	if errs := taskTree.DoAllSync(); len(errs) > 0 {
-		var allErrs []string
-		for _, err := range errs {
-			allErrs = append(allErrs, err.Error())
-		}
-		return fmt.Errorf(strings.Join(allErrs, "\n"))
-	}
-
-	logger.Info("successfully created all pod identity associations")
-	return nil
+	return runAllTasks(c.CreateTasks(ctx, podIdentityAssociations))
 }
 
 func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation) *tasks.TaskTree {

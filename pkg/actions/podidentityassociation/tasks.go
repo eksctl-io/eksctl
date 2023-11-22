@@ -3,12 +3,15 @@ package podidentityassociation
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -83,4 +86,17 @@ func makeStackNamePrefix(clusterName string) string {
 // MakeStackName creates a stack name for the specified access entry.
 func MakeStackName(clusterName, namespace, serviceAccountName string) string {
 	return fmt.Sprintf("%s%s-sa-%s", makeStackNamePrefix(clusterName), namespace, serviceAccountName)
+}
+
+func runAllTasks(taskTree *tasks.TaskTree) error {
+	logger.Info(taskTree.Describe())
+	if errs := taskTree.DoAllSync(); len(errs) > 0 {
+		var allErrs []string
+		for _, err := range errs {
+			allErrs = append(allErrs, err.Error())
+		}
+		return fmt.Errorf(strings.Join(allErrs, "\n"))
+	}
+	logger.Info("successfully finished all tasks")
+	return nil
 }

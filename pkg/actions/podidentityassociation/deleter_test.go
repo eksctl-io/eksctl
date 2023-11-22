@@ -243,6 +243,33 @@ var _ = Describe("Pod Identity Deleter", func() {
 				eksAPI.AssertExpectations(GinkgoT())
 			},
 		}),
+
+		Entry("delete IAM resources on cluster deletion", deleteEntry{
+			podIdentityAssociations: []api.PodIdentityAssociation{},
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				podIDs := []podidentityassociation.Identifier{
+					{
+						Namespace:          "default",
+						ServiceAccountName: "default",
+					},
+					{
+						Namespace:          "kube-system",
+						ServiceAccountName: "aws-node",
+					},
+					{
+						Namespace:          "kube-system",
+						ServiceAccountName: "default",
+					},
+				}
+				mockListStackNames(stackManager, podIDs)
+				mockStackManager(stackManager, "")
+			},
+			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.DescribeStackCallCount()).To(Equal(3))
+				Expect(stackManager.DeleteStackBySpecSyncCallCount()).To(Equal(3))
+			},
+		}),
 	)
 
 })

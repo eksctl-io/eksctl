@@ -3,7 +3,6 @@ package podidentityassociation
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
@@ -60,19 +59,48 @@ type Identifier struct {
 	ServiceAccountName string
 }
 
+func NewDeleter(clusterName string, stackDeleter StackDeleter, apiDeleter APIDeleter) *Deleter {
+	return &Deleter{
+		ClusterName:  clusterName,
+		StackDeleter: stackDeleter,
+		APIDeleter:   apiDeleter,
+	}
+}
+
 // Delete deletes the specified podIdentityAssociations.
 func (d *Deleter) Delete(ctx context.Context, podIDs []Identifier) error {
+	tasks, err := d.DeleteTasks(ctx, podIDs)
+	if err != nil {
+		return err
+	}
+	return runAllTasks(tasks)
+}
+
+func (d *Deleter) DeleteTasks(ctx context.Context, podIDs []Identifier) (*tasks.TaskTree, error) {
 	roleStackNames, err := d.StackDeleter.ListStackNames(ctx, fmt.Sprintf("^%s*", makeStackNamePrefix(d.ClusterName)))
 	if err != nil {
-		return fmt.Errorf("error listing stack names for pod identity associations: %w", err)
+		return nil, fmt.Errorf("error listing stack names for pod identity associations: %w", err)
 	}
 	taskTree := &tasks.TaskTree{Parallel: true}
+
+	// this is true during cluster deletion, when no association identifier is given as user input,
+	// instead we will delete all pod-identity-role stacks for the cluster
+	if len(podIDs) == 0 {
+		for _, stackName := range roleStackNames {
+			taskTree.Append(&tasks.GenericTask{
+				Description: fmt.Sprintf("deleting IAM resources stack %q", stackName),
+				Doer: func() error {
+					return d.deleteRoleStack(ctx, stackName)
+				},
+			})
+		}
+		return taskTree, nil
+	}
+
 	for _, p := range podIDs {
 		taskTree.Append(d.makeDeleteTask(ctx, p, roleStackNames))
 	}
-
-	logger.Info(taskTree.Describe())
-	return runAllTasks(taskTree)
+	return taskTree, nil
 }
 
 func (d *Deleter) makeDeleteTask(ctx context.Context, p Identifier, roleStackNames []string) tasks.Task {
@@ -116,6 +144,10 @@ func (d *Deleter) deletePodIdentityAssociation(ctx context.Context, p Identifier
 		return nil
 	}
 	logger.Info("deleting IAM resources stack %q for pod identity association %q", stackName, podIdentityAssociationID)
+	return d.deleteRoleStack(ctx, stackName)
+}
+
+func (d *Deleter) deleteRoleStack(ctx context.Context, stackName string) error {
 	stack, err := d.StackDeleter.DescribeStack(ctx, &manager.Stack{
 		StackName: aws.String(stackName),
 	})
@@ -133,17 +165,6 @@ func (d *Deleter) deletePodIdentityAssociation(ctx context.Context, p Identifier
 	case <-ctx.Done():
 		return fmt.Errorf("timed out waiting for deletion of pod identity association: %w", ctx.Err())
 	}
-}
-
-func runAllTasks(taskTree *tasks.TaskTree) error {
-	if errs := taskTree.DoAllSync(); len(errs) > 0 {
-		var allErrs []string
-		for _, err := range errs {
-			allErrs = append(allErrs, err.Error())
-		}
-		return fmt.Errorf(strings.Join(allErrs, "\n"))
-	}
-	return nil
 }
 
 // ToIdentifiers maps a list of PodIdentityAssociations to a list of Identifiers.
