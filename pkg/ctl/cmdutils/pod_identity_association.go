@@ -29,22 +29,17 @@ func NewCreatePodIdentityAssociationLoader(cmd *Cmd, podIdentityAssociation *api
 	l.flagsIncompatibleWithConfigFile = sets.NewString(podIdentityAssociationFlagsIncompatibleWithConfigFile...)
 
 	l.validateWithConfigFile = func() error {
-		if len(cmd.ClusterConfig.IAM.PodIdentityAssociations) == 0 {
-			return fmt.Errorf("at least one pod identity association is required")
-		}
-		return nil
+		return validatePodIdentityAssociationsForConfig(l.ClusterConfig, true)
 	}
 
 	l.validateWithoutConfigFile = func() error {
-		if l.ClusterConfig.Metadata.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+		if err := validatePodIdentityAssociation(l, PodIdentityAssociationOptions{
+			Namespace:          podIdentityAssociation.Namespace,
+			ServiceAccountName: podIdentityAssociation.ServiceAccountName,
+		}); err != nil {
+			return err
 		}
-		if podIdentityAssociation.Namespace == "" {
-			return ErrMustBeSet("--namespace")
-		}
-		if podIdentityAssociation.ServiceAccountName == "" {
-			return ErrMustBeSet("--service-account-name")
-		}
+
 		if podIdentityAssociation.RoleARN == "" &&
 			len(podIdentityAssociation.PermissionPolicyARNs) == 0 &&
 			!podIdentityAssociation.WellKnownPolicies.HasPolicy() {
@@ -58,6 +53,7 @@ func NewCreatePodIdentityAssociationLoader(cmd *Cmd, podIdentityAssociation *api
 				return fmt.Errorf("--well-known-policies cannot be specified when --role-arn is set")
 			}
 		}
+
 		l.Cmd.ClusterConfig.IAM.PodIdentityAssociations = []api.PodIdentityAssociation{*podIdentityAssociation}
 		return nil
 	}
@@ -68,6 +64,8 @@ func NewCreatePodIdentityAssociationLoader(cmd *Cmd, podIdentityAssociation *api
 func NewGetPodIdentityAssociationLoader(cmd *Cmd, pia *api.PodIdentityAssociation) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
+	l.flagsIncompatibleWithConfigFile = sets.NewString("cluster")
+
 	l.validateWithoutConfigFile = func() error {
 		if cmd.ClusterConfig.Metadata.Name == "" {
 			return ErrMustBeSet(ClusterNameFlag(cmd))
@@ -77,6 +75,14 @@ func NewGetPodIdentityAssociationLoader(cmd *Cmd, pia *api.PodIdentityAssociatio
 		}
 		return nil
 	}
+
+	l.validateWithConfigFile = func() error {
+		if cmd.ClusterConfig.Metadata.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+		return nil
+	}
+
 	return l
 }
 
@@ -101,10 +107,43 @@ func validatePodIdentityAssociation(l *commonClusterConfigLoader, options PodIde
 	return nil
 }
 
-func validatePodIdentityAssociationForConfig(clusterConfig *api.ClusterConfig) error {
+func validatePodIdentityAssociationsForConfig(clusterConfig *api.ClusterConfig, isCreate bool) error {
 	if clusterConfig.IAM == nil || len(clusterConfig.IAM.PodIdentityAssociations) == 0 {
 		return errors.New("no iam.podIdentityAssociations specified in the config file")
 	}
+
+	for i, pia := range clusterConfig.IAM.PodIdentityAssociations {
+		path := fmt.Sprintf("podIdentityAssociations[%d]", i)
+		if pia.Namespace == "" {
+			return fmt.Errorf("%s.namespace must be set", path)
+		}
+		if pia.ServiceAccountName == "" {
+			return fmt.Errorf("%s.serviceAccountName must be set", path)
+		}
+
+		if !isCreate {
+			continue
+		}
+
+		if pia.RoleARN == "" &&
+			len(pia.PermissionPolicy) == 0 &&
+			len(pia.PermissionPolicyARNs) == 0 &&
+			!pia.WellKnownPolicies.HasPolicy() {
+			return fmt.Errorf("at least one of the following must be specified: %[1]s.roleARN, %[1]s.permissionPolicy, %[1]s.permissionPolicyARNs, %[1]s.wellKnownPolicies", path)
+		}
+		if pia.RoleARN != "" {
+			if len(pia.PermissionPolicy) > 0 {
+				return fmt.Errorf("%[1]s.permissionPolicy cannot be specified when %[1]s.roleARN is set", path)
+			}
+			if len(pia.PermissionPolicyARNs) > 0 {
+				return fmt.Errorf("%[1]s.permissionPolicyARNs cannot be specified when %[1]s.roleARN is set", path)
+			}
+			if pia.WellKnownPolicies.HasPolicy() {
+				return fmt.Errorf("%[1]s.wellKnownPolicies cannot be specified when %[1]s.roleARN is set", path)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -118,7 +157,7 @@ func NewDeletePodIdentityAssociationLoader(cmd *Cmd, options PodIdentityAssociat
 	}
 
 	l.validateWithConfigFile = func() error {
-		return validatePodIdentityAssociationForConfig(l.ClusterConfig)
+		return validatePodIdentityAssociationsForConfig(l.ClusterConfig, false)
 	}
 	return l
 }
@@ -146,7 +185,7 @@ func NewUpdatePodIdentityAssociationLoader(cmd *Cmd, options UpdatePodIdentityAs
 	}
 
 	l.validateWithConfigFile = func() error {
-		return validatePodIdentityAssociationForConfig(l.ClusterConfig)
+		return validatePodIdentityAssociationsForConfig(l.ClusterConfig, false)
 	}
 	return l
 }
