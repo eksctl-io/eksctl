@@ -110,6 +110,13 @@ var _ = Describe("Get", func() {
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				mockProvider.MockEKS().
 					On("ListPodIdentityAssociations", mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.ListPodIdentityAssociationsInput{}))
+						input := args[1].(*awseks.ListPodIdentityAssociationsInput)
+						Expect(aws.ToString(input.Namespace)).To(Equal(""))
+						Expect(aws.ToString(input.ServiceAccount)).To(Equal(""))
+					}).
 					Return(&awseks.ListPodIdentityAssociationsOutput{
 						Associations: []ekstypes.PodIdentityAssociationSummary{
 							{AssociationId: aws.String(associationID1)},
@@ -150,18 +157,23 @@ var _ = Describe("Get", func() {
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				mockProvider.MockEKS().
 					On("ListPodIdentityAssociations", mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.ListPodIdentityAssociationsInput{}))
+						input := args[1].(*awseks.ListPodIdentityAssociationsInput)
+						Expect(aws.ToString(input.Namespace)).To(Equal(namespace1))
+						Expect(aws.ToString(input.ServiceAccount)).To(Equal(""))
+					}).
 					Return(&awseks.ListPodIdentityAssociationsOutput{
 						Associations: []ekstypes.PodIdentityAssociationSummary{
 							{AssociationId: aws.String(associationID1)},
 							{AssociationId: aws.String(associationID2)},
-							{AssociationId: aws.String(associationID3)},
 						},
 					}, nil).
 					Once()
 
 				mockDescribePodIdentityAssociation(mockProvider, associationID1, associationARN1, namespace1, serviceAccountName1)
 				mockDescribePodIdentityAssociation(mockProvider, associationID2, associationARN2, namespace1, serviceAccountName2)
-				mockDescribePodIdentityAssociation(mockProvider, associationID3, associationARN3, namespace2, serviceAccountName2)
 			},
 			expectedAssociations: []podidentityassociation.Summary{
 				{
@@ -184,18 +196,21 @@ var _ = Describe("Get", func() {
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				mockProvider.MockEKS().
 					On("ListPodIdentityAssociations", mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.ListPodIdentityAssociationsInput{}))
+						input := args[1].(*awseks.ListPodIdentityAssociationsInput)
+						Expect(aws.ToString(input.Namespace)).To(Equal(namespace1))
+						Expect(aws.ToString(input.ServiceAccount)).To(Equal(serviceAccountName1))
+					}).
 					Return(&awseks.ListPodIdentityAssociationsOutput{
 						Associations: []ekstypes.PodIdentityAssociationSummary{
 							{AssociationId: aws.String(associationID1)},
-							{AssociationId: aws.String(associationID2)},
-							{AssociationId: aws.String(associationID3)},
 						},
 					}, nil).
 					Once()
 
 				mockDescribePodIdentityAssociation(mockProvider, associationID1, associationARN1, namespace1, serviceAccountName1)
-				mockDescribePodIdentityAssociation(mockProvider, associationID2, associationARN2, namespace1, serviceAccountName2)
-				mockDescribePodIdentityAssociation(mockProvider, associationID3, associationARN3, namespace2, serviceAccountName2)
 			},
 			expectedAssociations: []podidentityassociation.Summary{
 				{
@@ -213,18 +228,17 @@ var _ = Describe("Get", func() {
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				mockProvider.MockEKS().
 					On("ListPodIdentityAssociations", mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.ListPodIdentityAssociationsInput{}))
+						input := args[1].(*awseks.ListPodIdentityAssociationsInput)
+						Expect(aws.ToString(input.Namespace)).To(Equal(namespace2))
+						Expect(aws.ToString(input.ServiceAccount)).To(Equal(serviceAccountName1))
+					}).
 					Return(&awseks.ListPodIdentityAssociationsOutput{
-						Associations: []ekstypes.PodIdentityAssociationSummary{
-							{AssociationId: aws.String(associationID1)},
-							{AssociationId: aws.String(associationID2)},
-							{AssociationId: aws.String(associationID3)},
-						},
+						Associations: []ekstypes.PodIdentityAssociationSummary{},
 					}, nil).
 					Once()
-
-				mockDescribePodIdentityAssociation(mockProvider, associationID1, associationARN1, namespace1, serviceAccountName1)
-				mockDescribePodIdentityAssociation(mockProvider, associationID2, associationARN2, namespace1, serviceAccountName2)
-				mockDescribePodIdentityAssociation(mockProvider, associationID3, associationARN3, namespace2, serviceAccountName2)
 			},
 			expectedAssociations: []podidentityassociation.Summary{},
 		}),
