@@ -340,15 +340,17 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
 
 	eks.LogEnabledFeatures(cfg)
-	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(ctx, cfg)
 
+	postClusterCreationTasks := tasks.TaskTree{}
 	var preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
 	if len(cfg.Addons) > 0 {
 		preNodegroupAddons, postNodegroupAddons = addon.CreateAddonTasks(ctx, cfg, ctl, true, cmd.ProviderConfig.WaitTimeout)
 		postClusterCreationTasks.Append(preNodegroupAddons)
 	}
 
-	taskTree := stackManager.NewTasksToCreateClusterWithNodeGroups(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, postClusterCreationTasks)
+	postClusterCreationTasks.Append(ctl.CreateExtraClusterConfigTasks(ctx, cfg))
+
+	taskTree := stackManager.NewTasksToCreateClusterWithNodeGroups(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, &postClusterCreationTasks)
 
 	logger.Info(taskTree.Describe())
 	if errs := taskTree.DoAllSync(); len(errs) > 0 {

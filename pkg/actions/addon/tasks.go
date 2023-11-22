@@ -18,7 +18,8 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 	var preAddons []*api.Addon
 	var postAddons []*api.Addon
 	for _, addon := range cfg.Addons {
-		if strings.ToLower(addon.Name) == "vpc-cni" {
+		if strings.EqualFold(addon.Name, api.VPCCNIAddon) ||
+			strings.EqualFold(addon.Name, api.PodIdentityAgentAddon) {
 			preAddons = append(preAddons, addon)
 		} else {
 			postAddons = append(postAddons, addon)
