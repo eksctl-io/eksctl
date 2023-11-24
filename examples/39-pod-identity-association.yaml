@@ -11,7 +11,9 @@ managedNodeGroups:
   - name: mng1
 
 addons:
-  name: eks-pod-identity-agent
+  - name: eks-pod-identity-agent # required for `iam.podIdentityAssociations`
+    tags:
+      team: eks
 
 iam:  
   podIdentityAssociations: 

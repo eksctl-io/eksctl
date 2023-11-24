@@ -14,29 +14,27 @@ Behind the scenes, the implementation of pod identity associations is running an
 eksctl create addon --cluster my-cluster --name eks-pod-identity-agent
 ```
 
-Additionally, if using a pre-existing IAM role when creating a pod identity association, the user must configure the role to trust the newly introduced EKS service principal (`eks-pods.amazonaws.com`). An example IAM trust policy can be found below:
+Additionally, if using a pre-existing IAM role when creating a pod identity association, you must configure the role to trust the newly introduced EKS service principal (`pods.eks.amazonaws.com`). An example IAM trust policy can be found below:
 
-```
+```json
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-  			"Effect": "Allow",
-			"Action": [
-				"sts:AssumeRole",
-				"sts:TagSession"
-			],
-			"Principal": {
-	    		"Service": [
-	      			"eks-pods.amazonaws.com"
-				]
-	  		},
-		}
-	]
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "pods.eks.amazonaws.com"
+            },
+            "Action": [
+                "sts:AssumeRole",
+                "sts:TagSession"
+            ]
+        }
+    ]
 }
 ```
 
-If instead the user does not provide the ARN of an existing role to the create command, `eksctl` will create one behind the scenes and configure the above trust policy.
+If instead you do not provide the ARN of an existing role to the create command, `eksctl` will create one behind the scenes and configure the above trust policy.
 
 ## Creating Pod Identity Associations
 
@@ -75,23 +73,22 @@ eksctl create podidentityassociation -f config.yaml
 
 OR using CLI flags e.g.
 
-```
+```bash
 eksctl create podidentityassociation \
     --cluster my-cluster \
     --namespace default \
     --service-account-name s3-reader \
-    --permission-policy-arns="arn:aws:iam::111122223333:policy/permission-policy-1, arn:aws:iam::111122223333:policy/permission-policy-2"
+    --permission-policy-arns="arn:aws:iam::111122223333:policy/permission-policy-1, arn:aws:iam::111122223333:policy/permission-policy-2" \
     --well-known-policies="autoScaler,externalDNS" \
     --permissions-boundary-arn arn:aws:iam::111122223333:policy/permissions-boundary
-``` 
 ```
 
 ???+ note
-    Only a single IAM role can be associated to a service account at a time. Therefore, trying to create a second pod identity associations for the same service account will result in an error.
+    Only a single IAM role can be associated with a service account at a time. Therefore, trying to create a second pod identity association for the same service account will result in an error.
 
 ## Fetching Pod Identity Associations
 
-The user can retrieve all pod identity associations for a certain cluster by running one of the following:
+To retrieve all pod identity associations for a certain cluster, run one of the following commands:
 
 ```
 eksctl get podidentityassociation -f config.yaml
@@ -103,13 +100,13 @@ OR
 eksctl get podidentityassociation --cluster my-cluster
 ```
 
-Additionaly, to retrieve only the pod identity associations withing a given namespace, use the `--namespace` flag, e.g.
+Additionally, to retrieve only the pod identity associations within a given namespace, use the `--namespace` flag, e.g.
 
 ```
 eksctl get podidentityassociation --cluster my-cluster --namespace default
 ```
 
-And finally, to retrieve a single association, corresponding to a certain K8s service account, also include the `--service-account-name` to the command above, i.e.
+Finally, to retrieve a single association, corresponding to a certain K8s service account, also include the `--service-account-name` to the command above, i.e.
 
 ```
 eksctl get podidentityassociation --cluster my-cluster --namespace default --service-account-name s3-reader
@@ -120,7 +117,8 @@ eksctl get podidentityassociation --cluster my-cluster --namespace default --ser
 To update the IAM role of one or more pod identity associations, either pass the new `roleARN(s)` to the config file e.g.
 
 ```yaml
-podIdentityAssociations:
+iam:
+  podIdentityAssociations:
     - namespace: default
       serviceAccountName: s3-reader
       roleARN: new-role-arn-1
@@ -146,7 +144,8 @@ eksctl update podidentityassociation --cluster my-cluster --namespace default --
 To delete one or more pod identity associations, either pass `namespace(s)` and `serviceAccountName(s)` to the config file e.g.
 
 ```yaml
-podIdentityAssociations:
+iam:
+  podIdentityAssociations:
     - namespace: default
       serviceAccountName: s3-reader
     - namespace: dev
