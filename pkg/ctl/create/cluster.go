@@ -21,6 +21,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
 	"github.com/weaveworks/eksctl/pkg/actions/karpenter"
+	"github.com/weaveworks/eksctl/pkg/actions/podidentityassociation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -340,17 +341,15 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
 
 	eks.LogEnabledFeatures(cfg)
+	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(ctx, cfg)
 
-	postClusterCreationTasks := tasks.TaskTree{}
 	var preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
 	if len(cfg.Addons) > 0 {
 		preNodegroupAddons, postNodegroupAddons = addon.CreateAddonTasks(ctx, cfg, ctl, true, cmd.ProviderConfig.WaitTimeout)
 		postClusterCreationTasks.Append(preNodegroupAddons)
 	}
 
-	postClusterCreationTasks.Append(ctl.CreateExtraClusterConfigTasks(ctx, cfg))
-
-	taskTree := stackManager.NewTasksToCreateClusterWithNodeGroups(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, &postClusterCreationTasks)
+	taskTree := stackManager.NewTasksToCreateClusterWithNodeGroups(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, postClusterCreationTasks)
 
 	logger.Info(taskTree.Describe())
 	if errs := taskTree.DoAllSync(); len(errs) > 0 {
@@ -434,6 +433,16 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 					logger.Critical("%s\n", err.Error())
 				}
 				return errors.New("failed to create addons")
+			}
+		}
+
+		if len(cfg.IAM.PodIdentityAssociations) > 0 {
+			if err := podidentityassociation.NewCreator(
+				cfg.Metadata.Name,
+				stackManager,
+				ctl.AWSProvider.EKS(),
+			).CreatePodIdentityAssociations(ctx, cfg.IAM.PodIdentityAssociations); err != nil {
+				return err
 			}
 		}
 
