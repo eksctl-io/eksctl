@@ -3,6 +3,7 @@ package podidentityassociation
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
@@ -87,10 +88,11 @@ func (d *Deleter) DeleteTasks(ctx context.Context, podIDs []Identifier) (*tasks.
 	// instead we will delete all pod-identity-role stacks for the cluster
 	if len(podIDs) == 0 {
 		for _, stackName := range roleStackNames {
+			name := strings.Clone(stackName)
 			taskTree.Append(&tasks.GenericTask{
 				Description: fmt.Sprintf("deleting IAM resources stack %q", stackName),
 				Doer: func() error {
-					return d.deleteRoleStack(ctx, stackName)
+					return d.deleteRoleStack(ctx, name)
 				},
 			})
 		}

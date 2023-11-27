@@ -268,6 +268,26 @@ var _ = Describe("Pod Identity Deleter", func() {
 				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(3))
 				Expect(stackManager.DeleteStackBySpecSyncCallCount()).To(Equal(3))
+
+				var names []string
+				for i := 0; i < stackManager.DescribeStackCallCount(); i++ {
+					_, stack := stackManager.DescribeStackArgsForCall(i)
+					names = append(names, *stack.StackName)
+				}
+				Expect(names).To(ConsistOf(
+					makeStackName(podidentityassociation.Identifier{
+						Namespace:          "default",
+						ServiceAccountName: "default",
+					}),
+					makeStackName(podidentityassociation.Identifier{
+						Namespace:          "kube-system",
+						ServiceAccountName: "default",
+					}),
+					makeStackName(podidentityassociation.Identifier{
+						Namespace:          "kube-system",
+						ServiceAccountName: "aws-node",
+					}),
+				))
 			},
 		}),
 	)
