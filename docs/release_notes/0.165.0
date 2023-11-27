@@ -4,3 +4,16 @@
 
 - Add support for EKS Pod Identity Associations (#7312, #7313, #7315)
 
+## 🧰 Maintenance
+
+- Bump aws-sdk dependencies (#7292)
+- Bump dependencies (#7267)
+- Improve CRUD suite runtime (#7208)
+
+## 📝 Documentation
+
+- Fix README Links (#7230)
+
+## Acknowledgments
+Weaveworks would like to sincerely thank:
+@KlimDos 
