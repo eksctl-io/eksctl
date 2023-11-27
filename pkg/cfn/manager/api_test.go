@@ -135,7 +135,7 @@ var _ = Describe("StackCollection", func() {
 			// 1) DescribeStacks
 			// 2) CreateChangeSet
 			// 3) DescribeChangeSetRequest (FAILED to abort early)
-			// 4) DescribeChangeSet (StatusReason contains "The submitted information didn't contain changes" to exit with noChangeError)
+			// 4) DescribeChangeSet (StatusReason contains "The submitted information didn't contain changes" to exit with NoChangeError)
 
 			stackName := "eksctl-stack"
 			changeSetName := "eksctl-changeset"
@@ -168,7 +168,7 @@ var _ = Describe("StackCollection", func() {
 			// Order of AWS SDK invocation
 			// 1) DescribeStacks
 			// 2) CreateChangeSet
-			// 3) DescribeChangeSet (StatusReason contains "The submitted information didn't contain changes" to exit with noChangeError)
+			// 3) DescribeChangeSet (StatusReason contains "The submitted information didn't contain changes" to exit with NoChangeError)
 
 			stackName := "eksctl-stack"
 			changeSetName := "eksctl-changeset"

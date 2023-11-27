@@ -48,15 +48,6 @@ func ForFargateProfile(name string) string {
 	return fmt.Sprintf("fp-%s", RandomName(length, chars))
 }
 
-// ForIAMRole returns the provided name if non-empty, or else generates
-// a random name matching: pod-identity-role-[abcdef0123456789]{8}
-func ForIAMRole(name string) string {
-	if name != "" {
-		return name
-	}
-	return fmt.Sprintf("pod-identity-role-%s", RandomName(8, "abcdef0123456789"))
-}
-
 // useNameOrGenerate picks one of the provided strings or generates a
 // new one using the provided generate function
 func useNameOrGenerate(a, b string, generate func() string) string {

@@ -11,7 +11,6 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/actions/iamidentitymapping"
 	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
-	"github.com/weaveworks/eksctl/pkg/actions/podidentityassociation"
 
 	"github.com/weaveworks/eksctl/pkg/windows"
 
@@ -312,18 +311,6 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 				return c.RefreshClusterStatus(ctx, cfg)
 			},
 		})
-	}
-
-	if len(cfg.IAM.PodIdentityAssociations) > 0 {
-		piaTasks := tasks.TaskTree{
-			Parallel: true,
-		}
-		piaTasks.Append(podidentityassociation.NewCreator(
-			cfg.Metadata.Name,
-			c.NewStackManager(cfg),
-			c.AWSProvider.EKS(),
-		).CreateTasks(ctx, cfg.IAM.PodIdentityAssociations))
-		newTasks.Append(&piaTasks)
 	}
 
 	if cfg.HasWindowsNodeGroup() {
