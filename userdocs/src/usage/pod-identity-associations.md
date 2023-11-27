@@ -2,7 +2,7 @@
 
 ## Introduction
 
-AWS EKS has introduced an enhanced mechanism for cluster administrators to configure Kubernetes applications to receive IAM permissions required to connect with AWS services outside of the cluster. As before, this mechanism, called Pod Identity Association, leverages IRSA, however, it makes it configurable directly through EKS API, eliminating the need for using IAM API altogether. 
+AWS EKS has introduced a new enhanced mechanism called Pod Identity Association for cluster administrators to configure Kubernetes applications to receive IAM permissions required to connect with AWS services outside of the cluster. Pod Identity Association leverages IRSA however, it makes it configurable directly through EKS API, eliminating the need for using IAM API altogether. 
 
 As a result, IAM roles no longer need to reference an [OIDC provider](/usage/iamserviceaccounts/#how-it-works) and hence won't be tied to a single cluster anymore. This means, IAM roles can now be used across multiple EKS clusters without the need to update the role trust policy each time a new cluster is created. This in turn, eliminates the need for role duplication and simplifies the process of automating IRSA altogether.
 
