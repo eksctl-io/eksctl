@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -420,14 +421,14 @@ var (
 		return cfg
 	}
 
-	trustPolicy = aws.String(`{
+	trustPolicy = aws.String(fmt.Sprintf(`{
 		"Version": "2012-10-17",
 		"Statement": [
 		  {
 			"Effect": "Allow",
 			"Principal": {
 			  "Service": [
-				"beta.pods.eks.aws.internal"
+				"%s"
 			  ]
 			},
 			"Action": [
@@ -436,7 +437,7 @@ var (
 			]
 		  }
 		]
-	  }`)
+	  }`, api.EKSServicePrincipal))
 
 	permissionPolicy = api.InlineDocument{
 		"Version": "2012-10-17",
