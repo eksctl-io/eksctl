@@ -24,6 +24,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, getLabelsCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, getFargateProfile)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, getAddonCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, getPodIdentityAssociationCmd)
 
 	return verbCmd
 }

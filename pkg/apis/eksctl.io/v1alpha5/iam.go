@@ -10,6 +10,7 @@ import (
 // Commonly-used constants
 const (
 	AnnotationEKSRoleARN = "eks.amazonaws.com/role-arn"
+	EKSServicePrincipal  = "pods.eks.amazonaws.com"
 )
 
 // ClusterIAM holds all IAM attributes of a cluster
@@ -39,6 +40,11 @@ type ClusterIAM struct {
 	// See [IAM Service Accounts](/usage/iamserviceaccounts/#usage-with-config-files)
 	// +optional
 	ServiceAccounts []*ClusterIAMServiceAccount `json:"serviceAccounts,omitempty"`
+
+	// pod identity associations to create in the cluster.
+	// See [Pod Identity Associations](TBD)
+	// +optional
+	PodIdentityAssociations []PodIdentityAssociation `json:"podIdentityAssociations,omitempty"`
 
 	// VPCResourceControllerPolicy attaches the IAM policy
 	// necessary to run the VPC controller in the control plane
@@ -142,4 +148,30 @@ func (sa *ClusterIAMServiceAccount) SetAnnotations() {
 	if sa.Status != nil && sa.Status.RoleARN != nil {
 		sa.Annotations[AnnotationEKSRoleARN] = *sa.Status.RoleARN
 	}
+}
+
+type PodIdentityAssociation struct {
+	Namespace string `json:"namespace"`
+
+	ServiceAccountName string `json:"serviceAccountName"`
+
+	RoleARN string `json:"roleARN"`
+
+	// +optional
+	RoleName string `json:"roleName,omitempty"`
+
+	// +optional
+	PermissionsBoundaryARN string `json:"permissionsBoundaryARN,omitempty"`
+
+	// +optional
+	PermissionPolicyARNs []string `json:"permissionPolicyARNs,omitempty"`
+
+	// +optional
+	PermissionPolicy InlineDocument `json:"permissionPolicy,omitempty"`
+
+	// +optional
+	WellKnownPolicies WellKnownPolicies `json:"wellKnownPolicies,omitempty"`
+
+	// +optional
+	Tags map[string]string `json:"tags,omitempty"`
 }

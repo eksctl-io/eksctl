@@ -1,0 +1,52 @@
+# An example config for creating pod identity associations.
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-39
+  region: us-west-2
+
+managedNodeGroups:
+  - name: mng1
+
+addons:
+  - name: eks-pod-identity-agent # required for `iam.podIdentityAssociations`
+    tags:
+      team: eks
+
+iam:  
+  podIdentityAssociations: 
+  # roleARN is given, eksctl will only create the pod identity association 
+  - namespace: default
+    serviceAccountName: s3-reader
+    roleARN: arn:aws:iam::111122223333:role/role-1 
+
+  # roleARN is not given, eksctl will first create an IAM role with given roleName using:
+  # permissionPolicyARNs, wellKnownPolicies and permissionsBoundaryARN 
+  - namespace: dev
+    serviceAccountName: app-cache-access
+    roleName: pod-identity-role-app-cache
+    permissionPolicyARNs: ["arn:aws:iam::111122223333:policy/permission-policy-1", "arn:aws:iam::111122223333:policy/permission-policy-2"]
+    wellKnownPolicies:
+      autoScaler: true
+      externalDNS: true
+    permissionsBoundaryARN: arn:aws:iam::111122223333:policy/permission-boundary
+
+  # roleARN is not given, eksctl will first create an IAM role with automatically generated roleName,
+  # using the permissionPolicy inline document
+  - namespace: dev
+    serviceAccountName: nginx
+    permissionPolicy:
+      Version: "2012-10-17"
+      Statement:
+      - Effect: Allow
+        Action:
+        - "autoscaling:DescribeAutoScalingGroups"
+        - "autoscaling:DescribeAutoScalingInstances"
+        - "autoscaling:DescribeLaunchConfigurations"
+        - "autoscaling:DescribeTags"
+        - "autoscaling:SetDesiredCapacity"
+        - "autoscaling:TerminateInstanceInAutoScalingGroup"
+        - "ec2:DescribeLaunchTemplateVersions"
+        Resource: '*'

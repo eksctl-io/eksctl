@@ -1,6 +1,9 @@
 package template
 
-import gfn "github.com/weaveworks/goformation/v4/cloudformation/types"
+import (
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	gfn "github.com/weaveworks/goformation/v4/cloudformation/types"
+)
 
 // AttachPolicy attaches the specified policy document
 func (t *Template) AttachPolicy(name string, refRole *Value, policyDoc MapOfInterfaces) {
@@ -51,5 +54,19 @@ func MakeAssumeRoleWithWebIdentityPolicyDocument(providerARN string, condition M
 			"Federated": providerARN,
 		},
 		"Condition": condition,
+	})
+}
+
+// MakeAssumeRolePolicyDocumentForPodIdentity constructs a trust policy for roles used in pods identity associations
+func MakeAssumeRolePolicyDocumentForPodIdentity() MapOfInterfaces {
+	return MakePolicyDocument(MapOfInterfaces{
+		"Effect": "Allow",
+		"Action": []string{
+			"sts:AssumeRole",
+			"sts:TagSession",
+		},
+		"Principal": map[string]string{
+			"Service": api.EKSServicePrincipal,
+		},
 	})
 }

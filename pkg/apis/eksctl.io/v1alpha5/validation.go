@@ -16,10 +16,9 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
-	corev1 "k8s.io/api/core/v1"
-
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/taints"
+	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/util/validation"
 	kubeletapis "k8s.io/kubelet/pkg/apis"
@@ -48,6 +47,10 @@ var (
 		"updates to some AWS resources.  See: " +
 		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html " +
 		"for more details")
+
+	ErrPodIdentityAgentNotInstalled = func(suggestion string) error {
+		return fmt.Errorf("the `%s` addon must be installed to create pod identity associations; %s", PodIdentityAgentAddon, suggestion)
+	}
 )
 
 // NOTE: we don't use k8s.io/apimachinery/pkg/util/sets here to keep API package free of dependencies
