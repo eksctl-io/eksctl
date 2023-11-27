@@ -34,8 +34,9 @@ const (
 	sa2 = "service-account-2"
 	sa3 = "service-account-3"
 
-	initialRole1 = "pod-identity-role-11"
-	initialRole2 = "pod-identity-role-12"
+	rolePrefix   = "eksctl-"
+	initialRole1 = rolePrefix + "pod-identity-role-1"
+	initialRole2 = rolePrefix + "pod-identity-role-2"
 )
 
 var (
@@ -351,13 +352,14 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 
 		Context("Unowned pod identity association", func() {
 			BeforeAll(func() {
-				ctl.AWSProvider.EKS().CreatePodIdentityAssociation(context.Background(),
+				_, err := ctl.AWSProvider.EKS().CreatePodIdentityAssociation(context.Background(),
 					&awseks.CreatePodIdentityAssociationInput{
 						ClusterName:    &params.ClusterName,
 						Namespace:      aws.String(nsUnowned),
 						ServiceAccount: aws.String(sa1),
 						RoleArn:        &role1ARN,
 					})
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("should fetch an unowned association", func() {

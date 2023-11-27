@@ -31,11 +31,11 @@ var _ = Describe("create pod identity association", func() {
 		}),
 		Entry("missing required flag --namespace", createPodIdentityAssociationEntry{
 			args:        []string{"--cluster", "test-cluster"},
-			expectedErr: "--namespace must be set",
+			expectedErr: "--namespace is required",
 		}),
 		Entry("missing required flag --service-account-name", createPodIdentityAssociationEntry{
 			args:        []string{"--cluster", "test-cluster", "--namespace", "test-namespace"},
-			expectedErr: "--service-account-name must be set",
+			expectedErr: "--service-account-name is required",
 		}),
 		Entry("setting --cluster and --config-file at the same time", createPodIdentityAssociationEntry{
 			args:        []string{"--cluster", "test-cluster", "--config-file", configFile},
