@@ -1,0 +1,6 @@
+# Release v0.165.0
+
+## 🚀 Features
+
+- Add support for EKS Pod Identity Associations (#7312, #7313, #7315)
+
