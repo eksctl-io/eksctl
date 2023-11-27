@@ -31,7 +31,9 @@ func (t *createIAMRoleTask) Describe() string {
 
 func (t *createIAMRoleTask) Do(errorCh chan error) error {
 	rs := builder.NewIAMRoleResourceSetForPodIdentity(t.podIdentityAssociation)
-	rs.AddAllResources()
+	if err := rs.AddAllResources(); err != nil {
+		return err
+	}
 	if err := t.stackManager.CreateStack(t.ctx,
 		MakeStackName(
 			t.clusterName,

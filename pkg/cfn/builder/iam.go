@@ -356,9 +356,8 @@ func (rs *IAMRoleResourceSet) makeAssumeRolePolicyDocument() cft.MapOfInterfaces
 	if rs.serviceAccount != "" && rs.namespace != "" {
 		logger.Debug("service account location provided: %s/%s, adding sub condition", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
 		return rs.oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions(rs.namespace, rs.serviceAccount)
-	} else {
-		return rs.oidc.MakeAssumeRolePolicyDocument()
 	}
+	return rs.oidc.MakeAssumeRolePolicyDocument()
 }
 
 // RenderJSON will render iamserviceaccount stack as JSON

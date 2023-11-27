@@ -208,7 +208,7 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	}
 
 	if err := validatePodIdentityAssociations(cfg); err != nil {
-		return err
+		return fmt.Errorf("failed to validate pod identity associations: %w", err)
 	}
 
 	return nil
