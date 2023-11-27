@@ -6,6 +6,7 @@
 
 ## 🧰 Maintenance
 
+- Ignore google docs domains for link checker (#7316)
 - Bump aws-sdk dependencies (#7292)
 - Bump dependencies (#7267)
 - Improve CRUD suite runtime (#7208)
