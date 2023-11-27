@@ -19,3 +19,5 @@ schema.js
 weave-community.slack.com
 netlify.com
 slack.k8s.io
+docs.google.com
+groups.google.com
