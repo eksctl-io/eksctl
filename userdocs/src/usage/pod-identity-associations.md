@@ -167,4 +167,5 @@ eksctl delete podidentityassociation --cluster my-cluster --namespace default --
 ## Further references
 
 [Official AWS Blog Post](https://aws.amazon.com/blogs/aws/amazon-eks-pod-identity-simplifies-iam-permissions-for-applications-on-amazon-eks-clusters/)
+
 [Official AWS userdocs](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html)
