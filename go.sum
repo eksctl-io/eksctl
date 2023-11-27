@@ -859,7 +859,6 @@ github.com/googleapis/gax-go/v2 v2.1.1/go.mod h1:hddJymUZASv3XPyGkUpKj8pPO47Rmb0
 github.com/googleapis/gax-go/v2 v2.2.0/go.mod h1:as02EH8zWkzwUoLbBaFeQ+arQaj/OthfcblKl4IGNaM=
 github.com/googleapis/gax-go/v2 v2.12.0 h1:A+gCJKdRfqXkr+BIRGtZLibNXf0m1f9E4HG56etFpas=
 github.com/googleapis/gax-go/v2 v2.12.0/go.mod h1:y+aIqrI5eb1YGMVJfuV3185Ts/D7qKpsEkdD5+I6QGU=
-github.com/googleapis/go-type-adapters v1.0.0/go.mod h1:zHW75FOG2aur7gAO2B+MLby+cLsWGBF62rFAi7WjWO4=
 github.com/googleapis/google-cloud-go-testing v0.0.0-20200911160855-bcd43fbb19e8/go.mod h1:dvDLG8qkwmyD9a/MJJN3XJcT3xFxOKAvTZGvuZmac9g=
 github.com/gophercloud/gophercloud v1.1.1 h1:MuGyqbSxiuVBqkPZ3+Nhbytk1xZxhmfCB2Rg1cJWFWM=
 github.com/gophercloud/gophercloud v1.1.1/go.mod h1:aAVqcocTSXh2vYFZ1JTvx4EQmfgzxRcNupUfxZbBNDM=
@@ -1639,8 +1638,8 @@ github.com/vbatts/tar-split v0.11.2 h1:Via6XqJr0hceW4wff3QRzD5gAk/tatMw/4ZA7cTlI
 github.com/vbatts/tar-split v0.11.2/go.mod h1:vV3ZuO2yWSVsz+pfFzDG/upWH1JhjOiEaWq6kXyQ3VI=
 github.com/vburenin/ifacemaker v1.2.1 h1:3Vq8B/bfBgjWTkv+jDg4dVL1KHt3k1K4lO7XRxYA2sk=
 github.com/vburenin/ifacemaker v1.2.1/go.mod h1:5WqrzX2aD7/hi+okBjcaEQJMg4lDGrpuEX3B8L4Wgrs=
-github.com/vektra/mockery/v2 v2.36.1 h1:F/2tEFFRWdHe36smr+e6YIiKzXTZVd0cCAUqG0GTw1s=
-github.com/vektra/mockery/v2 v2.36.1/go.mod h1:diB13hxXG6QrTR0ol2Rk8s2dRMftzvExSvPDKr+IYKk=
+github.com/vektra/mockery/v2 v2.38.0 h1:I0LBuUzZHqAU4d1DknW0DTFBPO6n8TaD38WL2KJf3yI=
+github.com/vektra/mockery/v2 v2.38.0/go.mod h1:diB13hxXG6QrTR0ol2Rk8s2dRMftzvExSvPDKr+IYKk=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b/hrE0s/Ixfpp2cuwH9IO9oZBAN9iYa4A=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
 github.com/weaveworks/goformation/v4 v4.10.2-0.20230526082129-5f5eaa9609b8 h1:qjATkrajxxCgWIQaVgOmG8RiRwGGn1mOm6szwVty7zA=
@@ -1689,7 +1688,6 @@ github.com/yvasiyarov/go-metrics v0.0.0-20140926110328-57bccd1ccd43 h1:+lm10QQTN
 github.com/yvasiyarov/gorelic v0.0.0-20141212073537-a9bba5b9ab50 h1:hlE8//ciYMztlGpl/VA+Zm1AcTPHYkHJPbHqE6WJUXE=
 github.com/yvasiyarov/newrelic_platform_go v0.0.0-20140908184405-b21fdbd4370f h1:ERexzlUfuTvpE74urLSbIQW0Z/6hF9t8U4NsJLaioAY=
 github.com/zenazn/goji v0.9.0/go.mod h1:7S9M489iMyHBNxwZnk9/EHS098H4/F6TATF2mIxtB1Q=
-github.com/ziutek/mymysql v1.5.4/go.mod h1:LMSpPZ6DbqWFxNCHW77HeMg9I646SAhApZ/wKdgO/C0=
 gitlab.com/bosi/decorder v0.4.1 h1:VdsdfxhstabyhZovHafFw+9eJ6eU0d2CkFNJcZz/NU4=
 gitlab.com/bosi/decorder v0.4.1/go.mod h1:jecSqWUew6Yle1pCr2eLWTensJMmsxHsBwt+PVbkAqA=
 gitlab.com/digitalxero/go-conventional-commit v1.0.7 h1:8/dO6WWG+98PMhlZowt/YjuiKhqhGlOCwlIV8SqqGh8=
