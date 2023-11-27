@@ -187,6 +187,7 @@ nav:
       - usage/iam-policies.md
       - usage/iam-identity-mappings.md
       - usage/iamserviceaccounts.md
+      - usage/pod-identity-associations.md
     - usage/dry-run.md
     - usage/schema.md
     - usage/eksctl-anywhere.md
