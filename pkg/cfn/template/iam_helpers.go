@@ -1,6 +1,9 @@
 package template
 
-import gfn "github.com/weaveworks/goformation/v4/cloudformation/types"
+import (
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	gfn "github.com/weaveworks/goformation/v4/cloudformation/types"
+)
 
 // AttachPolicy attaches the specified policy document
 func (t *Template) AttachPolicy(name string, refRole *Value, policyDoc MapOfInterfaces) {
@@ -63,7 +66,7 @@ func MakeAssumeRolePolicyDocumentForPodIdentity() MapOfInterfaces {
 			"sts:TagSession",
 		},
 		"Principal": map[string]string{
-			"Service": "beta.pods.eks.aws.internal",
+			"Service": api.EKSServicePrincipal,
 		},
 	})
 }

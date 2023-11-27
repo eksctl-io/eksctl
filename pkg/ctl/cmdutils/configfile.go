@@ -312,6 +312,9 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				suggestion := fmt.Sprintf("please add `%s` addon to the config file", api.PodIdentityAgentAddon)
 				return api.ErrPodIdentityAgentNotInstalled(suggestion)
 			}
+			if err := validatePodIdentityAssociationsForConfig(clusterConfig, true); err != nil {
+				return err
+			}
 		}
 
 		return validateDryRun()

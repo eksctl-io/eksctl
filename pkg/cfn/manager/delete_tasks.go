@@ -29,6 +29,9 @@ type NewOIDCManager func() (*iamoidc.OpenIDConnectManager, error)
 // NewTasksToDeleteAddonIAM temporary type, to be removed after moving NewTasksToDeleteClusterWithNodeGroups to actions package
 type NewTasksToDeleteAddonIAM func(ctx context.Context, wait bool) (*tasks.TaskTree, error)
 
+// NewTasksToDeletePodIdentityRoles temporary type, to be removed after moving NewTasksToDeleteClusterWithNodeGroups to actions package
+type NewTasksToDeletePodIdentityRole func() (*tasks.TaskTree, error)
+
 // NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete the given cluster along with all of its resources
 func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(
 	ctx context.Context,
@@ -37,6 +40,7 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(
 	clusterOperable bool,
 	newOIDCManager NewOIDCManager,
 	newTasksToDeleteAddonIAM NewTasksToDeleteAddonIAM,
+	newTasksToDeletePodIdentityRole NewTasksToDeletePodIdentityRole,
 	cluster *ekstypes.Cluster,
 	clientSetGetter kubernetes.ClientSetGetter,
 	wait, force bool,
@@ -73,6 +77,16 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(
 	if deleteAddonIAMTasks.Len() > 0 {
 		deleteAddonIAMTasks.IsSubTask = true
 		taskTree.Append(deleteAddonIAMTasks)
+	}
+
+	deletePodIdentityRoleTasks, err := newTasksToDeletePodIdentityRole()
+	if err != nil {
+		return nil, err
+	}
+
+	if deletePodIdentityRoleTasks.Len() > 0 {
+		deletePodIdentityRoleTasks.IsSubTask = true
+		taskTree.Append(deletePodIdentityRoleTasks)
 	}
 
 	if clusterStack == nil {

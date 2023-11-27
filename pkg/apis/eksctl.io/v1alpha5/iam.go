@@ -10,6 +10,7 @@ import (
 // Commonly-used constants
 const (
 	AnnotationEKSRoleARN = "eks.amazonaws.com/role-arn"
+	EKSServicePrincipal  = "pods.eks.amazonaws.com"
 )
 
 // ClusterIAM holds all IAM attributes of a cluster
