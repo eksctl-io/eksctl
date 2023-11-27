@@ -16,10 +16,9 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
-	corev1 "k8s.io/api/core/v1"
-
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/taints"
+	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/util/validation"
 	kubeletapis "k8s.io/kubelet/pkg/apis"
@@ -48,6 +47,10 @@ var (
 		"updates to some AWS resources.  See: " +
 		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html " +
 		"for more details")
+
+	ErrPodIdentityAgentNotInstalled = func(suggestion string) error {
+		return fmt.Errorf("the `%s` addon must be installed to create pod identity associations; %s", PodIdentityAgentAddon, suggestion)
+	}
 )
 
 // NOTE: we don't use k8s.io/apimachinery/pkg/util/sets here to keep API package free of dependencies
@@ -204,6 +207,10 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return fmt.Errorf("failed to validate Karpenter config: %w", err)
 	}
 
+	if err := validatePodIdentityAssociations(cfg); err != nil {
+		return fmt.Errorf("failed to validate pod identity associations: %w", err)
+	}
+
 	return nil
 }
 
@@ -276,6 +283,36 @@ func validateCloudWatchLogging(clusterConfig *ClusterConfig) error {
 		return errors.Errorf("invalid value %d for logRetentionInDays; supported values are %v", logRetentionDays, LogRetentionInDaysValues)
 	}
 
+	return nil
+}
+
+func validatePodIdentityAssociations(cfg *ClusterConfig) error {
+	for i, pia := range cfg.IAM.PodIdentityAssociations {
+		path := fmt.Sprintf("podIdentityAssociations[%d]", i)
+		if pia.Namespace == "" {
+			return fmt.Errorf("%s.namespace must be set", path)
+		}
+		if pia.ServiceAccountName == "" {
+			return fmt.Errorf("%s.serviceAccountName must be set", path)
+		}
+		if pia.RoleARN == "" &&
+			len(pia.PermissionPolicy) == 0 &&
+			len(pia.PermissionPolicyARNs) == 0 &&
+			!pia.WellKnownPolicies.HasPolicy() {
+			return fmt.Errorf("at least one of the following must be specified: %[1]s.roleARN, %[1]s.permissionPolicy, %[1]s.permissionPolicyARNs, %[1]s.wellKnownPolicies", path)
+		}
+		if pia.RoleARN != "" {
+			if len(pia.PermissionPolicy) > 0 {
+				return fmt.Errorf("%[1]s.permissionPolicy cannot be specified when %[1]s.roleARN is set", path)
+			}
+			if len(pia.PermissionPolicyARNs) > 0 {
+				return fmt.Errorf("%[1]s.permissionPolicyARNs cannot be specified when %[1]s.roleARN is set", path)
+			}
+			if pia.WellKnownPolicies.HasPolicy() {
+				return fmt.Errorf("%[1]s.wellKnownPolicies cannot be specified when %[1]s.roleARN is set", path)
+			}
+		}
+	}
 	return nil
 }
 

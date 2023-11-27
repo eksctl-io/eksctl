@@ -8,12 +8,14 @@ import (
 	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/iam"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
 
 	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/cfn/template"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
@@ -222,6 +224,27 @@ func NewIAMRoleResourceSetForServiceAccount(spec *api.ClusterIAMServiceAccount, 
 	}
 }
 
+func NewIAMRoleResourceSetForPodIdentity(spec *api.PodIdentityAssociation) *IAMRoleResourceSet {
+	return &IAMRoleResourceSet{
+		template:            cft.NewTemplate(),
+		attachPolicy:        spec.PermissionPolicy,
+		attachPolicyARNs:    spec.PermissionPolicyARNs,
+		serviceAccount:      spec.ServiceAccountName,
+		namespace:           spec.Namespace,
+		wellKnownPolicies:   spec.WellKnownPolicies,
+		roleName:            names.ForIAMRole(spec.RoleName),
+		permissionsBoundary: spec.PermissionsBoundaryARN,
+		description: fmt.Sprintf(
+			"IAM role for pod identity association %s",
+			templateDescriptionSuffix,
+		),
+		roleNameCollector: func(v string) error {
+			spec.RoleARN = v
+			return nil
+		},
+	}
+}
+
 // IAMRoleResourceSet holds IAM Role stack build-time information
 type IAMRoleResourceSet struct {
 	template            *cft.Template
@@ -289,16 +312,8 @@ func (rs *IAMRoleResourceSet) WithNamedIAM() bool { return rs.roleName != "" }
 func (rs *IAMRoleResourceSet) AddAllResources() error {
 	rs.template.Description = rs.description
 
-	var assumeRolePolicyDocument cft.MapOfInterfaces
-	if rs.serviceAccount != "" && rs.namespace != "" {
-		logger.Debug("service account location provided: %s/%s, adding sub condition", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
-		assumeRolePolicyDocument = rs.oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions(rs.namespace, rs.serviceAccount)
-	} else {
-		assumeRolePolicyDocument = rs.oidc.MakeAssumeRolePolicyDocument()
-	}
-
 	role := &cft.IAMRole{
-		AssumeRolePolicyDocument: assumeRolePolicyDocument,
+		AssumeRolePolicyDocument: rs.makeAssumeRolePolicyDocument(),
 		PermissionsBoundary:      rs.permissionsBoundary,
 		RoleName:                 rs.roleName,
 	}
@@ -332,6 +347,17 @@ func (rs *IAMRoleResourceSet) AddAllResources() error {
 	}
 
 	return nil
+}
+
+func (rs *IAMRoleResourceSet) makeAssumeRolePolicyDocument() cft.MapOfInterfaces {
+	if rs.oidc == nil {
+		return template.MakeAssumeRolePolicyDocumentForPodIdentity()
+	}
+	if rs.serviceAccount != "" && rs.namespace != "" {
+		logger.Debug("service account location provided: %s/%s, adding sub condition", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
+		return rs.oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions(rs.namespace, rs.serviceAccount)
+	}
+	return rs.oidc.MakeAssumeRolePolicyDocument()
 }
 
 // RenderJSON will render iamserviceaccount stack as JSON

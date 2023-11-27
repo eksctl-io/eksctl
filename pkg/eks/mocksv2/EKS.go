@@ -146,6 +146,39 @@ func (_m *EKS) CreateCluster(ctx context.Context, params *eks.CreateClusterInput
 	return r0, r1
 }
 
+// CreateEksAnywhereSubscription provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) CreateEksAnywhereSubscription(ctx context.Context, params *eks.CreateEksAnywhereSubscriptionInput, optFns ...func(*eks.Options)) (*eks.CreateEksAnywhereSubscriptionOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.CreateEksAnywhereSubscriptionOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CreateEksAnywhereSubscriptionInput, ...func(*eks.Options)) (*eks.CreateEksAnywhereSubscriptionOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CreateEksAnywhereSubscriptionInput, ...func(*eks.Options)) *eks.CreateEksAnywhereSubscriptionOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.CreateEksAnywhereSubscriptionOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.CreateEksAnywhereSubscriptionInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateFargateProfile provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) CreateFargateProfile(ctx context.Context, params *eks.CreateFargateProfileInput, optFns ...func(*eks.Options)) (*eks.CreateFargateProfileOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -204,6 +237,39 @@ func (_m *EKS) CreateNodegroup(ctx context.Context, params *eks.CreateNodegroupI
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.CreateNodegroupInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreatePodIdentityAssociation provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) CreatePodIdentityAssociation(ctx context.Context, params *eks.CreatePodIdentityAssociationInput, optFns ...func(*eks.Options)) (*eks.CreatePodIdentityAssociationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.CreatePodIdentityAssociationOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CreatePodIdentityAssociationInput, ...func(*eks.Options)) (*eks.CreatePodIdentityAssociationOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CreatePodIdentityAssociationInput, ...func(*eks.Options)) *eks.CreatePodIdentityAssociationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.CreatePodIdentityAssociationOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.CreatePodIdentityAssociationInput, ...func(*eks.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -278,6 +344,39 @@ func (_m *EKS) DeleteCluster(ctx context.Context, params *eks.DeleteClusterInput
 	return r0, r1
 }
 
+// DeleteEksAnywhereSubscription provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) DeleteEksAnywhereSubscription(ctx context.Context, params *eks.DeleteEksAnywhereSubscriptionInput, optFns ...func(*eks.Options)) (*eks.DeleteEksAnywhereSubscriptionOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.DeleteEksAnywhereSubscriptionOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DeleteEksAnywhereSubscriptionInput, ...func(*eks.Options)) (*eks.DeleteEksAnywhereSubscriptionOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DeleteEksAnywhereSubscriptionInput, ...func(*eks.Options)) *eks.DeleteEksAnywhereSubscriptionOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DeleteEksAnywhereSubscriptionOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DeleteEksAnywhereSubscriptionInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteFargateProfile provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DeleteFargateProfile(ctx context.Context, params *eks.DeleteFargateProfileInput, optFns ...func(*eks.Options)) (*eks.DeleteFargateProfileOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -336,6 +435,39 @@ func (_m *EKS) DeleteNodegroup(ctx context.Context, params *eks.DeleteNodegroupI
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.DeleteNodegroupInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeletePodIdentityAssociation provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) DeletePodIdentityAssociation(ctx context.Context, params *eks.DeletePodIdentityAssociationInput, optFns ...func(*eks.Options)) (*eks.DeletePodIdentityAssociationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.DeletePodIdentityAssociationOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DeletePodIdentityAssociationInput, ...func(*eks.Options)) (*eks.DeletePodIdentityAssociationOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DeletePodIdentityAssociationInput, ...func(*eks.Options)) *eks.DeletePodIdentityAssociationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DeletePodIdentityAssociationOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DeletePodIdentityAssociationInput, ...func(*eks.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -509,6 +641,39 @@ func (_m *EKS) DescribeCluster(ctx context.Context, params *eks.DescribeClusterI
 	return r0, r1
 }
 
+// DescribeEksAnywhereSubscription provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) DescribeEksAnywhereSubscription(ctx context.Context, params *eks.DescribeEksAnywhereSubscriptionInput, optFns ...func(*eks.Options)) (*eks.DescribeEksAnywhereSubscriptionOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.DescribeEksAnywhereSubscriptionOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeEksAnywhereSubscriptionInput, ...func(*eks.Options)) (*eks.DescribeEksAnywhereSubscriptionOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeEksAnywhereSubscriptionInput, ...func(*eks.Options)) *eks.DescribeEksAnywhereSubscriptionOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeEksAnywhereSubscriptionOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeEksAnywhereSubscriptionInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeFargateProfile provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DescribeFargateProfile(ctx context.Context, params *eks.DescribeFargateProfileInput, optFns ...func(*eks.Options)) (*eks.DescribeFargateProfileOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -600,6 +765,39 @@ func (_m *EKS) DescribeNodegroup(ctx context.Context, params *eks.DescribeNodegr
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeNodegroupInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribePodIdentityAssociation provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) DescribePodIdentityAssociation(ctx context.Context, params *eks.DescribePodIdentityAssociationInput, optFns ...func(*eks.Options)) (*eks.DescribePodIdentityAssociationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.DescribePodIdentityAssociationOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribePodIdentityAssociationInput, ...func(*eks.Options)) (*eks.DescribePodIdentityAssociationOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribePodIdentityAssociationInput, ...func(*eks.Options)) *eks.DescribePodIdentityAssociationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribePodIdentityAssociationOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribePodIdentityAssociationInput, ...func(*eks.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -740,6 +938,39 @@ func (_m *EKS) ListClusters(ctx context.Context, params *eks.ListClustersInput, 
 	return r0, r1
 }
 
+// ListEksAnywhereSubscriptions provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) ListEksAnywhereSubscriptions(ctx context.Context, params *eks.ListEksAnywhereSubscriptionsInput, optFns ...func(*eks.Options)) (*eks.ListEksAnywhereSubscriptionsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.ListEksAnywhereSubscriptionsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListEksAnywhereSubscriptionsInput, ...func(*eks.Options)) (*eks.ListEksAnywhereSubscriptionsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListEksAnywhereSubscriptionsInput, ...func(*eks.Options)) *eks.ListEksAnywhereSubscriptionsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListEksAnywhereSubscriptionsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListEksAnywhereSubscriptionsInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListFargateProfiles provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) ListFargateProfiles(ctx context.Context, params *eks.ListFargateProfilesInput, optFns ...func(*eks.Options)) (*eks.ListFargateProfilesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -831,6 +1062,39 @@ func (_m *EKS) ListNodegroups(ctx context.Context, params *eks.ListNodegroupsInp
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListNodegroupsInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListPodIdentityAssociations provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) ListPodIdentityAssociations(ctx context.Context, params *eks.ListPodIdentityAssociationsInput, optFns ...func(*eks.Options)) (*eks.ListPodIdentityAssociationsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.ListPodIdentityAssociationsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListPodIdentityAssociationsInput, ...func(*eks.Options)) (*eks.ListPodIdentityAssociationsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListPodIdentityAssociationsInput, ...func(*eks.Options)) *eks.ListPodIdentityAssociationsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListPodIdentityAssociationsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListPodIdentityAssociationsInput, ...func(*eks.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -1103,6 +1367,39 @@ func (_m *EKS) UpdateClusterVersion(ctx context.Context, params *eks.UpdateClust
 	return r0, r1
 }
 
+// UpdateEksAnywhereSubscription provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) UpdateEksAnywhereSubscription(ctx context.Context, params *eks.UpdateEksAnywhereSubscriptionInput, optFns ...func(*eks.Options)) (*eks.UpdateEksAnywhereSubscriptionOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.UpdateEksAnywhereSubscriptionOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UpdateEksAnywhereSubscriptionInput, ...func(*eks.Options)) (*eks.UpdateEksAnywhereSubscriptionOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UpdateEksAnywhereSubscriptionInput, ...func(*eks.Options)) *eks.UpdateEksAnywhereSubscriptionOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdateEksAnywhereSubscriptionOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.UpdateEksAnywhereSubscriptionInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateNodegroupConfig provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) UpdateNodegroupConfig(ctx context.Context, params *eks.UpdateNodegroupConfigInput, optFns ...func(*eks.Options)) (*eks.UpdateNodegroupConfigOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1161,6 +1458,39 @@ func (_m *EKS) UpdateNodegroupVersion(ctx context.Context, params *eks.UpdateNod
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.UpdateNodegroupVersionInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdatePodIdentityAssociation provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) UpdatePodIdentityAssociation(ctx context.Context, params *eks.UpdatePodIdentityAssociationInput, optFns ...func(*eks.Options)) (*eks.UpdatePodIdentityAssociationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.UpdatePodIdentityAssociationOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UpdatePodIdentityAssociationInput, ...func(*eks.Options)) (*eks.UpdatePodIdentityAssociationOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UpdatePodIdentityAssociationInput, ...func(*eks.Options)) *eks.UpdatePodIdentityAssociationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdatePodIdentityAssociationOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.UpdatePodIdentityAssociationInput, ...func(*eks.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
