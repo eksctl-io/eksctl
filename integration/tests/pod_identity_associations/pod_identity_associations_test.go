@@ -44,17 +44,12 @@ var (
 	params             *tests.Params
 	ctl                *eks.ClusterProvider
 	role1ARN, role2ARN string
-	err                error
 )
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
 	params = tests.NewParamsWithGivenClusterName("pod-identity-associations", "test")
-	ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, nil)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func TestPodIdentityAssociations(t *testing.T) {
@@ -62,6 +57,9 @@ func TestPodIdentityAssociations(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
+	var err error
+	ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, nil)
+	Expect(err).NotTo(HaveOccurred())
 	roleOutput, err := ctl.AWSProvider.IAM().CreateRole(context.Background(), &iam.CreateRoleInput{
 		RoleName:                 aws.String(initialRole1),
 		AssumeRolePolicyDocument: trustPolicy,
@@ -399,7 +397,10 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 })
 
 var _ = AfterSuite(func() {
-	_, err = ctl.AWSProvider.IAM().DeleteRole(context.Background(), &iam.DeleteRoleInput{
+	if ctl == nil {
+		return
+	}
+	_, err := ctl.AWSProvider.IAM().DeleteRole(context.Background(), &iam.DeleteRoleInput{
 		RoleName: aws.String(initialRole1),
 	})
 	Expect(err).NotTo(HaveOccurred())
