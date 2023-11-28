@@ -201,7 +201,7 @@ type CloudFormation interface {
 	DescribeStackSetOperation(ctx context.Context, params *DescribeStackSetOperationInput, optFns ...func(*Options)) (*DescribeStackSetOperationOutput, error)
 	// Returns the description for the specified stack; if no stack name was
 	// specified, then it returns the description for all the stacks created. If the
-	// stack doesn't exist, an ValidationError is returned.
+	// stack doesn't exist, a ValidationError is returned.
 	DescribeStacks(ctx context.Context, params *DescribeStacksInput, optFns ...func(*Options)) (*DescribeStacksOutput, error)
 	// Returns detailed information about an extension that has been registered. If
 	// you specify a VersionId , DescribeType returns information about that specific

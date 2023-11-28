@@ -32,7 +32,7 @@ jobs:
           ! git diff --exit-code $DEFAULT_BRANCH...HEAD || exit 1
           git push --set-upstream origin HEAD
           echo "changes=true" >> $GITHUB_OUTPUT
-      - uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 #v6.4.1
+      - uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea #v7.0.1
         name: Open PR to ${{env.DEFAULT_BRANCH}}
         if: steps.merge-changes.outputs.changes == 'true'
         with:
