@@ -542,10 +542,14 @@
       "properties": {
         "roleARN": {
           "type": "string"
+        },
+        "stackName": {
+          "type": "string"
         }
       },
       "preferredOrder": [
-        "roleARN"
+        "roleARN",
+        "stackName"
       ],
       "additionalProperties": false,
       "description": "holds status of the IAM service account",

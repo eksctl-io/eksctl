@@ -23,6 +23,7 @@ import (
 type StackLister interface {
 	ListStackNames(ctx context.Context, regExp string) ([]string, error)
 	DescribeStack(ctx context.Context, stack *manager.Stack) (*manager.Stack, error)
+	GetIAMServiceAccounts(ctx context.Context) ([]*api.ClusterIAMServiceAccount, error)
 }
 
 // A StackDeleter lists and deletes CloudFormation stacks.
@@ -128,10 +129,10 @@ func (d *Deleter) deletePodIdentityAssociation(ctx context.Context, p Identifier
 		return fmt.Errorf("listing pod identity associations: %w", err)
 	}
 	switch len(output.Associations) {
-	case 0:
-		logger.Warning("pod identity association %q not found", podIdentityAssociationID)
 	default:
 		return fmt.Errorf("expected to find only 1 pod identity association for %q; got %d", podIdentityAssociationID, len(output.Associations))
+	case 0:
+		logger.Warning("pod identity association %q not found", podIdentityAssociationID)
 	case 1:
 		if _, err := d.APIDeleter.DeletePodIdentityAssociation(ctx, &eks.DeletePodIdentityAssociationInput{
 			ClusterName:   aws.String(d.ClusterName),

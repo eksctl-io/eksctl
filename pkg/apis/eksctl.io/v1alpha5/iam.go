@@ -1,6 +1,7 @@
 package v1alpha5
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -9,9 +10,21 @@ import (
 
 // Commonly-used constants
 const (
-	AnnotationEKSRoleARN = "eks.amazonaws.com/role-arn"
-	EKSServicePrincipal  = "pods.eks.amazonaws.com"
+	AnnotationEKSRoleARN    = "eks.amazonaws.com/role-arn"
+	EKSServicePrincipal     = "pods.eks.amazonaws.com"
+	EKSBetaServicePrincipal = "beta.pods.eks.aws.internal"
 )
+
+var EKSServicePrincipalTrustStatement = IAMStatement{
+	Effect: "Allow",
+	Action: []string{
+		"sts:AssumeRole",
+		"sts:TagSession",
+	},
+	Principal: map[string]CustomStringSlice{
+		"Service": []string{EKSBetaServicePrincipal},
+	},
+}
 
 // ClusterIAM holds all IAM attributes of a cluster
 type ClusterIAM struct {
@@ -119,6 +132,8 @@ type ClusterIAMServiceAccount struct {
 type ClusterIAMServiceAccountStatus struct {
 	// +optional
 	RoleARN *string `json:"roleARN,omitempty"`
+	// +optional
+	StackName *string `json:"stackName,omitempty"`
 }
 
 // NameString returns common name string
@@ -174,4 +189,85 @@ type PodIdentityAssociation struct {
 
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
+}
+
+// Internal type
+// IAMPolicyDocument represents an IAM assume role policy document
+type IAMPolicyDocument struct {
+	Version    string         `json:"Version"`
+	Id         string         `json:"Id,omitempty"`
+	Statements []IAMStatement `json:"Statement"`
+}
+
+// Internal type
+// IAMStatement represents an IAM policy document statement
+type IAMStatement struct {
+	Sid          string                       `json:"Sid,omitempty"`          // statement ID, service specific
+	Effect       string                       `json:"Effect"`                 // Allow or Deny
+	Principal    map[string]CustomStringSlice `json:"Principal,omitempty"`    // principal that is allowed or denied
+	NotPrincipal map[string]CustomStringSlice `json:"NotPrincipal,omitempty"` // exception to a list of principals
+	Action       CustomStringSlice            `json:"Action"`                 // allowed or denied action
+	NotAction    CustomStringSlice            `json:"NotAction,omitempty"`    // matches everything except
+	Resource     CustomStringSlice            `json:"Resource,omitempty"`     // object or objects that the statement covers
+	NotResource  CustomStringSlice            `json:"NotResource,omitempty"`  // matches everything except
+	Condition    json.RawMessage              `json:"Condition,omitempty"`    // conditions for when a policy is in effect
+}
+
+func (s *IAMStatement) ToMapOfInterfaces() map[string]interface{} {
+	mapOfInterfaces := map[string]interface{}{
+		"Effect": s.Effect,
+		"Action": s.Action,
+	}
+	if s.Sid != "" {
+		mapOfInterfaces["Sid"] = s.Sid
+	}
+	if s.Principal != nil {
+		mapOfInterfaces["Principal"] = s.Principal
+	}
+	if s.NotPrincipal != nil {
+		mapOfInterfaces["NotPrincipal"] = s.NotPrincipal
+	}
+	if s.NotAction != nil {
+		mapOfInterfaces["NotAction"] = s.NotAction
+	}
+	if s.Resource != nil {
+		mapOfInterfaces["Resource"] = s.Resource
+	}
+	if s.NotResource != nil {
+		mapOfInterfaces["NotResource"] = s.NotResource
+	}
+	if s.Condition != nil {
+		mapOfInterfaces["Condition"] = s.Condition
+	}
+	return mapOfInterfaces
+}
+
+// AWS allows string or []string as value, we convert everything to []string to avoid casting
+type CustomStringSlice []string
+
+func (c *CustomStringSlice) UnmarshalJSON(b []byte) error {
+
+	var raw interface{}
+	err := json.Unmarshal(b, &raw)
+	if err != nil {
+		return err
+	}
+
+	var p []string
+	//  value can be string or []string, convert everything to []string
+	switch v := raw.(type) {
+	case string:
+		p = []string{v}
+	case []interface{}:
+		var items []string
+		for _, item := range v {
+			items = append(items, fmt.Sprintf("%v", item))
+		}
+		p = items
+	default:
+		return fmt.Errorf("invalid %s value element: allowed is only string or []string", c)
+	}
+
+	*c = p
+	return nil
 }

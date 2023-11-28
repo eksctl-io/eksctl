@@ -88,7 +88,9 @@ func (c *StackCollection) GetIAMServiceAccounts(ctx context.Context) ([]*api.Clu
 		}
 		serviceAccount := &api.ClusterIAMServiceAccount{
 			ClusterIAMMeta: *meta,
-			Status:         &api.ClusterIAMServiceAccountStatus{},
+			Status: &api.ClusterIAMServiceAccountStatus{
+				StackName: s.StackName,
+			},
 		}
 
 		// TODO: we need to make it easier to fetch full definition of the object,

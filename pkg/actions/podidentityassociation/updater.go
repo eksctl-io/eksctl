@@ -82,7 +82,6 @@ func (u *Updater) Update(ctx context.Context, podIdentityAssociations []api.PodI
 			},
 		})
 	}
-	logger.Info(taskTree.Describe())
 	return runAllTasks(taskTree)
 }
 
@@ -162,10 +161,10 @@ func (u *Updater) makeUpdate(ctx context.Context, p api.PodIdentityAssociation, 
 		return nil, fmt.Errorf("error listing pod identity associations: %w", err)
 	}
 	switch len(output.Associations) {
-	case 0:
-		return nil, errors.New(notFoundErrMsg)
 	default:
 		return nil, fmt.Errorf("expected to find only 1 pod identity association; got %d", len(output.Associations))
+	case 0:
+		return nil, errors.New(notFoundErrMsg)
 	case 1:
 		describeOutput, err := u.APIUpdater.DescribePodIdentityAssociation(ctx, &eks.DescribePodIdentityAssociationInput{
 			ClusterName:   aws.String(u.ClusterName),

@@ -27,6 +27,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, nodeGroupHealthCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, describeAddonVersionsCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, describeAddonConfigurationCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, migrateToPodIdentityCmd)
 
 	return verbCmd
 }
