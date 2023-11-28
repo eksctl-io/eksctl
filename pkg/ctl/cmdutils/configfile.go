@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -298,6 +300,20 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				if len(fluxCfg.Flags) == 0 {
 					return ErrMustBeSet("gitops.flux.flags")
 				}
+			}
+		}
+
+		if clusterConfig.IAM != nil && len(clusterConfig.IAM.PodIdentityAssociations) > 0 {
+			addonNames := []string{}
+			for _, addon := range clusterConfig.Addons {
+				addonNames = append(addonNames, addon.Name)
+			}
+			if !slices.Contains(addonNames, api.PodIdentityAgentAddon) {
+				suggestion := fmt.Sprintf("please add `%s` addon to the config file", api.PodIdentityAgentAddon)
+				return api.ErrPodIdentityAgentNotInstalled(suggestion)
+			}
+			if err := validatePodIdentityAssociationsForConfig(clusterConfig, true); err != nil {
+				return err
 			}
 		}
 

@@ -15,8 +15,6 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 
-	harness "github.com/dlespiau/kube-test-harness"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -80,8 +78,6 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 	)
 
 	var (
-		defaultTimeout = 20 * time.Minute
-
 		makeClusterConfig = func() *api.ClusterConfig {
 			clusterConfig := api.NewClusterConfig()
 			clusterConfig.Metadata.Name = params.ClusterName
@@ -143,67 +139,6 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			},
 		}),
 	)
-
-	Context("create test workloads", func() {
-		var (
-			err  error
-			test *harness.Test
-		)
-
-		BeforeEach(func() {
-			test, err = kube.NewTest(params.KubeconfigPath)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
-
-		AfterEach(func() {
-			test.Close()
-			Eventually(func() int {
-				return len(test.ListPods(test.Namespace, metav1.ListOptions{}).Items)
-			}, "3m", "1s").Should(BeZero())
-		})
-
-		It("should deploy podinfo service to the cluster and access it via proxy", func() {
-			d := test.CreateDeploymentFromFile(test.Namespace, "../../data/podinfo.yaml")
-			test.WaitForDeploymentReady(d, defaultTimeout)
-
-			pods := test.ListPodsFromDeployment(d)
-			Expect(len(pods.Items)).To(Equal(2))
-
-			// For each pod of the Deployment, check we receive a sensible response to a
-			// GET request on /version.
-			for _, pod := range pods.Items {
-				Expect(pod.Namespace).To(Equal(test.Namespace))
-
-				req := test.PodProxyGet(&pod, "", "/version")
-				fmt.Fprintf(GinkgoWriter, "url = %#v", req.URL())
-
-				var js map[string]interface{}
-				test.PodProxyGetJSON(&pod, "", "/version", &js)
-
-				Expect(js).To(HaveKeyWithValue("version", "1.5.1"))
-			}
-		})
-
-		It("should have functional DNS", func() {
-			d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-dns.yaml")
-			test.WaitForDaemonSetReady(d, defaultTimeout)
-			{
-				ds, err := test.GetDaemonSet(test.Namespace, d.Name)
-				Expect(err).ShouldNot(HaveOccurred())
-				fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
-			}
-		})
-
-		It("should have access to HTTP(S) sites", func() {
-			d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-http.yaml")
-			test.WaitForDaemonSetReady(d, defaultTimeout)
-			{
-				ds, err := test.GetDaemonSet(test.Namespace, d.Name)
-				Expect(err).ShouldNot(HaveOccurred())
-				fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
-			}
-		})
-	})
 
 	Context("adding new managed nodegroups", func() {
 		params.LogStacksEventsOnFailure()

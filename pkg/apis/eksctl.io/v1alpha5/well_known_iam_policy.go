@@ -1,5 +1,11 @@
 package v1alpha5
 
+import (
+	"fmt"
+	"reflect"
+	"strings"
+)
+
 // WellKnownPolicies for attaching common IAM policies
 type WellKnownPolicies struct {
 	// ImageBuilder allows for full ECR (Elastic Container Registry) access.
@@ -30,4 +36,27 @@ type WellKnownPolicies struct {
 
 func (p *WellKnownPolicies) HasPolicy() bool {
 	return p.ImageBuilder || p.AutoScaler || p.AWSLoadBalancerController || p.ExternalDNS || p.CertManager || p.EBSCSIController || p.EFSCSIController
+}
+
+func (p *WellKnownPolicies) String() string { return "" }
+
+func (p *WellKnownPolicies) Type() string { return "" }
+
+func (p *WellKnownPolicies) Set(policiesStr string) error {
+	policies := strings.Split(policiesStr, ",")
+	val := reflect.ValueOf(p).Elem()
+	for _, pName := range policies {
+		isValidPolicyName := false
+		for i := 0; i < val.NumField(); i++ {
+			fieldName := val.Type().Field(i).Name
+			if strings.EqualFold(fieldName, pName) {
+				val.FieldByName(fieldName).SetBool(true)
+				isValidPolicyName = true
+			}
+		}
+		if !isValidPolicyName {
+			return fmt.Errorf("invalid wellKnownPolicy: %s", pName)
+		}
+	}
+	return nil
 }
