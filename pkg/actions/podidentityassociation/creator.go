@@ -47,7 +47,7 @@ func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api
 		if pia.RoleARN == "" {
 			piaCreationTasks.Append(&createIAMRoleTask{
 				ctx:                    ctx,
-				info:                   fmt.Sprintf("create IAM role for pod identity association for service account `%s` in namespace `%s`", pia.ServiceAccountName, pia.Namespace),
+				info:                   fmt.Sprintf("create IAM role for pod identity association for service account %q in namespace %q", pia.ServiceAccountName, pia.Namespace),
 				clusterName:            c.clusterName,
 				podIdentityAssociation: &podIdentityAssociations[i],
 				stackCreator:           c.stackCreator,
@@ -55,7 +55,7 @@ func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api
 		}
 		piaCreationTasks.Append(&createPodIdentityAssociationTask{
 			ctx:                    ctx,
-			info:                   fmt.Sprintf("create pod identity association for service account `%s` in namespace `%s`", pia.ServiceAccountName, pia.Namespace),
+			info:                   fmt.Sprintf("create pod identity association for service account %q in namespace %q", pia.ServiceAccountName, pia.Namespace),
 			clusterName:            c.clusterName,
 			podIdentityAssociation: &podIdentityAssociations[i],
 			eksAPI:                 c.eksAPI,

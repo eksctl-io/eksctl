@@ -134,6 +134,10 @@ type ClusterIAMServiceAccountStatus struct {
 	RoleARN *string `json:"roleARN,omitempty"`
 	// +optional
 	StackName *string `json:"stackName,omitempty"`
+	// +optional
+	Tags map[string]string `json:"tags,omitempty"`
+	// +optional
+	Capabilities []string `json:"capabilities,omitempty"`
 }
 
 // NameString returns common name string

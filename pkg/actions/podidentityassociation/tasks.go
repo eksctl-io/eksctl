@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/kris-nova/logger"
@@ -37,12 +38,16 @@ func (t *createIAMRoleTask) Do(errorCh chan error) error {
 	if err := rs.AddAllResources(); err != nil {
 		return err
 	}
-	if err := t.stackCreator.CreateStack(t.ctx,
-		MakeStackName(
-			t.clusterName,
-			t.podIdentityAssociation.Namespace,
-			t.podIdentityAssociation.ServiceAccountName),
-		rs, nil, nil, errorCh); err != nil {
+	if t.podIdentityAssociation.Tags == nil {
+		t.podIdentityAssociation.Tags = make(map[string]string)
+	}
+	t.podIdentityAssociation.Tags[api.PodIdentityAssociationNameTag] = Identifier{
+		Namespace:          t.podIdentityAssociation.Namespace,
+		ServiceAccountName: t.podIdentityAssociation.ServiceAccountName,
+	}.IDString()
+
+	stackName := MakeStackName(t.clusterName, t.podIdentityAssociation.Namespace, t.podIdentityAssociation.ServiceAccountName)
+	if err := t.stackCreator.CreateStack(t.ctx, stackName, rs, t.podIdentityAssociation.Tags, nil, errorCh); err != nil {
 		return fmt.Errorf("creating IAM role for pod identity association for service account %s in namespace %s: %w",
 			t.podIdentityAssociation.ServiceAccountName, t.podIdentityAssociation.Namespace, err)
 	}
@@ -72,10 +77,10 @@ func (t *createPodIdentityAssociationTask) Do(errorCh chan error) error {
 		Tags:           t.podIdentityAssociation.Tags,
 	}); err != nil {
 		return fmt.Errorf(
-			"creating pod identity association for service account `%s` in namespace `%s`: %w",
+			"creating pod identity association for service account %q in namespace %q: %w",
 			t.podIdentityAssociation.ServiceAccountName, t.podIdentityAssociation.Namespace, err)
 	}
-	logger.Info(fmt.Sprintf("created pod identity association for service account `%s` in namespace `%s`",
+	logger.Info(fmt.Sprintf("created pod identity association for service account %q in namespace %q",
 		t.podIdentityAssociation.ServiceAccountName, t.podIdentityAssociation.Namespace))
 	return nil
 }
@@ -84,7 +89,7 @@ type updateTrustPolicyForOwnedRole struct {
 	ctx                                 context.Context
 	info                                string
 	roleName                            string
-	stackName                           string
+	stack                               IRSAv1StackSummary
 	removeOIDCProviderTrustRelationship bool
 	iamAPI                              awsapi.IAM
 	stackUpdater                        StackUpdater
@@ -104,6 +109,7 @@ func (t *updateTrustPolicyForOwnedRole) Do(errorCh chan error) error {
 		return fmt.Errorf("updating trust statements for role %s: %w", t.roleName, err)
 	}
 
+	// build template for updating trust policy
 	rs := builder.NewIAMRoleResourceSetForPodIdentityWithTrustStatements(&api.PodIdentityAssociation{}, trustStatements)
 	if err := rs.AddAllResources(); err != nil {
 		return fmt.Errorf("adding resources to CloudFormation template: %w", err)
@@ -113,10 +119,39 @@ func (t *updateTrustPolicyForOwnedRole) Do(errorCh chan error) error {
 		return fmt.Errorf("generating CloudFormation template: %w", err)
 	}
 
+	// update stack tags to reflect migration to IRSAv2
+	cfnTags := []cfntypes.Tag{}
+	for key, value := range t.stack.Tags {
+		if key == api.IAMServiceAccountNameTag && t.removeOIDCProviderTrustRelationship {
+			continue
+		}
+		cfnTags = append(cfnTags, cfntypes.Tag{
+			Key:   &key,
+			Value: &value,
+		})
+	}
+	getIAMServiceAccountName := func() string {
+		return strings.Replace(strings.Split(t.stack.Name, "-iamserviceaccount-")[1], "-", "/", 1)
+	}
+	cfnTags = append(cfnTags, cfntypes.Tag{
+		Key:   aws.String(api.PodIdentityAssociationNameTag),
+		Value: aws.String(getIAMServiceAccountName()),
+	})
+
+	// propagate capabilities
+	cfnCapabilities := []cfntypes.Capability{}
+	for _, c := range t.stack.Capabilities {
+		cfnCapabilities = append(cfnCapabilities, cfntypes.Capability(c))
+	}
+
 	if err := t.stackUpdater.MustUpdateStack(t.ctx, manager.UpdateStackOptions{
-		StackName:     t.stackName,
+		Stack: &cfntypes.Stack{
+			StackName:    &t.stack.Name,
+			Tags:         cfnTags,
+			Capabilities: cfnCapabilities,
+		},
 		ChangeSetName: fmt.Sprintf("eksctl-%s-update-%d", t.roleName, time.Now().Unix()),
-		Description:   fmt.Sprintf("updating IAM resources stack %q for role %q", t.stackName, t.roleName),
+		Description:   fmt.Sprintf("updating IAM resources stack %q for role %q", t.stack.Name, t.roleName),
 		TemplateData:  manager.TemplateBody(template),
 		Wait:          true,
 	}); err != nil {
@@ -126,7 +161,7 @@ func (t *updateTrustPolicyForOwnedRole) Do(errorCh chan error) error {
 		}
 		return fmt.Errorf("updating IAM resources for role %q: %w", t.roleName, err)
 	}
-	logger.Info("updated IAM resources stack %q for role %q", t.stackName, t.roleName)
+	logger.Info("updated IAM resources stack %q for role %q", t.stack.Name, t.roleName)
 
 	return nil
 }
@@ -215,13 +250,9 @@ func updateTrustStatements(
 	return trustStatements, nil
 }
 
-func makeStackNamePrefix(clusterName string) string {
-	return fmt.Sprintf("eksctl-%s-podidentityrole-ns-", clusterName)
-}
-
 // MakeStackName creates a stack name for the specified access entry.
 func MakeStackName(clusterName, namespace, serviceAccountName string) string {
-	return fmt.Sprintf("%s%s-sa-%s", makeStackNamePrefix(clusterName), namespace, serviceAccountName)
+	return fmt.Sprintf("eksctl-%s-podidentityrole-%s-%s", clusterName, namespace, serviceAccountName)
 }
 
 func runAllTasks(taskTree *tasks.TaskTree) error {

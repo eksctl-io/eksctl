@@ -67,7 +67,7 @@ func doMigrateToPodIdentity(cmd *cmdutils.Cmd, options podidentityassociation.Po
 	}
 
 	if !providerExists {
-		logger.Warning("no IAM OIDC provider associated with cluster, there's nothing to migrate from")
+		logger.Warning("no IAM OIDC provider associated with cluster, hence no iamserviceaccounts to be migrated")
 		return nil
 	}
 

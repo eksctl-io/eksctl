@@ -333,7 +333,7 @@ func (c *StackCollection) updateStack(ctx context.Context, options UpdateStackOp
 	logger.Info(options.Description)
 	if options.Stack == nil {
 		i := &Stack{StackName: &options.StackName}
-		// Read existing tags
+		// Read existing tags and capabilities
 		s, err := c.DescribeStack(ctx, i)
 		if err != nil {
 			return err

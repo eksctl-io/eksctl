@@ -286,6 +286,9 @@ const (
 	// IAMServiceAccountNameTag defines the tag of the IAM service account name
 	IAMServiceAccountNameTag = "alpha.eksctl.io/iamserviceaccount-name"
 
+	// PodIdentityAssociationNameTag defines the tag of Pod Identity Association name
+	PodIdentityAssociationNameTag = "alpha.eksctl.io/podidentityassociation-name"
+
 	// AddonNameTag defines the tag of the IAM service account name
 	AddonNameTag = "alpha.eksctl.io/addon-name"
 

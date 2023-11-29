@@ -56,7 +56,7 @@ type updateConfig struct {
 
 // Update updates the specified pod identity associations.
 func (u *Updater) Update(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation) error {
-	roleStackNames, err := u.StackUpdater.ListStackNames(ctx, makeStackNamePrefix(u.ClusterName))
+	roleStackNames, err := u.StackUpdater.ListPodIdentityStackNames(ctx)
 	if err != nil {
 		return fmt.Errorf("error listing stack names for pod identity associations: %w", err)
 	}
@@ -64,7 +64,10 @@ func (u *Updater) Update(ctx context.Context, podIdentityAssociations []api.PodI
 		Parallel: true,
 	}
 	for _, p := range podIdentityAssociations {
-		podIdentityAssociationID := makeID(p.Namespace, p.ServiceAccountName)
+		podIdentityAssociationID := Identifier{
+			Namespace:          p.Namespace,
+			ServiceAccountName: p.ServiceAccountName,
+		}.IDString()
 		updateErr := func(err error) error {
 			return fmt.Errorf("error updating pod identity association %q: %w", podIdentityAssociationID, err)
 		}
@@ -173,9 +176,11 @@ func (u *Updater) makeUpdate(ctx context.Context, p api.PodIdentityAssociation, 
 		if err != nil {
 			return nil, fmt.Errorf("error describing pod identity association: %w", err)
 		}
-		stackName := MakeStackName(u.ClusterName, p.Namespace, p.ServiceAccountName)
-		hasIAMResourcesStack := slices.Contains(roleStackNames, stackName)
-		if hasIAMResourcesStack {
+		stackName, hasStack := getIAMResourcesStack(roleStackNames, Identifier{
+			Namespace:          p.Namespace,
+			ServiceAccountName: p.ServiceAccountName,
+		})
+		if hasStack {
 			if describeOutput.Association.RoleArn != nil && p.RoleARN != "" && p.RoleARN != *describeOutput.Association.RoleArn {
 				return nil, errors.New("cannot change podIdentityAssociation.roleARN since the role was created by eksctl")
 			}
@@ -195,7 +200,7 @@ func (u *Updater) makeUpdate(ctx context.Context, p api.PodIdentityAssociation, 
 		return &updateConfig{
 			podIdentityAssociation: p,
 			associationID:          *describeOutput.Association.AssociationId,
-			hasIAMResourcesStack:   hasIAMResourcesStack,
+			hasIAMResourcesStack:   hasStack,
 			stackName:              stackName,
 		}, nil
 	}
