@@ -34,6 +34,9 @@ type Updater struct {
 }
 
 // A StackUpdater updates CloudFormation stacks.
+//
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_stack_updater.go . StackUpdater
 type StackUpdater interface {
 	StackLister
 	// MustUpdateStack updates the CloudFormation stack.

@@ -22,10 +22,10 @@ func migrateToPodIdentityCmd(cmd *cmdutils.Cmd) {
 	var options podidentityassociation.PodIdentityMigrationOptions
 	cmd.FlagSetGroup.InFlagSet("Authentication mode", func(fs *pflag.FlagSet) {
 		fs.BoolVar(&options.RemoveOIDCProviderTrustRelationship, "remove-oidc-provider-trust-relationship", false, "Remove existing IRSAv1 OIDC provided entities")
-		// fs.BoolVar(&options.SkipAgentInstallation, "skip-agent-installation", false, "Skip installing pod-identity-agent addon")
 		fs.BoolVar(&options.Approve, "approve", false, "Apply the changes")
 
-		cmdutils.AddIAMServiceAccountFilterFlags(fs, &cmd.Include, &cmd.Exclude)
+		// fs.BoolVar(&options.SkipAgentInstallation, "skip-agent-installation", false, "Skip installing pod-identity-agent addon")
+		// cmdutils.AddIAMServiceAccountFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -86,7 +86,6 @@ func doMigrateToPodIdentity(cmd *cmdutils.Cmd, options podidentityassociation.Po
 		ctl.AWSProvider.EKS(),
 		ctl.AWSProvider.IAM(),
 		ctl.NewStackManager(cfg),
-		oidc,
 		clientSet,
 		addonCreator,
 	).MigrateToPodIdentity(ctx, options)

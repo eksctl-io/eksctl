@@ -18,7 +18,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
@@ -39,7 +38,6 @@ type Migrator struct {
 	eksAPI       awsapi.EKS
 	iamAPI       awsapi.IAM
 	stackUpdater StackUpdater
-	oidcManager  *iamoidc.OpenIDConnectManager
 	clientSet    kubernetes.Interface
 	addonCreator AddonCreator
 }
@@ -49,7 +47,6 @@ func NewMigrator(
 	eksAPI awsapi.EKS,
 	iamAPI awsapi.IAM,
 	stackUpdater StackUpdater,
-	oidcManager *iamoidc.OpenIDConnectManager,
 	clientSet kubernetes.Interface,
 	addonCreator AddonCreator,
 ) *Migrator {
@@ -58,7 +55,6 @@ func NewMigrator(
 		eksAPI:       eksAPI,
 		iamAPI:       iamAPI,
 		stackUpdater: stackUpdater,
-		oidcManager:  oidcManager,
 		clientSet:    clientSet,
 		addonCreator: addonCreator,
 	}
@@ -71,7 +67,7 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 	}
 
 	// add task to install the pod identity agent addon
-	isInstalled, err := isPodIdentityAgentInstalled(ctx, m.eksAPI, m.clusterName)
+	isInstalled, err := IsPodIdentityAgentInstalled(ctx, m.eksAPI, m.clusterName)
 	if err != nil {
 		return err
 	}
@@ -130,7 +126,7 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 			if stackSummary, hasStack := resolver.GetStack(roleARN); hasStack {
 				updateTrustPolicyTasks.Append(&updateTrustPolicyForOwnedRole{
 					ctx:                                 ctx,
-					info:                                fmt.Sprintf("update trust policy for role %q", roleName),
+					info:                                fmt.Sprintf("update trust policy for owned role %q", roleName),
 					roleName:                            roleName,
 					stack:                               stackSummary,
 					removeOIDCProviderTrustRelationship: options.RemoveOIDCProviderTrustRelationship,
@@ -141,7 +137,7 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 			} else {
 				updateTrustPolicyTasks.Append(&updateTrustPolicyForUnownedRole{
 					ctx:                                 ctx,
-					info:                                fmt.Sprintf("update trust policy for role %q", roleName),
+					info:                                fmt.Sprintf("update trust policy for unowned role %q", roleName),
 					roleName:                            roleName,
 					removeOIDCProviderTrustRelationship: options.RemoveOIDCProviderTrustRelationship,
 					iamAPI:                              m.iamAPI,
@@ -158,7 +154,7 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 				ObjectMeta: sa.ObjectMeta,
 			}
 			removeIRSAv1AnnotationTasks.Append(&tasks.GenericTask{
-				Description: fmt.Sprintf("remove iamserviceaccount annotation for %q", saNameString),
+				Description: fmt.Sprintf("remove iamserviceaccount EKS role annotation for %q", saNameString),
 				Doer: func() error {
 					delete(saCopy.Annotations, api.AnnotationEKSRoleARN)
 					_, err := m.clientSet.CoreV1().ServiceAccounts(saCopy.Namespace).Update(ctx, saCopy, metav1.UpdateOptions{})
@@ -194,7 +190,7 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 	return runAllTasks(&taskTree)
 }
 
-func isPodIdentityAgentInstalled(ctx context.Context, eksAPI awsapi.EKS, clusterName string) (bool, error) {
+func IsPodIdentityAgentInstalled(ctx context.Context, eksAPI awsapi.EKS, clusterName string) (bool, error) {
 	if _, err := eksAPI.DescribeAddon(ctx, &awseks.DescribeAddonInput{
 		AddonName:   aws.String(api.PodIdentityAgentAddon),
 		ClusterName: &clusterName,
@@ -203,7 +199,7 @@ func isPodIdentityAgentInstalled(ctx context.Context, eksAPI awsapi.EKS, cluster
 		if errors.As(err, &notFoundErr) {
 			return false, nil
 		}
-		return false, fmt.Errorf("calling `EKS::DescribeAddon::%s`: %v", api.PodIdentityAgentAddon, err)
+		return false, fmt.Errorf("calling %q: %w", fmt.Sprintf("EKS::DescribeAddon::%s", api.PodIdentityAgentAddon), err)
 	}
 	return true, nil
 }
@@ -229,7 +225,7 @@ func (r *IRSAv1StackNameResolver) Populate(
 ) error {
 	serviceAccounts, err := getIAMServiceAccounts()
 	if err != nil {
-		return fmt.Errorf("getting IAM Role stacks: %w", err)
+		return fmt.Errorf("getting iamserviceaccount role stacks: %w", err)
 	}
 	for _, sa := range serviceAccounts {
 		(*r)[*sa.Status.RoleARN] = IRSAv1StackSummary{

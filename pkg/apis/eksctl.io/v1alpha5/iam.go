@@ -10,9 +10,8 @@ import (
 
 // Commonly-used constants
 const (
-	AnnotationEKSRoleARN    = "eks.amazonaws.com/role-arn"
-	EKSServicePrincipal     = "pods.eks.amazonaws.com"
-	EKSBetaServicePrincipal = "beta.pods.eks.aws.internal"
+	AnnotationEKSRoleARN = "eks.amazonaws.com/role-arn"
+	EKSServicePrincipal  = "pods.eks.amazonaws.com"
 )
 
 var EKSServicePrincipalTrustStatement = IAMStatement{
@@ -22,7 +21,7 @@ var EKSServicePrincipalTrustStatement = IAMStatement{
 		"sts:TagSession",
 	},
 	Principal: map[string]CustomStringSlice{
-		"Service": []string{EKSBetaServicePrincipal},
+		"Service": []string{EKSServicePrincipal},
 	},
 }
 
@@ -193,6 +192,10 @@ type PodIdentityAssociation struct {
 
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
+}
+
+func (p PodIdentityAssociation) NameString() string {
+	return p.Namespace + "/" + p.ServiceAccountName
 }
 
 // Internal type
