@@ -9,7 +9,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-    - uses: actions/first-interaction@1dbfe1ba5525b8257e1f259b09745bee346d62d8 #v1.2.0
+    - uses: actions/first-interaction@34f15e814fe48ac9312ccf29db4e74fa767cbab7 #v1.3.0
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         issue-message: 'Hello ${{ github.event.issue.user.login }} :wave: Thank you for opening an issue in `eksctl` project. The team will review the issue and aim to respond within 1-5 business days. Meanwhile, please read about the Contribution and Code of Conduct guidelines [here](https://github.com/eksctl-io/eksctl#contributions). You can find out more information about `eksctl` on our [website](https://eksctl.io)'
