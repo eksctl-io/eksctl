@@ -9,7 +9,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8c1e
 	github.com/aws/aws-sdk-go v1.48.6
-	github.com/aws/aws-sdk-go-v2 v1.23.1
+	github.com/aws/aws-sdk-go-v2 v1.23.5
 	github.com/aws/aws-sdk-go-v2/config v1.25.6
 	github.com/aws/aws-sdk-go-v2/credentials v1.16.5
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.35.3
@@ -26,7 +26,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.33.4
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.43.2
 	github.com/aws/aws-sdk-go-v2/service/sts v1.25.5
-	github.com/aws/smithy-go v1.17.0
+	github.com/aws/smithy-go v1.18.1
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
