@@ -202,7 +202,7 @@ func (p PodIdentityAssociation) NameString() string {
 // IAMPolicyDocument represents an IAM assume role policy document
 type IAMPolicyDocument struct {
 	Version    string         `json:"Version"`
-	Id         string         `json:"Id,omitempty"`
+	ID         string         `json:"Id,omitempty"`
 	Statements []IAMStatement `json:"Statement"`
 }
 

@@ -181,13 +181,27 @@ Behind the scenes, the command will apply the following steps:
 
 Running the command without the `--approve` flag will only output a plan consisting of a set of tasks reflecting the steps above, e.g. 
 
-```
+```bash
+[ℹ]  (plan) would migrate 2 iamserviceaccount(s) to pod identity association(s) by executing the following tasks
+[ℹ]  (plan) 
+3 sequential tasks: { install eks-pod-identity-agent addon, 
+    2 parallel sub-tasks: { 
+        update trust policy for owned role "eksctl-my-cluster-addon-iamserv-Role1-beYhlhzpwQte",
+        update trust policy for unowned role "Unowned-Role1",
+    }, 
+    2 parallel sub-tasks: { 
+        create pod identity association for service account "default/sa1",
+        create pod identity association for service account "default/sa2",
+    } 
+}
+[ℹ]  all tasks were skipped
+[!]  no changes were applied, run again with '--approve' to apply the changes
 ```
 
-Additioanlly, to delete the existing OIDC provider trust relationship from all IAM Roles, run the command with `--remove-existing-oidc-trust-relationship` flag, e.g.
+Additioanlly, to delete the existing OIDC provider trust relationship from all IAM Roles, run the command with `--remove-oidc-provider-trust-relationship` flag, e.g.
 
 ```
-eksctl utils migrate-to-pod-identity --cluster my-cluster --approve --remove-existing-oidc-trust-relationship
+eksctl utils migrate-to-pod-identity --cluster my-cluster --approve --remove-oidc-provider-trust-relationship
 ```
 
 

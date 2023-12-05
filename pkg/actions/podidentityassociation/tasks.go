@@ -218,11 +218,11 @@ func updateTrustStatements(
 	if err != nil {
 		return trustStatements, err
 	}
-	documentJsonString, err := url.PathUnescape(*output.Role.AssumeRolePolicyDocument)
+	documentJSONString, err := url.PathUnescape(*output.Role.AssumeRolePolicyDocument)
 	if err != nil {
 		return trustStatements, err
 	}
-	if err := json.Unmarshal([]byte(documentJsonString), &trustPolicy); err != nil {
+	if err := json.Unmarshal([]byte(documentJSONString), &trustPolicy); err != nil {
 		return trustStatements, err
 	}
 
