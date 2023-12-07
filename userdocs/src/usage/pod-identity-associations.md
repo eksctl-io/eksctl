@@ -198,7 +198,7 @@ Running the command without the `--approve` flag will only output a plan consist
 [!]  no changes were applied, run again with '--approve' to apply the changes
 ```
 
-Additioanlly, to delete the existing OIDC provider trust relationship from all IAM Roles, run the command with `--remove-oidc-provider-trust-relationship` flag, e.g.
+Additionally, to delete the existing OIDC provider trust relationship from all IAM Roles, run the command with `--remove-oidc-provider-trust-relationship` flag, e.g.
 
 ```
 eksctl utils migrate-to-pod-identity --cluster my-cluster --approve --remove-oidc-provider-trust-relationship
