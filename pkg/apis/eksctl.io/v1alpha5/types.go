@@ -1447,7 +1447,7 @@ type (
 		// +optional
 		EnableAdminContainer *bool `json:"enableAdminContainer,omitempty"`
 		// Settings contains any [bottlerocket
-		// settings](https://github.com/bottlerocket-os/bottlerocket/#description-of-settings)
+		// settings](https://bottlerocket.dev/en/os/latest/#/api/settings/)
 		// +optional
 		Settings *InlineDocument `json:"settings,omitempty"`
 	}

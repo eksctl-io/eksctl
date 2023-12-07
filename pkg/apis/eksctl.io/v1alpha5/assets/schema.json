@@ -1795,8 +1795,8 @@
         },
         "settings": {
           "$ref": "#/definitions/InlineDocument",
-          "description": "contains any [bottlerocket settings](https://github.com/bottlerocket-os/bottlerocket/#description-of-settings)",
-          "x-intellij-html-description": "contains any <a href=\"https://github.com/bottlerocket-os/bottlerocket/#description-of-settings\">bottlerocket settings</a>"
+          "description": "contains any [bottlerocket settings](https://bottlerocket.dev/en/os/latest/#/api/settings/)",
+          "x-intellij-html-description": "contains any <a href=\"https://bottlerocket.dev/en/os/latest/#/api/settings/\">bottlerocket settings</a>"
         }
       },
       "preferredOrder": [
