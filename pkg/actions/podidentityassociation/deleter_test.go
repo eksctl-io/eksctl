@@ -41,7 +41,7 @@ var _ = Describe("Pod Identity Deleter", func() {
 		}
 	}
 	mockCalls := func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS, podID podidentityassociation.Identifier) {
-		stackName := makeStackName(podID)
+		stackName := makeIRSAv2StackName(podID)
 		associationID := fmt.Sprintf("%x", sha1.Sum([]byte(stackName)))
 		mockListPodIdentityAssociations(eksAPI, podID, []ekstypes.PodIdentityAssociationSummary{
 			{
@@ -90,7 +90,7 @@ var _ = Describe("Pod Identity Deleter", func() {
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(1))
 				eksAPI.AssertExpectations(GinkgoT())
 			},
@@ -118,15 +118,32 @@ var _ = Describe("Pod Identity Deleter", func() {
 						ServiceAccountName: "aws-node",
 					},
 				}
-				mockListStackNames(stackManager, podIDs)
+				mockListStackNamesWithIRSAv1(stackManager, podIDs[:1], podIDs[1:])
 				for _, podID := range podIDs {
 					mockCalls(stackManager, eksAPI, podID)
 				}
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(2))
+
+				var names []string
+				for i := 0; i < stackManager.DescribeStackCallCount(); i++ {
+					_, stack := stackManager.DescribeStackArgsForCall(i)
+					names = append(names, *stack.StackName)
+				}
+				Expect(names).To(ConsistOf(
+					makeIRSAv1StackName(podidentityassociation.Identifier{
+						Namespace:          "default",
+						ServiceAccountName: "default",
+					}),
+					makeIRSAv2StackName(podidentityassociation.Identifier{
+						Namespace:          "kube-system",
+						ServiceAccountName: "aws-node",
+					}),
+				))
+
 				eksAPI.AssertExpectations(GinkgoT())
 			},
 		}),
@@ -176,7 +193,7 @@ var _ = Describe("Pod Identity Deleter", func() {
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(3))
 				Expect(stackManager.DeleteStackBySpecSyncCallCount()).To(Equal(3))
 				eksAPI.AssertExpectations(GinkgoT())
@@ -197,11 +214,11 @@ var _ = Describe("Pod Identity Deleter", func() {
 				}
 				mockListStackNames(stackManager, []podidentityassociation.Identifier{podID})
 				mockListPodIdentityAssociations(eksAPI, podID, nil, nil)
-				mockStackManager(stackManager, makeStackName(podID))
+				mockStackManager(stackManager, makeIRSAv2StackName(podID))
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(1))
 				Expect(stackManager.DeleteStackBySpecSyncCallCount()).To(Equal(1))
 				eksAPI.AssertExpectations(GinkgoT())
@@ -237,7 +254,7 @@ var _ = Describe("Pod Identity Deleter", func() {
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(0))
 				Expect(stackManager.DeleteStackBySpecSyncCallCount()).To(Equal(0))
 				eksAPI.AssertExpectations(GinkgoT())
@@ -261,11 +278,11 @@ var _ = Describe("Pod Identity Deleter", func() {
 						ServiceAccountName: "default",
 					},
 				}
-				mockListStackNames(stackManager, podIDs)
+				mockListStackNamesWithIRSAv1(stackManager, podIDs[:1], podIDs[1:])
 				mockStackManager(stackManager, "")
 			},
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(3))
 				Expect(stackManager.DeleteStackBySpecSyncCallCount()).To(Equal(3))
 
@@ -275,15 +292,15 @@ var _ = Describe("Pod Identity Deleter", func() {
 					names = append(names, *stack.StackName)
 				}
 				Expect(names).To(ConsistOf(
-					makeStackName(podidentityassociation.Identifier{
+					makeIRSAv1StackName(podidentityassociation.Identifier{
 						Namespace:          "default",
 						ServiceAccountName: "default",
 					}),
-					makeStackName(podidentityassociation.Identifier{
+					makeIRSAv2StackName(podidentityassociation.Identifier{
 						Namespace:          "kube-system",
 						ServiceAccountName: "default",
 					}),
-					makeStackName(podidentityassociation.Identifier{
+					makeIRSAv2StackName(podidentityassociation.Identifier{
 						Namespace:          "kube-system",
 						ServiceAccountName: "aws-node",
 					}),
@@ -291,5 +308,4 @@ var _ = Describe("Pod Identity Deleter", func() {
 			},
 		}),
 	)
-
 })

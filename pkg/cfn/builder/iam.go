@@ -14,7 +14,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
-	"github.com/weaveworks/eksctl/pkg/cfn/template"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
@@ -223,6 +222,12 @@ func NewIAMRoleResourceSetForServiceAccount(spec *api.ClusterIAMServiceAccount, 
 	}
 }
 
+func NewIAMRoleResourceSetForPodIdentityWithTrustStatements(spec *api.PodIdentityAssociation, trustStatements []api.IAMStatement) *IAMRoleResourceSet {
+	rs := NewIAMRoleResourceSetForPodIdentity(spec)
+	rs.trustStatements = trustStatements
+	return rs
+}
+
 func NewIAMRoleResourceSetForPodIdentity(spec *api.PodIdentityAssociation) *IAMRoleResourceSet {
 	return &IAMRoleResourceSet{
 		template:            cft.NewTemplate(),
@@ -253,6 +258,7 @@ type IAMRoleResourceSet struct {
 	wellKnownPolicies   api.WellKnownPolicies
 	attachPolicyARNs    []string
 	attachPolicy        api.InlineDocument
+	trustStatements     []api.IAMStatement
 	roleNameCollector   func(string) error
 	OutputRole          string
 	serviceAccount      string
@@ -349,14 +355,25 @@ func (rs *IAMRoleResourceSet) AddAllResources() error {
 }
 
 func (rs *IAMRoleResourceSet) makeAssumeRolePolicyDocument() cft.MapOfInterfaces {
+	if len(rs.trustStatements) > 0 {
+		return cft.MakePolicyDocument(toMapOfInterfaces(rs.trustStatements)...)
+	}
 	if rs.oidc == nil {
-		return template.MakeAssumeRolePolicyDocumentForPodIdentity()
+		return cft.MakeAssumeRolePolicyDocumentForPodIdentity()
 	}
 	if rs.serviceAccount != "" && rs.namespace != "" {
 		logger.Debug("service account location provided: %s/%s, adding sub condition", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
 		return rs.oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions(rs.namespace, rs.serviceAccount)
 	}
 	return rs.oidc.MakeAssumeRolePolicyDocument()
+}
+
+func toMapOfInterfaces(old []api.IAMStatement) []cft.MapOfInterfaces {
+	new := []cft.MapOfInterfaces{}
+	for _, s := range old {
+		new = append(new, s.ToMapOfInterfaces())
+	}
+	return new
 }
 
 // RenderJSON will render iamserviceaccount stack as JSON

@@ -164,6 +164,47 @@ OR (to delete a single association) pass the `--namespace` and `--service-accoun
 eksctl delete podidentityassociation --cluster my-cluster --namespace default --service-account-name s3-reader 
 ```
 
+## Migrating existing iamserviceaccounts to pod identity associations
+
+`eksctl` has introduced a new utils command for migrating existing IAM Roles for service accounts to pod identity associations, i.e.
+
+```
+eksctl utils migrate-to-pod-identity --cluster my-cluster --approve
+```
+
+Behind the scenes, the command will apply the following steps:
+
+- install the `eks-pod-identity-agent` addon if not already active on the cluster
+- identify all IAM Roles that are associated with K8s service accounts
+- update the IAM trust policy of all roles, with an additional trusted entity, pointing to the new EKS Service principal (and, optionally, remove exising OIDC provider trust relationship)
+- create pod identity associations between all identified roles and the respective service accounts 
+
+Running the command without the `--approve` flag will only output a plan consisting of a set of tasks reflecting the steps above, e.g. 
+
+```bash
+[ℹ]  (plan) would migrate 2 iamserviceaccount(s) to pod identity association(s) by executing the following tasks
+[ℹ]  (plan) 
+3 sequential tasks: { install eks-pod-identity-agent addon, 
+    2 parallel sub-tasks: { 
+        update trust policy for owned role "eksctl-my-cluster-addon-iamserv-Role1-beYhlhzpwQte",
+        update trust policy for unowned role "Unowned-Role1",
+    }, 
+    2 parallel sub-tasks: { 
+        create pod identity association for service account "default/sa1",
+        create pod identity association for service account "default/sa2",
+    } 
+}
+[ℹ]  all tasks were skipped
+[!]  no changes were applied, run again with '--approve' to apply the changes
+```
+
+Additionally, to delete the existing OIDC provider trust relationship from all IAM Roles, run the command with `--remove-oidc-provider-trust-relationship` flag, e.g.
+
+```
+eksctl utils migrate-to-pod-identity --cluster my-cluster --approve --remove-oidc-provider-trust-relationship
+```
+
+
 ## Further references
 
 [Official AWS Blog Post](https://aws.amazon.com/blogs/aws/amazon-eks-pod-identity-simplifies-iam-permissions-for-applications-on-amazon-eks-clusters/)

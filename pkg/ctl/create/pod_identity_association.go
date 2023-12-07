@@ -4,11 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go-v2/service/eks"
-	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/aws/aws-sdk-go/aws"
-
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -50,14 +45,12 @@ func doCreatePodIdentityAssociation(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	if _, err := ctl.AWSProvider.EKS().DescribeAddon(ctx, &eks.DescribeAddonInput{
-		AddonName:   aws.String(api.PodIdentityAgentAddon),
-		ClusterName: &cfg.Metadata.Name,
-	}); err != nil {
-		var notFoundErr *ekstypes.ResourceNotFoundException
-		if !errors.As(err, &notFoundErr) {
-			return fmt.Errorf("error calling `EKS::DescribeAddon::%s`: %v", api.PodIdentityAgentAddon, err)
-		}
+	isInstalled, err := podidentityassociation.IsPodIdentityAgentInstalled(ctx, ctl.AWSProvider.EKS(), cfg.Metadata.Name)
+	if err != nil {
+		return err
+	}
+
+	if !isInstalled {
 		suggestion := fmt.Sprintf("please enable it using `eksctl create addon --cluster=%s --name=%s`", cmd.ClusterConfig.Metadata.Name, api.PodIdentityAgentAddon)
 		return api.ErrPodIdentityAgentNotInstalled(suggestion)
 	}

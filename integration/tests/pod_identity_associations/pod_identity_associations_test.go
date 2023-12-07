@@ -8,16 +8,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 
+	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
-
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/pkg/actions/podidentityassociation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -26,6 +28,10 @@ import (
 )
 
 const (
+	clusterIRSAv1 = "iam-service-accounts"
+	clusterIRSAv2 = "pod-identity-associations"
+
+	nsDefault    = "default"
 	nsInitial    = "initial"
 	nsCLI        = "cli"
 	nsConfigFile = "config-file"
@@ -49,17 +55,18 @@ var (
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
-	params = tests.NewParamsWithGivenClusterName("pod-identity-associations", "test")
+	params = tests.NewParamsWithGivenClusterName("", "test")
 }
 
 func TestPodIdentityAssociations(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var _ = BeforeSuite(func() {
+var _ = SynchronizedBeforeSuite(func() []byte {
 	var err error
 	ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, nil)
 	Expect(err).NotTo(HaveOccurred())
+
 	roleOutput, err := ctl.AWSProvider.IAM().CreateRole(context.Background(), &iam.CreateRoleInput{
 		RoleName:                 aws.String(initialRole1),
 		AssumeRolePolicyDocument: trustPolicy,
@@ -73,17 +80,138 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).NotTo(HaveOccurred())
 	role2ARN = *roleOutput.Role.Arn
+
+	return []byte(role1ARN + "," + role2ARN)
+}, func(arns []byte) {
+	roleARNs := strings.Split(string(arns), ",")
+	role1ARN, role2ARN = roleARNs[0], roleARNs[1]
+
+	var err error
+	ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, nil)
+	Expect(err).NotTo(HaveOccurred())
 })
 
-var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func() {
+var _ = Describe("(Integration) [PodIdentityAssociations Test]", func() {
 
-	Context("Cluster with pod identity associations", func() {
+	Context("Cluster with iam service accounts", Ordered, func() {
 		var (
 			cfg *api.ClusterConfig
 		)
 
 		BeforeAll(func() {
-			cfg = makeClusterConfig()
+			cfg = makeClusterConfig(clusterIRSAv1)
+		})
+
+		It("should create a cluster with iam service accounts", func() {
+			cfg.IAM = &api.ClusterIAM{
+				WithOIDC: aws.Bool(true),
+				ServiceAccounts: []*api.ClusterIAMServiceAccount{
+					{
+						ClusterIAMMeta: api.ClusterIAMMeta{
+							Name: sa1,
+						},
+						AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
+					},
+					{
+						ClusterIAMMeta: api.ClusterIAMMeta{
+							Name: sa2,
+						},
+						AttachRoleARN: role1ARN,
+					},
+				},
+			}
+
+			data, err := json.Marshal(cfg)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(params.EksctlCreateCmd.
+				WithArgs(
+					"cluster",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))).To(RunSuccessfully())
+
+			awsConfig := NewConfig(params.Region)
+			stackNamePrefix := fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-", clusterIRSAv1)
+			Expect(awsConfig).To(HaveExistingStack(stackNamePrefix + "default-service-account-1"))
+		})
+
+		It("should migrate to pod identity associations", func() {
+			Expect(params.EksctlUtilsCmd.
+				WithArgs(
+					"migrate-to-pod-identity",
+					"--cluster", clusterIRSAv1,
+					"--remove-oidc-provider-trust-relationship",
+					"--approve",
+				)).To(RunSuccessfully())
+		})
+
+		It("should fetch all expected associations", func() {
+			var output []podidentityassociation.Summary
+			session := params.EksctlGetCmd.
+				WithArgs(
+					"podidentityassociation",
+					"--cluster", clusterIRSAv1,
+					"--output", "json",
+				).Run()
+			Expect(session.ExitCode()).To(Equal(0))
+			Expect(json.Unmarshal(session.Out.Contents(), &output)).To(Succeed())
+			Expect(output).To(HaveLen(3))
+		})
+
+		It("should not return any iam service accounts", func() {
+			Expect(params.EksctlGetCmd.
+				WithArgs(
+					"iamserviceaccount",
+					"--cluster", clusterIRSAv1,
+				)).To(RunSuccessfullyWithOutputStringLines(ContainElement("No iamserviceaccounts found")))
+		})
+
+		It("should fail to update an owned migrated role", func() {
+			session := params.EksctlUpdateCmd.
+				WithArgs(
+					"podidentityassociation",
+					"--cluster", clusterIRSAv1,
+					"--namespace", nsDefault,
+					"--service-account-name", sa1,
+					"--role-arn", role1ARN,
+				).Run()
+			Expect(session.ExitCode()).To(Equal(1))
+			Expect(session.Err.Contents()).To(ContainSubstring("cannot change podIdentityAssociation.roleARN since the role was created by eksctl"))
+		})
+
+		It("should update an unowned migrated role", func() {
+			Expect(params.EksctlUpdateCmd.
+				WithArgs(
+					"podidentityassociation",
+					"--cluster", clusterIRSAv1,
+					"--namespace", nsDefault,
+					"--service-account-name", sa2,
+					"--role-arn", role1ARN,
+				),
+			).To(RunSuccessfully())
+		})
+
+		It("should delete an owned migrated role", func() {
+			Expect(params.EksctlDeleteCmd.
+				WithArgs(
+					"podidentityassociation",
+					"--cluster", clusterIRSAv1,
+					"--namespace", nsDefault,
+					"--service-account-name", sa1,
+				)).To(RunSuccessfully())
+		})
+	})
+
+	Context("Cluster with pod identity associations", Ordered, func() {
+		var (
+			cfg *api.ClusterConfig
+		)
+
+		BeforeAll(func() {
+			cfg = makeClusterConfig(clusterIRSAv2)
 		})
 
 		It("should create a cluster with pod identity associations", func() {
@@ -124,7 +252,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 			session := params.EksctlGetCmd.
 				WithArgs(
 					"podidentityassociation",
-					"--cluster", params.ClusterName,
+					"--cluster", clusterIRSAv2,
 					"--output", "json",
 				).Run()
 			Expect(session.ExitCode()).To(Equal(0))
@@ -137,7 +265,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 				Expect(params.EksctlCreateCmd.
 					WithArgs(
 						"podidentityassociation",
-						"--cluster", params.ClusterName,
+						"--cluster", clusterIRSAv2,
 						"--namespace", nsInitial,
 						"--service-account-name", sa1,
 						"--role-arn", role1ARN,
@@ -149,7 +277,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 				Expect(params.EksctlCreateCmd.
 					WithArgs(
 						"podidentityassociation",
-						"--cluster", params.ClusterName,
+						"--cluster", clusterIRSAv2,
 						"--namespace", nsCLI,
 						"--service-account-name", sa1,
 						"--well-known-policies", "certManager",
@@ -194,7 +322,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 				session := params.EksctlGetCmd.
 					WithArgs(
 						"podidentityassociation",
-						"--cluster", params.ClusterName,
+						"--cluster", clusterIRSAv2,
 						"--output", "json",
 					).Run()
 				Expect(session.ExitCode()).To(Equal(0))
@@ -207,7 +335,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 				session := params.EksctlGetCmd.
 					WithArgs(
 						"podidentityassociation",
-						"--cluster", params.ClusterName,
+						"--cluster", clusterIRSAv2,
 						"--namespace", nsConfigFile,
 						"--output", "json",
 					).Run()
@@ -221,7 +349,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 				session := params.EksctlGetCmd.
 					WithArgs(
 						"podidentityassociation",
-						"--cluster", params.ClusterName,
+						"--cluster", clusterIRSAv2,
 						"--namespace", nsConfigFile,
 						"--service-account-name", sa1,
 						"--output", "json",
@@ -234,22 +362,23 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 
 		Context("Updating pod identity associations", func() {
 			It("should fail to update an association with role created by eksctl", func() {
-				Expect(params.EksctlUpdateCmd.
+				session := params.EksctlUpdateCmd.
 					WithArgs(
 						"podidentityassociation",
-						"--cluster", params.ClusterName,
+						"--cluster", clusterIRSAv2,
 						"--namespace", nsCLI,
 						"--service-account-name", sa1,
 						"--role-arn", role1ARN,
-					),
-				).NotTo(RunSuccessfully())
+					).Run()
+				Expect(session.ExitCode()).To(Equal(1))
+				Expect(session.Err.Contents()).To(ContainSubstring("cannot change podIdentityAssociation.roleARN since the role was created by eksctl"))
 			})
 
 			It("should update an association via CLI", func() {
 				Expect(params.EksctlUpdateCmd.
 					WithArgs(
 						"podidentityassociation",
-						"--cluster", params.ClusterName,
+						"--cluster", clusterIRSAv2,
 						"--namespace", nsInitial,
 						"--service-account-name", sa1,
 						"--role-arn", role2ARN,
@@ -289,7 +418,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 				session := params.EksctlGetCmd.
 					WithArgs(
 						"podidentityassociation",
-						"--cluster", params.ClusterName,
+						"--cluster", clusterIRSAv2,
 						"--namespace", nsInitial,
 						"--output", "json",
 					).Run()
@@ -307,7 +436,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 				Expect(params.EksctlDeleteCmd.
 					WithArgs(
 						"podidentityassociation",
-						"--cluster", params.ClusterName,
+						"--cluster", clusterIRSAv2,
 						"--namespace", nsInitial,
 						"--service-account-name", sa1,
 					),
@@ -343,7 +472,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 				Expect(params.EksctlGetCmd.
 					WithArgs(
 						"podidentityassociation",
-						"--cluster", params.ClusterName,
+						"--cluster", clusterIRSAv2,
 						"--namespace", nsInitial,
 					)).To(RunSuccessfullyWithOutputStringLines(ContainElement("No podidentityassociations found")))
 			})
@@ -353,7 +482,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 			BeforeAll(func() {
 				_, err := ctl.AWSProvider.EKS().CreatePodIdentityAssociation(context.Background(),
 					&awseks.CreatePodIdentityAssociationInput{
-						ClusterName:    &params.ClusterName,
+						ClusterName:    aws.String(clusterIRSAv2),
 						Namespace:      aws.String(nsUnowned),
 						ServiceAccount: aws.String(sa1),
 						RoleArn:        &role1ARN,
@@ -365,7 +494,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 				Expect(params.EksctlGetCmd.
 					WithArgs(
 						"podidentityassociation",
-						"--cluster", params.ClusterName,
+						"--cluster", clusterIRSAv2,
 						"--namespace", nsUnowned,
 						"--service-account-name", sa1,
 						"--output", "json",
@@ -379,7 +508,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 				Expect(params.EksctlDeleteCmd.
 					WithArgs(
 						"podidentityassociation",
-						"--cluster", params.ClusterName,
+						"--cluster", clusterIRSAv2,
 						"--namespace", nsUnowned,
 						"--service-account-name", sa1,
 					)).To(RunSuccessfully())
@@ -387,7 +516,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 				Expect(params.EksctlGetCmd.
 					WithArgs(
 						"podidentityassociation",
-						"--cluster", params.ClusterName,
+						"--cluster", clusterIRSAv2,
 						"--namespace", nsUnowned,
 						"--service-account-name", sa1,
 					)).To(RunSuccessfullyWithOutputStringLines(ContainElement("No podidentityassociations found")))
@@ -396,10 +525,19 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", Ordered, func()
 	})
 })
 
-var _ = AfterSuite(func() {
+var _ = SynchronizedAfterSuite(func() {}, func() {
 	if ctl == nil {
 		return
 	}
+
+	Expect(params.EksctlDeleteCmd.WithArgs(
+		"cluster", clusterIRSAv1,
+	)).To(RunSuccessfully())
+
+	Expect(params.EksctlDeleteCmd.WithArgs(
+		"cluster", clusterIRSAv2,
+	)).To(RunSuccessfully())
+
 	_, err := ctl.AWSProvider.IAM().DeleteRole(context.Background(), &iam.DeleteRoleInput{
 		RoleName: aws.String(initialRole1),
 	})
@@ -409,14 +547,12 @@ var _ = AfterSuite(func() {
 		RoleName: aws.String(initialRole2),
 	})
 	Expect(err).NotTo(HaveOccurred())
-
-	params.DeleteClusters()
 })
 
 var (
-	makeClusterConfig = func() *api.ClusterConfig {
+	makeClusterConfig = func(clusterName string) *api.ClusterConfig {
 		cfg := api.NewClusterConfig()
-		cfg.Metadata.Name = params.ClusterName
+		cfg.Metadata.Name = clusterName
 		cfg.Metadata.Version = params.Version
 		cfg.Metadata.Region = params.Region
 		return cfg

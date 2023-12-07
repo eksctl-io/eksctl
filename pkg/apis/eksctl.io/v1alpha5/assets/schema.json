@@ -540,12 +540,31 @@
     },
     "ClusterIAMServiceAccountStatus": {
       "properties": {
+        "capabilities": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "roleARN": {
           "type": "string"
+        },
+        "stackName": {
+          "type": "string"
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "default": "{}"
         }
       },
       "preferredOrder": [
-        "roleARN"
+        "roleARN",
+        "stackName",
+        "tags",
+        "capabilities"
       ],
       "additionalProperties": false,
       "description": "holds status of the IAM service account",
