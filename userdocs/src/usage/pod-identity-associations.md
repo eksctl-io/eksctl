@@ -54,7 +54,7 @@ iam:
     tags: {} #optional
 ```
 
-For a complete example, refer to [pod-identity-associations.yaml](https://github.com/eksctl-io/eksctl/blob/main/examples/38-cluster-subnets-sgs.yaml).
+For a complete example, refer to [pod-identity-associations.yaml](https://github.com/eksctl-io/eksctl/blob/main/examples/39-pod-identity-association.yaml).
 
 ???+ note
     Apart from `permissionPolicy` which is used as an inline policy document, all other fields have a CLI flag counterpart.
