@@ -103,7 +103,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", func() {
 		})
 
 		It("should create a cluster with iam service accounts", func() {
-			Skip("until integration test account is ammended with the required permissions")
+			Skip("until integration test account is amended with the required permissions")
 			cfg.IAM = &api.ClusterIAM{
 				WithOIDC: aws.Bool(true),
 				ServiceAccounts: []*api.ClusterIAMServiceAccount{
@@ -140,7 +140,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", func() {
 		})
 
 		It("should migrate to pod identity associations", func() {
-			Skip("until integration test account is ammended with the required permissions")
+			Skip("until integration test account is amended with the required permissions")
 			Expect(params.EksctlUtilsCmd.
 				WithArgs(
 					"migrate-to-pod-identity",
@@ -151,7 +151,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", func() {
 		})
 
 		It("should fetch all expected associations", func() {
-			Skip("until integration test account is ammended with the required permissions")
+			Skip("until integration test account is amended with the required permissions")
 			var output []podidentityassociation.Summary
 			session := params.EksctlGetCmd.
 				WithArgs(
@@ -165,7 +165,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", func() {
 		})
 
 		It("should not return any iam service accounts", func() {
-			Skip("until integration test account is ammended with the required permissions")
+			Skip("until integration test account is amended with the required permissions")
 			Expect(params.EksctlGetCmd.
 				WithArgs(
 					"iamserviceaccount",
@@ -174,7 +174,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", func() {
 		})
 
 		It("should fail to update an owned migrated role", func() {
-			Skip("until integration test account is ammended with the required permissions")
+			Skip("until integration test account is amended with the required permissions")
 			session := params.EksctlUpdateCmd.
 				WithArgs(
 					"podidentityassociation",
@@ -188,7 +188,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", func() {
 		})
 
 		It("should update an unowned migrated role", func() {
-			Skip("until integration test account is ammended with the required permissions")
+			Skip("until integration test account is amended with the required permissions")
 			Expect(params.EksctlUpdateCmd.
 				WithArgs(
 					"podidentityassociation",
@@ -201,7 +201,7 @@ var _ = Describe("(Integration) [PodIdentityAssociations Test]", func() {
 		})
 
 		It("should delete an owned migrated role", func() {
-			Skip("until integration test account is ammended with the required permissions")
+			Skip("until integration test account is amended with the required permissions")
 			Expect(params.EksctlDeleteCmd.
 				WithArgs(
 					"podidentityassociation",
