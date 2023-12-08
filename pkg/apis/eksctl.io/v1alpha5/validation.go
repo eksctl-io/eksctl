@@ -49,7 +49,7 @@ var (
 		"for more details")
 
 	ErrPodIdentityAgentNotInstalled = func(suggestion string) error {
-		return fmt.Errorf("the `%s` addon must be installed to create pod identity associations; %s", PodIdentityAgentAddon, suggestion)
+		return fmt.Errorf("the %q addon must be installed to create pod identity associations; %s", PodIdentityAgentAddon, suggestion)
 	}
 )
 

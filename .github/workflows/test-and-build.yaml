@@ -13,6 +13,11 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
           fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe #v4.1.0
+        with:
+          go-version: 1.20.x
+          cache: false
       - name: Cache go-build and mod
         uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 #v3.3.2
         with:
@@ -22,10 +27,6 @@ jobs:
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: |
             go-
-      - name: Setup Go
-        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe #v4.1.0
-        with:
-          go-version: 1.20.x
       - name: Setup deps
         run: |
           make install-build-deps
@@ -41,6 +42,11 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
           fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe #v4.1.0
+        with:
+          go-version: 1.20.x
+          cache: false
       - name: Cache go-build and mod
         uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 #v3.3.2
         with:
@@ -50,10 +56,6 @@ jobs:
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: |
             go-
-      - name: Setup Go
-        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe #v4.1.0
-        with:
-          go-version: 1.20.x
       - name: Setup deps
         run: |
           make install-build-deps
@@ -68,6 +70,11 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
           fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe #v4.1.0
+        with:
+          go-version: 1.20.x
+          cache: false
       - name: Cache go-build and mod
         uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 #v3.3.2
         with:
@@ -77,10 +84,6 @@ jobs:
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: |
             go-
-      - name: Setup Go
-        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe #v4.1.0
-        with:
-          go-version: 1.20.x
       - name: Setup deps
         run: |
           make install-build-deps

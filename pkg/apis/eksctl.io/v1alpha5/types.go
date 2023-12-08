@@ -286,6 +286,9 @@ const (
 	// IAMServiceAccountNameTag defines the tag of the IAM service account name
 	IAMServiceAccountNameTag = "alpha.eksctl.io/iamserviceaccount-name"
 
+	// PodIdentityAssociationNameTag defines the tag of Pod Identity Association name
+	PodIdentityAssociationNameTag = "alpha.eksctl.io/podidentityassociation-name"
+
 	// AddonNameTag defines the tag of the IAM service account name
 	AddonNameTag = "alpha.eksctl.io/addon-name"
 
@@ -1444,7 +1447,7 @@ type (
 		// +optional
 		EnableAdminContainer *bool `json:"enableAdminContainer,omitempty"`
 		// Settings contains any [bottlerocket
-		// settings](https://github.com/bottlerocket-os/bottlerocket/#description-of-settings)
+		// settings](https://bottlerocket.dev/en/os/latest/#/api/settings/)
 		// +optional
 		Settings *InlineDocument `json:"settings,omitempty"`
 	}

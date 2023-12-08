@@ -9,7 +9,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
-type FakeStackManager struct {
+type FakeStackCreator struct {
 	CreateStackStub        func(context.Context, string, builder.ResourceSetReader, map[string]string, map[string]string, chan error) error
 	createStackMutex       sync.RWMutex
 	createStackArgsForCall []struct {
@@ -30,7 +30,7 @@ type FakeStackManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeStackManager) CreateStack(arg1 context.Context, arg2 string, arg3 builder.ResourceSetReader, arg4 map[string]string, arg5 map[string]string, arg6 chan error) error {
+func (fake *FakeStackCreator) CreateStack(arg1 context.Context, arg2 string, arg3 builder.ResourceSetReader, arg4 map[string]string, arg5 map[string]string, arg6 chan error) error {
 	fake.createStackMutex.Lock()
 	ret, specificReturn := fake.createStackReturnsOnCall[len(fake.createStackArgsForCall)]
 	fake.createStackArgsForCall = append(fake.createStackArgsForCall, struct {
@@ -54,26 +54,26 @@ func (fake *FakeStackManager) CreateStack(arg1 context.Context, arg2 string, arg
 	return fakeReturns.result1
 }
 
-func (fake *FakeStackManager) CreateStackCallCount() int {
+func (fake *FakeStackCreator) CreateStackCallCount() int {
 	fake.createStackMutex.RLock()
 	defer fake.createStackMutex.RUnlock()
 	return len(fake.createStackArgsForCall)
 }
 
-func (fake *FakeStackManager) CreateStackCalls(stub func(context.Context, string, builder.ResourceSetReader, map[string]string, map[string]string, chan error) error) {
+func (fake *FakeStackCreator) CreateStackCalls(stub func(context.Context, string, builder.ResourceSetReader, map[string]string, map[string]string, chan error) error) {
 	fake.createStackMutex.Lock()
 	defer fake.createStackMutex.Unlock()
 	fake.CreateStackStub = stub
 }
 
-func (fake *FakeStackManager) CreateStackArgsForCall(i int) (context.Context, string, builder.ResourceSetReader, map[string]string, map[string]string, chan error) {
+func (fake *FakeStackCreator) CreateStackArgsForCall(i int) (context.Context, string, builder.ResourceSetReader, map[string]string, map[string]string, chan error) {
 	fake.createStackMutex.RLock()
 	defer fake.createStackMutex.RUnlock()
 	argsForCall := fake.createStackArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6
 }
 
-func (fake *FakeStackManager) CreateStackReturns(result1 error) {
+func (fake *FakeStackCreator) CreateStackReturns(result1 error) {
 	fake.createStackMutex.Lock()
 	defer fake.createStackMutex.Unlock()
 	fake.CreateStackStub = nil
@@ -82,7 +82,7 @@ func (fake *FakeStackManager) CreateStackReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStackManager) CreateStackReturnsOnCall(i int, result1 error) {
+func (fake *FakeStackCreator) CreateStackReturnsOnCall(i int, result1 error) {
 	fake.createStackMutex.Lock()
 	defer fake.createStackMutex.Unlock()
 	fake.CreateStackStub = nil
@@ -96,7 +96,7 @@ func (fake *FakeStackManager) CreateStackReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
+func (fake *FakeStackCreator) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.createStackMutex.RLock()
@@ -108,7 +108,7 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeStackManager) recordInvocation(key string, args []interface{}) {
+func (fake *FakeStackCreator) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -120,4 +120,4 @@ func (fake *FakeStackManager) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ podidentityassociation.StackManager = new(FakeStackManager)
+var _ podidentityassociation.StackCreator = new(FakeStackCreator)
