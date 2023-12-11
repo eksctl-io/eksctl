@@ -537,9 +537,11 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 		return
 	}
 
-	Expect(params.EksctlDeleteCmd.WithArgs(
-		"cluster", clusterIRSAv1,
-	)).To(RunSuccessfully())
+	/*
+		Expect(params.EksctlDeleteCmd.WithArgs(
+			"cluster", clusterIRSAv1,
+		)).To(RunSuccessfully())
+	*/
 
 	Expect(params.EksctlDeleteCmd.WithArgs(
 		"cluster", clusterIRSAv2,
