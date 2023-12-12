@@ -52,7 +52,7 @@ func LoadKey(ctx context.Context, sshConfig *api.NodeGroupSSH, clusterName, node
 		if err != nil {
 			return "", err
 		}
-		logger.Info("using EC2 key pair %q", sshConfig.PublicKeyName)
+		logger.Info("using EC2 key pair %q", *sshConfig.PublicKeyPath)
 		return *sshConfig.PublicKeyPath, nil
 	}
 
