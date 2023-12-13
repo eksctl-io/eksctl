@@ -119,6 +119,9 @@ const (
 	// RegionCACentral1 represents the Canada Central Region
 	RegionCACentral1 = "ca-central-1"
 
+	// RegionCAWest1 represents the Canada West region Calgary.
+	RegionCAWest1 = "ca-west-1"
+
 	// RegionEUWest1 represents the EU West Region Ireland
 	RegionEUWest1 = "eu-west-1"
 
@@ -328,6 +331,9 @@ const (
 	// eksResourceAccountAPEast1 defines the AWS EKS account ID that provides node resources in ap-east-1 region
 	eksResourceAccountAPEast1 = "800184023465"
 
+	// eksResourceAccountCAWest1 defines the AWS EKS account ID that provides node resources in ca-west-1 region
+	eksResourceAccountCAWest1 = "761377655185"
+
 	// eksResourceAccountMECentral1 defines the AWS EKS account ID that provides node resources in me-central-1 region
 	eksResourceAccountMECentral1 = "759879836304"
 
@@ -495,6 +501,7 @@ func SupportedRegions() []string {
 		RegionUSEast1,
 		RegionUSEast2,
 		RegionCACentral1,
+		RegionCAWest1,
 		RegionEUWest1,
 		RegionEUWest2,
 		RegionEUWest3,
@@ -623,6 +630,8 @@ func EKSResourceAccountID(region string) string {
 	switch region {
 	case RegionAPEast1:
 		return eksResourceAccountAPEast1
+	case RegionCAWest1:
+		return eksResourceAccountCAWest1
 	case RegionMECentral1:
 		return eksResourceAccountMECentral1
 	case RegionMESouth1:
