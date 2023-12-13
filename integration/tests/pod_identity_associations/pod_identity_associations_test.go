@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -17,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
@@ -63,23 +65,39 @@ func TestPodIdentityAssociations(t *testing.T) {
 }
 
 var _ = SynchronizedBeforeSuite(func() []byte {
-	var err error
+	var (
+		err              error
+		alreadyExistsErr *iamtypes.EntityAlreadyExistsException
+	)
+
+	maybeCreateRoleAndGetARN := func(name string) (string, error) {
+		createOut, err := ctl.AWSProvider.IAM().CreateRole(context.Background(), &iam.CreateRoleInput{
+			RoleName:                 aws.String(name),
+			AssumeRolePolicyDocument: trustPolicy,
+		})
+		if err == nil {
+			return *createOut.Role.Arn, nil
+		}
+		if !errors.As(err, &alreadyExistsErr) {
+			return "", fmt.Errorf("creating role %q: %w", name, err)
+		}
+		getOut, err := ctl.AWSProvider.IAM().GetRole(context.Background(), &iam.GetRoleInput{
+			RoleName: aws.String(name),
+		})
+		if err != nil {
+			return "", fmt.Errorf("fetching role %q: %w", name, err)
+		}
+		return *getOut.Role.Arn, nil
+	}
+
 	ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, nil)
 	Expect(err).NotTo(HaveOccurred())
 
-	roleOutput, err := ctl.AWSProvider.IAM().CreateRole(context.Background(), &iam.CreateRoleInput{
-		RoleName:                 aws.String(initialRole1),
-		AssumeRolePolicyDocument: trustPolicy,
-	})
+	role1ARN, err := maybeCreateRoleAndGetARN(initialRole1)
 	Expect(err).NotTo(HaveOccurred())
-	role1ARN = *roleOutput.Role.Arn
 
-	roleOutput, err = ctl.AWSProvider.IAM().CreateRole(context.Background(), &iam.CreateRoleInput{
-		RoleName:                 aws.String(initialRole2),
-		AssumeRolePolicyDocument: trustPolicy,
-	})
+	role2ARN, err := maybeCreateRoleAndGetARN(initialRole2)
 	Expect(err).NotTo(HaveOccurred())
-	role2ARN = *roleOutput.Role.Arn
 
 	return []byte(role1ARN + "," + role2ARN)
 }, func(arns []byte) {
