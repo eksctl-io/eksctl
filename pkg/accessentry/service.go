@@ -10,6 +10,10 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
+var (
+	ErrDisabledAccessEntryAPI = fmt.Errorf("access entries API is not currently enabled; please enable it using `eksctl utils update-authentication-mode --cluster <> --authentication-mode=API_AND_CONFIG_MAP`")
+)
+
 // Service is a service for access entries.
 type Service struct {
 	// ClusterStateGetter returns the cluster state.

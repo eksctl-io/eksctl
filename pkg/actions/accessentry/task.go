@@ -16,11 +16,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
-var (
-	ErrDisabledAccessEntryAPI = fmt.Errorf("access entries API is not currently enabled; please enable it using `eksctl utils update-authentication-mode --cluster <> --authenticationMode=API_AND_CONFIG_MAP`")
-	unknownARN                = api.ARN{Partition: "unknown"}
-)
-
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_stack_creator.go . StackCreator
 type StackCreator interface {
@@ -100,9 +95,9 @@ func (t *deleteUnownedAccessEntryTask) Do(errorCh chan error) error {
 		ClusterName:  &t.clusterName,
 		PrincipalArn: aws.String(t.principalARN.String()),
 	}); err != nil {
-		return fmt.Errorf("deleting access entry with principalArn %s: %w", t.principalARN, err)
+		return fmt.Errorf("deleting access entry with principalARN %s: %w", t.principalARN, err)
 	}
-	logger.Info("started deleting access entry with principalArn %q", t.principalARN)
+	logger.Info("started deleting access entry with principalARN %q", t.principalARN)
 
 	return nil
 }
@@ -127,7 +122,7 @@ func (t *deleteOwnedAccessEntryTask) Do(errorCh chan error) error {
 	}
 
 	if err := t.stackRemover.DeleteStackBySpecSync(t.ctx, stack, errorCh); err != nil {
-		return fmt.Errorf("deleting access entry with principalArn %s: %w", t.principalARN.String(), err)
+		return fmt.Errorf("deleting access entry with principalARN %s: %w", t.principalARN.String(), err)
 	}
 
 	return nil

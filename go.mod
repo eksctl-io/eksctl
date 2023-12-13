@@ -5,11 +5,6 @@ module github.com/weaveworks/eksctl
 
 go 1.20
 
-replace (
-	github.com/aws/aws-sdk-go-v2/service/eks => ../eksctl-utils/access-entries/aws-sdk-go-v2-revised/service/eks
-	github.com/weaveworks/goformation/v4 => ../goformation
-)
-
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8c1e

@@ -121,7 +121,8 @@ func NewUtilsUpdateAuthenticationModeLoader(cmd *Cmd) ClusterConfigLoader {
 			return ErrMustBeSet("--authentication-mode")
 		}
 		if !slices.Contains(authenticationMode.Values(), cmd.ClusterConfig.AccessConfig.AuthenticationMode) {
-			return fmt.Errorf("invalid value %s provided for authenticationMode, choose one of: CONFIG_MAP, API_AND_CONFIG_MAP, API", authenticationMode)
+			return fmt.Errorf("invalid value %q provided for authenticationMode, choose one of: %q, %q, %q",
+				authenticationMode, ekstypes.AuthenticationModeConfigMap, ekstypes.AuthenticationModeApiAndConfigMap, ekstypes.AuthenticationModeApi)
 		}
 		return nil
 	}
