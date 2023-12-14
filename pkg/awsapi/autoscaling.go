@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	. "github.com/aws/aws-sdk-go-v2/service/autoscaling"
 )
 
 // ASG provides an interface to the AWS ASG service.
 type ASG interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() autoscaling.Options
 	// Attaches one or more EC2 instances to the specified Auto Scaling group. When
 	// you attach instances, Amazon EC2 Auto Scaling increases the desired capacity of
 	// the group by the number of instances being attached. If the number of instances

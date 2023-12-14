@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	. "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 )
 
 // ELBV2 provides an interface to the AWS ELBV2 service.
 type ELBV2 interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() elasticloadbalancingv2.Options
 	// Adds the specified SSL server certificate to the certificate list for the
 	// specified HTTPS or TLS listener. If the certificate in already in the
 	// certificate list, the call is successful but the certificate is not added again.

@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	. "github.com/aws/aws-sdk-go-v2/service/ssm"
 )
 
 // SSM provides an interface to the AWS SSM service.
 type SSM interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() ssm.Options
 	// Adds or overwrites one or more tags for the specified resource. Tags are
 	// metadata that you can assign to your automations, documents, managed nodes,
 	// maintenance windows, Parameter Store parameters, and patch baselines. Tags

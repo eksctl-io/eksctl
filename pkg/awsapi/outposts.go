@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/outposts"
 	. "github.com/aws/aws-sdk-go-v2/service/outposts"
 )
 
 // Outposts provides an interface to the AWS Outposts service.
 type Outposts interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() outposts.Options
 	// Cancels the specified order for an Outpost.
 	CancelOrder(ctx context.Context, params *CancelOrderInput, optFns ...func(*Options)) (*CancelOrderOutput, error)
 	// Creates an order for an Outpost.
