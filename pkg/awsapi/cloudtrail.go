@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	. "github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 )
 
 // CloudTrail provides an interface to the AWS CloudTrail service.
 type CloudTrail interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() cloudtrail.Options
 	// Adds one or more tags to a trail, event data store, or channel, up to a limit
 	// of 50. Overwrites an existing tag's value when a new value is specified for an
 	// existing tag key. Tag key names must be unique; you cannot have two keys with

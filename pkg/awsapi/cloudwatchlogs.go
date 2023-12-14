@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	. "github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 )
 
 // CloudWatchLogs provides an interface to the AWS CloudWatchLogs service.
 type CloudWatchLogs interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() cloudwatchlogs.Options
 	// Associates the specified KMS key with either one log group in the account, or
 	// with all stored CloudWatch Logs query insights results in the account. When you
 	// use AssociateKmsKey , you specify either the logGroupName parameter or the
@@ -67,7 +74,7 @@ type CloudWatchLogs interface {
 	//     PutDeliveryDestination (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestination.html)
 	//     .
 	//   - If you are delivering logs cross-account, you must use
-	//     PutDeliveryDestinationPolicy (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestinationolicy.html)
+	//     PutDeliveryDestinationPolicy (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestinationPolicy.html)
 	//     in the destination account to assign an IAM policy to the destination. This
 	//     policy allows delivery to that destination.
 	//   - Use CreateDelivery to create a delivery by pairing exactly one delivery
@@ -254,9 +261,10 @@ type CloudWatchLogs interface {
 	// it to queries of a specific log group or queries with a certain status.
 	DescribeQueries(ctx context.Context, params *DescribeQueriesInput, optFns ...func(*Options)) (*DescribeQueriesOutput, error)
 	// This operation returns a paginated list of your saved CloudWatch Logs Insights
-	// query definitions. You can use the queryDefinitionNamePrefix parameter to limit
-	// the results to only the query definitions that have names that start with a
-	// certain string.
+	// query definitions. You can retrieve query definitions from the current account
+	// or from a source account that is linked to the current account. You can use the
+	// queryDefinitionNamePrefix parameter to limit the results to only the query
+	// definitions that have names that start with a certain string.
 	DescribeQueryDefinitions(ctx context.Context, params *DescribeQueryDefinitionsInput, optFns ...func(*Options)) (*DescribeQueryDefinitionsOutput, error)
 	// Lists the resource policies in this account.
 	DescribeResourcePolicies(ctx context.Context, params *DescribeResourcePoliciesInput, optFns ...func(*Options)) (*DescribeResourcePoliciesOutput, error)
@@ -450,7 +458,7 @@ type CloudWatchLogs interface {
 	//   - Use PutDeliveryDestination to create a delivery destination, which is a
 	//     logical object that represents the actual delivery destination.
 	//   - If you are delivering logs cross-account, you must use
-	//     PutDeliveryDestinationPolicy (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestinationolicy.html)
+	//     PutDeliveryDestinationPolicy (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestinationPolicy.html)
 	//     in the destination account to assign an IAM policy to the destination. This
 	//     policy allows delivery to that destination.
 	//   - Use CreateDelivery to create a delivery by pairing exactly one delivery
@@ -506,7 +514,7 @@ type CloudWatchLogs interface {
 	//     information, see PutDeliveryDestination (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestination.html)
 	//     .
 	//   - If you are delivering logs cross-account, you must use
-	//     PutDeliveryDestinationPolicy (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestinationolicy.html)
+	//     PutDeliveryDestinationPolicy (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestinationPolicy.html)
 	//     in the destination account to assign an IAM policy to the destination. This
 	//     policy allows delivery to that destination.
 	//   - Use CreateDelivery to create a delivery by pairing exactly one delivery
@@ -641,6 +649,36 @@ type CloudWatchLogs interface {
 	// filterName . To perform a PutSubscriptionFilter operation for any destination
 	// except a Lambda function, you must also have the iam:PassRole permission.
 	PutSubscriptionFilter(ctx context.Context, params *PutSubscriptionFilterInput, optFns ...func(*Options)) (*PutSubscriptionFilterOutput, error)
+	// Starts a Live Tail streaming session for one or more log groups. A Live Tail
+	// session returns a stream of log events that have been recently ingested in the
+	// log groups. For more information, see Use Live Tail to view logs in near real
+	// time (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs_LiveTail.html)
+	// . The response to this operation is a response stream, over which the server
+	// sends live log events and the client receives them. The following objects are
+	// sent over the stream:
+	//   - A single LiveTailSessionStart (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_LiveTailSessionStart.html)
+	//     object is sent at the start of the session.
+	//   - Every second, a LiveTailSessionUpdate (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_LiveTailSessionUpdate.html)
+	//     object is sent. Each of these objects contains an array of the actual log
+	//     events. If no new log events were ingested in the past second, the
+	//     LiveTailSessionUpdate object will contain an empty array. The array of log
+	//     events contained in a LiveTailSessionUpdate can include as many as 500 log
+	//     events. If the number of log events matching the request exceeds 500 per second,
+	//     the log events are sampled down to 500 log events to be included in each
+	//     LiveTailSessionUpdate object. If your client consumes the log events slower
+	//     than the server produces them, CloudWatch Logs buffers up to 10
+	//     LiveTailSessionUpdate events or 5000 log events, after which it starts
+	//     dropping the oldest events.
+	//   - A SessionStreamingException (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_SessionStreamingException.html)
+	//     object is returned if an unknown error occurs on the server side.
+	//   - A SessionTimeoutException (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_SessionTimeoutException.html)
+	//     object is returned when the session times out, after it has been kept open for
+	//     three hours.
+	//
+	// You can end a session before it times out by closing the session stream or by
+	// closing the client that is receiving the stream. The session also ends if the
+	// established connection between the client and the server breaks.
+	StartLiveTail(ctx context.Context, params *StartLiveTailInput, optFns ...func(*Options)) (*StartLiveTailOutput, error)
 	// Schedules a query of a log group using CloudWatch Logs Insights. You specify
 	// the log group and time range to query and the query string to use. For more
 	// information, see CloudWatch Logs Insights Query Syntax (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html)

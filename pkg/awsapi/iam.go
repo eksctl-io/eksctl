@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/iam"
 	. "github.com/aws/aws-sdk-go-v2/service/iam"
 )
 
 // IAM provides an interface to the AWS IAM service.
 type IAM interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() iam.Options
 	// Adds a new client ID (also known as audience) to the list of client IDs already
 	// registered for the specified IAM OpenID Connect (OIDC) provider resource. This
 	// operation is idempotent; it does not fail or return an error if you add an

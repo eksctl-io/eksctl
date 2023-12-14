@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	. "github.com/aws/aws-sdk-go-v2/service/eks"
 )
 
 // EKS provides an interface to the AWS EKS service.
 type EKS interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() eks.Options
 	// Associate encryption configuration to an existing cluster. You can use this API
 	// to enable encryption on existing clusters which do not have encryption already
 	// enabled. This allows you to implement a defense-in-depth security strategy
