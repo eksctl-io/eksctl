@@ -76,6 +76,7 @@ type StackManager interface {
 	ListIAMServiceAccountStacks(ctx context.Context) ([]string, error)
 	ListNodeGroupStacks(ctx context.Context) ([]*Stack, error)
 	ListNodeGroupStacksWithStatuses(ctx context.Context) ([]NodeGroupStack, error)
+	ListPodIdentityStackNames(ctx context.Context) ([]string, error)
 	ListStacks(ctx context.Context) ([]*Stack, error)
 	ListStacksWithStatuses(ctx context.Context, statusFilters ...cfntypes.StackStatus) ([]*Stack, error)
 	ListStacksMatching(ctx context.Context, nameRegex string, statusFilters ...cfntypes.StackStatus) ([]*Stack, error)

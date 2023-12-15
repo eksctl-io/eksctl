@@ -19,7 +19,7 @@ import (
 type createPodIdentityAssociationEntry struct {
 	toBeCreated              []api.PodIdentityAssociation
 	mockEKS                  func(provider *mockprovider.MockProvider)
-	mockCFN                  func(stackManager *fakes.FakeStackManager)
+	mockCFN                  func(stackCreator *fakes.FakeStackCreator)
 	expectedCreateStackCalls int
 	expectedErr              string
 }
@@ -27,7 +27,7 @@ type createPodIdentityAssociationEntry struct {
 var _ = Describe("Create", func() {
 	var (
 		creator          *podidentityassociation.Creator
-		fakeStackManager *fakes.FakeStackManager
+		fakeStackCreator *fakes.FakeStackCreator
 		mockProvider     *mockprovider.MockProvider
 
 		clusterName         = "test-cluster"
@@ -39,9 +39,9 @@ var _ = Describe("Create", func() {
 	)
 
 	DescribeTable("Create", func(e createPodIdentityAssociationEntry) {
-		fakeStackManager = new(fakes.FakeStackManager)
+		fakeStackCreator = new(fakes.FakeStackCreator)
 		if e.mockCFN != nil {
-			e.mockCFN(fakeStackManager)
+			e.mockCFN(fakeStackCreator)
 		}
 
 		mockProvider = mockprovider.NewMockProvider()
@@ -49,7 +49,7 @@ var _ = Describe("Create", func() {
 			e.mockEKS(mockProvider)
 		}
 
-		creator = podidentityassociation.NewCreator(clusterName, fakeStackManager, mockProvider.MockEKS())
+		creator = podidentityassociation.NewCreator(clusterName, fakeStackCreator, mockProvider.MockEKS())
 
 		err := creator.CreatePodIdentityAssociations(context.Background(), e.toBeCreated)
 		if e.expectedErr != "" {
@@ -57,7 +57,7 @@ var _ = Describe("Create", func() {
 			return
 		}
 		Expect(err).ToNot(HaveOccurred())
-		Expect(fakeStackManager.CreateStackCallCount()).To(Equal(e.expectedCreateStackCalls))
+		Expect(fakeStackCreator.CreateStackCallCount()).To(Equal(e.expectedCreateStackCalls))
 	},
 		Entry("returns an error if creating the IAM role fails", createPodIdentityAssociationEntry{
 			toBeCreated: []api.PodIdentityAssociation{
@@ -66,8 +66,8 @@ var _ = Describe("Create", func() {
 					ServiceAccountName: serviceAccountName1,
 				},
 			},
-			mockCFN: func(stackManager *fakes.FakeStackManager) {
-				stackManager.CreateStackStub = func(ctx context.Context, s string, rsr builder.ResourceSetReader, m1, m2 map[string]string, c chan error) error {
+			mockCFN: func(stackCreator *fakes.FakeStackCreator) {
+				stackCreator.CreateStackStub = func(ctx context.Context, s string, rsr builder.ResourceSetReader, m1, m2 map[string]string, c chan error) error {
 					defer close(c)
 					Expect(s).To(Equal(podidentityassociation.MakeStackName(
 						clusterName,
@@ -123,8 +123,8 @@ var _ = Describe("Create", func() {
 					Return(&awseks.CreatePodIdentityAssociationOutput{}, nil).
 					Twice()
 			},
-			mockCFN: func(stackManager *fakes.FakeStackManager) {
-				stackManager.CreateStackStub = func(ctx context.Context, s string, rsr builder.ResourceSetReader, m1, m2 map[string]string, c chan error) error {
+			mockCFN: func(stackCreator *fakes.FakeStackCreator) {
+				stackCreator.CreateStackStub = func(ctx context.Context, s string, rsr builder.ResourceSetReader, m1, m2 map[string]string, c chan error) error {
 					defer close(c)
 					return nil
 				}

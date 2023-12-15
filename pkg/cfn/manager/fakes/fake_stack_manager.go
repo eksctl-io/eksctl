@@ -515,6 +515,19 @@ type FakeStackManager struct {
 		result1 []manager.NodeGroupStack
 		result2 error
 	}
+	ListPodIdentityStackNamesStub        func(context.Context) ([]string, error)
+	listPodIdentityStackNamesMutex       sync.RWMutex
+	listPodIdentityStackNamesArgsForCall []struct {
+		arg1 context.Context
+	}
+	listPodIdentityStackNamesReturns struct {
+		result1 []string
+		result2 error
+	}
+	listPodIdentityStackNamesReturnsOnCall map[int]struct {
+		result1 []string
+		result2 error
+	}
 	ListStackNamesStub        func(context.Context, string) ([]string, error)
 	listStackNamesMutex       sync.RWMutex
 	listStackNamesArgsForCall []struct {
@@ -3205,6 +3218,70 @@ func (fake *FakeStackManager) ListNodeGroupStacksWithStatusesReturnsOnCall(i int
 	}{result1, result2}
 }
 
+func (fake *FakeStackManager) ListPodIdentityStackNames(arg1 context.Context) ([]string, error) {
+	fake.listPodIdentityStackNamesMutex.Lock()
+	ret, specificReturn := fake.listPodIdentityStackNamesReturnsOnCall[len(fake.listPodIdentityStackNamesArgsForCall)]
+	fake.listPodIdentityStackNamesArgsForCall = append(fake.listPodIdentityStackNamesArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.ListPodIdentityStackNamesStub
+	fakeReturns := fake.listPodIdentityStackNamesReturns
+	fake.recordInvocation("ListPodIdentityStackNames", []interface{}{arg1})
+	fake.listPodIdentityStackNamesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStackManager) ListPodIdentityStackNamesCallCount() int {
+	fake.listPodIdentityStackNamesMutex.RLock()
+	defer fake.listPodIdentityStackNamesMutex.RUnlock()
+	return len(fake.listPodIdentityStackNamesArgsForCall)
+}
+
+func (fake *FakeStackManager) ListPodIdentityStackNamesCalls(stub func(context.Context) ([]string, error)) {
+	fake.listPodIdentityStackNamesMutex.Lock()
+	defer fake.listPodIdentityStackNamesMutex.Unlock()
+	fake.ListPodIdentityStackNamesStub = stub
+}
+
+func (fake *FakeStackManager) ListPodIdentityStackNamesArgsForCall(i int) context.Context {
+	fake.listPodIdentityStackNamesMutex.RLock()
+	defer fake.listPodIdentityStackNamesMutex.RUnlock()
+	argsForCall := fake.listPodIdentityStackNamesArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeStackManager) ListPodIdentityStackNamesReturns(result1 []string, result2 error) {
+	fake.listPodIdentityStackNamesMutex.Lock()
+	defer fake.listPodIdentityStackNamesMutex.Unlock()
+	fake.ListPodIdentityStackNamesStub = nil
+	fake.listPodIdentityStackNamesReturns = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) ListPodIdentityStackNamesReturnsOnCall(i int, result1 []string, result2 error) {
+	fake.listPodIdentityStackNamesMutex.Lock()
+	defer fake.listPodIdentityStackNamesMutex.Unlock()
+	fake.ListPodIdentityStackNamesStub = nil
+	if fake.listPodIdentityStackNamesReturnsOnCall == nil {
+		fake.listPodIdentityStackNamesReturnsOnCall = make(map[int]struct {
+			result1 []string
+			result2 error
+		})
+	}
+	fake.listPodIdentityStackNamesReturnsOnCall[i] = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeStackManager) ListStackNames(arg1 context.Context, arg2 string) ([]string, error) {
 	fake.listStackNamesMutex.Lock()
 	ret, specificReturn := fake.listStackNamesReturnsOnCall[len(fake.listStackNamesArgsForCall)]
@@ -4738,6 +4815,8 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.listNodeGroupStacksMutex.RUnlock()
 	fake.listNodeGroupStacksWithStatusesMutex.RLock()
 	defer fake.listNodeGroupStacksWithStatusesMutex.RUnlock()
+	fake.listPodIdentityStackNamesMutex.RLock()
+	defer fake.listPodIdentityStackNamesMutex.RUnlock()
 	fake.listStackNamesMutex.RLock()
 	defer fake.listStackNamesMutex.RUnlock()
 	fake.listStacksMutex.RLock()

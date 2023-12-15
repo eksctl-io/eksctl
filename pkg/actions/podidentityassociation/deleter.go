@@ -7,8 +7,6 @@ import (
 
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
-	"golang.org/x/exp/slices"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 
@@ -21,8 +19,9 @@ import (
 
 // A StackLister lists and describes CloudFormation stacks.
 type StackLister interface {
-	ListStackNames(ctx context.Context, regExp string) ([]string, error)
+	ListPodIdentityStackNames(ctx context.Context) ([]string, error)
 	DescribeStack(ctx context.Context, stack *manager.Stack) (*manager.Stack, error)
+	GetIAMServiceAccounts(ctx context.Context) ([]*api.ClusterIAMServiceAccount, error)
 }
 
 // A StackDeleter lists and deletes CloudFormation stacks.
@@ -60,6 +59,18 @@ type Identifier struct {
 	ServiceAccountName string
 }
 
+func (i Identifier) IDString() string {
+	return i.toString("/")
+}
+
+func (i Identifier) NameString() string {
+	return i.toString("-")
+}
+
+func (i Identifier) toString(delimiter string) string {
+	return i.Namespace + delimiter + i.ServiceAccountName
+}
+
 func NewDeleter(clusterName string, stackDeleter StackDeleter, apiDeleter APIDeleter) *Deleter {
 	return &Deleter{
 		ClusterName:  clusterName,
@@ -78,7 +89,7 @@ func (d *Deleter) Delete(ctx context.Context, podIDs []Identifier) error {
 }
 
 func (d *Deleter) DeleteTasks(ctx context.Context, podIDs []Identifier) (*tasks.TaskTree, error) {
-	roleStackNames, err := d.StackDeleter.ListStackNames(ctx, fmt.Sprintf("^%s*", makeStackNamePrefix(d.ClusterName)))
+	roleStackNames, err := d.StackDeleter.ListPodIdentityStackNames(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error listing stack names for pod identity associations: %w", err)
 	}
@@ -106,7 +117,7 @@ func (d *Deleter) DeleteTasks(ctx context.Context, podIDs []Identifier) (*tasks.
 }
 
 func (d *Deleter) makeDeleteTask(ctx context.Context, p Identifier, roleStackNames []string) tasks.Task {
-	podIdentityAssociationID := makeID(p.Namespace, p.ServiceAccountName)
+	podIdentityAssociationID := p.IDString()
 	return &tasks.GenericTask{
 		Description: fmt.Sprintf("delete pod identity association %q", podIdentityAssociationID),
 		Doer: func() error {
@@ -128,10 +139,10 @@ func (d *Deleter) deletePodIdentityAssociation(ctx context.Context, p Identifier
 		return fmt.Errorf("listing pod identity associations: %w", err)
 	}
 	switch len(output.Associations) {
-	case 0:
-		logger.Warning("pod identity association %q not found", podIdentityAssociationID)
 	default:
 		return fmt.Errorf("expected to find only 1 pod identity association for %q; got %d", podIdentityAssociationID, len(output.Associations))
+	case 0:
+		logger.Warning("pod identity association %q not found", podIdentityAssociationID)
 	case 1:
 		if _, err := d.APIDeleter.DeletePodIdentityAssociation(ctx, &eks.DeletePodIdentityAssociationInput{
 			ClusterName:   aws.String(d.ClusterName),
@@ -141,8 +152,8 @@ func (d *Deleter) deletePodIdentityAssociation(ctx context.Context, p Identifier
 		}
 	}
 
-	stackName := MakeStackName(d.ClusterName, p.Namespace, p.ServiceAccountName)
-	if !slices.Contains(roleStackNames, stackName) {
+	stackName, hasStack := getIAMResourcesStack(roleStackNames, p)
+	if !hasStack {
 		return nil
 	}
 	logger.Info("deleting IAM resources stack %q for pod identity association %q", stackName, podIdentityAssociationID)
@@ -181,6 +192,11 @@ func ToIdentifiers(podIdentityAssociations []api.PodIdentityAssociation) []Ident
 	return identifiers
 }
 
-func makeID(namespace, serviceAccountName string) string {
-	return fmt.Sprintf("%s/%s", namespace, serviceAccountName)
+func getIAMResourcesStack(stackNames []string, p Identifier) (string, bool) {
+	for _, name := range stackNames {
+		if strings.Contains(name, p.NameString()) {
+			return name, true
+		}
+	}
+	return "", false
 }

@@ -88,7 +88,17 @@ func (c *StackCollection) GetIAMServiceAccounts(ctx context.Context) ([]*api.Clu
 		}
 		serviceAccount := &api.ClusterIAMServiceAccount{
 			ClusterIAMMeta: *meta,
-			Status:         &api.ClusterIAMServiceAccountStatus{},
+			Status: &api.ClusterIAMServiceAccountStatus{
+				StackName: s.StackName,
+			},
+		}
+		for _, t := range s.Tags {
+			serviceAccount.Status.Tags = make(map[string]string)
+			serviceAccount.Status.Tags[*t.Key] = *t.Value
+		}
+		for _, c := range s.Capabilities {
+			serviceAccount.Status.Capabilities = make([]string, 0)
+			serviceAccount.Status.Capabilities = append(serviceAccount.Status.Capabilities, string(c))
 		}
 
 		// TODO: we need to make it easier to fetch full definition of the object,

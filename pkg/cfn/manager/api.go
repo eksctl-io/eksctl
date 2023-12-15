@@ -32,7 +32,7 @@ const (
 	resourceTypeAutoScalingGroup = "auto-scaling-group"
 	outputsRootPath              = "Outputs"
 	mappingsRootPath             = "Mappings"
-	ourStackRegexFmt             = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+|addon-.+|fargate|karpenter)|(VPC|ServiceRole|ControlPlane|DefaultNodeGroup))$"
+	ourStackRegexFmt             = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+|addon-.+|podidentityrole-.+|fargate|karpenter)|(VPC|ServiceRole|ControlPlane|DefaultNodeGroup))$"
 	clusterStackRegex            = "eksctl-.*-cluster"
 )
 
@@ -333,7 +333,7 @@ func (c *StackCollection) updateStack(ctx context.Context, options UpdateStackOp
 	logger.Info(options.Description)
 	if options.Stack == nil {
 		i := &Stack{StackName: &options.StackName}
-		// Read existing tags
+		// Read existing tags and capabilities
 		s, err := c.DescribeStack(ctx, i)
 		if err != nil {
 			return err

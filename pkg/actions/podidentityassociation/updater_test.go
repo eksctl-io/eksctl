@@ -46,10 +46,14 @@ var _ = Describe("Pod Identity Update", func() {
 		updateRoleARN             string
 		describeStackOutputs      []cfntypes.Output
 		describeStackCapabilities []cfntypes.Capability
+		makeStackName             func(podidentityassociation.Identifier) string
 	}
 
 	mockCalls := func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS, o mockOptions) {
-		stackName := makeStackName(o.podIdentifier)
+		stackName := makeIRSAv2StackName(o.podIdentifier)
+		if o.makeStackName != nil {
+			stackName = o.makeStackName(o.podIdentifier)
+		}
 		associationID := fmt.Sprintf("%x", sha1.Sum([]byte(stackName)))
 		mockListPodIdentityAssociations(eksAPI, o.podIdentifier, []ekstypes.PodIdentityAssociationSummary{
 			{
@@ -112,7 +116,7 @@ var _ = Describe("Pod Identity Update", func() {
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(0))
 				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(0))
 				eksAPI.AssertExpectations(GinkgoT())
@@ -140,7 +144,7 @@ var _ = Describe("Pod Identity Update", func() {
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(0))
 				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(0))
 				eksAPI.AssertExpectations(GinkgoT())
@@ -169,7 +173,7 @@ var _ = Describe("Pod Identity Update", func() {
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(0))
 				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(0))
 				eksAPI.AssertExpectations(GinkgoT())
@@ -198,7 +202,7 @@ var _ = Describe("Pod Identity Update", func() {
 						ServiceAccountName: "aws-node",
 					},
 				}
-				mockListStackNames(stackManager, podIdentifiers)
+				mockListStackNamesWithIRSAv1(stackManager, podIdentifiers[:1], podIdentifiers[1:])
 				describeStackOutputs := []cfntypes.Output{
 					{
 						OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
@@ -210,6 +214,7 @@ var _ = Describe("Pod Identity Update", func() {
 						podIdentifier:        podIdentifiers[0],
 						updateRoleARN:        "arn:aws:iam::1234567:role/Role",
 						describeStackOutputs: describeStackOutputs,
+						makeStackName:        makeIRSAv1StackName,
 					},
 					{
 						podIdentifier:        podIdentifiers[1],
@@ -224,7 +229,7 @@ var _ = Describe("Pod Identity Update", func() {
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(4))
 				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(2))
 				eksAPI.AssertExpectations(GinkgoT())
@@ -271,7 +276,7 @@ var _ = Describe("Pod Identity Update", func() {
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(2))
 				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(2))
 				eksAPI.AssertExpectations(GinkgoT())
@@ -301,7 +306,7 @@ var _ = Describe("Pod Identity Update", func() {
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(0))
 				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(0))
 				eksAPI.AssertExpectations(GinkgoT())
@@ -332,7 +337,7 @@ var _ = Describe("Pod Identity Update", func() {
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(1))
 				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(0))
 				eksAPI.AssertExpectations(GinkgoT())
@@ -364,7 +369,7 @@ var _ = Describe("Pod Identity Update", func() {
 						ServiceAccountName: "aws-node",
 					},
 				}
-				mockListStackNames(stackManager, podIdentifiers)
+				mockListStackNamesWithIRSAv1(stackManager, podIdentifiers[:1], podIdentifiers[1:])
 				describeStackOutputs := []cfntypes.Output{
 					{
 						OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
@@ -376,6 +381,7 @@ var _ = Describe("Pod Identity Update", func() {
 						podIdentifier:        podIdentifiers[0],
 						describeStackOutputs: describeStackOutputs,
 						updateRoleARN:        "arn:aws:iam::1234567:role/Role",
+						makeStackName:        makeIRSAv1StackName,
 					},
 					{
 						podIdentifier:             podIdentifiers[1],
@@ -390,7 +396,7 @@ var _ = Describe("Pod Identity Update", func() {
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(4))
 				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(2))
 				eksAPI.AssertExpectations(GinkgoT())
@@ -409,14 +415,29 @@ func mockListPodIdentityAssociations(eksAPI *mocksv2.EKS, podID podidentityassoc
 	}, err)
 }
 
-func makeStackName(podID podidentityassociation.Identifier) string {
-	return fmt.Sprintf("eksctl-%s-podidentityrole-ns-%s-sa-%s", clusterName, podID.Namespace, podID.ServiceAccountName)
+func makeIRSAv1StackName(podID podidentityassociation.Identifier) string {
+	return fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-%s-%s", clusterName, podID.Namespace, podID.ServiceAccountName)
 }
 
-func mockListStackNames(stackManager *managerfakes.FakeStackManager, podIdentifiers []podidentityassociation.Identifier) {
+func makeIRSAv2StackName(podID podidentityassociation.Identifier) string {
+	return podidentityassociation.MakeStackName(clusterName, podID.Namespace, podID.ServiceAccountName)
+}
+
+func mockListStackNames(stackManager *managerfakes.FakeStackManager, podIDs []podidentityassociation.Identifier) {
+	mockListStackNamesWithIRSAv1(stackManager, []podidentityassociation.Identifier{}, podIDs)
+}
+
+func mockListStackNamesWithIRSAv1(
+	stackManager *managerfakes.FakeStackManager,
+	irsaV1podIdentifiers []podidentityassociation.Identifier,
+	irsaV2podIdentifiers []podidentityassociation.Identifier,
+) {
 	var stackNames []string
-	for _, id := range podIdentifiers {
-		stackNames = append(stackNames, makeStackName(id))
+	for _, id := range irsaV1podIdentifiers {
+		stackNames = append(stackNames, makeIRSAv1StackName(id))
 	}
-	stackManager.ListStackNamesReturns(stackNames, nil)
+	for _, id := range irsaV2podIdentifiers {
+		stackNames = append(stackNames, makeIRSAv2StackName(id))
+	}
+	stackManager.ListPodIdentityStackNamesReturns(stackNames, nil)
 }
