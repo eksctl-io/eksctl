@@ -87,7 +87,8 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(
 	if deletePodIdentityRoleTasks.Len() > 0 {
 		deletePodIdentityRoleTasks.IsSubTask = true
 		taskTree.Append(deletePodIdentityRoleTasks)
-	
+	}
+
 	deleteAccessEntriesTasks, err := accessentry.
 		NewRemover(c.spec.Metadata.Name, c, c.eksAPI).
 		DeleteTasks(ctx, []api.AccessEntry{})

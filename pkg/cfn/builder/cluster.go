@@ -295,11 +295,6 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		}
 	}
 
-	authenticationMode := c.spec.AccessConfig.AuthenticationMode
-	if authenticationMode == "" {
-		authenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
-	}
-
 	cluster := gfneks.Cluster{
 		EncryptionConfig:   encryptionConfigs,
 		Logging:            makeClusterLogging(c.spec),
