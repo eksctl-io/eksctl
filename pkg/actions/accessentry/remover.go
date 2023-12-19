@@ -53,7 +53,7 @@ func (aer Remover) DeleteTasks(ctx context.Context, accessEntries []api.AccessEn
 	if len(accessEntries) == 0 {
 		for _, s := range stacks {
 			tasks.Append(&deleteOwnedAccessEntryTask{
-				info:         fmt.Sprintf("delete access entry for principal ARN %s", api.ARN{Partition: "unknown"}.String()),
+				info:         fmt.Sprintf("delete access entry stack %q", s),
 				stackName:    s,
 				stackRemover: aer.stackRemover,
 				principalARN: api.ARN{Partition: "unknown"},

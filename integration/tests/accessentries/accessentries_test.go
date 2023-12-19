@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -20,6 +22,7 @@ import (
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/pkg/accessentry"
@@ -33,32 +36,28 @@ const (
 	editPolicyARN  = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
 	adminPolicyARN = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
-	userName          = "test-user"
-	clusterRoleName   = "test-cluster-role"
-	namespaceRoleName = "test-namespace-role"
+	defaultRoleName   = "eksctl-default-role"
+	clusterRoleName   = "eksctl-cluster-role"
+	namespaceRoleName = "eksctl-namespace-role"
 )
 
 var (
 	params *tests.Params
 	ctl    *eks.ClusterProvider
 
-	userARN          string
+	defaultRoleARN   string
 	clusterRoleARN   string
 	namespaceRoleARN string
 	err              error
 
-	apiEnabledCluster  = "accessentries-api-enabled"
-	apiDisabledCluster = "accessentries-api-disabled"
+	apiEnabledCluster  = "accessentries-api-enabled-2"
+	apiDisabledCluster = "accessentries-api-disabled-2"
 )
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
 	params = tests.NewParams("")
-	ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, nil)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func TestAccessEntries(t *testing.T) {
@@ -66,30 +65,51 @@ func TestAccessEntries(t *testing.T) {
 }
 
 var _ = SynchronizedBeforeSuite(func() []byte {
-	userOutput, err := ctl.AWSProvider.IAM().CreateUser(context.Background(), &iam.CreateUserInput{
-		UserName: aws.String(userName),
-	})
-	Expect(err).NotTo(HaveOccurred())
-	userARN = *userOutput.User.Arn
+	var (
+		err              error
+		alreadyExistsErr *iamtypes.EntityAlreadyExistsException
+	)
 
-	roleOutput, err := ctl.AWSProvider.IAM().CreateRole(context.Background(), &iam.CreateRoleInput{
-		RoleName:                 aws.String(clusterRoleName),
-		AssumeRolePolicyDocument: trustPolicy,
-	})
-	Expect(err).NotTo(HaveOccurred())
-	clusterRoleARN = *roleOutput.Role.Arn
+	maybeCreateRoleAndGetARN := func(name string) (string, error) {
+		createOut, err := ctl.AWSProvider.IAM().CreateRole(context.Background(), &iam.CreateRoleInput{
+			RoleName:                 aws.String(name),
+			AssumeRolePolicyDocument: trustPolicy,
+		})
+		if err == nil {
+			return *createOut.Role.Arn, nil
+		}
+		if !errors.As(err, &alreadyExistsErr) {
+			return "", fmt.Errorf("creating role %q: %w", name, err)
+		}
+		getOut, err := ctl.AWSProvider.IAM().GetRole(context.Background(), &iam.GetRoleInput{
+			RoleName: aws.String(name),
+		})
+		if err != nil {
+			return "", fmt.Errorf("fetching role %q: %w", name, err)
+		}
+		return *getOut.Role.Arn, nil
+	}
 
-	roleOutput, err = ctl.AWSProvider.IAM().CreateRole(context.Background(), &iam.CreateRoleInput{
-		RoleName:                 aws.String(namespaceRoleName),
-		AssumeRolePolicyDocument: trustPolicy,
-	})
+	ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, nil)
 	Expect(err).NotTo(HaveOccurred())
-	namespaceRoleARN = *roleOutput.Role.Arn
 
-	return []byte(userARN + "," + clusterRoleARN + "," + namespaceRoleARN)
+	defaultRoleARN, err = maybeCreateRoleAndGetARN(defaultRoleName)
+	Expect(err).NotTo(HaveOccurred())
+
+	clusterRoleARN, err = maybeCreateRoleAndGetARN(clusterRoleName)
+	Expect(err).NotTo(HaveOccurred())
+
+	namespaceRoleARN, err = maybeCreateRoleAndGetARN(namespaceRoleName)
+	Expect(err).NotTo(HaveOccurred())
+
+	return []byte(defaultRoleARN + "," + clusterRoleARN + "," + namespaceRoleARN)
 }, func(arns []byte) {
 	iamARNs := strings.Split(string(arns), ",")
-	userARN, clusterRoleARN, namespaceRoleARN = iamARNs[0], iamARNs[1], iamARNs[2]
+	defaultRoleARN, clusterRoleARN, namespaceRoleARN = iamARNs[0], iamARNs[1], iamARNs[2]
+
+	var err error
+	ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, nil)
+	Expect(err).NotTo(HaveOccurred())
 })
 
 var _ = Describe("(Integration) [AccessEntries Test]", func() {
@@ -128,7 +148,7 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 				WithArgs(
 					"accessentry",
 					"--cluster", apiDisabledCluster,
-					"--principal-arn", userARN,
+					"--principal-arn", defaultRoleARN,
 				).Run()
 			Expect(session.ExitCode()).To(Equal(1))
 			Expect(session.Err.Contents()).To(ContainSubstring(accessentry.ErrDisabledAccessEntryAPI.Error()))
@@ -149,7 +169,7 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 				WithArgs(
 					"accessentry",
 					"--cluster", apiDisabledCluster,
-					"--principal-arn", userARN,
+					"--principal-arn", defaultRoleARN,
 				).Run()
 			Expect(session.ExitCode()).To(Equal(1))
 			Expect(session.Err.Contents()).To(ContainSubstring(accessentry.ErrDisabledAccessEntryAPI.Error()))
@@ -203,7 +223,7 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 				WithArgs(
 					"accessentry",
 					"--cluster", apiDisabledCluster,
-					"--principal-arn", userARN,
+					"--principal-arn", defaultRoleARN,
 				)).To(RunSuccessfully())
 		})
 
@@ -372,20 +392,9 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 })
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
-	_, err := ctl.AWSProvider.IAM().DeleteUser(context.Background(), &iam.DeleteUserInput{
-		UserName: aws.String(userName),
-	})
-	Expect(err).NotTo(HaveOccurred())
-
-	_, err = ctl.AWSProvider.IAM().DeleteRole(context.Background(), &iam.DeleteRoleInput{
-		RoleName: aws.String(clusterRoleName),
-	})
-	Expect(err).NotTo(HaveOccurred())
-
-	_, err = ctl.AWSProvider.IAM().DeleteRole(context.Background(), &iam.DeleteRoleInput{
-		RoleName: aws.String(namespaceRoleName),
-	})
-	Expect(err).NotTo(HaveOccurred())
+	if ctl == nil {
+		return
+	}
 
 	Expect(params.EksctlDeleteCmd.
 		WithArgs(
@@ -400,6 +409,21 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 			"--name", apiEnabledCluster,
 			"--wait",
 		)).To(RunSuccessfully())
+
+	_, err = ctl.AWSProvider.IAM().DeleteRole(context.Background(), &iam.DeleteRoleInput{
+		RoleName: aws.String(defaultRoleName),
+	})
+	Expect(err).NotTo(HaveOccurred())
+
+	_, err = ctl.AWSProvider.IAM().DeleteRole(context.Background(), &iam.DeleteRoleInput{
+		RoleName: aws.String(clusterRoleName),
+	})
+	Expect(err).NotTo(HaveOccurred())
+
+	_, err = ctl.AWSProvider.IAM().DeleteRole(context.Background(), &iam.DeleteRoleInput{
+		RoleName: aws.String(namespaceRoleName),
+	})
+	Expect(err).NotTo(HaveOccurred())
 })
 
 var (
@@ -439,7 +463,7 @@ var (
 	getAccessEntries = func() []api.AccessEntry {
 		return []api.AccessEntry{
 			{
-				PrincipalARN:     api.MustParseARN(userARN),
+				PrincipalARN:     api.MustParseARN(defaultRoleARN),
 				KubernetesGroups: []string{"test-group"},
 			},
 			{
