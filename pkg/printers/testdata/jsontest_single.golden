@@ -1,6 +1,7 @@
 [
         {
           "Arn": "arn-12345678",
+          "AccessConfig": null,
           "CertificateAuthority": null,
           "ClientRequestToken": null,
           "ConnectorConfig": null,
@@ -33,4 +34,3 @@
           "Version": null
         }
       ]
-      

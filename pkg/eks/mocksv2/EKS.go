@@ -14,6 +14,43 @@ type EKS struct {
 	mock.Mock
 }
 
+// AssociateAccessPolicy provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) AssociateAccessPolicy(ctx context.Context, params *eks.AssociateAccessPolicyInput, optFns ...func(*eks.Options)) (*eks.AssociateAccessPolicyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AssociateAccessPolicy")
+	}
+
+	var r0 *eks.AssociateAccessPolicyOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.AssociateAccessPolicyInput, ...func(*eks.Options)) (*eks.AssociateAccessPolicyOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.AssociateAccessPolicyInput, ...func(*eks.Options)) *eks.AssociateAccessPolicyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.AssociateAccessPolicyOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.AssociateAccessPolicyInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AssociateEncryptionConfig provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) AssociateEncryptionConfig(ctx context.Context, params *eks.AssociateEncryptionConfigInput, optFns ...func(*eks.Options)) (*eks.AssociateEncryptionConfigOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -80,6 +117,43 @@ func (_m *EKS) AssociateIdentityProviderConfig(ctx context.Context, params *eks.
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.AssociateIdentityProviderConfigInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateAccessEntry provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) CreateAccessEntry(ctx context.Context, params *eks.CreateAccessEntryInput, optFns ...func(*eks.Options)) (*eks.CreateAccessEntryOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateAccessEntry")
+	}
+
+	var r0 *eks.CreateAccessEntryOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CreateAccessEntryInput, ...func(*eks.Options)) (*eks.CreateAccessEntryOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CreateAccessEntryInput, ...func(*eks.Options)) *eks.CreateAccessEntryOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.CreateAccessEntryOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.CreateAccessEntryInput, ...func(*eks.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -302,6 +376,43 @@ func (_m *EKS) CreatePodIdentityAssociation(ctx context.Context, params *eks.Cre
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.CreatePodIdentityAssociationInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteAccessEntry provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) DeleteAccessEntry(ctx context.Context, params *eks.DeleteAccessEntryInput, optFns ...func(*eks.Options)) (*eks.DeleteAccessEntryOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAccessEntry")
+	}
+
+	var r0 *eks.DeleteAccessEntryOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DeleteAccessEntryInput, ...func(*eks.Options)) (*eks.DeleteAccessEntryOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DeleteAccessEntryInput, ...func(*eks.Options)) *eks.DeleteAccessEntryOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DeleteAccessEntryOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DeleteAccessEntryInput, ...func(*eks.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -561,6 +672,43 @@ func (_m *EKS) DeregisterCluster(ctx context.Context, params *eks.DeregisterClus
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.DeregisterClusterInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeAccessEntry provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) DescribeAccessEntry(ctx context.Context, params *eks.DescribeAccessEntryInput, optFns ...func(*eks.Options)) (*eks.DescribeAccessEntryOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeAccessEntry")
+	}
+
+	var r0 *eks.DescribeAccessEntryOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeAccessEntryInput, ...func(*eks.Options)) (*eks.DescribeAccessEntryOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeAccessEntryInput, ...func(*eks.Options)) *eks.DescribeAccessEntryOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeAccessEntryOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeAccessEntryInput, ...func(*eks.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -939,6 +1087,43 @@ func (_m *EKS) DescribeUpdate(ctx context.Context, params *eks.DescribeUpdateInp
 	return r0, r1
 }
 
+// DisassociateAccessPolicy provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) DisassociateAccessPolicy(ctx context.Context, params *eks.DisassociateAccessPolicyInput, optFns ...func(*eks.Options)) (*eks.DisassociateAccessPolicyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DisassociateAccessPolicy")
+	}
+
+	var r0 *eks.DisassociateAccessPolicyOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DisassociateAccessPolicyInput, ...func(*eks.Options)) (*eks.DisassociateAccessPolicyOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DisassociateAccessPolicyInput, ...func(*eks.Options)) *eks.DisassociateAccessPolicyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DisassociateAccessPolicyOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DisassociateAccessPolicyInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DisassociateIdentityProviderConfig provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DisassociateIdentityProviderConfig(ctx context.Context, params *eks.DisassociateIdentityProviderConfigInput, optFns ...func(*eks.Options)) (*eks.DisassociateIdentityProviderConfigOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -976,6 +1161,80 @@ func (_m *EKS) DisassociateIdentityProviderConfig(ctx context.Context, params *e
 	return r0, r1
 }
 
+// ListAccessEntries provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) ListAccessEntries(ctx context.Context, params *eks.ListAccessEntriesInput, optFns ...func(*eks.Options)) (*eks.ListAccessEntriesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAccessEntries")
+	}
+
+	var r0 *eks.ListAccessEntriesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListAccessEntriesInput, ...func(*eks.Options)) (*eks.ListAccessEntriesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListAccessEntriesInput, ...func(*eks.Options)) *eks.ListAccessEntriesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListAccessEntriesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListAccessEntriesInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListAccessPolicies provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) ListAccessPolicies(ctx context.Context, params *eks.ListAccessPoliciesInput, optFns ...func(*eks.Options)) (*eks.ListAccessPoliciesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAccessPolicies")
+	}
+
+	var r0 *eks.ListAccessPoliciesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListAccessPoliciesInput, ...func(*eks.Options)) (*eks.ListAccessPoliciesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListAccessPoliciesInput, ...func(*eks.Options)) *eks.ListAccessPoliciesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListAccessPoliciesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListAccessPoliciesInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListAddons provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) ListAddons(ctx context.Context, params *eks.ListAddonsInput, optFns ...func(*eks.Options)) (*eks.ListAddonsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1005,6 +1264,43 @@ func (_m *EKS) ListAddons(ctx context.Context, params *eks.ListAddonsInput, optF
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListAddonsInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListAssociatedAccessPolicies provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) ListAssociatedAccessPolicies(ctx context.Context, params *eks.ListAssociatedAccessPoliciesInput, optFns ...func(*eks.Options)) (*eks.ListAssociatedAccessPoliciesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAssociatedAccessPolicies")
+	}
+
+	var r0 *eks.ListAssociatedAccessPoliciesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListAssociatedAccessPoliciesInput, ...func(*eks.Options)) (*eks.ListAssociatedAccessPoliciesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListAssociatedAccessPoliciesInput, ...func(*eks.Options)) *eks.ListAssociatedAccessPoliciesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListAssociatedAccessPoliciesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListAssociatedAccessPoliciesInput, ...func(*eks.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -1430,6 +1726,43 @@ func (_m *EKS) UntagResource(ctx context.Context, params *eks.UntagResourceInput
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.UntagResourceInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateAccessEntry provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) UpdateAccessEntry(ctx context.Context, params *eks.UpdateAccessEntryInput, optFns ...func(*eks.Options)) (*eks.UpdateAccessEntryOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAccessEntry")
+	}
+
+	var r0 *eks.UpdateAccessEntryOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UpdateAccessEntryInput, ...func(*eks.Options)) (*eks.UpdateAccessEntryOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UpdateAccessEntryInput, ...func(*eks.Options)) *eks.UpdateAccessEntryOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdateAccessEntryOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.UpdateAccessEntryInput, ...func(*eks.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
