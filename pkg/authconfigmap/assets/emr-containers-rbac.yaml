@@ -26,7 +26,7 @@ rules:
     verbs: ["get", "list", "watch", "describe", "create", "edit", "delete", "deletecollection", "annotate", "patch", "label"]
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
-    verbs: ["create", "list", "delete"]
+    verbs: ["create", "list", "delete", "deletecollection"]
   - apiGroups: ["scheduling.volcano.sh"]
     resources: ["podgroups"]
     verbs: ["get", "list", "watch", "create", "delete", "update"]
