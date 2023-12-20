@@ -15,6 +15,9 @@ case $1 in
   "pod_identity_associations")
     echo "${PARALLEL_PROCS}2"
     ;;
+  "accessentries")
+    echo "${PARALLEL_PROCS}2"
+    ;;
   *)
     echo ""
     ;;
