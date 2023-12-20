@@ -4,14 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
-
-	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
-
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
@@ -142,9 +139,8 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 		DisableEviction:       disableEviction,
 		Parallel:              parallel,
 	}
-	instanceSelector, err := selector.New(ctx, ctl.AWSProvider.AWSConfig())
-	if err != nil {
-		return err
-	}
-	return nodegroup.New(cfg, ctl, clientSet, instanceSelector).Drain(ctx, drainInput)
+
+	return (&nodegroup.Drainer{
+		ClientSet: clientSet,
+	}).Drain(ctx, drainInput)
 }

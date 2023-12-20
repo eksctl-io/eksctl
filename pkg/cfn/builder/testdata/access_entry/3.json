@@ -1,0 +1,42 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "AccessEntry": {
+      "Type": "AWS::EKS::AccessEntry",
+      "Properties": {
+        "PrincipalArn": "arn:aws:iam::111122223333:role/role-1",
+        "ClusterName": "cluster",
+        "KubernetesGroups": [
+          "viewers"
+        ],
+        "Username": "user1",
+        "AccessPolicies": [
+          {
+            "PolicyArn": "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy",
+            "AccessScope": {
+              "Type": "namespace",
+              "Namespaces": [
+                "kube-system",
+                "default"
+              ]
+            }
+          },
+          {
+            "PolicyArn": "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy",
+            "AccessScope": {
+              "Type": "cluster"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${AWS::StackName}/AccessEntry"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

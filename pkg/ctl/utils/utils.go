@@ -12,6 +12,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, writeKubeconfigCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, describeStacksCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateAuthenticationMode)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateKubeProxyCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateAWSNodeCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateCoreDNSCmd)

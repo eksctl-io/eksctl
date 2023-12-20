@@ -25,9 +25,10 @@ import (
 
 // NodeGroupStack represents a nodegroup and its type
 type NodeGroupStack struct {
-	NodeGroupName string
-	Type          api.NodeGroupType
-	Stack         *Stack
+	NodeGroupName   string
+	Type            api.NodeGroupType
+	UsesAccessEntry bool
+	Stack           *Stack
 }
 
 // makeNodeGroupStackName generates the name of the nodegroup stack identified by its name, isolated by the cluster this StackCollection operates on
@@ -36,7 +37,7 @@ func (c *StackCollection) makeNodeGroupStackName(name string) string {
 }
 
 // createNodeGroupTask creates the nodegroup
-func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan error, ng *api.NodeGroup, forceAddCNIPolicy, skipEgressRules bool, vpcImporter vpc.Importer) error {
+func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan error, ng *api.NodeGroup, forceAddCNIPolicy, skipEgressRules, disableAccessEntryCreation bool, vpcImporter vpc.Importer) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 
 	logger.Info("building nodegroup stack %q", name)
@@ -45,12 +46,13 @@ func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan err
 		return errors.Wrap(err, "error creating bootstrapper")
 	}
 	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, builder.NodeGroupOptions{
-		ClusterConfig:     c.spec,
-		NodeGroup:         ng,
-		Bootstrapper:      bootstrapper,
-		ForceAddCNIPolicy: forceAddCNIPolicy,
-		VPCImporter:       vpcImporter,
-		SkipEgressRules:   skipEgressRules,
+		ClusterConfig:              c.spec,
+		NodeGroup:                  ng,
+		Bootstrapper:               bootstrapper,
+		ForceAddCNIPolicy:          forceAddCNIPolicy,
+		VPCImporter:                vpcImporter,
+		SkipEgressRules:            skipEgressRules,
+		DisableAccessEntryCreation: disableAccessEntryCreation,
 	})
 	if err := stack.AddAllResources(ctx); err != nil {
 		return err
@@ -153,7 +155,7 @@ func (c *StackCollection) ListNodeGroupStacks(ctx context.Context) ([]*Stack, er
 	return nodeGroupStacks, nil
 }
 
-// ListNodeGroupStacks returns a list of NodeGroupStacks
+// ListNodeGroupStacksWithStatuses returns a list of NodeGroupStacks.
 func (c *StackCollection) ListNodeGroupStacksWithStatuses(ctx context.Context) ([]NodeGroupStack, error) {
 	stacks, err := c.ListNodeGroupStacks(ctx)
 	if err != nil {
@@ -166,9 +168,10 @@ func (c *StackCollection) ListNodeGroupStacksWithStatuses(ctx context.Context) (
 			return nil, err
 		}
 		nodeGroupStacks = append(nodeGroupStacks, NodeGroupStack{
-			NodeGroupName: c.GetNodeGroupName(stack),
-			Type:          nodeGroupType,
-			Stack:         stack,
+			NodeGroupName:   c.GetNodeGroupName(stack),
+			Type:            nodeGroupType,
+			UsesAccessEntry: nodeGroupType == api.NodeGroupTypeUnmanaged && usesAccessEntry(stack),
+			Stack:           stack,
 		})
 	}
 	return nodeGroupStacks, nil

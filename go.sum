@@ -254,8 +254,8 @@ github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8
 github.com/aws/aws-sdk-go v1.15.27/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=
 github.com/aws/aws-sdk-go v1.37.0/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
 github.com/aws/aws-sdk-go v1.43.31/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
-github.com/aws/aws-sdk-go v1.49.2 h1:+4BEcm1nPCoDbVd+gg8cdxpa1qJfrvnddy12vpEVWjw=
-github.com/aws/aws-sdk-go v1.49.2/go.mod h1:LF8svs817+Nz+DmiMQKTO3ubZ/6IaTpq3TjupRn3Eqk=
+github.com/aws/aws-sdk-go v1.49.5 h1:y2yfBlwjPDi3/sBVKeznYEdDy6wIhjA2L5NCBMLUIYA=
+github.com/aws/aws-sdk-go v1.49.5/go.mod h1:LF8svs817+Nz+DmiMQKTO3ubZ/6IaTpq3TjupRn3Eqk=
 github.com/aws/aws-sdk-go-v2 v1.16.2/go.mod h1:ytwTPBG6fXTZLxxeeCCWj2/EMYp/xDUgX+OET6TLNNU=
 github.com/aws/aws-sdk-go-v2 v1.16.15/go.mod h1:SwiyXi/1zTUZ6KIAmLK5V5ll8SiURNUYOqTerZPaF9k=
 github.com/aws/aws-sdk-go-v2 v1.24.0 h1:890+mqQ+hTpNuw0gGP6/4akolQkSToDJgHfQE7AwGuk=
@@ -293,12 +293,12 @@ github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.35.5 h1:6X70+Ss+gahJ+NGwB78k6
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.35.5/go.mod h1:zrqdG1b+4AGoTwTMVFzvzY7ARB3GPo4gKRuK8WPEo8w=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.30.0 h1:CMZz/TJgt+GMKRxjuedxhMFs45GPhyst/a/7Q3DuAg4=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.30.0/go.mod h1:4Oeb7n2r/ApBIHphQkprve380p/RpPWBotumd44EDGg=
-github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.31.5 h1:7NweDhxX/c0bhnLouJkmDpGThdmZAWEbrZeYVnjDvls=
-github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.31.5/go.mod h1:Rtaozi1JFmyQgaxIdXYdvXBsVmk8Yv0wd3krebIR8FA=
+github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.32.0 h1:WAriUYhiWByz7WT1Uxbw1Q0gGlrNV+eFwR3r1U7hhrg=
+github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.32.0/go.mod h1:Rtaozi1JFmyQgaxIdXYdvXBsVmk8Yv0wd3krebIR8FA=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.141.0 h1:cP43vFYAQyREOp972C+6d4+dzpxo3HolNvWfeBvr2Yg=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.141.0/go.mod h1:qjhtI9zjpUHRc6khtrIM9fb48+ii6+UikL3/b+MKYn0=
-github.com/aws/aws-sdk-go-v2/service/eks v1.35.5 h1:LEYyWSnfdSSysPr5JWUkNwOD0MvXKfE/BX6Frg/lr1A=
-github.com/aws/aws-sdk-go-v2/service/eks v1.35.5/go.mod h1:L1uv3UgQlAkdM9v0gpec7nnfUiQkCnGMjBE7MJArfWQ=
+github.com/aws/aws-sdk-go-v2/service/eks v1.36.0 h1:5jk86RO+sFu2BjMz2GcQ9Yf2IEi2Ntec2wPOt/lDc5c=
+github.com/aws/aws-sdk-go-v2/service/eks v1.36.0/go.mod h1:L1uv3UgQlAkdM9v0gpec7nnfUiQkCnGMjBE7MJArfWQ=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.21.5 h1:q3slz7FaD3/kfslN6elBR4hx69VDuyaIClbNn9juWHE=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.21.5/go.mod h1:N37+67ROdmH7BgLyp1cwCjRpKism3cwkeDlOktRLXMQ=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.26.5 h1:AKlGBk57mRssGQmWqV3I/azLW1Sb7RnlYbJEqTlpKEY=
@@ -342,7 +342,6 @@ github.com/aws/smithy-go v1.11.2/go.mod h1:3xHYmszWVx2c0kIwQeEVf9uSm4fYZt67FBJnw
 github.com/aws/smithy-go v1.13.3/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
 github.com/aws/smithy-go v1.19.0 h1:KWFKQV80DpP3vJrrA9sVAHQ5gc2z8i4EzrLhLlWXcBM=
 github.com/aws/smithy-go v1.19.0/go.mod h1:NukqUGpCZIILqqiV0NIjeFh24kd/FAa4beRb6nbIUPE=
-github.com/awslabs/goformation/v4 v4.15.5/go.mod h1:wB5lKZf1J0MYH1Lt4B9w3opqz0uIjP7MMCAcib3QkwA=
 github.com/awslabs/goformation/v4 v4.19.5 h1:Y+Tzh01tWg8gf//AgGKUamaja7Wx9NPiJf1FpZu4/iU=
 github.com/awslabs/goformation/v4 v4.19.5/go.mod h1:JoNpnVCBOUtEz9bFxc9sjy8uBUCLF5c4D1L7RhRTVM8=
 github.com/aymanbagabas/go-osc52 v1.0.3/go.mod h1:zT8H+Rk4VSabYN90pWyugflM3ZhpTZNC7cASDfUCdT4=
@@ -1325,7 +1324,6 @@ github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852/go.mod h1:eqOVx
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.12.1/go.mod h1:zj2OWP4+oCPe1qIXoGWkgMRwljMUYCdkwsT2108oapk=
 github.com/onsi/ginkgo v1.14.0/go.mod h1:iSB4RoI2tjJc9BBv4NKIKWKya62Rps+oPG/Lv9klQyY=
-github.com/onsi/ginkgo v1.14.2/go.mod h1:iSB4RoI2tjJc9BBv4NKIKWKya62Rps+oPG/Lv9klQyY=
 github.com/onsi/ginkgo v1.16.2/go.mod h1:CObGmKUOKaSC0RjmoAK7tKyn4Azo5P2IWuoMnvwxz1E=
 github.com/onsi/ginkgo v1.16.4 h1:29JGrr5oVBm5ulCWet69zQkzWipVXIol6ygQUe/EzNc=
 github.com/onsi/ginkgo v1.16.4/go.mod h1:dX+/inL/fNMqNlz0e9LfyB9TswhZpCVdJM/Z6Vvnwo0=
@@ -1336,7 +1334,6 @@ github.com/onsi/ginkgo/v2 v2.13.2 h1:Bi2gGVkfn6gQcjNjZJVO8Gf0FHzMPf2phUei9tejVMs
 github.com/onsi/ginkgo/v2 v2.13.2/go.mod h1:XStQ8QcGwLyF4HdfcZB8SFOS/MWCgDuXMSBe6zrvLgM=
 github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7JYyY=
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
-github.com/onsi/gomega v1.10.3/go.mod h1:V9xEwhxec5O8UDM77eCW8vLymOMltsqPVYWrpDsH8xc=
 github.com/onsi/gomega v1.12.0/go.mod h1:lRk9szgn8TxENtWd0Tp4c3wjlRfMTMH27I+3Je41yGY=
 github.com/onsi/gomega v1.14.0/go.mod h1:cIuvLEne0aoVhAgh/O6ac0Op8WWw9H6eYCriF+tEHG0=
 github.com/onsi/gomega v1.17.0/go.mod h1:HnhC7FXeEQY45zxNK3PPoIUhzk/80Xly9PcubAlGdZY=
@@ -1643,8 +1640,8 @@ github.com/vektra/mockery/v2 v2.38.0 h1:I0LBuUzZHqAU4d1DknW0DTFBPO6n8TaD38WL2KJf
 github.com/vektra/mockery/v2 v2.38.0/go.mod h1:diB13hxXG6QrTR0ol2Rk8s2dRMftzvExSvPDKr+IYKk=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b/hrE0s/Ixfpp2cuwH9IO9oZBAN9iYa4A=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
-github.com/weaveworks/goformation/v4 v4.10.2-0.20230526082129-5f5eaa9609b8 h1:qjATkrajxxCgWIQaVgOmG8RiRwGGn1mOm6szwVty7zA=
-github.com/weaveworks/goformation/v4 v4.10.2-0.20230526082129-5f5eaa9609b8/go.mod h1:x92o12+Azh6DQ4yoXT5oEuE7dhQHR5V2vy/fmZ6pO7k=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20231113122203-bf1ae633f95c h1:iejfxgm8iQ6Jr3yT7Javgk40drlL6w9B6+zgACs0fMw=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20231113122203-bf1ae633f95c/go.mod h1:3c2tyJmoge5qTS4PXS0niVJxR0YzroIBsts3dQI3EdI=
 github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848 h1:I7S+IHZIU49skVgTNArf9bIdy07mCn1Z0zv1r07ROws=
 github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848/go.mod h1:y8Luzq6JDsYVoIV0QAlnvIiq8bSaap0myMjWKyzVFTY=
 github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1 h1:+dBg5k7nuTE38VVdoroRsT0Z88fmvdYrI2EjzJst35I=
@@ -1862,7 +1859,6 @@ golang.org/x/net v0.0.0-20200520182314-0ba52f642ac2/go.mod h1:qpuaurCH72eLCgpAm/
 golang.org/x/net v0.0.0-20200625001655-4c5254603344/go.mod h1:/O7V0waA8r7cgGh81Ro3o1hOxt32SMVPicZroKQ2sZA=
 golang.org/x/net v0.0.0-20200707034311-ab3426394381/go.mod h1:/O7V0waA8r7cgGh81Ro3o1hOxt32SMVPicZroKQ2sZA=
 golang.org/x/net v0.0.0-20200822124328-c89045814202/go.mod h1:/O7V0waA8r7cgGh81Ro3o1hOxt32SMVPicZroKQ2sZA=
-golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0/go.mod h1:sp8m0HH+o8qH0wwXwYZr8TS3Oi6o0r6Gce1SSxlDquU=
 golang.org/x/net v0.0.0-20201021035429-f5854403a974/go.mod h1:sp8m0HH+o8qH0wwXwYZr8TS3Oi6o0r6Gce1SSxlDquU=
 golang.org/x/net v0.0.0-20201031054903-ff519b6c9102/go.mod h1:sp8m0HH+o8qH0wwXwYZr8TS3Oi6o0r6Gce1SSxlDquU=
 golang.org/x/net v0.0.0-20201110031124-69a78807bb2b/go.mod h1:sp8m0HH+o8qH0wwXwYZr8TS3Oi6o0r6Gce1SSxlDquU=

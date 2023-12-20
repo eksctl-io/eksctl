@@ -43,12 +43,15 @@ var _ = Describe("JSON Printer", func() {
 			)
 
 			BeforeEach(func() {
-				created := &time.Time{}
 				cluster = &ekstypes.Cluster{
 					Name:      aws.String("test-cluster"),
 					Status:    ekstypes.ClusterStatusActive,
 					Arn:       aws.String("arn-12345678"),
-					CreatedAt: created,
+					CreatedAt: &time.Time{},
+					AccessConfig: &ekstypes.AccessConfigResponse{
+						AuthenticationMode:                      ekstypes.AuthenticationModeApiAndConfigMap,
+						BootstrapClusterCreatorAdminPermissions: aws.Bool(true),
+					},
 					ResourcesVpcConfig: &ekstypes.VpcConfigResponse{
 						VpcId:     aws.String("vpc-1234"),
 						SubnetIds: []string{"sub1", "sub2"},
@@ -91,9 +94,13 @@ var _ = Describe("JSON Printer", func() {
 				created := &time.Time{}
 				clusters = []ekstypes.Cluster{
 					{
-						Name:      aws.String("test-cluster-1"),
-						Status:    ekstypes.ClusterStatusActive,
-						Arn:       aws.String("arn-12345678"),
+						Name:   aws.String("test-cluster-1"),
+						Status: ekstypes.ClusterStatusActive,
+						Arn:    aws.String("arn-12345678"),
+						AccessConfig: &ekstypes.AccessConfigResponse{
+							AuthenticationMode:                      ekstypes.AuthenticationModeApiAndConfigMap,
+							BootstrapClusterCreatorAdminPermissions: aws.Bool(true),
+						},
 						CreatedAt: created,
 						ResourcesVpcConfig: &ekstypes.VpcConfigResponse{
 							VpcId:     aws.String("vpc-1234"),
@@ -101,9 +108,13 @@ var _ = Describe("JSON Printer", func() {
 						},
 					},
 					{
-						Name:      aws.String("test-cluster-2"),
-						Status:    ekstypes.ClusterStatusActive,
-						Arn:       aws.String("arn-87654321"),
+						Name:   aws.String("test-cluster-2"),
+						Status: ekstypes.ClusterStatusActive,
+						Arn:    aws.String("arn-87654321"),
+						AccessConfig: &ekstypes.AccessConfigResponse{
+							AuthenticationMode:                      ekstypes.AuthenticationModeApiAndConfigMap,
+							BootstrapClusterCreatorAdminPermissions: aws.Bool(true),
+						},
 						CreatedAt: created,
 						ResourcesVpcConfig: &ekstypes.VpcConfigResponse{
 							VpcId:     aws.String("vpc-1234"),

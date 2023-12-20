@@ -8,7 +8,7 @@ go 1.20
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8c1e
-	github.com/aws/aws-sdk-go v1.49.2
+	github.com/aws/aws-sdk-go v1.49.5
 	github.com/aws/aws-sdk-go-v2 v1.24.0
 	github.com/aws/aws-sdk-go-v2/config v1.26.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.16.12
@@ -16,9 +16,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.42.4
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.35.5
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.30.0
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.31.5
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.32.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.141.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.35.5
+	github.com/aws/aws-sdk-go-v2/service/eks v1.36.0
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.21.5
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.26.5
 	github.com/aws/aws-sdk-go-v2/service/iam v1.28.5
@@ -66,7 +66,7 @@ require (
 	github.com/tj/assert v0.0.3
 	github.com/vburenin/ifacemaker v1.2.1
 	github.com/vektra/mockery/v2 v2.38.0
-	github.com/weaveworks/goformation/v4 v4.10.2-0.20230526082129-5f5eaa9609b8
+	github.com/weaveworks/goformation/v4 v4.10.2-0.20231113122203-bf1ae633f95c
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xgfone/netaddr v0.5.1
 	golang.org/x/crypto v0.16.0

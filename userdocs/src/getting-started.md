@@ -1,15 +1,18 @@
 # Getting started
 
 !!! tip "New for 2023"
+    `eksctl` now supports configuring cluster access management via [AWS EKS Access Entries](/usage/access-entries).
+    
     `eksctl` now supports configuring fine-grained permissions to EKS running apps via [EKS Pod Identity Associations](/usage/pod-identity-associations)
 
+    
     `eksctl` now supports [updating the subnets and security groups](/usage/cluster-subnets-security-groups) associated with the EKS control plane.
     
     `eksctl` now supports creating fully private clusters on [AWS Outposts](/usage/outposts).
 
     `eksctl` now supports new ISO regions `us-iso-east-1` and `us-isob-east-1`.
 
-    `eksctl` now supports new regions - Zurich (`eu-central-2`), Spain (`eu-south-2`), Hyderabad (`ap-south-2`),  Melbourne (`ap-southeast-4`) and Tel Aviv (`il-central-1`).
+    `eksctl` now supports new regions - Calgary (`ca-west-1`), Zurich (`eu-central-2`), Spain (`eu-south-2`), Hyderabad (`ap-south-2`),  Melbourne (`ap-southeast-4`) and Tel Aviv (`il-central-1`).
 
 `eksctl` is a simple CLI tool for creating and managing clusters on EKS - Amazon's managed Kubernetes service for EC2.
 It is written in Go, uses CloudFormation, was created by [Weaveworks](https://www.weave.works/) and it welcomes

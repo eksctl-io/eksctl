@@ -1,0 +1,314 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "EKS nodes (AMI family: , SSH access: false, private networking: false) [created and managed by eksctl]",
+  "Mappings": {
+    "ServicePrincipalPartitionMap": {
+      "aws": {
+        "EC2": "ec2.amazonaws.com",
+        "EKS": "eks.amazonaws.com",
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+      },
+      "aws-cn": {
+        "EC2": "ec2.amazonaws.com.cn",
+        "EKS": "eks.amazonaws.com",
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+      },
+      "aws-iso": {
+        "EC2": "ec2.c2s.ic.gov",
+        "EKS": "eks.amazonaws.com",
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+      },
+      "aws-iso-b": {
+        "EC2": "ec2.sc2s.sgov.gov",
+        "EKS": "eks.amazonaws.com",
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+      },
+      "aws-us-gov": {
+        "EC2": "ec2.amazonaws.com",
+        "EKS": "eks.amazonaws.com",
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+      }
+    }
+  },
+  "Resources": {
+    "EgressInterCluster": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "Description": "Allow control plane to communicate with worker nodes in group  (kubelet and workload TCP ports)",
+        "DestinationSecurityGroupId": {
+          "Ref": "SG"
+        },
+        "FromPort": 1025,
+        "IpProtocol": "tcp",
+        "ToPort": 65535
+      }
+    },
+    "EgressInterClusterAPI": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "Description": "Allow control plane to communicate with worker nodes in group  (workloads using HTTPS port, commonly used with extension API servers)",
+        "DestinationSecurityGroupId": {
+          "Ref": "SG"
+        },
+        "FromPort": 443,
+        "IpProtocol": "tcp",
+        "ToPort": 443
+      }
+    },
+    "IngressInterClusterCP": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "Description": "Allow control plane to receive API requests from worker nodes in group ",
+        "FromPort": 443,
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": {
+          "Ref": "SG"
+        },
+        "ToPort": 443
+      }
+    },
+    "NodeGroup": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "LaunchTemplate": {
+          "LaunchTemplateName": {
+            "Fn::Sub": "${AWS::StackName}"
+          },
+          "Version": {
+            "Fn::GetAtt": [
+              "NodeGroupLaunchTemplate",
+              "LatestVersionNumber"
+            ]
+          }
+        },
+        "MaxSize": "2",
+        "MinSize": "2",
+        "Tags": [
+          {
+            "Key": "Name",
+            "PropagateAtLaunch": "true",
+            "Value": "cluster--Node"
+          },
+          {
+            "Key": "kubernetes.io/cluster/cluster",
+            "PropagateAtLaunch": "true",
+            "Value": "owned"
+          }
+        ],
+        "VPCZoneIdentifier": [
+          "subnet-public-us-west-1a"
+        ]
+      },
+      "UpdatePolicy": {
+        "AutoScalingRollingUpdate": {}
+      }
+    },
+    "NodeGroupLaunchTemplate": {
+      "Type": "AWS::EC2::LaunchTemplate",
+      "Properties": {
+        "LaunchTemplateData": {
+          "BlockDeviceMappings": [
+            {
+              "DeviceName": "/dev/xvda",
+              "Ebs": {
+                "VolumeSize": 80,
+                "VolumeType": "gp3"
+              }
+            }
+          ],
+          "IamInstanceProfile": {
+            "Arn": {
+              "Fn::GetAtt": [
+                "NodeInstanceProfile",
+                "Arn"
+              ]
+            }
+          },
+          "ImageId": "",
+          "InstanceType": "",
+          "MetadataOptions": {
+            "HttpPutResponseHopLimit": 2,
+            "HttpTokens": "required"
+          },
+          "NetworkInterfaces": [
+            {
+              "DeviceIndex": 0,
+              "Groups": [
+                null,
+                {
+                  "Ref": "SG"
+                }
+              ],
+              "NetworkCardIndex": 0
+            }
+          ],
+          "TagSpecifications": [
+            {
+              "ResourceType": "instance",
+              "Tags": [
+                {
+                  "Key": "Name",
+                  "Value": "cluster--Node"
+                }
+              ]
+            },
+            {
+              "ResourceType": "volume",
+              "Tags": [
+                {
+                  "Key": "Name",
+                  "Value": "cluster--Node"
+                }
+              ]
+            },
+            {
+              "ResourceType": "network-interface",
+              "Tags": [
+                {
+                  "Key": "Name",
+                  "Value": "cluster--Node"
+                }
+              ]
+            }
+          ],
+          "UserData": ""
+        },
+        "LaunchTemplateName": {
+          "Fn::Sub": "${AWS::StackName}"
+        }
+      }
+    },
+    "NodeInstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Path": "/",
+        "Roles": [
+          {
+            "Ref": "NodeInstanceRole"
+          }
+        ]
+      }
+    },
+    "NodeInstanceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "sts:AssumeRole"
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  {
+                    "Fn::FindInMap": [
+                      "ServicePrincipalPartitionMap",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      "EC2"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+          },
+          {
+            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+          },
+          {
+            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEKS_CNI_Policy"
+          },
+          {
+            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
+          }
+        ],
+        "Path": "/",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${AWS::StackName}/NodeInstanceRole"
+            }
+          }
+        ]
+      }
+    },
+    "SG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Communication between the control plane and worker nodes in group ",
+        "SecurityGroupIngress": [
+          {
+            "Description": "[IngressInterCluster] Allow worker nodes in group  to communicate with control plane (kubelet and workload TCP ports)",
+            "FromPort": 1025,
+            "IpProtocol": "tcp",
+            "ToPort": 65535
+          },
+          {
+            "Description": "[IngressInterClusterAPI] Allow worker nodes in group  to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)",
+            "FromPort": 443,
+            "IpProtocol": "tcp",
+            "ToPort": 443
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "kubernetes.io/cluster/cluster",
+            "Value": "owned"
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${AWS::StackName}/SG"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "FeatureLocalSecurityGroup": {
+      "Value": true
+    },
+    "FeaturePrivateNetworking": {
+      "Value": false
+    },
+    "FeatureSharedSecurityGroup": {
+      "Value": true
+    },
+    "InstanceProfileARN": {
+      "Value": {
+        "Fn::GetAtt": [
+          "NodeInstanceProfile",
+          "Arn"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}::InstanceProfileARN"
+        }
+      }
+    },
+    "InstanceRoleARN": {
+      "Value": {
+        "Fn::GetAtt": [
+          "NodeInstanceRole",
+          "Arn"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}::InstanceRoleARN"
+        }
+      }
+    }
+  }
+}

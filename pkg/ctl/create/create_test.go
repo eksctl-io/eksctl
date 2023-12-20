@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
@@ -41,34 +42,51 @@ type invalidParamsCase struct {
 	error string
 }
 
-func newDefaultCmd(args ...string) *mockVerbCmd {
+func newDefaultCmd(args ...string) *mockCmd {
 	cmd := Command(cmdutils.NewGrouping())
 	cmd.SetArgs(args)
-	return &mockVerbCmd{
+	return &mockCmd{
 		parentCmd: cmd,
 	}
 }
 
-func newMockEmptyCmd(args ...string) *mockVerbCmd {
+func newMockEmptyCmd(args ...string) *mockCmd {
 	cmd := cmdutils.NewVerbCmd("create", "Create resource(s)", "")
 	cmd.SetArgs(args)
-	return &mockVerbCmd{
+	return &mockCmd{
 		parentCmd: cmd,
 	}
 }
 
-type mockVerbCmd struct {
-	parentCmd *cobra.Command
+func newMockCmdWithRunFunc(verb string, runFunc func(cmd *cmdutils.Cmd), args ...string) *mockCmd {
+	grouping := cmdutils.NewGrouping()
+	parentCmd := cmdutils.NewVerbCmd(verb, "", "")
+
+	var mc mockCmd
+	cmdutils.AddResourceCmd(grouping, parentCmd, func(cmd *cmdutils.Cmd) {
+		mc.cmd = cmd
+		runFunc(cmd)
+	})
+	parentCmd.SetArgs(args)
+	mc.parentCmd = parentCmd
+	return &mc
 }
 
-func (c mockVerbCmd) execute() (string, error) {
-	outBuf := new(bytes.Buffer)
-	errBuf := new(bytes.Buffer)
-	c.parentCmd.SetOut(outBuf)
-	c.parentCmd.SetErr(errBuf)
+type mockCmd struct {
+	parentCmd *cobra.Command
+	cmd       *cmdutils.Cmd
+}
+
+func (c *mockCmd) execute() (string, error) {
+	var (
+		stdOut bytes.Buffer
+		stdErr bytes.Buffer
+	)
+	c.parentCmd.SetOut(&stdOut)
+	c.parentCmd.SetErr(&stdErr)
 	err := c.parentCmd.Execute()
 	if err != nil {
-		err = errors.New(errBuf.String())
+		err = errors.New(stdErr.String())
 	}
-	return outBuf.String(), err
+	return stdOut.String(), err
 }

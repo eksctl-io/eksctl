@@ -154,7 +154,11 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 }
 
 func (a *Manager) patchAWSNodeSA(ctx context.Context) error {
-	serviceAccounts := a.clientSet.CoreV1().ServiceAccounts("kube-system")
+	clientSet, err := a.createClientSet()
+	if err != nil {
+		return err
+	}
+	serviceAccounts := clientSet.CoreV1().ServiceAccounts("kube-system")
 	sa, err := serviceAccounts.Get(ctx, "aws-node", metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
@@ -183,7 +187,11 @@ func (a *Manager) patchAWSNodeSA(ctx context.Context) error {
 }
 
 func (a *Manager) patchAWSNodeDaemonSet(ctx context.Context) error {
-	daemonSets := a.clientSet.AppsV1().DaemonSets(kubeSystemNamespace)
+	clientSet, err := a.createClientSet()
+	if err != nil {
+		return err
+	}
+	daemonSets := clientSet.AppsV1().DaemonSets(kubeSystemNamespace)
 	sa, err := daemonSets.Get(ctx, "aws-node", metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
