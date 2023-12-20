@@ -1,8 +1,11 @@
 # Getting started
 
 !!! tip "New for 2023"
+    `eksctl` now supports configuring cluster access management via [AWS EKS Access Entries](/usage/access-entries).
+    
     `eksctl` now supports configuring fine-grained permissions to EKS running apps via [EKS Pod Identity Associations](/usage/pod-identity-associations)
 
+    
     `eksctl` now supports [updating the subnets and security groups](/usage/cluster-subnets-security-groups) associated with the EKS control plane.
     
     `eksctl` now supports creating fully private clusters on [AWS Outposts](/usage/outposts).
