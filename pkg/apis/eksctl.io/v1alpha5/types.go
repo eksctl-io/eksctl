@@ -882,6 +882,10 @@ type ClusterConfig struct {
 	// +optional
 	IdentityProviders []IdentityProvider `json:"identityProviders,omitempty"`
 
+	// AccessConfig specifies the access config for a cluster.
+	// +optional
+	AccessConfig *AccessConfig `json:"accessConfig,omitempty"`
+
 	// +optional
 	VPC *ClusterVPC `json:"vpc,omitempty"`
 
@@ -1025,6 +1029,7 @@ func NewClusterConfig() *ClusterConfig {
 			ClusterLogging: &ClusterCloudWatchLogging{},
 		},
 		PrivateCluster: &PrivateCluster{},
+		AccessConfig:   &AccessConfig{},
 	}
 
 	return cfg
@@ -1737,7 +1742,6 @@ type NodeGroupTaint struct {
 }
 
 // ManagedNodeGroup represents an EKS-managed nodegroup
-// TODO Validate for unmapped fields and throw an error
 type ManagedNodeGroup struct {
 	*NodeGroupBase
 
@@ -1941,6 +1945,20 @@ func (t *taintsWrapper) UnmarshalJSON(data []byte) error {
 	}
 	*t = ngTaints
 	return nil
+}
+
+// AccessConfig specifies the access config for a cluster.
+type AccessConfig struct {
+	// AuthenticationMode specifies the authentication mode for a cluster.
+	AuthenticationMode ekstypes.AuthenticationMode `json:"authenticationMode,omitempty"`
+
+	// BootstrapClusterCreatorAdminPermissions specifies whether the cluster creator IAM principal was set as a cluster
+	// admin access entry during cluster creation time.
+	BootstrapClusterCreatorAdminPermissions *bool `json:"bootstrapClusterCreatorAdminPermissions,omitempty"`
+
+	// AccessEntries specifies a list of access entries for the cluster.
+	// +optional
+	AccessEntries []AccessEntry `json:"accessEntries,omitempty"`
 }
 
 // UnsupportedFeatureError is an error that represents an unsupported feature

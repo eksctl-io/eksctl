@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -295,14 +297,23 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		}
 	}
 
+	authenticationMode := c.spec.AccessConfig.AuthenticationMode
+	if authenticationMode == "" {
+		authenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
+	}
+
 	cluster := gfneks.Cluster{
 		EncryptionConfig:   encryptionConfigs,
 		Logging:            makeClusterLogging(c.spec),
 		Name:               gfnt.NewString(c.spec.Metadata.Name),
 		ResourcesVpcConfig: clusterVPC,
 		RoleArn:            serviceRoleARN,
-		Tags:               makeCFNTags(c.spec),
-		Version:            gfnt.NewString(c.spec.Metadata.Version),
+		AccessConfig: &gfneks.Cluster_AccessConfig{
+			AuthenticationMode:                      gfnt.NewString(string(authenticationMode)),
+			BootstrapClusterCreatorAdminPermissions: gfnt.NewBoolean(!api.IsDisabled(c.spec.AccessConfig.BootstrapClusterCreatorAdminPermissions)),
+		},
+		Tags:    makeCFNTags(c.spec),
+		Version: gfnt.NewString(c.spec.Metadata.Version),
 	}
 
 	if c.spec.IsControlPlaneOnOutposts() {

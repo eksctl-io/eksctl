@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
-
 	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
@@ -28,14 +26,10 @@ type OwnedCluster struct {
 	clusterStack        *manager.Stack
 	stackManager        manager.StackManager
 	newClientSet        func() (kubernetes.Interface, error)
-	newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer
+	newNodeGroupDrainer func(clientSet kubernetes.Interface) NodeGroupDrainer
 }
 
-func NewOwnedCluster(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager) (*OwnedCluster, error) {
-	instanceSelector, err := selector.New(context.Background(), ctl.AWSProvider.AWSConfig())
-	if err != nil {
-		return nil, err
-	}
+func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager) *OwnedCluster {
 	return &OwnedCluster{
 		cfg:          cfg,
 		ctl:          ctl,
@@ -44,10 +38,12 @@ func NewOwnedCluster(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.Clust
 		newClientSet: func() (kubernetes.Interface, error) {
 			return ctl.NewStdClientSet(cfg)
 		},
-		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
-			return nodegroup.New(cfg, ctl, clientSet, instanceSelector)
+		newNodeGroupDrainer: func(clientSet kubernetes.Interface) NodeGroupDrainer {
+			return &nodegroup.Drainer{
+				ClientSet: clientSet,
+			}
 		},
-	}, nil
+	}
 }
 
 func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
@@ -97,8 +93,8 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 			}
 		}
 
-		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
-		if err := drainAllNodeGroups(ctx, c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, func(clusterConfig *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+		drainer := c.newNodeGroupDrainer(clientSet)
+		if err := drainAllNodeGroups(ctx, c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, drainer, func(clusterConfig *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 			attemptVpcCniDeletion(ctx, clusterConfig, ctl, clientSet)
 		}, podEvictionWaitPeriod); err != nil {
 			if !force {

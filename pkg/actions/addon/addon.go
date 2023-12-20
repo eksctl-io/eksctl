@@ -33,23 +33,26 @@ type StackManager interface {
 	UpdateStack(ctx context.Context, options manager.UpdateStackOptions) error
 }
 
+// CreateClientSet creates a Kubernetes ClientSet.
+type CreateClientSet func() (kubeclient.Interface, error)
+
 type Manager struct {
-	clusterConfig *api.ClusterConfig
-	eksAPI        awsapi.EKS
-	withOIDC      bool
-	oidcManager   *iamoidc.OpenIDConnectManager
-	stackManager  StackManager
-	clientSet     kubeclient.Interface
+	clusterConfig   *api.ClusterConfig
+	eksAPI          awsapi.EKS
+	withOIDC        bool
+	oidcManager     *iamoidc.OpenIDConnectManager
+	stackManager    StackManager
+	createClientSet CreateClientSet
 }
 
-func New(clusterConfig *api.ClusterConfig, eksAPI awsapi.EKS, stackManager StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) (*Manager, error) {
+func New(clusterConfig *api.ClusterConfig, eksAPI awsapi.EKS, stackManager StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, createClientSet CreateClientSet) (*Manager, error) {
 	return &Manager{
-		clusterConfig: clusterConfig,
-		eksAPI:        eksAPI,
-		withOIDC:      withOIDC,
-		oidcManager:   oidcManager,
-		stackManager:  stackManager,
-		clientSet:     clientSet,
+		clusterConfig:   clusterConfig,
+		eksAPI:          eksAPI,
+		withOIDC:        withOIDC,
+		oidcManager:     oidcManager,
+		stackManager:    stackManager,
+		createClientSet: createClientSet,
 	}, nil
 }
 

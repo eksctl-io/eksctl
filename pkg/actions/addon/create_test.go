@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"k8s.io/client-go/kubernetes"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -93,7 +95,9 @@ var _ = Describe("Create", func() {
 			createAddonInput = args[1].(*eks.CreateAddonInput)
 		}).Return(nil, returnedErr)
 
-		manager, err = addon.New(clusterConfig, mockProvider.EKS(), fakeStackManager, withOIDC, oidc, rawClient.ClientSet())
+		manager, err = addon.New(clusterConfig, mockProvider.EKS(), fakeStackManager, withOIDC, oidc, func() (kubernetes.Interface, error) {
+			return rawClient.ClientSet(), nil
+		})
 		Expect(err).NotTo(HaveOccurred())
 
 		mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {

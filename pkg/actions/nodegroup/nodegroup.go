@@ -3,6 +3,8 @@ package nodegroup
 import (
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/accessentry"
+
 	"github.com/aws/aws-sdk-go/aws/request"
 	"k8s.io/client-go/kubernetes"
 
@@ -21,6 +23,7 @@ type Manager struct {
 	wait                  WaitFunc
 	instanceSelector      eks.InstanceSelector
 	launchTemplateFetcher *builder.LaunchTemplateFetcher
+	accessEntry           *accessentry.Service
 }
 
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
@@ -35,10 +38,13 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.
 		wait:                  waiters.Wait,
 		instanceSelector:      instanceSelector,
 		launchTemplateFetcher: builder.NewLaunchTemplateFetcher(ctl.AWSProvider.EC2()),
+		accessEntry: &accessentry.Service{
+			ClusterStateGetter: ctl,
+		},
 	}
 }
 
-func (m *Manager) hasStacks(stacks []manager.NodeGroupStack, name string) *manager.NodeGroupStack {
+func findStack(stacks []manager.NodeGroupStack, name string) *manager.NodeGroupStack {
 	for _, stack := range stacks {
 		if stack.NodeGroupName == name {
 			return &stack
