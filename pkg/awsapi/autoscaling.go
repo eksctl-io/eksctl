@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	. "github.com/aws/aws-sdk-go-v2/service/autoscaling"
 )
 
 // ASG provides an interface to the AWS ASG service.
 type ASG interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() autoscaling.Options
 	// Attaches one or more EC2 instances to the specified Auto Scaling group. When
 	// you attach instances, Amazon EC2 Auto Scaling increases the desired capacity of
 	// the group by the number of instances being attached. If the number of instances
@@ -551,11 +558,8 @@ type ASG interface {
 	// in the Amazon EC2 Auto Scaling User Guide. If you exceed your maximum limit of
 	// instance IDs, which is 50 per Auto Scaling group, the call fails.
 	SetInstanceProtection(ctx context.Context, params *SetInstanceProtectionInput, optFns ...func(*Options)) (*SetInstanceProtectionOutput, error)
-	// Starts an instance refresh. During an instance refresh, Amazon EC2 Auto Scaling
-	// performs a rolling update of instances in an Auto Scaling group. Instances are
-	// terminated first and then replaced, which temporarily reduces the capacity
-	// available within your Auto Scaling group. This operation is part of the
-	// instance refresh feature (https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-instance-refresh.html)
+	// Starts an instance refresh. This operation is part of the instance refresh
+	// feature (https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-instance-refresh.html)
 	// in Amazon EC2 Auto Scaling, which helps you update instances in your Auto
 	// Scaling group. This feature is helpful, for example, when you have a new AMI or
 	// a new user data script. You just need to create a new launch template that

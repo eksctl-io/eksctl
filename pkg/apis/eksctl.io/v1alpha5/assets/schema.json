@@ -385,6 +385,14 @@
           "description": "permissions boundary for the fargate pod execution role`. See [EKS Fargate Support](/usage/fargate-support/)",
           "x-intellij-html-description": "permissions boundary for the fargate pod execution role`. See <a href=\"/usage/fargate-support/\">EKS Fargate Support</a>"
         },
+        "podIdentityAssociations": {
+          "items": {
+            "$ref": "#/definitions/PodIdentityAssociation"
+          },
+          "type": "array",
+          "description": "pod identity associations to create in the cluster. See [Pod Identity Associations](TBD)",
+          "x-intellij-html-description": "pod identity associations to create in the cluster. See <a href=\"TBD\">Pod Identity Associations</a>"
+        },
         "serviceAccounts": {
           "items": {
             "$ref": "#/definitions/ClusterIAMServiceAccount"
@@ -420,6 +428,7 @@
         "fargatePodExecutionRolePermissionsBoundary",
         "withOIDC",
         "serviceAccounts",
+        "podIdentityAssociations",
         "vpcResourceControllerPolicy"
       ],
       "additionalProperties": false,
@@ -531,12 +540,31 @@
     },
     "ClusterIAMServiceAccountStatus": {
       "properties": {
+        "capabilities": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "roleARN": {
           "type": "string"
+        },
+        "stackName": {
+          "type": "string"
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "default": "{}"
         }
       },
       "preferredOrder": [
-        "roleARN"
+        "roleARN",
+        "stackName",
+        "tags",
+        "capabilities"
       ],
       "additionalProperties": false,
       "description": "holds status of the IAM service account",
@@ -655,6 +683,22 @@
           "description": "See [managing access to API](/usage/vpc-networking/#managing-access-to-the-kubernetes-api-server-endpoints)",
           "x-intellij-html-description": "See <a href=\"/usage/vpc-networking/#managing-access-to-the-kubernetes-api-server-endpoints\">managing access to API</a>"
         },
+        "controlPlaneSecurityGroupIDs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "configures the security groups for the control plane.",
+          "x-intellij-html-description": "configures the security groups for the control plane."
+        },
+        "controlPlaneSubnetIDs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "configures the subnets for the control plane.",
+          "x-intellij-html-description": "configures the subnets for the control plane."
+        },
         "extraCIDRs": {
           "items": {
             "type": "string"
@@ -733,7 +777,9 @@
         "autoAllocateIPv6",
         "nat",
         "clusterEndpoints",
-        "publicAccessCIDRs"
+        "publicAccessCIDRs",
+        "controlPlaneSubnetIDs",
+        "controlPlaneSecurityGroupIDs"
       ],
       "additionalProperties": false,
       "description": "holds global subnet and all child subnets",
@@ -1756,8 +1802,8 @@
         },
         "settings": {
           "$ref": "#/definitions/InlineDocument",
-          "description": "contains any [bottlerocket settings](https://github.com/bottlerocket-os/bottlerocket/#description-of-settings)",
-          "x-intellij-html-description": "contains any <a href=\"https://github.com/bottlerocket-os/bottlerocket/#description-of-settings\">bottlerocket settings</a>"
+          "description": "contains any [bottlerocket settings](https://bottlerocket.dev/en/os/latest/#/api/settings/)",
+          "x-intellij-html-description": "contains any <a href=\"https://bottlerocket.dev/en/os/latest/#/api/settings/\">bottlerocket settings</a>"
         }
       },
       "preferredOrder": [
@@ -2160,6 +2206,56 @@
       "additionalProperties": false,
       "description": "specifies placement group information",
       "x-intellij-html-description": "specifies placement group information"
+    },
+    "PodIdentityAssociation": {
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "permissionPolicy": {
+          "$ref": "#/definitions/InlineDocument"
+        },
+        "permissionPolicyARNs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "permissionsBoundaryARN": {
+          "type": "string"
+        },
+        "roleARN": {
+          "type": "string"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "serviceAccountName": {
+          "type": "string"
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "default": "{}"
+        },
+        "wellKnownPolicies": {
+          "$ref": "#/definitions/WellKnownPolicies"
+        }
+      },
+      "preferredOrder": [
+        "namespace",
+        "serviceAccountName",
+        "roleARN",
+        "roleName",
+        "permissionsBoundaryARN",
+        "permissionPolicyARNs",
+        "permissionPolicy",
+        "wellKnownPolicies",
+        "tags"
+      ],
+      "additionalProperties": false
     },
     "PrivateCluster": {
       "properties": {

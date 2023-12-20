@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	. "github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 )
 
 // CloudTrail provides an interface to the AWS CloudTrail service.
 type CloudTrail interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() cloudtrail.Options
 	// Adds one or more tags to a trail, event data store, or channel, up to a limit
 	// of 50. Overwrites an existing tag's value when a new value is specified for an
 	// existing tag key. Tag key names must be unique; you cannot have two keys with
@@ -40,11 +47,12 @@ type CloudTrail interface {
 	// event data store ARN. After you run DeleteEventDataStore , the event data store
 	// enters a PENDING_DELETION state, and is automatically deleted after a wait
 	// period of seven days. TerminationProtectionEnabled must be set to False on the
-	// event data store; this operation cannot work if TerminationProtectionEnabled is
-	// True . After you run DeleteEventDataStore on an event data store, you cannot
-	// run ListQueries , DescribeQuery , or GetQueryResults on queries that are using
-	// an event data store in a PENDING_DELETION state. An event data store in the
-	// PENDING_DELETION state does not incur costs.
+	// event data store and the FederationStatus must be DISABLED . You cannot delete
+	// an event data store if TerminationProtectionEnabled is True or the
+	// FederationStatus is ENABLED . After you run DeleteEventDataStore on an event
+	// data store, you cannot run ListQueries , DescribeQuery , or GetQueryResults on
+	// queries that are using an event data store in a PENDING_DELETION state. An
+	// event data store in the PENDING_DELETION state does not incur costs.
 	DeleteEventDataStore(ctx context.Context, params *DeleteEventDataStoreInput, optFns ...func(*Options)) (*DeleteEventDataStoreOutput, error)
 	// Deletes the resource-based policy attached to the CloudTrail channel.
 	DeleteResourcePolicy(ctx context.Context, params *DeleteResourcePolicyInput, optFns ...func(*Options)) (*DeleteResourcePolicyOutput, error)
@@ -65,6 +73,27 @@ type CloudTrail interface {
 	// Retrieves settings for one or more trails associated with the current Region
 	// for your account.
 	DescribeTrails(ctx context.Context, params *DescribeTrailsInput, optFns ...func(*Options)) (*DescribeTrailsOutput, error)
+	// Disables Lake query federation on the specified event data store. When you
+	// disable federation, CloudTrail removes the metadata associated with the
+	// federated event data store in the Glue Data Catalog and removes registration for
+	// the federation role ARN and event data store in Lake Formation. No CloudTrail
+	// Lake data is deleted when you disable federation.
+	DisableFederation(ctx context.Context, params *DisableFederationInput, optFns ...func(*Options)) (*DisableFederationOutput, error)
+	// Enables Lake query federation on the specified event data store. Federating an
+	// event data store lets you view the metadata associated with the event data store
+	// in the Glue Data Catalog (https://docs.aws.amazon.com/glue/latest/dg/components-overview.html#data-catalog-intro)
+	// and run SQL queries against your event data using Amazon Athena. The table
+	// metadata stored in the Glue Data Catalog lets the Athena query engine know how
+	// to find, read, and process the data that you want to query. When you enable Lake
+	// query federation, CloudTrail creates a federated database named aws:cloudtrail
+	// (if the database doesn't already exist) and a federated table in the Glue Data
+	// Catalog. The event data store ID is used for the table name. CloudTrail
+	// registers the role ARN and event data store in Lake Formation (https://docs.aws.amazon.com/lake-formation/latest/dg/how-it-works.html)
+	// , the service responsible for revoking or granting permissions to the federated
+	// resources in the Glue Data Catalog. For more information about Lake query
+	// federation, see Federate an event data store (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/query-federation.html)
+	// .
+	EnableFederation(ctx context.Context, params *EnableFederationInput, optFns ...func(*Options)) (*EnableFederationOutput, error)
 	// Returns information about a specific channel.
 	GetChannel(ctx context.Context, params *GetChannelInput, optFns ...func(*Options)) (*GetChannelOutput, error)
 	// Returns information about an event data store specified as either an ARN or the
@@ -87,11 +116,15 @@ type CloudTrail interface {
 	// Returns information about a specific import.
 	GetImport(ctx context.Context, params *GetImportInput, optFns ...func(*Options)) (*GetImportOutput, error)
 	// Describes the settings for the Insights event selectors that you configured for
-	// your trail. GetInsightSelectors shows if CloudTrail Insights event logging is
-	// enabled on the trail, and if it is, which insight types are enabled. If you run
-	// GetInsightSelectors on a trail that does not have Insights events enabled, the
-	// operation throws the exception InsightNotEnabledException For more information,
-	// see Logging CloudTrail Insights Events for Trails  (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-insights-events-with-cloudtrail.html)
+	// your trail or event data store. GetInsightSelectors shows if CloudTrail
+	// Insights event logging is enabled on the trail or event data store, and if it
+	// is, which Insights types are enabled. If you run GetInsightSelectors on a trail
+	// or event data store that does not have Insights events enabled, the operation
+	// throws the exception InsightNotEnabledException Specify either the
+	// EventDataStore parameter to get Insights event selectors for an event data
+	// store, or the TrailName parameter to the get Insights event selectors for a
+	// trail. You cannot specify these parameters together. For more information, see
+	// Logging CloudTrail Insights events (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-insights-events-with-cloudtrail.html)
 	// in the CloudTrail User Guide.
 	GetInsightSelectors(ctx context.Context, params *GetInsightSelectorsInput, optFns ...func(*Options)) (*GetInsightSelectorsOutput, error)
 	// Gets event data results of a query. You must specify the QueryID value returned
@@ -141,7 +174,10 @@ type CloudTrail interface {
 	// Looks up management events (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html#cloudtrail-concepts-management-events)
 	// or CloudTrail Insights events (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html#cloudtrail-concepts-insights-events)
 	// that are captured by CloudTrail. You can look up events that occurred in a
-	// Region within the last 90 days. Lookup supports the following attributes for
+	// Region within the last 90 days. LookupEvents returns recent Insights events for
+	// trails that enable Insights. To view Insights events for an event data store,
+	// you can run queries on your Insights event data store, and you can also view the
+	// Lake dashboard for Insights. Lookup supports the following attributes for
 	// management events:
 	//   - Amazon Web Services access key
 	//   - Event ID
@@ -201,14 +237,26 @@ type CloudTrail interface {
 	// in the CloudTrail User Guide.
 	PutEventSelectors(ctx context.Context, params *PutEventSelectorsInput, optFns ...func(*Options)) (*PutEventSelectorsOutput, error)
 	// Lets you enable Insights event logging by specifying the Insights selectors
-	// that you want to enable on an existing trail. You also use PutInsightSelectors
-	// to turn off Insights event logging, by passing an empty list of insight types.
-	// The valid Insights event types in this release are ApiErrorRateInsight and
-	// ApiCallRateInsight . To log CloudTrail Insights events on API call volume, the
-	// trail must log write management events. To log CloudTrail Insights events on
-	// API error rate, the trail must log read or write management events. You can
+	// that you want to enable on an existing trail or event data store. You also use
+	// PutInsightSelectors to turn off Insights event logging, by passing an empty list
+	// of Insights types. The valid Insights event types are ApiErrorRateInsight and
+	// ApiCallRateInsight . To enable Insights on an event data store, you must specify
+	// the ARNs (or ID suffix of the ARNs) for the source event data store (
+	// EventDataStore ) and the destination event data store ( InsightsDestination ).
+	// The source event data store logs management events and enables Insights. The
+	// destination event data store logs Insights events based upon the management
+	// event activity of the source event data store. The source and destination event
+	// data stores must belong to the same Amazon Web Services account. To log Insights
+	// events for a trail, you must specify the name ( TrailName ) of the CloudTrail
+	// trail for which you want to change or add Insights selectors. To log CloudTrail
+	// Insights events on API call volume, the trail or event data store must log write
+	// management events. To log CloudTrail Insights events on API error rate, the
+	// trail or event data store must log read or write management events. You can
 	// call GetEventSelectors on a trail to check whether the trail logs management
-	// events.
+	// events. You can call GetEventDataStore on an event data store to check whether
+	// the event data store logs management events. For more information, see Logging
+	// CloudTrail Insights events (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-insights-events-with-cloudtrail.html)
+	// in the CloudTrail User Guide.
 	PutInsightSelectors(ctx context.Context, params *PutInsightSelectorsInput, optFns ...func(*Options)) (*PutInsightSelectorsOutput, error)
 	// Attaches a resource-based permission policy to a CloudTrail channel that is
 	// used for an integration with an event source outside of Amazon Web Services. For
@@ -217,7 +265,8 @@ type CloudTrail interface {
 	// in the CloudTrail User Guide.
 	PutResourcePolicy(ctx context.Context, params *PutResourcePolicyInput, optFns ...func(*Options)) (*PutResourcePolicyOutput, error)
 	// Registers an organization’s member account as the CloudTrail delegated
-	// administrator.
+	// administrator (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-delegated-administrator.html)
+	// .
 	RegisterOrganizationDelegatedAdmin(ctx context.Context, params *RegisterOrganizationDelegatedAdminInput, optFns ...func(*Options)) (*RegisterOrganizationDelegatedAdminOutput, error)
 	// Removes the specified tags from a trail, event data store, or channel.
 	RemoveTags(ctx context.Context, params *RemoveTagsInput, optFns ...func(*Options)) (*RemoveTagsOutput, error)
@@ -282,11 +331,12 @@ type CloudTrail interface {
 	// Updates an event data store. The required EventDataStore value is an ARN or the
 	// ID portion of the ARN. Other parameters are optional, but at least one optional
 	// parameter must be specified, or CloudTrail throws an error. RetentionPeriod is
-	// in days, and valid values are integers between 90 and 2557. By default,
-	// TerminationProtection is enabled. For event data stores for CloudTrail events,
-	// AdvancedEventSelectors includes or excludes management and data events in your
-	// event data store. For more information about AdvancedEventSelectors , see
-	// AdvancedEventSelectors (https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedEventSelector.html)
+	// in days, and valid values are integers between 7 and 3653 if the BillingMode is
+	// set to EXTENDABLE_RETENTION_PRICING , or between 7 and 2557 if BillingMode is
+	// set to FIXED_RETENTION_PRICING . By default, TerminationProtection is enabled.
+	// For event data stores for CloudTrail events, AdvancedEventSelectors includes or
+	// excludes management, data, or Insights events in your event data store. For more
+	// information about AdvancedEventSelectors , see AdvancedEventSelectors (https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedEventSelector.html)
 	// . For event data stores for Config configuration items, Audit Manager evidence,
 	// or non-Amazon Web Services events, AdvancedEventSelectors includes events of
 	// that type in your event data store.

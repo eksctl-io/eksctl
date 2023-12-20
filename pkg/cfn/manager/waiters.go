@@ -50,12 +50,13 @@ func (c *StackCollection) troubleshootStackFailureCause(ctx context.Context, i *
 	}
 }
 
-type noChangeError struct {
-	msg string
+// NoChangeError represents an error for when a CloudFormation changeset contains no changes.
+type NoChangeError struct {
+	Msg string
 }
 
-func (e *noChangeError) Error() string {
-	return e.msg
+func (e *NoChangeError) Error() string {
+	return e.Msg
 }
 
 // DoWaitUntilStackIsCreated blocks until the given stack's
@@ -141,7 +142,7 @@ func (c *StackCollection) doWaitUntilChangeSetIsCreated(ctx context.Context, i *
 			logger.Info("waiting for CloudFormation changeset %q for stack %q", changesetName, *i.StackName)
 			if out.StatusReason != nil && strings.Contains(*out.StatusReason, "The submitted information didn't contain changes") {
 				logger.Info("nothing to update")
-				return false, &noChangeError{*out.StatusReason}
+				return false, &NoChangeError{*out.StatusReason}
 			}
 			return defaultRetryer(ctx, in, out, err)
 		}

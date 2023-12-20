@@ -21,6 +21,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
 	"github.com/weaveworks/eksctl/pkg/actions/karpenter"
+	"github.com/weaveworks/eksctl/pkg/actions/podidentityassociation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -432,6 +433,16 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 					logger.Critical("%s\n", err.Error())
 				}
 				return errors.New("failed to create addons")
+			}
+		}
+
+		if len(cfg.IAM.PodIdentityAssociations) > 0 {
+			if err := podidentityassociation.NewCreator(
+				cfg.Metadata.Name,
+				stackManager,
+				ctl.AWSProvider.EKS(),
+			).CreatePodIdentityAssociations(ctx, cfg.IAM.PodIdentityAssociations); err != nil {
+				return err
 			}
 		}
 

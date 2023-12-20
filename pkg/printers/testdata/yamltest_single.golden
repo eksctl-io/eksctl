@@ -1,4 +1,5 @@
 - Id: null
+  AccessConfig: null
   Arn: arn-12345678
   CertificateAuthority: null
   ClientRequestToken: null

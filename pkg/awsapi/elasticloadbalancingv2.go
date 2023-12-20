@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	. "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 )
 
 // ELBV2 provides an interface to the AWS ELBV2 service.
 type ELBV2 interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() elasticloadbalancingv2.Options
 	// Adds the specified SSL server certificate to the certificate list for the
 	// specified HTTPS or TLS listener. If the certificate in already in the
 	// certificate list, the call is successful but the certificate is not added again.
@@ -19,10 +26,12 @@ type ELBV2 interface {
 	AddListenerCertificates(ctx context.Context, params *AddListenerCertificatesInput, optFns ...func(*Options)) (*AddListenerCertificatesOutput, error)
 	// Adds the specified tags to the specified Elastic Load Balancing resource. You
 	// can tag your Application Load Balancers, Network Load Balancers, Gateway Load
-	// Balancers, target groups, listeners, and rules. Each tag consists of a key and
-	// an optional value. If a resource already has a tag with the same key, AddTags
-	// updates its value.
+	// Balancers, target groups, trust stores, listeners, and rules. Each tag consists
+	// of a key and an optional value. If a resource already has a tag with the same
+	// key, AddTags updates its value.
 	AddTags(ctx context.Context, params *AddTagsInput, optFns ...func(*Options)) (*AddTagsOutput, error)
+	// Adds the specified revocation file to the specified trust store.
+	AddTrustStoreRevocations(ctx context.Context, params *AddTrustStoreRevocationsInput, optFns ...func(*Options)) (*AddTrustStoreRevocationsOutput, error)
 	// Creates a listener for the specified Application Load Balancer, Network Load
 	// Balancer, or Gateway Load Balancer. For more information, see the following:
 	//   - Listeners for your Application Load Balancers (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html)
@@ -60,6 +69,8 @@ type ELBV2 interface {
 	// If you attempt to create multiple target groups with the same settings, each
 	// call succeeds.
 	CreateTargetGroup(ctx context.Context, params *CreateTargetGroupInput, optFns ...func(*Options)) (*CreateTargetGroupOutput, error)
+	// Creates a trust store.
+	CreateTrustStore(ctx context.Context, params *CreateTrustStoreInput, optFns ...func(*Options)) (*CreateTrustStoreOutput, error)
 	// Deletes the specified listener. Alternatively, your listener is deleted when
 	// you delete the load balancer to which it is attached.
 	DeleteListener(ctx context.Context, params *DeleteListenerInput, optFns ...func(*Options)) (*DeleteListenerOutput, error)
@@ -78,6 +89,8 @@ type ELBV2 interface {
 	// health checks. Deleting a target group does not affect its registered targets.
 	// For example, any EC2 instances continue to run until you stop or terminate them.
 	DeleteTargetGroup(ctx context.Context, params *DeleteTargetGroupInput, optFns ...func(*Options)) (*DeleteTargetGroupOutput, error)
+	// Deletes a trust store.
+	DeleteTrustStore(ctx context.Context, params *DeleteTrustStoreInput, optFns ...func(*Options)) (*DeleteTrustStoreOutput, error)
 	// Deregisters the specified targets from the specified target group. After the
 	// targets are deregistered, they no longer receive traffic from the load balancer.
 	// The load balancer stops sending requests to targets that are deregistering, but
@@ -150,6 +163,19 @@ type ELBV2 interface {
 	DescribeTargetGroups(ctx context.Context, params *DescribeTargetGroupsInput, optFns ...func(*Options)) (*DescribeTargetGroupsOutput, error)
 	// Describes the health of the specified targets or all of your targets.
 	DescribeTargetHealth(ctx context.Context, params *DescribeTargetHealthInput, optFns ...func(*Options)) (*DescribeTargetHealthOutput, error)
+	// Describes all resources associated with the specified trust store.
+	DescribeTrustStoreAssociations(ctx context.Context, params *DescribeTrustStoreAssociationsInput, optFns ...func(*Options)) (*DescribeTrustStoreAssociationsOutput, error)
+	// Describes the revocation files in use by the specified trust store arn, or
+	// revocation ID.
+	DescribeTrustStoreRevocations(ctx context.Context, params *DescribeTrustStoreRevocationsInput, optFns ...func(*Options)) (*DescribeTrustStoreRevocationsOutput, error)
+	// Describes all trust stores for a given account by trust store arn’s or name.
+	DescribeTrustStores(ctx context.Context, params *DescribeTrustStoresInput, optFns ...func(*Options)) (*DescribeTrustStoresOutput, error)
+	// Retrieves the ca certificate bundle. This action returns a pre-signed S3 URI
+	// which is active for ten minutes.
+	GetTrustStoreCaCertificatesBundle(ctx context.Context, params *GetTrustStoreCaCertificatesBundleInput, optFns ...func(*Options)) (*GetTrustStoreCaCertificatesBundleOutput, error)
+	// Retrieves the specified revocation file. This action returns a pre-signed S3
+	// URI which is active for ten minutes.
+	GetTrustStoreRevocationContent(ctx context.Context, params *GetTrustStoreRevocationContentInput, optFns ...func(*Options)) (*GetTrustStoreRevocationContentOutput, error)
 	// Replaces the specified properties of the specified listener. Any properties
 	// that you do not specify remain unchanged. Changing the protocol from HTTPS to
 	// HTTP, or from TLS to TCP, removes the security policy and default certificate
@@ -175,6 +201,8 @@ type ELBV2 interface {
 	ModifyTargetGroup(ctx context.Context, params *ModifyTargetGroupInput, optFns ...func(*Options)) (*ModifyTargetGroupOutput, error)
 	// Modifies the specified attributes of the specified target group.
 	ModifyTargetGroupAttributes(ctx context.Context, params *ModifyTargetGroupAttributesInput, optFns ...func(*Options)) (*ModifyTargetGroupAttributesOutput, error)
+	// Update the ca certificate bundle for a given trust store.
+	ModifyTrustStore(ctx context.Context, params *ModifyTrustStoreInput, optFns ...func(*Options)) (*ModifyTrustStoreOutput, error)
 	// Registers the specified targets with the specified target group. If the target
 	// is an EC2 instance, it must be in the running state when you register it. By
 	// default, the load balancer routes requests to registered targets using the
@@ -193,6 +221,8 @@ type ELBV2 interface {
 	// You can remove the tags for one or more Application Load Balancers, Network Load
 	// Balancers, Gateway Load Balancers, target groups, listeners, or rules.
 	RemoveTags(ctx context.Context, params *RemoveTagsInput, optFns ...func(*Options)) (*RemoveTagsOutput, error)
+	// Removes the specified revocation file from the specified trust store.
+	RemoveTrustStoreRevocations(ctx context.Context, params *RemoveTrustStoreRevocationsInput, optFns ...func(*Options)) (*RemoveTrustStoreRevocationsOutput, error)
 	// Sets the type of IP addresses used by the subnets of the specified load
 	// balancer.
 	SetIpAddressType(ctx context.Context, params *SetIpAddressTypeInput, optFns ...func(*Options)) (*SetIpAddressTypeOutput, error)

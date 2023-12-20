@@ -2,6 +2,7 @@
   {
     "Id": null,
     "Arn": "arn-12345678",
+    "AccessConfig": null,
     "CertificateAuthority": null,
     "ClientRequestToken": null,
     "ConnectorConfig": null,
@@ -36,6 +37,7 @@
   {
     "Id": null,
     "Arn": "arn-87654321",
+    "AccessConfig": null,
     "CertificateAuthority": null,
     "ClientRequestToken": null,
     "ConnectorConfig": null,

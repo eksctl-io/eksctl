@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	. "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
 
 // CloudFormation provides an interface to the AWS CloudFormation service.
 type CloudFormation interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() cloudformation.Options
 	// Activate trusted access with Organizations. With trusted access between
 	// StackSets and Organizations activated, the management account has permissions to
 	// create and manage StackSets for your organization.
@@ -201,7 +208,7 @@ type CloudFormation interface {
 	DescribeStackSetOperation(ctx context.Context, params *DescribeStackSetOperationInput, optFns ...func(*Options)) (*DescribeStackSetOperationOutput, error)
 	// Returns the description for the specified stack; if no stack name was
 	// specified, then it returns the description for all the stacks created. If the
-	// stack doesn't exist, an ValidationError is returned.
+	// stack doesn't exist, a ValidationError is returned.
 	DescribeStacks(ctx context.Context, params *DescribeStacksInput, optFns ...func(*Options)) (*DescribeStacksOutput, error)
 	// Returns detailed information about an extension that has been registered. If
 	// you specify a VersionId , DescribeType returns information about that specific

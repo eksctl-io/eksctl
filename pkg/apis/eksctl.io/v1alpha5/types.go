@@ -119,6 +119,9 @@ const (
 	// RegionCACentral1 represents the Canada Central Region
 	RegionCACentral1 = "ca-central-1"
 
+	// RegionCAWest1 represents the Canada West region Calgary.
+	RegionCAWest1 = "ca-west-1"
+
 	// RegionEUWest1 represents the EU West Region Ireland
 	RegionEUWest1 = "eu-west-1"
 
@@ -286,6 +289,9 @@ const (
 	// IAMServiceAccountNameTag defines the tag of the IAM service account name
 	IAMServiceAccountNameTag = "alpha.eksctl.io/iamserviceaccount-name"
 
+	// PodIdentityAssociationNameTag defines the tag of Pod Identity Association name
+	PodIdentityAssociationNameTag = "alpha.eksctl.io/podidentityassociation-name"
+
 	// AddonNameTag defines the tag of the IAM service account name
 	AddonNameTag = "alpha.eksctl.io/addon-name"
 
@@ -324,6 +330,9 @@ const (
 
 	// eksResourceAccountAPEast1 defines the AWS EKS account ID that provides node resources in ap-east-1 region
 	eksResourceAccountAPEast1 = "800184023465"
+
+	// eksResourceAccountCAWest1 defines the AWS EKS account ID that provides node resources in ca-west-1 region
+	eksResourceAccountCAWest1 = "761377655185"
 
 	// eksResourceAccountMECentral1 defines the AWS EKS account ID that provides node resources in me-central-1 region
 	eksResourceAccountMECentral1 = "759879836304"
@@ -422,6 +431,7 @@ const (
 	VPCCNIAddon                 = "vpc-cni"
 	KubeProxyAddon              = "kube-proxy"
 	CoreDNSAddon                = "coredns"
+	PodIdentityAgentAddon       = "eks-pod-identity-agent"
 	AWSEBSCSIDriverAddon        = "aws-ebs-csi-driver"
 	AWSEFSCSIDriverAddon        = "aws-efs-csi-driver"
 )
@@ -491,6 +501,7 @@ func SupportedRegions() []string {
 		RegionUSEast1,
 		RegionUSEast2,
 		RegionCACentral1,
+		RegionCAWest1,
 		RegionEUWest1,
 		RegionEUWest2,
 		RegionEUWest3,
@@ -619,6 +630,8 @@ func EKSResourceAccountID(region string) string {
 	switch region {
 	case RegionAPEast1:
 		return eksResourceAccountAPEast1
+	case RegionCAWest1:
+		return eksResourceAccountCAWest1
 	case RegionMECentral1:
 		return eksResourceAccountMECentral1
 	case RegionMESouth1:
@@ -1447,7 +1460,7 @@ type (
 		// +optional
 		EnableAdminContainer *bool `json:"enableAdminContainer,omitempty"`
 		// Settings contains any [bottlerocket
-		// settings](https://github.com/bottlerocket-os/bottlerocket/#description-of-settings)
+		// settings](https://bottlerocket.dev/en/os/latest/#/api/settings/)
 		// +optional
 		Settings *InlineDocument `json:"settings,omitempty"`
 	}

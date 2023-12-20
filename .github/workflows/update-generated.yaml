@@ -18,12 +18,12 @@ jobs:
         resource: ["coredns", "aws-node"]    
     name: Update ${{ matrix.resource }} and open PR
     runs-on: ubuntu-latest
-    container: public.ecr.aws/eksctl/eksctl-build:516ded83aa5dbd3e3c4e25c5d410e2dba3b5e668
+    container: public.ecr.aws/eksctl/eksctl-build:c1ae010fa4b927d123afc6fdd7df07203aa40dd8
     env:
       GOPRIVATE: ""
     steps:
       - name: Checkout
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 #v4.1.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
           token: ${{ secrets.EKSCTLBOT_TOKEN }}
           fetch-depth: 0
@@ -63,7 +63,7 @@ jobs:
           echo "changes=true" >> $GITHUB_OUTPUT
           ! git diff --exit-code $DEFAULT_BRANCH HEAD
           git push --force-with-lease origin HEAD
-      - uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 #v6.4.1
+      - uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea #v7.0.1
         name: Open PR to ${{env.DEFAULT_BRANCH}}
         if: steps.commit.outputs.changes == 'true'
         with:

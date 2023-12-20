@@ -279,7 +279,7 @@ func createCognitoUserPoolClient(c *cognitoidentityprovider.Client, clusterName 
 	pool, err := c.CreateUserPool(context.Background(), &cognitoidentityprovider.CreateUserPoolInput{
 		Policies: &types.UserPoolPolicyType{
 			PasswordPolicy: &types.PasswordPolicyType{
-				MinimumLength:    10,
+				MinimumLength:    aws.Int32(10),
 				RequireLowercase: false,
 				RequireNumbers:   true,
 				RequireSymbols:   true,

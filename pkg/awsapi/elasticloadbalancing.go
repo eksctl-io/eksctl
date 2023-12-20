@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	. "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 )
 
 // ELB provides an interface to the AWS ELB service.
 type ELB interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() elasticloadbalancing.Options
 	// Adds the specified tags to the specified load balancer. Each load balancer can
 	// have a maximum of 10 tags. Each tag consists of a key and an optional value. If
 	// a tag with the same key is already associated with the load balancer, AddTags

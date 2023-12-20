@@ -222,6 +222,33 @@ func NewIAMRoleResourceSetForServiceAccount(spec *api.ClusterIAMServiceAccount, 
 	}
 }
 
+func NewIAMRoleResourceSetForPodIdentityWithTrustStatements(spec *api.PodIdentityAssociation, trustStatements []api.IAMStatement) *IAMRoleResourceSet {
+	rs := NewIAMRoleResourceSetForPodIdentity(spec)
+	rs.trustStatements = trustStatements
+	return rs
+}
+
+func NewIAMRoleResourceSetForPodIdentity(spec *api.PodIdentityAssociation) *IAMRoleResourceSet {
+	return &IAMRoleResourceSet{
+		template:            cft.NewTemplate(),
+		attachPolicy:        spec.PermissionPolicy,
+		attachPolicyARNs:    spec.PermissionPolicyARNs,
+		serviceAccount:      spec.ServiceAccountName,
+		namespace:           spec.Namespace,
+		wellKnownPolicies:   spec.WellKnownPolicies,
+		roleName:            spec.RoleName,
+		permissionsBoundary: spec.PermissionsBoundaryARN,
+		description: fmt.Sprintf(
+			"IAM role for pod identity association %s",
+			templateDescriptionSuffix,
+		),
+		roleNameCollector: func(v string) error {
+			spec.RoleARN = v
+			return nil
+		},
+	}
+}
+
 // IAMRoleResourceSet holds IAM Role stack build-time information
 type IAMRoleResourceSet struct {
 	template            *cft.Template
@@ -231,6 +258,7 @@ type IAMRoleResourceSet struct {
 	wellKnownPolicies   api.WellKnownPolicies
 	attachPolicyARNs    []string
 	attachPolicy        api.InlineDocument
+	trustStatements     []api.IAMStatement
 	roleNameCollector   func(string) error
 	OutputRole          string
 	serviceAccount      string
@@ -289,16 +317,8 @@ func (rs *IAMRoleResourceSet) WithNamedIAM() bool { return rs.roleName != "" }
 func (rs *IAMRoleResourceSet) AddAllResources() error {
 	rs.template.Description = rs.description
 
-	var assumeRolePolicyDocument cft.MapOfInterfaces
-	if rs.serviceAccount != "" && rs.namespace != "" {
-		logger.Debug("service account location provided: %s/%s, adding sub condition", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
-		assumeRolePolicyDocument = rs.oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions(rs.namespace, rs.serviceAccount)
-	} else {
-		assumeRolePolicyDocument = rs.oidc.MakeAssumeRolePolicyDocument()
-	}
-
 	role := &cft.IAMRole{
-		AssumeRolePolicyDocument: assumeRolePolicyDocument,
+		AssumeRolePolicyDocument: rs.makeAssumeRolePolicyDocument(),
 		PermissionsBoundary:      rs.permissionsBoundary,
 		RoleName:                 rs.roleName,
 	}
@@ -332,6 +352,28 @@ func (rs *IAMRoleResourceSet) AddAllResources() error {
 	}
 
 	return nil
+}
+
+func (rs *IAMRoleResourceSet) makeAssumeRolePolicyDocument() cft.MapOfInterfaces {
+	if len(rs.trustStatements) > 0 {
+		return cft.MakePolicyDocument(toMapOfInterfaces(rs.trustStatements)...)
+	}
+	if rs.oidc == nil {
+		return cft.MakeAssumeRolePolicyDocumentForPodIdentity()
+	}
+	if rs.serviceAccount != "" && rs.namespace != "" {
+		logger.Debug("service account location provided: %s/%s, adding sub condition", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
+		return rs.oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions(rs.namespace, rs.serviceAccount)
+	}
+	return rs.oidc.MakeAssumeRolePolicyDocument()
+}
+
+func toMapOfInterfaces(old []api.IAMStatement) []cft.MapOfInterfaces {
+	new := []cft.MapOfInterfaces{}
+	for _, s := range old {
+		new = append(new, s.ToMapOfInterfaces())
+	}
+	return new
 }
 
 // RenderJSON will render iamserviceaccount stack as JSON

@@ -179,6 +179,7 @@ nav:
       - usage/vpc-configuration.md
       - usage/vpc-subnet-settings.md
       - usage/vpc-cluster-access.md
+      - usage/cluster-subnets-security-groups.md
       - usage/vpc-ip-family.md
     - IAM:
       - usage/minimum-iam-policies.md
@@ -186,6 +187,7 @@ nav:
       - usage/iam-policies.md
       - usage/iam-identity-mappings.md
       - usage/iamserviceaccounts.md
+      - usage/pod-identity-associations.md
     - usage/dry-run.md
     - usage/schema.md
     - usage/eksctl-anywhere.md

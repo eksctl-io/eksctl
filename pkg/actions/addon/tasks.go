@@ -18,7 +18,7 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 	var preAddons []*api.Addon
 	var postAddons []*api.Addon
 	for _, addon := range cfg.Addons {
-		if strings.ToLower(addon.Name) == "vpc-cni" {
+		if strings.EqualFold(addon.Name, api.VPCCNIAddon) {
 			preAddons = append(preAddons, addon)
 		} else {
 			postAddons = append(postAddons, addon)
@@ -119,8 +119,6 @@ type deleteAddonIAMTask struct {
 func (t *deleteAddonIAMTask) Describe() string { return t.info }
 
 func (t *deleteAddonIAMTask) Do(errorCh chan error) error {
-	defer close(errorCh)
-
 	errMsg := fmt.Sprintf("deleting addon IAM %q", *t.stack.StackName)
 	if t.wait {
 		if err := t.stackManager.DeleteStackBySpecSync(t.ctx, t.stack, errorCh); err != nil {
@@ -128,6 +126,7 @@ func (t *deleteAddonIAMTask) Do(errorCh chan error) error {
 		}
 		return nil
 	}
+	defer close(errorCh)
 	if _, err := t.stackManager.DeleteStackBySpec(t.ctx, t.stack); err != nil {
 		return fmt.Errorf("%s: %w", errMsg, err)
 	}

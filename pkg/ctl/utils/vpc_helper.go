@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
 
-	"k8s.io/apimachinery/pkg/util/sets"
+	"golang.org/x/exp/slices"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -48,7 +48,54 @@ func (v *VPCHelper) UpdateClusterVPCConfig(ctx context.Context, vpc *api.Cluster
 			return err
 		}
 	}
+	if vpc.ControlPlaneSubnetIDs != nil || vpc.ControlPlaneSecurityGroupIDs != nil {
+		if err := v.updateSubnetsSecurityGroups(ctx, vpc); err != nil {
+			return err
+		}
+	}
 	cmdutils.LogPlanModeWarning(v.PlanMode)
+	return nil
+}
+
+func (v *VPCHelper) updateSubnetsSecurityGroups(ctx context.Context, vpc *api.ClusterVPC) error {
+	current := v.Cluster.ResourcesVpcConfig
+	hasUpdate := false
+	vpcUpdate := &ekstypes.VpcConfigRequest{
+		SubnetIds:        current.SubnetIds,
+		SecurityGroupIds: current.SecurityGroupIds,
+	}
+
+	compareValues := func(currentValues, newValues []string, resourceName string, updateFn func()) {
+		if !slices.Equal(currentValues, newValues) {
+			updateFn()
+			hasUpdate = true
+			cmdutils.LogIntendedAction(v.PlanMode, "update %s for cluster %q in %q to: %v", resourceName,
+				v.ClusterMeta.Name, v.ClusterMeta.Region, newValues)
+		} else {
+			logger.Success("%s for cluster %q in %q are already up-to-date", resourceName, v.ClusterMeta.Name, v.ClusterMeta.Region)
+		}
+	}
+	if vpc.ControlPlaneSubnetIDs != nil {
+		compareValues(current.SubnetIds, vpc.ControlPlaneSubnetIDs, "control plane subnet IDs", func() {
+			vpcUpdate.SubnetIds = vpc.ControlPlaneSubnetIDs
+		})
+	}
+
+	if vpc.ControlPlaneSecurityGroupIDs != nil {
+		compareValues(current.SecurityGroupIds, vpc.ControlPlaneSecurityGroupIDs, "control plane security group IDs", func() {
+			vpcUpdate.SecurityGroupIds = vpc.ControlPlaneSecurityGroupIDs
+		})
+	}
+
+	if v.PlanMode || !hasUpdate {
+		return nil
+	}
+	if err := v.updateVPCConfig(ctx, vpcUpdate); err != nil {
+		return err
+	}
+	cmdutils.LogCompletedAction(false, "control plane subnets and security groups for cluster %q in %q have been updated to: "+
+		"controlPlaneSubnetIDs=%v, controlPlaneSecurityGroupIDs=%v", v.ClusterMeta.Name, v.ClusterMeta.Region, vpcUpdate.SubnetIds, vpcUpdate.SecurityGroupIds)
+
 	return nil
 }
 
@@ -129,5 +176,5 @@ func cidrsEqual(currentValues, newValues []string) bool {
 	if len(newValues) == 0 && len(currentValues) == 1 && currentValues[0] == "0.0.0.0/0" {
 		return true
 	}
-	return sets.NewString(currentValues...).Equal(sets.NewString(newValues...))
+	return slices.Equal(currentValues, newValues)
 }
