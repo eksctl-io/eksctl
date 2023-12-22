@@ -36,7 +36,9 @@ import (
 	"github.com/weaveworks/eksctl/integration/tests"
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/iam"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -162,6 +164,14 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 })
 
 var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
+
+	makeClientset := func() *kubernetes.Clientset {
+		config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		clientset, err := kubernetes.NewForConfig(config)
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		return clientset
+	}
 
 	Context("validating cluster setup", func() {
 		It("should have created an EKS cluster and 6 CloudFormation stacks", func() {
@@ -846,11 +856,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/taints-max-pods.yaml"))).To(RunSuccessfully())
 
 			By("asserting that both formats for taints are supported")
-			config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-			clientset, err := kubernetes.NewForConfig(config)
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
+			clientset := makeClientset()
 			nodeListN1 := tests.ListNodes(clientset, taintsNg1)
 			nodeListN2 := tests.ListNodes(clientset, taintsNg2)
 
@@ -1055,6 +1061,112 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				ContainElement(ContainSubstring("Status: ACTIVE")),
 			))
 		})
+	})
+
+	Context("access entries", Serial, func() {
+		hasAuthIdentity := func(nodeRoleARN string) bool {
+			auth, err := authconfigmap.NewFromClientSet(makeClientset())
+			Expect(err).NotTo(HaveOccurred())
+			identities, err := auth.GetIdentities()
+			Expect(err).NotTo(HaveOccurred())
+			for _, id := range identities {
+				if roleID, ok := id.(iam.RoleIdentity); ok && roleID.RoleARN == nodeRoleARN {
+					return true
+				}
+			}
+			return false
+		}
+
+		type authMode int
+		const (
+			authModeAccessEntry authMode = iota + 1
+			authModeAWSAuthConfigMap
+		)
+
+		type ngAuthTest struct {
+			ngName       string
+			createNgArgs []string
+
+			expectedAuthMode       authMode
+			expectedCreateNgOutput string
+		}
+
+		DescribeTable("authorising self-managed nodegroups", Serial, func(nt ngAuthTest) {
+			cmd := params.EksctlCreateNodegroupCmd.
+				WithArgs(
+					"--cluster", params.ClusterName,
+					"--name", nt.ngName,
+					"--nodes", "1",
+					"--managed=false",
+				).WithArgs(nt.createNgArgs...)
+			session := cmd.Run()
+			Expect(session.ExitCode()).To(BeZero())
+			if nt.expectedCreateNgOutput != "" {
+				Expect(session.Out.Contents()).To(ContainSubstring(nt.expectedCreateNgOutput))
+			}
+
+			DeferCleanup(func() {
+				cmd := params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--cluster", params.ClusterName,
+					"--name", nt.ngName,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+
+			cmd = params.EksctlGetCmd.WithArgs(
+				"nodegroup",
+				"--cluster", params.ClusterName,
+				"--name", nt.ngName,
+				"-o", "json",
+			)
+			session = cmd.Run()
+			Expect(session.ExitCode()).To(BeZero())
+			var ngSummaries []nodegroup.Summary
+			Expect(json.Unmarshal(session.Out.Contents(), &ngSummaries)).To(Succeed())
+			Expect(ngSummaries).To(HaveLen(1))
+			ngSummary := ngSummaries[0]
+			Expect(ngSummary.NodeInstanceRoleARN).NotTo(BeEmpty())
+
+			By("checking access entries")
+			cmd = params.EksctlGetCmd.
+				WithArgs(
+					"accessentry",
+					"--cluster", params.ClusterName,
+				)
+			session = cmd.Run()
+			Expect(session.ExitCode()).To(BeZero())
+			if nt.expectedAuthMode == authModeAccessEntry {
+				Expect(session.Out.Contents()).To(ContainSubstring(ngSummary.NodeInstanceRoleARN), "failed to find access entry for nodegroup")
+			} else {
+				Expect(session.Out.Contents()).NotTo(ContainSubstring(ngSummary.NodeInstanceRoleARN), "found access entry for nodegroup")
+			}
+
+			By("checking aws-auth ConfigMap")
+			Expect(hasAuthIdentity(ngSummary.NodeInstanceRoleARN)).To(Equal(nt.expectedAuthMode == authModeAWSAuthConfigMap))
+		},
+			Entry("with access entry", ngAuthTest{
+				ngName:           "ng-access-entry",
+				expectedAuthMode: authModeAccessEntry,
+			}),
+
+			Entry("with --update-auth-configmap", ngAuthTest{
+				ngName:       "ng-update-auth",
+				createNgArgs: []string{"--update-auth-configmap"},
+
+				expectedCreateNgOutput: "--update-auth-configmap is deprecated and will be removed soon; the recommended way " +
+					"to authorize nodes is by creating EKS access entries",
+				expectedAuthMode: authModeAWSAuthConfigMap,
+			}),
+
+			Entry("with --update-auth-configmap=false", ngAuthTest{
+				ngName:       "ng-update-auth-false",
+				createNgArgs: []string{"--update-auth-configmap=false"},
+
+				expectedCreateNgOutput: "--update-auth-configmap is deprecated and will be removed soon; eksctl now uses " +
+					"EKS Access Entries to authorize nodes if it is enabled on the cluster",
+			}),
+		)
 	})
 
 	Context("draining nodegroup(s)", func() {

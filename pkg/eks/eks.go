@@ -217,3 +217,18 @@ func (c *ClusterProvider) GetCluster(ctx context.Context, clusterName string) (*
 	}
 	return output.Cluster, nil
 }
+
+// GetClusterState returns the EKS cluster state.
+func (c *ClusterProvider) GetClusterState() *ekstypes.Cluster {
+	return c.Status.ClusterInfo.Cluster
+}
+
+// IsAccessEntryEnabled reports whether the cluster has access entries enabled.
+func (c *ClusterProvider) IsAccessEntryEnabled() bool {
+	return IsAccessEntryEnabled(c.Status.ClusterInfo.Cluster.AccessConfig)
+}
+
+// IsAccessEntryEnabled reports whether the specified accessConfig has access entries enabled.
+func IsAccessEntryEnabled(accessConfig *ekstypes.AccessConfigResponse) bool {
+	return accessConfig != nil && accessConfig.AuthenticationMode != ekstypes.AuthenticationModeConfigMap
+}

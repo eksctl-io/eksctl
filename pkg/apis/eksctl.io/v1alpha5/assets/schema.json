@@ -3,6 +3,11 @@
   "type": "object",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
+    "ARN": {
+      "$ref": "#/definitions/github.com|aws|aws-sdk-go-v2|aws|arn.ARN",
+      "description": "provides custom unmarshalling for an AWS ARN.",
+      "x-intellij-html-description": "provides custom unmarshalling for an AWS ARN."
+    },
     "AZSubnetMapping": {
       "additionalProperties": {
         "$ref": "#/definitions/AZSubnetSpec"
@@ -32,6 +37,104 @@
         "cidr"
       ],
       "additionalProperties": false
+    },
+    "AccessConfig": {
+      "properties": {
+        "accessEntries": {
+          "items": {
+            "$ref": "#/definitions/AccessEntry"
+          },
+          "type": "array",
+          "description": "specifies a list of access entries for the cluster.",
+          "x-intellij-html-description": "specifies a list of access entries for the cluster."
+        },
+        "authenticationMode": {
+          "$ref": "#/definitions/github.com|aws|aws-sdk-go-v2|service|eks|types.AuthenticationMode",
+          "description": "specifies the authentication mode for a cluster.",
+          "x-intellij-html-description": "specifies the authentication mode for a cluster."
+        },
+        "bootstrapClusterCreatorAdminPermissions": {
+          "type": "boolean",
+          "description": "specifies whether the cluster creator IAM principal was set as a cluster admin access entry during cluster creation time.",
+          "x-intellij-html-description": "specifies whether the cluster creator IAM principal was set as a cluster admin access entry during cluster creation time."
+        }
+      },
+      "preferredOrder": [
+        "authenticationMode",
+        "bootstrapClusterCreatorAdminPermissions",
+        "accessEntries"
+      ],
+      "additionalProperties": false,
+      "description": "specifies the access config for a cluster.",
+      "x-intellij-html-description": "specifies the access config for a cluster."
+    },
+    "AccessEntry": {
+      "properties": {
+        "accessPolicies": {
+          "items": {
+            "$ref": "#/definitions/AccessPolicy"
+          },
+          "type": "array"
+        },
+        "kubernetesGroups": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "kubernetesUsername": {
+          "type": "string"
+        },
+        "principalARN": {
+          "$ref": "#/definitions/ARN"
+        }
+      },
+      "preferredOrder": [
+        "principalARN",
+        "kubernetesGroups",
+        "kubernetesUsername",
+        "accessPolicies"
+      ],
+      "additionalProperties": false,
+      "description": "represents an access entry for managing access to a cluster.",
+      "x-intellij-html-description": "represents an access entry for managing access to a cluster."
+    },
+    "AccessPolicy": {
+      "properties": {
+        "accessScope": {
+          "$ref": "#/definitions/AccessScope"
+        },
+        "policyARN": {
+          "$ref": "#/definitions/ARN"
+        }
+      },
+      "preferredOrder": [
+        "policyARN",
+        "accessScope"
+      ],
+      "additionalProperties": false,
+      "description": "An AccessPolicy represents a policy to associate with an access entry.",
+      "x-intellij-html-description": "An AccessPolicy represents a policy to associate with an access entry."
+    },
+    "AccessScope": {
+      "properties": {
+        "namespaces": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "type",
+        "namespaces"
+      ],
+      "additionalProperties": false,
+      "description": "defines the scope of an access policy.",
+      "x-intellij-html-description": "defines the scope of an access policy."
     },
     "Addon": {
       "required": [
@@ -216,6 +319,11 @@
         "apiVersion"
       ],
       "properties": {
+        "accessConfig": {
+          "$ref": "#/definitions/AccessConfig",
+          "description": "specifies the access config for a cluster.",
+          "x-intellij-html-description": "specifies the access config for a cluster."
+        },
         "addons": {
           "items": {
             "$ref": "#/definitions/Addon"
@@ -331,6 +439,7 @@
         "iam",
         "iamIdentityMappings",
         "identityProviders",
+        "accessConfig",
         "vpc",
         "addons",
         "privateCluster",
@@ -1416,8 +1525,8 @@
         "releaseVersion"
       ],
       "additionalProperties": false,
-      "description": "represents an EKS-managed nodegroup TODO Validate for unmapped fields and throw an error",
-      "x-intellij-html-description": "represents an EKS-managed nodegroup TODO Validate for unmapped fields and throw an error"
+      "description": "represents an EKS-managed nodegroup",
+      "x-intellij-html-description": "represents an EKS-managed nodegroup"
     },
     "MetricsCollection": {
       "required": [
@@ -2409,6 +2518,13 @@
       "additionalProperties": false,
       "description": "for attaching common IAM policies",
       "x-intellij-html-description": "for attaching common IAM policies"
+    },
+    "github.com|aws|aws-sdk-go-v2|aws|arn.ARN": {
+      "description": "captures the individual fields of an Amazon Resource Name. See http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html for more information.",
+      "x-intellij-html-description": "captures the individual fields of an Amazon Resource Name. See http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html for more information."
+    },
+    "github.com|aws|aws-sdk-go-v2|service|eks|types.AuthenticationMode": {
+      "type": "string"
     },
     "github.com|aws|aws-sdk-go-v2|service|eks|types.ResolveConflicts": {
       "type": "string"

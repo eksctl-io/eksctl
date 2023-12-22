@@ -1,12 +1,9 @@
 package create
 
 import (
-	"bytes"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
@@ -111,34 +108,10 @@ var _ = Describe("create", func() {
 	})
 })
 
-func newMockCreateFargateProfileCmd(args ...string) *mockCreateFargateProfileCmd {
-	mockCmd := &mockCreateFargateProfileCmd{}
-	grouping := cmdutils.NewGrouping()
-	parentCmd := cmdutils.NewVerbCmd("create", "", "")
-	cmdutils.AddResourceCmd(grouping, parentCmd, func(cmd *cmdutils.Cmd) {
+func newMockCreateFargateProfileCmd(args ...string) *mockCmd {
+	return newMockCmdWithRunFunc("create", func(cmd *cmdutils.Cmd) {
 		createFargateProfileWithRunFunc(cmd, func(cmd *cmdutils.Cmd) error {
-			mockCmd.cmd = cmd
 			return nil // no-op, to only test input aggregation & validation.
 		})
-	})
-	parentCmd.SetArgs(args)
-	mockCmd.parentCmd = parentCmd
-	return mockCmd
-}
-
-type mockCreateFargateProfileCmd struct {
-	parentCmd *cobra.Command
-	cmd       *cmdutils.Cmd
-}
-
-func (c mockCreateFargateProfileCmd) execute() (string, error) {
-	outBuf := new(bytes.Buffer)
-	errBuf := new(bytes.Buffer)
-	c.parentCmd.SetOut(outBuf)
-	c.parentCmd.SetErr(errBuf)
-	err := c.parentCmd.Execute()
-	if err != nil {
-		err = errors.New(errBuf.String())
-	}
-	return outBuf.String(), err
+	}, args...)
 }

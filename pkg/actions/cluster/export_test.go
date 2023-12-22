@@ -1,8 +1,6 @@
 package cluster
 
 import (
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
@@ -18,12 +16,12 @@ func (c *OwnedCluster) SetNewClientSet(newClientSet func() (kubernetes.Interface
 	c.newClientSet = newClientSet
 }
 
-func (c *UnownedCluster) SetNewNodeGroupManager(newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer) {
-	c.newNodeGroupManager = newNodeGroupManager
+func (c *UnownedCluster) SetNewNodeGroupDrainer(newNodeGroupDrainer func(clientSet kubernetes.Interface) NodeGroupDrainer) {
+	c.newNodeGroupDrainer = newNodeGroupDrainer
 }
 
-func (c *OwnedCluster) SetNewNodeGroupManager(newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer) {
-	c.newNodeGroupManager = newNodeGroupManager
+func (c *OwnedCluster) SetNewNodeGroupDrainer(newNodeGroupDrainer func(kubernetes.Interface) NodeGroupDrainer) {
+	c.newNodeGroupDrainer = newNodeGroupDrainer
 }
 
 func SetProviderConstructor(f ProviderConstructor) {

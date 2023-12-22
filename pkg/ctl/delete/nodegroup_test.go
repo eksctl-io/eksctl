@@ -2,11 +2,11 @@ package delete
 
 import (
 	"fmt"
-	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 
 	. "github.com/onsi/gomega"
+
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -22,7 +22,7 @@ var _ = Describe("delete", func() {
 			cmd := newMockEmptyCmd(args...)
 			count := 0
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *v1alpha5.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod, podEvictionWaitPeriod time.Duration, disableEviction bool, parallel int) error {
+				deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *v1alpha5.NodeGroup, options deleteNodeGroupOptions) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
 					Expect(ng.Name).To(Equal("ng"))
 					count++

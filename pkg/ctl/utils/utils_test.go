@@ -1,4 +1,4 @@
-package utils
+package utils_test
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/ctl/utils"
 )
 
 func TestValidateLoggingFlags(t *testing.T) {
@@ -91,7 +92,7 @@ func TestValidateLoggingFlags(t *testing.T) {
 
 	for i, tt := range flagTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			err := validateLoggingFlags(tt.toEnable, tt.toDisable)
+			err := utils.ValidateLoggingFlags(tt.toEnable, tt.toDisable)
 			if err != nil {
 				if tt.errPattern == "" {
 					t.Errorf("unexpected error: %v", err)
@@ -134,7 +135,7 @@ var _ = Describe("utils", func() {
 
 func newMockCmd(args ...string) *mockVerbCmd {
 	flagGrouping := cmdutils.NewGrouping()
-	cmd := Command(flagGrouping)
+	cmd := utils.Command(flagGrouping)
 	cmd.SetArgs(args)
 	return &mockVerbCmd{
 		parentCmd: cmd,

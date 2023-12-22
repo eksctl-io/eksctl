@@ -80,26 +80,26 @@ var _ = Describe("StackCollection Tasks", func() {
 			// The supportsManagedNodes argument has no effect on the Describe call, so the values are alternated
 			// in these tests
 			{
-				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("bar", "foo"), false, false, fakeVPCImporter)
+				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("bar", "foo"), false, false, false, fakeVPCImporter)
 				Expect(tasks.Describe()).To(Equal(`
 2 parallel tasks: { create nodegroup "bar", create nodegroup "foo" 
 }
 `))
 			}
 			{
-				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("bar"), false, false, fakeVPCImporter)
+				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("bar"), false, false, false, fakeVPCImporter)
 				Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "bar" }`))
 			}
 			{
-				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("foo"), false, false, fakeVPCImporter)
+				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("foo"), false, false, false, fakeVPCImporter)
 				Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "foo" }`))
 			}
 			{
-				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), nil, false, false, fakeVPCImporter)
+				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), nil, false, false, false, fakeVPCImporter)
 				Expect(tasks.Describe()).To(Equal(`no tasks`))
 			}
 			{
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), nil)
+				tasks := stackManager.NewTasksToCreateCluster(context.Background(), makeNodeGroups("bar", "foo"), nil, nil, nil)
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
     2 parallel sub-tasks: { 
@@ -110,18 +110,18 @@ var _ = Describe("StackCollection Tasks", func() {
 `))
 			}
 			{
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar"), nil)
+				tasks := stackManager.NewTasksToCreateCluster(context.Background(), makeNodeGroups("bar"), nil, nil, nil)
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", create nodegroup "bar" 
 }
 `))
 			}
 			{
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), nil, nil)
+				tasks := stackManager.NewTasksToCreateCluster(context.Background(), nil, nil, nil, nil)
 				Expect(tasks.Describe()).To(Equal(`1 task: { create cluster control plane "test-cluster" }`))
 			}
 			{
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), makeManagedNodeGroups("m1", "m2"))
+				tasks := stackManager.NewTasksToCreateCluster(context.Background(), makeNodeGroups("bar", "foo"), makeManagedNodeGroups("m1", "m2"), nil, nil)
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
     2 parallel sub-tasks: { 
@@ -138,7 +138,7 @@ var _ = Describe("StackCollection Tasks", func() {
 `))
 			}
 			{
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), makeManagedNodeGroupsWithPropagatedTags("m1", "m2"))
+				tasks := stackManager.NewTasksToCreateCluster(context.Background(), makeNodeGroups("bar", "foo"), makeManagedNodeGroupsWithPropagatedTags("m1", "m2"), nil, nil)
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
     2 parallel sub-tasks: { 
@@ -161,7 +161,7 @@ var _ = Describe("StackCollection Tasks", func() {
 `))
 			}
 			{
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("foo"), makeManagedNodeGroups("m1"))
+				tasks := stackManager.NewTasksToCreateCluster(context.Background(), makeNodeGroups("foo"), makeManagedNodeGroups("m1"), nil, nil)
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
     2 parallel sub-tasks: { 
@@ -172,7 +172,7 @@ var _ = Describe("StackCollection Tasks", func() {
 `))
 			}
 			{
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar"), nil, &task{id: 1})
+				tasks := stackManager.NewTasksToCreateCluster(context.Background(), makeNodeGroups("bar"), nil, nil, nil, &task{id: 1})
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
     2 sequential sub-tasks: { 

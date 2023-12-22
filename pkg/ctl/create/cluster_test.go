@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	k8sclient "k8s.io/client-go/kubernetes"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	cftypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -30,13 +32,14 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 
+	"github.com/weaveworks/eksctl/pkg/actions/accessentry"
+	accessentryfakes "github.com/weaveworks/eksctl/pkg/actions/accessentry/fakes"
 	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	karpenterfakes "github.com/weaveworks/eksctl/pkg/actions/karpenter/fakes"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -44,6 +47,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 const outpostARN = "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
@@ -270,6 +274,7 @@ var _ = Describe("create cluster", func() {
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = clusterName
 		clusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
+		clusterConfig.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
 
 		if ce.updateClusterConfig != nil {
 			ce.updateClusterConfig(clusterConfig)
@@ -291,7 +296,11 @@ var _ = Describe("create cluster", func() {
 			ce.updateClusterParams(params)
 		}
 		filter.SetExcludeAll(params.WithoutNodeGroup)
-		err := doCreateCluster(cmd, filter, params, ctl)
+		var accessEntryCreator accessentryfakes.FakeCreatorInterface
+		accessEntryCreator.CreateTasksReturns(nil)
+		err := doCreateCluster(cmd, filter, params, ctl, func(_ string, _ accessentry.StackCreator) accessentry.CreatorInterface {
+			return &accessEntryCreator
+		})
 		if ce.expectedErr != "" {
 			Expect(err).To(MatchError(ContainSubstring(ce.expectedErr)))
 			return
@@ -340,6 +349,7 @@ var _ = Describe("create cluster", func() {
 		Entry("[Cluster with NodeGroups] fails to create K8s clientset", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
 				c.NodeGroups = append(c.NodeGroups, getDefaultNodeGroup())
+				c.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeConfigMap
 			},
 			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup),
 			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
@@ -348,12 +358,50 @@ var _ = Describe("create cluster", func() {
 			expectedErr: "failed to create clientset",
 		}),
 
-		Entry("[Cluster with NodeGroups] fails to add a nodegroup IAM role in the auth ConfigMap", createClusterEntry{
+		Entry("[Cluster with nodegroups] fails when bootstrapClusterCreatorAdminPermissions is false and authenticationMode is CONFIG_MAP", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
 				c.NodeGroups = append(c.NodeGroups, getDefaultNodeGroup())
+				c.AccessConfig = &api.AccessConfig{
+					AuthenticationMode:                      ekstypes.AuthenticationModeConfigMap,
+					BootstrapClusterCreatorAdminPermissions: api.Disabled(),
+				}
 			},
-			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateComplete, wrongARNOutputForNodeGroup),
-			expectedErr: "arn is neither user nor role",
+			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup),
+			expectedErr: "cannot create self-managed nodegroups when authenticationMode is CONFIG_MAP and bootstrapClusterCreatorAdminPermissions is false",
+		}),
+
+		Entry("[Cluster with nodegroups] fails when bootstrapClusterCreatorAdminPermissions is false and no access entries are configured", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.NodeGroups = append(c.NodeGroups, getDefaultNodeGroup())
+				c.AccessConfig = &api.AccessConfig{
+					AuthenticationMode:                      ekstypes.AuthenticationModeApiAndConfigMap,
+					BootstrapClusterCreatorAdminPermissions: api.Disabled(),
+				}
+			},
+			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup),
+			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
+				fk.NewStdClientSetReturns(nil, errors.New("failed to create clientset"))
+			},
+			expectedErr: "cannot create self-managed nodegroups when bootstrapClusterCreatorAdminPermissions is false and no access entries are configured",
+		}),
+
+		Entry("[Cluster with nodegroups] skips error if it fails to create Clientset and cluster uses access entries", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.NodeGroups = append(c.NodeGroups, getDefaultNodeGroup())
+				c.AccessConfig = &api.AccessConfig{
+					AuthenticationMode:                      ekstypes.AuthenticationModeApiAndConfigMap,
+					BootstrapClusterCreatorAdminPermissions: api.Disabled(),
+					AccessEntries: []api.AccessEntry{
+						{
+							PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
+						},
+					},
+				}
+			},
+			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup),
+			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
+				fk.NewStdClientSetReturns(nil, errors.New("failed to create clientset"))
+			},
 		}),
 
 		Entry("[Cluster with NodeGroups] times out waiting for nodes to join the cluster", createClusterEntry{
@@ -367,6 +415,25 @@ var _ = Describe("create cluster", func() {
 				fk.NewStdClientSetReturns(clientset, nil)
 			},
 			expectedErr: "timed out waiting for at least 1 nodes to join the cluster and become ready",
+		}),
+
+		Entry("[Cluster with nodegroups] does not wait for nodes to join the cluster if cluster uses access entries and Clientset creation fails", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.NodeGroups = append(c.NodeGroups, getDefaultNodeGroup())
+				c.AccessConfig = &api.AccessConfig{
+					AuthenticationMode:                      ekstypes.AuthenticationModeApiAndConfigMap,
+					BootstrapClusterCreatorAdminPermissions: api.Disabled(),
+					AccessEntries: []api.AccessEntry{
+						{
+							PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
+						},
+					},
+				}
+			},
+			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup),
+			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
+				fk.NewStdClientSetReturns(nil, errors.New("failed to create clientset"))
+			},
 		}),
 
 		Entry("[Cluster with NodeGroups] all resources are created successfully", createClusterEntry{
@@ -434,6 +501,37 @@ var _ = Describe("create cluster", func() {
 				}
 			},
 			expectedErr: "failed to install Karpenter",
+		}),
+
+		Entry("[Cluster with Karpenter] fails to install Karpenter if Clientset creation fails", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				c.Karpenter = &api.Karpenter{
+					Version: "v0.18.0",
+				}
+				c.AccessConfig = &api.AccessConfig{
+					AuthenticationMode:                      ekstypes.AuthenticationModeApiAndConfigMap,
+					BootstrapClusterCreatorAdminPermissions: api.Disabled(),
+					AccessEntries: []api.AccessEntry{
+						{
+							PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
+						},
+					},
+				}
+			},
+			configureKarpenterInstaller: func(ki *karpenterfakes.FakeInstallerTaskCreator) {
+				ki.CreateStub = func(ctx context.Context) error {
+					return nil
+				}
+				createKarpenterInstaller = func(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface, restClientGetter *kubernetes.SimpleRESTClientGetter) (karpenteractions.InstallerTaskCreator, error) {
+					return ki, nil
+				}
+			},
+			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
+				fk.NewStdClientSetStub = func(info kubeconfig.ClusterInfo) (k8sclient.Interface, error) {
+					return nil, errors.New("error installing Karpenter: failed to create clientset")
+				}
+			},
+			expectedErr: "error installing Karpenter: failed to create clientset",
 		}),
 
 		Entry("[Fully Private Cluster] updates cluster config successfully", createClusterEntry{
@@ -648,28 +746,9 @@ var (
 			OutputKey:   aws.String(outputs.NodeGroupFeatureSharedSecurityGroup),
 			OutputValue: aws.String("ngssg"),
 		},
-	}
-
-	wrongARNOutputForNodeGroup = []cftypes.Output{
 		{
-			OutputKey:   aws.String(outputs.NodeGroupInstanceRoleARN),
-			OutputValue: aws.String("arn:aws:iam::083751696308:account/eksctl-my-cluster-cluster-nodegroup-my-nodegroup-NodeInstanceRole-1IYQ3JS8OKPX1"),
-		},
-		{
-			OutputKey:   aws.String(outputs.NodeGroupInstanceProfileARN),
-			OutputValue: aws.String("arn:aws:iam::083751696308:account/eksctl-my-cluster-cluster-nodegroup-my-nodegroup-NodeInstanceProfile-1IYQ3JS8OKPX1"),
-		},
-		{
-			OutputKey:   aws.String(outputs.NodeGroupFeaturePrivateNetworking),
-			OutputValue: aws.String("ngfpn"),
-		},
-		{
-			OutputKey:   aws.String(outputs.NodeGroupFeatureLocalSecurityGroup),
-			OutputValue: aws.String("nglsg"),
-		},
-		{
-			OutputKey:   aws.String(outputs.NodeGroupFeatureSharedSecurityGroup),
-			OutputValue: aws.String("ngssg"),
+			OutputKey:   aws.String(outputs.NodeGroupUsesAccessEntry),
+			OutputValue: aws.String("true"),
 		},
 	}
 
@@ -813,7 +892,7 @@ var (
 	}
 )
 
-func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output, fullyPrivateCluster bool, controlPlaneOnOutposts bool) {
+func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output, fullyPrivateCluster, controlPlaneOnOutposts bool) {
 	p.MockEC2().On("DescribeAvailabilityZones", mock.Anything, &ec2.DescribeAvailabilityZonesInput{
 		Filters: []ec2types.Filter{{
 			Name:   aws.String("region-name"),

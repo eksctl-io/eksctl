@@ -5,11 +5,18 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	. "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
 
 // CloudFormation provides an interface to the AWS CloudFormation service.
 type CloudFormation interface {
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() cloudformation.Options
 	// Activate trusted access with Organizations. With trusted access between
 	// StackSets and Organizations activated, the management account has permissions to
 	// create and manage StackSets for your organization.

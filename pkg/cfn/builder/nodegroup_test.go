@@ -55,12 +55,13 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 
 	JustBeforeEach(func() {
 		ngrs = builder.NewNodeGroupResourceSet(p.MockEC2(), p.MockIAM(), builder.NodeGroupOptions{
-			ClusterConfig:     cfg,
-			NodeGroup:         ng,
-			Bootstrapper:      fakeBootstrapper,
-			ForceAddCNIPolicy: forceAddCNIPolicy,
-			VPCImporter:       fakeVPCImporter,
-			SkipEgressRules:   skipEgressRules,
+			ClusterConfig:              cfg,
+			NodeGroup:                  ng,
+			Bootstrapper:               fakeBootstrapper,
+			ForceAddCNIPolicy:          forceAddCNIPolicy,
+			VPCImporter:                fakeVPCImporter,
+			SkipEgressRules:            skipEgressRules,
+			DisableAccessEntryCreation: false,
 		})
 	})
 
@@ -204,7 +205,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			})
 
 			It("adds the InstanceProfileARN output", func() {
-				Expect(ngTemplate.Outputs).To(HaveLen(4))
+				Expect(ngTemplate.Outputs).To(HaveLen(5))
 				Expect(ngTemplate.Outputs).To(HaveKey(outputs.NodeGroupInstanceProfileARN))
 			})
 
@@ -214,7 +215,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				})
 
 				It("adds the InstanceRoleARN output", func() {
-					Expect(ngTemplate.Outputs).To(HaveLen(5))
+					Expect(ngTemplate.Outputs).To(HaveLen(6))
 					Expect(ngTemplate.Outputs).To(HaveKey(outputs.NodeGroupInstanceRoleARN))
 					Expect(ngTemplate.Outputs).To(HaveKey(outputs.NodeGroupInstanceProfileARN))
 				})
@@ -233,7 +234,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			})
 
 			It("adds the InstanceRoleARN and InstanceProfileARN outputs", func() {
-				Expect(ngTemplate.Outputs).To(HaveLen(5))
+				Expect(ngTemplate.Outputs).To(HaveLen(6))
 				Expect(ngTemplate.Outputs).To(HaveKey(outputs.NodeGroupInstanceRoleARN))
 				Expect(ngTemplate.Outputs).To(HaveKey(outputs.NodeGroupInstanceProfileARN))
 			})

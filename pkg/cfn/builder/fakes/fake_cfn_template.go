@@ -91,6 +91,10 @@ type Properties struct {
 		}
 		Resources []string
 	}
+	AccessConfig struct {
+		AuthenticationMode                      string
+		BootstrapClusterCreatorAdminPermissions bool
+	}
 	LaunchTemplate struct {
 		LaunchTemplateName map[string]interface{}
 		Version            map[string]interface{}

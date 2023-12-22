@@ -16,7 +16,7 @@ type IAMServiceAccountFilter struct {
 	*Filter
 }
 
-// A stackLister lists nodegroup stacks
+// A serviceAccountLister lists stacks for IAM service accounts.
 type serviceAccountLister interface {
 	ListIAMServiceAccountStacks(context.Context) ([]string, error)
 }

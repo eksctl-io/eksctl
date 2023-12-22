@@ -6,7 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"k8s.io/client-go/kubernetes"
+
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
@@ -80,11 +83,9 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 
 	stackManager := t.clusterProvider.NewStackManager(t.cfg)
 
-	clientSet, err := t.clusterProvider.NewStdClientSet(t.cfg)
-	if err != nil {
-		return err
-	}
-	addonManager, err := New(t.cfg, t.clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, clientSet)
+	addonManager, err := New(t.cfg, t.clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, func() (kubernetes.Interface, error) {
+		return t.clusterProvider.NewStdClientSet(t.cfg)
+	})
 	if err != nil {
 		return err
 	}
