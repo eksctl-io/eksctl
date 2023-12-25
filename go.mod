@@ -10,8 +10,8 @@ require (
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8c1e
 	github.com/aws/aws-sdk-go v1.49.5
 	github.com/aws/aws-sdk-go-v2 v1.24.0
-	github.com/aws/aws-sdk-go-v2/config v1.26.1
-	github.com/aws/aws-sdk-go-v2/credentials v1.16.12
+	github.com/aws/aws-sdk-go-v2/config v1.26.2
+	github.com/aws/aws-sdk-go-v2/credentials v1.16.13
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.36.5
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.42.4
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.35.5
@@ -25,7 +25,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.27.5
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.34.5
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.44.5
-	github.com/aws/aws-sdk-go-v2/service/sts v1.26.5
+	github.com/aws/aws-sdk-go-v2/service/sts v1.26.6
 	github.com/aws/smithy-go v1.19.0
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
