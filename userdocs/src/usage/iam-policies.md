@@ -44,7 +44,7 @@ The `certManager` policy enables the ability to add records to Route 53 in order
 This example creates a nodegroup that reuses an existing IAM Instance Role from another cluster:
 
 ```yaml
-apiVersion: eksctl.io/v1alpha4
+apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 metadata:
   name: test-cluster-c-1
