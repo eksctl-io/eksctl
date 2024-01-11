@@ -45,14 +45,16 @@ var _ = Describe("Get", func() {
 						Type:      aws.String("type"),
 						AddonVersions: []ekstypes.AddonVersionInfo{
 							{
-								AddonVersion: aws.String("1.0.0"),
+								AddonVersion: aws.String("v1.0.0-eksbuild.1"),
 							},
 							{
-								//not sure if all versions come with v prefix or not, so test a mix
-								AddonVersion: aws.String("v1.1.0"),
+								AddonVersion: aws.String("v1.1.0-eksbuild.1"),
 							},
 							{
-								AddonVersion: aws.String("1.2.0"),
+								AddonVersion: aws.String("v1.1.0-eksbuild.4"),
+							},
+							{
+								AddonVersion: aws.String("v1.2.0-eksbuild.1"),
 							},
 						},
 					},
@@ -66,7 +68,7 @@ var _ = Describe("Get", func() {
 			}).Return(&awseks.DescribeAddonOutput{
 				Addon: &ekstypes.Addon{
 					AddonName:             aws.String("my-addon"),
-					AddonVersion:          aws.String("v1.0.0"),
+					AddonVersion:          aws.String("v1.1.0-eksbuild.1"),
 					ServiceAccountRoleArn: aws.String("foo"),
 					Status:                "created",
 					Health: &ekstypes.AddonHealth{
@@ -87,8 +89,8 @@ var _ = Describe("Get", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(summary).To(Equal(addon.Summary{
 				Name:         "my-addon",
-				Version:      "v1.0.0",
-				NewerVersion: "v1.1.0,1.2.0",
+				Version:      "v1.1.0-eksbuild.1",
+				NewerVersion: "v1.1.0-eksbuild.4,v1.2.0-eksbuild.1",
 				IAMRole:      "foo",
 				Status:       "created",
 				Issues: []addon.Issue{
@@ -135,14 +137,16 @@ var _ = Describe("Get", func() {
 						Type:      aws.String("type"),
 						AddonVersions: []ekstypes.AddonVersionInfo{
 							{
-								AddonVersion: aws.String("1.0.0"),
+								AddonVersion: aws.String("v1.0.0-eksbuild.1"),
 							},
 							{
-								//not sure if all versions come with v prefix or not, so test a mix
-								AddonVersion: aws.String("v1.1.0"),
+								AddonVersion: aws.String("v1.1.0-eksbuild.1"),
 							},
 							{
-								AddonVersion: aws.String("1.2.0"),
+								AddonVersion: aws.String("v1.1.0-eksbuild.4"),
+							},
+							{
+								AddonVersion: aws.String("v1.2.0-eksbuild.1"),
 							},
 						},
 					},
@@ -164,7 +168,7 @@ var _ = Describe("Get", func() {
 			}).Return(&awseks.DescribeAddonOutput{
 				Addon: &ekstypes.Addon{
 					AddonName:             aws.String("my-addon"),
-					AddonVersion:          aws.String("1.0.0"),
+					AddonVersion:          aws.String("v1.1.0-eksbuild.1"),
 					ServiceAccountRoleArn: aws.String("foo"),
 					Status:                "created",
 					ConfigurationValues:   aws.String("{\"replicaCount\":3}"),
@@ -176,8 +180,8 @@ var _ = Describe("Get", func() {
 			Expect(summary).To(Equal([]addon.Summary{
 				{
 					Name:                "my-addon",
-					Version:             "1.0.0",
-					NewerVersion:        "v1.1.0,1.2.0",
+					Version:             "v1.1.0-eksbuild.1",
+					NewerVersion:        "v1.1.0-eksbuild.4,v1.2.0-eksbuild.1",
 					IAMRole:             "foo",
 					Status:              "created",
 					ConfigurationValues: "{\"replicaCount\":3}",
