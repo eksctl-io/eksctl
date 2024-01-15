@@ -122,6 +122,7 @@ var _ = Describe("coredns", func() {
 			mockClientset := mockClientsetWith(deployment("ec2", 0, 2))
 			deployment, err := mockClientset.AppsV1().Deployments(coredns.Namespace).Get(context.Background(), coredns.Name, metav1.GetOptions{})
 			Expect(err).To(Not(HaveOccurred()))
+			Expect(deployment.Spec.Template.Annotations).NotTo(BeNil())
 			Expect(deployment.Spec.Template.Annotations).To(HaveKeyWithValue(coredns.ComputeTypeAnnotationKey, "ec2"))
 			// When:
 			err = coredns.ScheduleOnFargate(mockClientset)
@@ -129,11 +130,23 @@ var _ = Describe("coredns", func() {
 			// Then:
 			deployment, err = mockClientset.AppsV1().Deployments(coredns.Namespace).Get(context.Background(), coredns.Name, metav1.GetOptions{})
 			Expect(err).To(Not(HaveOccurred()))
+			Expect(deployment.Spec.Template.Annotations).NotTo(BeNil())
 			Expect(deployment.Spec.Template.Annotations).To(HaveKeyWithValue(coredns.ComputeTypeAnnotationKey, "fargate"))
 		})
 	})
 
 	Describe("WaitForScheduleOnFargate", func() {
+		It("should error if the annotations are not set", func() {
+			// Given:
+			mockClientset := mockClientsetWith(
+				deployment("fargate", 2, 2), podWithAnnotations("fargate", v1.PodRunning, nil), pod("fargate", v1.PodRunning),
+			)
+			// When:
+			err := coredns.WaitForScheduleOnFargate(mockClientset, retryPolicy)
+			// Then:
+			Expect(err).To(HaveOccurred())
+		})
+
 		It("should wait for coredns to be scheduled on Fargate and return w/o any error", func() {
 			// Given:
 			mockClientset := mockClientsetWith(
@@ -149,6 +162,8 @@ var _ = Describe("coredns", func() {
 			failureCases := [][]runtime.Object{
 				{deployment("ec2", 2, 2), pod("ec2", v1.PodRunning), pod("ec2", v1.PodRunning)},
 				{deployment("ec2", 0, 2), pod("ec2", v1.PodPending), pod("ec2", v1.PodPending)},
+				{deploymentWithAnnotations("ec2", 0, 2, nil), podWithAnnotations("ec2", v1.PodFailed, nil), podWithAnnotations("ec2", v1.PodFailed, nil)},
+				{deploymentWithAnnotations("ec2", 0, 2, nil), podWithAnnotations("ec2", v1.PodFailed, map[string]string{}), podWithAnnotations("ec2", v1.PodFailed, map[string]string{})},
 				{deployment("fargate", 0, 2), pod("fargate", v1.PodPending), pod("fargate", v1.PodPending)},
 				{deployment("fargate", 0, 2), pod("fargate", v1.PodFailed), pod("fargate", v1.PodFailed)},
 				{deployment("fargate", 0, 2), pod("fargate", v1.PodPending), pod("fargate", v1.PodFailed)},
@@ -165,6 +180,22 @@ var _ = Describe("coredns", func() {
 				Expect(err.Error()).To(Equal("timed out while waiting for \"coredns\" to be scheduled on Fargate"))
 			}
 		})
+
+		It("Should timeout if coredns pods do not have the correct annotations", func() {
+			failureCases := [][]runtime.Object{
+				{deploymentWithAnnotations("fargate", 0, 2, nil), podWithAnnotations("fargate", v1.PodPending, nil), podWithAnnotations("fargate", v1.PodRunning, nil)},
+				{deploymentWithAnnotations("ec2", 0, 2, nil), podWithAnnotations("ec2", v1.PodFailed, nil), podWithAnnotations("ec2", v1.PodRunning, nil)},
+				{deploymentWithAnnotations("ec2", 0, 2, map[string]string{}), podWithAnnotations("ec2", v1.PodRunning, map[string]string{}), podWithAnnotations("ec2", v1.PodRunning, map[string]string{})},
+			}
+			for _, failureCase := range failureCases {
+				// Given:
+				mockClientset := mockClientsetWith(failureCase...)
+				// When:
+				err := coredns.WaitForScheduleOnFargate(mockClientset, retryPolicy)
+				// Then:
+				Expect(err).To(MatchError("timed out while waiting for \"coredns\" to be scheduled on Fargate"))
+			}
+		})
 	})
 
 })
@@ -173,7 +204,7 @@ func mockClientsetWith(objects ...runtime.Object) kubeclient.Interface {
 	return fake.NewSimpleClientset(objects...)
 }
 
-func deployment(computeType string, numReady, numReplicas int32) *appsv1.Deployment {
+func deploymentWithAnnotations(computeType string, numReady, numReplicas int32, annotations map[string]string) *appsv1.Deployment {
 	return &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Deployment",
@@ -187,9 +218,7 @@ func deployment(computeType string, numReady, numReplicas int32) *appsv1.Deploym
 			Replicas: &numReplicas,
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Annotations: map[string]string{
-						coredns.ComputeTypeAnnotationKey: computeType,
-					},
+					Annotations: annotations,
 				},
 			},
 		},
@@ -199,9 +228,15 @@ func deployment(computeType string, numReady, numReplicas int32) *appsv1.Deploym
 	}
 }
 
+func deployment(computeType string, numReady, numReplicas int32) *appsv1.Deployment {
+	return deploymentWithAnnotations(computeType, numReady, numReplicas, map[string]string{
+		coredns.ComputeTypeAnnotationKey: computeType,
+	})
+}
+
 const chars = "abcdef0123456789"
 
-func pod(computeType string, phase v1.PodPhase) *v1.Pod {
+func podWithAnnotations(computeType string, phase v1.PodPhase, annotatations map[string]string) *v1.Pod {
 	pod := &v1.Pod{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Pod",
@@ -213,9 +248,7 @@ func pod(computeType string, phase v1.PodPhase) *v1.Pod {
 			Labels: map[string]string{
 				"eks.amazonaws.com/component": coredns.Name,
 			},
-			Annotations: map[string]string{
-				coredns.ComputeTypeAnnotationKey: computeType,
-			},
+			Annotations: annotatations,
 		},
 		Status: v1.PodStatus{
 			Phase: phase,
@@ -229,4 +262,10 @@ func pod(computeType string, phase v1.PodPhase) *v1.Pod {
 		}
 	}
 	return pod
+}
+
+func pod(computeType string, phase v1.PodPhase) *v1.Pod {
+	return podWithAnnotations(computeType, phase, map[string]string{
+		coredns.ComputeTypeAnnotationKey: computeType,
+	})
 }
