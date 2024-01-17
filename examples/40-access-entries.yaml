@@ -1,0 +1,36 @@
+# An example of cluster config that uses access entries for cluster access management.
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: access-entries-cluster
+  region: us-west-2
+  version: '1.25'
+
+nodeGroups:
+  - name: ng
+    instanceType: m5d.large
+
+accessConfig:
+  bootstrapClusterCreatorAdminPermissions: false # default is true
+  authenticationMode: API
+  accessEntries:
+    - principalARN: arn:aws:iam::111122223333:user/my-user-name
+      kubernetesGroups: # optional Kubernetes groups
+        - group1 # groups can used to give permissions via RBAC
+        - group2
+    - principalARN: arn:aws:iam::111122223333:role/role-name-1
+      accessPolicies: # optional access polices
+        - policyARN: arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy
+          accessScope:
+            type: namespace
+            namespaces:
+              - default
+              - my-namespace
+              - dev-*
+    - principalARN: arn:aws:iam::111122223333:role/admin-role
+      accessPolicies: # optional access polices
+        - policyARN: arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy
+          accessScope:
+            type: cluster

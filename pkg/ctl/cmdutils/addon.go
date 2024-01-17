@@ -4,7 +4,6 @@ import (
 	"fmt"
 )
 
-var addonFlagsIncompatibleWithoutConfigFile = []string{}
 var addonFlagsIncompatibleWithConfigFile = []string{
 	"name",
 	"version",
@@ -15,7 +14,6 @@ var addonFlagsIncompatibleWithConfigFile = []string{
 func NewCreateOrUpgradeAddonLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 	l.flagsIncompatibleWithConfigFile.Insert(addonFlagsIncompatibleWithConfigFile...)
-	l.flagsIncompatibleWithoutConfigFile.Insert(addonFlagsIncompatibleWithoutConfigFile...)
 	l.validateWithConfigFile = func() error {
 		if len(cmd.ClusterConfig.Addons) == 0 {
 			return fmt.Errorf("no addons specified")
@@ -42,7 +40,6 @@ func NewCreateOrUpgradeAddonLoader(cmd *Cmd) ClusterConfigLoader {
 func NewDeleteAddonLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 	l.flagsIncompatibleWithConfigFile.Insert(addonFlagsIncompatibleWithConfigFile...)
-	l.flagsIncompatibleWithoutConfigFile.Insert(addonFlagsIncompatibleWithoutConfigFile...)
 	l.validateWithConfigFile = func() error {
 		if len(cmd.ClusterConfig.Addons) == 0 {
 			return fmt.Errorf("no addons specified")

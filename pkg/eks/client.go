@@ -147,7 +147,7 @@ func (c *KubernetesProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSe
 
 	if err := w.WaitWithTimeout(waitTimeout); err != nil {
 		if err == context.DeadlineExceeded {
-			return errors.Errorf("timed out waiting for control plane %q after %s", meta.Name, waitTimeout)
+			return fmt.Errorf("timed out waiting for control plane %q after %s", meta.Name, waitTimeout)
 		}
 		return err
 	}
@@ -155,15 +155,10 @@ func (c *KubernetesProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSe
 }
 
 // UpdateAuthConfigMap creates or adds a nodegroup IAM role in the auth ConfigMap for the given nodegroup.
-func UpdateAuthConfigMap(ctx context.Context, nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error {
+func UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error {
 	for _, ng := range nodeGroups {
 		// authorise nodes to join
 		if err := authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
-			return err
-		}
-
-		// wait for nodes to join
-		if err := WaitForNodes(ctx, clientSet, ng); err != nil {
 			return err
 		}
 	}

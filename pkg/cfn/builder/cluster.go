@@ -301,8 +301,12 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		Name:               gfnt.NewString(c.spec.Metadata.Name),
 		ResourcesVpcConfig: clusterVPC,
 		RoleArn:            serviceRoleARN,
-		Tags:               makeCFNTags(c.spec),
-		Version:            gfnt.NewString(c.spec.Metadata.Version),
+		AccessConfig: &gfneks.Cluster_AccessConfig{
+			AuthenticationMode:                      gfnt.NewString(string(c.spec.AccessConfig.AuthenticationMode)),
+			BootstrapClusterCreatorAdminPermissions: gfnt.NewBoolean(!api.IsDisabled(c.spec.AccessConfig.BootstrapClusterCreatorAdminPermissions)),
+		},
+		Tags:    makeCFNTags(c.spec),
+		Version: gfnt.NewString(c.spec.Metadata.Version),
 	}
 
 	if c.spec.IsControlPlaneOnOutposts() {

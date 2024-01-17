@@ -65,6 +65,8 @@ metadata:
   region: us-west-2
 kubernetesNetworkConfig:
   ipFamily: IPv4
+accessConfig:
+  authenticationMode: API_AND_CONFIG_MAP
 nodeGroups:
 - amiFamily: AmazonLinux2
   containerRuntime: containerd
@@ -364,6 +366,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				c.NodeGroups = nil
 				c.AvailabilityZones = nil
 				c.KubernetesNetworkConfig = nil
+				c.AccessConfig = nil
 
 				ng := c.ManagedNodeGroups[0]
 				actualNG := actual.ManagedNodeGroups[0]

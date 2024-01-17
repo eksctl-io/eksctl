@@ -66,7 +66,7 @@ require (
 	github.com/tj/assert v0.0.3
 	github.com/vburenin/ifacemaker v1.2.1
 	github.com/vektra/mockery/v2 v2.38.0
-	github.com/weaveworks/goformation/v4 v4.10.2-0.20230526082129-5f5eaa9609b8
+	github.com/weaveworks/goformation/v4 v4.10.2-0.20231113122203-bf1ae633f95c
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xgfone/netaddr v0.5.1
 	golang.org/x/crypto v0.16.0

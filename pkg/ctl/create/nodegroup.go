@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/weaveworks/eksctl/pkg/accessentry"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -21,16 +22,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 )
 
-type nodegroupOptions struct {
-	cmdutils.CreateNGOptions
-	cmdutils.CreateManagedNGOptions
-	UpdateAuthConfigMap     bool
-	SkipOutdatedAddonsCheck bool
-	SubnetIDs               []string
-}
-
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
-	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroupOptions) error {
+	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options *cmdutils.NodeGroupOptions) error {
 		if ng.Name != "" && api.IsInvalidNameArg(ng.Name) {
 			return api.ErrInvalidName(ng.Name)
 		}
@@ -40,7 +33,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		}
 
 		ngFilter := filter.NewNodeGroupFilter()
-		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, options.CreateNGOptions, options.CreateManagedNGOptions).Load(); err != nil {
+		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, options).Load(); err != nil {
 			return errors.Wrap(err, "couldn't create node group filter from command line options")
 		}
 
@@ -64,6 +57,12 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 		clientSet, err := ctl.NewStdClientSet(cmd.ClusterConfig)
 		if err != nil {
+			accessEntry := &accessentry.Service{
+				ClusterStateGetter: ctl,
+			}
+			if accessEntry.IsEnabled() {
+				return fmt.Errorf("write access to Kubernetes resources is required when creating nodegroups: %w", err)
+			}
 			return err
 		}
 
@@ -87,14 +86,14 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 	})
 }
 
-type runFn func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroupOptions) error
+type runFn func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options *cmdutils.NodeGroupOptions) error
 
 func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
-	var options nodegroupOptions
+	var options cmdutils.NodeGroupOptions
 
 	cfg.Metadata.Version = "auto"
 
@@ -102,7 +101,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, ng, options)
+		return runFunc(cmd, ng, &options)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -112,7 +111,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, `for nodegroups "auto" and "latest" can be used to automatically inherit version from the control plane or force latest`)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddNodeGroupFilterFlags(fs, &cmd.Include, &cmd.Exclude)
-		cmdutils.AddUpdateAuthConfigMap(fs, &options.UpdateAuthConfigMap, "Add nodegroup IAM role to aws-auth configmap")
+		options.UpdateAuthConfigMap = cmdutils.AddUpdateAuthConfigMap(fs, "Add nodegroup IAM role to aws-auth configmap")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 		cmdutils.AddSubnetIDs(fs, &options.SubnetIDs, "Define an optional list of subnet IDs to create the nodegroup in")
 		fs.BoolVarP(&options.DryRun, "dry-run", "", false, "Dry-run mode that skips nodegroup creation and outputs a ClusterConfig")

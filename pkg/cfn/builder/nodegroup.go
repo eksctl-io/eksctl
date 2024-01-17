@@ -13,6 +13,7 @@ import (
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
+	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	"github.com/kris-nova/logger"
@@ -37,21 +38,23 @@ const (
 
 // NodeGroupOptions represents options passed to a NodeGroupResourceSet.
 type NodeGroupOptions struct {
-	ClusterConfig     *api.ClusterConfig
-	NodeGroup         *api.NodeGroup
-	Bootstrapper      nodebootstrap.Bootstrapper
-	ForceAddCNIPolicy bool
-	VPCImporter       vpc.Importer
-	SkipEgressRules   bool
+	ClusterConfig              *api.ClusterConfig
+	NodeGroup                  *api.NodeGroup
+	Bootstrapper               nodebootstrap.Bootstrapper
+	ForceAddCNIPolicy          bool
+	VPCImporter                vpc.Importer
+	SkipEgressRules            bool
+	DisableAccessEntryCreation bool
 }
 
 // NodeGroupResourceSet stores the resource information of the nodegroup
 type NodeGroupResourceSet struct {
-	rs                *resourceSet
-	clusterSpec       *api.ClusterConfig
-	spec              *api.NodeGroup
-	forceAddCNIPolicy bool
-	ec2API            awsapi.EC2
+	rs                         *resourceSet
+	clusterSpec                *api.ClusterConfig
+	spec                       *api.NodeGroup
+	forceAddCNIPolicy          bool
+	disableAccessEntryCreation bool
+	ec2API                     awsapi.EC2
 
 	iamAPI             awsapi.IAM
 	instanceProfileARN *gfnt.Value
@@ -65,15 +68,16 @@ type NodeGroupResourceSet struct {
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
 func NewNodeGroupResourceSet(ec2API awsapi.EC2, iamAPI awsapi.IAM, options NodeGroupOptions) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
-		rs:                newResourceSet(),
-		forceAddCNIPolicy: options.ForceAddCNIPolicy,
-		clusterSpec:       options.ClusterConfig,
-		spec:              options.NodeGroup,
-		ec2API:            ec2API,
-		iamAPI:            iamAPI,
-		vpcImporter:       options.VPCImporter,
-		bootstrapper:      options.Bootstrapper,
-		skipEgressRules:   options.SkipEgressRules,
+		rs:                         newResourceSet(),
+		forceAddCNIPolicy:          options.ForceAddCNIPolicy,
+		clusterSpec:                options.ClusterConfig,
+		spec:                       options.NodeGroup,
+		ec2API:                     ec2API,
+		iamAPI:                     iamAPI,
+		vpcImporter:                options.VPCImporter,
+		bootstrapper:               options.Bootstrapper,
+		skipEgressRules:            options.SkipEgressRules,
+		disableAccessEntryCreation: options.DisableAccessEntryCreation,
 	}
 }
 
@@ -140,6 +144,9 @@ func (n *NodeGroupResourceSet) AddAllResources(ctx context.Context) error {
 		return err
 	}
 	n.addResourcesForSecurityGroups()
+	if !n.disableAccessEntryCreation {
+		n.addAccessEntry()
+	}
 
 	return n.addResourcesForNodeGroup(ctx)
 }
@@ -171,6 +178,29 @@ var ControlPlaneNodeGroupEgressRules = []PartialEgressRule{
 
 // ControlPlaneEgressRuleDescriptionPrefix is the prefix applied to the description for control plane security group egress rules.
 var ControlPlaneEgressRuleDescriptionPrefix = "Allow control plane to communicate with "
+
+func (n *NodeGroupResourceSet) addAccessEntry() {
+	// TODO: SDK types.
+	var amiType string
+	if api.IsWindowsImage(n.spec.AMIFamily) {
+		amiType = "EC2_WINDOWS"
+	} else {
+		amiType = "EC2_LINUX"
+	}
+
+	var principalARN *gfnt.Value
+	if roleARN := n.spec.IAM.InstanceRoleARN; roleARN != "" {
+		principalARN = gfnt.NewString(roleARN)
+	} else {
+		principalARN = gfnt.MakeFnGetAttString(cfnIAMInstanceRoleName, "Arn")
+	}
+	n.newResource("AccessEntry", &gfneks.AccessEntry{
+		PrincipalArn: principalARN,
+		ClusterName:  gfnt.NewString(n.clusterSpec.Metadata.Name),
+		Type:         gfnt.NewString(amiType),
+	})
+	n.rs.defineOutputWithoutCollector(outputs.NodeGroupUsesAccessEntry, true, false)
+}
 
 func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	for _, id := range n.spec.SecurityGroups.AttachIDs {

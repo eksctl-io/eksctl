@@ -6,17 +6,22 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-// Command will create the `create` commands
+// Command creates  the `create` commands.
 func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	verbCmd := cmdutils.NewVerbCmd("create", "Create resource(s)", "")
 
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, createClusterCmd)
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, createNodeGroupCmd)
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, createIAMServiceAccountCmd)
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, createIAMIdentityMappingCmd)
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, createFargateProfile)
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, createAddonCmd)
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, createPodIdentityAssociationCmd)
-
+	cmdFuncs := []func(*cmdutils.Cmd){
+		createClusterCmd,
+		createNodeGroupCmd,
+		createIAMServiceAccountCmd,
+		createIAMIdentityMappingCmd,
+		createFargateProfile,
+		createAddonCmd,
+		createAccessEntryCmd,
+		createPodIdentityAssociationCmd,
+	}
+	for _, cmdFunc := range cmdFuncs {
+		cmdutils.AddResourceCmd(flagGrouping, verbCmd, cmdFunc)
+	}
 	return verbCmd
 }

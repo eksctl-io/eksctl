@@ -7,6 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
@@ -51,6 +52,14 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 
 	if cfg.HasClusterCloudWatchLogging() && cfg.ContainsWildcardCloudWatchLogging() {
 		cfg.CloudWatch.ClusterLogging.EnableTypes = SupportedCloudWatchClusterLogTypes()
+	}
+
+	if cfg.AccessConfig == nil {
+		cfg.AccessConfig = &AccessConfig{
+			AuthenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
+		}
+	} else if cfg.AccessConfig.AuthenticationMode == "" {
+		cfg.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
 	}
 
 	if cfg.PrivateCluster == nil {
