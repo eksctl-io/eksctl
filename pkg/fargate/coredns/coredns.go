@@ -67,7 +67,7 @@ func isDeploymentScheduledOnFargate(clientSet kubeclient.Interface) (bool, error
 	if coredns.Spec.Replicas == nil {
 		return false, errors.New("nil spec.replicas in coredns deployment")
 	}
-	computeType, exists := coredns.Spec.Template.Annotations[ComputeTypeAnnotationKey]
+	computeType, exists := safeGetAnnotationValue(coredns.Spec.Template.Annotations, ComputeTypeAnnotationKey)
 	logger.Debug("deployment %q with compute type %q currently has %v/%v replicas running", Name, computeType, coredns.Status.ReadyReplicas, *coredns.Spec.Replicas)
 	scheduled := exists &&
 		computeType == computeTypeFargate &&
@@ -95,7 +95,7 @@ func arePodsScheduledOnFargate(clientSet kubeclient.Interface) (bool, error) {
 }
 
 func isRunningOnFargate(pod *v1.Pod) bool {
-	computeType, exists := pod.Annotations[ComputeTypeAnnotationKey]
+	computeType, exists := safeGetAnnotationValue(pod.Annotations, ComputeTypeAnnotationKey)
 	logger.Debug("pod %q with compute type %q and status %q is scheduled on %q", pod.Name, computeType, pod.Status.Phase, pod.Spec.NodeName)
 	return exists &&
 		computeType == computeTypeFargate &&
@@ -119,7 +119,7 @@ func scheduleOnFargate(clientSet kubeclient.Interface) error {
 	if err != nil {
 		return err
 	}
-	coredns.Spec.Template.Annotations[ComputeTypeAnnotationKey] = computeTypeFargate
+	coredns.Spec.Template.Annotations = safeSetAnnotation(coredns.Spec.Template.Annotations, ComputeTypeAnnotationKey, computeTypeFargate)
 	bytes, err := runtime.Encode(unstructured.UnstructuredJSONScheme, coredns)
 	if err != nil {
 		return errors.Wrapf(err, "failed to marshal %q deployment", Name)
@@ -128,7 +128,8 @@ func scheduleOnFargate(clientSet kubeclient.Interface) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to patch deployment")
 	}
-	value, exists := patched.Spec.Template.Annotations[ComputeTypeAnnotationKey]
+
+	value, exists := safeGetAnnotationValue(patched.Spec.Template.Annotations, ComputeTypeAnnotationKey)
 	if !exists {
 		return fmt.Errorf("could not find annotation %q on patched deployment %q: patching must have failed", ComputeTypeAnnotationKey, Name)
 	}
@@ -155,4 +156,24 @@ func WaitForScheduleOnFargate(clientSet kubeclient.Interface, retryPolicy retry.
 		time.Sleep(retryPolicy.Duration())
 	}
 	return fmt.Errorf("timed out while waiting for %q to be scheduled on Fargate", Name)
+}
+
+// safeGetAnnotationValue safely gets the value of an annotation from a map. It
+// returns the value and a boolean indicating whether the key was found.
+func safeGetAnnotationValue(annotations map[string]string, key string) (string, bool) {
+	if annotations == nil {
+		return "", false
+	}
+	value, exist := annotations[key]
+	return value, exist
+}
+
+// safeSetAnnotation safely sets the value of an annotation in a map. It will
+// initialize the annotaions map if it is nil.
+func safeSetAnnotation(annotations map[string]string, key, value string) map[string]string {
+	if annotations == nil {
+		annotations = make(map[string]string)
+	}
+	annotations[key] = value
+	return annotations
 }
