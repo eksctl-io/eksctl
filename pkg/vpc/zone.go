@@ -44,8 +44,6 @@ func DiscoverZoneTypes(ctx context.Context, ec2API awsapi.EC2, region string) (m
 			zoneTypeMapping[*z.ZoneName] = ZoneTypeAvailabilityZone
 		case "local-zone":
 			zoneTypeMapping[*z.ZoneName] = ZoneTypeLocalZone
-		default:
-			return nil, fmt.Errorf("expected zone type to be local or AZ; got %s", *z.ZoneType)
 		}
 	}
 	return zoneTypeMapping, nil
