@@ -1548,8 +1548,8 @@
         "metrics"
       ],
       "additionalProperties": false,
-      "description": "used by the scaling config, see [cloudformation docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html)",
-      "x-intellij-html-description": "used by the scaling config, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html\">cloudformation docs</a>"
+      "description": "used by the scaling config, see [cloudformation docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-autoscaling-autoscalinggroup-metricscollection.html)",
+      "x-intellij-html-description": "used by the scaling config, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-autoscaling-autoscalinggroup-metricscollection.html\">cloudformation docs</a>"
     },
     "NodeGroup": {
       "required": [
@@ -2465,8 +2465,8 @@
       "properties": {
         "autoScaler": {
           "type": "boolean",
-          "description": "adds policies for cluster-autoscaler. See [autoscaler AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html).",
-          "x-intellij-html-description": "adds policies for cluster-autoscaler. See <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html\">autoscaler AWS docs</a>.",
+          "description": "adds policies for cluster-autoscaler. See [autoscaler AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/autoscaling.html#cluster-autoscaler).",
+          "x-intellij-html-description": "adds policies for cluster-autoscaler. See <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/autoscaling.html#cluster-autoscaler\">autoscaler AWS docs</a>.",
           "default": "false"
         },
         "awsLoadBalancerController": {
@@ -2483,8 +2483,8 @@
         },
         "ebsCSIController": {
           "type": "boolean",
-          "description": "adds policies for using the ebs-csi-controller. See [aws-ebs-csi-driver docs](https://github.com/kubernetes-sigs/aws-ebs-csi-driver#set-up-driver-permission).",
-          "x-intellij-html-description": "adds policies for using the ebs-csi-controller. See <a href=\"https://github.com/kubernetes-sigs/aws-ebs-csi-driver#set-up-driver-permission\">aws-ebs-csi-driver docs</a>.",
+          "description": "adds policies for using the ebs-csi-controller. See [aws-ebs-csi-driver docs](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/docs/install.md#set-up-driver-permissions).",
+          "x-intellij-html-description": "adds policies for using the ebs-csi-controller. See <a href=\"https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/docs/install.md#set-up-driver-permissions\">aws-ebs-csi-driver docs</a>.",
           "default": "false"
         },
         "efsCSIController": {
