@@ -547,18 +547,6 @@ const expectedEbsPolicyDocument = `{
 	},
 	{
 	  "Action": [
-		"ec2:CreateVolume"
-	  ],
-	  "Condition": {
-		"StringLike": {
-		  "aws:RequestTag/kubernetes.io/cluster/*": "owned"
-		}
-	  },
-	  "Effect": "Allow",
-	  "Resource": "*"
-	},
-	{
-	  "Action": [
 		"ec2:DeleteVolume"
 	  ],
 	  "Condition": {
@@ -587,7 +575,7 @@ const expectedEbsPolicyDocument = `{
 	  ],
 	  "Condition": {
 		"StringLike": {
-		  "ec2:ResourceTag/kubernetes.io/cluster/*": "owned"
+		  "ec2:ResourceTag/kubernetes.io/created-for/pvc/name": "*"
 		}
 	  },
 	  "Effect": "Allow",
