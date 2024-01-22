@@ -218,6 +218,7 @@ func deleteStack(stackName string, ctl api.ClusterProvider) {
 var _ = AfterSuite(func() {
 	cmd := params.EksctlDeleteClusterCmd.
 		WithArgs(
+			"--disable-nodegroup-eviction",
 			"--config-file", "-",
 			"--wait",
 		).
