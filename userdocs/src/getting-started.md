@@ -109,7 +109,7 @@ To create a basic cluster, but with a different name, run:
 eksctl create cluster --name=cluster-1 --nodes=4
 ```
 
-EKS supports versions `1.23`, `1.24`, `1.25`, `1.26`, `1.27` (default) and `1.28`.
+EKS supports versions `1.23`, `1.24`, `1.25`, `1.26`, `1.27` (default), `1.28` and `1.29`.
 With `eksctl` you can deploy any of the supported versions by passing `--version`.
 
 ```sh
