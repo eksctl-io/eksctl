@@ -92,6 +92,7 @@ var _ = AfterSuite(func() {
 	}
 	cmd := params.EksctlDeleteCmd.WithArgs(
 		"cluster", params.ClusterName,
+		"--disable-nodegroup-eviction",
 		"--verbose", "2",
 	)
 	Expect(cmd).To(RunSuccessfully())
