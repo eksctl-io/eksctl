@@ -133,6 +133,21 @@ var _ = DescribeTable("VPCHelper", func(e vpcHelperEntry) {
 		},
 	}),
 
+	Entry("cluster public access CIDRs match desired config but out of order", vpcHelperEntry{
+		clusterVPC: &ekstypes.VpcConfigResponse{
+			EndpointPublicAccess:  true,
+			EndpointPrivateAccess: false,
+			PublicAccessCidrs:     []string{"2.2.2.2/32", "1.1.1.1/32"},
+		},
+		vpc: &api.ClusterVPC{
+			ClusterEndpoints: &api.ClusterEndpoints{
+				PublicAccess:  api.Enabled(),
+				PrivateAccess: api.Disabled(),
+			},
+			PublicAccessCIDRs: []string{"1.1.1.1/32", "2.2.2.2/32"},
+		},
+	}),
+
 	Entry("both cluster endpoint access and public access CIDRs do not match desired config", vpcHelperEntry{
 		clusterVPC: &ekstypes.VpcConfigResponse{
 			EndpointPublicAccess:  true,

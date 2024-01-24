@@ -7,7 +7,7 @@
 Enable [`withOIDC`](/usage/schema/#iam-withOIDC) to automatically create an [IRSA](/usage/iamserviceaccounts/) for the amazon CNI plugin and
 limit permissions granted to nodes in your cluster, instead granting the necessary permissions
 only to the CNI service account. The background is described in [this AWS
-documentation](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-cni-walkthrough.html).
+documentation](https://docs.aws.amazon.com/eks/latest/userguide/cni-iam-role.html).
 
 ## `disablePodIMDS`
 

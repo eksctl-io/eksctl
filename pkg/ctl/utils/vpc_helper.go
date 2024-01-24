@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"golang.org/x/exp/slices"
 
@@ -176,5 +177,6 @@ func cidrsEqual(currentValues, newValues []string) bool {
 	if len(newValues) == 0 && len(currentValues) == 1 && currentValues[0] == "0.0.0.0/0" {
 		return true
 	}
-	return slices.Equal(currentValues, newValues)
+
+	return sets.NewString(currentValues...).Equal(sets.NewString(newValues...))
 }

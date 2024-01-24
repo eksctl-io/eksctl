@@ -129,6 +129,7 @@ var _ = Describe("(Integration) [Backwards compatibility test]", func() {
 		By("deleting the initial nodegroup")
 		cmd = params.EksctlDeleteCmd.WithArgs(
 			"nodegroup",
+			"--disable-eviction",
 			"--verbose", "4",
 			"--cluster", params.ClusterName,
 			initialNgName,

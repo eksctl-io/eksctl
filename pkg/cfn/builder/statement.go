@@ -460,18 +460,6 @@ func ebsStatements() []cft.MapOfInterfaces {
 		{
 			"Effect": "Allow",
 			"Action": []string{
-				"ec2:CreateVolume",
-			},
-			"Resource": "*",
-			"Condition": cft.MapOfInterfaces{
-				"StringLike": cft.MapOfInterfaces{
-					"aws:RequestTag/kubernetes.io/cluster/*": "owned",
-				},
-			},
-		},
-		{
-			"Effect": "Allow",
-			"Action": []string{
 				"ec2:DeleteVolume",
 			},
 			"Resource": "*",
@@ -502,7 +490,7 @@ func ebsStatements() []cft.MapOfInterfaces {
 			"Resource": "*",
 			"Condition": cft.MapOfInterfaces{
 				"StringLike": cft.MapOfInterfaces{
-					"ec2:ResourceTag/kubernetes.io/cluster/*": "owned",
+					"ec2:ResourceTag/kubernetes.io/created-for/pvc/name": "*",
 				},
 			},
 		},
