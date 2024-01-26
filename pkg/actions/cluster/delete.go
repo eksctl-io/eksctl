@@ -178,10 +178,11 @@ func drainAllNodeGroups(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.Cl
 		}
 	}
 
+	// EKS automatically drains managed nodegroups
 	logger.Info("will drain %d unmanaged nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 
 	drainInput := &nodegroup.DrainInput{
-		NodeGroups:            cmdutils.ToKubeNodeGroups(cfg),
+		NodeGroups:            cmdutils.ToKubeNodeGroups(cfg.NodeGroups, []*api.ManagedNodeGroup{}),
 		MaxGracePeriod:        ctl.AWSProvider.WaitTimeout(),
 		DisableEviction:       disableEviction,
 		PodEvictionWaitPeriod: podEvictionWaitPeriod,

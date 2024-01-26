@@ -239,7 +239,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		}
 	}
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
-	kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
+	kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups)
 
 	// Check if flux binary exists early in the process, so it doesn't fail at the end when the cluster
 	// has already been created with a missing flux binary error which should have been caught earlier.
