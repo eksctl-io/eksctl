@@ -1,4 +1,4 @@
-# Managing nodegroups
+# Nodegroups
 
 ## Creating nodegroups
 You can add one or more nodegroups in addition to the initial nodegroup created along with the cluster.

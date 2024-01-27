@@ -1,4 +1,4 @@
-# Unmanaged nodegroup upgrades
+# Unmanaged nodegroups
 
 In `eksctl`, setting `--managed=false` or using the `nodeGroups` field creates an unmanaged nodegroup. Bear in mind that
 unmanaged nodegroups do not appear in the EKS console, which as a general rule only knows about EKS-managed nodegroups.
@@ -7,31 +7,31 @@ You should be upgrading nodegroups only after you ran `eksctl upgrade cluster`.
 (See [Upgrading clusters](/usage/cluster-upgrade).)
 
 If you have a simple cluster with just an initial nodegroup (i.e. created with
-`eksctl create cluster`), the process is very simple.
+`eksctl create cluster`), the process is very simple:
 
-Get the name of old nodegroup:
+1. Get the name of old nodegroup:
 
-```
-eksctl get nodegroups --cluster=<clusterName> --region=<region>
-```
+    ```shell
+    eksctl get nodegroups --cluster=<clusterName> --region=<region>
+    ```
 
-???+ note
-    You should see only one nodegroup here, if you see more - read the next section.
+    ???+ note
+        You should see only one nodegroup here, if you see more - read the next section.
 
-Create new nodegroup:
+2. Create a new nodegroup:
 
-```
-eksctl create nodegroup --cluster=<clusterName> --region=<region> --managed=false
-```
+    ```shell
+    eksctl create nodegroup --cluster=<clusterName> --region=<region> --name=<newNodeGroupName> --managed=false
+    ```
 
-Delete old nodegroup:
+3. Delete the old nodegroup:
 
-```
-eksctl delete nodegroup --cluster=<clusterName> --region=<region> --name=<oldNodeGroupName>
-```
+    ```shell
+    eksctl delete nodegroup --cluster=<clusterName> --region=<region> --name=<oldNodeGroupName>
+    ```
 
-???+ note
-    This will drain all pods from that nodegroup before the instances are deleted.
+    ???+ note
+        This will drain all pods from that nodegroup before the instances are deleted. In some scenarios, Pod Disruption Budget (PDB) policies can prevent pods to be evicted. To delete the nodegroup regardless of PDB, one should use the `--disable-eviction` flag, will bypass checking PDB policies.
 
 ## Updating multiple nodegroups
 
@@ -44,19 +44,7 @@ In general terms, you are looking to:
 - review which nodegroups you have and which ones can be deleted or must be replaced for the new version
 - note down configuration of each nodegroup, consider using config file to ease upgrades next time
 
-To create a new nodegroup:
-
-```
-eksctl create nodegroup --cluster=<clusterName> --region=<region> --name=<newNodeGroupName> --managed=false
-```
-
-To delete old nodegroup:
-
-```
-eksctl delete nodegroup --cluster=<clusterName> --region=<region> --name=<oldNodeGroupName>
-```
-
-## Updating multiple nodegroups with config file
+### Updating with config file
 
 If you are using config file, you will need to do the following.
 

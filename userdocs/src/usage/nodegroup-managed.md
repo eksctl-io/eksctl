@@ -1,4 +1,4 @@
-# EKS Managed Nodegroups
+# EKS managed nodegroups
 
 [Amazon EKS managed nodegroups][eks-user-guide] is a feature that automates the provisioning and lifecycle management of nodes (EC2 instances) for Amazon EKS Kubernetes clusters. Customers can provision optimized groups of nodes for their clusters and EKS will keep their nodes up to date with the latest Kubernetes and host OS versions. 
 
@@ -250,7 +250,7 @@ This section defines two fields. `MaxUnavailable` and `MaxUnavailablePercentage`
 the update, thus downtime shouldn't be expected.
 
 The command `update nodegroup` should be used with a config file using the `--config-file` flag. The nodegroup should
-contain an `nodeGroup.updateConfig` section. More information can be found [here](https://eksctl.io/usage/schema/#nodeGroups-updateConfig).
+contain an `nodeGroup.updateConfig` section. More information can be found [here](/usage/schema/#nodeGroups-updateConfig).
 
 ## Nodegroup Health issues
 EKS Managed Nodegroups automatically checks the configuration of your nodegroup and nodes for health issues and reports
@@ -302,17 +302,6 @@ The unsupported options are noted below.
 - Full control over the node bootstrapping process and customization of the kubelet are not supported. This includes the
 following fields: `classicLoadBalancerNames`, `targetGroupARNs`, `clusterDNS` and `kubeletExtraConfig`.
 - No support for enabling metrics on AutoScalingGroups using `asgMetricsCollection`
-
-## Note for eksctl versions below 0.12.0
-- For clusters upgraded from EKS 1.13 to EKS 1.14, managed nodegroups will not be able to communicate with unmanaged
-nodegroups. As a result, pods in a managed nodegroup will be unable to reach pods in an unmanaged
-nodegroup, and vice versa.
-To fix this, use eksctl 0.12.0 or above and run `eksctl upgrade cluster`.
-To fix this manually, add ingress rules to the shared security group and the default cluster
-security group to allow traffic from each other. The shared security group and the default cluster security groups have
-the naming convention `eksctl-<cluster>-cluster-ClusterSharedNodeSecurityGroup-<id>` and
-`eks-cluster-sg-<cluster>-<id>-<id>` respectively.
-
 
 ## Further information
 
