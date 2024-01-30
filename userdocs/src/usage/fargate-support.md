@@ -214,7 +214,7 @@ create a Fargate profile with the `eksctl create fargateprofile` command:
 ???+ note
     This operation is only supported on clusters that run on the EKS platform version `eks.5` or higher.
 
-    If the existing was created with a version of `eksctl` prior to 0.11.0, you will  need to run `eksctl update
+    If the existing was created with a version of `eksctl` prior to 0.11.0, you will  need to run `eksctl upgrade
     cluster` before creating the Fargate profile.
 
 ```console
