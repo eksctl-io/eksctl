@@ -186,6 +186,7 @@ var _ = Describe("Outposts validation", func() {
 		Entry("Bottlerocket", api.NodeImageFamilyBottlerocket, true),
 		Entry("Ubuntu1804", api.NodeImageFamilyUbuntu1804, true),
 		Entry("Ubuntu2004", api.NodeImageFamilyUbuntu2004, true),
+		Entry("Ubuntu2204", api.NodeImageFamilyUbuntu2204, true),
 		Entry("Windows2019Core", api.NodeImageFamilyWindowsServer2019CoreContainer, true),
 		Entry("Windows2019Full", api.NodeImageFamilyWindowsServer2019FullContainer, true),
 		Entry("Windows2022Core", api.NodeImageFamilyWindowsServer2022CoreContainer, true),
