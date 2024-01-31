@@ -59,7 +59,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 
 				nodeGroupStacks := []manager.NodeGroupStack{{NodeGroupName: "ng-1"}}
 				mockedDrainInput := &nodegroup.DrainInput{
-					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
+					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups),
 					MaxGracePeriod: ctl.AWSProvider.WaitTimeout(),
 					Parallel:       1,
 				}
@@ -87,7 +87,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 
 				nodeGroupStacks := []manager.NodeGroupStack{{NodeGroupName: "ng-1"}}
 				mockedDrainInput := &nodegroup.DrainInput{
-					NodeGroups:      cmdutils.ToKubeNodeGroups(cfg),
+					NodeGroups:      cmdutils.ToKubeNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups),
 					MaxGracePeriod:  ctl.AWSProvider.WaitTimeout(),
 					DisableEviction: true,
 					Parallel:        1,
@@ -116,7 +116,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 
 				var nodeGroupStacks []manager.NodeGroupStack
 				mockedDrainInput := &nodegroup.DrainInput{
-					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
+					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups),
 					MaxGracePeriod: ctl.AWSProvider.WaitTimeout(),
 					Parallel:       1,
 				}
