@@ -34,12 +34,12 @@ func ApplyFilter(clusterConfig *api.ClusterConfig, ngFilter filter.NodegroupFilt
 
 // ToKubeNodeGroups combines managed and unmanaged nodegroups and returns a slice of eks.KubeNodeGroup containing
 // both types of nodegroups
-func ToKubeNodeGroups(clusterConfig *api.ClusterConfig) []eks.KubeNodeGroup {
+func ToKubeNodeGroups(unmanagedNodeGroups []*api.NodeGroup, managedNodeGroups []*api.ManagedNodeGroup) []eks.KubeNodeGroup {
 	var kubeNodeGroups []eks.KubeNodeGroup
-	for _, ng := range clusterConfig.NodeGroups {
+	for _, ng := range unmanagedNodeGroups {
 		kubeNodeGroups = append(kubeNodeGroups, ng)
 	}
-	for _, ng := range clusterConfig.ManagedNodeGroups {
+	for _, ng := range managedNodeGroups {
 		kubeNodeGroups = append(kubeNodeGroups, ng)
 	}
 	return kubeNodeGroups

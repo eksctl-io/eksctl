@@ -1,4 +1,4 @@
-# Nodegroups with custom DNS
+# Custom DNS
 
 There are two ways of overwriting the DNS server IP address used for all the internal and external DNS lookups. This
 is the equivalent of the `--cluster-dns` flag for the `kubelet`.
