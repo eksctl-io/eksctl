@@ -154,13 +154,13 @@ nav:
       - usage/cluster-upgrade.md
       - usage/addon-upgrade.md
     - Nodegroups:
-      - usage/managing-nodegroups.md
-      - usage/nodegroup-upgrade.md
+      - usage/nodegroups.md
+      - usage/nodegroup-unmanaged.md
+      - usage/nodegroup-managed.md
+      - usage/launch-template-support.md
       - usage/nodegroup-with-custom-subnet.md
       - usage/nodegroup-customize-dns.md
       - usage/nodegroup-taints.md
-      - usage/eks-managed-nodes.md
-      - usage/launch-template-support.md
       - usage/instance-selector.md
       - usage/spot-instances.md
       - usage/gpu-support.md

@@ -188,7 +188,7 @@ var _ = Describe("Delete", func() {
 				})
 
 				mockedDrainInput := &nodegroup.DrainInput{
-					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
+					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups),
 					MaxGracePeriod: ctl.AWSProvider.WaitTimeout(),
 					Parallel:       1,
 				}
@@ -253,7 +253,7 @@ var _ = Describe("Delete", func() {
 				})
 
 				mockedDrainInput := &nodegroup.DrainInput{
-					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
+					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups),
 					MaxGracePeriod: ctl.AWSProvider.WaitTimeout(),
 					Parallel:       1,
 				}

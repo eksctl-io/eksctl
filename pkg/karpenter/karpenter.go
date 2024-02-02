@@ -9,6 +9,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/karpenter/providers"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 const (
@@ -78,14 +79,20 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 			defaultInstanceProfile: instanceProfileName,
 		},
 		settings: map[string]interface{}{
-			aws: map[string]interface{}{
-				defaultInstanceProfile: instanceProfileName,
-				clusterName:            k.ClusterConfig.Metadata.Name,
-				clusterEndpoint:        k.ClusterConfig.Status.Endpoint,
-				interruptionQueueName:  k.ClusterConfig.Metadata.Name,
-			},
+			defaultInstanceProfile: instanceProfileName,
+			clusterName:            k.ClusterConfig.Metadata.Name,
+			clusterEndpoint:        k.ClusterConfig.Status.Endpoint,
+			interruptionQueueName:  k.ClusterConfig.Metadata.Name,
 		},
 		serviceAccount: serviceAccountMap,
+	}
+
+	version := k.ClusterConfig.Karpenter.Version
+	compareVersions, err := utils.CompareVersions(version, "0.33.0")
+	if err == nil && compareVersions < 0 {
+		values[settings] = map[string]interface{}{
+			aws: values[settings],
+		}
 	}
 
 	registryClient, err := registry.NewClient(
@@ -101,7 +108,7 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 		Namespace:       DefaultNamespace,
 		ReleaseName:     releaseName,
 		Values:          values,
-		Version:         k.ClusterConfig.Karpenter.Version,
+		Version:         version,
 		RegistryClient:  registryClient,
 	}
 

@@ -136,7 +136,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, options deleteNodeG
 			}
 		}
 	}
-	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
+	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups)
 
 	if options.deleteNodeGroupDrain {
 		cmdutils.LogIntendedAction(cmd.Plan, "drain %d nodegroup(s) in cluster %q", len(allNodeGroups), cfg.Metadata.Name)

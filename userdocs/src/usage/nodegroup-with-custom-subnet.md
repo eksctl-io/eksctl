@@ -1,4 +1,4 @@
-# Nodegroups with custom subnet(s)
+# Custom subnets
 
 It's possible to extend an existing VPC with a new subnet and add a Nodegroup to that subnet.
 

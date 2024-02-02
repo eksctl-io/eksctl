@@ -4,7 +4,7 @@
 
 AWS EKS has introduced a new set of controls, called access entries, for managing access of IAM principals to Kubernetes clusters. `eksctl` has fully integrated with this feature, allowing users to directly associate access policies to certain IAM principals, while doing work behind the scenes for others. More details in the [upcoming section](access-entries.md#how-does-this-affect-different-resources).
 
-EKS predefines several managed access policies that mirror the default Kubernetes user facing roles. Predefined access policies can also include policies with permissions required by other AWS services such as Amazon EMR to run workloads on EKS clusters. See a list of predefined access policies as-well as a detailed description for each of those [here]().
+EKS predefines several managed access policies that mirror the default Kubernetes user facing roles. Predefined access policies can also include policies with permissions required by other AWS services such as Amazon EMR to run workloads on EKS clusters. See a list of predefined access policies as-well as a detailed description for each of those [here](https://docs.aws.amazon.com/eks/latest/userguide/access-policies.html#access-policy-permissions).
 
 ???+ note
     For now, users can only use predefined EKS access policies. For more advanced requirements, one can continue to use `iamIdentityMappings`.
@@ -12,10 +12,11 @@ EKS predefines several managed access policies that mirror the default Kubernete
 
 ## How to enable the access entries API?
 
-`eksctl` has added a new `accessConfig.authenticationMode` field, which dictates how cluster access management is achieved, and can be set to one of the following three values: 
-  - `CONFIG_MAP` - default in EKS API - only `aws-auth` ConfigMap will be used
-  - `API` - only access entries API will be used
-  - `API_AND_CONFIG_MAP` - default in `eksctl` - both `aws-auth` ConfigMap and access entries API can be used
+`eksctl` has added a new `accessConfig.authenticationMode` field, which dictates how cluster access management is achieved, and can be set to one of the following three values:
+
+- `CONFIG_MAP` - default in EKS API - only `aws-auth` ConfigMap will be used
+- `API` - only access entries API will be used
+- `API_AND_CONFIG_MAP` - default in `eksctl` - both `aws-auth` ConfigMap and access entries API can be used
 
 e.g.
 
@@ -26,13 +27,13 @@ accessConfig:
 
 When creating a new cluster with access entries, using `eksctl`, if `authenticationMode` is not provided by the user, it is automatically set to `API_AND_CONFIG_MAP`. Thus, the access entries API will be enabled by default. If instead you want to use access entries on an already existing, non-eksctl created, cluster, where `CONFIG_MAP` option is used, the user will need to first set `authenticationMode` to `API_AND_CONFIG_MAP`. For that, `eksctl` has introduced a new command for updating the cluster authentication mode, which works both with CLI flags e.g.
 
-```
+```shell
 eksctl utils update-authentication-mode --cluster my-cluster --authentication-mode API_AND_CONFIG_MAP
 ```
 
 and by providing a config file e.g.
 
-```
+```shell
 eksctl utils update-authentication-mode -f config.yaml
 ```
 
@@ -40,13 +41,14 @@ eksctl utils update-authentication-mode -f config.yaml
 
 ### IAM Entities
 
-Cluster management access for these type of resources falls under user's control. `eksctl` has added a new `accessConfig.accessEntries` field that maps one-to-one to the [Access Entries EKS API](). .e.g.
+Cluster management access for these type of resources falls under user's control. `eksctl` has added a new `accessConfig.accessEntries` field that maps one-to-one to the [Access Entries EKS API](https://docs.aws.amazon.com/eks/latest/userguide/access-policies.html#access-policy-permissions). For example:
 
 ```yaml
 accessConfig:
   authenticationMode: API_AND_CONFIG_MAP
   accessEntries:
     - principalARN: arn:aws:iam::111122223333:user/my-user-name
+      type: STANDARD
       kubernetesGroups: # optional Kubernetes groups
         - group1 # groups can used to give permissions via RBAC
         - group2
@@ -66,9 +68,12 @@ accessConfig:
         - policyARN: arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy
           accessScope:
             type: cluster
+
+    - principalARN: arn:aws:iam::111122223333:role/role-name-2
+      type: EC2_LINUX
 ```
 
-In addition to associating EKS policies, one can also specify the Kubernetes groups to which an IAM entity belongs, thus granting permissions via RBAC.   
+In addition to associating EKS policies, one can also specify the Kubernetes groups to which an IAM entity belongs, thus granting permissions via RBAC.
 
 ### Managed nodegroups and Fargate
 
@@ -76,22 +81,23 @@ The integration with access entries for these resources will be achieved behind 
 
 ### Self-managed nodegroups
 
-For authorizing self-managed nodegroups, `eksctl` will create a unique access entry for each nodegroup with the principal ARN set to the node role ARN and type set to either `EC2_LINUX` or `EC2_WINDOWS` depending on nodegroup amiFamily.
+Each access entry has a type. For authorizing self-managed nodegroups, `eksctl` will create a unique access entry for each nodegroup with the principal ARN set to the node role ARN and type set to either `EC2_LINUX` or `EC2_WINDOWS` depending on nodegroup amiFamily.
 
+When creating your own access entries, you can also specify `EC2_LINUX` (for an IAM role used with Linux or Bottlerocket self-managed nodes), `EC2_WINDOWS` (for an IAM roles used with Windows self-managed nodes), `FARGATE_LINUX` (for an IAM roles used with AWS Fargate (Fargate)), or `STANDARD` as a type. If you don't specify a type, the default type is set to `STANDARD`.
 
 ## Managing access entries
 
 ### Create access entries
 
-This can be done in two different ways. Either during cluster creation, specifying the desired access entries as part of the config file and running:
+This can be done in two different ways, either during cluster creation, specifying the desired access entries as part of the config file and running:
 
-```
+```shell
 eksctl create cluster -f config.yaml
 ```
 
 OR post cluster creation, by running:
 
-```
+```shell
 eksctl create accessentry -f config.yaml
 ```
 
@@ -101,19 +107,19 @@ An example config file for creating access entries can be found [here](https://g
 
 The user can retieve all access entries associated with a certain cluster by running one of the following:
 
-```
+```shell
 eksctl get accessentry -f config.yaml
 ```
 
 OR
 
-```
+```shell
 eksctl get accessentry --cluster my-cluster
 ```
 
 Alternatively, to retrieve only the access entry corresponding to a certain IAM entity one shall use the `--principal-arn` flag. e.g.
 
-```
+```shell
 eksctl get accessentry --cluster my-cluster --principal-arn arn:aws:iam::111122223333:user/admin
 ```
 
@@ -121,7 +127,7 @@ eksctl get accessentry --cluster my-cluster --principal-arn arn:aws:iam::1111222
 
 To delete a single access entry at a time use:
 
-```
+```shell
 eksctl delete accessentry --cluster my-cluster --principal-arn arn:aws:iam::111122223333:user/admin
 ```
 
@@ -135,12 +141,12 @@ accessEntry:
   - principalARN: arn:aws:iam::111122223333:role/admin-role
 ```
 
-```
+```shell
 eksctl delete accessentry -f config.yaml
 ```
 
-
 ## Disabling cluster creator admin permissions
+
 `eksctl` has added a new field `accessConfig.bootstrapClusterCreatorAdminPermissions: boolean` that, when set to false, disables granting cluster-admin permissions to the IAM identity creating the cluster. i.e.
 
 add the option to the config file:
@@ -152,6 +158,6 @@ accessConfig:
 
 and run:
 
-```
+```shell
 eksctl create cluster -f config.yaml
 ```

@@ -4,9 +4,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
     "ARN": {
-      "$ref": "#/definitions/github.com|aws|aws-sdk-go-v2|aws|arn.ARN",
-      "description": "provides custom unmarshalling for an AWS ARN.",
-      "x-intellij-html-description": "provides custom unmarshalling for an AWS ARN."
+      "$ref": "#/definitions/github.com|aws|aws-sdk-go-v2|aws|arn.ARN"
     },
     "AZSubnetMapping": {
       "additionalProperties": {
@@ -74,23 +72,37 @@
           "items": {
             "$ref": "#/definitions/AccessPolicy"
           },
-          "type": "array"
+          "type": "array",
+          "description": "set of policies to associate with an access entry",
+          "x-intellij-html-description": "set of policies to associate with an access entry"
         },
         "kubernetesGroups": {
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "set of Kubernetes groups to map to the principal ARN",
+          "x-intellij-html-description": "set of Kubernetes groups to map to the principal ARN"
         },
         "kubernetesUsername": {
-          "type": "string"
+          "type": "string",
+          "description": "username to map to the principal ARN",
+          "x-intellij-html-description": "username to map to the principal ARN"
         },
         "principalARN": {
-          "$ref": "#/definitions/ARN"
+          "$ref": "#/definitions/ARN",
+          "description": "existing IAM principal ARN to associate with an access entry",
+          "x-intellij-html-description": "existing IAM principal ARN to associate with an access entry"
+        },
+        "type": {
+          "type": "string",
+          "description": "`EC2_LINUX`, `EC2_WINDOWS`, `FARGATE_LINUX` or `STANDARD`",
+          "x-intellij-html-description": "<code>EC2_LINUX</code>, <code>EC2_WINDOWS</code>, <code>FARGATE_LINUX</code> or <code>STANDARD</code>"
         }
       },
       "preferredOrder": [
         "principalARN",
+        "type",
         "kubernetesGroups",
         "kubernetesUsername",
         "accessPolicies"
@@ -122,10 +134,14 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "Scope access to namespace(s)",
+          "x-intellij-html-description": "Scope access to namespace(s)"
         },
         "type": {
-          "type": "string"
+          "$ref": "#/definitions/github.com|aws|aws-sdk-go-v2|service|eks|types.AccessScopeType",
+          "description": "`namespace` or `cluster`",
+          "x-intellij-html-description": "<code>namespace</code> or <code>cluster</code>"
         }
       },
       "preferredOrder": [
@@ -2523,6 +2539,9 @@
     "github.com|aws|aws-sdk-go-v2|aws|arn.ARN": {
       "description": "captures the individual fields of an Amazon Resource Name. See http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html for more information.",
       "x-intellij-html-description": "captures the individual fields of an Amazon Resource Name. See http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html for more information."
+    },
+    "github.com|aws|aws-sdk-go-v2|service|eks|types.AccessScopeType": {
+      "type": "string"
     },
     "github.com|aws|aws-sdk-go-v2|service|eks|types.AuthenticationMode": {
       "type": "string"
