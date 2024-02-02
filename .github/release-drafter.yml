@@ -29,10 +29,16 @@ template: |
   $CHANGES
 
   ## Acknowledgments
-  Weaveworks would like to sincerely thank:
+  The eksctl maintainers would like to sincerely thank:
   $CONTRIBUTORS
-replacers:
-  - search: '/@(Himangini|TiberiuGC|a-hilaly|yuxiang-zhang|cPu1|eksctl-bot|dependabot(?:\[bot\])?)(?:,| |$)/gm'
-    replace: ''
+
 exclude-labels:
   - 'skip-release-notes'
+exclude-contributors:
+  - 'Himangini'
+  - 'TiberiuGC'
+  - 'cPu1'
+  - 'a-hilaly'
+  - 'yuxiang-zhang'
+  - 'eksctl-bot'
+  - 'dependabot'
