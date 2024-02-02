@@ -37,7 +37,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 					{
 						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"),
 						AccessScope: api.AccessScope{
-							Type: "cluster",
+							Type: ekstypes.AccessScopeTypeCluster,
 						},
 					},
 				},
@@ -86,6 +86,65 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 		expectedErr: `accessEntries[0].accessScope.type must be set to either "namespace" or "cluster"`,
 	}),
 
+	Entry("invalid type", accessEntryTest{
+		authenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
+		accessEntries: []api.AccessEntry{
+			{
+				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
+				Type:         "ec2_linux",
+			},
+		},
+
+		expectedErr: `invalid access entry type "ec2_linux" for accessEntries[0]`,
+	}),
+
+	Entry("kubernetesGroups set for non-standard access entry type", accessEntryTest{
+		authenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
+		accessEntries: []api.AccessEntry{
+			{
+				PrincipalARN:     api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
+				Type:             "FARGATE_LINUX",
+				KubernetesGroups: []string{"dummy"},
+			},
+		},
+
+		expectedErr: `cannot specify accessEntries[0].kubernetesGroups nor accessEntries[0].kubernetesUsername when type is set to FARGATE_LINUX`,
+	}),
+
+	Entry("kubernetesUsername set for non-standard access entry type", accessEntryTest{
+		authenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
+		accessEntries: []api.AccessEntry{
+			{
+				PrincipalARN:       api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
+				Type:               "FARGATE_LINUX",
+				KubernetesUsername: "dummy",
+			},
+		},
+
+		expectedErr: `cannot specify accessEntries[0].kubernetesGroups nor accessEntries[0].kubernetesUsername when type is set to FARGATE_LINUX`,
+	}),
+
+	Entry("accessPolicies set for non-standard access entry type", accessEntryTest{
+		authenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
+		accessEntries: []api.AccessEntry{
+			{
+				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
+				Type:         "FARGATE_LINUX",
+				AccessPolicies: []api.AccessPolicy{
+					{
+						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"),
+						AccessScope: api.AccessScope{
+							Type:       ekstypes.AccessScopeTypeNamespace,
+							Namespaces: []string{"default"},
+						},
+					},
+				},
+			},
+		},
+
+		expectedErr: `cannot specify accessEntries[0].accessPolicies when type is set to FARGATE_LINUX`,
+	}),
+
 	Entry("invalid accessScope.type", accessEntryTest{
 		authenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
 		accessEntries: []api.AccessEntry{
@@ -114,7 +173,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 					{
 						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"),
 						AccessScope: api.AccessScope{
-							Type:       "cluster",
+							Type:       ekstypes.AccessScopeTypeCluster,
 							Namespaces: []string{"kube-system"},
 						},
 					},
@@ -134,7 +193,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 					{
 						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"),
 						AccessScope: api.AccessScope{
-							Type: "namespace",
+							Type: ekstypes.AccessScopeTypeNamespace,
 						},
 					},
 				},
@@ -153,7 +212,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 					{
 						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"),
 						AccessScope: api.AccessScope{
-							Type: "cluster",
+							Type: ekstypes.AccessScopeTypeCluster,
 						},
 					},
 				},
@@ -164,7 +223,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 					{
 						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"),
 						AccessScope: api.AccessScope{
-							Type: "cluster",
+							Type: ekstypes.AccessScopeTypeCluster,
 						},
 					},
 				},
@@ -175,7 +234,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 					{
 						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"),
 						AccessScope: api.AccessScope{
-							Type:       "namespace",
+							Type:       ekstypes.AccessScopeTypeNamespace,
 							Namespaces: []string{"default"},
 						},
 					},
@@ -195,7 +254,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 					{
 						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"),
 						AccessScope: api.AccessScope{
-							Type: "cluster",
+							Type: ekstypes.AccessScopeTypeCluster,
 						},
 					},
 				},
@@ -206,7 +265,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 					{
 						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"),
 						AccessScope: api.AccessScope{
-							Type: "cluster",
+							Type: ekstypes.AccessScopeTypeCluster,
 						},
 					},
 				},
@@ -216,11 +275,21 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 			},
 			{
 				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-4"),
+				Type:         "EC2_LINUX",
+			},
+			{
+				PrincipalARN:       api.MustParseARN("arn:aws:iam::111122223333:role/role-5"),
+				Type:               "STANDARD",
+				KubernetesGroups:   []string{"dummy", "dummy"},
+				KubernetesUsername: "dummy",
+			},
+			{
+				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-6"),
 				AccessPolicies: []api.AccessPolicy{
 					{
 						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"),
 						AccessScope: api.AccessScope{
-							Type:       "namespace",
+							Type:       ekstypes.AccessScopeTypeNamespace,
 							Namespaces: []string{"default"},
 						},
 					},

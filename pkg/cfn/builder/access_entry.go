@@ -34,10 +34,15 @@ func (a *AccessEntryResourceSet) AddAllResources() error {
 		accessPolicies = append(accessPolicies, gfneks.AccessEntry_AccessPolicy{
 			PolicyArn: gfnt.NewString(p.PolicyARN.String()),
 			AccessScope: &gfneks.AccessEntry_AccessScope{
-				Type:       gfnt.NewString(p.AccessScope.Type),
+				Type:       gfnt.NewString(string(p.AccessScope.Type)),
 				Namespaces: namespaces,
 			},
 		})
+	}
+
+	var entryType *gfnt.Value
+	if a.accessEntry.Type != "" {
+		entryType = gfnt.NewString(a.accessEntry.Type)
 	}
 
 	var kubernetesGroups *gfnt.Value
@@ -50,6 +55,7 @@ func (a *AccessEntryResourceSet) AddAllResources() error {
 	}
 	a.newResource("AccessEntry", &gfneks.AccessEntry{
 		PrincipalArn:     gfnt.NewString(a.accessEntry.PrincipalARN.String()),
+		Type:             entryType,
 		ClusterName:      gfnt.NewString(a.clusterName),
 		KubernetesGroups: kubernetesGroups,
 		Username:         username,

@@ -6,15 +6,23 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 )
 
 // AccessEntry represents an access entry for managing access to a cluster.
 type AccessEntry struct {
+	// existing IAM principal ARN to associate with an access entry
 	PrincipalARN ARN `json:"principalARN"`
+	// `EC2_LINUX`, `EC2_WINDOWS`, `FARGATE_LINUX` or `STANDARD`
+	// +optional
+	Type string `json:"type,omitempty"`
+	// set of Kubernetes groups to map to the principal ARN
 	// +optional
 	KubernetesGroups []string `json:"kubernetesGroups,omitempty"`
+	// username to map to the principal ARN
 	// +optional
 	KubernetesUsername string `json:"kubernetesUsername,omitempty"`
+	// set of policies to associate with an access entry
 	// +optional
 	AccessPolicies []AccessPolicy `json:"accessPolicies,omitempty"`
 }
@@ -27,13 +35,16 @@ type AccessPolicy struct {
 
 // AccessScope defines the scope of an access policy.
 type AccessScope struct {
-	Type string `json:"type"`
+	// `namespace` or `cluster`
+	Type ekstypes.AccessScopeType `json:"type"`
+	// Scope access to namespace(s)
 	// +optional
 	Namespaces []string `json:"namespaces,omitempty"`
 }
 
-// ARN provides custom unmarshalling for an AWS ARN.
 type ARN arn.ARN
+
+// ARN provides custom unmarshalling for an AWS ARN.
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (a *ARN) UnmarshalText(arnStr []byte) error {
@@ -92,6 +103,19 @@ func validateAccessEntries(accessEntries []AccessEntry) error {
 			return fmt.Errorf("%s.principalARN must be set to a valid AWS ARN", path)
 		}
 
+		switch ae.Type {
+		case "", "STANDARD":
+		case "EC2_LINUX", "EC2_WINDOWS", "FARGATE_LINUX":
+			if len(ae.KubernetesGroups) > 0 || ae.KubernetesUsername != "" {
+				return fmt.Errorf("cannot specify %s.kubernetesGroups nor %s.kubernetesUsername when type is set to %s", path, path, ae.Type)
+			}
+			if len(ae.AccessPolicies) > 0 {
+				return fmt.Errorf("cannot specify %s.accessPolicies when type is set to %s", path, ae.Type)
+			}
+		default:
+			return fmt.Errorf("invalid access entry type %q for %s", ae.Type, path)
+		}
+
 		for _, ap := range ae.AccessPolicies {
 			if ap.PolicyARN.IsZero() {
 				return fmt.Errorf("%s.policyARN must be set to a valid AWS ARN", path)
@@ -105,15 +129,14 @@ func validateAccessEntries(accessEntries []AccessEntry) error {
 				return fmt.Errorf("invalid %s.policyARN", path)
 			}
 
-			// TODO: use SDK enums.
 			switch typ := ap.AccessScope.Type; typ {
 			case "":
-				return fmt.Errorf("%s.accessScope.type must be set to either %q or %q", path, "namespace", "cluster")
-			case "cluster":
+				return fmt.Errorf("%s.accessScope.type must be set to either %q or %q", path, ekstypes.AccessScopeTypeNamespace, ekstypes.AccessScopeTypeCluster)
+			case ekstypes.AccessScopeTypeCluster:
 				if len(ap.AccessScope.Namespaces) > 0 {
 					return fmt.Errorf("cannot specify %s.accessScope.namespaces when accessScope is set to %s", path, typ)
 				}
-			case "namespace":
+			case ekstypes.AccessScopeTypeNamespace:
 				if len(ap.AccessScope.Namespaces) == 0 {
 					return fmt.Errorf("at least one namespace must be specified when accessScope is set to %s: (%s)", typ, path)
 				}

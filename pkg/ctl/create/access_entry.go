@@ -76,6 +76,7 @@ func doCreateAccessEntry(cmd *cmdutils.Cmd) error {
 func configureCreateAccessEntryCmd(cmd *cmdutils.Cmd, accessEntry *api.AccessEntry) {
 	cmd.FlagSetGroup.InFlagSet("Access Entry", func(fs *pflag.FlagSet) {
 		fs.VarP(&accessEntry.PrincipalARN, "principal-arn", "", "Principal ARN")
+		fs.StringVar(&accessEntry.Type, "type", "", "Type of Access Entry")
 		fs.StringSliceVar(&accessEntry.KubernetesGroups, "kubernetes-groups", nil, "A set of Kubernetes groups to map to the principal ARN")
 		fs.StringVar(&accessEntry.KubernetesUsername, "kubernetes-username", "", "A Kubernetes username to map to the principal ARN")
 	})
