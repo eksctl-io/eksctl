@@ -81,7 +81,7 @@ func (aeg *Getter) getIndividualEntry(ctx context.Context, principalARN string) 
 		p := api.AccessPolicy{
 			PolicyARN: api.MustParseARN(*policy.PolicyArn),
 			AccessScope: api.AccessScope{
-				Type:       string(policy.AccessScope.Type),
+				Type:       policy.AccessScope.Type,
 				Namespaces: policy.AccessScope.Namespaces,
 			},
 		}

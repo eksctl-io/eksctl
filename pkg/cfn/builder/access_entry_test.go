@@ -4,6 +4,8 @@ import (
 	"os"
 	"path"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	. "github.com/benjamintf1/unmarshalledmatchers"
 	. "github.com/onsi/ginkgo/v2"
 
@@ -58,19 +60,28 @@ var _ = Describe("Access Entry", func() {
 					{
 						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"),
 						AccessScope: api.AccessScope{
-							Type:       "namespace",
+							Type:       ekstypes.AccessScopeTypeNamespace,
 							Namespaces: []string{"kube-system", "default"},
 						},
 					},
 					{
 						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"),
 						AccessScope: api.AccessScope{
-							Type: "cluster",
+							Type: ekstypes.AccessScopeTypeCluster,
 						},
 					},
 				},
 			},
 			resourceFilename: "3.json",
+		}),
+
+		Entry("type set", accessEntryCase{
+			clusterName: "cluster",
+			accessEntry: api.AccessEntry{
+				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
+				Type:         "EC2_LINUX",
+			},
+			resourceFilename: "4.json",
 		}),
 	)
 })
