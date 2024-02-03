@@ -2,17 +2,16 @@
 
 !!! tip "New for 2023"
     `eksctl` now supports configuring cluster access management via [AWS EKS Access Entries](/usage/access-entries).
-    
+
     `eksctl` now supports configuring fine-grained permissions to EKS running apps via [EKS Pod Identity Associations](/usage/pod-identity-associations)
 
-    
     `eksctl` now supports [updating the subnets and security groups](/usage/cluster-subnets-security-groups) associated with the EKS control plane.
-    
+
     `eksctl` now supports creating fully private clusters on [AWS Outposts](/usage/outposts).
 
     `eksctl` now supports new ISO regions `us-iso-east-1` and `us-isob-east-1`.
 
-    `eksctl` now supports new regions - Calgary (`ca-west-1`), Zurich (`eu-central-2`), Spain (`eu-south-2`), Hyderabad (`ap-south-2`),  Melbourne (`ap-southeast-4`) and Tel Aviv (`il-central-1`).
+    `eksctl` now supports new regions - Calgary (`ca-west-1`), Tel Aviv (`il-central-1`), Melbourne (`ap-southeast-4`), Hyderabad (`ap-south-2`), Spain (`eu-south-2`) and Zurich (`eu-central-2`).
 
 `eksctl` is a simple CLI tool for creating and managing clusters on EKS - Amazon's managed Kubernetes service for EC2.
 It is written in Go, uses CloudFormation, was created by [Weaveworks](https://www.weave.works/) and it welcomes
@@ -32,38 +31,37 @@ contributions from the community.
     - `us-west-2` region
     - a dedicated VPC (check your quotas)
 
-Example output:
-
-```sh
-$ eksctl create cluster
-[ℹ]  using region us-west-2
-[ℹ]  setting availability zones to [us-west-2a us-west-2c us-west-2b]
-[ℹ]  subnets for us-west-2a - public:192.168.0.0/19 private:192.168.96.0/19
-[ℹ]  subnets for us-west-2c - public:192.168.32.0/19 private:192.168.128.0/19
-[ℹ]  subnets for us-west-2b - public:192.168.64.0/19 private:192.168.160.0/19
-[ℹ]  nodegroup "ng-98b3b83a" will use "ami-05ecac759c81e0b0c" [AmazonLinux2/1.11]
-[ℹ]  creating EKS cluster "floral-unicorn-1540567338" in "us-west-2" region
-[ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
-[ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-west-2 --cluster=floral-unicorn-1540567338'
-[ℹ]  2 sequential tasks: { create cluster control plane "floral-unicorn-1540567338", create nodegroup "ng-98b3b83a" }
-[ℹ]  building cluster stack "eksctl-floral-unicorn-1540567338-cluster"
-[ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-cluster"
-[ℹ]  building nodegroup stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
-[ℹ]  --nodes-min=2 was set automatically for nodegroup ng-98b3b83a
-[ℹ]  --nodes-max=2 was set automatically for nodegroup ng-98b3b83a
-[ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
-[✔]  all EKS cluster resource for "floral-unicorn-1540567338" had been created
-[✔]  saved kubeconfig as "~/.kube/config"
-[ℹ]  adding role "arn:aws:iam::376248598259:role/eksctl-ridiculous-sculpture-15547-NodeInstanceRole-1F3IHNVD03Z74" to auth ConfigMap
-[ℹ]  nodegroup "ng-98b3b83a" has 1 node(s)
-[ℹ]  node "ip-192-168-64-220.us-west-2.compute.internal" is not ready
-[ℹ]  waiting for at least 2 node(s) to become ready in "ng-98b3b83a"
-[ℹ]  nodegroup "ng-98b3b83a" has 2 node(s)
-[ℹ]  node "ip-192-168-64-220.us-west-2.compute.internal" is ready
-[ℹ]  node "ip-192-168-8-135.us-west-2.compute.internal" is ready
-[ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
-[✔]  EKS cluster "floral-unicorn-1540567338" in "us-west-2" region is ready
-```
+    ???- info "Example output"
+        ```sh
+          $ eksctl create cluster
+          [ℹ]  using region us-west-2
+          [ℹ]  setting availability zones to [us-west-2a us-west-2c us-west-2b]
+          [ℹ]  subnets for us-west-2a - public:192.168.0.0/19 private:192.168.96.0/19
+          [ℹ]  subnets for us-west-2c - public:192.168.32.0/19 private:192.168.128.0/19
+          [ℹ]  subnets for us-west-2b - public:192.168.64.0/19 private:192.168.160.0/19
+          [ℹ]  nodegroup "ng-98b3b83a" will use "ami-05ecac759c81e0b0c" [AmazonLinux2/1.11]
+          [ℹ]  creating EKS cluster "floral-unicorn-1540567338" in "us-west-2" region
+          [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
+          [ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-west-2 --cluster=floral-unicorn-1540567338'
+          [ℹ]  2 sequential tasks: { create cluster control plane "floral-unicorn-1540567338", create nodegroup "ng-98b3b83a" }
+          [ℹ]  building cluster stack "eksctl-floral-unicorn-1540567338-cluster"
+          [ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-cluster"
+          [ℹ]  building nodegroup stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
+          [ℹ]  --nodes-min=2 was set automatically for nodegroup ng-98b3b83a
+          [ℹ]  --nodes-max=2 was set automatically for nodegroup ng-98b3b83a
+          [ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
+          [✔]  all EKS cluster resource for "floral-unicorn-1540567338" had been created
+          [✔]  saved kubeconfig as "~/.kube/config"
+          [ℹ]  adding role "arn:aws:iam::376248598259:role/eksctl-ridiculous-sculpture-15547-NodeInstanceRole-1F3IHNVD03Z74" to auth ConfigMap
+          [ℹ]  nodegroup "ng-98b3b83a" has 1 node(s)
+          [ℹ]  node "ip-192-168-64-220.us-west-2.compute.internal" is not ready
+          [ℹ]  waiting for at least 2 node(s) to become ready in "ng-98b3b83a"
+          [ℹ]  nodegroup "ng-98b3b83a" has 2 node(s)
+          [ℹ]  node "ip-192-168-64-220.us-west-2.compute.internal" is ready
+          [ℹ]  node "ip-192-168-8-135.us-west-2.compute.internal" is ready
+          [ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
+          [✔]  EKS cluster "floral-unicorn-1540567338" in "us-west-2" region is ready
+        ```
 
 Customize your cluster by using a config file. Just run
 
@@ -101,7 +99,15 @@ To learn more about how to create clusters and other features continue reading t
 
 [ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
-### Basic cluster creation
+## Listing clusters
+
+To list the details about a cluster or all of the clusters, use:
+
+```sh
+eksctl get cluster [--name=<name>] [--region=<region>]
+```
+
+## Basic cluster creation
 
 To create a basic cluster, but with a different name, run:
 
@@ -116,15 +122,7 @@ With `eksctl` you can deploy any of the supported versions by passing `--version
 eksctl create cluster --version=1.24
 ```
 
-### Listing clusters
-
-To list the details about a cluster or all of the clusters, use:
-
-```sh
-eksctl get cluster [--name=<name>][--region=<region>]
-```
-
-#### Config-based creation
+### Config-based creation
 
 You can also create a cluster passing all configuration information in a file
 using `--config-file`:
@@ -140,7 +138,7 @@ nodegroups until later:
 eksctl create cluster --config-file=<path> --without-nodegroup
 ```
 
-#### Cluster credentials
+### Cluster credentials
 
 To write cluster credentials to a file other than default, run:
 
@@ -163,10 +161,10 @@ eksctl create cluster --name=cluster-3 --nodes=4 --auto-kubeconfig
 To obtain cluster credentials at any point in time, run:
 
 ```sh
-eksctl utils write-kubeconfig --cluster=<name> [--kubeconfig=<path>][--set-kubeconfig-context=<bool>]
+eksctl utils write-kubeconfig --cluster=<name> [--kubeconfig=<path>] [--set-kubeconfig-context=<bool>]
 ```
 
-#### Caching Credentials
+### Caching Credentials
 
 `eksctl` supports caching credentials. This is useful when using MFA and not wanting to continuously enter the MFA
 token on each `eksctl` command run.
@@ -184,7 +182,7 @@ It's also possible to configure the location of this cache file using `EKSCTL_CR
 be the **full path** to a file in which to store the cached credentials. These are credentials, so make sure the access
 of this file is restricted to the current user and in a secure location.
 
-### Autoscaling
+## Autoscaling
 
 To use a 3-5 node Auto Scaling Group, run:
 
@@ -196,7 +194,7 @@ You will still need to install and configure Auto Scaling. See the "Enable Auto 
 note that depending on your workloads you might need to use a separate nodegroup for each AZ. See [Zone-aware
 Auto Scaling](/usage/autoscaling/) for more info.
 
-### SSH access
+## SSH access
 
 In order to allow SSH access to nodes, `eksctl` imports `~/.ssh/id_rsa.pub` by default, to use a different SSH public key, e.g. `my_eks_node_id.pub`, run:
 
@@ -218,7 +216,7 @@ eksctl create cluster --enable-ssm
 
 If you are creating managed nodes with a custom launch template, the `--enable-ssm` flag is disallowed.
 
-### Tagging
+## Tagging
 
 To add custom tags for all resources, use `--tags`.
 
@@ -226,7 +224,7 @@ To add custom tags for all resources, use `--tags`.
 eksctl create cluster --tags environment=staging --region=us-east-1
 ```
 
-### Volume size
+## Volume size
 
 To configure node root volume, use the `--node-volume-size` (and optionally `--node-volume-type`), e.g.:
 
@@ -237,7 +235,7 @@ eksctl create cluster --node-volume-size=50 --node-volume-type=io1
 ???+ note
     The default volume size is 80G.
 
-### Deletion
+## Deletion
 
 To delete a cluster, run:
 

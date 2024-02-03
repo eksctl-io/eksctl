@@ -42,7 +42,6 @@ theme:
     features:
       - header.autohide
       - navigation.instant
-      - navigation.sections
       - navigation.top
       - navigation.tabs
       - navigation.tabs.sticky
@@ -135,10 +134,13 @@ nav:
   - Getting Started:
       - Introduction: getting-started.md
       - Installation: installation.md
+      - Config File Schema: usage/schema.md
+      - Dry Run: usage/dry-run.md
+      - FAQ: usage/faq.md
       - Announcements:
         - announcements/managed-nodegroups-announcement.md
         - announcements/nodegroup-override-announcement.md
-  - Usage:
+  - User Guide:
     - Clusters:
       - usage/creating-and-managing-clusters.md
       - usage/access-entries.md
@@ -170,6 +172,8 @@ nav:
       - usage/container-runtime.md
       - usage/windows-worker-nodes.md
       - usage/nodegroup-additional-volume-mappings.md
+    - usage/eksctl-karpenter.md
+    - usage/eksctl-anywhere.md
     - GitOps:
       - usage/gitops-v2.md
     - Security:
@@ -189,12 +193,10 @@ nav:
       - usage/iam-identity-mappings.md
       - usage/iamserviceaccounts.md
       - usage/pod-identity-associations.md
-    - usage/dry-run.md
     - usage/schema.md
-    - usage/eksctl-anywhere.md
-    - usage/eksctl-karpenter.md
+    - usage/dry-run.md
     - usage/troubleshooting.md
     - FAQ: usage/faq.md
-  - Examples: "https://github.com/eksctl-io/eksctl/tree/main/examples"
+  - Example Configs: "https://github.com/eksctl-io/eksctl/tree/main/examples"
   - Community: community.md
   - Adopters: adopters.md

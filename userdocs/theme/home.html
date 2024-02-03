@@ -103,7 +103,8 @@
         .mdx-parallax__group:first-child {
             background-color: initial;
             contain: strict;
-            height: 100vh
+            height: 30vw;
+            min-height: 300px;
         }
 
         .safari .mdx-parallax__group:first-child {
@@ -112,13 +113,13 @@
 
         @media (min-width: 125vh) {
             .mdx-parallax__group:first-child {
-                height:110vw
+                height:30vw
             }
         }
 
         @media (min-width: 137.5vh) {
             .mdx-parallax__group:first-child {
-                height:115vw
+                height:30vw
             }
         }
 
@@ -487,22 +488,17 @@
 <!-- Main site hero -->
     <section class="mdx-parallax__group tx-container" data-md-color-scheme="slate">
         <div class="mdx-hero" data-mdx-component="hero">
+            <!-- 
             <picture class="tx-hero__image"> 
-                <!-- <img src="assets/images/illustration.png" draggable="false"> Todo: Add a nicer illustration -->
+                <img src="assets/images/illustration.png" draggable="false">
             </picture>
-            <div class="md-grid">
-                <div class="mdx-hero__inner"> 
-                    <div class="mdx-hero__teaser md-typeset"> 
-                        <h1>{{ config.site_description }}.</h1> 
-                        <p>eksctl is a simple CLI tool for creating and managing clusters on EKS - Amazon's managed Kubernetes service for EC2.</p> 
-                        <a href="/getting-started/" class="md-button"> Get started </a> 
-                        <a href="#create-cluster-in-minutes" class="md-button md-button--secondary"> Learn more </a>
-                    </div>
-                    <div class="mdx-hero__more"> 
-                        <span class="twemoji"> 
-                            {% include ".icons/fontawesome/solid/arrow-down-long.svg" %} 
-                        </span>
-                    </div> 
+            Todo: Add a nicer illustration -->
+            <div class="md-grid mdx-hero__inner">
+                <div class="mdx-hero__teaser md-typeset"> 
+                    <h1>{{ config.site_description }}.</h1> 
+                    <p>eksctl is a simple CLI tool for creating and managing clusters on EKS - Amazon's managed Kubernetes service for EC2.</p> 
+                    <a href="/getting-started/" class="md-button"> Get started </a> 
+                    <a href="#create-cluster-in-minutes" class="md-button md-button--secondary"> Learn more </a>
                 </div>
             </div>
         </div>
@@ -544,12 +540,14 @@
                             <p>Configuring cluster access management via <a href="/usage/access-entries">AWS EKS Access Entries</a>.</p>
                             <p>Configuring fine-grained permissions to EKS running apps via <a href="/usage/pod-identity-associations">EKS Pod Identity Associations</a>.</p>
                             <p>Creating fully private clusters on <a href="/usage/outposts">AWS Outposts</a>.</p> 
-                            <p>Supported Regions - Zurich (<code>eu-central-2</code>), 
-                                    Spain (<code>eu-south-2</code>), 
-                                    Hyderabad (<code>ap-south-2</code>), 
-                                    Melbourne (<code>ap-southeast-4</code>), 
-                                    Tel Aviv (<code>il-central-1</code>), 
-                                    US ISO - (<code>us-iso-east-1</code> and <code>us-isob-east-1</code>)
+                            <p>Supported Regions - 
+                                Calgary - (<code>ca-west-1</code>), 
+                                US ISO and ISOB - (<code>us-iso-east-1</code> and <code>us-isob-east-1</code>), 
+                                Tel Aviv (<code>il-central-1</code>), 
+                                Melbourne (<code>ap-southeast-4</code>), 
+                                Hyderabad (<code>ap-south-2</code>), 
+                                Spain (<code>eu-south-2</code>), 
+                                Zurich (<code>eu-central-2</code>)
                             </p>
                             <p>EKS supported versions <code>1.25</code>, <code>1.26</code>, <code>1.27</code> (default) and <code>1.28</code>.</p> 
                             <p><a href="/usage/creating-and-managing-clusters/" aria-label="Usage"> 
