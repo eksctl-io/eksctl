@@ -20,8 +20,9 @@ img[src$="#wwinline"] {
   --md-default-fg-color: #c8cad5;
 }
 
-a.md-button.announce {
+.announce {
     padding: 0.3em 0.3em;
+    background-color: var(--md-primary-bg-color);
 }
 
 .md-header__button.md-logo img, .md-header__button.md-logo svg {
