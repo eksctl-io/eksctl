@@ -52,16 +52,17 @@ The `--node-ami` flag can also be used with `eksctl create nodegroup`.
 
 The `--node-ami-family` can take following keywords:
 
-| Keyword                        |                                          Description                                         |
-|--------------------------------|:--------------------------------------------------------------------------------------------:|
-| AmazonLinux2                   | Indicates that the EKS AMI image based on Amazon Linux 2 should be used (default).           |
-| Ubuntu2004                     | Indicates that the EKS AMI image based on Ubuntu 20.04 LTS (Focal) should be used.           |
-| Ubuntu1804                     | Indicates that the EKS AMI image based on Ubuntu 18.04 LTS (Bionic) should be used.          |
-| Bottlerocket                   | Indicates that the EKS AMI image based on Bottlerocket should be used.                       |
-| WindowsServer2019FullContainer | Indicates that the EKS AMI image based on Windows Server 2019 Full Container should be used. |
-| WindowsServer2019CoreContainer | Indicates that the EKS AMI image based on Windows Server 2019 Core Container should be used. |
-| WindowsServer2022FullContainer | Indicates that the EKS AMI image based on Windows Server 2022 Full Container should be used. |
-| WindowsServer2022CoreContainer | Indicates that the EKS AMI image based on Windows Server 2022 Core Container should be used. |
+| Keyword                        |                                          Description                                                           |
+|--------------------------------|:--------------------------------------------------------------------------------------------------------------:|
+| AmazonLinux2                   | Indicates that the EKS AMI image based on Amazon Linux 2 should be used (default).                             |
+| Ubuntu2204                     | Indicates that the EKS AMI image based on Ubuntu 22.04 LTS (Jammy) should be used (available for EKS >= 1.29). |
+| Ubuntu2004                     | Indicates that the EKS AMI image based on Ubuntu 20.04 LTS (Focal) should be used.                             |
+| Ubuntu1804                     | Indicates that the EKS AMI image based on Ubuntu 18.04 LTS (Bionic) should be used.                            |
+| Bottlerocket                   | Indicates that the EKS AMI image based on Bottlerocket should be used.                                         |
+| WindowsServer2019FullContainer | Indicates that the EKS AMI image based on Windows Server 2019 Full Container should be used.                   |
+| WindowsServer2019CoreContainer | Indicates that the EKS AMI image based on Windows Server 2019 Core Container should be used.                   |
+| WindowsServer2022FullContainer | Indicates that the EKS AMI image based on Windows Server 2022 Full Container should be used.                   |
+| WindowsServer2022CoreContainer | Indicates that the EKS AMI image based on Windows Server 2022 Core Container should be used.                   |
 
 CLI flag example:
 ```sh
@@ -77,13 +78,13 @@ nodeGroups:
 managedNodeGroups:
   - name: m-ng-2
     instanceType: m5.large
-    amiFamily: Ubuntu2004
+    amiFamily: Ubuntu2204
 ```
 
 The `--node-ami-family` flag can also be used with `eksctl create nodegroup`. `eksctl` requires AMI Family to be explicitly set via config file or via `--node-ami-family` CLI flag, whenever working with a custom AMI.
 
 ???+ note
-    At the moment, EKS managed nodegroups only support the following AMI Families when working with custom AMIs: `AmazonLinux2`, `Ubuntu1804` and `Ubuntu2004`
+    At the moment, EKS managed nodegroups only support the following AMI Families when working with custom AMIs: `AmazonLinux2`, `Ubuntu1804`, `Ubuntu2004` and `Ubuntu2204`
 
 ## Windows custom AMI support
 Only self-managed Windows nodegroups can specify a custom AMI. `amiFamily` should be set to a valid Windows AMI family.
