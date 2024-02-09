@@ -48,7 +48,7 @@ func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Boots
 		return NewWindowsBootstrapper(clusterConfig, ng, clusterDNS), nil
 	}
 	switch ng.AMIFamily {
-	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
+	case api.NodeImageFamilyUbuntu2204, api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
 		return NewUbuntuBootstrapper(clusterConfig, ng, clusterDNS), nil
 	case api.NodeImageFamilyBottlerocket:
 		return NewBottlerocketBootstrapper(clusterConfig, ng), nil
@@ -72,7 +72,7 @@ func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNod
 		return NewManagedAL2Bootstrapper(ng), nil
 	case api.NodeImageFamilyBottlerocket:
 		return NewManagedBottlerocketBootstrapper(clusterConfig, ng), nil
-	case api.NodeImageFamilyUbuntu1804, api.NodeImageFamilyUbuntu2004:
+	case api.NodeImageFamilyUbuntu1804, api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu2204:
 		clusterDNS, err := GetClusterDNS(clusterConfig)
 		if err != nil {
 			return nil, err
