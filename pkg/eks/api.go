@@ -186,6 +186,10 @@ func newAWSProvider(spec *api.ProviderConfig, configurationLoader AWSConfigurati
 		return nil, err
 	}
 
+	if cfg.Region == "" {
+		return nil, fmt.Errorf("AWS Region must be set, please set the AWS Region in AWS config file or as environment variable")
+	}
+
 	if spec.Region == "" {
 		spec.Region = cfg.Region
 	}

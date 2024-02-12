@@ -118,6 +118,14 @@ var _ = Describe("eksctl API", func() {
 			},
 			err: fmt.Sprintf("cache file %s is not private", cacheFilePath),
 		}),
+		Entry("region code is not set", newAWSProviderEntry{
+			updateFakes: func(fal *fakes.FakeAWSConfigurationLoader) {
+				fal.LoadDefaultConfigReturns(aws.Config{
+					Region: "",
+				}, nil)
+			},
+			err: "AWS Region must be set, please set the AWS Region in AWS config file or as environment variable",
+		}),
 		Entry("creates the AWS provider successfully", newAWSProviderEntry{}),
 	)
 
