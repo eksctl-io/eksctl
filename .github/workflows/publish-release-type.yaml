@@ -27,25 +27,8 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
           echo "Available storage:"
           df -h
-      - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
-      - name: Setup Go
-        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 #v5.0.0
-        with:
-          go-version: 1.20.x
-          cache: false
-      - name: Cache go-build and mod
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 #v4.0.0
-        with:
-          path: |
-            ~/.cache/go-build/
-            ~/go/pkg/mod/
-          key: go-${{ hashFiles('go.sum') }}
-          restore-keys: |
-            go-
-      - name: Setup deps
-        run: |
-          make install-build-deps
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
       - name: Publish release
         if: ${{ !inputs.isReleaseCandidate }}
         env:
