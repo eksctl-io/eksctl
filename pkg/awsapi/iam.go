@@ -140,12 +140,13 @@ type IAM interface {
 	// Amazon Web Services. Amazon Web Services secures communication with some OIDC
 	// identity providers (IdPs) through our library of trusted root certificate
 	// authorities (CAs) instead of using a certificate thumbprint to verify your IdP
-	// server certificate. These OIDC IdPs include Auth0, GitHub, Google, and those
-	// that use an Amazon S3 bucket to host a JSON Web Key Set (JWKS) endpoint. In
-	// these cases, your legacy thumbprint remains in your configuration, but is no
-	// longer used for validation. The trust for the OIDC provider is derived from the
-	// IAM provider that this operation creates. Therefore, it is best to limit access
-	// to the CreateOpenIDConnectProvider operation to highly privileged users.
+	// server certificate. In these cases, your legacy thumbprint remains in your
+	// configuration, but is no longer used for validation. These OIDC IdPs include
+	// Auth0, GitHub, GitLab, Google, and those that use an Amazon S3 bucket to host a
+	// JSON Web Key Set (JWKS) endpoint. The trust for the OIDC provider is derived
+	// from the IAM provider that this operation creates. Therefore, it is best to
+	// limit access to the CreateOpenIDConnectProvider operation to highly privileged
+	// users.
 	CreateOpenIDConnectProvider(ctx context.Context, params *CreateOpenIDConnectProviderInput, optFns ...func(*Options)) (*CreateOpenIDConnectProviderOutput, error)
 	// Creates a new managed policy for your Amazon Web Services account. This
 	// operation creates a policy version with a version identifier of v1 and sets v1
@@ -1613,13 +1614,13 @@ type IAM interface {
 	// the certificate thumbprint is updated. Amazon Web Services secures communication
 	// with some OIDC identity providers (IdPs) through our library of trusted root
 	// certificate authorities (CAs) instead of using a certificate thumbprint to
-	// verify your IdP server certificate. These OIDC IdPs include Auth0, GitHub,
-	// Google, and those that use an Amazon S3 bucket to host a JSON Web Key Set (JWKS)
-	// endpoint. In these cases, your legacy thumbprint remains in your configuration,
-	// but is no longer used for validation. Trust for the OIDC provider is derived
-	// from the provider certificate and is validated by the thumbprint. Therefore, it
-	// is best to limit access to the UpdateOpenIDConnectProviderThumbprint operation
-	// to highly privileged users.
+	// verify your IdP server certificate. In these cases, your legacy thumbprint
+	// remains in your configuration, but is no longer used for validation. These OIDC
+	// IdPs include Auth0, GitHub, GitLab, Google, and those that use an Amazon S3
+	// bucket to host a JSON Web Key Set (JWKS) endpoint. Trust for the OIDC provider
+	// is derived from the provider certificate and is validated by the thumbprint.
+	// Therefore, it is best to limit access to the
+	// UpdateOpenIDConnectProviderThumbprint operation to highly privileged users.
 	UpdateOpenIDConnectProviderThumbprint(ctx context.Context, params *UpdateOpenIDConnectProviderThumbprintInput, optFns ...func(*Options)) (*UpdateOpenIDConnectProviderThumbprintOutput, error)
 	// Updates the description or maximum session duration setting of a role.
 	UpdateRole(ctx context.Context, params *UpdateRoleInput, optFns ...func(*Options)) (*UpdateRoleOutput, error)

@@ -234,7 +234,9 @@ type SSM interface {
 	// Information about all active and terminated step executions in an Automation
 	// workflow.
 	DescribeAutomationStepExecutions(ctx context.Context, params *DescribeAutomationStepExecutionsInput, optFns ...func(*Options)) (*DescribeAutomationStepExecutionsOutput, error)
-	// Lists all patches eligible to be included in a patch baseline.
+	// Lists all patches eligible to be included in a patch baseline. Currently,
+	// DescribeAvailablePatches supports only the Amazon Linux 1, Amazon Linux 2, and
+	// Windows Server operating systems.
 	DescribeAvailablePatches(ctx context.Context, params *DescribeAvailablePatchesInput, optFns ...func(*Options)) (*DescribeAvailablePatchesOutput, error)
 	// Describes the specified Amazon Web Services Systems Manager document (SSM
 	// document).

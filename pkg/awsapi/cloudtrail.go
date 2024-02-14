@@ -74,10 +74,11 @@ type CloudTrail interface {
 	// for your account.
 	DescribeTrails(ctx context.Context, params *DescribeTrailsInput, optFns ...func(*Options)) (*DescribeTrailsOutput, error)
 	// Disables Lake query federation on the specified event data store. When you
-	// disable federation, CloudTrail removes the metadata associated with the
-	// federated event data store in the Glue Data Catalog and removes registration for
-	// the federation role ARN and event data store in Lake Formation. No CloudTrail
-	// Lake data is deleted when you disable federation.
+	// disable federation, CloudTrail disables the integration with Glue, Lake
+	// Formation, and Amazon Athena. After disabling Lake query federation, you can no
+	// longer query your event data in Amazon Athena. No CloudTrail Lake data is
+	// deleted when you disable federation and you can continue to run queries in
+	// CloudTrail Lake.
 	DisableFederation(ctx context.Context, params *DisableFederationInput, optFns ...func(*Options)) (*DisableFederationOutput, error)
 	// Enables Lake query federation on the specified event data store. Federating an
 	// event data store lets you view the metadata associated with the event data store
@@ -85,13 +86,13 @@ type CloudTrail interface {
 	// and run SQL queries against your event data using Amazon Athena. The table
 	// metadata stored in the Glue Data Catalog lets the Athena query engine know how
 	// to find, read, and process the data that you want to query. When you enable Lake
-	// query federation, CloudTrail creates a federated database named aws:cloudtrail
-	// (if the database doesn't already exist) and a federated table in the Glue Data
-	// Catalog. The event data store ID is used for the table name. CloudTrail
-	// registers the role ARN and event data store in Lake Formation (https://docs.aws.amazon.com/lake-formation/latest/dg/how-it-works.html)
-	// , the service responsible for revoking or granting permissions to the federated
-	// resources in the Glue Data Catalog. For more information about Lake query
-	// federation, see Federate an event data store (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/query-federation.html)
+	// query federation, CloudTrail creates a managed database named aws:cloudtrail
+	// (if the database doesn't already exist) and a managed federated table in the
+	// Glue Data Catalog. The event data store ID is used for the table name.
+	// CloudTrail registers the role ARN and event data store in Lake Formation (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/query-federation-lake-formation.html)
+	// , the service responsible for allowing fine-grained access control of the
+	// federated resources in the Glue Data Catalog. For more information about Lake
+	// query federation, see Federate an event data store (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/query-federation.html)
 	// .
 	EnableFederation(ctx context.Context, params *EnableFederationInput, optFns ...func(*Options)) (*EnableFederationOutput, error)
 	// Returns information about a specific channel.
@@ -151,6 +152,22 @@ type CloudTrail interface {
 	// Returns information on all imports, or a select set of imports by ImportStatus
 	// or Destination .
 	ListImports(ctx context.Context, params *ListImportsInput, optFns ...func(*Options)) (*ListImportsOutput, error)
+	// Returns Insights metrics data for trails that have enabled Insights. The
+	// request must include the EventSource , EventName , and InsightType parameters.
+	// If the InsightType is set to ApiErrorRateInsight , the request must also include
+	// the ErrorCode parameter. The following are the available time periods for
+	// ListInsightsMetricData . Each cutoff is inclusive.
+	//   - Data points with a period of 60 seconds (1-minute) are available for 15
+	//     days.
+	//   - Data points with a period of 300 seconds (5-minute) are available for 63
+	//     days.
+	//   - Data points with a period of 3600 seconds (1 hour) are available for 90
+	//     days.
+	//
+	// Access to the ListInsightsMetricData API operation is linked to the
+	// cloudtrail:LookupEvents action. To use this operation, you must have permissions
+	// to perform the cloudtrail:LookupEvents action.
+	ListInsightsMetricData(ctx context.Context, params *ListInsightsMetricDataInput, optFns ...func(*Options)) (*ListInsightsMetricDataOutput, error)
 	// Returns all public keys whose private keys were used to sign the digest files
 	// within the specified time range. The public key is needed to validate digest
 	// files that were signed with its corresponding private key. CloudTrail uses
@@ -335,11 +352,11 @@ type CloudTrail interface {
 	// set to EXTENDABLE_RETENTION_PRICING , or between 7 and 2557 if BillingMode is
 	// set to FIXED_RETENTION_PRICING . By default, TerminationProtection is enabled.
 	// For event data stores for CloudTrail events, AdvancedEventSelectors includes or
-	// excludes management, data, or Insights events in your event data store. For more
+	// excludes management or data events in your event data store. For more
 	// information about AdvancedEventSelectors , see AdvancedEventSelectors (https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedEventSelector.html)
-	// . For event data stores for Config configuration items, Audit Manager evidence,
-	// or non-Amazon Web Services events, AdvancedEventSelectors includes events of
-	// that type in your event data store.
+	// . For event data stores for CloudTrail Insights events, Config configuration
+	// items, Audit Manager evidence, or non-Amazon Web Services events,
+	// AdvancedEventSelectors includes events of that type in your event data store.
 	UpdateEventDataStore(ctx context.Context, params *UpdateEventDataStoreInput, optFns ...func(*Options)) (*UpdateEventDataStoreOutput, error)
 	// Updates trail settings that control what events you are logging, and how to
 	// handle log files. Changes to a trail do not require stopping the CloudTrail

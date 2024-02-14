@@ -70,6 +70,10 @@ type CloudFormation interface {
 	// CloudFormation doesn't make changes until you execute the change set. To create
 	// a change set for the entire stack hierarchy, set IncludeNestedStacks to True .
 	CreateChangeSet(ctx context.Context, params *CreateChangeSetInput, optFns ...func(*Options)) (*CreateChangeSetOutput, error)
+	// Creates a template from existing resources that are not already managed with
+	// CloudFormation. You can check the status of the template generation using the
+	// DescribeGeneratedTemplate API action.
+	CreateGeneratedTemplate(ctx context.Context, params *CreateGeneratedTemplateInput, optFns ...func(*Options)) (*CreateGeneratedTemplateOutput, error)
 	// Creates a stack as specified in the template. After the call completes
 	// successfully, the stack creation starts. You can check the status of the stack
 	// through the DescribeStacks operation.
@@ -100,6 +104,8 @@ type CloudFormation interface {
 	// and will also delete all change sets for nested stacks with the status of
 	// REVIEW_IN_PROGRESS .
 	DeleteChangeSet(ctx context.Context, params *DeleteChangeSetInput, optFns ...func(*Options)) (*DeleteChangeSetOutput, error)
+	// Deleted a generated template.
+	DeleteGeneratedTemplate(ctx context.Context, params *DeleteGeneratedTemplateInput, optFns ...func(*Options)) (*DeleteGeneratedTemplateOutput, error)
 	// Deletes a specified stack. Once the call completes successfully, stack deletion
 	// starts. Deleted stacks don't show up in the DescribeStacks operation if the
 	// deletion has been completed successfully.
@@ -137,6 +143,11 @@ type CloudFormation interface {
 	// Returns hook-related information for the change set and a list of changes that
 	// CloudFormation makes when you run the change set.
 	DescribeChangeSetHooks(ctx context.Context, params *DescribeChangeSetHooksInput, optFns ...func(*Options)) (*DescribeChangeSetHooksOutput, error)
+	// Describes a generated template. The output includes details about the progress
+	// of the creation of a generated template started by a CreateGeneratedTemplate
+	// API action or the update of a generated template started with an
+	// UpdateGeneratedTemplate API action.
+	DescribeGeneratedTemplate(ctx context.Context, params *DescribeGeneratedTemplateInput, optFns ...func(*Options)) (*DescribeGeneratedTemplateOutput, error)
 	// Retrieves information about the account's OrganizationAccess status. This API
 	// can be called either by the management account or the delegated administrator by
 	// using the CallAs parameter. This API can also be called without the CallAs
@@ -150,6 +161,8 @@ type CloudFormation interface {
 	//   - Publishing extensions to make them available for public use (https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/publish-extension.html)
 	//     in the CloudFormation CLI User Guide
 	DescribePublisher(ctx context.Context, params *DescribePublisherInput, optFns ...func(*Options)) (*DescribePublisherOutput, error)
+	// Describes details of a resource scan.
+	DescribeResourceScan(ctx context.Context, params *DescribeResourceScanInput, optFns ...func(*Options)) (*DescribeResourceScanOutput, error)
 	// Returns information about a stack drift detection operation. A stack drift
 	// detection operation detects whether a stack's actual configuration differs, or
 	// has drifted, from its expected configuration, as defined in the stack template
@@ -297,6 +310,11 @@ type CloudFormation interface {
 	// temporary stack policy that overrides the current policy. To create a change set
 	// for the entire stack hierarchy, IncludeNestedStacks must have been set to True .
 	ExecuteChangeSet(ctx context.Context, params *ExecuteChangeSetInput, optFns ...func(*Options)) (*ExecuteChangeSetOutput, error)
+	// Retrieves a generated template. If the template is in an InProgress or Pending
+	// status then the template returned will be the template when the template was
+	// last in a Complete status. If the template has not yet been in a Complete
+	// status then an empty template will be returned.
+	GetGeneratedTemplate(ctx context.Context, params *GetGeneratedTemplateInput, optFns ...func(*Options)) (*GetGeneratedTemplateOutput, error)
 	// Returns the stack policy for a specified stack. If a stack doesn't have a
 	// policy, a null value is returned.
 	GetStackPolicy(ctx context.Context, params *GetStackPolicyInput, optFns ...func(*Options)) (*GetStackPolicyOutput, error)
@@ -329,6 +347,8 @@ type CloudFormation interface {
 	// function. For more information, see CloudFormation export stack output values (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-stack-exports.html)
 	// .
 	ListExports(ctx context.Context, params *ListExportsInput, optFns ...func(*Options)) (*ListExportsOutput, error)
+	// Lists your generated templates in this Region.
+	ListGeneratedTemplates(ctx context.Context, params *ListGeneratedTemplatesInput, optFns ...func(*Options)) (*ListGeneratedTemplatesOutput, error)
 	// Lists all stacks that are importing an exported output value. To modify or
 	// remove an exported output value, first use this action to see which stacks are
 	// using it. To see the exported output values in your account, see ListExports .
@@ -336,6 +356,18 @@ type CloudFormation interface {
 	// Fn::ImportValue (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-importvalue.html)
 	// function.
 	ListImports(ctx context.Context, params *ListImportsInput, optFns ...func(*Options)) (*ListImportsOutput, error)
+	// Lists the related resources for a list of resources from a resource scan. The
+	// response indicates whether each returned resource is already managed by
+	// CloudFormation.
+	ListResourceScanRelatedResources(ctx context.Context, params *ListResourceScanRelatedResourcesInput, optFns ...func(*Options)) (*ListResourceScanRelatedResourcesOutput, error)
+	// Lists the resources from a resource scan. The results can be filtered by
+	// resource identifier, resource type prefix, tag key, and tag value. Only
+	// resources that match all specified filters are returned. The response indicates
+	// whether each returned resource is already managed by CloudFormation.
+	ListResourceScanResources(ctx context.Context, params *ListResourceScanResourcesInput, optFns ...func(*Options)) (*ListResourceScanResourcesOutput, error)
+	// List the resource scans from newest to oldest. By default it will return up to
+	// 10 resource scans.
+	ListResourceScans(ctx context.Context, params *ListResourceScansInput, optFns ...func(*Options)) (*ListResourceScansOutput, error)
 	// Returns drift information for resources in a stack instance.
 	// ListStackInstanceResourceDrifts returns drift information for the most recent
 	// drift detection operation. If an operation is in progress, it may only return
@@ -454,6 +486,9 @@ type CloudFormation interface {
 	// exceeded. The SignalResource operation is useful in cases where you want to
 	// send signals from anywhere other than an Amazon EC2 instance.
 	SignalResource(ctx context.Context, params *SignalResourceInput, optFns ...func(*Options)) (*SignalResourceOutput, error)
+	// Starts a scan of the resources in this account in this Region. You can the
+	// status of a scan using the ListResourceScans API action.
+	StartResourceScan(ctx context.Context, params *StartResourceScanInput, optFns ...func(*Options)) (*StartResourceScanOutput, error)
 	// Stops an in-progress operation on a stack set and its associated stack
 	// instances. StackSets will cancel all the unstarted stack instance deployments
 	// and wait for those are in-progress to complete.
@@ -479,6 +514,11 @@ type CloudFormation interface {
 	// available for public use (https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-publish.html)
 	// in the CloudFormation CLI User Guide.
 	TestType(ctx context.Context, params *TestTypeInput, optFns ...func(*Options)) (*TestTypeOutput, error)
+	// Updates a generated template. This can be used to change the name, add and
+	// remove resources, refresh resources, and change the DeletionPolicy and
+	// UpdateReplacePolicy settings. You can check the status of the update to the
+	// generated template using the DescribeGeneratedTemplate API action.
+	UpdateGeneratedTemplate(ctx context.Context, params *UpdateGeneratedTemplateInput, optFns ...func(*Options)) (*UpdateGeneratedTemplateOutput, error)
 	// Updates a stack as specified in the template. After the call completes
 	// successfully, the stack update starts. You can check the status of the stack
 	// through the DescribeStacks action. To get a copy of the template for an
