@@ -540,7 +540,9 @@ func (c *SimpleRESTClientGetter) ToRESTMapper() (meta.RESTMapper, error) {
 	}
 
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(discoveryClient)
-	expander := restmapper.NewShortcutExpander(mapper, discoveryClient)
+	expander := restmapper.NewShortcutExpander(mapper, discoveryClient, func(a string) {
+		logger.Warning("unexpected warning message %s", a)
+	})
 	return expander, nil
 }
 
