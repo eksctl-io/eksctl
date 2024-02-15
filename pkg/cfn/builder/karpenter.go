@@ -114,7 +114,7 @@ func (k *KarpenterResourceSet) newResource(name string, resource gfn.Resource) *
 }
 
 func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
-	managedPolicyNames := sets.NewString()
+	managedPolicyNames := sets.New[string]()
 	managedPolicyNames.Insert(iamPolicyAmazonEKSWorkerNodePolicy,
 		iamPolicyAmazonEKSCNIPolicy,
 		iamPolicyAmazonEC2ContainerRegistryReadOnly,
@@ -126,7 +126,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		RoleName:                 roleName,
 		Path:                     gfnt.NewString("/"),
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(MakeServiceRef("EC2")),
-		ManagedPolicyArns:        gfnt.NewSlice(makePolicyARNs(managedPolicyNames.List()...)...),
+		ManagedPolicyArns:        gfnt.NewSlice(makePolicyARNs(sets.List(managedPolicyNames)...)...),
 	}
 
 	if api.IsSetAndNonEmptyString(k.clusterSpec.IAM.ServiceRolePermissionsBoundary) {

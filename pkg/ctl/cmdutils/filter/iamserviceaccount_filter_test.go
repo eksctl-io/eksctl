@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -55,11 +56,11 @@ var _ = Describe("iamserviceaccount filter", func() {
 
 			included, excluded := filter.MatchAll(cfg.IAM.ServiceAccounts)
 			Expect(included).To(HaveLen(2))
-			Expect(included.List()).To(ConsistOf(
+			Expect(sets.List(included)).To(ConsistOf(
 				"sa/only-remote-1",
 				"sa/only-remote-2"),
 			)
-			Expect(excluded.List()).To(ConsistOf(
+			Expect(sets.List(excluded)).To(ConsistOf(
 				"sa/dev1",
 				"sa/dev2",
 				"sa/dev3",

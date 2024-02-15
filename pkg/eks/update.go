@@ -27,9 +27,9 @@ type ClusterVPCConfig struct {
 }
 
 // GetCurrentClusterConfigForLogging fetches current cluster logging configuration as two sets - enabled and disabled types
-func (c *ClusterProvider) GetCurrentClusterConfigForLogging(ctx context.Context, spec *api.ClusterConfig) (sets.String, sets.String, error) {
-	enabled := sets.NewString()
-	disabled := sets.NewString()
+func (c *ClusterProvider) GetCurrentClusterConfigForLogging(ctx context.Context, spec *api.ClusterConfig) (sets.Set[string], sets.Set[string], error) {
+	enabled := sets.New[string]()
+	disabled := sets.New[string]()
 
 	if ok, err := c.CanOperateWithRefresh(ctx, spec); !ok {
 		return nil, nil, errors.Wrap(err, "unable to retrieve current cluster logging configuration")
@@ -51,18 +51,18 @@ func (c *ClusterProvider) GetCurrentClusterConfigForLogging(ctx context.Context,
 
 // UpdateClusterConfigForLogging calls UpdateClusterConfig to enable logging
 func (c *ClusterProvider) UpdateClusterConfigForLogging(ctx context.Context, cfg *api.ClusterConfig) error {
-	all := sets.NewString(api.SupportedCloudWatchClusterLogTypes()...)
+	all := sets.New[string](api.SupportedCloudWatchClusterLogTypes()...)
 
-	enabled := sets.NewString()
+	enabled := sets.New[string]()
 	if cfg.HasClusterCloudWatchLogging() {
 		enabled.Insert(cfg.CloudWatch.ClusterLogging.EnableTypes...)
 	}
 
 	disabled := all.Difference(enabled)
 
-	toLogTypes := func(logTypes sets.String) []ekstypes.LogType {
+	toLogTypes := func(logTypes sets.Set[string]) []ekstypes.LogType {
 		ret := make([]ekstypes.LogType, len(logTypes))
-		for i, logType := range logTypes.List() {
+		for i, logType := range sets.List(logTypes) {
 			ret[i] = ekstypes.LogType(logType)
 		}
 		return ret
@@ -88,13 +88,13 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(ctx context.Context, cfg
 	}
 
 	describeEnabledTypes := "no types enabled"
-	if len(enabled.List()) > 0 {
-		describeEnabledTypes = fmt.Sprintf("enabled types: %s", strings.Join(enabled.List(), ", "))
+	if len(sets.List(enabled)) > 0 {
+		describeEnabledTypes = fmt.Sprintf("enabled types: %s", strings.Join(sets.List(enabled), ", "))
 	}
 
 	describeDisabledTypes := "no types disabled"
-	if len(disabled.List()) > 0 {
-		describeDisabledTypes = fmt.Sprintf("disabled types: %s", strings.Join(disabled.List(), ", "))
+	if len(sets.List(disabled)) > 0 {
+		describeDisabledTypes = fmt.Sprintf("disabled types: %s", strings.Join(sets.List(disabled), ", "))
 	}
 
 	logger.Success("configured CloudWatch logging for cluster %q in %q (%s & %s)",
