@@ -7,7 +7,7 @@ jobs:
   rc:
     name: Trigger release build
     runs-on: ubuntu-latest
-    container: public.ecr.aws/eksctl/eksctl-build:c1ae010fa4b927d123afc6fdd7df07203aa40dd8
+    container: public.ecr.aws/eksctl/eksctl-build:5e2d110f32a60d699ca0642ac3287190227c45ec
     steps:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1

@@ -237,6 +237,43 @@ func (_m *CloudFormation) CreateChangeSet(ctx context.Context, params *cloudform
 	return r0, r1
 }
 
+// CreateGeneratedTemplate provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) CreateGeneratedTemplate(ctx context.Context, params *cloudformation.CreateGeneratedTemplateInput, optFns ...func(*cloudformation.Options)) (*cloudformation.CreateGeneratedTemplateOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateGeneratedTemplate")
+	}
+
+	var r0 *cloudformation.CreateGeneratedTemplateOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.CreateGeneratedTemplateInput, ...func(*cloudformation.Options)) (*cloudformation.CreateGeneratedTemplateOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.CreateGeneratedTemplateInput, ...func(*cloudformation.Options)) *cloudformation.CreateGeneratedTemplateOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.CreateGeneratedTemplateOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.CreateGeneratedTemplateInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateStack provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) CreateStack(ctx context.Context, params *cloudformation.CreateStackInput, optFns ...func(*cloudformation.Options)) (*cloudformation.CreateStackOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -451,6 +488,43 @@ func (_m *CloudFormation) DeleteChangeSet(ctx context.Context, params *cloudform
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DeleteChangeSetInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteGeneratedTemplate provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) DeleteGeneratedTemplate(ctx context.Context, params *cloudformation.DeleteGeneratedTemplateInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DeleteGeneratedTemplateOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteGeneratedTemplate")
+	}
+
+	var r0 *cloudformation.DeleteGeneratedTemplateOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DeleteGeneratedTemplateInput, ...func(*cloudformation.Options)) (*cloudformation.DeleteGeneratedTemplateOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DeleteGeneratedTemplateInput, ...func(*cloudformation.Options)) *cloudformation.DeleteGeneratedTemplateOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.DeleteGeneratedTemplateOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DeleteGeneratedTemplateInput, ...func(*cloudformation.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -718,6 +792,43 @@ func (_m *CloudFormation) DescribeChangeSetHooks(ctx context.Context, params *cl
 	return r0, r1
 }
 
+// DescribeGeneratedTemplate provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) DescribeGeneratedTemplate(ctx context.Context, params *cloudformation.DescribeGeneratedTemplateInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DescribeGeneratedTemplateOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeGeneratedTemplate")
+	}
+
+	var r0 *cloudformation.DescribeGeneratedTemplateOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeGeneratedTemplateInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeGeneratedTemplateOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeGeneratedTemplateInput, ...func(*cloudformation.Options)) *cloudformation.DescribeGeneratedTemplateOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.DescribeGeneratedTemplateOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeGeneratedTemplateInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeOrganizationsAccess provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DescribeOrganizationsAccess(ctx context.Context, params *cloudformation.DescribeOrganizationsAccessInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DescribeOrganizationsAccessOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -784,6 +895,43 @@ func (_m *CloudFormation) DescribePublisher(ctx context.Context, params *cloudfo
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribePublisherInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeResourceScan provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) DescribeResourceScan(ctx context.Context, params *cloudformation.DescribeResourceScanInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DescribeResourceScanOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeResourceScan")
+	}
+
+	var r0 *cloudformation.DescribeResourceScanOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeResourceScanInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeResourceScanOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeResourceScanInput, ...func(*cloudformation.Options)) *cloudformation.DescribeResourceScanOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.DescribeResourceScanOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeResourceScanInput, ...func(*cloudformation.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -1384,6 +1532,43 @@ func (_m *CloudFormation) ExecuteChangeSet(ctx context.Context, params *cloudfor
 	return r0, r1
 }
 
+// GetGeneratedTemplate provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) GetGeneratedTemplate(ctx context.Context, params *cloudformation.GetGeneratedTemplateInput, optFns ...func(*cloudformation.Options)) (*cloudformation.GetGeneratedTemplateOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGeneratedTemplate")
+	}
+
+	var r0 *cloudformation.GetGeneratedTemplateOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.GetGeneratedTemplateInput, ...func(*cloudformation.Options)) (*cloudformation.GetGeneratedTemplateOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.GetGeneratedTemplateInput, ...func(*cloudformation.Options)) *cloudformation.GetGeneratedTemplateOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.GetGeneratedTemplateOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.GetGeneratedTemplateInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetStackPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) GetStackPolicy(ctx context.Context, params *cloudformation.GetStackPolicyInput, optFns ...func(*cloudformation.Options)) (*cloudformation.GetStackPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1606,6 +1791,43 @@ func (_m *CloudFormation) ListExports(ctx context.Context, params *cloudformatio
 	return r0, r1
 }
 
+// ListGeneratedTemplates provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) ListGeneratedTemplates(ctx context.Context, params *cloudformation.ListGeneratedTemplatesInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListGeneratedTemplatesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListGeneratedTemplates")
+	}
+
+	var r0 *cloudformation.ListGeneratedTemplatesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListGeneratedTemplatesInput, ...func(*cloudformation.Options)) (*cloudformation.ListGeneratedTemplatesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListGeneratedTemplatesInput, ...func(*cloudformation.Options)) *cloudformation.ListGeneratedTemplatesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.ListGeneratedTemplatesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListGeneratedTemplatesInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListImports provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ListImports(ctx context.Context, params *cloudformation.ListImportsInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListImportsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1635,6 +1857,117 @@ func (_m *CloudFormation) ListImports(ctx context.Context, params *cloudformatio
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListImportsInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListResourceScanRelatedResources provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) ListResourceScanRelatedResources(ctx context.Context, params *cloudformation.ListResourceScanRelatedResourcesInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListResourceScanRelatedResourcesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListResourceScanRelatedResources")
+	}
+
+	var r0 *cloudformation.ListResourceScanRelatedResourcesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListResourceScanRelatedResourcesInput, ...func(*cloudformation.Options)) (*cloudformation.ListResourceScanRelatedResourcesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListResourceScanRelatedResourcesInput, ...func(*cloudformation.Options)) *cloudformation.ListResourceScanRelatedResourcesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.ListResourceScanRelatedResourcesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListResourceScanRelatedResourcesInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListResourceScanResources provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) ListResourceScanResources(ctx context.Context, params *cloudformation.ListResourceScanResourcesInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListResourceScanResourcesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListResourceScanResources")
+	}
+
+	var r0 *cloudformation.ListResourceScanResourcesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListResourceScanResourcesInput, ...func(*cloudformation.Options)) (*cloudformation.ListResourceScanResourcesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListResourceScanResourcesInput, ...func(*cloudformation.Options)) *cloudformation.ListResourceScanResourcesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.ListResourceScanResourcesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListResourceScanResourcesInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListResourceScans provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) ListResourceScans(ctx context.Context, params *cloudformation.ListResourceScansInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListResourceScansOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListResourceScans")
+	}
+
+	var r0 *cloudformation.ListResourceScansOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListResourceScansInput, ...func(*cloudformation.Options)) (*cloudformation.ListResourceScansOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListResourceScansInput, ...func(*cloudformation.Options)) *cloudformation.ListResourceScansOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.ListResourceScansOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListResourceScansInput, ...func(*cloudformation.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -2364,6 +2697,43 @@ func (_m *CloudFormation) SignalResource(ctx context.Context, params *cloudforma
 	return r0, r1
 }
 
+// StartResourceScan provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) StartResourceScan(ctx context.Context, params *cloudformation.StartResourceScanInput, optFns ...func(*cloudformation.Options)) (*cloudformation.StartResourceScanOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartResourceScan")
+	}
+
+	var r0 *cloudformation.StartResourceScanOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.StartResourceScanInput, ...func(*cloudformation.Options)) (*cloudformation.StartResourceScanOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.StartResourceScanInput, ...func(*cloudformation.Options)) *cloudformation.StartResourceScanOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.StartResourceScanOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.StartResourceScanInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // StopStackSetOperation provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) StopStackSetOperation(ctx context.Context, params *cloudformation.StopStackSetOperationInput, optFns ...func(*cloudformation.Options)) (*cloudformation.StopStackSetOperationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2430,6 +2800,43 @@ func (_m *CloudFormation) TestType(ctx context.Context, params *cloudformation.T
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.TestTypeInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateGeneratedTemplate provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) UpdateGeneratedTemplate(ctx context.Context, params *cloudformation.UpdateGeneratedTemplateInput, optFns ...func(*cloudformation.Options)) (*cloudformation.UpdateGeneratedTemplateOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateGeneratedTemplate")
+	}
+
+	var r0 *cloudformation.UpdateGeneratedTemplateOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.UpdateGeneratedTemplateInput, ...func(*cloudformation.Options)) (*cloudformation.UpdateGeneratedTemplateOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.UpdateGeneratedTemplateInput, ...func(*cloudformation.Options)) *cloudformation.UpdateGeneratedTemplateOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.UpdateGeneratedTemplateOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.UpdateGeneratedTemplateInput, ...func(*cloudformation.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)

@@ -31,7 +31,7 @@ func (a *AccessEntry) FilterOutExistingStacks(ctx context.Context, accessEntries
 		return nil, fmt.Errorf("error listing access entry stacks: %w", err)
 	}
 
-	existingStacks := sets.NewString(stackNames...)
+	existingStacks := sets.New[string](stackNames...)
 	var filtered []api.AccessEntry
 	for _, ae := range accessEntries {
 		stackName := accessentry.MakeStackName(a.ClusterName, ae)

@@ -33,8 +33,8 @@ type NodeGroupFilter struct {
 	delegate         *Filter
 	onlyLocal        bool
 	onlyRemote       bool
-	localNodegroups  sets.String
-	remoteNodegroups sets.String
+	localNodegroups  sets.Set[string]
+	remoteNodegroups sets.Set[string]
 }
 
 // NewNodeGroupFilter creates a new NodeGroupFilter struct
@@ -42,11 +42,11 @@ func NewNodeGroupFilter() *NodeGroupFilter {
 	return &NodeGroupFilter{
 		delegate: &Filter{
 			ExcludeAll:   false,
-			includeNames: sets.NewString(),
-			excludeNames: sets.NewString(),
+			includeNames: sets.New[string](),
+			excludeNames: sets.New[string](),
 		},
-		localNodegroups:  sets.NewString(),
-		remoteNodegroups: sets.NewString(),
+		localNodegroups:  sets.New[string](),
+		remoteNodegroups: sets.New[string](),
 	}
 }
 
@@ -87,7 +87,7 @@ func (f *NodeGroupFilter) SetOnlyLocal(ctx context.Context, eksAPI awsapi.EKS, l
 
 	// Remote ones will be excluded
 	if f.remoteNodegroups.Len() > 0 {
-		logger.Info("%d existing %s(s) (%s) will be excluded", f.remoteNodegroups.Len(), "nodegroup", strings.Join(f.remoteNodegroups.List(), ","))
+		logger.Info("%d existing %s(s) (%s) will be excluded", f.remoteNodegroups.Len(), "nodegroup", strings.Join(sets.List(f.remoteNodegroups), ","))
 	}
 	return nil
 }
@@ -106,7 +106,7 @@ func (f *NodeGroupFilter) SetOnlyRemote(ctx context.Context, eksAPI awsapi.EKS, 
 
 	// local ones will be excluded
 	if f.localNodegroups.Len() > 0 {
-		logger.Info("%d %s(s) present in the config file (%s) will be excluded", f.localNodegroups.Len(), "nodegroup", strings.Join(f.localNodegroups.List(), ","))
+		logger.Info("%d %s(s) present in the config file (%s) will be excluded", f.localNodegroups.Len(), "nodegroup", strings.Join(sets.List(f.localNodegroups), ","))
 	}
 	return nil
 }
@@ -182,7 +182,7 @@ func (f *NodeGroupFilter) findAllNodeGroups(ctx context.Context, eksAPI awsapi.E
 		return nil, nil, err
 	}
 
-	nodeGroupsWithStacksSet := sets.NewString()
+	nodeGroupsWithStacksSet := sets.New[string]()
 	for _, s := range nodeGroupsWithStacks {
 		nodeGroupsWithStacksSet.Insert(s.NodeGroupName)
 	}
@@ -228,9 +228,9 @@ func (f *NodeGroupFilter) LogInfo(cfg *api.ClusterConfig) {
 }
 
 // matchAll all names against the filter and return two sets of names - included and excluded
-func (f *NodeGroupFilter) matchAll(allNames sets.String) (sets.String, sets.String) {
+func (f *NodeGroupFilter) matchAll(allNames sets.Set[string]) (sets.Set[string], sets.Set[string]) {
 
-	matching, notMatching := f.delegate.doMatchAll(allNames.List())
+	matching, notMatching := f.delegate.doMatchAll(sets.List(allNames))
 
 	if f.onlyLocal {
 		// From the ones that match, pick only the local ones
@@ -269,11 +269,11 @@ func (f *NodeGroupFilter) Match(ngName string) bool {
 	return f.delegate.Match(ngName)
 }
 
-func (f *NodeGroupFilter) onlyLocalNodegroups() sets.String {
+func (f *NodeGroupFilter) onlyLocalNodegroups() sets.Set[string] {
 	return f.localNodegroups.Difference(f.remoteNodegroups)
 }
 
-func (f *NodeGroupFilter) onlyRemoteNodegroups() sets.String {
+func (f *NodeGroupFilter) onlyRemoteNodegroups() sets.Set[string] {
 	return f.remoteNodegroups.Difference(f.localNodegroups)
 }
 
@@ -300,8 +300,8 @@ func (f *NodeGroupFilter) ForEach(nodeGroups []*api.NodeGroup, iterFn func(i int
 	return nil
 }
 
-func (*NodeGroupFilter) collectNames(nodeGroups []*api.NodeGroup) sets.String {
-	names := sets.NewString()
+func (*NodeGroupFilter) collectNames(nodeGroups []*api.NodeGroup) sets.Set[string] {
+	names := sets.New[string]()
 	for _, ng := range nodeGroups {
 		names.Insert(ng.NameString())
 	}

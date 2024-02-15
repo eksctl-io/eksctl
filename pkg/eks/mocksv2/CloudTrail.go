@@ -1014,6 +1014,43 @@ func (_m *CloudTrail) ListImports(ctx context.Context, params *cloudtrail.ListIm
 	return r0, r1
 }
 
+// ListInsightsMetricData provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) ListInsightsMetricData(ctx context.Context, params *cloudtrail.ListInsightsMetricDataInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.ListInsightsMetricDataOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListInsightsMetricData")
+	}
+
+	var r0 *cloudtrail.ListInsightsMetricDataOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListInsightsMetricDataInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListInsightsMetricDataOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListInsightsMetricDataInput, ...func(*cloudtrail.Options)) *cloudtrail.ListInsightsMetricDataOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.ListInsightsMetricDataOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.ListInsightsMetricDataInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListPublicKeys provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) ListPublicKeys(ctx context.Context, params *cloudtrail.ListPublicKeysInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.ListPublicKeysOutput, error) {
 	_va := make([]interface{}, len(optFns))

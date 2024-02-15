@@ -102,7 +102,7 @@ func (a *AuthConfigMap) AddAccount(account string) error {
 	}
 	// Distinct and sorted account numbers
 	accounts = append(accounts, account)
-	accounts = sets.NewString(accounts...).List()
+	accounts = sets.List(sets.New[string](accounts...))
 	logger.Info("adding account %q to auth ConfigMap", account)
 	return a.setAccounts(accounts)
 }

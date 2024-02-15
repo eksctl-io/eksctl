@@ -134,6 +134,7 @@ type CloudWatchLogs interface {
 	//   - Log group names consist of the following characters: a-z, A-Z, 0-9, '_'
 	//     (underscore), '-' (hyphen), '/' (forward slash), '.' (period), and '#' (number
 	//     sign)
+	//   - Log group names can't start with the string aws/
 	//
 	// When you create a log group, by default the log events in the log group do not
 	// expire. To set a retention policy so that events expire and are deleted after a
@@ -158,9 +159,15 @@ type CloudWatchLogs interface {
 	//   - Log stream names can be between 1 and 512 characters long.
 	//   - Don't use ':' (colon) or '*' (asterisk) characters.
 	CreateLogStream(ctx context.Context, params *CreateLogStreamInput, optFns ...func(*Options)) (*CreateLogStreamOutput, error)
-	// Deletes a CloudWatch Logs account policy. To use this operation, you must be
-	// signed on with the logs:DeleteDataProtectionPolicy and logs:DeleteAccountPolicy
-	// permissions.
+	// Deletes a CloudWatch Logs account policy. This stops the policy from applying
+	// to all log groups or a subset of log groups in the account. Log-group level
+	// policies will still be in effect. To use this operation, you must be signed on
+	// with the correct permissions depending on the type of policy that you are
+	// deleting.
+	//   - To delete a data protection policy, you must have the
+	//     logs:DeleteDataProtectionPolicy and logs:DeleteAccountPolicy permissions.
+	//   - To delete a subscription filter policy, you must have the
+	//     logs:DeleteSubscriptionFilter and logs:DeleteAccountPolicy permissions.
 	DeleteAccountPolicy(ctx context.Context, params *DeleteAccountPolicyInput, optFns ...func(*Options)) (*DeleteAccountPolicyOutput, error)
 	// Deletes the data protection policy from the specified log group. For more
 	// information about data protection policies, see PutDataProtectionPolicy (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDataProtectionPolicy.html)
@@ -217,7 +224,14 @@ type CloudWatchLogs interface {
 	DeleteSubscriptionFilter(ctx context.Context, params *DeleteSubscriptionFilterInput, optFns ...func(*Options)) (*DeleteSubscriptionFilterOutput, error)
 	// Returns a list of all CloudWatch Logs account policies in the account.
 	DescribeAccountPolicies(ctx context.Context, params *DescribeAccountPoliciesInput, optFns ...func(*Options)) (*DescribeAccountPoliciesOutput, error)
-	// Retrieves a list of the deliveries that have been created in the account.
+	// Retrieves a list of the deliveries that have been created in the account. A
+	// delivery is a connection between a delivery source  (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliverySource.html)
+	// and a delivery destination  (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestination.html)
+	// . A delivery source represents an Amazon Web Services resource that sends logs
+	// to an logs delivery destination. The destination can be CloudWatch Logs, Amazon
+	// S3, or Kinesis Data Firehose. Only some Amazon Web Services services support
+	// being configured as a delivery source. These services are listed in Enable
+	// logging from Amazon Web Services services. (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html)
 	DescribeDeliveries(ctx context.Context, params *DescribeDeliveriesInput, optFns ...func(*Options)) (*DescribeDeliveriesOutput, error)
 	// Retrieves a list of the delivery destinations that have been created in the
 	// account.
@@ -313,10 +327,16 @@ type CloudWatchLogs interface {
 	FilterLogEvents(ctx context.Context, params *FilterLogEventsInput, optFns ...func(*Options)) (*FilterLogEventsOutput, error)
 	// Returns information about a log group data protection policy.
 	GetDataProtectionPolicy(ctx context.Context, params *GetDataProtectionPolicyInput, optFns ...func(*Options)) (*GetDataProtectionPolicyOutput, error)
-	// Returns complete information about one delivery. A delivery is a connection
-	// between a logical delivery source and a logical delivery destination You need to
-	// specify the delivery id in this operation. You can find the IDs of the
-	// deliveries in your account with the DescribeDeliveries (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeDeliveries.html)
+	// Returns complete information about one logical delivery. A delivery is a
+	// connection between a delivery source  (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliverySource.html)
+	// and a delivery destination  (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestination.html)
+	// . A delivery source represents an Amazon Web Services resource that sends logs
+	// to an logs delivery destination. The destination can be CloudWatch Logs, Amazon
+	// S3, or Kinesis Data Firehose. Only some Amazon Web Services services support
+	// being configured as a delivery source. These services are listed in Enable
+	// logging from Amazon Web Services services. (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html)
+	// You need to specify the delivery id in this operation. You can find the IDs of
+	// the deliveries in your account with the DescribeDeliveries (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeDeliveries.html)
 	// operation.
 	GetDelivery(ctx context.Context, params *GetDeliveryInput, optFns ...func(*Options)) (*GetDeliveryOutput, error)
 	// Retrieves complete information about one delivery destination.
@@ -394,34 +414,56 @@ type CloudWatchLogs interface {
 	//
 	// Deprecated: Please use the generic tagging API ListTagsForResource
 	ListTagsLogGroup(ctx context.Context, params *ListTagsLogGroupInput, optFns ...func(*Options)) (*ListTagsLogGroupOutput, error)
-	// Creates an account-level data protection policy that applies to all log groups
-	// in the account. A data protection policy can help safeguard sensitive data
+	// Creates an account-level data protection policy or subscription filter policy
+	// that applies to all log groups or a subset of log groups in the account. Data
+	// protection policy A data protection policy can help safeguard sensitive data
 	// that's ingested by your log groups by auditing and masking the sensitive log
-	// data. Each account can have only one account-level policy. Sensitive data is
-	// detected and masked when it is ingested into a log group. When you set a data
-	// protection policy, log events ingested into the log groups before that time are
-	// not masked. If you use PutAccountPolicy to create a data protection policy for
-	// your whole account, it applies to both existing log groups and all log groups
-	// that are created later in this account. The account policy is applied to
-	// existing log groups with eventual consistency. It might take up to 5 minutes
-	// before sensitive data in existing log groups begins to be masked. By default,
-	// when a user views a log event that includes masked data, the sensitive data is
-	// replaced by asterisks. A user who has the logs:Unmask permission can use a
-	// GetLogEvents (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogEvents.html)
+	// data. Each account can have only one account-level data protection policy.
+	// Sensitive data is detected and masked when it is ingested into a log group. When
+	// you set a data protection policy, log events ingested into the log groups before
+	// that time are not masked. If you use PutAccountPolicy to create a data
+	// protection policy for your whole account, it applies to both existing log groups
+	// and all log groups that are created later in this account. The account-level
+	// policy is applied to existing log groups with eventual consistency. It might
+	// take up to 5 minutes before sensitive data in existing log groups begins to be
+	// masked. By default, when a user views a log event that includes masked data, the
+	// sensitive data is replaced by asterisks. A user who has the logs:Unmask
+	// permission can use a GetLogEvents (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogEvents.html)
 	// or FilterLogEvents (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_FilterLogEvents.html)
 	// operation with the unmask parameter set to true to view the unmasked log
 	// events. Users with the logs:Unmask can also view unmasked data in the
 	// CloudWatch Logs console by running a CloudWatch Logs Insights query with the
 	// unmask query command. For more information, including a list of types of data
 	// that can be audited and masked, see Protect sensitive log data with masking (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data.html)
-	// . To use the PutAccountPolicy operation, you must be signed on with the
-	// logs:PutDataProtectionPolicy and logs:PutAccountPolicy permissions. The
-	// PutAccountPolicy operation applies to all log groups in the account. You can
-	// also use PutDataProtectionPolicy (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDataProtectionPolicy.html)
+	// . To use the PutAccountPolicy operation for a data protection policy, you must
+	// be signed on with the logs:PutDataProtectionPolicy and logs:PutAccountPolicy
+	// permissions. The PutAccountPolicy operation applies to all log groups in the
+	// account. You can use PutDataProtectionPolicy (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDataProtectionPolicy.html)
 	// to create a data protection policy that applies to just one log group. If a log
 	// group has its own data protection policy and the account also has an
 	// account-level data protection policy, then the two policies are cumulative. Any
-	// sensitive term specified in either policy is masked.
+	// sensitive term specified in either policy is masked. Subscription filter policy
+	// A subscription filter policy sets up a real-time feed of log events from
+	// CloudWatch Logs to other Amazon Web Services services. Account-level
+	// subscription filter policies apply to both existing log groups and log groups
+	// that are created later in this account. Supported destinations are Kinesis Data
+	// Streams, Kinesis Data Firehose, and Lambda. When log events are sent to the
+	// receiving service, they are Base64 encoded and compressed with the GZIP format.
+	// The following destinations are supported for subscription filters:
+	//   - An Kinesis Data Streams data stream in the same account as the subscription
+	//     policy, for same-account delivery.
+	//   - An Kinesis Data Firehose data stream in the same account as the
+	//     subscription policy, for same-account delivery.
+	//   - A Lambda function in the same account as the subscription policy, for
+	//     same-account delivery.
+	//   - A logical destination in a different account created with PutDestination (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDestination.html)
+	//     , for cross-account delivery. Kinesis Data Streams and Kinesis Data Firehose are
+	//     supported as logical destinations.
+	//
+	// Each account can have one account-level subscription filter policy. If you are
+	// updating an existing filter, you must specify the correct name in PolicyName .
+	// To perform a PutAccountPolicy subscription filter operation for any destination
+	// except a Lambda function, you must also have the iam:PassRole permission.
 	PutAccountPolicy(ctx context.Context, params *PutAccountPolicyInput, optFns ...func(*Options)) (*PutAccountPolicyOutput, error)
 	// Creates a data protection policy for the specified log group. A data protection
 	// policy can help safeguard sensitive data that's ingested by the log group by
@@ -677,7 +719,10 @@ type CloudWatchLogs interface {
 	//
 	// You can end a session before it times out by closing the session stream or by
 	// closing the client that is receiving the stream. The session also ends if the
-	// established connection between the client and the server breaks.
+	// established connection between the client and the server breaks. For examples of
+	// using an SDK to start a Live Tail session, see Start a Live Tail session using
+	// an Amazon Web Services SDK (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/example_cloudwatch-logs_StartLiveTail_section.html)
+	// .
 	StartLiveTail(ctx context.Context, params *StartLiveTailInput, optFns ...func(*Options)) (*StartLiveTailOutput, error)
 	// Schedules a query of a log group using CloudWatch Logs Insights. You specify
 	// the log group and time range to query and the query string to use. For more

@@ -16,11 +16,11 @@ type Filter struct {
 	ExcludeAll bool // highest priority
 
 	// include filters take precedence
-	includeNames    sets.String
+	includeNames    sets.Set[string]
 	includeGlobs    []glob.Glob
 	rawIncludeGlobs []string
 
-	excludeNames    sets.String
+	excludeNames    sets.Set[string]
 	excludeGlobs    []glob.Glob
 	rawExcludeGlobs []string
 }
@@ -29,8 +29,8 @@ type Filter struct {
 func NewFilter() Filter {
 	return Filter{
 		ExcludeAll:   false,
-		includeNames: sets.NewString(),
-		excludeNames: sets.NewString(),
+		includeNames: sets.New[string](),
+		excludeNames: sets.New[string](),
 	}
 }
 
@@ -68,7 +68,7 @@ func (f *Filter) hasIncludeRules() bool {
 }
 
 func (f *Filter) describeIncludeRules() string {
-	rules := append(f.includeNames.List(), f.rawIncludeGlobs...)
+	rules := append(sets.List(f.includeNames), f.rawIncludeGlobs...)
 	return strings.Join(rules, ",")
 }
 
@@ -78,7 +78,7 @@ func (f *Filter) hasExcludeRules() bool {
 }
 
 func (f *Filter) describeExcludeRules() string {
-	rules := append(f.excludeNames.List(), f.rawExcludeGlobs...)
+	rules := append(sets.List(f.excludeNames), f.rawExcludeGlobs...)
 	return strings.Join(rules, ",")
 }
 
@@ -141,8 +141,8 @@ func (f *Filter) Match(name string) bool {
 }
 
 // doMatchAll all names against the filter and return two sets of names - included and excluded
-func (f *Filter) doMatchAll(names []string) (sets.String, sets.String) {
-	included, excluded := sets.NewString(), sets.NewString()
+func (f *Filter) doMatchAll(names []string) (sets.Set[string], sets.Set[string]) {
+	included, excluded := sets.New[string](), sets.New[string]()
 	if f.ExcludeAll {
 		for _, n := range names {
 			excluded.Insert(n)
@@ -173,7 +173,7 @@ func (f *Filter) doAppendIncludeGlobs(names []string, resource string, globExprs
 }
 
 func (f *Filter) doSetExcludeExistingFilter(names []string, resource string) error {
-	uniqueNames := sets.NewString(names...).List()
+	uniqueNames := sets.List(sets.New[string](names...))
 	f.excludeNames.Insert(uniqueNames...)
 	for _, n := range uniqueNames {
 		isAlsoIncluded := f.includeNames.Has(n) || f.matchGlobs(n, f.includeGlobs)
@@ -199,10 +199,10 @@ func (f *Filter) includeGlobsMatchAnything(names []string, resource string) erro
 	return fmt.Errorf("no %ss match include glob filter specification: %q", resource, strings.Join(f.rawIncludeGlobs, ","))
 }
 
-func (f *Filter) doLogInfo(resource string, included, excluded sets.String) {
-	logMsg := func(subset sets.String, status string) {
+func (f *Filter) doLogInfo(resource string, included, excluded sets.Set[string]) {
+	logMsg := func(subset sets.Set[string], status string) {
 		count := subset.Len()
-		list := strings.Join(subset.List(), ", ")
+		list := strings.Join(sets.List(subset), ", ")
 		subjectFmt := "%d %ss (%s) were %s"
 		if count == 1 {
 			subjectFmt = "%d %s (%s) was %s"

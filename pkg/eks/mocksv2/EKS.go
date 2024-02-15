@@ -976,6 +976,43 @@ func (_m *EKS) DescribeIdentityProviderConfig(ctx context.Context, params *eks.D
 	return r0, r1
 }
 
+// DescribeInsight provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) DescribeInsight(ctx context.Context, params *eks.DescribeInsightInput, optFns ...func(*eks.Options)) (*eks.DescribeInsightOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeInsight")
+	}
+
+	var r0 *eks.DescribeInsightOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeInsightInput, ...func(*eks.Options)) (*eks.DescribeInsightOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeInsightInput, ...func(*eks.Options)) *eks.DescribeInsightOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeInsightOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeInsightInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeNodegroup provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DescribeNodegroup(ctx context.Context, params *eks.DescribeNodegroupInput, optFns ...func(*eks.Options)) (*eks.DescribeNodegroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1449,6 +1486,43 @@ func (_m *EKS) ListIdentityProviderConfigs(ctx context.Context, params *eks.List
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListIdentityProviderConfigsInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListInsights provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) ListInsights(ctx context.Context, params *eks.ListInsightsInput, optFns ...func(*eks.Options)) (*eks.ListInsightsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListInsights")
+	}
+
+	var r0 *eks.ListInsightsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListInsightsInput, ...func(*eks.Options)) (*eks.ListInsightsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListInsightsInput, ...func(*eks.Options)) *eks.ListInsightsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListInsightsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListInsightsInput, ...func(*eks.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)

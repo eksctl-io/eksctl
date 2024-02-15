@@ -519,7 +519,7 @@ func ImportSubnetsByIDsWithAlias(ctx context.Context, ec2API awsapi.EC2, spec *a
 }
 
 func ValidateLegacySubnetsForNodeGroups(ctx context.Context, spec *api.ClusterConfig, provider api.ClusterProvider) error {
-	subnetsToValidate := sets.NewString()
+	subnetsToValidate := sets.New[string]()
 
 	selectSubnets := func(np api.NodePool) error {
 		if ng := np.BaseNodeGroup(); ng.PrivateNetworking || ng.OutpostARN != "" {
@@ -549,7 +549,7 @@ func ValidateLegacySubnetsForNodeGroups(ctx context.Context, spec *api.ClusterCo
 			return err
 		}
 	}
-	if err := ValidateExistingPublicSubnets(ctx, provider, spec.VPC.ID, subnetsToValidate.List()); err != nil {
+	if err := ValidateExistingPublicSubnets(ctx, provider, spec.VPC.ID, sets.List(subnetsToValidate)); err != nil {
 		// If the cluster endpoint is reachable from the VPC, nodes might still be able to join
 		if spec.HasPrivateEndpointAccess() {
 			logger.Warning("public subnets for one or more nodegroups have %q disabled. This means that nodes won't "+

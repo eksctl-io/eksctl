@@ -361,7 +361,7 @@ func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2
 	// This map will use either globally configured AZs or, if set, the AZ defined by the nodegroup.
 	// map["ng-1"]["c2.large"]=[]string{"us-west-1a", "us-west-1b"}
 	instanceMap := make(map[string]map[string][]string)
-	uniqueInstances := sets.NewString()
+	uniqueInstances := sets.New[string]()
 
 	pool := nodes.ToNodePools(spec)
 	for _, ng := range pool {
@@ -393,7 +393,7 @@ func CheckInstanceAvailability(ctx context.Context, spec *api.ClusterConfig, ec2
 		Filters: []ec2types.Filter{
 			{
 				Name:   awsv2.String("instance-type"),
-				Values: uniqueInstances.List(),
+				Values: sets.List(uniqueInstances),
 			},
 		},
 		LocationType: ec2types.LocationTypeAvailabilityZone,
