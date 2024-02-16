@@ -11,8 +11,6 @@ on:
     secrets:
       githubToken:
         required: true
-      slackToken:
-        required: true
 
 jobs:
   publish-release:
