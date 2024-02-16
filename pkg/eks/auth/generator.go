@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
-	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -71,11 +69,6 @@ func (g Generator) appendPresignHeaderValuesFunc(clusterID string) func(stsOptio
 			// Add clusterId Header.
 			smithyhttp.SetHeaderValue(clusterIDHeader, clusterID),
 			// Add X-Amz-Expires query param.
-			smithyhttp.SetHeaderValue("X-Amz-Expires", "60"),
-			// Remove any extraneous headers: https://github.com/eksctl-io/eksctl/issues/7486.
-			func(stack *middleware.Stack) error {
-				_, err := stack.Finalize.Remove((&retry.MetricsHeader{}).ID())
-				return err
-			})
+			smithyhttp.SetHeaderValue("X-Amz-Expires", "60"))
 	}
 }
