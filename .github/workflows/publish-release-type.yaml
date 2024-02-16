@@ -11,8 +11,6 @@ on:
     secrets:
       githubToken:
         required: true
-      slackToken:
-        required: true
 
 jobs:
   publish-release:
@@ -27,6 +25,8 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
           echo "Available storage:"
           df -h
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
       - name: Setup build environment
         uses: ./.github/actions/setup-build
       - name: Publish release
