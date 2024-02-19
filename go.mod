@@ -20,7 +20,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.33.0
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.33.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.146.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.38.0
+	github.com/aws/aws-sdk-go-v2/service/eks v1.39.0
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.22.0
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.28.0
 	github.com/aws/aws-sdk-go-v2/service/iam v1.29.0
