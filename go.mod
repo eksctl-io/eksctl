@@ -26,7 +26,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/iam v1.29.0
 	github.com/aws/aws-sdk-go-v2/service/kms v1.27.5
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.36.0
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.46.0
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.47.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.26.7
 	github.com/aws/smithy-go v1.20.0
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
