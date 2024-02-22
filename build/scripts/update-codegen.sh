@@ -24,9 +24,10 @@ trap "cleanup" EXIT SIGINT
 echo ">> Temporary output directory ${TEMP_DIR}"
 
 # Ensure we can execute.
-chmod +x "${CODEGEN_PKG}"/generate-groups.sh
+chmod +x "${CODEGEN_PKG}/generate-groups.sh"
+chmod +x "${CODEGEN_PKG}/generate-internal-groups.sh"
 
-GOPATH=$(go env GOPATH) "${CODEGEN_PKG}"/generate-groups.sh deepcopy,defaulter \
+GOPATH=$(go env GOPATH) "${CODEGEN_PKG}/generate-groups.sh" deepcopy,defaulter \
     _ github.com/weaveworks/eksctl/pkg/apis \
     eksctl.io:v1alpha5 \
     --go-header-file <(printf "/*\n%s\n*/\n" "$(cat LICENSE)") \
