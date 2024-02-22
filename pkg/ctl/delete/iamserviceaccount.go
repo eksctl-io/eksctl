@@ -7,6 +7,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -116,5 +117,5 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
-	return irsaManager.Delete(ctx, saSubset.List(), cmd.Plan, cmd.Wait)
+	return irsaManager.Delete(ctx, sets.List(saSubset), cmd.Plan, cmd.Wait)
 }

@@ -172,7 +172,7 @@ func WaitForNodes(ctx context.Context, clientSet kubernetes.Interface, ng KubeNo
 		return nil
 	}
 
-	readyNodes := sets.NewString()
+	readyNodes := sets.New[string]()
 	watcher, err := clientSet.CoreV1().Nodes().Watch(context.TODO(), ng.ListOptions())
 	if err != nil {
 		return errors.Wrap(err, "creating node watcher")

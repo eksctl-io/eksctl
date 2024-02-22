@@ -111,7 +111,11 @@ build-integration-test: $(all_generated_code) ## Ensure integration tests compil
 	go build -tags integration -o ./eksctl-integration-test ./integration/main.go
 
 .PHONY: integration-test
-integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
+integration-test: build build-integration-test ## Generate then build and run the integration tests (with cluster creation and cleanup)
+	INTEGRATION_TEST_FOCUS="$(INTEGRATION_TEST_FOCUS)" ./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
+
+.PHONY: integration-test-no-build
+integration-test-no-build:
 	INTEGRATION_TEST_FOCUS="$(INTEGRATION_TEST_FOCUS)" ./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
 
 list-integration-suites:

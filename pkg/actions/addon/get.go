@@ -115,9 +115,6 @@ func (a *Manager) findNewerVersions(ctx context.Context, addon *api.Addon) (stri
 		logger.Debug("could not parse version %q, skipping finding newer versions: %v", addon.Version, err)
 		return "-", nil
 	}
-	//trim off anything after x.y.z so its not used in comparison, e.g. 1.7.5-eksbuild.1 > 1.7.5
-	currentVersion.Build = []string{}
-	currentVersion.Pre = []semver.PRVersion{}
 
 	versions, err := a.describeVersions(ctx, addon)
 	if err != nil {
@@ -133,9 +130,6 @@ func (a *Manager) findNewerVersions(ctx context.Context, addon *api.Addon) (stri
 		if err != nil {
 			logger.Debug("could not parse version %q, skipping version comparison: %v", addon.Version, err)
 		} else {
-			//trim off anything after x.y.z and don't use in comparison, e.g. v1.7.5-eksbuild.1 > v1.7.5
-			version.Build = []string{}
-			version.Pre = []semver.PRVersion{}
 			if currentVersion.LT(version) {
 				newerVersions = append(newerVersions, *versionInfo.AddonVersion)
 			}

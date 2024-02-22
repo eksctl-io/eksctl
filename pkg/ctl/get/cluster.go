@@ -177,21 +177,21 @@ func addGetClusterSummaryTableColumns(printer *printers.TablePrinter) {
 		if c.ResourcesVpcConfig == nil || c.ResourcesVpcConfig.SubnetIds == nil {
 			return "-"
 		}
-		subnets := sets.NewString()
+		subnets := sets.New[string]()
 		for _, subnetID := range c.ResourcesVpcConfig.SubnetIds {
 			subnets.Insert(subnetID)
 		}
-		return strings.Join(subnets.List(), ",")
+		return strings.Join(sets.List(subnets), ",")
 	})
 	printer.AddColumn("SECURITYGROUPS", func(c *ekstypes.Cluster) string {
 		if c.ResourcesVpcConfig == nil || c.ResourcesVpcConfig.SecurityGroupIds == nil {
 			return "-"
 		}
-		groups := sets.NewString()
+		groups := sets.New[string]()
 		for _, sg := range c.ResourcesVpcConfig.SecurityGroupIds {
 			groups.Insert(sg)
 		}
-		return strings.Join(groups.List(), ",")
+		return strings.Join(sets.List(groups), ",")
 	})
 
 	printer.AddColumn("PROVIDER", func(c *ekstypes.Cluster) string {

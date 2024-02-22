@@ -339,9 +339,9 @@ func LogEnabledFeatures(clusterConfig *api.ClusterConfig) {
 		return
 	}
 
-	all := sets.NewString(api.SupportedCloudWatchClusterLogTypes()...)
+	all := sets.New[string](api.SupportedCloudWatchClusterLogTypes()...)
 
-	enabled := sets.NewString()
+	enabled := sets.New[string]()
 	if clusterConfig.HasClusterCloudWatchLogging() {
 		enabled.Insert(clusterConfig.CloudWatch.ClusterLogging.EnableTypes...)
 	}
@@ -350,12 +350,12 @@ func LogEnabledFeatures(clusterConfig *api.ClusterConfig) {
 
 	describeEnabledTypes := "no types enabled"
 	if enabled.Len() > 0 {
-		describeEnabledTypes = fmt.Sprintf("enabled types: %s", strings.Join(enabled.List(), ", "))
+		describeEnabledTypes = fmt.Sprintf("enabled types: %s", strings.Join(sets.List(enabled), ", "))
 	}
 
 	describeDisabledTypes := "no types disabled"
 	if disabled.Len() > 0 {
-		describeDisabledTypes = fmt.Sprintf("disabled types: %s", strings.Join(disabled.List(), ", "))
+		describeDisabledTypes = fmt.Sprintf("disabled types: %s", strings.Join(sets.List(disabled), ", "))
 	}
 
 	logger.Info("configuring CloudWatch logging for cluster %q in %q (%s & %s)",

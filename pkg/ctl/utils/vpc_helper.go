@@ -178,5 +178,5 @@ func cidrsEqual(currentValues, newValues []string) bool {
 		return true
 	}
 
-	return sets.NewString(currentValues...).Equal(sets.NewString(newValues...))
+	return sets.New[string](currentValues...).Equal(sets.New[string](newValues...))
 }

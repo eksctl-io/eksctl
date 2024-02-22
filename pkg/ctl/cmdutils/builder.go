@@ -5,8 +5,8 @@ import "k8s.io/apimachinery/pkg/util/sets"
 type ValidateCmdFunc = func(cmd *Cmd) error
 
 type ConfigLoaderBuilder struct {
-	FlagsIncompatibleWithConfigFile    sets.String
-	FlagsIncompatibleWithoutConfigFile sets.String
+	FlagsIncompatibleWithConfigFile    sets.Set[string]
+	FlagsIncompatibleWithoutConfigFile sets.Set[string]
 	validateWithConfigFile             []ValidateCmdFunc
 	validateWithoutConfigFile          []ValidateCmdFunc
 	validate                           []ValidateCmdFunc
@@ -49,8 +49,8 @@ func (b *ConfigLoaderBuilder) Build(cmd *Cmd) ClusterConfigLoader {
 
 func NewConfigLoaderBuilder() ConfigLoaderBuilder {
 	return ConfigLoaderBuilder{
-		FlagsIncompatibleWithConfigFile:    sets.NewString(defaultFlagsIncompatibleWithConfigFile[:]...),
-		FlagsIncompatibleWithoutConfigFile: sets.NewString(defaultFlagsIncompatibleWithoutConfigFile[:]...),
+		FlagsIncompatibleWithConfigFile:    sets.New[string](defaultFlagsIncompatibleWithConfigFile[:]...),
+		FlagsIncompatibleWithoutConfigFile: sets.New[string](defaultFlagsIncompatibleWithoutConfigFile[:]...),
 		validateWithoutConfigFile: []func(cmd *Cmd) error{
 			validateMetadataWithoutConfigFile,
 		},

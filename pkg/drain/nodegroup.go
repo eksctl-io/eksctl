@@ -127,7 +127,7 @@ func (n *NodeGroupDrainer) Drain(ctx context.Context, sem *semaphore.Weighted) e
 			}
 			n.toggleCordon(true, nodes)
 
-			newPendingNodes := sets.NewString()
+			newPendingNodes := sets.New[string]()
 
 			for _, node := range nodes.Items {
 				if !drainedNodes.Has(node.Name) {
@@ -141,10 +141,10 @@ func (n *NodeGroupDrainer) Drain(ctx context.Context, sem *semaphore.Weighted) e
 			}
 
 			logger.Debug("already drained: %v", mapToList(drainedNodes.Items()))
-			logger.Debug("will drain: %v", newPendingNodes.List())
+			logger.Debug("will drain: %v", sets.List(newPendingNodes))
 
 			g, ctx := errgroup.WithContext(ctx)
-			for _, node := range newPendingNodes.List() {
+			for _, node := range sets.List(newPendingNodes) {
 				node := node
 				g.Go(func() error {
 					if err := sem.Acquire(ctx, 1); err != nil {

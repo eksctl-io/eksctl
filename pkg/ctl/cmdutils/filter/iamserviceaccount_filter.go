@@ -26,8 +26,8 @@ func NewIAMServiceAccountFilter() *IAMServiceAccountFilter {
 	return &IAMServiceAccountFilter{
 		Filter: &Filter{
 			ExcludeAll:   false,
-			includeNames: sets.NewString(),
-			excludeNames: sets.NewString(),
+			includeNames: sets.New[string](),
+			excludeNames: sets.New[string](),
 		},
 	}
 }
@@ -87,8 +87,8 @@ func (f *IAMServiceAccountFilter) SetDeleteFilter(ctx context.Context, lister se
 		return err
 	}
 
-	remote := sets.NewString(existing...)
-	local := sets.NewString()
+	remote := sets.New[string](existing...)
+	local := sets.New[string]()
 	var explicitIncludes []string
 
 	// if we're doing onlyMissing, that means the user _probably_ doesn't want
@@ -145,7 +145,7 @@ func (f *IAMServiceAccountFilter) LogInfo(serviceAccounts []*api.ClusterIAMServi
 }
 
 // MatchAll all names against the filter and return two sets of names - included and excluded
-func (f *IAMServiceAccountFilter) MatchAll(serviceAccounts []*api.ClusterIAMServiceAccount) (sets.String, sets.String) {
+func (f *IAMServiceAccountFilter) MatchAll(serviceAccounts []*api.ClusterIAMServiceAccount) (sets.Set[string], sets.Set[string]) {
 	return f.doMatchAll(f.collectNames(serviceAccounts))
 }
 

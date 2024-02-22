@@ -11,11 +11,16 @@ jobs:
     name: Build and push container image
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
           aws-region: us-east-1
           role-duration-seconds: 7200
@@ -27,26 +32,6 @@ jobs:
         uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v1
         with:
           registry-type: public
-
-      - name: Setup Go
-        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 #v5.0.0
-        with:
-          go-version: 1.20.x
-          cache: false
-
-      - name: Cache go-build and mod
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 #v3.3.2
-        with:
-          path: |
-            ~/.cache/go-build/
-            ~/go/pkg/mod/
-          key: go-${{ hashFiles('go.sum') }}
-          restore-keys: |
-            go-
-
-      - name: Setup deps
-        run: |
-          make install-build-deps
 
       - name: Build and push image
         run: |

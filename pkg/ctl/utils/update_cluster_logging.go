@@ -75,16 +75,16 @@ func doEnableLogging(cmd *cmdutils.Cmd, logTypesToEnable []string, logTypesToDis
 		return err
 	}
 
-	var willBeEnabled sets.String
+	var willBeEnabled sets.Set[string]
 	if cfg.HasClusterCloudWatchLogging() {
-		willBeEnabled = sets.NewString(cfg.CloudWatch.ClusterLogging.EnableTypes...)
+		willBeEnabled = sets.New[string](cfg.CloudWatch.ClusterLogging.EnableTypes...)
 	} else {
-		baselineEnabled := currentlyEnabled.List()
+		baselineEnabled := sets.List(currentlyEnabled)
 		willBeEnabled = processTypesToEnable(baselineEnabled, logTypesToEnable, logTypesToDisable)
 	}
 
-	cfg.CloudWatch.ClusterLogging.EnableTypes = willBeEnabled.List()
-	willBeDisabled := sets.NewString(api.SupportedCloudWatchClusterLogTypes()...).Difference(willBeEnabled)
+	cfg.CloudWatch.ClusterLogging.EnableTypes = sets.List(willBeEnabled)
+	willBeDisabled := sets.New[string](api.SupportedCloudWatchClusterLogTypes()...).Difference(willBeEnabled)
 	updateRequired := !currentlyEnabled.Equal(willBeEnabled)
 
 	if err = printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
@@ -93,13 +93,13 @@ func doEnableLogging(cmd *cmdutils.Cmd, logTypesToEnable []string, logTypesToDis
 
 	if updateRequired {
 		describeTypesToEnable := "no types to enable"
-		if len(willBeEnabled.List()) > 0 {
-			describeTypesToEnable = fmt.Sprintf("enable types: %s", strings.Join(willBeEnabled.List(), ", "))
+		if len(sets.List(willBeEnabled)) > 0 {
+			describeTypesToEnable = fmt.Sprintf("enable types: %s", strings.Join(sets.List(willBeEnabled), ", "))
 		}
 
 		describeTypesToDisable := "no types to disable"
-		if len(willBeDisabled.List()) > 0 {
-			describeTypesToDisable = fmt.Sprintf("disable types: %s", strings.Join(willBeDisabled.List(), ", "))
+		if len(sets.List(willBeDisabled)) > 0 {
+			describeTypesToDisable = fmt.Sprintf("disable types: %s", strings.Join(sets.List(willBeDisabled), ", "))
 		}
 
 		cmdutils.LogIntendedAction(cmd.Plan, "update CloudWatch logging for cluster %q in %q (%s & %s)",
@@ -147,8 +147,8 @@ func validateLoggingFlags(toEnable, toDisable []string) error {
 		return err
 	}
 	// both options are provided but without "all"
-	toEnableSet := sets.NewString(toEnable...)
-	toDisableSet := sets.NewString(toDisable...)
+	toEnableSet := sets.New[string](toEnable...)
+	toDisableSet := sets.New[string](toDisable...)
 
 	appearInBoth := toEnableSet.Intersection(toDisableSet)
 
@@ -158,7 +158,7 @@ func validateLoggingFlags(toEnable, toDisable []string) error {
 	return nil
 }
 
-func processTypesToEnable(existingEnabled, toEnable, toDisable []string) sets.String {
+func processTypesToEnable(existingEnabled, toEnable, toDisable []string) sets.Set[string] {
 	emptyToEnable := len(toEnable) == 0
 	emptyToDisable := len(toDisable) == 0
 
@@ -167,16 +167,16 @@ func processTypesToEnable(existingEnabled, toEnable, toDisable []string) sets.St
 
 	// When all is provided in one of the options
 	if isDisableAll {
-		return sets.NewString(toEnable...)
+		return sets.New[string](toEnable...)
 	}
 	if isEnableAll {
-		toDisableSet := sets.NewString(toDisable...)
-		toEnableSet := sets.NewString(api.SupportedCloudWatchClusterLogTypes()...).Difference(toDisableSet)
+		toDisableSet := sets.New[string](toDisable...)
+		toEnableSet := sets.New[string](api.SupportedCloudWatchClusterLogTypes()...).Difference(toDisableSet)
 		return toEnableSet
 	}
 
 	// willEnable = existing - toDisable + toEnable
-	willEnable := sets.NewString(existingEnabled...)
+	willEnable := sets.New[string](existingEnabled...)
 	willEnable.Insert(toEnable...)
 	willEnable.Delete(toDisable...)
 
@@ -187,7 +187,7 @@ func checkAllTypesAreSupported(logTypes []string) error {
 	if len(logTypes) == 1 && logTypes[0] == "all" {
 		return nil
 	}
-	allSupportedTypesSet := sets.NewString(api.SupportedCloudWatchClusterLogTypes()...)
+	allSupportedTypesSet := sets.New[string](api.SupportedCloudWatchClusterLogTypes()...)
 	for _, logType := range logTypes {
 		if !allSupportedTypesSet.Has(logType) {
 			return fmt.Errorf("unknown log type %s. Supported log types: all, %s", logType, strings.Join(api.SupportedCloudWatchClusterLogTypes(), ", "))

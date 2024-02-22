@@ -208,6 +208,8 @@ type EKS interface {
 	DescribeFargateProfile(ctx context.Context, params *DescribeFargateProfileInput, optFns ...func(*Options)) (*DescribeFargateProfileOutput, error)
 	// Describes an identity provider configuration.
 	DescribeIdentityProviderConfig(ctx context.Context, params *DescribeIdentityProviderConfigInput, optFns ...func(*Options)) (*DescribeIdentityProviderConfigOutput, error)
+	// Returns details about an insight that you specify using its ID.
+	DescribeInsight(ctx context.Context, params *DescribeInsightInput, optFns ...func(*Options)) (*DescribeInsightOutput, error)
 	// Describes a managed node group.
 	DescribeNodegroup(ctx context.Context, params *DescribeNodegroupInput, optFns ...func(*Options)) (*DescribeNodegroupOutput, error)
 	// Returns descriptive information about an EKS Pod Identity association. This
@@ -245,6 +247,10 @@ type EKS interface {
 	ListFargateProfiles(ctx context.Context, params *ListFargateProfilesInput, optFns ...func(*Options)) (*ListFargateProfilesOutput, error)
 	// Lists the identity provider configurations for your cluster.
 	ListIdentityProviderConfigs(ctx context.Context, params *ListIdentityProviderConfigsInput, optFns ...func(*Options)) (*ListIdentityProviderConfigsOutput, error)
+	// Returns a list of all insights checked for against the specified cluster. You
+	// can filter which insights are returned by category, associated Kubernetes
+	// version, and status.
+	ListInsights(ctx context.Context, params *ListInsightsInput, optFns ...func(*Options)) (*ListInsightsOutput, error)
 	// Lists the managed node groups associated with the specified cluster in your
 	// Amazon Web Services account in the specified Amazon Web Services Region.
 	// Self-managed node groups aren't listed.

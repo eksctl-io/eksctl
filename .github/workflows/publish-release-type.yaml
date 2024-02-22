@@ -11,8 +11,6 @@ on:
     secrets:
       githubToken:
         required: true
-      slackToken:
-        required: true
 
 jobs:
   publish-release:
@@ -29,23 +27,8 @@ jobs:
           df -h
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
-      - name: Setup Go
-        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 #v5.0.0
-        with:
-          go-version: 1.20.x
-          cache: false
-      - name: Cache go-build and mod
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 #v3.3.2
-        with:
-          path: |
-            ~/.cache/go-build/
-            ~/go/pkg/mod/
-          key: go-${{ hashFiles('go.sum') }}
-          restore-keys: |
-            go-
-      - name: Setup deps
-        run: |
-          make install-build-deps
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
       - name: Publish release
         if: ${{ !inputs.isReleaseCandidate }}
         env:
@@ -61,30 +44,3 @@ jobs:
       - name: get version
         id: get_version
         run: echo "version=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-      - name: slack on success - team-pitch-black
-        if: ${{ success() }}
-        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a #v1.1.0
-        with:
-          slack_token: ${{ secrets.slackToken }}
-          message: ":cool-doge: ${{ inputs.name }} successful for tag <https://github.com/eksctl-io/eksctl/releases/tag/${{ steps.get_version.outputs.version }}|${{ steps.get_version.outputs.version }}>"
-          channel: team-pitch-black
-          color: green
-          verbose: false
-      - name: slack on failure - team-pitch-black
-        if: ${{ failure() }}
-        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a #v1.1.0
-        with:
-          slack_token: ${{ secrets.slackToken }}
-          message: ":ahhhhhhhhh: ${{ inputs.name }} has failed for tag <https://github.com/eksctl-io/eksctl/releases/tag/${{ steps.get_version.outputs.version }}|${{ steps.get_version.outputs.version }}>"
-          channel: team-pitch-black
-          color: red
-          verbose: true
-      - name: slack on success - aws-dev
-        if: ${{ success() }}
-        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a #v1.1.0
-        with:
-          slack_token: ${{ secrets.slackToken }}
-          message: ":tada: <https://github.com/eksctl-io/eksctl/releases/tag/${{ steps.get_version.outputs.version }}|${{ steps.get_version.outputs.version }}> released!"
-          channel: aws-dev
-          color: green
-          verbose: false

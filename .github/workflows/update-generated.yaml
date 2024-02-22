@@ -18,7 +18,7 @@ jobs:
         resource: ["coredns", "aws-node"]    
     name: Update ${{ matrix.resource }} and open PR
     runs-on: ubuntu-latest
-    container: public.ecr.aws/eksctl/eksctl-build:c1ae010fa4b927d123afc6fdd7df07203aa40dd8
+    container: public.ecr.aws/eksctl/eksctl-build:9b3f575ceb1a272a000ca1fbaded0174096a007a
     env:
       GOPRIVATE: ""
     steps:
@@ -29,7 +29,7 @@ jobs:
           fetch-depth: 0
       - name: Configure AWS credentials for coredns update
         if: ${{ matrix.resource == 'coredns' }}
-        uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
           aws-region: us-west-2
           role-duration-seconds: 900
@@ -40,7 +40,7 @@ jobs:
         with:
           token: "${{ secrets.EKSCTLBOT_TOKEN }}"
       - name: Cache go-build and mod
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 #v3.3.2
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 #v4.0.0
         with:
           path: |
             ~/.cache/go-build/

@@ -26,7 +26,7 @@ var (
 func NewCreatePodIdentityAssociationLoader(cmd *Cmd, podIdentityAssociation *api.PodIdentityAssociation) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
-	l.flagsIncompatibleWithConfigFile = sets.NewString(podIdentityAssociationFlagsIncompatibleWithConfigFile...)
+	l.flagsIncompatibleWithConfigFile = sets.New[string](podIdentityAssociationFlagsIncompatibleWithConfigFile...)
 
 	l.validateWithConfigFile = func() error {
 		return validatePodIdentityAssociationsForConfig(l.ClusterConfig, true)
@@ -64,7 +64,7 @@ func NewCreatePodIdentityAssociationLoader(cmd *Cmd, podIdentityAssociation *api
 func NewGetPodIdentityAssociationLoader(cmd *Cmd, pia *api.PodIdentityAssociation) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
-	l.flagsIncompatibleWithConfigFile = sets.NewString("cluster")
+	l.flagsIncompatibleWithConfigFile = sets.New[string]("cluster")
 
 	l.validateWithoutConfigFile = func() error {
 		if cmd.ClusterConfig.Metadata.Name == "" {

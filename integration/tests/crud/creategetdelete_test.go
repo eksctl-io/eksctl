@@ -19,6 +19,7 @@ import (
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/yaml"
@@ -550,8 +551,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		It("should have all types disabled by default", func() {
 			enabled, disabled, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(enabled.List()).To(HaveLen(0))
-			Expect(disabled.List()).To(HaveLen(5))
+			Expect(sets.List(enabled)).To(HaveLen(0))
+			Expect(sets.List(disabled)).To(HaveLen(5))
 		})
 
 		It("should plan to enable two of the types using flags", func() {
@@ -562,8 +563,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			)).To(RunSuccessfully())
 			enabled, disabled, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(enabled.List()).To(HaveLen(0))
-			Expect(disabled.List()).To(HaveLen(5))
+			Expect(sets.List(enabled)).To(HaveLen(0))
+			Expect(sets.List(disabled)).To(HaveLen(5))
 		})
 
 		It("should enable two of the types using flags", func() {
@@ -575,10 +576,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			)).To(RunSuccessfully())
 			enabled, disabled, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(enabled.List()).To(HaveLen(2))
-			Expect(disabled.List()).To(HaveLen(3))
-			Expect(enabled.List()).To(ConsistOf("api", "controllerManager"))
-			Expect(disabled.List()).To(ConsistOf("audit", "authenticator", "scheduler"))
+			Expect(sets.List(enabled)).To(HaveLen(2))
+			Expect(sets.List(disabled)).To(HaveLen(3))
+			Expect(sets.List(enabled)).To(ConsistOf("api", "controllerManager"))
+			Expect(sets.List(disabled)).To(ConsistOf("audit", "authenticator", "scheduler"))
 		})
 
 		It("should enable all of the types using --enable-types=all", func() {
@@ -590,8 +591,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			)).To(RunSuccessfully())
 			enabled, disabled, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(enabled.List()).To(HaveLen(5))
-			Expect(disabled.List()).To(HaveLen(0))
+			Expect(sets.List(enabled)).To(HaveLen(5))
+			Expect(sets.List(disabled)).To(HaveLen(0))
 		})
 
 		It("should enable all but one type", func() {
@@ -604,10 +605,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			)).To(RunSuccessfully())
 			enabled, disabled, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(enabled.List()).To(HaveLen(4))
-			Expect(disabled.List()).To(HaveLen(1))
-			Expect(enabled.List()).To(ConsistOf("api", "audit", "authenticator", "scheduler"))
-			Expect(disabled.List()).To(ConsistOf("controllerManager"))
+			Expect(sets.List(enabled)).To(HaveLen(4))
+			Expect(sets.List(disabled)).To(HaveLen(1))
+			Expect(sets.List(enabled)).To(ConsistOf("api", "audit", "authenticator", "scheduler"))
+			Expect(sets.List(disabled)).To(ConsistOf("controllerManager"))
 		})
 
 		It("should disable all but one type", func() {
@@ -620,10 +621,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			)).To(RunSuccessfully())
 			enabled, disabled, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(disabled.List()).To(HaveLen(4))
-			Expect(enabled.List()).To(HaveLen(1))
-			Expect(disabled.List()).To(ConsistOf("api", "audit", "authenticator", "scheduler"))
-			Expect(enabled.List()).To(ConsistOf("controllerManager"))
+			Expect(sets.List(disabled)).To(HaveLen(4))
+			Expect(sets.List(enabled)).To(HaveLen(1))
+			Expect(sets.List(disabled)).To(ConsistOf("api", "audit", "authenticator", "scheduler"))
+			Expect(sets.List(enabled)).To(ConsistOf("controllerManager"))
 		})
 
 		It("should disable all of the types using --disable-types=all", func() {
@@ -635,8 +636,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			)).To(RunSuccessfully())
 			enabled, disabled, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(enabled.List()).To(HaveLen(0))
-			Expect(disabled.List()).To(HaveLen(5))
+			Expect(sets.List(enabled)).To(HaveLen(0))
+			Expect(sets.List(disabled)).To(HaveLen(5))
 			Expect(disabled.HasAll(api.SupportedCloudWatchClusterLogTypes()...)).To(BeTrue())
 		})
 	})

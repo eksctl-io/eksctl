@@ -150,7 +150,7 @@ func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamCo
 }
 
 func makeManagedPolicies(iamCluster *api.ClusterIAM, iamConfig *api.NodeGroupIAM, managed, forceAddCNIPolicy bool) (*gfnt.Value, error) {
-	managedPolicyNames := sets.NewString()
+	managedPolicyNames := sets.New[string]()
 	if len(iamConfig.AttachPolicyARNs) == 0 {
 		managedPolicyNames.Insert(iamDefaultNodePolicies...)
 		if !api.IsEnabled(iamCluster.WithOIDC) || forceAddCNIPolicy {
@@ -192,7 +192,7 @@ func makeManagedPolicies(iamCluster *api.ClusterIAM, iamConfig *api.NodeGroupIAM
 
 	return gfnt.NewSlice(append(
 		makeStringSlice(iamConfig.AttachPolicyARNs...),
-		makePolicyARNs(managedPolicyNames.List()...)...,
+		makePolicyARNs(sets.List(managedPolicyNames)...)...,
 	)...), nil
 }
 
