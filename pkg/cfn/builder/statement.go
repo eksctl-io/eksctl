@@ -250,32 +250,6 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 	}
 }
 
-func elbStatements() []cft.MapOfInterfaces {
-	return []cft.MapOfInterfaces{
-		{
-			"Effect":   effectAllow,
-			"Resource": resourceAll,
-			"Action": []string{
-				"ec2:DescribeAccountAttributes",
-				"ec2:DescribeAddresses",
-				"ec2:DescribeInternetGateways",
-			},
-		},
-	}
-}
-
-func cloudWatchMetricsStatements() []cft.MapOfInterfaces {
-	return []cft.MapOfInterfaces{
-		{
-			"Effect":   effectAllow,
-			"Resource": resourceAll,
-			"Action": []string{
-				"cloudwatch:PutMetricData",
-			},
-		},
-	}
-}
-
 func certManagerHostedZonesStatements() []cft.MapOfInterfaces {
 	return []cft.MapOfInterfaces{
 		{
