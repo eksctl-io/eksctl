@@ -105,13 +105,7 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRolePermissionsBoundary) {
 		role.PermissionsBoundary = gfnt.NewString(*c.spec.IAM.ServiceRolePermissionsBoundary)
 	}
-	refSR := c.newResource("ServiceRole", role)
-	c.rs.attachAllowPolicy("PolicyCloudWatchMetrics", refSR, cloudWatchMetricsStatements())
-	// These are potentially required for creating load balancers but aren't included in the
-	// AmazonEKSClusterPolicy
-	// See https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/elb-api-permissions.html#required-permissions-v2
-	// and weaveworks/eksctl#2488
-	c.rs.attachAllowPolicy("PolicyELBPermissions", refSR, elbStatements())
+	c.newResource("ServiceRole", role)
 
 	c.rs.defineOutputFromAtt(outputs.ClusterServiceRoleARN, "ServiceRole", "Arn", true, func(v string) error {
 		c.spec.IAM.ServiceRoleARN = &v

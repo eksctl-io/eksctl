@@ -281,18 +281,11 @@ var _ = Describe("Cluster Template Builder", func() {
 
 		It("should add iam resources and policies", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ServiceRole"))
-			Expect(clusterTemplate.Resources).To(HaveKey("PolicyELBPermissions"))
-			Expect(clusterTemplate.Resources).To(HaveKey("PolicyCloudWatchMetrics"))
 		})
 
 		It("should add the correct policies and references to the ServiceRole ARN", func() {
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(HaveLen(2))
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(ContainElements(makePolicyARNRef("AmazonEKSClusterPolicy"), makePolicyARNRef("AmazonEKSVPCResourceController")))
-
-			cwPolicy := clusterTemplate.Resources["PolicyCloudWatchMetrics"].Properties
-			Expect(isRefTo(cwPolicy.Roles[0], "ServiceRole")).To(BeTrue())
-			elbPolicy := clusterTemplate.Resources["PolicyELBPermissions"].Properties
-			Expect(isRefTo(elbPolicy.Roles[0], "ServiceRole")).To(BeTrue())
 		})
 
 		It("should add iam outputs", func() {
