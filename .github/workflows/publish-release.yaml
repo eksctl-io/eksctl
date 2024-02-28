@@ -1,4 +1,4 @@
-name: publish-release
+name: Publish Release
 on:
   push:
     tags:
@@ -15,4 +15,7 @@ jobs:
       isReleaseCandidate: false
       name: release
     secrets:
-      githubToken: ${{ secrets.EKSCTLBOT_TOKEN }}
+      customToken: ${{ secrets.EKSCTLBOT_TOKEN }}
+    permissions: 
+      contents: write
+      pull-requests: write
