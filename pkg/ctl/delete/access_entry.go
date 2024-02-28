@@ -32,6 +32,7 @@ func deleteAccessEntryCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})
+	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
