@@ -38,6 +38,7 @@ jobs:
       - name: Upsert pull request
         uses: peter-evans/create-pull-request@b1ddad2c994a25fbc81a28b3ec0e368bb2021c50 #v6.0.0
         with:
+          token: ${{ secrets.EKSCTLBOT_TOKEN }}
           commit-message: Add release notes for ${{ steps.draft.outputs.tag_name }}
           committer: eksctl-bot <eksctl-bot@users.noreply.github.com>
           body: |

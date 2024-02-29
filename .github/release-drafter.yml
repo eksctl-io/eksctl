@@ -43,5 +43,5 @@ exclude-contributors:
   - 'eksctl-bot'
   - 'dependabot'
 replacers:
-  - search: '/(?:and )?@dependabot(?:\[bot\])?,?/g'
+  - search: '/\s(?:and )?@dependabot(?:\[bot\])?,?/g'
     replace: ''
