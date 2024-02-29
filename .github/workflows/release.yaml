@@ -1,11 +1,11 @@
-name: Release
+name: Trigger Release
 
 on:
   workflow_dispatch: {}
 
 jobs:
   rc:
-    name: Trigger release build
+    name: Push release tag
     runs-on: ubuntu-latest
     container: public.ecr.aws/eksctl/eksctl-build:79ff6e4d9b5ba7e2bfb962efe2fcb7b2eebc1f2a
     steps:
