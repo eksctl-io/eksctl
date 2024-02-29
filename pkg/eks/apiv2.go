@@ -69,7 +69,7 @@ func newV2Config(pc *api.ProviderConfig, credentialsCacheFilePath string, config
 		}),
 		config.WithAssumeRoleCredentialOptions(func(o *stscreds.AssumeRoleOptions) {
 			o.TokenProvider = stscreds.StdinTokenProvider
-			o.Duration = 30 * time.Minute
+			o.Duration = 60 * time.Minute
 		}),
 		config.WithAPIOptions([]func(stack *middleware.Stack) error{
 			middlewarev2.AddUserAgentKeyValue("eksctl", version.String()),
