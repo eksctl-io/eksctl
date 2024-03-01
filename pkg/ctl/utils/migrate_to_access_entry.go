@@ -8,7 +8,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/eksctl/pkg/actions/accessentry"
+	accessentryactions "github.com/weaveworks/eksctl/pkg/actions/accessentry"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -20,7 +20,7 @@ func migrateAccessEntryCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("migrate-to-access-entry", "Migrates aws-auth to API authentication mode for the cluster", "")
 
-	var options accessentry.AccessEntryMigrationOptions
+	var options accessentryactions.AccessEntryMigrationOptions
 	cmd.FlagSetGroup.InFlagSet("Migrate to Access Entry", func(fs *pflag.FlagSet) {
 		fs.BoolVar(&options.RemoveOIDCProviderTrustRelationship, "remove-aws-auth", false, "Remove aws-auth from cluster")
 		fs.StringVar(&options.TargetAuthMode, "authentication-mode", "API_AND_CONFIG_MAP", "Target Authentication mode of migration")
@@ -42,7 +42,7 @@ func migrateAccessEntryCmd(cmd *cmdutils.Cmd) {
 	}
 }
 
-func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentry.AccessEntryMigrationOptions) error {
+func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentryactions.AccessEntryMigrationOptions) error {
 	cfg := cmd.ClusterConfig
 	cmd.ClusterConfig.AccessConfig.AuthenticationMode = ekstypes.AuthenticationMode(options.TargetAuthMode)
 	tgAuthMode := cmd.ClusterConfig.AccessConfig.AuthenticationMode
@@ -72,19 +72,6 @@ func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentry.AccessEntryMi
 		// Add UpdateAuthentication Mode Method call here
 	}
 
-	// Get Access Entries from Cluster Provider
-	clusterProvider, err := cmd.NewProviderForExistingCluster(ctx)
-	if err != nil {
-		return err
-	}
-	asgetter := accessentry.NewGetter(cfg.Metadata.Name, clusterProvider.AWSProvider.EKS())
-	accessEntries, err := asgetter.Get(ctx, api.ARN{})
-	if err != nil {
-		return err
-	}
-	fmt.Printf("%+v\n", accessEntries)
-
-	// Get CONFIGMAP Entries
 	clientSet, err := ctl.NewStdClientSet(cfg)
 	if err != nil {
 		return err
@@ -97,11 +84,55 @@ func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentry.AccessEntryMi
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%+v\n", cmEntries)
+	accessEntriesFromCm := []api.AccessEntry{}
+	for _, cme := range cmEntries {
+		idArn := api.MustParseARN(cme.ARN())
+		accessEntriesFromCm = append(accessEntriesFromCm, api.AccessEntry{
+			PrincipalARN: idArn,
+			// Type: "STANDARD",
+			KubernetesGroups:   cme.Groups(),
+			KubernetesUsername: cme.Username(),
+		})
+	}
 
-	// Check if any of the cmEntries are in accessEntries, and add the remaining to NeedsUpdateList
+	asgetter := accessentryactions.NewGetter(cfg.Metadata.Name, ctl.AWSProvider.EKS())
+	accessEntries, err := asgetter.Get(ctx, api.ARN{})
+	if err != nil {
+		return err
+	}
 
-	// Perform doCreateAccessEntry() on NeedsUpdateList
+	//// Compare accessEntries and accessEntriesFromCm
+	// Next steps:
+	// 1. Instead of storing all into toDoEntries, Make a struct to contain multiple types of toDoEntries
+	// type ToDoEntries struct {
+	// 	NodeLinux   []api.AccessEntry
+	// 	NodeWindows []api.AccessEntry
+	// 	System      []api.AccessEntry
+	// 	NonSystem   []api.AccessEntry
+	// }
+	// 2. Modify below code to store entries into one of above slices based on accessEntriesFromCm[item].KubernetesGroups
+	// 3. Before storing, add Type property to each entry i.e. STANDARD, EC2_LINUX, EC2_WINDOWS etc based on condition
+	toDoEntries := []api.AccessEntry{}
+	aeArns := make(map[string]bool)
+	for _, ae := range accessEntries {
+		aeArns[ae.PrincipalARN] = true
+	}
+	for _, cme := range accessEntriesFromCm {
+		if !aeArns[cme.PrincipalARN.String()] {
+			toDoEntries = append(toDoEntries, cme)
+		} else {
+			logger.Warning("%v already exists in Access Entry, ignoring.", cme.PrincipalARN.String())
+		}
+	}
+
+	// Create Access Entries
+	stackManager := ctl.NewStackManager(cfg)
+	fmt.Printf("%+v\n%+v\n", accessEntries, accessEntriesFromCm)
+	accessEntryCreator := &accessentryactions.Creator{
+		ClusterName:  cmd.ClusterConfig.Metadata.Name,
+		StackCreator: stackManager,
+	}
+	accessEntryCreator.Create(ctx, toDoEntries)
 
 	return nil
 }
