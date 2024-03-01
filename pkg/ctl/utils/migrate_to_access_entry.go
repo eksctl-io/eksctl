@@ -60,7 +60,7 @@ func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentry.AccessEntryMi
 		return err
 	}
 
-	if tgAuthMode != ekstypes.AuthenticationModeApi || tgAuthMode != ekstypes.AuthenticationModeApi {
+	if tgAuthMode != ekstypes.AuthenticationModeApi && tgAuthMode != ekstypes.AuthenticationModeApiAndConfigMap {
 		return fmt.Errorf("Target authentication mode is invalid")
 	}
 
