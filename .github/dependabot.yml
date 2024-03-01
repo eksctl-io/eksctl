@@ -3,17 +3,17 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     labels:
     - "skip-release-notes"
     - "dependencies"
-    open-pull-requests-limit: 20 # setting a higher number so we can bundle all the weekly updates together
+    open-pull-requests-limit: 10
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule: 
-      interval: weekly
+      interval: "monthly"
     labels: 
      - "skip-release-notes"
      - "dependencies"
-    open-pull-requests-limit: 10 # setting a higher number so we can bundle all the weekly updates together
+    open-pull-requests-limit: 10
     
