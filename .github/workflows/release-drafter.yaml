@@ -36,7 +36,7 @@ jobs:
           tag_name=${{ steps.draft.outputs.tag_name }}
           echo "${{ steps.draft.outputs.body }}" > docs/release_notes/${tag_name:1}.md
       - name: Upsert pull request
-        uses: peter-evans/create-pull-request@b1ddad2c994a25fbc81a28b3ec0e368bb2021c50 #v6.0.0
+        uses: peter-evans/create-pull-request@a4f52f8033a6168103c2538976c07b467e8163bc #v6.0.1
         with:
           token: ${{ secrets.EKSCTLBOT_TOKEN }}
           commit-message: Add release notes for ${{ steps.draft.outputs.tag_name }}
