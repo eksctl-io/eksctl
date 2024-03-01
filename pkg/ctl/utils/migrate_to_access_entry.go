@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/actions/accessentry"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
@@ -61,18 +62,46 @@ func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentry.AccessEntryMi
 	}
 
 	if tgAuthMode != ekstypes.AuthenticationModeApi && tgAuthMode != ekstypes.AuthenticationModeApiAndConfigMap {
-		return fmt.Errorf("Target authentication mode is invalid")
+		return fmt.Errorf("target authentication mode is invalid")
 	}
 
 	curAuthMode := ctl.GetClusterState().AccessConfig.AuthenticationMode
 
 	if curAuthMode != tgAuthMode {
-		logger.Info("Target authentication mode %v is different than the current authentication mode %v, Updating the Cluster authentication mode", tgAuthMode, curAuthMode)
-
+		logger.Info("target authentication mode %v is different than the current authentication mode %v, Updating the Cluster authentication mode", tgAuthMode, curAuthMode)
 		// Add UpdateAuthentication Mode Method call here
 	}
 
-	// Current and Target mode is same, start migration
+	// Get Access Entries from Cluster Provider
+	clusterProvider, err := cmd.NewProviderForExistingCluster(ctx)
+	if err != nil {
+		return err
+	}
+	asgetter := accessentry.NewGetter(cfg.Metadata.Name, clusterProvider.AWSProvider.EKS())
+	accessEntries, err := asgetter.Get(ctx, api.ARN{})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%+v\n", accessEntries)
+
+	// Get CONFIGMAP Entries
+	clientSet, err := ctl.NewStdClientSet(cfg)
+	if err != nil {
+		return err
+	}
+	acm, err := authconfigmap.NewFromClientSet(clientSet)
+	if err != nil {
+		return err
+	}
+	cmEntries, err := acm.GetIdentities()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%+v\n", cmEntries)
+
+	// Check if any of the cmEntries are in accessEntries, and add the remaining to NeedsUpdateList
+
+	// Perform doCreateAccessEntry() on NeedsUpdateList
 
 	return nil
 }
