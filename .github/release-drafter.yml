@@ -29,8 +29,8 @@ template: |
   $CHANGES
 
   ## Acknowledgments
-  The eksctl maintainers would like to sincerely thank:
-  $CONTRIBUTORS
+
+  The eksctl maintainers would like to sincerely thank $CONTRIBUTORS.
 
 exclude-labels:
   - 'skip-release-notes'
@@ -42,3 +42,6 @@ exclude-contributors:
   - 'yuxiang-zhang'
   - 'eksctl-bot'
   - 'dependabot'
+replacers:
+  - search: '/\s(?:and )?@dependabot(?:\[bot\])?,?/g'
+    replace: ''
