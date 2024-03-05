@@ -22,13 +22,13 @@ func migrateAccessEntryCmd(cmd *cmdutils.Cmd) {
 	cmd.FlagSetGroup.InFlagSet("Migrate to Access Entry", func(fs *pflag.FlagSet) {
 		fs.StringVar(&options.TargetAuthMode, "target-authentication-mode", "API_AND_CONFIG_MAP", "Target Authentication mode of migration")
 		fs.BoolVar(&options.RemoveOIDCProviderTrustRelationship, "remove-aws-auth", false, "Remove aws-auth from cluster")
-		fs.BoolVar(&options.Approve, "approve", false, "Apply the changes")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlag(fs, cmd.ClusterConfig.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddTimeoutFlag(fs, &options.Timeout)
+		cmdutils.AddApproveFlag(fs, cmd)
 	})
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
@@ -44,6 +44,11 @@ func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentryactions.Access
 
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
+	}
+
+	if cmd.Plan {
+		cmdutils.LogPlanModeWarning(true)
+		return nil
 	}
 
 	ctx := context.Background()
