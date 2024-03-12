@@ -59,12 +59,10 @@ func buildNetworkInterfaces(
 
 		firstNI.InterfaceType = gfnt.NewString("efa")
 		nis := []gfnec2.LaunchTemplate_NetworkInterface{firstNI}
-		// Only one card can be on deviceIndex=0
-		// Additional cards are on deviceIndex=1
-		// Due to ASG incompatibilities, we create each network card
-		// with its own device
+		// The primary network interface (device index 0) must be assigned to network card index 0
+		// device index 1 for additional cards
 		for i := 1; i < int(numEFAs); i++ {
-			ni := defaultNetworkInterface(securityGroups, i, i)
+			ni := defaultNetworkInterface(securityGroups, 1, i)
 			ni.InterfaceType = gfnt.NewString("efa")
 			nis = append(nis, ni)
 		}
