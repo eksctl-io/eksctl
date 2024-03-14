@@ -50,7 +50,7 @@ require (
 	github.com/kris-nova/lolgopher v0.0.0-20210112022122-73f0047e8b65
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.2
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.8.1
 	github.com/onsi/ginkgo/v2 v2.13.2
 	github.com/onsi/gomega v1.30.0
 	github.com/orcaman/concurrent-map v1.0.0
@@ -74,7 +74,7 @@ require (
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
 	golang.org/x/oauth2 v0.15.0
 	golang.org/x/sync v0.6.0
-	golang.org/x/tools v0.16.1
+	golang.org/x/tools v0.17.0
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.14.2
 	k8s.io/api v0.29.0
@@ -399,7 +399,7 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230307190834-24139beb5833 // indirect
 	golang.org/x/mod v0.14.0 // indirect
-	golang.org/x/net v0.19.0 // indirect
+	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/term v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
