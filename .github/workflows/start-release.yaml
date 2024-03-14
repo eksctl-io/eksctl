@@ -1,0 +1,38 @@
+name: Release - Test, build and start publishing
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+  test-and-build:
+    uses: ./.github/workflows/test-and-build.yaml
+  check-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      isRc: ${{ steps.vars.outputs.isRc }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+      - name: Set output
+        id: vars
+        run: |
+          case ${GITHUB_REF#refs/*/} in 
+            *-rc.*)
+              echo 'isRc=true' >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo 'isRc=false' >> $GITHUB_OUTPUT
+              ;;
+          esac
+  publish-release-candidate:
+    name: Publish GitHub release candidate
+    uses: ./.github/workflows/publish-release.yaml
+    needs: [test-and-build, check-tag]
+    with:
+      isReleaseCandidate: ${{ needs.check-tag.outputs.isRc == 'true' }}
+      name: release candidate
+    secrets:
+      customToken: ${{ secrets.EKSCTLBOT_TOKEN }}
+    permissions: 
+      contents: write
+      pull-requests: write

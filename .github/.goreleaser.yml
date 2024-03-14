@@ -31,11 +31,7 @@ archives:
   - id: default
     builds:
       - default
-    name_template: "eksctl_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-    replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
+    name_template: "eksctl_{{ title .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
     format: tar.gz
     format_overrides:
       - goos: windows

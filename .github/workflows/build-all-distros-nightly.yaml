@@ -9,8 +9,7 @@ jobs:
     name: build all distros
     runs-on: ubuntu-latest
     steps:
-        # Clean unnecessary files to save disk space
-      - name: clean unncessary files to save space
+      - name: Clean unncessary files to save space
         run: |
           docker rmi `docker images -q`
           sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/sudo apt/sources.list.d
@@ -19,7 +18,6 @@ jobs:
           sudo apt clean
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df -h
-      # Free up disk space on Ubuntu
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be #v1.3.1
         with:
@@ -27,15 +25,25 @@ jobs:
           tool-cache: false
           large-packages: true
           swap-storage: true
+
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
           fetch-depth: 0
       - name: Setup build environment
         uses: ./.github/actions/setup-build
-      - name: build image
+
+      - name: Build image
         run: |
           EKSCTL_IMAGE_VERSION=${GITHUB_REF#refs/*/} make -f Makefile.docker eksctl-image
-      - name: build all
+
+      - name: Generate artifacts
         run: |
-          make build-all
+          make generate-always
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@7ec5c2b0c6cdda6e8bbb49444bc797dd33d74dd8 #v5.0.0
+        with:
+          version: v1.24.0
+          args: --config=.github/.goreleaser-local.yaml --snapshot --skip=publish --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
