@@ -1,13 +1,13 @@
-name: Release candidate
+name: Trigger Release Candidate
 
 on:
   workflow_dispatch: {}
 
 jobs:
   rc:
-    name: Trigger release candidate build
+    name: Push release candidate tag
     runs-on: ubuntu-latest
-    container: public.ecr.aws/eksctl/eksctl-build:9b3f575ceb1a272a000ca1fbaded0174096a007a
+    container: public.ecr.aws/eksctl/eksctl-build:79ff6e4d9b5ba7e2bfb962efe2fcb7b2eebc1f2a
     steps:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1

@@ -18,7 +18,7 @@ jobs:
         resource: ["coredns", "aws-node"]    
     name: Update ${{ matrix.resource }} and open PR
     runs-on: ubuntu-latest
-    container: public.ecr.aws/eksctl/eksctl-build:9b3f575ceb1a272a000ca1fbaded0174096a007a
+    container: public.ecr.aws/eksctl/eksctl-build:79ff6e4d9b5ba7e2bfb962efe2fcb7b2eebc1f2a
     env:
       GOPRIVATE: ""
     steps:
