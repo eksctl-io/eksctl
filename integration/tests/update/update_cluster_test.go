@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-version"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -60,6 +61,7 @@ var (
 
 const (
 	initNG = "kp-ng-0"
+	botNG  = "bot-ng-0"
 )
 
 var _ = BeforeSuite(func() {
@@ -91,23 +93,55 @@ var _ = BeforeSuite(func() {
 
 	eksVersion, nextEKSVersion = clusterutils.GetCurrentAndNextVersionsForUpgrade(params.Version)
 
+	clusterConfig := api.NewClusterConfig()
+	clusterConfig.Metadata.Name = defaultCluster
+	clusterConfig.Metadata.Region = params.Region
+	clusterConfig.Metadata.Version = eksVersion
+	clusterConfig.Metadata.Tags = map[string]string{
+		"alpha.eksctl.io/description": "eksctl integration test",
+	}
+	clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+		{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         initNG,
+				InstanceType: "t3.large",
+				ScalingConfig: &api.ScalingConfig{
+					DesiredCapacity: aws.Int(1),
+				},
+				Labels: map[string]string{
+					"ng-name": initNG,
+				},
+			},
+		},
+		{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         botNG,
+				AMIFamily:    api.NodeImageFamilyBottlerocket,
+				InstanceType: "t3.small",
+				ScalingConfig: &api.ScalingConfig{
+					DesiredCapacity: aws.Int(1),
+				},
+				Labels: map[string]string{
+					"ng-name": botNG,
+				},
+			},
+		},
+	}
+
 	cmd := params.EksctlCreateCmd.WithArgs(
 		"cluster",
-		"--verbose", "4",
-		"--name", defaultCluster,
-		"--tags", "alpha.eksctl.io/description=eksctl integration test",
-		"--nodegroup-name", initNG,
-		"--node-labels", "ng-name="+initNG,
-		"--nodes", "1",
-		"--node-type", "t3.large",
-		"--version", eksVersion,
+		"--config-file", "-",
 		"--kubeconfig", params.KubeconfigPath,
-	)
+		"--verbose", "4",
+	).
+		WithoutArg("--region", params.Region).
+		WithStdin(clusterutils.Reader(clusterConfig))
 	Expect(cmd).To(RunSuccessfully())
 })
-var _ = Describe("(Integration) Update addons", func() {
 
-	Context("update cluster and addons", func() {
+var _ = Describe("(Integration) Upgrading cluster", func() {
+
+	Context("control plane", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
 			config := NewConfig(params.Region)
 
@@ -139,7 +173,9 @@ var _ = Describe("(Integration) Update addons", func() {
 				return fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))
 			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextEKSVersion))
 		})
+	})
 
+	Context("addons", func() {
 		It("should upgrade kube-proxy", func() {
 			cmd := params.EksctlUtilsCmd.WithArgs(
 				"update-kube-proxy",
@@ -195,7 +231,10 @@ var _ = Describe("(Integration) Update addons", func() {
 			Expect(cmd).To(RunSuccessfully())
 		})
 
-		It("should upgrade the nodegroup to the next version", func() {
+	})
+
+	Context("nodegroup", func() {
+		It("should upgrade the initial nodegroup to the next version", func() {
 			cmd := params.EksctlUpgradeCmd.WithArgs(
 				"nodegroup",
 				"--verbose", "4",
@@ -205,6 +244,34 @@ var _ = Describe("(Integration) Update addons", func() {
 				"--timeout=60m", // wait for CF stacks to finish update
 			)
 			ExpectWithOffset(1, cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("nodegroup successfully upgraded")))
+
+			cmd = params.EksctlGetCmd.WithArgs(
+				"nodegroup",
+				"--cluster", params.ClusterName,
+				"--name", initNG,
+				"--output", "yaml",
+			)
+			ExpectWithOffset(1, cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(fmt.Sprintf("Version: \"%s\"", nextEKSVersion))))
+		})
+
+		It("should upgrade the Bottlerocket nodegroup to the next version", func() {
+			cmd := params.EksctlUpgradeCmd.WithArgs(
+				"nodegroup",
+				"--verbose", "4",
+				"--cluster", params.ClusterName,
+				"--name", botNG,
+				"--kubernetes-version", nextEKSVersion,
+				"--timeout=60m", // wait for CF stacks to finish update
+			)
+			ExpectWithOffset(1, cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("nodegroup successfully upgraded")))
+
+			cmd = params.EksctlGetCmd.WithArgs(
+				"nodegroup",
+				"--cluster", params.ClusterName,
+				"--name", botNG,
+				"--output", "yaml",
+			)
+			ExpectWithOffset(1, cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(fmt.Sprintf("Version: \"%s\"", nextEKSVersion))))
 		})
 	})
 })
