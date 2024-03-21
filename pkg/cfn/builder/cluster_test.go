@@ -76,8 +76,8 @@ var _ = Describe("Cluster Template Builder", func() {
 			controlPlane := clusterTemplate.Resources["ControlPlane"].Properties
 			Expect(controlPlane.Name).To(Equal(cfg.Metadata.Name))
 			Expect(controlPlane.Version).To(Equal(cfg.Metadata.Version))
-			Expect(controlPlane.ResourcesVpcConfig.SecurityGroupIds[0]).To(ContainElement("ControlPlaneSecurityGroup"))
-			Expect(controlPlane.ResourcesVpcConfig.SubnetIds).To(HaveLen(4))
+			Expect(controlPlane.ResourcesVpcConfig.SecurityGroupIDs[0]).To(ContainElement("ControlPlaneSecurityGroup"))
+			Expect(controlPlane.ResourcesVpcConfig.SubnetIDs).To(HaveLen(4))
 			Expect(controlPlane.RoleArn).To(ContainElement([]interface{}{"ServiceRole", "Arn"}))
 			Expect(controlPlane.EncryptionConfig).To(BeNil())
 			Expect(controlPlane.KubernetesNetworkConfig.ServiceIPv4CIDR).To(Equal("131.10.55.70/18"))
@@ -275,7 +275,7 @@ var _ = Describe("Cluster Template Builder", func() {
 
 			It("should not add the ControlPlaneSecurityGroup resources", func() {
 				Expect(clusterTemplate.Resources).NotTo(HaveKey("ControlPlaneSecurityGroup"))
-				Expect(clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SecurityGroupIds).To(ContainElement("foo"))
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SecurityGroupIDs).To(ContainElement("foo"))
 			})
 		})
 
