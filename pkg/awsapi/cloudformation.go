@@ -177,7 +177,8 @@ type CloudFormation interface {
 	// return drift information about the stack and its resources.
 	DescribeStackDriftDetectionStatus(ctx context.Context, params *DescribeStackDriftDetectionStatusInput, optFns ...func(*Options)) (*DescribeStackDriftDetectionStatusOutput, error)
 	// Returns all stack related events for a specified stack in reverse chronological
-	// order. For more information about a stack's event history, go to Stacks (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/concept-stack.html)
+	// order. For more information about a stack's event history, see CloudFormation
+	// stack creation events (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stack-resource-configuration-complete.html)
 	// in the CloudFormation User Guide. You can list events for stacks that have
 	// failed to create or have been deleted by specifying the unique stack identifier
 	// (stack ID).
@@ -220,8 +221,11 @@ type CloudFormation interface {
 	// Returns the description of the specified StackSet operation.
 	DescribeStackSetOperation(ctx context.Context, params *DescribeStackSetOperationInput, optFns ...func(*Options)) (*DescribeStackSetOperationOutput, error)
 	// Returns the description for the specified stack; if no stack name was
-	// specified, then it returns the description for all the stacks created. If the
-	// stack doesn't exist, a ValidationError is returned.
+	// specified, then it returns the description for all the stacks created. For more
+	// information about a stack's event history, see CloudFormation stack creation
+	// events (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stack-resource-configuration-complete.html)
+	// in the CloudFormation User Guide. If the stack doesn't exist, a ValidationError
+	// is returned.
 	DescribeStacks(ctx context.Context, params *DescribeStacksInput, optFns ...func(*Options)) (*DescribeStacksOutput, error)
 	// Returns detailed information about an extension that has been registered. If
 	// you specify a VersionId , DescribeType returns information about that specific
@@ -382,6 +386,8 @@ type CloudFormation interface {
 	// stacks, ListStackResources returns resource information for up to 90 days after
 	// the stack has been deleted.
 	ListStackResources(ctx context.Context, params *ListStackResourcesInput, optFns ...func(*Options)) (*ListStackResourcesOutput, error)
+	// Returns summary information about deployment targets for a stack set.
+	ListStackSetAutoDeploymentTargets(ctx context.Context, params *ListStackSetAutoDeploymentTargetsInput, optFns ...func(*Options)) (*ListStackSetAutoDeploymentTargetsOutput, error)
 	// Returns summary information about the results of a stack set operation.
 	ListStackSetOperationResults(ctx context.Context, params *ListStackSetOperationResultsInput, optFns ...func(*Options)) (*ListStackSetOperationResultsOutput, error)
 	// Returns summary information about operations performed on a stack set.
