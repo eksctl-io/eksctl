@@ -266,14 +266,17 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 		latestReleaseVersion, err := m.getLatestReleaseVersion(ctx, kubernetesVersion, nodegroup)
 		if err != nil {
 			return err
-		}
-
-		if latestReleaseVersion != "" {
+		} else if latestReleaseVersion != "" {
 			if err := m.updateReleaseVersion(latestReleaseVersion, options.LaunchTemplateVersion, nodegroup, ngResource); err != nil {
 				return err
 			}
-		} else {
+		}
+
+		if ngResource.ReleaseVersion == nil {
 			ngResource.Version = gfnt.NewString(kubernetesVersion)
+			logger.Info(fmt.Sprintf("will upgrade nodes to Kubernetes version: %s", ngResource.Version))
+		} else {
+			logger.Info(fmt.Sprintf("will upgrade nodes to release version: %s", ngResource.ReleaseVersion))
 		}
 	}
 	if options.LaunchTemplateVersion != "" {
@@ -281,6 +284,8 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 	}
 
 	ngResource.ForceUpdateEnabled = gfnt.NewBoolean(options.ForceUpgrade)
+
+	logger.Debug("nodegroup resources for upgrade: %+v", ngResource)
 
 	logger.Info("upgrading nodegroup version")
 	if err := updateStack(stack, options.Wait); err != nil {
