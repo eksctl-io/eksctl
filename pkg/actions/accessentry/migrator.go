@@ -17,6 +17,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks/waiter"
 	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Venkat TODO
@@ -77,7 +78,7 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options AccessEntry
 	if m.curAuthMode != m.tgAuthMode {
 		logger.Info("target authentication mode %v is different than the current authentication mode %v, Updating the Cluster authentication mode", m.tgAuthMode, m.curAuthMode)
 		if m.curAuthMode != ekstypes.AuthenticationModeApiAndConfigMap {
-			err := m.doUpdateAuhenticationMode(ctx, ekstypes.AuthenticationModeApiAndConfigMap)
+			err := m.doUpdateAuthenticationMode(ctx, ekstypes.AuthenticationModeApiAndConfigMap)
 			if err != nil {
 				return err
 			}
@@ -110,7 +111,20 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options AccessEntry
 
 	if !skipAPImode {
 		if m.curAuthMode != m.tgAuthMode {
-			return m.doUpdateAuhenticationMode(ctx, m.tgAuthMode)
+			err = m.doUpdateAuthenticationMode(ctx, m.tgAuthMode)
+			if err != nil {
+				return err
+			}
+		}
+
+		err = m.doDeleteIAMIdentityMapping()
+		if err != nil {
+			return err
+		}
+
+		err = doDeleteAWSAuthConfigMap(m.clientSet, "kube-system", "aws-auth")
+		if err != nil {
+			return err
 		}
 	}
 
@@ -118,7 +132,7 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options AccessEntry
 
 }
 
-func (m *Migrator) doUpdateAuhenticationMode(ctx context.Context, authMode ekstypes.AuthenticationMode) error {
+func (m *Migrator) doUpdateAuthenticationMode(ctx context.Context, authMode ekstypes.AuthenticationMode) error {
 	output, err := m.eksAPI.UpdateClusterConfig(ctx, &awseks.UpdateClusterConfigInput{
 		Name: aws.String(m.clusterName),
 		AccessConfig: &ekstypes.UpdateAccessConfigRequest{
@@ -273,4 +287,37 @@ func doBuildAccessEntry(cme iam.Identity) *api.AccessEntry {
 		KubernetesUsername: cme.Username(),
 	}
 
+}
+
+func (m Migrator) doDeleteIAMIdentityMapping() error {
+	acm, err := authconfigmap.NewFromClientSet(m.clientSet)
+	if err != nil {
+		return err
+	}
+
+	cmEntries, err := acm.GetIdentities()
+	if err != nil {
+		return err
+	}
+
+	for _, cmEntry := range cmEntries {
+		arn := cmEntry.ARN()
+		if err := acm.RemoveIdentity(arn, true); err != nil {
+			return err
+		}
+	}
+	if err := acm.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func doDeleteAWSAuthConfigMap(clientset kubernetes.Interface, namespace string, name string) error {
+	logger.Info("Deleting %q ConfigMap as it is no longer needed in API mode", name)
+	err := clientset.CoreV1().ConfigMaps(namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
 }
