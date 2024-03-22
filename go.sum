@@ -744,8 +744,8 @@ github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.35.0 h1:Tpy3mOh9ladwf9bhl
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.35.0/go.mod h1:bIFyamdY1PRTmifPT7uHCq4+af0SooBn9hmK9UW/hmg=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.36.0 h1:Y/LhLofWpzHyhX4kJD09ki7QX9dYaF/kZRI4lV4pZ/I=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.36.0/go.mod h1:jyiUkrm3YYzUOd+PCQi9q1RFgloXofDEYNDAEoaH9kc=
-github.com/aws/aws-sdk-go-v2/service/ec2 v1.150.1 h1:DQpuZSfLpSMgUevYRLS1XE44pSpEnJf/F53/KxmpX2Y=
-github.com/aws/aws-sdk-go-v2/service/ec2 v1.150.1/go.mod h1:KNJMjsbzK97hci9ev2Vl/27GgUt3ZciRP4RGujAPF2I=
+github.com/aws/aws-sdk-go-v2/service/ec2 v1.152.0 h1:ltCQObuImVYmIrMX65ikB9W83MEun3Ry2Sk11ecZ8Xw=
+github.com/aws/aws-sdk-go-v2/service/ec2 v1.152.0/go.mod h1:TeZ9dVQzGaLG+SBIgdLIDbJ6WmfFvksLeG3EHGnNfZM=
 github.com/aws/aws-sdk-go-v2/service/eks v1.41.2 h1:0X5g5H8YyW9QVtlp6j+ZGHl/h0ZS58jiLRXabyiB5uw=
 github.com/aws/aws-sdk-go-v2/service/eks v1.41.2/go.mod h1:T2MBMUUCoSEvHuKPplubyQJbWNghbHhx3ToJpLoipDs=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.24.3 h1:pjgSJEvgJzv+e0frrqspeYdHz2JSW1KAGMXRe1FuQ1M=
@@ -756,8 +756,8 @@ github.com/aws/aws-sdk-go-v2/service/iam v1.31.3 h1:cJn9Snros9WmDA7/qCCN7jSkowcu
 github.com/aws/aws-sdk-go-v2/service/iam v1.31.3/go.mod h1:+nAQlxsBxPFf6GrL93lvCuv5PxSTX3GO0RYrURyzl/Q=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.1 h1:EyBZibRTVAs6ECHZOw5/wlylS9OcTzwyjeQMudmREjE=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.1/go.mod h1:JKpmtYhhPs7D97NL/ltqz7yCkERFW5dOlHyVl66ZYF8=
-github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.5 h1:K/NXvIftOlX+oGgWGIa3jDyYLDNsdVhsjHmsBH2GLAQ=
-github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.5/go.mod h1:cl9HGLV66EnCmMNzq4sYOti+/xo8w34CsgzVtm2GgsY=
+github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.6 h1:b+E7zIUHMmcB4Dckjpkapoy47W6C9QBv/zoUP+Hn8Kc=
+github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.6/go.mod h1:S2fNV0rxrP78NhPbCZeQgY8H9jdDMeGtwcfZIRxzBqU=
 github.com/aws/aws-sdk-go-v2/service/kms v1.27.5 h1:7lKTr8zJ2nVaVgyII+7hUayTi7xWedMuANiNVXiD2S8=
 github.com/aws/aws-sdk-go-v2/service/kms v1.27.5/go.mod h1:D9FVDkZjkZnnFHymJ3fPVz0zOUlNSd0xcIIVmmrAac8=
 github.com/aws/aws-sdk-go-v2/service/outposts v1.37.3 h1:FJVXeS+dVDBMr7g0vNl7Z5mekQu+JdwbWZmDX1O+C/s=
