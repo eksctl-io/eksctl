@@ -82,10 +82,10 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			vpcEndpointResourceSet := builder.NewVPCEndpointResourceSet(provider.EC2(), provider.Region(), rs, vc.clusterConfig, vpcID, subnetDetails.Private, gfnt.NewString("sg-test"))
 			Expect(vpcEndpointResourceSet.AddResources(context.Background())).To(Succeed())
 			s3Endpoint := template.Resources["VPCEndpointS3"].(*gfnec2.VPCEndpoint)
-			routeIdsSlice, ok := s3Endpoint.RouteTableIds.Raw().(gfnt.Slice)
+			routeIDsSlice, ok := s3Endpoint.RouteTableIds.Raw().(gfnt.Slice)
 			Expect(ok).To(BeTrue())
-			sort.Slice(routeIdsSlice, func(i, j int) bool {
-				return routeIdsSlice[i].String() < routeIdsSlice[j].String()
+			sort.Slice(routeIDsSlice, func(i, j int) bool {
+				return routeIDsSlice[i].String() < routeIDsSlice[j].String()
 			})
 		} else if vc.clusterConfig.VPC.ID != "" {
 			Expect(template.Resources).To(BeEmpty())

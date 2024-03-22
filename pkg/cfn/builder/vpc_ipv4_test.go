@@ -430,15 +430,15 @@ func makeGetAttr(values ...interface{}) map[string]interface{} {
 	return map[string]interface{}{"Fn::GetAtt": values}
 }
 
-func makeRTOutput(subnetIds []string, main bool) *ec2.DescribeRouteTablesOutput {
+func makeRTOutput(subnetIDs []string, main bool) *ec2.DescribeRouteTablesOutput {
 	return &ec2.DescribeRouteTablesOutput{
 		RouteTables: []ec2types.RouteTable{{
 			RouteTableId: aws.String("this-is-a-route-table"),
 			Associations: []ec2types.RouteTableAssociation{{
-				SubnetId: aws.String(subnetIds[0]),
+				SubnetId: aws.String(subnetIDs[0]),
 				Main:     aws.Bool(main),
 			}, {
-				SubnetId: aws.String(subnetIds[1]),
+				SubnetId: aws.String(subnetIDs[1]),
 				Main:     aws.Bool(main),
 			}},
 		}},
