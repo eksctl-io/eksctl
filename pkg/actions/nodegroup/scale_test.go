@@ -198,6 +198,75 @@ var _ = Describe("Scale", func() {
 			}
 		}
 
+		mockMixedInstanceNodeGroupAMI := func(missingLaunchTemplate bool, asgName string) {
+			asgOutputWithMixedInstancesPolicy := &autoscaling.DescribeAutoScalingGroupsOutput{
+				AutoScalingGroups: []autoscalingtypes.AutoScalingGroup{
+					{
+						MixedInstancesPolicy: &autoscalingtypes.MixedInstancesPolicy{},
+					},
+				},
+			}
+			if !missingLaunchTemplate {
+				asgOutputWithMixedInstancesPolicy.AutoScalingGroups[0].MixedInstancesPolicy.LaunchTemplate = &autoscalingtypes.LaunchTemplate{
+					LaunchTemplateSpecification: &autoscalingtypes.LaunchTemplateSpecification{
+						LaunchTemplateId:   aws.String("lt-1234"),
+						LaunchTemplateName: aws.String("eksctl-test-ng"),
+						Version:            aws.String("1"),
+					},
+				}
+			}
+			p.MockASG().On("DescribeAutoScalingGroups", mock.Anything, mock.MatchedBy(func(input *autoscaling.DescribeAutoScalingGroupsInput) bool {
+				return len(input.AutoScalingGroupNames) == 1 && input.AutoScalingGroupNames[0] == asgName
+			})).Return(asgOutputWithMixedInstancesPolicy, nil)
+			p.MockEC2().On("DescribeLaunchTemplateVersions", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeLaunchTemplateVersionsInput) bool {
+				return len(input.Versions) == 1 && input.LaunchTemplateId != nil && *input.LaunchTemplateId == "lt-1234"
+			})).Return(&ec2.DescribeLaunchTemplateVersionsOutput{
+				LaunchTemplateVersions: []ec2types.LaunchTemplateVersion{
+					{
+						LaunchTemplateData: &ec2types.ResponseLaunchTemplateData{
+							ImageId: aws.String("ami-1234"),
+						},
+					},
+				},
+			}, nil)
+			describeImagesOutput := &ec2.DescribeImagesOutput{
+				Images: []ec2types.Image{
+					{
+						ImageId: aws.String("ami-1234"),
+					},
+				},
+			}
+			p.MockEC2().On("DescribeImages", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeImagesInput) bool {
+				return len(input.ImageIds) == 1 && input.ImageIds[0] == "ami-1234"
+			})).Return(describeImagesOutput, nil)
+
+			p.MockASG().On("UpdateAutoScalingGroup", mock.Anything, &autoscaling.UpdateAutoScalingGroupInput{
+				AutoScalingGroupName: aws.String(asgName),
+				MinSize:              aws.Int32(1),
+				DesiredCapacity:      aws.Int32(3),
+			}).Return(nil, nil)
+		}
+
+		When("the ASG exists with a MixedInstancesPolicy", func() {
+			asgName := "asg-name"
+
+			BeforeEach(func() {
+				mockNodeGroupStack(ngName, asgName)
+			})
+
+			It("fails for missing launch template", func() {
+				mockMixedInstanceNodeGroupAMI(true, asgName)
+				err := m.Scale(context.Background(), ng, false)
+				Expect(err).To(MatchError(fmt.Sprintf("failed to scale nodegroup %q for cluster %q, error: expected the MixedInstancesPolicy in Auto Scaling group %q to include a launch template", ng.Name, clusterName, asgName)))
+			})
+
+			It("scales the nodegroup", func() {
+				mockMixedInstanceNodeGroupAMI(false, asgName)
+				err := m.Scale(context.Background(), ng, false)
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
 		When("the ASG exists", func() {
 			BeforeEach(func() {
 				mockNodeGroupStack(ngName, "asg-name")
