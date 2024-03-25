@@ -20,6 +20,7 @@ var _ = Describe("GPU instance support", func() {
 		instanceSelector *api.InstanceSelector
 
 		expectUnsupportedErr bool
+		expectWarning        bool
 	}
 
 	assertValidationError := func(e gpuInstanceEntry, err error) {
@@ -147,26 +148,44 @@ var _ = Describe("GPU instance support", func() {
 		output := &bytes.Buffer{}
 		logger.Writer = output
 		Expect(api.ValidateNodeGroup(0, ng, api.NewClusterConfig())).NotTo(HaveOccurred())
-		Expect(output.String()).To(ContainSubstring(api.GPUDriversWarning(ng.AMIFamily)))
+		if e.expectWarning {
+			Expect(output.String()).To(ContainSubstring(api.GPUDriversWarning(mng.AMIFamily)))
+		} else {
+			Expect(output.String()).NotTo(ContainSubstring(api.GPUDriversWarning(mng.AMIFamily)))
+		}
 
 		output = &bytes.Buffer{}
 		logger.Writer = output
 		Expect(api.ValidateManagedNodeGroup(0, mng)).NotTo(HaveOccurred())
-		Expect(output.String()).To(ContainSubstring(api.GPUDriversWarning(mng.AMIFamily)))
+		if e.expectWarning {
+			Expect(output.String()).To(ContainSubstring(api.GPUDriversWarning(mng.AMIFamily)))
+		} else {
+			Expect(output.String()).NotTo(ContainSubstring(api.GPUDriversWarning(mng.AMIFamily)))
+		}
 	},
+		Entry("Windows without GPU instances", gpuInstanceEntry{
+			amiFamily: api.NodeImageFamilyUbuntu2004,
+			instanceSelector: &api.InstanceSelector{
+				VCPUs: 4,
+				GPUs:  newInt(0),
+			},
+		}),
 		Entry("Windows with explicit GPU instance", gpuInstanceEntry{
 			amiFamily:       api.NodeImageFamilyWindowsServer2019FullContainer,
 			gpuInstanceType: "g4dn.xlarge",
+			expectWarning:   true,
 		}),
 		Entry("Windows with implicit GPU instance", gpuInstanceEntry{
 			amiFamily: api.NodeImageFamilyWindowsServer2022CoreContainer,
 			instanceSelector: &api.InstanceSelector{
 				VCPUs: 4,
 			},
+			expectWarning: true,
 		}),
 		Entry("Ubuntu with explicit GPU instance", gpuInstanceEntry{
 			amiFamily:       api.NodeImageFamilyUbuntu1804,
 			gpuInstanceType: "g4dn.xlarge",
+			expectWarning:   true,
 		}),
 		Entry("Ubuntu with implicit GPU instance", gpuInstanceEntry{
 			amiFamily: api.NodeImageFamilyUbuntu2004,
@@ -174,6 +193,7 @@ var _ = Describe("GPU instance support", func() {
 				VCPUs: 4,
 				GPUs:  newInt(2),
 			},
+			expectWarning: true,
 		}),
 	)
 
