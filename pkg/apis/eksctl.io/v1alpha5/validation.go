@@ -52,6 +52,10 @@ var (
 	ErrPodIdentityAgentNotInstalled = func(suggestion string) error {
 		return fmt.Errorf("the %q addon must be installed to create pod identity associations; %s", PodIdentityAgentAddon, suggestion)
 	}
+
+	GPUDriversWarning = func(amiFamily string) string {
+		return fmt.Sprintf("%s does not ship with NVIDIA GPU drivers installed, hence won't support running GPU-accelerated workloads out of the box", amiFamily)
+	}
 )
 
 // NOTE: we don't use k8s.io/apimachinery/pkg/util/sets here to keep API package free of dependencies
@@ -637,9 +641,14 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 		}
 	}
 
-	if instanceutils.IsNvidiaInstanceType(SelectInstanceType(np)) &&
-		(ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyBottlerocket && ng.AMIFamily != "") {
-		logger.Warning("%s does not ship with NVIDIA GPU drivers installed, hence won't support running GPU-accelerated workloads out of the box", ng.AMIFamily)
+	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyBottlerocket && ng.AMIFamily != "" {
+		if instanceutils.IsNvidiaInstanceType(SelectInstanceType(np)) {
+			logger.Warning(GPUDriversWarning(ng.AMIFamily))
+		}
+		if ng.InstanceSelector != nil && !ng.InstanceSelector.IsZero() &&
+			(ng.InstanceSelector.GPUs == nil || *ng.InstanceSelector.GPUs != 0) {
+			logger.Warning("instance selector may/will select GPU instance types, " + GPUDriversWarning(ng.AMIFamily))
+		}
 	}
 
 	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != "" {

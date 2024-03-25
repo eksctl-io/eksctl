@@ -5,7 +5,7 @@ users have to spend time figuring out which instance types would be well suited 
 when using Spot instances because you need to choose a set of instances that works together well with the Cluster Autoscaler.
 
 eksctl now integrates with the [EC2 instance selector](https://github.com/aws/amazon-ec2-instance-selector),
-which addresses this problem by generating a list of instance types based on resource criteria such as vCPUs, memory, etc.
+which addresses this problem by generating a list of instance types based on resource criteria: vCPUs, memory, # of GPUs and CPU architecture.
 When the instance selector criteria is passed, eksctl creates a nodegroup with the instance types set to the instance types
 matching the supplied criteria.
 
@@ -61,6 +61,9 @@ $ eksctl create cluster -f instance-selector-cluster.yaml
 The following instance selector CLI options are supported by `eksctl create cluster` and `eksctl create nodegroup`:
 
 `--instance-selector-vcpus`, `--instance-selector-memory`, `--instance-selector-gpus` and `instance-selector-cpu-architecture`
+
+???+ note
+  By default, GPU instance types are not filtered out. If you wish to do so (e.g. for cost effectiveness, when your applications don't particularly benefit from GPU-accelerated workloads), please explicitly set `gpus: 0` (via config file) or `--instance-selector-gpus=0` (via CLI flag).
 
 An example file can be found [here](https://github.com/eksctl-io/eksctl/blob/main/examples/28-instance-selector.yaml).
 
