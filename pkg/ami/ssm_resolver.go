@@ -54,6 +54,9 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 	const fieldName = "image_id"
 
 	switch imageFamily {
+	case api.NodeImageFamilyAmazonLinux2023:
+		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/%s/standard/recommended/%s",
+			version, utils.ToKebabCase(imageFamily), instanceEC2ArchName(instanceType), fieldName), nil
 	case api.NodeImageFamilyAmazonLinux2:
 		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/%s", version, imageType(imageFamily, instanceType, version), fieldName), nil
 	case api.NodeImageFamilyWindowsServer2019CoreContainer,
