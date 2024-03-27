@@ -1,8 +1,10 @@
 package v1alpha5_test
 
 import (
+	"bytes"
 	"fmt"
 
+	"github.com/kris-nova/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -15,8 +17,10 @@ var _ = Describe("GPU instance support", func() {
 		gpuInstanceType  string
 		amiFamily        string
 		instanceTypeName string
+		instanceSelector *api.InstanceSelector
 
 		expectUnsupportedErr bool
+		expectWarning        bool
 	}
 
 	assertValidationError := func(e gpuInstanceEntry, err error) {
@@ -124,6 +128,72 @@ var _ = Describe("GPU instance support", func() {
 		Entry("Windows2022Full", gpuInstanceEntry{
 			amiFamily:       api.NodeImageFamilyWindowsServer2022FullContainer,
 			gpuInstanceType: "p3.2xlarge",
+		}),
+	)
+
+	DescribeTable("GPU drivers", func(e gpuInstanceEntry) {
+		ng := api.NewNodeGroup()
+		ng.AMIFamily = e.amiFamily
+		ng.InstanceType = e.gpuInstanceType
+		ng.InstanceSelector = e.instanceSelector
+
+		mng := api.NewManagedNodeGroup()
+		mng.AMIFamily = e.amiFamily
+		mng.InstanceType = e.gpuInstanceType
+		mng.InstanceSelector = e.instanceSelector
+		if mng.InstanceSelector == nil {
+			mng.InstanceSelector = &api.InstanceSelector{}
+		}
+
+		output := &bytes.Buffer{}
+		logger.Writer = output
+		Expect(api.ValidateNodeGroup(0, ng, api.NewClusterConfig())).NotTo(HaveOccurred())
+		if e.expectWarning {
+			Expect(output.String()).To(ContainSubstring(api.GPUDriversWarning(mng.AMIFamily)))
+		} else {
+			Expect(output.String()).NotTo(ContainSubstring(api.GPUDriversWarning(mng.AMIFamily)))
+		}
+
+		output = &bytes.Buffer{}
+		logger.Writer = output
+		Expect(api.ValidateManagedNodeGroup(0, mng)).NotTo(HaveOccurred())
+		if e.expectWarning {
+			Expect(output.String()).To(ContainSubstring(api.GPUDriversWarning(mng.AMIFamily)))
+		} else {
+			Expect(output.String()).NotTo(ContainSubstring(api.GPUDriversWarning(mng.AMIFamily)))
+		}
+	},
+		Entry("Windows without GPU instances", gpuInstanceEntry{
+			amiFamily: api.NodeImageFamilyUbuntu2004,
+			instanceSelector: &api.InstanceSelector{
+				VCPUs: 4,
+				GPUs:  newInt(0),
+			},
+		}),
+		Entry("Windows with explicit GPU instance", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyWindowsServer2019FullContainer,
+			gpuInstanceType: "g4dn.xlarge",
+			expectWarning:   true,
+		}),
+		Entry("Windows with implicit GPU instance", gpuInstanceEntry{
+			amiFamily: api.NodeImageFamilyWindowsServer2022CoreContainer,
+			instanceSelector: &api.InstanceSelector{
+				VCPUs: 4,
+			},
+			expectWarning: true,
+		}),
+		Entry("Ubuntu with explicit GPU instance", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyUbuntu1804,
+			gpuInstanceType: "g4dn.xlarge",
+			expectWarning:   true,
+		}),
+		Entry("Ubuntu with implicit GPU instance", gpuInstanceEntry{
+			amiFamily: api.NodeImageFamilyUbuntu2004,
+			instanceSelector: &api.InstanceSelector{
+				VCPUs: 4,
+				GPUs:  newInt(2),
+			},
+			expectWarning: true,
 		}),
 	)
 

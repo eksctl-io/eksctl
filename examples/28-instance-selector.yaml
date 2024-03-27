@@ -11,6 +11,7 @@ nodeGroups:
   instanceSelector:
     vCPUs: 2
     memory: "4" # 4 GiB, unit defaults to GiB
+    gpus: 0 # when set to 0, will only select non-GPU instance types
 
 managedNodeGroups:
 - name: mng
