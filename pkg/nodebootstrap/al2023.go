@@ -69,7 +69,7 @@ func (m *AL2023) makeNodeConfig() *NodeConfig {
 	}
 
 	if len(m.taints) > 0 {
-		nodeConfig.Spec.Kubelet.Flags = append(nodeConfig.Spec.Kubelet.Flags, utils.FormatTaints(m.taints))
+		nodeConfig.Spec.Kubelet.Flags = append(nodeConfig.Spec.Kubelet.Flags, "--register-with-taints="+utils.FormatTaints(m.taints))
 	}
 
 	return nodeConfig

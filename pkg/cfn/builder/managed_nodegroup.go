@@ -268,6 +268,10 @@ func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes
 		ARM    ekstypes.AMITypes
 		ARMGPU ekstypes.AMITypes
 	}{
+		api.NodeImageFamilyAmazonLinux2023: {
+			X86x64: ekstypes.AMITypesAl2023X8664Standard,
+			ARM:    ekstypes.AMITypesAl2023Arm64Standard,
+		},
 		api.NodeImageFamilyAmazonLinux2: {
 			X86x64: ekstypes.AMITypesAl2X8664,
 			X86GPU: ekstypes.AMITypesAl2X8664Gpu,

@@ -53,6 +53,10 @@ var (
 		return fmt.Errorf("the %q addon must be installed to create pod identity associations; %s", PodIdentityAgentAddon, suggestion)
 	}
 
+	ErrUnsupportedInstanceTypes = func(instanceType, amiFamily, suggestion string) error {
+		return fmt.Errorf("%s instance types are not supported for %s; %s", instanceType, amiFamily, suggestion)
+	}
+
 	GPUDriversWarning = func(amiFamily string) string {
 		return fmt.Sprintf("%s does not ship with NVIDIA GPU drivers installed, hence won't support running GPU-accelerated workloads out of the box", amiFamily)
 	}
@@ -641,8 +645,15 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 		}
 	}
 
+	instanceType := SelectInstanceType(np)
+
+	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 && instanceutils.IsNvidiaInstanceType(instanceType) {
+		return ErrUnsupportedInstanceTypes("GPU", NodeImageFamilyAmazonLinux2023,
+			fmt.Sprintf("EKS accelerated AMIs based on %s will be available at a later date", NodeImageFamilyAmazonLinux2023))
+	}
+
 	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyBottlerocket && ng.AMIFamily != "" {
-		if instanceutils.IsNvidiaInstanceType(SelectInstanceType(np)) {
+		if instanceutils.IsNvidiaInstanceType(instanceType) {
 			logger.Warning(GPUDriversWarning(ng.AMIFamily))
 		}
 		if ng.InstanceSelector != nil && !ng.InstanceSelector.IsZero() &&
@@ -652,17 +663,13 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 	}
 
 	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != "" {
-		instanceType := SelectInstanceType(np)
-		unsupportedErr := func(instanceTypeName string) error {
-			return fmt.Errorf("%s instance types are not supported for %s", instanceTypeName, ng.AMIFamily)
-		}
 		// Only AL2 supports Inferentia hosts.
 		if instanceutils.IsInferentiaInstanceType(instanceType) {
-			return unsupportedErr("Inferentia")
+			return ErrUnsupportedInstanceTypes("Inferentia", ng.AMIFamily, fmt.Sprintf("please use %s instead", NodeImageFamilyAmazonLinux2))
 		}
 		// Only AL2 supports Trainium hosts.
 		if instanceutils.IsTrainiumInstanceType(instanceType) {
-			return unsupportedErr("Trainium")
+			return ErrUnsupportedInstanceTypes("Trainium", ng.AMIFamily, fmt.Sprintf("please use %s instead", NodeImageFamilyAmazonLinux2))
 		}
 	}
 
