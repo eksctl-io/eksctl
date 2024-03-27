@@ -2,6 +2,7 @@ package v1alpha5_test
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 
@@ -112,6 +113,20 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).NotTo(HaveOccurred())
 			err = api.ValidateNodeGroup(0, ng0, cfg)
 			Expect(err).To(HaveOccurred())
+		})
+
+		It("should reject docker runtime if AMI Family is AmazonLinux2023", func() {
+			cfg := api.NewClusterConfig()
+			cfg.Metadata.Version = api.Version1_23
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2023
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerD)
+			err := api.ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+			err = api.ValidateNodeGroup(0, ng0, cfg)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("only %s is supported for container runtime on %s nodes", api.ContainerRuntimeContainerD, api.NodeImageFamilyAmazonLinux2023))))
 		})
 
 		It("should reject docker runtime if version is 1.24 or greater", func() {
@@ -2002,7 +2017,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("fails when the AMIFamily is not supported", func() {
 			ng.AMIFamily = "SomeTrash"
 			err := api.ValidateNodeGroup(0, ng, cfg)
-			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2204, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer, WindowsServer2022CoreContainer, WindowsServer2022FullContainer"))
+			Expect(err).To(MatchError(fmt.Sprintf("AMI Family SomeTrash is not supported - use one of: %s", strings.Join(api.SupportedAMIFamilies(), ", "))))
 		})
 
 		It("fails when the AmiFamily is not supported for managed nodes with custom AMI", func() {

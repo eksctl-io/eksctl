@@ -625,7 +625,7 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 			if ng.AMIFamily == NodeImageFamilyWindowsServer20H2CoreContainer || ng.AMIFamily == NodeImageFamilyWindowsServer2004CoreContainer {
 				return fmt.Errorf("AMI Family %s is deprecated. For more information, head to the Amazon documentation on Windows AMIs (https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-windows-ami.html)", ng.AMIFamily)
 			}
-			return fmt.Errorf("AMI Family %s is not supported - use one of: %s", ng.AMIFamily, strings.Join(supportedAMIFamilies(), ", "))
+			return fmt.Errorf("AMI Family %s is not supported - use one of: %s", ng.AMIFamily, strings.Join(SupportedAMIFamilies(), ", "))
 		}
 		if controlPlaneOnOutposts && ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
 			return fmt.Errorf("only %s is supported on local clusters", NodeImageFamilyAmazonLinux2)
@@ -883,6 +883,9 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 	}
 
 	if ng.ContainerRuntime != nil {
+		if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 && *ng.ContainerRuntime != ContainerRuntimeContainerD {
+			return fmt.Errorf("only %s is supported for container runtime on %s nodes", ContainerRuntimeContainerD, NodeImageFamilyAmazonLinux2023)
+		}
 		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD && *ng.ContainerRuntime != ContainerRuntimeDockerForWindows {
 			return fmt.Errorf("only %s, %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD, ContainerRuntimeDockerForWindows)
 		}
@@ -1266,7 +1269,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 }
 
 func normalizeAMIFamily(ng *NodeGroupBase) {
-	for _, family := range supportedAMIFamilies() {
+	for _, family := range SupportedAMIFamilies() {
 		if strings.EqualFold(ng.AMIFamily, family) {
 			ng.AMIFamily = family
 			return
@@ -1436,7 +1439,7 @@ func validateNodeGroupKubeletExtraConfig(kubeletConfig *InlineDocument) error {
 }
 
 func isSupportedAMIFamily(imageFamily string) bool {
-	for _, image := range supportedAMIFamilies() {
+	for _, image := range SupportedAMIFamilies() {
 		if imageFamily == image {
 			return true
 		}

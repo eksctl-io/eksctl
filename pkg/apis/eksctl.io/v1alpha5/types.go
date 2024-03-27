@@ -604,8 +604,8 @@ func SupportedNodeVolumeTypes() []string {
 	}
 }
 
-// supportedAMIFamilies are the AMI families supported by EKS
-func supportedAMIFamilies() []string {
+// SupportedAMIFamilies are the AMI families supported by EKS
+func SupportedAMIFamilies() []string {
 	return []string{
 		NodeImageFamilyAmazonLinux2023,
 		NodeImageFamilyAmazonLinux2,
