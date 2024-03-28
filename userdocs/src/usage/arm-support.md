@@ -51,10 +51,7 @@ managedNodeGroups:
 eksctl create cluster -f cluster-arm-2.yaml
 ```
 
-The AMI resolvers, `auto` and `auto-ssm`, will infer the correct AMI based on the ARM instance type.
-
-???+ note
-    Note that currently there are only AmazonLinux2 EKS optimized AMIs for ARM.
+The AMI resolvers, `auto` and `auto-ssm`, will infer the correct AMI based on the ARM instance type. Only AmazonLinux2023, AmazonLinux2 and Bottlerocket families have EKS optimized AMIs for ARM.
 
 ???+ note
     ARM is supported for clusters with version 1.15 and higher.
