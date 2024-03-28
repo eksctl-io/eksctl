@@ -204,6 +204,7 @@ func TestManagedNodeRole(t *testing.T) {
 		t.Run(fmt.Sprintf("%d: %s", i, tt.description), func(t *testing.T) {
 			require := require.New(t)
 			clusterConfig := api.NewClusterConfig()
+			clusterConfig.Status = &api.ClusterStatus{}
 			api.SetManagedNodeGroupDefaults(tt.nodeGroup, clusterConfig.Metadata, false)
 			p := mockprovider.NewMockProvider()
 			fakeVPCImporter := new(vpcfakes.FakeImporter)

@@ -39,6 +39,24 @@ var _ = Describe("GPU instance support", func() {
 		mng.InstanceSelector = &api.InstanceSelector{}
 		assertValidationError(e, api.ValidateManagedNodeGroup(0, mng))
 	},
+		Entry("AL2023 INF", gpuInstanceEntry{
+			amiFamily:            api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType:      "inf1.xlarge",
+			expectUnsupportedErr: true,
+			instanceTypeName:     "Inferentia",
+		}),
+		Entry("AL2023 TRN", gpuInstanceEntry{
+			amiFamily:            api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType:      "trn1.2xlarge",
+			expectUnsupportedErr: true,
+			instanceTypeName:     "Trainium",
+		}),
+		Entry("AL2023 NVIDIA", gpuInstanceEntry{
+			amiFamily:            api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType:      "g4dn.xlarge",
+			expectUnsupportedErr: true,
+			instanceTypeName:     "GPU",
+		}),
 		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "asdf",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
@@ -72,6 +90,24 @@ var _ = Describe("GPU instance support", func() {
 		assertValidationError(e, api.ValidateNodeGroup(0, ng, api.NewClusterConfig()))
 
 	},
+		Entry("AL2023 INF", gpuInstanceEntry{
+			amiFamily:            api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType:      "inf1.xlarge",
+			expectUnsupportedErr: true,
+			instanceTypeName:     "Inferentia",
+		}),
+		Entry("AL2023 TRN", gpuInstanceEntry{
+			amiFamily:            api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType:      "trn1.2xlarge",
+			expectUnsupportedErr: true,
+			instanceTypeName:     "Trainium",
+		}),
+		Entry("AL2023 NVIDIA", gpuInstanceEntry{
+			amiFamily:            api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType:      "g4dn.xlarge",
+			expectUnsupportedErr: true,
+			instanceTypeName:     "GPU",
+		}),
 		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "g4dn.xlarge",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,

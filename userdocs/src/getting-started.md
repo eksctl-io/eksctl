@@ -1,6 +1,9 @@
 # Getting started
 
-!!! tip "New for 2023"
+!!! tip "New for 2024"
+    `eksctl` now supports AMIs based on AmazonLinux2023
+
+!!! tip "eksctl main features in 2023"
     `eksctl` now supports configuring cluster access management via [AWS EKS Access Entries](/usage/access-entries).
 
     `eksctl` now supports configuring fine-grained permissions to EKS running apps via [EKS Pod Identity Associations](/usage/pod-identity-associations)

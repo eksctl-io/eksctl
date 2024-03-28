@@ -282,6 +282,17 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(*testNodeGroup.ContainerRuntime).To(Equal(ContainerRuntimeDockerForWindows))
 				})
 			})
+			When("ami family is AmazonLinux2023", func() {
+				It("defaults to containerd as a container runtime", func() {
+					testNodeGroup := NodeGroup{
+						NodeGroupBase: &NodeGroupBase{
+							AMIFamily: NodeImageFamilyAmazonLinux2023,
+						},
+					}
+					SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{Version: Version1_23}, false)
+					Expect(*testNodeGroup.ContainerRuntime).To(Equal(ContainerRuntimeContainerD))
+				})
+			})
 		})
 
 		Context("Kubernetes version 1.24 or greater", func() {
