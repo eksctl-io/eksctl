@@ -75,7 +75,7 @@ func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNod
 	}
 	switch ng.AMIFamily {
 	case api.NodeImageFamilyAmazonLinux2023:
-		return NewAL2023Bootstrapper(clusterConfig, ng, clusterDNS), nil
+		return NewManagedAL2023Bootstrapper(clusterConfig, ng, clusterDNS), nil
 	case api.NodeImageFamilyAmazonLinux2:
 		return NewManagedAL2Bootstrapper(ng), nil
 	case api.NodeImageFamilyBottlerocket:
