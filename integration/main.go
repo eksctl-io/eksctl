@@ -23,6 +23,7 @@ import (
 func main() {
 	// Handle interrupt signals and shutdown gracefully:
 	ctx, interrupts := handleInterruptSignals()
+
 	defer signal.Stop(interrupts)
 	signal.Notify(interrupts, os.Interrupt, syscall.SIGTERM)
 
