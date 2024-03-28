@@ -171,6 +171,14 @@ var _ = Describe("ClusterConfig validation", func() {
 			errMsg := fmt.Sprintf("overrideBootstrapCommand is required when using a custom AMI based on %s", ng0.AMIFamily)
 			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(MatchError(ContainSubstring(errMsg)))
 		})
+		It("should not require overrideBootstrapCommand if ami is set and type is AmazonLinux2023", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMI = "ami-1234"
+			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2023
+			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(Succeed())
+		})
 		It("should not require overrideBootstrapCommand if ami is set and type is Bottlerocket", func() {
 			cfg := api.NewClusterConfig()
 			ng0 := cfg.NewNodeGroup()
@@ -195,6 +203,24 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0.AMIFamily = api.NodeImageFamilyWindowsServer2019CoreContainer
 			ng0.OverrideBootstrapCommand = aws.String("echo 'yo'")
 			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(Succeed())
+		})
+		It("should throw an error if overrideBootstrapCommand is set and type is AmazonLinux2023", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMI = "ami-1234"
+			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2023
+			ng0.OverrideBootstrapCommand = aws.String("echo 'yo'")
+			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(MatchError(ContainSubstring(fmt.Sprintf("overrideBootstrapCommand is not supported for %s nodegroups", api.NodeImageFamilyAmazonLinux2023))))
+		})
+		It("should throw an error if overrideBootstrapCommand is set and type is Bottlerocket", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMI = "ami-1234"
+			ng0.AMIFamily = api.NodeImageFamilyBottlerocket
+			ng0.OverrideBootstrapCommand = aws.String("echo 'yo'")
+			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(MatchError(ContainSubstring(fmt.Sprintf("overrideBootstrapCommand is not supported for %s nodegroups", api.NodeImageFamilyBottlerocket))))
 		})
 		It("should accept ami with a overrideBootstrapCommand set", func() {
 			cfg := api.NewClusterConfig()
@@ -2027,6 +2053,10 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			mng.AMIFamily = api.NodeImageFamilyAmazonLinux2
 			err := api.ValidateManagedNodeGroup(0, mng)
+			Expect(err).NotTo(HaveOccurred())
+
+			mng.AMIFamily = api.NodeImageFamilyAmazonLinux2
+			err = api.ValidateManagedNodeGroup(0, mng)
 			Expect(err).NotTo(HaveOccurred())
 
 			mng.AMIFamily = api.NodeImageFamilyUbuntu1804

@@ -824,7 +824,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 			ng.AMIFamily, path)
 	}
 
-	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyBottlerocket && !IsWindowsImage(ng.AMIFamily) {
+	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil &&
+		ng.AMIFamily != NodeImageFamilyAmazonLinux2023 &&
+		ng.AMIFamily != NodeImageFamilyBottlerocket &&
+		!IsWindowsImage(ng.AMIFamily) {
 		return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 	}
 
@@ -853,6 +856,16 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 	if IsWindowsImage(ng.AMIFamily) {
 		if ng.KubeletExtraConfig != nil {
 			return fieldNotSupported("kubeletExtraConfig")
+		}
+	} else if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
+		if ng.KubeletExtraConfig != nil {
+			return fieldNotSupported("kubeletExtraConfig")
+		}
+		if ng.PreBootstrapCommands != nil {
+			return fieldNotSupported("preBootstrapCommands")
+		}
+		if ng.OverrideBootstrapCommand != nil {
+			return fieldNotSupported("overrideBootstrapCommand")
 		}
 	} else if ng.AMIFamily == NodeImageFamilyBottlerocket {
 		if ng.KubeletExtraConfig != nil {
@@ -1249,11 +1262,15 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		if ng.AMIFamily == "" {
 			return errors.Errorf("when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag")
 		}
-		if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyUbuntu1804 && ng.AMIFamily != NodeImageFamilyUbuntu2004 && ng.AMIFamily != NodeImageFamilyUbuntu2204 {
-			return errors.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s, %s, %s and %s are supported", ng.AMIFamily, NodeImageFamilyAmazonLinux2, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004, NodeImageFamilyUbuntu2204)
+		if !IsAmazonLinuxImage(ng.AMIFamily) && !IsUbuntuImage(ng.AMIFamily) {
+			return errors.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s, %s, %s, %s and %s are supported", ng.AMIFamily,
+				NodeImageFamilyAmazonLinux2023, NodeImageFamilyAmazonLinux2, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004, NodeImageFamilyUbuntu2204)
 		}
-		if ng.OverrideBootstrapCommand == nil {
+		if ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023 {
 			return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
+		}
+		if ng.OverrideBootstrapCommand != nil && ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
+			return errors.Errorf("%[1]s.overrideBootstrapCommand is not supported when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 		}
 		notSupportedWithCustomAMIErr := func(field string) error {
 			return errors.Errorf("%s.%s is not supported when using a custom AMI (%s.ami)", path, field, path)
@@ -1452,6 +1469,29 @@ func isSupportedAMIFamily(imageFamily string) bool {
 		}
 	}
 	return false
+}
+
+func IsAmazonLinuxImage(imageFamily string) bool {
+	switch imageFamily {
+	case NodeImageFamilyAmazonLinux2023,
+		NodeImageFamilyAmazonLinux2:
+		return true
+
+	default:
+		return false
+	}
+}
+
+func IsUbuntuImage(imageFamily string) bool {
+	switch imageFamily {
+	case NodeImageFamilyUbuntu2204,
+		NodeImageFamilyUbuntu2004,
+		NodeImageFamilyUbuntu1804:
+		return true
+
+	default:
+		return false
+	}
 }
 
 // IsWindowsImage reports whether the AMI family is for Windows
