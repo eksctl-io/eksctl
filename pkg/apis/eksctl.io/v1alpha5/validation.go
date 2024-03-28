@@ -1187,6 +1187,10 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		}
 	}
 
+	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 && ng.MaxPodsPerNode > 0 {
+		return errors.Errorf("eksctl does not support configuring maxPodsPerNode EKS-managed nodes based on %s", NodeImageFamilyAmazonLinux2023)
+	}
+
 	if ng.AMIFamily == NodeImageFamilyBottlerocket {
 		fieldNotSupported := func(field string) error {
 			return &unsupportedFieldError{

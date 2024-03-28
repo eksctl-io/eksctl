@@ -2092,6 +2092,16 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("AmazonLinux2023 node groups", func() {
+		It("returns an error when setting maxPodsPerNode for managed nodegroups", func() {
+			ng := api.NewManagedNodeGroup()
+			ng.AMIFamily = api.NodeImageFamilyAmazonLinux2023
+			ng.MaxPodsPerNode = 5
+			err := api.ValidateManagedNodeGroup(0, ng)
+			Expect(err).To(MatchError(ContainSubstring("eksctl does not support configuring maxPodsPerNode EKS-managed nodes")))
+		})
+	})
+
 	Describe("Windows node groups", func() {
 		It("returns an error with unsupported fields", func() {
 			doc := api.InlineDocument{
