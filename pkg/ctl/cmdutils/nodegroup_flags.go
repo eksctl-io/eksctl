@@ -40,7 +40,7 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 	ng.SSH.EnableSSM = fs.Bool("enable-ssm", false, "Enable AWS Systems Manager (SSM)")
 
 	fs.StringVar(&ng.AMI, "node-ami", "", "'auto-ssm', 'auto' or an AMI ID (advanced use)")
-	fs.StringVar(&ng.AMIFamily, "node-ami-family", api.DefaultNodeImageFamily, fmt.Sprintf("supported AMI families: %s", strings.Join(api.SupportedNodeVolumeTypes(), ", ")))
+	fs.StringVar(&ng.AMIFamily, "node-ami-family", api.DefaultNodeImageFamily, fmt.Sprintf("supported AMI families: %s", strings.Join(api.SupportedAMIFamilies(), ", ")))
 
 	fs.BoolVarP(&ng.PrivateNetworking, "node-private-networking", "P", false, "whether to make nodegroup networking private")
 

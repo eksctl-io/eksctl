@@ -2055,10 +2055,6 @@ var _ = Describe("ClusterConfig validation", func() {
 			err := api.ValidateManagedNodeGroup(0, mng)
 			Expect(err).NotTo(HaveOccurred())
 
-			mng.AMIFamily = api.NodeImageFamilyAmazonLinux2
-			err = api.ValidateManagedNodeGroup(0, mng)
-			Expect(err).NotTo(HaveOccurred())
-
 			mng.AMIFamily = api.NodeImageFamilyUbuntu1804
 			err = api.ValidateManagedNodeGroup(0, mng)
 			Expect(err).NotTo(HaveOccurred())
@@ -2074,8 +2070,13 @@ var _ = Describe("ClusterConfig validation", func() {
 			mng.AMIFamily = api.NodeImageFamilyBottlerocket
 			mng.OverrideBootstrapCommand = nil
 			err = api.ValidateManagedNodeGroup(0, mng)
-			errorMsg := fmt.Sprintf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s, %s, %s and %s are supported", mng.AMIFamily, api.NodeImageFamilyAmazonLinux2, api.NodeImageFamilyUbuntu1804, api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu2204)
+			errorMsg := fmt.Sprintf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s, %s, %s, %s and %s are supported",
+				mng.AMIFamily, api.NodeImageFamilyAmazonLinux2023, api.NodeImageFamilyAmazonLinux2, api.NodeImageFamilyUbuntu1804, api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu2204)
 			Expect(err).To(MatchError(errorMsg))
+
+			mng.AMIFamily = api.NodeImageFamilyAmazonLinux2023
+			err = api.ValidateManagedNodeGroup(0, mng)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("fails when the AMIFamily is WindowsServer2004CoreContainer", func() {

@@ -67,12 +67,12 @@ func (m *AL2023) UserData() (string, error) {
 
 func (m *AL2023) setNodeConfig() {
 	m.nodeConfig = &NodeConfig{
-		ApiVersion: "node.eks.aws/v1alpha1",
+		APIVersion: "node.eks.aws/v1alpha1",
 		Kind:       "NodeConfig",
 		Spec: NodeSpec{
 			Cluster: ClusterSpec{
 				Name:                 m.cfg.Metadata.Name,
-				ApiServerEndpoint:    m.cfg.Status.Endpoint,
+				APIServerEndpoint:    m.cfg.Status.Endpoint,
 				CertificateAuthority: base64.StdEncoding.EncodeToString(m.cfg.Status.CertificateAuthorityData),
 				CIDR:                 m.cfg.Status.KubernetesNetworkConfig.ServiceIPv4CIDR,
 			},
@@ -93,7 +93,7 @@ func (m *AL2023) setNodeConfig() {
 }
 
 type NodeConfig struct {
-	ApiVersion string   `yaml:"apiVersion"`
+	APIVersion string   `yaml:"apiVersion"`
 	Kind       string   `yaml:"kind"`
 	Spec       NodeSpec `yaml:"spec"`
 }
@@ -104,7 +104,7 @@ type NodeSpec struct {
 }
 
 type ClusterSpec struct {
-	ApiServerEndpoint    string `yaml:"apiServerEndpoint"`
+	APIServerEndpoint    string `yaml:"apiServerEndpoint"`
 	CertificateAuthority string `yaml:"certificateAuthority"`
 	CIDR                 string `yaml:"cidr"`
 	Name                 string `yaml:"name"`
