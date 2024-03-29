@@ -1,0 +1,19 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+# name is generated
+metadata:
+  name: <generated>
+  region: <generated-region>
+
+nodeGroups:
+  - name: unm-al2023
+    ami: <generated-ami>
+    amiFamily: AmazonLinux2023
+    desiredCapacity: 1
+
+managedNodeGroups:
+  - name: mng-al2023
+    ami: <generated-ami>
+    amiFamily: AmazonLinux2023
+    desiredCapacity: 1
