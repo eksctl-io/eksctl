@@ -62,6 +62,11 @@ var (
 	}
 )
 
+var (
+	SupportedAmazonLinuxImages = supportedAMIFamiliesForOS(IsAmazonLinuxImage)
+	SupportedUbuntuImages      = supportedAMIFamiliesForOS(IsUbuntuImage)
+)
+
 // NOTE: we don't use k8s.io/apimachinery/pkg/util/sets here to keep API package free of dependencies
 type nameSet map[string]struct{}
 
@@ -1267,8 +1272,8 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 			return errors.Errorf("when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag")
 		}
 		if !IsAmazonLinuxImage(ng.AMIFamily) && !IsUbuntuImage(ng.AMIFamily) {
-			return errors.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s, %s, %s, %s and %s are supported", ng.AMIFamily,
-				NodeImageFamilyAmazonLinux2023, NodeImageFamilyAmazonLinux2, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004, NodeImageFamilyUbuntu2204)
+			return errors.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s are supported", ng.AMIFamily,
+				strings.Join(append(SupportedAmazonLinuxImages, SupportedUbuntuImages...), ", "))
 		}
 		if ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023 {
 			return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
@@ -1473,6 +1478,16 @@ func isSupportedAMIFamily(imageFamily string) bool {
 		}
 	}
 	return false
+}
+
+func supportedAMIFamiliesForOS(isOSImage func(string) bool) []string {
+	amiFamilies := []string{}
+	for _, image := range SupportedAMIFamilies() {
+		if isOSImage(image) {
+			amiFamilies = append(amiFamilies, image)
+		}
+	}
+	return amiFamilies
 }
 
 func IsAmazonLinuxImage(imageFamily string) bool {
