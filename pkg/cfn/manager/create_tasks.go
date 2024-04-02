@@ -8,6 +8,8 @@ import (
 	"github.com/pkg/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/weaveworks/eksctl/pkg/actions/accessentry"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -24,7 +26,7 @@ const (
 // NewTasksToCreateCluster defines all tasks required to create a cluster along
 // with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works.
 func (c *StackCollection) NewTasksToCreateCluster(ctx context.Context, nodeGroups []*api.NodeGroup,
-	managedNodeGroups []*api.ManagedNodeGroup, accessEntries []api.AccessEntry, accessEntryCreator accessentry.CreatorInterface, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree {
+	managedNodeGroups []*api.ManagedNodeGroup, accessConfig *api.AccessConfig, accessEntryCreator accessentry.CreatorInterface, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree {
 	taskTree := tasks.TaskTree{Parallel: false}
 
 	taskTree.Append(&createClusterTask{
@@ -34,8 +36,8 @@ func (c *StackCollection) NewTasksToCreateCluster(ctx context.Context, nodeGroup
 		ctx:                  ctx,
 	})
 
-	if len(accessEntries) > 0 {
-		taskTree.Append(accessEntryCreator.CreateTasks(ctx, accessEntries))
+	if len(accessConfig.AccessEntries) > 0 {
+		taskTree.Append(accessEntryCreator.CreateTasks(ctx, accessConfig.AccessEntries))
 	}
 
 	appendNodeGroupTasksTo := func(taskTree *tasks.TaskTree) {
@@ -44,7 +46,8 @@ func (c *StackCollection) NewTasksToCreateCluster(ctx context.Context, nodeGroup
 			Parallel:  true,
 			IsSubTask: true,
 		}
-		if unmanagedNodeGroupTasks := c.NewUnmanagedNodeGroupTask(ctx, nodeGroups, false, false, false, vpcImporter); unmanagedNodeGroupTasks.Len() > 0 {
+		disableAccessEntryCreation := accessConfig.AuthenticationMode == ekstypes.AuthenticationModeConfigMap
+		if unmanagedNodeGroupTasks := c.NewUnmanagedNodeGroupTask(ctx, nodeGroups, false, false, disableAccessEntryCreation, vpcImporter); unmanagedNodeGroupTasks.Len() > 0 {
 			unmanagedNodeGroupTasks.IsSubTask = true
 			nodeGroupTasks.Append(unmanagedNodeGroupTasks)
 		}
