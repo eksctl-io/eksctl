@@ -674,13 +674,13 @@ type FakeStackManager struct {
 	newTaskToDeleteUnownedNodeGroupReturnsOnCall map[int]struct {
 		result1 tasks.Task
 	}
-	NewTasksToCreateClusterStub        func(context.Context, []*v1alpha5.NodeGroup, []*v1alpha5.ManagedNodeGroup, []v1alpha5.AccessEntry, accessentry.CreatorInterface, ...tasks.Task) *tasks.TaskTree
+	NewTasksToCreateClusterStub        func(context.Context, []*v1alpha5.NodeGroup, []*v1alpha5.ManagedNodeGroup, *v1alpha5.AccessConfig, accessentry.CreatorInterface, ...tasks.Task) *tasks.TaskTree
 	newTasksToCreateClusterMutex       sync.RWMutex
 	newTasksToCreateClusterArgsForCall []struct {
 		arg1 context.Context
 		arg2 []*v1alpha5.NodeGroup
 		arg3 []*v1alpha5.ManagedNodeGroup
-		arg4 []v1alpha5.AccessEntry
+		arg4 *v1alpha5.AccessConfig
 		arg5 accessentry.CreatorInterface
 		arg6 []tasks.Task
 	}
@@ -4006,7 +4006,7 @@ func (fake *FakeStackManager) NewTaskToDeleteUnownedNodeGroupReturnsOnCall(i int
 	}{result1}
 }
 
-func (fake *FakeStackManager) NewTasksToCreateCluster(arg1 context.Context, arg2 []*v1alpha5.NodeGroup, arg3 []*v1alpha5.ManagedNodeGroup, arg4 []v1alpha5.AccessEntry, arg5 accessentry.CreatorInterface, arg6 ...tasks.Task) *tasks.TaskTree {
+func (fake *FakeStackManager) NewTasksToCreateCluster(arg1 context.Context, arg2 []*v1alpha5.NodeGroup, arg3 []*v1alpha5.ManagedNodeGroup, arg4 *v1alpha5.AccessConfig, arg5 accessentry.CreatorInterface, arg6 ...tasks.Task) *tasks.TaskTree {
 	var arg2Copy []*v1alpha5.NodeGroup
 	if arg2 != nil {
 		arg2Copy = make([]*v1alpha5.NodeGroup, len(arg2))
@@ -4017,24 +4017,19 @@ func (fake *FakeStackManager) NewTasksToCreateCluster(arg1 context.Context, arg2
 		arg3Copy = make([]*v1alpha5.ManagedNodeGroup, len(arg3))
 		copy(arg3Copy, arg3)
 	}
-	var arg4Copy []v1alpha5.AccessEntry
-	if arg4 != nil {
-		arg4Copy = make([]v1alpha5.AccessEntry, len(arg4))
-		copy(arg4Copy, arg4)
-	}
 	fake.newTasksToCreateClusterMutex.Lock()
 	ret, specificReturn := fake.newTasksToCreateClusterReturnsOnCall[len(fake.newTasksToCreateClusterArgsForCall)]
 	fake.newTasksToCreateClusterArgsForCall = append(fake.newTasksToCreateClusterArgsForCall, struct {
 		arg1 context.Context
 		arg2 []*v1alpha5.NodeGroup
 		arg3 []*v1alpha5.ManagedNodeGroup
-		arg4 []v1alpha5.AccessEntry
+		arg4 *v1alpha5.AccessConfig
 		arg5 accessentry.CreatorInterface
 		arg6 []tasks.Task
-	}{arg1, arg2Copy, arg3Copy, arg4Copy, arg5, arg6})
+	}{arg1, arg2Copy, arg3Copy, arg4, arg5, arg6})
 	stub := fake.NewTasksToCreateClusterStub
 	fakeReturns := fake.newTasksToCreateClusterReturns
-	fake.recordInvocation("NewTasksToCreateCluster", []interface{}{arg1, arg2Copy, arg3Copy, arg4Copy, arg5, arg6})
+	fake.recordInvocation("NewTasksToCreateCluster", []interface{}{arg1, arg2Copy, arg3Copy, arg4, arg5, arg6})
 	fake.newTasksToCreateClusterMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2, arg3, arg4, arg5, arg6...)
@@ -4051,13 +4046,13 @@ func (fake *FakeStackManager) NewTasksToCreateClusterCallCount() int {
 	return len(fake.newTasksToCreateClusterArgsForCall)
 }
 
-func (fake *FakeStackManager) NewTasksToCreateClusterCalls(stub func(context.Context, []*v1alpha5.NodeGroup, []*v1alpha5.ManagedNodeGroup, []v1alpha5.AccessEntry, accessentry.CreatorInterface, ...tasks.Task) *tasks.TaskTree) {
+func (fake *FakeStackManager) NewTasksToCreateClusterCalls(stub func(context.Context, []*v1alpha5.NodeGroup, []*v1alpha5.ManagedNodeGroup, *v1alpha5.AccessConfig, accessentry.CreatorInterface, ...tasks.Task) *tasks.TaskTree) {
 	fake.newTasksToCreateClusterMutex.Lock()
 	defer fake.newTasksToCreateClusterMutex.Unlock()
 	fake.NewTasksToCreateClusterStub = stub
 }
 
-func (fake *FakeStackManager) NewTasksToCreateClusterArgsForCall(i int) (context.Context, []*v1alpha5.NodeGroup, []*v1alpha5.ManagedNodeGroup, []v1alpha5.AccessEntry, accessentry.CreatorInterface, []tasks.Task) {
+func (fake *FakeStackManager) NewTasksToCreateClusterArgsForCall(i int) (context.Context, []*v1alpha5.NodeGroup, []*v1alpha5.ManagedNodeGroup, *v1alpha5.AccessConfig, accessentry.CreatorInterface, []tasks.Task) {
 	fake.newTasksToCreateClusterMutex.RLock()
 	defer fake.newTasksToCreateClusterMutex.RUnlock()
 	argsForCall := fake.newTasksToCreateClusterArgsForCall[i]
