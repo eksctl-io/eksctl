@@ -50,8 +50,8 @@ var (
 	namespaceRoleARN string
 	err              error
 
-	apiEnabledCluster  = "accessentries-api-enabled-2"
-	apiDisabledCluster = "accessentries-api-disabled-2"
+	apiEnabledCluster  = "accessentries-api-enabled"
+	apiDisabledCluster = "accessentries-api-disabled"
 )
 
 func init() {
@@ -123,9 +123,16 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 			cfg = makeClusterConfig(apiDisabledCluster)
 		})
 
-		It("should create a cluster with authenticationMode set to CONFIG_MAP", func() {
+		It("should create a cluster with authenticationMode set to CONFIG_MAP and allow self-managed nodes to join via aws-auth", func() {
 			cfg.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeConfigMap
-
+			cfg.NodeGroups = append(cfg.NodeGroups, &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "aws-auth-ng",
+					ScalingConfig: &api.ScalingConfig{
+						DesiredCapacity: aws.Int(1),
+					},
+				},
+			})
 			data, err := json.Marshal(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -133,7 +140,6 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 				WithArgs(
 					"cluster",
 					"--config-file", "-",
-					"--without-nodegroup",
 					"--verbose", "4",
 				).
 				WithoutArg("--region", params.Region).
@@ -141,6 +147,15 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 
 			Expect(ctl.RefreshClusterStatus(context.Background(), cfg)).NotTo(HaveOccurred())
 			Expect(ctl.IsAccessEntryEnabled()).To(BeFalse())
+
+			Expect(params.EksctlGetCmd.WithArgs(
+				"nodegroup",
+				"--cluster", apiDisabledCluster,
+				"--name", "aws-auth-ng",
+				"-o", "yaml",
+			)).To(runner.RunSuccessfullyWithOutputStringLines(
+				ContainElement(ContainSubstring("Status: CREATE_COMPLETE")),
+			))
 		})
 
 		It("should fail early when trying to create access entries", func() {
@@ -400,6 +415,7 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 		WithArgs(
 			"cluster",
 			"--name", apiDisabledCluster,
+			"--disable-nodegroup-eviction",
 			"--wait",
 		)).To(RunSuccessfully())
 
