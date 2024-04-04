@@ -162,6 +162,12 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 			return err
 		}
 
+		if cfg.AccessConfig.AuthenticationMode != ekstypes.AuthenticationModeConfigMap {
+			return fmt.Errorf("accessConfig.AuthenticationMode must be set to %s on Outposts", ekstypes.AuthenticationModeConfigMap)
+		}
+		if IsDisabled(cfg.AccessConfig.BootstrapClusterCreatorAdminPermissions) {
+			return fmt.Errorf("accessConfig.BootstrapClusterCreatorAdminPermissions can't be set to false on Outposts")
+		}
 		if cfg.IPv6Enabled() {
 			return errors.New("IPv6 is not supported on Outposts")
 		}

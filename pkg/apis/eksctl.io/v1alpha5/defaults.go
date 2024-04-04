@@ -56,10 +56,10 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 
 	if cfg.AccessConfig == nil {
 		cfg.AccessConfig = &AccessConfig{
-			AuthenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
+			AuthenticationMode: getDefaultAuthenticationMode(cfg.IsControlPlaneOnOutposts()),
 		}
 	} else if cfg.AccessConfig.AuthenticationMode == "" {
-		cfg.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
+		cfg.AccessConfig.AuthenticationMode = getDefaultAuthenticationMode(cfg.IsControlPlaneOnOutposts())
 	}
 
 	if cfg.PrivateCluster == nil {
@@ -242,6 +242,13 @@ func getDefaultVolumeType(nodeGroupOnOutposts bool) string {
 		return NodeVolumeTypeGP2
 	}
 	return DefaultNodeVolumeType
+}
+
+func getDefaultAuthenticationMode(nodeGroupOnOutposts bool) ekstypes.AuthenticationMode {
+	if nodeGroupOnOutposts {
+		return ekstypes.AuthenticationModeConfigMap
+	}
+	return ekstypes.AuthenticationModeApiAndConfigMap
 }
 
 func setContainerRuntimeDefault(ng *NodeGroup, clusterVersion string) {

@@ -4,6 +4,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 )
 
 var _ = Describe("ClusterConfig validation", func() {
@@ -336,6 +338,29 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
+	})
+
+	Context("Authentication Mode", func() {
+		var (
+			cfg *ClusterConfig
+		)
+
+		BeforeEach(func() {
+			cfg = NewClusterConfig()
+		})
+
+		It("should be set to API_AND_CONFIG_MAP by default", func() {
+			SetClusterConfigDefaults(cfg)
+			Expect(cfg.AccessConfig.AuthenticationMode).To(Equal(ekstypes.AuthenticationModeApiAndConfigMap))
+		})
+
+		It("should be set to CONFIG_MAP when control plane is on outposts", func() {
+			cfg.Outpost = &Outpost{
+				ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
+			}
+			SetClusterConfigDefaults(cfg)
+			Expect(cfg.AccessConfig.AuthenticationMode).To(Equal(ekstypes.AuthenticationModeConfigMap))
+		})
 	})
 
 	Describe("ClusterConfig", func() {
