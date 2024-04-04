@@ -1256,11 +1256,12 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2204\"`, `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2022CoreContainer\"`, `\"WindowsServer2022FullContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2204&quot;</code>, <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2022CoreContainer&quot;</code>, <code>&quot;WindowsServer2022FullContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"AmazonLinux2023\"`, `\"Ubuntu2204\"`, `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2022CoreContainer\"`, `\"WindowsServer2022FullContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;AmazonLinux2023&quot;</code>, <code>&quot;Ubuntu2204&quot;</code>, <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2022CoreContainer&quot;</code>, <code>&quot;WindowsServer2022FullContainer&quot;</code>.",
           "default": "AmazonLinux2",
           "enum": [
             "AmazonLinux2",
+            "AmazonLinux2023",
             "Ubuntu2204",
             "Ubuntu2004",
             "Ubuntu1804",
@@ -1589,11 +1590,12 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2204\"`, `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2022CoreContainer\"`, `\"WindowsServer2022FullContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2204&quot;</code>, <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2022CoreContainer&quot;</code>, <code>&quot;WindowsServer2022FullContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"AmazonLinux2023\"`, `\"Ubuntu2204\"`, `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2022CoreContainer\"`, `\"WindowsServer2022FullContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;AmazonLinux2023&quot;</code>, <code>&quot;Ubuntu2204&quot;</code>, <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2022CoreContainer&quot;</code>, <code>&quot;WindowsServer2022FullContainer&quot;</code>.",
           "default": "AmazonLinux2",
           "enum": [
             "AmazonLinux2",
+            "AmazonLinux2023",
             "Ubuntu2204",
             "Ubuntu2004",
             "Ubuntu1804",

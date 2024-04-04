@@ -53,9 +53,18 @@ var (
 		return fmt.Errorf("the %q addon must be installed to create pod identity associations; %s", PodIdentityAgentAddon, suggestion)
 	}
 
+	ErrUnsupportedInstanceTypes = func(instanceType, amiFamily, suggestion string) error {
+		return fmt.Errorf("%s instance types are not supported for %s; %s", instanceType, amiFamily, suggestion)
+	}
+
 	GPUDriversWarning = func(amiFamily string) string {
 		return fmt.Sprintf("%s does not ship with NVIDIA GPU drivers installed, hence won't support running GPU-accelerated workloads out of the box", amiFamily)
 	}
+)
+
+var (
+	SupportedAmazonLinuxImages = supportedAMIFamiliesForOS(IsAmazonLinuxImage)
+	SupportedUbuntuImages      = supportedAMIFamiliesForOS(IsUbuntuImage)
 )
 
 // NOTE: we don't use k8s.io/apimachinery/pkg/util/sets here to keep API package free of dependencies
@@ -625,7 +634,7 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 			if ng.AMIFamily == NodeImageFamilyWindowsServer20H2CoreContainer || ng.AMIFamily == NodeImageFamilyWindowsServer2004CoreContainer {
 				return fmt.Errorf("AMI Family %s is deprecated. For more information, head to the Amazon documentation on Windows AMIs (https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-windows-ami.html)", ng.AMIFamily)
 			}
-			return fmt.Errorf("AMI Family %s is not supported - use one of: %s", ng.AMIFamily, strings.Join(supportedAMIFamilies(), ", "))
+			return fmt.Errorf("AMI Family %s is not supported - use one of: %s", ng.AMIFamily, strings.Join(SupportedAMIFamilies(), ", "))
 		}
 		if controlPlaneOnOutposts && ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
 			return fmt.Errorf("only %s is supported on local clusters", NodeImageFamilyAmazonLinux2)
@@ -641,8 +650,15 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 		}
 	}
 
+	instanceType := SelectInstanceType(np)
+
+	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 && instanceutils.IsNvidiaInstanceType(instanceType) {
+		return ErrUnsupportedInstanceTypes("GPU", NodeImageFamilyAmazonLinux2023,
+			fmt.Sprintf("EKS accelerated AMIs based on %s will be available at a later date", NodeImageFamilyAmazonLinux2023))
+	}
+
 	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyBottlerocket && ng.AMIFamily != "" {
-		if instanceutils.IsNvidiaInstanceType(SelectInstanceType(np)) {
+		if instanceutils.IsNvidiaInstanceType(instanceType) {
 			logger.Warning(GPUDriversWarning(ng.AMIFamily))
 		}
 		if ng.InstanceSelector != nil && !ng.InstanceSelector.IsZero() &&
@@ -652,17 +668,13 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 	}
 
 	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != "" {
-		instanceType := SelectInstanceType(np)
-		unsupportedErr := func(instanceTypeName string) error {
-			return fmt.Errorf("%s instance types are not supported for %s", instanceTypeName, ng.AMIFamily)
-		}
 		// Only AL2 supports Inferentia hosts.
 		if instanceutils.IsInferentiaInstanceType(instanceType) {
-			return unsupportedErr("Inferentia")
+			return ErrUnsupportedInstanceTypes("Inferentia", ng.AMIFamily, fmt.Sprintf("please use %s instead", NodeImageFamilyAmazonLinux2))
 		}
 		// Only AL2 supports Trainium hosts.
 		if instanceutils.IsTrainiumInstanceType(instanceType) {
-			return unsupportedErr("Trainium")
+			return ErrUnsupportedInstanceTypes("Trainium", ng.AMIFamily, fmt.Sprintf("please use %s instead", NodeImageFamilyAmazonLinux2))
 		}
 	}
 
@@ -817,7 +829,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 			ng.AMIFamily, path)
 	}
 
-	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyBottlerocket && !IsWindowsImage(ng.AMIFamily) {
+	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil &&
+		ng.AMIFamily != NodeImageFamilyAmazonLinux2023 &&
+		ng.AMIFamily != NodeImageFamilyBottlerocket &&
+		!IsWindowsImage(ng.AMIFamily) {
 		return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 	}
 
@@ -846,6 +861,16 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 	if IsWindowsImage(ng.AMIFamily) {
 		if ng.KubeletExtraConfig != nil {
 			return fieldNotSupported("kubeletExtraConfig")
+		}
+	} else if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
+		if ng.KubeletExtraConfig != nil {
+			return fieldNotSupported("kubeletExtraConfig")
+		}
+		if ng.PreBootstrapCommands != nil {
+			return fieldNotSupported("preBootstrapCommands")
+		}
+		if ng.OverrideBootstrapCommand != nil {
+			return fieldNotSupported("overrideBootstrapCommand")
 		}
 	} else if ng.AMIFamily == NodeImageFamilyBottlerocket {
 		if ng.KubeletExtraConfig != nil {
@@ -883,6 +908,9 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 	}
 
 	if ng.ContainerRuntime != nil {
+		if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 && *ng.ContainerRuntime != ContainerRuntimeContainerD {
+			return fmt.Errorf("only %s is supported for container runtime on %s nodes", ContainerRuntimeContainerD, NodeImageFamilyAmazonLinux2023)
+		}
 		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD && *ng.ContainerRuntime != ContainerRuntimeDockerForWindows {
 			return fmt.Errorf("only %s, %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD, ContainerRuntimeDockerForWindows)
 		}
@@ -1164,6 +1192,10 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		}
 	}
 
+	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 && ng.MaxPodsPerNode > 0 {
+		return errors.Errorf("eksctl does not support configuring maxPodsPerNode EKS-managed nodes based on %s", NodeImageFamilyAmazonLinux2023)
+	}
+
 	if ng.AMIFamily == NodeImageFamilyBottlerocket {
 		fieldNotSupported := func(field string) error {
 			return &unsupportedFieldError{
@@ -1239,11 +1271,15 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		if ng.AMIFamily == "" {
 			return errors.Errorf("when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag")
 		}
-		if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyUbuntu1804 && ng.AMIFamily != NodeImageFamilyUbuntu2004 && ng.AMIFamily != NodeImageFamilyUbuntu2204 {
-			return errors.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s, %s, %s and %s are supported", ng.AMIFamily, NodeImageFamilyAmazonLinux2, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004, NodeImageFamilyUbuntu2204)
+		if !IsAmazonLinuxImage(ng.AMIFamily) && !IsUbuntuImage(ng.AMIFamily) {
+			return errors.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s are supported", ng.AMIFamily,
+				strings.Join(append(SupportedAmazonLinuxImages, SupportedUbuntuImages...), ", "))
 		}
-		if ng.OverrideBootstrapCommand == nil {
+		if ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023 {
 			return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
+		}
+		if ng.OverrideBootstrapCommand != nil && ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
+			return errors.Errorf("%[1]s.overrideBootstrapCommand is not supported when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 		}
 		notSupportedWithCustomAMIErr := func(field string) error {
 			return errors.Errorf("%s.%s is not supported when using a custom AMI (%s.ami)", path, field, path)
@@ -1266,7 +1302,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 }
 
 func normalizeAMIFamily(ng *NodeGroupBase) {
-	for _, family := range supportedAMIFamilies() {
+	for _, family := range SupportedAMIFamilies() {
 		if strings.EqualFold(ng.AMIFamily, family) {
 			ng.AMIFamily = family
 			return
@@ -1436,12 +1472,45 @@ func validateNodeGroupKubeletExtraConfig(kubeletConfig *InlineDocument) error {
 }
 
 func isSupportedAMIFamily(imageFamily string) bool {
-	for _, image := range supportedAMIFamilies() {
+	for _, image := range SupportedAMIFamilies() {
 		if imageFamily == image {
 			return true
 		}
 	}
 	return false
+}
+
+func supportedAMIFamiliesForOS(isOSImage func(string) bool) []string {
+	amiFamilies := []string{}
+	for _, image := range SupportedAMIFamilies() {
+		if isOSImage(image) {
+			amiFamilies = append(amiFamilies, image)
+		}
+	}
+	return amiFamilies
+}
+
+func IsAmazonLinuxImage(imageFamily string) bool {
+	switch imageFamily {
+	case NodeImageFamilyAmazonLinux2023,
+		NodeImageFamilyAmazonLinux2:
+		return true
+
+	default:
+		return false
+	}
+}
+
+func IsUbuntuImage(imageFamily string) bool {
+	switch imageFamily {
+	case NodeImageFamilyUbuntu2204,
+		NodeImageFamilyUbuntu2004,
+		NodeImageFamilyUbuntu1804:
+		return true
+
+	default:
+		return false
+	}
 }
 
 // IsWindowsImage reports whether the AMI family is for Windows
