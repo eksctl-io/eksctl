@@ -40,6 +40,7 @@ addons:
       - ec2:DeleteNetworkInterface
       - ec2:DescribeInstances
       - ec2:DescribeTags
+      - ec2:CreateTags
       - ec2:DescribeNetworkInterfaces
       - ec2:DescribeInstanceTypes
       - ec2:DetachNetworkInterface
