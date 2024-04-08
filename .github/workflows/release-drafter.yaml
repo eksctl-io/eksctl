@@ -30,13 +30,13 @@ jobs:
         with:
           commitish: main
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 #v4.1.2
       - name: Copy release notes from Draft
         run: |
           tag_name=${{ steps.draft.outputs.tag_name }}
           echo "${{ steps.draft.outputs.body }}" > docs/release_notes/${tag_name:1}.md
       - name: Upsert pull request
-        uses: peter-evans/create-pull-request@a4f52f8033a6168103c2538976c07b467e8163bc #v6.0.1
+        uses: peter-evans/create-pull-request@70a41aba780001da0a30141984ae2a0c95d8704e #v6.0.2
         with:
           token: ${{ secrets.EKSCTLBOT_TOKEN }}
           commit-message: Add release notes for ${{ steps.draft.outputs.tag_name }}
