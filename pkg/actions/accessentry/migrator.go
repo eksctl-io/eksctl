@@ -3,12 +3,14 @@ package accessentry
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -37,10 +39,9 @@ import (
 // Add loggic to remove aws-auth
 
 type AccessEntryMigrationOptions struct {
-	RemoveOIDCProviderTrustRelationship bool
-	TargetAuthMode                      string
-	Approve                             bool
-	Timeout                             time.Duration
+	TargetAuthMode string
+	Approve        bool
+	Timeout        time.Duration
 }
 
 type Migrator struct {
@@ -55,7 +56,6 @@ type Migrator struct {
 
 func NewMigrator(
 	clusterName string,
-
 	eksAPI awsapi.EKS,
 	iamAPI awsapi.IAM,
 	clientSet kubernetes.Interface,
@@ -84,6 +84,8 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options AccessEntry
 			}
 		}
 		m.curAuthMode = ekstypes.AuthenticationModeApiAndConfigMap
+	} else {
+		logger.Info("target authentication mode %v is same as current authentication mode %v, not updating the Cluster authentication mode", m.tgAuthMode, m.curAuthMode)
 	}
 
 	cmEntries, err := m.doGetIAMIdentityMappings()
@@ -96,7 +98,11 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options AccessEntry
 		return err
 	}
 
-	newAccessEntries, skipAPImode := m.doFilterAccessEntries(cmEntries, curAccessEntries)
+	newAccessEntries, skipAPImode, err := doFilterAccessEntries(cmEntries, curAccessEntries)
+
+	if err != nil {
+		return err
+	}
 
 	newaelen := len(newAccessEntries)
 
@@ -115,16 +121,16 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options AccessEntry
 			if err != nil {
 				return err
 			}
-		}
 
-		err = m.doDeleteIAMIdentityMapping()
-		if err != nil {
-			return err
-		}
+			err = m.doDeleteIAMIdentityMapping()
+			if err != nil {
+				return err
+			}
 
-		err = doDeleteAWSAuthConfigMap(m.clientSet, "kube-system", "aws-auth")
-		if err != nil {
-			return err
+			err = doDeleteAWSAuthConfigMap(m.clientSet, "kube-system", "aws-auth")
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -181,6 +187,8 @@ func (m *Migrator) doGetAccessEntries(ctx context.Context) ([]Summary, error) {
 
 func (m *Migrator) doGetIAMIdentityMappings() ([]iam.Identity, error) {
 
+	nameRegex := regexp.MustCompile(`[^/]+$`)
+
 	acm, err := authconfigmap.NewFromClientSet(m.clientSet)
 	if err != nil {
 		return nil, err
@@ -191,10 +199,55 @@ func (m *Migrator) doGetIAMIdentityMappings() ([]iam.Identity, error) {
 		return nil, err
 	}
 
+	for idx, cme := range cmEntries {
+		switch cme.Type() {
+		case iam.ResourceTypeRole:
+			roleCme := iam.RoleIdentity{
+				RoleARN: cme.ARN(),
+				KubernetesIdentity: iam.KubernetesIdentity{
+					KubernetesUsername: cme.Username(),
+					KubernetesGroups:   cme.Groups(),
+				},
+			}
+
+			if match := nameRegex.FindStringSubmatch(roleCme.RoleARN); match != nil {
+				getRoleOutput, err := m.iamAPI.GetRole(context.Background(), &awsiam.GetRoleInput{RoleName: &match[0]})
+				if err != nil {
+					return nil, err
+				}
+
+				roleCme.RoleARN = *getRoleOutput.Role.Arn
+			}
+
+			cmEntries[idx] = iam.Identity(roleCme)
+
+		case iam.ResourceTypeUser:
+			userCme := iam.UserIdentity{
+				UserARN: cme.ARN(),
+				KubernetesIdentity: iam.KubernetesIdentity{
+					KubernetesUsername: cme.Username(),
+					KubernetesGroups:   cme.Groups(),
+				},
+			}
+
+			if match := nameRegex.FindStringSubmatch(userCme.UserARN); match != nil {
+				getUserOutput, err := m.iamAPI.GetUser(context.Background(), &awsiam.GetUserInput{UserName: &match[0]})
+				if err != nil {
+					return nil, err
+				}
+
+				userCme.UserARN = *getUserOutput.User.Arn
+			}
+
+			cmEntries[idx] = iam.Identity(userCme)
+
+		}
+	}
+
 	return cmEntries, nil
 }
 
-func (m *Migrator) doFilterAccessEntries(cmEntries []iam.Identity, accessEntries []Summary) ([]api.AccessEntry, bool) {
+func doFilterAccessEntries(cmEntries []iam.Identity, accessEntries []Summary) ([]api.AccessEntry, bool, error) {
 
 	skipAPImode := false
 	toDoEntries := []api.AccessEntry{}
@@ -231,7 +284,7 @@ func (m *Migrator) doFilterAccessEntries(cmEntries []iam.Identity, accessEntries
 		}
 	}
 
-	return toDoEntries, skipAPImode
+	return toDoEntries, skipAPImode, nil
 }
 
 func doBuildNodeRoleAccessEntry(cme iam.Identity) *api.AccessEntry {
@@ -254,6 +307,22 @@ func doBuildNodeRoleAccessEntry(cme iam.Identity) *api.AccessEntry {
 
 	return nil
 }
+
+// func (m *Migrator) doGetRoleARN(roleCme *iam.RoleIdentity) error {
+// 	nameRegex := regexp.MustCompile(`[^/]+$`)
+
+// 	if match := nameRegex.FindStringSubmatch(roleCme.RoleARN); match != nil {
+// 		getRoleOutput, err := m.iamAPI.GetRole(context.Background(), &awsiam.GetRoleInput{RoleName: &match[0]})
+// 		if err != nil {
+// 			return err
+// 		}
+
+// 		roleCme.RoleARN = *getRoleOutput.Role.Arn
+// 		return nil
+// 	}
+
+// 	return fmt.Errorf("Could not fetch full ARN for role %s", roleCme.RoleARN)
+// }
 
 func doBuildAccessEntry(cme iam.Identity) *api.AccessEntry {
 
@@ -289,6 +358,9 @@ func doBuildAccessEntry(cme iam.Identity) *api.AccessEntry {
 
 }
 
+func doGetFullARN() {
+
+}
 func (m Migrator) doDeleteIAMIdentityMapping() error {
 	acm, err := authconfigmap.NewFromClientSet(m.clientSet)
 	if err != nil {

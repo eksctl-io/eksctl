@@ -21,7 +21,6 @@ func migrateAccessEntryCmd(cmd *cmdutils.Cmd) {
 	var options accessentryactions.AccessEntryMigrationOptions
 	cmd.FlagSetGroup.InFlagSet("Migrate to Access Entry", func(fs *pflag.FlagSet) {
 		fs.StringVar(&options.TargetAuthMode, "target-authentication-mode", "API_AND_CONFIG_MAP", "Target Authentication mode of migration")
-		fs.BoolVar(&options.RemoveOIDCProviderTrustRelationship, "remove-aws-auth", false, "Remove aws-auth from cluster")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
