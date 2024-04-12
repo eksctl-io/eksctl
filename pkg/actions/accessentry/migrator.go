@@ -76,8 +76,8 @@ func NewMigrator(
 
 func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options AccessEntryMigrationOptions) error {
 	if m.curAuthMode != m.tgAuthMode {
-		logger.Info("target authentication mode %v is different than the current authentication mode %v, Updating the Cluster authentication mode", m.tgAuthMode, m.curAuthMode)
 		if m.curAuthMode != ekstypes.AuthenticationModeApiAndConfigMap {
+			logger.Info("target authentication mode %v is different than the current authentication mode %v, Updating the cluster authentication mode", m.tgAuthMode, m.curAuthMode)
 			err := m.doUpdateAuthenticationMode(ctx, ekstypes.AuthenticationModeApiAndConfigMap)
 			if err != nil {
 				return err
@@ -85,7 +85,7 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options AccessEntry
 		}
 		m.curAuthMode = ekstypes.AuthenticationModeApiAndConfigMap
 	} else {
-		logger.Info("target authentication mode %v is same as current authentication mode %v, not updating the Cluster authentication mode", m.tgAuthMode, m.curAuthMode)
+		logger.Info("target authentication mode %v is same as current authentication mode %v, not updating the cluster authentication mode", m.tgAuthMode, m.curAuthMode)
 	}
 
 	cmEntries, err := m.doGetIAMIdentityMappings()
@@ -117,6 +117,7 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options AccessEntry
 
 	if !skipAPImode {
 		if m.curAuthMode != m.tgAuthMode {
+			logger.Info("target authentication mode %v is different than the current authentication mode %v, updating the cluster authentication mode", m.tgAuthMode, m.curAuthMode)
 			err = m.doUpdateAuthenticationMode(ctx, m.tgAuthMode)
 			if err != nil {
 				return err
