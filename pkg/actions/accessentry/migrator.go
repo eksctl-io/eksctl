@@ -38,7 +38,7 @@ import (
 // Pankaj TODO
 // Add loggic to remove aws-auth
 
-type AccessEntryMigrationOptions struct {
+type MigrationOptions struct {
 	TargetAuthMode string
 	Approve        bool
 	Timeout        time.Duration
@@ -74,11 +74,11 @@ func NewMigrator(
 	}
 }
 
-func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options AccessEntryMigrationOptions) error {
+func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options MigrationOptions) error {
 	if m.curAuthMode != m.tgAuthMode {
 		if m.curAuthMode != ekstypes.AuthenticationModeApiAndConfigMap {
 			logger.Info("target authentication mode %v is different than the current authentication mode %v, Updating the cluster authentication mode", m.tgAuthMode, m.curAuthMode)
-			err := m.doUpdateAuthenticationMode(ctx, ekstypes.AuthenticationModeApiAndConfigMap)
+			err := m.doUpdateAuthenticationMode(ctx, ekstypes.AuthenticationModeApiAndConfigMap, options.Timeout)
 			if err != nil {
 				return err
 			}
@@ -118,7 +118,7 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options AccessEntry
 	if !skipAPImode {
 		if m.curAuthMode != m.tgAuthMode {
 			logger.Info("target authentication mode %v is different than the current authentication mode %v, updating the cluster authentication mode", m.tgAuthMode, m.curAuthMode)
-			err = m.doUpdateAuthenticationMode(ctx, m.tgAuthMode)
+			err = m.doUpdateAuthenticationMode(ctx, m.tgAuthMode, options.Timeout)
 			if err != nil {
 				return err
 			}
@@ -139,7 +139,7 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options AccessEntry
 
 }
 
-func (m *Migrator) doUpdateAuthenticationMode(ctx context.Context, authMode ekstypes.AuthenticationMode) error {
+func (m *Migrator) doUpdateAuthenticationMode(ctx context.Context, authMode ekstypes.AuthenticationMode, timeout time.Duration) error {
 	output, err := m.eksAPI.UpdateClusterConfig(ctx, &awseks.UpdateClusterConfigInput{
 		Name: aws.String(m.clusterName),
 		AccessConfig: &ekstypes.UpdateAccessConfigRequest{
@@ -156,7 +156,7 @@ func (m *Migrator) doUpdateAuthenticationMode(ctx context.Context, authMode ekst
 	err = updateWaiter.Wait(ctx, &awseks.DescribeUpdateInput{
 		Name:     &m.clusterName,
 		UpdateId: output.Update.Id,
-	}, api.DefaultWaitTimeout)
+	}, timeout)
 
 	switch e := err.(type) {
 	case *waiter.UpdateFailedError:
@@ -309,22 +309,6 @@ func doBuildNodeRoleAccessEntry(cme iam.Identity) *api.AccessEntry {
 	return nil
 }
 
-// func (m *Migrator) doGetRoleARN(roleCme *iam.RoleIdentity) error {
-// 	nameRegex := regexp.MustCompile(`[^/]+$`)
-
-// 	if match := nameRegex.FindStringSubmatch(roleCme.RoleARN); match != nil {
-// 		getRoleOutput, err := m.iamAPI.GetRole(context.Background(), &awsiam.GetRoleInput{RoleName: &match[0]})
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		roleCme.RoleARN = *getRoleOutput.Role.Arn
-// 		return nil
-// 	}
-
-// 	return fmt.Errorf("Could not fetch full ARN for role %s", roleCme.RoleARN)
-// }
-
 func doBuildAccessEntry(cme iam.Identity) *api.AccessEntry {
 
 	groupsStr := strings.Join(cme.Groups(), ",")
@@ -359,9 +343,6 @@ func doBuildAccessEntry(cme iam.Identity) *api.AccessEntry {
 
 }
 
-func doGetFullARN() {
-
-}
 func (m Migrator) doDeleteIAMIdentityMapping() error {
 	acm, err := authconfigmap.NewFromClientSet(m.clientSet)
 	if err != nil {
@@ -379,11 +360,7 @@ func (m Migrator) doDeleteIAMIdentityMapping() error {
 			return err
 		}
 	}
-	if err := acm.Save(); err != nil {
-		return err
-	}
-
-	return nil
+	return acm.Save()
 }
 
 func doDeleteAWSAuthConfigMap(clientset kubernetes.Interface, namespace string, name string) error {

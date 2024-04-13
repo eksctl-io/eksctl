@@ -18,7 +18,7 @@ func migrateAccessEntryCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("migrate-to-access-entry", "Migrates aws-auth to API authentication mode for the cluster", "")
 
-	var options accessentryactions.AccessEntryMigrationOptions
+	var options accessentryactions.MigrationOptions
 	cmd.FlagSetGroup.InFlagSet("Migrate to Access Entry", func(fs *pflag.FlagSet) {
 		fs.StringVar(&options.TargetAuthMode, "target-authentication-mode", "API_AND_CONFIG_MAP", "Target Authentication mode of migration")
 	})
@@ -36,7 +36,7 @@ func migrateAccessEntryCmd(cmd *cmdutils.Cmd) {
 	}
 }
 
-func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentryactions.AccessEntryMigrationOptions) error {
+func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentryactions.MigrationOptions) error {
 	cfg := cmd.ClusterConfig
 	cmd.ClusterConfig.AccessConfig.AuthenticationMode = ekstypes.AuthenticationMode(options.TargetAuthMode)
 	tgAuthMode := cmd.ClusterConfig.AccessConfig.AuthenticationMode
