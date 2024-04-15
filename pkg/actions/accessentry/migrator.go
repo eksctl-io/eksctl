@@ -22,22 +22,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Venkat TODO
-// Compare accessEntries and accessEntriesFromCm
-// Next steps:
-// 1. Instead of storing all into toDoEntries, Make a struct to contain multiple types of toDoEntries
-// type ToDoEntries struct {
-// 	NodeLinux   []api.AccessEntry
-// 	NodeWindows []api.AccessEntry
-// 	System      []api.AccessEntry
-// 	NonSystem   []api.AccessEntry
-// }
-// 2. Modify below code to store entries into one of above slices based on accessEntriesFromCm[item].KubernetesGroups
-// 3. Before storing, add Type property to each entry i.e. STANDARD, EC2_LINUX, EC2_WINDOWS etc based on condition
-
-// Pankaj TODO
-// Add loggic to remove aws-auth
-
 type MigrationOptions struct {
 	TargetAuthMode string
 	Approve        bool
@@ -318,7 +302,7 @@ func doBuildAccessEntry(cme iam.Identity) *api.AccessEntry {
 			PrincipalARN: api.MustParseARN(cme.ARN()),
 			Type:         "STANDARD",
 			AccessPolicies: []api.AccessPolicy{
-				api.AccessPolicy{
+				{
 					PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"),
 					AccessScope: api.AccessScope{
 						Type: ekstypes.AccessScopeTypeCluster,

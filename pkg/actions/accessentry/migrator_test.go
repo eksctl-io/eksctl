@@ -37,27 +37,9 @@ var _ = Describe("Migrate Access Entry", func() {
 		migrator      *accessentry.Migrator
 		mockProvider  *mockprovider.MockProvider
 		fakeClientset *fake.Clientset
-
-		clusterName = "test-cluster"
-
-		// roleIdentity = iam.RoleIdentity{
-		// 	RoleARN: "arn:aws:iam::111122223333:role/test-role-1",
-		// 	KubernetesIdentity: iam.KubernetesIdentity{
-		// 		KubernetesUsername: "admin",
-		// 		KubernetesGroups:   []string{"system:master"},
-		// 	},
-		// }
-		// userIdentity = iam.UserIdentity{
-		// 	UserARN: "arn:aws:iam::111122223333:user/test-user-1",
-		// 	KubernetesIdentity: iam.KubernetesIdentity{
-		// 		KubernetesUsername: "admin-user",
-		// 		KubernetesGroups:   []string{"system:master"},
-		// 	},
-		// }
-
-		tgAuthMode  = ekstypes.AuthenticationModeApi
-		curAuthMode = ekstypes.AuthenticationModeConfigMap
-		// genericErr  = fmt.Errorf("ERR")
+		clusterName   = "test-cluster"
+		tgAuthMode    = ekstypes.AuthenticationModeApi
+		curAuthMode   = ekstypes.AuthenticationModeConfigMap
 	)
 
 	DescribeTable("Migrate", func(ae migrateToAccessEntryEntry) {
