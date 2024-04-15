@@ -327,9 +327,7 @@ var _ = Describe("create cluster", func() {
 			updateClusterParams: func(params *cmdutils.CreateClusterCmdParams) {
 				params.InstallNvidiaDevicePlugin = true
 			},
-			updateMocks: func(p *mockprovider.MockProvider) {
-				updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup)(p)
-			},
+			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup),
 			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
 				rawClient, err := kubernetes.NewRawClient(kubefake.NewSimpleClientset(), &rest.Config{})
 				Expect(err).To(Not(HaveOccurred()))
@@ -441,6 +439,41 @@ var _ = Describe("create cluster", func() {
 				c.NodeGroups = append(c.NodeGroups, getDefaultNodeGroup())
 			},
 			updateMocks: updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup),
+			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
+				node := getDefaultNode()
+				clientset := kubefake.NewSimpleClientset(node)
+				watcher := watch.NewFake()
+				go func() {
+					defer watcher.Stop()
+					watcher.Add(node)
+				}()
+				clientset.PrependWatchReactor("nodes", k8stest.DefaultWatchReactor(watcher, nil))
+				fk.NewStdClientSetReturns(clientset, nil)
+			},
+		}),
+
+		Entry("nodegroup with an instance role ARN", createClusterEntry{
+			updateClusterConfig: func(c *api.ClusterConfig) {
+				ng := getDefaultNodeGroup()
+				ng.IAM.InstanceRoleARN = "role-1"
+				c.NodeGroups = []*api.NodeGroup{ng}
+			},
+			updateMocks: func(mp *mockprovider.MockProvider) {
+				updateMocksForNodegroups(cftypes.StackStatusCreateComplete, defaultOutputForNodeGroup)(mp)
+				mp.MockEKS().On("DescribeAccessEntry", mock.Anything, &awseks.DescribeAccessEntryInput{
+					PrincipalArn: aws.String("role-1"),
+					ClusterName:  aws.String(clusterName),
+				}).Return(nil, &ekstypes.ResourceNotFoundException{ClusterName: aws.String(clusterName)}).Once()
+
+				mp.MockEKS().On("CreateAccessEntry", mock.Anything, &awseks.CreateAccessEntryInput{
+					PrincipalArn: aws.String("role-1"),
+					ClusterName:  aws.String(clusterName),
+					Type:         aws.String("EC2_LINUX"),
+					Tags: map[string]string{
+						api.ClusterNameLabel: clusterName,
+					},
+				}).Return(&awseks.CreateAccessEntryOutput{}, nil).Once()
+			},
 			updateKubeProvider: func(fk *fakes.FakeKubeProvider) {
 				node := getDefaultNode()
 				clientset := kubefake.NewSimpleClientset(node)
@@ -720,15 +753,16 @@ var _ = Describe("create cluster", func() {
 })
 
 var (
-	clusterName        = "my-cluster"
-	clusterStackName   = "eksctl-" + clusterName + "-cluster"
-	nodeGroupName      = "my-nodegroup"
-	nodeGroupStackName = "eksctl-" + clusterName + "-nodegroup-" + nodeGroupName
+	clusterName         = "my-cluster"
+	clusterStackName    = "eksctl-" + clusterName + "-cluster"
+	nodeGroupName       = "my-nodegroup"
+	nodeGroupStackName  = "eksctl-" + clusterName + "-nodegroup-" + nodeGroupName
+	nodeInstanceRoleARN = "arn:aws:iam::083751696308:role/eksctl-my-cluster-cluster-nodegroup-my-nodegroup-NodeInstanceRole-1IYQ3JS8OKPX1"
 
 	defaultOutputForNodeGroup = []cftypes.Output{
 		{
 			OutputKey:   aws.String(outputs.NodeGroupInstanceRoleARN),
-			OutputValue: aws.String("arn:aws:iam::083751696308:role/eksctl-my-cluster-cluster-nodegroup-my-nodegroup-NodeInstanceRole-1IYQ3JS8OKPX1"),
+			OutputValue: aws.String(nodeInstanceRoleARN),
 		},
 		{
 			OutputKey:   aws.String(outputs.NodeGroupInstanceProfileARN),
@@ -887,7 +921,7 @@ var (
 						Outputs: outputs,
 					},
 				},
-			}, nil).Once()
+			}, nil).Twice()
 		}
 	}
 )

@@ -36,3 +36,15 @@ packages:
         config:
           dir: "{{.InterfaceDir}}/mocks"
           outpkg: mocks
+
+  github.com/weaveworks/eksctl/pkg/cfn/manager:
+    interfaces:
+      NodeGroupStackManager:
+        config:
+          dir: "{{.InterfaceDir}}/mocks"
+          outpkg: mocks
+
+      NodeGroupResourceSet:
+        config:
+          dir: "{{.InterfaceDir}}/mocks"
+          outpkg: mocks

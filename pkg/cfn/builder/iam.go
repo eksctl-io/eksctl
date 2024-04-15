@@ -124,21 +124,22 @@ func (n *NodeGroupResourceSet) WithNamedIAM() bool {
 }
 
 func (n *NodeGroupResourceSet) addResourcesForIAM(ctx context.Context) error {
-	if n.spec.IAM.InstanceProfileARN != "" {
+	nodeGroupIAM := n.options.NodeGroup.IAM
+	if nodeGroupIAM.InstanceProfileARN != "" {
 		n.rs.withIAM = false
 		n.rs.withNamedIAM = false
 
 		// if instance profile is given, as well as the role, we simply use both and export the role
 		// (which is needed in order to authorise the nodegroup)
-		n.instanceProfileARN = gfnt.NewString(n.spec.IAM.InstanceProfileARN)
-		if n.spec.IAM.InstanceRoleARN != "" {
-			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true)
-			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
+		n.instanceProfileARN = gfnt.NewString(nodeGroupIAM.InstanceProfileARN)
+		if nodeGroupIAM.InstanceRoleARN != "" {
+			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceProfileARN, nodeGroupIAM.InstanceProfileARN, true)
+			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, nodeGroupIAM.InstanceRoleARN, true)
 			return nil
 		}
 		// if instance role is not given, export profile and use the getter to call importer function
-		n.rs.defineOutput(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true, func(v string) error {
-			return iam.ImportInstanceRoleFromProfileARN(ctx, n.iamAPI, n.spec, v)
+		n.rs.defineOutput(outputs.NodeGroupInstanceProfileARN, nodeGroupIAM.InstanceProfileARN, true, func(v string) error {
+			return iam.ImportInstanceRoleFromProfileARN(ctx, n.iamAPI, n.options.NodeGroup, v)
 		})
 
 		return nil
@@ -146,8 +147,8 @@ func (n *NodeGroupResourceSet) addResourcesForIAM(ctx context.Context) error {
 
 	n.rs.withIAM = true
 
-	if n.spec.IAM.InstanceRoleARN != "" {
-		roleARN := NormalizeARN(n.spec.IAM.InstanceRoleARN)
+	if nodeGroupIAM.InstanceRoleARN != "" {
+		roleARN := NormalizeARN(nodeGroupIAM.InstanceRoleARN)
 
 		// if role is set, but profile isn't - create profile
 		n.newResource(cfnIAMInstanceProfileName, &gfniam.InstanceProfile{
@@ -156,7 +157,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM(ctx context.Context) error {
 		})
 		n.instanceProfileARN = gfnt.MakeFnGetAttString(cfnIAMInstanceProfileName, "Arn")
 		n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, cfnIAMInstanceProfileName, "Arn", true, func(v string) error {
-			n.spec.IAM.InstanceProfileARN = v
+			nodeGroupIAM.InstanceProfileARN = v
 			return nil
 		})
 		n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, roleARN, true)
@@ -165,12 +166,12 @@ func (n *NodeGroupResourceSet) addResourcesForIAM(ctx context.Context) error {
 
 	// if neither role nor profile is given - create both
 
-	if n.spec.IAM.InstanceRoleName != "" {
+	if nodeGroupIAM.InstanceRoleName != "" {
 		// setting role name requires additional capabilities
 		n.rs.withNamedIAM = true
 	}
 
-	if err := createRole(n.rs, n.clusterSpec.IAM, n.spec.IAM, false, n.forceAddCNIPolicy); err != nil {
+	if err := createRole(n.rs, n.options.ClusterConfig.IAM, nodeGroupIAM, false, n.options.ForceAddCNIPolicy); err != nil {
 		return err
 	}
 
@@ -181,11 +182,11 @@ func (n *NodeGroupResourceSet) addResourcesForIAM(ctx context.Context) error {
 	n.instanceProfileARN = gfnt.MakeFnGetAttString(cfnIAMInstanceProfileName, "Arn")
 
 	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, cfnIAMInstanceProfileName, "Arn", true, func(v string) error {
-		n.spec.IAM.InstanceProfileARN = v
+		nodeGroupIAM.InstanceProfileARN = v
 		return nil
 	})
 	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceRoleARN, cfnIAMInstanceRoleName, "Arn", true, func(v string) error {
-		n.spec.IAM.InstanceRoleARN = v
+		nodeGroupIAM.InstanceRoleARN = v
 		return nil
 	})
 	return nil
