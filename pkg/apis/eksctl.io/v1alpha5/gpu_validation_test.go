@@ -65,7 +65,19 @@ var _ = Describe("GPU instance support", func() {
 			gpuInstanceType: "g5.12xlarge",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
+		Entry("Ubuntu1804", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyUbuntu2004,
+			gpuInstanceType: "g4dn.xlarge",
+		}),
 		Entry("Ubuntu2004", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyUbuntu2004,
+			gpuInstanceType: "g4dn.xlarge",
+		}),
+		Entry("Ubuntu2204", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyUbuntu2004,
+			gpuInstanceType: "g4dn.xlarge",
+		}),
+		Entry("UbuntuPro2204", gpuInstanceEntry{
 			amiFamily:       api.NodeImageFamilyUbuntu2004,
 			gpuInstanceType: "g4dn.xlarge",
 		}),
