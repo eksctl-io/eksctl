@@ -14,19 +14,19 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.26.1
 	github.com/aws/aws-sdk-go-v2/config v1.27.11
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.11
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.40.4
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.48.0
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.39.1
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.35.0
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.40.5
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.50.0
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.39.2
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.35.1
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.36.3
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.156.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.41.2
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.24.3
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.30.4
-	github.com/aws/aws-sdk-go-v2/service/iam v1.31.3
+	github.com/aws/aws-sdk-go-v2/service/eks v1.42.1
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.24.4
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.30.5
+	github.com/aws/aws-sdk-go-v2/service/iam v1.32.0
 	github.com/aws/aws-sdk-go-v2/service/kms v1.27.5
-	github.com/aws/aws-sdk-go-v2/service/outposts v1.37.3
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.49.4
+	github.com/aws/aws-sdk-go-v2/service/outposts v1.38.0
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.49.5
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.6
 	github.com/aws/smithy-go v1.20.2
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
@@ -124,7 +124,7 @@ require (
 	github.com/ashanbrown/forbidigo v1.6.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.1 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.1 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.5 // indirect
