@@ -44,8 +44,8 @@ func (i *Installer) Create(ctx context.Context) error {
 	// Because we prefix with eksctl and to avoid having to get the name again,
 	// we always pass in the name and overwrite with the service account label.
 	roleName := fmt.Sprintf("eksctl-%s-iamservice-role", i.Config.Metadata.Name)
-	roleARN := fmt.Sprintf("arn:aws:iam::%s:role/%s", parsedARN.AccountID, roleName)
-	policyArn := fmt.Sprintf("arn:aws:iam::%s:policy/eksctl-%s-%s", parsedARN.AccountID, builder.KarpenterManagedPolicy, i.Config.Metadata.Name)
+	roleARN := fmt.Sprintf("arn:%s:iam::%s:role/%s", parsedARN.Partition, parsedARN.AccountID, roleName)
+	policyArn := fmt.Sprintf("arn:%s:iam::%s:policy/eksctl-%s-%s", parsedARN.Partition, parsedARN.AccountID, builder.KarpenterManagedPolicy, i.Config.Metadata.Name)
 	iamServiceAccount := &api.ClusterIAMServiceAccount{
 		ClusterIAMMeta: api.ClusterIAMMeta{
 			Name:      karpenter.DefaultServiceAccountName,
@@ -69,7 +69,7 @@ func (i *Installer) Create(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to create client for auth config: %w", err)
 	}
-	identityArn := fmt.Sprintf("arn:aws:iam::%s:role/eksctl-%s-%s", parsedARN.AccountID, builder.KarpenterNodeRoleName, i.Config.Metadata.Name)
+	identityArn := fmt.Sprintf("arn:%s:iam::%s:role/eksctl-%s-%s", parsedARN.Partition, parsedARN.AccountID, builder.KarpenterNodeRoleName, i.Config.Metadata.Name)
 	id, err := iam.NewIdentity(identityArn, authconfigmap.RoleNodeGroupUsername, authconfigmap.RoleNodeGroupGroups)
 	if err != nil {
 		return fmt.Errorf("failed to create new identity: %w", err)
