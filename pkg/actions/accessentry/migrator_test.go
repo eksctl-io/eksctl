@@ -22,9 +22,8 @@ import (
 )
 
 type migrateToAccessEntryEntry struct {
-	clusterName string
-	mockEKS     func(provider *mockprovider.MockProvider)
-	// mockIAM                    func(provider *mockprovider.MockProvider)
+	clusterName                string
+	mockEKS                    func(provider *mockprovider.MockProvider)
 	mockK8s                    func(clientSet *fake.Clientset)
 	validateCustomLoggerOutput func(output string)
 	options                    accessentry.MigrationOptions

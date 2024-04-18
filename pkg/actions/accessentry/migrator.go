@@ -2,8 +2,8 @@ package accessentry
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 	"time"
 
@@ -11,6 +11,7 @@ import (
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/kris-nova/logger"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -121,7 +122,7 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options MigrationOp
 			})
 		}
 	} else if m.tgAuthMode == ekstypes.AuthenticationModeApi {
-		logger.Warning("one or more identitymapping could not be migrated to access entry, will not update authentication mode to %v", ekstypes.AuthenticationModeApi)
+		logger.Warning("one or more iamidentitymapping could not be migrated to access entry, will not update authentication mode to %v", ekstypes.AuthenticationModeApi)
 	}
 
 	return runAllTasks(&taskTree)
@@ -167,9 +168,6 @@ func (m *Migrator) doGetAccessEntries(ctx context.Context) ([]Summary, error) {
 }
 
 func (m *Migrator) doGetIAMIdentityMappings(ctx context.Context) ([]iam.Identity, error) {
-
-	nameRegex := regexp.MustCompile(`[^/]+$`)
-
 	acm, err := authconfigmap.NewFromClientSet(m.clientSet)
 	if err != nil {
 		return nil, err
@@ -181,6 +179,10 @@ func (m *Migrator) doGetIAMIdentityMappings(ctx context.Context) ([]iam.Identity
 	}
 
 	for idx, cme := range cmEntries {
+		lastIdx := strings.LastIndex(cme.ARN(), "/")
+		cmeName := cme.ARN()[lastIdx+1:]
+		var noSuchEntity *types.NoSuchEntityException
+
 		switch cme.Type() {
 		case iam.ResourceTypeRole:
 			roleCme := iam.RoleIdentity{
@@ -191,15 +193,16 @@ func (m *Migrator) doGetIAMIdentityMappings(ctx context.Context) ([]iam.Identity
 				},
 			}
 
-			if match := nameRegex.FindStringSubmatch(roleCme.RoleARN); match != nil {
-				getRoleOutput, err := m.iamAPI.GetRole(ctx, &awsiam.GetRoleInput{RoleName: &match[0]})
+			if cmeName != "" {
+				getRoleOutput, err := m.iamAPI.GetRole(ctx, &awsiam.GetRoleInput{RoleName: &cmeName})
 				if err != nil {
+					if errors.As(err, &noSuchEntity) {
+						return nil, fmt.Errorf("role %s does not exists, either delete the iamidentitymapping using \"eksctl delete iamidentitymapping --cluster %s --arn %s\" or create the role in AWS", cmeName, m.clusterName, cme.ARN())
+					}
 					return nil, err
 				}
-
 				roleCme.RoleARN = *getRoleOutput.Role.Arn
 			}
-
 			cmEntries[idx] = iam.Identity(roleCme)
 
 		case iam.ResourceTypeUser:
@@ -211,12 +214,14 @@ func (m *Migrator) doGetIAMIdentityMappings(ctx context.Context) ([]iam.Identity
 				},
 			}
 
-			if match := nameRegex.FindStringSubmatch(userCme.UserARN); match != nil {
-				getUserOutput, err := m.iamAPI.GetUser(ctx, &awsiam.GetUserInput{UserName: &match[0]})
+			if cmeName != "" {
+				getUserOutput, err := m.iamAPI.GetUser(ctx, &awsiam.GetUserInput{UserName: &cmeName})
 				if err != nil {
+					if errors.As(err, &noSuchEntity) {
+						return nil, fmt.Errorf("user \"%s\" does not exists, either delete the iamidentitymapping using \"eksctl delete iamidentitymapping --cluster %s --arn %s\" or create the user in AWS", cmeName, m.clusterName, cme.ARN())
+					}
 					return nil, err
 				}
-
 				userCme.UserARN = *getUserOutput.User.Arn
 			}
 			cmEntries[idx] = iam.Identity(userCme)
@@ -230,20 +235,26 @@ func doFilterAccessEntries(cmEntries []iam.Identity, accessEntries []Summary) ([
 
 	skipAPImode := false
 	var toDoEntries []api.AccessEntry
-	uniqueCmEntries := map[string]bool{}
-	aeArns := map[string]bool{}
+	uniqueCmEntries := map[string]struct{}{}
+	aeArns := map[string]struct{}{}
 
-	// Create ARN Map for current access entries
+	// Create map for current access entry principal ARN
 	for _, ae := range accessEntries {
-		aeArns[ae.PrincipalARN] = true
+		aeArns[ae.PrincipalARN] = struct{}{}
 	}
 
 	for _, cme := range cmEntries {
-		if !uniqueCmEntries[cme.ARN()] { // Check if cmEntry is not duplicate
-			if !aeArns[cme.ARN()] { // Check if the ARN is not in existing access entries
+		if _, ok := uniqueCmEntries[cme.ARN()]; !ok { // Check if cmEntry is not duplicate
+			uniqueCmEntries[cme.ARN()] = struct{}{} // Add ARN to cmEntries map
+
+			if _, ok := aeArns[cme.ARN()]; !ok { // Check if the principal ARN is not present in existing access entries
 				switch cme.Type() {
 				case iam.ResourceTypeRole:
-					if aeEntry := doBuildNodeRoleAccessEntry(cme); aeEntry != nil {
+					if strings.Contains(cme.ARN(), ":role/aws-service-role/") { // Check if the principal ARN is service-linked-role
+						logger.Warning("found service-linked role iamidentitymapping \"%s\", can not create access entry, skipping", cme.ARN())
+						skipAPImode = true
+					} else if cme.Username() == authconfigmap.RoleNodeGroupUsername {
+						aeEntry := doBuildNodeRoleAccessEntry(cme)
 						toDoEntries = append(toDoEntries, *aeEntry)
 					} else if aeEntry := doBuildAccessEntry(cme); aeEntry != nil {
 						toDoEntries = append(toDoEntries, *aeEntry)
@@ -257,7 +268,7 @@ func doFilterAccessEntries(cmEntries []iam.Identity, accessEntries []Summary) ([
 						skipAPImode = true
 					}
 				case iam.ResourceTypeAccount:
-					logger.Warning("found account mapping %s, can not create access entry for account mapping, skipping", cme.Account())
+					logger.Warning("found account iamidentitymapping \"%s\", can not create access entry", cme.Account())
 					skipAPImode = true
 				}
 			} else {
@@ -270,48 +281,53 @@ func doFilterAccessEntries(cmEntries []iam.Identity, accessEntries []Summary) ([
 }
 
 func doBuildNodeRoleAccessEntry(cme iam.Identity) *api.AccessEntry {
+	isLinux := true
 
-	groupsStr := strings.Join(cme.Groups(), ",")
-
-	if strings.Contains(groupsStr, "system:nodes") && !strings.Contains(groupsStr, "eks:kube-proxy-windows") { // For Windows Nodes
+	for _, group := range cme.Groups() {
+		if group == "eks:kube-proxy-windows" {
+			isLinux = false
+		}
+	}
+	// For Linux Nodes
+	if isLinux {
 		return &api.AccessEntry{
 			PrincipalARN: api.MustParseARN(cme.ARN()),
 			Type:         "EC2_LINUX",
 		}
 	}
-
-	if strings.Contains(groupsStr, "system:nodes") && strings.Contains(groupsStr, "eks:kube-proxy-windows") { // For Linux Nodes
-		return &api.AccessEntry{
-			PrincipalARN: api.MustParseARN(cme.ARN()),
-			Type:         "EC2_WINDOWS",
-		}
+	// For windows Nodes
+	return &api.AccessEntry{
+		PrincipalARN: api.MustParseARN(cme.ARN()),
+		Type:         "EC2_WINDOWS",
 	}
-
-	return nil
 }
 
 func doBuildAccessEntry(cme iam.Identity) *api.AccessEntry {
+	containsSys := false
 
-	groupsStr := strings.Join(cme.Groups(), ",")
-
-	if strings.Contains(groupsStr, "system:masters") { // Admin Role
-		return &api.AccessEntry{
-			PrincipalARN: api.MustParseARN(cme.ARN()),
-			Type:         "STANDARD",
-			AccessPolicies: []api.AccessPolicy{
-				{
-					PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"),
-					AccessScope: api.AccessScope{
-						Type: ekstypes.AccessScopeTypeCluster,
+	for _, group := range cme.Groups() {
+		if strings.HasPrefix(group, "system:") {
+			containsSys = true
+			if group == "system:masters" { // Cluster Admin Role
+				return &api.AccessEntry{
+					PrincipalARN: api.MustParseARN(cme.ARN()),
+					Type:         "STANDARD",
+					AccessPolicies: []api.AccessPolicy{
+						{
+							PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"),
+							AccessScope: api.AccessScope{
+								Type: ekstypes.AccessScopeTypeCluster,
+							},
+						},
 					},
-				},
-			},
-			KubernetesUsername: cme.Username(),
+					KubernetesUsername: cme.Username(),
+				}
+			}
 		}
 	}
 
-	if strings.Contains(groupsStr, "system") { // Admin Role
-		logger.Warning("at least one group name associated with %s starts with \"system\", can not create access entry with such group name, skipping", cme.ARN())
+	if containsSys { // Check if any GroupName start with "system:"" in name
+		logger.Warning("at least one group name associated with %s starts with \"system:\", can not create access entry, skipping", cme.ARN())
 		return nil
 	}
 
