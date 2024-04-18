@@ -62,6 +62,11 @@ type expectedCalls struct {
 	clientset            *fake.Clientset
 }
 
+type vpcSubnets struct {
+	publicIDs  []string
+	privateIDs []string
+}
+
 //counterfeiter:generate -o fakes/fake_nodegroup_task_creator.go . nodeGroupTaskCreator
 type nodeGroupTaskCreator interface {
 	NewUnmanagedNodeGroupTask(context.Context, []*api.NodeGroup, bool, bool, bool, vpc.Importer) *tasks.TaskTree
@@ -253,6 +258,51 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		},
 		expectedErr: errors.Wrap(errors.New("shared node security group missing, to fix this run 'eksctl update cluster --name=my-cluster --region='"), "cluster compatibility check failed")}),
 
+	Entry("fails when nodegroup uses privateNetworking:true and there's no private subnet within vpc", ngEntry{
+		updateClusterConfig: func(c *api.ClusterConfig) {
+			c.NodeGroups[0].PrivateNetworking = true
+		},
+		mockCalls: func(m mockCalls) {
+			mockProviderWithVPCSubnets(m.mockProvider, &vpcSubnets{
+				publicIDs: []string{"subnet-public-1", "subnet-public-2"},
+			})
+		},
+		expectedErr: fmt.Errorf("cannot have privateNetworking:true for nodegroup my-ng, since no private subnets were found within vpc-1"),
+	}),
+	Entry("fails when nodegroup uses privateNetworking:false and there's no public subnet within vpc", ngEntry{
+		mockCalls: func(m mockCalls) {
+			mockProviderWithVPCSubnets(m.mockProvider, &vpcSubnets{
+				publicIDs: []string{"subnet-private-1", "subnet-private-2"},
+			})
+		},
+		expectedErr: fmt.Errorf("cannot have privateNetworking:false for nodegroup my-ng, since no public subnets were found within vpc-1"),
+	}),
+	Entry("fails when nodegroup uses privateNetworking:true and there's no private subnet within az", ngEntry{
+		updateClusterConfig: func(c *api.ClusterConfig) {
+			c.NodeGroups[0].PrivateNetworking = true
+			c.NodeGroups[0].AvailabilityZones = []string{"us-west-2b"}
+		},
+		mockCalls: func(m mockCalls) {
+			mockProviderWithVPCSubnets(m.mockProvider, &vpcSubnets{
+				publicIDs:  []string{"subnet-public-1", "subnet-public-2"},
+				privateIDs: []string{"subnet-private-1"},
+			})
+		},
+		expectedErr: fmt.Errorf("cannot have privateNetworking:true for nodegroup my-ng, since no private subnets were found within us-west-2b"),
+	}),
+	Entry("fails when nodegroup uses privateNetworking:false and there's no private subnet within az", ngEntry{
+		updateClusterConfig: func(c *api.ClusterConfig) {
+			c.NodeGroups[0].AvailabilityZones = []string{"us-west-2a", "us-west-2b"}
+		},
+		mockCalls: func(m mockCalls) {
+			mockProviderWithVPCSubnets(m.mockProvider, &vpcSubnets{
+				publicIDs:  []string{"subnet-public-2"},
+				privateIDs: []string{"subnet-private-1", "subnet-private-2"},
+			})
+		},
+		expectedErr: fmt.Errorf("cannot have privateNetworking:false for nodegroup my-ng, since no public subnets were found within us-west-2a"),
+	}),
+
 	Entry("fails when existing local ng stacks in config file is not listed", ngEntry{
 		mockCalls: func(m mockCalls) {
 			m.nodeGroupFilter.SetOnlyLocalReturns(errors.New("err"))
@@ -435,7 +485,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			m.kubeProvider.NewRawClientReturns(nil, &kubernetes.APIServerUnreachableError{
 				Err: errors.New("timeout"),
 			})
-			mockProviderWithConfig(m.mockProvider, defaultOutput, &ekstypes.VpcConfigResponse{
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, &ekstypes.VpcConfigResponse{
 				ClusterSecurityGroupId: aws.String("csg-1234"),
 				EndpointPublicAccess:   false,
 				EndpointPrivateAccess:  true,
@@ -499,7 +549,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			UpdateAuthConfigMap: api.Disabled(),
 		},
 		mockCalls: func(m mockCalls) {
-			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, nil, &ekstypes.AccessConfigResponse{
 				AuthenticationMode: ekstypes.AuthenticationModeApi,
 			})
 			defaultProviderMocks(m.mockProvider, defaultOutput)
@@ -519,7 +569,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			UpdateAuthConfigMap: api.Enabled(),
 		},
 		mockCalls: func(m mockCalls) {
-			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, nil, &ekstypes.AccessConfigResponse{
 				AuthenticationMode: ekstypes.AuthenticationModeApi,
 			})
 			defaultProviderMocks(m.mockProvider, defaultOutput)
@@ -536,7 +586,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	Entry("creates nodegroup using access entries when authenticationMode is API_AND_CONFIG_MAP and updateAuthConfigMap is not supplied", ngEntry{
 		mockCalls: func(m mockCalls) {
-			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, nil, &ekstypes.AccessConfigResponse{
 				AuthenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
 			})
 			defaultProviderMocks(m.mockProvider, defaultOutput)
@@ -553,7 +603,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	Entry("creates nodegroup using aws-auth ConfigMap when authenticationMode is CONFIG_MAP and updateAuthConfigMap is true", ngEntry{
 		mockCalls: func(m mockCalls) {
-			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, nil, &ekstypes.AccessConfigResponse{
 				AuthenticationMode: ekstypes.AuthenticationModeConfigMap,
 			})
 			defaultProviderMocks(m.mockProvider, defaultOutput)
@@ -567,7 +617,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	Entry("creates nodegroup using aws-auth ConfigMap when authenticationMode is CONFIG_MAP and updateAuthConfigMap is not supplied", ngEntry{
 		mockCalls: func(m mockCalls) {
-			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, nil, &ekstypes.AccessConfigResponse{
 				AuthenticationMode: ekstypes.AuthenticationModeConfigMap,
 			})
 			defaultProviderMocks(m.mockProvider, defaultOutput)
@@ -581,7 +631,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	Entry("creates nodegroup but does not use either aws-auth ConfigMap or access entries when authenticationMode is API_AND_CONFIG_MAP and updateAuthConfigMap is false", ngEntry{
 		mockCalls: func(m mockCalls) {
-			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, nil, &ekstypes.AccessConfigResponse{
 				AuthenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
 			})
 			defaultProviderMocks(m.mockProvider, defaultOutput)
@@ -602,7 +652,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	Entry("creates nodegroup but does not use either aws-auth ConfigMap or access entries when authenticationMode is CONFIG_MAP and updateAuthConfigMap is false", ngEntry{
 		mockCalls: func(m mockCalls) {
-			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, nil, &ekstypes.AccessConfigResponse{
 				AuthenticationMode: ekstypes.AuthenticationModeConfigMap,
 			})
 			defaultProviderMocks(m.mockProvider, defaultOutput)
@@ -623,7 +673,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	Entry("authorizes nodegroups using aws-auth ConfigMap when authenticationMode is API_AND_CONFIG_MAP and updateAuthConfigMap is true", ngEntry{
 		mockCalls: func(m mockCalls) {
-			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
+			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, nil, &ekstypes.AccessConfigResponse{
 				AuthenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
 			})
 			defaultProviderMocks(m.mockProvider, defaultOutput)
@@ -734,6 +784,14 @@ var defaultOutput = []cftypes.Output{
 		OutputKey:   aws.String("SharedNodeSecurityGroup"),
 		OutputValue: aws.String("sg-1"),
 	},
+	{
+		OutputKey:   aws.String("SubnetsPublic"),
+		OutputValue: aws.String("subnet-public-1,subnet-public-2"),
+	},
+	{
+		OutputKey:   aws.String("SubnetsPrivate"),
+		OutputValue: aws.String("subnet-private-1,subnet-private-2"),
+	},
 }
 
 func getIAMIdentities(clientset kubernetes.Interface) []iam.Identity {
@@ -766,14 +824,18 @@ func expectedCallsForAWSAuth(e expectedCalls) {
 }
 
 func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output) {
-	mockProviderWithConfig(p, output, nil, nil, nil)
+	mockProviderWithConfig(p, output, nil, nil, nil, nil)
 }
 
 func mockProviderWithOutpostConfig(p *mockprovider.MockProvider, describeStacksOutput []cftypes.Output, outpostConfig *ekstypes.OutpostConfigResponse) {
-	mockProviderWithConfig(p, describeStacksOutput, nil, outpostConfig, nil)
+	mockProviderWithConfig(p, describeStacksOutput, nil, nil, outpostConfig, nil)
 }
 
-func mockProviderWithConfig(p *mockprovider.MockProvider, describeStacksOutput []cftypes.Output, vpcConfigRes *ekstypes.VpcConfigResponse, outpostConfig *ekstypes.OutpostConfigResponse, accessConfig *ekstypes.AccessConfigResponse) {
+func mockProviderWithVPCSubnets(p *mockprovider.MockProvider, subnets *vpcSubnets) {
+	mockProviderWithConfig(p, defaultOutput, subnets, nil, nil, nil)
+}
+
+func mockProviderWithConfig(p *mockprovider.MockProvider, describeStacksOutput []cftypes.Output, subnets *vpcSubnets, vpcConfigRes *ekstypes.VpcConfigResponse, outpostConfig *ekstypes.OutpostConfigResponse, accessConfig *ekstypes.AccessConfigResponse) {
 	p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
 		StackSummaries: []cftypes.StackSummary{
 			{
@@ -854,6 +916,88 @@ func mockProviderWithConfig(p *mockprovider.MockProvider, describeStacksOutput [
 				},
 			},
 		}, nil)
+
+	if subnets == nil {
+		subnets = &vpcSubnets{
+			publicIDs:  []string{"subnet-public-1", "subnet-public-2"},
+			privateIDs: []string{"subnet-private-1", "subnet-private-2"},
+		}
+	}
+
+	subnetPublic1 := ec2types.Subnet{
+		SubnetId:            aws.String("subnet-public-1"),
+		CidrBlock:           aws.String("192.168.64.0/20"),
+		AvailabilityZone:    aws.String("us-west-2a"),
+		VpcId:               aws.String("vpc-1"),
+		MapPublicIpOnLaunch: aws.Bool(true),
+	}
+	subnetPrivate1 := ec2types.Subnet{
+		SubnetId:            aws.String("subnet-private-1"),
+		CidrBlock:           aws.String("192.168.128.0/20"),
+		AvailabilityZone:    aws.String("us-west-2a"),
+		VpcId:               aws.String("vpc-1"),
+		MapPublicIpOnLaunch: aws.Bool(false),
+	}
+	subnetPublic2 := ec2types.Subnet{
+		SubnetId:            aws.String("subnet-public-2"),
+		CidrBlock:           aws.String("192.168.80.0/20"),
+		AvailabilityZone:    aws.String("us-west-2b"),
+		VpcId:               aws.String("vpc-1"),
+		MapPublicIpOnLaunch: aws.Bool(true),
+	}
+	subnetPrivate2 := ec2types.Subnet{
+		SubnetId:            aws.String("subnet-private-2"),
+		CidrBlock:           aws.String("192.168.32.0/20"),
+		AvailabilityZone:    aws.String("us-west-2b"),
+		VpcId:               aws.String("vpc-1"),
+		MapPublicIpOnLaunch: aws.Bool(false),
+	}
+
+	subnetsForID := map[string]ec2types.Subnet{
+		"subnet-public-1":  subnetPublic1,
+		"subnet-private-1": subnetPrivate1,
+		"subnet-public-2":  subnetPublic2,
+		"subnet-private-2": subnetPrivate2,
+	}
+
+	mockDescribeSubnets := func(mp *mockprovider.MockProvider, vpcID string, subnetIDs []string) {
+		var subnets []ec2types.Subnet
+		for _, id := range subnetIDs {
+			subnets = append(subnets, subnetsForID[id])
+		}
+		if vpcID == "" {
+			mp.MockEC2().On("DescribeSubnets", mock.Anything, &ec2.DescribeSubnetsInput{
+				SubnetIds: subnetIDs,
+			}).Return(&ec2.DescribeSubnetsOutput{Subnets: subnets}, nil)
+			return
+		}
+		mp.MockEC2().On("DescribeSubnets", mock.Anything, &ec2.DescribeSubnetsInput{
+			Filters: []ec2types.Filter{
+				{
+					Name:   aws.String("vpc-id"),
+					Values: []string{vpcID},
+				},
+			},
+		}).Return(&ec2.DescribeSubnetsOutput{Subnets: subnets}, nil)
+	}
+
+	mockDescribeSubnets(p, "", subnets.publicIDs)
+	mockDescribeSubnets(p, "", subnets.privateIDs)
+	mockDescribeSubnets(p, "vpc-1", append(subnets.publicIDs, subnets.privateIDs...))
+
+	p.MockEC2().On("DescribeVpcs", mock.Anything, mock.Anything).Return(&ec2.DescribeVpcsOutput{
+		Vpcs: []ec2types.Vpc{
+			{
+				CidrBlock: aws.String("192.168.0.0/20"),
+				VpcId:     aws.String("vpc-1"),
+				CidrBlockAssociationSet: []ec2types.VpcCidrBlockAssociation{
+					{
+						CidrBlock: aws.String("192.168.0.0/20"),
+					},
+				},
+			},
+		},
+	}, nil)
 }
 
 func mockProviderForUnownedCluster(p *mockprovider.MockProvider, k *eksfakes.FakeKubeProvider, extraSGRules ...ec2types.SecurityGroupRule) {
