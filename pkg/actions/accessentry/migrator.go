@@ -12,6 +12,7 @@ import (
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/kris-nova/logger"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -19,7 +20,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks/waiter"
 	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
 type MigrationOptions struct {
@@ -59,68 +60,71 @@ func NewMigrator(
 }
 
 func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options MigrationOptions) error {
+	taskTree := tasks.TaskTree{
+		Parallel: false,
+		PlanMode: !options.Approve,
+	}
+
 	if m.curAuthMode != m.tgAuthMode {
-		if m.curAuthMode != ekstypes.AuthenticationModeApiAndConfigMap {
-			logger.Info("target authentication mode %v is different than the current authentication mode %v, Updating the cluster authentication mode", m.tgAuthMode, m.curAuthMode)
-			err := m.doUpdateAuthenticationMode(ctx, ekstypes.AuthenticationModeApiAndConfigMap, options.Timeout)
-			if err != nil {
-				return err
-			}
-		}
-		m.curAuthMode = ekstypes.AuthenticationModeApiAndConfigMap
+		taskTree.Append(&tasks.GenericTask{
+			Description: fmt.Sprintf("update authentication mode to %v", ekstypes.AuthenticationModeApiAndConfigMap),
+			Doer: func() error {
+				if m.curAuthMode != ekstypes.AuthenticationModeApiAndConfigMap {
+					logger.Info("target authentication mode %v is different than the current authentication mode %v, Updating the cluster authentication mode", m.tgAuthMode, m.curAuthMode)
+					return m.doUpdateAuthenticationMode(ctx, ekstypes.AuthenticationModeApiAndConfigMap, options.Timeout)
+				}
+				m.curAuthMode = ekstypes.AuthenticationModeApiAndConfigMap
+				return nil
+			},
+		})
 	} else {
 		logger.Info("target authentication mode %v is same as current authentication mode %v, not updating the cluster authentication mode", m.tgAuthMode, m.curAuthMode)
 	}
 
-	cmEntries, err := m.doGetIAMIdentityMappings()
+	cmEntries, err := m.doGetIAMIdentityMappings(ctx)
 	if err != nil {
 		return err
 	}
 
 	curAccessEntries, err := m.doGetAccessEntries(ctx)
-	if err != nil {
+	if err != nil && m.curAuthMode != ekstypes.AuthenticationModeConfigMap {
 		return err
 	}
 
 	newAccessEntries, skipAPImode, err := doFilterAccessEntries(cmEntries, curAccessEntries)
-
 	if err != nil {
 		return err
 	}
 
-	newaelen := len(newAccessEntries)
-
-	logger.Info("%d new access entries will be created", newaelen)
-
-	if len(newAccessEntries) != 0 {
-		err = m.aeCreator.Create(ctx, newAccessEntries)
-		if err != nil {
-			return err
-		}
+	if newaelen := len(newAccessEntries); newaelen != 0 {
+		logger.Info("%d new access entries will be created", newaelen)
+		aeTasks := m.aeCreator.CreateTasks(ctx, newAccessEntries)
+		aeTasks.IsSubTask = true
+		taskTree.Append(aeTasks)
 	}
 
 	if !skipAPImode {
-		if m.curAuthMode != m.tgAuthMode {
-			logger.Info("target authentication mode %v is different than the current authentication mode %v, updating the cluster authentication mode", m.tgAuthMode, m.curAuthMode)
-			err = m.doUpdateAuthenticationMode(ctx, m.tgAuthMode, options.Timeout)
-			if err != nil {
-				return err
-			}
+		if m.tgAuthMode == ekstypes.AuthenticationModeApi {
+			taskTree.Append(&tasks.GenericTask{
+				Description: fmt.Sprintf("update authentication mode to %v", ekstypes.AuthenticationModeApi),
+				Doer: func() error {
+					logger.Info("target authentication mode %v is different than the current authentication mode %v, updating the cluster authentication mode", m.tgAuthMode, m.curAuthMode)
+					return m.doUpdateAuthenticationMode(ctx, m.tgAuthMode, options.Timeout)
+				},
+			})
 
-			err = m.doDeleteIAMIdentityMapping()
-			if err != nil {
-				return err
-			}
-
-			err = doDeleteAWSAuthConfigMap(m.clientSet, "kube-system", "aws-auth")
-			if err != nil {
-				return err
-			}
+			taskTree.Append(&tasks.GenericTask{
+				Description: fmt.Sprintf("delete aws-auth configMap when authentication mode is %v", ekstypes.AuthenticationModeApi),
+				Doer: func() error {
+					return doDeleteAWSAuthConfigMap(ctx, m.clientSet, authconfigmap.ObjectNamespace, authconfigmap.ObjectName)
+				},
+			})
 		}
+	} else if m.tgAuthMode == ekstypes.AuthenticationModeApi {
+		logger.Warning("one or more identitymapping could not be migrated to access entry, will not update authentication mode to %v", ekstypes.AuthenticationModeApi)
 	}
 
-	return nil
-
+	return runAllTasks(&taskTree)
 }
 
 func (m *Migrator) doUpdateAuthenticationMode(ctx context.Context, authMode ekstypes.AuthenticationMode, timeout time.Duration) error {
@@ -148,29 +152,21 @@ func (m *Migrator) doUpdateAuthenticationMode(ctx context.Context, authMode ekst
 			return fmt.Errorf("request to update cluster authentication mode was cancelled: %s", e.UpdateError)
 		}
 		return fmt.Errorf("failed to update cluster authentication mode: %s", e.UpdateError)
-
 	case nil:
 		logger.Info("authentication mode was successfully updated to %s on cluster %s", authMode, m.clusterName)
 		m.curAuthMode = authMode
 		return nil
-
 	default:
 		return err
 	}
 }
 
 func (m *Migrator) doGetAccessEntries(ctx context.Context) ([]Summary, error) {
-
-	aegetter := NewGetter(m.clusterName, m.eksAPI)
-	accessEntries, err := aegetter.Get(ctx, api.ARN{})
-	if err != nil {
-		return nil, err
-	}
-
-	return accessEntries, nil
+	aeGetter := NewGetter(m.clusterName, m.eksAPI)
+	return aeGetter.Get(ctx, api.ARN{})
 }
 
-func (m *Migrator) doGetIAMIdentityMappings() ([]iam.Identity, error) {
+func (m *Migrator) doGetIAMIdentityMappings(ctx context.Context) ([]iam.Identity, error) {
 
 	nameRegex := regexp.MustCompile(`[^/]+$`)
 
@@ -196,7 +192,7 @@ func (m *Migrator) doGetIAMIdentityMappings() ([]iam.Identity, error) {
 			}
 
 			if match := nameRegex.FindStringSubmatch(roleCme.RoleARN); match != nil {
-				getRoleOutput, err := m.iamAPI.GetRole(context.Background(), &awsiam.GetRoleInput{RoleName: &match[0]})
+				getRoleOutput, err := m.iamAPI.GetRole(ctx, &awsiam.GetRoleInput{RoleName: &match[0]})
 				if err != nil {
 					return nil, err
 				}
@@ -216,16 +212,14 @@ func (m *Migrator) doGetIAMIdentityMappings() ([]iam.Identity, error) {
 			}
 
 			if match := nameRegex.FindStringSubmatch(userCme.UserARN); match != nil {
-				getUserOutput, err := m.iamAPI.GetUser(context.Background(), &awsiam.GetUserInput{UserName: &match[0]})
+				getUserOutput, err := m.iamAPI.GetUser(ctx, &awsiam.GetUserInput{UserName: &match[0]})
 				if err != nil {
 					return nil, err
 				}
 
 				userCme.UserARN = *getUserOutput.User.Arn
 			}
-
 			cmEntries[idx] = iam.Identity(userCme)
-
 		}
 	}
 
@@ -235,10 +229,9 @@ func (m *Migrator) doGetIAMIdentityMappings() ([]iam.Identity, error) {
 func doFilterAccessEntries(cmEntries []iam.Identity, accessEntries []Summary) ([]api.AccessEntry, bool, error) {
 
 	skipAPImode := false
-	toDoEntries := []api.AccessEntry{}
+	var toDoEntries []api.AccessEntry
 	uniqueCmEntries := map[string]bool{}
-
-	aeArns := make(map[string]bool)
+	aeArns := map[string]bool{}
 
 	// Create ARN Map for current access entries
 	for _, ae := range accessEntries {
@@ -254,10 +247,14 @@ func doFilterAccessEntries(cmEntries []iam.Identity, accessEntries []Summary) ([
 						toDoEntries = append(toDoEntries, *aeEntry)
 					} else if aeEntry := doBuildAccessEntry(cme); aeEntry != nil {
 						toDoEntries = append(toDoEntries, *aeEntry)
+					} else {
+						skipAPImode = true
 					}
 				case iam.ResourceTypeUser:
 					if aeEntry := doBuildAccessEntry(cme); aeEntry != nil {
 						toDoEntries = append(toDoEntries, *aeEntry)
+					} else {
+						skipAPImode = true
 					}
 				case iam.ResourceTypeAccount:
 					logger.Warning("found account mapping %s, can not create access entry for account mapping, skipping", cme.Account())
@@ -327,31 +324,8 @@ func doBuildAccessEntry(cme iam.Identity) *api.AccessEntry {
 
 }
 
-func (m Migrator) doDeleteIAMIdentityMapping() error {
-	acm, err := authconfigmap.NewFromClientSet(m.clientSet)
-	if err != nil {
-		return err
-	}
+func doDeleteAWSAuthConfigMap(ctx context.Context, clientset kubernetes.Interface, namespace, name string) error {
+	logger.Info("deleting %q ConfigMap as it is no longer needed in API mode", name)
+	return clientset.CoreV1().ConfigMaps(namespace).Delete(ctx, name, metav1.DeleteOptions{})
 
-	cmEntries, err := acm.GetIdentities()
-	if err != nil {
-		return err
-	}
-
-	for _, cmEntry := range cmEntries {
-		arn := cmEntry.ARN()
-		if err := acm.RemoveIdentity(arn, true); err != nil {
-			return err
-		}
-	}
-	return acm.Save()
-}
-
-func doDeleteAWSAuthConfigMap(clientset kubernetes.Interface, namespace string, name string) error {
-	logger.Info("Deleting %q ConfigMap as it is no longer needed in API mode", name)
-	err := clientset.CoreV1().ConfigMaps(namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
-	if err != nil {
-		return err
-	}
-	return nil
 }

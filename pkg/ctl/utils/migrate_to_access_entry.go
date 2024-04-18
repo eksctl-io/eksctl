@@ -37,17 +37,17 @@ func migrateAccessEntryCmd(cmd *cmdutils.Cmd) {
 }
 
 func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentryactions.MigrationOptions) error {
+	defer cmdutils.LogPlanModeWarning(options.Approve)
+	options.Approve = !cmd.Plan
 	cfg := cmd.ClusterConfig
-	cmd.ClusterConfig.AccessConfig.AuthenticationMode = ekstypes.AuthenticationMode(options.TargetAuthMode)
-	tgAuthMode := cmd.ClusterConfig.AccessConfig.AuthenticationMode
+	tgAuthMode := ekstypes.AuthenticationMode(options.TargetAuthMode)
 
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
 
-	if cmd.Plan {
-		cmdutils.LogPlanModeWarning(true)
-		return nil
+	if tgAuthMode != ekstypes.AuthenticationModeApi && tgAuthMode != ekstypes.AuthenticationModeApiAndConfigMap {
+		return fmt.Errorf("target authentication mode is invalid, must be either %s or %s", ekstypes.AuthenticationModeApi, ekstypes.AuthenticationModeApiAndConfigMap)
 	}
 
 	ctx := context.Background()
@@ -58,10 +58,6 @@ func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentryactions.Migrat
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
-	}
-
-	if tgAuthMode != ekstypes.AuthenticationModeApi && tgAuthMode != ekstypes.AuthenticationModeApiAndConfigMap {
-		return fmt.Errorf("target authentication mode is invalid")
 	}
 
 	curAuthMode := ctl.GetClusterState().AccessConfig.AuthenticationMode
