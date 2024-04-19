@@ -123,6 +123,7 @@ IamLimitedAccess
                 "iam:DeleteInstanceProfile",
                 "iam:GetInstanceProfile",
                 "iam:RemoveRoleFromInstanceProfile",
+                "iam:GetUser",
                 "iam:GetRole",
                 "iam:CreateRole",
                 "iam:DeleteRole",
