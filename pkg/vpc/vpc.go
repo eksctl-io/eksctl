@@ -329,12 +329,17 @@ func UseFromClusterStack(ctx context.Context, provider api.ClusterProvider, stac
 		// if a subnet is present on the stack outputs, but actually missing from VPC
 		// e.g. it was manually deleted by the user using AWS CLI/Console
 		// than log a warning and don't import it into cluster spec
+		stackDriftFound := false
 		for _, ssID := range stackSubnets {
 			if !slices.Contains(vpcSubnets, ssID) {
-				logger.Warning("%s was found on cluster cloudformation stack, but has been removed from %s outside of eksctl", ssID, spec.VPC.ID)
+				stackDriftFound = true
+				logger.Warning("%s was found on cluster cloudformation stack outputs, but has been removed from VPC %s outside of eksctl", ssID, spec.VPC.ID)
 				continue
 			}
 			toBeImported = append(toBeImported, ssID)
+		}
+		if stackDriftFound {
+			logger.Warning("VPC %s contains the following subnets: %s", spec.VPC.ID, strings.Join(vpcSubnets, ","))
 		}
 		return ImportSubnetsFromIDList(ctx, provider.EC2(), spec, subnetMapping, toBeImported)
 	}
