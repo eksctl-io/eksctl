@@ -267,7 +267,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				publicIDs: []string{"subnet-public-1", "subnet-public-2"},
 			})
 		},
-		expectedErr: fmt.Errorf("cannot have privateNetworking:true for nodegroup my-ng, since no private subnets were found within vpc-1"),
+		expectedErr: fmt.Errorf("all private subnets from vpc-1, that the cluster was originally created on, have been deleted; to create private nodegroups within vpc-1 please manually set valid private subnets via nodeGroup.SubnetIDs"),
 	}),
 	Entry("fails when nodegroup uses privateNetworking:false and there's no public subnet within vpc", ngEntry{
 		mockCalls: func(m mockCalls) {
@@ -275,7 +275,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				publicIDs: []string{"subnet-private-1", "subnet-private-2"},
 			})
 		},
-		expectedErr: fmt.Errorf("cannot have privateNetworking:false for nodegroup my-ng, since no public subnets were found within vpc-1"),
+		expectedErr: fmt.Errorf("all public subnets from vpc-1, that the cluster was originally created on, have been deleted; to create public nodegroups within vpc-1 please manually set valid public subnets via nodeGroup.SubnetIDs"),
 	}),
 	Entry("fails when nodegroup uses privateNetworking:true and there's no private subnet within az", ngEntry{
 		updateClusterConfig: func(c *api.ClusterConfig) {
@@ -288,7 +288,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				privateIDs: []string{"subnet-private-1"},
 			})
 		},
-		expectedErr: fmt.Errorf("cannot have privateNetworking:true for nodegroup my-ng, since no private subnets were found within us-west-2b"),
+		expectedErr: fmt.Errorf("all private subnets from us-west-2b, that the cluster was originally created on, have been deleted; to create private nodegroups within us-west-2b please manually set valid private subnets via nodeGroup.SubnetIDs"),
 	}),
 	Entry("fails when nodegroup uses privateNetworking:false and there's no private subnet within az", ngEntry{
 		updateClusterConfig: func(c *api.ClusterConfig) {
@@ -300,7 +300,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				privateIDs: []string{"subnet-private-1", "subnet-private-2"},
 			})
 		},
-		expectedErr: fmt.Errorf("cannot have privateNetworking:false for nodegroup my-ng, since no public subnets were found within us-west-2a"),
+		expectedErr: fmt.Errorf("all public subnets from us-west-2a, that the cluster was originally created on, have been deleted; to create public nodegroups within us-west-2a please manually set valid public subnets via nodeGroup.SubnetIDs"),
 	}),
 
 	Entry("fails when existing local ng stacks in config file is not listed", ngEntry{

@@ -417,8 +417,8 @@ func validateSubnetsAvailability(spec *api.ClusterConfig) error {
 			false: "public",
 		}
 		unavailableSubnetsErr := func(subnetLocation string) error {
-			return fmt.Errorf("cannot have privateNetworking:%t for nodegroup %s, since no %s subnets were found within %s",
-				ng.PrivateNetworking, ng.Name, subnetTypeForPrivateNetworking[ng.PrivateNetworking], subnetLocation)
+			return fmt.Errorf("all %[1]s subnets from %[2]s, that the cluster was originally created on, have been deleted; to create %[1]s nodegroups within %[2]s please manually set valid %[1]s subnets via nodeGroup.SubnetIDs",
+				subnetTypeForPrivateNetworking[ng.PrivateNetworking], subnetLocation)
 		}
 
 		// don't check private networking compatibility for:
