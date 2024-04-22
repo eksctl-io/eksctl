@@ -150,22 +150,22 @@ eksctl delete accessentry -f config.yaml
 
 ### Migrate IAM identity mappings to access entries
 
-The user can migrate their IAM identities from configmap to access entries by running the following:
+The user can migrate their existing IAM identities from configmap to access entries by running the following:
 
 ```shell
 eksctl utils migrate-to-access-entry --cluster my-cluster --target-authentication-mode <API or API_AND_CONFIG_MAP>
 ```
 
-When `--target-authentication-mode API` is used, authentication mode is switched to `API` mode (skipped if already in `API` mode), IAM identity mappings will be migrated to access entries, and `aws-auth` configmap is deleted from the cluster.
+When `--target-authentication-mode` flag is set to `API`, authentication mode is switched to `API` mode (skipped if already in `API` mode), IAM identity mappings will be migrated to access entries, and `aws-auth` configmap is deleted from the cluster.
 
-When `--target-authentication-mode API_AND_CONFIG_MAP` is used, authentication mode is switched to `API_AND_CONFIG_MAP` mode (skipped if already in `API_AND_CONFIG_MAP` mode), IAM identity mappings will be migrated to access entries.
+When `--target-authentication-mode` flag is set to `API_AND_CONFIG_MAP`, authentication mode is switched to `API_AND_CONFIG_MAP` mode (skipped if already in `API_AND_CONFIG_MAP` mode), IAM identity mappings will be migrated to access entries.
 
 ???+ note
-    When `--target-authentication-mode API` is used, this command will not update Authentication mode to `API` mode if `aws-auth` configmap has one of the below constraints.
+    When `--target-authentication-mode` flag is set to `API`, this command will not update authentication mode to `API` mode if `aws-auth` configmap has one of the below constraints.
     
-    * There is an Account level IAM identity mapping.
-    * One or more Roles/Users are mapped to the kubernetes group(s) which begin with prefix `system:` (except for `system:masters`)
-    * One or more IAM identity mapping(s) are for a [Service Linked Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html)
+    * There is an Account level identity mapping.
+    * One or more Roles/Users are mapped to the kubernetes group(s) which begin with prefix `system:` (except for EKS specific groups i.e. `system:masters`, `system:bootstrappers`, `system:nodes` etc).
+    * One or more IAM identity mapping(s) are for a [Service Linked Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html).
 
 ## Disabling cluster creator admin permissions
 
