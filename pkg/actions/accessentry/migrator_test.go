@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
@@ -23,6 +24,7 @@ import (
 
 type migrateToAccessEntryEntry struct {
 	clusterName                string
+	curAuthMode                string
 	mockEKS                    func(provider *mockprovider.MockProvider)
 	mockK8s                    func(clientSet *fake.Clientset)
 	validateCustomLoggerOutput func(output string)
@@ -37,8 +39,6 @@ var _ = Describe("Migrate Access Entry", func() {
 		mockProvider  *mockprovider.MockProvider
 		fakeClientset *fake.Clientset
 		clusterName   = "test-cluster"
-		tgAuthMode    = ekstypes.AuthenticationModeApi
-		curAuthMode   = ekstypes.AuthenticationModeConfigMap
 	)
 
 	DescribeTable("Migrate", func(ae migrateToAccessEntryEntry) {
@@ -87,8 +87,8 @@ var _ = Describe("Migrate Access Entry", func() {
 			mockProvider.MockIAM(),
 			fakeClientset,
 			*accessEntryCreator,
-			curAuthMode,
-			tgAuthMode,
+			ekstypes.AuthenticationMode(ae.curAuthMode),
+			ekstypes.AuthenticationMode(ae.options.TargetAuthMode),
 		)
 
 		err := migrator.MigrateToAccessEntry(context.Background(), ae.options)
@@ -105,6 +105,10 @@ var _ = Describe("Migrate Access Entry", func() {
 		}
 	}, Entry("[API Error] Authentication mode update fails", migrateToAccessEntryEntry{
 		clusterName: clusterName,
+		options: accessentry.MigrationOptions{
+			TargetAuthMode: string(ekstypes.AuthenticationModeApi),
+			Approve:        true,
+		},
 		mockEKS: func(provider *mockprovider.MockProvider) {
 			mockProvider.MockEKS().
 				On("UpdateClusterConfig", mock.Anything, mock.Anything).
@@ -113,6 +117,16 @@ var _ = Describe("Migrate Access Entry", func() {
 					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.UpdateClusterConfigInput{}))
 				}).
 				Return(nil, fmt.Errorf("failed to update cluster config"))
+
+			provider.MockEKS().
+				On("ListAccessEntries", mock.Anything, mock.Anything).
+				Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&eks.ListAccessEntriesInput{}))
+				}).
+				Return(&eks.ListAccessEntriesOutput{
+					AccessEntries: []string{},
+				}, nil)
 		},
 		expectedErr: "failed to update cluster config",
 	}),
