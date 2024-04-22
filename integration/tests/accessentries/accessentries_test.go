@@ -521,6 +521,7 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 		WithArgs(
 			"cluster",
 			"--name", apiEnabledCluster,
+			"--disable-nodegroup-eviction",
 			"--wait",
 		)).To(RunSuccessfully())
 
