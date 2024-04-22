@@ -150,7 +150,7 @@ eksctl delete accessentry -f config.yaml
 
 ### Migrate IAM identity mappings to access entries
 
-The user can migrate their existing IAM identities from configmap to access entries by running the following:
+The user can migrate their existing IAM identities from `aws-auth` configmap to access entries by running the following:
 
 ```shell
 eksctl utils migrate-to-access-entry --cluster my-cluster --target-authentication-mode <API or API_AND_CONFIG_MAP>
@@ -158,7 +158,7 @@ eksctl utils migrate-to-access-entry --cluster my-cluster --target-authenticatio
 
 When `--target-authentication-mode` flag is set to `API`, authentication mode is switched to `API` mode (skipped if already in `API` mode), IAM identity mappings will be migrated to access entries, and `aws-auth` configmap is deleted from the cluster.
 
-When `--target-authentication-mode` flag is set to `API_AND_CONFIG_MAP`, authentication mode is switched to `API_AND_CONFIG_MAP` mode (skipped if already in `API_AND_CONFIG_MAP` mode), IAM identity mappings will be migrated to access entries.
+When `--target-authentication-mode` flag is set to `API_AND_CONFIG_MAP`, authentication mode is switched to `API_AND_CONFIG_MAP` mode (skipped if already in `API_AND_CONFIG_MAP` mode), IAM identity mappings will be migrated to access entries, but `aws-auth` configmap is preserved.
 
 ???+ note
     When `--target-authentication-mode` flag is set to `API`, this command will not update authentication mode to `API` mode if `aws-auth` configmap has one of the below constraints.
