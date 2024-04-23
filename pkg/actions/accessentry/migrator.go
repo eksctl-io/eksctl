@@ -61,25 +61,27 @@ func NewMigrator(
 }
 
 func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options MigrationOptions) error {
+	if m.tgAuthMode == ekstypes.AuthenticationModeConfigMap {
+		return fmt.Errorf("target authentication mode is invalid, must be either %s or %s", ekstypes.AuthenticationModeApi, ekstypes.AuthenticationModeApiAndConfigMap)
+	}
+	if m.curAuthMode == ekstypes.AuthenticationModeApi {
+		logger.Warning("cluster authentication mode is already %s; there is no need to migrate to access entries", ekstypes.AuthenticationModeApi)
+		return nil
+	}
+	logger.Info("current cluster authentication mode is %s; target cluster authentication mode is %s", m.curAuthMode, m.tgAuthMode)
+
 	taskTree := tasks.TaskTree{
 		Parallel: false,
 		PlanMode: !options.Approve,
 	}
 
-	if m.curAuthMode != m.tgAuthMode {
+	if m.curAuthMode == ekstypes.AuthenticationModeConfigMap {
 		taskTree.Append(&tasks.GenericTask{
-			Description: fmt.Sprintf("update authentication mode to %v", ekstypes.AuthenticationModeApiAndConfigMap),
+			Description: fmt.Sprintf("update authentication mode from %v to %v", ekstypes.AuthenticationModeConfigMap, ekstypes.AuthenticationModeApiAndConfigMap),
 			Doer: func() error {
-				if m.curAuthMode != ekstypes.AuthenticationModeApiAndConfigMap {
-					logger.Info("target authentication mode %v is different than the current authentication mode %v, Updating the cluster authentication mode", m.tgAuthMode, m.curAuthMode)
-					return m.doUpdateAuthenticationMode(ctx, ekstypes.AuthenticationModeApiAndConfigMap, options.Timeout)
-				}
-				m.curAuthMode = ekstypes.AuthenticationModeApiAndConfigMap
-				return nil
+				return m.doUpdateAuthenticationMode(ctx, ekstypes.AuthenticationModeApiAndConfigMap, options.Timeout)
 			},
 		})
-	} else {
-		logger.Info("target authentication mode %v is same as current authentication mode %v, not updating the cluster authentication mode", m.tgAuthMode, m.curAuthMode)
 	}
 
 	cmEntries, err := m.doGetIAMIdentityMappings(ctx)
@@ -97,23 +99,22 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options MigrationOp
 		return err
 	}
 
-	if newaelen := len(newAccessEntries); newaelen != 0 {
-		logger.Info("%d new access entries will be created", newaelen)
+	if len(newAccessEntries) > 0 {
 		aeTasks := m.aeCreator.CreateTasks(ctx, newAccessEntries)
 		aeTasks.IsSubTask = true
 		taskTree.Append(aeTasks)
 	}
 
-	if !skipAPImode {
-		if m.tgAuthMode == ekstypes.AuthenticationModeApi {
+	if m.tgAuthMode == ekstypes.AuthenticationModeApi {
+		if skipAPImode {
+			logger.Warning("one or more iamidentitymapping(s) could not be migrated to access entry, will not update authentication mode to %v", ekstypes.AuthenticationModeApi)
+		} else {
 			taskTree.Append(&tasks.GenericTask{
-				Description: fmt.Sprintf("update authentication mode to %v", ekstypes.AuthenticationModeApi),
+				Description: fmt.Sprintf("update authentication mode from %v to %v", ekstypes.AuthenticationModeApiAndConfigMap, ekstypes.AuthenticationModeApi),
 				Doer: func() error {
-					logger.Info("target authentication mode %v is different than the current authentication mode %v, updating the cluster authentication mode", m.tgAuthMode, m.curAuthMode)
 					return m.doUpdateAuthenticationMode(ctx, m.tgAuthMode, options.Timeout)
 				},
 			})
-
 			taskTree.Append(&tasks.GenericTask{
 				Description: fmt.Sprintf("delete aws-auth configMap when authentication mode is %v", ekstypes.AuthenticationModeApi),
 				Doer: func() error {
@@ -121,14 +122,13 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options MigrationOp
 				},
 			})
 		}
-	} else if m.tgAuthMode == ekstypes.AuthenticationModeApi {
-		logger.Warning("one or more iamidentitymapping could not be migrated to access entry, will not update authentication mode to %v", ekstypes.AuthenticationModeApi)
 	}
 
 	return runAllTasks(&taskTree)
 }
 
 func (m *Migrator) doUpdateAuthenticationMode(ctx context.Context, authMode ekstypes.AuthenticationMode, timeout time.Duration) error {
+	logger.Info("updating cluster authentication mode to %v", authMode)
 	output, err := m.eksAPI.UpdateClusterConfig(ctx, &awseks.UpdateClusterConfigInput{
 		Name: aws.String(m.clusterName),
 		AccessConfig: &ekstypes.UpdateAccessConfigRequest{

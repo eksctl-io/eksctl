@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"fmt"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/spf13/cobra"
@@ -32,22 +31,15 @@ func migrateAccessEntryCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
+		options.Approve = !cmd.Plan
 		return doMigrateToAccessEntry(cmd, options)
 	}
 }
 
 func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentryactions.MigrationOptions) error {
-	defer cmdutils.LogPlanModeWarning(options.Approve)
-	options.Approve = !cmd.Plan
 	cfg := cmd.ClusterConfig
-	tgAuthMode := ekstypes.AuthenticationMode(options.TargetAuthMode)
-
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
-	}
-
-	if tgAuthMode != ekstypes.AuthenticationModeApi && tgAuthMode != ekstypes.AuthenticationModeApiAndConfigMap {
-		return fmt.Errorf("target authentication mode is invalid, must be either %s or %s", ekstypes.AuthenticationModeApi, ekstypes.AuthenticationModeApiAndConfigMap)
 	}
 
 	ctx := context.Background()
@@ -60,8 +52,6 @@ func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentryactions.Migrat
 		return err
 	}
 
-	curAuthMode := ctl.GetClusterState().AccessConfig.AuthenticationMode
-
 	clientSet, err := ctl.NewStdClientSet(cfg)
 	if err != nil {
 		return err
@@ -73,13 +63,18 @@ func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentryactions.Migrat
 		StackCreator: stackManager,
 	}
 
-	return accessentryactions.NewMigrator(
+	if err := accessentryactions.NewMigrator(
 		cfg.Metadata.Name,
 		ctl.AWSProvider.EKS(),
 		ctl.AWSProvider.IAM(),
 		clientSet,
 		aeCreator,
-		curAuthMode,
-		tgAuthMode,
-	).MigrateToAccessEntry(ctx, options)
+		ctl.GetClusterState().AccessConfig.AuthenticationMode,
+		ekstypes.AuthenticationMode(options.TargetAuthMode),
+	).MigrateToAccessEntry(ctx, options); err != nil {
+		return err
+	}
+
+	cmdutils.LogPlanModeWarning(cmd.Plan)
+	return nil
 }
