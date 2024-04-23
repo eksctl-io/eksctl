@@ -37,9 +37,9 @@ func TestOverrideBootstrap(t *testing.T) {
 }
 
 var (
-	customAMIAL2          string
-	customAMIAL2023       string
-	customAMIBottlerocket string
+	customAMIAL2           string
+	customAMIAL2023        string
+	customAMIBottlerocket  string
 	customAMIUbuntuPro2204 string
 )
 
@@ -73,7 +73,7 @@ var _ = BeforeSuite(func() {
 
 	// retrieve Ubuntu Pro 22.04 AMI
 	input = &awsssm.GetParameterInput{
-		Name: aws.String(fmt.Sprintf("/aws/service/canonical/ubuntu/eks-pro/22.04/%s/stable/current/amd64/hvm/ebs-gp2/ami-id" , params.Version)),
+		Name: aws.String(fmt.Sprintf("/aws/service/canonical/ubuntu/eks-pro/22.04/%s/stable/current/amd64/hvm/ebs-gp2/ami-id", params.Version)),
 	}
 	output, err = ssm.GetParameter(context.Background(), input)
 	Expect(err).NotTo(HaveOccurred())
@@ -165,7 +165,7 @@ var _ = Describe("(Integration) [Test Custom AMI]", func() {
 			Expect(err).NotTo(HaveOccurred())
 			content = bytes.ReplaceAll(content, []byte("<generated>"), []byte(params.ClusterName))
 			content = bytes.ReplaceAll(content, []byte("<generated-region>"), []byte(params.Region))
-			content = bytes.ReplaceAll(content, []byte("<generated-ami>"), []byte(customAMIBottlerocket))
+			content = bytes.ReplaceAll(content, []byte("<generated-ami>"), []byte(customAMIUbuntuPro2204))
 			cmd := params.EksctlCreateCmd.
 				WithArgs(
 					"nodegroup",

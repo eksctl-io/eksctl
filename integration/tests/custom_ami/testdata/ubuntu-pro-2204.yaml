@@ -11,3 +11,7 @@ nodeGroups:
     ami: <generated-ami>
     amiFamily: UbuntuPro2204
     desiredCapacity: 1
+    overrideBootstrapCommand: |
+      #!/bin/bash
+      source /var/lib/cloud/scripts/eksctl/bootstrap.helper.sh
+      /etc/eks/bootstrap.sh <generated> --kubelet-extra-args "--node-labels=${NODE_LABELS}"  
