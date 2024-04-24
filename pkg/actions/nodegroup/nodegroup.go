@@ -3,11 +3,10 @@ package nodegroup
 import (
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/accessentry"
-
 	"github.com/aws/aws-sdk-go/aws/request"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/weaveworks/eksctl/pkg/accessentry"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"

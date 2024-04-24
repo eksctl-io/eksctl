@@ -164,7 +164,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, options deleteNodeG
 	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
 	deleter := &nodegroup.Deleter{
-		StackHelper:      ctl.NewStackManager(cfg),
+		StackHelper:      stackManager,
 		NodeGroupDeleter: ctl.AWSProvider.EKS(),
 		ClusterName:      cfg.Metadata.Name,
 		AuthConfigMapUpdater: &authConfigMapUpdater{

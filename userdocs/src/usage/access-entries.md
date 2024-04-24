@@ -22,7 +22,7 @@ e.g.
 
 ```yaml
 accessConfig:
-  authenticationMode: <> 
+  authenticationMode: <>
 ```
 
 When creating a new cluster with access entries, using `eksctl`, if `authenticationMode` is not provided by the user, it is automatically set to `API_AND_CONFIG_MAP`. Thus, the access entries API will be enabled by default. If instead you want to use access entries on an already existing, non-eksctl created, cluster, where `CONFIG_MAP` option is used, the user will need to first set `authenticationMode` to `API_AND_CONFIG_MAP`. For that, `eksctl` has introduced a new command for updating the cluster authentication mode, which works both with CLI flags e.g.
@@ -84,6 +84,9 @@ The integration with access entries for these resources will be achieved behind 
 Each access entry has a type. For authorizing self-managed nodegroups, `eksctl` will create a unique access entry for each nodegroup with the principal ARN set to the node role ARN and type set to either `EC2_LINUX` or `EC2_WINDOWS` depending on nodegroup amiFamily.
 
 When creating your own access entries, you can also specify `EC2_LINUX` (for an IAM role used with Linux or Bottlerocket self-managed nodes), `EC2_WINDOWS` (for an IAM roles used with Windows self-managed nodes), `FARGATE_LINUX` (for an IAM roles used with AWS Fargate (Fargate)), or `STANDARD` as a type. If you don't specify a type, the default type is set to `STANDARD`.
+
+???+ note
+    When deleting a nodegroup created with a pre-existing `instanceRoleARN`, it is the user's responsibility to delete the corresponding access entry when no more nodegroups are associated with it. This is because eksctl does not attempt to find out if an access entry is still in use by non-eksctl created self-managed nodegroups as it is a complicated process.
 
 ## Managing access entries
 

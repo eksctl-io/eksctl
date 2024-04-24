@@ -5,9 +5,10 @@ import (
 	"os"
 	"path"
 
-	. "github.com/benjamintf1/unmarshalledmatchers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/benjamintf1/unmarshalledmatchers"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -20,6 +21,7 @@ import (
 var _ = Describe("Nodegroup Builder", func() {
 	type ngResourceTest struct {
 		disableAccessEntryCreation bool
+		disableAccessEntryResource bool
 		resourceFilename           string
 	}
 
@@ -38,14 +40,15 @@ var _ = Describe("Nodegroup Builder", func() {
 			ForceAddCNIPolicy:          false,
 			VPCImporter:                fakeVPCImporter,
 			SkipEgressRules:            false,
-			DisableAccessEntryCreation: t.disableAccessEntryCreation,
+			DisableAccessEntry:         t.disableAccessEntryCreation,
+			DisableAccessEntryResource: t.disableAccessEntryResource,
 		})
 		Expect(resourceSet.AddAllResources(context.Background())).To(Succeed())
 		actual, err := resourceSet.RenderJSON()
 		Expect(err).NotTo(HaveOccurred())
 		expected, err := os.ReadFile(path.Join("testdata", "nodegroup_access_entry", t.resourceFilename))
 		Expect(err).NotTo(HaveOccurred())
-		Expect(actual).To(MatchOrderedJSON(expected, WithUnorderedListKeys("Tags")))
+		Expect(actual).To(unmarshalledmatchers.MatchOrderedJSON(expected, unmarshalledmatchers.WithUnorderedListKeys("Tags")))
 	},
 		Entry("with access entry", ngResourceTest{
 			resourceFilename: "1.json",
@@ -53,6 +56,10 @@ var _ = Describe("Nodegroup Builder", func() {
 		Entry("without access entry", ngResourceTest{
 			disableAccessEntryCreation: true,
 			resourceFilename:           "2.json",
+		}),
+		Entry("without access entry resource", ngResourceTest{
+			disableAccessEntryResource: true,
+			resourceFilename:           "3.json",
 		}),
 	)
 })

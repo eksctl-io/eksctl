@@ -122,7 +122,7 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(
 	return taskTree, nil
 }
 
-// NewTasksToDeleteNodeGroups defines tasks required to delete all of the nodegroups
+// NewTasksToDeleteNodeGroups defines tasks required to delete all nodegroups.
 func (c *StackCollection) NewTasksToDeleteNodeGroups(nodeGroupStacks []NodeGroupStack, shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
 	taskTree := &tasks.TaskTree{Parallel: true}
 
