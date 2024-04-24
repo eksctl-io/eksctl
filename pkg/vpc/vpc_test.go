@@ -500,6 +500,15 @@ var _ = Describe("VPC", func() {
 
 			mockEC2: func(ec2Mock *mocksv2.EC2) {
 				ec2Mock.On("DescribeSubnets", Anything, Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
+					if len(input.Filters) > 0 {
+						return &ec2.DescribeSubnetsOutput{
+							Subnets: []ec2types.Subnet{
+								{
+									SubnetId: aws.String("subnet-1"),
+								},
+							},
+						}
+					}
 					return &ec2.DescribeSubnetsOutput{
 						Subnets: []ec2types.Subnet{
 							{
@@ -582,6 +591,18 @@ var _ = Describe("VPC", func() {
 
 			mockEC2: func(ec2Mock *mocksv2.EC2) {
 				ec2Mock.On("DescribeSubnets", Anything, Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
+					if len(input.Filters) > 0 {
+						return &ec2.DescribeSubnetsOutput{
+							Subnets: []ec2types.Subnet{
+								{
+									SubnetId: aws.String("subnet-1"),
+								},
+								{
+									SubnetId: aws.String("subnet-lz1"),
+								},
+							},
+						}
+					}
 					subnet := ec2types.Subnet{
 						SubnetId: aws.String(input.SubnetIds[0]),
 						VpcId:    aws.String("vpc-123"),
@@ -653,6 +674,18 @@ var _ = Describe("VPC", func() {
 			},
 			mockEC2: func(ec2Mock *mocksv2.EC2) {
 				ec2Mock.On("DescribeSubnets", Anything, Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
+					if len(input.Filters) > 0 {
+						return &ec2.DescribeSubnetsOutput{
+							Subnets: []ec2types.Subnet{
+								{
+									SubnetId: aws.String("subnet-public-1"),
+								},
+								{
+									SubnetId: aws.String("subnet-private-1"),
+								},
+							},
+						}
+					}
 					subnet := ec2types.Subnet{
 						SubnetId: aws.String(input.SubnetIds[0]),
 						VpcId:    aws.String("vpc-123"),

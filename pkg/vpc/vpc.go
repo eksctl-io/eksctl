@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"slices"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -300,7 +301,47 @@ func UseFromClusterStack(ctx context.Context, provider api.ClusterProvider, stac
 		return strings.Split(v, ",")
 	}
 	importSubnetsFromIDList := func(subnetMapping api.AZSubnetMapping, value string) error {
-		return ImportSubnetsFromIDList(ctx, provider.EC2(), spec, subnetMapping, splitOutputValue(value))
+		var (
+			vpcSubnets   []string
+			stackSubnets []string
+			toBeImported []string
+		)
+		// collect VPC subnets as returned by CFN stack outputs
+		stackSubnets = splitOutputValue(value)
+
+		// collect VPC subnets as returned by EC2 API
+		ec2API := provider.EC2()
+		output, err := ec2API.DescribeSubnets(ctx, &ec2.DescribeSubnetsInput{
+			Filters: []ec2types.Filter{
+				{
+					Name:   aws.String("vpc-id"),
+					Values: []string{spec.VPC.ID},
+				},
+			},
+		})
+		if err != nil {
+			return err
+		}
+		for _, o := range output.Subnets {
+			vpcSubnets = append(vpcSubnets, *o.SubnetId)
+		}
+
+		// if a subnet is present on the stack outputs, but actually missing from VPC
+		// e.g. it was manually deleted by the user using AWS CLI/Console
+		// than log a warning and don't import it into cluster spec
+		stackDriftFound := false
+		for _, ssID := range stackSubnets {
+			if !slices.Contains(vpcSubnets, ssID) {
+				stackDriftFound = true
+				logger.Warning("%s was found on cluster cloudformation stack outputs, but has been removed from VPC %s outside of eksctl", ssID, spec.VPC.ID)
+				continue
+			}
+			toBeImported = append(toBeImported, ssID)
+		}
+		if stackDriftFound {
+			logger.Warning("VPC %s contains the following subnets: %s", spec.VPC.ID, strings.Join(vpcSubnets, ","))
+		}
+		return ImportSubnetsFromIDList(ctx, provider.EC2(), spec, subnetMapping, toBeImported)
 	}
 
 	optionalCollectors := map[string]outputs.Collector{

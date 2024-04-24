@@ -108,10 +108,10 @@ func Exists(stack types.Stack, key string) bool {
 
 // Collect the outputs of a stack using required and optional CollectorSets
 func Collect(stack types.Stack, required, optional map[string]Collector) error {
-	if err := NewCollectorSet(optional).doCollect(false, stack); err != nil {
+	if err := NewCollectorSet(required).doCollect(true, stack); err != nil {
 		return err
 	}
-	return NewCollectorSet(required).doCollect(true, stack)
+	return NewCollectorSet(optional).doCollect(false, stack)
 }
 
 // MustCollect will error if any of the outputs are missing
