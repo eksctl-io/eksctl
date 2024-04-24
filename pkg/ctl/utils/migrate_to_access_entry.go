@@ -58,10 +58,11 @@ func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentryactions.Migrat
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-	aeCreator := accessentryactions.Creator{
+	aeCreator := &accessentryactions.Creator{
 		ClusterName:  cmd.ClusterConfig.Metadata.Name,
 		StackCreator: stackManager,
 	}
+	aeGetter := accessentryactions.NewGetter(cfg.Metadata.Name, ctl.AWSProvider.EKS())
 
 	if err := accessentryactions.NewMigrator(
 		cfg.Metadata.Name,
@@ -69,6 +70,7 @@ func doMigrateToAccessEntry(cmd *cmdutils.Cmd, options accessentryactions.Migrat
 		ctl.AWSProvider.IAM(),
 		clientSet,
 		aeCreator,
+		aeGetter,
 		ctl.GetClusterState().AccessConfig.AuthenticationMode,
 		ekstypes.AuthenticationMode(options.TargetAuthMode),
 	).MigrateToAccessEntry(ctx, options); err != nil {

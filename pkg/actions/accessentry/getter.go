@@ -10,6 +10,12 @@ import (
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_getter.go . GetterInterface
+type GetterInterface interface {
+	Get(ctx context.Context, principalARN api.ARN) ([]Summary, error)
+}
+
 type Getter struct {
 	clusterName string
 	eksAPI      awsapi.EKS

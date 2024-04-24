@@ -35,7 +35,8 @@ type Migrator struct {
 	eksAPI      awsapi.EKS
 	iamAPI      awsapi.IAM
 	clientSet   kubernetes.Interface
-	aeCreator   Creator
+	aeCreator   CreatorInterface
+	aeGetter    GetterInterface
 	curAuthMode ekstypes.AuthenticationMode
 	tgAuthMode  ekstypes.AuthenticationMode
 }
@@ -45,7 +46,8 @@ func NewMigrator(
 	eksAPI awsapi.EKS,
 	iamAPI awsapi.IAM,
 	clientSet kubernetes.Interface,
-	aeCreator Creator,
+	aeCreator CreatorInterface,
+	aeGetter GetterInterface,
 	curAuthMode ekstypes.AuthenticationMode,
 	tgAuthMode ekstypes.AuthenticationMode,
 ) *Migrator {
@@ -55,6 +57,7 @@ func NewMigrator(
 		iamAPI:      iamAPI,
 		clientSet:   clientSet,
 		aeCreator:   aeCreator,
+		aeGetter:    aeGetter,
 		curAuthMode: curAuthMode,
 		tgAuthMode:  tgAuthMode,
 	}
@@ -84,21 +87,17 @@ func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options MigrationOp
 		})
 	}
 
+	curAccessEntries, err := m.aeGetter.Get(ctx, api.ARN{})
+	if err != nil && m.curAuthMode != ekstypes.AuthenticationModeConfigMap {
+		return fmt.Errorf("fetching existing access entries: %w", err)
+	}
+
 	cmEntries, err := m.doGetIAMIdentityMappings(ctx)
 	if err != nil {
 		return err
 	}
 
-	curAccessEntries, err := m.doGetAccessEntries(ctx)
-	if err != nil && m.curAuthMode != ekstypes.AuthenticationModeConfigMap {
-		return err
-	}
-
-	newAccessEntries, skipAPImode, err := doFilterAccessEntries(cmEntries, curAccessEntries)
-	if err != nil {
-		return err
-	}
-
+	newAccessEntries, skipAPImode := doFilterAccessEntries(cmEntries, curAccessEntries)
 	if len(newAccessEntries) > 0 {
 		aeTasks := m.aeCreator.CreateTasks(ctx, newAccessEntries)
 		aeTasks.IsSubTask = true
@@ -162,11 +161,6 @@ func (m *Migrator) doUpdateAuthenticationMode(ctx context.Context, authMode ekst
 	}
 }
 
-func (m *Migrator) doGetAccessEntries(ctx context.Context) ([]Summary, error) {
-	aeGetter := NewGetter(m.clusterName, m.eksAPI)
-	return aeGetter.Get(ctx, api.ARN{})
-}
-
 func (m *Migrator) doGetIAMIdentityMappings(ctx context.Context) ([]iam.Identity, error) {
 	acm, err := authconfigmap.NewFromClientSet(m.clientSet)
 	if err != nil {
@@ -197,7 +191,7 @@ func (m *Migrator) doGetIAMIdentityMappings(ctx context.Context) ([]iam.Identity
 				getRoleOutput, err := m.iamAPI.GetRole(ctx, &awsiam.GetRoleInput{RoleName: &cmeName})
 				if err != nil {
 					if errors.As(err, &noSuchEntity) {
-						return nil, fmt.Errorf("role %s does not exists, either delete the iamidentitymapping using \"eksctl delete iamidentitymapping --cluster %s --arn %s\" or create the role in AWS", cmeName, m.clusterName, cme.ARN())
+						return nil, fmt.Errorf("role %q does not exists, either delete the iamidentitymapping using \"eksctl delete iamidentitymapping --cluster %s --arn %s\" or create the role in AWS", cmeName, m.clusterName, cme.ARN())
 					}
 					return nil, err
 				}
@@ -218,7 +212,7 @@ func (m *Migrator) doGetIAMIdentityMappings(ctx context.Context) ([]iam.Identity
 				getUserOutput, err := m.iamAPI.GetUser(ctx, &awsiam.GetUserInput{UserName: &cmeName})
 				if err != nil {
 					if errors.As(err, &noSuchEntity) {
-						return nil, fmt.Errorf("user \"%s\" does not exists, either delete the iamidentitymapping using \"eksctl delete iamidentitymapping --cluster %s --arn %s\" or create the user in AWS", cmeName, m.clusterName, cme.ARN())
+						return nil, fmt.Errorf("user %q does not exists, either delete the iamidentitymapping using \"eksctl delete iamidentitymapping --cluster %s --arn %s\" or create the user in AWS", cmeName, m.clusterName, cme.ARN())
 					}
 					return nil, err
 				}
@@ -231,7 +225,7 @@ func (m *Migrator) doGetIAMIdentityMappings(ctx context.Context) ([]iam.Identity
 	return cmEntries, nil
 }
 
-func doFilterAccessEntries(cmEntries []iam.Identity, accessEntries []Summary) ([]api.AccessEntry, bool, error) {
+func doFilterAccessEntries(cmEntries []iam.Identity, accessEntries []Summary) ([]api.AccessEntry, bool) {
 
 	skipAPImode := false
 	var toDoEntries []api.AccessEntry
@@ -268,7 +262,7 @@ func doFilterAccessEntries(cmEntries []iam.Identity, accessEntries []Summary) ([
 						skipAPImode = true
 					}
 				case iam.ResourceTypeAccount:
-					logger.Warning("found account iamidentitymapping \"%s\", can not create access entry", cme.Account())
+					logger.Warning("found account iamidentitymapping %q, cannot create access entry, skipping", cme.Account())
 					skipAPImode = true
 				}
 			} else {
@@ -277,7 +271,7 @@ func doFilterAccessEntries(cmEntries []iam.Identity, accessEntries []Summary) ([
 		}
 	}
 
-	return toDoEntries, skipAPImode, nil
+	return toDoEntries, skipAPImode
 }
 
 func doBuildNodeRoleAccessEntry(cme iam.Identity) *api.AccessEntry {
@@ -295,7 +289,7 @@ func doBuildNodeRoleAccessEntry(cme iam.Identity) *api.AccessEntry {
 			Type:         "EC2_LINUX",
 		}
 	}
-	// For windows Nodes
+	// For Windows Nodes
 	return &api.AccessEntry{
 		PrincipalARN: api.MustParseARN(cme.ARN()),
 		Type:         "EC2_WINDOWS",
@@ -327,7 +321,7 @@ func doBuildAccessEntry(cme iam.Identity) *api.AccessEntry {
 	}
 
 	if containsSys { // Check if any GroupName start with "system:"" in name
-		logger.Warning("at least one group name associated with %s starts with \"system:\", can not create access entry, skipping", cme.ARN())
+		logger.Warning("at least one group name associated with %q starts with \"system:\", can not create access entry, skipping", cme.ARN())
 		return nil
 	}
 
@@ -343,5 +337,4 @@ func doBuildAccessEntry(cme iam.Identity) *api.AccessEntry {
 func doDeleteAWSAuthConfigMap(ctx context.Context, clientset kubernetes.Interface, namespace, name string) error {
 	logger.Info("deleting %q ConfigMap as it is no longer needed in API mode", name)
 	return clientset.CoreV1().ConfigMaps(namespace).Delete(ctx, name, metav1.DeleteOptions{})
-
 }
