@@ -53,18 +53,19 @@ The `--node-ami` flag can also be used with `eksctl create nodegroup`.
 
 The `--node-ami-family` can take following keywords:
 
-| Keyword                        |                                          Description                                                           |
-|--------------------------------|:--------------------------------------------------------------------------------------------------------------:|
-| AmazonLinux2                   | Indicates that the EKS AMI image based on Amazon Linux 2 should be used (default).                             |
-| AmazonLinux2023                | Indicates that the EKS AMI image based on Amazon Linux 2023 should be used.                                    |
-| Ubuntu2204                     | Indicates that the EKS AMI image based on Ubuntu 22.04 LTS (Jammy) should be used (available for EKS >= 1.29). |
-| Ubuntu2004                     | Indicates that the EKS AMI image based on Ubuntu 20.04 LTS (Focal) should be used (supported for EKS <= 1.29). |
-| Ubuntu1804                     | Indicates that the EKS AMI image based on Ubuntu 18.04 LTS (Bionic) should be used.                            |
-| Bottlerocket                   | Indicates that the EKS AMI image based on Bottlerocket should be used.                                         |
-| WindowsServer2019FullContainer | Indicates that the EKS AMI image based on Windows Server 2019 Full Container should be used.                   |
-| WindowsServer2019CoreContainer | Indicates that the EKS AMI image based on Windows Server 2019 Core Container should be used.                   |
-| WindowsServer2022FullContainer | Indicates that the EKS AMI image based on Windows Server 2022 Full Container should be used.                   |
-| WindowsServer2022CoreContainer | Indicates that the EKS AMI image based on Windows Server 2022 Core Container should be used.                   |
+| Keyword                        |                                          Description                                                               |
+|--------------------------------|:------------------------------------------------------------------------------------------------------------------:|
+| AmazonLinux2                   | Indicates that the EKS AMI image based on Amazon Linux 2 should be used (default).                                 |
+| AmazonLinux2023                | Indicates that the EKS AMI image based on Amazon Linux 2023 should be used.                                        |
+| Ubuntu1804                     | Indicates that the EKS AMI image based on Ubuntu 18.04 LTS (Bionic) should be used.                                |
+| Ubuntu2004                     | Indicates that the EKS AMI image based on Ubuntu 20.04 LTS (Focal) should be used (supported for EKS <= 1.29).     |
+| Ubuntu2204                     | Indicates that the EKS AMI image based on Ubuntu 22.04 LTS (Jammy) should be used (available for EKS >= 1.29).     |
+| UbuntuPro2204                  | Indicates that the EKS AMI image based on Ubuntu Pro 22.04 LTS (Jammy) should be used (available for EKS >= 1.29). |
+| Bottlerocket                   | Indicates that the EKS AMI image based on Bottlerocket should be used.                                             |
+| WindowsServer2019FullContainer | Indicates that the EKS AMI image based on Windows Server 2019 Full Container should be used.                       |
+| WindowsServer2019CoreContainer | Indicates that the EKS AMI image based on Windows Server 2019 Core Container should be used.                       |
+| WindowsServer2022FullContainer | Indicates that the EKS AMI image based on Windows Server 2022 Full Container should be used.                       |
+| WindowsServer2022CoreContainer | Indicates that the EKS AMI image based on Windows Server 2022 Core Container should be used.                       |
 
 CLI flag example:
 ```sh
