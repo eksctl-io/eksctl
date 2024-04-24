@@ -220,6 +220,8 @@ var _ = Describe("Create", func() {
 			validateCustomLoggerOutput: func(output string) {
 				Expect(output).To(ContainSubstring("update trust policy for owned role \"test-role-1\""))
 				Expect(output).To(ContainSubstring("update trust policy for unowned role \"test-role-2\""))
+				Expect(output).To(ContainSubstring("create service account \"default/service-account-1\", if it does not already exist"))
+				Expect(output).To(ContainSubstring("create service account \"default/service-account-2\", if it does not already exist"))
 				Expect(output).To(ContainSubstring("create pod identity association for service account \"default/service-account-1\""))
 				Expect(output).To(ContainSubstring("create pod identity association for service account \"default/service-account-2\""))
 			},

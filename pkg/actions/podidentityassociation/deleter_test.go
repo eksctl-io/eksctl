@@ -5,15 +5,20 @@ import (
 	"crypto/sha1"
 	"fmt"
 
-	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
-	"github.com/stretchr/testify/mock"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/stretchr/testify/mock"
+
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	kubeclientfakes "k8s.io/client-go/kubernetes/fake"
+	kubeclienttesting "k8s.io/client-go/testing"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/weaveworks/eksctl/pkg/actions/podidentityassociation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -25,7 +30,7 @@ import (
 var _ = Describe("Pod Identity Deleter", func() {
 	type deleteEntry struct {
 		podIdentityAssociations []api.PodIdentityAssociation
-		mockCalls               func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS)
+		mockCalls               func(stackManager *managerfakes.FakeStackManager, clientSet *kubeclientfakes.Clientset, eksAPI *mocksv2.EKS)
 
 		expectedCalls func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS)
 		expectedErr   string
@@ -40,7 +45,15 @@ var _ = Describe("Pod Identity Deleter", func() {
 			return nil
 		}
 	}
-	mockCalls := func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS, podID podidentityassociation.Identifier) {
+	mockClientSet := func(clientSet *kubeclientfakes.Clientset) {
+		clientSet.PrependReactor("delete", "serviceaccounts", func(action kubeclienttesting.Action) (bool, runtime.Object, error) {
+			return true, nil, nil
+		})
+		clientSet.PrependReactor("get", "serviceaccounts", func(action kubeclienttesting.Action) (bool, runtime.Object, error) {
+			return true, &corev1.ServiceAccount{}, nil
+		})
+	}
+	mockCalls := func(stackManager *managerfakes.FakeStackManager, clientSet *kubeclientfakes.Clientset, eksAPI *mocksv2.EKS, podID podidentityassociation.Identifier) {
 		stackName := makeIRSAv2StackName(podID)
 		associationID := fmt.Sprintf("%x", sha1.Sum([]byte(stackName)))
 		mockListPodIdentityAssociations(eksAPI, podID, []ekstypes.PodIdentityAssociationSummary{
@@ -48,6 +61,7 @@ var _ = Describe("Pod Identity Deleter", func() {
 				AssociationId: aws.String(associationID),
 			},
 		}, nil)
+		mockClientSet(clientSet)
 		eksAPI.On("DeletePodIdentityAssociation", mock.Anything, &eks.DeletePodIdentityAssociationInput{
 			ClusterName:   aws.String(clusterName),
 			AssociationId: aws.String(associationID),
@@ -57,12 +71,14 @@ var _ = Describe("Pod Identity Deleter", func() {
 
 	DescribeTable("delete pod identity association", func(e deleteEntry) {
 		provider := mockprovider.NewMockProvider()
+		clientSet := kubeclientfakes.NewSimpleClientset()
 		var stackManager managerfakes.FakeStackManager
-		e.mockCalls(&stackManager, provider.MockEKS())
+		e.mockCalls(&stackManager, clientSet, provider.MockEKS())
 		deleter := podidentityassociation.Deleter{
 			ClusterName:  clusterName,
 			StackDeleter: &stackManager,
 			APIDeleter:   provider.EKS(),
+			ClientSet:    clientSet,
 		}
 		err := deleter.Delete(context.Background(), podidentityassociation.ToIdentifiers(e.podIdentityAssociations))
 
@@ -80,13 +96,13 @@ var _ = Describe("Pod Identity Deleter", func() {
 					ServiceAccountName: "default",
 				},
 			},
-			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, fakeClientSet *kubeclientfakes.Clientset, eksAPI *mocksv2.EKS) {
 				podID := podidentityassociation.Identifier{
 					Namespace:          "default",
 					ServiceAccountName: "default",
 				}
 				mockListStackNames(stackManager, []podidentityassociation.Identifier{podID})
-				mockCalls(stackManager, eksAPI, podID)
+				mockCalls(stackManager, fakeClientSet, eksAPI, podID)
 			},
 
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
@@ -107,7 +123,7 @@ var _ = Describe("Pod Identity Deleter", func() {
 					ServiceAccountName: "aws-node",
 				},
 			},
-			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, clientSet *kubeclientfakes.Clientset, eksAPI *mocksv2.EKS) {
 				podIDs := []podidentityassociation.Identifier{
 					{
 						Namespace:          "default",
@@ -120,7 +136,7 @@ var _ = Describe("Pod Identity Deleter", func() {
 				}
 				mockListStackNamesWithIRSAv1(stackManager, podIDs[:1], podIDs[1:])
 				for _, podID := range podIDs {
-					mockCalls(stackManager, eksAPI, podID)
+					mockCalls(stackManager, clientSet, eksAPI, podID)
 				}
 			},
 
@@ -167,7 +183,7 @@ var _ = Describe("Pod Identity Deleter", func() {
 					ServiceAccountName: "coredns",
 				},
 			},
-			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, clientSet *kubeclientfakes.Clientset, eksAPI *mocksv2.EKS) {
 				podIDs := []podidentityassociation.Identifier{
 					{
 						Namespace:          "default",
@@ -184,7 +200,7 @@ var _ = Describe("Pod Identity Deleter", func() {
 				}
 				mockListStackNames(stackManager, podIDs)
 				for _, podID := range podIDs {
-					mockCalls(stackManager, eksAPI, podID)
+					mockCalls(stackManager, clientSet, eksAPI, podID)
 				}
 				mockListPodIdentityAssociations(eksAPI, podidentityassociation.Identifier{
 					Namespace:          "kube-system",
@@ -207,7 +223,7 @@ var _ = Describe("Pod Identity Deleter", func() {
 					ServiceAccountName: "aws-node",
 				},
 			},
-			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, clientSet *kubeclientfakes.Clientset, eksAPI *mocksv2.EKS) {
 				podID := podidentityassociation.Identifier{
 					Namespace:          "kube-system",
 					ServiceAccountName: "aws-node",
@@ -236,7 +252,7 @@ var _ = Describe("Pod Identity Deleter", func() {
 					ServiceAccountName: "aws-node",
 				},
 			},
-			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, clientSet *kubeclientfakes.Clientset, eksAPI *mocksv2.EKS) {
 				podIDs := []podidentityassociation.Identifier{
 					{
 						Namespace:          "default",
@@ -263,7 +279,7 @@ var _ = Describe("Pod Identity Deleter", func() {
 
 		Entry("delete IAM resources on cluster deletion", deleteEntry{
 			podIdentityAssociations: []api.PodIdentityAssociation{},
-			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, clientSet *kubeclientfakes.Clientset, eksAPI *mocksv2.EKS) {
 				podIDs := []podidentityassociation.Identifier{
 					{
 						Namespace:          "default",
