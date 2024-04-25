@@ -45,7 +45,8 @@ func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api
 	taskTree := &tasks.TaskTree{
 		Parallel: true,
 	}
-	for i, pia := range podIdentityAssociations {
+	for _, pia := range podIdentityAssociations {
+		pia := pia
 		piaCreationTasks := &tasks.TaskTree{
 			Parallel:  false,
 			IsSubTask: true,
@@ -55,7 +56,7 @@ func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api
 				ctx:                    ctx,
 				info:                   fmt.Sprintf("create IAM role for pod identity association for service account %q", pia.NameString()),
 				clusterName:            c.clusterName,
-				podIdentityAssociation: &podIdentityAssociations[i],
+				podIdentityAssociation: &pia,
 				stackCreator:           c.stackCreator,
 			})
 		}
@@ -75,7 +76,7 @@ func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api
 			ctx:                    ctx,
 			info:                   fmt.Sprintf("create pod identity association for service account %q", pia.NameString()),
 			clusterName:            c.clusterName,
-			podIdentityAssociation: &podIdentityAssociations[i],
+			podIdentityAssociation: &pia,
 			eksAPI:                 c.eksAPI,
 		})
 		taskTree.Append(piaCreationTasks)
