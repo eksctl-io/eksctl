@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	autoscalingtypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -162,10 +163,20 @@ func validateNodeGroupAMI(ctx context.Context, awsProvider api.ClusterProvider, 
 	if len(asg.AutoScalingGroups) != 1 {
 		return fmt.Errorf("expected to find exactly one Auto Scaling group for nodegroup; got %d", len(asg.AutoScalingGroups))
 	}
-	lt := asg.AutoScalingGroups[0].LaunchTemplate
-	if lt == nil {
-		logger.Warning("nodegroup with Auto Scaling group %q does not have a launch template", asgName)
-		return nil
+
+	var lt *autoscalingtypes.LaunchTemplateSpecification
+	if asg.AutoScalingGroups[0].MixedInstancesPolicy == nil {
+		lt = asg.AutoScalingGroups[0].LaunchTemplate
+		if lt == nil {
+			logger.Warning("nodegroup with Auto Scaling group %q does not have a launch template", asgName)
+			return nil
+		}
+	} else {
+		// ASG only use the LT in MixedInstancesPolicy if the ASG has a MixedInstancesPolicy
+		if asg.AutoScalingGroups[0].MixedInstancesPolicy.LaunchTemplate == nil {
+			return fmt.Errorf("expected the MixedInstancesPolicy in Auto Scaling group %q to include a launch template", asgName)
+		}
+		lt = asg.AutoScalingGroups[0].MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification
 	}
 
 	ltData, err := awsProvider.EC2().DescribeLaunchTemplateVersions(ctx, &ec2.DescribeLaunchTemplateVersionsInput{

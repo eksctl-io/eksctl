@@ -62,9 +62,9 @@ type CloudWatchLogs interface {
 	// using this operation. These services are listed as Supported [V2 Permissions] in
 	// the table at Enabling logging from Amazon Web Services services. (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html)
 	// A delivery destination can represent a log group in CloudWatch Logs, an Amazon
-	// S3 bucket, or a delivery stream in Kinesis Data Firehose. To configure logs
-	// delivery between a supported Amazon Web Services service and a destination, you
-	// must do the following:
+	// S3 bucket, or a delivery stream in Firehose. To configure logs delivery between
+	// a supported Amazon Web Services service and a destination, you must do the
+	// following:
 	//   - Create a delivery source, which is a logical object that represents the
 	//     resource that is actually sending the logs. For more information, see
 	//     PutDeliverySource (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliverySource.html)
@@ -229,9 +229,9 @@ type CloudWatchLogs interface {
 	// and a delivery destination  (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestination.html)
 	// . A delivery source represents an Amazon Web Services resource that sends logs
 	// to an logs delivery destination. The destination can be CloudWatch Logs, Amazon
-	// S3, or Kinesis Data Firehose. Only some Amazon Web Services services support
-	// being configured as a delivery source. These services are listed in Enable
-	// logging from Amazon Web Services services. (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html)
+	// S3, or Firehose. Only some Amazon Web Services services support being configured
+	// as a delivery source. These services are listed in Enable logging from Amazon
+	// Web Services services. (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html)
 	DescribeDeliveries(ctx context.Context, params *DescribeDeliveriesInput, optFns ...func(*Options)) (*DescribeDeliveriesOutput, error)
 	// Retrieves a list of the delivery destinations that have been created in the
 	// account.
@@ -332,9 +332,9 @@ type CloudWatchLogs interface {
 	// and a delivery destination  (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestination.html)
 	// . A delivery source represents an Amazon Web Services resource that sends logs
 	// to an logs delivery destination. The destination can be CloudWatch Logs, Amazon
-	// S3, or Kinesis Data Firehose. Only some Amazon Web Services services support
-	// being configured as a delivery source. These services are listed in Enable
-	// logging from Amazon Web Services services. (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html)
+	// S3, or Firehose. Only some Amazon Web Services services support being configured
+	// as a delivery source. These services are listed in Enable logging from Amazon
+	// Web Services services. (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html)
 	// You need to specify the delivery id in this operation. You can find the IDs of
 	// the deliveries in your account with the DescribeDeliveries (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeDeliveries.html)
 	// operation.
@@ -447,18 +447,18 @@ type CloudWatchLogs interface {
 	// CloudWatch Logs to other Amazon Web Services services. Account-level
 	// subscription filter policies apply to both existing log groups and log groups
 	// that are created later in this account. Supported destinations are Kinesis Data
-	// Streams, Kinesis Data Firehose, and Lambda. When log events are sent to the
-	// receiving service, they are Base64 encoded and compressed with the GZIP format.
-	// The following destinations are supported for subscription filters:
+	// Streams, Firehose, and Lambda. When log events are sent to the receiving
+	// service, they are Base64 encoded and compressed with the GZIP format. The
+	// following destinations are supported for subscription filters:
 	//   - An Kinesis Data Streams data stream in the same account as the subscription
 	//     policy, for same-account delivery.
-	//   - An Kinesis Data Firehose data stream in the same account as the
-	//     subscription policy, for same-account delivery.
+	//   - An Firehose data stream in the same account as the subscription policy, for
+	//     same-account delivery.
 	//   - A Lambda function in the same account as the subscription policy, for
 	//     same-account delivery.
 	//   - A logical destination in a different account created with PutDestination (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDestination.html)
-	//     , for cross-account delivery. Kinesis Data Streams and Kinesis Data Firehose are
-	//     supported as logical destinations.
+	//     , for cross-account delivery. Kinesis Data Streams and Firehose are supported as
+	//     logical destinations.
 	//
 	// Each account can have one account-level subscription filter policy. If you are
 	// updating an existing filter, you must specify the correct name in PolicyName .
@@ -489,10 +489,9 @@ type CloudWatchLogs interface {
 	PutDataProtectionPolicy(ctx context.Context, params *PutDataProtectionPolicyInput, optFns ...func(*Options)) (*PutDataProtectionPolicyOutput, error)
 	// Creates or updates a logical delivery destination. A delivery destination is an
 	// Amazon Web Services resource that represents an Amazon Web Services service that
-	// logs can be sent to. CloudWatch Logs, Amazon S3, and Kinesis Data Firehose are
-	// supported as logs delivery destinations. To configure logs delivery between a
-	// supported Amazon Web Services service and a destination, you must do the
-	// following:
+	// logs can be sent to. CloudWatch Logs, Amazon S3, and Firehose are supported as
+	// logs delivery destinations. To configure logs delivery between a supported
+	// Amazon Web Services service and a destination, you must do the following:
 	//   - Create a delivery source, which is a logical object that represents the
 	//     resource that is actually sending the logs. For more information, see
 	//     PutDeliverySource (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliverySource.html)
@@ -545,10 +544,9 @@ type CloudWatchLogs interface {
 	PutDeliveryDestinationPolicy(ctx context.Context, params *PutDeliveryDestinationPolicyInput, optFns ...func(*Options)) (*PutDeliveryDestinationPolicyOutput, error)
 	// Creates or updates a logical delivery source. A delivery source represents an
 	// Amazon Web Services resource that sends logs to an logs delivery destination.
-	// The destination can be CloudWatch Logs, Amazon S3, or Kinesis Data Firehose. To
-	// configure logs delivery between a delivery destination and an Amazon Web
-	// Services service that is supported as a delivery source, you must do the
-	// following:
+	// The destination can be CloudWatch Logs, Amazon S3, or Firehose. To configure
+	// logs delivery between a delivery destination and an Amazon Web Services service
+	// that is supported as a delivery source, you must do the following:
 	//   - Use PutDeliverySource to create a delivery source, which is a logical object
 	//     that represents the resource that is actually sending the logs.
 	//   - Use PutDeliveryDestination to create a delivery destination, which is a
@@ -680,7 +678,7 @@ type CloudWatchLogs interface {
 	//     subscription filter, for same-account delivery.
 	//   - A logical destination created with PutDestination (https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDestination.html)
 	//     that belongs to a different account, for cross-account delivery. We currently
-	//     support Kinesis Data Streams and Kinesis Data Firehose as logical destinations.
+	//     support Kinesis Data Streams and Firehose as logical destinations.
 	//   - An Amazon Kinesis Data Firehose delivery stream that belongs to the same
 	//     account as the subscription filter, for same-account delivery.
 	//   - An Lambda function that belongs to the same account as the subscription

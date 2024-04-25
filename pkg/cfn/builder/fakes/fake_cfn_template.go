@@ -79,8 +79,8 @@ type Properties struct {
 	Name, Version      string
 	RoleArn            interface{}
 	ResourcesVpcConfig struct {
-		SecurityGroupIds      []interface{}
-		SubnetIds             []interface{}
+		SecurityGroupIDs      []interface{}
+		SubnetIDs             []interface{}
 		EndpointPublicAccess  bool
 		EndpointPrivateAccess bool
 		PublicAccessCidrs     []string

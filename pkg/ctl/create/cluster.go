@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/kris-nova/logger"
@@ -360,7 +361,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		postClusterCreationTasks.Append(preNodegroupAddons)
 	}
 
-	taskTree := stackManager.NewTasksToCreateCluster(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, cfg.AccessConfig.AccessEntries, makeAccessEntryCreator(cfg.Metadata.Name, stackManager), postClusterCreationTasks)
+	taskTree := stackManager.NewTasksToCreateCluster(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, cfg.AccessConfig, makeAccessEntryCreator(cfg.Metadata.Name, stackManager), postClusterCreationTasks)
 
 	logger.Info(taskTree.Describe())
 	if errs := taskTree.DoAllSync(); len(errs) > 0 {
@@ -426,18 +427,28 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			} else {
 				ngCtx, cancel := context.WithTimeout(ctx, cmd.ProviderConfig.WaitTimeout)
 				defer cancel()
+
+				// authorize self-managed nodes to join the cluster via aws-auth configmap
+				// only if EKS access entries are disabled
+				if cfg.AccessConfig.AuthenticationMode == ekstypes.AuthenticationModeConfigMap {
+					if err := eks.UpdateAuthConfigMap(cfg.NodeGroups, clientSet); err != nil {
+						return err
+					}
+				}
+
 				for _, ng := range cfg.NodeGroups {
-					// wait for nodes to join
 					if err := eks.WaitForNodes(ngCtx, clientSet, ng); err != nil {
 						return err
 					}
 				}
+				logger.Success("created %d nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 
 				for _, ng := range cfg.ManagedNodeGroups {
 					if err := eks.WaitForNodes(ngCtx, clientSet, ng); err != nil {
 						return err
 					}
 				}
+				logger.Success("created %d managed nodegroup(s) in cluster %q", len(cfg.ManagedNodeGroups), cfg.Metadata.Name)
 			}
 		}
 		if postNodegroupAddons != nil && postNodegroupAddons.Len() > 0 {

@@ -42,6 +42,39 @@ and then call `/etc/eks/bootstrap.sh`.
 
 For AL2, enabling either SSM or EFA will add `assets/install-ssm.al2.sh` or `assets/efa.al2.sh`.
 
+### AmazonLinux2023
+
+While AL2023 implements the `Bootstrapper` interface, the underlying userdata will be entirely different from other AMI families. Specifically, AL2023 introduces a new node initialization process nodeadm that uses a YAML configuration schema, dropping the use of `/etc/eks/bootstrap.sh` script. For self-managed nodes, and for EKS-managed nodes based on custom AMIs, eksctl will populate userdata in the fashion below:
+
+```
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=//
+
+--//
+Content-Type: application/node.eks.aws
+
+apiVersion: node.eks.aws/v1alpha1
+kind: NodeConfig
+spec:
+  cluster:
+    apiServerEndpoint: https://XXXX.us-west-2.eks.amazonaws.com
+    certificateAuthority: XXXX
+    cidr: 10.100.0.0/16
+    name: my-cluster
+  kubelet:
+    config:
+      clusterDNS:
+      - 10.100.0.10
+    flags:
+    - --node-labels=alpha.eksctl.io/cluster-name=my-cluster,alpha.eksctl.io/nodegroup-name=my-nodegroup
+    - --register-with-taints=special=true:NoSchedule (only for EKS-managed nodes)
+
+--//--
+
+```
+
+For EKS-managed nodes based on native AMIs, the userdata above is fulfilled automatically by the AWS SSM agent. 
+
 ## Troubleshooting
 
 ### Ubuntu

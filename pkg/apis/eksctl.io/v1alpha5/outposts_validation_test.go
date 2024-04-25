@@ -6,6 +6,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
@@ -22,10 +25,29 @@ var _ = Describe("Outposts validation", func() {
 		clusterConfig.Outpost = &api.Outpost{
 			ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 		}
+		api.SetClusterConfigDefaults(clusterConfig)
 		oe.updateDefaultConfig(clusterConfig)
 		err := api.ValidateClusterConfig(clusterConfig)
 		Expect(err).To(MatchError(ContainSubstring(oe.expectedErr)))
 	},
+		Entry("Authentication Mode - API", outpostsEntry{
+			updateDefaultConfig: func(c *api.ClusterConfig) {
+				c.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeApi
+			},
+			expectedErr: fmt.Sprintf("accessConfig.AuthenticationMode must be set to %s on Outposts", ekstypes.AuthenticationModeConfigMap),
+		}),
+		Entry("Authentication mode - API_AND_CONFIG_MAP", outpostsEntry{
+			updateDefaultConfig: func(c *api.ClusterConfig) {
+				c.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
+			},
+			expectedErr: fmt.Sprintf("accessConfig.AuthenticationMode must be set to %s on Outposts", ekstypes.AuthenticationModeConfigMap),
+		}),
+		Entry("BootstrapClusterCreatorAdminPermissions - false", outpostsEntry{
+			updateDefaultConfig: func(c *api.ClusterConfig) {
+				c.AccessConfig.BootstrapClusterCreatorAdminPermissions = aws.Bool(false)
+			},
+			expectedErr: "accessConfig.BootstrapClusterCreatorAdminPermissions can't be set to false on Outposts",
+		}),
 		Entry("Addons", outpostsEntry{
 			updateDefaultConfig: func(c *api.ClusterConfig) {
 				c.Addons = []*api.Addon{

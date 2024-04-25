@@ -2,6 +2,7 @@ package v1alpha5_test
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 
@@ -114,6 +115,20 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).To(HaveOccurred())
 		})
 
+		It("should reject docker runtime if AMI Family is AmazonLinux2023", func() {
+			cfg := api.NewClusterConfig()
+			cfg.Metadata.Version = api.Version1_23
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2023
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerD)
+			err := api.ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+			err = api.ValidateNodeGroup(0, ng0, cfg)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("only %s is supported for container runtime on %s nodes", api.ContainerRuntimeContainerD, api.NodeImageFamilyAmazonLinux2023))))
+		})
+
 		It("should reject docker runtime if version is 1.24 or greater", func() {
 			cfg := api.NewClusterConfig()
 			cfg.Metadata.Version = api.Version1_24
@@ -156,6 +171,14 @@ var _ = Describe("ClusterConfig validation", func() {
 			errMsg := fmt.Sprintf("overrideBootstrapCommand is required when using a custom AMI based on %s", ng0.AMIFamily)
 			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(MatchError(ContainSubstring(errMsg)))
 		})
+		It("should not require overrideBootstrapCommand if ami is set and type is AmazonLinux2023", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMI = "ami-1234"
+			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2023
+			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(Succeed())
+		})
 		It("should not require overrideBootstrapCommand if ami is set and type is Bottlerocket", func() {
 			cfg := api.NewClusterConfig()
 			ng0 := cfg.NewNodeGroup()
@@ -180,6 +203,24 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0.AMIFamily = api.NodeImageFamilyWindowsServer2019CoreContainer
 			ng0.OverrideBootstrapCommand = aws.String("echo 'yo'")
 			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(Succeed())
+		})
+		It("should throw an error if overrideBootstrapCommand is set and type is AmazonLinux2023", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMI = "ami-1234"
+			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2023
+			ng0.OverrideBootstrapCommand = aws.String("echo 'yo'")
+			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(MatchError(ContainSubstring(fmt.Sprintf("overrideBootstrapCommand is not supported for %s nodegroups", api.NodeImageFamilyAmazonLinux2023))))
+		})
+		It("should throw an error if overrideBootstrapCommand is set and type is Bottlerocket", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMI = "ami-1234"
+			ng0.AMIFamily = api.NodeImageFamilyBottlerocket
+			ng0.OverrideBootstrapCommand = aws.String("echo 'yo'")
+			Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(MatchError(ContainSubstring(fmt.Sprintf("overrideBootstrapCommand is not supported for %s nodegroups", api.NodeImageFamilyBottlerocket))))
 		})
 		It("should accept ami with a overrideBootstrapCommand set", func() {
 			cfg := api.NewClusterConfig()
@@ -2002,7 +2043,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("fails when the AMIFamily is not supported", func() {
 			ng.AMIFamily = "SomeTrash"
 			err := api.ValidateNodeGroup(0, ng, cfg)
-			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2204, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer, WindowsServer2022CoreContainer, WindowsServer2022FullContainer"))
+			Expect(err).To(MatchError(fmt.Sprintf("AMI Family SomeTrash is not supported - use one of: %s", strings.Join(api.SupportedAMIFamilies(), ", "))))
 		})
 
 		It("fails when the AmiFamily is not supported for managed nodes with custom AMI", func() {
@@ -2029,8 +2070,13 @@ var _ = Describe("ClusterConfig validation", func() {
 			mng.AMIFamily = api.NodeImageFamilyBottlerocket
 			mng.OverrideBootstrapCommand = nil
 			err = api.ValidateManagedNodeGroup(0, mng)
-			errorMsg := fmt.Sprintf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s, %s, %s and %s are supported", mng.AMIFamily, api.NodeImageFamilyAmazonLinux2, api.NodeImageFamilyUbuntu1804, api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu2204)
+			errorMsg := fmt.Sprintf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s are supported", mng.AMIFamily,
+				strings.Join(append(api.SupportedAmazonLinuxImages, api.SupportedUbuntuImages...), ", "))
 			Expect(err).To(MatchError(errorMsg))
+
+			mng.AMIFamily = api.NodeImageFamilyAmazonLinux2023
+			err = api.ValidateManagedNodeGroup(0, mng)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("fails when the AMIFamily is WindowsServer2004CoreContainer", func() {
@@ -2043,6 +2089,16 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng.AMIFamily = api.NodeImageFamilyWindowsServer20H2CoreContainer
 			err := api.ValidateNodeGroup(0, ng, cfg)
 			Expect(err).To(MatchError("AMI Family WindowsServer20H2CoreContainer is deprecated. For more information, head to the Amazon documentation on Windows AMIs (https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-windows-ami.html)"))
+		})
+	})
+
+	Describe("AmazonLinux2023 node groups", func() {
+		It("returns an error when setting maxPodsPerNode for managed nodegroups", func() {
+			ng := api.NewManagedNodeGroup()
+			ng.AMIFamily = api.NodeImageFamilyAmazonLinux2023
+			ng.MaxPodsPerNode = 5
+			err := api.ValidateManagedNodeGroup(0, ng)
+			Expect(err).To(MatchError(ContainSubstring("eksctl does not support configuring maxPodsPerNode EKS-managed nodes")))
 		})
 	})
 

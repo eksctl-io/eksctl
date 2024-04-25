@@ -33,12 +33,6 @@ type ManagedNodeGroupResourceSet struct {
 
 const ManagedNodeGroupResourceName = "ManagedNodeGroup"
 
-// Windows AMI types are not in sdk-v2 yet, so the constants here are temporary; will remove after sdk is updated
-const AMITypesWindows2019FullX8664 ekstypes.AMITypes = "WINDOWS_FULL_2019_x86_64"
-const AMITypesWindows2019CoreX8664 ekstypes.AMITypes = "WINDOWS_CORE_2019_x86_64"
-const AMITypesWindows2022FullX8664 ekstypes.AMITypes = "WINDOWS_FULL_2022_x86_64"
-const AMITypesWindows2022CoreX8664 ekstypes.AMITypes = "WINDOWS_CORE_2022_x86_64"
-
 // NewManagedNodeGroup creates a new ManagedNodeGroupResourceSet
 func NewManagedNodeGroup(ec2API awsapi.EC2, cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *ManagedNodeGroupResourceSet {
 	return &ManagedNodeGroupResourceSet{
@@ -274,6 +268,10 @@ func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes
 		ARM    ekstypes.AMITypes
 		ARMGPU ekstypes.AMITypes
 	}{
+		api.NodeImageFamilyAmazonLinux2023: {
+			X86x64: ekstypes.AMITypesAl2023X8664Standard,
+			ARM:    ekstypes.AMITypesAl2023Arm64Standard,
+		},
 		api.NodeImageFamilyAmazonLinux2: {
 			X86x64: ekstypes.AMITypesAl2X8664,
 			X86GPU: ekstypes.AMITypesAl2X8664Gpu,
@@ -285,18 +283,21 @@ func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes
 			ARM:    ekstypes.AMITypesBottlerocketArm64,
 			ARMGPU: ekstypes.AMITypesBottlerocketArm64Nvidia,
 		},
-		// Windows AMI Types are not in sdk-v2 yet, so the constant here is temporary; will remove after sdk is updated
 		api.NodeImageFamilyWindowsServer2019FullContainer: {
-			X86x64: AMITypesWindows2019FullX8664,
+			X86x64: ekstypes.AMITypesWindowsFull2019X8664,
+			X86GPU: ekstypes.AMITypesWindowsFull2019X8664,
 		},
 		api.NodeImageFamilyWindowsServer2019CoreContainer: {
-			X86x64: AMITypesWindows2019CoreX8664,
+			X86x64: ekstypes.AMITypesWindowsCore2019X8664,
+			X86GPU: ekstypes.AMITypesWindowsCore2019X8664,
 		},
 		api.NodeImageFamilyWindowsServer2022FullContainer: {
-			X86x64: AMITypesWindows2022FullX8664,
+			X86x64: ekstypes.AMITypesWindowsFull2022X8664,
+			X86GPU: ekstypes.AMITypesWindowsFull2022X8664,
 		},
 		api.NodeImageFamilyWindowsServer2022CoreContainer: {
-			X86x64: AMITypesWindows2022CoreX8664,
+			X86x64: ekstypes.AMITypesWindowsCore2022X8664,
+			X86GPU: ekstypes.AMITypesWindowsCore2022X8664,
 		},
 	}
 

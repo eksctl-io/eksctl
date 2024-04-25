@@ -56,10 +56,10 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 
 	if cfg.AccessConfig == nil {
 		cfg.AccessConfig = &AccessConfig{
-			AuthenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
+			AuthenticationMode: getDefaultAuthenticationMode(cfg.IsControlPlaneOnOutposts()),
 		}
 	} else if cfg.AccessConfig.AuthenticationMode == "" {
-		cfg.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
+		cfg.AccessConfig.AuthenticationMode = getDefaultAuthenticationMode(cfg.IsControlPlaneOnOutposts())
 	}
 
 	if cfg.PrivateCluster == nil {
@@ -244,22 +244,35 @@ func getDefaultVolumeType(nodeGroupOnOutposts bool) string {
 	return DefaultNodeVolumeType
 }
 
+func getDefaultAuthenticationMode(nodeGroupOnOutposts bool) ekstypes.AuthenticationMode {
+	if nodeGroupOnOutposts {
+		return ekstypes.AuthenticationModeConfigMap
+	}
+	return ekstypes.AuthenticationModeApiAndConfigMap
+}
+
 func setContainerRuntimeDefault(ng *NodeGroup, clusterVersion string) {
 	if ng.ContainerRuntime != nil {
 		return
 	}
 
-	// since clusterVersion is standardised beforehand, we can safely ignore the error
-	isDockershimDeprecated, _ := utils.IsMinVersion(DockershimDeprecationVersion, clusterVersion)
-
-	if isDockershimDeprecated {
+	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
 		ng.ContainerRuntime = aws.String(ContainerRuntimeContainerD)
-	} else {
-		ng.ContainerRuntime = aws.String(ContainerRuntimeDockerD)
-		if IsWindowsImage(ng.AMIFamily) {
-			ng.ContainerRuntime = aws.String(ContainerRuntimeDockerForWindows)
-		}
+		return
 	}
+
+	// since clusterVersion is standardised beforehand, we can safely ignore the error
+	if isDockershimDeprecated, _ := utils.IsMinVersion(DockershimDeprecationVersion, clusterVersion); isDockershimDeprecated {
+		ng.ContainerRuntime = aws.String(ContainerRuntimeContainerD)
+		return
+	}
+
+	if IsWindowsImage(ng.AMIFamily) {
+		ng.ContainerRuntime = aws.String(ContainerRuntimeDockerForWindows)
+		return
+	}
+
+	ng.ContainerRuntime = aws.String(ContainerRuntimeDockerD)
 }
 
 func setIAMDefaults(iamConfig *NodeGroupIAM) {
