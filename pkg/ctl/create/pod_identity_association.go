@@ -45,11 +45,6 @@ func doCreatePodIdentityAssociation(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	clientSet, err := ctl.NewStdClientSet(cfg)
-	if err != nil {
-		return err
-	}
-
 	isInstalled, err := podidentityassociation.IsPodIdentityAgentInstalled(ctx, ctl.AWSProvider.EKS(), cfg.Metadata.Name)
 	if err != nil {
 		return err
@@ -60,7 +55,7 @@ func doCreatePodIdentityAssociation(cmd *cmdutils.Cmd) error {
 		return api.ErrPodIdentityAgentNotInstalled(suggestion)
 	}
 
-	return podidentityassociation.NewCreator(cmd.ClusterConfig.Metadata.Name, ctl.NewStackManager(cfg), ctl.AWSProvider.EKS(), clientSet).
+	return podidentityassociation.NewCreator(cmd.ClusterConfig.Metadata.Name, ctl.NewStackManager(cfg), ctl.AWSProvider.EKS()).
 		CreatePodIdentityAssociations(ctx, cmd.ClusterConfig.IAM.PodIdentityAssociations)
 }
 

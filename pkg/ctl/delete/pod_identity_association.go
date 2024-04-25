@@ -59,11 +59,6 @@ func doDeletePodIdentityAssociation(cmd *cmdutils.Cmd, options cmdutils.PodIdent
 		return err
 	}
 
-	clientSet, err := ctl.NewStdClientSet(cfg)
-	if err != nil {
-		return err
-	}
-
 	if cmd.ClusterConfigFile == "" {
 		cmd.ClusterConfig.IAM.PodIdentityAssociations = []api.PodIdentityAssociation{
 			{
@@ -77,7 +72,6 @@ func doDeletePodIdentityAssociation(cmd *cmdutils.Cmd, options cmdutils.PodIdent
 		ClusterName:  cfg.Metadata.Name,
 		StackDeleter: ctl.NewStackManager(cfg),
 		APIDeleter:   ctl.AWSProvider.EKS(),
-		ClientSet:    clientSet,
 	}
 
 	return deleter.Delete(ctx, podidentityassociation.ToIdentifiers(cfg.IAM.PodIdentityAssociations))

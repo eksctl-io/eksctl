@@ -5,18 +5,15 @@ import (
 	"fmt"
 	"strings"
 
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	kubeclient "k8s.io/client-go/kubernetes"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
@@ -52,8 +49,6 @@ type Deleter struct {
 	StackDeleter StackDeleter
 	// APIDeleter deletes pod identity associations using the EKS API.
 	APIDeleter APIDeleter
-	// ClientSet is used to delete K8s service accounts.
-	ClientSet kubeclient.Interface
 }
 
 // Identifier represents a pod identity association.
@@ -76,12 +71,11 @@ func (i Identifier) toString(delimiter string) string {
 	return i.Namespace + delimiter + i.ServiceAccountName
 }
 
-func NewDeleter(clusterName string, stackDeleter StackDeleter, apiDeleter APIDeleter, clientSet kubeclient.Interface) *Deleter {
+func NewDeleter(clusterName string, stackDeleter StackDeleter, apiDeleter APIDeleter) *Deleter {
 	return &Deleter{
 		ClusterName:  clusterName,
 		StackDeleter: stackDeleter,
 		APIDeleter:   apiDeleter,
-		ClientSet:    clientSet,
 	}
 }
 
@@ -117,24 +111,7 @@ func (d *Deleter) DeleteTasks(ctx context.Context, podIDs []Identifier) (*tasks.
 	}
 
 	for _, p := range podIDs {
-		piaDeletionTasks := &tasks.TaskTree{
-			Parallel:  false,
-			IsSubTask: true,
-		}
-		piaDeletionTasks.Append(d.makeDeleteTask(ctx, p, roleStackNames))
-		piaDeletionTasks.Append(&tasks.GenericTask{
-			Description: fmt.Sprintf("delete service account %q", p.IDString()),
-			Doer: func() error {
-				if err := kubernetes.MaybeDeleteServiceAccount(d.ClientSet, v1.ObjectMeta{
-					Name:      p.ServiceAccountName,
-					Namespace: p.Namespace,
-				}); err != nil {
-					return fmt.Errorf("failed to delete service account %q: %w", p.IDString(), err)
-				}
-				return nil
-			},
-		})
-		taskTree.Append(piaDeletionTasks)
+		taskTree.Append(d.makeDeleteTask(ctx, p, roleStackNames))
 	}
 	return taskTree, nil
 }

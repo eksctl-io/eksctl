@@ -177,7 +177,7 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 	}
 
 	// add tasks to create pod identity associations
-	createAssociationsTasks := NewCreator(m.clusterName, nil, m.eksAPI, m.clientSet).CreateTasks(ctx, toBeCreated)
+	createAssociationsTasks := NewCreator(m.clusterName, nil, m.eksAPI).CreateTasks(ctx, toBeCreated)
 	if createAssociationsTasks.Len() > 0 {
 		createAssociationsTasks.IsSubTask = true
 		taskTree.Append(createAssociationsTasks)

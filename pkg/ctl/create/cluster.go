@@ -462,15 +462,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		}
 
 		if len(cfg.IAM.PodIdentityAssociations) > 0 {
-			clientSet, err := makeClientSet()
-			if err != nil {
-				return fmt.Errorf("creating pod identity associations: %w", err)
-			}
 			if err := podidentityassociation.NewCreator(
 				cfg.Metadata.Name,
 				stackManager,
 				ctl.AWSProvider.EKS(),
-				clientSet,
 			).CreatePodIdentityAssociations(ctx, cfg.IAM.PodIdentityAssociations); err != nil {
 				return err
 			}

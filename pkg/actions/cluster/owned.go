@@ -120,15 +120,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 	}
 	newTasksToDeleteAddonIAM := addon.NewRemover(c.stackManager).DeleteAddonIAMTasks
 	newTasksToDeletePodIdentityRoles := func() (*tasks.TaskTree, error) {
-		clientSet, err = c.newClientSet()
-		if err != nil {
-			if force {
-				logger.Warning("error occurred while deleting IAM Role stacks for pod identity associations: %v; force=true so proceeding with cluster deletion", err)
-				return &tasks.TaskTree{}, nil
-			}
-			return nil, err
-		}
-		return podidentityassociation.NewDeleter(c.cfg.Metadata.Name, c.stackManager, c.ctl.AWSProvider.EKS(), clientSet).
+		return podidentityassociation.NewDeleter(c.cfg.Metadata.Name, c.stackManager, c.ctl.AWSProvider.EKS()).
 			DeleteTasks(ctx, []podidentityassociation.Identifier{})
 	}
 
