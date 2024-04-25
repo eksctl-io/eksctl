@@ -126,6 +126,7 @@ var _ = Describe("Migrate Access Entry", func() {
 
 		Entry("[Validation Error] current authentication mode is API", migrateToAccessEntryEntry{
 			curAuthMode: ekstypes.AuthenticationModeApi,
+			tgAuthMode:  ekstypes.AuthenticationModeApi,
 			validateCustomLoggerOutput: func(output string) {
 				Expect(output).To(ContainSubstring(fmt.Sprintf("cluster authentication mode is already %s; there is no need to migrate to access entries", ekstypes.AuthenticationModeApi)))
 			},
@@ -133,6 +134,7 @@ var _ = Describe("Migrate Access Entry", func() {
 
 		Entry("[API Error] getting access entries fails", migrateToAccessEntryEntry{
 			curAuthMode: ekstypes.AuthenticationModeApiAndConfigMap,
+			tgAuthMode:  ekstypes.AuthenticationModeApi,
 			mockAccessEntries: func(getter *fakes.FakeGetterInterface) {
 				getter.GetReturns(nil, genericErr)
 			},

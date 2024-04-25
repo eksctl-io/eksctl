@@ -64,7 +64,7 @@ func NewMigrator(
 }
 
 func (m *Migrator) MigrateToAccessEntry(ctx context.Context, options MigrationOptions) error {
-	if m.tgAuthMode == ekstypes.AuthenticationModeConfigMap {
+	if m.tgAuthMode != ekstypes.AuthenticationModeApi && m.tgAuthMode != ekstypes.AuthenticationModeApiAndConfigMap {
 		return fmt.Errorf("target authentication mode is invalid, must be either %s or %s", ekstypes.AuthenticationModeApi, ekstypes.AuthenticationModeApiAndConfigMap)
 	}
 	if m.curAuthMode == ekstypes.AuthenticationModeApi {
