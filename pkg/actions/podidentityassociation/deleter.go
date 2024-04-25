@@ -116,20 +116,21 @@ func (d *Deleter) DeleteTasks(ctx context.Context, podIDs []Identifier) (*tasks.
 		return taskTree, nil
 	}
 
-	for _, p := range podIDs {
+	for _, podID := range podIDs {
+		podID := podID
 		piaDeletionTasks := &tasks.TaskTree{
 			Parallel:  false,
 			IsSubTask: true,
 		}
-		piaDeletionTasks.Append(d.makeDeleteTask(ctx, p, roleStackNames))
+		piaDeletionTasks.Append(d.makeDeleteTask(ctx, podID, roleStackNames))
 		piaDeletionTasks.Append(&tasks.GenericTask{
-			Description: fmt.Sprintf("delete service account %q", p.IDString()),
+			Description: fmt.Sprintf("delete service account %q", podID.IDString()),
 			Doer: func() error {
 				if err := kubernetes.MaybeDeleteServiceAccount(d.ClientSet, v1.ObjectMeta{
-					Name:      p.ServiceAccountName,
-					Namespace: p.Namespace,
+					Name:      podID.ServiceAccountName,
+					Namespace: podID.Namespace,
 				}); err != nil {
-					return fmt.Errorf("failed to delete service account %q: %w", p.IDString(), err)
+					return fmt.Errorf("failed to delete service account %q: %w", podID.IDString(), err)
 				}
 				return nil
 			},
