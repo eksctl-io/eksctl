@@ -32,7 +32,7 @@ template: |
 
   The eksctl maintainers would like to sincerely thank $CONTRIBUTORS.
 
-include-pre-releases: true
+prerelease-identifier: 'rc'
 exclude-labels:
   - 'skip-release-notes'
 exclude-contributors:
