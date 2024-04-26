@@ -120,6 +120,9 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 	}
 	newTasksToDeleteAddonIAM := addon.NewRemover(c.stackManager).DeleteAddonIAMTasks
 	newTasksToDeletePodIdentityRoles := func() (*tasks.TaskTree, error) {
+		if !clusterOperable {
+			return &tasks.TaskTree{}, nil
+		}
 		clientSet, err = c.newClientSet()
 		if err != nil {
 			if force {
