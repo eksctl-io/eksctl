@@ -21,7 +21,8 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 	var preAddons []*api.Addon
 	var postAddons []*api.Addon
 	for _, addon := range cfg.Addons {
-		if strings.EqualFold(addon.Name, api.VPCCNIAddon) {
+		if strings.EqualFold(addon.Name, api.VPCCNIAddon) ||
+			strings.EqualFold(addon.Name, api.PodIdentityAgentAddon) {
 			preAddons = append(preAddons, addon)
 		} else {
 			postAddons = append(postAddons, addon)
@@ -90,7 +91,28 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		return err
 	}
 
+	// always install EKS Pod Identity Agent Addon first, if present,
+	// as other addons might require IAM permissions
 	for _, a := range t.addons {
+		if a.CanonicalName() != api.PodIdentityAgentAddon {
+			continue
+		}
+		if t.forceAll {
+			a.Force = true
+		}
+		err := addonManager.Create(t.ctx, a, t.timeout)
+		if err != nil {
+			go func() {
+				errorCh <- err
+			}()
+			return err
+		}
+	}
+
+	for _, a := range t.addons {
+		if a.CanonicalName() == api.PodIdentityAgentAddon {
+			continue
+		}
 		if t.forceAll {
 			a.Force = true
 		}

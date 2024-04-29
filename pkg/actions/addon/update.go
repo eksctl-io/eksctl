@@ -47,7 +47,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, waitTimeout time
 
 		updateAddonInput.AddonVersion = &summary.Version
 	} else {
-		version, err := a.getLatestMatchingVersion(ctx, addon)
+		version, _, err := a.getLatestMatchingVersion(ctx, addon)
 		if err != nil {
 			return fmt.Errorf("failed to fetch addon version: %w", err)
 		}
@@ -103,7 +103,7 @@ func (a *Manager) updateWithNewPolicies(ctx context.Context, addon *api.Addon) (
 	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
 	if stack == nil {
-		return a.createRole(ctx, addon, namespace, serviceAccount)
+		return a.createRoleForIRSA(ctx, addon, namespace, serviceAccount)
 	}
 
 	createNewTemplate, err := a.createNewTemplate(addon, namespace, serviceAccount)

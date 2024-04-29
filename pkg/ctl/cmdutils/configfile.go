@@ -303,7 +303,22 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			}
 		}
 
-		if clusterConfig.IAM != nil && len(clusterConfig.IAM.PodIdentityAssociations) > 0 {
+		shallCreatePodIdentityAssociations := func(cfg *api.ClusterConfig) bool {
+			if cfg.IAM != nil && len(cfg.IAM.PodIdentityAssociations) > 0 {
+				return true
+			}
+			for _, addon := range clusterConfig.Addons {
+				if cfg.IAM != nil && cfg.IAM.AutoCreatePodIdentityAssociations {
+					return true
+				}
+				if len(addon.PodIdentityAssociations) > 0 {
+					return true
+				}
+			}
+			return false
+		}
+
+		if shallCreatePodIdentityAssociations(clusterConfig) {
 			addonNames := []string{}
 			for _, addon := range clusterConfig.Addons {
 				addonNames = append(addonNames, addon.Name)
