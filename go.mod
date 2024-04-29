@@ -15,7 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.36.5
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.42.4
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.35.5
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.30.0
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.35.1
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.32.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.141.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.36.0
@@ -145,7 +145,7 @@ require (
 	github.com/ashanbrown/makezero v1.1.1 // indirect
 	github.com/atc0005/go-teams-notify/v2 v2.6.1 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.5.4 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.14.10 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.5 // indirect
