@@ -16,14 +16,21 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 )
 
+type PodIdentityAssociationSummary struct {
+	Namespace      string
+	ServiceAccount string
+	RoleARN        string
+}
+
 type Summary struct {
-	Name                string
-	Version             string
-	NewerVersion        string
-	IAMRole             string
-	Status              string
-	ConfigurationValues string
-	Issues              []Issue
+	Name                    string
+	Version                 string
+	NewerVersion            string
+	IAMRole                 string
+	Status                  string
+	ConfigurationValues     string
+	Issues                  []Issue
+	PodIdentityAssociations []PodIdentityAssociationSummary
 }
 
 type Issue struct {
@@ -32,7 +39,7 @@ type Issue struct {
 	ResourceIDs []string
 }
 
-func (a *Manager) Get(ctx context.Context, addon *api.Addon) (Summary, error) {
+func (a *Manager) Get(ctx context.Context, addon *api.Addon, includePodIdentityAssociations bool) (Summary, error) {
 	logger.Debug("addon: %v", addon)
 	output, err := a.eksAPI.DescribeAddon(ctx, &eks.DescribeAddonInput{
 		ClusterName: &a.clusterConfig.Metadata.Name,
@@ -76,19 +83,38 @@ func (a *Manager) Get(ctx context.Context, addon *api.Addon) (Summary, error) {
 	if output.Addon.ConfigurationValues != nil {
 		configurationValues = *output.Addon.ConfigurationValues
 	}
+	var podIdentityAssociations []PodIdentityAssociationSummary
+	if includePodIdentityAssociations {
+		for _, associationID := range output.Addon.PodIdentityAssociations {
+			output, err := a.eksAPI.DescribePodIdentityAssociation(ctx, &eks.DescribePodIdentityAssociationInput{
+				ClusterName:   aws.String(a.clusterConfig.Metadata.Name),
+				AssociationId: aws.String(associationID),
+			})
+			if err != nil {
+				return Summary{}, fmt.Errorf("describe pod identity association %q: %w", associationID, err)
+			}
+			association := output.Association
+			podIdentityAssociations = append(podIdentityAssociations, PodIdentityAssociationSummary{
+				Namespace:      *association.Namespace,
+				ServiceAccount: *association.ServiceAccount,
+				RoleARN:        *association.RoleArn,
+			})
+		}
+	}
 
 	return Summary{
-		Name:                *output.Addon.AddonName,
-		Version:             *output.Addon.AddonVersion,
-		IAMRole:             serviceAccountRoleARN,
-		Status:              string(output.Addon.Status),
-		NewerVersion:        newerVersion,
-		ConfigurationValues: configurationValues,
-		Issues:              issues,
+		Name:                    *output.Addon.AddonName,
+		Version:                 *output.Addon.AddonVersion,
+		IAMRole:                 serviceAccountRoleARN,
+		Status:                  string(output.Addon.Status),
+		NewerVersion:            newerVersion,
+		ConfigurationValues:     configurationValues,
+		PodIdentityAssociations: podIdentityAssociations,
+		Issues:                  issues,
 	}, nil
 }
 
-func (a *Manager) GetAll(ctx context.Context) ([]Summary, error) {
+func (a *Manager) GetAll(ctx context.Context, includePodIdentityAssociations bool) ([]Summary, error) {
 	logger.Info("getting all addons")
 	output, err := a.eksAPI.ListAddons(ctx, &eks.ListAddonsInput{
 		ClusterName: &a.clusterConfig.Metadata.Name,
@@ -99,7 +125,7 @@ func (a *Manager) GetAll(ctx context.Context) ([]Summary, error) {
 
 	var summaries []Summary
 	for _, addon := range output.Addons {
-		summary, err := a.Get(ctx, &api.Addon{Name: addon})
+		summary, err := a.Get(ctx, &api.Addon{Name: addon}, includePodIdentityAssociations)
 		if err != nil {
 			return nil, err
 		}

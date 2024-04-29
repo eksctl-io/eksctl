@@ -84,12 +84,12 @@ func getAddon(cmd *cmdutils.Cmd, a *api.Addon, params *getCmdParams) error {
 
 	var summaries []addon.Summary
 	if a.Name == "" {
-		summaries, err = addonManager.GetAll(ctx)
+		summaries, err = addonManager.GetAll(ctx, true)
 		if err != nil {
 			return err
 		}
 	} else {
-		summary, err := addonManager.Get(ctx, a)
+		summary, err := addonManager.Get(ctx, a, true)
 		if err != nil {
 			return err
 		}
@@ -105,8 +105,13 @@ func getAddon(cmd *cmdutils.Cmd, a *api.Addon, params *getCmdParams) error {
 		return err
 	}
 
-	if params.output == printers.TableType {
-		addAddonSummaryTableColumns(printer.(*printers.TablePrinter))
+	if tablePrinter, ok := printer.(*printers.TablePrinter); ok {
+		for _, summary := range summaries {
+			if len(summary.PodIdentityAssociations) > 0 {
+				logger.Info("to view pod identity associations for an addon, rerun the command with --output=json or --output=yaml")
+			}
+		}
+		addAddonSummaryTableColumns(tablePrinter)
 	}
 
 	if err := printer.PrintObjWithKind("addons", summaries, cmd.CobraCommand.OutOrStdout()); err != nil {
@@ -144,5 +149,8 @@ func addAddonSummaryTableColumns(printer *printers.TablePrinter) {
 	})
 	printer.AddColumn("CONFIGURATION VALUES", func(s addon.Summary) string {
 		return s.ConfigurationValues
+	})
+	printer.AddColumn("POD IDENTITY ASSOCIATIONS", func(s addon.Summary) int {
+		return len(s.PodIdentityAssociations)
 	})
 }

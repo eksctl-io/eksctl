@@ -41,7 +41,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 
 	logger.Debug("resolve conflicts set to %s", updateAddonInput.ResolveConflicts)
 
-	summary, err := a.Get(ctx, addon)
+	summary, err := a.Get(ctx, addon, false)
 	if err != nil {
 		return err
 	}

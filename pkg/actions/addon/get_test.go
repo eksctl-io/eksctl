@@ -85,7 +85,7 @@ var _ = Describe("Get", func() {
 
 			summary, err := manager.Get(context.Background(), &api.Addon{
 				Name: "my-addon",
-			})
+			}, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(summary).To(Equal(addon.Summary{
 				Name:         "my-addon",
@@ -116,7 +116,7 @@ var _ = Describe("Get", func() {
 
 				_, err := manager.Get(context.Background(), &api.Addon{
 					Name: "my-addon",
-				})
+				}, false)
 				Expect(err).To(MatchError(`failed to get addon "my-addon": foo`))
 				Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
 				Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
@@ -175,7 +175,7 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			summary, err := manager.GetAll(context.Background())
+			summary, err := manager.GetAll(context.Background(), false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(summary).To(Equal([]addon.Summary{
 				{
@@ -209,7 +209,7 @@ var _ = Describe("Get", func() {
 					describeAddonInput = args[1].(*awseks.DescribeAddonInput)
 				}).Return(nil, fmt.Errorf("foo"))
 
-				_, err := manager.GetAll(context.Background())
+				_, err := manager.GetAll(context.Background(), false)
 				Expect(err).To(MatchError(`failed to get addon "my-addon": foo`))
 				Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
 				Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
@@ -228,7 +228,7 @@ var _ = Describe("Get", func() {
 					Addons: []string{"my-addon"},
 				}, fmt.Errorf("foo"))
 
-				_, err := manager.GetAll(context.Background())
+				_, err := manager.GetAll(context.Background(), false)
 				Expect(err).To(MatchError(`failed to list addons: foo`))
 				Expect(*listAddonsInput.ClusterName).To(Equal("my-cluster"))
 			})
