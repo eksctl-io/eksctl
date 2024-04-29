@@ -124,6 +124,37 @@ var _ = Describe("Pod Identity Update", func() {
 			expectedErr: `error updating pod identity association "default/default": pod identity association does not exist: NotFoundException: not found`,
 		}),
 
+		Entry("attempting to update a pod identity associated with an addon ", updateEntry{
+			podIdentityAssociations: []api.PodIdentityAssociation{
+				{
+					Namespace:          "kube-system",
+					ServiceAccountName: "vpc-cni",
+				},
+			},
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				podID := podidentityassociation.Identifier{
+					Namespace:          "kube-system",
+					ServiceAccountName: "vpc-cni",
+				}
+				mockListStackNames(stackManager, nil)
+				mockListPodIdentityAssociations(eksAPI, podID, []ekstypes.PodIdentityAssociationSummary{
+					{
+						AssociationId: aws.String("a-1"),
+						OwnerArn:      aws.String("vpc-cni"),
+					},
+				}, nil)
+			},
+
+			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.DescribeStackCallCount()).To(Equal(0))
+				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(0))
+				eksAPI.AssertExpectations(GinkgoT())
+			},
+			expectedErr: "error updating pod identity association \"kube-system/vpc-cni\": cannot update podidentityassociation kube-system/vpc-cni as it is in use by addon vpc-cni; " +
+				"please use `eksctl update addon` instead",
+		}),
+
 		Entry("role ARN specified when the IAM resources were created by eksctl", updateEntry{
 			podIdentityAssociations: []api.PodIdentityAssociation{
 				{

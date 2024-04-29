@@ -136,9 +136,14 @@ func (u *Updater) makeUpdate(ctx context.Context, pia api.PodIdentityAssociation
 	case 0:
 		return nil, errors.New(notFoundErrMsg)
 	case 1:
+		association := output.Associations[0]
+		if association.OwnerArn != nil {
+			return nil, fmt.Errorf("cannot update podidentityassociation %s as it is in use by addon %s; "+
+				"please use `eksctl update addon` instead", pia.NameString(), *association.OwnerArn)
+		}
 		describeOutput, err := u.APIUpdater.DescribePodIdentityAssociation(ctx, &eks.DescribePodIdentityAssociationInput{
 			ClusterName:   aws.String(u.ClusterName),
-			AssociationId: output.Associations[0].AssociationId,
+			AssociationId: association.AssociationId,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("error describing pod identity association: %w", err)
