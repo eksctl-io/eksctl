@@ -21,39 +21,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-type createIAMRoleTask struct {
-	ctx                    context.Context
-	info                   string
-	clusterName            string
-	podIdentityAssociation *api.PodIdentityAssociation
-	stackCreator           StackCreator
-}
-
-func (t *createIAMRoleTask) Describe() string {
-	return t.info
-}
-
-func (t *createIAMRoleTask) Do(errorCh chan error) error {
-	rs := builder.NewIAMRoleResourceSetForPodIdentity(t.podIdentityAssociation)
-	if err := rs.AddAllResources(); err != nil {
-		return err
-	}
-	if t.podIdentityAssociation.Tags == nil {
-		t.podIdentityAssociation.Tags = make(map[string]string)
-	}
-	t.podIdentityAssociation.Tags[api.PodIdentityAssociationNameTag] = Identifier{
-		Namespace:          t.podIdentityAssociation.Namespace,
-		ServiceAccountName: t.podIdentityAssociation.ServiceAccountName,
-	}.IDString()
-
-	stackName := MakeStackName(t.clusterName, t.podIdentityAssociation.Namespace, t.podIdentityAssociation.ServiceAccountName)
-	if err := t.stackCreator.CreateStack(t.ctx, stackName, rs, t.podIdentityAssociation.Tags, nil, errorCh); err != nil {
-		return fmt.Errorf("creating IAM role for pod identity association for service account %s in namespace %s: %w",
-			t.podIdentityAssociation.ServiceAccountName, t.podIdentityAssociation.Namespace, err)
-	}
-	return nil
-}
-
 type createPodIdentityAssociationTask struct {
 	ctx                    context.Context
 	info                   string

@@ -165,8 +165,8 @@ func (c *StackCollection) DoCreateStackRequest(ctx context.Context, i *Stack, te
 
 // CreateStack with given name, stack builder instance and parameters;
 // any errors will be written to errs channel, when nil is written,
-// assume completion, do not expect more then one error value on the
-// channel, it's closed immediately after it is written to
+// assume completion, do not expect more than one error value on the
+// channel, it's closed immediately after it is written to.
 func (c *StackCollection) CreateStack(ctx context.Context, stackName string, resourceSet builder.ResourceSetReader, tags, parameters map[string]string, errs chan error) error {
 	stack, err := c.createStackRequest(ctx, stackName, resourceSet, tags, parameters)
 	if err != nil {

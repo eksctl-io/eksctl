@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	"github.com/weaveworks/eksctl/pkg/actions/podidentityassociation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -91,11 +92,24 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 		return err
 	}
 
+	piaUpdater := &addon.PodIdentityAssociationUpdater{
+		ClusterName: cmd.ClusterConfig.Metadata.Name,
+		IAMRoleCreator: &podidentityassociation.IAMRoleCreator{
+			ClusterName:  cmd.ClusterConfig.Metadata.Name,
+			StackCreator: stackManager,
+		},
+		IAMRoleUpdater: &podidentityassociation.IAMRoleUpdater{
+			StackUpdater: stackManager,
+		},
+		EKSPodIdentityDescriber: clusterProvider.AWSProvider.EKS(),
+		PodIdentityStackLister:  stackManager,
+	}
+
 	for _, a := range cmd.ClusterConfig.Addons {
 		if force { //force is specified at cmdline level
 			a.Force = true
 		}
-		if err := addonManager.Update(ctx, a, cmd.ProviderConfig.WaitTimeout); err != nil {
+		if err := addonManager.Update(ctx, a, piaUpdater, cmd.ProviderConfig.WaitTimeout); err != nil {
 			return err
 		}
 	}

@@ -296,7 +296,7 @@ func (a *Manager) patchAWSNodeDaemonSet(ctx context.Context) error {
 }
 
 func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, string) {
-	// API isn't case sensitive
+	// API isn't case-sensitive.
 	switch addon.CanonicalName() {
 	case api.VPCCNIAddon:
 		logger.Debug("found known service account location %s/%s", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)

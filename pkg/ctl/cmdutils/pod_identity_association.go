@@ -108,6 +108,8 @@ func validatePodIdentityAssociation(l *commonClusterConfigLoader, options PodIde
 	return nil
 }
 
+// TODO: validate addon.podIdentityAssociations.
+// TODO: Disallow setting IRSA and PIA fields simultaneously.
 func validatePodIdentityAssociationsForConfig(clusterConfig *api.ClusterConfig, isCreate bool) error {
 	if clusterConfig.IAM == nil || len(clusterConfig.IAM.PodIdentityAssociations) == 0 {
 		return errors.New("no iam.podIdentityAssociations specified in the config file")
@@ -133,14 +135,17 @@ func validatePodIdentityAssociationsForConfig(clusterConfig *api.ClusterConfig, 
 			return fmt.Errorf("at least one of the following must be specified: %[1]s.roleARN, %[1]s.permissionPolicy, %[1]s.permissionPolicyARNs, %[1]s.wellKnownPolicies", path)
 		}
 		if pia.RoleARN != "" {
+			makeIncompatibleFieldErr := func(fieldName string) error {
+				return fmt.Errorf("%[1]s.%s cannot be specified when %[1]s.roleARN is set", path, fieldName)
+			}
 			if len(pia.PermissionPolicy) > 0 {
-				return fmt.Errorf("%[1]s.permissionPolicy cannot be specified when %[1]s.roleARN is set", path)
+				return makeIncompatibleFieldErr("permissionPolicy")
 			}
 			if len(pia.PermissionPolicyARNs) > 0 {
-				return fmt.Errorf("%[1]s.permissionPolicyARNs cannot be specified when %[1]s.roleARN is set", path)
+				return makeIncompatibleFieldErr("permissionPolicyARNs")
 			}
 			if pia.WellKnownPolicies.HasPolicy() {
-				return fmt.Errorf("%[1]s.wellKnownPolicies cannot be specified when %[1]s.roleARN is set", path)
+				return makeIncompatibleFieldErr("wellKnownPolicies")
 			}
 		}
 	}

@@ -52,12 +52,20 @@ func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api
 			IsSubTask: true,
 		}
 		if pia.RoleARN == "" {
-			piaCreationTasks.Append(&createIAMRoleTask{
-				ctx:                    ctx,
-				info:                   fmt.Sprintf("create IAM role for pod identity association for service account %q", pia.NameString()),
-				clusterName:            c.clusterName,
-				podIdentityAssociation: &pia,
-				stackCreator:           c.stackCreator,
+			piaCreationTasks.Append(&tasks.GenericTask{
+				Description: fmt.Sprintf("create IAM role for pod identity association for service account %q", pia.NameString()),
+				Doer: func() error {
+					roleCreator := &IAMRoleCreator{
+						ClusterName:  c.clusterName,
+						StackCreator: c.stackCreator,
+					}
+					roleARN, err := roleCreator.Create(ctx, &pia)
+					if err != nil {
+						return err
+					}
+					pia.RoleARN = roleARN
+					return nil
+				},
 			})
 		}
 		if pia.CreateServiceAccount {

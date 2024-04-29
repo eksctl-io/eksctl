@@ -15,7 +15,13 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
-func (a *Manager) Update(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
+// PodIdentityIAMUpdater creates or updates IAM resources for pod identity associations.
+type PodIdentityIAMUpdater interface {
+	// UpdateRole creates or updates IAM resources for podIdentityAssociations.
+	UpdateRole(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation) ([]ekstypes.AddonPodIdentityAssociations, error)
+}
+
+func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUpdater PodIdentityIAMUpdater, waitTimeout time.Duration) error {
 	logger.Debug("addon: %v", addon)
 
 	var configurationValues *string
@@ -59,18 +65,24 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, waitTimeout time
 		updateAddonInput.AddonVersion = &version
 	}
 
-	//check if we have been provided a different set of policies/role
-	if addon.ServiceAccountRoleARN != "" {
-		updateAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
-	} else if hasPoliciesSet(addon) {
-		serviceAccountRoleARN, err := a.updateWithNewPolicies(ctx, addon)
+	if len(addon.PodIdentityAssociations) > 0 {
+		// TODO
+		addonPodIdentityAssociations, err := podIdentityIAMUpdater.UpdateRole(ctx, addon.PodIdentityAssociations)
 		if err != nil {
-			return err
+			return fmt.Errorf("updating pod identity associations: %w", err)
 		}
-		updateAddonInput.ServiceAccountRoleArn = &serviceAccountRoleARN
+		updateAddonInput.PodIdentityAssociations = addonPodIdentityAssociations
 	} else {
-		//preserve current role
-		if summary.IAMRole != "" {
+		// check if we have been provided a different set of policies/role
+		if addon.ServiceAccountRoleARN != "" {
+			updateAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
+		} else if hasPoliciesSet(addon) {
+			serviceAccountRoleARN, err := a.updateWithNewPolicies(ctx, addon)
+			if err != nil {
+				return err
+			}
+			updateAddonInput.ServiceAccountRoleArn = &serviceAccountRoleARN
+		} else if summary.IAMRole != "" { // Preserve current role.
 			updateAddonInput.ServiceAccountRoleArn = &summary.IAMRole
 		}
 	}

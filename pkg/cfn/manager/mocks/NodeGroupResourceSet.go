@@ -19,6 +19,10 @@ type NodeGroupResourceSet struct {
 func (_m *NodeGroupResourceSet) AddAllResources(ctx context.Context) error {
 	ret := _m.Called(ctx)
 
+	if len(ret) == 0 {
+		panic("no return value specified for AddAllResources")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
 		r0 = rf(ctx)
@@ -33,6 +37,10 @@ func (_m *NodeGroupResourceSet) AddAllResources(ctx context.Context) error {
 func (_m *NodeGroupResourceSet) GetAllOutputs(_a0 types.Stack) error {
 	ret := _m.Called(_a0)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllOutputs")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(types.Stack) error); ok {
 		r0 = rf(_a0)
@@ -46,6 +54,10 @@ func (_m *NodeGroupResourceSet) GetAllOutputs(_a0 types.Stack) error {
 // RenderJSON provides a mock function with given fields:
 func (_m *NodeGroupResourceSet) RenderJSON() ([]byte, error) {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for RenderJSON")
+	}
 
 	var r0 []byte
 	var r1 error
@@ -73,6 +85,10 @@ func (_m *NodeGroupResourceSet) RenderJSON() ([]byte, error) {
 func (_m *NodeGroupResourceSet) WithIAM() bool {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for WithIAM")
+	}
+
 	var r0 bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
 		r0 = rf()
@@ -86,6 +102,10 @@ func (_m *NodeGroupResourceSet) WithIAM() bool {
 // WithNamedIAM provides a mock function with given fields:
 func (_m *NodeGroupResourceSet) WithNamedIAM() bool {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for WithNamedIAM")
+	}
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func() bool); ok {

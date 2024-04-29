@@ -18,6 +18,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/addon/fakes"
+	"github.com/weaveworks/eksctl/pkg/actions/addon/mocks"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -105,6 +106,7 @@ var _ = Describe("Update", func() {
 	})
 
 	When("EKS returns an UpdateAddonOutput", func() {
+		var podIdentityIAMUpdater mocks.PodIdentityIAMUpdater
 		BeforeEach(func() {
 			mockProvider.MockEKS().On("UpdateAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 				Expect(args).To(HaveLen(2))
@@ -119,7 +121,7 @@ var _ = Describe("Update", func() {
 					Name:    "my-addon",
 					Version: "v1.0.0-eksbuild.2",
 					Force:   true,
-				}, 0)
+				}, &podIdentityIAMUpdater, 0)
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -139,7 +141,7 @@ var _ = Describe("Update", func() {
 					err := addonManager.Update(context.Background(), &api.Addon{
 						Name:    "my-addon",
 						Version: "",
-					}, 0)
+					}, &podIdentityIAMUpdater, 0)
 
 					Expect(err).NotTo(HaveOccurred())
 					Expect(output.String()).To(ContainSubstring("no new version provided, preserving existing version"))
@@ -157,7 +159,7 @@ var _ = Describe("Update", func() {
 					err := addonManager.Update(context.Background(), &api.Addon{
 						Name:    "my-addon",
 						Version: "1.7.5",
-					}, 0)
+					}, &podIdentityIAMUpdater, 0)
 
 					Expect(err).NotTo(HaveOccurred())
 					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -174,7 +176,7 @@ var _ = Describe("Update", func() {
 					err := addonManager.Update(context.Background(), &api.Addon{
 						Name:    "my-addon",
 						Version: "latest",
-					}, 0)
+					}, &podIdentityIAMUpdater, 0)
 
 					Expect(err).NotTo(HaveOccurred())
 					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -192,7 +194,7 @@ var _ = Describe("Update", func() {
 						Name:             "my-addon",
 						Version:          "1.7.8",
 						AttachPolicyARNs: []string{"arn-1"},
-					}, 0)
+					}, &podIdentityIAMUpdater, 0)
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(MatchError(ContainSubstring("no version(s) found matching \"1.7.8\" for \"my-addon\"")))
 				})
@@ -216,7 +218,7 @@ var _ = Describe("Update", func() {
 						Name:    "my-addon",
 						Version: "v1.0.0-eksbuild.2",
 						Force:   true,
-					}, waitTimeout)
+					}, &podIdentityIAMUpdater, waitTimeout)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
 					Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
@@ -244,7 +246,7 @@ var _ = Describe("Update", func() {
 						Name:    "my-addon",
 						Version: "v1.0.0-eksbuild.2",
 						Force:   true,
-					}, waitTimeout)
+					}, &podIdentityIAMUpdater, waitTimeout)
 					Expect(err).To(MatchError(`addon status transitioned to "DEGRADED"`))
 				})
 			})
@@ -257,7 +259,7 @@ var _ = Describe("Update", func() {
 						Name:                  "my-addon",
 						Version:               "v1.0.0-eksbuild.2",
 						ServiceAccountRoleARN: "new-arn",
-					}, 0)
+					}, &podIdentityIAMUpdater, 0)
 
 					Expect(err).NotTo(HaveOccurred())
 					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -286,7 +288,7 @@ var _ = Describe("Update", func() {
 							Name:             "vpc-cni",
 							Version:          "v1.0.0-eksbuild.2",
 							AttachPolicyARNs: []string{"arn-1"},
-						}, 0)
+						}, &podIdentityIAMUpdater, 0)
 
 						Expect(err).NotTo(HaveOccurred())
 
@@ -313,7 +315,7 @@ var _ = Describe("Update", func() {
 							Name:             "my-addon",
 							Version:          "v1.0.0-eksbuild.2",
 							AttachPolicyARNs: []string{"arn-1"},
-						}, 0)
+						}, &podIdentityIAMUpdater, 0)
 
 						Expect(err).NotTo(HaveOccurred())
 
@@ -355,7 +357,7 @@ var _ = Describe("Update", func() {
 							AttachPolicy: api.InlineDocument{
 								"foo": "policy-bar",
 							},
-						}, 0)
+						}, &podIdentityIAMUpdater, 0)
 
 						Expect(err).NotTo(HaveOccurred())
 
@@ -383,7 +385,7 @@ var _ = Describe("Update", func() {
 							AttachPolicy: api.InlineDocument{
 								"foo": "policy-bar",
 							},
-						}, 0)
+						}, &podIdentityIAMUpdater, 0)
 
 						Expect(err).NotTo(HaveOccurred())
 
@@ -413,7 +415,7 @@ var _ = Describe("Update", func() {
 							Name:             "my-addon",
 							Version:          "v1.0.0-eksbuild.2",
 							ResolveConflicts: rc,
-						}, 0)
+						}, &podIdentityIAMUpdater, 0)
 
 						Expect(err).NotTo(HaveOccurred())
 						Expect(updateAddonInput.ResolveConflicts).To(Equal(rc))
@@ -430,7 +432,7 @@ var _ = Describe("Update", func() {
 						Name:                "my-addon",
 						Version:             "v1.0.0-eksbuild.2",
 						ConfigurationValues: "{\"replicaCount\":3}",
-					}, 0)
+					}, &podIdentityIAMUpdater, 0)
 
 					Expect(err).NotTo(HaveOccurred())
 					Expect(aws.ToString(updateAddonInput.ConfigurationValues)).To(Equal("{\"replicaCount\":3}"))
@@ -456,7 +458,7 @@ var _ = Describe("Update", func() {
 							WellKnownPolicies: api.WellKnownPolicies{
 								AutoScaler: true,
 							},
-						}, 0)
+						}, &podIdentityIAMUpdater, 0)
 
 						Expect(err).NotTo(HaveOccurred())
 
@@ -484,7 +486,7 @@ var _ = Describe("Update", func() {
 							WellKnownPolicies: api.WellKnownPolicies{
 								AutoScaler: true,
 							},
-						}, 0)
+						}, &podIdentityIAMUpdater, 0)
 
 						Expect(err).NotTo(HaveOccurred())
 
@@ -519,7 +521,7 @@ var _ = Describe("Update", func() {
 
 			err := addonManager.Update(context.Background(), &api.Addon{
 				Name: "my-addon",
-			}, 0)
+			}, &mocks.PodIdentityIAMUpdater{}, 0)
 			Expect(err).To(MatchError(`failed to update addon "my-addon": foo`))
 			Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 			Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
