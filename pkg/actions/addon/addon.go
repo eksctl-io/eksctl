@@ -138,6 +138,14 @@ func (a *Manager) getLatestMatchingVersion(ctx context.Context, addon *api.Addon
 	return versions[0].Original(), requireIAMPermissions, nil
 }
 
+func (a *Manager) makeAddonIRSAName(name string) string {
+	return fmt.Sprintf("eksctl-%s-addon-%s-IRSA", a.clusterConfig.Metadata.Name, name)
+}
+
+func (a *Manager) makeAddonPodIdentityName(addonName, serviceAccountName string) string {
+	return fmt.Sprintf("eksctl-%s-addon-%s-podidentityrole-%s", a.clusterConfig.Metadata.Name, addonName, serviceAccountName)
+}
+
 func (a *Manager) makeAddonName(name string) string {
 	return fmt.Sprintf("eksctl-%s-addon-%s", a.clusterConfig.Metadata.Name, name)
 }

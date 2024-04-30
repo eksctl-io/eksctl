@@ -4,14 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
@@ -32,24 +31,27 @@ func (a *Manager) Delete(ctx context.Context, addon *api.Addon) error {
 		logger.Info("deleted addon: %s", addon.Name)
 	}
 
-	stack, err := a.stackManager.DescribeStack(ctx, &manager.Stack{StackName: aws.String(a.makeAddonName(addon.Name))})
+	deleteAddonIAMTasks, err := NewRemover(a.stackManager).DeleteAddonIAMTasks(ctx, true)
 	if err != nil {
-		if !manager.IsStackDoesNotExistError(err) {
-			return fmt.Errorf("failed to get stack: %w", err)
-		}
+		return err
 	}
-	if stack != nil {
+	if deleteAddonIAMTasks.Len() > 0 {
 		logger.Info("deleting associated IAM stacks")
-		if _, err = a.stackManager.DeleteStackBySpec(ctx, stack); err != nil {
-			return fmt.Errorf("failed to delete cloudformation stack %q: %v", a.makeAddonName(addon.Name), err)
+		logger.Info(deleteAddonIAMTasks.Describe())
+		if errs := deleteAddonIAMTasks.DoAllSync(); len(errs) > 0 {
+			var allErrs []string
+			for _, err := range errs {
+				allErrs = append(allErrs, err.Error())
+			}
+			return fmt.Errorf(strings.Join(allErrs, "\n"))
 		}
+		logger.Info("all tasks were completed successfully")
+	} else if addonExists {
+		logger.Info("no associated IAM stacks found")
 	} else {
-		if addonExists {
-			logger.Info("no associated IAM stacks found")
-		} else {
-			return errors.New("could not find addon or associated IAM stack to delete")
-		}
+		return errors.New("could not find addon or associated IAM stack to delete")
 	}
+
 	return nil
 }
 

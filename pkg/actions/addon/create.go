@@ -315,7 +315,8 @@ func (a *Manager) createRoleForPodIdentity(ctx context.Context, addonName string
 	if err := resourceSet.AddAllResources(); err != nil {
 		return "", err
 	}
-	if err := a.createStack(ctx, resourceSet, addonName, fmt.Sprintf("podidentityrole-%s", pia.ServiceAccountName)); err != nil {
+	if err := a.createStack(ctx, resourceSet, addonName,
+		a.makeAddonPodIdentityName(addonName, pia.ServiceAccountName)); err != nil {
 		return "", err
 	}
 	return pia.RoleARN, nil
@@ -327,7 +328,8 @@ func (a *Manager) createRoleForIRSA(ctx context.Context, addon *api.Addon, names
 	if err != nil {
 		return "", err
 	}
-	if err := a.createStack(ctx, resourceSet, addon.Name, "IRSA"); err != nil {
+	if err := a.createStack(ctx, resourceSet, addon.Name,
+		a.makeAddonIRSAName(addon.Name)); err != nil {
 		return "", err
 	}
 	return resourceSet.OutputRole, nil
@@ -348,14 +350,13 @@ func (a *Manager) createRoleResourceSet(addon *api.Addon, namespace, serviceAcco
 	return resourceSet, resourceSet.AddAllResources()
 }
 
-func (a *Manager) createStack(ctx context.Context, resourceSet builder.ResourceSetReader, addonName, stackNameSuffix string) error {
+func (a *Manager) createStack(ctx context.Context, resourceSet builder.ResourceSetReader, addonName, stackName string) error {
 	errChan := make(chan error)
 
 	tags := map[string]string{
 		api.AddonNameTag: addonName,
 	}
 
-	stackName := fmt.Sprintf("%s-%s", a.makeAddonName(addonName), stackNameSuffix)
 	err := a.stackManager.CreateStack(ctx, stackName, resourceSet, tags, nil, errChan)
 	if err != nil {
 		return err

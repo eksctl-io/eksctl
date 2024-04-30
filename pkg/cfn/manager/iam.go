@@ -148,7 +148,6 @@ func (c *StackCollection) GetIAMAddonsStacks(ctx context.Context) ([]*Stack, err
 			iamAddonStacks = append(iamAddonStacks, s)
 		}
 	}
-	logger.Debug("iamserviceaccounts = %v", iamAddonStacks)
 	return iamAddonStacks, nil
 }
 
