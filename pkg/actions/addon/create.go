@@ -78,7 +78,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 	getRecommendedPolicies := func(ctx context.Context, addon *api.Addon) ([]ekstypes.AddonPodIdentityConfiguration, error) {
 		output, err := a.eksAPI.DescribeAddonConfiguration(ctx, &eks.DescribeAddonConfigurationInput{
 			AddonName:    &addon.Name,
-			AddonVersion: &addon.Version,
+			AddonVersion: &version,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("describing configuration for addon %s: %w", addon.Name, err)
@@ -89,7 +89,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 	if requiresIAMPermissions {
 		switch {
 		case len(addon.PodIdentityAssociations) > 0:
-			logger.Info("pod identity associations were specified for addon %s, will use those to provide required IAM permissions, other settings such as IRSA will be ignored")
+			logger.Info("pod identity associations were specified for addon %s, will use those to provide required IAM permissions, other settings such as IRSA will be ignored", addon.Name)
 			for _, pia := range addon.PodIdentityAssociations {
 				roleARN, err := a.createRoleForPodIdentity(ctx, addon.Name, pia)
 				if err != nil {
