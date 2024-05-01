@@ -4,8 +4,7 @@
 module github.com/weaveworks/eksctl
 
 go 1.21
-
-toolchain go1.21.5
+toolchain go1.22.2
 
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
@@ -66,7 +65,7 @@ require (
 	github.com/tidwall/sjson v1.2.5
 	github.com/tj/assert v0.0.3
 	github.com/vburenin/ifacemaker v1.2.1
-	github.com/vektra/mockery/v2 v2.38.0
+	github.com/vektra/mockery/v2 v2.43.0
 	github.com/weaveworks/goformation/v4 v4.10.2-0.20231113122203-bf1ae633f95c
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xgfone/netaddr v0.5.1
@@ -154,7 +153,7 @@ require (
 	github.com/charmbracelet/bubbletea v0.24.1 // indirect
 	github.com/charmbracelet/lipgloss v0.7.1 // indirect
 	github.com/chavacava/garif v0.1.0 // indirect
-	github.com/chigopher/pathlib v0.17.0 // indirect
+	github.com/chigopher/pathlib v0.19.1 // indirect
 	github.com/ckaznocha/intrange v0.1.1 // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/containerd/containerd v1.7.12 // indirect
