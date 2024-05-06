@@ -16,9 +16,9 @@ type PodIdentityIAMUpdater struct {
 	mock.Mock
 }
 
-// UpdateRole provides a mock function with given fields: ctx, podIdentityAssociations
-func (_m *PodIdentityIAMUpdater) UpdateRole(ctx context.Context, podIdentityAssociations []v1alpha5.PodIdentityAssociation) ([]types.AddonPodIdentityAssociations, error) {
-	ret := _m.Called(ctx, podIdentityAssociations)
+// UpdateRole provides a mock function with given fields: ctx, podIdentityAssociations, addonName
+func (_m *PodIdentityIAMUpdater) UpdateRole(ctx context.Context, podIdentityAssociations []v1alpha5.PodIdentityAssociation, addonName string) ([]types.AddonPodIdentityAssociations, error) {
+	ret := _m.Called(ctx, podIdentityAssociations, addonName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateRole")
@@ -26,19 +26,19 @@ func (_m *PodIdentityIAMUpdater) UpdateRole(ctx context.Context, podIdentityAsso
 
 	var r0 []types.AddonPodIdentityAssociations
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []v1alpha5.PodIdentityAssociation) ([]types.AddonPodIdentityAssociations, error)); ok {
-		return rf(ctx, podIdentityAssociations)
+	if rf, ok := ret.Get(0).(func(context.Context, []v1alpha5.PodIdentityAssociation, string) ([]types.AddonPodIdentityAssociations, error)); ok {
+		return rf(ctx, podIdentityAssociations, addonName)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []v1alpha5.PodIdentityAssociation) []types.AddonPodIdentityAssociations); ok {
-		r0 = rf(ctx, podIdentityAssociations)
+	if rf, ok := ret.Get(0).(func(context.Context, []v1alpha5.PodIdentityAssociation, string) []types.AddonPodIdentityAssociations); ok {
+		r0 = rf(ctx, podIdentityAssociations, addonName)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]types.AddonPodIdentityAssociations)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []v1alpha5.PodIdentityAssociation) error); ok {
-		r1 = rf(ctx, podIdentityAssociations)
+	if rf, ok := ret.Get(1).(func(context.Context, []v1alpha5.PodIdentityAssociation, string) error); ok {
+		r1 = rf(ctx, podIdentityAssociations, addonName)
 	} else {
 		r1 = ret.Error(1)
 	}

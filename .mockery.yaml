@@ -65,3 +65,11 @@ packages:
         config:
           dir: "{{.InterfaceDir}}/mocks"
           outpkg: mocks
+
+  github.com/weaveworks/eksctl/pkg/actions/podidentityassociation:
+    interfaces:
+      StackDescriber:
+        config:
+          dir: "{{.InterfaceDir}}/mocks"
+          outpkg: mocks
+
