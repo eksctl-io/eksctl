@@ -31,6 +31,7 @@ type StackManager interface {
 	DescribeStack(ctx context.Context, i *cfntypes.Stack) (*cfntypes.Stack, error)
 	GetIAMAddonsStacks(ctx context.Context) ([]*cfntypes.Stack, error)
 	UpdateStack(ctx context.Context, options manager.UpdateStackOptions) error
+	GetIAMAddonName(s *cfntypes.Stack) string
 }
 
 // CreateClientSet creates a Kubernetes ClientSet.

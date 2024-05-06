@@ -69,6 +69,17 @@ type FakeStackManager struct {
 		result1 *types.Stack
 		result2 error
 	}
+	GetIAMAddonNameStub        func(*types.Stack) string
+	getIAMAddonNameMutex       sync.RWMutex
+	getIAMAddonNameArgsForCall []struct {
+		arg1 *types.Stack
+	}
+	getIAMAddonNameReturns struct {
+		result1 string
+	}
+	getIAMAddonNameReturnsOnCall map[int]struct {
+		result1 string
+	}
 	GetIAMAddonsStacksStub        func(context.Context) ([]*types.Stack, error)
 	getIAMAddonsStacksMutex       sync.RWMutex
 	getIAMAddonsStacksArgsForCall []struct {
@@ -357,6 +368,67 @@ func (fake *FakeStackManager) DescribeStackReturnsOnCall(i int, result1 *types.S
 	}{result1, result2}
 }
 
+func (fake *FakeStackManager) GetIAMAddonName(arg1 *types.Stack) string {
+	fake.getIAMAddonNameMutex.Lock()
+	ret, specificReturn := fake.getIAMAddonNameReturnsOnCall[len(fake.getIAMAddonNameArgsForCall)]
+	fake.getIAMAddonNameArgsForCall = append(fake.getIAMAddonNameArgsForCall, struct {
+		arg1 *types.Stack
+	}{arg1})
+	stub := fake.GetIAMAddonNameStub
+	fakeReturns := fake.getIAMAddonNameReturns
+	fake.recordInvocation("GetIAMAddonName", []interface{}{arg1})
+	fake.getIAMAddonNameMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeStackManager) GetIAMAddonNameCallCount() int {
+	fake.getIAMAddonNameMutex.RLock()
+	defer fake.getIAMAddonNameMutex.RUnlock()
+	return len(fake.getIAMAddonNameArgsForCall)
+}
+
+func (fake *FakeStackManager) GetIAMAddonNameCalls(stub func(*types.Stack) string) {
+	fake.getIAMAddonNameMutex.Lock()
+	defer fake.getIAMAddonNameMutex.Unlock()
+	fake.GetIAMAddonNameStub = stub
+}
+
+func (fake *FakeStackManager) GetIAMAddonNameArgsForCall(i int) *types.Stack {
+	fake.getIAMAddonNameMutex.RLock()
+	defer fake.getIAMAddonNameMutex.RUnlock()
+	argsForCall := fake.getIAMAddonNameArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeStackManager) GetIAMAddonNameReturns(result1 string) {
+	fake.getIAMAddonNameMutex.Lock()
+	defer fake.getIAMAddonNameMutex.Unlock()
+	fake.GetIAMAddonNameStub = nil
+	fake.getIAMAddonNameReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeStackManager) GetIAMAddonNameReturnsOnCall(i int, result1 string) {
+	fake.getIAMAddonNameMutex.Lock()
+	defer fake.getIAMAddonNameMutex.Unlock()
+	fake.GetIAMAddonNameStub = nil
+	if fake.getIAMAddonNameReturnsOnCall == nil {
+		fake.getIAMAddonNameReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.getIAMAddonNameReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeStackManager) GetIAMAddonsStacks(arg1 context.Context) ([]*types.Stack, error) {
 	fake.getIAMAddonsStacksMutex.Lock()
 	ret, specificReturn := fake.getIAMAddonsStacksReturnsOnCall[len(fake.getIAMAddonsStacksArgsForCall)]
@@ -494,6 +566,8 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.deleteStackBySpecSyncMutex.RUnlock()
 	fake.describeStackMutex.RLock()
 	defer fake.describeStackMutex.RUnlock()
+	fake.getIAMAddonNameMutex.RLock()
+	defer fake.getIAMAddonNameMutex.RUnlock()
 	fake.getIAMAddonsStacksMutex.RLock()
 	defer fake.getIAMAddonsStacksMutex.RUnlock()
 	fake.updateStackMutex.RLock()

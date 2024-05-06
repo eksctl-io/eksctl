@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -31,27 +30,23 @@ func (a *Manager) Delete(ctx context.Context, addon *api.Addon) error {
 		logger.Info("deleted addon: %s", addon.Name)
 	}
 
-	deleteAddonIAMTasks, err := NewRemover(a.stackManager).DeleteAddonIAMTasks(ctx, true)
+	deleteTask, err := NewRemover(a.stackManager).DeleteAddon(ctx, addon, false)
 	if err != nil {
 		return err
 	}
-	if deleteAddonIAMTasks.Len() > 0 {
+	if deleteTask != nil {
 		logger.Info("deleting associated IAM stacks")
-		logger.Info(deleteAddonIAMTasks.Describe())
-		if errs := deleteAddonIAMTasks.DoAllSync(); len(errs) > 0 {
-			var allErrs []string
-			for _, err := range errs {
-				allErrs = append(allErrs, err.Error())
-			}
-			return fmt.Errorf(strings.Join(allErrs, "\n"))
+		errCh := make(chan error)
+		if err := deleteTask.Do(errCh); err != nil {
+			return err
 		}
-		logger.Info("all tasks were completed successfully")
-	} else if addonExists {
+		return <-errCh
+	}
+	if addonExists {
 		logger.Info("no associated IAM stacks found")
 	} else {
 		return errors.New("could not find addon or associated IAM stack to delete")
 	}
-
 	return nil
 }
 
@@ -99,4 +94,23 @@ func (ar *Remover) DeleteAddonIAMTasks(ctx context.Context, wait bool) (*tasks.T
 		})
 	}
 	return taskTree, nil
+}
+
+func (ar *Remover) DeleteAddon(ctx context.Context, addon *api.Addon, wait bool) (tasks.Task, error) {
+	stacks, err := ar.stackManager.GetIAMAddonsStacks(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, stack := range stacks {
+		if ar.stackManager.GetIAMAddonName(stack) == addon.Name {
+			return &deleteAddonIAMTask{
+				ctx:          ctx,
+				info:         fmt.Sprintf("delete addon IAM %q", *stack.StackName),
+				stack:        stack,
+				stackManager: ar.stackManager,
+				wait:         wait,
+			}, nil
+		}
+	}
+	return nil, nil
 }
