@@ -114,8 +114,11 @@ func validatePodIdentityAssociationsForConfig(clusterConfig *api.ClusterConfig, 
 	if clusterConfig.IAM == nil || len(clusterConfig.IAM.PodIdentityAssociations) == 0 {
 		return errors.New("no iam.podIdentityAssociations specified in the config file")
 	}
+	return validatePodIdentityAssociations(clusterConfig.IAM.PodIdentityAssociations, isCreate)
+}
 
-	for i, pia := range clusterConfig.IAM.PodIdentityAssociations {
+func validatePodIdentityAssociations(podIdentityAssociations []api.PodIdentityAssociation, isCreate bool) error {
+	for i, pia := range podIdentityAssociations {
 		path := fmt.Sprintf("podIdentityAssociations[%d]", i)
 		if pia.Namespace == "" {
 			return fmt.Errorf("%s.namespace must be set", path)
@@ -149,7 +152,6 @@ func validatePodIdentityAssociationsForConfig(clusterConfig *api.ClusterConfig, 
 			}
 		}
 	}
-
 	return nil
 }
 
