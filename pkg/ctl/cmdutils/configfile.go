@@ -311,7 +311,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				if cfg.IAM != nil && cfg.IAM.AutoCreatePodIdentityAssociations {
 					return true
 				}
-				if len(addon.PodIdentityAssociations) > 0 {
+				if addon.PodIdentityAssociations != nil && len(*addon.PodIdentityAssociations) > 0 {
 					return true
 				}
 			}

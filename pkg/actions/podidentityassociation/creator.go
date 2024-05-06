@@ -59,7 +59,7 @@ func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api
 						ClusterName:  c.clusterName,
 						StackCreator: c.stackCreator,
 					}
-					roleARN, err := roleCreator.Create(ctx, &pia)
+					roleARN, err := roleCreator.Create(ctx, &pia, "")
 					if err != nil {
 						return err
 					}

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"slices"
+	"strings"
 
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 
@@ -106,10 +108,10 @@ func getAddon(cmd *cmdutils.Cmd, a *api.Addon, params *getCmdParams) error {
 	}
 
 	if tablePrinter, ok := printer.(*printers.TablePrinter); ok {
-		for _, summary := range summaries {
-			if len(summary.PodIdentityAssociations) > 0 {
-				logger.Info("to view pod identity associations for an addon, rerun the command with --output=json or --output=yaml")
-			}
+		if slices.ContainsFunc(summaries, func(summary addon.Summary) bool {
+			return len(summary.PodIdentityAssociations) > 0
+		}) {
+			logger.Info("to view pod identity associations for an addon, rerun the command with --output=json or --output=yaml")
 		}
 		addAddonSummaryTableColumns(tablePrinter)
 	}
@@ -150,7 +152,11 @@ func addAddonSummaryTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("CONFIGURATION VALUES", func(s addon.Summary) string {
 		return s.ConfigurationValues
 	})
-	printer.AddColumn("POD IDENTITY ASSOCIATIONS", func(s addon.Summary) int {
-		return len(s.PodIdentityAssociations)
+	printer.AddColumn("POD IDENTITY ASSOCIATION ROLES", func(s addon.Summary) string {
+		var roleARNs []string
+		for _, pia := range s.PodIdentityAssociations {
+			roleARNs = append(roleARNs, pia.RoleARN)
+		}
+		return strings.Join(roleARNs, ",")
 	})
 }

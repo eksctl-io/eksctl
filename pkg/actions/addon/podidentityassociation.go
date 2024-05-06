@@ -3,18 +3,14 @@ package addon
 import (
 	"context"
 	"fmt"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/weaveworks/eksctl/pkg/actions/podidentityassociation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
-
-type PodIdentityStackLister interface {
-	ListPodIdentityStackNames(ctx context.Context) ([]string, error)
-}
 
 type EKSPodIdentityDescriber interface {
 	ListPodIdentityAssociations(ctx context.Context, params *eks.ListPodIdentityAssociationsInput, optFns ...func(*eks.Options)) (*eks.ListPodIdentityAssociationsOutput, error)
@@ -22,11 +18,11 @@ type EKSPodIdentityDescriber interface {
 }
 
 type IAMRoleCreator interface {
-	Create(ctx context.Context, podIdentityAssociation *api.PodIdentityAssociation) (roleARN string, err error)
+	Create(ctx context.Context, podIdentityAssociation *api.PodIdentityAssociation, addonName string) (roleARN string, err error)
 }
 
 type IAMRoleUpdater interface {
-	Update(ctx context.Context, updateConfig *podidentityassociation.UpdateConfig, podIdentityAssociationID string) (roleARN string, hasChanged bool, err error)
+	Update(ctx context.Context, podIdentityAssociation api.PodIdentityAssociation, stackName string, podIdentityAssociationID string) (string, bool, error)
 }
 
 // PodIdentityAssociationUpdater creates or updates IAM resources for pod identities associated with an addon.
@@ -34,13 +30,11 @@ type PodIdentityAssociationUpdater struct {
 	ClusterName             string
 	IAMRoleCreator          IAMRoleCreator
 	IAMRoleUpdater          IAMRoleUpdater
-	PodIdentityStackLister  PodIdentityStackLister
 	EKSPodIdentityDescriber EKSPodIdentityDescriber
+	StackDescriber          podidentityassociation.StackDescriber
 }
 
-// TODO
-
-func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation) ([]ekstypes.AddonPodIdentityAssociations, error) {
+func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation, addonName string) ([]ekstypes.AddonPodIdentityAssociations, error) {
 	var addonPodIdentityAssociations []ekstypes.AddonPodIdentityAssociations
 	for _, pia := range podIdentityAssociations {
 		output, err := p.EKSPodIdentityDescriber.ListPodIdentityAssociations(ctx, &eks.ListPodIdentityAssociationsInput{
@@ -60,7 +54,7 @@ func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdent
 			// Create IAM resources.
 			if roleARN == "" {
 				var err error
-				if roleARN, err = p.IAMRoleCreator.Create(ctx, &pia); err != nil {
+				if roleARN, err = p.IAMRoleCreator.Create(ctx, &pia, addonName); err != nil {
 					return nil, err
 				}
 			}
@@ -73,19 +67,33 @@ func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdent
 			if err != nil {
 				return nil, err
 			}
-			// TODO: avoid repeating this call.
-			roleStackNames, err := p.PodIdentityStackLister.ListPodIdentityStackNames(ctx)
-			if err != nil {
-				return nil, fmt.Errorf("error listing stack names for pod identity associations: %w", err)
+			stackName := podidentityassociation.MakeAddonPodIdentityStackName(p.ClusterName, addonName, pia.ServiceAccountName)
+			hasStack := true
+			if _, err := p.StackDescriber.DescribeStack(ctx, &manager.Stack{
+				StackName: aws.String(stackName),
+			}); err != nil {
+				if !manager.IsStackDoesNotExistError(err) {
+					return nil, fmt.Errorf("describing IAM resources stack for pod identity association %s: %w", pia.NameString(), err)
+				}
+				hasStack = false
 			}
-			updateConfig, err := podidentityassociation.MakeRoleUpdateConfig(pia, *output.Association, roleStackNames)
-			if err != nil {
+
+			roleValidator := &podidentityassociation.RoleUpdateValidator{
+				StackDescriber: p.StackDescriber,
+			}
+			if err := roleValidator.ValidateRoleUpdate(pia, *output.Association, hasStack); err != nil {
 				return nil, err
 			}
-			if updateConfig.HasIAMResourcesStack {
-				// TODO: if no pod identity has changed, skip update?
-				if roleARN, _, err = p.IAMRoleUpdater.Update(ctx, updateConfig, *output.Association.AssociationId); err != nil {
+			if hasStack {
+				// TODO: if no pod identity has changed, skip update.
+				newRoleARN, hasChanged, err := p.IAMRoleUpdater.Update(ctx, pia, stackName, *output.Association.AssociationId)
+				if err != nil {
 					return nil, err
+				}
+				if hasChanged {
+					roleARN = newRoleARN
+				} else {
+					roleARN = *output.Association.RoleArn
 				}
 			}
 		}

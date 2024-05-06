@@ -6,14 +6,13 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"github.com/blang/semver"
-
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-
-	"github.com/aws/aws-sdk-go-v2/service/eks"
 )
 
 type PodIdentityAssociationSummary struct {
@@ -85,7 +84,11 @@ func (a *Manager) Get(ctx context.Context, addon *api.Addon, includePodIdentityA
 	}
 	var podIdentityAssociations []PodIdentityAssociationSummary
 	if includePodIdentityAssociations {
-		for _, associationID := range output.Addon.PodIdentityAssociations {
+		podIdentityAssociationIDs, err := toPodIdentityAssociationIDs(output.Addon.PodIdentityAssociations)
+		if err != nil {
+			return Summary{}, err
+		}
+		for _, associationID := range podIdentityAssociationIDs {
 			output, err := a.eksAPI.DescribePodIdentityAssociation(ctx, &eks.DescribePodIdentityAssociationInput{
 				ClusterName:   aws.String(a.clusterConfig.Metadata.Name),
 				AssociationId: aws.String(associationID),
@@ -132,6 +135,22 @@ func (a *Manager) GetAll(ctx context.Context, includePodIdentityAssociations boo
 		summaries = append(summaries, summary)
 	}
 	return summaries, nil
+}
+
+func toPodIdentityAssociationIDs(podIdentityAssociationARNs []string) ([]string, error) {
+	var ret []string
+	for _, podIdentityAssociationARN := range podIdentityAssociationARNs {
+		parsed, err := arn.Parse(podIdentityAssociationARN)
+		if err != nil {
+			return nil, fmt.Errorf("parsing ARN %q: %w", podIdentityAssociationARN, err)
+		}
+		parts := strings.Split(parsed.Resource, "/")
+		if len(parts) != 3 {
+			return nil, fmt.Errorf("unexpected pod identity association ARN format: %q", parsed.String())
+		}
+		ret = append(ret, parts[len(parts)-1])
+	}
+	return ret, nil
 }
 
 func (a *Manager) findNewerVersions(ctx context.Context, addon *api.Addon) (string, error) {

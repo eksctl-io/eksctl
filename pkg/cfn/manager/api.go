@@ -401,9 +401,8 @@ func (c *StackCollection) DescribeStack(ctx context.Context, i *Stack) (*Stack, 
 }
 
 func IsStackDoesNotExistError(err error) bool {
-	awsError, ok := errors.Unwrap(errors.Unwrap(err)).(*smithy.OperationError)
-	return ok && strings.Contains(awsError.Error(), "ValidationError")
-
+	var opErr *smithy.OperationError
+	return errors.As(err, &opErr) && strings.Contains(opErr.Error(), "ValidationError")
 }
 
 // GetManagedNodeGroupTemplate returns the template for a ManagedNodeGroup resource

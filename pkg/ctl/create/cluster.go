@@ -357,7 +357,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 	var preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
 	if len(cfg.Addons) > 0 {
-		preNodegroupAddons, postNodegroupAddons = addon.CreateAddonTasks(ctx, cfg, ctl, true, cmd.ProviderConfig.WaitTimeout)
+		iamRoleCreator := &podidentityassociation.IAMRoleCreator{
+			ClusterName:  cfg.Metadata.Name,
+			StackCreator: stackManager,
+		}
+		preNodegroupAddons, postNodegroupAddons = addon.CreateAddonTasks(ctx, cfg, ctl, iamRoleCreator, true, cmd.ProviderConfig.WaitTimeout)
 		postClusterCreationTasks.Append(preNodegroupAddons)
 	}
 

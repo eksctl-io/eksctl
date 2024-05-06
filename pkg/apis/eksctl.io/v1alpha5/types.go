@@ -300,6 +300,9 @@ const (
 	// PodIdentityAssociationNameTag defines the tag of Pod Identity Association name
 	PodIdentityAssociationNameTag = "alpha.eksctl.io/podidentityassociation-name"
 
+	// AddonPodIdentityAssociationNameTag defines the tag name for an addon's pod identity association.
+	AddonPodIdentityAssociationNameTag = "alpha.eksctl.io/addon-podidentityassociation-name"
+
 	// AddonNameTag defines the tag of the IAM service account name
 	AddonNameTag = "alpha.eksctl.io/addon-name"
 

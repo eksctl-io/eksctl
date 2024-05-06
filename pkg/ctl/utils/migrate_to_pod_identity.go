@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
@@ -76,17 +77,34 @@ func doMigrateToPodIdentity(cmd *cmdutils.Cmd, options podidentityassociation.Po
 		return err
 	}
 
-	addonCreator, err := addon.New(cfg, ctl.AWSProvider.EKS(), nil, false, nil, nil)
+	addonManager, err := addon.New(cfg, ctl.AWSProvider.EKS(), nil, false, nil, nil)
 	if err != nil {
 		return fmt.Errorf("initializing addon creator %w", err)
 	}
 
+	stackManager := ctl.NewStackManager(cfg)
+	iamRoleCreator := &podidentityassociation.IAMRoleCreator{
+		ClusterName:  cfg.Metadata.Name,
+		StackCreator: stackManager,
+	}
 	return podidentityassociation.NewMigrator(
 		cfg.Metadata.Name,
 		ctl.AWSProvider.EKS(),
 		ctl.AWSProvider.IAM(),
-		ctl.NewStackManager(cfg),
+		stackManager,
 		clientSet,
-		addonCreator,
+		&addonCreator{
+			addonManager:   addonManager,
+			iamRoleCreator: iamRoleCreator,
+		},
 	).MigrateToPodIdentity(ctx, options)
+}
+
+type addonCreator struct {
+	addonManager   *addon.Manager
+	iamRoleCreator addon.IAMRoleCreator
+}
+
+func (a *addonCreator) Create(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
+	return a.addonManager.Create(ctx, addon, a.iamRoleCreator, waitTimeout)
 }

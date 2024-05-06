@@ -15,7 +15,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
+func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
 	preTasks := &tasks.TaskTree{Parallel: false}
 	postTasks := &tasks.TaskTree{Parallel: false}
 	var preAddons []*api.Addon
@@ -29,31 +29,25 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 		}
 	}
 
-	preTasks.Append(
-		&createAddonTask{
-			info:            "create addons",
-			addons:          preAddons,
-			ctx:             ctx,
-			cfg:             cfg,
-			clusterProvider: clusterProvider,
-			forceAll:        forceAll,
-			timeout:         timeout,
-			wait:            false,
-		},
-	)
+	preAddonsTask := createAddonTask{
+		info:            "create addons",
+		addons:          preAddons,
+		ctx:             ctx,
+		cfg:             cfg,
+		clusterProvider: clusterProvider,
+		forceAll:        forceAll,
+		timeout:         timeout,
+		wait:            false,
+		iamRoleCreator:  iamRoleCreator,
+	}
 
-	postTasks.Append(
-		&createAddonTask{
-			info:            "create addons",
-			addons:          postAddons,
-			ctx:             ctx,
-			cfg:             cfg,
-			clusterProvider: clusterProvider,
-			forceAll:        forceAll,
-			timeout:         timeout,
-			wait:            cfg.HasNodes(),
-		},
-	)
+	preTasks.Append(&preAddonsTask)
+
+	postAddonsTask := preAddonsTask
+	postAddonsTask.addons = postAddons
+	postAddonsTask.wait = cfg.HasNodes()
+	postTasks.Append(&postAddonsTask)
+
 	return preTasks, postTasks
 }
 
@@ -67,6 +61,7 @@ type createAddonTask struct {
 	addons          []*api.Addon
 	forceAll, wait  bool
 	timeout         time.Duration
+	iamRoleCreator  IAMRoleCreator
 }
 
 func (t *createAddonTask) Describe() string { return t.info }
@@ -100,7 +95,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		if t.forceAll {
 			a.Force = true
 		}
-		err := addonManager.Create(t.ctx, a, t.timeout)
+		err := addonManager.Create(t.ctx, a, t.iamRoleCreator, t.timeout)
 		if err != nil {
 			go func() {
 				errorCh <- err
@@ -116,7 +111,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		if t.forceAll {
 			a.Force = true
 		}
-		err := addonManager.Create(t.ctx, a, t.timeout)
+		err := addonManager.Create(t.ctx, a, t.iamRoleCreator, t.timeout)
 		if err != nil {
 			go func() {
 				errorCh <- err

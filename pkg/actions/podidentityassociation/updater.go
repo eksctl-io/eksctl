@@ -93,7 +93,7 @@ func (u *Updater) update(ctx context.Context, updateConfig *UpdateConfig, podIde
 		roleUpdater := &IAMRoleUpdater{
 			StackUpdater: u.StackUpdater,
 		}
-		newRoleARN, hasChanged, err := roleUpdater.Update(ctx, updateConfig, podIdentityAssociationID)
+		newRoleARN, hasChanged, err := roleUpdater.Update(ctx, updateConfig.PodIdentityAssociation, updateConfig.StackName, podIdentityAssociationID)
 		if err != nil {
 			return err
 		}
@@ -111,7 +111,7 @@ func (u *Updater) updatePodIdentityAssociation(ctx context.Context, roleARN stri
 		ClusterName:   aws.String(u.ClusterName),
 		RoleArn:       aws.String(roleARN),
 	}); err != nil {
-		return fmt.Errorf("updating pod identity association (associationID: %s, roleARN: %s): %w", updateConfig.AssociationID, roleARN, err)
+		return fmt.Errorf("(associationID: %s, roleARN: %s): %w", updateConfig.AssociationID, roleARN, err)
 	}
 	logger.Info("updated role ARN %q for pod identity association %q", roleARN, podIdentityAssociationID)
 	return nil
@@ -148,23 +148,42 @@ func (u *Updater) makeUpdate(ctx context.Context, pia api.PodIdentityAssociation
 		if err != nil {
 			return nil, fmt.Errorf("error describing pod identity association: %w", err)
 		}
-		return MakeRoleUpdateConfig(pia, *describeOutput.Association, roleStackNames)
+		stackName, hasStack := getIAMResourcesStack(roleStackNames, Identifier{
+			Namespace:          pia.Namespace,
+			ServiceAccountName: pia.ServiceAccountName,
+		})
+		updateValidator := &RoleUpdateValidator{
+			StackDescriber: u.StackUpdater,
+		}
+		if err := updateValidator.ValidateRoleUpdate(pia, *describeOutput.Association, hasStack); err != nil {
+			return nil, err
+		}
+		return &UpdateConfig{
+			PodIdentityAssociation: pia,
+			AssociationID:          *describeOutput.Association.AssociationId,
+			HasIAMResourcesStack:   hasStack,
+			StackName:              stackName,
+		}, nil
 	}
 }
 
-// MakeRoleUpdateConfig builds an UpdateConfig for pia.
-func MakeRoleUpdateConfig(pia api.PodIdentityAssociation, association ekstypes.PodIdentityAssociation, roleStackNames []string) (*UpdateConfig, error) {
-	stackName, hasStack := getIAMResourcesStack(roleStackNames, Identifier{
-		Namespace:          pia.Namespace,
-		ServiceAccountName: pia.ServiceAccountName,
-	})
+type StackDescriber interface {
+	DescribeStack(context.Context, *manager.Stack) (*manager.Stack, error)
+}
+
+type RoleUpdateValidator struct {
+	StackDescriber StackDescriber
+}
+
+// ValidateRoleUpdate validates TODO and returns a boolean indicating whether a stack exists.
+func (r *RoleUpdateValidator) ValidateRoleUpdate(pia api.PodIdentityAssociation, association ekstypes.PodIdentityAssociation, hasStack bool) error {
 	if hasStack {
 		if association.RoleArn != nil && pia.RoleARN != "" && pia.RoleARN != *association.RoleArn {
-			return nil, errors.New("cannot change podIdentityAssociation.roleARN since the role was created by eksctl")
+			return errors.New("cannot change podIdentityAssociation.roleARN since the role was created by eksctl")
 		}
 	} else {
 		if pia.RoleARN == "" {
-			return nil, errors.New("podIdentityAssociation.roleARN is required since the role was not created by eksctl")
+			return errors.New("podIdentityAssociation.roleARN is required since the role was not created by eksctl")
 		}
 		podIDWithRoleARN := api.PodIdentityAssociation{
 			Namespace:          pia.Namespace,
@@ -172,13 +191,8 @@ func MakeRoleUpdateConfig(pia api.PodIdentityAssociation, association ekstypes.P
 			RoleARN:            pia.RoleARN,
 		}
 		if !reflect.DeepEqual(pia, podIDWithRoleARN) {
-			return nil, errors.New("only namespace, serviceAccountName and roleARN can be specified if the role was not created by eksctl")
+			return errors.New("only namespace, serviceAccountName and roleARN can be specified if the role was not created by eksctl")
 		}
 	}
-	return &UpdateConfig{
-		PodIdentityAssociation: pia,
-		AssociationID:          *association.AssociationId,
-		HasIAMResourcesStack:   hasStack,
-		StackName:              stackName,
-	}, nil
+	return nil
 }

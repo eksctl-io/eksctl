@@ -38,7 +38,7 @@ type Addon struct {
 	// ResolvePodIdentityConflicts
 	ResolvePodIdentityConflicts ekstypes.ResolveConflicts `json:"resolvePodIdentityConflicts,omitempty"`
 	// PodIdentityAssociations
-	PodIdentityAssociations []PodIdentityAssociation `json:"podIdentityAssociations,omitempty"`
+	PodIdentityAssociations *[]PodIdentityAssociation `json:"podIdentityAssociations,omitempty"`
 	// ConfigurationValues defines the set of configuration properties for add-ons.
 	// For now, all properties will be specified as a JSON string
 	// and have to respect the schema from DescribeAddonConfiguration.

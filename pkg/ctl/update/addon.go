@@ -3,7 +3,6 @@ package update
 import (
 	"context"
 	"fmt"
-
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"github.com/kris-nova/logger"
@@ -102,7 +101,7 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 			StackUpdater: stackManager,
 		},
 		EKSPodIdentityDescriber: clusterProvider.AWSProvider.EKS(),
-		PodIdentityStackLister:  stackManager,
+		StackDescriber:          stackManager,
 	}
 
 	for _, a := range cmd.ClusterConfig.Addons {

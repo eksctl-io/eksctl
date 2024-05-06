@@ -217,11 +217,6 @@ func updateTrustStatements(
 	return trustStatements, nil
 }
 
-// MakeStackName creates a stack name for the specified access entry.
-func MakeStackName(clusterName, namespace, serviceAccountName string) string {
-	return fmt.Sprintf("eksctl-%s-podidentityrole-%s-%s", clusterName, namespace, serviceAccountName)
-}
-
 func runAllTasks(taskTree *tasks.TaskTree) error {
 	logger.Info(taskTree.Describe())
 	if errs := taskTree.DoAllSync(); len(errs) > 0 {

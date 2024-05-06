@@ -93,6 +93,10 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			return err
 		}
 
+		iamRoleCreator := &podidentityassociation.IAMRoleCreator{
+			ClusterName:  cmd.ClusterConfig.Metadata.Name,
+			StackCreator: stackManager,
+		}
 		// always install EKS Pod Identity Agent Addon first, if present,
 		// as other addons might require IAM permissions
 		for _, a := range cmd.ClusterConfig.Addons {
@@ -102,7 +106,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			if force { //force is specified at cmdline level
 				a.Force = true
 			}
-			if err := addonManager.Create(ctx, a, cmd.ProviderConfig.WaitTimeout); err != nil {
+			if err := addonManager.Create(ctx, a, iamRoleCreator, cmd.ProviderConfig.WaitTimeout); err != nil {
 				return err
 			}
 		}
@@ -114,7 +118,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			if force { //force is specified at cmdline level
 				a.Force = true
 			}
-			if err := addonManager.Create(ctx, a, cmd.ProviderConfig.WaitTimeout); err != nil {
+			if err := addonManager.Create(ctx, a, iamRoleCreator, cmd.ProviderConfig.WaitTimeout); err != nil {
 				return err
 			}
 		}
@@ -135,7 +139,7 @@ func validatePodIdentityAgentAddon(ctx context.Context, eksAPI awsapi.EKS, cfg *
 		if a.CanonicalName() == api.PodIdentityAgentAddon {
 			podIdentityAgentFoundInConfig = true
 		}
-		if len(a.PodIdentityAssociations) > 0 {
+		if a.PodIdentityAssociations != nil && len(*a.PodIdentityAssociations) > 0 {
 			shallCreatePodIdentityAssociations = true
 		}
 	}

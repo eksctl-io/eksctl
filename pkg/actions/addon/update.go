@@ -18,7 +18,7 @@ import (
 // PodIdentityIAMUpdater creates or updates IAM resources for pod identity associations.
 type PodIdentityIAMUpdater interface {
 	// UpdateRole creates or updates IAM resources for podIdentityAssociations.
-	UpdateRole(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation) ([]ekstypes.AddonPodIdentityAssociations, error)
+	UpdateRole(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation, addonName string) ([]ekstypes.AddonPodIdentityAssociations, error)
 }
 
 func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUpdater PodIdentityIAMUpdater, waitTimeout time.Duration) error {
@@ -41,7 +41,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 
 	logger.Debug("resolve conflicts set to %s", updateAddonInput.ResolveConflicts)
 
-	summary, err := a.Get(ctx, addon, false)
+	summary, err := a.Get(ctx, addon, true)
 	if err != nil {
 		return err
 	}
@@ -65,9 +65,15 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 		updateAddonInput.AddonVersion = &version
 	}
 
-	if len(addon.PodIdentityAssociations) > 0 {
-		// TODO
-		addonPodIdentityAssociations, err := podIdentityIAMUpdater.UpdateRole(ctx, addon.PodIdentityAssociations)
+	if len(summary.PodIdentityAssociations) > 0 {
+		if addon.PodIdentityAssociations == nil {
+			return fmt.Errorf("addon %s has pod identity associations; to remove pod identity associations from an addon, "+
+				"addon.podIdentityAssociations must be explicitly set to []", addon.Name)
+		}
+	}
+
+	if addon.PodIdentityAssociations != nil && len(*addon.PodIdentityAssociations) > 0 {
+		addonPodIdentityAssociations, err := podIdentityIAMUpdater.UpdateRole(ctx, *addon.PodIdentityAssociations, addon.Name)
 		if err != nil {
 			return fmt.Errorf("updating pod identity associations: %w", err)
 		}

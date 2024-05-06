@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/stretchr/testify/mock"
@@ -38,6 +39,14 @@ type migrateToPodIdentityAssociationEntry struct {
 	validateCustomLoggerOutput func(output string)
 	options                    podidentityassociation.PodIdentityMigrationOptions
 	expectedErr                string
+}
+
+type addonCreator struct {
+	addonManager *addon.Manager
+}
+
+func (a *addonCreator) Create(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
+	return a.addonManager.Create(ctx, addon, nil, waitTimeout)
 }
 
 var _ = Describe("Create", func() {
@@ -121,7 +130,7 @@ var _ = Describe("Create", func() {
 			logger.Writer = output
 		}
 
-		addonCreator, err := addon.New(api.NewClusterConfig(), mockProvider.MockEKS(), nil, false, nil, nil)
+		addonManager, err := addon.New(api.NewClusterConfig(), mockProvider.MockEKS(), nil, false, nil, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		migrator = podidentityassociation.NewMigrator(
@@ -130,7 +139,7 @@ var _ = Describe("Create", func() {
 			mockProvider.MockIAM(),
 			fakeStackUpdater,
 			fakeClientset,
-			addonCreator,
+			&addonCreator{addonManager: addonManager},
 		)
 
 		err = migrator.MigrateToPodIdentity(context.Background(), e.options)

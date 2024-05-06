@@ -25,7 +25,7 @@ const (
 	kubeSystemNamespace = "kube-system"
 )
 
-func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
+func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator IAMRoleCreator, waitTimeout time.Duration) error {
 	// check if the addon is already present as an EKS managed addon
 	// in a state different from CREATE_FAILED, and if so, don't re-create
 	var notFoundErr *ekstypes.ResourceNotFoundException
@@ -88,10 +88,10 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 
 	if requiresIAMPermissions {
 		switch {
-		case len(addon.PodIdentityAssociations) > 0:
+		case addon.PodIdentityAssociations != nil && len(*addon.PodIdentityAssociations) > 0:
 			logger.Info("pod identity associations were specified for addon %s, will use those to provide required IAM permissions, other settings such as IRSA will be ignored", addon.Name)
-			for _, pia := range addon.PodIdentityAssociations {
-				roleARN, err := a.createRoleForPodIdentity(ctx, addon.Name, pia)
+			for _, pia := range *addon.PodIdentityAssociations {
+				roleARN, err := iamRoleCreator.Create(ctx, &pia, addon.Name)
 				if err != nil {
 					return err
 				}
@@ -112,10 +112,10 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 				break
 			}
 			for _, p := range recommendedPoliciesBySA {
-				roleARN, err := a.createRoleForPodIdentity(ctx, addon.Name, api.PodIdentityAssociation{
+				roleARN, err := iamRoleCreator.Create(ctx, &api.PodIdentityAssociation{
 					ServiceAccountName:   *p.ServiceAccount,
 					PermissionPolicyARNs: p.RecommendedManagedPolicies,
-				})
+				}, addon.Name)
 				if err != nil {
 					return err
 				}
@@ -310,20 +310,8 @@ func hasPoliciesSet(addon *api.Addon) bool {
 	return len(addon.AttachPolicyARNs) != 0 || addon.WellKnownPolicies.HasPolicy() || addon.AttachPolicy != nil
 }
 
-func (a *Manager) createRoleForPodIdentity(ctx context.Context, addonName string, pia api.PodIdentityAssociation) (string, error) {
-	resourceSet := builder.NewIAMRoleResourceSetForPodIdentity(&pia)
-	if err := resourceSet.AddAllResources(); err != nil {
-		return "", err
-	}
-	if err := a.createStack(ctx, resourceSet, addonName,
-		a.makeAddonPodIdentityName(addonName, pia.ServiceAccountName)); err != nil {
-		return "", err
-	}
-	return pia.RoleARN, nil
-}
-
 func (a *Manager) createRoleForIRSA(ctx context.Context, addon *api.Addon, namespace, serviceAccount string) (string, error) {
-	logger.Warning("providing required IAM permissions via OIDC has been deprecated for addon %s; please use \"eksctl utils migrate-to-pod-identities\" after addon is created")
+	logger.Warning("providing required IAM permissions via OIDC has been deprecated for addon %s; please use \"eksctl utils migrate-to-pod-identities\" after addon is created", addon.Name)
 	resourceSet, err := a.createRoleResourceSet(addon, namespace, serviceAccount)
 	if err != nil {
 		return "", err

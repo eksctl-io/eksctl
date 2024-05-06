@@ -14,9 +14,9 @@ type IAMRoleCreator struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, podIdentityAssociation
-func (_m *IAMRoleCreator) Create(ctx context.Context, podIdentityAssociation *v1alpha5.PodIdentityAssociation) (string, error) {
-	ret := _m.Called(ctx, podIdentityAssociation)
+// Create provides a mock function with given fields: ctx, podIdentityAssociation, addonName
+func (_m *IAMRoleCreator) Create(ctx context.Context, podIdentityAssociation *v1alpha5.PodIdentityAssociation, addonName string) (string, error) {
+	ret := _m.Called(ctx, podIdentityAssociation, addonName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
@@ -24,17 +24,17 @@ func (_m *IAMRoleCreator) Create(ctx context.Context, podIdentityAssociation *v1
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *v1alpha5.PodIdentityAssociation) (string, error)); ok {
-		return rf(ctx, podIdentityAssociation)
+	if rf, ok := ret.Get(0).(func(context.Context, *v1alpha5.PodIdentityAssociation, string) (string, error)); ok {
+		return rf(ctx, podIdentityAssociation, addonName)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *v1alpha5.PodIdentityAssociation) string); ok {
-		r0 = rf(ctx, podIdentityAssociation)
+	if rf, ok := ret.Get(0).(func(context.Context, *v1alpha5.PodIdentityAssociation, string) string); ok {
+		r0 = rf(ctx, podIdentityAssociation, addonName)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *v1alpha5.PodIdentityAssociation) error); ok {
-		r1 = rf(ctx, podIdentityAssociation)
+	if rf, ok := ret.Get(1).(func(context.Context, *v1alpha5.PodIdentityAssociation, string) error); ok {
+		r1 = rf(ctx, podIdentityAssociation, addonName)
 	} else {
 		r1 = ret.Error(1)
 	}
