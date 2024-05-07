@@ -31,7 +31,7 @@ type PodIdentityAssociationUpdater struct {
 	IAMRoleCreator          IAMRoleCreator
 	IAMRoleUpdater          IAMRoleUpdater
 	EKSPodIdentityDescriber EKSPodIdentityDescriber
-	StackDescriber          podidentityassociation.StackDescriber
+	StackDeleter            podidentityassociation.StackDeleter
 }
 
 func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation, addonName string) ([]ekstypes.AddonPodIdentityAssociations, error) {
@@ -69,7 +69,7 @@ func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdent
 			}
 			stackName := podidentityassociation.MakeAddonPodIdentityStackName(p.ClusterName, addonName, pia.ServiceAccountName)
 			hasStack := true
-			if _, err := p.StackDescriber.DescribeStack(ctx, &manager.Stack{
+			if _, err := p.StackDeleter.DescribeStack(ctx, &manager.Stack{
 				StackName: aws.String(stackName),
 			}); err != nil {
 				if !manager.IsStackDoesNotExistError(err) {
@@ -79,7 +79,7 @@ func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdent
 			}
 
 			roleValidator := &podidentityassociation.RoleUpdateValidator{
-				StackDescriber: p.StackDescriber,
+				StackDescriber: p.StackDeleter,
 			}
 			if err := roleValidator.ValidateRoleUpdate(pia, *output.Association, hasStack); err != nil {
 				return nil, err
@@ -103,4 +103,30 @@ func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdent
 		})
 	}
 	return addonPodIdentityAssociations, nil
+}
+
+func (p *PodIdentityAssociationUpdater) DeleteRole(ctx context.Context, addonName, serviceAccountName string) (bool, error) {
+	stack, err := p.StackDeleter.DescribeStack(ctx, &manager.Stack{
+		StackName: aws.String(podidentityassociation.MakeAddonPodIdentityStackName(p.ClusterName, addonName, serviceAccountName)),
+	})
+	if err != nil {
+		if manager.IsStackDoesNotExistError(err) {
+			return false, nil
+		}
+		return false, fmt.Errorf("describing IAM resources stack for addon %s: %w", addonName, err)
+	}
+
+	errCh := make(chan error)
+	if err := p.StackDeleter.DeleteStackBySpecSync(ctx, stack, errCh); err != nil {
+		return false, fmt.Errorf("deleting stack %s: %w", *stack.StackName, err)
+	}
+	select {
+	case err := <-errCh:
+		if err != nil {
+			return false, fmt.Errorf("deleting stack %s: %w", *stack.StackName, err)
+		}
+		return true, nil
+	case <-ctx.Done():
+		return false, fmt.Errorf("timed out waiting for deletion of stack %s: %w", *stack.StackName, ctx.Err())
+	}
 }

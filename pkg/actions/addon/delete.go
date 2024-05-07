@@ -40,7 +40,12 @@ func (a *Manager) Delete(ctx context.Context, addon *api.Addon) error {
 		if err := deleteTask.Do(errCh); err != nil {
 			return err
 		}
-		return <-errCh
+		select {
+		case err := <-errCh:
+			return err
+		case <-ctx.Done():
+			return fmt.Errorf("timed out waiting for deletion of addon %s: %w", addon.Name, ctx.Err())
+		}
 	}
 	if addonExists {
 		logger.Info("no associated IAM stacks found")

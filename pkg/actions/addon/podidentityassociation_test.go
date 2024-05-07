@@ -18,28 +18,24 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/addon/mocks"
-	"github.com/weaveworks/eksctl/pkg/actions/podidentityassociation/fakes"
 	piamocks "github.com/weaveworks/eksctl/pkg/actions/podidentityassociation/mocks"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	managerfakes "github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 var _ = Describe("Update Pod Identity Association", func() {
 	type piaMocks struct {
-		stackManager   *fakes.FakeStackUpdater
-		stackDescriber *piamocks.StackDescriber
-		roleCreator    *mocks.IAMRoleCreator
-		roleUpdater    *mocks.IAMRoleUpdater
-		eks            *mocksv2.EKS
+		stackDeleter *piamocks.StackDeleter
+		roleCreator  *mocks.IAMRoleCreator
+		roleUpdater  *mocks.IAMRoleUpdater
+		eks          *mocksv2.EKS
 	}
 	type updateEntry struct {
 		podIdentityAssociations []api.PodIdentityAssociation
 		mockCalls               func(m piaMocks)
 
-		expectedCalls                        func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS)
 		expectedAddonPodIdentityAssociations []ekstypes.AddonPodIdentityAssociations
 
 		expectedErr string
@@ -108,10 +104,9 @@ var _ = Describe("Update Pod Identity Association", func() {
 	DescribeTable("update pod identity association", func(e updateEntry) {
 		provider := mockprovider.NewMockProvider()
 		var (
-			roleCreator    mocks.IAMRoleCreator
-			roleUpdater    mocks.IAMRoleUpdater
-			stackUpdater   fakes.FakeStackUpdater
-			stackDescriber piamocks.StackDescriber
+			roleCreator  mocks.IAMRoleCreator
+			roleUpdater  mocks.IAMRoleUpdater
+			stackDeleter piamocks.StackDeleter
 		)
 
 		piaUpdater := &addon.PodIdentityAssociationUpdater{
@@ -119,15 +114,14 @@ var _ = Describe("Update Pod Identity Association", func() {
 			IAMRoleCreator:          &roleCreator,
 			IAMRoleUpdater:          &roleUpdater,
 			EKSPodIdentityDescriber: provider.MockEKS(),
-			StackDescriber:          &stackDescriber,
+			StackDeleter:            &stackDeleter,
 		}
 		if e.mockCalls != nil {
 			e.mockCalls(piaMocks{
-				stackManager:   &stackUpdater,
-				stackDescriber: &stackDescriber,
-				roleCreator:    &roleCreator,
-				roleUpdater:    &roleUpdater,
-				eks:            provider.MockEKS(),
+				stackDeleter: &stackDeleter,
+				roleCreator:  &roleCreator,
+				roleUpdater:  &roleUpdater,
+				eks:          provider.MockEKS(),
 			})
 		}
 		addonPodIdentityAssociations, err := piaUpdater.UpdateRole(context.Background(), e.podIdentityAssociations, "")
@@ -208,7 +202,7 @@ var _ = Describe("Update Pod Identity Association", func() {
 					Namespace:          "kube-system",
 					ServiceAccountName: "vpc-cni",
 				}, "eksctl-test-addon--podidentityrole-vpc-cni", "a-1").Return("cni-role-2", true, nil).Once()
-				m.stackDescriber.On("DescribeStack", mock.Anything, &manager.Stack{
+				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
 					StackName: aws.String("eksctl-test-addon--podidentityrole-vpc-cni"),
 				}).Return(&manager.Stack{}, nil)
 
@@ -253,9 +247,6 @@ var _ = Describe("Update Pod Identity Association", func() {
 				},
 			},
 			mockCalls: func(m piaMocks) {
-
-				// TODO:
-				//m.stackManager.DescribeStackStub
 				mockListPodIdentityAssociations(m.eks, true, defaultListPodIdentityInputs)
 				mockDescribePodIdentityAssociation(m.eks, "cni-role", "csi-role", "karpenter-role")
 
@@ -296,7 +287,7 @@ var _ = Describe("Update Pod Identity Association", func() {
 						ServiceAccountName: updateInput.serviceAccount,
 					}, stackName, id).Return(updateInput.returnRole, true, nil).Once()
 
-					m.stackDescriber.On("DescribeStack", mock.Anything, &manager.Stack{
+					m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
 						StackName: aws.String(stackName),
 					}).Return(&manager.Stack{
 						StackName: aws.String(stackName),
@@ -429,13 +420,13 @@ var _ = Describe("Update Pod Identity Association", func() {
 				})
 				mockDescribePodIdentityAssociation(m.eks, "role-1", "role-2", "role-3")
 				for _, serviceAccount := range []string{"vpc-cni", "aws-ebs-csi-driver"} {
-					m.stackDescriber.On("DescribeStack", mock.Anything, &manager.Stack{
+					m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
 						StackName: aws.String(fmt.Sprintf("eksctl-test-addon--podidentityrole-%s", serviceAccount)),
 					}).Return(nil, &smithy.OperationError{
 						Err: fmt.Errorf("ValidationError"),
 					}).Once()
 				}
-				m.stackDescriber.On("DescribeStack", mock.Anything, &manager.Stack{
+				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
 					StackName: aws.String("eksctl-test-addon--podidentityrole-karpenter"),
 				}).Return(&manager.Stack{}, nil).Once()
 			},
@@ -458,7 +449,7 @@ var _ = Describe("Update Pod Identity Association", func() {
 					},
 				})
 				mockDescribePodIdentityAssociation(m.eks, "vpc-cni-role")
-				m.stackDescriber.On("DescribeStack", mock.Anything, &manager.Stack{
+				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
 					StackName: aws.String("eksctl-test-addon--podidentityrole-vpc-cni"),
 				}).Return(&manager.Stack{}, nil).Once()
 			},
@@ -486,7 +477,7 @@ var _ = Describe("Update Pod Identity Association", func() {
 					},
 				})
 				mockDescribePodIdentityAssociation(m.eks, "vpc-cni-role")
-				m.stackDescriber.On("DescribeStack", mock.Anything, &manager.Stack{
+				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
 					StackName: aws.String("eksctl-test-addon--podidentityrole-vpc-cni"),
 				}).Return(nil, &smithy.OperationError{
 					Err: errors.New("ValidationError"),

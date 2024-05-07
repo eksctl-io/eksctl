@@ -3,6 +3,7 @@ package addon
 import (
 	"context"
 	"fmt"
+	"golang.org/x/exp/slices"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -19,6 +20,8 @@ import (
 type PodIdentityIAMUpdater interface {
 	// UpdateRole creates or updates IAM resources for podIdentityAssociations.
 	UpdateRole(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation, addonName string) ([]ekstypes.AddonPodIdentityAssociations, error)
+	// DeleteRole deletes the IAM resources for the specified addon.
+	DeleteRole(ctx context.Context, addonName, serviceAccountName string) (bool, error)
 }
 
 func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUpdater PodIdentityIAMUpdater, waitTimeout time.Duration) error {
@@ -65,11 +68,20 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 		updateAddonInput.AddonVersion = &version
 	}
 
+	var deleteServiceAccountIAMResources []string
 	if len(summary.PodIdentityAssociations) > 0 {
 		if addon.PodIdentityAssociations == nil {
 			return fmt.Errorf("addon %s has pod identity associations; to remove pod identity associations from an addon, "+
 				"addon.podIdentityAssociations must be explicitly set to []", addon.Name)
 		}
+		for _, pia := range summary.PodIdentityAssociations {
+			if !slices.ContainsFunc(*addon.PodIdentityAssociations, func(addonPodIdentity api.PodIdentityAssociation) bool {
+				return pia.ServiceAccount == addonPodIdentity.ServiceAccountName
+			}) {
+				deleteServiceAccountIAMResources = append(deleteServiceAccountIAMResources, pia.ServiceAccount)
+			}
+		}
+		updateAddonInput.PodIdentityAssociations = []ekstypes.AddonPodIdentityAssociations{}
 	}
 
 	if addon.PodIdentityAssociations != nil && len(*addon.PodIdentityAssociations) > 0 {
@@ -102,6 +114,16 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 	}
 	if output != nil {
 		logger.Debug("%+v", output.Update)
+	}
+	for _, serviceAccount := range deleteServiceAccountIAMResources {
+		logger.Info("deleting IAM resources for pod identity service account %s", serviceAccount)
+		deleted, err := podIdentityIAMUpdater.DeleteRole(ctx, addon.Name, serviceAccount)
+		if err != nil {
+			return fmt.Errorf("deleting IAM resources for addon %s: %w", addon.Name, err)
+		}
+		if deleted {
+			logger.Info("deleted IAM resources for addon %s", addon.Name)
+		}
 	}
 	if waitTimeout > 0 {
 		return a.waitForAddonToBeActive(ctx, addon, waitTimeout)

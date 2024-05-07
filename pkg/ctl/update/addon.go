@@ -101,7 +101,7 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 			StackUpdater: stackManager,
 		},
 		EKSPodIdentityDescriber: clusterProvider.AWSProvider.EKS(),
-		StackDescriber:          stackManager,
+		StackDeleter:            stackManager,
 	}
 
 	for _, a := range cmd.ClusterConfig.Addons {
