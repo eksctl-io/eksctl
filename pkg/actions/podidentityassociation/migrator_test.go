@@ -113,6 +113,9 @@ var _ = Describe("Create", func() {
 		}
 
 		mockProvider = mockprovider.NewMockProvider()
+		mockProvider.MockEKS().On("ListAddons", mock.Anything, &awseks.ListAddonsInput{
+			ClusterName: aws.String(clusterName),
+		}).Return(&awseks.ListAddonsOutput{}, nil)
 		if e.mockEKS != nil {
 			e.mockEKS(mockProvider)
 		}

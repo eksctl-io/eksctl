@@ -62,7 +62,6 @@ type StackManager interface {
 	GetAutoScalingGroupName(ctx context.Context, s *Stack) (string, error)
 	GetClusterStackIfExists(ctx context.Context) (*Stack, error)
 	GetFargateStack(ctx context.Context) (*Stack, error)
-	GetIAMAddonName(s *Stack) string
 	GetIAMAddonsStacks(ctx context.Context) ([]*Stack, error)
 	GetIAMServiceAccounts(ctx context.Context) ([]*api.ClusterIAMServiceAccount, error)
 	GetKarpenterStack(ctx context.Context) (*Stack, error)

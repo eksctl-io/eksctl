@@ -10,6 +10,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
@@ -85,7 +86,7 @@ func (ar *Remover) DeleteAddonIAMTasksFiltered(ctx context.Context, addonName st
 	}
 	taskTree := &tasks.TaskTree{Parallel: true}
 	for _, s := range stacks {
-		if addonName != "" && ar.stackManager.GetIAMAddonName(s) != addonName {
+		if addonName != "" && manager.GetIAMAddonName(s) != addonName {
 			continue
 		}
 		taskTree.Append(&deleteAddonIAMTask{

@@ -1656,6 +1656,20 @@ func ValidateSecretsEncryption(clusterConfig *ClusterConfig) error {
 	return nil
 }
 
+// ToPodIdentityAssociationID extracts the pod identity association ID from piaARN.
+// The ARN is of the format: arn:aws:eks:us-west-2:000:podidentityassociation/cluster/a-d3dw7wfvxtoatujeg.
+func ToPodIdentityAssociationID(piaARN string) (string, error) {
+	parsed, err := arn.Parse(piaARN)
+	if err != nil {
+		return "", fmt.Errorf("parsing ARN %q: %w", piaARN, err)
+	}
+	parts := strings.Split(parsed.Resource, "/")
+	if len(parts) != 3 {
+		return "", fmt.Errorf("unexpected pod identity association ARN format: %q", parsed.String())
+	}
+	return parts[len(parts)-1], nil
+}
+
 func validateIAMIdentityMappings(clusterConfig *ClusterConfig) error {
 	for _, mapping := range clusterConfig.IAMIdentityMappings {
 		if err := mapping.Validate(); err != nil {

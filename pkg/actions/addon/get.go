@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"github.com/blang/semver"
@@ -138,19 +137,15 @@ func (a *Manager) GetAll(ctx context.Context, includePodIdentityAssociations boo
 }
 
 func toPodIdentityAssociationIDs(podIdentityAssociationARNs []string) ([]string, error) {
-	var ret []string
+	var piaIDs []string
 	for _, podIdentityAssociationARN := range podIdentityAssociationARNs {
-		parsed, err := arn.Parse(podIdentityAssociationARN)
+		piaID, err := api.ToPodIdentityAssociationID(podIdentityAssociationARN)
 		if err != nil {
-			return nil, fmt.Errorf("parsing ARN %q: %w", podIdentityAssociationARN, err)
+			return nil, err
 		}
-		parts := strings.Split(parsed.Resource, "/")
-		if len(parts) != 3 {
-			return nil, fmt.Errorf("unexpected pod identity association ARN format: %q", parsed.String())
-		}
-		ret = append(ret, parts[len(parts)-1])
+		piaIDs = append(piaIDs, piaID)
 	}
-	return ret, nil
+	return piaIDs, nil
 }
 
 func (a *Manager) findNewerVersions(ctx context.Context, addon *api.Addon) (string, error) {

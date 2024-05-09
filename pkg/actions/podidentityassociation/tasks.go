@@ -3,6 +3,7 @@ package podidentityassociation
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -52,126 +53,115 @@ func (t *createPodIdentityAssociationTask) Do(errorCh chan error) error {
 	return nil
 }
 
-type updateTrustPolicyForOwnedRole struct {
-	ctx                                 context.Context
-	info                                string
-	roleName                            string
-	stack                               IRSAv1StackSummary
-	removeOIDCProviderTrustRelationship bool
-	iamAPI                              awsapi.IAM
-	stackUpdater                        StackUpdater
+type trustPolicyUpdater struct {
+	iamAPI       awsapi.IAM
+	stackUpdater StackUpdater
 }
 
-func (t *updateTrustPolicyForOwnedRole) Describe() string {
-	return t.info
-}
+func (t *trustPolicyUpdater) UpdateTrustPolicyForOwnedRoleTask(ctx context.Context, roleName, serviceAccountName string, stack IRSAv1StackSummary, removeOIDCProviderTrustRelationship bool) tasks.Task {
+	return &tasks.GenericTask{
+		Description: fmt.Sprintf("update trust policy for owned role %q", roleName),
+		Doer: func() error {
+			trustStatements, err := updateTrustStatements(removeOIDCProviderTrustRelationship, func() (*awsiam.GetRoleOutput, error) {
+				return t.iamAPI.GetRole(ctx, &awsiam.GetRoleInput{RoleName: &roleName})
+			})
+			if err != nil {
+				return fmt.Errorf("updating trust statements for role %s: %w", roleName, err)
+			}
 
-func (t *updateTrustPolicyForOwnedRole) Do(errorCh chan error) error {
-	defer close(errorCh)
+			// build template for updating trust policy
+			rs := builder.NewIAMRoleResourceSetForPodIdentityWithTrustStatements(&api.PodIdentityAssociation{}, trustStatements)
+			if err := rs.AddAllResources(); err != nil {
+				return fmt.Errorf("adding resources to CloudFormation template: %w", err)
+			}
+			template, err := rs.RenderJSON()
+			if err != nil {
+				return fmt.Errorf("generating CloudFormation template: %w", err)
+			}
 
-	trustStatements, err := updateTrustStatements(t.removeOIDCProviderTrustRelationship, func() (*awsiam.GetRoleOutput, error) {
-		return t.iamAPI.GetRole(t.ctx, &awsiam.GetRoleInput{RoleName: &t.roleName})
-	})
-	if err != nil {
-		return fmt.Errorf("updating trust statements for role %s: %w", t.roleName, err)
-	}
+			// update stack tags to reflect migration to IRSAv2
+			cfnTags := []cfntypes.Tag{}
+			for key, value := range stack.Tags {
+				if key == api.IAMServiceAccountNameTag && removeOIDCProviderTrustRelationship {
+					continue
+				}
+				cfnTags = append(cfnTags, cfntypes.Tag{
+					Key:   &key,
+					Value: &value,
+				})
+			}
 
-	// build template for updating trust policy
-	rs := builder.NewIAMRoleResourceSetForPodIdentityWithTrustStatements(&api.PodIdentityAssociation{}, trustStatements)
-	if err := rs.AddAllResources(); err != nil {
-		return fmt.Errorf("adding resources to CloudFormation template: %w", err)
-	}
-	template, err := rs.RenderJSON()
-	if err != nil {
-		return fmt.Errorf("generating CloudFormation template: %w", err)
-	}
+			getIAMServiceAccountName := func() string {
+				if serviceAccountName != "" {
+					return serviceAccountName
+				}
+				return strings.Replace(strings.Split(stack.Name, "-iamserviceaccount-")[1], "-", "/", 1)
+			}
+			cfnTags = append(cfnTags, cfntypes.Tag{
+				Key:   aws.String(api.PodIdentityAssociationNameTag),
+				Value: aws.String(getIAMServiceAccountName()),
+			})
 
-	// update stack tags to reflect migration to IRSAv2
-	cfnTags := []cfntypes.Tag{}
-	for key, value := range t.stack.Tags {
-		if key == api.IAMServiceAccountNameTag && t.removeOIDCProviderTrustRelationship {
-			continue
-		}
-		cfnTags = append(cfnTags, cfntypes.Tag{
-			Key:   &key,
-			Value: &value,
-		})
-	}
-	getIAMServiceAccountName := func() string {
-		return strings.Replace(strings.Split(t.stack.Name, "-iamserviceaccount-")[1], "-", "/", 1)
-	}
-	cfnTags = append(cfnTags, cfntypes.Tag{
-		Key:   aws.String(api.PodIdentityAssociationNameTag),
-		Value: aws.String(getIAMServiceAccountName()),
-	})
+			// propagate capabilities
+			cfnCapabilities := []cfntypes.Capability{}
+			for _, c := range stack.Capabilities {
+				cfnCapabilities = append(cfnCapabilities, cfntypes.Capability(c))
+			}
 
-	// propagate capabilities
-	cfnCapabilities := []cfntypes.Capability{}
-	for _, c := range t.stack.Capabilities {
-		cfnCapabilities = append(cfnCapabilities, cfntypes.Capability(c))
-	}
+			if err := t.stackUpdater.MustUpdateStack(ctx, manager.UpdateStackOptions{
+				Stack: &cfntypes.Stack{
+					StackName:    &stack.Name,
+					Tags:         cfnTags,
+					Capabilities: cfnCapabilities,
+				},
+				ChangeSetName: fmt.Sprintf("eksctl-%s-update-%d", roleName, time.Now().Unix()),
+				Description:   fmt.Sprintf("updating IAM resources stack %q for role %q", stack.Name, roleName),
+				TemplateData:  manager.TemplateBody(template),
+				Wait:          true,
+			}); err != nil {
+				var noChangeErr *manager.NoChangeError
+				if errors.As(err, &noChangeErr) {
+					logger.Info("IAM resources for role %q are already up-to-date", roleName)
+					return nil
+				}
+				return fmt.Errorf("updating IAM resources for role %q: %w", roleName, err)
+			}
+			logger.Info("updated IAM resources stack %q for role %q", stack.Name, roleName)
 
-	if err := t.stackUpdater.MustUpdateStack(t.ctx, manager.UpdateStackOptions{
-		Stack: &cfntypes.Stack{
-			StackName:    &t.stack.Name,
-			Tags:         cfnTags,
-			Capabilities: cfnCapabilities,
-		},
-		ChangeSetName: fmt.Sprintf("eksctl-%s-update-%d", t.roleName, time.Now().Unix()),
-		Description:   fmt.Sprintf("updating IAM resources stack %q for role %q", t.stack.Name, t.roleName),
-		TemplateData:  manager.TemplateBody(template),
-		Wait:          true,
-	}); err != nil {
-		if _, ok := err.(*manager.NoChangeError); ok {
-			logger.Info("IAM resources for role %q are already up-to-date", t.roleName)
 			return nil
-		}
-		return fmt.Errorf("updating IAM resources for role %q: %w", t.roleName, err)
+		},
 	}
-	logger.Info("updated IAM resources stack %q for role %q", t.stack.Name, t.roleName)
-
-	return nil
 }
 
-type updateTrustPolicyForUnownedRole struct {
-	ctx                                 context.Context
-	info                                string
-	roleName                            string
-	iamAPI                              awsapi.IAM
-	removeOIDCProviderTrustRelationship bool
-}
+func (t *trustPolicyUpdater) UpdateTrustPolicyForUnownedRoleTask(ctx context.Context, roleName string, removeOIDCProviderTrustRelationship bool) tasks.Task {
+	return &tasks.GenericTask{
+		Description: fmt.Sprintf("update trust policy for unowned role %q", roleName),
+		Doer: func() error {
+			trustStatements, err := updateTrustStatements(removeOIDCProviderTrustRelationship, func() (*awsiam.GetRoleOutput, error) {
+				return t.iamAPI.GetRole(ctx, &awsiam.GetRoleInput{RoleName: &roleName})
+			})
+			if err != nil {
+				return fmt.Errorf("updating trust statements for role %s: %w", roleName, err)
+			}
 
-func (t *updateTrustPolicyForUnownedRole) Describe() string {
-	return t.info
-}
+			documentString, err := json.Marshal(api.IAMPolicyDocument{
+				Version:    "2012-10-17",
+				Statements: trustStatements,
+			})
+			if err != nil {
+				return fmt.Errorf("marshalling trust policy document: %w", err)
+			}
 
-func (t *updateTrustPolicyForUnownedRole) Do(errorCh chan error) error {
-	defer close(errorCh)
-
-	trustStatements, err := updateTrustStatements(t.removeOIDCProviderTrustRelationship, func() (*awsiam.GetRoleOutput, error) {
-		return t.iamAPI.GetRole(t.ctx, &awsiam.GetRoleInput{RoleName: &t.roleName})
-	})
-	if err != nil {
-		return fmt.Errorf("updating trust statements for role %s: %w", t.roleName, err)
+			if _, err := t.iamAPI.UpdateAssumeRolePolicy(ctx, &awsiam.UpdateAssumeRolePolicyInput{
+				RoleName:       &roleName,
+				PolicyDocument: aws.String(string(documentString)),
+			}); err != nil {
+				return fmt.Errorf("updating trust policy for role %s: %w", roleName, err)
+			}
+			logger.Info(fmt.Sprintf("updated trust policy for role %s", roleName))
+			return nil
+		},
 	}
-
-	documentString, err := json.Marshal(api.IAMPolicyDocument{
-		Version:    "2012-10-17",
-		Statements: trustStatements,
-	})
-	if err != nil {
-		return fmt.Errorf("marshalling trust policy document: %w", err)
-	}
-
-	if _, err := t.iamAPI.UpdateAssumeRolePolicy(t.ctx, &awsiam.UpdateAssumeRolePolicyInput{
-		RoleName:       &t.roleName,
-		PolicyDocument: aws.String(string(documentString)),
-	}); err != nil {
-		return fmt.Errorf("updating trust policy for role %s: %w", t.roleName, err)
-	}
-	logger.Info(fmt.Sprintf("updated trust policy for role %s", t.roleName))
-
-	return nil
 }
 
 func updateTrustStatements(

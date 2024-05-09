@@ -31,7 +31,6 @@ type StackManager interface {
 	DescribeStack(ctx context.Context, i *cfntypes.Stack) (*cfntypes.Stack, error)
 	GetIAMAddonsStacks(ctx context.Context) ([]*cfntypes.Stack, error)
 	UpdateStack(ctx context.Context, options manager.UpdateStackOptions) error
-	GetIAMAddonName(s *cfntypes.Stack) string
 }
 
 // CreateClientSet creates a Kubernetes ClientSet.
@@ -144,7 +143,7 @@ func (a *Manager) makeAddonIRSAName(name string) string {
 }
 
 func (a *Manager) makeAddonName(name string) string {
-	return fmt.Sprintf("eksctl-%s-addon-%s", a.clusterConfig.Metadata.Name, name)
+	return manager.MakeAddonStackName(a.clusterConfig.Metadata.Name, name)
 }
 
 func (a *Manager) parseVersion(v string) (*version.Version, error) {

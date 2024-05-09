@@ -510,7 +510,7 @@ func (c *StackCollection) ListClusterStackNames(ctx context.Context) ([]string, 
 	return c.ListStackNames(ctx, clusterStackRegex)
 }
 
-// ListAccessEntryStackNames lists the stack names for all access entries in the specified cluster.
+// ListAddonIAMStackNames lists the stack names for all access entries in the specified cluster.
 func (c *StackCollection) ListAddonIAMStackNames(ctx context.Context, clusterName, addonName string) ([]string, error) {
 	return c.ListStackNames(ctx, fmt.Sprintf("^eksctl-%s-addon-%s-*", clusterName, addonName))
 }
