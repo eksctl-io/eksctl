@@ -22,28 +22,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
-// define IRSA helper functions
-var (
-	hasPoliciesSet = func(addon *api.Addon) bool {
-		return len(addon.AttachPolicyARNs) != 0 || addon.WellKnownPolicies.HasPolicy() || addon.AttachPolicy != nil
-	}
-	hasRecommendedIRSAPolicies = func(addon *api.Addon) bool {
-		switch addon.CanonicalName() {
-		case api.VPCCNIAddon, api.AWSEBSCSIDriverAddon, api.AWSEFSCSIDriverAddon:
-			return true
-		default:
-			return false
-		}
-	}
-	shouldUseIRSA = func(addon *api.Addon) bool {
-		if addon.ServiceAccountRoleARN != "" || hasPoliciesSet(addon) || hasRecommendedIRSAPolicies(addon) {
-			return true
-		}
-		return false
-	}
-)
-
-// define IAM permissions related warnings
 var (
 	updateAddonRecommended = func(supportsPodIDs bool) string {
 		path := "`addon.AttachPolicyARNs`, `addon.AttachPolicy` or `addon.WellKnownPolicies`"
@@ -152,7 +130,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 
 	if requiresIAMPermissions {
 		switch {
-		case addon.PodIdentityAssociations != nil && len(*addon.PodIdentityAssociations) > 0:
+		case addon.HasPodIDsSet():
 			if !supportsPodIDs {
 				return fmt.Errorf("%q addon does not support pod identity associations; use IRSA instead", addon.Name)
 			}
@@ -200,10 +178,10 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 				})
 			}
 
-		case shouldUseIRSA(addon):
+		case addon.HasIRSASet():
 			if !a.withOIDC {
 				logger.Warning(OIDCDisabledWarning(addon.Name, supportsPodIDs,
-					/* isIRSASetExplicitly */ addon.ServiceAccountRoleARN != "" || hasPoliciesSet(addon)))
+					/* isIRSASetExplicitly */ addon.ServiceAccountRoleARN != "" || addon.HasIRSAPoliciesSet()))
 				break
 			}
 
@@ -217,7 +195,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 				break
 			}
 
-			if !hasPoliciesSet(addon) {
+			if !addon.HasIRSAPoliciesSet() {
 				a.setRecommendedPoliciesForIRSA(addon)
 				logger.Info("creating role using recommended policies for %q addon", addon.Name)
 			} else {
@@ -235,7 +213,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 			logger.Warning(IAMPermissionsRequiredWarning(addon.Name, supportsPodIDs))
 		}
 
-	} else if (addon.PodIdentityAssociations != nil && len(*addon.PodIdentityAssociations) > 0) || shouldUseIRSA(addon) {
+	} else if addon.HasPodIDsSet() || addon.HasIRSASet() {
 		logger.Warning(IAMPermissionsNotRequiredWarning(addon.Name))
 	}
 
@@ -271,7 +249,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 			for _, config := range podIDConfig {
 				addonServiceAccounts = append(addonServiceAccounts, fmt.Sprintf("%q", *config.ServiceAccount))
 			}
-			return fmt.Errorf("one or more service accounts corresponding to %q addon is already associated with a different IAM role; please delete all pre-existing pod identity associations corresponding to %s service account(s) in the addon's namespace, then re-try creating the addon", addon.Name, strings.Join(addonServiceAccounts, ","))
+			return fmt.Errorf("creating addon: one or more service accounts corresponding to %q addon is already associated with a different IAM role; please delete all pre-existing pod identity associations corresponding to %s service account(s) in the addon's namespace, then re-try creating the addon", addon.Name, strings.Join(addonServiceAccounts, ","))
 		}
 		return errors.Wrapf(err, "failed to create addon %q", addon.Name)
 	}
@@ -431,7 +409,6 @@ func (a *Manager) setRecommendedPoliciesForIRSA(addon *api.Addon) {
 }
 
 func (a *Manager) createRoleForIRSA(ctx context.Context, addon *api.Addon, namespace, serviceAccount string) (string, error) {
-	logger.Warning("providing required IAM permissions via OIDC has been deprecated for addon %s; please use \"eksctl utils migrate-to-pod-identities\" after addon is created", addon.Name)
 	resourceSet, err := a.createRoleResourceSet(addon, namespace, serviceAccount)
 	if err != nil {
 		return "", err
@@ -446,13 +423,10 @@ func (a *Manager) createRoleForIRSA(ctx context.Context, addon *api.Addon, names
 func (a *Manager) createRoleResourceSet(addon *api.Addon, namespace, serviceAccount string) (*builder.IAMRoleResourceSet, error) {
 	var resourceSet *builder.IAMRoleResourceSet
 	if len(addon.AttachPolicyARNs) != 0 {
-		logger.Info("creating role using provided policies ARNs")
 		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
 	} else if addon.WellKnownPolicies.HasPolicy() {
-		logger.Info("creating role using provided well known policies")
 		resourceSet = builder.NewIAMRoleResourceSetWithWellKnownPolicies(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.WellKnownPolicies, a.oidcManager)
 	} else {
-		logger.Info("creating role using provided policies")
 		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
 	}
 	return resourceSet, resourceSet.AddAllResources()

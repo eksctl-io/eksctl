@@ -108,8 +108,6 @@ func validatePodIdentityAssociation(l *commonClusterConfigLoader, options PodIde
 	return nil
 }
 
-// TODO: validate addon.podIdentityAssociations.
-// TODO: Disallow setting IRSA and PIA fields simultaneously.
 func validatePodIdentityAssociationsForConfig(clusterConfig *api.ClusterConfig, isCreate bool) error {
 	if clusterConfig.IAM == nil || len(clusterConfig.IAM.PodIdentityAssociations) == 0 {
 		return errors.New("no iam.podIdentityAssociations specified in the config file")
@@ -119,7 +117,7 @@ func validatePodIdentityAssociationsForConfig(clusterConfig *api.ClusterConfig, 
 
 func validatePodIdentityAssociations(podIdentityAssociations []api.PodIdentityAssociation, isCreate bool) error {
 	for i, pia := range podIdentityAssociations {
-		path := fmt.Sprintf("podIdentityAssociations[%d]", i)
+		path := fmt.Sprintf("iam.podIdentityAssociations[%d]", i)
 		if pia.Namespace == "" {
 			return fmt.Errorf("%s.namespace must be set", path)
 		}

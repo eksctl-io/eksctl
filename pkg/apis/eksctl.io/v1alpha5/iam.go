@@ -11,7 +11,7 @@ import (
 // Commonly-used constants
 const (
 	AnnotationEKSRoleARN = "eks.amazonaws.com/role-arn"
-	EKSServicePrincipal  = "pods.eks.amazonaws.com"
+	EKSServicePrincipal  = "beta.pods.eks.aws.internal"
 )
 
 var EKSServicePrincipalTrustStatement = IAMStatement{
@@ -53,7 +53,9 @@ type ClusterIAM struct {
 	// +optional
 	ServiceAccounts []*ClusterIAMServiceAccount `json:"serviceAccounts,omitempty"`
 
-	// AutoCreatePodIdentityAssociations
+	// AutoCreatePodIdentityAssociations specifies whether or not to automatically create pod identity associations
+	// for supported addons that require IAM permissions
+	// +optional
 	AutoCreatePodIdentityAssociations bool `json:"autoCreatePodIdentityAssociations,omitempty"`
 
 	// pod identity associations to create in the cluster.

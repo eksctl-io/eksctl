@@ -3,8 +3,9 @@ package addon
 import (
 	"context"
 	"fmt"
-	"golang.org/x/exp/slices"
 	"time"
+
+	"golang.org/x/exp/slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
@@ -84,7 +85,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 		updateAddonInput.PodIdentityAssociations = []ekstypes.AddonPodIdentityAssociations{}
 	}
 
-	if addon.PodIdentityAssociations != nil && len(*addon.PodIdentityAssociations) > 0 {
+	if addon.HasPodIDsSet() {
 		addonPodIdentityAssociations, err := podIdentityIAMUpdater.UpdateRole(ctx, *addon.PodIdentityAssociations, addon.Name)
 		if err != nil {
 			return fmt.Errorf("updating pod identity associations: %w", err)
@@ -94,7 +95,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 		// check if we have been provided a different set of policies/role
 		if addon.ServiceAccountRoleARN != "" {
 			updateAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
-		} else if hasPoliciesSet(addon) {
+		} else if addon.HasIRSAPoliciesSet() {
 			serviceAccountRoleARN, err := a.updateWithNewPolicies(ctx, addon)
 			if err != nil {
 				return err

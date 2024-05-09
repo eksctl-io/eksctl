@@ -35,7 +35,7 @@ func (a *Manager) Delete(ctx context.Context, addon *api.Addon) error {
 		return err
 	}
 	if deleteAddonIAMTasks.Len() > 0 {
-		logger.Info("deleting associated IAM stacks")
+		logger.Info("deleting associated IAM stack(s)")
 		runAllTasks(deleteAddonIAMTasks)
 	} else if addonExists {
 		logger.Info("no associated IAM stacks found")
