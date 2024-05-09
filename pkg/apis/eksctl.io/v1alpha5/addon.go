@@ -35,9 +35,8 @@ type Addon struct {
 	// ResolveConflicts determines how to resolve field value conflicts for an EKS add-on
 	// if a value was changed from default
 	ResolveConflicts ekstypes.ResolveConflicts `json:"resolveConflicts,omitempty"`
-	// ResolvePodIdentityConflicts
-	ResolvePodIdentityConflicts ekstypes.ResolveConflicts `json:"resolvePodIdentityConflicts,omitempty"`
-	// PodIdentityAssociations
+	// PodIdentityAssociations holds a list of associations to be configured for the addon
+	// +optional
 	PodIdentityAssociations *[]PodIdentityAssociation `json:"podIdentityAssociations,omitempty"`
 	// ConfigurationValues defines the set of configuration properties for add-ons.
 	// For now, all properties will be specified as a JSON string

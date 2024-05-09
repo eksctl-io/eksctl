@@ -9,6 +9,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -148,5 +149,24 @@ func (t *deleteAddonIAMTask) Do(errorCh chan error) error {
 	if _, err := t.stackManager.DeleteStackBySpec(t.ctx, t.stack); err != nil {
 		return fmt.Errorf("%s: %w", errMsg, err)
 	}
+	return nil
+}
+
+func runAllTasks(taskTree *tasks.TaskTree) error {
+	logger.Debug(taskTree.Describe())
+	if errs := taskTree.DoAllSync(); len(errs) > 0 {
+		var allErrs []string
+		for _, err := range errs {
+			allErrs = append(allErrs, err.Error())
+		}
+		return fmt.Errorf(strings.Join(allErrs, "\n"))
+	}
+	completedAction := func() string {
+		if taskTree.PlanMode {
+			return "skipped"
+		}
+		return "completed successfully"
+	}
+	logger.Debug("all tasks were %s", completedAction())
 	return nil
 }
