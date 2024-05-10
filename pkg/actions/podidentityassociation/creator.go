@@ -38,10 +38,10 @@ func NewCreator(clusterName string, stackCreator StackCreator, eksAPI awsapi.EKS
 }
 
 func (c *Creator) CreatePodIdentityAssociations(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation) error {
-	return runAllTasks(c.CreateTasks(ctx, podIdentityAssociations))
+	return runAllTasks(c.CreateTasks(ctx, podIdentityAssociations, false))
 }
 
-func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation) *tasks.TaskTree {
+func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation, ignorePodIdentityExistsErr bool) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{
 		Parallel: true,
 	}
@@ -83,11 +83,12 @@ func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api
 			})
 		}
 		piaCreationTasks.Append(&createPodIdentityAssociationTask{
-			ctx:                    ctx,
-			info:                   fmt.Sprintf("create pod identity association for service account %q", pia.NameString()),
-			clusterName:            c.clusterName,
-			podIdentityAssociation: &pia,
-			eksAPI:                 c.eksAPI,
+			ctx:                        ctx,
+			info:                       fmt.Sprintf("create pod identity association for service account %q", pia.NameString()),
+			clusterName:                c.clusterName,
+			podIdentityAssociation:     &pia,
+			eksAPI:                     c.eksAPI,
+			ignorePodIdentityExistsErr: ignorePodIdentityExistsErr,
 		})
 		taskTree.Append(piaCreationTasks)
 	}

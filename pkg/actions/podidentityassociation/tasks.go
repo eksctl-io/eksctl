@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/kris-nova/logger"
 
@@ -23,11 +24,12 @@ import (
 )
 
 type createPodIdentityAssociationTask struct {
-	ctx                    context.Context
-	info                   string
-	clusterName            string
-	podIdentityAssociation *api.PodIdentityAssociation
-	eksAPI                 awsapi.EKS
+	ctx                        context.Context
+	info                       string
+	clusterName                string
+	podIdentityAssociation     *api.PodIdentityAssociation
+	eksAPI                     awsapi.EKS
+	ignorePodIdentityExistsErr bool
 }
 
 func (t *createPodIdentityAssociationTask) Describe() string {
@@ -44,6 +46,13 @@ func (t *createPodIdentityAssociationTask) Do(errorCh chan error) error {
 		ServiceAccount: &t.podIdentityAssociation.ServiceAccountName,
 		Tags:           t.podIdentityAssociation.Tags,
 	}); err != nil {
+		if t.ignorePodIdentityExistsErr {
+			var inUseErr *ekstypes.ResourceInUseException
+			if errors.As(err, &inUseErr) {
+				logger.Info("pod identity association %s already exists", t.podIdentityAssociation.NameString())
+				return nil
+			}
+		}
 		return fmt.Errorf(
 			"creating pod identity association for service account %q in namespace %q: %w",
 			t.podIdentityAssociation.ServiceAccountName, t.podIdentityAssociation.Namespace, err)
