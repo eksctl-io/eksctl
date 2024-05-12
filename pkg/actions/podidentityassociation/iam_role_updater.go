@@ -9,11 +9,12 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	"time"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"golang.org/x/exp/slices"
-	"time"
 )
 
 // IAMRoleUpdater updates IAM resources for pod identity associations.

@@ -189,6 +189,14 @@
           "description": "ARN of the permissions' boundary to associate",
           "x-intellij-html-description": "ARN of the permissions' boundary to associate"
         },
+        "podIdentityAssociations": {
+          "items": {
+            "$ref": "#/definitions/PodIdentityAssociation"
+          },
+          "type": "array",
+          "description": "holds a list of associations to be configured for the addon",
+          "x-intellij-html-description": "holds a list of associations to be configured for the addon"
+        },
         "publishers": {
           "items": {
             "type": "string"
@@ -237,6 +245,7 @@
         "wellKnownPolicies",
         "tags",
         "resolveConflicts",
+        "podIdentityAssociations",
         "configurationValues",
         "publishers",
         "types",
@@ -500,6 +509,12 @@
     },
     "ClusterIAM": {
       "properties": {
+        "autoCreatePodIdentityAssociations": {
+          "type": "boolean",
+          "description": "specifies whether or not to automatically create pod identity associations for supported addons that require IAM permissions",
+          "x-intellij-html-description": "specifies whether or not to automatically create pod identity associations for supported addons that require IAM permissions",
+          "default": "false"
+        },
         "fargatePodExecutionRoleARN": {
           "type": "string",
           "description": "role used by pods to access AWS APIs. This role is added to the Kubernetes RBAC for authorization. See [Pod Execution Role](https://docs.aws.amazon.com/eks/latest/userguide/pod-execution-role.html)",
@@ -553,6 +568,7 @@
         "fargatePodExecutionRolePermissionsBoundary",
         "withOIDC",
         "serviceAccounts",
+        "autoCreatePodIdentityAssociations",
         "podIdentityAssociations",
         "vpcResourceControllerPolicy"
       ],

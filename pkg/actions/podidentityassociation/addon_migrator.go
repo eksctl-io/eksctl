@@ -155,6 +155,9 @@ func (a *AddonMigrator) getRoleServiceAccount(ctx context.Context, roleName stri
 	role, err := a.IAMRoleGetter.GetRole(ctx, &iam.GetRoleInput{
 		RoleName: aws.String(roleName),
 	})
+	if err != nil {
+		return "", err
+	}
 	assumeRolePolicyDoc, err := url.PathUnescape(*role.Role.AssumeRolePolicyDocument)
 
 	if err != nil {

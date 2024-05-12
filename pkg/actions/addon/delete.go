@@ -31,17 +31,19 @@ func (a *Manager) Delete(ctx context.Context, addon *api.Addon) error {
 		logger.Info("deleted addon: %s", addon.Name)
 	}
 
-	deleteAddonIAMTasks, err := NewRemover(a.stackManager).DeleteAddonIAMTasksFiltered(ctx, addon.Name, true)
+	deleteAddonIAMTasks, err := NewRemover(a.stackManager).DeleteAddonIAMTasksFiltered(ctx, addon.Name, false)
 	if err != nil {
 		return err
 	}
 	if deleteAddonIAMTasks.Len() > 0 {
 		logger.Info("deleting associated IAM stack(s)")
-		runAllTasks(deleteAddonIAMTasks)
+		if err := runAllTasks(deleteAddonIAMTasks); err != nil {
+			return err
+		}
 	} else if addonExists {
 		logger.Info("no associated IAM stacks found")
 	} else {
-		return errors.New("could not find addon or associated IAM stacks to delete")
+		return errors.New("could not find addon or associated IAM stack(s) to delete")
 	}
 
 	return nil

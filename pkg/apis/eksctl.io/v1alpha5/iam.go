@@ -11,7 +11,7 @@ import (
 // Commonly-used constants
 const (
 	AnnotationEKSRoleARN = "eks.amazonaws.com/role-arn"
-	EKSServicePrincipal  = "beta.pods.eks.aws.internal"
+	EKSServicePrincipal  = "pods.eks.amazonaws.com"
 )
 
 var EKSServicePrincipalTrustStatement = IAMStatement{

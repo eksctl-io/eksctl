@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/kris-nova/logger"
 	"sigs.k8s.io/yaml"
 )
 
@@ -73,9 +74,9 @@ func (a Addon) Validate() error {
 		}
 	}
 
-	if a.HasIRSAPoliciesSet() {
+	if a.HasIRSASet() {
 		if a.HasPodIDsSet() {
-			return invalidAddonConfigErr("cannot set IRSA config (`addon.AttachPolicyARNs`, `addon.AttachPolicy`, `addon.WellKnownPolicies`) and pod identity associations at the same time")
+			return invalidAddonConfigErr("cannot set IRSA config (`addon.ServiceAccountRoleARN`, `addon.AttachPolicyARNs`, `addon.AttachPolicy`, `addon.WellKnownPolicies`) and pod identity associations at the same time")
 		}
 		if err := a.checkAtMostOnePolicyProviderIsSet(); err != nil {
 			return invalidAddonConfigErr(err.Error())
@@ -89,6 +90,9 @@ func (a Addon) Validate() error {
 
 		for i, pia := range *a.PodIdentityAssociations {
 			path := fmt.Sprintf("podIdentityAssociations[%d]", i)
+			if pia.Namespace != "" {
+				logger.Warning("setting %s.namespace has no effect, as EKS API is responsible for automatically resolving the K8s namespace when creating/updating an addon with pod identity associations")
+			}
 			if pia.ServiceAccountName == "" {
 				return invalidAddonConfigErr(fmt.Sprintf("%s.serviceAccountName must be set", path))
 			}
@@ -162,16 +166,7 @@ func (a Addon) HasIRSAPoliciesSet() bool {
 }
 
 func (a Addon) HasIRSASet() bool {
-	return a.ServiceAccountRoleARN != "" || a.HasIRSAPoliciesSet() || a.hasIRSARecommendedPolicies()
-}
-
-func (a Addon) hasIRSARecommendedPolicies() bool {
-	switch a.CanonicalName() {
-	case VPCCNIAddon, AWSEBSCSIDriverAddon, AWSEFSCSIDriverAddon:
-		return true
-	default:
-		return false
-	}
+	return a.ServiceAccountRoleARN != "" || a.HasIRSAPoliciesSet()
 }
 
 func (a Addon) HasPodIDsSet() bool {

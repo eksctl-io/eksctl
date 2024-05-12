@@ -200,6 +200,17 @@ func (in *Addon) DeepCopyInto(out *Addon) {
 			(*out)[key] = val
 		}
 	}
+	if in.PodIdentityAssociations != nil {
+		in, out := &in.PodIdentityAssociations, &out.PodIdentityAssociations
+		*out = new([]PodIdentityAssociation)
+		if **in != nil {
+			in, out := *in, *out
+			*out = make([]PodIdentityAssociation, len(*in))
+			for i := range *in {
+				(*in)[i].DeepCopyInto(&(*out)[i])
+			}
+		}
+	}
 	if in.Publishers != nil {
 		in, out := &in.Publishers, &out.Publishers
 		*out = make([]string, len(*in))

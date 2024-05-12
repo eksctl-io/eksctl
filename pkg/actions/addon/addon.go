@@ -105,7 +105,8 @@ func (a *Manager) getLatestMatchingVersion(ctx context.Context, addon *api.Addon
 	var versions []*version.Version
 	for _, addonVersionInfo := range addonInfos.Addons[0].AddonVersions {
 		// if not specified, will install default version
-		if addonVersion == "" && addonVersionInfo.Compatibilities[0].DefaultVersion {
+		if addonVersion == "" && len(addonVersionInfo.Compatibilities) > 0 &&
+			addonVersionInfo.Compatibilities[0].DefaultVersion {
 			return *addonVersionInfo.AddonVersion, addonVersionInfo.RequiresIamPermissions, nil
 		} else if addonVersion == "" {
 			continue
@@ -136,10 +137,6 @@ func (a *Manager) getLatestMatchingVersion(ctx context.Context, addon *api.Addon
 		}
 	}
 	return versions[0].Original(), requireIAMPermissions, nil
-}
-
-func (a *Manager) makeAddonIRSAName(name string) string {
-	return fmt.Sprintf("eksctl-%s-addon-%s-IRSA", a.clusterConfig.Metadata.Name, name)
 }
 
 func (a *Manager) makeAddonName(name string) string {

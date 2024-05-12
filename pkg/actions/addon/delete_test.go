@@ -9,13 +9,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
-	"github.com/aws/smithy-go"
 	"github.com/stretchr/testify/mock"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/addon/fakes"
@@ -51,16 +48,42 @@ var _ = Describe("Delete", func() {
 				ClusterName: aws.String("my-cluster"),
 			}).Return(&awseks.DeleteAddonOutput{}, nil)
 
-			fakeStackManager.DescribeStackReturns(&types.Stack{StackName: aws.String("eksctl-my-cluster-addon-my-addon")}, nil)
+			fakeStackManager.GetIAMAddonsStacksReturns([]*types.Stack{
+				{
+					StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
+					Tags:      []types.Tag{{Key: aws.String(api.AddonNameTag), Value: aws.String("my-addon")}},
+				},
+				{
+					StackName: aws.String("eksctl-my-cluster-addon-my-addon-podidentityrole-sa1"),
+					Tags:      []types.Tag{{Key: aws.String(api.AddonNameTag), Value: aws.String("my-addon")}},
+				},
+				{
+					StackName: aws.String("eksctl-my-cluster-addon-my-addon-podidentityrole-sa2"),
+					Tags:      []types.Tag{{Key: aws.String(api.AddonNameTag), Value: aws.String("my-addon")}},
+				},
+				{
+					StackName: aws.String("eksctl-my-cluster-addon-not-my-addon"),
+					Tags:      []types.Tag{{Key: aws.String(api.AddonNameTag), Value: aws.String("not-my-addon")}},
+				},
+			}, nil)
 
 			err := manager.Delete(context.Background(), &api.Addon{
 				Name: "my-addon",
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
-			_, stack := fakeStackManager.DeleteStackBySpecArgsForCall(0)
-			Expect(*stack.StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
+			Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(3))
+			stackNames := []string{}
+			for i := 0; i <= 2; i++ {
+				_, stack := fakeStackManager.DeleteStackBySpecArgsForCall(i)
+				stackNames = append(stackNames, *stack.StackName)
+
+			}
+			Expect(stackNames).To(ConsistOf(
+				"eksctl-my-cluster-addon-my-addon",
+				"eksctl-my-cluster-addon-my-addon-podidentityrole-sa1",
+				"eksctl-my-cluster-addon-my-addon-podidentityrole-sa2",
+			))
 		})
 
 		When("delete addon fails", func() {
@@ -78,20 +101,20 @@ var _ = Describe("Delete", func() {
 			})
 		})
 
-		When("list stacks fails", func() {
+		When("fetching stacks fails", func() {
 			It("only deletes the addon", func() {
 				mockProvider.MockEKS().On("DeleteAddon", mock.Anything, &awseks.DeleteAddonInput{
 					AddonName:   aws.String("my-addon"),
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, nil)
 
-				fakeStackManager.DescribeStackReturns(nil, fmt.Errorf("foo"))
+				fakeStackManager.GetIAMAddonsStacksReturns(nil, fmt.Errorf("foo"))
 
 				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
-				Expect(err).To(MatchError("failed to get stack: foo"))
+				Expect(err).To(MatchError(ContainSubstring("failed to fetch addons stacks")))
 			})
 		})
 
@@ -102,16 +125,19 @@ var _ = Describe("Delete", func() {
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, nil)
 
-				fakeStackManager.DeleteStackBySpecReturns(nil, fmt.Errorf("foo"))
-				fakeStackManager.DescribeStackReturns(&types.Stack{
-					StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
+				fakeStackManager.GetIAMAddonsStacksReturns([]*types.Stack{
+					{
+						StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
+						Tags:      []types.Tag{{Key: aws.String(api.AddonNameTag), Value: aws.String("my-addon")}},
+					},
 				}, nil)
+				fakeStackManager.DeleteStackBySpecReturns(nil, fmt.Errorf("foo"))
 
 				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
-				Expect(err).To(MatchError(`failed to delete cloudformation stack "eksctl-my-cluster-addon-my-addon": foo`))
+				Expect(err).To(MatchError(`deleting addon IAM "eksctl-my-cluster-addon-my-addon": foo`))
 				Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
 				_, stack := fakeStackManager.DeleteStackBySpecArgsForCall(0)
 				Expect(*stack.StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
@@ -125,9 +151,7 @@ var _ = Describe("Delete", func() {
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, nil)
 
-				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(&smithy.OperationError{
-					Err: fmt.Errorf("ValidationError"),
-				}, "nope"))
+				fakeStackManager.GetIAMAddonsStacksReturns([]*types.Stack{}, nil)
 
 				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
@@ -146,7 +170,11 @@ var _ = Describe("Delete", func() {
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, &ekstypes.ResourceNotFoundException{})
 
-				fakeStackManager.DescribeStackReturns(&types.Stack{StackName: aws.String("eksctl-my-cluster-addon-my-addon")}, nil)
+				fakeStackManager.GetIAMAddonsStacksReturns([]*types.Stack{
+					{
+						StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
+						Tags:      []types.Tag{{Key: aws.String(api.AddonNameTag), Value: aws.String("my-addon")}},
+					}}, nil)
 
 				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
@@ -167,14 +195,12 @@ var _ = Describe("Delete", func() {
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, &ekstypes.ResourceNotFoundException{})
 
-				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(&smithy.OperationError{
-					Err: fmt.Errorf("ValidationError"),
-				}, "nope"))
+				fakeStackManager.GetIAMAddonsStacksReturns([]*types.Stack{}, nil)
 				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
-				Expect(err).To(MatchError("could not find addon or associated IAM stack to delete"))
+				Expect(err).To(MatchError("could not find addon or associated IAM stack(s) to delete"))
 				Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(0))
 			})
 		})

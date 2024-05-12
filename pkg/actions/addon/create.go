@@ -24,7 +24,7 @@ import (
 
 var (
 	updateAddonRecommended = func(supportsPodIDs bool) string {
-		path := "`addon.AttachPolicyARNs`, `addon.AttachPolicy` or `addon.WellKnownPolicies`"
+		path := "`addon.ServiceAccountRoleARN`, `addon.AttachPolicyARNs`, `addon.AttachPolicy` or `addon.WellKnownPolicies`"
 		if supportsPodIDs {
 			path = "`addon.PodIdentityAssociations`"
 		}
@@ -81,19 +81,19 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 		ClusterName: &a.clusterConfig.Metadata.Name,
 	})
 	if err != nil && !errors.As(err, &notFoundErr) {
-		return err
+		return fmt.Errorf("failed to describe addon: %w", err)
 	}
 
 	// if the addon already exists AND it is not in CREATE_FAILED state
 	if err == nil && summary.Addon.Status != ekstypes.AddonStatusCreateFailed {
-		logger.Info("addon %s is already present on the cluster, as an EKS managed addon, skipping creation", addon.Name)
+		logger.Info("%q addon is already present on the cluster, as an EKS managed addon, skipping creation", addon.Name)
 		return nil
 	}
 
 	version, requiresIAMPermissions, err := a.getLatestMatchingVersion(ctx, addon)
 	addon.Version = version
 	if err != nil {
-		return fmt.Errorf("failed to fetch version %s for addon %s: %w", version, addon.Name, err)
+		return err
 	}
 	var configurationValues *string
 	if addon.ConfigurationValues != "" {
@@ -123,31 +123,60 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 		createAddonInput.Tags = addon.Tags
 	}
 
-	podIDConfig, supportsPodIDs, err := a.getRecommendedPoliciesForPodID(ctx, addon)
-	if err != nil {
-		return err
-	}
-
 	if requiresIAMPermissions {
+		podIDConfig, supportsPodIDs, err := a.getRecommendedPoliciesForPodID(ctx, addon)
+		if err != nil {
+			return err
+		}
+
 		switch {
+		// firstly, check if the user has specifically defined pod identity associations
 		case addon.HasPodIDsSet():
 			if !supportsPodIDs {
-				return fmt.Errorf("%q addon does not support pod identity associations; use IRSA instead", addon.Name)
+				return fmt.Errorf("%q addon does not support pod identity associations; use IRSA config (`addon.ServiceAccountRoleARN`, `addon.AttachPolicyARNs`, `addon.AttachPolicy` or `addon.WellKnownPolicies`) instead", addon.Name)
 			}
-			logger.Info("pod identity associations were specified for %q addon; will use those to provide required IAM permissions, any IRSA settings will be ignored", addon.Name)
+			logger.Info("pod identity associations are set for %q addon; will use these to configure required IAM permissions", addon.Name)
 			for _, pia := range *addon.PodIdentityAssociations {
-				roleARN, err := iamRoleCreator.Create(ctx, &pia, addon.Name)
-				if err != nil {
-					return err
+				roleARN := pia.RoleARN
+				if roleARN == "" {
+					if roleARN, err = iamRoleCreator.Create(ctx, &pia, addon.Name); err != nil {
+						return err
+					}
 				}
 				createAddonInput.PodIdentityAssociations = append(createAddonInput.PodIdentityAssociations, ekstypes.AddonPodIdentityAssociations{
-					RoleArn:        &roleARN,
-					ServiceAccount: &pia.ServiceAccountName,
+					RoleArn:        aws.String(roleARN),
+					ServiceAccount: aws.String(pia.ServiceAccountName),
 				})
 			}
 
+		// afterwards, check if the user has specifically defined IRSA config
+		case addon.HasIRSASet():
+			if !a.withOIDC {
+				logger.Warning(OIDCDisabledWarning(addon.Name, supportsPodIDs, true))
+				break
+			}
+			logger.Info("IRSA is set for %q addon; will use this to configure IAM permissions", addon.Name)
+			if supportsPodIDs {
+				logger.Warning(IRSADeprecatedWarning(addon.Name))
+			}
+
+			if addon.ServiceAccountRoleARN != "" {
+				logger.Info("using provided ServiceAccountRoleARN %q", addon.ServiceAccountRoleARN)
+				createAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
+				break
+			}
+
+			logger.Info("creating role using provided policies for %q addon", addon.Name)
+			namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
+			roleARN, err := a.createRoleForIRSA(ctx, addon, namespace, serviceAccount)
+			if err != nil {
+				return err
+			}
+			createAddonInput.ServiceAccountRoleArn = &roleARN
+
+		// if neither podIDs nor IRSA are set explicitly, then check if podIDs should be created automatically
 		case a.clusterConfig.IAM.AutoCreatePodIdentityAssociations && supportsPodIDs:
-			logger.Info("\"iam.AutoCreatePodIdentityAssociations\" is set to true; will use recommended policies for %q addon, any IRSA settings will be ignored", addon.Name)
+			logger.Info("\"iam.AutoCreatePodIdentityAssociations\" is set to true; will lookup recommended pod identity configuration for %q addon", addon.Name)
 
 			if addon.CanonicalName() == api.VPCCNIAddon && a.clusterConfig.IPv6Enabled() {
 				roleARN, err := iamRoleCreator.Create(ctx, &api.PodIdentityAssociation{
@@ -178,30 +207,17 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 				})
 			}
 
-		case addon.HasIRSASet():
+		// if podIDs are not supported, check for any recommended IRSA policies
+		case a.setRecommendedPoliciesForIRSA(addon):
 			if !a.withOIDC {
-				logger.Warning(OIDCDisabledWarning(addon.Name, supportsPodIDs,
-					/* isIRSASetExplicitly */ addon.ServiceAccountRoleARN != "" || addon.HasIRSAPoliciesSet()))
+				logger.Warning(OIDCDisabledWarning(addon.Name, supportsPodIDs, false))
 				break
 			}
-
 			if supportsPodIDs {
 				logger.Warning(IRSADeprecatedWarning(addon.Name))
 			}
 
-			if addon.ServiceAccountRoleARN != "" {
-				logger.Info("using provided ServiceAccountRoleARN %q", addon.ServiceAccountRoleARN)
-				createAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
-				break
-			}
-
-			if !addon.HasIRSAPoliciesSet() {
-				a.setRecommendedPoliciesForIRSA(addon)
-				logger.Info("creating role using recommended policies for %q addon", addon.Name)
-			} else {
-				logger.Info("creating role using provided policies for %q addon", addon.Name)
-			}
-
+			logger.Info("creating role using recommended policies for %q addon", addon.Name)
 			namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 			roleARN, err := a.createRoleForIRSA(ctx, addon, namespace, serviceAccount)
 			if err != nil {
@@ -246,12 +262,12 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 				}
 			}()
 			var addonServiceAccounts []string
-			for _, config := range podIDConfig {
-				addonServiceAccounts = append(addonServiceAccounts, fmt.Sprintf("%q", *config.ServiceAccount))
+			for _, pia := range createAddonInput.PodIdentityAssociations {
+				addonServiceAccounts = append(addonServiceAccounts, fmt.Sprintf("%q", *pia.ServiceAccount))
 			}
 			return fmt.Errorf("creating addon: one or more service accounts corresponding to %q addon is already associated with a different IAM role; please delete all pre-existing pod identity associations corresponding to %s service account(s) in the addon's namespace, then re-try creating the addon", addon.Name, strings.Join(addonServiceAccounts, ","))
 		}
-		return errors.Wrapf(err, "failed to create addon %q", addon.Name)
+		return fmt.Errorf("failed to create %q addon: %w", addon.Name, err)
 	}
 
 	if output != nil {
@@ -383,18 +399,19 @@ func (a *Manager) getRecommendedPoliciesForPodID(ctx context.Context, addon *api
 		AddonVersion: &addon.Version,
 	})
 	if err != nil {
-		return nil, false, fmt.Errorf("describing configuration for addon %s: %w", addon.Name, err)
+		return nil, false, fmt.Errorf("failed to describe configuration for %q addon: %w", addon.Name, err)
 	}
 	return output.PodIdentityConfiguration, len(output.PodIdentityConfiguration) != 0, nil
 }
 
-func (a *Manager) setRecommendedPoliciesForIRSA(addon *api.Addon) {
+func (a *Manager) setRecommendedPoliciesForIRSA(addon *api.Addon) bool {
 	switch addon.CanonicalName() {
 	case api.VPCCNIAddon:
 		if a.clusterConfig.IPv6Enabled() {
 			addon.AttachPolicy = makeIPv6VPCCNIPolicyDocument(api.Partitions.ForRegion(a.clusterConfig.Metadata.Region))
+		} else {
+			addon.AttachPolicyARNs = append(addon.AttachPolicyARNs, fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partitions.ForRegion(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy))
 		}
-		addon.AttachPolicyARNs = append(addon.AttachPolicyARNs, fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partitions.ForRegion(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy))
 	case api.AWSEBSCSIDriverAddon:
 		addon.WellKnownPolicies = api.WellKnownPolicies{
 			EBSCSIController: true,
@@ -404,8 +421,9 @@ func (a *Manager) setRecommendedPoliciesForIRSA(addon *api.Addon) {
 			EFSCSIController: true,
 		}
 	default:
-		return
+		return false
 	}
+	return true
 }
 
 func (a *Manager) createRoleForIRSA(ctx context.Context, addon *api.Addon, namespace, serviceAccount string) (string, error) {
@@ -414,7 +432,7 @@ func (a *Manager) createRoleForIRSA(ctx context.Context, addon *api.Addon, names
 		return "", err
 	}
 	if err := a.createStack(ctx, resourceSet, addon.Name,
-		a.makeAddonIRSAName(addon.Name)); err != nil {
+		a.makeAddonName(addon.Name)); err != nil {
 		return "", err
 	}
 	return resourceSet.OutputRole, nil
