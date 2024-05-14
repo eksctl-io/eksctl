@@ -109,10 +109,19 @@ var _ = Describe("Addon", func() {
 				},
 				expectedErr: "cannot set pod identity associtations for \"eks-pod-identity-agent\" addon",
 			}),
-			Entry("service account name is not set", addonWithPodIDEntry{
+			Entry("namespace is not set", addonWithPodIDEntry{
 				addon: api.Addon{
 					Name:                    "name",
 					PodIdentityAssociations: &[]api.PodIdentityAssociation{{}},
+				},
+				expectedErr: "podIdentityAssociations[0].namespace must be set",
+			}),
+			Entry("service account name is not set", addonWithPodIDEntry{
+				addon: api.Addon{
+					Name: "name",
+					PodIdentityAssociations: &[]api.PodIdentityAssociation{{
+						Namespace: "kube-system",
+					}},
 				},
 				expectedErr: "podIdentityAssociations[0].serviceAccountName must be set",
 			}),
@@ -121,6 +130,7 @@ var _ = Describe("Addon", func() {
 					Name: "name",
 					PodIdentityAssociations: &[]api.PodIdentityAssociation{
 						{
+							Namespace:          "kube-system",
 							ServiceAccountName: "aws-node",
 						},
 					},
@@ -132,6 +142,7 @@ var _ = Describe("Addon", func() {
 					Name: "name",
 					PodIdentityAssociations: &[]api.PodIdentityAssociation{
 						{
+							Namespace:          "kube-system",
 							ServiceAccountName: "aws-node",
 							RoleARN:            "arn:aws:iam::111122223333:role/role-name-1",
 							PermissionPolicy: api.InlineDocument{
@@ -157,6 +168,7 @@ var _ = Describe("Addon", func() {
 					Name: "name",
 					PodIdentityAssociations: &[]api.PodIdentityAssociation{
 						{
+							Namespace:            "kube-system",
 							ServiceAccountName:   "aws-node",
 							RoleARN:              "arn:aws:iam::111122223333:role/role-name-1",
 							PermissionPolicyARNs: []string{"arn:aws:iam::111122223333:policy/policy-name-1"},
@@ -170,6 +182,7 @@ var _ = Describe("Addon", func() {
 					Name: "name",
 					PodIdentityAssociations: &[]api.PodIdentityAssociation{
 						{
+							Namespace:          "kube-system",
 							ServiceAccountName: "aws-node",
 							RoleARN:            "arn:aws:iam::111122223333:role/role-name-1",
 							WellKnownPolicies: api.WellKnownPolicies{
@@ -186,6 +199,7 @@ var _ = Describe("Addon", func() {
 					ServiceAccountRoleARN: "arn:aws:iam::111122223333:role/role-name-1",
 					PodIdentityAssociations: &[]api.PodIdentityAssociation{
 						{
+							Namespace:          "kube-system",
 							ServiceAccountName: "aws-node",
 							RoleARN:            "arn:aws:iam::111122223333:role/role-name-1",
 						},
@@ -199,6 +213,7 @@ var _ = Describe("Addon", func() {
 					AttachPolicyARNs: []string{"arn:aws:iam::111122223333:policy/policy-name-1"},
 					PodIdentityAssociations: &[]api.PodIdentityAssociation{
 						{
+							Namespace:          "kube-system",
 							ServiceAccountName: "aws-node",
 							RoleARN:            "arn:aws:iam::111122223333:role/role-name-1",
 						},
@@ -224,6 +239,7 @@ var _ = Describe("Addon", func() {
 					},
 					PodIdentityAssociations: &[]api.PodIdentityAssociation{
 						{
+							Namespace:          "kube-system",
 							ServiceAccountName: "aws-node",
 							RoleARN:            "arn:aws:iam::111122223333:role/role-name-1",
 						},
@@ -239,6 +255,7 @@ var _ = Describe("Addon", func() {
 					},
 					PodIdentityAssociations: &[]api.PodIdentityAssociation{
 						{
+							Namespace:          "kube-system",
 							ServiceAccountName: "aws-node",
 							RoleARN:            "arn:aws:iam::111122223333:role/role-name-1",
 						},

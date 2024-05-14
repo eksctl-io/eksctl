@@ -303,6 +303,12 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			}
 		}
 
+		for _, addon := range clusterConfig.Addons {
+			if err := addon.Validate(); err != nil {
+				return err
+			}
+		}
+
 		shallCreatePodIdentityAssociations := func(cfg *api.ClusterConfig) bool {
 			if cfg.IAM != nil && len(cfg.IAM.PodIdentityAssociations) > 0 {
 				return true

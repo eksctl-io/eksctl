@@ -3,6 +3,7 @@ package update
 import (
 	"context"
 	"fmt"
+
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"github.com/kris-nova/logger"

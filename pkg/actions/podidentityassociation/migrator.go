@@ -27,9 +27,8 @@ type AddonCreator interface {
 
 type PodIdentityMigrationOptions struct {
 	RemoveOIDCProviderTrustRelationship bool
-	// SkipAgentInstallation               bool
-	Approve bool
-	Timeout time.Duration
+	Approve                             bool
+	Timeout                             time.Duration
 }
 
 type Migrator struct {

@@ -1,5 +1,8 @@
 # IAM Roles for Service Accounts
 
+!!! tip "check out newer, improved feature"
+    `eksctl` supports configuring fine-grained permissions to EKS running apps via [EKS Pod Identity Associations](/usage/pod-identity-associations)
+
 ## Introduction
 
 Amazon EKS supports [IAM Roles for Service Accounts (IRSA)][eks-user-guide] that allows cluster operators to map AWS IAM Roles to Kubernetes Service Accounts.

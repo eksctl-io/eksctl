@@ -18,15 +18,12 @@ func migrateToPodIdentityCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	cmd.SetDescription("migrate-to-pod-identity", "Updates the authentication mode for a cluster", "")
+	cmd.SetDescription("migrate-to-pod-identity", "Migrates all IRSA related config for a cluster to an equivalent pod identity associations config", "")
 
 	var options podidentityassociation.PodIdentityMigrationOptions
 	cmd.FlagSetGroup.InFlagSet("Authentication mode", func(fs *pflag.FlagSet) {
 		fs.BoolVar(&options.RemoveOIDCProviderTrustRelationship, "remove-oidc-provider-trust-relationship", false, "Remove existing IRSAv1 OIDC provided entities")
 		fs.BoolVar(&options.Approve, "approve", false, "Apply the changes")
-
-		// fs.BoolVar(&options.SkipAgentInstallation, "skip-agent-installation", false, "Skip installing pod-identity-agent addon")
-		// cmdutils.AddIAMServiceAccountFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {

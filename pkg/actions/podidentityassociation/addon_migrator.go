@@ -81,7 +81,7 @@ func (a *AddonMigrator) migrateAddon(ctx context.Context, addon *ekstypes.Addon,
 		return nil, nil
 	}
 
-	logger.Info("migrating addon %s with service account %s to pod identity; OIDC provider trust relationship will also be removed", *addon.AddonName, *addon.ServiceAccountRoleArn)
+	logger.Info("migrating addon %s with serviceAccountRoleARN %s to pod identity; OIDC provider trust relationship will also be removed", *addon.AddonName, *addon.ServiceAccountRoleArn)
 	roleName, err := api.RoleNameFromARN(serviceAccountRoleARN)
 	if err != nil {
 		return nil, fmt.Errorf("parsing role ARN %s: %w", serviceAccountRoleARN, err)

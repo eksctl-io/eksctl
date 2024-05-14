@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/kris-nova/logger"
 	"sigs.k8s.io/yaml"
 )
 
@@ -90,8 +89,8 @@ func (a Addon) Validate() error {
 
 		for i, pia := range *a.PodIdentityAssociations {
 			path := fmt.Sprintf("podIdentityAssociations[%d]", i)
-			if pia.Namespace != "" {
-				logger.Warning("setting %s.namespace has no effect, as EKS API is responsible for automatically resolving the K8s namespace when creating/updating an addon with pod identity associations")
+			if pia.Namespace == "" {
+				return invalidAddonConfigErr(fmt.Sprintf("%s.namespace must be set", path))
 			}
 			if pia.ServiceAccountName == "" {
 				return invalidAddonConfigErr(fmt.Sprintf("%s.serviceAccountName must be set", path))

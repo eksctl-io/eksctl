@@ -1,6 +1,8 @@
 # Getting started
 
 !!! tip "New for 2024"
+    EKS Add-ons now support receiving IAM permissions via [EKS Pod Identity Associations](/usage/pod-identity-associations/#eks-add-ons-support-for-pod-identity-associations)
+    
     `eksctl` now supports AMIs based on AmazonLinux2023
 
 !!! tip "eksctl main features in 2023"
