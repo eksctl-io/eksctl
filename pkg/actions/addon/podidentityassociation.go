@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
+	"github.com/kris-nova/logger"
+
 	"github.com/weaveworks/eksctl/pkg/actions/podidentityassociation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -49,7 +51,6 @@ func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdent
 		roleARN := pia.RoleARN
 		switch len(output.Associations) {
 		default:
-			// TODO: does the API return a not found error if no association exists?
 			return nil, fmt.Errorf("expected to find exactly 1 pod identity association for %s; got %d", pia.NameString(), len(output.Associations))
 		case 0:
 			// Create IAM resources.
@@ -57,6 +58,16 @@ func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdent
 				var err error
 				if roleARN, err = p.IAMRoleCreator.Create(ctx, &pia, addonName); err != nil {
 					return nil, err
+				}
+				stack, err := p.getStack(ctx, manager.MakeAddonStackName(p.ClusterName, addonName), pia.ServiceAccountName)
+				if err != nil {
+					return nil, fmt.Errorf("getting old IRSA stack for addon %s: %w", addonName, err)
+				}
+				if stack != nil {
+					logger.Info("deleting old IRSA stack for addon %s", addonName)
+					if err := p.deleteStack(ctx, stack); err != nil {
+						return nil, fmt.Errorf("deleting old IRSA stack for addon %s: %w", addonName, err)
+					}
 				}
 			}
 		case 1:
@@ -68,26 +79,21 @@ func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdent
 			if err != nil {
 				return nil, err
 			}
-			stackName := podidentityassociation.MakeAddonPodIdentityStackName(p.ClusterName, addonName, pia.ServiceAccountName)
-			hasStack := true
-			if _, err := p.StackDeleter.DescribeStack(ctx, &manager.Stack{
-				StackName: aws.String(stackName),
-			}); err != nil {
-				if !manager.IsStackDoesNotExistError(err) {
-					return nil, fmt.Errorf("describing IAM resources stack for pod identity association %s: %w", pia.NameString(), err)
-				}
-				hasStack = false
+			stack, err := p.getAddonStack(ctx, addonName, pia.ServiceAccountName)
+			if err != nil {
+				return nil, fmt.Errorf("getting IAM resources stack for addon %s with pod identity association %s: %w", addonName, pia.NameString(), err)
 			}
 
 			roleValidator := &podidentityassociation.RoleUpdateValidator{
 				StackDescriber: p.StackDeleter,
 			}
+			hasStack := stack != nil
 			if err := roleValidator.ValidateRoleUpdate(pia, *output.Association, hasStack); err != nil {
 				return nil, err
 			}
 			if hasStack {
 				// TODO: if no pod identity has changed, skip update.
-				newRoleARN, hasChanged, err := p.IAMRoleUpdater.Update(ctx, pia, stackName, *output.Association.AssociationId)
+				newRoleARN, hasChanged, err := p.IAMRoleUpdater.Update(ctx, pia, *stack.StackName, *output.Association.AssociationId)
 				if err != nil {
 					return nil, err
 				}
@@ -106,28 +112,56 @@ func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdent
 	return addonPodIdentityAssociations, nil
 }
 
-func (p *PodIdentityAssociationUpdater) DeleteRole(ctx context.Context, addonName, serviceAccountName string) (bool, error) {
-	stack, err := p.StackDeleter.DescribeStack(ctx, &manager.Stack{
-		StackName: aws.String(podidentityassociation.MakeAddonPodIdentityStackName(p.ClusterName, addonName, serviceAccountName)),
-	})
-	if err != nil {
-		if manager.IsStackDoesNotExistError(err) {
-			return false, nil
+func (p *PodIdentityAssociationUpdater) getAddonStack(ctx context.Context, addonName, serviceAccount string) (*manager.Stack, error) {
+	for _, stackName := range []string{podidentityassociation.MakeAddonPodIdentityStackName(p.ClusterName, addonName, serviceAccount),
+		manager.MakeAddonStackName(p.ClusterName, addonName)} {
+		stack, err := p.getStack(ctx, stackName, serviceAccount)
+		if err != nil {
+			return nil, err
 		}
-		return false, fmt.Errorf("describing IAM resources stack for addon %s: %w", addonName, err)
+		if stack != nil {
+			return stack, nil
+		}
 	}
+	return nil, nil
+}
 
+func (p *PodIdentityAssociationUpdater) getStack(ctx context.Context, stackName, serviceAccount string) (*manager.Stack, error) {
+	switch stack, err := p.StackDeleter.DescribeStack(ctx, &manager.Stack{
+		StackName: aws.String(stackName),
+	}); {
+	case err == nil:
+		return stack, nil
+	case manager.IsStackDoesNotExistError(err):
+		return nil, nil
+	default:
+		return nil, fmt.Errorf("describing IAM resources stack for service account %s: %w", serviceAccount, err)
+	}
+}
+
+func (p *PodIdentityAssociationUpdater) DeleteRole(ctx context.Context, addonName, serviceAccountName string) (bool, error) {
+	stack, err := p.getAddonStack(ctx, addonName, serviceAccountName)
+	if err != nil {
+		return false, fmt.Errorf("getting IAM resources stack for addon %s with service account %s: %w", addonName, serviceAccountName, err)
+	}
+	if err := p.deleteStack(ctx, stack); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (p *PodIdentityAssociationUpdater) deleteStack(ctx context.Context, stack *manager.Stack) error {
 	errCh := make(chan error)
 	if err := p.StackDeleter.DeleteStackBySpecSync(ctx, stack, errCh); err != nil {
-		return false, fmt.Errorf("deleting stack %s: %w", *stack.StackName, err)
+		return fmt.Errorf("deleting stack %s: %w", *stack.StackName, err)
 	}
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return false, fmt.Errorf("deleting stack %s: %w", *stack.StackName, err)
+			return fmt.Errorf("deleting stack %s: %w", *stack.StackName, err)
 		}
-		return true, nil
+		return nil
 	case <-ctx.Done():
-		return false, fmt.Errorf("timed out waiting for deletion of stack %s: %w", *stack.StackName, ctx.Err())
+		return fmt.Errorf("timed out waiting for deletion of stack %s: %w", *stack.StackName, ctx.Err())
 	}
 }

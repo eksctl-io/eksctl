@@ -45,7 +45,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 
 	logger.Debug("resolve conflicts set to %s", updateAddonInput.ResolveConflicts)
 
-	summary, err := a.Get(ctx, addon, true)
+	summary, err := a.Get(ctx, addon)
 	if err != nil {
 		return err
 	}
@@ -72,8 +72,10 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 	var deleteServiceAccountIAMResources []string
 	if len(summary.PodIdentityAssociations) > 0 {
 		if addon.PodIdentityAssociations == nil {
-			return fmt.Errorf("addon %s has pod identity associations; to remove pod identity associations from an addon, "+
-				"addon.podIdentityAssociations must be explicitly set to []", addon.Name)
+			return fmt.Errorf("addon %s has pod identity associations, to remove pod identity associations from an addon, "+
+				"addon.podIdentityAssociations must be explicitly set to []; if the addon was migrated to use pod identity, "+
+				"addon.podIdentityAssociations must be set to values obtained from `aws eks describe-pod-identity-association --cluster-name=%s --association-id=%s`",
+				addon.Name, a.clusterConfig.Metadata.Name, summary.PodIdentityAssociations[0].AssociationID)
 		}
 		for _, pia := range summary.PodIdentityAssociations {
 			if !slices.ContainsFunc(*addon.PodIdentityAssociations, func(addonPodIdentity api.PodIdentityAssociation) bool {
@@ -82,7 +84,9 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 				deleteServiceAccountIAMResources = append(deleteServiceAccountIAMResources, pia.ServiceAccount)
 			}
 		}
-		updateAddonInput.PodIdentityAssociations = []ekstypes.AddonPodIdentityAssociations{}
+		if len(deleteServiceAccountIAMResources) == 0 {
+			updateAddonInput.PodIdentityAssociations = []ekstypes.AddonPodIdentityAssociations{}
+		}
 	}
 
 	if addon.HasPodIDsSet() {

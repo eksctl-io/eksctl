@@ -17,6 +17,14 @@ type StackDeleter struct {
 	mock.Mock
 }
 
+type StackDeleter_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *StackDeleter) EXPECT() *StackDeleter_Expecter {
+	return &StackDeleter_Expecter{mock: &_m.Mock}
+}
+
 // DeleteStackBySpecSync provides a mock function with given fields: ctx, stack, errCh
 func (_m *StackDeleter) DeleteStackBySpecSync(ctx context.Context, stack *types.Stack, errCh chan error) error {
 	ret := _m.Called(ctx, stack, errCh)
@@ -33,6 +41,36 @@ func (_m *StackDeleter) DeleteStackBySpecSync(ctx context.Context, stack *types.
 	}
 
 	return r0
+}
+
+// StackDeleter_DeleteStackBySpecSync_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteStackBySpecSync'
+type StackDeleter_DeleteStackBySpecSync_Call struct {
+	*mock.Call
+}
+
+// DeleteStackBySpecSync is a helper method to define mock.On call
+//   - ctx context.Context
+//   - stack *types.Stack
+//   - errCh chan error
+func (_e *StackDeleter_Expecter) DeleteStackBySpecSync(ctx interface{}, stack interface{}, errCh interface{}) *StackDeleter_DeleteStackBySpecSync_Call {
+	return &StackDeleter_DeleteStackBySpecSync_Call{Call: _e.mock.On("DeleteStackBySpecSync", ctx, stack, errCh)}
+}
+
+func (_c *StackDeleter_DeleteStackBySpecSync_Call) Run(run func(ctx context.Context, stack *types.Stack, errCh chan error)) *StackDeleter_DeleteStackBySpecSync_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*types.Stack), args[2].(chan error))
+	})
+	return _c
+}
+
+func (_c *StackDeleter_DeleteStackBySpecSync_Call) Return(_a0 error) *StackDeleter_DeleteStackBySpecSync_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *StackDeleter_DeleteStackBySpecSync_Call) RunAndReturn(run func(context.Context, *types.Stack, chan error) error) *StackDeleter_DeleteStackBySpecSync_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeStack provides a mock function with given fields: ctx, stack
@@ -65,6 +103,35 @@ func (_m *StackDeleter) DescribeStack(ctx context.Context, stack *types.Stack) (
 	return r0, r1
 }
 
+// StackDeleter_DescribeStack_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeStack'
+type StackDeleter_DescribeStack_Call struct {
+	*mock.Call
+}
+
+// DescribeStack is a helper method to define mock.On call
+//   - ctx context.Context
+//   - stack *types.Stack
+func (_e *StackDeleter_Expecter) DescribeStack(ctx interface{}, stack interface{}) *StackDeleter_DescribeStack_Call {
+	return &StackDeleter_DescribeStack_Call{Call: _e.mock.On("DescribeStack", ctx, stack)}
+}
+
+func (_c *StackDeleter_DescribeStack_Call) Run(run func(ctx context.Context, stack *types.Stack)) *StackDeleter_DescribeStack_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*types.Stack))
+	})
+	return _c
+}
+
+func (_c *StackDeleter_DescribeStack_Call) Return(_a0 *types.Stack, _a1 error) *StackDeleter_DescribeStack_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *StackDeleter_DescribeStack_Call) RunAndReturn(run func(context.Context, *types.Stack) (*types.Stack, error)) *StackDeleter_DescribeStack_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetIAMServiceAccounts provides a mock function with given fields: ctx
 func (_m *StackDeleter) GetIAMServiceAccounts(ctx context.Context) ([]*v1alpha5.ClusterIAMServiceAccount, error) {
 	ret := _m.Called(ctx)
@@ -95,6 +162,34 @@ func (_m *StackDeleter) GetIAMServiceAccounts(ctx context.Context) ([]*v1alpha5.
 	return r0, r1
 }
 
+// StackDeleter_GetIAMServiceAccounts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetIAMServiceAccounts'
+type StackDeleter_GetIAMServiceAccounts_Call struct {
+	*mock.Call
+}
+
+// GetIAMServiceAccounts is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *StackDeleter_Expecter) GetIAMServiceAccounts(ctx interface{}) *StackDeleter_GetIAMServiceAccounts_Call {
+	return &StackDeleter_GetIAMServiceAccounts_Call{Call: _e.mock.On("GetIAMServiceAccounts", ctx)}
+}
+
+func (_c *StackDeleter_GetIAMServiceAccounts_Call) Run(run func(ctx context.Context)) *StackDeleter_GetIAMServiceAccounts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *StackDeleter_GetIAMServiceAccounts_Call) Return(_a0 []*v1alpha5.ClusterIAMServiceAccount, _a1 error) *StackDeleter_GetIAMServiceAccounts_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *StackDeleter_GetIAMServiceAccounts_Call) RunAndReturn(run func(context.Context) ([]*v1alpha5.ClusterIAMServiceAccount, error)) *StackDeleter_GetIAMServiceAccounts_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListPodIdentityStackNames provides a mock function with given fields: ctx
 func (_m *StackDeleter) ListPodIdentityStackNames(ctx context.Context) ([]string, error) {
 	ret := _m.Called(ctx)
@@ -123,6 +218,34 @@ func (_m *StackDeleter) ListPodIdentityStackNames(ctx context.Context) ([]string
 	}
 
 	return r0, r1
+}
+
+// StackDeleter_ListPodIdentityStackNames_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPodIdentityStackNames'
+type StackDeleter_ListPodIdentityStackNames_Call struct {
+	*mock.Call
+}
+
+// ListPodIdentityStackNames is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *StackDeleter_Expecter) ListPodIdentityStackNames(ctx interface{}) *StackDeleter_ListPodIdentityStackNames_Call {
+	return &StackDeleter_ListPodIdentityStackNames_Call{Call: _e.mock.On("ListPodIdentityStackNames", ctx)}
+}
+
+func (_c *StackDeleter_ListPodIdentityStackNames_Call) Run(run func(ctx context.Context)) *StackDeleter_ListPodIdentityStackNames_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *StackDeleter_ListPodIdentityStackNames_Call) Return(_a0 []string, _a1 error) *StackDeleter_ListPodIdentityStackNames_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *StackDeleter_ListPodIdentityStackNames_Call) RunAndReturn(run func(context.Context) ([]string, error)) *StackDeleter_ListPodIdentityStackNames_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewStackDeleter creates a new instance of StackDeleter. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

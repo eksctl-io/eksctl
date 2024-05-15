@@ -86,12 +86,12 @@ func getAddon(cmd *cmdutils.Cmd, a *api.Addon, params *getCmdParams) error {
 
 	var summaries []addon.Summary
 	if a.Name == "" {
-		summaries, err = addonManager.GetAll(ctx, true)
+		summaries, err = addonManager.GetAll(ctx)
 		if err != nil {
 			return err
 		}
 	} else {
-		summary, err := addonManager.Get(ctx, a, true)
+		summary, err := addonManager.Get(ctx, a)
 		if err != nil {
 			return err
 		}

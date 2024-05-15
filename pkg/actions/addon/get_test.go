@@ -34,7 +34,7 @@ var _ = Describe("Get", func() {
 	})
 
 	Describe("Get", func() {
-		mockDescribeAddon := func(podIdentityAssociations ...string) {
+		mockDescribeAddon := func(podIdentityAssociationIDs ...string) {
 			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 				Expect(args).To(HaveLen(2))
 				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
@@ -71,7 +71,7 @@ var _ = Describe("Get", func() {
 					AddonVersion:            aws.String("v1.1.0-eksbuild.1"),
 					ServiceAccountRoleArn:   aws.String("foo"),
 					Status:                  "created",
-					PodIdentityAssociations: podIdentityAssociations,
+					PodIdentityAssociations: podIdentityAssociationIDs,
 					Health: &ekstypes.AddonHealth{
 						Issues: []ekstypes.AddonIssue{
 							{
@@ -83,12 +83,23 @@ var _ = Describe("Get", func() {
 					},
 				},
 			}, nil)
+			if len(podIdentityAssociationIDs) > 0 {
+				for _, piaID := range podIdentityAssociationIDs {
+					mockProvider.MockEKS().On("DescribePodIdentityAssociation", mock.Anything, &awseks.DescribePodIdentityAssociationInput{
+						AssociationId: aws.String(piaID),
+					}).Return(&awseks.DescribePodIdentityAssociationOutput{
+						Association: &ekstypes.PodIdentityAssociation{
+							AssociationId: aws.String(piaID),
+						},
+					}, nil).Once()
+				}
+			}
 		}
 		It("returns an addon", func() {
 			mockDescribeAddon()
 			summary, err := manager.Get(context.Background(), &api.Addon{
 				Name: "my-addon",
-			}, false)
+			})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(summary).To(Equal(addon.Summary{
 				Name:         "my-addon",
@@ -119,11 +130,12 @@ var _ = Describe("Get", func() {
 					RoleArn:        aws.String("role-1"),
 					ServiceAccount: aws.String("default"),
 					Namespace:      aws.String("default"),
+					AssociationId:  aws.String("a-1"),
 				},
 			}, nil)
 			summary, err := manager.Get(context.Background(), &api.Addon{
 				Name: "my-addon",
-			}, true)
+			})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(summary).To(Equal(addon.Summary{
 				Name:         "my-addon",
@@ -143,6 +155,7 @@ var _ = Describe("Get", func() {
 						Namespace:      "default",
 						ServiceAccount: "default",
 						RoleARN:        "role-1",
+						AssociationID:  "a-1",
 					},
 				},
 			}))
@@ -158,7 +171,7 @@ var _ = Describe("Get", func() {
 
 				_, err := manager.Get(context.Background(), &api.Addon{
 					Name: "my-addon",
-				}, false)
+				})
 				Expect(err).To(MatchError(`failed to get addon "my-addon": foo`))
 				Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
 				Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
@@ -217,7 +230,7 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			summary, err := manager.GetAll(context.Background(), false)
+			summary, err := manager.GetAll(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(summary).To(Equal([]addon.Summary{
 				{
@@ -251,7 +264,7 @@ var _ = Describe("Get", func() {
 					describeAddonInput = args[1].(*awseks.DescribeAddonInput)
 				}).Return(nil, fmt.Errorf("foo"))
 
-				_, err := manager.GetAll(context.Background(), false)
+				_, err := manager.GetAll(context.Background())
 				Expect(err).To(MatchError(`failed to get addon "my-addon": foo`))
 				Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
 				Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
@@ -270,7 +283,7 @@ var _ = Describe("Get", func() {
 					Addons: []string{"my-addon"},
 				}, fmt.Errorf("foo"))
 
-				_, err := manager.GetAll(context.Background(), false)
+				_, err := manager.GetAll(context.Background())
 				Expect(err).To(MatchError(`failed to list addons: foo`))
 				Expect(*listAddonsInput.ClusterName).To(Equal("my-cluster"))
 			})

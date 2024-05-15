@@ -11,6 +11,7 @@ import (
 	"github.com/aws/smithy-go"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
@@ -124,7 +125,7 @@ var _ = Describe("Update Pod Identity Association", func() {
 				eks:          provider.MockEKS(),
 			})
 		}
-		addonPodIdentityAssociations, err := piaUpdater.UpdateRole(context.Background(), e.podIdentityAssociations, "")
+		addonPodIdentityAssociations, err := piaUpdater.UpdateRole(context.Background(), e.podIdentityAssociations, "main")
 		if e.expectedErr != "" {
 			Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
 			return
@@ -153,7 +154,12 @@ var _ = Describe("Update Pod Identity Association", func() {
 				m.roleCreator.On("Create", mock.Anything, &api.PodIdentityAssociation{
 					Namespace:          "kube-system",
 					ServiceAccountName: "vpc-cni",
-				}, "").Return("role-1", nil)
+				}, "main").Return("role-1", nil)
+				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
+					StackName: aws.String("eksctl-test-addon-main"),
+				}).Return(nil, &smithy.OperationError{
+					Err: errors.New("ValidationError"),
+				}).Once()
 
 			},
 			expectedAddonPodIdentityAssociations: []ekstypes.AddonPodIdentityAssociations{
@@ -201,19 +207,26 @@ var _ = Describe("Update Pod Identity Association", func() {
 				m.roleUpdater.On("Update", mock.Anything, api.PodIdentityAssociation{
 					Namespace:          "kube-system",
 					ServiceAccountName: "vpc-cni",
-				}, "eksctl-test-addon--podidentityrole-vpc-cni", "a-1").Return("cni-role-2", true, nil).Once()
+				}, "eksctl-test-addon-main-podidentityrole-vpc-cni", "a-1").Return("cni-role-2", true, nil).Once()
 				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
-					StackName: aws.String("eksctl-test-addon--podidentityrole-vpc-cni"),
-				}).Return(&manager.Stack{}, nil)
+					StackName: aws.String("eksctl-test-addon-main-podidentityrole-vpc-cni"),
+				}).Return(&manager.Stack{
+					StackName: aws.String("eksctl-test-addon-main-podidentityrole-vpc-cni"),
+				}, nil).Twice()
+				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
+					StackName: aws.String("eksctl-test-addon-main"),
+				}).Return(nil, &smithy.OperationError{
+					Err: errors.New("ValidationError"),
+				}).Twice()
 
 				m.roleCreator.On("Create", mock.Anything, &api.PodIdentityAssociation{
 					Namespace:          "kube-system",
 					ServiceAccountName: "aws-ebs-csi-driver",
-				}, "").Return("csi-role", nil).Once()
+				}, "main").Return("csi-role", nil).Once()
 				m.roleCreator.On("Create", mock.Anything, &api.PodIdentityAssociation{
 					Namespace:          "karpenter",
 					ServiceAccountName: "karpenter",
-				}, "").Return("karpenter-role", nil).Once()
+				}, "main").Return("karpenter-role", nil).Once()
 			},
 			expectedAddonPodIdentityAssociations: []ekstypes.AddonPodIdentityAssociations{
 				{
@@ -281,7 +294,7 @@ var _ = Describe("Update Pod Identity Association", func() {
 				} {
 					id := makeID(i)
 
-					stackName := fmt.Sprintf("eksctl-test-addon--podidentityrole-%s", updateInput.serviceAccount)
+					stackName := fmt.Sprintf("eksctl-test-addon-main-podidentityrole-%s", updateInput.serviceAccount)
 					m.roleUpdater.On("Update", mock.Anything, api.PodIdentityAssociation{
 						Namespace:          updateInput.namespace,
 						ServiceAccountName: updateInput.serviceAccount,
@@ -421,13 +434,19 @@ var _ = Describe("Update Pod Identity Association", func() {
 				mockDescribePodIdentityAssociation(m.eks, "role-1", "role-2", "role-3")
 				for _, serviceAccount := range []string{"vpc-cni", "aws-ebs-csi-driver"} {
 					m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
-						StackName: aws.String(fmt.Sprintf("eksctl-test-addon--podidentityrole-%s", serviceAccount)),
+						StackName: aws.String(fmt.Sprintf("eksctl-test-addon-main-podidentityrole-%s", serviceAccount)),
+					}).Return(nil, &smithy.OperationError{
+						Err: fmt.Errorf("ValidationError"),
+					}).Once()
+
+					m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
+						StackName: aws.String("eksctl-test-addon-main"),
 					}).Return(nil, &smithy.OperationError{
 						Err: fmt.Errorf("ValidationError"),
 					}).Once()
 				}
 				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
-					StackName: aws.String("eksctl-test-addon--podidentityrole-karpenter"),
+					StackName: aws.String("eksctl-test-addon-main-podidentityrole-karpenter"),
 				}).Return(&manager.Stack{}, nil).Once()
 			},
 			expectedErr: "cannot change podIdentityAssociation.roleARN since the role was created by eksctl",
@@ -450,7 +469,7 @@ var _ = Describe("Update Pod Identity Association", func() {
 				})
 				mockDescribePodIdentityAssociation(m.eks, "vpc-cni-role")
 				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
-					StackName: aws.String("eksctl-test-addon--podidentityrole-vpc-cni"),
+					StackName: aws.String("eksctl-test-addon-main-podidentityrole-vpc-cni"),
 				}).Return(&manager.Stack{}, nil).Once()
 			},
 			expectedAddonPodIdentityAssociations: []ekstypes.AddonPodIdentityAssociations{
@@ -478,12 +497,130 @@ var _ = Describe("Update Pod Identity Association", func() {
 				})
 				mockDescribePodIdentityAssociation(m.eks, "vpc-cni-role")
 				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
-					StackName: aws.String("eksctl-test-addon--podidentityrole-vpc-cni"),
+					StackName: aws.String("eksctl-test-addon-main-podidentityrole-vpc-cni"),
 				}).Return(nil, &smithy.OperationError{
 					Err: errors.New("ValidationError"),
 				})
+				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
+					StackName: aws.String("eksctl-test-addon-main"),
+				}).Return(nil, &smithy.OperationError{
+					Err: errors.New("ValidationError"),
+				}).Once()
 			},
 			expectedErr: "podIdentityAssociation.roleARN is required since the role was not created by eksctl",
+		}),
+
+		Entry("addon contains pod identities that do not exist and have a pre-existing roleARN", updateEntry{
+			podIdentityAssociations: []api.PodIdentityAssociation{
+				{
+					Namespace:          "kube-system",
+					ServiceAccountName: "vpc-cni",
+					RoleARN:            "role-1",
+				},
+				{
+					Namespace:          "kube-system",
+					ServiceAccountName: "aws-ebs-csi-driver",
+					RoleARN:            "role-2",
+				},
+				{
+					Namespace:          "karpenter",
+					ServiceAccountName: "karpenter",
+					RoleARN:            "role-3",
+				},
+			},
+			mockCalls: func(m piaMocks) {
+				mockListPodIdentityAssociations(m.eks, false, defaultListPodIdentityInputs)
+			},
+			expectedAddonPodIdentityAssociations: []ekstypes.AddonPodIdentityAssociations{
+				{
+					ServiceAccount: aws.String("vpc-cni"),
+					RoleArn:        aws.String("role-1"),
+				},
+				{
+					ServiceAccount: aws.String("aws-ebs-csi-driver"),
+					RoleArn:        aws.String("role-2"),
+				},
+				{
+					ServiceAccount: aws.String("karpenter"),
+					RoleArn:        aws.String("role-3"),
+				},
+			},
+		}),
+
+		Entry("addon contains a pod identity with an IRSA stack", updateEntry{
+			podIdentityAssociations: []api.PodIdentityAssociation{
+				{
+					Namespace:          "kube-system",
+					ServiceAccountName: "vpc-cni",
+				},
+			},
+			mockCalls: func(m piaMocks) {
+				mockListPodIdentityAssociations(m.eks, true, []listPodIdentityInput{
+					{
+						namespace:      "kube-system",
+						serviceAccount: "vpc-cni",
+					},
+				})
+				mockDescribePodIdentityAssociation(m.eks, "cni-role")
+
+				m.roleUpdater.On("Update", mock.Anything, api.PodIdentityAssociation{
+					Namespace:          "kube-system",
+					ServiceAccountName: "vpc-cni",
+				}, "eksctl-test-addon-main", "a-1").Return("cni-role-2", true, nil).Once()
+				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
+					StackName: aws.String("eksctl-test-addon-main-podidentityrole-vpc-cni"),
+				}).Return(nil, &smithy.OperationError{
+					Err: fmt.Errorf("ValidationError"),
+				}).Once()
+
+				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
+					StackName: aws.String("eksctl-test-addon-main"),
+				}).Return(&manager.Stack{
+					StackName: aws.String("eksctl-test-addon-main"),
+				}, nil).Once()
+			},
+			expectedAddonPodIdentityAssociations: []ekstypes.AddonPodIdentityAssociations{
+				{
+					ServiceAccount: aws.String("vpc-cni"),
+					RoleArn:        aws.String("cni-role-2"),
+				},
+			},
+		}),
+
+		Entry("addon using IRSA is updated to use pod identity", updateEntry{
+			podIdentityAssociations: []api.PodIdentityAssociation{
+				{
+					Namespace:          "kube-system",
+					ServiceAccountName: "vpc-cni",
+				},
+			},
+			mockCalls: func(m piaMocks) {
+				m.eks.On("ListPodIdentityAssociations", mock.Anything, &eks.ListPodIdentityAssociationsInput{
+					ClusterName:    aws.String(clusterName),
+					Namespace:      aws.String("kube-system"),
+					ServiceAccount: aws.String("vpc-cni"),
+				}).Return(&eks.ListPodIdentityAssociationsOutput{}, nil)
+
+				m.roleCreator.On("Create", mock.Anything, &api.PodIdentityAssociation{
+					Namespace:          "kube-system",
+					ServiceAccountName: "vpc-cni",
+				}, "main").Return("role-1", nil)
+				irsaStack := &manager.Stack{
+					StackName: aws.String("eksctl-test-addon-main"),
+				}
+				m.stackDeleter.On("DescribeStack", mock.Anything, irsaStack).Return(irsaStack, nil).Once()
+				m.stackDeleter.EXPECT().DeleteStackBySpecSync(mock.Anything, irsaStack, mock.Anything).RunAndReturn(func(ctx context.Context, stack *cfntypes.Stack, errCh chan error) error {
+					close(errCh)
+					return nil
+				}).Once()
+
+			},
+			expectedAddonPodIdentityAssociations: []ekstypes.AddonPodIdentityAssociations{
+				{
+					ServiceAccount: aws.String("vpc-cni"),
+					RoleArn:        aws.String("role-1"),
+				},
+			},
 		}),
 	)
 })

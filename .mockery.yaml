@@ -70,6 +70,7 @@ packages:
     interfaces:
       StackDeleter:
         config:
+          with-expecter: true
           dir: "{{.InterfaceDir}}/mocks"
           outpkg: mocks
       RoleMigrator:

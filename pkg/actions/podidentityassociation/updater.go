@@ -175,7 +175,7 @@ type RoleUpdateValidator struct {
 	StackDescriber StackDescriber
 }
 
-// ValidateRoleUpdate validates TODO and returns a boolean indicating whether a stack exists.
+// ValidateRoleUpdate validates the role associated with pia.
 func (r *RoleUpdateValidator) ValidateRoleUpdate(pia api.PodIdentityAssociation, association ekstypes.PodIdentityAssociation, hasStack bool) error {
 	if hasStack {
 		if association.RoleArn != nil && pia.RoleARN != "" && pia.RoleARN != *association.RoleArn {

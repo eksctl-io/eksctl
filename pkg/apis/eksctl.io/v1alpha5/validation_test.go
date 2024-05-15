@@ -2473,6 +2473,20 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 		})
 	})
+
+	DescribeTable("ToPodIdentityAssociationID", func(piaARN, expectedID, expectedErr string) {
+		piaID, err := api.ToPodIdentityAssociationID(piaARN)
+		if expectedErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(expectedErr)))
+			return
+		}
+		Expect(err).NotTo(HaveOccurred())
+		Expect(piaID).To(Equal(expectedID))
+	},
+		Entry("valid PIA ARN", "arn:aws:eks:us-west-2:000:podidentityassociation/cluster/a-d3dw7wfvxtoatujeg", "a-d3dw7wfvxtoatujeg", ""),
+		Entry("invalid PIA ARN format", "arn:aws:eks:us-west-2:000:podidentityassociation/a-d3dw7wfvxtoatujeg", "", "unexpected pod identity association ARN format"),
+		Entry("invalid PIA ARN", "a-d3dw7wfvxtoatujeg", "", "parsing ARN"),
+	)
 })
 
 func newInt(value int) *int {
