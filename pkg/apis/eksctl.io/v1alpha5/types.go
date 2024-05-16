@@ -43,10 +43,13 @@ const (
 
 	Version1_29 = "1.29"
 
+	// Version1_30 represents Kubernetes version 1.30.x.
+	Version1_30 = "1.30"
+
 	// DefaultVersion (default)
 	DefaultVersion = Version1_29
 
-	LatestVersion = Version1_29
+	LatestVersion = Version1_30
 
 	DockershimDeprecationVersion = Version1_24
 )
@@ -95,8 +98,8 @@ const (
 
 // Not yet supported versions
 const (
-	// Version1_30 represents Kubernetes version 1.30.x
-	Version1_30 = "1.30"
+	// Version1_31 represents Kubernetes version 1.31.x
+	Version1_31 = "1.31"
 )
 
 const (
@@ -581,6 +584,7 @@ func SupportedVersions() []string {
 		Version1_27,
 		Version1_28,
 		Version1_29,
+		Version1_30,
 	}
 }
 
@@ -1649,7 +1653,7 @@ type NodeGroupBase struct {
 	// +optional
 	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
 
-	// DisablePodIMDS blocks all IMDS requests from non host networking pods
+	// DisablePodIMDS blocks all IMDS requests from non-host networking pods
 	// Defaults to `false`
 	// +optional
 	DisablePodIMDS *bool `json:"disablePodIMDS,omitempty"`

@@ -2,7 +2,6 @@ package cluster
 
 import (
 	. "github.com/onsi/ginkgo/v2"
-
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -87,9 +86,9 @@ var _ = Describe("upgrade cluster", func() {
 		}),
 
 		Entry("fails when the version is still not supported", upgradeCase{
-			givenVersion:      "1.30",
+			givenVersion:      "1.31",
 			eksVersion:        api.LatestVersion,
-			expectedErrorText: "control plane version \"1.30\" is not known to this version of eksctl",
+			expectedErrorText: "control plane version \"1.31\" is not known to this version of eksctl",
 		}),
 	)
 })
