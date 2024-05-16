@@ -81,9 +81,6 @@ var _ = Describe("AWS Node", func() {
 				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
 					Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni:v1.18.1"),
 				)
-				Expect(awsNode.Spec.Template.Spec.Containers[1].Image).To(
-					Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon/aws-network-policy-agent:v1.18.1"),
-				)
 				Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
 					Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni-init:v1.18.1"),
@@ -103,9 +100,6 @@ var _ = Describe("AWS Node", func() {
 				Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(2))
 				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
 					Equal("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni:v1.18.1"),
-				)
-				Expect(awsNode.Spec.Template.Spec.Containers[1].Image).To(
-					Equal("602401143452.dkr.ecr.cn-northwest-1.amazonaws.com/amazon/aws-network-policy-agent:v1.18.1"),
 				)
 				Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
