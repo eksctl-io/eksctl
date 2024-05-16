@@ -869,9 +869,6 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 			return fieldNotSupported("kubeletExtraConfig")
 		}
 	} else if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
-		if ng.KubeletExtraConfig != nil {
-			return fieldNotSupported("kubeletExtraConfig")
-		}
 		if ng.PreBootstrapCommands != nil {
 			return fieldNotSupported("preBootstrapCommands")
 		}
