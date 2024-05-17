@@ -5,15 +5,18 @@ import (
 	"fmt"
 	"strings"
 
-	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kubeclient "k8s.io/client-go/kubernetes"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
@@ -49,6 +52,8 @@ type Deleter struct {
 	StackDeleter StackDeleter
 	// APIDeleter deletes pod identity associations using the EKS API.
 	APIDeleter APIDeleter
+	// ClientSet is used to delete K8s service accounts.
+	ClientSet kubeclient.Interface
 }
 
 // Identifier represents a pod identity association.
@@ -71,11 +76,12 @@ func (i Identifier) toString(delimiter string) string {
 	return i.Namespace + delimiter + i.ServiceAccountName
 }
 
-func NewDeleter(clusterName string, stackDeleter StackDeleter, apiDeleter APIDeleter) *Deleter {
+func NewDeleter(clusterName string, stackDeleter StackDeleter, apiDeleter APIDeleter, clientSet kubeclient.Interface) *Deleter {
 	return &Deleter{
 		ClusterName:  clusterName,
 		StackDeleter: stackDeleter,
 		APIDeleter:   apiDeleter,
+		ClientSet:    clientSet,
 	}
 }
 
@@ -110,8 +116,26 @@ func (d *Deleter) DeleteTasks(ctx context.Context, podIDs []Identifier) (*tasks.
 		return taskTree, nil
 	}
 
-	for _, p := range podIDs {
-		taskTree.Append(d.makeDeleteTask(ctx, p, roleStackNames))
+	for _, podID := range podIDs {
+		podID := podID
+		piaDeletionTasks := &tasks.TaskTree{
+			Parallel:  false,
+			IsSubTask: true,
+		}
+		piaDeletionTasks.Append(d.makeDeleteTask(ctx, podID, roleStackNames))
+		piaDeletionTasks.Append(&tasks.GenericTask{
+			Description: fmt.Sprintf("delete service account %q", podID.IDString()),
+			Doer: func() error {
+				if err := kubernetes.MaybeDeleteServiceAccount(d.ClientSet, v1.ObjectMeta{
+					Name:      podID.ServiceAccountName,
+					Namespace: podID.Namespace,
+				}); err != nil {
+					return fmt.Errorf("failed to delete service account %q: %w", podID.IDString(), err)
+				}
+				return nil
+			},
+		})
+		taskTree.Append(piaDeletionTasks)
 	}
 	return taskTree, nil
 }

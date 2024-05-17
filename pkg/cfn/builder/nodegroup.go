@@ -38,113 +38,104 @@ const (
 
 // NodeGroupOptions represents options passed to a NodeGroupResourceSet.
 type NodeGroupOptions struct {
-	ClusterConfig              *api.ClusterConfig
-	NodeGroup                  *api.NodeGroup
-	Bootstrapper               nodebootstrap.Bootstrapper
-	ForceAddCNIPolicy          bool
-	VPCImporter                vpc.Importer
-	SkipEgressRules            bool
-	DisableAccessEntryCreation bool
+	ClusterConfig      *api.ClusterConfig
+	NodeGroup          *api.NodeGroup
+	Bootstrapper       nodebootstrap.Bootstrapper
+	ForceAddCNIPolicy  bool
+	VPCImporter        vpc.Importer
+	SkipEgressRules    bool
+	DisableAccessEntry bool
+	// DisableAccessEntryResource disables creation of an access entry resource but still attaches the UsesAccessEntry tag.
+	DisableAccessEntryResource bool
 }
 
 // NodeGroupResourceSet stores the resource information of the nodegroup
 type NodeGroupResourceSet struct {
-	rs                         *resourceSet
-	clusterSpec                *api.ClusterConfig
-	spec                       *api.NodeGroup
-	forceAddCNIPolicy          bool
-	disableAccessEntryCreation bool
-	ec2API                     awsapi.EC2
+	rs      *resourceSet
+	iamAPI  awsapi.IAM
+	ec2API  awsapi.EC2
+	options NodeGroupOptions
 
-	iamAPI             awsapi.IAM
 	instanceProfileARN *gfnt.Value
 	securityGroups     []*gfnt.Value
 	vpc                *gfnt.Value
-	vpcImporter        vpc.Importer
-	bootstrapper       nodebootstrap.Bootstrapper
-	skipEgressRules    bool
 }
 
-// NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
+// NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config.
 func NewNodeGroupResourceSet(ec2API awsapi.EC2, iamAPI awsapi.IAM, options NodeGroupOptions) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
-		rs:                         newResourceSet(),
-		forceAddCNIPolicy:          options.ForceAddCNIPolicy,
-		clusterSpec:                options.ClusterConfig,
-		spec:                       options.NodeGroup,
-		ec2API:                     ec2API,
-		iamAPI:                     iamAPI,
-		vpcImporter:                options.VPCImporter,
-		bootstrapper:               options.Bootstrapper,
-		skipEgressRules:            options.SkipEgressRules,
-		disableAccessEntryCreation: options.DisableAccessEntryCreation,
+		rs:      newResourceSet(),
+		ec2API:  ec2API,
+		iamAPI:  iamAPI,
+		options: options,
 	}
 }
 
 // AddAllResources adds all the information about the nodegroup to the resource set
 func (n *NodeGroupResourceSet) AddAllResources(ctx context.Context) error {
 
-	if n.clusterSpec.IPv6Enabled() {
+	if n.options.ClusterConfig.IPv6Enabled() {
 		return errors.New("unmanaged nodegroups are not supported with IPv6 clusters")
 	}
 
+	ng := n.options.NodeGroup
 	n.rs.template.Description = fmt.Sprintf(
 		"%s (AMI family: %s, SSH access: %v, private networking: %v) %s",
 		nodeGroupTemplateDescription,
-		n.spec.AMIFamily, api.IsEnabled(n.spec.SSH.Allow), n.spec.PrivateNetworking,
+		ng.AMIFamily, api.IsEnabled(ng.SSH.Allow), ng.PrivateNetworking,
 		templateDescriptionSuffix)
 
 	n.Template().Mappings[servicePrincipalPartitionMapName] = api.Partitions.ServicePrincipalPartitionMappings()
 
-	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
-	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureSharedSecurityGroup, n.spec.SecurityGroups.WithShared, false)
-	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureLocalSecurityGroup, n.spec.SecurityGroups.WithLocal, false)
+	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeaturePrivateNetworking, ng.PrivateNetworking, false)
+	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureSharedSecurityGroup, ng.SecurityGroups.WithShared, false)
+	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureLocalSecurityGroup, ng.SecurityGroups.WithLocal, false)
 
-	n.vpc = n.vpcImporter.VPC()
+	n.vpc = n.options.VPCImporter.VPC()
 
-	if n.spec.Tags == nil {
-		n.spec.Tags = map[string]string{}
+	if ng.Tags == nil {
+		ng.Tags = map[string]string{}
 	}
 
-	for k, v := range n.clusterSpec.Metadata.Tags {
-		if _, exists := n.spec.Tags[k]; !exists {
-			n.spec.Tags[k] = v
+	for k, v := range n.options.ClusterConfig.Metadata.Tags {
+		if _, exists := ng.Tags[k]; !exists {
+			ng.Tags[k] = v
 		}
 	}
 
 	// Ensure MinSize is set, as it is required by the ASG cfn resource
 	// TODO this validation and default setting should happen way earlier than this
-	if n.spec.MinSize == nil {
-		if n.spec.DesiredCapacity == nil {
+	if ng.MinSize == nil {
+		if ng.DesiredCapacity == nil {
 			defaultNodeCount := api.DefaultNodeCount
-			n.spec.MinSize = &defaultNodeCount
+			ng.MinSize = &defaultNodeCount
 		} else {
-			n.spec.MinSize = n.spec.DesiredCapacity
+			ng.MinSize = ng.DesiredCapacity
 		}
-		logger.Info("--nodes-min=%d was set automatically for nodegroup %s", *n.spec.MinSize, n.spec.Name)
-	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity < *n.spec.MinSize {
-		return fmt.Errorf("--nodes value (%d) cannot be lower than --nodes-min value (%d)", *n.spec.DesiredCapacity, *n.spec.MinSize)
+		logger.Info("--nodes-min=%d was set automatically for nodegroup %s", *ng.MinSize, ng.Name)
+	} else if ng.DesiredCapacity != nil && *ng.DesiredCapacity < *ng.MinSize {
+		return fmt.Errorf("--nodes value (%d) cannot be lower than --nodes-min value (%d)", *ng.DesiredCapacity, *ng.MinSize)
 	}
 
 	// Ensure MaxSize is set, as it is required by the ASG cfn resource
-	if n.spec.MaxSize == nil {
-		if n.spec.DesiredCapacity == nil {
-			n.spec.MaxSize = n.spec.MinSize
+	if ng.MaxSize == nil {
+		if ng.DesiredCapacity == nil {
+			ng.MaxSize = ng.MinSize
 		} else {
-			n.spec.MaxSize = n.spec.DesiredCapacity
+			ng.MaxSize = ng.DesiredCapacity
 		}
-		logger.Info("--nodes-max=%d was set automatically for nodegroup %s", *n.spec.MaxSize, n.spec.Name)
-	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity > *n.spec.MaxSize {
-		return fmt.Errorf("--nodes value (%d) cannot be greater than --nodes-max value (%d)", *n.spec.DesiredCapacity, *n.spec.MaxSize)
-	} else if *n.spec.MaxSize < *n.spec.MinSize {
-		return fmt.Errorf("--nodes-min value (%d) cannot be greater than --nodes-max value (%d)", *n.spec.MinSize, *n.spec.MaxSize)
+		logger.Info("--nodes-max=%d was set automatically for nodegroup %s", *ng.MaxSize, ng.Name)
+	} else if ng.DesiredCapacity != nil && *ng.DesiredCapacity > *ng.MaxSize {
+		return fmt.Errorf("--nodes value (%d) cannot be greater than --nodes-max value (%d)", *ng.DesiredCapacity, *ng.MaxSize)
+	} else if *ng.MaxSize < *ng.MinSize {
+		return fmt.Errorf("--nodes-min value (%d) cannot be greater than --nodes-max value (%d)", *ng.MinSize, *ng.MaxSize)
 	}
 
 	if err := n.addResourcesForIAM(ctx); err != nil {
 		return err
 	}
 	n.addResourcesForSecurityGroups()
-	if !n.disableAccessEntryCreation {
+	if !n.options.DisableAccessEntry {
 		n.addAccessEntry()
 	}
 
@@ -180,63 +171,54 @@ var ControlPlaneNodeGroupEgressRules = []PartialEgressRule{
 var ControlPlaneEgressRuleDescriptionPrefix = "Allow control plane to communicate with "
 
 func (n *NodeGroupResourceSet) addAccessEntry() {
-	// TODO: SDK types.
-	var amiType string
-	if api.IsWindowsImage(n.spec.AMIFamily) {
-		amiType = "EC2_WINDOWS"
-	} else {
-		amiType = "EC2_LINUX"
-	}
-
-	var principalARN *gfnt.Value
-	if roleARN := n.spec.IAM.InstanceRoleARN; roleARN != "" {
-		principalARN = gfnt.NewString(roleARN)
-	} else {
-		principalARN = gfnt.MakeFnGetAttString(cfnIAMInstanceRoleName, "Arn")
-	}
-	n.newResource("AccessEntry", &gfneks.AccessEntry{
-		PrincipalArn: principalARN,
-		ClusterName:  gfnt.NewString(n.clusterSpec.Metadata.Name),
-		Type:         gfnt.NewString(amiType),
-	})
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupUsesAccessEntry, true, false)
-}
-
-func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
-	for _, id := range n.spec.SecurityGroups.AttachIDs {
-		n.securityGroups = append(n.securityGroups, gfnt.NewString(id))
-	}
-
-	if api.IsEnabled(n.spec.SecurityGroups.WithShared) {
-		n.securityGroups = append(n.securityGroups, n.vpcImporter.SharedNodeSecurityGroup())
-	}
-
-	if api.IsDisabled(n.spec.SecurityGroups.WithLocal) {
+	if n.options.DisableAccessEntryResource {
 		return
 	}
 
-	desc := "worker nodes in group " + n.spec.Name
-	vpcID := n.vpcImporter.VPC()
-	refControlPlaneSG := n.vpcImporter.ControlPlaneSecurityGroup()
+	n.newResource("AccessEntry", &gfneks.AccessEntry{
+		PrincipalArn: gfnt.MakeFnGetAttString(cfnIAMInstanceRoleName, "Arn"),
+		ClusterName:  gfnt.NewString(n.options.ClusterConfig.Metadata.Name),
+		Type:         gfnt.NewString(string(api.GetAccessEntryType(n.options.NodeGroup))),
+	})
+}
+
+func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
+	ng := n.options.NodeGroup
+	for _, id := range ng.SecurityGroups.AttachIDs {
+		n.securityGroups = append(n.securityGroups, gfnt.NewString(id))
+	}
+
+	if api.IsEnabled(ng.SecurityGroups.WithShared) {
+		n.securityGroups = append(n.securityGroups, n.options.VPCImporter.SharedNodeSecurityGroup())
+	}
+
+	if api.IsDisabled(ng.SecurityGroups.WithLocal) {
+		return
+	}
+
+	desc := "worker nodes in group " + ng.Name
+	vpcID := n.options.VPCImporter.VPC()
+	refControlPlaneSG := n.options.VPCImporter.ControlPlaneSecurityGroup()
 
 	refNodeGroupLocalSG := n.newResource("SG", &gfnec2.SecurityGroup{
 		VpcId:            vpcID,
 		GroupDescription: gfnt.NewString("Communication between the control plane and " + desc),
 		Tags: []gfncfn.Tag{{
-			Key:   gfnt.NewString("kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name),
+			Key:   gfnt.NewString("kubernetes.io/cluster/" + n.options.ClusterConfig.Metadata.Name),
 			Value: gfnt.NewString("owned"),
 		}},
-		SecurityGroupIngress: makeNodeIngressRules(n.spec.NodeGroupBase, refControlPlaneSG, n.clusterSpec.VPC.CIDR.String(), desc),
+		SecurityGroupIngress: makeNodeIngressRules(ng.NodeGroupBase, refControlPlaneSG, n.options.ClusterConfig.VPC.CIDR.String(), desc),
 	})
 
 	n.securityGroups = append(n.securityGroups, refNodeGroupLocalSG)
 
-	if api.IsEnabled(n.spec.EFAEnabled) {
-		efaSG := n.rs.addEFASecurityGroup(vpcID, n.clusterSpec.Metadata.Name, desc)
+	if api.IsEnabled(ng.EFAEnabled) {
+		efaSG := n.rs.addEFASecurityGroup(vpcID, n.options.ClusterConfig.Metadata.Name, desc)
 		n.securityGroups = append(n.securityGroups, efaSG)
 	}
 
-	if !n.skipEgressRules {
+	if !n.options.SkipEgressRules {
 		n.newResource("EgressInterCluster", &gfnec2.SecurityGroupEgress{
 			GroupId:                    refControlPlaneSG,
 			DestinationSecurityGroupId: refNodeGroupLocalSG,
@@ -306,18 +288,19 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) err
 		return errors.Wrap(err, "could not add resources for nodegroup")
 	}
 
-	if n.spec.SSH != nil && api.IsSetAndNonEmptyString(n.spec.SSH.PublicKeyName) {
-		launchTemplateData.KeyName = gfnt.NewString(*n.spec.SSH.PublicKeyName)
+	ng := n.options.NodeGroup
+	if ng.SSH != nil && api.IsSetAndNonEmptyString(ng.SSH.PublicKeyName) {
+		launchTemplateData.KeyName = gfnt.NewString(*ng.SSH.PublicKeyName)
 	}
 
-	launchTemplateData.BlockDeviceMappings = makeBlockDeviceMappings(n.spec.NodeGroupBase)
+	launchTemplateData.BlockDeviceMappings = makeBlockDeviceMappings(ng.NodeGroupBase)
 
 	n.newResource("NodeGroupLaunchTemplate", &gfnec2.LaunchTemplate{
 		LaunchTemplateName: launchTemplateName,
 		LaunchTemplateData: launchTemplateData,
 	})
 
-	vpcZoneIdentifier, err := AssignSubnets(ctx, n.spec, n.clusterSpec, n.ec2API)
+	vpcZoneIdentifier, err := AssignSubnets(ctx, ng, n.options.ClusterConfig, n.ec2API)
 	if err != nil {
 		return err
 	}
@@ -325,16 +308,16 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) err
 	tags := []map[string]string{
 		{
 			"Key":               "Name",
-			"Value":             generateNodeName(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
+			"Value":             generateNodeName(ng.NodeGroupBase, n.options.ClusterConfig.Metadata),
 			"PropagateAtLaunch": "true",
 		},
 		{
-			"Key":               "kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name,
+			"Key":               "kubernetes.io/cluster/" + n.options.ClusterConfig.Metadata.Name,
 			"Value":             "owned",
 			"PropagateAtLaunch": "true",
 		},
 	}
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AutoScaler) {
+	if api.IsEnabled(ng.IAM.WithAddonPolicies.AutoScaler) {
 		tags = append(tags,
 			map[string]string{
 				"Key":               "k8s.io/cluster-autoscaler/enabled",
@@ -342,16 +325,16 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) err
 				"PropagateAtLaunch": "true",
 			},
 			map[string]string{
-				"Key":               "k8s.io/cluster-autoscaler/" + n.clusterSpec.Metadata.Name,
+				"Key":               "k8s.io/cluster-autoscaler/" + n.options.ClusterConfig.Metadata.Name,
 				"Value":             "owned",
 				"PropagateAtLaunch": "true",
 			},
 		)
 	}
 
-	if api.IsEnabled(n.spec.PropagateASGTags) {
+	if api.IsEnabled(ng.PropagateASGTags) {
 		var clusterTags []map[string]string
-		GenerateClusterAutoscalerTags(n.spec, func(key, value string) {
+		GenerateClusterAutoscalerTags(ng, func(key, value string) {
 			clusterTags = append(clusterTags, map[string]string{
 				"Key":               key,
 				"Value":             value,
@@ -364,7 +347,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) err
 		}
 	}
 
-	asg := nodeGroupResource(launchTemplateName, vpcZoneIdentifier, tags, n.spec)
+	asg := nodeGroupResource(launchTemplateName, vpcZoneIdentifier, tags, ng)
 	n.newResource("NodeGroup", asg)
 
 	return nil
@@ -456,22 +439,23 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack types.Stack) error {
 }
 
 func newLaunchTemplateData(ctx context.Context, n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
-	userData, err := n.bootstrapper.UserData()
+	userData, err := n.options.Bootstrapper.UserData()
 	if err != nil {
 		return nil, err
 	}
 
+	ng := n.options.NodeGroup
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		IamInstanceProfile: &gfnec2.LaunchTemplate_IamInstanceProfile{
 			Arn: n.instanceProfileARN,
 		},
-		ImageId:           gfnt.NewString(n.spec.AMI),
+		ImageId:           gfnt.NewString(ng.AMI),
 		UserData:          gfnt.NewString(userData),
-		MetadataOptions:   makeMetadataOptions(n.spec.NodeGroupBase),
-		TagSpecifications: makeTags(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
+		MetadataOptions:   makeMetadataOptions(ng.NodeGroupBase),
+		TagSpecifications: makeTags(ng.NodeGroupBase, n.options.ClusterConfig.Metadata),
 	}
 
-	if n.spec.CapacityReservation != nil {
+	if ng.CapacityReservation != nil {
 		valueOrNil := func(value *string) *gfnt.Value {
 			if value != nil {
 				return gfnt.NewString(*value)
@@ -479,20 +463,20 @@ func newLaunchTemplateData(ctx context.Context, n *NodeGroupResourceSet) (*gfnec
 			return nil
 		}
 		launchTemplateData.CapacityReservationSpecification = &gfnec2.LaunchTemplate_CapacityReservationSpecification{}
-		launchTemplateData.CapacityReservationSpecification.CapacityReservationPreference = valueOrNil(n.spec.CapacityReservation.CapacityReservationPreference)
-		if n.spec.CapacityReservation.CapacityReservationTarget != nil {
+		launchTemplateData.CapacityReservationSpecification.CapacityReservationPreference = valueOrNil(ng.CapacityReservation.CapacityReservationPreference)
+		if ng.CapacityReservation.CapacityReservationTarget != nil {
 			launchTemplateData.CapacityReservationSpecification.CapacityReservationTarget = &gfnec2.LaunchTemplate_CapacityReservationTarget{
-				CapacityReservationId:               valueOrNil(n.spec.CapacityReservation.CapacityReservationTarget.CapacityReservationID),
-				CapacityReservationResourceGroupArn: valueOrNil(n.spec.CapacityReservation.CapacityReservationTarget.CapacityReservationResourceGroupARN),
+				CapacityReservationId:               valueOrNil(ng.CapacityReservation.CapacityReservationTarget.CapacityReservationID),
+				CapacityReservationResourceGroupArn: valueOrNil(ng.CapacityReservation.CapacityReservationTarget.CapacityReservationResourceGroupARN),
 			}
 		}
 	}
 
-	if err := buildNetworkInterfaces(ctx, launchTemplateData, n.spec.InstanceTypeList(), api.IsEnabled(n.spec.EFAEnabled), n.securityGroups, n.ec2API); err != nil {
+	if err := buildNetworkInterfaces(ctx, launchTemplateData, ng.InstanceTypeList(), api.IsEnabled(ng.EFAEnabled), n.securityGroups, n.ec2API); err != nil {
 		return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
 	}
 
-	if api.IsEnabled(n.spec.EFAEnabled) && n.spec.Placement == nil {
+	if api.IsEnabled(ng.EFAEnabled) && ng.Placement == nil {
 		groupName := n.newResource("NodeGroupPlacementGroup", &gfnec2.PlacementGroup{
 			Strategy: gfnt.NewString("cluster"),
 		})
@@ -501,30 +485,30 @@ func newLaunchTemplateData(ctx context.Context, n *NodeGroupResourceSet) (*gfnec
 		}
 	}
 
-	if !api.HasMixedInstances(n.spec) {
-		launchTemplateData.InstanceType = gfnt.NewString(n.spec.InstanceType)
+	if !api.HasMixedInstances(ng) {
+		launchTemplateData.InstanceType = gfnt.NewString(ng.InstanceType)
 	} else {
-		launchTemplateData.InstanceType = gfnt.NewString(n.spec.InstancesDistribution.InstanceTypes[0])
+		launchTemplateData.InstanceType = gfnt.NewString(ng.InstancesDistribution.InstanceTypes[0])
 	}
-	if n.spec.EBSOptimized != nil {
-		launchTemplateData.EbsOptimized = gfnt.NewBoolean(*n.spec.EBSOptimized)
+	if ng.EBSOptimized != nil {
+		launchTemplateData.EbsOptimized = gfnt.NewBoolean(*ng.EBSOptimized)
 	}
 
-	if n.spec.CPUCredits != nil {
+	if ng.CPUCredits != nil {
 		launchTemplateData.CreditSpecification = &gfnec2.LaunchTemplate_CreditSpecification{
-			CpuCredits: gfnt.NewString(strings.ToLower(*n.spec.CPUCredits)),
+			CpuCredits: gfnt.NewString(strings.ToLower(*ng.CPUCredits)),
 		}
 	}
 
-	if n.spec.Placement != nil {
+	if ng.Placement != nil {
 		launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
-			GroupName: gfnt.NewString(n.spec.Placement.GroupName),
+			GroupName: gfnt.NewString(ng.Placement.GroupName),
 		}
 	}
 
-	if n.spec.EnableDetailedMonitoring != nil {
+	if ng.EnableDetailedMonitoring != nil {
 		launchTemplateData.Monitoring = &gfnec2.LaunchTemplate_Monitoring{
-			Enabled: gfnt.NewBoolean(*n.spec.EnableDetailedMonitoring),
+			Enabled: gfnt.NewBoolean(*ng.EnableDetailedMonitoring),
 		}
 	}
 

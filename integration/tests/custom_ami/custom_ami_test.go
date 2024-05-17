@@ -37,9 +37,10 @@ func TestOverrideBootstrap(t *testing.T) {
 }
 
 var (
-	customAMIAL2          string
-	customAMIAL2023       string
-	customAMIBottlerocket string
+	customAMIAL2           string
+	customAMIAL2023        string
+	customAMIBottlerocket  string
+	customAMIUbuntuPro2204 string
 )
 
 var _ = BeforeSuite(func() {
@@ -69,6 +70,14 @@ var _ = BeforeSuite(func() {
 	output, err = ssm.GetParameter(context.Background(), input)
 	Expect(err).NotTo(HaveOccurred())
 	customAMIBottlerocket = *output.Parameter.Value
+
+	// retrieve Ubuntu Pro 22.04 AMI
+	input = &awsssm.GetParameterInput{
+		Name: aws.String(fmt.Sprintf("/aws/service/canonical/ubuntu/eks-pro/22.04/%s/stable/current/amd64/hvm/ebs-gp2/ami-id", params.Version)),
+	}
+	output, err = ssm.GetParameter(context.Background(), input)
+	Expect(err).NotTo(HaveOccurred())
+	customAMIUbuntuPro2204 = *output.Parameter.Value
 
 	cmd := params.EksctlCreateCmd.WithArgs(
 		"cluster",
@@ -135,6 +144,28 @@ var _ = Describe("(Integration) [Test Custom AMI]", func() {
 			content = bytes.ReplaceAll(content, []byte("<generated>"), []byte(params.ClusterName))
 			content = bytes.ReplaceAll(content, []byte("<generated-region>"), []byte(params.Region))
 			content = bytes.ReplaceAll(content, []byte("<generated-ami>"), []byte(customAMIBottlerocket))
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(content))
+			Expect(cmd).To(RunSuccessfully())
+		})
+
+	})
+
+	Context("ubuntu-pro-2204 un-managed nodegroups", func() {
+
+		It("can create a working nodegroup which can join the cluster", func() {
+			By(fmt.Sprintf("using the following EKS optimised AMI: %s", customAMIUbuntuPro2204))
+			content, err := os.ReadFile(filepath.Join("testdata/ubuntu-pro-2204.yaml"))
+			Expect(err).NotTo(HaveOccurred())
+			content = bytes.ReplaceAll(content, []byte("<generated>"), []byte(params.ClusterName))
+			content = bytes.ReplaceAll(content, []byte("<generated-region>"), []byte(params.Region))
+			content = bytes.ReplaceAll(content, []byte("<generated-ami>"), []byte(customAMIUbuntuPro2204))
 			cmd := params.EksctlCreateCmd.
 				WithArgs(
 					"nodegroup",

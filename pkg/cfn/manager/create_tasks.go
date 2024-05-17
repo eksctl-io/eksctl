@@ -4,16 +4,20 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
+	"github.com/kris-nova/logger"
+
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/weaveworks/eksctl/pkg/actions/accessentry"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -75,25 +79,26 @@ func (c *StackCollection) NewTasksToCreateCluster(ctx context.Context, nodeGroup
 	return &taskTree
 }
 
-// NewUnmanagedNodeGroupTask defines tasks required to create all nodegroups.
+// NewUnmanagedNodeGroupTask returns tasks for creating self-managed nodegroups.
 func (c *StackCollection) NewUnmanagedNodeGroupTask(ctx context.Context, nodeGroups []*api.NodeGroup, forceAddCNIPolicy, skipEgressRules, disableAccessEntryCreation bool, vpcImporter vpc.Importer) *tasks.TaskTree {
-	taskTree := &tasks.TaskTree{Parallel: true}
-
-	for _, ng := range nodeGroups {
-		taskTree.Append(&nodeGroupTask{
-			info:                       fmt.Sprintf("create nodegroup %q", ng.NameString()),
-			ctx:                        ctx,
-			nodeGroup:                  ng,
-			stackCollection:            c,
-			forceAddCNIPolicy:          forceAddCNIPolicy,
-			vpcImporter:                vpcImporter,
-			skipEgressRules:            skipEgressRules,
-			disableAccessEntryCreation: disableAccessEntryCreation,
-		})
-		// TODO: move authconfigmap tasks here using kubernetesTask and kubernetes.CallbackClientSet
+	task := &UnmanagedNodeGroupTask{
+		ClusterConfig: c.spec,
+		NodeGroups:    nodeGroups,
+		CreateNodeGroupResourceSet: func(options builder.NodeGroupOptions) NodeGroupResourceSet {
+			return builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, options)
+		},
+		NewBootstrapper: func(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (nodebootstrap.Bootstrapper, error) {
+			return nodebootstrap.NewBootstrapper(clusterConfig, ng)
+		},
+		EKSAPI:       c.eksAPI,
+		StackManager: c,
 	}
-
-	return taskTree
+	return task.Create(ctx, CreateNodeGroupOptions{
+		ForceAddCNIPolicy:          forceAddCNIPolicy,
+		SkipEgressRules:            skipEgressRules,
+		DisableAccessEntryCreation: disableAccessEntryCreation,
+		VPCImporter:                vpcImporter,
+	})
 }
 
 // NewManagedNodeGroupTask defines tasks required to create managed nodegroups

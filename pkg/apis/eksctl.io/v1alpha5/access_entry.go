@@ -42,6 +42,28 @@ type AccessScope struct {
 	Namespaces []string `json:"namespaces,omitempty"`
 }
 
+// AccessEntryType represents the type of access entry.
+type AccessEntryType string
+
+const (
+	// AccessEntryTypeLinux specifies the EC2 Linux access entry type.
+	AccessEntryTypeLinux AccessEntryType = "EC2_LINUX"
+	// AccessEntryTypeWindows specifies the Windows access entry type.
+	AccessEntryTypeWindows AccessEntryType = "EC2_WINDOWS"
+	// AccessEntryTypeFargateLinux specifies the Fargate Linux access entry type.
+	AccessEntryTypeFargateLinux AccessEntryType = "FARGATE_LINUX"
+	// AccessEntryTypeStandard specifies a standard access entry type.
+	AccessEntryTypeStandard AccessEntryType = "STANDARD"
+)
+
+// GetAccessEntryType returns the access entry type for the specified AMI family.
+func GetAccessEntryType(ng *NodeGroup) AccessEntryType {
+	if IsWindowsImage(ng.GetAMIFamily()) {
+		return AccessEntryTypeWindows
+	}
+	return AccessEntryTypeLinux
+}
+
 type ARN arn.ARN
 
 // ARN provides custom unmarshalling for an AWS ARN.
@@ -103,9 +125,9 @@ func validateAccessEntries(accessEntries []AccessEntry) error {
 			return fmt.Errorf("%s.principalARN must be set to a valid AWS ARN", path)
 		}
 
-		switch ae.Type {
-		case "", "STANDARD":
-		case "EC2_LINUX", "EC2_WINDOWS", "FARGATE_LINUX":
+		switch AccessEntryType(ae.Type) {
+		case "", AccessEntryTypeStandard:
+		case AccessEntryTypeLinux, AccessEntryTypeWindows, AccessEntryTypeFargateLinux:
 			if len(ae.KubernetesGroups) > 0 || ae.KubernetesUsername != "" {
 				return fmt.Errorf("cannot specify %s.kubernetesGroups nor %s.kubernetesUsername when type is set to %s", path, path, ae.Type)
 			}

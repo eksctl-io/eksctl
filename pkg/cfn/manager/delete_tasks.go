@@ -30,7 +30,7 @@ type NewOIDCManager func() (*iamoidc.OpenIDConnectManager, error)
 // NewTasksToDeleteAddonIAM temporary type, to be removed after moving NewTasksToDeleteClusterWithNodeGroups to actions package
 type NewTasksToDeleteAddonIAM func(ctx context.Context, wait bool) (*tasks.TaskTree, error)
 
-// NewTasksToDeletePodIdentityRoles temporary type, to be removed after moving NewTasksToDeleteClusterWithNodeGroups to actions package
+// NewTasksToDeletePodIdentityRole temporary type, to be removed after moving NewTasksToDeleteClusterWithNodeGroups to actions package
 type NewTasksToDeletePodIdentityRole func() (*tasks.TaskTree, error)
 
 // NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete the given cluster along with all of its resources
@@ -122,7 +122,7 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(
 	return taskTree, nil
 }
 
-// NewTasksToDeleteNodeGroups defines tasks required to delete all of the nodegroups
+// NewTasksToDeleteNodeGroups defines tasks required to delete all nodegroups.
 func (c *StackCollection) NewTasksToDeleteNodeGroups(nodeGroupStacks []NodeGroupStack, shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
 	taskTree := &tasks.TaskTree{Parallel: true}
 

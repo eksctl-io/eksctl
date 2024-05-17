@@ -75,29 +75,32 @@ var _ = Describe("StackCollection Tasks", func() {
 
 		It("should have nice description", func() {
 			fakeVPCImporter := new(vpcfakes.FakeImporter)
-			accessConfig := &api.AccessConfig{}
 			// TODO use DescribeTable
 
 			// The supportsManagedNodes argument has no effect on the Describe call, so the values are alternated
 			// in these tests
 			{
-				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("bar", "foo"), false, false, false, fakeVPCImporter)
+				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("bar", "foo"), false, false, true, fakeVPCImporter)
 				Expect(tasks.Describe()).To(Equal(`
 2 parallel tasks: { create nodegroup "bar", create nodegroup "foo" 
 }
 `))
 			}
 			{
-				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("bar"), false, false, false, fakeVPCImporter)
+				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("bar"), false, false, true, fakeVPCImporter)
 				Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "bar" }`))
 			}
 			{
-				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("foo"), false, false, false, fakeVPCImporter)
+				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("foo"), false, false, true, fakeVPCImporter)
 				Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "foo" }`))
 			}
 			{
-				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), nil, false, false, false, fakeVPCImporter)
+				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), nil, false, false, true, fakeVPCImporter)
 				Expect(tasks.Describe()).To(Equal(`no tasks`))
+			}
+
+			accessConfig := &api.AccessConfig{
+				AuthenticationMode: ekstypes.AuthenticationModeConfigMap,
 			}
 			{
 				tasks := stackManager.NewTasksToCreateCluster(context.Background(), makeNodeGroups("bar", "foo"), nil, accessConfig, nil)

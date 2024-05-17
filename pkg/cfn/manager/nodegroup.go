@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	asgtypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
@@ -17,8 +19,10 @@ import (
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -31,30 +35,102 @@ type NodeGroupStack struct {
 	Stack           *Stack
 }
 
-// makeNodeGroupStackName generates the name of the nodegroup stack identified by its name, isolated by the cluster this StackCollection operates on
-func (c *StackCollection) makeNodeGroupStackName(name string) string {
-	return fmt.Sprintf("eksctl-%s-nodegroup-%s", c.spec.Metadata.Name, name)
+// makeNodeGroupStackName generates the name of the nodegroup stack identified by its name.
+func makeNodeGroupStackName(clusterName, ngName string) string {
+	return fmt.Sprintf("eksctl-%s-nodegroup-%s", clusterName, ngName)
 }
 
-// createNodeGroupTask creates the nodegroup
-func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan error, ng *api.NodeGroup, forceAddCNIPolicy, skipEgressRules, disableAccessEntryCreation bool, vpcImporter vpc.Importer) error {
-	name := c.makeNodeGroupStackName(ng.Name)
+// CreateNodeGroupOptions holds options for creating nodegroup tasks.
+type CreateNodeGroupOptions struct {
+	ForceAddCNIPolicy          bool
+	SkipEgressRules            bool
+	DisableAccessEntryCreation bool
+	VPCImporter                vpc.Importer
+}
+
+// A NodeGroupStackManager describes and creates nodegroup stacks.
+type NodeGroupStackManager interface {
+	// CreateStack creates a CloudFormation stack.
+	CreateStack(ctx context.Context, stackName string, resourceSet builder.ResourceSetReader, tags, parameters map[string]string, errs chan error) error
+}
+
+// A NodeGroupResourceSet creates resources for a nodegroup.
+//
+//counterfeiter:generate -o fakes/fake_nodegroup_resource_set.go . NodeGroupResourceSet
+type NodeGroupResourceSet interface {
+	// AddAllResources adds all nodegroup resources.
+	AddAllResources(ctx context.Context) error
+	builder.ResourceSetReader
+}
+
+// CreateNodeGroupResourceSetFunc creates a new NodeGroupResourceSet.
+type CreateNodeGroupResourceSetFunc func(options builder.NodeGroupOptions) NodeGroupResourceSet
+
+// NewBootstrapperFunc creates a new Bootstrapper for ng.
+type NewBootstrapperFunc func(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (nodebootstrap.Bootstrapper, error)
+
+// UnmanagedNodeGroupTask creates tasks for creating self-managed nodegroups.
+type UnmanagedNodeGroupTask struct {
+	ClusterConfig              *api.ClusterConfig
+	NodeGroups                 []*api.NodeGroup
+	CreateNodeGroupResourceSet CreateNodeGroupResourceSetFunc
+	NewBootstrapper            NewBootstrapperFunc
+	EKSAPI                     awsapi.EKS
+	StackManager               NodeGroupStackManager
+}
+
+// Create creates a TaskTree for creating nodegroups.
+func (t *UnmanagedNodeGroupTask) Create(ctx context.Context, options CreateNodeGroupOptions) *tasks.TaskTree {
+	taskTree := &tasks.TaskTree{Parallel: true}
+
+	for _, ng := range t.NodeGroups {
+		ng := ng
+		createAccessEntryInStack := ng.IAM.InstanceRoleARN == ""
+		createNodeGroupTask := &tasks.GenericTask{
+			Description: fmt.Sprintf("create nodegroup %q", ng.NameString()),
+			Doer: func() error {
+				return t.createNodeGroup(ctx, ng, options, createAccessEntryInStack)
+			},
+		}
+
+		if options.DisableAccessEntryCreation || createAccessEntryInStack {
+			taskTree.Append(createNodeGroupTask)
+		} else {
+			var ngTask tasks.TaskTree
+			ngTask.Append(createNodeGroupTask)
+			ngTask.Append(&tasks.GenericTask{
+				Description: fmt.Sprintf("create access entry for nodegroup %q", ng.NameString()),
+				Doer: func() error {
+					return t.maybeCreateAccessEntry(ctx, ng)
+				},
+			})
+			taskTree.Append(&ngTask)
+		}
+	}
+
+	return taskTree
+}
+
+func (t *UnmanagedNodeGroupTask) createNodeGroup(ctx context.Context, ng *api.NodeGroup, options CreateNodeGroupOptions, createAccessEntryInStack bool) error {
+	name := makeNodeGroupStackName(t.ClusterConfig.Metadata.Name, ng.Name)
 
 	logger.Info("building nodegroup stack %q", name)
-	bootstrapper, err := nodebootstrap.NewBootstrapper(c.spec, ng)
+	bootstrapper, err := t.NewBootstrapper(t.ClusterConfig, ng)
 	if err != nil {
 		return errors.Wrap(err, "error creating bootstrapper")
 	}
-	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, builder.NodeGroupOptions{
-		ClusterConfig:              c.spec,
+
+	resourceSet := t.CreateNodeGroupResourceSet(builder.NodeGroupOptions{
+		ClusterConfig:              t.ClusterConfig,
 		NodeGroup:                  ng,
 		Bootstrapper:               bootstrapper,
-		ForceAddCNIPolicy:          forceAddCNIPolicy,
-		VPCImporter:                vpcImporter,
-		SkipEgressRules:            skipEgressRules,
-		DisableAccessEntryCreation: disableAccessEntryCreation,
+		ForceAddCNIPolicy:          options.ForceAddCNIPolicy,
+		VPCImporter:                options.VPCImporter,
+		SkipEgressRules:            options.SkipEgressRules,
+		DisableAccessEntry:         options.DisableAccessEntryCreation,
+		DisableAccessEntryResource: !createAccessEntryInStack,
 	})
-	if err := stack.AddAllResources(ctx); err != nil {
+	if err := resourceSet.AddAllResources(ctx); err != nil {
 		return err
 	}
 
@@ -65,7 +141,38 @@ func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan err
 	ng.Tags[api.OldNodeGroupNameTag] = ng.Name
 	ng.Tags[api.NodeGroupTypeTag] = string(api.NodeGroupTypeUnmanaged)
 
-	return c.CreateStack(ctx, name, stack, ng.Tags, nil, errs)
+	errCh := make(chan error)
+	if err := t.StackManager.CreateStack(ctx, name, resourceSet, ng.Tags, nil, errCh); err != nil {
+		return err
+	}
+	return <-errCh
+}
+
+func (t *UnmanagedNodeGroupTask) maybeCreateAccessEntry(ctx context.Context, ng *api.NodeGroup) error {
+	roleARN := ng.IAM.InstanceRoleARN
+	_, err := t.EKSAPI.CreateAccessEntry(ctx, &eks.CreateAccessEntryInput{
+		ClusterName:  aws.String(t.ClusterConfig.Metadata.Name),
+		PrincipalArn: aws.String(roleARN),
+		Type:         aws.String(string(api.GetAccessEntryType(ng))),
+		Tags: map[string]string{
+			api.ClusterNameLabel: t.ClusterConfig.Metadata.Name,
+		},
+	})
+	if err != nil {
+		var resourceInUse *ekstypes.ResourceInUseException
+		if errors.As(err, &resourceInUse) {
+			logger.Info("nodegroup %s: access entry for principal ARN %q already exists", ng.Name, roleARN)
+			return nil
+		}
+		return fmt.Errorf("creating access entry for nodegroup %s: %w", ng.Name, err)
+	}
+	logger.Info("nodegroup %s: created access entry for principal ARN %q", ng.Name, roleARN)
+	return nil
+}
+
+// makeNodeGroupStackName generates the name of the nodegroup stack identified by its name and this StackCollection's cluster.
+func (c *StackCollection) makeNodeGroupStackName(ngName string) string {
+	return makeNodeGroupStackName(c.spec.Metadata.Name, ngName)
 }
 
 func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {

@@ -14,6 +14,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -125,5 +126,24 @@ func (t *deleteOwnedAccessEntryTask) Do(errorCh chan error) error {
 		return fmt.Errorf("deleting access entry with principalARN %s: %w", t.principalARN.String(), err)
 	}
 
+	return nil
+}
+
+func runAllTasks(taskTree *tasks.TaskTree) error {
+	logger.Info(taskTree.Describe())
+	if errs := taskTree.DoAllSync(); len(errs) > 0 {
+		var allErrs []string
+		for _, err := range errs {
+			allErrs = append(allErrs, err.Error())
+		}
+		return fmt.Errorf(strings.Join(allErrs, "\n"))
+	}
+	completedAction := func() string {
+		if taskTree.PlanMode {
+			return "skipped"
+		}
+		return "completed successfully"
+	}
+	logger.Info("all tasks were %s", completedAction())
 	return nil
 }

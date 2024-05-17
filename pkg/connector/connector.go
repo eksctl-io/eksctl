@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"fmt"
 	"strings"
 	"time"
 
@@ -346,7 +347,7 @@ func (c *EKSConnector) createConnectorRole(ctx context.Context, cluster External
 	_, err = c.Provider.IAM().PutRolePolicy(ctx, &iam.PutRolePolicyInput{
 		RoleName:   roleName,
 		PolicyName: aws.String(connectorPolicyName),
-		PolicyDocument: aws.String(`{
+		PolicyDocument: aws.String(fmt.Sprintf(`{
 	  "Version": "2012-10-17",
 	  "Statement": [
 	    {
@@ -355,7 +356,7 @@ func (c *EKSConnector) createConnectorRole(ctx context.Context, cluster External
 	      "Action": [
 	        "ssmmessages:CreateControlChannel"
 	      ],
-	      "Resource": "arn:aws:eks:*:*:cluster/*"
+	      "Resource": "arn:%s:eks:*:*:cluster/*"
 	    },
 	    {
 	      "Sid": "ssmDataplaneOperations",
@@ -368,7 +369,7 @@ func (c *EKSConnector) createConnectorRole(ctx context.Context, cluster External
 	      "Resource": "*"
 	    }
 	  ]
-	}`),
+	}`, api.Partitions.ForRegion(c.Provider.Region()))),
 	})
 
 	if err != nil {

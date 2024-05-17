@@ -1,0 +1,17 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+# name is generated
+metadata:
+  name: <generated>
+  region: <generated-region>
+
+nodeGroups:
+  - name: unm-ubuntu-pro-2204
+    ami: <generated-ami>
+    amiFamily: UbuntuPro2204
+    desiredCapacity: 1
+    overrideBootstrapCommand: |
+      #!/bin/bash
+      source /var/lib/cloud/scripts/eksctl/bootstrap.helper.sh
+      /etc/eks/bootstrap.sh <generated> --kubelet-extra-args "--node-labels=${NODE_LABELS}"  

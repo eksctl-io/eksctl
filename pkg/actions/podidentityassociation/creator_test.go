@@ -5,6 +5,11 @@ import (
 	"fmt"
 
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+
+	"k8s.io/apimachinery/pkg/runtime"
+	kubeclientfakes "k8s.io/client-go/kubernetes/fake"
+	kubeclienttesting "k8s.io/client-go/testing"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -20,6 +25,7 @@ type createPodIdentityAssociationEntry struct {
 	toBeCreated              []api.PodIdentityAssociation
 	mockEKS                  func(provider *mockprovider.MockProvider)
 	mockCFN                  func(stackCreator *fakes.FakeStackCreator)
+	mockK8s                  func(clientSet *kubeclientfakes.Clientset)
 	expectedCreateStackCalls int
 	expectedErr              string
 }
@@ -28,6 +34,7 @@ var _ = Describe("Create", func() {
 	var (
 		creator          *podidentityassociation.Creator
 		fakeStackCreator *fakes.FakeStackCreator
+		fakeClientSet    *kubeclientfakes.Clientset
 		mockProvider     *mockprovider.MockProvider
 
 		clusterName         = "test-cluster"
@@ -44,12 +51,17 @@ var _ = Describe("Create", func() {
 			e.mockCFN(fakeStackCreator)
 		}
 
+		fakeClientSet = kubeclientfakes.NewSimpleClientset()
+		if e.mockK8s != nil {
+			e.mockK8s(fakeClientSet)
+		}
+
 		mockProvider = mockprovider.NewMockProvider()
 		if e.mockEKS != nil {
 			e.mockEKS(mockProvider)
 		}
 
-		creator = podidentityassociation.NewCreator(clusterName, fakeStackCreator, mockProvider.MockEKS())
+		creator = podidentityassociation.NewCreator(clusterName, fakeStackCreator, mockProvider.MockEKS(), fakeClientSet)
 
 		err := creator.CreatePodIdentityAssociations(context.Background(), e.toBeCreated)
 		if e.expectedErr != "" {
@@ -78,6 +90,32 @@ var _ = Describe("Create", func() {
 				}
 			},
 			expectedErr: "creating IAM role for pod identity association",
+		}),
+
+		Entry("returns an error if creating the service account fails", createPodIdentityAssociationEntry{
+			toBeCreated: []api.PodIdentityAssociation{
+				{
+					Namespace:          namespace,
+					ServiceAccountName: serviceAccountName1,
+					RoleARN:            roleARN,
+				},
+			},
+			mockK8s: func(clientSet *kubeclientfakes.Clientset) {
+				clientSet.PrependReactor("get", "namespaces", func(action kubeclienttesting.Action) (bool, runtime.Object, error) {
+					return true, nil, genericErr
+				})
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockProvider.MockEKS().
+					On("CreatePodIdentityAssociation", mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.CreatePodIdentityAssociationInput{}))
+					}).
+					Return(&awseks.CreatePodIdentityAssociationOutput{}, nil).
+					Once()
+			},
+			expectedErr: "failed to create service account",
 		}),
 
 		Entry("returns an error if creating the association fails", createPodIdentityAssociationEntry{

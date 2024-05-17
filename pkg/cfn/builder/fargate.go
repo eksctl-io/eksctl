@@ -112,7 +112,7 @@ func makeSourceArnCondition(cfg *api.ClusterConfig) (cft.MapOfInterfaces, error)
 	}
 	return cft.MapOfInterfaces{
 		"ArnLike": cft.MapOfInterfaces{
-			"aws:SourceArn": fmt.Sprintf("arn:aws:eks:%s:%s:fargateprofile/%s/*", cfg.Metadata.Region, accountID, cfg.Metadata.Name),
+			"aws:SourceArn": fmt.Sprintf("arn:%s:eks:%s:%s:fargateprofile/%s/*", api.Partitions.ForRegion(cfg.Metadata.Region), cfg.Metadata.Region, accountID, cfg.Metadata.Name),
 		},
 	}, nil
 }

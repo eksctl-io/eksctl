@@ -6,27 +6,34 @@ package accessentries
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/kubicorn/kubicorn/pkg/namer"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/weaveworks/eksctl/integration/runner"
-	. "github.com/weaveworks/eksctl/integration/runner"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 
+	"github.com/weaveworks/eksctl/integration/runner"
+	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/pkg/accessentry"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
@@ -54,6 +61,9 @@ var (
 	apiDisabledCluster = "accessentries-api-disabled"
 )
 
+//go:embed testdata/node-role.yaml
+var nodeRoleJSON []byte
+
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
@@ -69,7 +79,6 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		err              error
 		alreadyExistsErr *iamtypes.EntityAlreadyExistsException
 	)
-
 	maybeCreateRoleAndGetARN := func(name string) (string, error) {
 		createOut, err := ctl.AWSProvider.IAM().CreateRole(context.Background(), &iam.CreateRoleInput{
 			RoleName:                 aws.String(name),
@@ -89,7 +98,6 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		}
 		return *getOut.Role.Arn, nil
 	}
-
 	ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, nil)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -403,6 +411,96 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 				}, "5m", "30s").ShouldNot(RunSuccessfully())
 			})
 		})
+
+		Context("self-managed nodegroup with a pre-existing instanceRoleARN", func() {
+			waitAndGetRoleARN := func(ctx context.Context, stackName *string) (string, error) {
+				waiter := cloudformation.NewStackCreateCompleteWaiter(ctl.AWSProvider.CloudFormation())
+				output, err := waiter.WaitForOutput(ctx, &cloudformation.DescribeStacksInput{
+					StackName: stackName,
+				}, 5*time.Minute)
+				if err != nil {
+					return "", err
+				}
+				if len(output.Stacks) != 1 {
+					return "", fmt.Errorf("expected to find 1 stack; got %d", len(output.Stacks))
+				}
+				var roleARN string
+				if err := outputs.Collect(output.Stacks[0], map[string]outputs.Collector{
+					"NodeInstanceRoleARN": func(v string) error {
+						roleARN = v
+						return nil
+					},
+				}, nil); err != nil {
+					return "", err
+				}
+				return roleARN, nil
+			}
+
+			var roleARN string
+
+			BeforeAll(func() {
+				By("creating a CloudFormation stack for NodeInstanceRoleARN")
+				stackName := aws.String(fmt.Sprintf("%s-%s-role", apiEnabledCluster, namer.RandomName()))
+				ctx := context.Background()
+				_, err := ctl.AWSProvider.CloudFormation().CreateStack(ctx, &cloudformation.CreateStackInput{
+					StackName:    stackName,
+					TemplateBody: aws.String(string(nodeRoleJSON)),
+					Capabilities: []cfntypes.Capability{cfntypes.CapabilityCapabilityIam},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				DeferCleanup(func() {
+					_, err := ctl.AWSProvider.CloudFormation().DeleteStack(ctx, &cloudformation.DeleteStackInput{
+						StackName: stackName,
+					})
+					Expect(err).NotTo(HaveOccurred())
+				})
+				By("waiting for the stack to be created successfully")
+				roleARN, err = waitAndGetRoleARN(ctx, stackName)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should create an access entry but not delete it", func() {
+				clusterConfig := makeClusterConfig(apiEnabledCluster)
+				ng := api.NewNodeGroup()
+				ng.Name = "with-instance-role-arn"
+				ng.IAM.InstanceRoleARN = roleARN
+				ng.ScalingConfig = &api.ScalingConfig{
+					DesiredCapacity: aws.Int(1),
+				}
+				clusterConfig.NodeGroups = []*api.NodeGroup{ng}
+
+				cmd := params.EksctlCreateNodegroupCmd.
+					WithArgs("--config-file", "-").
+					WithoutArg("--region", params.Region).
+					WithStdin(clusterutils.Reader(clusterConfig))
+				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(
+					fmt.Sprintf("nodegroup %s: created access entry for principal ARN %q", ng.Name, roleARN),
+				)))
+
+				assertAccessEntryExists := func() {
+					_, err = ctl.AWSProvider.EKS().DescribeAccessEntry(context.Background(), &awseks.DescribeAccessEntryInput{
+						ClusterName:  aws.String(apiEnabledCluster),
+						PrincipalArn: aws.String(roleARN),
+					})
+					ExpectWithOffset(1, err).NotTo(HaveOccurred())
+				}
+				By("asserting an access entry was created for the nodegroup")
+				assertAccessEntryExists()
+
+				By("deleting nodegroup with a pre-existing instance role ARN")
+				cmd = params.EksctlDeleteCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--wait",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdin(clusterutils.Reader(clusterConfig))
+				Expect(cmd).To(RunSuccessfully())
+				By("asserting the associated access entry is not deleted")
+				assertAccessEntryExists()
+			})
+		})
 	})
 })
 
@@ -423,6 +521,7 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 		WithArgs(
 			"cluster",
 			"--name", apiEnabledCluster,
+			"--disable-nodegroup-eviction",
 			"--wait",
 		)).To(RunSuccessfully())
 

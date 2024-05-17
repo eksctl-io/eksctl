@@ -61,26 +61,26 @@ func CompareIdentity(a, b Identity) bool {
 
 // KubernetesIdentity represents a kubernetes identity to be used in iam mappings
 type KubernetesIdentity struct {
-	KubernetesUsername string   `json:"username,omitempty"`
-	KubernetesGroups   []string `json:"groups,omitempty"`
+	KubernetesUsername string   `json:"username,omitempty" yaml:"username,omitempty"`
+	KubernetesGroups   []string `json:"groups,omitempty" yaml:"groups,omitempty"`
 }
 
 // UserIdentity represents a mapping from an IAM user to a kubernetes identity
 type UserIdentity struct {
-	UserARN string `json:"userarn,omitempty"`
-	KubernetesIdentity
+	UserARN            string `json:"userarn,omitempty"`
+	KubernetesIdentity `yaml:",inline"`
 }
 
 // RoleIdentity represents a mapping from an IAM role to a kubernetes identity
 type RoleIdentity struct {
-	RoleARN string `json:"rolearn,omitempty"`
-	KubernetesIdentity
+	RoleARN            string `json:"rolearn,omitempty"`
+	KubernetesIdentity `yaml:",inline"`
 }
 
 // AccountIdentity represents a mapping from an IAM role to a kubernetes identity
 type AccountIdentity struct {
-	KubernetesAccount string `json:"account,omitempty"`
-	KubernetesIdentity
+	KubernetesAccount  string `json:"account,omitempty" yaml:"account,omitempty"`
+	KubernetesIdentity `yaml:",inline"`
 }
 
 // ARN returns the ARN of the iam mapping

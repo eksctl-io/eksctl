@@ -55,13 +55,13 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 
 	JustBeforeEach(func() {
 		ngrs = builder.NewNodeGroupResourceSet(p.MockEC2(), p.MockIAM(), builder.NodeGroupOptions{
-			ClusterConfig:              cfg,
-			NodeGroup:                  ng,
-			Bootstrapper:               fakeBootstrapper,
-			ForceAddCNIPolicy:          forceAddCNIPolicy,
-			VPCImporter:                fakeVPCImporter,
-			SkipEgressRules:            skipEgressRules,
-			DisableAccessEntryCreation: false,
+			ClusterConfig:      cfg,
+			NodeGroup:          ng,
+			Bootstrapper:       fakeBootstrapper,
+			ForceAddCNIPolicy:  forceAddCNIPolicy,
+			VPCImporter:        fakeVPCImporter,
+			SkipEgressRules:    skipEgressRules,
+			DisableAccessEntry: false,
 		})
 	})
 
