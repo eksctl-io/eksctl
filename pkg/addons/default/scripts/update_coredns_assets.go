@@ -45,19 +45,25 @@ func getLatestVersion(ctx context.Context, clusterProvider *eks.ClusterProvider,
 		log.Fatalf("failed calling EKS::DescribeAddonVersions: %v", err)
 	}
 
-	corednsVersions := output.Addons[0].AddonVersions
-	if len(corednsVersions) == 0 {
+	if len(output.Addons[0].AddonVersions) == 0 {
 		return ""
+	}
+	var corednsVersions []string
+	regexpVersion := regexp.MustCompile(`v\d+\.\d+\.\d+-eksbuild\.\d+`)
+	for _, info := range output.Addons[0].AddonVersions {
+		if regexpVersion.MatchString(*info.AddonVersion) {
+			corednsVersions = append(corednsVersions, *info.AddonVersion)
+		}
 	}
 
 	sort.Slice(corednsVersions, func(i, j int) bool {
-		vi, err := semver.Parse(trim(*corednsVersions[i].AddonVersion))
+		vi, err := semver.Parse(trim(corednsVersions[i]))
 		if err != nil {
-			log.Fatalf("failed to parse coredns version %s: %v", trim(*corednsVersions[i].AddonVersion), err)
+			log.Fatalf("failed to parse coredns version %s: %v", trim(corednsVersions[i]), err)
 		}
-		vj, err := semver.Parse(trim(*corednsVersions[j].AddonVersion))
+		vj, err := semver.Parse(trim(corednsVersions[j]))
 		if err != nil {
-			log.Fatalf("failed to parse coredns version %s: %v", trim(*corednsVersions[j].AddonVersion), err)
+			log.Fatalf("failed to parse coredns version %s: %v", trim(corednsVersions[j]), err)
 		}
 		if vi.Compare(vj) >= 0 {
 			return true
@@ -65,7 +71,7 @@ func getLatestVersion(ctx context.Context, clusterProvider *eks.ClusterProvider,
 		return false
 	})
 
-	return *corednsVersions[0].AddonVersion
+	return corednsVersions[0]
 }
 
 func replaceCurrentVersionIfOutdated(latestVersion string, kubernetesVersion string) {
