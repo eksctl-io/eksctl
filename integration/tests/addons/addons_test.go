@@ -7,14 +7,18 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	"github.com/aws/smithy-go"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,14 +40,16 @@ import (
 )
 
 var (
-	params    *tests.Params
-	rawClient *kubewrapper.RawClient
+	params      *tests.Params
+	rawClient   *kubewrapper.RawClient
+	awsProvider api.ClusterProvider
 )
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
 	params = tests.NewParams("addons")
+	params.Region = "ap-northeast-2"
 }
 
 func TestEKSAddons(t *testing.T) {
@@ -532,6 +538,152 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		))
 	})
 
+	Context("pod identity associations", func() {
+		It("should manage pod identity associations for addons", func() {
+			output, err := awsProvider.EKS().ListPodIdentityAssociations(context.Background(), &awseks.ListPodIdentityAssociationsInput{
+				ClusterName: aws.String(params.ClusterName),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output.Associations).To(BeEmpty())
+			clusterConfig := getInitialClusterConfig()
+			clusterConfig.Addons = []*api.Addon{
+				{
+					Name: "vpc-cni",
+					PodIdentityAssociations: &[]api.PodIdentityAssociation{
+						{
+							Namespace:            "kube-system",
+							ServiceAccountName:   "vpc-cni",
+							PermissionPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
+						},
+					},
+				},
+			}
+
+			makeUpdateAddonCMD := func() runner.Cmd {
+				return params.EksctlUpdateCmd.
+					WithArgs("addon").
+					WithArgs("--config-file", "-").
+					WithoutArg("--region", params.Region).
+					WithStdin(clusterutils.Reader(clusterConfig))
+			}
+			By("updating addon to use pod identity")
+			assertAddonHasPodIDs := func(addonName string, podIDsCount int) {
+				addon, err := awsProvider.EKS().DescribeAddon(context.Background(), &awseks.DescribeAddonInput{
+					AddonName:   aws.String(addonName),
+					ClusterName: aws.String(clusterConfig.Metadata.Name),
+				})
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+				ExpectWithOffset(1, addon.Addon.PodIdentityAssociations).To(HaveLen(podIDsCount))
+			}
+			assertAddonHasPodIDs(api.VPCCNIAddon, 0)
+			irsaStackName := fmt.Sprintf("eksctl-%s-addon-%s", clusterConfig.Metadata.Name, api.VPCCNIAddon)
+			cmd := makeUpdateAddonCMD()
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+				ContainElement(ContainSubstring("deleting old IRSA stack for addon vpc-cni")),
+				ContainElement(ContainSubstring("will delete stack %q", irsaStackName)),
+			))
+			assertAddonHasPodIDs(api.VPCCNIAddon, 1)
+
+			By("ensuring the IRSA stack is deleted")
+			_, err = awsProvider.CloudFormation().DescribeStacks(context.Background(), &cloudformation.DescribeStacksInput{
+				StackName: aws.String(irsaStackName),
+			})
+			var opErr *smithy.OperationError
+			Expect(errors.As(err, &opErr) && strings.Contains(opErr.Error(), "ValidationError")).To(BeTrue(), "expected stack to not exist, err: %v", err)
+
+			By("ensuring that updating addon again works")
+			cmd = makeUpdateAddonCMD()
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+				Not(ContainElement(ContainSubstring("deleting old IRSA stack for addon %s", api.VPCCNIAddon))),
+			))
+
+			By("failing to update addon with pod identity if the field is unset")
+			clusterConfig.Addons[0].PodIdentityAssociations = nil
+			cmd = makeUpdateAddonCMD()
+			session := cmd.Run()
+			Expect(session.ExitCode()).To(Equal(1))
+			Expect(session.Buffer().Contents()).To(ContainSubstring("addon %s has pod identity associations,"+
+				" to remove pod identity associations from an addon, addon.podIdentityAssociations must be explicitly set to []; "+
+				"if the addon was migrated to use pod identity, addon.podIdentityAssociations must be set to values obtained from "+
+				"`aws eks describe-pod-identity-association --cluster-name=%s", api.VPCCNIAddon, clusterConfig.Metadata.Name))
+
+			By(fmt.Sprintf("recreating %s using pod identity", api.AWSEBSCSIDriverAddon))
+			assertAddonHasPodIDs(api.AWSEBSCSIDriverAddon, 0)
+			cmd = params.EksctlDeleteCmd.
+				WithArgs(
+					"addon",
+					"--name", api.AWSEBSCSIDriverAddon,
+					"--region", params.Region,
+					"--wait",
+					"-v", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
+			clusterConfig.Addons = []*api.Addon{
+				{
+					Name: api.VPCCNIAddon,
+					PodIdentityAssociations: &[]api.PodIdentityAssociation{
+						{
+							Namespace:            "kube-system",
+							ServiceAccountName:   "vpc-cni",
+							PermissionPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
+						},
+					},
+				},
+				{
+					Name: api.AWSEBSCSIDriverAddon,
+					PodIdentityAssociations: &[]api.PodIdentityAssociation{
+						{
+							Namespace:            "kube-system",
+							ServiceAccountName:   "aws-ebs-csi-driver",
+							PermissionPolicyARNs: []string{"arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"},
+						},
+					},
+				},
+			}
+			cmd = params.EksctlCreateCmd.
+				WithArgs(
+					"addon",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(clusterutils.Reader(clusterConfig))
+			Expect(cmd).To(RunSuccessfullyWithOutputString(
+				ContainSubstring(`deploying stack "eksctl-%s-addon-%s-podidentityrole-ebs-csi-controller-sa"`, api.AWSEBSCSIDriverAddon, clusterConfig.Metadata.Name),
+			))
+			assertAddonHasPodIDs(api.AWSEBSCSIDriverAddon, 1)
+
+			By("removing pod identity associations")
+			clusterConfig.Addons = []*api.Addon{
+				{
+					Name: api.VPCCNIAddon,
+					PodIdentityAssociations: &[]api.PodIdentityAssociation{
+						{
+							Namespace:            "kube-system",
+							ServiceAccountName:   "vpc-cni",
+							PermissionPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
+						},
+					},
+				},
+				{
+					Name:                    api.AWSEBSCSIDriverAddon,
+					PodIdentityAssociations: &[]api.PodIdentityAssociation{},
+				},
+			}
+			cmd = makeUpdateAddonCMD()
+			Expect(cmd).To(RunSuccessfully())
+			assertAddonHasPodIDs(api.AWSEBSCSIDriverAddon, 0)
+
+			cmd = params.EksctlGetCmd.
+				WithArgs("addon").
+				WithArgs("--cluster", clusterConfig.Metadata.Name).
+				WithArgs("--region", params.Region)
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+				ContainElement(ContainSubstring("eksctl-%s-addon-vpc-cni-pod", clusterConfig.Metadata.Name)),
+				ContainElement(ContainSubstring("eksctl-%s-addon-aws-ebs-csi-driver-pod", clusterConfig.Metadata.Name)),
+			))
+		})
+	})
+
 	Context("addons in a cluster with no nodes", func() {
 		var clusterConfig *api.ClusterConfig
 
@@ -657,6 +809,7 @@ func getRawClient(ctx context.Context, clusterName string) *kubewrapper.RawClien
 	Expect(err).ShouldNot(HaveOccurred())
 	rawClient, err := ctl.NewRawClient(cfg)
 	Expect(err).NotTo(HaveOccurred())
+	awsProvider = ctl.AWSProvider
 	return rawClient
 }
 
