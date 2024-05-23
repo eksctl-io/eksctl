@@ -384,5 +384,17 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(profile.Selectors[1].Labels).To(HaveLen(0))
 			})
 		})
+
+		DescribeTable("default AMI family", func(kubernetesVersion, expectedAMIFamily string) {
+			mng := NewManagedNodeGroup()
+			SetManagedNodeGroupDefaults(mng, &ClusterMeta{
+				Version: kubernetesVersion,
+			}, false)
+			Expect(mng.AMIFamily).To(Equal(expectedAMIFamily))
+		},
+			Entry("EKS 1.30 uses AL2023", "1.30", NodeImageFamilyAmazonLinux2023),
+			Entry("EKS 1.29 uses AL2", "1.29", NodeImageFamilyAmazonLinux2),
+			Entry("EKS 1.28 uses AL2", "1.28", NodeImageFamilyAmazonLinux2),
+		)
 	})
 })
