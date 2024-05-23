@@ -8,8 +8,9 @@ import (
 	"mime/multipart"
 	"strings"
 
+	nodeadm "github.com/awslabs/amazon-eks-ami/nodeadm/api/v1alpha1"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
@@ -101,7 +102,7 @@ set -ex
 	return script
 }
 
-func createMimeMessage(writer io.Writer, scripts, cloudboots []string, nodeConfig *NodeConfig, mimeBoundary string) error {
+func createMimeMessage(writer io.Writer, scripts, cloudboots []string, nodeConfig *nodeadm.NodeConfig, mimeBoundary string) error {
 	mw := multipart.NewWriter(writer)
 	if mimeBoundary != "" {
 		if err := mw.SetBoundary(mimeBoundary); err != nil {
