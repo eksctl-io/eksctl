@@ -36,10 +36,10 @@ var _ = Describe("KubeProxy", func() {
 			clientSet = rawClient.ClientSet()
 			mockProvider = mockprovider.NewMockProvider()
 			input = da.AddonInput{
-				RawClient:           rawClient,
-				Region:              "eu-west-1",
-				EKSAPI:              mockProvider.EKS(),
-				ControlPlaneVersion: controlPlaneVersion,
+				RawClient:             rawClient,
+				Region:                "eu-west-1",
+				AddonVersionDescriber: mockProvider.EKS(),
+				ControlPlaneVersion:   controlPlaneVersion,
 			}
 		})
 

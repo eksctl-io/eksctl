@@ -3,6 +3,7 @@ package addon
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -16,40 +17,81 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
-	preTasks := &tasks.TaskTree{Parallel: false}
-	postTasks := &tasks.TaskTree{Parallel: false}
-	var preAddons []*api.Addon
-	var postAddons []*api.Addon
-	for _, addon := range cfg.Addons {
-		if strings.EqualFold(addon.Name, api.VPCCNIAddon) ||
-			strings.EqualFold(addon.Name, api.PodIdentityAgentAddon) {
+var knownAddons = map[string]struct {
+	IsDefault             bool
+	CreateBeforeNodeGroup bool
+}{
+	api.VPCCNIAddon: {
+		IsDefault:             true,
+		CreateBeforeNodeGroup: true,
+	},
+	api.KubeProxyAddon: {
+		IsDefault: true,
+	},
+	api.CoreDNSAddon: {
+		IsDefault: true,
+	},
+	api.PodIdentityAgentAddon: {
+		CreateBeforeNodeGroup: true,
+	},
+	api.AWSEBSCSIDriverAddon: {},
+	api.AWSEFSCSIDriverAddon: {},
+}
+
+func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree, []string) {
+	var addons []*api.Addon
+	var autoDefaultAddonNames []string
+	if !cfg.AddonsConfig.DisableDefaultAddons {
+		addons = make([]*api.Addon, len(cfg.Addons))
+		copy(addons, cfg.Addons)
+
+		for addonName, addonInfo := range knownAddons {
+			if addonInfo.IsDefault && !slices.ContainsFunc(cfg.Addons, func(a *api.Addon) bool {
+				return strings.EqualFold(a.Name, addonName)
+			}) {
+				addons = append(addons, &api.Addon{Name: addonName})
+				autoDefaultAddonNames = append(autoDefaultAddonNames, addonName)
+			}
+		}
+	} else {
+		addons = cfg.Addons
+	}
+
+	var (
+		preAddons  []*api.Addon
+		postAddons []*api.Addon
+	)
+	for _, addon := range addons {
+		if addonInfo, ok := knownAddons[addon.Name]; ok && addonInfo.CreateBeforeNodeGroup {
 			preAddons = append(preAddons, addon)
 		} else {
 			postAddons = append(postAddons, addon)
 		}
 	}
+	preTasks := &tasks.TaskTree{Parallel: false}
+	postTasks := &tasks.TaskTree{Parallel: false}
 
-	preAddonsTask := createAddonTask{
-		info:            "create addons",
-		addons:          preAddons,
-		ctx:             ctx,
-		cfg:             cfg,
-		clusterProvider: clusterProvider,
-		forceAll:        forceAll,
-		timeout:         timeout,
-		wait:            false,
-		iamRoleCreator:  iamRoleCreator,
+	makeAddonTask := func(addons []*api.Addon, wait bool) *createAddonTask {
+		return &createAddonTask{
+			info:            "create addons",
+			addons:          addons,
+			ctx:             ctx,
+			cfg:             cfg,
+			clusterProvider: clusterProvider,
+			forceAll:        forceAll,
+			timeout:         timeout,
+			wait:            wait,
+			iamRoleCreator:  iamRoleCreator,
+		}
 	}
 
-	preTasks.Append(&preAddonsTask)
-
-	postAddonsTask := preAddonsTask
-	postAddonsTask.addons = postAddons
-	postAddonsTask.wait = cfg.HasNodes()
-	postTasks.Append(&postAddonsTask)
-
-	return preTasks, postTasks
+	if len(preAddons) > 0 {
+		preTasks.Append(makeAddonTask(preAddons, false))
+	}
+	if len(postAddons) > 0 {
+		postTasks.Append(makeAddonTask(postAddons, cfg.HasNodes()))
+	}
+	return preTasks, postTasks, autoDefaultAddonNames
 }
 
 type createAddonTask struct {

@@ -9,6 +9,7 @@ import (
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 func updateCoreDNSCmd(cmd *cmdutils.Cmd) {
@@ -34,44 +35,16 @@ func updateCoreDNSCmd(cmd *cmdutils.Cmd) {
 }
 
 func doUpdateCoreDNS(cmd *cmdutils.Cmd) error {
-	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
-		return err
-	}
-
-	cfg := cmd.ClusterConfig
-	meta := cmd.ClusterConfig.Metadata
-
 	ctx := context.TODO()
-	ctl, err := cmd.NewProviderForExistingCluster(ctx)
-	if err != nil {
-		return err
-	}
-
-	if ok, err := ctl.CanUpdate(cfg); !ok {
-		return err
-	}
-
-	rawClient, err := ctl.NewRawClient(cfg)
-	if err != nil {
-		return err
-	}
-
-	kubernetesVersion, err := rawClient.ServerVersion()
-	if err != nil {
-		return err
-	}
-
-	updateRequired, err := defaultaddons.UpdateCoreDNS(ctx, defaultaddons.AddonInput{
-		RawClient:           rawClient,
-		ControlPlaneVersion: kubernetesVersion,
-		Region:              meta.Region,
-	}, cmd.Plan)
-
-	if err != nil {
-		return err
-	}
-
-	cmdutils.LogPlanModeWarning(cmd.Plan && updateRequired)
-
-	return nil
+	return updateAddon(ctx, cmd, api.CoreDNSAddon, func(rawClient *kubernetes.RawClient, _ defaultaddons.AddonVersionDescriber) (bool, error) {
+		kubernetesVersion, err := rawClient.ServerVersion()
+		if err != nil {
+			return false, err
+		}
+		return defaultaddons.UpdateCoreDNS(ctx, defaultaddons.AddonInput{
+			RawClient:           rawClient,
+			ControlPlaneVersion: kubernetesVersion,
+			Region:              cmd.ClusterConfig.Metadata.Region,
+		}, cmd.Plan)
+	})
 }
