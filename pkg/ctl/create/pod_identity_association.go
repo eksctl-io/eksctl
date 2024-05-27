@@ -72,6 +72,8 @@ func configureCreatePodIdentityAssociationCmd(cmd *cmdutils.Cmd, pia *api.PodIde
 		fs.StringVar(&pia.RoleName, "role-name", "", "Set a custom name for the created role")
 		fs.StringVar(&pia.PermissionsBoundaryARN, "permission-boundary-arn", "", "ARN of the policy that is used to set the permission boundary for the role")
 
+		fs.BoolVar(&pia.CreateServiceAccount, "create-service-account", false, "instructs eksctl to create the K8s service account")
+
 		fs.StringSliceVar(&pia.PermissionPolicyARNs, "permission-policy-arns", []string{}, "List of ARNs of the IAM permission policies to attach")
 
 		fs.VarP(&pia.WellKnownPolicies, "well-known-policies", "", "Used to attach common IAM policies")

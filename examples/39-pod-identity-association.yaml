@@ -20,6 +20,7 @@ iam:
   # roleARN is given, eksctl will only create the pod identity association 
   - namespace: default
     serviceAccountName: s3-reader
+    createServiceAccount: true # default is false
     roleARN: arn:aws:iam::111122223333:role/role-1 
 
   # roleARN is not given, eksctl will first create an IAM role with given roleName using:
