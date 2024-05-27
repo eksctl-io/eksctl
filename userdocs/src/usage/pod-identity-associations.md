@@ -199,7 +199,8 @@ For EKS Add-ons that support pod identities, `eksctl` offers the option to autom
 ```yaml
 iam:
   autoCreatePodIdentityAssociations: true
-# bear in mind that if either pod identity or IRSA configuration is explicitly set in the config file, 
+# bear in mind that if either pod identity or IRSA configuration is explicitly set in the config file,
+# or if the addon does not support pod identities,
 # iam.autoCreatePodIdentityAssociations won't have any effect.
 addons:
 - name: vpc-cni
@@ -210,6 +211,12 @@ and run
 ```bash
 eksctl create addon -f config.yaml
 2024-05-13 15:38:58 [ℹ] "iam.AutoCreatePodIdentityAssociations" is set to true; will lookup recommended pod identity configuration for "vpc-cni" addon
+```
+
+Equivalently, the same can be done via CLI flags e.g.
+
+```bash
+eksctl create addon --cluster my-cluster --name vpc-cni --auto-create-pod-identity-associations
 ```
 
 ### Updating addons with IAM permissions

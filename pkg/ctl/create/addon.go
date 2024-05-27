@@ -33,6 +33,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].Name, "name", "", "Add-on name")
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].Version, "version", "", "Add-on version. Use `eksctl utils describe-addon-versions` to discover a version or set to \"latest\"")
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].ServiceAccountRoleARN, "service-account-role-arn", "", "Add-on serviceAccountRoleARN")
+		fs.BoolVar(&cmd.ClusterConfig.IAM.AutoCreatePodIdentityAssociations, "auto-create-pod-identity-associations", false, "create recommended pod identity associations for the addon(s), if supported")
 		fs.BoolVar(&force, "force", false, "Force migrates an existing self-managed add-on to an EKS managed add-on")
 		fs.BoolVar(&wait, "wait", false, "Wait for the addon creation to complete")
 
