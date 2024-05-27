@@ -66,25 +66,6 @@ var _ = Describe("Create", func() {
 		genericErr = fmt.Errorf("ERR")
 	)
 
-	var policyDocument = aws.String(`{
-		"Version": "2012-10-17",
-		"Statement": [
-			{
-				"Effect": "Allow",
-				"Principal": {
-					"Federated": "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/test"
-				},
-				"Action": "sts:AssumeRoleWithWebIdentity",
-				"Condition": {
-					"StringEquals": {
-						"oidc.eks.eu-north-1.amazonaws.com/id/test:sub": "system:serviceaccount:default:service-account-1",
-						"oidc.eks.eu-north-1.amazonaws.com/id/test:aud": "sts.amazonaws.com"
-					}
-				}
-			}
-		]
-	}`)
-
 	mockDescribeAddon := func(provider *mockprovider.MockProvider, err error) {
 		mockProvider.MockEKS().
 			On("DescribeAddon", mock.Anything, mock.Anything).
@@ -290,6 +271,9 @@ var _ = Describe("Create", func() {
 					},
 				}, nil)
 
+				stackUpdater.GetStackTemplateReturnsOnCall(0, iamRoleStackTemplate(nsDefault, sa1), nil)
+				stackUpdater.GetStackTemplateReturnsOnCall(1, iamRoleStackTemplate(nsDefault, sa2), nil)
+
 				stackUpdater.MustUpdateStackStub = func(ctx context.Context, options manager.UpdateStackOptions) error {
 					Expect(options.Stack).NotTo(BeNil())
 					Expect(options.Stack.Tags).To(ConsistOf([]cfntypes.Tag{
@@ -299,6 +283,9 @@ var _ = Describe("Create", func() {
 						},
 					}))
 					Expect(options.Stack.Capabilities).To(ConsistOf([]cfntypes.Capability{"CAPABILITY_IAM"}))
+					template := string(options.TemplateData.(manager.TemplateBody))
+					Expect(template).To(ContainSubstring(api.EKSServicePrincipal))
+					Expect(template).NotTo(ContainSubstring("oidc"))
 					return nil
 				}
 			},
@@ -313,3 +300,66 @@ var _ = Describe("Create", func() {
 		}),
 	)
 })
+
+var policyDocument = aws.String(`{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Principal": {
+				"Federated": "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/test"
+			},
+			"Action": "sts:AssumeRoleWithWebIdentity",
+			"Condition": {
+				"StringEquals": {
+					"oidc.eks.eu-north-1.amazonaws.com/id/test:sub": "system:serviceaccount:default:service-account-1",
+					"oidc.eks.eu-north-1.amazonaws.com/id/test:aud": "sts.amazonaws.com"
+				}
+			}
+		}
+	]
+}`)
+
+var iamRoleStackTemplate = func(ns, sa string) string {
+	return fmt.Sprintf(`{
+		"AWSTemplateFormatVersion": "2010-09-09",
+		"Description": "IAM role for serviceaccount \"%s/%s\" [created and managed by eksctl]",
+		"Resources": {
+		  "Role1": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+			  "AssumeRolePolicyDocument": {
+				"Statement": [
+				  {
+					"Action": [
+					  "sts:AssumeRoleWithWebIdentity"
+					],
+					"Condition": {
+					  "StringEquals": {
+						"oidc.eks.ap-northeast-2.amazonaws.com/id/BD00DB7DD37421596942D195F2B4F419:aud": "sts.amazonaws.com",
+						"oidc.eks.ap-northeast-2.amazonaws.com/id/BD00DB7DD37421596942D195F2B4F419:sub": "system:serviceaccount:backend-apps:s3-reader"
+					  }
+					},
+					"Effect": "Allow",
+					"Principal": {
+					  "Federated": "arn:aws:iam::111122223333:oidc-provider/oidc.eks.ap-northeast-2.amazonaws.com/id/BD00DB7DD37421596942D195F2B4F419"
+					}
+				  }
+				],
+				"Version": "2012-10-17"
+			  },
+			  "ManagedPolicyArns": [
+				"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+			  ]
+			}
+		  }
+		},
+		"Outputs": {
+		  "Role1": {
+			"Value": {
+			  "Fn::GetAtt": "Role1.Arn"
+			}
+		  }
+		}
+	  }`, ns, sa)
+}
