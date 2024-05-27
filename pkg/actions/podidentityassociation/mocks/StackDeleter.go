@@ -190,6 +190,63 @@ func (_c *StackDeleter_GetIAMServiceAccounts_Call) RunAndReturn(run func(context
 	return _c
 }
 
+// GetStackTemplate provides a mock function with given fields: ctx, stackName
+func (_m *StackDeleter) GetStackTemplate(ctx context.Context, stackName string) (string, error) {
+	ret := _m.Called(ctx, stackName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetStackTemplate")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, stackName)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, stackName)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, stackName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StackDeleter_GetStackTemplate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetStackTemplate'
+type StackDeleter_GetStackTemplate_Call struct {
+	*mock.Call
+}
+
+// GetStackTemplate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - stackName string
+func (_e *StackDeleter_Expecter) GetStackTemplate(ctx interface{}, stackName interface{}) *StackDeleter_GetStackTemplate_Call {
+	return &StackDeleter_GetStackTemplate_Call{Call: _e.mock.On("GetStackTemplate", ctx, stackName)}
+}
+
+func (_c *StackDeleter_GetStackTemplate_Call) Run(run func(ctx context.Context, stackName string)) *StackDeleter_GetStackTemplate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *StackDeleter_GetStackTemplate_Call) Return(_a0 string, _a1 error) *StackDeleter_GetStackTemplate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *StackDeleter_GetStackTemplate_Call) RunAndReturn(run func(context.Context, string) (string, error)) *StackDeleter_GetStackTemplate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListPodIdentityStackNames provides a mock function with given fields: ctx
 func (_m *StackDeleter) ListPodIdentityStackNames(ctx context.Context) ([]string, error) {
 	ret := _m.Called(ctx)

@@ -355,33 +355,36 @@ Running the command without the `--approve` flag will only output a plan consist
 ```bash
 [ℹ]  (plan) would migrate 2 iamserviceaccount(s) and 2 addon(s) to pod identity association(s) by executing the following tasks
 [ℹ]  (plan) 
-3 sequential tasks: { install eks-pod-identity-agent addon,
-    ## tasks for migrating the iamserviceaccounts
-    2 parallel sub-tasks: { 
-        update trust policy for owned role "eksctl-my-cluster-addon-iamserv-Role1-beYhlhzpwQte",
-        update trust policy for unowned role "Unowned-Role1",
-    }, 
-    2 parallel sub-tasks: { 
-        create pod identity association for service account "default/sa1",
-        create pod identity association for service account "default/sa2",
-    },
+
+3 sequential tasks: { install eks-pod-identity-agent addon, 
     ## tasks for migrating the addons
     2 parallel sub-tasks: { 
         2 sequential sub-tasks: { 
-            update trust policy for owned role "eksctl-my-cluster-addon-aws-ebs-csi-d-Role1-9BMT7CgeSNvX",
+            update trust policy for owned role "eksctl-my-cluster--Role1-DDuMLoeZ8weD",
             migrate addon aws-ebs-csi-driver to pod identity,
         },
         2 sequential sub-tasks: { 
-            update trust policy for owned role "eksctl-my-cluster-addon-vpc-cni-Role1-ePPlktZv2kjo",
+            update trust policy for owned role "eksctl-my-cluster--Role1-xYiPFOVp1aeI",
             migrate addon vpc-cni to pod identity,
         },
-    },
+    }, 
+    ## tasks for migrating the iamserviceaccounts
+    2 parallel sub-tasks: { 
+        2 sequential sub-tasks: { 
+            update trust policy for owned role "eksctl-my-cluster--Role1-QLXqHcq9O1AR",
+            create pod identity association for service account "default/sa1",
+        },
+        2 sequential sub-tasks: { 
+            update trust policy for unowned role "Unowned-Role1",
+            create pod identity association for service account "default/sa2",
+        },
+    } 
 }
 [ℹ]  all tasks were skipped
 [!]  no changes were applied, run again with '--approve' to apply the changes
 ```
 
-The existing OIDC provider trust relationship is always being deleted from IAM Roles associated with EKS Add-ons. Additionally, to delete the existing OIDC provider trust relationship from IAM Roles associated with iamserviceaccounts, run the command with `--remove-oidc-provider-trust-relationship` flag, e.g. 
+The existing OIDC provider trust relationship is always being removed from IAM Roles associated with EKS Add-ons. Additionally, to remove the existing OIDC provider trust relationship from IAM Roles associated with iamserviceaccounts, run the command with `--remove-oidc-provider-trust-relationship` flag, e.g. 
 
 ```
 eksctl utils migrate-to-pod-identity --cluster my-cluster --approve --remove-oidc-provider-trust-relationship

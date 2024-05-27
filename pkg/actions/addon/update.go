@@ -3,9 +3,8 @@ package addon
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
-
-	"golang.org/x/exp/slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
@@ -84,7 +83,9 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 				deleteServiceAccountIAMResources = append(deleteServiceAccountIAMResources, pia.ServiceAccount)
 			}
 		}
-		if len(deleteServiceAccountIAMResources) == 0 {
+		// to delete all pod IDs for the addon, explicitly set input.PodIdentityAssociations = []
+		if len(*addon.PodIdentityAssociations) == 0 {
+			logger.Info("addon.podIdentityAssociations is explicitly set to []; all pod identity associations corresponding to addon %s will be deleted", addon.Name)
 			updateAddonInput.PodIdentityAssociations = []ekstypes.AddonPodIdentityAssociations{}
 		}
 	}
@@ -140,7 +141,7 @@ func (a *Manager) updateWithNewPolicies(ctx context.Context, addon *api.Addon) (
 	stackName := a.makeAddonName(addon.Name)
 	stack, err := a.stackManager.DescribeStack(ctx, &manager.Stack{StackName: aws.String(stackName)})
 	if err != nil {
-		if manager.IsStackDoesNotExistError(err) {
+		if !manager.IsStackDoesNotExistError(err) {
 			return "", fmt.Errorf("failed to get stack: %w", err)
 		}
 	}

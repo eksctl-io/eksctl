@@ -39,6 +39,20 @@ type FakeStackUpdater struct {
 		result1 []*v1alpha5.ClusterIAMServiceAccount
 		result2 error
 	}
+	GetStackTemplateStub        func(context.Context, string) (string, error)
+	getStackTemplateMutex       sync.RWMutex
+	getStackTemplateArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+	}
+	getStackTemplateReturns struct {
+		result1 string
+		result2 error
+	}
+	getStackTemplateReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	ListPodIdentityStackNamesStub        func(context.Context) ([]string, error)
 	listPodIdentityStackNamesMutex       sync.RWMutex
 	listPodIdentityStackNamesArgsForCall []struct {
@@ -197,6 +211,71 @@ func (fake *FakeStackUpdater) GetIAMServiceAccountsReturnsOnCall(i int, result1 
 	}{result1, result2}
 }
 
+func (fake *FakeStackUpdater) GetStackTemplate(arg1 context.Context, arg2 string) (string, error) {
+	fake.getStackTemplateMutex.Lock()
+	ret, specificReturn := fake.getStackTemplateReturnsOnCall[len(fake.getStackTemplateArgsForCall)]
+	fake.getStackTemplateArgsForCall = append(fake.getStackTemplateArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.GetStackTemplateStub
+	fakeReturns := fake.getStackTemplateReturns
+	fake.recordInvocation("GetStackTemplate", []interface{}{arg1, arg2})
+	fake.getStackTemplateMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStackUpdater) GetStackTemplateCallCount() int {
+	fake.getStackTemplateMutex.RLock()
+	defer fake.getStackTemplateMutex.RUnlock()
+	return len(fake.getStackTemplateArgsForCall)
+}
+
+func (fake *FakeStackUpdater) GetStackTemplateCalls(stub func(context.Context, string) (string, error)) {
+	fake.getStackTemplateMutex.Lock()
+	defer fake.getStackTemplateMutex.Unlock()
+	fake.GetStackTemplateStub = stub
+}
+
+func (fake *FakeStackUpdater) GetStackTemplateArgsForCall(i int) (context.Context, string) {
+	fake.getStackTemplateMutex.RLock()
+	defer fake.getStackTemplateMutex.RUnlock()
+	argsForCall := fake.getStackTemplateArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeStackUpdater) GetStackTemplateReturns(result1 string, result2 error) {
+	fake.getStackTemplateMutex.Lock()
+	defer fake.getStackTemplateMutex.Unlock()
+	fake.GetStackTemplateStub = nil
+	fake.getStackTemplateReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackUpdater) GetStackTemplateReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getStackTemplateMutex.Lock()
+	defer fake.getStackTemplateMutex.Unlock()
+	fake.GetStackTemplateStub = nil
+	if fake.getStackTemplateReturnsOnCall == nil {
+		fake.getStackTemplateReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getStackTemplateReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeStackUpdater) ListPodIdentityStackNames(arg1 context.Context) ([]string, error) {
 	fake.listPodIdentityStackNamesMutex.Lock()
 	ret, specificReturn := fake.listPodIdentityStackNamesReturnsOnCall[len(fake.listPodIdentityStackNamesArgsForCall)]
@@ -330,6 +409,8 @@ func (fake *FakeStackUpdater) Invocations() map[string][][]interface{} {
 	defer fake.describeStackMutex.RUnlock()
 	fake.getIAMServiceAccountsMutex.RLock()
 	defer fake.getIAMServiceAccountsMutex.RUnlock()
+	fake.getStackTemplateMutex.RLock()
+	defer fake.getStackTemplateMutex.RUnlock()
 	fake.listPodIdentityStackNamesMutex.RLock()
 	defer fake.listPodIdentityStackNamesMutex.RUnlock()
 	fake.mustUpdateStackMutex.RLock()

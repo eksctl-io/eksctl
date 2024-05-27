@@ -18,9 +18,13 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+)
+
+const (
+	resourceTypeIAMRole = "AWS::IAM::Role"
 )
 
 type createPodIdentityAssociationTask struct {
@@ -78,15 +82,34 @@ func (t *trustPolicyUpdater) UpdateTrustPolicyForOwnedRoleTask(ctx context.Conte
 				return fmt.Errorf("updating trust statements for role %s: %w", roleName, err)
 			}
 
-			// build template for updating trust policy
-			rs := builder.NewIAMRoleResourceSetForPodIdentityWithTrustStatements(&api.PodIdentityAssociation{}, trustStatements)
-			if err := rs.AddAllResources(); err != nil {
-				return fmt.Errorf("adding resources to CloudFormation template: %w", err)
-			}
-			template, err := rs.RenderJSON()
+			currentTemplate, err := t.stackUpdater.GetStackTemplate(ctx, stack.Name)
 			if err != nil {
-				return fmt.Errorf("generating CloudFormation template: %w", err)
+				return fmt.Errorf("fetching current template for stack %q", stack.Name)
 			}
+
+			cfnTemplate := cft.NewTemplate()
+			if err := cfnTemplate.LoadJSON([]byte(currentTemplate)); err != nil {
+				return fmt.Errorf("unmarshalling current template for stack %q", stack.Name)
+			}
+
+			for i, r := range cfnTemplate.Resources {
+				if r.Type != resourceTypeIAMRole {
+					continue
+				}
+				role, err := r.ToIAMRole()
+				if err != nil {
+					return fmt.Errorf("fetching properties for role %s: %w", roleName, err)
+				}
+				role.AssumeRolePolicyDocument["Statement"] = trustStatements
+				r.Properties = role
+				cfnTemplate.Resources[i] = r
+			}
+
+			updatedTemplate, err := cfnTemplate.RenderJSON()
+			if err != nil {
+				return fmt.Errorf("marshalling updated template for stack %q", stack.Name)
+			}
+			logger.Debug("updated template for role %s: %v", string(updatedTemplate))
 
 			// update stack tags to reflect migration to IRSAv2
 			cfnTags := []cfntypes.Tag{}
@@ -95,8 +118,8 @@ func (t *trustPolicyUpdater) UpdateTrustPolicyForOwnedRoleTask(ctx context.Conte
 					continue
 				}
 				cfnTags = append(cfnTags, cfntypes.Tag{
-					Key:   &key,
-					Value: &value,
+					Key:   aws.String(key),
+					Value: aws.String(value),
 				})
 			}
 
@@ -125,7 +148,7 @@ func (t *trustPolicyUpdater) UpdateTrustPolicyForOwnedRoleTask(ctx context.Conte
 				},
 				ChangeSetName: fmt.Sprintf("eksctl-%s-update-%d", roleName, time.Now().Unix()),
 				Description:   fmt.Sprintf("updating IAM resources stack %q for role %q", stack.Name, roleName),
-				TemplateData:  manager.TemplateBody(template),
+				TemplateData:  manager.TemplateBody(updatedTemplate),
 				Wait:          true,
 			}); err != nil {
 				var noChangeErr *manager.NoChangeError

@@ -24,6 +24,7 @@ import (
 type StackLister interface {
 	ListPodIdentityStackNames(ctx context.Context) ([]string, error)
 	DescribeStack(ctx context.Context, stack *manager.Stack) (*manager.Stack, error)
+	GetStackTemplate(ctx context.Context, stackName string) (string, error)
 	GetIAMServiceAccounts(ctx context.Context) ([]*api.ClusterIAMServiceAccount, error)
 }
 

@@ -96,14 +96,8 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 		return fmt.Errorf("listing k8s service accounts: %w", err)
 	}
 
-	updateTrustPolicyTasks := tasks.TaskTree{
-		Parallel:  true,
-		IsSubTask: true,
-	}
-	removeIRSAv1AnnotationTasks := tasks.TaskTree{
-		Parallel:  true,
-		IsSubTask: true,
-	}
+	updateTrustPolicyTasks := []tasks.Task{}
+	removeIRSAv1AnnotationTasks := []tasks.Task{}
 	toBeCreated := []api.PodIdentityAssociation{}
 
 	addonServiceAccountRoleMapper, err := CreateAddonServiceAccountRoleMapper(ctx, m.clusterName, m.eksAPI)
@@ -117,9 +111,11 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 	for _, sa := range serviceAccounts.Items {
 		if roleARN, ok := sa.Annotations[api.AnnotationEKSRoleARN]; ok {
 			if mappedAddon := addonServiceAccountRoleMapper.AddonForServiceAccountRole(roleARN); mappedAddon != nil {
-				logger.Info("found service account %s but it is associated with EKS addon %s", sa.Name, *mappedAddon.AddonName)
+				logger.Info("found IAM role for service account %s associated with EKS addon %s", sa.Name, *mappedAddon.AddonName)
 				continue
 			}
+			logger.Info("found IAM role for service account %s/%s", sa.Namespace, sa.Name)
+
 			// collect pod identity associations that need to be created
 			toBeCreated = append(toBeCreated, api.PodIdentityAssociation{
 				ServiceAccountName: sa.Name,
@@ -135,12 +131,11 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 
 			// add updateTrustPolicyTasks
 			if stackSummary, hasStack := resolver.GetStack(roleARN); hasStack {
-				updateTrustPolicyTasks.Append(
+				updateTrustPolicyTasks = append(updateTrustPolicyTasks,
 					policyUpdater.UpdateTrustPolicyForOwnedRoleTask(ctx, roleName, "", stackSummary, options.RemoveOIDCProviderTrustRelationship),
 				)
-
 			} else {
-				updateTrustPolicyTasks.Append(
+				updateTrustPolicyTasks = append(updateTrustPolicyTasks,
 					policyUpdater.UpdateTrustPolicyForUnownedRoleTask(ctx, roleName, options.RemoveOIDCProviderTrustRelationship),
 				)
 			}
@@ -154,7 +149,7 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 			saCopy := &corev1.ServiceAccount{
 				ObjectMeta: sa.ObjectMeta,
 			}
-			removeIRSAv1AnnotationTasks.Append(&tasks.GenericTask{
+			removeIRSAv1AnnotationTasks = append(removeIRSAv1AnnotationTasks, &tasks.GenericTask{
 				Description: fmt.Sprintf("remove iamserviceaccount EKS role annotation for %q", saNameString),
 				Doer: func() error {
 					delete(saCopy.Annotations, api.AnnotationEKSRoleARN)
@@ -181,27 +176,34 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 	if err != nil {
 		return fmt.Errorf("error migrating addons to use pod identity: %w", err)
 	}
-	if addonMigrationTasks.Len() == 0 && updateTrustPolicyTasks.Len() == 0 {
+	if addonMigrationTasks.Len() == 0 && len(toBeCreated) == 0 {
 		logger.Info("no iamserviceaccounts or addons found to migrate to pod identity")
 		return nil
 	}
 
-	if updateTrustPolicyTasks.Len() > 0 {
-		taskTree.Append(&updateTrustPolicyTasks)
-	}
+	// add tasks to migrate addons
 	if addonMigrationTasks.Len() > 0 {
 		addonMigrationTasks.IsSubTask = true
 		taskTree.Append(addonMigrationTasks)
 	}
-	if removeIRSAv1AnnotationTasks.Len() > 0 {
-		taskTree.Append(&removeIRSAv1AnnotationTasks)
-	}
 
-	// add tasks to create pod identity associations
+	// add tasks to migrate iamserviceaccounts
+	iamserviceaccountMigrationTasks := &tasks.TaskTree{
+		Parallel:  true,
+		IsSubTask: true,
+	}
 	createAssociationsTasks := NewCreator(m.clusterName, nil, m.eksAPI, m.clientSet).CreateTasks(ctx, toBeCreated, true)
-	if createAssociationsTasks.Len() > 0 {
-		createAssociationsTasks.IsSubTask = true
-		taskTree.Append(createAssociationsTasks)
+	for i := range toBeCreated {
+		subTasks := &tasks.TaskTree{IsSubTask: true}
+		subTasks.Append(updateTrustPolicyTasks[i])
+		if len(removeIRSAv1AnnotationTasks) > 0 {
+			subTasks.Append(removeIRSAv1AnnotationTasks[i])
+		}
+		subTasks.Append(createAssociationsTasks.Tasks[i])
+		iamserviceaccountMigrationTasks.Append(subTasks)
+	}
+	if iamserviceaccountMigrationTasks.Len() > 0 {
+		taskTree.Append(iamserviceaccountMigrationTasks)
 	}
 
 	// add suggestive logs

@@ -217,12 +217,6 @@ func NewIAMRoleResourceSetForServiceAccount(spec *api.ClusterIAMServiceAccount, 
 	}
 }
 
-func NewIAMRoleResourceSetForPodIdentityWithTrustStatements(spec *api.PodIdentityAssociation, trustStatements []api.IAMStatement) *IAMRoleResourceSet {
-	rs := NewIAMRoleResourceSetForPodIdentity(spec)
-	rs.trustStatements = trustStatements
-	return rs
-}
-
 func NewIAMRoleResourceSetForPodIdentity(spec *api.PodIdentityAssociation) *IAMRoleResourceSet {
 	return &IAMRoleResourceSet{
 		template:            cft.NewTemplate(),
