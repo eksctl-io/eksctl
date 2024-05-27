@@ -269,10 +269,17 @@
           "description": "specifies whether to automatically apply pod identity associations for supported addons that require IAM permissions.",
           "x-intellij-html-description": "specifies whether to automatically apply pod identity associations for supported addons that require IAM permissions.",
           "default": "false"
+        },
+        "disableDefaultAddons": {
+          "type": "boolean",
+          "description": "enables or disables creation of default networking addons when the cluster is created. By default, all default addons are installed as EKS addons.",
+          "x-intellij-html-description": "enables or disables creation of default networking addons when the cluster is created. By default, all default addons are installed as EKS addons.",
+          "default": "false"
         }
       },
       "preferredOrder": [
-        "autoApplyPodIdentityAssociations"
+        "autoApplyPodIdentityAssociations",
+        "disableDefaultAddons"
       ],
       "additionalProperties": false,
       "description": "holds the addons config.",

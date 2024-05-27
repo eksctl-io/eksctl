@@ -867,6 +867,7 @@ func getInitialClusterConfig() *api.ClusterConfig {
 			AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
 		},
 	}
+	clusterConfig.AddonsConfig.DisableDefaultAddons = true
 
 	ng := &api.ManagedNodeGroup{
 		NodeGroupBase: &api.NodeGroupBase{

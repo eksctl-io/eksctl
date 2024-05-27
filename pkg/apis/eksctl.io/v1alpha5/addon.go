@@ -9,6 +9,18 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// Values for core addons
+const (
+	minimumVPCCNIVersionForIPv6 = "1.10.0"
+
+	VPCCNIAddon           = "vpc-cni"
+	KubeProxyAddon        = "kube-proxy"
+	CoreDNSAddon          = "coredns"
+	PodIdentityAgentAddon = "eks-pod-identity-agent"
+	AWSEBSCSIDriverAddon  = "aws-ebs-csi-driver"
+	AWSEFSCSIDriverAddon  = "aws-efs-csi-driver"
+)
+
 // Addon holds the EKS addon configuration
 type Addon struct {
 	// +required

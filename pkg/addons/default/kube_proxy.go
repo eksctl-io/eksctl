@@ -16,7 +16,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
@@ -117,7 +116,7 @@ func addArm64NodeSelector(daemonSet *v1.DaemonSet) error {
 
 func getLatestKubeProxyImage(ctx context.Context, input AddonInput) (string, error) {
 	defaultClusterVersion := generateImageVersionFromClusterVersion(input.ControlPlaneVersion)
-	latestEKSReportedVersion, err := getLatestImageVersionFromEKS(ctx, input.EKSAPI, input.ControlPlaneVersion)
+	latestEKSReportedVersion, err := getLatestImageVersionFromEKS(ctx, input.AddonVersionDescriber, input.ControlPlaneVersion)
 	if err != nil {
 		return "", err
 	}
@@ -151,7 +150,7 @@ func generateImageVersionFromClusterVersion(controlPlaneVersion string) string {
 	return fmt.Sprintf("v%s-eksbuild.1", controlPlaneVersion)
 }
 
-func getLatestImageVersionFromEKS(ctx context.Context, eksAPI awsapi.EKS, controlPlaneVersion string) (string, error) {
+func getLatestImageVersionFromEKS(ctx context.Context, addonDescriber AddonVersionDescriber, controlPlaneVersion string) (string, error) {
 	controlPlaneMajorMinor, err := versionWithOnlyMajorAndMinor(controlPlaneVersion)
 	if err != nil {
 		return "", err
@@ -161,7 +160,7 @@ func getLatestImageVersionFromEKS(ctx context.Context, eksAPI awsapi.EKS, contro
 		AddonName:         aws.String(KubeProxy),
 	}
 
-	addonInfos, err := eksAPI.DescribeAddonVersions(ctx, input)
+	addonInfos, err := addonDescriber.DescribeAddonVersions(ctx, input)
 	if err != nil {
 		return "", fmt.Errorf("failed to describe addon versions: %v", err)
 	}

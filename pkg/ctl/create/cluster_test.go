@@ -273,6 +273,7 @@ var _ = Describe("create cluster", func() {
 
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = clusterName
+		clusterConfig.DisableDefaultAddons = true
 		clusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
 		clusterConfig.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
 

@@ -25,6 +25,7 @@ type Properties struct {
 	Description                          string
 	Tags                                 []Tag
 	SecurityGroupIngress                 []SGIngress
+	BootstrapSelfManagedAddons           bool
 	GroupID                              interface{}
 	SourceSecurityGroupID                interface{}
 	DestinationSecurityGroupID           interface{}
