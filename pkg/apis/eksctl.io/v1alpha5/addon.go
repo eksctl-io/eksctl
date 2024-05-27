@@ -64,6 +64,12 @@ type AddonsConfig struct {
 	// for supported addons that require IAM permissions.
 	// +optional
 	AutoApplyPodIdentityAssociations bool `json:"autoApplyPodIdentityAssociations,omitempty"`
+
+	// DisableDefaultAddons enables or disables creation of default networking addons when the cluster
+	// is created.
+	// By default, all default addons are installed as EKS addons.
+	// +optional
+	DisableDefaultAddons bool `json:"disableDefaultAddons,omitempty"`
 }
 
 func (a Addon) CanonicalName() string {

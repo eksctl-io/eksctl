@@ -296,11 +296,12 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 	}
 
 	cluster := gfneks.Cluster{
-		EncryptionConfig:   encryptionConfigs,
-		Logging:            makeClusterLogging(c.spec),
-		Name:               gfnt.NewString(c.spec.Metadata.Name),
-		ResourcesVpcConfig: clusterVPC,
-		RoleArn:            serviceRoleARN,
+		EncryptionConfig:           encryptionConfigs,
+		Logging:                    makeClusterLogging(c.spec),
+		Name:                       gfnt.NewString(c.spec.Metadata.Name),
+		ResourcesVpcConfig:         clusterVPC,
+		RoleArn:                    serviceRoleARN,
+		BootstrapSelfManagedAddons: gfnt.NewBoolean(false),
 		AccessConfig: &gfneks.Cluster_AccessConfig{
 			AuthenticationMode:                      gfnt.NewString(string(c.spec.AccessConfig.AuthenticationMode)),
 			BootstrapClusterCreatorAdminPermissions: gfnt.NewBoolean(!api.IsDisabled(c.spec.AccessConfig.BootstrapClusterCreatorAdminPermissions)),
