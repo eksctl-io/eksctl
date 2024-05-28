@@ -141,6 +141,7 @@ IamLimitedAccess
                 "iam:TagOpenIDConnectProvider",
                 "iam:ListAttachedRolePolicies",
                 "iam:TagRole",
+                "iam:UntagRole",
                 "iam:GetPolicy",
                 "iam:CreatePolicy",
                 "iam:DeletePolicy",
