@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package addons
 
 import (
@@ -137,16 +140,18 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			Expect(cmd).To(RunSuccessfully())
 
-			By("Deleting the vpc-cni addon")
+			By("Deleting the vpc-cni addon with --preserve")
 			cmd = params.EksctlDeleteCmd.
 				WithArgs(
 					"addon",
 					"--name", "vpc-cni",
+					"--preserve",
 					"--cluster", clusterName,
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfully())
-
+			_, err := rawClient.ClientSet().AppsV1().DaemonSets("kube-system").Get(context.Background(), "aws-node", metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should have full control over configMap when creating addons", func() {
@@ -596,7 +601,6 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			Expect(makeCreateAddonCMD()).To(RunSuccessfully())
 			assertAddonHasPodIDs(api.VPCCNIAddon, 1)
 			assertStackExists(makePodIDStackName(api.VPCCNIAddon, awsNodeSA))
-			assertStackNotExists(makeIRSAStackName(api.VPCCNIAddon))
 
 			By("creating pod identity associations for addons when `autoCreate:true` and addon supports podIDs")
 			clusterConfig.IAM.AutoCreatePodIdentityAssociations = true
@@ -619,14 +623,13 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			By("deleting pod identity associations and IAM role when deleting addon")
 			Expect(makeDeleteAddonCMD(api.VPCCNIAddon)).To(RunSuccessfully())
 			assertPodIDPresence("kube-system", awsNodeSA, false)
+			assertStackDeleted(makeIRSAStackName(api.VPCCNIAddon))
 			assertStackDeleted(makePodIDStackName(api.VPCCNIAddon, awsNodeSA))
 
 			By("keeping pod identity associations and IAM role when deleting addon with preserve")
 			Expect(makeDeleteAddonCMD(api.AWSEBSCSIDriverAddon, "--preserve")).To(RunSuccessfully())
 			assertPodIDPresence("kube-system", ebsCSIControllerSA, true)
 			assertStackExists(makePodIDStackName(api.AWSEBSCSIDriverAddon, ebsCSIControllerSA))
-			_, err := rawClient.ClientSet().AppsV1().DaemonSets("kube-system").Get(context.Background(), ebsCSIControllerSA, metav1.GetOptions{})
-			Expect(err).NotTo(HaveOccurred())
 
 			By("cleaning up IAM role on subsequent deletion")
 			Expect(makeDeleteAddonCMD(api.AWSEBSCSIDriverAddon)).To(RunSuccessfully())
@@ -828,6 +831,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 var _ = AfterSuite(func() {
 	cmd := params.EksctlDeleteCmd.WithArgs(
 		"cluster", params.ClusterName,
+		"--disable-nodegroup-eviction",
 		"--verbose", "2",
 	)
 	Expect(cmd).To(RunSuccessfully())
