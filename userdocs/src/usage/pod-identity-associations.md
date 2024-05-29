@@ -45,6 +45,7 @@ iam:
   podIdentityAssociations: 
   - namespace: <string> #required
     serviceAccountName: <string> #required
+    createServiceAccount: true #optional, default is false
     roleARN: <string> #required if none of permissionPolicyARNs, permissionPolicy and wellKnownPolicies is specified. Also, cannot be used together with any of the three other referenced fields.
     roleName: <string> #optional, generated automatically if not provided, ignored if roleARN is provided
     permissionPolicy: {} #optional

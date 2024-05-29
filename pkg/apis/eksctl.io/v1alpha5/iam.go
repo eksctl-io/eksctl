@@ -176,6 +176,9 @@ type PodIdentityAssociation struct {
 	RoleARN string `json:"roleARN"`
 
 	// +optional
+	CreateServiceAccount bool `json:"createServiceAccount,omitempty"`
+
+	// +optional
 	RoleName string `json:"roleName,omitempty"`
 
 	// +optional
