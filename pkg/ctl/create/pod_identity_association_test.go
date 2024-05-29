@@ -49,6 +49,10 @@ var _ = Describe("create pod identity association", func() {
 			args:        []string{"--service-account-name", "test-sa-name", "--config-file", configFile},
 			expectedErr: "cannot use --service-account-name when --config-file/-f is set",
 		}),
+		Entry("setting --create-service-account and --config-file at the same time", createPodIdentityAssociationEntry{
+			args:        []string{"--create-service-account", "--config-file", configFile},
+			expectedErr: "cannot use --create-service-account when --config-file/-f is set",
+		}),
 		Entry("missing all --role-arn, --permission-policy-arns and --well-known-policies", createPodIdentityAssociationEntry{
 			args:        defaultArgs,
 			expectedErr: "at least one of the following flags must be specified: --role-arn, --permission-policy-arns, --well-known-policies",
