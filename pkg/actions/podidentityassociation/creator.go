@@ -60,18 +60,20 @@ func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api
 				stackCreator:           c.stackCreator,
 			})
 		}
-		piaCreationTasks.Append(&tasks.GenericTask{
-			Description: fmt.Sprintf("create service account %q, if it does not already exist", pia.NameString()),
-			Doer: func() error {
-				if err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(c.clientSet, v1.ObjectMeta{
-					Name:      pia.ServiceAccountName,
-					Namespace: pia.Namespace,
-				}); err != nil {
-					return fmt.Errorf("failed to create service account %q: %w", pia.NameString(), err)
-				}
-				return nil
-			},
-		})
+		if pia.CreateServiceAccount {
+			piaCreationTasks.Append(&tasks.GenericTask{
+				Description: fmt.Sprintf("create service account %q, if it does not already exist", pia.NameString()),
+				Doer: func() error {
+					if err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(c.clientSet, v1.ObjectMeta{
+						Name:      pia.ServiceAccountName,
+						Namespace: pia.Namespace,
+					}); err != nil {
+						return fmt.Errorf("failed to create service account %q: %w", pia.NameString(), err)
+					}
+					return nil
+				},
+			})
+		}
 		piaCreationTasks.Append(&createPodIdentityAssociationTask{
 			ctx:                    ctx,
 			info:                   fmt.Sprintf("create pod identity association for service account %q", pia.NameString()),

@@ -95,9 +95,10 @@ var _ = Describe("Create", func() {
 		Entry("returns an error if creating the service account fails", createPodIdentityAssociationEntry{
 			toBeCreated: []api.PodIdentityAssociation{
 				{
-					Namespace:          namespace,
-					ServiceAccountName: serviceAccountName1,
-					RoleARN:            roleARN,
+					Namespace:            namespace,
+					ServiceAccountName:   serviceAccountName1,
+					RoleARN:              roleARN,
+					CreateServiceAccount: true,
 				},
 			},
 			mockK8s: func(clientSet *kubeclientfakes.Clientset) {

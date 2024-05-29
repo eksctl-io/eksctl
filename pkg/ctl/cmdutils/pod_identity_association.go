@@ -19,6 +19,7 @@ var (
 		"permission-boundary-arn",
 		"permission-policy-arn",
 		"well-known-policies",
+		"create-service-account",
 	}
 )
 

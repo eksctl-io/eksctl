@@ -22,11 +22,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
-const (
-	managedByKubernetesLabelKey   = "app.kubernetes.io/managed-by"
-	managedByKubernetesLabelValue = "eksctl"
-)
-
 // NewTasksToCreateCluster defines all tasks required to create a cluster along
 // with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works.
 func (c *StackCollection) NewTasksToCreateCluster(ctx context.Context, nodeGroups []*api.NodeGroup,
@@ -157,10 +152,6 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 			}
 		}
 
-		if sa.Labels == nil {
-			sa.Labels = make(map[string]string)
-		}
-		sa.Labels[managedByKubernetesLabelKey] = managedByKubernetesLabelValue
 		if !api.IsEnabled(sa.RoleOnly) {
 			saTasks.Append(&kubernetesTask{
 				info:       fmt.Sprintf("create serviceaccount %q", sa.NameString()),
