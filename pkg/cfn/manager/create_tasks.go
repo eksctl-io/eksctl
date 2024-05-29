@@ -157,10 +157,6 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 			}
 		}
 
-		if sa.Labels == nil {
-			sa.Labels = make(map[string]string)
-		}
-		sa.Labels[managedByKubernetesLabelKey] = managedByKubernetesLabelValue
 		if !api.IsEnabled(sa.RoleOnly) {
 			saTasks.Append(&kubernetesTask{
 				info:       fmt.Sprintf("create serviceaccount %q", sa.NameString()),

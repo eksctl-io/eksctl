@@ -58,15 +58,16 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ok).To(BeTrue())
 
-		ok, err = CheckServiceAccountExists(clientSet, sa)
+		ok, isManagedByEksctl, err := CheckServiceAccountExists(clientSet, sa)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ok).To(BeTrue())
+		Expect(isManagedByEksctl).To(BeTrue())
 
 		{
 			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.Background(), sa.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(resp.Labels).To(BeEmpty())
+			Expect(resp.Labels).To(HaveKeyWithValue("app.kubernetes.io/managed-by", "eksctl"))
 			Expect(resp.Annotations).To(BeEmpty())
 		}
 
@@ -122,9 +123,10 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ok).To(BeTrue())
 
-		ok, err = CheckServiceAccountExists(clientSet, sa)
+		ok, isManagedByEksctl, err := CheckServiceAccountExists(clientSet, sa)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ok).To(BeTrue())
+		Expect(isManagedByEksctl).To(BeTrue())
 
 		By("changing an existing value and not touching labels")
 		sa.Annotations["foo"] = "new"
@@ -169,24 +171,27 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		err = MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa)
 		Expect(err).NotTo(HaveOccurred())
 
-		ok, err := CheckServiceAccountExists(clientSet, sa)
+		ok, isManagedByEksctl, err := CheckServiceAccountExists(clientSet, sa)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ok).To(BeTrue())
+		Expect(isManagedByEksctl).To(BeTrue())
 
 		// should delete it
 		err = MaybeDeleteServiceAccount(clientSet, sa)
 		Expect(err).NotTo(HaveOccurred())
 
-		ok, err = CheckServiceAccountExists(clientSet, sa)
+		ok, isManagedByEksctl, err = CheckServiceAccountExists(clientSet, sa)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ok).To(BeFalse())
+		Expect(isManagedByEksctl).To(BeFalse())
 
 		// shouldn't fail if it doesn't exist
 		err = MaybeDeleteServiceAccount(clientSet, sa)
 		Expect(err).NotTo(HaveOccurred())
 
-		ok, err = CheckServiceAccountExists(clientSet, sa)
+		ok, isManagedByEksctl, err = CheckServiceAccountExists(clientSet, sa)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ok).To(BeFalse())
+		Expect(isManagedByEksctl).To(BeFalse())
 	})
 })

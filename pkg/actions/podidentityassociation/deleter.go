@@ -124,7 +124,7 @@ func (d *Deleter) DeleteTasks(ctx context.Context, podIDs []Identifier) (*tasks.
 		}
 		piaDeletionTasks.Append(d.makeDeleteTask(ctx, podID, roleStackNames))
 		piaDeletionTasks.Append(&tasks.GenericTask{
-			Description: fmt.Sprintf("delete service account %q", podID.IDString()),
+			Description: fmt.Sprintf("delete service account %q, if it exists and is managed by eksctl", podID.IDString()),
 			Doer: func() error {
 				if err := kubernetes.MaybeDeleteServiceAccount(d.ClientSet, v1.ObjectMeta{
 					Name:      podID.ServiceAccountName,

@@ -10,6 +10,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	managedByKubernetesLabelKey   = "app.kubernetes.io/managed-by"
+	managedByKubernetesLabelValue = "eksctl"
+)
+
 // NewServiceAccount creates a corev1.ServiceAccount object using the provided meta.
 func NewServiceAccount(meta metav1.ObjectMeta) *corev1.ServiceAccount {
 	return &corev1.ServiceAccount{
@@ -21,18 +26,25 @@ func NewServiceAccount(meta metav1.ObjectMeta) *corev1.ServiceAccount {
 	}
 }
 
-// CheckServiceAccountExists check if a serviceaccount with a given name already exists, and
-// returns boolean or an error
-func CheckServiceAccountExists(clientSet Interface, meta metav1.ObjectMeta) (bool, error) {
+// CheckServiceAccountExists check if a serviceaccount with a given name already exists,
+// and if it is managed by eksctl
+func CheckServiceAccountExists(clientSet Interface, meta metav1.ObjectMeta) (bool, bool, error) {
 	name := meta.Namespace + "/" + meta.Name
-	_, err := clientSet.CoreV1().ServiceAccounts(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
-	if err == nil {
-		return true, nil
+	sa, err := clientSet.CoreV1().ServiceAccounts(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
+	if err != nil {
+		if !apierrors.IsNotFound(err) {
+			return false, false, errors.Wrapf(err, "checking whether serviceaccount %q exists", name)
+		}
+		return false, false, nil
 	}
-	if !apierrors.IsNotFound(err) {
-		return false, errors.Wrapf(err, "checking whether serviceaccount %q exists", name)
+
+	if sa.Labels != nil {
+		if value, ok := sa.Labels[managedByKubernetesLabelKey]; ok && (value == managedByKubernetesLabelValue) {
+			return true, true, nil
+		}
 	}
-	return false, nil
+
+	return true, false, nil
 }
 
 // MaybeCreateServiceAccountOrUpdateMetadata will only create serviceaccount with the given name if
@@ -41,11 +53,14 @@ func CheckServiceAccountExists(clientSet Interface, meta metav1.ObjectMeta) (boo
 // meta will be retained
 func MaybeCreateServiceAccountOrUpdateMetadata(clientSet Interface, meta metav1.ObjectMeta) error {
 	name := meta.Namespace + "/" + meta.Name
-
+	if meta.Labels == nil {
+		meta.Labels = make(map[string]string)
+	}
+	meta.Labels[managedByKubernetesLabelKey] = managedByKubernetesLabelValue
 	if err := MaybeCreateNamespace(clientSet, meta.Namespace); err != nil {
 		return err
 	}
-	exists, err := CheckServiceAccountExists(clientSet, meta)
+	exists, _, err := CheckServiceAccountExists(clientSet, meta)
 	if err != nil {
 		return err
 	}
@@ -100,12 +115,16 @@ func MaybeCreateServiceAccountOrUpdateMetadata(clientSet Interface, meta metav1.
 // MaybeDeleteServiceAccount will only delete the serviceaccount if it exists
 func MaybeDeleteServiceAccount(clientSet Interface, meta metav1.ObjectMeta) error {
 	name := meta.Namespace + "/" + meta.Name
-	exists, err := CheckServiceAccountExists(clientSet, meta)
+	exists, isManagedByEksctl, err := CheckServiceAccountExists(clientSet, meta)
 	if err != nil {
 		return err
 	}
 	if !exists {
 		logger.Info("serviceaccount %q was already deleted", name)
+		return nil
+	}
+	if !isManagedByEksctl {
+		logger.Info("serviceaccount %q was not created by eksctl; will not be deleted", name)
 		return nil
 	}
 	err = clientSet.CoreV1().ServiceAccounts(meta.Namespace).Delete(context.TODO(), meta.Name, metav1.DeleteOptions{})
