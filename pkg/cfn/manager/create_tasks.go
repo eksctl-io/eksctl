@@ -22,11 +22,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
-const (
-	managedByKubernetesLabelKey   = "app.kubernetes.io/managed-by"
-	managedByKubernetesLabelValue = "eksctl"
-)
-
 // NewTasksToCreateCluster defines all tasks required to create a cluster along
 // with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works.
 func (c *StackCollection) NewTasksToCreateCluster(ctx context.Context, nodeGroups []*api.NodeGroup,
