@@ -34,8 +34,9 @@ var _ = Describe("Update Pod Identity Association", func() {
 		eks          *mocksv2.EKS
 	}
 	type updateEntry struct {
-		podIdentityAssociations []api.PodIdentityAssociation
-		mockCalls               func(m piaMocks)
+		podIdentityAssociations         []api.PodIdentityAssociation
+		mockCalls                       func(m piaMocks)
+		existingPodIdentityAssociations []addon.PodIdentityAssociationSummary
 
 		expectedAddonPodIdentityAssociations []ekstypes.AddonPodIdentityAssociations
 
@@ -46,45 +47,6 @@ var _ = Describe("Update Pod Identity Association", func() {
 
 	makeID := func(i int) string {
 		return fmt.Sprintf("a-%d", i+1)
-	}
-	type listPodIdentityInput struct {
-		namespace      string
-		serviceAccount string
-	}
-	defaultListPodIdentityInputs := []listPodIdentityInput{
-		{
-			namespace:      "kube-system",
-			serviceAccount: "vpc-cni",
-		},
-		{
-			namespace:      "kube-system",
-			serviceAccount: "aws-ebs-csi-driver",
-		},
-		{
-			namespace:      "karpenter",
-			serviceAccount: "karpenter",
-		},
-	}
-	mockListPodIdentityAssociations := func(eksAPI *mocksv2.EKS, hasAssociation bool, listInputs []listPodIdentityInput) {
-		for i, listInput := range listInputs {
-			var associations []ekstypes.PodIdentityAssociationSummary
-			if hasAssociation {
-				associations = []ekstypes.PodIdentityAssociationSummary{
-					{
-						Namespace:      aws.String(listInput.namespace),
-						ServiceAccount: aws.String(listInput.serviceAccount),
-						AssociationId:  aws.String(makeID(i)),
-					},
-				}
-			}
-			eksAPI.On("ListPodIdentityAssociations", mock.Anything, &eks.ListPodIdentityAssociationsInput{
-				ClusterName:    aws.String(clusterName),
-				Namespace:      aws.String(listInput.namespace),
-				ServiceAccount: aws.String(listInput.serviceAccount),
-			}).Return(&eks.ListPodIdentityAssociationsOutput{
-				Associations: associations,
-			}, nil).Once()
-		}
 	}
 
 	mockDescribePodIdentityAssociation := func(eksAPI *mocksv2.EKS, roleARNs ...string) {
@@ -125,17 +87,22 @@ var _ = Describe("Update Pod Identity Association", func() {
 				eks:          provider.MockEKS(),
 			})
 		}
-		addonPodIdentityAssociations, err := piaUpdater.UpdateRole(context.Background(), e.podIdentityAssociations, "main")
+		addonPodIdentityAssociations, err := piaUpdater.UpdateRole(context.Background(), e.podIdentityAssociations, "main", e.existingPodIdentityAssociations)
 		if e.expectedErr != "" {
 			Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
 			return
 		}
 		Expect(err).NotTo(HaveOccurred())
 		Expect(addonPodIdentityAssociations).To(Equal(e.expectedAddonPodIdentityAssociations))
-		t := GinkgoT()
-		roleCreator.AssertExpectations(t)
-		roleUpdater.AssertExpectations(t)
-		provider.MockEKS().AssertExpectations(t)
+		for _, asserter := range []interface {
+			AssertExpectations(t mock.TestingT) bool
+		}{
+			&roleCreator,
+			&roleUpdater,
+			provider.MockEKS(),
+		} {
+			asserter.AssertExpectations(GinkgoT())
+		}
 	},
 		Entry("addon contains pod identity that does not exist", updateEntry{
 			podIdentityAssociations: []api.PodIdentityAssociation{
@@ -145,12 +112,6 @@ var _ = Describe("Update Pod Identity Association", func() {
 				},
 			},
 			mockCalls: func(m piaMocks) {
-				m.eks.On("ListPodIdentityAssociations", mock.Anything, &eks.ListPodIdentityAssociationsInput{
-					ClusterName:    aws.String(clusterName),
-					Namespace:      aws.String("kube-system"),
-					ServiceAccount: aws.String("vpc-cni"),
-				}).Return(&eks.ListPodIdentityAssociationsOutput{}, nil)
-
 				m.roleCreator.On("Create", mock.Anything, &api.PodIdentityAssociation{
 					Namespace:          "kube-system",
 					ServiceAccountName: "vpc-cni",
@@ -185,24 +146,15 @@ var _ = Describe("Update Pod Identity Association", func() {
 					ServiceAccountName: "karpenter",
 				},
 			},
+			existingPodIdentityAssociations: []addon.PodIdentityAssociationSummary{
+				{
+					Namespace:      "kube-system",
+					ServiceAccount: "vpc-cni",
+					AssociationID:  "a-1",
+				},
+			},
 			mockCalls: func(m piaMocks) {
-				mockListPodIdentityAssociations(m.eks, true, []listPodIdentityInput{
-					{
-						namespace:      "kube-system",
-						serviceAccount: "vpc-cni",
-					},
-				})
 				mockDescribePodIdentityAssociation(m.eks, "cni-role")
-				mockListPodIdentityAssociations(m.eks, false, []listPodIdentityInput{
-					{
-						namespace:      "kube-system",
-						serviceAccount: "aws-ebs-csi-driver",
-					},
-					{
-						namespace:      "karpenter",
-						serviceAccount: "karpenter",
-					},
-				})
 
 				m.roleUpdater.On("Update", mock.Anything, api.PodIdentityAssociation{
 					Namespace:          "kube-system",
@@ -259,8 +211,24 @@ var _ = Describe("Update Pod Identity Association", func() {
 					ServiceAccountName: "karpenter",
 				},
 			},
+			existingPodIdentityAssociations: []addon.PodIdentityAssociationSummary{
+				{
+					Namespace:      "kube-system",
+					ServiceAccount: "vpc-cni",
+					AssociationID:  "a-1",
+				},
+				{
+					Namespace:      "kube-system",
+					ServiceAccount: "aws-ebs-csi-driver",
+					AssociationID:  "a-2",
+				},
+				{
+					Namespace:      "karpenter",
+					ServiceAccount: "karpenter",
+					AssociationID:  "a-3",
+				},
+			},
 			mockCalls: func(m piaMocks) {
-				mockListPodIdentityAssociations(m.eks, true, defaultListPodIdentityInputs)
 				mockDescribePodIdentityAssociation(m.eks, "cni-role", "csi-role", "karpenter-role")
 
 				for i, updateInput := range []struct {
@@ -341,9 +309,6 @@ var _ = Describe("Update Pod Identity Association", func() {
 					RoleARN:            "role-3",
 				},
 			},
-			mockCalls: func(m piaMocks) {
-				mockListPodIdentityAssociations(m.eks, false, defaultListPodIdentityInputs)
-			},
 			expectedAddonPodIdentityAssociations: []ekstypes.AddonPodIdentityAssociations{
 				{
 					ServiceAccount: aws.String("vpc-cni"),
@@ -377,10 +342,6 @@ var _ = Describe("Update Pod Identity Association", func() {
 					ServiceAccountName: "karpenter",
 					RoleARN:            "role-3",
 				},
-			},
-			mockCalls: func(m piaMocks) {
-				mockListPodIdentityAssociations(m.eks, false, defaultListPodIdentityInputs)
-
 			},
 			expectedAddonPodIdentityAssociations: []ekstypes.AddonPodIdentityAssociations{
 				{
@@ -416,21 +377,24 @@ var _ = Describe("Update Pod Identity Association", func() {
 					RoleARN:            "karpenter-role",
 				},
 			},
+			existingPodIdentityAssociations: []addon.PodIdentityAssociationSummary{
+				{
+					Namespace:      "kube-system",
+					ServiceAccount: "vpc-cni",
+					AssociationID:  "a-1",
+				},
+				{
+					Namespace:      "kube-system",
+					ServiceAccount: "aws-ebs-csi-driver",
+					AssociationID:  "a-2",
+				},
+				{
+					Namespace:      "karpenter",
+					ServiceAccount: "karpenter",
+					AssociationID:  "a-3",
+				},
+			},
 			mockCalls: func(m piaMocks) {
-				mockListPodIdentityAssociations(m.eks, true, []listPodIdentityInput{
-					{
-						namespace:      "kube-system",
-						serviceAccount: "vpc-cni",
-					},
-					{
-						namespace:      "kube-system",
-						serviceAccount: "aws-ebs-csi-driver",
-					},
-					{
-						namespace:      "karpenter",
-						serviceAccount: "karpenter",
-					},
-				})
 				mockDescribePodIdentityAssociation(m.eks, "role-1", "role-2", "role-3")
 				for _, serviceAccount := range []string{"vpc-cni", "aws-ebs-csi-driver"} {
 					m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
@@ -460,13 +424,14 @@ var _ = Describe("Update Pod Identity Association", func() {
 					RoleARN:            "vpc-cni-role-2",
 				},
 			},
+			existingPodIdentityAssociations: []addon.PodIdentityAssociationSummary{
+				{
+					Namespace:      "kube-system",
+					ServiceAccount: "vpc-cni",
+					AssociationID:  "a-1",
+				},
+			},
 			mockCalls: func(m piaMocks) {
-				mockListPodIdentityAssociations(m.eks, true, []listPodIdentityInput{
-					{
-						namespace:      "kube-system",
-						serviceAccount: "vpc-cni",
-					},
-				})
 				mockDescribePodIdentityAssociation(m.eks, "vpc-cni-role")
 				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
 					StackName: aws.String("eksctl-test-addon-main-podidentityrole-vpc-cni"),
@@ -488,13 +453,14 @@ var _ = Describe("Update Pod Identity Association", func() {
 					ServiceAccountName: "vpc-cni",
 				},
 			},
+			existingPodIdentityAssociations: []addon.PodIdentityAssociationSummary{
+				{
+					Namespace:      "kube-system",
+					ServiceAccount: "vpc-cni",
+					AssociationID:  "a-1",
+				},
+			},
 			mockCalls: func(m piaMocks) {
-				mockListPodIdentityAssociations(m.eks, true, []listPodIdentityInput{
-					{
-						namespace:      "kube-system",
-						serviceAccount: "vpc-cni",
-					},
-				})
 				mockDescribePodIdentityAssociation(m.eks, "vpc-cni-role")
 				m.stackDeleter.On("DescribeStack", mock.Anything, &manager.Stack{
 					StackName: aws.String("eksctl-test-addon-main-podidentityrole-vpc-cni"),
@@ -528,9 +494,6 @@ var _ = Describe("Update Pod Identity Association", func() {
 					RoleARN:            "role-3",
 				},
 			},
-			mockCalls: func(m piaMocks) {
-				mockListPodIdentityAssociations(m.eks, false, defaultListPodIdentityInputs)
-			},
 			expectedAddonPodIdentityAssociations: []ekstypes.AddonPodIdentityAssociations{
 				{
 					ServiceAccount: aws.String("vpc-cni"),
@@ -554,13 +517,14 @@ var _ = Describe("Update Pod Identity Association", func() {
 					ServiceAccountName: "vpc-cni",
 				},
 			},
+			existingPodIdentityAssociations: []addon.PodIdentityAssociationSummary{
+				{
+					Namespace:      "kube-system",
+					ServiceAccount: "vpc-cni",
+					AssociationID:  "a-1",
+				},
+			},
 			mockCalls: func(m piaMocks) {
-				mockListPodIdentityAssociations(m.eks, true, []listPodIdentityInput{
-					{
-						namespace:      "kube-system",
-						serviceAccount: "vpc-cni",
-					},
-				})
 				mockDescribePodIdentityAssociation(m.eks, "cni-role")
 
 				m.roleUpdater.On("Update", mock.Anything, api.PodIdentityAssociation{
@@ -595,12 +559,6 @@ var _ = Describe("Update Pod Identity Association", func() {
 				},
 			},
 			mockCalls: func(m piaMocks) {
-				m.eks.On("ListPodIdentityAssociations", mock.Anything, &eks.ListPodIdentityAssociationsInput{
-					ClusterName:    aws.String(clusterName),
-					Namespace:      aws.String("kube-system"),
-					ServiceAccount: aws.String("vpc-cni"),
-				}).Return(&eks.ListPodIdentityAssociationsOutput{}, nil)
-
 				m.roleCreator.On("Create", mock.Anything, &api.PodIdentityAssociation{
 					Namespace:          "kube-system",
 					ServiceAccountName: "vpc-cni",

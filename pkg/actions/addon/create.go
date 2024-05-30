@@ -175,7 +175,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 			createAddonInput.ServiceAccountRoleArn = &roleARN
 
 		// if neither podIDs nor IRSA are set explicitly, then check if podIDs should be created automatically
-		case a.clusterConfig.IAM.AutoCreatePodIdentityAssociations && supportsPodIDs:
+		case (a.clusterConfig.IAM.AutoCreatePodIdentityAssociations || addon.CreateDefaultPodIdentityAssociations) && supportsPodIDs:
 			logger.Info("\"iam.AutoCreatePodIdentityAssociations\" is set to true; will lookup recommended pod identity configuration for %q addon", addon.Name)
 
 			if addon.CanonicalName() == api.VPCCNIAddon && a.clusterConfig.IPv6Enabled() {

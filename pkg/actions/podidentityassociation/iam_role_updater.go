@@ -23,7 +23,7 @@ type IAMRoleUpdater struct {
 	StackUpdater StackUpdater
 }
 
-// Update updates IAM resources for updateConfig and returns an IAM role ARN upon success. The boolean return value reports
+// Update updates IAM resources for podIdentityAssociation and returns an IAM role ARN upon success. The boolean return value reports
 // whether the IAM resources have changed or not.
 func (u *IAMRoleUpdater) Update(ctx context.Context, podIdentityAssociation api.PodIdentityAssociation, stackName, podIdentityAssociationID string) (string, bool, error) {
 	stack, err := u.StackUpdater.DescribeStack(ctx, &manager.Stack{
@@ -52,7 +52,7 @@ func (u *IAMRoleUpdater) Update(ctx context.Context, podIdentityAssociation api.
 	}); err != nil {
 		var noChangeErr *manager.NoChangeError
 		if errors.As(err, &noChangeErr) {
-			logger.Info("IAM resources for %q are already up-to-date", podIdentityAssociationID)
+			logger.Info("IAM resources for %s (pod identity association ID: %s) are already up-to-date", podIdentityAssociation.NameString(), podIdentityAssociationID)
 			return podIdentityAssociation.RoleARN, false, nil
 		}
 		return "", false, fmt.Errorf("updating IAM resources for pod identity association: %w", err)

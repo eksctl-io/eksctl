@@ -37,6 +37,13 @@ var _ = Describe("Update", func() {
 		waitTimeout        = 5 * time.Minute
 	)
 
+	makeOIDCManager := func() *iamoidc.OpenIDConnectManager {
+		oidc, err := iamoidc.NewOpenIDConnectManager(nil, "456123987123", "https://oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E", "aws", nil)
+		Expect(err).NotTo(HaveOccurred())
+		oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
+		return oidc
+	}
+
 	BeforeEach(func() {
 		var err error
 		mockProvider = mockprovider.NewMockProvider()
@@ -51,9 +58,7 @@ var _ = Describe("Update", func() {
 			return nil
 		}
 
-		oidc, err := iamoidc.NewOpenIDConnectManager(nil, "456123987123", "https://oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E", "aws", nil)
-		Expect(err).NotTo(HaveOccurred())
-		oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
+		oidc := makeOIDCManager()
 
 		mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 			Expect(args).To(HaveLen(2))
@@ -527,4 +532,94 @@ var _ = Describe("Update", func() {
 			Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
 		})
 	})
+
+	type addonPIAEntry struct {
+		addonVersion string
+	}
+	DescribeTable("updating pod identity associations", func(e addonPIAEntry) {
+		const clusterName = "my-cluster"
+		const addonVersion = "v1.7.5-eksbuild.1"
+		mockProvider := mockprovider.NewMockProvider()
+
+		mockProvider.MockEKS().On("DescribeAddon", mock.Anything, &awseks.DescribeAddonInput{
+			ClusterName: aws.String(clusterName),
+			AddonName:   aws.String(api.VPCCNIAddon),
+		}).Return(&awseks.DescribeAddonOutput{
+			Addon: &ekstypes.Addon{
+				AddonName:    aws.String(api.VPCCNIAddon),
+				ClusterName:  aws.String(clusterName),
+				AddonVersion: aws.String(addonVersion),
+			},
+		}, nil).Once()
+		mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
+			AddonName:         aws.String("vpc-cni"),
+			KubernetesVersion: aws.String(api.LatestVersion),
+		}).Return(&awseks.DescribeAddonVersionsOutput{
+			Addons: []ekstypes.AddonInfo{
+				{
+					AddonName: aws.String("vpc-cni"),
+					AddonVersions: []ekstypes.AddonVersionInfo{
+						{
+							AddonVersion:           aws.String(addonVersion),
+							RequiresIamPermissions: true,
+						},
+					},
+				},
+			},
+		}, nil).Twice()
+		mockProvider.MockEKS().On("DescribeAddonConfiguration", mock.Anything, &awseks.DescribeAddonConfigurationInput{
+			AddonName:    aws.String(api.VPCCNIAddon),
+			AddonVersion: aws.String(addonVersion),
+		}).Return(&awseks.DescribeAddonConfigurationOutput{
+			AddonName:    aws.String(api.VPCCNIAddon),
+			AddonVersion: aws.String(addonVersion),
+			PodIdentityConfiguration: []ekstypes.AddonPodIdentityConfiguration{
+				{
+					ServiceAccount:             aws.String("aws-node"),
+					RecommendedManagedPolicies: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
+				},
+			},
+		}, nil).Once()
+		addonPIAs := []ekstypes.AddonPodIdentityAssociations{
+			{
+				ServiceAccount: aws.String("aws-node"),
+				RoleArn:        aws.String("role-1"),
+			},
+		}
+		mockProvider.MockEKS().On("UpdateAddon", mock.Anything, &awseks.UpdateAddonInput{
+			AddonName:               aws.String("vpc-cni"),
+			ClusterName:             aws.String("my-cluster"),
+			AddonVersion:            aws.String("v1.7.5-eksbuild.1"),
+			PodIdentityAssociations: addonPIAs,
+		}).Return(&awseks.UpdateAddonOutput{}, nil).Once()
+
+		var podIdentityIAMUpdater mocks.PodIdentityIAMUpdater
+		podIdentityIAMUpdater.On("UpdateRole", mock.Anything, []api.PodIdentityAssociation{
+			{
+				Namespace:            "",
+				ServiceAccountName:   "aws-node",
+				PermissionPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
+			},
+		}, "vpc-cni", mock.Anything).Return(addonPIAs, nil).Once()
+
+		addonManager, err := addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
+			Version: api.LatestVersion,
+			Name:    clusterName,
+		}}, mockProvider.EKS(), fakeStackManager, true, makeOIDCManager(), nil)
+		Expect(err).NotTo(HaveOccurred())
+
+		err = addonManager.Update(context.Background(), &api.Addon{
+			Name:                                 "vpc-cni",
+			CreateDefaultPodIdentityAssociations: true,
+			Version:                              e.addonVersion,
+		}, &podIdentityIAMUpdater, 0)
+		Expect(err).NotTo(HaveOccurred())
+		mockProvider.MockEKS().AssertExpectations(GinkgoT())
+		podIdentityIAMUpdater.AssertExpectations(GinkgoT())
+	},
+		Entry("addon with version", addonPIAEntry{
+			addonVersion: "v1.7.5-eksbuild.1",
+		}),
+		Entry("addon without version", addonPIAEntry{}),
+	)
 })

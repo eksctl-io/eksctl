@@ -3,6 +3,7 @@ package addon
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
@@ -15,16 +16,21 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
+// EKSPodIdentityDescriber describes pod identities.
 type EKSPodIdentityDescriber interface {
-	ListPodIdentityAssociations(ctx context.Context, params *eks.ListPodIdentityAssociationsInput, optFns ...func(*eks.Options)) (*eks.ListPodIdentityAssociationsOutput, error)
 	DescribePodIdentityAssociation(ctx context.Context, params *eks.DescribePodIdentityAssociationInput, optFns ...func(*eks.Options)) (*eks.DescribePodIdentityAssociationOutput, error)
 }
 
+// IAMRoleCreator creates IAM resources for a pod identity association.
 type IAMRoleCreator interface {
+	// Create creates IAM resources for podIdentityAssociation and returns the IAM role ARN.
 	Create(ctx context.Context, podIdentityAssociation *api.PodIdentityAssociation, addonName string) (roleARN string, err error)
 }
 
+// IAMRoleUpdater updates IAM resources for a pod identity association.
 type IAMRoleUpdater interface {
+	// Update updates IAM resources for podIdentityAssociation and returns an IAM role ARN upon success. The boolean return value reports
+	// whether the IAM resources have changed or not.
 	Update(ctx context.Context, podIdentityAssociation api.PodIdentityAssociation, stackName string, podIdentityAssociationID string) (string, bool, error)
 }
 
@@ -37,22 +43,14 @@ type PodIdentityAssociationUpdater struct {
 	StackDeleter            podidentityassociation.StackDeleter
 }
 
-func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation, addonName string) ([]ekstypes.AddonPodIdentityAssociations, error) {
+// UpdateRole creates or updates IAM roles for podIdentityAssociations.
+func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation, addonName string, existingPodIdentityAssociations []PodIdentityAssociationSummary) ([]ekstypes.AddonPodIdentityAssociations, error) {
 	var addonPodIdentityAssociations []ekstypes.AddonPodIdentityAssociations
 	for _, pia := range podIdentityAssociations {
-		output, err := p.EKSPodIdentityDescriber.ListPodIdentityAssociations(ctx, &eks.ListPodIdentityAssociationsInput{
-			ClusterName:    aws.String(p.ClusterName),
-			Namespace:      aws.String(pia.Namespace),
-			ServiceAccount: aws.String(pia.ServiceAccountName),
-		})
-		if err != nil {
-			return nil, fmt.Errorf("listing pod identity associations: %w", err)
-		}
 		roleARN := pia.RoleARN
-		switch len(output.Associations) {
-		default:
-			return nil, fmt.Errorf("expected to find exactly 1 pod identity association for %s; got %d", pia.NameString(), len(output.Associations))
-		case 0:
+		if idx := slices.IndexFunc(existingPodIdentityAssociations, func(existingPIA PodIdentityAssociationSummary) bool {
+			return pia.ServiceAccountName == existingPIA.ServiceAccount
+		}); idx == -1 {
 			// Create IAM resources.
 			if roleARN == "" {
 				var err error
@@ -70,11 +68,11 @@ func (p *PodIdentityAssociationUpdater) UpdateRole(ctx context.Context, podIdent
 					}
 				}
 			}
-		case 1:
+		} else {
 			// Update IAM resources if required.
 			output, err := p.EKSPodIdentityDescriber.DescribePodIdentityAssociation(ctx, &eks.DescribePodIdentityAssociationInput{
 				ClusterName:   aws.String(p.ClusterName),
-				AssociationId: output.Associations[0].AssociationId,
+				AssociationId: aws.String(existingPodIdentityAssociations[idx].AssociationID),
 			})
 			if err != nil {
 				return nil, err
@@ -139,6 +137,7 @@ func (p *PodIdentityAssociationUpdater) getStack(ctx context.Context, stackName,
 	}
 }
 
+// DeleteRole deletes the IAM resources for addonName and serviceAccountName.
 func (p *PodIdentityAssociationUpdater) DeleteRole(ctx context.Context, addonName, serviceAccountName string) (bool, error) {
 	stack, err := p.getAddonStack(ctx, addonName, serviceAccountName)
 	if err != nil {

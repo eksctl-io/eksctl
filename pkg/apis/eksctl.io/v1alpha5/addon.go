@@ -38,6 +38,10 @@ type Addon struct {
 	// PodIdentityAssociations holds a list of associations to be configured for the addon
 	// +optional
 	PodIdentityAssociations *[]PodIdentityAssociation `json:"podIdentityAssociations,omitempty"`
+	// CreateDefaultPodIdentityAssociations uses the pod identity associations recommended by the EKS API.
+	// Defaults to false.
+	// +optional
+	CreateDefaultPodIdentityAssociations bool `json:"createDefaultPodIdentityAssociations,omitempty"`
 	// ConfigurationValues defines the set of configuration properties for add-ons.
 	// For now, all properties will be specified as a JSON string
 	// and have to respect the schema from DescribeAddonConfiguration.

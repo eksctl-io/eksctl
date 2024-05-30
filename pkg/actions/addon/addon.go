@@ -92,6 +92,15 @@ func (a *Manager) waitForAddonToBeActive(ctx context.Context, addon *api.Addon, 
 	return nil
 }
 
+type versionNotFoundError struct {
+	addonName    string
+	addonVersion string
+}
+
+func (v *versionNotFoundError) Error() string {
+	return fmt.Sprintf("no version(s) found matching %q for %q", v.addonVersion, v.addonName)
+}
+
 func (a *Manager) getLatestMatchingVersion(ctx context.Context, addon *api.Addon) (string, bool, error) {
 	addonInfos, err := a.describeVersions(ctx, addon)
 	if err != nil {
@@ -123,7 +132,10 @@ func (a *Manager) getLatestMatchingVersion(ctx context.Context, addon *api.Addon
 	}
 
 	if len(versions) == 0 {
-		return "", false, fmt.Errorf("no version(s) found matching %q for %q", addonVersion, addon.Name)
+		return "", false, &versionNotFoundError{
+			addonName:    addon.Name,
+			addonVersion: addonVersion,
+		}
 	}
 
 	sort.SliceStable(versions, func(i, j int) bool {

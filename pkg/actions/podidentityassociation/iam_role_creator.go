@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
+// IAMRoleCreator creates IAM resources for a pod identity association.
 type IAMRoleCreator struct {
 	ClusterName  string
 	StackCreator StackCreator

@@ -2,6 +2,7 @@ package addon
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -19,7 +20,7 @@ import (
 // PodIdentityIAMUpdater creates or updates IAM resources for pod identity associations.
 type PodIdentityIAMUpdater interface {
 	// UpdateRole creates or updates IAM resources for podIdentityAssociations.
-	UpdateRole(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation, addonName string) ([]ekstypes.AddonPodIdentityAssociations, error)
+	UpdateRole(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation, addonName string, existingPodIdentityAssociations []PodIdentityAssociationSummary) ([]ekstypes.AddonPodIdentityAssociations, error)
 	// DeleteRole deletes the IAM resources for the specified addon.
 	DeleteRole(ctx context.Context, addonName, serviceAccountName string) (bool, error)
 }
@@ -49,27 +50,34 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 		return err
 	}
 
+	var requiresIAMPermissions bool
 	if addon.Version == "" {
 		// preserve existing version
 		// Might be redundant, does the API care?
 		logger.Info("no new version provided, preserving existing version: %s", summary.Version)
-
+		addon.Version = summary.Version
+		_, requiresIAMPermissions, err = a.getLatestMatchingVersion(ctx, addon)
+		if err != nil {
+			var notFoundErr *versionNotFoundError
+			if !errors.As(err, &notFoundErr) {
+				return fmt.Errorf("failed to fetch addon version %s: %w", summary.Version, err)
+			}
+		}
 		updateAddonInput.AddonVersion = &summary.Version
 	} else {
-		version, _, err := a.getLatestMatchingVersion(ctx, addon)
+		var latestVersion string
+		latestVersion, requiresIAMPermissions, err = a.getLatestMatchingVersion(ctx, addon)
 		if err != nil {
 			return fmt.Errorf("failed to fetch addon version: %w", err)
 		}
-
-		if summary.Version != version {
-			logger.Info("new version provided %s", version)
+		if summary.Version != latestVersion {
+			logger.Info("new version provided %s", latestVersion)
 		}
-
-		updateAddonInput.AddonVersion = &version
+		updateAddonInput.AddonVersion = &latestVersion
 	}
 
 	var deleteServiceAccountIAMResources []string
-	if len(summary.PodIdentityAssociations) > 0 {
+	if len(summary.PodIdentityAssociations) > 0 && !addon.CreateDefaultPodIdentityAssociations {
 		if addon.PodIdentityAssociations == nil {
 			return fmt.Errorf("addon %s has pod identity associations, to remove pod identity associations from an addon, "+
 				"addon.podIdentityAssociations must be explicitly set to []; if the addon was migrated to use pod identity, "+
@@ -91,23 +99,51 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 	}
 
 	if addon.HasPodIDsSet() {
-		addonPodIdentityAssociations, err := podIdentityIAMUpdater.UpdateRole(ctx, *addon.PodIdentityAssociations, addon.Name)
-		if err != nil {
-			return fmt.Errorf("updating pod identity associations: %w", err)
+		if requiresIAMPermissions {
+			addonPodIdentityAssociations, err := podIdentityIAMUpdater.UpdateRole(ctx, *addon.PodIdentityAssociations, addon.Name, summary.PodIdentityAssociations)
+			if err != nil {
+				return fmt.Errorf("updating pod identity associations: %w", err)
+			}
+			updateAddonInput.PodIdentityAssociations = addonPodIdentityAssociations
+		} else {
+			logger.Warning(IAMPermissionsNotRequiredWarning(addon.Name))
 		}
-		updateAddonInput.PodIdentityAssociations = addonPodIdentityAssociations
 	} else {
-		// check if we have been provided a different set of policies/role
-		if addon.ServiceAccountRoleARN != "" {
-			updateAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
-		} else if addon.HasIRSAPoliciesSet() {
-			serviceAccountRoleARN, err := a.updateWithNewPolicies(ctx, addon)
+		supportsPodIdentity := false
+		if addon.CreateDefaultPodIdentityAssociations && requiresIAMPermissions {
+			var pidConfigList []ekstypes.AddonPodIdentityConfiguration
+			pidConfigList, supportsPodIdentity, err = a.getRecommendedPoliciesForPodID(ctx, addon)
 			if err != nil {
 				return err
 			}
-			updateAddonInput.ServiceAccountRoleArn = &serviceAccountRoleARN
-		} else if summary.IAMRole != "" { // Preserve current role.
-			updateAddonInput.ServiceAccountRoleArn = &summary.IAMRole
+			if supportsPodIdentity {
+				var podIdentityAssociations []api.PodIdentityAssociation
+				for _, pidConfig := range pidConfigList {
+					podIdentityAssociations = append(podIdentityAssociations, api.PodIdentityAssociation{
+						ServiceAccountName:   *pidConfig.ServiceAccount,
+						PermissionPolicyARNs: pidConfig.RecommendedManagedPolicies,
+					})
+				}
+				addonPodIdentityAssociations, err := podIdentityIAMUpdater.UpdateRole(ctx, podIdentityAssociations, addon.Name, summary.PodIdentityAssociations)
+				if err != nil {
+					return err
+				}
+				updateAddonInput.PodIdentityAssociations = addonPodIdentityAssociations
+			}
+		}
+		if !supportsPodIdentity {
+			// check if we have been provided a different set of policies/role
+			if addon.ServiceAccountRoleARN != "" {
+				updateAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
+			} else if addon.HasIRSAPoliciesSet() {
+				serviceAccountRoleARN, err := a.updateWithNewPolicies(ctx, addon)
+				if err != nil {
+					return err
+				}
+				updateAddonInput.ServiceAccountRoleArn = &serviceAccountRoleARN
+			} else if summary.IAMRole != "" { // Preserve current role.
+				updateAddonInput.ServiceAccountRoleArn = &summary.IAMRole
+			}
 		}
 	}
 

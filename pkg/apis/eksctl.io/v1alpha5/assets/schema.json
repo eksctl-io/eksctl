@@ -175,6 +175,12 @@
           "description": "defines the set of configuration properties for add-ons. For now, all properties will be specified as a JSON string and have to respect the schema from DescribeAddonConfiguration.",
           "x-intellij-html-description": "defines the set of configuration properties for add-ons. For now, all properties will be specified as a JSON string and have to respect the schema from DescribeAddonConfiguration."
         },
+        "createDefaultPodIdentityAssociations": {
+          "type": "boolean",
+          "description": "uses the pod identity associations recommended by the EKS API. Defaults to false.",
+          "x-intellij-html-description": "uses the pod identity associations recommended by the EKS API. Defaults to false.",
+          "default": "false"
+        },
         "name": {
           "type": "string"
         },
@@ -246,6 +252,7 @@
         "tags",
         "resolveConflicts",
         "podIdentityAssociations",
+        "createDefaultPodIdentityAssociations",
         "configurationValues",
         "publishers",
         "types",
@@ -530,8 +537,8 @@
             "$ref": "#/definitions/PodIdentityAssociation"
           },
           "type": "array",
-          "description": "pod identity associations to create in the cluster. See [Pod Identity Associations](TBD)",
-          "x-intellij-html-description": "pod identity associations to create in the cluster. See <a href=\"TBD\">Pod Identity Associations</a>"
+          "description": "pod identity associations to create in the cluster. See [Pod Identity Associations](/usage/pod-identity-associations)",
+          "x-intellij-html-description": "pod identity associations to create in the cluster. See <a href=\"/usage/pod-identity-associations\">Pod Identity Associations</a>"
         },
         "serviceAccounts": {
           "items": {
