@@ -411,9 +411,7 @@ eksctl utils migrate-to-pod-identity --cluster my-cluster --approve --remove-oid
 
 ## Further references
 
-[Official AWS Blog Post on EKS Add-ons support for pod identities] //https://TBD
-
-[Official AWS Userdocs for EKS Add-ons support for pod identities] //https://TBD
+[Official AWS Userdocs for EKS Add-ons support for pod identities](https://docs.aws.amazon.com/eks/latest/userguide/add-ons-iam.html)
 
 [Official AWS Blog Post on Pod Identity Associations](https://aws.amazon.com/blogs/aws/amazon-eks-pod-identity-simplifies-iam-permissions-for-applications-on-amazon-eks-clusters/)
 
