@@ -4,8 +4,7 @@
 module github.com/weaveworks/eksctl
 
 go 1.21
-
-toolchain go1.21.5
+toolchain go1.22.3
 
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
@@ -77,12 +76,12 @@ require (
 	golang.org/x/sync v0.7.0
 	golang.org/x/tools v0.20.0
 	gopkg.in/yaml.v2 v2.4.0
-	helm.sh/helm/v3 v3.14.3
-	k8s.io/api v0.29.1
-	k8s.io/apiextensions-apiserver v0.29.0
-	k8s.io/apimachinery v0.29.1
-	k8s.io/cli-runtime v0.29.0
-	k8s.io/client-go v0.29.0
+	helm.sh/helm/v3 v3.15.1
+	k8s.io/api v0.30.0
+	k8s.io/apiextensions-apiserver v0.30.0
+	k8s.io/apimachinery v0.30.0
+	k8s.io/cli-runtime v0.30.0
+	k8s.io/client-go v0.30.0
 	k8s.io/cloud-provider v0.28.0
 	k8s.io/code-generator v0.29.0
 	k8s.io/kops v1.28.4
@@ -206,7 +205,7 @@ require (
 	github.com/go-xmlfmt/xmlfmt v1.1.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golangci/dupl v0.0.0-20180902072040-3e9179ac440a // indirect
 	github.com/golangci/gofmt v0.0.0-20231018234816-f50ced29576e // indirect
 	github.com/golangci/misspell v0.4.1 // indirect
@@ -413,15 +412,15 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.4.7 // indirect
-	k8s.io/apiserver v0.29.0 // indirect
+	k8s.io/apiserver v0.30.0 // indirect
 	k8s.io/cloud-provider-aws v1.28.1 // indirect
-	k8s.io/component-base v0.29.1 // indirect
+	k8s.io/component-base v0.30.0 // indirect
 	k8s.io/component-helpers v0.29.0 // indirect
 	k8s.io/csi-translation-lib v0.28.0 // indirect
 	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
-	k8s.io/klog/v2 v2.110.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 // indirect
-	k8s.io/kubectl v0.29.0 // indirect
+	k8s.io/klog/v2 v2.120.1 // indirect
+	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
+	k8s.io/kubectl v0.30.0 // indirect
 	mvdan.cc/gofumpt v0.6.0 // indirect
 	mvdan.cc/unparam v0.0.0-20240104100049-c549a3470d14 // indirect
 	oras.land/oras-go v1.2.4 // indirect
