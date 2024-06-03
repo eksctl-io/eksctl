@@ -9,7 +9,7 @@ var addonFlagsIncompatibleWithConfigFile = []string{
 	"version",
 	"service-account-role-arn",
 	"attach-policy-arn",
-	"auto-create-pod-identity-associations",
+	"auto-apply-pod-identity-associations",
 }
 
 func NewCreateOrUpgradeAddonLoader(cmd *Cmd) ClusterConfigLoader {

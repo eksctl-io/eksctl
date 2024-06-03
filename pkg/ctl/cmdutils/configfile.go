@@ -314,10 +314,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				return true
 			}
 			for _, addon := range clusterConfig.Addons {
-				if cfg.IAM != nil && cfg.IAM.AutoCreatePodIdentityAssociations {
-					return true
-				}
-				if addon.CreateDefaultPodIdentityAssociations || addon.HasPodIDsSet() {
+				if cfg.AddonsConfig.AutoApplyPodIdentityAssociations || addon.UseDefaultPodIdentityAssociations || addon.HasPodIDsSet() {
 					return true
 				}
 			}

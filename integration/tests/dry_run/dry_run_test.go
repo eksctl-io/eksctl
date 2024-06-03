@@ -67,6 +67,7 @@ kubernetesNetworkConfig:
   ipFamily: IPv4
 accessConfig:
   authenticationMode: API_AND_CONFIG_MAP
+addonsConfig: {}
 nodeGroups:
 - amiFamily: AmazonLinux2
   containerRuntime: containerd

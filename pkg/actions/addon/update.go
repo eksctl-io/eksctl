@@ -77,7 +77,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 	}
 
 	var deleteServiceAccountIAMResources []string
-	if len(summary.PodIdentityAssociations) > 0 && !addon.CreateDefaultPodIdentityAssociations {
+	if len(summary.PodIdentityAssociations) > 0 && !addon.UseDefaultPodIdentityAssociations {
 		if addon.PodIdentityAssociations == nil {
 			return fmt.Errorf("addon %s has pod identity associations, to remove pod identity associations from an addon, "+
 				"addon.podIdentityAssociations must be explicitly set to []; if the addon was migrated to use pod identity, "+
@@ -98,7 +98,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 		}
 	}
 
-	if addon.HasPodIDsSet() || addon.CreateDefaultPodIdentityAssociations {
+	if addon.HasPodIDsSet() || addon.UseDefaultPodIdentityAssociations {
 		if requiresIAMPermissions {
 			pidConfigList, supportsPodIdentity, err := a.getRecommendedPoliciesForPodID(ctx, addon)
 			if err != nil {
@@ -108,7 +108,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 				return &unsupportedPodIdentityErr{addonName: addon.Name}
 			}
 			var podIdentityAssociations []api.PodIdentityAssociation
-			if addon.CreateDefaultPodIdentityAssociations {
+			if addon.UseDefaultPodIdentityAssociations {
 				for _, pidConfig := range pidConfigList {
 					podIdentityAssociations = append(podIdentityAssociations, api.PodIdentityAssociation{
 						ServiceAccountName:   *pidConfig.ServiceAccount,

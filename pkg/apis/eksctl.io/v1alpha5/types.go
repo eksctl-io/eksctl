@@ -908,6 +908,10 @@ type ClusterConfig struct {
 	// +optional
 	Addons []*Addon `json:"addons,omitempty"`
 
+	// AddonsConfig specifies the configuration for addons.
+	// +optional
+	AddonsConfig AddonsConfig `json:"addonsConfig,omitempty"`
+
 	// PrivateCluster allows configuring a fully-private cluster
 	// in which no node has outbound internet access, and private access
 	// to AWS services is enabled via VPC endpoints

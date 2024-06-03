@@ -365,6 +365,7 @@ const expected = `
 		"cloudWatch": {
 		  "clusterLogging": {}
 		},
+        "addonsConfig": {},
 		"privateCluster": {
 			"enabled": false,
 			"skipEndpointCreation": false

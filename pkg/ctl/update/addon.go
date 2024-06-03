@@ -130,7 +130,7 @@ func validatePodIdentityAgentAddon(ctx context.Context, eksAPI awsapi.EKS, cfg *
 	}
 
 	for _, a := range cfg.Addons {
-		if a.HasPodIDsSet() || a.CreateDefaultPodIdentityAssociations {
+		if a.HasPodIDsSet() || a.UseDefaultPodIdentityAssociations {
 			suggestion := fmt.Sprintf("please enable it using `eksctl create addon --cluster=%s --name=%s`, or by adding it to the config file", cfg.Metadata.Name, api.PodIdentityAgentAddon)
 			return api.ErrPodIdentityAgentNotInstalled(suggestion)
 		}

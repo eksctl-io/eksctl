@@ -2,7 +2,7 @@
 
 ## Introduction
 
-AWS EKS has introduced a new enhanced mechanism called Pod Identity Association for cluster administrators to configure Kubernetes applications to receive IAM permissions required to connect with AWS services outside of the cluster. Pod Identity Association leverages IRSA, however, it makes it configurable directly through EKS API, eliminating the need for using IAM API altogether. 
+AWS EKS has introduced a new enhanced mechanism called Pod Identity Association for cluster administrators to configure Kubernetes applications to receive IAM permissions required to connect with AWS services outside of the cluster. Pod Identity Association leverages IRSA, however, it makes it configurable directly through EKS API, eliminating the need for using IAM API altogether.
 
 As a result, IAM roles no longer need to reference an [OIDC provider](/usage/iamserviceaccounts/#how-it-works) and hence won't be tied to a single cluster anymore. This means, IAM roles can now be used across multiple EKS clusters without the need to update the role trust policy each time a new cluster is created. This in turn, eliminates the need for role duplication and simplifies the process of automating IRSA altogether.
 
@@ -41,8 +41,8 @@ If instead you do not provide the ARN of an existing role to the create command,
 For manipulating pod identity associations, `eksctl` has added a new field under `iam.podIdentityAssociations`, e.g.
 
 ```yaml
-iam:  
-  podIdentityAssociations: 
+iam:
+  podIdentityAssociations:
   - namespace: <string> #required
     serviceAccountName: <string> #required
     createServiceAccount: true #optional, default is false
@@ -162,12 +162,12 @@ eksctl delete podidentityassociation -f config.yaml
 OR (to delete a single association) pass the `--namespace` and `--service-account-name` via CLI flags:
 
 ```
-eksctl delete podidentityassociation --cluster my-cluster --namespace default --service-account-name s3-reader 
+eksctl delete podidentityassociation --cluster my-cluster --namespace default --service-account-name s3-reader
 ```
 
 ## EKS Add-ons support for pod identity associations
 
-EKS Add-ons also support receiving IAM permissions via EKS Pod Identity Associations. The config file exposes two fields that allow configuring these: `addon.podIdentityAssociations` and `iam.autoCreatePodIdentityAssociations`. You can either explicitly configure the desired pod identity associations, using the former, or have `eksctl` automatically resolve (and apply) the recommended pod identity configuration, using the latter.
+EKS Add-ons also support receiving IAM permissions via EKS Pod Identity Associations. The config file exposes three fields that allow configuring these: `addon.podIdentityAssociations`, `addonsConfig.autoApplyPodIdentityAssociations` and `addon.useDefaultPodIdentityAssociations`. You can either explicitly configure the desired pod identity associations, using `addon.podIdentityAssociations`, or have `eksctl` automatically resolve (and apply) the recommended pod identity configuration, using either `addonsConfig.autoApplyPodIdentityAssociations` or `addon.useDefaultPodIdentityAssociations`.
 
 ???+ note
 Not all EKS Add-ons will support pod identity associations at launch. For this case, required IAM permissions shall continue to be provided using [IRSA settings](/usage/addons/#creating-addons-and-providing-iam-permissions-via-irsa)
@@ -194,14 +194,14 @@ eksctl create addon -f config.yaml
 ???+ note
 Setting both pod identities and IRSA at the same time is not allowed, and will result in a validation error.
 
-For EKS Add-ons that support pod identities, `eksctl` offers the option to automatically configure any recommended IAM permissions, on addon creation. This can be achieved by simply setting `iam.AutoCreatePodIdentityAssociations: true` in the config file. e.g.
+For EKS Add-ons that support pod identities, `eksctl` offers the option to automatically configure any recommended IAM permissions, on addon creation. This can be achieved by simply setting `addonsConfig.autoApplyPodIdentityAssociations: true` in the config file. e.g.
 
 ```yaml
-iam:
-  autoCreatePodIdentityAssociations: true
+addonsConfig:
+  autoApplyPodIdentityAssociations: true
 # bear in mind that if either pod identity or IRSA configuration is explicitly set in the config file,
 # or if the addon does not support pod identities,
-# iam.autoCreatePodIdentityAssociations won't have any effect.
+# addonsConfig.autoApplyPodIdentityAssociations won't have any effect.
 addons:
 - name: vpc-cni
 ```
@@ -210,13 +210,25 @@ and run
 
 ```bash
 eksctl create addon -f config.yaml
-2024-05-13 15:38:58 [ℹ] "iam.AutoCreatePodIdentityAssociations" is set to true; will lookup recommended pod identity configuration for "vpc-cni" addon
+2024-05-13 15:38:58 [ℹ] "addonsConfig.autoApplyPodIdentityAssociations" is set to true; will lookup recommended pod identity configuration for "vpc-cni" addon
 ```
 
 Equivalently, the same can be done via CLI flags e.g.
 
 ```bash
-eksctl create addon --cluster my-cluster --name vpc-cni --auto-create-pod-identity-associations
+eksctl create addon --cluster my-cluster --name vpc-cni --auto-apply-pod-identity-associations
+```
+
+To migrate an existing addon to use pod identity with the recommended IAM policies, use
+
+```yaml
+addons:
+- name: vpc-cni
+  useDefaultPodIdentityAssociations: true
+```
+
+```bash
+$ eksctl update addon -f config.yaml
 ```
 
 ### Updating addons with IAM permissions
@@ -257,7 +269,7 @@ Now use the below configuration:
 addons:
 - name: adot
   podIdentityAssociations:
-  
+
   # For the first association, the permissions policy of the role will be updated
   - serviceAccountName: adot-col-prom-metrics
     permissionPolicyARNs:
@@ -268,7 +280,7 @@ addons:
   #- serviceAccountName: adot-col-otlp-ingest
   #  permissionPolicyARNs:
   #  - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
-  
+
   # The third association will be created, as it's been added to the config file
   - serviceAccountName: adot-col-container-logs
     permissionPolicyARNs:
@@ -302,7 +314,7 @@ eksctl update addon -f config.yaml
 now check that pod identity config was updated correctly
 
 ```bash
-eksctl get podidentityassociation --cluster my-cluster --output json                          
+eksctl get podidentityassociation --cluster my-cluster --output json
 [
     {
         ...
@@ -316,7 +328,7 @@ eksctl get podidentityassociation --cluster my-cluster --output json
         "RoleARN": "arn:aws:iam::111122223333:role/eksctl-my-cluster-addon-adot-podident-Role1-1k1XhAdziGzX",
         "OwnerARN": "arn:aws:eks:us-west-2:111122223333:addon/my-cluster/adot/1ec7bb63-8c4e-ca0a-f947-310c4b55052e"
     }
-] 
+]
 ```
 
 
@@ -325,8 +337,8 @@ To remove all pod identity associations from an addon, `addon.PodIdentityAssocia
 ```yaml
 addons:
 - name: vpc-cni
-  # omitting the `podIdentityAssociations` field from the config file, 
-  # instead of explicitly setting it to [], will result in a validation error 
+  # omitting the `podIdentityAssociations` field from the config file,
+  # instead of explicitly setting it to [], will result in a validation error
   podIdentityAssociations: []
 ```
 
@@ -355,43 +367,43 @@ Behind the scenes, the command will apply the following steps:
 - identify all IAM Roles that are associated with EKS addons that support pod identity associations
 - update the IAM trust policy of all identified roles, with an additional trusted entity, pointing to the new EKS Service principal (and, optionally, remove exising OIDC provider trust relationship)
 - create pod identity associations for filtered roles associated with iamserviceaccounts
-- update EKS addons with pod identities (EKS API will create the pod identities behind the scenes)  
+- update EKS addons with pod identities (EKS API will create the pod identities behind the scenes)
 
-Running the command without the `--approve` flag will only output a plan consisting of a set of tasks reflecting the steps above, e.g. 
+Running the command without the `--approve` flag will only output a plan consisting of a set of tasks reflecting the steps above, e.g.
 
 ```bash
 [ℹ]  (plan) would migrate 2 iamserviceaccount(s) and 2 addon(s) to pod identity association(s) by executing the following tasks
-[ℹ]  (plan) 
+[ℹ]  (plan)
 
-3 sequential tasks: { install eks-pod-identity-agent addon, 
+3 sequential tasks: { install eks-pod-identity-agent addon,
     ## tasks for migrating the addons
-    2 parallel sub-tasks: { 
-        2 sequential sub-tasks: { 
+    2 parallel sub-tasks: {
+        2 sequential sub-tasks: {
             update trust policy for owned role "eksctl-my-cluster--Role1-DDuMLoeZ8weD",
             migrate addon aws-ebs-csi-driver to pod identity,
         },
-        2 sequential sub-tasks: { 
+        2 sequential sub-tasks: {
             update trust policy for owned role "eksctl-my-cluster--Role1-xYiPFOVp1aeI",
             migrate addon vpc-cni to pod identity,
         },
-    }, 
+    },
     ## tasks for migrating the iamserviceaccounts
-    2 parallel sub-tasks: { 
-        2 sequential sub-tasks: { 
+    2 parallel sub-tasks: {
+        2 sequential sub-tasks: {
             update trust policy for owned role "eksctl-my-cluster--Role1-QLXqHcq9O1AR",
             create pod identity association for service account "default/sa1",
         },
-        2 sequential sub-tasks: { 
+        2 sequential sub-tasks: {
             update trust policy for unowned role "Unowned-Role1",
             create pod identity association for service account "default/sa2",
         },
-    } 
+    }
 }
 [ℹ]  all tasks were skipped
 [!]  no changes were applied, run again with '--approve' to apply the changes
 ```
 
-The existing OIDC provider trust relationship is always being removed from IAM Roles associated with EKS Add-ons. Additionally, to remove the existing OIDC provider trust relationship from IAM Roles associated with iamserviceaccounts, run the command with `--remove-oidc-provider-trust-relationship` flag, e.g. 
+The existing OIDC provider trust relationship is always being removed from IAM Roles associated with EKS Add-ons. Additionally, to remove the existing OIDC provider trust relationship from IAM Roles associated with iamserviceaccounts, run the command with `--remove-oidc-provider-trust-relationship` flag, e.g.
 
 ```
 eksctl utils migrate-to-pod-identity --cluster my-cluster --approve --remove-oidc-provider-trust-relationship
@@ -401,7 +413,7 @@ eksctl utils migrate-to-pod-identity --cluster my-cluster --approve --remove-oid
 
 [Official AWS Blog Post on EKS Add-ons support for pod identities] //https://TBD
 
-[Official AWS Userdocs for EKS Add-ons support for pod identities] //https://TBD 
+[Official AWS Userdocs for EKS Add-ons support for pod identities] //https://TBD
 
 [Official AWS Blog Post on Pod Identity Associations](https://aws.amazon.com/blogs/aws/amazon-eks-pod-identity-simplifies-iam-permissions-for-applications-on-amazon-eks-clusters/)
 

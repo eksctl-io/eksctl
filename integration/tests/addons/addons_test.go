@@ -602,15 +602,15 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			assertAddonHasPodIDs(api.VPCCNIAddon, 1)
 			assertStackExists(makePodIDStackName(api.VPCCNIAddon, awsNodeSA))
 
-			By("creating pod identity associations for addons when `autoCreate:true` and addon supports podIDs")
-			clusterConfig.IAM.AutoCreatePodIdentityAssociations = true
+			By("creating pod identity associations for addons when `autoApplyPodIdentityAssociations: true` and addon supports podIDs")
+			clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = true
 			clusterConfig.Addons = []*api.Addon{{Name: api.AWSEBSCSIDriverAddon}}
 			Expect(makeCreateAddonCMD()).To(RunSuccessfully())
 			assertAddonHasPodIDs(api.AWSEBSCSIDriverAddon, 1)
 			assertStackExists(makePodIDStackName(api.AWSEBSCSIDriverAddon, ebsCSIControllerSA))
 			assertStackNotExists(makeIRSAStackName(api.AWSEBSCSIDriverAddon))
 
-			By("falling back to IRSA when `autoCreate:true` but addon doesn't support podIDs")
+			By("falling back to IRSA when `autoApplyPodIdentityAssociations: true` but addon doesn't support podIDs")
 			clusterConfig.Addons = []*api.Addon{{Name: api.AWSEFSCSIDriverAddon}}
 			Expect(makeCreateAddonCMD()).To(RunSuccessfully())
 			assertAddonHasPodIDs(api.AWSEFSCSIDriverAddon, 0)
@@ -652,7 +652,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		})
 
 		It("should update IAM permissions when updating or migrating addons", func() {
-			clusterConfig.IAM.AutoCreatePodIdentityAssociations = false
+			clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = false
 			clusterConfig.Addons = []*api.Addon{
 				{Name: api.VPCCNIAddon},
 				{Name: api.AWSEBSCSIDriverAddon},

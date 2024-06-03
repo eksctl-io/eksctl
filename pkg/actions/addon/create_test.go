@@ -684,9 +684,9 @@ var _ = Describe("Create", func() {
 			},
 		}),
 
-		Entry("[RequiresIAMPermissions] `autoCreatePodIdentityAssociations:true` and NOT supportsPodIDs", createAddonEntry{
+		Entry("[RequiresIAMPermissions] `autoApplyPodIdentityAssociations: true` and NOT supportsPodIDs", createAddonEntry{
 			mockClusterConfig: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.IAM.AutoCreatePodIdentityAssociations = true
+				clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = true
 			},
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				mockDescribeAddon(mockProvider.MockEKS(), nil)
@@ -706,9 +706,9 @@ var _ = Describe("Create", func() {
 			},
 		}),
 
-		Entry("[RequiresIAMPermissions] `autoCreatePodIdentityAssociations:true` and supportsPodIDs", createAddonEntry{
+		Entry("[RequiresIAMPermissions] `autoApplyPodIdentityAssociations: true` and supportsPodIDs", createAddonEntry{
 			mockClusterConfig: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.IAM.AutoCreatePodIdentityAssociations = true
+				clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = true
 			},
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				mockDescribeAddon(mockProvider.MockEKS(), nil)
@@ -734,17 +734,17 @@ var _ = Describe("Create", func() {
 				Expect(*input.PodIdentityAssociations[0].RoleArn).To(Equal("arn:aws:iam::111122223333:role/sa1"))
 			},
 			validateCustomLoggerOutput: func(output string) {
-				Expect(output).To(ContainSubstring("\"iam.AutoCreatePodIdentityAssociations\" is set to true; will lookup recommended pod identity configuration for \"my-addon\" addon"))
+				Expect(output).To(ContainSubstring("\"addonsConfig.autoApplyPodIdentityAssociations\" is set to true; will lookup recommended pod identity configuration for \"my-addon\" addon"))
 			},
 		}),
 
-		Entry("[RequiresIAMPermissions] `autoCreatePodIdentityAssociations:true` and supportsPodIDs (vpc-cni && ipv6)", createAddonEntry{
+		Entry("[RequiresIAMPermissions] `autoApplyPodIdentityAssociations: true` and supportsPodIDs (vpc-cni && ipv6)", createAddonEntry{
 			addon: api.Addon{
 				Name: api.VPCCNIAddon,
 			},
 			mockK8s: true,
 			mockClusterConfig: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.IAM.AutoCreatePodIdentityAssociations = true
+				clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = true
 				clusterConfig.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
 					IPFamily: "IPv6",
 				}
@@ -773,7 +773,7 @@ var _ = Describe("Create", func() {
 				Expect(*input.PodIdentityAssociations[0].RoleArn).To(Equal("arn:aws:iam::111122223333:role/aws-node"))
 			},
 			validateCustomLoggerOutput: func(output string) {
-				Expect(output).To(ContainSubstring("\"iam.AutoCreatePodIdentityAssociations\" is set to true; will lookup recommended pod identity configuration for \"vpc-cni\" addon"))
+				Expect(output).To(ContainSubstring("\"addonsConfig.autoApplyPodIdentityAssociations\" is set to true; will lookup recommended pod identity configuration for \"vpc-cni\" addon"))
 			},
 		}),
 
@@ -791,7 +791,7 @@ var _ = Describe("Create", func() {
 				},
 			},
 			mockClusterConfig: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.IAM.AutoCreatePodIdentityAssociations = true
+				clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = true
 			},
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				mockDescribeAddon(mockProvider.MockEKS(), nil)
@@ -815,7 +815,7 @@ var _ = Describe("Create", func() {
 			},
 			withOIDC: true,
 			mockClusterConfig: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.IAM.AutoCreatePodIdentityAssociations = true
+				clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = true
 			},
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				mockDescribeAddon(mockProvider.MockEKS(), nil)
@@ -841,7 +841,7 @@ var _ = Describe("Create", func() {
 			},
 			withOIDC: true,
 			mockClusterConfig: func(clusterConfig *api.ClusterConfig) {
-				clusterConfig.IAM.AutoCreatePodIdentityAssociations = true
+				clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = true
 			},
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				mockDescribeAddon(mockProvider.MockEKS(), nil)

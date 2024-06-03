@@ -175,12 +175,6 @@
           "description": "defines the set of configuration properties for add-ons. For now, all properties will be specified as a JSON string and have to respect the schema from DescribeAddonConfiguration.",
           "x-intellij-html-description": "defines the set of configuration properties for add-ons. For now, all properties will be specified as a JSON string and have to respect the schema from DescribeAddonConfiguration."
         },
-        "createDefaultPodIdentityAssociations": {
-          "type": "boolean",
-          "description": "uses the pod identity associations recommended by the EKS API. Defaults to false.",
-          "x-intellij-html-description": "uses the pod identity associations recommended by the EKS API. Defaults to false.",
-          "default": "false"
-        },
         "name": {
           "type": "string"
         },
@@ -232,6 +226,12 @@
           },
           "type": "array"
         },
+        "useDefaultPodIdentityAssociations": {
+          "type": "boolean",
+          "description": "uses the pod identity associations recommended by the EKS API. Defaults to false.",
+          "x-intellij-html-description": "uses the pod identity associations recommended by the EKS API. Defaults to false.",
+          "default": "false"
+        },
         "version": {
           "type": "string"
         },
@@ -252,7 +252,7 @@
         "tags",
         "resolveConflicts",
         "podIdentityAssociations",
-        "createDefaultPodIdentityAssociations",
+        "useDefaultPodIdentityAssociations",
         "configurationValues",
         "publishers",
         "types",
@@ -261,6 +261,22 @@
       "additionalProperties": false,
       "description": "holds the EKS addon configuration",
       "x-intellij-html-description": "holds the EKS addon configuration"
+    },
+    "AddonsConfig": {
+      "properties": {
+        "autoApplyPodIdentityAssociations": {
+          "type": "boolean",
+          "description": "specifies whether to automatically apply pod identity associations for supported addons that require IAM permissions.",
+          "x-intellij-html-description": "specifies whether to automatically apply pod identity associations for supported addons that require IAM permissions.",
+          "default": "false"
+        }
+      },
+      "preferredOrder": [
+        "autoApplyPodIdentityAssociations"
+      ],
+      "additionalProperties": false,
+      "description": "holds the addons config.",
+      "x-intellij-html-description": "holds the addons config."
     },
     "CapacityReservation": {
       "properties": {
@@ -361,6 +377,11 @@
             "$ref": "#/definitions/Addon"
           },
           "type": "array"
+        },
+        "addonsConfig": {
+          "$ref": "#/definitions/AddonsConfig",
+          "description": "specifies the configuration for addons.",
+          "x-intellij-html-description": "specifies the configuration for addons."
         },
         "apiVersion": {
           "type": "string",
@@ -474,6 +495,7 @@
         "accessConfig",
         "vpc",
         "addons",
+        "addonsConfig",
         "privateCluster",
         "nodeGroups",
         "managedNodeGroups",
@@ -516,12 +538,6 @@
     },
     "ClusterIAM": {
       "properties": {
-        "autoCreatePodIdentityAssociations": {
-          "type": "boolean",
-          "description": "specifies whether or not to automatically create pod identity associations for supported addons that require IAM permissions",
-          "x-intellij-html-description": "specifies whether or not to automatically create pod identity associations for supported addons that require IAM permissions",
-          "default": "false"
-        },
         "fargatePodExecutionRoleARN": {
           "type": "string",
           "description": "role used by pods to access AWS APIs. This role is added to the Kubernetes RBAC for authorization. See [Pod Execution Role](https://docs.aws.amazon.com/eks/latest/userguide/pod-execution-role.html)",
@@ -575,7 +591,6 @@
         "fargatePodExecutionRolePermissionsBoundary",
         "withOIDC",
         "serviceAccounts",
-        "autoCreatePodIdentityAssociations",
         "podIdentityAssociations",
         "vpcResourceControllerPolicy"
       ],

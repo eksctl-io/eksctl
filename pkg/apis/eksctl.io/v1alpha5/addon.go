@@ -38,10 +38,10 @@ type Addon struct {
 	// PodIdentityAssociations holds a list of associations to be configured for the addon
 	// +optional
 	PodIdentityAssociations *[]PodIdentityAssociation `json:"podIdentityAssociations,omitempty"`
-	// CreateDefaultPodIdentityAssociations uses the pod identity associations recommended by the EKS API.
+	// UseDefaultPodIdentityAssociations uses the pod identity associations recommended by the EKS API.
 	// Defaults to false.
 	// +optional
-	CreateDefaultPodIdentityAssociations bool `json:"createDefaultPodIdentityAssociations,omitempty"`
+	UseDefaultPodIdentityAssociations bool `json:"useDefaultPodIdentityAssociations,omitempty"`
 	// ConfigurationValues defines the set of configuration properties for add-ons.
 	// For now, all properties will be specified as a JSON string
 	// and have to respect the schema from DescribeAddonConfiguration.
@@ -56,6 +56,14 @@ type Addon struct {
 	Types []string `json:"types,omitempty"`
 	// +optional
 	Owners []string `json:"owners,omitempty"`
+}
+
+// AddonsConfig holds the addons config.
+type AddonsConfig struct {
+	// AutoApplyPodIdentityAssociations specifies whether to automatically apply pod identity associations
+	// for supported addons that require IAM permissions.
+	// +optional
+	AutoApplyPodIdentityAssociations bool `json:"autoApplyPodIdentityAssociations,omitempty"`
 }
 
 func (a Addon) CanonicalName() string {

@@ -1690,20 +1690,20 @@ func validateAddonPodIdentityAssociations(addons []*Addon) error {
 		if addon.PodIdentityAssociations != nil {
 			for _, pia := range *addon.PodIdentityAssociations {
 				if pia.WellKnownPolicies.HasPolicy() {
-					return makeAddonErr("wellKnownPolicies is not supported for addon.podIdentityAssociations; use addon.createDefaultPodIdentityAssociations instead")
+					return makeAddonErr("wellKnownPolicies is not supported for addon.podIdentityAssociations; use addon.useDefaultPodIdentityAssociations instead")
 				}
 				if pia.Tags != nil {
 					return makeAddonErr("tags is not supported for addon.podIdentityAssociations")
 				}
 			}
 		}
-		if addon.CreateDefaultPodIdentityAssociations {
+		if addon.UseDefaultPodIdentityAssociations {
 			if addon.HasPodIDsSet() {
-				return makeAddonErr("cannot specify both addon.createDefaultPodIdentityAssociations and addon.podIdentityAssociations")
+				return makeAddonErr("cannot specify both addon.useDefaultPodIdentityAssociations and addon.podIdentityAssociations")
 			}
 			if addon.ServiceAccountRoleARN != "" || addon.WellKnownPolicies.HasPolicy() || len(addon.AttachPolicy) > 0 || len(addon.AttachPolicyARNs) > 0 {
 				return makeAddonErr("cannot specify serviceAccountRoleARN, wellKnownPolicies, attachPolicy or attachPolicyARNs" +
-					" when createDefaultPodIdentityAssociations is set")
+					" when addon.useDefaultPodIdentityAssociations is set")
 			}
 		}
 	}

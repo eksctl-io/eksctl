@@ -11,7 +11,8 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const identityProviders = `apiVersion: eksctl.io/v1alpha5
+const identityProviders = `addonsConfig: {}
+apiVersion: eksctl.io/v1alpha5
 identityProviders:
 - clientID: client
   issuerURL: example.com

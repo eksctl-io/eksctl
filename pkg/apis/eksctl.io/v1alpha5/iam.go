@@ -52,12 +52,6 @@ type ClusterIAM struct {
 	// See [IAM Service Accounts](/usage/iamserviceaccounts/#usage-with-config-files)
 	// +optional
 	ServiceAccounts []*ClusterIAMServiceAccount `json:"serviceAccounts,omitempty"`
-
-	// AutoCreatePodIdentityAssociations specifies whether or not to automatically create pod identity associations
-	// for supported addons that require IAM permissions
-	// +optional
-	AutoCreatePodIdentityAssociations bool `json:"autoCreatePodIdentityAssociations,omitempty"`
-
 	// pod identity associations to create in the cluster.
 	// See [Pod Identity Associations](/usage/pod-identity-associations)
 	// +optional

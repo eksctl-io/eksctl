@@ -2508,7 +2508,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					},
 				},
 			},
-		}, fmt.Sprintf("wellKnownPolicies is not supported for addon.podIdentityAssociations; use addon.createDefaultPodIdentityAssociations instead (addon: %s)", api.VPCCNIAddon)),
+		}, fmt.Sprintf("wellKnownPolicies is not supported for addon.podIdentityAssociations; use addon.useDefaultPodIdentityAssociations instead (addon: %s)", api.VPCCNIAddon)),
 		Entry("tags specified", []*api.Addon{
 			{
 				Name: api.VPCCNIAddon,
@@ -2520,10 +2520,10 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			},
 		}, fmt.Sprintf("tags is not supported for addon.podIdentityAssociations (addon: %s)", api.VPCCNIAddon)),
-		Entry("pod identity associations specified with createDefaultPodIdentityAssociations", []*api.Addon{
+		Entry("pod identity associations specified with useDefaultPodIdentityAssociations", []*api.Addon{
 			{
-				Name:                                 api.VPCCNIAddon,
-				CreateDefaultPodIdentityAssociations: true,
+				Name:                              api.VPCCNIAddon,
+				UseDefaultPodIdentityAssociations: true,
 				PodIdentityAssociations: &[]api.PodIdentityAssociation{
 					{
 						ServiceAccountName:   "aws-node",
@@ -2531,15 +2531,15 @@ var _ = Describe("ClusterConfig validation", func() {
 					},
 				},
 			},
-		}, fmt.Sprintf("cannot specify both addon.createDefaultPodIdentityAssociations and addon.podIdentityAssociations (addon: %s)", api.VPCCNIAddon)),
-		Entry("IRSA fields specified with createDefaultPodIdentityAssociations", []*api.Addon{
+		}, fmt.Sprintf("cannot specify both addon.useDefaultPodIdentityAssociations and addon.podIdentityAssociations (addon: %s)", api.VPCCNIAddon)),
+		Entry("IRSA fields specified with useDefaultPodIdentityAssociations", []*api.Addon{
 			{
-				Name:                                 api.VPCCNIAddon,
-				ServiceAccountRoleARN:                "role-1",
-				CreateDefaultPodIdentityAssociations: true,
+				Name:                              api.VPCCNIAddon,
+				ServiceAccountRoleARN:             "role-1",
+				UseDefaultPodIdentityAssociations: true,
 			},
 		}, fmt.Sprintf("cannot specify serviceAccountRoleARN, wellKnownPolicies, attachPolicy or attachPolicyARNs"+
-			" when createDefaultPodIdentityAssociations is set (addon: %s)", api.VPCCNIAddon)),
+			" when addon.useDefaultPodIdentityAssociations is set (addon: %s)", api.VPCCNIAddon)),
 
 		Entry("IRSA fields specified", []*api.Addon{
 			{

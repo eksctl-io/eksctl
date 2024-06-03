@@ -609,9 +609,9 @@ var _ = Describe("Update", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		err = addonManager.Update(context.Background(), &api.Addon{
-			Name:                                 "vpc-cni",
-			CreateDefaultPodIdentityAssociations: true,
-			Version:                              e.addonVersion,
+			Name:                              "vpc-cni",
+			UseDefaultPodIdentityAssociations: true,
+			Version:                           e.addonVersion,
 		}, &podIdentityIAMUpdater, 0)
 		Expect(err).NotTo(HaveOccurred())
 		mockProvider.MockEKS().AssertExpectations(GinkgoT())
