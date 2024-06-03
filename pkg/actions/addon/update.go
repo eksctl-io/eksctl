@@ -77,7 +77,7 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 	}
 
 	var deleteServiceAccountIAMResources []string
-	if len(summary.PodIdentityAssociations) > 0 && !addon.UseDefaultPodIdentityAssociations {
+	if len(summary.PodIdentityAssociations) > 0 && !addon.UseDefaultPodIdentityAssociations && !a.clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations {
 		if addon.PodIdentityAssociations == nil {
 			return fmt.Errorf("addon %s has pod identity associations, to remove pod identity associations from an addon, "+
 				"addon.podIdentityAssociations must be explicitly set to []; if the addon was migrated to use pod identity, "+
@@ -125,6 +125,14 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 			updateAddonInput.PodIdentityAssociations = addonPodIdentityAssociations
 		} else {
 			logger.Warning(IAMPermissionsNotRequiredWarning(addon.Name))
+		}
+	} else if len(summary.PodIdentityAssociations) > 0 {
+		if addon.HasIRSASet() {
+			return fmt.Errorf("cannot set IRSA config (`addon.serviceAccountRoleARN`, `addon.attachPolicyARNs`, `addon.attachPolicy`, `addon.wellKnownPolicies`) "+
+				"if addon has existing pod identity associations (addon: %s)", addon.Name)
+		}
+		if !a.clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations {
+			logger.Warning("addon %s has existing pod identity associations but pod identity is not enabled in the config", addon.Name)
 		}
 	} else {
 		// check if we have been provided a different set of policies/role
