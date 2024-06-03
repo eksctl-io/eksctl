@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
@@ -32,24 +31,21 @@ func (a *Manager) Delete(ctx context.Context, addon *api.Addon) error {
 		logger.Info("deleted addon: %s", addon.Name)
 	}
 
-	stack, err := a.stackManager.DescribeStack(ctx, &manager.Stack{StackName: aws.String(a.makeAddonName(addon.Name))})
+	deleteAddonIAMTasks, err := NewRemover(a.stackManager).DeleteAddonIAMTasksFiltered(ctx, addon.Name, false)
 	if err != nil {
-		if !manager.IsStackDoesNotExistError(err) {
-			return fmt.Errorf("failed to get stack: %w", err)
-		}
+		return err
 	}
-	if stack != nil {
-		logger.Info("deleting associated IAM stacks")
-		if _, err = a.stackManager.DeleteStackBySpec(ctx, stack); err != nil {
-			return fmt.Errorf("failed to delete cloudformation stack %q: %v", a.makeAddonName(addon.Name), err)
+	if deleteAddonIAMTasks.Len() > 0 {
+		logger.Info("deleting associated IAM stack(s)")
+		if err := runAllTasks(deleteAddonIAMTasks); err != nil {
+			return err
 		}
+	} else if addonExists {
+		logger.Info("no associated IAM stacks found")
 	} else {
-		if addonExists {
-			logger.Info("no associated IAM stacks found")
-		} else {
-			return errors.New("could not find addon or associated IAM stack to delete")
-		}
+		return errors.New("could not find addon or associated IAM stack(s) to delete")
 	}
+
 	return nil
 }
 
@@ -82,12 +78,19 @@ func NewRemover(stackManager StackManager) *Remover {
 }
 
 func (ar *Remover) DeleteAddonIAMTasks(ctx context.Context, wait bool) (*tasks.TaskTree, error) {
+	return ar.DeleteAddonIAMTasksFiltered(ctx, "", wait)
+}
+
+func (ar *Remover) DeleteAddonIAMTasksFiltered(ctx context.Context, addonName string, wait bool) (*tasks.TaskTree, error) {
 	stacks, err := ar.stackManager.GetIAMAddonsStacks(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch addons stacks: %v", err)
 	}
 	taskTree := &tasks.TaskTree{Parallel: true}
 	for _, s := range stacks {
+		if addonName != "" && manager.GetIAMAddonName(s) != addonName {
+			continue
+		}
 		taskTree.Append(&deleteAddonIAMTask{
 			ctx:          ctx,
 			info:         fmt.Sprintf("delete addon IAM %q", *s.StackName),

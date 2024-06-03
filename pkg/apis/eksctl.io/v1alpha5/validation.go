@@ -222,6 +222,9 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	if err := validateIAMIdentityMappings(cfg); err != nil {
 		return err
 	}
+	if err := validateAddonPodIdentityAssociations(cfg.Addons); err != nil {
+		return err
+	}
 
 	if len(cfg.AccessConfig.AccessEntries) > 0 {
 		switch cfg.AccessConfig.AuthenticationMode {
@@ -1656,10 +1659,52 @@ func ValidateSecretsEncryption(clusterConfig *ClusterConfig) error {
 	return nil
 }
 
+// ToPodIdentityAssociationID extracts the pod identity association ID from piaARN.
+// The ARN is of the format: arn:aws:eks:us-west-2:000:podidentityassociation/cluster/a-d3dw7wfvxtoatujeg.
+func ToPodIdentityAssociationID(piaARN string) (string, error) {
+	parsed, err := arn.Parse(piaARN)
+	if err != nil {
+		return "", fmt.Errorf("parsing ARN %q: %w", piaARN, err)
+	}
+	parts := strings.Split(parsed.Resource, "/")
+	if len(parts) != 3 {
+		return "", fmt.Errorf("unexpected pod identity association ARN format: %q", parsed.String())
+	}
+	return parts[len(parts)-1], nil
+}
+
 func validateIAMIdentityMappings(clusterConfig *ClusterConfig) error {
 	for _, mapping := range clusterConfig.IAMIdentityMappings {
 		if err := mapping.Validate(); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+func validateAddonPodIdentityAssociations(addons []*Addon) error {
+	for _, addon := range addons {
+		makeAddonErr := func(msg string) error {
+			return fmt.Errorf("%s (addon: %s)", msg, addon.Name)
+		}
+		if addon.PodIdentityAssociations != nil {
+			for _, pia := range *addon.PodIdentityAssociations {
+				if pia.WellKnownPolicies.HasPolicy() {
+					return makeAddonErr("wellKnownPolicies is not supported for addon.podIdentityAssociations; use addon.useDefaultPodIdentityAssociations instead")
+				}
+				if pia.Tags != nil {
+					return makeAddonErr("tags is not supported for addon.podIdentityAssociations")
+				}
+			}
+		}
+		if addon.UseDefaultPodIdentityAssociations {
+			if addon.HasPodIDsSet() {
+				return makeAddonErr("cannot specify both addon.useDefaultPodIdentityAssociations and addon.podIdentityAssociations")
+			}
+			if addon.ServiceAccountRoleARN != "" || addon.WellKnownPolicies.HasPolicy() || len(addon.AttachPolicy) > 0 || len(addon.AttachPolicyARNs) > 0 {
+				return makeAddonErr("cannot specify serviceAccountRoleARN, wellKnownPolicies, attachPolicy or attachPolicyARNs" +
+					" when addon.useDefaultPodIdentityAssociations is set")
+			}
 		}
 	}
 	return nil

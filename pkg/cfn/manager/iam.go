@@ -144,16 +144,16 @@ func (c *StackCollection) GetIAMAddonsStacks(ctx context.Context) ([]*Stack, err
 		if s.StackStatus == types.StackStatusDeleteComplete {
 			continue
 		}
-		if c.GetIAMAddonName(s) != "" {
+		if GetIAMAddonName(s) != "" {
 			iamAddonStacks = append(iamAddonStacks, s)
 		}
 	}
-	logger.Debug("iamserviceaccounts = %v", iamAddonStacks)
 	return iamAddonStacks, nil
 }
 
-func (*StackCollection) GetIAMAddonName(s *Stack) string {
-	for _, tag := range s.Tags {
+// GetIAMAddonName returns the addon name for stack.
+func GetIAMAddonName(stack *types.Stack) string {
+	for _, tag := range stack.Tags {
 		if *tag.Key == api.AddonNameTag {
 			return *tag.Value
 		}

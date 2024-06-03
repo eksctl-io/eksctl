@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -28,9 +27,8 @@ type AddonCreator interface {
 
 type PodIdentityMigrationOptions struct {
 	RemoveOIDCProviderTrustRelationship bool
-	// SkipAgentInstallation               bool
-	Approve bool
-	Timeout time.Duration
+	Approve                             bool
+	Timeout                             time.Duration
 }
 
 type Migrator struct {
@@ -98,17 +96,26 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 		return fmt.Errorf("listing k8s service accounts: %w", err)
 	}
 
-	updateTrustPolicyTasks := tasks.TaskTree{
-		Parallel:  true,
-		IsSubTask: true,
-	}
-	removeIRSAv1AnnotationTasks := tasks.TaskTree{
-		Parallel:  true,
-		IsSubTask: true,
-	}
+	updateTrustPolicyTasks := []tasks.Task{}
+	removeIRSAv1AnnotationTasks := []tasks.Task{}
 	toBeCreated := []api.PodIdentityAssociation{}
+
+	addonServiceAccountRoleMapper, err := CreateAddonServiceAccountRoleMapper(ctx, m.clusterName, m.eksAPI)
+	if err != nil {
+		return fmt.Errorf("creating addon service account role mapper: %w", err)
+	}
+	policyUpdater := &trustPolicyUpdater{
+		iamAPI:       m.iamAPI,
+		stackUpdater: m.stackUpdater,
+	}
 	for _, sa := range serviceAccounts.Items {
 		if roleARN, ok := sa.Annotations[api.AnnotationEKSRoleARN]; ok {
+			if mappedAddon := addonServiceAccountRoleMapper.AddonForServiceAccountRole(roleARN); mappedAddon != nil {
+				logger.Info("found IAM role for service account %s associated with EKS addon %s", sa.Name, *mappedAddon.AddonName)
+				continue
+			}
+			logger.Info("found IAM role for service account %s/%s", sa.Namespace, sa.Name)
+
 			// collect pod identity associations that need to be created
 			toBeCreated = append(toBeCreated, api.PodIdentityAssociation{
 				ServiceAccountName: sa.Name,
@@ -117,31 +124,20 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 			})
 
 			// infer role name to use in IAM API inputs
-			roleName, err := getNameFromARN(roleARN)
+			roleName, err := api.RoleNameFromARN(roleARN)
 			if err != nil {
 				return err
 			}
 
 			// add updateTrustPolicyTasks
 			if stackSummary, hasStack := resolver.GetStack(roleARN); hasStack {
-				updateTrustPolicyTasks.Append(&updateTrustPolicyForOwnedRole{
-					ctx:                                 ctx,
-					info:                                fmt.Sprintf("update trust policy for owned role %q", roleName),
-					roleName:                            roleName,
-					stack:                               stackSummary,
-					removeOIDCProviderTrustRelationship: options.RemoveOIDCProviderTrustRelationship,
-					iamAPI:                              m.iamAPI,
-					stackUpdater:                        m.stackUpdater,
-				})
-
+				updateTrustPolicyTasks = append(updateTrustPolicyTasks,
+					policyUpdater.UpdateTrustPolicyForOwnedRoleTask(ctx, roleName, "", stackSummary, options.RemoveOIDCProviderTrustRelationship),
+				)
 			} else {
-				updateTrustPolicyTasks.Append(&updateTrustPolicyForUnownedRole{
-					ctx:                                 ctx,
-					info:                                fmt.Sprintf("update trust policy for unowned role %q", roleName),
-					roleName:                            roleName,
-					removeOIDCProviderTrustRelationship: options.RemoveOIDCProviderTrustRelationship,
-					iamAPI:                              m.iamAPI,
-				})
+				updateTrustPolicyTasks = append(updateTrustPolicyTasks,
+					policyUpdater.UpdateTrustPolicyForUnownedRoleTask(ctx, roleName, options.RemoveOIDCProviderTrustRelationship),
+				)
 			}
 
 			// add removeIRSAv1AnnotationTasks
@@ -153,7 +149,7 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 			saCopy := &corev1.ServiceAccount{
 				ObjectMeta: sa.ObjectMeta,
 			}
-			removeIRSAv1AnnotationTasks.Append(&tasks.GenericTask{
+			removeIRSAv1AnnotationTasks = append(removeIRSAv1AnnotationTasks, &tasks.GenericTask{
 				Description: fmt.Sprintf("remove iamserviceaccount EKS role annotation for %q", saNameString),
 				Doer: func() error {
 					delete(saCopy.Annotations, api.AnnotationEKSRoleARN)
@@ -167,24 +163,52 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 			})
 		}
 	}
-	if updateTrustPolicyTasks.Len() == 0 {
-		logger.Info("no iamserviceacconts found, there is no need to migrate to pod identity")
+
+	addonMigrator := &AddonMigrator{
+		ClusterName:                   m.clusterName,
+		AddonServiceAccountRoleMapper: addonServiceAccountRoleMapper,
+		IAMRoleGetter:                 m.iamAPI,
+		StackDescriber:                m.stackUpdater,
+		EKSAddonsAPI:                  m.eksAPI,
+		RoleMigrator:                  policyUpdater,
+	}
+	addonMigrationTasks, err := addonMigrator.Migrate(ctx)
+	if err != nil {
+		return fmt.Errorf("error migrating addons to use pod identity: %w", err)
+	}
+	if addonMigrationTasks.Len() == 0 && len(toBeCreated) == 0 {
+		logger.Info("no iamserviceaccounts or addons found to migrate to pod identity")
 		return nil
 	}
-	taskTree.Append(&updateTrustPolicyTasks)
-	if removeIRSAv1AnnotationTasks.Len() > 0 {
-		taskTree.Append(&removeIRSAv1AnnotationTasks)
+
+	// add tasks to migrate addons
+	if addonMigrationTasks.Len() > 0 {
+		addonMigrationTasks.IsSubTask = true
+		taskTree.Append(addonMigrationTasks)
 	}
 
-	// add tasks to create pod identity associations
-	createAssociationsTasks := NewCreator(m.clusterName, nil, m.eksAPI, m.clientSet).CreateTasks(ctx, toBeCreated)
-	if createAssociationsTasks.Len() > 0 {
-		createAssociationsTasks.IsSubTask = true
-		taskTree.Append(createAssociationsTasks)
+	// add tasks to migrate iamserviceaccounts
+	iamserviceaccountMigrationTasks := &tasks.TaskTree{
+		Parallel:  true,
+		IsSubTask: true,
+	}
+	createAssociationsTasks := NewCreator(m.clusterName, nil, m.eksAPI, m.clientSet).CreateTasks(ctx, toBeCreated, true)
+	for i := range toBeCreated {
+		subTasks := &tasks.TaskTree{IsSubTask: true}
+		subTasks.Append(updateTrustPolicyTasks[i])
+		if len(removeIRSAv1AnnotationTasks) > 0 {
+			subTasks.Append(removeIRSAv1AnnotationTasks[i])
+		}
+		subTasks.Append(createAssociationsTasks.Tasks[i])
+		iamserviceaccountMigrationTasks.Append(subTasks)
+	}
+	if iamserviceaccountMigrationTasks.Len() > 0 {
+		taskTree.Append(iamserviceaccountMigrationTasks)
 	}
 
 	// add suggestive logs
-	cmdutils.LogIntendedAction(taskTree.PlanMode, "migrate %d iamserviceaccount(s) to pod identity association(s) by executing the following tasks", len(toBeCreated))
+	cmdutils.LogIntendedAction(taskTree.PlanMode, "migrate %d iamserviceaccount(s) and %d addon(s) to pod identity by executing the following tasks",
+		len(toBeCreated), addonMigrationTasks.Len())
 	defer cmdutils.LogPlanModeWarning(taskTree.PlanMode)
 
 	return runAllTasks(&taskTree)
@@ -202,14 +226,6 @@ func IsPodIdentityAgentInstalled(ctx context.Context, eksAPI awsapi.EKS, cluster
 		return false, fmt.Errorf("calling %q: %w", fmt.Sprintf("EKS::DescribeAddon::%s", api.PodIdentityAgentAddon), err)
 	}
 	return true, nil
-}
-
-func getNameFromARN(roleARN string) (string, error) {
-	parts := strings.Split(roleARN, "/")
-	if len(parts) != 2 {
-		return "", fmt.Errorf("cannot parse role name from roleARN: %s", roleARN)
-	}
-	return parts[1], nil
 }
 
 type IRSAv1StackNameResolver map[string]IRSAv1StackSummary

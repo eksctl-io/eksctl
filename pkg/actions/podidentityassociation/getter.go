@@ -13,6 +13,7 @@ type Summary struct {
 	Namespace          string
 	ServiceAccountName string
 	RoleARN            string
+	OwnerARN           string
 }
 
 type Getter struct {
@@ -54,12 +55,16 @@ func (g *Getter) GetPodIdentityAssociations(ctx context.Context, namespace, serv
 			return summaries, fmt.Errorf("failed to describe pod identity association with associationID: %s", *a.AssociationId)
 		}
 
-		summaries = append(summaries, Summary{
+		summary := Summary{
 			AssociationARN:     *describeOut.Association.AssociationArn,
 			Namespace:          *describeOut.Association.Namespace,
 			ServiceAccountName: *describeOut.Association.ServiceAccount,
 			RoleARN:            *describeOut.Association.RoleArn,
-		})
+		}
+		if describeOut.Association.OwnerArn != nil {
+			summary.OwnerARN = *describeOut.Association.OwnerArn
+		}
+		summaries = append(summaries, summary)
 	}
 
 	return summaries, nil

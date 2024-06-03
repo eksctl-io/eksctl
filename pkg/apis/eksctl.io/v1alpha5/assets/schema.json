@@ -189,6 +189,14 @@
           "description": "ARN of the permissions' boundary to associate",
           "x-intellij-html-description": "ARN of the permissions' boundary to associate"
         },
+        "podIdentityAssociations": {
+          "items": {
+            "$ref": "#/definitions/PodIdentityAssociation"
+          },
+          "type": "array",
+          "description": "holds a list of associations to be configured for the addon",
+          "x-intellij-html-description": "holds a list of associations to be configured for the addon"
+        },
         "publishers": {
           "items": {
             "type": "string"
@@ -218,6 +226,12 @@
           },
           "type": "array"
         },
+        "useDefaultPodIdentityAssociations": {
+          "type": "boolean",
+          "description": "uses the pod identity associations recommended by the EKS API. Defaults to false.",
+          "x-intellij-html-description": "uses the pod identity associations recommended by the EKS API. Defaults to false.",
+          "default": "false"
+        },
         "version": {
           "type": "string"
         },
@@ -237,6 +251,8 @@
         "wellKnownPolicies",
         "tags",
         "resolveConflicts",
+        "podIdentityAssociations",
+        "useDefaultPodIdentityAssociations",
         "configurationValues",
         "publishers",
         "types",
@@ -245,6 +261,22 @@
       "additionalProperties": false,
       "description": "holds the EKS addon configuration",
       "x-intellij-html-description": "holds the EKS addon configuration"
+    },
+    "AddonsConfig": {
+      "properties": {
+        "autoApplyPodIdentityAssociations": {
+          "type": "boolean",
+          "description": "specifies whether to automatically apply pod identity associations for supported addons that require IAM permissions.",
+          "x-intellij-html-description": "specifies whether to automatically apply pod identity associations for supported addons that require IAM permissions.",
+          "default": "false"
+        }
+      },
+      "preferredOrder": [
+        "autoApplyPodIdentityAssociations"
+      ],
+      "additionalProperties": false,
+      "description": "holds the addons config.",
+      "x-intellij-html-description": "holds the addons config."
     },
     "CapacityReservation": {
       "properties": {
@@ -345,6 +377,11 @@
             "$ref": "#/definitions/Addon"
           },
           "type": "array"
+        },
+        "addonsConfig": {
+          "$ref": "#/definitions/AddonsConfig",
+          "description": "specifies the configuration for addons.",
+          "x-intellij-html-description": "specifies the configuration for addons."
         },
         "apiVersion": {
           "type": "string",
@@ -458,6 +495,7 @@
         "accessConfig",
         "vpc",
         "addons",
+        "addonsConfig",
         "privateCluster",
         "nodeGroups",
         "managedNodeGroups",
@@ -515,8 +553,8 @@
             "$ref": "#/definitions/PodIdentityAssociation"
           },
           "type": "array",
-          "description": "pod identity associations to create in the cluster. See [Pod Identity Associations](TBD)",
-          "x-intellij-html-description": "pod identity associations to create in the cluster. See <a href=\"TBD\">Pod Identity Associations</a>"
+          "description": "pod identity associations to create in the cluster. See [Pod Identity Associations](/usage/pod-identity-associations)",
+          "x-intellij-html-description": "pod identity associations to create in the cluster. See <a href=\"/usage/pod-identity-associations\">Pod Identity Associations</a>"
         },
         "serviceAccounts": {
           "items": {

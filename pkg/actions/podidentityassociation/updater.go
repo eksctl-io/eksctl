@@ -5,19 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"time"
-
-	"golang.org/x/exp/slices"
-
-	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-
-	"github.com/kris-nova/logger"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/utils/apierrors"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
@@ -50,11 +45,12 @@ type APIUpdater interface {
 	UpdatePodIdentityAssociation(ctx context.Context, params *eks.UpdatePodIdentityAssociationInput, optFns ...func(*eks.Options)) (*eks.UpdatePodIdentityAssociationOutput, error)
 }
 
-type updateConfig struct {
-	podIdentityAssociation api.PodIdentityAssociation
-	associationID          string
-	hasIAMResourcesStack   bool
-	stackName              string
+// UpdateConfig holds configuration for updating a pod identity association.
+type UpdateConfig struct {
+	PodIdentityAssociation api.PodIdentityAssociation
+	AssociationID          string
+	HasIAMResourcesStack   bool
+	StackName              string
 }
 
 // Update updates the specified pod identity associations.
@@ -91,74 +87,42 @@ func (u *Updater) Update(ctx context.Context, podIdentityAssociations []api.PodI
 	return runAllTasks(taskTree)
 }
 
-func (u *Updater) update(ctx context.Context, updateConfig *updateConfig, podIdentityAssociationID string) error {
-	if !updateConfig.hasIAMResourcesStack {
-		return u.updatePodIdentityAssociation(ctx, updateConfig, podIdentityAssociationID)
-	}
-
-	stack, err := u.StackUpdater.DescribeStack(ctx, &manager.Stack{
-		StackName: aws.String(updateConfig.stackName),
-	})
-	if err != nil {
-		return fmt.Errorf("describing IAM resources stack %q: %w", updateConfig.stackName, err)
-	}
-	if updateConfig.podIdentityAssociation.RoleName != "" && !slices.Contains(stack.Capabilities, cfntypes.CapabilityCapabilityNamedIam) {
-		return errors.New("cannot update role name if the pod identity association was not created with a role name")
-	}
-	rs := builder.NewIAMRoleResourceSetForPodIdentity(&updateConfig.podIdentityAssociation)
-	if err := rs.AddAllResources(); err != nil {
-		return fmt.Errorf("adding resources to CloudFormation template: %w", err)
-	}
-	template, err := rs.RenderJSON()
-	if err != nil {
-		return fmt.Errorf("generating CloudFormation template: %w", err)
-	}
-	if err := u.StackUpdater.MustUpdateStack(ctx, manager.UpdateStackOptions{
-		StackName:     updateConfig.stackName,
-		ChangeSetName: fmt.Sprintf("eksctl-%s-%s-update-%d", updateConfig.podIdentityAssociation.Namespace, updateConfig.podIdentityAssociation.ServiceAccountName, time.Now().Unix()),
-		Description:   fmt.Sprintf("updating IAM resources stack %q for pod identity association %q", updateConfig.stackName, podIdentityAssociationID),
-		TemplateData:  manager.TemplateBody(template),
-		Wait:          true,
-	}); err != nil {
-		if _, ok := err.(*manager.NoChangeError); ok {
-			logger.Info("IAM resources for %q are already up-to-date", podIdentityAssociationID)
+func (u *Updater) update(ctx context.Context, updateConfig *UpdateConfig, podIdentityAssociationID string) error {
+	roleARN := updateConfig.PodIdentityAssociation.RoleARN
+	if updateConfig.HasIAMResourcesStack {
+		roleUpdater := &IAMRoleUpdater{
+			StackUpdater: u.StackUpdater,
+		}
+		newRoleARN, hasChanged, err := roleUpdater.Update(ctx, updateConfig.PodIdentityAssociation, updateConfig.StackName, podIdentityAssociationID)
+		if err != nil {
+			return err
+		}
+		if !hasChanged {
 			return nil
 		}
-		return fmt.Errorf("updating IAM resources for pod identity association: %w", err)
+		roleARN = newRoleARN
 	}
-	logger.Info("updated IAM resources stack %q for %q", updateConfig.stackName, podIdentityAssociationID)
-	stack, err = u.StackUpdater.DescribeStack(ctx, &manager.Stack{
-		StackName: aws.String(updateConfig.stackName),
-	})
-	if err != nil {
-		return fmt.Errorf("describing IAM resources stack: %w", err)
-	}
-	if err := rs.GetAllOutputs(*stack); err != nil {
-		return fmt.Errorf("error getting IAM role output from IAM resources stack: %w", err)
-	}
-
-	return u.updatePodIdentityAssociation(ctx, updateConfig, podIdentityAssociationID)
+	return u.updatePodIdentityAssociation(ctx, roleARN, updateConfig, podIdentityAssociationID)
 }
 
-func (u *Updater) updatePodIdentityAssociation(ctx context.Context, updateConfig *updateConfig, podIdentityAssociationID string) error {
-	roleARN := updateConfig.podIdentityAssociation.RoleARN
+func (u *Updater) updatePodIdentityAssociation(ctx context.Context, roleARN string, updateConfig *UpdateConfig, podIdentityAssociationID string) error {
 	if _, err := u.APIUpdater.UpdatePodIdentityAssociation(ctx, &eks.UpdatePodIdentityAssociationInput{
-		AssociationId: aws.String(updateConfig.associationID),
+		AssociationId: aws.String(updateConfig.AssociationID),
 		ClusterName:   aws.String(u.ClusterName),
 		RoleArn:       aws.String(roleARN),
 	}); err != nil {
-		return fmt.Errorf("updating pod identity association (associationID: %s, roleARN: %s): %w", updateConfig.associationID, roleARN, err)
+		return fmt.Errorf("(associationID: %s, roleARN: %s): %w", updateConfig.AssociationID, roleARN, err)
 	}
 	logger.Info("updated role ARN %q for pod identity association %q", roleARN, podIdentityAssociationID)
 	return nil
 }
 
-func (u *Updater) makeUpdate(ctx context.Context, p api.PodIdentityAssociation, roleStackNames []string) (*updateConfig, error) {
+func (u *Updater) makeUpdate(ctx context.Context, pia api.PodIdentityAssociation, roleStackNames []string) (*UpdateConfig, error) {
 	const notFoundErrMsg = "pod identity association does not exist"
 	output, err := u.APIUpdater.ListPodIdentityAssociations(ctx, &eks.ListPodIdentityAssociationsInput{
 		ClusterName:    aws.String(u.ClusterName),
-		Namespace:      aws.String(p.Namespace),
-		ServiceAccount: aws.String(p.ServiceAccountName),
+		Namespace:      aws.String(pia.Namespace),
+		ServiceAccount: aws.String(pia.ServiceAccountName),
 	})
 	if err != nil {
 		if apierrors.IsNotFoundError(err) {
@@ -172,39 +136,63 @@ func (u *Updater) makeUpdate(ctx context.Context, p api.PodIdentityAssociation, 
 	case 0:
 		return nil, errors.New(notFoundErrMsg)
 	case 1:
+		association := output.Associations[0]
+		if association.OwnerArn != nil {
+			return nil, fmt.Errorf("cannot update podidentityassociation %s as it is in use by addon %s; "+
+				"please use `eksctl update addon` instead", pia.NameString(), *association.OwnerArn)
+		}
 		describeOutput, err := u.APIUpdater.DescribePodIdentityAssociation(ctx, &eks.DescribePodIdentityAssociationInput{
 			ClusterName:   aws.String(u.ClusterName),
-			AssociationId: output.Associations[0].AssociationId,
+			AssociationId: association.AssociationId,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("error describing pod identity association: %w", err)
 		}
 		stackName, hasStack := getIAMResourcesStack(roleStackNames, Identifier{
-			Namespace:          p.Namespace,
-			ServiceAccountName: p.ServiceAccountName,
+			Namespace:          pia.Namespace,
+			ServiceAccountName: pia.ServiceAccountName,
 		})
-		if hasStack {
-			if describeOutput.Association.RoleArn != nil && p.RoleARN != "" && p.RoleARN != *describeOutput.Association.RoleArn {
-				return nil, errors.New("cannot change podIdentityAssociation.roleARN since the role was created by eksctl")
-			}
-		} else {
-			if p.RoleARN == "" {
-				return nil, errors.New("podIdentityAssociation.roleARN is required since the role was not created by eksctl")
-			}
-			podIDWithRoleARN := api.PodIdentityAssociation{
-				Namespace:          p.Namespace,
-				ServiceAccountName: p.ServiceAccountName,
-				RoleARN:            p.RoleARN,
-			}
-			if !reflect.DeepEqual(p, podIDWithRoleARN) {
-				return nil, errors.New("only namespace, serviceAccountName and roleARN can be specified if the role was not created by eksctl")
-			}
+		updateValidator := &RoleUpdateValidator{
+			StackDescriber: u.StackUpdater,
 		}
-		return &updateConfig{
-			podIdentityAssociation: p,
-			associationID:          *describeOutput.Association.AssociationId,
-			hasIAMResourcesStack:   hasStack,
-			stackName:              stackName,
+		if err := updateValidator.ValidateRoleUpdate(pia, *describeOutput.Association, hasStack); err != nil {
+			return nil, err
+		}
+		return &UpdateConfig{
+			PodIdentityAssociation: pia,
+			AssociationID:          *describeOutput.Association.AssociationId,
+			HasIAMResourcesStack:   hasStack,
+			StackName:              stackName,
 		}, nil
 	}
+}
+
+type StackDescriber interface {
+	DescribeStack(context.Context, *manager.Stack) (*manager.Stack, error)
+}
+
+type RoleUpdateValidator struct {
+	StackDescriber StackDescriber
+}
+
+// ValidateRoleUpdate validates the role associated with pia.
+func (r *RoleUpdateValidator) ValidateRoleUpdate(pia api.PodIdentityAssociation, association ekstypes.PodIdentityAssociation, hasStack bool) error {
+	if hasStack {
+		if association.RoleArn != nil && pia.RoleARN != "" && pia.RoleARN != *association.RoleArn {
+			return errors.New("cannot change podIdentityAssociation.roleARN since the role was created by eksctl")
+		}
+	} else {
+		if pia.RoleARN == "" {
+			return errors.New("podIdentityAssociation.roleARN is required since the role was not created by eksctl")
+		}
+		podIDWithRoleARN := api.PodIdentityAssociation{
+			Namespace:          pia.Namespace,
+			ServiceAccountName: pia.ServiceAccountName,
+			RoleARN:            pia.RoleARN,
+		}
+		if !reflect.DeepEqual(pia, podIDWithRoleARN) {
+			return errors.New("only namespace, serviceAccountName and roleARN can be specified if the role was not created by eksctl")
+		}
+	}
+	return nil
 }

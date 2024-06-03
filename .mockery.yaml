@@ -48,3 +48,32 @@ packages:
         config:
           dir: "{{.InterfaceDir}}/mocks"
           outpkg: mocks
+
+  github.com/weaveworks/eksctl/pkg/actions/addon:
+    interfaces:
+      IAMRoleCreator:
+        config:
+          dir: "{{.InterfaceDir}}/mocks"
+          outpkg: mocks
+
+      IAMRoleUpdater:
+        config:
+          dir: "{{.InterfaceDir}}/mocks"
+          outpkg: mocks
+
+      PodIdentityIAMUpdater:
+        config:
+          dir: "{{.InterfaceDir}}/mocks"
+          outpkg: mocks
+
+  github.com/weaveworks/eksctl/pkg/actions/podidentityassociation:
+    interfaces:
+      StackDeleter:
+        config:
+          with-expecter: true
+          dir: "{{.InterfaceDir}}/mocks"
+          outpkg: mocks
+      RoleMigrator:
+        config:
+          dir: "{{.InterfaceDir}}/mocks"
+          outpkg: mocks

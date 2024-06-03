@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"slices"
+	"strings"
 
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 
@@ -105,8 +107,13 @@ func getAddon(cmd *cmdutils.Cmd, a *api.Addon, params *getCmdParams) error {
 		return err
 	}
 
-	if params.output == printers.TableType {
-		addAddonSummaryTableColumns(printer.(*printers.TablePrinter))
+	if tablePrinter, ok := printer.(*printers.TablePrinter); ok {
+		if slices.ContainsFunc(summaries, func(summary addon.Summary) bool {
+			return len(summary.PodIdentityAssociations) > 0
+		}) {
+			logger.Info("to view pod identity associations for an addon, rerun the command with --output=json or --output=yaml")
+		}
+		addAddonSummaryTableColumns(tablePrinter)
 	}
 
 	if err := printer.PrintObjWithKind("addons", summaries, cmd.CobraCommand.OutOrStdout()); err != nil {
@@ -144,5 +151,12 @@ func addAddonSummaryTableColumns(printer *printers.TablePrinter) {
 	})
 	printer.AddColumn("CONFIGURATION VALUES", func(s addon.Summary) string {
 		return s.ConfigurationValues
+	})
+	printer.AddColumn("POD IDENTITY ASSOCIATION ROLES", func(s addon.Summary) string {
+		var roleARNs []string
+		for _, pia := range s.PodIdentityAssociations {
+			roleARNs = append(roleARNs, pia.RoleARN)
+		}
+		return strings.Join(roleARNs, ",")
 	})
 }

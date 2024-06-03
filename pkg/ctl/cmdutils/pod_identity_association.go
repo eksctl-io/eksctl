@@ -112,9 +112,12 @@ func validatePodIdentityAssociationsForConfig(clusterConfig *api.ClusterConfig, 
 	if clusterConfig.IAM == nil || len(clusterConfig.IAM.PodIdentityAssociations) == 0 {
 		return errors.New("no iam.podIdentityAssociations specified in the config file")
 	}
+	return validatePodIdentityAssociations(clusterConfig.IAM.PodIdentityAssociations, isCreate)
+}
 
-	for i, pia := range clusterConfig.IAM.PodIdentityAssociations {
-		path := fmt.Sprintf("podIdentityAssociations[%d]", i)
+func validatePodIdentityAssociations(podIdentityAssociations []api.PodIdentityAssociation, isCreate bool) error {
+	for i, pia := range podIdentityAssociations {
+		path := fmt.Sprintf("iam.podIdentityAssociations[%d]", i)
 		if pia.Namespace == "" {
 			return fmt.Errorf("%s.namespace must be set", path)
 		}
@@ -133,18 +136,20 @@ func validatePodIdentityAssociationsForConfig(clusterConfig *api.ClusterConfig, 
 			return fmt.Errorf("at least one of the following must be specified: %[1]s.roleARN, %[1]s.permissionPolicy, %[1]s.permissionPolicyARNs, %[1]s.wellKnownPolicies", path)
 		}
 		if pia.RoleARN != "" {
+			makeIncompatibleFieldErr := func(fieldName string) error {
+				return fmt.Errorf("%[1]s.%s cannot be specified when %[1]s.roleARN is set", path, fieldName)
+			}
 			if len(pia.PermissionPolicy) > 0 {
-				return fmt.Errorf("%[1]s.permissionPolicy cannot be specified when %[1]s.roleARN is set", path)
+				return makeIncompatibleFieldErr("permissionPolicy")
 			}
 			if len(pia.PermissionPolicyARNs) > 0 {
-				return fmt.Errorf("%[1]s.permissionPolicyARNs cannot be specified when %[1]s.roleARN is set", path)
+				return makeIncompatibleFieldErr("permissionPolicyARNs")
 			}
 			if pia.WellKnownPolicies.HasPolicy() {
-				return fmt.Errorf("%[1]s.wellKnownPolicies cannot be specified when %[1]s.roleARN is set", path)
+				return makeIncompatibleFieldErr("wellKnownPolicies")
 			}
 		}
 	}
-
 	return nil
 }
 

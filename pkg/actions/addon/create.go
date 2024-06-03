@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
@@ -21,12 +22,67 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
-const (
-	kubeSystemNamespace = "kube-system"
+var (
+	updateAddonRecommended = func(supportsPodIDs bool) string {
+		path := "`addon.ServiceAccountRoleARN`, `addon.AttachPolicyARNs`, `addon.AttachPolicy` or `addon.WellKnownPolicies`"
+		if supportsPodIDs {
+			path = "`addon.PodIdentityAssociations`"
+		}
+		return fmt.Sprintf("add all recommended policies to the config file, under %s, and run `eksctl update addon`", path)
+	}
+	iamPermissionsRecommended = func(addonName string, supportsPodIDs, shouldUpdateAddon bool) string {
+		method := "IRSA"
+		if supportsPodIDs {
+			method = "pod identity associations"
+		}
+		commandSuggestion := "run `eksctl utils migrate-to-pod-identity`"
+		if shouldUpdateAddon {
+			commandSuggestion = updateAddonRecommended(supportsPodIDs)
+		}
+		return fmt.Sprintf("the recommended way to provide IAM permissions for %q addon is via %s; after addon creation is completed, %s", addonName, method, commandSuggestion)
+	}
+	IRSADeprecatedWarning = func(addonName string) string {
+		return fmt.Sprintf("IRSA has been deprecated; %s", iamPermissionsRecommended(addonName, true, false))
+	}
+	OIDCDisabledWarning = func(addonName string, supportsPodIDs, isIRSASetExplicitly bool) string {
+		irsaUsedMessage := fmt.Sprintf("recommended policies were found for %q addon", addonName)
+		if isIRSASetExplicitly {
+			irsaUsedMessage = fmt.Sprintf("IRSA config is set for %q addon", addonName)
+		}
+		suggestion := "users are responsible for attaching the policies to all nodegroup roles"
+		if supportsPodIDs {
+			suggestion = iamPermissionsRecommended(addonName, true, true)
+		}
+		return fmt.Sprintf("%s, but since OIDC is disabled on the cluster, eksctl cannot configure the requested permissions; %s", irsaUsedMessage, suggestion)
+	}
+	IAMPermissionsRequiredWarning = func(addonName string, supportsPodIDs bool) string {
+		suggestion := iamPermissionsRecommended(addonName, false, true)
+		if supportsPodIDs {
+			suggestion = iamPermissionsRecommended(addonName, true, true)
+		}
+		return fmt.Sprintf("IAM permissions are required for %q addon; %s", addonName, suggestion)
+	}
+	IAMPermissionsNotRequiredWarning = func(addonName string) string {
+		return fmt.Sprintf("IAM permissions are not required for %q addon; any IRSA configuration or pod identity associations will be ignored", addonName)
+	}
 )
 
-func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
-	// First check if the addon is already present as an EKS managed addon
+const (
+	kubeSystemNamespace   = "kube-system"
+	awsNodeServiceAccount = "aws-node"
+)
+
+type unsupportedPodIdentityErr struct {
+	addonName string
+}
+
+func (e *unsupportedPodIdentityErr) Error() string {
+	return fmt.Sprintf("%q addon does not support pod identity associations; use IRSA config"+
+		" (`addon.serviceAccountRoleARN`, `addon.attachPolicyARNs`, `addon.attachPolicy` or `addon.wellKnownPolicies`) instead", e.addonName)
+}
+
+func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator IAMRoleCreator, waitTimeout time.Duration) error {
+	// check if the addon is already present as an EKS managed addon
 	// in a state different from CREATE_FAILED, and if so, don't re-create
 	var notFoundErr *ekstypes.ResourceNotFoundException
 	summary, err := a.eksAPI.DescribeAddon(ctx, &eks.DescribeAddonInput{
@@ -34,22 +90,19 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 		ClusterName: &a.clusterConfig.Metadata.Name,
 	})
 	if err != nil && !errors.As(err, &notFoundErr) {
-		return err
+		return fmt.Errorf("failed to describe addon: %w", err)
 	}
 
 	// if the addon already exists AND it is not in CREATE_FAILED state
 	if err == nil && summary.Addon.Status != ekstypes.AddonStatusCreateFailed {
-		logger.Info("Addon %s is already present in this cluster, as an EKS managed addon, and won't be re-created", addon.Name)
+		logger.Info("%q addon is already present on the cluster, as an EKS managed addon, skipping creation", addon.Name)
 		return nil
 	}
 
-	version := addon.Version
-	if version != "" {
-		var err error
-		version, err = a.getLatestMatchingVersion(ctx, addon)
-		if err != nil {
-			return fmt.Errorf("failed to fetch version %s for addon %s: %w", version, addon.Name, err)
-		}
+	version, requiresIAMPermissions, err := a.getLatestMatchingVersion(ctx, addon)
+	addon.Version = version
+	if err != nil {
+		return err
 	}
 	var configurationValues *string
 	if addon.ConfigurationValues != "" {
@@ -74,53 +127,119 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 
 	logger.Debug("resolve conflicts set to %s", createAddonInput.ResolveConflicts)
 	logger.Debug("addon: %v", addon)
-	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
 	if len(addon.Tags) > 0 {
 		createAddonInput.Tags = addon.Tags
 	}
-	if a.withOIDC {
-		if addon.ServiceAccountRoleARN != "" {
-			logger.Info("using provided ServiceAccountRoleARN %q", addon.ServiceAccountRoleARN)
-			createAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
-		} else if hasPoliciesSet(addon) {
-			outputRole, err := a.createRole(ctx, addon, namespace, serviceAccount)
+
+	if requiresIAMPermissions {
+		podIDConfig, supportsPodIDs, err := a.getRecommendedPoliciesForPodID(ctx, addon)
+		if err != nil {
+			return err
+		}
+
+		switch {
+		// firstly, check if the user has specifically defined pod identity associations
+		case addon.HasPodIDsSet():
+			if !supportsPodIDs {
+				return &unsupportedPodIdentityErr{addonName: addon.Name}
+			}
+			logger.Info("pod identity associations are set for %q addon; will use these to configure required IAM permissions", addon.Name)
+			for _, pia := range *addon.PodIdentityAssociations {
+				roleARN := pia.RoleARN
+				if roleARN == "" {
+					if roleARN, err = iamRoleCreator.Create(ctx, &pia, addon.Name); err != nil {
+						return err
+					}
+				}
+				createAddonInput.PodIdentityAssociations = append(createAddonInput.PodIdentityAssociations, ekstypes.AddonPodIdentityAssociations{
+					RoleArn:        aws.String(roleARN),
+					ServiceAccount: aws.String(pia.ServiceAccountName),
+				})
+			}
+
+		// afterwards, check if the user has specifically defined IRSA config
+		case addon.HasIRSASet():
+			if !a.withOIDC {
+				logger.Warning(OIDCDisabledWarning(addon.Name, supportsPodIDs, true))
+				break
+			}
+			logger.Info("IRSA is set for %q addon; will use this to configure IAM permissions", addon.Name)
+			if supportsPodIDs {
+				logger.Warning(IRSADeprecatedWarning(addon.Name))
+			}
+
+			if addon.ServiceAccountRoleARN != "" {
+				logger.Info("using provided ServiceAccountRoleARN %q", addon.ServiceAccountRoleARN)
+				createAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
+				break
+			}
+
+			logger.Info("creating role using provided policies for %q addon", addon.Name)
+			namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
+			roleARN, err := a.createRoleForIRSA(ctx, addon, namespace, serviceAccount)
 			if err != nil {
 				return err
 			}
-			createAddonInput.ServiceAccountRoleArn = &outputRole
-		} else {
-			policyDocument, policyARNs, wellKnownPolicies := a.getRecommendedPolicies(addon)
-			if len(policyARNs) != 0 || policyDocument != nil || wellKnownPolicies != nil {
-				logger.Info("creating role using recommended policies")
-				addon.AttachPolicyARNs = policyARNs
-				addon.AttachPolicy = policyDocument
-				resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
-				if len(policyARNs) != 0 {
-					resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
-				}
-				if wellKnownPolicies != nil {
-					addon.WellKnownPolicies = *wellKnownPolicies
-					resourceSet = builder.NewIAMRoleResourceSetWithWellKnownPolicies(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.WellKnownPolicies, a.oidcManager)
-				}
-				if err := resourceSet.AddAllResources(); err != nil {
-					return err
-				}
-				err := a.createStack(ctx, resourceSet, addon)
+			createAddonInput.ServiceAccountRoleArn = &roleARN
+
+		// if neither podIDs nor IRSA are set explicitly, then check if podIDs should be created automatically
+		case (a.clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations || addon.UseDefaultPodIdentityAssociations) && supportsPodIDs:
+			logger.Info("\"addonsConfig.autoApplyPodIdentityAssociations\" is set to true; will lookup recommended pod identity configuration for %q addon", addon.Name)
+
+			if addon.CanonicalName() == api.VPCCNIAddon && a.clusterConfig.IPv6Enabled() {
+				roleARN, err := iamRoleCreator.Create(ctx, &api.PodIdentityAssociation{
+					ServiceAccountName: awsNodeServiceAccount,
+					PermissionPolicy:   makeIPv6VPCCNIPolicyDocument(api.Partitions.ForRegion(a.clusterConfig.Metadata.Region)),
+				}, addon.Name)
 				if err != nil {
 					return err
 				}
-				createAddonInput.ServiceAccountRoleArn = &resourceSet.OutputRole
-			} else {
-				logger.Info("no recommended policies found, proceeding without any IAM")
+				createAddonInput.PodIdentityAssociations = append(createAddonInput.PodIdentityAssociations, ekstypes.AddonPodIdentityAssociations{
+					RoleArn:        &roleARN,
+					ServiceAccount: aws.String(awsNodeServiceAccount),
+				})
+				break
 			}
+
+			for _, config := range podIDConfig {
+				roleARN, err := iamRoleCreator.Create(ctx, &api.PodIdentityAssociation{
+					ServiceAccountName:   *config.ServiceAccount,
+					PermissionPolicyARNs: config.RecommendedManagedPolicies,
+				}, addon.Name)
+				if err != nil {
+					return err
+				}
+				createAddonInput.PodIdentityAssociations = append(createAddonInput.PodIdentityAssociations, ekstypes.AddonPodIdentityAssociations{
+					RoleArn:        &roleARN,
+					ServiceAccount: config.ServiceAccount,
+				})
+			}
+
+		// if podIDs are not supported, check for any recommended IRSA policies
+		case a.setRecommendedPoliciesForIRSA(addon):
+			if !a.withOIDC {
+				logger.Warning(OIDCDisabledWarning(addon.Name, supportsPodIDs, false))
+				break
+			}
+			if supportsPodIDs {
+				logger.Warning(IRSADeprecatedWarning(addon.Name))
+			}
+
+			logger.Info("creating role using recommended policies for %q addon", addon.Name)
+			namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
+			roleARN, err := a.createRoleForIRSA(ctx, addon, namespace, serviceAccount)
+			if err != nil {
+				return err
+			}
+			createAddonInput.ServiceAccountRoleArn = &roleARN
+
+		default:
+			logger.Warning(IAMPermissionsRequiredWarning(addon.Name, supportsPodIDs))
 		}
-	} else {
-		//if any sort of policy is set or could be set, log a warning
-		policyDocument, policyARNs, wellKnownPolicies := a.getRecommendedPolicies(addon)
-		if addon.ServiceAccountRoleARN != "" || hasPoliciesSet(addon) || len(policyARNs) != 0 || policyDocument != nil || wellKnownPolicies != nil {
-			logger.Warning("OIDC is disabled but policies are required/specified for this addon. Users are responsible for attaching the policies to all nodegroup roles")
-		}
+
+	} else if addon.HasPodIDsSet() || addon.HasIRSASet() {
+		logger.Warning(IAMPermissionsNotRequiredWarning(addon.Name))
 	}
 
 	if addon.CanonicalName() == api.VPCCNIAddon {
@@ -139,7 +258,25 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time
 	logger.Info("creating addon")
 	output, err := a.eksAPI.CreateAddon(ctx, createAddonInput)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create addon %q", addon.Name)
+		var resourceInUse *ekstypes.ResourceInUseException
+		if errors.As(err, &resourceInUse) {
+			defer func() {
+				deleteAddonIAMTasks, err := NewRemover(a.stackManager).DeleteAddonIAMTasksFiltered(ctx, addon.Name, false)
+				if err != nil {
+					logger.Warning("failed to cleanup IAM role stacks: %w; please remove any remaining stacks manually", err)
+					return
+				}
+				if err := runAllTasks(deleteAddonIAMTasks); err != nil {
+					logger.Warning("failed to cleanup IAM role stacks: %w; please remove any remaining stacks manually", err)
+				}
+			}()
+			var addonServiceAccounts []string
+			for _, pia := range createAddonInput.PodIdentityAssociations {
+				addonServiceAccounts = append(addonServiceAccounts, fmt.Sprintf("%q", *pia.ServiceAccount))
+			}
+			return fmt.Errorf("creating addon: one or more service accounts corresponding to %q addon is already associated with a different IAM role; please delete all pre-existing pod identity associations corresponding to %s service account(s) in the addon's namespace, then re-try creating the addon", addon.Name, strings.Join(addonServiceAccounts, ","))
+		}
+		return fmt.Errorf("failed to create %q addon: %w", addon.Name, err)
 	}
 
 	if output != nil {
@@ -254,29 +391,8 @@ func (a *Manager) patchAWSNodeDaemonSet(ctx context.Context) error {
 	return nil
 }
 
-func (a *Manager) getRecommendedPolicies(addon *api.Addon) (api.InlineDocument, []string, *api.WellKnownPolicies) {
-	// API isn't case-sensitive
-	switch addon.CanonicalName() {
-	case api.VPCCNIAddon:
-		if a.clusterConfig.IPv6Enabled() {
-			return makeIPv6VPCCNIPolicyDocument(api.Partitions.ForRegion(a.clusterConfig.Metadata.Region)), nil, nil
-		}
-		return nil, []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partitions.ForRegion(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}, nil
-	case api.AWSEBSCSIDriverAddon:
-		return nil, nil, &api.WellKnownPolicies{
-			EBSCSIController: true,
-		}
-	case api.AWSEFSCSIDriverAddon:
-		return nil, nil, &api.WellKnownPolicies{
-			EFSCSIController: true,
-		}
-	default:
-		return nil, nil, nil
-	}
-}
-
 func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, string) {
-	// API isn't case sensitive
+	// API isn't case-sensitive.
 	switch addon.CanonicalName() {
 	case api.VPCCNIAddon:
 		logger.Debug("found known service account location %s/%s", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
@@ -286,19 +402,46 @@ func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, stri
 	}
 }
 
-func hasPoliciesSet(addon *api.Addon) bool {
-	return len(addon.AttachPolicyARNs) != 0 || addon.WellKnownPolicies.HasPolicy() || addon.AttachPolicy != nil
+func (a *Manager) getRecommendedPoliciesForPodID(ctx context.Context, addon *api.Addon) ([]ekstypes.AddonPodIdentityConfiguration, bool, error) {
+	output, err := a.eksAPI.DescribeAddonConfiguration(ctx, &eks.DescribeAddonConfigurationInput{
+		AddonName:    &addon.Name,
+		AddonVersion: &addon.Version,
+	})
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to describe configuration for %q addon: %w", addon.Name, err)
+	}
+	return output.PodIdentityConfiguration, len(output.PodIdentityConfiguration) != 0, nil
 }
 
-func (a *Manager) createRole(ctx context.Context, addon *api.Addon, namespace, serviceAccount string) (string, error) {
-	resourceSet, err := a.createRoleResourceSet(addon, namespace, serviceAccount)
+func (a *Manager) setRecommendedPoliciesForIRSA(addon *api.Addon) bool {
+	switch addon.CanonicalName() {
+	case api.VPCCNIAddon:
+		if a.clusterConfig.IPv6Enabled() {
+			addon.AttachPolicy = makeIPv6VPCCNIPolicyDocument(api.Partitions.ForRegion(a.clusterConfig.Metadata.Region))
+		} else {
+			addon.AttachPolicyARNs = append(addon.AttachPolicyARNs, fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partitions.ForRegion(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy))
+		}
+	case api.AWSEBSCSIDriverAddon:
+		addon.WellKnownPolicies = api.WellKnownPolicies{
+			EBSCSIController: true,
+		}
+	case api.AWSEFSCSIDriverAddon:
+		addon.WellKnownPolicies = api.WellKnownPolicies{
+			EFSCSIController: true,
+		}
+	default:
+		return false
+	}
+	return true
+}
 
+func (a *Manager) createRoleForIRSA(ctx context.Context, addon *api.Addon, namespace, serviceAccount string) (string, error) {
+	resourceSet, err := a.createRoleResourceSet(addon, namespace, serviceAccount)
 	if err != nil {
 		return "", err
 	}
-
-	err = a.createStack(ctx, resourceSet, addon)
-	if err != nil {
+	if err := a.createStack(ctx, resourceSet, addon.Name,
+		a.makeAddonName(addon.Name)); err != nil {
 		return "", err
 	}
 	return resourceSet.OutputRole, nil
@@ -307,26 +450,23 @@ func (a *Manager) createRole(ctx context.Context, addon *api.Addon, namespace, s
 func (a *Manager) createRoleResourceSet(addon *api.Addon, namespace, serviceAccount string) (*builder.IAMRoleResourceSet, error) {
 	var resourceSet *builder.IAMRoleResourceSet
 	if len(addon.AttachPolicyARNs) != 0 {
-		logger.Info("creating role using provided policies ARNs")
 		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
 	} else if addon.WellKnownPolicies.HasPolicy() {
-		logger.Info("creating role using provided well known policies")
 		resourceSet = builder.NewIAMRoleResourceSetWithWellKnownPolicies(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.WellKnownPolicies, a.oidcManager)
 	} else {
-		logger.Info("creating role using provided policies")
 		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
 	}
 	return resourceSet, resourceSet.AddAllResources()
 }
 
-func (a *Manager) createStack(ctx context.Context, resourceSet builder.ResourceSetReader, addon *api.Addon) error {
+func (a *Manager) createStack(ctx context.Context, resourceSet builder.ResourceSetReader, addonName, stackName string) error {
 	errChan := make(chan error)
 
 	tags := map[string]string{
-		api.AddonNameTag: addon.Name,
+		api.AddonNameTag: addonName,
 	}
 
-	err := a.stackManager.CreateStack(ctx, a.makeAddonName(addon.Name), resourceSet, tags, nil, errChan)
+	err := a.stackManager.CreateStack(ctx, stackName, resourceSet, tags, nil, errChan)
 	if err != nil {
 		return err
 	}

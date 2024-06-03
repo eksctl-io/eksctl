@@ -165,8 +165,8 @@ func (c *StackCollection) DoCreateStackRequest(ctx context.Context, i *Stack, te
 
 // CreateStack with given name, stack builder instance and parameters;
 // any errors will be written to errs channel, when nil is written,
-// assume completion, do not expect more then one error value on the
-// channel, it's closed immediately after it is written to
+// assume completion, do not expect more than one error value on the
+// channel, it's closed immediately after it is written to.
 func (c *StackCollection) CreateStack(ctx context.Context, stackName string, resourceSet builder.ResourceSetReader, tags, parameters map[string]string, errs chan error) error {
 	stack, err := c.createStackRequest(ctx, stackName, resourceSet, tags, parameters)
 	if err != nil {
@@ -401,9 +401,8 @@ func (c *StackCollection) DescribeStack(ctx context.Context, i *Stack) (*Stack, 
 }
 
 func IsStackDoesNotExistError(err error) bool {
-	awsError, ok := errors.Unwrap(errors.Unwrap(err)).(*smithy.OperationError)
-	return ok && strings.Contains(awsError.Error(), "ValidationError")
-
+	var opErr *smithy.OperationError
+	return errors.As(err, &opErr) && strings.Contains(opErr.Error(), "ValidationError")
 }
 
 // GetManagedNodeGroupTemplate returns the template for a ManagedNodeGroup resource
@@ -509,6 +508,11 @@ func (c *StackCollection) ListStackNames(ctx context.Context, regExp string) ([]
 // ListClusterStackNames gets all stack names matching regex
 func (c *StackCollection) ListClusterStackNames(ctx context.Context) ([]string, error) {
 	return c.ListStackNames(ctx, clusterStackRegex)
+}
+
+// ListAddonIAMStackNames lists the stack names for all access entries in the specified cluster.
+func (c *StackCollection) ListAddonIAMStackNames(ctx context.Context, clusterName, addonName string) ([]string, error) {
+	return c.ListStackNames(ctx, fmt.Sprintf("^eksctl-%s-addon-%s-*", clusterName, addonName))
 }
 
 // ListAccessEntryStackNames lists the stack names for all access entries in the specified cluster.

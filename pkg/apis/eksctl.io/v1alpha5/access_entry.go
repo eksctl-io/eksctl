@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -114,6 +115,22 @@ func MustParseARN(a string) ARN {
 		panic(err)
 	}
 	return ARN(parsed)
+}
+
+// RoleNameFromARN returns the role name for roleARN.
+func RoleNameFromARN(roleARN string) (string, error) {
+	parsed, err := arn.Parse(roleARN)
+	if err != nil {
+		return "", err
+	}
+	parts := strings.Split(parsed.Resource, "/")
+	if len(parts) != 2 {
+		return "", errors.New("invalid format for role ARN")
+	}
+	if parts[0] != "role" {
+		return "", fmt.Errorf("expected resource type to be %q; got %q", "role", parts[0])
+	}
+	return parts[1], nil
 }
 
 // validateAccessEntries validates accessEntries.

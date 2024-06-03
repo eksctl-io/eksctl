@@ -92,21 +92,38 @@ func (a *Manager) waitForAddonToBeActive(ctx context.Context, addon *api.Addon, 
 	return nil
 }
 
-func (a *Manager) getLatestMatchingVersion(ctx context.Context, addon *api.Addon) (string, error) {
+type versionNotFoundError struct {
+	addonName    string
+	addonVersion string
+}
+
+func (v *versionNotFoundError) Error() string {
+	return fmt.Sprintf("no version(s) found matching %q for %q", v.addonVersion, v.addonName)
+}
+
+func (a *Manager) getLatestMatchingVersion(ctx context.Context, addon *api.Addon) (string, bool, error) {
 	addonInfos, err := a.describeVersions(ctx, addon)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 	if len(addonInfos.Addons) == 0 || len(addonInfos.Addons[0].AddonVersions) == 0 {
-		return "", fmt.Errorf("no versions available for %q", addon.Name)
+		return "", false, fmt.Errorf("no versions available for %q", addon.Name)
 	}
 
 	addonVersion := addon.Version
 	var versions []*version.Version
 	for _, addonVersionInfo := range addonInfos.Addons[0].AddonVersions {
+		// if not specified, will install default version
+		if addonVersion == "" && len(addonVersionInfo.Compatibilities) > 0 &&
+			addonVersionInfo.Compatibilities[0].DefaultVersion {
+			return *addonVersionInfo.AddonVersion, addonVersionInfo.RequiresIamPermissions, nil
+		} else if addonVersion == "" {
+			continue
+		}
+
 		v, err := a.parseVersion(*addonVersionInfo.AddonVersion)
 		if err != nil {
-			return "", err
+			return "", false, err
 		}
 
 		if addonVersion == "latest" || strings.Contains(*addonVersionInfo.AddonVersion, addonVersion) {
@@ -115,17 +132,27 @@ func (a *Manager) getLatestMatchingVersion(ctx context.Context, addon *api.Addon
 	}
 
 	if len(versions) == 0 {
-		return "", fmt.Errorf("no version(s) found matching %q for %q", addonVersion, addon.Name)
+		return "", false, &versionNotFoundError{
+			addonName:    addon.Name,
+			addonVersion: addonVersion,
+		}
 	}
 
 	sort.SliceStable(versions, func(i, j int) bool {
 		return versions[j].LessThan(versions[i])
 	})
-	return versions[0].Original(), nil
+
+	requireIAMPermissions := false
+	for _, addonVersionInfo := range addonInfos.Addons[0].AddonVersions {
+		if *addonVersionInfo.AddonVersion == versions[0].Original() {
+			requireIAMPermissions = addonVersionInfo.RequiresIamPermissions
+		}
+	}
+	return versions[0].Original(), requireIAMPermissions, nil
 }
 
 func (a *Manager) makeAddonName(name string) string {
-	return fmt.Sprintf("eksctl-%s-addon-%s", a.clusterConfig.Metadata.Name, name)
+	return manager.MakeAddonStackName(a.clusterConfig.Metadata.Name, name)
 }
 
 func (a *Manager) parseVersion(v string) (*version.Version, error) {

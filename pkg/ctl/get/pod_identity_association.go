@@ -92,4 +92,7 @@ func addPodIdentityAssociationSummaryTableColumns(printer *printers.TablePrinter
 	printer.AddColumn("IAM ROLE ARN", func(s podidentityassociation.Summary) string {
 		return s.RoleARN
 	})
+	printer.AddColumn("OWNER ARN", func(s podidentityassociation.Summary) string {
+		return s.OwnerARN
+	})
 }

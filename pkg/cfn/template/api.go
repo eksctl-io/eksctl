@@ -2,6 +2,7 @@ package template
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 // Commonly-used constants
@@ -29,6 +30,21 @@ type Template struct {
 type AnyResource struct {
 	Type       string
 	Properties interface{}
+}
+
+func (r *AnyResource) ToIAMRole() (IAMRole, error) {
+	var role IAMRole
+	if r.Type != "AWS::IAM::Role" {
+		return role, fmt.Errorf("cannot convert resource of type %s to AWS::IAM::ROLE", r.Type)
+	}
+	bytes, err := json.Marshal(r.Properties)
+	if err != nil {
+		return role, err
+	}
+	if err := json.Unmarshal(bytes, &role); err != nil {
+		return role, err
+	}
+	return role, nil
 }
 
 type (

@@ -38,10 +38,10 @@ func NewCreator(clusterName string, stackCreator StackCreator, eksAPI awsapi.EKS
 }
 
 func (c *Creator) CreatePodIdentityAssociations(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation) error {
-	return runAllTasks(c.CreateTasks(ctx, podIdentityAssociations))
+	return runAllTasks(c.CreateTasks(ctx, podIdentityAssociations, false))
 }
 
-func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation) *tasks.TaskTree {
+func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api.PodIdentityAssociation, ignorePodIdentityExistsErr bool) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{
 		Parallel: true,
 	}
@@ -52,12 +52,20 @@ func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api
 			IsSubTask: true,
 		}
 		if pia.RoleARN == "" {
-			piaCreationTasks.Append(&createIAMRoleTask{
-				ctx:                    ctx,
-				info:                   fmt.Sprintf("create IAM role for pod identity association for service account %q", pia.NameString()),
-				clusterName:            c.clusterName,
-				podIdentityAssociation: &pia,
-				stackCreator:           c.stackCreator,
+			piaCreationTasks.Append(&tasks.GenericTask{
+				Description: fmt.Sprintf("create IAM role for pod identity association for service account %q", pia.NameString()),
+				Doer: func() error {
+					roleCreator := &IAMRoleCreator{
+						ClusterName:  c.clusterName,
+						StackCreator: c.stackCreator,
+					}
+					roleARN, err := roleCreator.Create(ctx, &pia, "")
+					if err != nil {
+						return err
+					}
+					pia.RoleARN = roleARN
+					return nil
+				},
 			})
 		}
 		if pia.CreateServiceAccount {
@@ -75,11 +83,12 @@ func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api
 			})
 		}
 		piaCreationTasks.Append(&createPodIdentityAssociationTask{
-			ctx:                    ctx,
-			info:                   fmt.Sprintf("create pod identity association for service account %q", pia.NameString()),
-			clusterName:            c.clusterName,
-			podIdentityAssociation: &pia,
-			eksAPI:                 c.eksAPI,
+			ctx:                        ctx,
+			info:                       fmt.Sprintf("create pod identity association for service account %q", pia.NameString()),
+			clusterName:                c.clusterName,
+			podIdentityAssociation:     &pia,
+			eksAPI:                     c.eksAPI,
+			ignorePodIdentityExistsErr: ignorePodIdentityExistsErr,
 		})
 		taskTree.Append(piaCreationTasks)
 	}
