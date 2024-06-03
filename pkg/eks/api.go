@@ -200,14 +200,9 @@ func newAWSProvider(spec *api.ProviderConfig, configurationLoader AWSConfigurati
 
 	provider.asg = autoscaling.NewFromConfig(cfg)
 	provider.cloudwatchlogs = cloudwatchlogs.NewFromConfig(cfg)
-	provider.cloudtrail = cloudtrail.NewFromConfig(cfg)
-
-	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
-		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)
-		provider.cloudtrail = cloudtrail.NewFromConfig(cfg, func(o *cloudtrail.Options) {
-			o.BaseEndpoint = &endpoint
-		})
-	}
+	provider.cloudtrail = cloudtrail.NewFromConfig(cfg, func(o *cloudtrail.Options) {
+		o.BaseEndpoint = getBaseEndpoint(cloudtrail.ServiceID, "AWS_CLOUDTRAIL_ENDPOINT")
+	})
 
 	return provider, nil
 }
