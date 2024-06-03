@@ -72,6 +72,15 @@ const (
 	awsNodeServiceAccount = "aws-node"
 )
 
+type unsupportedPodIdentityErr struct {
+	addonName string
+}
+
+func (e *unsupportedPodIdentityErr) Error() string {
+	return fmt.Sprintf("%q addon does not support pod identity associations; use IRSA config"+
+		" (`addon.serviceAccountRoleARN`, `addon.attachPolicyARNs`, `addon.attachPolicy` or `addon.wellKnownPolicies`) instead", e.addonName)
+}
+
 func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator IAMRoleCreator, waitTimeout time.Duration) error {
 	// check if the addon is already present as an EKS managed addon
 	// in a state different from CREATE_FAILED, and if so, don't re-create
@@ -133,7 +142,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 		// firstly, check if the user has specifically defined pod identity associations
 		case addon.HasPodIDsSet():
 			if !supportsPodIDs {
-				return fmt.Errorf("%q addon does not support pod identity associations; use IRSA config (`addon.ServiceAccountRoleARN`, `addon.AttachPolicyARNs`, `addon.AttachPolicy` or `addon.WellKnownPolicies`) instead", addon.Name)
+				return &unsupportedPodIdentityErr{addonName: addon.Name}
 			}
 			logger.Info("pod identity associations are set for %q addon; will use these to configure required IAM permissions", addon.Name)
 			for _, pia := range *addon.PodIdentityAssociations {

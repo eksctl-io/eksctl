@@ -98,9 +98,27 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 		}
 	}
 
-	if addon.HasPodIDsSet() {
+	if addon.HasPodIDsSet() || addon.CreateDefaultPodIdentityAssociations {
 		if requiresIAMPermissions {
-			addonPodIdentityAssociations, err := podIdentityIAMUpdater.UpdateRole(ctx, *addon.PodIdentityAssociations, addon.Name, summary.PodIdentityAssociations)
+			pidConfigList, supportsPodIdentity, err := a.getRecommendedPoliciesForPodID(ctx, addon)
+			if err != nil {
+				return fmt.Errorf("getting recommended policies for addon %s", addon.Name)
+			}
+			if !supportsPodIdentity {
+				return &unsupportedPodIdentityErr{addonName: addon.Name}
+			}
+			var podIdentityAssociations []api.PodIdentityAssociation
+			if addon.CreateDefaultPodIdentityAssociations {
+				for _, pidConfig := range pidConfigList {
+					podIdentityAssociations = append(podIdentityAssociations, api.PodIdentityAssociation{
+						ServiceAccountName:   *pidConfig.ServiceAccount,
+						PermissionPolicyARNs: pidConfig.RecommendedManagedPolicies,
+					})
+				}
+			} else {
+				podIdentityAssociations = *addon.PodIdentityAssociations
+			}
+			addonPodIdentityAssociations, err := podIdentityIAMUpdater.UpdateRole(ctx, podIdentityAssociations, addon.Name, summary.PodIdentityAssociations)
 			if err != nil {
 				return fmt.Errorf("updating pod identity associations: %w", err)
 			}
@@ -109,41 +127,17 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 			logger.Warning(IAMPermissionsNotRequiredWarning(addon.Name))
 		}
 	} else {
-		supportsPodIdentity := false
-		if addon.CreateDefaultPodIdentityAssociations && requiresIAMPermissions {
-			var pidConfigList []ekstypes.AddonPodIdentityConfiguration
-			pidConfigList, supportsPodIdentity, err = a.getRecommendedPoliciesForPodID(ctx, addon)
+		// check if we have been provided a different set of policies/role
+		if addon.ServiceAccountRoleARN != "" {
+			updateAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
+		} else if addon.HasIRSAPoliciesSet() {
+			serviceAccountRoleARN, err := a.updateWithNewPolicies(ctx, addon)
 			if err != nil {
 				return err
 			}
-			if supportsPodIdentity {
-				var podIdentityAssociations []api.PodIdentityAssociation
-				for _, pidConfig := range pidConfigList {
-					podIdentityAssociations = append(podIdentityAssociations, api.PodIdentityAssociation{
-						ServiceAccountName:   *pidConfig.ServiceAccount,
-						PermissionPolicyARNs: pidConfig.RecommendedManagedPolicies,
-					})
-				}
-				addonPodIdentityAssociations, err := podIdentityIAMUpdater.UpdateRole(ctx, podIdentityAssociations, addon.Name, summary.PodIdentityAssociations)
-				if err != nil {
-					return err
-				}
-				updateAddonInput.PodIdentityAssociations = addonPodIdentityAssociations
-			}
-		}
-		if !supportsPodIdentity {
-			// check if we have been provided a different set of policies/role
-			if addon.ServiceAccountRoleARN != "" {
-				updateAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
-			} else if addon.HasIRSAPoliciesSet() {
-				serviceAccountRoleARN, err := a.updateWithNewPolicies(ctx, addon)
-				if err != nil {
-					return err
-				}
-				updateAddonInput.ServiceAccountRoleArn = &serviceAccountRoleARN
-			} else if summary.IAMRole != "" { // Preserve current role.
-				updateAddonInput.ServiceAccountRoleArn = &summary.IAMRole
-			}
+			updateAddonInput.ServiceAccountRoleArn = &serviceAccountRoleARN
+		} else if summary.IAMRole != "" { // Preserve current role.
+			updateAddonInput.ServiceAccountRoleArn = &summary.IAMRole
 		}
 	}
 

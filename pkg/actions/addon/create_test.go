@@ -650,7 +650,7 @@ var _ = Describe("Create", func() {
 				mockDescribeAddonVersions(provider.MockEKS(), nil)
 				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{}, nil)
 			},
-			expectedErr: "\"my-addon\" addon does not support pod identity associations; use IRSA config (`addon.ServiceAccountRoleARN`, `addon.AttachPolicyARNs`, `addon.AttachPolicy` or `addon.WellKnownPolicies`) instead",
+			expectedErr: "\"my-addon\" addon does not support pod identity associations; use IRSA config (`addon.serviceAccountRoleARN`, `addon.attachPolicyARNs`, `addon.attachPolicy` or `addon.wellKnownPolicies`) instead",
 		}),
 
 		Entry("[RequiresIAMPermissions] podIDs set explicitly and supportsPodIDs", createAddonEntry{

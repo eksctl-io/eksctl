@@ -31,7 +31,7 @@ type IAMRoleCreator interface {
 type IAMRoleUpdater interface {
 	// Update updates IAM resources for podIdentityAssociation and returns an IAM role ARN upon success. The boolean return value reports
 	// whether the IAM resources have changed or not.
-	Update(ctx context.Context, podIdentityAssociation api.PodIdentityAssociation, stackName string, podIdentityAssociationID string) (string, bool, error)
+	Update(ctx context.Context, podIdentityAssociation api.PodIdentityAssociation, stackName, podIdentityAssociationID string) (string, bool, error)
 }
 
 // PodIdentityAssociationUpdater creates or updates IAM resources for pod identities associated with an addon.

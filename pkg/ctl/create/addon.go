@@ -140,7 +140,7 @@ func validatePodIdentityAgentAddon(ctx context.Context, eksAPI awsapi.EKS, cfg *
 		if a.CanonicalName() == api.PodIdentityAgentAddon {
 			podIdentityAgentFoundInConfig = true
 		}
-		if a.PodIdentityAssociations != nil && len(*a.PodIdentityAssociations) > 0 {
+		if a.HasPodIDsSet() || a.CreateDefaultPodIdentityAssociations {
 			shallCreatePodIdentityAssociations = true
 		}
 	}
