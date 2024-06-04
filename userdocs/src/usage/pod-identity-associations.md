@@ -170,7 +170,7 @@ eksctl delete podidentityassociation --cluster my-cluster --namespace default --
 EKS Add-ons also support receiving IAM permissions via EKS Pod Identity Associations. The config file exposes three fields that allow configuring these: `addon.podIdentityAssociations`, `addonsConfig.autoApplyPodIdentityAssociations` and `addon.useDefaultPodIdentityAssociations`. You can either explicitly configure the desired pod identity associations, using `addon.podIdentityAssociations`, or have `eksctl` automatically resolve (and apply) the recommended pod identity configuration, using either `addonsConfig.autoApplyPodIdentityAssociations` or `addon.useDefaultPodIdentityAssociations`.
 
 ???+ note
-Not all EKS Add-ons will support pod identity associations at launch. For this case, required IAM permissions shall continue to be provided using [IRSA settings](/usage/addons/#creating-addons-and-providing-iam-permissions-via-irsa)
+    Not all EKS Add-ons will support pod identity associations at launch. For this case, required IAM permissions shall continue to be provided using [IRSA settings](/usage/addons/#creating-addons-and-providing-iam-permissions-via-irsa).
 
 ### Creating addons with IAM permissions
 
@@ -192,7 +192,7 @@ eksctl create addon -f config.yaml
 ```
 
 ???+ note
-Setting both pod identities and IRSA at the same time is not allowed, and will result in a validation error.
+    Setting both pod identities and IRSA at the same time is not allowed, and will result in a validation error.
 
 For EKS Add-ons that support pod identities, `eksctl` offers the option to automatically configure any recommended IAM permissions, on addon creation. This can be achieved by simply setting `addonsConfig.autoApplyPodIdentityAssociations: true` in the config file. e.g.
 
@@ -240,7 +240,7 @@ When updating an addon, specifying `addon.PodIdentityAssociations` will represen
 - update existing pod identities that are also present in the config file, and for which the set of IAM permissions has changed
 
 ???+ note
-The lifecycle of pod identity associations owned by EKS Add-ons is directly handled by the EKS Addons API, thus, using `eksctl update podidentityassociation` (to update IAM permissions) or `eksctl delete podidentityassociations` (to remove the association) is not supported for this type of associations. Instead, `eksctl update addon` or `eksctl delete addon` shall be used.
+    The lifecycle of pod identity associations owned by EKS Add-ons is directly handled by the EKS Addons API, thus, using `eksctl update podidentityassociation` (to update IAM permissions) or `eksctl delete podidentityassociations` (to remove the association) is not supported for this type of associations. Instead, `eksctl update addon` or `eksctl delete addon` shall be used.
 
 Let's see an example for the above, starting by analyzing the initial pod identity config for the addon:
 
