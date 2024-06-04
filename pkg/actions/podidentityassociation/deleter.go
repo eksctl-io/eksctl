@@ -24,6 +24,7 @@ import (
 type StackLister interface {
 	ListPodIdentityStackNames(ctx context.Context) ([]string, error)
 	DescribeStack(ctx context.Context, stack *manager.Stack) (*manager.Stack, error)
+	GetStackTemplate(ctx context.Context, stackName string) (string, error)
 	GetIAMServiceAccounts(ctx context.Context) ([]*api.ClusterIAMServiceAccount, error)
 }
 
@@ -122,7 +123,11 @@ func (d *Deleter) DeleteTasks(ctx context.Context, podIDs []Identifier) (*tasks.
 			Parallel:  false,
 			IsSubTask: true,
 		}
-		piaDeletionTasks.Append(d.makeDeleteTask(ctx, podID, roleStackNames))
+		deleteTask, err := d.makeDeleteTask(ctx, podID, roleStackNames)
+		if err != nil {
+			return nil, err
+		}
+		piaDeletionTasks.Append(deleteTask)
 		piaDeletionTasks.Append(&tasks.GenericTask{
 			Description: fmt.Sprintf("delete service account %q, if it exists and is managed by eksctl", podID.IDString()),
 			Doer: func() error {
@@ -140,47 +145,54 @@ func (d *Deleter) DeleteTasks(ctx context.Context, podIDs []Identifier) (*tasks.
 	return taskTree, nil
 }
 
-func (d *Deleter) makeDeleteTask(ctx context.Context, p Identifier, roleStackNames []string) tasks.Task {
+func (d *Deleter) makeDeleteTask(ctx context.Context, p Identifier, roleStackNames []string) (tasks.Task, error) {
 	podIdentityAssociationID := p.IDString()
-	return &tasks.GenericTask{
-		Description: fmt.Sprintf("delete pod identity association %q", podIdentityAssociationID),
-		Doer: func() error {
-			if err := d.deletePodIdentityAssociation(ctx, p, roleStackNames, podIdentityAssociationID); err != nil {
-				return fmt.Errorf("error deleting pod identity association %q: %w", podIdentityAssociationID, err)
-			}
-			return nil
-		},
-	}
-}
-
-func (d *Deleter) deletePodIdentityAssociation(ctx context.Context, p Identifier, roleStackNames []string, podIdentityAssociationID string) error {
 	output, err := d.APIDeleter.ListPodIdentityAssociations(ctx, &eks.ListPodIdentityAssociationsInput{
 		ClusterName:    aws.String(d.ClusterName),
 		Namespace:      aws.String(p.Namespace),
 		ServiceAccount: aws.String(p.ServiceAccountName),
 	})
 	if err != nil {
-		return fmt.Errorf("listing pod identity associations: %w", err)
+		return nil, fmt.Errorf("listing pod identity associations: %w", err)
 	}
+
 	switch len(output.Associations) {
 	default:
-		return fmt.Errorf("expected to find only 1 pod identity association for %q; got %d", podIdentityAssociationID, len(output.Associations))
+		return nil, fmt.Errorf("expected to find only 1 pod identity association for %q; got %d", podIdentityAssociationID, len(output.Associations))
 	case 0:
 		logger.Warning("pod identity association %q not found", podIdentityAssociationID)
 	case 1:
-		if _, err := d.APIDeleter.DeletePodIdentityAssociation(ctx, &eks.DeletePodIdentityAssociationInput{
-			ClusterName:   aws.String(d.ClusterName),
-			AssociationId: output.Associations[0].AssociationId,
-		}); err != nil {
-			return fmt.Errorf("deleting pod identity association: %w", err)
+		association := output.Associations[0]
+		if association.OwnerArn != nil {
+			return nil, fmt.Errorf("cannot delete podidentityassociation %s as it is in use by addon %s; "+
+				"please use `eksctl update addon` or `eksctl delete addon` instead", p.IDString(), *association.OwnerArn)
 		}
 	}
+	return &tasks.GenericTask{
+		Description: fmt.Sprintf("delete pod identity association %q", podIdentityAssociationID),
+		Doer: func() error {
+			if len(output.Associations) == 1 {
+				if _, err := d.APIDeleter.DeletePodIdentityAssociation(ctx, &eks.DeletePodIdentityAssociationInput{
+					ClusterName:   aws.String(d.ClusterName),
+					AssociationId: output.Associations[0].AssociationId,
+				}); err != nil {
+					return fmt.Errorf("deleting pod identity association: %w", err)
+				}
+			}
+			if err := d.deleteIAMResources(ctx, p, roleStackNames); err != nil {
+				return fmt.Errorf("error deleting pod identity association %q: %w", podIdentityAssociationID, err)
+			}
+			return nil
+		},
+	}, nil
+}
 
+func (d *Deleter) deleteIAMResources(ctx context.Context, p Identifier, roleStackNames []string) error {
 	stackName, hasStack := getIAMResourcesStack(roleStackNames, p)
 	if !hasStack {
 		return nil
 	}
-	logger.Info("deleting IAM resources stack %q for pod identity association %q", stackName, podIdentityAssociationID)
+	logger.Info("deleting IAM resources stack %q for pod identity association %q", stackName, p.IDString())
 	return d.deleteRoleStack(ctx, stackName)
 }
 

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	awsarn "github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
@@ -226,7 +225,7 @@ func (c *EKSConnector) DeregisterCluster(ctx context.Context, clusterName string
 		return errors.Wrap(err, "unexpected error deregistering cluster")
 	}
 
-	roleName, err := roleNameFromARN(*clusterOutput.Cluster.ConnectorConfig.RoleArn)
+	roleName, err := api.RoleNameFromARN(*clusterOutput.Cluster.ConnectorConfig.RoleArn)
 	if err != nil {
 		return errors.Wrapf(err, "error parsing role ARN %q", *clusterOutput.Cluster.ConnectorConfig.RoleArn)
 	}
@@ -266,26 +265,11 @@ func (c *EKSConnector) deleteRole(ctx context.Context, roleName string) error {
 }
 
 func (c *EKSConnector) deleteRoleByARN(ctx context.Context, roleARN string) error {
-	connectorRoleName, err := roleNameFromARN(roleARN)
+	connectorRoleName, err := api.RoleNameFromARN(roleARN)
 	if err != nil {
 		return errors.Wrap(err, "error parsing connector role ARN")
 	}
 	return c.deleteRole(ctx, connectorRoleName)
-}
-
-func roleNameFromARN(roleARN string) (string, error) {
-	parsed, err := awsarn.Parse(roleARN)
-	if err != nil {
-		return "", err
-	}
-	parts := strings.Split(parsed.Resource, "/")
-	if len(parts) != 2 {
-		return "", errors.New("invalid format for role ARN")
-	}
-	if parts[0] != "role" {
-		return "", errors.Errorf(`expected resource type to be "role"; got %q`, parts[0])
-	}
-	return parts[1], nil
 }
 
 func (c *EKSConnector) ownsIAMRole(ctx context.Context, clusterName, roleName string) (bool, error) {

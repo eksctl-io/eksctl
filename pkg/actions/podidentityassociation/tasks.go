@@ -3,6 +3,7 @@ package podidentityassociation
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -11,55 +12,28 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-type createIAMRoleTask struct {
-	ctx                    context.Context
-	info                   string
-	clusterName            string
-	podIdentityAssociation *api.PodIdentityAssociation
-	stackCreator           StackCreator
-}
-
-func (t *createIAMRoleTask) Describe() string {
-	return t.info
-}
-
-func (t *createIAMRoleTask) Do(errorCh chan error) error {
-	rs := builder.NewIAMRoleResourceSetForPodIdentity(t.podIdentityAssociation)
-	if err := rs.AddAllResources(); err != nil {
-		return err
-	}
-	if t.podIdentityAssociation.Tags == nil {
-		t.podIdentityAssociation.Tags = make(map[string]string)
-	}
-	t.podIdentityAssociation.Tags[api.PodIdentityAssociationNameTag] = Identifier{
-		Namespace:          t.podIdentityAssociation.Namespace,
-		ServiceAccountName: t.podIdentityAssociation.ServiceAccountName,
-	}.IDString()
-
-	stackName := MakeStackName(t.clusterName, t.podIdentityAssociation.Namespace, t.podIdentityAssociation.ServiceAccountName)
-	if err := t.stackCreator.CreateStack(t.ctx, stackName, rs, t.podIdentityAssociation.Tags, nil, errorCh); err != nil {
-		return fmt.Errorf("creating IAM role for pod identity association for service account %s in namespace %s: %w",
-			t.podIdentityAssociation.ServiceAccountName, t.podIdentityAssociation.Namespace, err)
-	}
-	return nil
-}
+const (
+	resourceTypeIAMRole = "AWS::IAM::Role"
+)
 
 type createPodIdentityAssociationTask struct {
-	ctx                    context.Context
-	info                   string
-	clusterName            string
-	podIdentityAssociation *api.PodIdentityAssociation
-	eksAPI                 awsapi.EKS
+	ctx                        context.Context
+	info                       string
+	clusterName                string
+	podIdentityAssociation     *api.PodIdentityAssociation
+	eksAPI                     awsapi.EKS
+	ignorePodIdentityExistsErr bool
 }
 
 func (t *createPodIdentityAssociationTask) Describe() string {
@@ -76,6 +50,13 @@ func (t *createPodIdentityAssociationTask) Do(errorCh chan error) error {
 		ServiceAccount: &t.podIdentityAssociation.ServiceAccountName,
 		Tags:           t.podIdentityAssociation.Tags,
 	}); err != nil {
+		if t.ignorePodIdentityExistsErr {
+			var inUseErr *ekstypes.ResourceInUseException
+			if errors.As(err, &inUseErr) {
+				logger.Info("pod identity association %s already exists", t.podIdentityAssociation.NameString())
+				return nil
+			}
+		}
 		return fmt.Errorf(
 			"creating pod identity association for service account %q in namespace %q: %w",
 			t.podIdentityAssociation.ServiceAccountName, t.podIdentityAssociation.Namespace, err)
@@ -85,126 +66,134 @@ func (t *createPodIdentityAssociationTask) Do(errorCh chan error) error {
 	return nil
 }
 
-type updateTrustPolicyForOwnedRole struct {
-	ctx                                 context.Context
-	info                                string
-	roleName                            string
-	stack                               IRSAv1StackSummary
-	removeOIDCProviderTrustRelationship bool
-	iamAPI                              awsapi.IAM
-	stackUpdater                        StackUpdater
+type trustPolicyUpdater struct {
+	iamAPI       awsapi.IAM
+	stackUpdater StackUpdater
 }
 
-func (t *updateTrustPolicyForOwnedRole) Describe() string {
-	return t.info
-}
+func (t *trustPolicyUpdater) UpdateTrustPolicyForOwnedRoleTask(ctx context.Context, roleName, serviceAccountName string, stack IRSAv1StackSummary, removeOIDCProviderTrustRelationship bool) tasks.Task {
+	return &tasks.GenericTask{
+		Description: fmt.Sprintf("update trust policy for owned role %q", roleName),
+		Doer: func() error {
+			trustStatements, err := updateTrustStatements(removeOIDCProviderTrustRelationship, func() (*awsiam.GetRoleOutput, error) {
+				return t.iamAPI.GetRole(ctx, &awsiam.GetRoleInput{RoleName: &roleName})
+			})
+			if err != nil {
+				return fmt.Errorf("updating trust statements for role %s: %w", roleName, err)
+			}
 
-func (t *updateTrustPolicyForOwnedRole) Do(errorCh chan error) error {
-	defer close(errorCh)
+			currentTemplate, err := t.stackUpdater.GetStackTemplate(ctx, stack.Name)
+			if err != nil {
+				return fmt.Errorf("fetching current template for stack %q", stack.Name)
+			}
 
-	trustStatements, err := updateTrustStatements(t.removeOIDCProviderTrustRelationship, func() (*awsiam.GetRoleOutput, error) {
-		return t.iamAPI.GetRole(t.ctx, &awsiam.GetRoleInput{RoleName: &t.roleName})
-	})
-	if err != nil {
-		return fmt.Errorf("updating trust statements for role %s: %w", t.roleName, err)
-	}
+			cfnTemplate := cft.NewTemplate()
+			if err := cfnTemplate.LoadJSON([]byte(currentTemplate)); err != nil {
+				return fmt.Errorf("unmarshalling current template for stack %q", stack.Name)
+			}
 
-	// build template for updating trust policy
-	rs := builder.NewIAMRoleResourceSetForPodIdentityWithTrustStatements(&api.PodIdentityAssociation{}, trustStatements)
-	if err := rs.AddAllResources(); err != nil {
-		return fmt.Errorf("adding resources to CloudFormation template: %w", err)
-	}
-	template, err := rs.RenderJSON()
-	if err != nil {
-		return fmt.Errorf("generating CloudFormation template: %w", err)
-	}
+			for i, r := range cfnTemplate.Resources {
+				if r.Type != resourceTypeIAMRole {
+					continue
+				}
+				role, err := r.ToIAMRole()
+				if err != nil {
+					return fmt.Errorf("fetching properties for role %s: %w", roleName, err)
+				}
+				role.AssumeRolePolicyDocument["Statement"] = trustStatements
+				r.Properties = role
+				cfnTemplate.Resources[i] = r
+			}
 
-	// update stack tags to reflect migration to IRSAv2
-	cfnTags := []cfntypes.Tag{}
-	for key, value := range t.stack.Tags {
-		if key == api.IAMServiceAccountNameTag && t.removeOIDCProviderTrustRelationship {
-			continue
-		}
-		cfnTags = append(cfnTags, cfntypes.Tag{
-			Key:   &key,
-			Value: &value,
-		})
-	}
-	getIAMServiceAccountName := func() string {
-		return strings.Replace(strings.Split(t.stack.Name, "-iamserviceaccount-")[1], "-", "/", 1)
-	}
-	cfnTags = append(cfnTags, cfntypes.Tag{
-		Key:   aws.String(api.PodIdentityAssociationNameTag),
-		Value: aws.String(getIAMServiceAccountName()),
-	})
+			updatedTemplate, err := cfnTemplate.RenderJSON()
+			if err != nil {
+				return fmt.Errorf("marshalling updated template for stack %q", stack.Name)
+			}
+			logger.Debug("updated template for role %s: %v", string(updatedTemplate))
 
-	// propagate capabilities
-	cfnCapabilities := []cfntypes.Capability{}
-	for _, c := range t.stack.Capabilities {
-		cfnCapabilities = append(cfnCapabilities, cfntypes.Capability(c))
-	}
+			// update stack tags to reflect migration to IRSAv2
+			cfnTags := []cfntypes.Tag{}
+			for key, value := range stack.Tags {
+				if key == api.IAMServiceAccountNameTag && removeOIDCProviderTrustRelationship {
+					continue
+				}
+				cfnTags = append(cfnTags, cfntypes.Tag{
+					Key:   aws.String(key),
+					Value: aws.String(value),
+				})
+			}
 
-	if err := t.stackUpdater.MustUpdateStack(t.ctx, manager.UpdateStackOptions{
-		Stack: &cfntypes.Stack{
-			StackName:    &t.stack.Name,
-			Tags:         cfnTags,
-			Capabilities: cfnCapabilities,
-		},
-		ChangeSetName: fmt.Sprintf("eksctl-%s-update-%d", t.roleName, time.Now().Unix()),
-		Description:   fmt.Sprintf("updating IAM resources stack %q for role %q", t.stack.Name, t.roleName),
-		TemplateData:  manager.TemplateBody(template),
-		Wait:          true,
-	}); err != nil {
-		if _, ok := err.(*manager.NoChangeError); ok {
-			logger.Info("IAM resources for role %q are already up-to-date", t.roleName)
+			getIAMServiceAccountName := func() string {
+				if serviceAccountName != "" {
+					return serviceAccountName
+				}
+				return strings.Replace(strings.Split(stack.Name, "-iamserviceaccount-")[1], "-", "/", 1)
+			}
+			cfnTags = append(cfnTags, cfntypes.Tag{
+				Key:   aws.String(api.PodIdentityAssociationNameTag),
+				Value: aws.String(getIAMServiceAccountName()),
+			})
+
+			// propagate capabilities
+			cfnCapabilities := []cfntypes.Capability{}
+			for _, c := range stack.Capabilities {
+				cfnCapabilities = append(cfnCapabilities, cfntypes.Capability(c))
+			}
+
+			if err := t.stackUpdater.MustUpdateStack(ctx, manager.UpdateStackOptions{
+				Stack: &cfntypes.Stack{
+					StackName:    &stack.Name,
+					Tags:         cfnTags,
+					Capabilities: cfnCapabilities,
+				},
+				ChangeSetName: fmt.Sprintf("eksctl-%s-update-%d", roleName, time.Now().Unix()),
+				Description:   fmt.Sprintf("updating IAM resources stack %q for role %q", stack.Name, roleName),
+				TemplateData:  manager.TemplateBody(updatedTemplate),
+				Wait:          true,
+			}); err != nil {
+				var noChangeErr *manager.NoChangeError
+				if errors.As(err, &noChangeErr) {
+					logger.Info("IAM resources for role %q are already up-to-date", roleName)
+					return nil
+				}
+				return fmt.Errorf("updating IAM resources for role %q: %w", roleName, err)
+			}
+			logger.Info("updated IAM resources stack %q for role %q", stack.Name, roleName)
+
 			return nil
-		}
-		return fmt.Errorf("updating IAM resources for role %q: %w", t.roleName, err)
+		},
 	}
-	logger.Info("updated IAM resources stack %q for role %q", t.stack.Name, t.roleName)
-
-	return nil
 }
 
-type updateTrustPolicyForUnownedRole struct {
-	ctx                                 context.Context
-	info                                string
-	roleName                            string
-	iamAPI                              awsapi.IAM
-	removeOIDCProviderTrustRelationship bool
-}
+func (t *trustPolicyUpdater) UpdateTrustPolicyForUnownedRoleTask(ctx context.Context, roleName string, removeOIDCProviderTrustRelationship bool) tasks.Task {
+	return &tasks.GenericTask{
+		Description: fmt.Sprintf("update trust policy for unowned role %q", roleName),
+		Doer: func() error {
+			trustStatements, err := updateTrustStatements(removeOIDCProviderTrustRelationship, func() (*awsiam.GetRoleOutput, error) {
+				return t.iamAPI.GetRole(ctx, &awsiam.GetRoleInput{RoleName: &roleName})
+			})
+			if err != nil {
+				return fmt.Errorf("updating trust statements for role %s: %w", roleName, err)
+			}
 
-func (t *updateTrustPolicyForUnownedRole) Describe() string {
-	return t.info
-}
+			documentString, err := json.Marshal(api.IAMPolicyDocument{
+				Version:    "2012-10-17",
+				Statements: trustStatements,
+			})
+			if err != nil {
+				return fmt.Errorf("marshalling trust policy document: %w", err)
+			}
 
-func (t *updateTrustPolicyForUnownedRole) Do(errorCh chan error) error {
-	defer close(errorCh)
-
-	trustStatements, err := updateTrustStatements(t.removeOIDCProviderTrustRelationship, func() (*awsiam.GetRoleOutput, error) {
-		return t.iamAPI.GetRole(t.ctx, &awsiam.GetRoleInput{RoleName: &t.roleName})
-	})
-	if err != nil {
-		return fmt.Errorf("updating trust statements for role %s: %w", t.roleName, err)
+			if _, err := t.iamAPI.UpdateAssumeRolePolicy(ctx, &awsiam.UpdateAssumeRolePolicyInput{
+				RoleName:       &roleName,
+				PolicyDocument: aws.String(string(documentString)),
+			}); err != nil {
+				return fmt.Errorf("updating trust policy for role %s: %w", roleName, err)
+			}
+			logger.Info(fmt.Sprintf("updated trust policy for role %s", roleName))
+			return nil
+		},
 	}
-
-	documentString, err := json.Marshal(api.IAMPolicyDocument{
-		Version:    "2012-10-17",
-		Statements: trustStatements,
-	})
-	if err != nil {
-		return fmt.Errorf("marshalling trust policy document: %w", err)
-	}
-
-	if _, err := t.iamAPI.UpdateAssumeRolePolicy(t.ctx, &awsiam.UpdateAssumeRolePolicyInput{
-		RoleName:       &t.roleName,
-		PolicyDocument: aws.String(string(documentString)),
-	}); err != nil {
-		return fmt.Errorf("updating trust policy for role %s: %w", t.roleName, err)
-	}
-	logger.Info(fmt.Sprintf("updated trust policy for role %s", t.roleName))
-
-	return nil
 }
 
 func updateTrustStatements(
@@ -248,11 +237,6 @@ func updateTrustStatements(
 	trustStatements = append(trustStatements, api.EKSServicePrincipalTrustStatement)
 
 	return trustStatements, nil
-}
-
-// MakeStackName creates a stack name for the specified access entry.
-func MakeStackName(clusterName, namespace, serviceAccountName string) string {
-	return fmt.Sprintf("eksctl-%s-podidentityrole-%s-%s", clusterName, namespace, serviceAccountName)
 }
 
 func runAllTasks(taskTree *tasks.TaskTree) error {

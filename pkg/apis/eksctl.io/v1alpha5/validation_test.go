@@ -2473,6 +2473,81 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 		})
 	})
+
+	DescribeTable("ToPodIdentityAssociationID", func(piaARN, expectedID, expectedErr string) {
+		piaID, err := api.ToPodIdentityAssociationID(piaARN)
+		if expectedErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(expectedErr)))
+			return
+		}
+		Expect(err).NotTo(HaveOccurred())
+		Expect(piaID).To(Equal(expectedID))
+	},
+		Entry("valid PIA ARN", "arn:aws:eks:us-west-2:000:podidentityassociation/cluster/a-d3dw7wfvxtoatujeg", "a-d3dw7wfvxtoatujeg", ""),
+		Entry("invalid PIA ARN format", "arn:aws:eks:us-west-2:000:podidentityassociation/a-d3dw7wfvxtoatujeg", "", "unexpected pod identity association ARN format"),
+		Entry("invalid PIA ARN", "a-d3dw7wfvxtoatujeg", "", "parsing ARN"),
+	)
+
+	DescribeTable("addon pod identity association", func(addons []*api.Addon, expectedErr string) {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Addons = addons
+		err := api.ValidateClusterConfig(clusterConfig)
+		if expectedErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(expectedErr)))
+		} else {
+			Expect(err).NotTo(HaveOccurred())
+		}
+	},
+		Entry("wellKnownPolicies specified", []*api.Addon{
+			{
+				Name: api.VPCCNIAddon,
+				PodIdentityAssociations: &[]api.PodIdentityAssociation{
+					{
+						ServiceAccountName: "aws-node",
+						WellKnownPolicies:  api.WellKnownPolicies{AutoScaler: true},
+					},
+				},
+			},
+		}, fmt.Sprintf("wellKnownPolicies is not supported for addon.podIdentityAssociations; use addon.useDefaultPodIdentityAssociations instead (addon: %s)", api.VPCCNIAddon)),
+		Entry("tags specified", []*api.Addon{
+			{
+				Name: api.VPCCNIAddon,
+				PodIdentityAssociations: &[]api.PodIdentityAssociation{
+					{
+						ServiceAccountName: "aws-node",
+						Tags:               map[string]string{},
+					},
+				},
+			},
+		}, fmt.Sprintf("tags is not supported for addon.podIdentityAssociations (addon: %s)", api.VPCCNIAddon)),
+		Entry("pod identity associations specified with useDefaultPodIdentityAssociations", []*api.Addon{
+			{
+				Name:                              api.VPCCNIAddon,
+				UseDefaultPodIdentityAssociations: true,
+				PodIdentityAssociations: &[]api.PodIdentityAssociation{
+					{
+						ServiceAccountName:   "aws-node",
+						PermissionPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
+					},
+				},
+			},
+		}, fmt.Sprintf("cannot specify both addon.useDefaultPodIdentityAssociations and addon.podIdentityAssociations (addon: %s)", api.VPCCNIAddon)),
+		Entry("IRSA fields specified with useDefaultPodIdentityAssociations", []*api.Addon{
+			{
+				Name:                              api.VPCCNIAddon,
+				ServiceAccountRoleARN:             "role-1",
+				UseDefaultPodIdentityAssociations: true,
+			},
+		}, fmt.Sprintf("cannot specify serviceAccountRoleARN, wellKnownPolicies, attachPolicy or attachPolicyARNs"+
+			" when addon.useDefaultPodIdentityAssociations is set (addon: %s)", api.VPCCNIAddon)),
+
+		Entry("IRSA fields specified", []*api.Addon{
+			{
+				Name:                  api.VPCCNIAddon,
+				ServiceAccountRoleARN: "role-1",
+			},
+		}, ""),
+	)
 })
 
 func newInt(value int) *int {

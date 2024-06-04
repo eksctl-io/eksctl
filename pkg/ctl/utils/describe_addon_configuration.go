@@ -2,10 +2,12 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -61,6 +63,21 @@ func describeAddonConfiguration(cmd *cmdutils.Cmd, addonName, addonVersion strin
 		return fmt.Errorf("no configuration schema found for %s@%s", addonName, addonVersion)
 	}
 
-	fmt.Println(*addonConfig.ConfigurationSchema)
+	var schema interface{}
+	if err := json.Unmarshal([]byte(*addonConfig.ConfigurationSchema), &schema); err != nil {
+		return fmt.Errorf("unmarshalling retrieved addon configuration schema: %w", err)
+	}
+	config, err := json.MarshalIndent(struct {
+		Schema      any                                   `json:"configurationSchema"`
+		PodIDConfig []types.AddonPodIdentityConfiguration `json:"podIdentityConfiguration"`
+	}{
+		Schema:      schema,
+		PodIDConfig: addonConfig.PodIdentityConfiguration,
+	}, "", "\t")
+	if err != nil {
+		return fmt.Errorf("marshalling retrieved addon configuration: %w", err)
+	}
+	fmt.Println(string(config))
+
 	return nil
 }

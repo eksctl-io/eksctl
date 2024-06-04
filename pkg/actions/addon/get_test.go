@@ -34,7 +34,7 @@ var _ = Describe("Get", func() {
 	})
 
 	Describe("Get", func() {
-		It("returns an addon", func() {
+		mockDescribeAddon := func(podIdentityAssociationIDs ...string) {
 			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 				Expect(args).To(HaveLen(2))
 				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
@@ -67,10 +67,11 @@ var _ = Describe("Get", func() {
 				describeAddonInput = args[1].(*awseks.DescribeAddonInput)
 			}).Return(&awseks.DescribeAddonOutput{
 				Addon: &ekstypes.Addon{
-					AddonName:             aws.String("my-addon"),
-					AddonVersion:          aws.String("v1.1.0-eksbuild.1"),
-					ServiceAccountRoleArn: aws.String("foo"),
-					Status:                "created",
+					AddonName:               aws.String("my-addon"),
+					AddonVersion:            aws.String("v1.1.0-eksbuild.1"),
+					ServiceAccountRoleArn:   aws.String("foo"),
+					Status:                  "created",
+					PodIdentityAssociations: podIdentityAssociationIDs,
 					Health: &ekstypes.AddonHealth{
 						Issues: []ekstypes.AddonIssue{
 							{
@@ -82,7 +83,20 @@ var _ = Describe("Get", func() {
 					},
 				},
 			}, nil)
-
+			if len(podIdentityAssociationIDs) > 0 {
+				for _, piaID := range podIdentityAssociationIDs {
+					mockProvider.MockEKS().On("DescribePodIdentityAssociation", mock.Anything, &awseks.DescribePodIdentityAssociationInput{
+						AssociationId: aws.String(piaID),
+					}).Return(&awseks.DescribePodIdentityAssociationOutput{
+						Association: &ekstypes.PodIdentityAssociation{
+							AssociationId: aws.String(piaID),
+						},
+					}, nil).Once()
+				}
+			}
+		}
+		It("returns an addon", func() {
+			mockDescribeAddon()
 			summary, err := manager.Get(context.Background(), &api.Addon{
 				Name: "my-addon",
 			})
@@ -104,6 +118,47 @@ var _ = Describe("Get", func() {
 
 			Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
 			Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+		})
+
+		It("returns an addon with pod identity associations", func() {
+			mockDescribeAddon("arn:aws:eks:us-west-2:00:podidentityassociation/cluster/a-zkgxwyqoexvjka9a3")
+			mockProvider.MockEKS().On("DescribePodIdentityAssociation", mock.Anything, &awseks.DescribePodIdentityAssociationInput{
+				AssociationId: aws.String("a-zkgxwyqoexvjka9a3"),
+				ClusterName:   aws.String("my-cluster"),
+			}).Return(&awseks.DescribePodIdentityAssociationOutput{
+				Association: &ekstypes.PodIdentityAssociation{
+					RoleArn:        aws.String("role-1"),
+					ServiceAccount: aws.String("default"),
+					Namespace:      aws.String("default"),
+					AssociationId:  aws.String("a-1"),
+				},
+			}, nil)
+			summary, err := manager.Get(context.Background(), &api.Addon{
+				Name: "my-addon",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(summary).To(Equal(addon.Summary{
+				Name:         "my-addon",
+				Version:      "v1.1.0-eksbuild.1",
+				NewerVersion: "v1.1.0-eksbuild.4,v1.2.0-eksbuild.1",
+				IAMRole:      "foo",
+				Status:       "created",
+				Issues: []addon.Issue{
+					{
+						Code:        "1",
+						Message:     "foo",
+						ResourceIDs: []string{"id-1"},
+					},
+				},
+				PodIdentityAssociations: []addon.PodIdentityAssociationSummary{
+					{
+						Namespace:      "default",
+						ServiceAccount: "default",
+						RoleARN:        "role-1",
+						AssociationID:  "a-1",
+					},
+				},
+			}))
 		})
 
 		When("it fails to get the addon", func() {

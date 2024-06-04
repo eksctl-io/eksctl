@@ -3,21 +3,12 @@ package eks
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	middlewarev2 "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
-	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
-	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
-	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
-	"github.com/aws/aws-sdk-go-v2/service/iam"
-	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/smithy-go/middleware"
 	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
@@ -54,10 +45,6 @@ func newV2Config(pc *api.ProviderConfig, credentialsCacheFilePath string, config
 		clientLogMode = clientLogMode | aws.LogRequestWithBody | aws.LogRequestEventMessage | aws.LogResponseWithBody | aws.LogRetries
 	}
 	options = append(options, config.WithClientLogMode(clientLogMode))
-
-	if endpointResolver := makeEndpointResolverFunc(); endpointResolver != nil {
-		options = append(options, config.WithEndpointResolverWithOptions(endpointResolver))
-	}
 
 	if !pc.Profile.SourceIsEnvVar {
 		options = append(options, config.WithSharedConfigProfile(pc.Profile.Name))
@@ -98,44 +85,4 @@ func newV2Config(pc *api.ProviderConfig, credentialsCacheFilePath string, config
 		cfg.Credentials = aws.NewCredentialsCache(fileCache)
 	}
 	return cfg, nil
-}
-
-func makeEndpointResolverFunc() aws.EndpointResolverWithOptionsFunc {
-	serviceIDEnvMap := map[string]string{
-		cloudformation.ServiceID:         "AWS_CLOUDFORMATION_ENDPOINT",
-		eks.ServiceID:                    "AWS_EKS_ENDPOINT",
-		ec2.ServiceID:                    "AWS_EC2_ENDPOINT",
-		elasticloadbalancing.ServiceID:   "AWS_ELB_ENDPOINT",
-		elasticloadbalancingv2.ServiceID: "AWS_ELBV2_ENDPOINT",
-		sts.ServiceID:                    "AWS_STS_ENDPOINT",
-		iam.ServiceID:                    "AWS_IAM_ENDPOINT",
-		cloudtrail.ServiceID:             "AWS_CLOUDTRAIL_ENDPOINT",
-	}
-
-	hasCustomEndpoint := false
-	for service, envName := range serviceIDEnvMap {
-		if endpoint, ok := os.LookupEnv(envName); ok {
-			logger.Debug(
-				"Setting %s endpoint to %s", service, endpoint)
-			hasCustomEndpoint = true
-		}
-	}
-
-	if !hasCustomEndpoint {
-		return nil
-	}
-
-	return func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-		if envName, ok := serviceIDEnvMap[service]; ok {
-			if ok {
-				if endpoint, ok := os.LookupEnv(envName); ok {
-					return aws.Endpoint{
-						URL:           endpoint,
-						SigningRegion: region,
-					}, nil
-				}
-			}
-		}
-		return aws.Endpoint{}, &aws.EndpointNotFoundError{}
-	}
 }

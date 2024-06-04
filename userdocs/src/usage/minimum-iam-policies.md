@@ -128,6 +128,7 @@ IamLimitedAccess
                 "iam:DeleteRole",
                 "iam:AttachRolePolicy",
                 "iam:PutRolePolicy",
+                "iam:UpdateAssumeRolePolicy"
                 "iam:AddRoleToInstanceProfile",
                 "iam:ListInstanceProfilesForRole",
                 "iam:PassRole",
@@ -140,6 +141,7 @@ IamLimitedAccess
                 "iam:TagOpenIDConnectProvider",
                 "iam:ListAttachedRolePolicies",
                 "iam:TagRole",
+                "iam:UntagRole",
                 "iam:GetPolicy",
                 "iam:CreatePolicy",
                 "iam:DeletePolicy",

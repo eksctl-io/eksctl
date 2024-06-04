@@ -11,7 +11,9 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	"github.com/weaveworks/eksctl/pkg/actions/podidentityassociation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
@@ -72,6 +74,10 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 		logger.Warning("no IAM OIDC provider associated with cluster, try 'eksctl utils associate-iam-oidc-provider --region=%s --cluster=%s'", cmd.ClusterConfig.Metadata.Region, cmd.ClusterConfig.Metadata.Name)
 	}
 
+	if err := validatePodIdentityAgentAddon(ctx, clusterProvider.AWSProvider.EKS(), cmd.ClusterConfig); err != nil {
+		return err
+	}
+
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
 
 	output, err := clusterProvider.AWSProvider.EKS().DescribeCluster(ctx, &awseks.DescribeClusterInput{
@@ -91,12 +97,42 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 		return err
 	}
 
+	piaUpdater := &addon.PodIdentityAssociationUpdater{
+		ClusterName: cmd.ClusterConfig.Metadata.Name,
+		IAMRoleCreator: &podidentityassociation.IAMRoleCreator{
+			ClusterName:  cmd.ClusterConfig.Metadata.Name,
+			StackCreator: stackManager,
+		},
+		IAMRoleUpdater: &podidentityassociation.IAMRoleUpdater{
+			StackUpdater: stackManager,
+		},
+		EKSPodIdentityDescriber: clusterProvider.AWSProvider.EKS(),
+		StackDeleter:            stackManager,
+	}
+
 	for _, a := range cmd.ClusterConfig.Addons {
 		if force { //force is specified at cmdline level
 			a.Force = true
 		}
-		if err := addonManager.Update(ctx, a, cmd.ProviderConfig.WaitTimeout); err != nil {
+		if err := addonManager.Update(ctx, a, piaUpdater, cmd.ProviderConfig.WaitTimeout); err != nil {
 			return err
+		}
+	}
+
+	return nil
+}
+
+func validatePodIdentityAgentAddon(ctx context.Context, eksAPI awsapi.EKS, cfg *api.ClusterConfig) error {
+	if isPodIdentityAgentInstalled, err := podidentityassociation.IsPodIdentityAgentInstalled(ctx, eksAPI, cfg.Metadata.Name); err != nil {
+		return fmt.Errorf("checking if %q addon is installed on the cluster: %w", api.PodIdentityAgentAddon, err)
+	} else if isPodIdentityAgentInstalled {
+		return nil
+	}
+
+	for _, a := range cfg.Addons {
+		if a.HasPodIDsSet() || a.UseDefaultPodIdentityAssociations {
+			suggestion := fmt.Sprintf("please enable it using `eksctl create addon --cluster=%s --name=%s`, or by adding it to the config file", cfg.Metadata.Name, api.PodIdentityAgentAddon)
+			return api.ErrPodIdentityAgentNotInstalled(suggestion)
 		}
 	}
 

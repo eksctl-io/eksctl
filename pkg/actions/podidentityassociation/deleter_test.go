@@ -323,5 +323,36 @@ var _ = Describe("Pod Identity Deleter", func() {
 				))
 			},
 		}),
+
+		Entry("attempting to delete a pod identity associated with an addon", deleteEntry{
+			podIdentityAssociations: []api.PodIdentityAssociation{
+				{
+					Namespace:          "kube-system",
+					ServiceAccountName: "vpc-cni",
+				},
+			},
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, fakeClientSet *kubeclientfakes.Clientset, eksAPI *mocksv2.EKS) {
+				podID := podidentityassociation.Identifier{
+					Namespace:          "kube-system",
+					ServiceAccountName: "vpc-cni",
+				}
+				mockListStackNames(stackManager, []podidentityassociation.Identifier{podID})
+				mockListPodIdentityAssociations(eksAPI, podidentityassociation.Identifier{
+					Namespace:          "kube-system",
+					ServiceAccountName: "vpc-cni",
+				}, []ekstypes.PodIdentityAssociationSummary{
+					{
+						OwnerArn: aws.String("arn:aws:eks:us-west-2:00:addon/cluster/vpc-cni/14c7a7ae-78a2-2c58-609e-d80af6f7bb3e"),
+					},
+				}, nil)
+			},
+
+			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
+				eksAPI.AssertExpectations(GinkgoT())
+			},
+
+			expectedErr: "cannot delete podidentityassociation kube-system/vpc-cni as it is in use by addon arn:aws:eks:us-west-2:00:addon/cluster/vpc-cni/14c7a7ae-78a2-2c58-609e-d80af6f7bb3e; please use `eksctl update addon` or `eksctl delete addon` instead",
+		}),
 	)
 })

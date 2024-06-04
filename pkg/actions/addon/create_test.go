@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/kris-nova/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -18,753 +20,1153 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/addon/fakes"
+	addonmocks "github.com/weaveworks/eksctl/pkg/actions/addon/mocks"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
+type createAddonEntry struct {
+	addon       api.Addon
+	withOIDC    bool
+	waitTimeout time.Duration
+
+	mockClusterConfig func(clusterConfig *api.ClusterConfig)
+	mockIAM           func(mockIAMRoleCreator *addonmocks.IAMRoleCreator)
+	mockEKS           func(provider *mockprovider.MockProvider)
+	mockCFN           func(stackManager *fakes.FakeStackManager)
+	mockK8s           bool
+
+	validateCreateAddonInput   func(input *awseks.CreateAddonInput)
+	validateCustomLoggerOutput func(output string)
+	validateCFNCalls           func(stackManager *fakes.FakeStackManager)
+	expectedErr                string
+}
+
 var _ = Describe("Create", func() {
 	var (
-		manager                *addon.Manager
-		withOIDC               bool
-		oidc                   *iamoidc.OpenIDConnectManager
-		fakeStackManager       *fakes.FakeStackManager
-		mockProvider           *mockprovider.MockProvider
-		createAddonInput       *eks.CreateAddonInput
-		returnedErr            error
-		createStackReturnValue error
-		rawClient              *testutils.FakeRawClient
-		clusterConfig          *api.ClusterConfig
+		manager            *addon.Manager
+		oidc               *iamoidc.OpenIDConnectManager
+		fakeStackManager   *fakes.FakeStackManager
+		mockProvider       *mockprovider.MockProvider
+		createAddonInput   *awseks.CreateAddonInput
+		mockIAMRoleCreator *addonmocks.IAMRoleCreator
+		fakeRawClient      *testutils.FakeRawClient
+		err                error
+		genericErr         = fmt.Errorf("ERR")
 	)
 
-	BeforeEach(func() {
-		clusterConfig = &api.ClusterConfig{Metadata: &api.ClusterMeta{
-			Version: "1.18",
-			Name:    "my-cluster",
-		}}
-		withOIDC = true
-		returnedErr = nil
-		fakeStackManager = new(fakes.FakeStackManager)
-		mockProvider = mockprovider.NewMockProvider()
-		createStackReturnValue = nil
-
-		fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSetReader, _ map[string]string, _ map[string]string, errs chan error) error {
-			go func() {
-				errs <- nil
-			}()
-			return createStackReturnValue
+	mockDescribeAddon := func(mockEKS *mocksv2.EKS, err error) {
+		if err == nil {
+			err = &ekstypes.ResourceNotFoundException{
+				Message: aws.String(genericErr.Error()),
+			}
 		}
-
-		sampleAddons := testutils.LoadSamples("testdata/aws-node.json")
-
-		rawClient = testutils.NewFakeRawClient()
-
-		rawClient.AssumeObjectsMissing = true
-
-		for _, item := range sampleAddons {
-			rc, err := rawClient.NewRawResource(item)
-			Expect(err).NotTo(HaveOccurred())
-			_, err = rc.CreateOrReplace(false)
-			Expect(err).NotTo(HaveOccurred())
-		}
-
-		ct := rawClient.Collection
-
-		Expect(ct.Updated()).To(BeEmpty())
-		Expect(ct.Created()).NotTo(BeEmpty())
-		Expect(ct.CreatedItems()).To(HaveLen(10))
-	})
-
-	JustBeforeEach(func() {
-		var err error
-
-		oidc, err = iamoidc.NewOpenIDConnectManager(nil, "456123987123", "https://oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E", "aws", nil)
-		Expect(err).NotTo(HaveOccurred())
-		oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
-
-		mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-			Expect(args).To(HaveLen(2))
-			Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAddonInput{}))
-		}).Return(nil, &ekstypes.ResourceNotFoundException{}).Once()
-
-		mockProvider.MockEKS().On("CreateAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-			Expect(args).To(HaveLen(2))
-			Expect(args[1]).To(BeAssignableToTypeOf(&eks.CreateAddonInput{}))
-			createAddonInput = args[1].(*eks.CreateAddonInput)
-		}).Return(nil, returnedErr)
-
-		manager, err = addon.New(clusterConfig, mockProvider.EKS(), fakeStackManager, withOIDC, oidc, func() (kubernetes.Interface, error) {
-			return rawClient.ClientSet(), nil
-		})
-		Expect(err).NotTo(HaveOccurred())
-
-		mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-			Expect(args).To(HaveLen(2))
-			Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAddonVersionsInput{}))
-		}).Return(&eks.DescribeAddonVersionsOutput{
-			Addons: []ekstypes.AddonInfo{
-				{
-					AddonName: aws.String("my-addon"),
-					Type:      aws.String("type"),
-					AddonVersions: []ekstypes.AddonVersionInfo{
-						{
-							AddonVersion: aws.String("v1.0.0-eksbuild.1"),
-						},
-						{
-							AddonVersion: aws.String("v1.7.5-eksbuild.1"),
-						},
-						{
-							AddonVersion: aws.String("v1.7.5-eksbuild.2"),
-						},
-						{
-							//not sure if all versions come with v prefix or not, so test a mix
-							AddonVersion: aws.String("v1.7.7-eksbuild.2"),
-						},
-						{
-							AddonVersion: aws.String("v1.7.6"),
-						},
-					},
-				},
-			},
-		}, nil)
-	})
-
-	When("the addon is already present in the cluster, as an EKS managed addon", func() {
-		When("the addon is in CREATE_FAILED state", func() {
-			BeforeEach(func() {
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(2))
-					Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAddonInput{}))
-				}).Return(&eks.DescribeAddonOutput{
-					Addon: &ekstypes.Addon{
-						AddonName: aws.String("my-addon"),
-						Status:    ekstypes.AddonStatusCreateFailed,
-					},
-				}, nil)
-			})
-
-			It("will try to re-create the addon", func() {
-				err := manager.Create(context.Background(), &api.Addon{Name: "my-addon"}, 0)
-				Expect(err).NotTo(HaveOccurred())
-				mockProvider.MockEKS().AssertNumberOfCalls(GinkgoT(), "CreateAddon", 1)
-			})
-		})
-
-		When("the addon is in another state", func() {
-			BeforeEach(func() {
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(2))
-					Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAddonInput{}))
-				}).Return(&eks.DescribeAddonOutput{
-					Addon: &ekstypes.Addon{
-						AddonName: aws.String("my-addon"),
-						Status:    ekstypes.AddonStatusActive,
-					},
-				}, nil)
-			})
-
-			It("won't re-create the addon", func() {
-				output := &bytes.Buffer{}
-				logger.Writer = output
-
-				err := manager.Create(context.Background(), &api.Addon{Name: "my-addon"}, 0)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(output.String()).To(ContainSubstring("Addon my-addon is already present in this cluster, as an EKS managed addon, and won't be re-created"))
-			})
-		})
-	})
-
-	When("looking up if the addon is already present fails", func() {
-		BeforeEach(func() {
-			mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+		mockEKS.
+			On("DescribeAddon", mock.Anything, mock.Anything).
+			Run(func(args mock.Arguments) {
 				Expect(args).To(HaveLen(2))
-				Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAddonInput{}))
-			}).Return(nil, fmt.Errorf("test error"))
-		})
-		It("returns an error", func() {
-			err := manager.Create(context.Background(), &api.Addon{Name: "my-addon"}, 0)
-			Expect(err).To(MatchError(`test error`))
-		})
-	})
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
+			}).
+			Return(nil, err).
+			Once()
+	}
 
-	When("it fails to create addon", func() {
-		BeforeEach(func() {
-			returnedErr = fmt.Errorf("foo")
-		})
-		It("returns an error", func() {
-			err := manager.Create(context.Background(), &api.Addon{
-				Name:    "my-addon",
-				Version: "v1.0.0-eksbuild.1",
-			}, 0)
-			Expect(err).To(MatchError(`failed to create addon "my-addon": foo`))
-
-		})
-	})
-
-	When("OIDC is disabled", func() {
-		BeforeEach(func() {
-			withOIDC = false
-		})
-		It("creates the addons but not the policies", func() {
-			err := manager.Create(context.Background(), &api.Addon{
-				Name:             "my-addon",
-				Version:          "v1.0.0-eksbuild.1",
-				AttachPolicyARNs: []string{"arn-1"},
-			}, 0)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
-			Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-			Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
-			Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-			Expect(createAddonInput.ServiceAccountRoleArn).To(BeNil())
-		})
-	})
-
-	When("version is specified", func() {
-		When("the versions are valid", func() {
-			BeforeEach(func() {
-				withOIDC = false
-			})
-
-			When("version is set to a numeric value", func() {
-				It("discovers and uses the latest available version", func() {
-					err := manager.Create(context.Background(), &api.Addon{
-						Name:             "my-addon",
-						Version:          "1.7.5",
-						AttachPolicyARNs: []string{"arn-1"},
-					}, 0)
-					Expect(err).NotTo(HaveOccurred())
-
-					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
-					Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-					Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
-					Expect(*createAddonInput.AddonVersion).To(Equal("v1.7.5-eksbuild.2"))
-					Expect(createAddonInput.ServiceAccountRoleArn).To(BeNil())
-				})
-			})
-
-			When("version is set to an alphanumeric value", func() {
-				It("discovers and uses the latest available version", func() {
-					err := manager.Create(context.Background(), &api.Addon{
-						Name:             "my-addon",
-						Version:          "1.7.5-eksbuild",
-						AttachPolicyARNs: []string{"arn-1"},
-					}, 0)
-					Expect(err).NotTo(HaveOccurred())
-
-					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
-					Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-					Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
-					Expect(*createAddonInput.AddonVersion).To(Equal("v1.7.5-eksbuild.2"))
-					Expect(createAddonInput.ServiceAccountRoleArn).To(BeNil())
-				})
-			})
-
-			When("version is set to latest", func() {
-				It("discovers and uses the latest available version", func() {
-					err := manager.Create(context.Background(), &api.Addon{
-						Name:             "my-addon",
-						Version:          "latest",
-						AttachPolicyARNs: []string{"arn-1"},
-					}, 0)
-					Expect(err).NotTo(HaveOccurred())
-
-					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
-					Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-					Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
-					Expect(*createAddonInput.AddonVersion).To(Equal("v1.7.7-eksbuild.2"))
-					Expect(createAddonInput.ServiceAccountRoleArn).To(BeNil())
-				})
-			})
-
-			When("the version is set to a version that does not exist", func() {
-				It("returns an error", func() {
-					err := manager.Create(context.Background(), &api.Addon{
-						Name:             "my-addon",
-						Version:          "1.7.8",
-						AttachPolicyARNs: []string{"arn-1"},
-					}, 0)
-					Expect(err).To(HaveOccurred())
-					Expect(err).To(MatchError(ContainSubstring("no version(s) found matching \"1.7.8\" for \"my-addon\"")))
-				})
-			})
-		})
-
-		When("the versions are invalid", func() {
-			BeforeEach(func() {
-				withOIDC = false
-
-				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(2))
-					Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAddonVersionsInput{}))
-				}).Return(&eks.DescribeAddonVersionsOutput{
-					Addons: []ekstypes.AddonInfo{
-						{
-							AddonName: aws.String("my-addon"),
-							Type:      aws.String("type"),
-							AddonVersions: []ekstypes.AddonVersionInfo{
-								{
-									AddonVersion: aws.String("v1.7.5-eksbuild.1"),
+	mockDescribeAddonVersions := func(mockEKS *mocksv2.EKS, err error) {
+		var output *awseks.DescribeAddonVersionsOutput
+		if err == nil {
+			output = &awseks.DescribeAddonVersionsOutput{
+				Addons: []ekstypes.AddonInfo{
+					{
+						AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion:           aws.String("v1.0.0-eksbuild.1"),
+								RequiresIamPermissions: false,
+							},
+							{
+								AddonVersion:           aws.String("v1.7.5-eksbuild.1"),
+								RequiresIamPermissions: true,
+								Compatibilities: []ekstypes.Compatibility{
+									{
+										ClusterVersion: aws.String(api.DefaultVersion),
+										DefaultVersion: true,
+									},
 								},
-								{
-									//not sure if all versions come with v prefix or not, so test a mix
-									AddonVersion: aws.String("v1.7.7-eksbuild.1"),
-								},
-								{
-									AddonVersion: aws.String("totally not semver"),
-								},
+							},
+							{
+								AddonVersion: aws.String("v1.7.5-eksbuild.2"),
+							},
+							{
+								AddonVersion: aws.String("v1.7.7-eksbuild.2"),
+							},
+							{
+								AddonVersion: aws.String("v1.7.6"),
 							},
 						},
 					},
-				}, nil)
-			})
-
-			It("returns an error", func() {
-				err := manager.Create(context.Background(), &api.Addon{
-					Name:             "my-addon",
-					Version:          "latest",
-					AttachPolicyARNs: []string{"arn-1"},
-				}, 0)
-				Expect(err).To(MatchError(ContainSubstring("failed to parse version \"totally not semver\":")))
-			})
-		})
-
-		When("there are no versions returned", func() {
-			BeforeEach(func() {
-				withOIDC = false
-
-				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(2))
-					Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAddonVersionsInput{}))
-				}).Return(&eks.DescribeAddonVersionsOutput{
-					Addons: []ekstypes.AddonInfo{
-						{
-							AddonName:     aws.String("my-addon"),
-							Type:          aws.String("type"),
-							AddonVersions: []ekstypes.AddonVersionInfo{},
-						},
-					},
-				}, nil)
-			})
-
-			It("returns an error", func() {
-				err := manager.Create(context.Background(), &api.Addon{
-					Name:             "my-addon",
-					Version:          "latest",
-					AttachPolicyARNs: []string{"arn-1"},
-				}, 0)
-				Expect(err).To(MatchError(ContainSubstring("no versions available for \"my-addon\"")))
-			})
-		})
-	})
-
-	type createAddonEntry struct {
-		addonName  string
-		shouldWait bool
+				},
+			}
+		}
+		mockEKS.
+			On("DescribeAddonVersions", mock.Anything, mock.Anything).
+			Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+			}).
+			Return(output, err).
+			Once()
 	}
 
-	Context("cluster without nodes", func() {
-		BeforeEach(func() {
-			zeroNodeNG := &api.NodeGroupBase{
-				ScalingConfig: &api.ScalingConfig{
-					DesiredCapacity: aws.Int(0),
-				},
-			}
-			clusterConfig.NodeGroups = []*api.NodeGroup{
-				{
-					NodeGroupBase: zeroNodeNG,
-				},
-			}
-			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
-				{
-					NodeGroupBase: zeroNodeNG,
-				},
-			}
-		})
-
-		DescribeTable("addons created with a waitTimeout when there are no active nodes", func(e createAddonEntry) {
-			expectedDescribeCallsCount := 1
-			if e.shouldWait {
-				expectedDescribeCallsCount++
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.MatchedBy(func(input *eks.DescribeAddonInput) bool {
-					return *input.AddonName == e.addonName
-				}), mock.Anything).Return(&eks.DescribeAddonOutput{
-					Addon: &ekstypes.Addon{
-						AddonName: aws.String(e.addonName),
-						Status:    ekstypes.AddonStatusActive,
-					},
-				}, nil).Once()
-			}
-			err := manager.Create(context.Background(), &api.Addon{Name: e.addonName}, time.Nanosecond)
-			Expect(err).NotTo(HaveOccurred())
-			mockProvider.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeAddon", expectedDescribeCallsCount)
-		},
-			Entry("should not wait for CoreDNS to become active", createAddonEntry{
-				addonName: api.CoreDNSAddon,
-			}),
-			Entry("should not wait for Amazon EBS CSI driver to become active", createAddonEntry{
-				addonName: api.AWSEBSCSIDriverAddon,
-			}),
-			Entry("should not wait for Amazon EFS CSI driver to become active", createAddonEntry{
-				addonName: api.AWSEFSCSIDriverAddon,
-			}),
-			Entry("should wait for VPC CNI to become active", createAddonEntry{
-				addonName:  api.VPCCNIAddon,
-				shouldWait: true,
-			}),
-		)
-	})
-
-	When("resolveConflicts is configured", func() {
-		DescribeTable("AWS EKS resolve conflicts matches value from cluster config",
-			func(rc ekstypes.ResolveConflicts) {
-				err := manager.Create(context.Background(), &api.Addon{
-					Name:             "my-addon",
-					Version:          "latest",
-					ResolveConflicts: rc,
-				}, 0)
-
-				Expect(err).NotTo(HaveOccurred())
-				Expect(createAddonInput.ResolveConflicts).To(Equal(rc))
-			},
-			Entry("none", ekstypes.ResolveConflictsNone),
-			Entry("overwrite", ekstypes.ResolveConflictsOverwrite),
-			Entry("preserve", ekstypes.ResolveConflictsPreserve),
-		)
-	})
-
-	When("configurationValues is configured", func() {
-		addon := &api.Addon{
-			Name:                "my-addon",
-			Version:             "latest",
-			ConfigurationValues: "{\"replicaCount\":3}",
-		}
-		It("sends the value to the AWS EKS API", func() {
-			err := manager.Create(context.Background(), addon, 0)
-
-			Expect(err).NotTo(HaveOccurred())
-			Expect(*createAddonInput.ConfigurationValues).To(Equal(addon.ConfigurationValues))
-		})
-	})
-
-	When("force is true", func() {
-		BeforeEach(func() {
-			withOIDC = false
-		})
-
-		It("creates the addons but not the policies", func() {
-			err := manager.Create(context.Background(), &api.Addon{
-				Name:             "my-addon",
-				Version:          "v1.0.0-eksbuild.1",
-				AttachPolicyARNs: []string{"arn-1"},
-				Force:            true,
-			}, 0)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
-			Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-			Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
-			Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-			Expect(createAddonInput.ResolveConflicts).To(Equal(ekstypes.ResolveConflictsOverwrite))
-			Expect(createAddonInput.ServiceAccountRoleArn).To(BeNil())
-		})
-	})
-
-	When("wait is true", func() {
-		When("the addon creation succeeds", func() {
-			BeforeEach(func() {
-				withOIDC = false
+	mockDescribeAddonConfiguration := func(mockEKS *mocksv2.EKS, serviceAccountNames []string, err error) {
+		podIDConfig := []ekstypes.AddonPodIdentityConfiguration{}
+		for _, sa := range serviceAccountNames {
+			podIDConfig = append(podIDConfig, ekstypes.AddonPodIdentityConfiguration{
+				ServiceAccount:             &sa,
+				RecommendedManagedPolicies: []string{"arn:aws:iam::111122223333:policy/" + sa},
 			})
+		}
+		mockEKS.
+			On("DescribeAddonConfiguration", mock.Anything, mock.Anything).
+			Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonConfigurationInput{}))
+			}).
+			Return(&awseks.DescribeAddonConfigurationOutput{
+				PodIdentityConfiguration: podIDConfig,
+			}, err).
+			Once()
+	}
 
-			It("creates the addon and waits for it to be active", func() {
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).
-					Return(&eks.DescribeAddonOutput{
+	mockCreateAddon := func(mockEKS *mocksv2.EKS, err error) {
+		mockEKS.
+			On("CreateAddon", mock.Anything, mock.Anything).
+			Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.CreateAddonInput{}))
+				createAddonInput = args[1].(*awseks.CreateAddonInput)
+			}).
+			Return(&awseks.CreateAddonOutput{
+				Addon: &ekstypes.Addon{},
+			}, err).
+			Once()
+	}
+
+	DescribeTable("Create addon", func(e createAddonEntry) {
+		if e.addon.Name == "" {
+			e.addon.Name = "my-addon"
+		}
+
+		clusterConfig := api.NewClusterConfig()
+		if e.mockClusterConfig != nil {
+			e.mockClusterConfig(clusterConfig)
+		}
+
+		mockIAMRoleCreator = new(addonmocks.IAMRoleCreator)
+		if e.mockIAM != nil {
+			e.mockIAM(mockIAMRoleCreator)
+		}
+
+		fakeStackManager = new(fakes.FakeStackManager)
+		if e.mockCFN != nil {
+			e.mockCFN(fakeStackManager)
+		}
+
+		mockProvider = mockprovider.NewMockProvider()
+		if e.mockEKS != nil {
+			e.mockEKS(mockProvider)
+		}
+
+		fakeRawClient = testutils.NewFakeRawClient()
+		if e.mockK8s {
+			fakeRawClient.AssumeObjectsMissing = true
+			sampleAddons := testutils.LoadSamples("testdata/aws-node.json")
+			for _, item := range sampleAddons {
+				rc, err := fakeRawClient.NewRawResource(item)
+				Expect(err).NotTo(HaveOccurred())
+				_, err = rc.CreateOrReplace(false)
+				Expect(err).NotTo(HaveOccurred())
+			}
+
+			ct := fakeRawClient.Collection
+			Expect(ct.Updated()).To(BeEmpty())
+			Expect(ct.Created()).NotTo(BeEmpty())
+			Expect(ct.CreatedItems()).To(HaveLen(10))
+		}
+
+		output := &bytes.Buffer{}
+		if e.validateCustomLoggerOutput != nil {
+			defer func() {
+				logger.Writer = os.Stdout
+			}()
+			logger.Writer = output
+		}
+
+		oidc, err = iamoidc.NewOpenIDConnectManager(nil, "111122223333", "https://oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E", "aws", nil)
+		Expect(err).NotTo(HaveOccurred())
+
+		manager, err = addon.New(clusterConfig, mockProvider.EKS(), fakeStackManager, e.withOIDC, oidc, func() (kubernetes.Interface, error) {
+			return fakeRawClient.ClientSet(), nil
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		err = manager.Create(context.Background(), &e.addon, mockIAMRoleCreator, e.waitTimeout)
+		if e.expectedErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
+			return
+		}
+		Expect(err).ToNot(HaveOccurred())
+
+		if e.validateCreateAddonInput != nil {
+			e.validateCreateAddonInput(createAddonInput)
+		}
+
+		if e.validateCustomLoggerOutput != nil {
+			e.validateCustomLoggerOutput(output.String())
+		}
+
+		if e.validateCFNCalls != nil {
+			e.validateCFNCalls(fakeStackManager)
+		}
+	},
+		Entry("[API Error] fails to describe addon", createAddonEntry{
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), genericErr)
+			},
+			expectedErr: "failed to describe addon",
+		}),
+
+		Entry("[API Error] fails to describe addon versions", createAddonEntry{
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), genericErr)
+			},
+			expectedErr: "failed to describe addon versions",
+		}),
+
+		Entry("[API Error] fails to describe addon configuration", createAddonEntry{
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(provider.MockEKS(), []string{}, genericErr)
+			},
+			expectedErr: "failed to describe configuration for \"my-addon\" addon",
+		}),
+
+		Entry("[API Error] fails to create addon", createAddonEntry{
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(provider.MockEKS(), []string{}, nil)
+				mockCreateAddon(provider.MockEKS(), genericErr)
+			},
+			expectedErr: "failed to create \"my-addon\" addon",
+		}),
+
+		Entry("[API Error] fails to create IAM role for podID", createAddonEntry{
+			addon: api.Addon{
+				PodIdentityAssociations: &[]api.PodIdentityAssociation{
+					{
+						ServiceAccountName:   "sa1",
+						PermissionPolicyARNs: []string{"arn:aws:iam::111122223333:policy/sa1"},
+					},
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{"sa1"}, nil)
+			},
+			mockIAM: func(mockIAMRoleCreator *addonmocks.IAMRoleCreator) {
+				mockIAMRoleCreator.
+					On("Create", mock.Anything, mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(3))
+						Expect(args[1]).To(BeAssignableToTypeOf(&api.PodIdentityAssociation{}))
+						Expect(args[1].(*api.PodIdentityAssociation).ServiceAccountName).To(Equal("sa1"))
+						Expect(args[1].(*api.PodIdentityAssociation).PermissionPolicyARNs).To(ConsistOf("arn:aws:iam::111122223333:policy/sa1"))
+					}).
+					Return("", genericErr).
+					Once()
+			},
+			expectedErr: genericErr.Error(),
+		}),
+
+		Entry("[API Error] fails to create IAM role for service account", createAddonEntry{
+			addon: api.Addon{
+				AttachPolicyARNs: []string{"arn:aws:iam::111122223333:policy/policy-name-1"},
+			},
+			withOIDC: true,
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{}, nil)
+			},
+			mockCFN: func(stackManager *fakes.FakeStackManager) {
+				stackManager.CreateStackStub = func(ctx context.Context, s string, rsr builder.ResourceSetReader, m1, m2 map[string]string, c chan error) error {
+					go func() {
+						c <- nil
+					}()
+					Expect(rsr).To(BeAssignableToTypeOf(&builder.IAMRoleResourceSet{}))
+					output, err := rsr.(*builder.IAMRoleResourceSet).RenderJSON()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(output)).To(ContainSubstring("arn:aws:iam::111122223333:policy/policy-name-1"))
+					return genericErr
+				}
+				stackManager.CreateStackReturns(genericErr)
+			},
+			validateCFNCalls: func(stackManager *fakes.FakeStackManager) {
+				Expect(stackManager.CreateStackCallCount()).To(Equal(1))
+			},
+			expectedErr: genericErr.Error(),
+		}),
+
+		Entry("[Addon already exists] addon is in CREATE_FAILED state", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				provider.MockEKS().
+					On("DescribeAddon", mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
+					}).
+					Return(&awseks.DescribeAddonOutput{
+						Addon: &ekstypes.Addon{
+							AddonName: aws.String("my-addon"),
+							Status:    ekstypes.AddonStatusCreateFailed,
+						},
+					}, nil).
+					Once()
+
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).NotTo(ContainSubstring("addon is already present on the cluster, as an EKS managed addon, skipping creation"))
+			},
+		}),
+
+		Entry("[Addon already exists] addon is NOT in CREATE_FAILED state", createAddonEntry{
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				provider.MockEKS().
+					On("DescribeAddon", mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
+					}).
+					Return(&awseks.DescribeAddonOutput{
 						Addon: &ekstypes.Addon{
 							AddonName: aws.String("my-addon"),
 							Status:    ekstypes.AddonStatusActive,
 						},
-					}, nil)
+					}, nil).
+					Once()
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("addon is already present on the cluster, as an EKS managed addon, skipping creation"))
+			},
+		}),
 
-				err := manager.Create(context.Background(), &api.Addon{
-					Name:    "my-addon",
-					Version: "v1.0.0-eksbuild.1",
-				}, 0)
-				Expect(err).NotTo(HaveOccurred())
+		Entry("[Resolve version] no version found", createAddonEntry{
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				provider.MockEKS().
+					On("DescribeAddonVersions", mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+					}).
+					Return(&awseks.DescribeAddonVersionsOutput{
+						Addons: []ekstypes.AddonInfo{{AddonVersions: []ekstypes.AddonVersionInfo{}}},
+					}, nil).
+					Once()
+			},
+			expectedErr: "no versions available for \"my-addon\"",
+		}),
 
-				Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
-				Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-				Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
-				Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-			})
-		})
+		Entry("[Resolve version] invalid version found", createAddonEntry{
+			addon: api.Addon{
+				Version: "latest",
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				provider.MockEKS().
+					On("DescribeAddonVersions", mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+					}).
+					Return(&awseks.DescribeAddonVersionsOutput{
+						Addons: []ekstypes.AddonInfo{{AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion: aws.String("totally not semver"),
+							},
+						}}},
+					}, nil).
+					Once()
+			},
+			expectedErr: "failed to parse version \"totally not semver\":",
+		}),
 
-		When("the addon creation fails", func() {
-			BeforeEach(func() {
-				withOIDC = false
-			})
+		Entry("[Resolve version] missing", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.100.0",
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+			},
+			expectedErr: "no version(s) found matching \"1.100.0\" for \"my-addon\"",
+		}),
 
-			It("returns an error", func() {
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything, mock.Anything).
-					Return(&eks.DescribeAddonOutput{
+		Entry("[Resolve version] latest", createAddonEntry{
+			addon: api.Addon{
+				Version: "latest",
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(*input.AddonVersion).To(Equal("v1.7.7-eksbuild.2"))
+			},
+		}),
+
+		Entry("[Resolve version] numeric value", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.7.7",
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(*input.AddonVersion).To(Equal("v1.7.7-eksbuild.2"))
+			},
+		}),
+
+		Entry("[Resolve version] alphanumeric value", createAddonEntry{
+			addon: api.Addon{
+				Version: "v1.7.5",
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(*input.AddonVersion).To(Equal("v1.7.5-eksbuild.2"))
+			},
+		}),
+
+		Entry("[ResolveConflicts] explicitly set to overwrite", createAddonEntry{
+			addon: api.Addon{
+				Version:          "1.0.0",
+				ResolveConflicts: ekstypes.ResolveConflictsOverwrite,
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.ResolveConflicts).To(Equal(ekstypes.ResolveConflictsOverwrite))
+			},
+		}),
+
+		Entry("[ResolveConflicts] implicitly set to overwrite by using `--force` flag", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+				Force:   true,
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.ResolveConflicts).To(Equal(ekstypes.ResolveConflictsOverwrite))
+			},
+		}),
+
+		Entry("[ConfigurationValues] are set", createAddonEntry{
+			addon: api.Addon{
+				Version:             "1.0.0",
+				ConfigurationValues: "{\"replicaCount\":3}",
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(*input.ConfigurationValues).To(Equal("{\"replicaCount\":3}"))
+			},
+		}),
+
+		Entry("[Tags] are set", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+				Tags:    map[string]string{"foo": "bar", "fox": "brown"},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.Tags["foo"]).To(Equal("bar"))
+				Expect(input.Tags["fox"]).To(Equal("brown"))
+			},
+		}),
+
+		Entry("[Wait is true] addon creation succeeds", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+			},
+			waitTimeout: time.Nanosecond,
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				// addon becomes active after creation
+				mockProvider.MockEKS().
+					On("DescribeAddon", mock.Anything, mock.Anything, mock.Anything).
+					Return(&awseks.DescribeAddonOutput{
+						Addon: &ekstypes.Addon{
+							AddonName: aws.String("my-addon"),
+							Status:    ekstypes.AddonStatusActive,
+						},
+					}, nil).
+					Once()
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+		}),
+
+		Entry("[Wait is true] addon creation fails", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+			},
+			waitTimeout: time.Nanosecond,
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				// addon becomes degraded after creation
+				mockProvider.MockEKS().
+					On("DescribeAddon", mock.Anything, mock.Anything, mock.Anything).
+					Return(&awseks.DescribeAddonOutput{
 						Addon: &ekstypes.Addon{
 							AddonName: aws.String("my-addon"),
 							Status:    ekstypes.AddonStatusDegraded,
 						},
 					}, nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			expectedErr: "addon status transitioned to \"DEGRADED\"",
+		}),
 
-				err := manager.Create(context.Background(), &api.Addon{
-					Name:    "my-addon",
-					Version: "v1.0.0-eksbuild.1",
-				}, 5*time.Minute)
-				Expect(err).To(MatchError(`addon status transitioned to "DEGRADED"`))
-			})
-		})
-	})
+		Entry("[Cluster without nodegroups] should not wait for CoreDNS to become active", createAddonEntry{
+			addon: api.Addon{
+				Name:    api.CoreDNSAddon,
+				Version: "1.0.0",
+			},
+			waitTimeout: time.Nanosecond,
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				// addon becomes degraded after creation
+				mockProvider.MockEKS().
+					On("DescribeAddon", mock.Anything, mock.Anything, mock.Anything).
+					Return(&awseks.DescribeAddonOutput{
+						Addon: &ekstypes.Addon{
+							AddonName: aws.String("my-addon"),
+							Status:    ekstypes.AddonStatusDegraded,
+						},
+					}, nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+		}),
 
-	When("No policy/role is specified", func() {
-		When("we don't know the recommended policies for the specified addon", func() {
-			It("does not provide a role", func() {
-				err := manager.Create(context.Background(), &api.Addon{
-					Name:    "my-addon",
-					Version: "v1.0.0-eksbuild.1",
-				}, 0)
-				Expect(err).NotTo(HaveOccurred())
+		Entry("[Cluster without nodegroups] should not wait for EBS CSI driver to become active", createAddonEntry{
+			addon: api.Addon{
+				Name:    api.AWSEBSCSIDriverAddon,
+				Version: "1.0.0",
+			},
+			waitTimeout: time.Nanosecond,
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				// addon becomes degraded after creation
+				mockProvider.MockEKS().
+					On("DescribeAddon", mock.Anything, mock.Anything, mock.Anything).
+					Return(&awseks.DescribeAddonOutput{
+						Addon: &ekstypes.Addon{
+							AddonName: aws.String("my-addon"),
+							Status:    ekstypes.AddonStatusDegraded,
+						},
+					}, nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+		}),
 
-				Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
-				Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-				Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
-				Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-				Expect(createAddonInput.ServiceAccountRoleArn).To(BeNil())
-			})
-		})
+		Entry("[Cluster without nodegroups] should not wait for EFS CSI driver to become active", createAddonEntry{
+			addon: api.Addon{
+				Name:    api.AWSEFSCSIDriverAddon,
+				Version: "1.0.0",
+			},
+			waitTimeout: time.Nanosecond,
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				// addon becomes degraded after creation
+				mockProvider.MockEKS().
+					On("DescribeAddon", mock.Anything, mock.Anything, mock.Anything).
+					Return(&awseks.DescribeAddonOutput{
+						Addon: &ekstypes.Addon{
+							AddonName: aws.String("my-addon"),
+							Status:    ekstypes.AddonStatusDegraded,
+						},
+					}, nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+		}),
 
-		When("we know the recommended policies for the specified addon", func() {
-			BeforeEach(func() {
-				fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSetReader, _ map[string]string, _ map[string]string, errs chan error) error {
-					go func() {
-						errs <- nil
-					}()
-					Expect(rs).To(BeAssignableToTypeOf(&builder.IAMRoleResourceSet{}))
-					rs.(*builder.IAMRoleResourceSet).OutputRole = "role-arn"
-					return createStackReturnValue
-				}
-
-			})
-
-			When("it's the vpc-cni addon", func() {
-				Context("ipv4", func() {
-					It("creates a role with the recommended policies and attaches it to the addon", func() {
-						err := manager.Create(context.Background(), &api.Addon{
-							Name:    api.VPCCNIAddon,
-							Version: "v1.0.0-eksbuild.1",
-						}, 0)
-						Expect(err).NotTo(HaveOccurred())
-
-						Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
-						_, name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
-						Expect(name).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
-						Expect(resourceSet).NotTo(BeNil())
-						Expect(tags).To(Equal(map[string]string{
-							api.AddonNameTag: api.VPCCNIAddon,
-						}))
-						output, err := resourceSet.RenderJSON()
-						Expect(err).NotTo(HaveOccurred())
-						Expect(string(output)).To(ContainSubstring("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"))
-						Expect(string(output)).To(ContainSubstring(":sub\":\"system:serviceaccount:kube-system:aws-node"))
-						Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-						Expect(*createAddonInput.AddonName).To(Equal(api.VPCCNIAddon))
-						Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-						Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("role-arn"))
-					})
-				})
-
-				Context("ipv6", func() {
-					BeforeEach(func() {
-						clusterConfig.VPC = api.NewClusterVPC(false)
-						clusterConfig.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
-							IPFamily: api.IPV6Family,
-						}
-					})
-
-					It("creates a role with the recommended policies and attaches it to the addon", func() {
-						err := manager.Create(context.Background(), &api.Addon{
-							Name:    api.VPCCNIAddon,
-							Version: "v1.0.0-eksbuild.1",
-						}, 0)
-						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
-						_, name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
-						Expect(name).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
-						Expect(resourceSet).NotTo(BeNil())
-						Expect(tags).To(Equal(map[string]string{
-							api.AddonNameTag: api.VPCCNIAddon,
-						}))
-						output, err := resourceSet.RenderJSON()
-						Expect(err).NotTo(HaveOccurred())
-						Expect(string(output)).To(ContainSubstring("AssignIpv6Addresses"))
-						Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-						Expect(*createAddonInput.AddonName).To(Equal(api.VPCCNIAddon))
-						Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-						Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("role-arn"))
-					})
-				})
-			})
-
-			When("it's the aws-ebs-csi-driver addon", func() {
-				It("creates a role with the recommended policies and attaches it to the addon", func() {
-					err := manager.Create(context.Background(), &api.Addon{
-						Name:    api.AWSEBSCSIDriverAddon,
-						Version: "v1.0.0-eksbuild.1",
-					}, 0)
-					Expect(err).NotTo(HaveOccurred())
-
-					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
-					_, name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
-					Expect(name).To(Equal("eksctl-my-cluster-addon-aws-ebs-csi-driver"))
-					Expect(resourceSet).NotTo(BeNil())
-					Expect(tags).To(Equal(map[string]string{
-						api.AddonNameTag: api.AWSEBSCSIDriverAddon,
-					}))
-					output, err := resourceSet.RenderJSON()
-					Expect(err).NotTo(HaveOccurred())
-					Expect(string(output)).To(ContainSubstring("PolicyEBSCSIController"))
-					Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-					Expect(*createAddonInput.AddonName).To(Equal(api.AWSEBSCSIDriverAddon))
-					Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-					Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("role-arn"))
-				})
-			})
-
-			When("it's the aws-efs-csi-driver addon", func() {
-				It("creates a role with the recommended policies and attaches it to the addon", func() {
-					err := manager.Create(context.Background(), &api.Addon{
-						Name:    api.AWSEFSCSIDriverAddon,
-						Version: "v1.0.0-eksbuild.1",
-					}, 0)
-					Expect(err).NotTo(HaveOccurred())
-
-					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
-					_, name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
-					Expect(name).To(Equal("eksctl-my-cluster-addon-aws-efs-csi-driver"))
-					Expect(resourceSet).NotTo(BeNil())
-					Expect(tags).To(Equal(map[string]string{
-						api.AddonNameTag: api.AWSEFSCSIDriverAddon,
-					}))
-					output, err := resourceSet.RenderJSON()
-					Expect(err).NotTo(HaveOccurred())
-					Expect(string(output)).To(ContainSubstring("PolicyEFSCSIController"))
-					Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-					Expect(*createAddonInput.AddonName).To(Equal(api.AWSEFSCSIDriverAddon))
-					Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-					Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("role-arn"))
-				})
-			})
-		})
-	})
-
-	When("attachPolicyARNs is configured", func() {
-		It("uses AttachPolicyARNS to create a role to attach to the addon", func() {
-			err := manager.Create(context.Background(), &api.Addon{
-				Name:             "my-addon",
-				Version:          "v1.0.0-eksbuild.1",
-				AttachPolicyARNs: []string{"arn-1"},
-			}, 0)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
-			_, name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
-			Expect(name).To(Equal("eksctl-my-cluster-addon-my-addon"))
-			Expect(resourceSet).NotTo(BeNil())
-			Expect(tags).To(Equal(map[string]string{
-				api.AddonNameTag: "my-addon",
-			}))
-			output, err := resourceSet.RenderJSON()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(string(output)).To(ContainSubstring("arn-1"))
-		})
-	})
-
-	When("wellKnownPolicies is configured", func() {
-		It("uses wellKnownPolicies to create a role to attach to the addon", func() {
-			err := manager.Create(context.Background(), &api.Addon{
-				Name:    "my-addon",
-				Version: "v1.0.0-eksbuild.1",
-				WellKnownPolicies: api.WellKnownPolicies{
-					AutoScaler: true,
+		Entry("[RequiresIAMPermissions] podIDs set explicitly and NOT supportsPodIDs", createAddonEntry{
+			addon: api.Addon{
+				PodIdentityAssociations: &[]api.PodIdentityAssociation{
+					{
+						ServiceAccountName: "sa1",
+						RoleARN:            "arn:aws:iam::111122223333:role/role-name-1",
+					},
 				},
-			}, 0)
-			Expect(err).NotTo(HaveOccurred())
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{}, nil)
+			},
+			expectedErr: "\"my-addon\" addon does not support pod identity associations; use IRSA config (`addon.serviceAccountRoleARN`, `addon.attachPolicyARNs`, `addon.attachPolicy` or `addon.wellKnownPolicies`) instead",
+		}),
 
-			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
-			_, name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
-			Expect(name).To(Equal("eksctl-my-cluster-addon-my-addon"))
-			Expect(resourceSet).NotTo(BeNil())
-			Expect(tags).To(Equal(map[string]string{
-				api.AddonNameTag: "my-addon",
-			}))
-			output, err := resourceSet.RenderJSON()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(string(output)).To(ContainSubstring("autoscaling:SetDesiredCapacity"))
-		})
-	})
+		Entry("[RequiresIAMPermissions] podIDs set explicitly and supportsPodIDs", createAddonEntry{
+			addon: api.Addon{
+				PodIdentityAssociations: &[]api.PodIdentityAssociation{
+					{
+						ServiceAccountName: "sa1",
+						RoleARN:            "arn:aws:iam::111122223333:role/role-name-1",
+					},
+					{
+						ServiceAccountName: "sa2",
+						RoleARN:            "arn:aws:iam::111122223333:role/role-name-2",
+					},
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{"sa1", "sa2"}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(2))
+				Expect(*input.PodIdentityAssociations[0].ServiceAccount).To(Equal("sa1"))
+				Expect(*input.PodIdentityAssociations[0].RoleArn).To(Equal("arn:aws:iam::111122223333:role/role-name-1"))
+				Expect(*input.PodIdentityAssociations[1].ServiceAccount).To(Equal("sa2"))
+				Expect(*input.PodIdentityAssociations[1].RoleArn).To(Equal("arn:aws:iam::111122223333:role/role-name-2"))
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("pod identity associations are set for \"my-addon\" addon; will use these to configure required IAM permissions"))
+			},
+		}),
 
-	When("AttachPolicy is configured", func() {
-		It("uses AttachPolicy to create a role to attach to the addon", func() {
-			err := manager.Create(context.Background(), &api.Addon{
-				Name:    "my-addon",
-				Version: "v1.0.0-eksbuild.1",
+		Entry("[RequiresIAMPermissions] `autoApplyPodIdentityAssociations: true` and NOT supportsPodIDs", createAddonEntry{
+			mockClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = true
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(0))
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("IAM permissions are required for \"my-addon\" addon; " +
+					"the recommended way to provide IAM permissions for \"my-addon\" addon is via IRSA; " +
+					"after addon creation is completed, add all recommended policies to the config file, " +
+					"under `addon.ServiceAccountRoleARN`, `addon.AttachPolicyARNs`, `addon.AttachPolicy` or `addon.WellKnownPolicies`, " +
+					"and run `eksctl update addon`"))
+			},
+		}),
+
+		Entry("[RequiresIAMPermissions] `autoApplyPodIdentityAssociations: true` and supportsPodIDs", createAddonEntry{
+			mockClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = true
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{"sa1"}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			mockIAM: func(mockIAMRoleCreator *addonmocks.IAMRoleCreator) {
+				mockIAMRoleCreator.
+					On("Create", mock.Anything, mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(3))
+						Expect(args[1]).To(BeAssignableToTypeOf(&api.PodIdentityAssociation{}))
+						Expect(args[1].(*api.PodIdentityAssociation).ServiceAccountName).To(Equal("sa1"))
+						Expect(args[1].(*api.PodIdentityAssociation).PermissionPolicyARNs).To(ConsistOf("arn:aws:iam::111122223333:policy/sa1"))
+					}).
+					Return("arn:aws:iam::111122223333:role/sa1", nil).
+					Once()
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(1))
+				Expect(*input.PodIdentityAssociations[0].ServiceAccount).To(Equal("sa1"))
+				Expect(*input.PodIdentityAssociations[0].RoleArn).To(Equal("arn:aws:iam::111122223333:role/sa1"))
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("\"addonsConfig.autoApplyPodIdentityAssociations\" is set to true; will lookup recommended pod identity configuration for \"my-addon\" addon"))
+			},
+		}),
+
+		Entry("[RequiresIAMPermissions] `autoApplyPodIdentityAssociations: true` and supportsPodIDs (vpc-cni && ipv6)", createAddonEntry{
+			addon: api.Addon{
+				Name: api.VPCCNIAddon,
+			},
+			mockK8s: true,
+			mockClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = true
+				clusterConfig.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
+					IPFamily: "IPv6",
+				}
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{"sa1"}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			mockIAM: func(mockIAMRoleCreator *addonmocks.IAMRoleCreator) {
+				mockIAMRoleCreator.
+					On("Create", mock.Anything, mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(3))
+						Expect(args[1]).To(BeAssignableToTypeOf(&api.PodIdentityAssociation{}))
+						Expect(args[1].(*api.PodIdentityAssociation).ServiceAccountName).To(Equal("aws-node"))
+						Expect(args[1].(*api.PodIdentityAssociation).PermissionPolicy).NotTo(BeEmpty())
+					}).
+					Return("arn:aws:iam::111122223333:role/aws-node", nil).
+					Once()
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(1))
+				Expect(*input.PodIdentityAssociations[0].ServiceAccount).To(Equal("aws-node"))
+				Expect(*input.PodIdentityAssociations[0].RoleArn).To(Equal("arn:aws:iam::111122223333:role/aws-node"))
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("\"addonsConfig.autoApplyPodIdentityAssociations\" is set to true; will lookup recommended pod identity configuration for \"vpc-cni\" addon"))
+			},
+		}),
+
+		Entry("[RequiresIAMPermissions] podIDs already exist on cluster", createAddonEntry{
+			addon: api.Addon{
+				PodIdentityAssociations: &[]api.PodIdentityAssociation{
+					{
+						ServiceAccountName: "sa1",
+						RoleARN:            "arn:aws:iam::111122223333:role/role-name-1",
+					},
+					{
+						ServiceAccountName: "sa2",
+						RoleARN:            "arn:aws:iam::111122223333:role/role-name-2",
+					},
+				},
+			},
+			mockClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = true
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{"sa1", "sa2"}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), &ekstypes.ResourceInUseException{})
+			},
+			mockCFN: func(stackManager *fakes.FakeStackManager) {
+				stackManager.DeleteStackBySpecReturns(nil, nil)
+			},
+			validateCFNCalls: func(stackManager *fakes.FakeStackManager) {
+				Expect(stackManager.DeleteStackBySpecCallCount()).To(Equal(2))
+			},
+			expectedErr: "creating addon: one or more service accounts corresponding to \"my-addon\" addon is already associated with a different IAM role; " +
+				"please delete all pre-existing pod identity associations corresponding to \"sa1\",\"sa2\" service account(s) in the addon's namespace, then re-try creating the addon",
+		}),
+
+		Entry("[RequiresIAMPermissions] IRSA set explicitly and NOT supportsPodIDs", createAddonEntry{
+			addon: api.Addon{
+				ServiceAccountRoleARN: "arn:aws:iam::111122223333:role/role-name-1",
+			},
+			withOIDC: true,
+			mockClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = true
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(0))
+				Expect(input.ServiceAccountRoleArn).NotTo(BeNil())
+				Expect(*input.ServiceAccountRoleArn).To(Equal("arn:aws:iam::111122223333:role/role-name-1"))
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).NotTo(ContainSubstring("IRSA has been deprecated"))
+			},
+		}),
+
+		Entry("[RequiresIAMPermissions] IRSA set explicitly and supportsPodIDs", createAddonEntry{
+			addon: api.Addon{
 				AttachPolicy: api.InlineDocument{
 					"foo": "policy-bar",
 				},
-			}, 0)
-			Expect(err).NotTo(HaveOccurred())
+			},
+			withOIDC: true,
+			mockClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations = true
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{"sa1"}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			mockCFN: func(stackManager *fakes.FakeStackManager) {
+				stackManager.CreateStackStub = func(ctx context.Context, s string, rsr builder.ResourceSetReader, m1, m2 map[string]string, c chan error) error {
+					go func() {
+						c <- nil
+					}()
+					Expect(rsr).To(BeAssignableToTypeOf(&builder.IAMRoleResourceSet{}))
+					output, err := rsr.(*builder.IAMRoleResourceSet).RenderJSON()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(output)).To(ContainSubstring("policy-bar"))
+					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
+					return nil
+				}
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(0))
+				Expect(input.ServiceAccountRoleArn).NotTo(BeNil())
+				Expect(*input.ServiceAccountRoleArn).To(Equal("arn:aws:iam::111122223333:role/role-name-1"))
+			},
+			validateCFNCalls: func(stackManager *fakes.FakeStackManager) {
+				Expect(stackManager.CreateStackCallCount()).To(Equal(1))
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("IRSA has been deprecated; " +
+					"the recommended way to provide IAM permissions for \"my-addon\" addon is via pod identity associations; " +
+					"after addon creation is completed, run `eksctl utils migrate-to-pod-identity`"))
+			},
+		}),
 
-			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
-			_, name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
-			Expect(name).To(Equal("eksctl-my-cluster-addon-my-addon"))
-			Expect(resourceSet).NotTo(BeNil())
-			Expect(tags).To(Equal(map[string]string{
-				api.AddonNameTag: "my-addon",
-			}))
-			output, err := resourceSet.RenderJSON()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(string(output)).To(ContainSubstring("policy-bar"))
-		})
-	})
+		Entry("[RequiresIAMPermissions] IRSA set implicitly (vpc-cni && ipv4)", createAddonEntry{
+			addon: api.Addon{
+				Name: api.VPCCNIAddon,
+			},
+			withOIDC: true,
+			mockK8s:  true,
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{"aws-node"}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			mockCFN: func(stackManager *fakes.FakeStackManager) {
+				stackManager.CreateStackStub = func(ctx context.Context, s string, rsr builder.ResourceSetReader, m1, m2 map[string]string, c chan error) error {
+					go func() {
+						c <- nil
+					}()
+					Expect(rsr).To(BeAssignableToTypeOf(&builder.IAMRoleResourceSet{}))
+					output, err := rsr.(*builder.IAMRoleResourceSet).RenderJSON()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(output)).To(ContainSubstring("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"))
+					Expect(string(output)).To(ContainSubstring(":sub\":\"system:serviceaccount:kube-system:aws-node"))
+					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
+					return nil
+				}
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(0))
+				Expect(input.ServiceAccountRoleArn).NotTo(BeNil())
+				Expect(*input.ServiceAccountRoleArn).To(Equal("arn:aws:iam::111122223333:role/role-name-1"))
+			},
+			validateCFNCalls: func(stackManager *fakes.FakeStackManager) {
+				Expect(stackManager.CreateStackCallCount()).To(Equal(1))
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("IRSA has been deprecated; " +
+					"the recommended way to provide IAM permissions for \"vpc-cni\" addon is via pod identity associations; " +
+					"after addon creation is completed, run `eksctl utils migrate-to-pod-identity`"))
+			},
+		}),
 
-	When("serviceAccountRoleARN is configured", func() {
-		It("uses the serviceAccountRoleARN to create the addon", func() {
-			err := manager.Create(context.Background(), &api.Addon{
-				Name:                  "my-addon",
-				Version:               "v1.0.0-eksbuild.1",
-				ServiceAccountRoleARN: "foo",
-			}, 0)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
-			Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-			Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
-			Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-			Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("foo"))
-		})
-	})
+		Entry("[RequiresIAMPermissions] IRSA set implicitly (vpc-cni && ipv6)", createAddonEntry{
+			addon: api.Addon{
+				Name: api.VPCCNIAddon,
+			},
+			withOIDC: true,
+			mockK8s:  true,
+			mockClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
+					IPFamily: "IPv6",
+				}
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{"aws-node"}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			mockCFN: func(stackManager *fakes.FakeStackManager) {
+				stackManager.CreateStackStub = func(ctx context.Context, s string, rsr builder.ResourceSetReader, m1, m2 map[string]string, c chan error) error {
+					go func() {
+						c <- nil
+					}()
+					Expect(rsr).To(BeAssignableToTypeOf(&builder.IAMRoleResourceSet{}))
+					output, err := rsr.(*builder.IAMRoleResourceSet).RenderJSON()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(output)).To(ContainSubstring("AssignIpv6Addresses"))
+					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
+					return nil
+				}
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(0))
+				Expect(input.ServiceAccountRoleArn).NotTo(BeNil())
+				Expect(*input.ServiceAccountRoleArn).To(Equal("arn:aws:iam::111122223333:role/role-name-1"))
+			},
+			validateCFNCalls: func(stackManager *fakes.FakeStackManager) {
+				Expect(stackManager.CreateStackCallCount()).To(Equal(1))
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("IRSA has been deprecated; " +
+					"the recommended way to provide IAM permissions for \"vpc-cni\" addon is via pod identity associations; " +
+					"after addon creation is completed, run `eksctl utils migrate-to-pod-identity`"))
+			},
+		}),
 
-	When("tags are configured", func() {
-		It("uses the Tags to create the addon", func() {
-			err := manager.Create(context.Background(), &api.Addon{
-				Name:    "my-addon",
-				Version: "v1.0.0-eksbuild.1",
-				Tags:    map[string]string{"foo": "bar", "fox": "brown"},
-			}, 0)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
-			Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-			Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
-			Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-			Expect(createAddonInput.Tags["foo"]).To(Equal("bar"))
-			Expect(createAddonInput.Tags["fox"]).To(Equal("brown"))
-		})
-	})
+		Entry("[RequiresIAMPermissions] IRSA set implicitly and supportsPodIDs (aws-ebs-csi-driver)", createAddonEntry{
+			addon: api.Addon{
+				Name: api.AWSEBSCSIDriverAddon,
+			},
+			withOIDC: true,
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{"sa1"}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			mockCFN: func(stackManager *fakes.FakeStackManager) {
+				stackManager.CreateStackStub = func(ctx context.Context, s string, rsr builder.ResourceSetReader, m1, m2 map[string]string, c chan error) error {
+					go func() {
+						c <- nil
+					}()
+					Expect(rsr).To(BeAssignableToTypeOf(&builder.IAMRoleResourceSet{}))
+					output, err := rsr.(*builder.IAMRoleResourceSet).RenderJSON()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(output)).To(ContainSubstring("PolicyEBSCSIController"))
+					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
+					return nil
+				}
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(0))
+				Expect(input.ServiceAccountRoleArn).NotTo(BeNil())
+				Expect(*input.ServiceAccountRoleArn).To(Equal("arn:aws:iam::111122223333:role/role-name-1"))
+			},
+			validateCFNCalls: func(stackManager *fakes.FakeStackManager) {
+				Expect(stackManager.CreateStackCallCount()).To(Equal(1))
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("IRSA has been deprecated; " +
+					"the recommended way to provide IAM permissions for \"aws-ebs-csi-driver\" addon is via pod identity associations; " +
+					"after addon creation is completed, run `eksctl utils migrate-to-pod-identity`"))
+			},
+		}),
+
+		Entry("[RequiresIAMPermissions] IRSA set implicitly and not supportsPodIDs (aws-efs-csi-driver)", createAddonEntry{
+			addon: api.Addon{
+				Name: api.AWSEFSCSIDriverAddon,
+			},
+			withOIDC: true,
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			mockCFN: func(stackManager *fakes.FakeStackManager) {
+				stackManager.CreateStackStub = func(ctx context.Context, s string, rsr builder.ResourceSetReader, m1, m2 map[string]string, c chan error) error {
+					go func() {
+						c <- nil
+					}()
+					Expect(rsr).To(BeAssignableToTypeOf(&builder.IAMRoleResourceSet{}))
+					output, err := rsr.(*builder.IAMRoleResourceSet).RenderJSON()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(output)).To(ContainSubstring("PolicyEFSCSIController"))
+					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
+					return nil
+				}
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(0))
+				Expect(input.ServiceAccountRoleArn).NotTo(BeNil())
+				Expect(*input.ServiceAccountRoleArn).To(Equal("arn:aws:iam::111122223333:role/role-name-1"))
+			},
+			validateCFNCalls: func(stackManager *fakes.FakeStackManager) {
+				Expect(stackManager.CreateStackCallCount()).To(Equal(1))
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).NotTo(ContainSubstring("IRSA has been deprecated"))
+			},
+		}),
+
+		Entry("[RequiresIAMPermissions] OIDC is disabled and IRSA set explicitly", createAddonEntry{
+			addon: api.Addon{
+				ServiceAccountRoleARN: "arn:aws:iam::111122223333:role/role-name-1",
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{"sa1"}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(0))
+				Expect(input.ServiceAccountRoleArn).To(BeNil())
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("IRSA config is set for \"my-addon\" addon, " +
+					"but since OIDC is disabled on the cluster, eksctl cannot configure the requested permissions; " +
+					"the recommended way to provide IAM permissions for \"my-addon\" addon is via pod identity associations; " +
+					"after addon creation is completed, add all recommended policies to the config file, under `addon.PodIdentityAssociations`, " +
+					"and run `eksctl update addon`"))
+			},
+		}),
+
+		Entry("[RequiresIAMPermissions] OIDC is disabled and IRSA set implicitly", createAddonEntry{
+			addon: api.Addon{
+				Name: api.AWSEFSCSIDriverAddon,
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(0))
+				Expect(input.ServiceAccountRoleArn).To(BeNil())
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("recommended policies were found for \"aws-efs-csi-driver\" addon, " +
+					"but since OIDC is disabled on the cluster, eksctl cannot configure the requested permissions; " +
+					"users are responsible for attaching the policies to all nodegroup roles"))
+			},
+		}),
+
+		Entry("[RequiresIAMPermissions] neither IRSA nor podIDs are being set and NOT supportsPodIDs", createAddonEntry{
+			addon: api.Addon{},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(0))
+				Expect(input.ServiceAccountRoleArn).To(BeNil())
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("IAM permissions are required for \"my-addon\" addon; " +
+					"the recommended way to provide IAM permissions for \"my-addon\" addon is via IRSA; " +
+					"after addon creation is completed, add all recommended policies to the config file, " +
+					"under `addon.ServiceAccountRoleARN`, `addon.AttachPolicyARNs`, `addon.AttachPolicy` or `addon.WellKnownPolicies`, " +
+					"and run `eksctl update addon`"))
+			},
+		}),
+
+		Entry("[RequiresIAMPermissions] neither IRSA nor podIDs are being set and supportsPodIDs", createAddonEntry{
+			addon: api.Addon{},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{"sa1"}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(0))
+				Expect(input.ServiceAccountRoleArn).To(BeNil())
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("IAM permissions are required for \"my-addon\" addon; " +
+					"the recommended way to provide IAM permissions for \"my-addon\" addon is via pod identity associations; " +
+					"after addon creation is completed, add all recommended policies to the config file, " +
+					"under `addon.PodIdentityAssociations`, and run `eksctl update addon`"))
+			},
+		}),
+
+		Entry("[RequiresIAMPermissions is false] podIDs set", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+				PodIdentityAssociations: &[]api.PodIdentityAssociation{
+					{
+						ServiceAccountName: "sa1",
+						RoleARN:            "arn:aws:iam::111122223333:role/role-name-1",
+					},
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.PodIdentityAssociations).To(HaveLen(0))
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("IAM permissions are not required for \"my-addon\" addon; " +
+					"any IRSA configuration or pod identity associations will be ignored"))
+			},
+		}),
+
+		Entry("[RequiresIAMPermissions is false] IRSA set", createAddonEntry{
+			addon: api.Addon{
+				Version:               "1.0.0",
+				ServiceAccountRoleARN: "arn:aws:iam::111122223333:role/role-name-1",
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(mockProvider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockDescribeAddonConfiguration(mockProvider.MockEKS(), []string{}, nil)
+				mockCreateAddon(mockProvider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.ServiceAccountRoleArn).To(BeNil())
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring("IAM permissions are not required for \"my-addon\" addon; " +
+					"any IRSA configuration or pod identity associations will be ignored"))
+			},
+		}),
+	)
 })

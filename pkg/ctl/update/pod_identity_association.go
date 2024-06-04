@@ -34,7 +34,7 @@ func updatePodIdentityAssociation(cmd *cmdutils.Cmd) {
 	cmd.FlagSetGroup.InFlagSet("Pod Identity Association", func(fs *pflag.FlagSet) {
 		fs.StringVar(&options.Namespace, "namespace", "", "Namespace of the pod identity association")
 		fs.StringVar(&options.ServiceAccountName, "service-account-name", "", "Service account name of the pod identity association")
-		fs.StringVar(&options.RoleARN, "role-arn", "", "Service account name of the pod identity association")
+		fs.StringVar(&options.RoleARN, "role-arn", "", "ARN of the IAM role to be associated with the service account")
 
 	})
 

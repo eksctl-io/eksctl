@@ -303,7 +303,25 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			}
 		}
 
-		if clusterConfig.IAM != nil && len(clusterConfig.IAM.PodIdentityAssociations) > 0 {
+		for _, addon := range clusterConfig.Addons {
+			if err := addon.Validate(); err != nil {
+				return err
+			}
+		}
+
+		shallCreatePodIdentityAssociations := func(cfg *api.ClusterConfig) bool {
+			if cfg.IAM != nil && len(cfg.IAM.PodIdentityAssociations) > 0 {
+				return true
+			}
+			for _, addon := range clusterConfig.Addons {
+				if cfg.AddonsConfig.AutoApplyPodIdentityAssociations || addon.UseDefaultPodIdentityAssociations || addon.HasPodIDsSet() {
+					return true
+				}
+			}
+			return false
+		}
+
+		if shallCreatePodIdentityAssociations(clusterConfig) {
 			addonNames := []string{}
 			for _, addon := range clusterConfig.Addons {
 				addonNames = append(addonNames, addon.Name)
@@ -312,8 +330,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				suggestion := fmt.Sprintf("please add %q addon to the config file", api.PodIdentityAgentAddon)
 				return api.ErrPodIdentityAgentNotInstalled(suggestion)
 			}
-			if err := validatePodIdentityAssociationsForConfig(clusterConfig, true); err != nil {
-				return err
+			if clusterConfig.IAM != nil && len(clusterConfig.IAM.PodIdentityAssociations) > 0 {
+				if err := validatePodIdentityAssociations(clusterConfig.IAM.PodIdentityAssociations, true); err != nil {
+					return err
+				}
 			}
 		}
 

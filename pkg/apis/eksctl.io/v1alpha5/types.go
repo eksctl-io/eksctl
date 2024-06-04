@@ -300,6 +300,9 @@ const (
 	// PodIdentityAssociationNameTag defines the tag of Pod Identity Association name
 	PodIdentityAssociationNameTag = "alpha.eksctl.io/podidentityassociation-name"
 
+	// AddonPodIdentityAssociationNameTag defines the tag name for an addon's pod identity association.
+	AddonPodIdentityAssociationNameTag = "alpha.eksctl.io/addon-podidentityassociation-name"
+
 	// AddonNameTag defines the tag of the IAM service account name
 	AddonNameTag = "alpha.eksctl.io/addon-name"
 
@@ -904,6 +907,10 @@ type ClusterConfig struct {
 
 	// +optional
 	Addons []*Addon `json:"addons,omitempty"`
+
+	// AddonsConfig specifies the configuration for addons.
+	// +optional
+	AddonsConfig AddonsConfig `json:"addonsConfig,omitempty"`
 
 	// PrivateCluster allows configuring a fully-private cluster
 	// in which no node has outbound internet access, and private access

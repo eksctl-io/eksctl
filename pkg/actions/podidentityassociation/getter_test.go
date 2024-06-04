@@ -127,7 +127,8 @@ var _ = Describe("Get", func() {
 					Once()
 
 				mockDescribePodIdentityAssociation(mockProvider, associationID1, associationARN1, namespace1, serviceAccountName1)
-				mockDescribePodIdentityAssociation(mockProvider, associationID2, associationARN2, namespace1, serviceAccountName2)
+				mockDescribePodIdentityAssociationWithOwnerARN(mockProvider, associationID2, associationARN2, namespace1, serviceAccountName2,
+					"arn:aws:eks:us-west-2:00:addon/cluster/vpc-cni/14c7a7ae-78a2-2c58-609e-d80af6f7bb3e")
 				mockDescribePodIdentityAssociation(mockProvider, associationID3, associationARN3, namespace2, serviceAccountName2)
 			},
 			expectedAssociations: []podidentityassociation.Summary{
@@ -142,6 +143,7 @@ var _ = Describe("Get", func() {
 					Namespace:          namespace1,
 					ServiceAccountName: serviceAccountName2,
 					RoleARN:            roleARN,
+					OwnerARN:           "arn:aws:eks:us-west-2:00:addon/cluster/vpc-cni/14c7a7ae-78a2-2c58-609e-d80af6f7bb3e",
 				},
 				{
 					AssociationARN:     associationARN3,
@@ -249,6 +251,13 @@ func mockDescribePodIdentityAssociation(
 	mp *mockprovider.MockProvider,
 	associationID, associationARN, namespace, serviceAccount string,
 ) {
+	mockDescribePodIdentityAssociationWithOwnerARN(mp, associationID, associationARN, namespace, serviceAccount, "")
+}
+
+func mockDescribePodIdentityAssociationWithOwnerARN(
+	mp *mockprovider.MockProvider,
+	associationID, associationARN, namespace, serviceAccount, ownerARN string,
+) {
 	mp.MockEKS().
 		On("DescribePodIdentityAssociation", mock.Anything, &awseks.DescribePodIdentityAssociationInput{
 			ClusterName:   aws.String(clusterName),
@@ -260,6 +269,7 @@ func mockDescribePodIdentityAssociation(
 				Namespace:      &namespace,
 				ServiceAccount: &serviceAccount,
 				RoleArn:        &roleARN,
+				OwnerArn:       &ownerARN,
 			},
 		}, nil).
 		Once()

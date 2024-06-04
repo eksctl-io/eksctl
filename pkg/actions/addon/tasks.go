@@ -9,50 +9,46 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
+func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
 	preTasks := &tasks.TaskTree{Parallel: false}
 	postTasks := &tasks.TaskTree{Parallel: false}
 	var preAddons []*api.Addon
 	var postAddons []*api.Addon
 	for _, addon := range cfg.Addons {
-		if strings.EqualFold(addon.Name, api.VPCCNIAddon) {
+		if strings.EqualFold(addon.Name, api.VPCCNIAddon) ||
+			strings.EqualFold(addon.Name, api.PodIdentityAgentAddon) {
 			preAddons = append(preAddons, addon)
 		} else {
 			postAddons = append(postAddons, addon)
 		}
 	}
 
-	preTasks.Append(
-		&createAddonTask{
-			info:            "create addons",
-			addons:          preAddons,
-			ctx:             ctx,
-			cfg:             cfg,
-			clusterProvider: clusterProvider,
-			forceAll:        forceAll,
-			timeout:         timeout,
-			wait:            false,
-		},
-	)
+	preAddonsTask := createAddonTask{
+		info:            "create addons",
+		addons:          preAddons,
+		ctx:             ctx,
+		cfg:             cfg,
+		clusterProvider: clusterProvider,
+		forceAll:        forceAll,
+		timeout:         timeout,
+		wait:            false,
+		iamRoleCreator:  iamRoleCreator,
+	}
 
-	postTasks.Append(
-		&createAddonTask{
-			info:            "create addons",
-			addons:          postAddons,
-			ctx:             ctx,
-			cfg:             cfg,
-			clusterProvider: clusterProvider,
-			forceAll:        forceAll,
-			timeout:         timeout,
-			wait:            cfg.HasNodes(),
-		},
-	)
+	preTasks.Append(&preAddonsTask)
+
+	postAddonsTask := preAddonsTask
+	postAddonsTask.addons = postAddons
+	postAddonsTask.wait = cfg.HasNodes()
+	postTasks.Append(&postAddonsTask)
+
 	return preTasks, postTasks
 }
 
@@ -66,6 +62,7 @@ type createAddonTask struct {
 	addons          []*api.Addon
 	forceAll, wait  bool
 	timeout         time.Duration
+	iamRoleCreator  IAMRoleCreator
 }
 
 func (t *createAddonTask) Describe() string { return t.info }
@@ -90,11 +87,32 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		return err
 	}
 
+	// always install EKS Pod Identity Agent Addon first, if present,
+	// as other addons might require IAM permissions
 	for _, a := range t.addons {
+		if a.CanonicalName() != api.PodIdentityAgentAddon {
+			continue
+		}
 		if t.forceAll {
 			a.Force = true
 		}
-		err := addonManager.Create(t.ctx, a, t.timeout)
+		err := addonManager.Create(t.ctx, a, t.iamRoleCreator, t.timeout)
+		if err != nil {
+			go func() {
+				errorCh <- err
+			}()
+			return err
+		}
+	}
+
+	for _, a := range t.addons {
+		if a.CanonicalName() == api.PodIdentityAgentAddon {
+			continue
+		}
+		if t.forceAll {
+			a.Force = true
+		}
+		err := addonManager.Create(t.ctx, a, t.iamRoleCreator, t.timeout)
 		if err != nil {
 			go func() {
 				errorCh <- err
@@ -131,5 +149,24 @@ func (t *deleteAddonIAMTask) Do(errorCh chan error) error {
 	if _, err := t.stackManager.DeleteStackBySpec(t.ctx, t.stack); err != nil {
 		return fmt.Errorf("%s: %w", errMsg, err)
 	}
+	return nil
+}
+
+func runAllTasks(taskTree *tasks.TaskTree) error {
+	logger.Debug(taskTree.Describe())
+	if errs := taskTree.DoAllSync(); len(errs) > 0 {
+		var allErrs []string
+		for _, err := range errs {
+			allErrs = append(allErrs, err.Error())
+		}
+		return fmt.Errorf(strings.Join(allErrs, "\n"))
+	}
+	completedAction := func() string {
+		if taskTree.PlanMode {
+			return "skipped"
+		}
+		return "completed successfully"
+	}
+	logger.Debug("all tasks were %s", completedAction())
 	return nil
 }
