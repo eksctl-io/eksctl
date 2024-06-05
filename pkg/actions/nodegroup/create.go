@@ -410,6 +410,16 @@ func validateSecurityGroup(ctx context.Context, ec2API awsapi.EC2, securityGroup
 }
 
 func validateSubnetsAvailability(spec *api.ClusterConfig) error {
+	getAZs := func(subnetMapping api.AZSubnetMapping) map[string]struct{} {
+		azs := make(map[string]struct{})
+		for _, subnet := range subnetMapping {
+			azs[subnet.AZ] = struct{}{}
+		}
+		return azs
+	}
+	privateAZs := getAZs(spec.VPC.Subnets.Private)
+	publicAZs := getAZs(spec.VPC.Subnets.Public)
+
 	validateSubnetsAvailabilityForNg := func(np api.NodePool) error {
 		ng := np.BaseNodeGroup()
 		subnetTypeForPrivateNetworking := map[bool]string{
@@ -433,27 +443,29 @@ func validateSubnetsAvailability(spec *api.ClusterConfig) error {
 		shouldCheckAcrossAllAZs := true
 		for _, az := range ng.AvailabilityZones {
 			shouldCheckAcrossAllAZs = false
-			if _, ok := spec.VPC.Subnets.Private[az]; !ok && ng.PrivateNetworking {
+			if _, ok := privateAZs[az]; !ok && ng.PrivateNetworking {
 				return unavailableSubnetsErr(az)
 			}
-			if _, ok := spec.VPC.Subnets.Public[az]; !ok && !ng.PrivateNetworking {
+			if _, ok := publicAZs[az]; !ok && !ng.PrivateNetworking {
 				return unavailableSubnetsErr(az)
 			}
 		}
 		if shouldCheckAcrossAllAZs {
-			if ng.PrivateNetworking && len(spec.VPC.Subnets.Private) == 0 {
+			if ng.PrivateNetworking && len(privateAZs) == 0 {
 				return unavailableSubnetsErr(spec.VPC.ID)
 			}
-			if !ng.PrivateNetworking && len(spec.VPC.Subnets.Public) == 0 {
+			if !ng.PrivateNetworking && len(publicAZs) == 0 {
 				return unavailableSubnetsErr(spec.VPC.ID)
 			}
 		}
 		return nil
 	}
+
 	for _, np := range nodes.ToNodePools(spec) {
 		if err := validateSubnetsAvailabilityForNg(np); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
