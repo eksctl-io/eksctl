@@ -62,6 +62,10 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
 		Entry("AL2", gpuInstanceEntry{
+			gpuInstanceType: "g6.12xlarge",
+			amiFamily:       api.NodeImageFamilyAmazonLinux2,
+		}),
+		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "g5.12xlarge",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
@@ -122,6 +126,10 @@ var _ = Describe("GPU instance support", func() {
 		}),
 		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "g4dn.xlarge",
+			amiFamily:       api.NodeImageFamilyAmazonLinux2,
+		}),
+		Entry("AL2", gpuInstanceEntry{
+			gpuInstanceType: "g6.12xlarge",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
 		Entry("AL2", gpuInstanceEntry{
