@@ -2,16 +2,19 @@ package ami_test
 
 import (
 	"context"
+	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
 	. "github.com/weaveworks/eksctl/pkg/ami"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
@@ -395,6 +398,19 @@ var _ = Describe("AMI Auto Resolution", func() {
 					})
 				})
 			})
+		})
+	})
+
+	Context("managed SSM parameter name", func() {
+		It("should support SSM parameter generation for all AMI types but Windows", func() {
+			var eksAMIType ekstypes.AMITypes
+			for _, amiType := range eksAMIType.Values() {
+				if amiType == ekstypes.AMITypesCustom || strings.HasPrefix(string(amiType), "WINDOWS_") {
+					continue
+				}
+				ssmParameterName := MakeManagedSSMParameterName(api.LatestVersion, amiType)
+				Expect(ssmParameterName).NotTo(BeEmpty(), "expected to generate SSM parameter name for AMI type %s", amiType)
+			}
 		})
 	})
 })
