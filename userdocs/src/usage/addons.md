@@ -7,7 +7,7 @@ CNI plugin through the EKS API
 ## Creating addons (and providing IAM permissions via IRSA)
 
 !!! tip "New for 2024"
-EKS Add-ons now support receiving IAM permissions, required to connect with AWS services outside of cluster, via [EKS Pod Identity Associations](/usage/pod-identity-associations/#eks-add-ons-support-for-pod-identity-associations)
+    EKS Add-ons now support receiving IAM permissions, required to connect with AWS services outside of cluster, via [EKS Pod Identity Associations](/usage/pod-identity-associations/#eks-add-ons-support-for-pod-identity-associations)
 
 In your config file, you can specify the addons you want and (if required) the role or policies to attach to them:
 

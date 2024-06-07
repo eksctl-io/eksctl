@@ -49,7 +49,8 @@ func IsNvidiaInstanceType(instanceType string) bool {
 		strings.HasPrefix(instanceType, "p5") ||
 		strings.HasPrefix(instanceType, "g3") ||
 		strings.HasPrefix(instanceType, "g4") ||
-		strings.HasPrefix(instanceType, "g5")
+		strings.HasPrefix(instanceType, "g5") ||
+		strings.HasPrefix(instanceType, "g6")
 }
 
 // IsInferentiaInstanceType returns true if the instance type requires AWS Neuron

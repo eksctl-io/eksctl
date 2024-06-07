@@ -160,13 +160,10 @@ generate-all: generate-always $(conditionally_generated_files) ## Re-generate al
 check-all-generated-files-up-to-date: generate-all ## Run the generate all command and verify there is no new diff
 	git diff --quiet -- $(conditionally_generated_files) || (git --no-pager diff $(conditionally_generated_files); echo "HINT: to fix this, run 'git commit $(conditionally_generated_files) --message \"Update generated files\"'"; exit 1)
 
-### Update aws-node addon manifests from AWS
-pkg/addons/default/assets/aws-node.yaml:
-	go generate ./pkg/addons/default/aws_node_generate.go
 
 .PHONY: update-aws-node
 update-aws-node: ## Re-download the aws-node manifests from AWS
-	go generate ./pkg/addons/default/aws_node_generate.go
+	pkg/addons/default/scripts/update_aws_node.sh
 
 .PHONY:
 update-coredns: ## get latest coredns builds for each available eks version

@@ -56,6 +56,11 @@ spec:
                       - g4dn.8xlarge
                       - g4dn.metal
                       - g5.48xlarge
+                      - g6.8xlarge
+                      - g6.12xlarge
+                      - g6.16xlarge
+                      - g6.24xlarge
+                      - g6.48xlarge
                       - hpc6a.48xlarge
                       - i3en.12xlarge
                       - i3en.24xlarge
@@ -113,6 +118,11 @@ spec:
                       - g4dn.8xlarge
                       - g4dn.metal
                       - g5.48xlarge
+                      - g6.8xlarge
+                      - g6.12xlarge
+                      - g6.16xlarge
+                      - g6.24xlarge
+                      - g6.48xlarge
                       - hpc6a.48xlarge
                       - i3en.12xlarge
                       - i3en.24xlarge

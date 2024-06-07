@@ -84,24 +84,29 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 }
 
 // MakeManagedSSMParameterName creates an SSM parameter name for a managed nodegroup
-func MakeManagedSSMParameterName(version string, amiType ekstypes.AMITypes) (string, error) {
+func MakeManagedSSMParameterName(version string, amiType ekstypes.AMITypes) string {
+	makeAL2ParameterName := func(imageTypeSuffix string) string {
+		imageType := utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2) + imageTypeSuffix
+		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/release_version", version, imageType)
+	}
 	switch amiType {
 	case ekstypes.AMITypesAl2023X8664Standard:
-		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/x86_64/standard/recommended/release_version", version, utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2023)), nil
+		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/x86_64/standard/recommended/release_version", version, utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2023))
 	case ekstypes.AMITypesAl2023Arm64Standard:
-		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/arm64/standard/recommended/release_version", version, utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2023)), nil
+		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/arm64/standard/recommended/release_version", version, utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2023))
 	case ekstypes.AMITypesAl2X8664:
-		imageType := utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2)
-		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/release_version", version, imageType), nil
+		return makeAL2ParameterName("")
 	case ekstypes.AMITypesAl2X8664Gpu:
-		imageType := utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2) + "-gpu"
-		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/release_version", version, imageType), nil
+		return makeAL2ParameterName("-gpu")
+	case ekstypes.AMITypesAl2Arm64:
+		return makeAL2ParameterName("-arm64")
 	case ekstypes.AMITypesBottlerocketArm64, ekstypes.AMITypesBottlerocketArm64Nvidia:
-		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/arm64/latest/image_version", version), nil
+		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/arm64/latest/image_version", version)
 	case ekstypes.AMITypesBottlerocketX8664, ekstypes.AMITypesBottlerocketX8664Nvidia:
-		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/x86_64/latest/image_version", version), nil
+		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/x86_64/latest/image_version", version)
+	default:
+		return ""
 	}
-	return "", nil
 }
 
 // instanceEC2ArchName returns the name of the architecture as used by EC2
