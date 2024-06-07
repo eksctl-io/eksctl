@@ -266,7 +266,9 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 		latestReleaseVersion, err := m.getLatestReleaseVersion(ctx, kubernetesVersion, nodegroup)
 		if err != nil {
 			return err
-		} else if latestReleaseVersion != "" {
+		}
+
+		if latestReleaseVersion != "" {
 			if err := m.updateReleaseVersion(latestReleaseVersion, options.LaunchTemplateVersion, nodegroup, ngResource); err != nil {
 				return err
 			}
@@ -337,15 +339,10 @@ func (m *Manager) requiresStackUpdate(ctx context.Context, nodeGroupName string)
 }
 
 func (m *Manager) getLatestReleaseVersion(ctx context.Context, kubernetesVersion string, nodeGroup *ekstypes.Nodegroup) (string, error) {
-	ssmParameterName, err := ami.MakeManagedSSMParameterName(kubernetesVersion, nodeGroup.AmiType)
-	if err != nil {
-		return "", err
-	}
-
+	ssmParameterName := ami.MakeManagedSSMParameterName(kubernetesVersion, nodeGroup.AmiType)
 	if ssmParameterName == "" {
 		return "", nil
 	}
-
 	ssmOutput, err := m.ctl.AWSProvider.SSM().GetParameter(ctx, &ssm.GetParameterInput{
 		Name: &ssmParameterName,
 	})
