@@ -128,7 +128,7 @@ IamLimitedAccess
                 "iam:DeleteRole",
                 "iam:AttachRolePolicy",
                 "iam:PutRolePolicy",
-                "iam:UpdateAssumeRolePolicy"
+                "iam:UpdateAssumeRolePolicy",
                 "iam:AddRoleToInstanceProfile",
                 "iam:ListInstanceProfilesForRole",
                 "iam:PassRole",
