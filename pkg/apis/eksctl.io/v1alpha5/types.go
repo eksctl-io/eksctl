@@ -43,11 +43,10 @@ const (
 
 	Version1_29 = "1.29"
 
-	// Version1_30 represents Kubernetes version 1.30.x.
 	Version1_30 = "1.30"
 
 	// DefaultVersion (default)
-	DefaultVersion = Version1_29
+	DefaultVersion = Version1_30
 
 	LatestVersion = Version1_30
 
