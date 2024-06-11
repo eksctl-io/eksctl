@@ -84,6 +84,9 @@ func setNonEmpty(field string) error {
 
 // ValidateClusterConfig checks compatible fields of a given ClusterConfig
 func ValidateClusterConfig(cfg *ClusterConfig) error {
+	if err := validateBareCluster(cfg); err != nil {
+		return err
+	}
 	if IsDisabled(cfg.IAM.WithOIDC) && len(cfg.IAM.ServiceAccounts) > 0 {
 		return fmt.Errorf("iam.withOIDC must be enabled explicitly for iam.serviceAccounts to be created")
 	}
