@@ -87,7 +87,7 @@
   "ManagedNodeGroup": {
     "Type": "AWS::EKS::Nodegroup",
     "Properties": {
-      "AmiType": "AL2_x86_64",
+      "AmiType": "AL2023_x86_64_STANDARD",
       "ClusterName": "lt",
       "Labels": {
         "alpha.eksctl.io/cluster-name": "lt",
