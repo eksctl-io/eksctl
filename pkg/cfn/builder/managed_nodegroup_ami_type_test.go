@@ -64,7 +64,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 				Name: "test",
 			},
 		},
-		expectedAMIType: "AL2_x86_64",
+		expectedAMIType: "AL2023_x86_64_STANDARD",
 	}),
 
 	Entry("AL2 AMI type", amiTypeEntry{
@@ -83,7 +83,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 				Name: "test",
 			},
 		},
-		expectedAMIType: "AL2_x86_64",
+		expectedAMIType: "AL2023_x86_64_STANDARD",
 	}),
 
 	Entry("default GPU instance type", amiTypeEntry{
