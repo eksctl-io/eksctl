@@ -441,6 +441,7 @@ const (
 	VPCCNIAddon                 = "vpc-cni"
 	KubeProxyAddon              = "kube-proxy"
 	CoreDNSAddon                = "coredns"
+	AdotAddon                   = "adot"
 	PodIdentityAgentAddon       = "eks-pod-identity-agent"
 	AWSEBSCSIDriverAddon        = "aws-ebs-csi-driver"
 	AWSEFSCSIDriverAddon        = "aws-efs-csi-driver"
