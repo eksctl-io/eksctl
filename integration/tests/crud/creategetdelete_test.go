@@ -66,6 +66,7 @@ func TestCRUD(t *testing.T) {
 }
 
 const (
+	deployNg        = "ng-deploy"
 	deleteNg        = "ng-delete"
 	taintsNg1       = "ng-taints-1"
 	taintsNg2       = "ng-taints-2"
@@ -131,6 +132,17 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		},
 	}
 	cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
+		{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name: deployNg,
+				ScalingConfig: &api.ScalingConfig{
+					DesiredCapacity: aws.Int(5),
+				},
+				Labels: map[string]string{
+					"used-for": "test-pods",
+				},
+			},
+		},
 		{
 			NodeGroupBase: &api.NodeGroupBase{
 				Name: drainMng,
@@ -1196,6 +1208,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				"-o", "json",
 				"--cluster", params.ClusterName,
 			)).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
+				ContainElement(deployNg),
 				ContainElement(taintsNg1),
 				ContainElement(taintsNg2),
 				ContainElement(scaleSingleNg),
