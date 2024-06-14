@@ -10,6 +10,8 @@ spec:
     metadata:
       labels: {test: http}
     spec:
+      nodeSelector:
+        used-for: test-pods
       containers:
       - image: curlimages/curl@sha256:fa32ef426092b88ee0b569d6f81ab0203ee527692a94ec2e6ceb2fd0b6b2755c
         name: https-test-eksctl
