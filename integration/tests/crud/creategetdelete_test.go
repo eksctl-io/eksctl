@@ -226,7 +226,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			Expect(session.ExitCode()).To(BeZero())
 			var stacks []*cfntypes.Stack
 			Expect(yaml.Unmarshal(session.Out.Contents(), &stacks)).To(Succeed())
-			Expect(stacks).To(HaveLen(6))
+			Expect(stacks).To(HaveLen(7))
 
 			var (
 				names, descriptions []string
@@ -239,6 +239,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 			Expect(names).To(ContainElements(
 				ContainSubstring(params.ClusterName+"-cluster"),
+				ContainSubstring(ngPrefix+deployNg),
 				ContainSubstring(ngPrefix+deleteNg),
 				ContainSubstring(ngPrefix+scaleSingleNg),
 				ContainSubstring(ngPrefix+scaleMultipleNg),
