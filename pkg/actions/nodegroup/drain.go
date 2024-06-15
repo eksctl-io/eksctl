@@ -58,6 +58,6 @@ func (d *Drainer) Drain(ctx context.Context, input *DrainInput) error {
 
 func waitForAllRoutinesToFinish(ctx context.Context, sem *semaphore.Weighted, size int64) {
 	if err := sem.Acquire(ctx, size); err != nil {
-		logger.Critical("failed to acquire semaphore while waiting for all routines to finish: %w", err)
+		logger.Critical("failed to acquire semaphore while waiting for all routines to finish: %v", err)
 	}
 }
