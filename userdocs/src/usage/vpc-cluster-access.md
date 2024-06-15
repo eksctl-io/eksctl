@@ -63,7 +63,7 @@ vpc:
 To update the restrictions on an existing cluster, use:
 
 ```console
-eksctl utils update-cluster-vpc-config --cluster=<cluster> 1.1.1.1/32,2.2.2.0/24
+eksctl utils update-cluster-vpc-config --cluster=<cluster> --public-access-cidrs 1.1.1.1/32,2.2.2.0/24
 ```
 
 !!! warning
