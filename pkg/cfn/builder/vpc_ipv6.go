@@ -51,8 +51,11 @@ func (v *IPv6VPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Value, *
 		})
 	}
 
+	cidrPartitions, _, err := vpc.GetSubnetNetworkSize(v.clusterConfig.VPC.CIDR.IPNet, len(v.clusterConfig.AvailabilityZones)*2)
+	if err != nil {
+		return nil, nil, err
+	}
 	var privateSubnets []SubnetResource
-	cidrPartitions := (len(v.clusterConfig.AvailabilityZones) * 2) + 2
 	for i, az := range v.clusterConfig.AvailabilityZones {
 		azFormatted := formatAZ(az)
 		rtRef := v.rs.newResource(PrivateRouteTableKey+azFormatted, &gfnec2.RouteTable{

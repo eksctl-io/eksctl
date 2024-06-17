@@ -20,6 +20,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 
 	_ "embed"
 )
@@ -107,6 +108,7 @@ var _ = Describe("Cluster Template Builder", func() {
 
 		Context("when ipFamily is set to IPv6", func() {
 			BeforeEach(func() {
+				cfg.VPC.CIDR = &ipnet.IPNet{}
 				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
 			})
 
@@ -364,6 +366,7 @@ var _ = Describe("Cluster Template Builder", func() {
 		Context("when private networking is set", func() {
 			BeforeEach(func() {
 				cfg.PrivateCluster = &api.PrivateCluster{Enabled: true}
+				cfg.VPC.CIDR = &ipnet.IPNet{}
 
 				detailsJSON := `
 				{
