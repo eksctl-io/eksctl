@@ -36,7 +36,7 @@ func SetSubnets(vpc *api.ClusterVPC, availabilityZones, localZones []string) err
 	zonesTotal := len(availabilityZones) + len(localZones)
 	subnetsTotal := zonesTotal * 2
 
-	subnetSize, networkLength, err := getSubnetNetworkSize(vpc.CIDR.IPNet, subnetsTotal)
+	subnetSize, networkLength, err := GetSubnetNetworkSize(vpc.CIDR.IPNet, subnetsTotal)
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ type SubnetPair struct {
 
 // ExtendWithOutpostSubnets extends the VPC by returning public and private subnet CIDRs for Outposts.
 func ExtendWithOutpostSubnets(vpcCIDR net.IPNet, existingSubnetsCount int, outpostARN, outpostAZ string) (*SubnetPair, error) {
-	subnetSize, networkLength, err := getSubnetNetworkSize(vpcCIDR, existingSubnetsCount)
+	subnetSize, networkLength, err := GetSubnetNetworkSize(vpcCIDR, existingSubnetsCount)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func ExtendWithOutpostSubnets(vpcCIDR net.IPNet, existingSubnetsCount int, outpo
 	}, nil
 }
 
-func getSubnetNetworkSize(vpcCIDR net.IPNet, subnetsTotal int) (subnetSize, networkLength int, err error) {
+func GetSubnetNetworkSize(vpcCIDR net.IPNet, subnetsTotal int) (subnetSize, networkLength int, err error) {
 	switch maskSize, _ := vpcCIDR.Mask.Size(); {
 	case subnetsTotal == 2:
 		subnetSize = 2
