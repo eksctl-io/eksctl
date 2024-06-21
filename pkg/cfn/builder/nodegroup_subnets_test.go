@@ -267,7 +267,7 @@ var _ = Describe("AssignSubnets", func() {
 				}
 			},
 			updateEC2Mocks: func(e *mocksv2.EC2) {
-				e.On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).
+				e.On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything, mock.Anything).
 					Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 						InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 							{
@@ -321,7 +321,7 @@ var _ = Describe("AssignSubnets", func() {
 				}
 			},
 			updateEC2Mocks: func(e *mocksv2.EC2) {
-				e.On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).
+				e.On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything, mock.Anything).
 					Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 						InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 							{
@@ -375,7 +375,7 @@ var _ = Describe("AssignSubnets", func() {
 				}
 			},
 			updateEC2Mocks: func(e *mocksv2.EC2) {
-				e.On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).
+				e.On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything, mock.Anything).
 					Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 						InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 							{
@@ -472,7 +472,7 @@ func mockDescribeSubnets(ec2Mock *mocksv2.EC2, zoneName, vpcID string) {
 }
 
 func mockDescribeSubnetsWithOutpost(ec2Mock *mocksv2.EC2, zoneName, vpcID string, outpostARN *string) {
-	ec2Mock.On("DescribeSubnets", mock.Anything, mock.Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
+	ec2Mock.On("DescribeSubnets", mock.Anything, mock.Anything, mock.Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
 		return &ec2.DescribeSubnetsOutput{
 			Subnets: []ec2types.Subnet{
 				{
@@ -559,7 +559,7 @@ func mockSubnetsAndAZInstanceSupport(
 			AvailabilityZones: azs,
 		}, nil)
 	provider.MockEC2().
-		On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).
+		On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything, mock.Anything).
 		Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 			InstanceTypeOfferings: offerings,
 		}, nil)

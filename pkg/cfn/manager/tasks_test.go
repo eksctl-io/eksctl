@@ -203,7 +203,7 @@ var _ = Describe("StackCollection Tasks", func() {
 				stackManager = NewStackCollection(p, cfg)
 			})
 			It("returns an error", func() {
-				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{}, nil)
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{}, nil)
 				ng := api.NewManagedNodeGroup()
 				fakeVPCImporter := new(vpcfakes.FakeImporter)
 				tasks := stackManager.NewManagedNodeGroupTask(context.Background(), []*api.ManagedNodeGroup{ng}, false, fakeVPCImporter)
@@ -213,7 +213,7 @@ var _ = Describe("StackCollection Tasks", func() {
 			})
 			When("finding the stack fails", func() {
 				It("returns the stack error", func() {
-					p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(nil, errors.New("not found"))
+					p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("not found"))
 					ng := api.NewManagedNodeGroup()
 					fakeVPCImporter := new(vpcfakes.FakeImporter)
 					tasks := stackManager.NewManagedNodeGroupTask(context.Background(), []*api.ManagedNodeGroup{ng}, false, fakeVPCImporter)
@@ -253,7 +253,7 @@ var _ = Describe("StackCollection Tasks", func() {
 	},
 		Entry("an OIDC provider is associated with the cluster", oidcEntry{
 			mockProvider: func(p *mockprovider.MockProvider) {
-				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
 					StackSummaries: []cfntypes.StackSummary{},
 				}, nil)
 			},
@@ -268,7 +268,7 @@ var _ = Describe("StackCollection Tasks", func() {
 
 		Entry("cluster has IAM service accounts", oidcEntry{
 			mockProvider: func(p *mockprovider.MockProvider) {
-				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
 					StackSummaries: []cfntypes.StackSummary{
 						{
 							StackName: aws.String("eksctl-test-cluster-addon-iamserviceaccount-test"),
@@ -298,7 +298,7 @@ var _ = Describe("StackCollection Tasks", func() {
 
 		Entry("OIDC provider and service accounts do not exist for the cluster", oidcEntry{
 			mockProvider: func(p *mockprovider.MockProvider) {
-				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
 					StackSummaries: []cfntypes.StackSummary{},
 				}, nil)
 			},
@@ -309,7 +309,7 @@ var _ = Describe("StackCollection Tasks", func() {
 
 		Entry("OIDC provider definitely does not exist for the cluster", oidcEntry{
 			mockProvider: func(p *mockprovider.MockProvider) {
-				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
 					StackSummaries: []cfntypes.StackSummary{},
 				}, nil)
 			},

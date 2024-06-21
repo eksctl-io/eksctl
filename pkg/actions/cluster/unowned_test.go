@@ -116,7 +116,7 @@ var _ = Describe("Delete", func() {
 
 			p.MockEC2().On("DescribeKeyPairs", mock.Anything, mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
 
-			p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
+			p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
 			fakeStackManager.GetFargateStackReturns(&types.Stack{StackName: aws.String("fargate-role")}, nil)
 			fakeStackManager.DeleteStackBySpecReturns(nil, nil)
@@ -205,7 +205,7 @@ var _ = Describe("Delete", func() {
 
 				p.MockEC2().On("DescribeKeyPairs", mock.Anything, mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
 
-				p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
+				p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
 				fakeStackManager.GetFargateStackReturns(nil, nil)
 				fakeStackManager.DeleteStackBySpecReturns(nil, nil)
@@ -308,7 +308,7 @@ var _ = Describe("Delete", func() {
 
 				p.MockEC2().On("DescribeKeyPairs", mock.Anything, mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
 
-				p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
+				p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
 				fakeStackManager.GetFargateStackReturns(nil, nil)
 				fakeStackManager.DeleteStackBySpecReturns(nil, nil)
@@ -391,7 +391,7 @@ var _ = Describe("Delete", func() {
 
 			p.MockEC2().On("DescribeKeyPairs", mock.Anything, mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
 
-			p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
+			p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
 			p.MockEKS().On("ListNodegroups", mock.Anything, mock.Anything).Return(&awseks.ListNodegroupsOutput{
 				Nodegroups: []string{"ng-1", "ng-2"},

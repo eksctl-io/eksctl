@@ -110,7 +110,7 @@ var _ = Describe("EKS API wrapper", func() {
 							}
 						}
 						return matches == len(expectedStatusFilter)
-					})).Return(&cfn.ListStacksOutput{}, nil)
+					}), mock.Anything).Return(&cfn.ListStacksOutput{}, nil)
 				})
 
 				JustBeforeEach(func() {

@@ -222,7 +222,7 @@ var _ = Describe("Existing VPC", func() {
 
 					mockEC2.On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 						return len(input.Filters) > 0
-					})).Return(mockResultFn, nil)
+					}), mock.Anything).Return(mockResultFn, nil)
 				})
 
 				It("the private subnet resource values are loaded into the VPCResource with route table association", func() {
@@ -245,7 +245,7 @@ var _ = Describe("Existing VPC", func() {
 					rtOutput.RouteTables[0].Associations[0].Main = aws.Bool(true)
 					mockEC2.On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 						return len(input.Filters) > 0
-					})).Return(rtOutput, nil)
+					}), mock.Anything).Return(rtOutput, nil)
 				})
 
 				It("returns an error", func() {
@@ -258,7 +258,7 @@ var _ = Describe("Existing VPC", func() {
 					rtOutput.RouteTables[0].Associations[0].SubnetId = aws.String("fake")
 					mockEC2.On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 						return len(input.Filters) > 0
-					})).Return(rtOutput, nil)
+					}), mock.Anything).Return(rtOutput, nil)
 				})
 
 				It("returns an error", func() {
