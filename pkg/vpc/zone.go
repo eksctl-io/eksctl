@@ -40,7 +40,7 @@ func DiscoverZoneTypes(ctx context.Context, ec2API awsapi.EC2, region string) (m
 	zoneTypeMapping := map[string]ZoneType{}
 	for _, z := range output.AvailabilityZones {
 		switch *z.ZoneType {
-		case "availability-zone":
+		case "availability-zone", "wavelength-zone":
 			zoneTypeMapping[*z.ZoneName] = ZoneTypeAvailabilityZone
 		case "local-zone":
 			zoneTypeMapping[*z.ZoneName] = ZoneTypeLocalZone
