@@ -261,8 +261,8 @@ var _ = Describe("eksctl API", func() {
 
 		})
 
-		testEnsureAMI := func(matcher gomegatypes.GomegaMatcher) {
-			err := ResolveAMI(context.Background(), provider, "1.14", ng)
+		testEnsureAMI := func(matcher gomegatypes.GomegaMatcher, version string) {
+			err := ResolveAMI(context.Background(), provider, version, ng)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 			ExpectWithOffset(1, ng.AMI).To(matcher)
 		}
@@ -276,7 +276,7 @@ var _ = Describe("eksctl API", func() {
 				},
 			}, nil)
 
-			testEnsureAMI(Equal("ami-ssm"))
+			testEnsureAMI(Equal("ami-ssm"), "1.14")
 		})
 
 		It("should fall back to auto resolution for Ubuntu1804", func() {
@@ -284,15 +284,28 @@ var _ = Describe("eksctl API", func() {
 			mockDescribeImages(provider, "ami-ubuntu", func(input *ec2.DescribeImagesInput) bool {
 				return input.Owners[0] == "099720109477"
 			})
-			testEnsureAMI(Equal("ami-ubuntu"))
+			testEnsureAMI(Equal("ami-ubuntu"), "1.14")
 		})
 
-		It("should fall back to auto resolution for Ubuntu2004", func() {
+		It("should fall back to auto resolution for Ubuntu2004 on 1.14", func() {
 			ng.AMIFamily = api.NodeImageFamilyUbuntu2004
 			mockDescribeImages(provider, "ami-ubuntu", func(input *ec2.DescribeImagesInput) bool {
 				return input.Owners[0] == "099720109477"
 			})
-			testEnsureAMI(Equal("ami-ubuntu"))
+			testEnsureAMI(Equal("ami-ubuntu"), "1.14")
+		})
+
+		It("should resolve AMI using SSM Parameter Store for Ubuntu2004 on 1.29", func() {
+			provider.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
+				Name: aws.String("/aws/service/canonical/ubuntu/eks/20.04/1.29/stable/current/amd64/hvm/ebs-gp2/ami-id"),
+			}).Return(&ssm.GetParameterOutput{
+				Parameter: &ssmtypes.Parameter{
+					Value: aws.String("ami-ubuntu"),
+				},
+			}, nil)
+			ng.AMIFamily = api.NodeImageFamilyUbuntu2004
+
+			testEnsureAMI(Equal("ami-ubuntu"), "1.29")
 		})
 
 		It("should fall back to auto resolution for Ubuntu2204", func() {
@@ -300,7 +313,7 @@ var _ = Describe("eksctl API", func() {
 			mockDescribeImages(provider, "ami-ubuntu", func(input *ec2.DescribeImagesInput) bool {
 				return input.Owners[0] == "099720109477"
 			})
-			testEnsureAMI(Equal("ami-ubuntu"))
+			testEnsureAMI(Equal("ami-ubuntu"), "1.14")
 		})
 
 		It("should fall back to auto resolution for UbuntuPro2204", func() {
@@ -308,7 +321,7 @@ var _ = Describe("eksctl API", func() {
 			mockDescribeImages(provider, "ami-ubuntu", func(input *ec2.DescribeImagesInput) bool {
 				return input.Owners[0] == "099720109477"
 			})
-			testEnsureAMI(Equal("ami-ubuntu"))
+			testEnsureAMI(Equal("ami-ubuntu"), "1.14")
 		})
 
 		It("should retrieve the AMI from EC2 when AMI is auto", func() {
@@ -318,7 +331,7 @@ var _ = Describe("eksctl API", func() {
 				return len(input.ImageIds) == 0
 			})
 
-			testEnsureAMI(Equal("ami-auto"))
+			testEnsureAMI(Equal("ami-auto"), "1.14")
 		})
 	})
 
