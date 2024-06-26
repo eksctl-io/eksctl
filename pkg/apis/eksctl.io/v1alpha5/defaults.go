@@ -80,7 +80,7 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 // IAM SAs that need to be explicitly deleted.
 func IAMServiceAccountsWithImplicitServiceAccounts(cfg *ClusterConfig) []*ClusterIAMServiceAccount {
 	serviceAccounts := cfg.IAM.ServiceAccounts
-	if IsEnabled(cfg.IAM.WithOIDC) && !vpcCNIAddonSpecified(cfg) {
+	if IsEnabled(cfg.IAM.WithOIDC) && !vpcCNIAddonSpecified(cfg) && !cfg.AddonsConfig.DisableDefaultAddons {
 		var found bool
 		for _, sa := range cfg.IAM.ServiceAccounts {
 			found = found || (sa.Name == AWSNodeMeta.Name && sa.Namespace == AWSNodeMeta.Namespace)
