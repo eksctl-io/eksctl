@@ -26,10 +26,12 @@ var knownAddons = map[string]struct {
 		CreateBeforeNodeGroup: true,
 	},
 	api.KubeProxyAddon: {
-		IsDefault: true,
+		IsDefault:             true,
+		CreateBeforeNodeGroup: true,
 	},
 	api.CoreDNSAddon: {
-		IsDefault: true,
+		IsDefault:             true,
+		CreateBeforeNodeGroup: true,
 	},
 	api.PodIdentityAgentAddon: {
 		CreateBeforeNodeGroup: true,
@@ -138,6 +140,9 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		if t.forceAll {
 			a.Force = true
 		}
+		if !t.wait {
+			t.timeout = 0
+		}
 		err := addonManager.Create(t.ctx, a, t.iamRoleCreator, t.timeout)
 		if err != nil {
 			go func() {
@@ -153,6 +158,9 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		}
 		if t.forceAll {
 			a.Force = true
+		}
+		if !t.wait {
+			t.timeout = 0
 		}
 		err := addonManager.Create(t.ctx, a, t.iamRoleCreator, t.timeout)
 		if err != nil {
