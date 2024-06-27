@@ -170,7 +170,7 @@
                   "-conf",
                   "/etc/coredns/Corefile"
                 ],
-                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.9.3-eksbuild.7",
+                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.9.3-eksbuild.15",
                 "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "failureThreshold": 5,
