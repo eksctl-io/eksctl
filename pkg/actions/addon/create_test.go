@@ -371,6 +371,16 @@ var _ = Describe("Create", func() {
 			},
 		}),
 
+		Entry("[Checking Prerequisites Error] ADOT is missing cert-manager", createAddonEntry{
+			addon: api.Addon{
+				Name: api.AdotAddon,
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+			},
+			expectedErr: "validating pre-requisites for \"adot\" addon: \"cert-manager\" deployment not found",
+		}),
+
 		Entry("[Resolve version] no version found", createAddonEntry{
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				mockDescribeAddon(provider.MockEKS(), nil)

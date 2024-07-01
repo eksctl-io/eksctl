@@ -3,9 +3,11 @@ package addon
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
+	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pkg/errors"
@@ -97,6 +99,10 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 	if err == nil && summary.Addon.Status != ekstypes.AddonStatusCreateFailed {
 		logger.Info("%q addon is already present on the cluster, as an EKS managed addon, skipping creation", addon.Name)
 		return nil
+	}
+
+	if err := a.checkAddonPrereqs(ctx, addon.CanonicalName()); err != nil {
+		return fmt.Errorf("validating pre-requisites for %q addon: %w", addon.Name, err)
 	}
 
 	version, requiresIAMPermissions, err := a.getLatestMatchingVersion(ctx, addon)
@@ -472,6 +478,35 @@ func (a *Manager) createStack(ctx context.Context, resourceSet builder.ResourceS
 	}
 
 	return <-errChan
+}
+
+func (a *Manager) checkAddonPrereqs(ctx context.Context, addonName string) error {
+	switch addonName {
+	case api.AdotAddon:
+		certManagerDeployments := []string{
+			"cert-manager",
+			"cert-manager-cainjector",
+			"cert-manager-webhook",
+		}
+		clientSet, err := a.createClientSet()
+		if err != nil {
+			return fmt.Errorf("creating K8s client set: %w", err)
+		}
+		listDeploymentsOut, err := clientSet.AppsV1().Deployments("").List(ctx, metav1.ListOptions{})
+		if err != nil {
+			return fmt.Errorf("listing k8s deployments: %w", err)
+		}
+		for _, name := range certManagerDeployments {
+			if !slices.ContainsFunc(listDeploymentsOut.Items, func(d v1.Deployment) bool {
+				return d.Name == name
+			}) {
+				return fmt.Errorf("%q deployment not found; check out https://aws-otel.github.io/docs/getting-started/adot-eks-add-on/requirements#tls-certificate-requirement", name)
+			}
+		}
+		return nil
+	default:
+		return nil
+	}
 }
 
 func makeIPv6VPCCNIPolicyDocument(partition string) map[string]interface{} {
