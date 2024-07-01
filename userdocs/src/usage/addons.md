@@ -7,6 +7,12 @@ CNI plugin through the EKS API
 ## Creating addons (and providing IAM permissions via IRSA)
 
 !!! tip "New for 2024"
+    eksctl now supports creating clusters without any default networking addons: [Cluster creation flexibility for default networking addons](#cluster-creation-flexibility-for-default-networking-addons).
+
+!!! warning "New for 2024"
+    eksctl now installs default addons as EKS addons instead of self-managed addons. Read more about its implications in [Cluster creation flexibility for default networking addons](#cluster-creation-flexibility-for-default-networking-addons).
+
+!!! tip "New for 2024"
     EKS Add-ons now support receiving IAM permissions, required to connect with AWS services outside of cluster, via [EKS Pod Identity Associations](/usage/pod-identity-associations/#eks-add-ons-support-for-pod-identity-associations)
 
 In your config file, you can specify the addons you want and (if required) the role or policies to attach to them:
@@ -87,8 +93,8 @@ addons:
 
 For addon create, the `resolveConflicts` field supports three distinct values:
 
-- `none` - EKS doesn't change the value. The create might fail. 
-- `overwrite` - EKS overwrites any config changes back to EKS default values. 
+- `none` - EKS doesn't change the value. The create might fail.
+- `overwrite` - EKS overwrites any config changes back to EKS default values.
 - `preserve` - EKS doesn't change the value. The create might fail. (Similarly to `none`, but different from [`preserve` in updating addons](#updating-addons))
 
 ## Listing enabled addons
@@ -141,7 +147,7 @@ eksctl utils describe-addon-configuration --name vpc-cni --version v1.12.0-eksbu
 This returns a JSON schema of the various options available for this addon.
 
 ## Working with configuration values
-`ConfigurationValues` can be provided in the configuration file during the creation or update of addons. Only JSON and YAML formats are supported. 
+`ConfigurationValues` can be provided in the configuration file during the creation or update of addons. Only JSON and YAML formats are supported.
 
 For eg.,
 
@@ -202,10 +208,10 @@ addons:
   resolveConflicts: preserve
 ```
 
-For addon update, the `resolveConflicts` field accepts three distinct values: 
+For addon update, the `resolveConflicts` field accepts three distinct values:
 
 - `none` - EKS doesn't change the value. The update might fail.
-- `overwrite` - EKS overwrites any config changes back to EKS default values. 
+- `overwrite` - EKS overwrites any config changes back to EKS default values.
 - `preserve` - EKS preserves the value. If you choose this option, we recommend that you test any field and value changes on a non-production cluster before updating the add-on on your production cluster.
 
 ## Deleting addons
@@ -216,3 +222,48 @@ eksctl delete addon --cluster <cluster-name> --name <addon-name>
 This will delete the addon and any IAM roles associated to it.
 
 When you delete your cluster all IAM roles associated to addons are also deleted.
+
+## Cluster creation flexibility for default networking addons
+
+When a cluster is created, EKS automatically installs VPC CNI, CoreDNS and kube-proxy as self-managed addons.
+To disable this behavior in order to use other CNI plugins like Cilium and Calico, eksctl now supports creating a cluster
+without any default networking addons. To create such a cluster, set `addonsConfig.disableDefaultAddons`, as in:
+
+```yaml
+addonsConfig:
+  disableDefaultAddons: true
+```
+
+```shell
+$ eksctl create cluster -f cluster.yaml
+```
+
+To create a cluster with only CoreDNS and kube-proxy and not VPC CNI, specify the addons explicitly in `addons`
+and set `addonsConfig.disableDefaultAddons`, as in:
+
+```yaml
+addonsConfig:
+  disableDefaultAddons: true
+addons:
+  - name: kube-proxy
+  - name: coredns
+```
+
+```shell
+$ eksctl create cluster -f cluster.yaml
+```
+
+As part of this change, eksctl now installs default addons as EKS addons instead of self-managed addons during cluster creation
+if `addonsConfig.disableDefaultAddons` is not explicitly set to true. As such, `eksctl utils update-*` commands can no
+longer be used for updating addons for clusters created with eksctl v0.184.0 and above:
+
+- `eksctl utils update-aws-node`
+- `eksctl utils update-coredns`
+- `eksctl utils update-kube-proxy`
+
+Instead, `eksctl update addon` should be used now.
+
+To learn more, see [EKS documentation][eksdocs].
+
+
+[eksdocs]: https://aws.amazon.com/about-aws/whats-new/2024/06/amazon-eks-cluster-creation-flexibility-networking-add-ons/
