@@ -10,7 +10,7 @@ jobs:
     container: public.ecr.aws/eksctl/eksctl-build:833f4464e865a6398788bf6cbc5447967b8974b7
     steps:
       - name: Checkout
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 #v4.1.2
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 #v4.1.7
         with:
           token: ${{ secrets.EKSCTLBOT_TOKEN }}
           fetch-depth: 0
