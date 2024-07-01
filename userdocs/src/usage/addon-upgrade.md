@@ -1,5 +1,12 @@
 # Default add-on updates
 
+!!! warning "New for 2024"
+    eksctl now installs default addons as EKS addons instead of self-managed addons. Read more about its implications in [Cluster creation flexibility for default networking addons](#cluster-creation-flexibility-for-default-networking-addons).
+
+!!! warning "New for 2024"
+    For updating addons, `eksctl utils update-*` cannot be used for clusters created with eksctl v0.184.0 and above.
+    This guide is only valid for clusters created before this change.
+
 There are 3 default add-ons that get included in each EKS cluster:
 - `kube-proxy`
 - `aws-node`
