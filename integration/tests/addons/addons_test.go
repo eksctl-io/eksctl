@@ -155,12 +155,34 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		})
 
 		It("should have full control over configMap when creating addons", func() {
-			var (
-				clusterConfig *api.ClusterConfig
-				configMap     *corev1.ConfigMap
-			)
+			clusterConfig := getInitialClusterConfig()
+			clusterConfig.Addons = []*api.Addon{
+				{
+					Name:    "coredns",
+					Version: "latest",
+				},
+			}
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"addon",
+					"--config-file", "-",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(clusterutils.Reader(clusterConfig))
+			Expect(cmd).To(RunSuccessfully())
 
-			configMap = getConfigMap(rawClient.ClientSet(), "coredns")
+			cmd = params.EksctlDeleteCmd.
+				WithArgs(
+					"addon",
+					"--name", "coredns",
+					"--cluster", clusterName,
+					"--verbose", "2",
+					"--region", params.Region,
+					"--preserve",
+				)
+			Expect(cmd).To(RunSuccessfully())
+
+			configMap := getConfigMap(rawClient.ClientSet(), "coredns")
 			oldCacheValue := getCacheValue(configMap)
 			newCacheValue := addToString(oldCacheValue, 5)
 			updateCacheValue(configMap, oldCacheValue, newCacheValue)
@@ -178,7 +200,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			data, err := json.Marshal(clusterConfig)
 			Expect(err).NotTo(HaveOccurred())
 
-			cmd := params.EksctlCreateCmd.
+			cmd = params.EksctlCreateCmd.
 				WithArgs(
 					"addon",
 					"--config-file", "-",
