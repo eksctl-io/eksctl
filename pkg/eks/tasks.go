@@ -181,10 +181,11 @@ func newEFADevicePluginTask(
 }
 
 // CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration
-func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg *api.ClusterConfig) *tasks.TaskTree {
+func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg *api.ClusterConfig, preNodeGroupAddons *tasks.TaskTree) *tasks.TaskTree {
 	newTasks := &tasks.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
+		Tasks:     []tasks.Task{preNodeGroupAddons},
 	}
 
 	newTasks.Append(&tasks.GenericTask{

@@ -353,8 +353,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
 
 	eks.LogEnabledFeatures(cfg)
-	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(ctx, cfg)
-
 	iamRoleCreator := &podidentityassociation.IAMRoleCreator{
 		ClusterName:  cfg.Metadata.Name,
 		StackCreator: stackManager,
@@ -363,7 +361,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	if len(autoDefaultAddons) > 0 {
 		logger.Info("default addons %s were not specified, will install them as EKS addons", strings.Join(autoDefaultAddons, ", "))
 	}
-	postClusterCreationTasks.Append(preNodegroupAddons)
+	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(ctx, cfg, preNodegroupAddons)
 
 	taskTree := stackManager.NewTasksToCreateCluster(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, cfg.AccessConfig, makeAccessEntryCreator(cfg.Metadata.Name, stackManager), postClusterCreationTasks)
 

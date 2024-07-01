@@ -223,12 +223,15 @@ var _ = Describe("(Integration) Upgrading cluster", func() {
 
 	Context("addons", func() {
 		It("should upgrade kube-proxy", func() {
-			cmd := params.EksctlUtilsCmd.WithArgs(
-				"update-kube-proxy",
-				"--cluster", params.ClusterName,
-				"--verbose", "4",
-				"--approve",
-			)
+			cmd := params.EksctlUpdateCmd.
+				WithArgs(
+					"addon",
+					"--name", "kube-proxy",
+					"--cluster", params.ClusterName,
+					"--version", "latest",
+					"--wait",
+					"--verbose", "4",
+				)
 			Expect(cmd).To(RunSuccessfully())
 
 			rawClient := getRawClient(clusterProvider)
@@ -256,24 +259,29 @@ var _ = Describe("(Integration) Upgrading cluster", func() {
 			}
 			preUpdateAWSNodeVersion := getAWSNodeVersion()
 
-			cmd := params.EksctlUtilsCmd.WithArgs(
-				"update-aws-node",
-				"--cluster", params.ClusterName,
-				"--verbose", "4",
-				"--approve",
-			)
+			cmd := params.EksctlUpdateCmd.
+				WithArgs(
+					"addon",
+					"--name", "vpc-cni",
+					"--cluster", params.ClusterName,
+					"--version", "latest",
+					"--wait",
+					"--verbose", "4",
+				)
 			Expect(cmd).To(RunSuccessfully())
-
 			Eventually(getAWSNodeVersion, k8sUpdatePollTimeout, k8sUpdatePollInterval).ShouldNot(Equal(preUpdateAWSNodeVersion))
 		})
 
 		It("should upgrade coredns", func() {
-			cmd := params.EksctlUtilsCmd.WithArgs(
-				"update-coredns",
-				"--cluster", params.ClusterName,
-				"--verbose", "4",
-				"--approve",
-			)
+			cmd := params.EksctlUpdateCmd.
+				WithArgs(
+					"addon",
+					"--name", "coredns",
+					"--cluster", params.ClusterName,
+					"--version", "latest",
+					"--wait",
+					"--verbose", "4",
+				)
 			Expect(cmd).To(RunSuccessfully())
 		})
 
