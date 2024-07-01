@@ -56,6 +56,7 @@ var _ = Describe("Bare Clusters", Ordered, func() {
 			WithArgs(
 				"cluster",
 				"--config-file=-",
+				"--verbose", "4",
 				"--kubeconfig="+params.KubeconfigPath,
 			).
 			WithoutArg("--region", params.Region).
