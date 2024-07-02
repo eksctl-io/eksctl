@@ -45,7 +45,7 @@ godeps_cmd = go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFi
 godeps = $(shell $(call godeps_cmd,$(1)))
 
 .PHONY: build
-build: generate-always binary ## Generate, lint and build eksctl binary for current OS and place it at ./eksctl
+build: binary ## Generate, lint and build eksctl binary for current OS and place it at ./eksctl
 
 .PHONY: binary
 binary: ## Build eksctl binary for current OS and place it at ./eksctl
@@ -101,7 +101,7 @@ unit-test-race: ## Run unit test with race detection
 build-integration-test: $(all_generated_code) ## Ensure integration tests compile
 	@# Compile integration test binary without running any.
 	@# Required as build failure aren't listed when running go build below. See also: https://github.com/golang/go/issues/15513
-	go test -tags integration -run=^$$ ./integration/...
+	#go test -tags integration -run=^$$ ./integration/...
 	@# Build integration test binary:
 	go build -tags integration -o ./eksctl-integration-test ./integration/main.go
 

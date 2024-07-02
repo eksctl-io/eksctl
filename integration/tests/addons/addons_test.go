@@ -171,14 +171,15 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				WithStdin(clusterutils.Reader(clusterConfig))
 			Expect(cmd).To(RunSuccessfully())
 
+			By("deleting coredns but preserving its resources")
 			cmd = params.EksctlDeleteCmd.
 				WithArgs(
 					"addon",
+					"--cluster", clusterConfig.Metadata.Name,
 					"--name", "coredns",
-					"--cluster", clusterName,
-					"--verbose", "2",
-					"--region", params.Region,
+					"--verbose", "4",
 					"--preserve",
+					"--region", params.Region,
 				)
 			Expect(cmd).To(RunSuccessfully())
 
@@ -207,7 +208,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				).
 				WithoutArg("--region", params.Region).
 				WithStdin(bytes.NewReader(data))
-			Expect(cmd).ShouldNot(RunSuccessfully())
+			Expect(cmd).NotTo(RunSuccessfully())
 
 			Eventually(func() runner.Cmd {
 				cmd := params.EksctlGetCmd.
