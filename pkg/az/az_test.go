@@ -215,7 +215,7 @@ var _ = Describe("AZ", func() {
 				},
 				LocationType: ec2types.LocationTypeAvailabilityZone,
 				MaxResults:   aws.Int32(100),
-			}).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+			}, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 				NextToken: aws.String("token"),
 				InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 					{
@@ -249,7 +249,7 @@ var _ = Describe("AZ", func() {
 				LocationType: ec2types.LocationTypeAvailabilityZone,
 				MaxResults:   aws.Int32(100),
 				NextToken:    aws.String("token"),
-			}).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+			}, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 				InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 					{
 						InstanceType: "t2.medium",

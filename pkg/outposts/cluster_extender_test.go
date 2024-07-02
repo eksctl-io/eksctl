@@ -728,7 +728,7 @@ func mockDescribeSubnets(provider *mockprovider.MockProvider, clusterSubnets *ap
 				Values: []string{"vpc-1234"},
 			},
 		},
-	}).Return(&ec2.DescribeSubnetsOutput{
+	}, mock.Anything).Return(&ec2.DescribeSubnetsOutput{
 		Subnets: allSubnets,
 	}, nil)
 }

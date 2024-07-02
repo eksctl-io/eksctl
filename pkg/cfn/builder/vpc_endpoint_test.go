@@ -281,7 +281,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 				}
 				provider.MockEC2().On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 					return len(input.Filters) > 0
-				})).Return(output, nil)
+				}), mock.Anything).Return(output, nil)
 				return provider
 			},
 			err: "subnets must be associated with a non-main route table",
@@ -440,7 +440,7 @@ func mockDescribeRouteTables(provider *mockprovider.MockProvider, subnetIDs []st
 
 	provider.MockEC2().On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 		return len(input.Filters) > 0
-	})).Return(output, nil)
+	}), mock.Anything).Return(output, nil)
 }
 
 func mockDescribeRouteTablesSame(provider *mockprovider.MockProvider, subnetIDs []string) {
@@ -466,7 +466,7 @@ func mockDescribeRouteTablesSame(provider *mockprovider.MockProvider, subnetIDs 
 
 	provider.MockEC2().On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 		return len(input.Filters) > 0
-	})).Return(output, nil)
+	}), mock.Anything).Return(output, nil)
 }
 
 func makeZones(region string, count int) []string {

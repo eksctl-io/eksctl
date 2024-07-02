@@ -17,6 +17,7 @@ import (
 	. "github.com/onsi/gomega"
 	gomegatypes "github.com/onsi/gomega/types"
 	"github.com/stretchr/testify/mock"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/credentials"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -470,7 +471,7 @@ var _ = Describe("CheckInstanceAvailability", func() {
 			},
 			LocationType: ec2types.LocationTypeAvailabilityZone,
 			MaxResults:   aws.Int32(100),
-		}).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+		}, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 			InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 				{
 					InstanceType: "t2.nano",
@@ -610,7 +611,7 @@ var _ = Describe("CheckInstanceAvailability", func() {
 					},
 					LocationType: ec2types.LocationTypeAvailabilityZone,
 					MaxResults:   aws.Int32(100),
-				}).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+				}, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 					InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 						{
 							InstanceType: "t2.nano",
@@ -665,7 +666,7 @@ var _ = Describe("CheckInstanceAvailability", func() {
 					},
 					LocationType: ec2types.LocationTypeAvailabilityZone,
 					MaxResults:   aws.Int32(100),
-				}).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+				}, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 					InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 						{
 							InstanceType: "t2.nano",
