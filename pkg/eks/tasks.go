@@ -183,6 +183,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 	newTasks := &tasks.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
+		Tasks:     []tasks.Task{preNodeGroupAddons},
 	}
 
 	newTasks.Append(&tasks.GenericTask{
@@ -207,9 +208,6 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 		if updateVPCCNITask != nil {
 			newTasks.Append(updateVPCCNITask)
 		}
-	}
-	if preNodeGroupAddons.Len() > 0 {
-		newTasks.Append(preNodeGroupAddons)
 	}
 
 	if cfg.HasClusterCloudWatchLogging() {

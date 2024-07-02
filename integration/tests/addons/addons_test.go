@@ -183,6 +183,17 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			Expect(cmd).To(RunSuccessfully())
 
+			Eventually(func() runner.Cmd {
+				cmd := params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "coredns",
+						"--cluster", clusterName,
+						"--verbose", "4",
+					)
+				return cmd
+			}, "3m", "30s").ShouldNot(Succeed())
+
 			configMap := getConfigMap(rawClient.ClientSet(), "coredns")
 			oldCacheValue := getCacheValue(configMap)
 			newCacheValue := addToString(oldCacheValue, 5)
