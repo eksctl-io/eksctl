@@ -40,7 +40,7 @@ var knownAddons = map[string]struct {
 	api.AWSEFSCSIDriverAddon: {},
 }
 
-func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree, []string) {
+func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree, *tasks.GenericTask, []string) {
 	var addons []*api.Addon
 	var autoDefaultAddonNames []string
 	if !cfg.AddonsConfig.DisableDefaultAddons {
@@ -63,11 +63,16 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 		preAddons  []*api.Addon
 		postAddons []*api.Addon
 	)
+	var vpcCNIAddon *api.Addon
 	for _, addon := range addons {
-		if addonInfo, ok := knownAddons[addon.Name]; ok && addonInfo.CreateBeforeNodeGroup {
+		addonInfo, ok := knownAddons[addon.Name]
+		if ok && addonInfo.CreateBeforeNodeGroup {
 			preAddons = append(preAddons, addon)
 		} else {
 			postAddons = append(postAddons, addon)
+		}
+		if addon.Name == api.VPCCNIAddon {
+			vpcCNIAddon = addon
 		}
 	}
 	preTasks := &tasks.TaskTree{Parallel: false}
@@ -93,7 +98,20 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 	if len(postAddons) > 0 {
 		postTasks.Append(makeAddonTask(postAddons, cfg.HasNodes()))
 	}
-	return preTasks, postTasks, autoDefaultAddonNames
+	var updateVPCCNI tasks.GenericTask
+	if vpcCNIAddon != nil && api.IsEnabled(cfg.IAM.WithOIDC) {
+		updateVPCCNI = tasks.GenericTask{
+			Doer: func() error {
+				addonManager, err := createAddonManager(ctx, clusterProvider, cfg)
+				if err != nil {
+					return err
+				}
+				addonManager.setRecommendedPoliciesForIRSA(vpcCNIAddon)
+				return addonManager.Update(ctx, vpcCNIAddon, nil, clusterProvider.AWSProvider.WaitTimeout())
+			},
+		}
+	}
+	return preTasks, postTasks, &updateVPCCNI, autoDefaultAddonNames
 }
 
 type createAddonTask struct {
@@ -112,21 +130,7 @@ type createAddonTask struct {
 func (t *createAddonTask) Describe() string { return t.info }
 
 func (t *createAddonTask) Do(errorCh chan error) error {
-	oidc, err := t.clusterProvider.NewOpenIDConnectManager(t.ctx, t.cfg)
-	if err != nil {
-		return err
-	}
-
-	oidcProviderExists, err := oidc.CheckProviderExists(t.ctx)
-	if err != nil {
-		return err
-	}
-
-	stackManager := t.clusterProvider.NewStackManager(t.cfg)
-
-	addonManager, err := New(t.cfg, t.clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, func() (kubernetes.Interface, error) {
-		return t.clusterProvider.NewStdClientSet(t.cfg)
-	})
+	addonManager, err := createAddonManager(t.ctx, t.clusterProvider, t.cfg)
 	if err != nil {
 		return err
 	}
@@ -175,6 +179,24 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		errorCh <- nil
 	}()
 	return nil
+}
+
+func createAddonManager(ctx context.Context, clusterProvider *eks.ClusterProvider, cfg *api.ClusterConfig) (*Manager, error) {
+	oidc, err := clusterProvider.NewOpenIDConnectManager(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	oidcProviderExists, err := oidc.CheckProviderExists(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	stackManager := clusterProvider.NewStackManager(cfg)
+
+	return New(cfg, clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, func() (kubernetes.Interface, error) {
+		return clusterProvider.NewStdClientSet(cfg)
+	})
 }
 
 type deleteAddonIAMTask struct {
