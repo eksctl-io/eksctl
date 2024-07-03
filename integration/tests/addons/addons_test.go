@@ -107,31 +107,8 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				return cmd
 			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
 
-			By("successfully creating the kube-proxy addon")
-			cmd := params.EksctlCreateCmd.
-				WithArgs(
-					"addon",
-					"--name", "kube-proxy",
-					"--cluster", clusterName,
-					"--force",
-					"--wait",
-					"--verbose", "2",
-				)
-			Expect(cmd).To(RunSuccessfully())
-
-			Eventually(func() runner.Cmd {
-				cmd := params.EksctlGetCmd.
-					WithArgs(
-						"addon",
-						"--name", "kube-proxy",
-						"--cluster", clusterName,
-						"--verbose", "2",
-					)
-				return cmd
-			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
-
 			By("Deleting the kube-proxy addon")
-			cmd = params.EksctlDeleteCmd.
+			cmd := params.EksctlDeleteCmd.
 				WithArgs(
 					"addon",
 					"--name", "kube-proxy",
@@ -171,16 +148,27 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				WithStdin(clusterutils.Reader(clusterConfig))
 			Expect(cmd).To(RunSuccessfully())
 
+			By("deleting coredns but preserving its resources")
 			cmd = params.EksctlDeleteCmd.
 				WithArgs(
 					"addon",
+					"--cluster", clusterConfig.Metadata.Name,
 					"--name", "coredns",
-					"--cluster", clusterName,
-					"--verbose", "2",
-					"--region", params.Region,
+					"--verbose", "4",
 					"--preserve",
+					"--region", params.Region,
 				)
 			Expect(cmd).To(RunSuccessfully())
+
+			Eventually(func() runner.Cmd {
+				return params.EksctlGetCmd.
+					WithArgs(
+						"addon",
+						"--name", "coredns",
+						"--cluster", clusterName,
+						"--verbose", "4",
+					)
+			}, "5m", "30s").ShouldNot(RunSuccessfully())
 
 			configMap := getConfigMap(rawClient.ClientSet(), "coredns")
 			oldCacheValue := getCacheValue(configMap)
@@ -207,7 +195,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				).
 				WithoutArg("--region", params.Region).
 				WithStdin(bytes.NewReader(data))
-			Expect(cmd).ShouldNot(RunSuccessfully())
+			Expect(cmd).NotTo(RunSuccessfully())
 
 			Eventually(func() runner.Cmd {
 				cmd := params.EksctlGetCmd.
@@ -887,6 +875,9 @@ func getInitialClusterConfig() *api.ClusterConfig {
 		{
 			Name:             "vpc-cni",
 			AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
+		},
+		{
+			Name: "kube-proxy",
 		},
 	}
 	clusterConfig.AddonsConfig.DisableDefaultAddons = true

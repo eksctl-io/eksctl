@@ -98,20 +98,20 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 	if len(postAddons) > 0 {
 		postTasks.Append(makeAddonTask(postAddons, cfg.HasNodes()))
 	}
-	var updateVPCCNI tasks.GenericTask
+	var updateVPCCNI *tasks.GenericTask
 	if vpcCNIAddon != nil && api.IsEnabled(cfg.IAM.WithOIDC) {
-		updateVPCCNI = tasks.GenericTask{
+		updateVPCCNI = &tasks.GenericTask{
+			Description: "update VPC CNI to use IRSA if required",
 			Doer: func() error {
 				addonManager, err := createAddonManager(ctx, clusterProvider, cfg)
 				if err != nil {
 					return err
 				}
-				addonManager.setRecommendedPoliciesForIRSA(vpcCNIAddon)
 				return addonManager.Update(ctx, vpcCNIAddon, nil, clusterProvider.AWSProvider.WaitTimeout())
 			},
 		}
 	}
-	return preTasks, postTasks, &updateVPCCNI, autoDefaultAddonNames
+	return preTasks, postTasks, updateVPCCNI, autoDefaultAddonNames
 }
 
 type createAddonTask struct {
@@ -135,6 +135,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		return err
 	}
 
+	addonManager.DisableAWSNodePatch = true
 	// always install EKS Pod Identity Agent Addon first, if present,
 	// as other addons might require IAM permissions
 	for _, a := range t.addons {

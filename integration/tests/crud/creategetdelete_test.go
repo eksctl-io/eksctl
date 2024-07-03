@@ -274,7 +274,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		})
 
 		It("should deploy podinfo service to the cluster and access it via proxy", func() {
-			d := test.CreateDeploymentFromFile(test.Namespace, "../../data/podinfo.yaml")
+			d := test.CreateDeploymentFromFile(test.Namespace, "../../data/crud-podinfo.yaml")
 			test.WaitForDeploymentReady(d, commonTimeout)
 
 			pods := test.ListPodsFromDeployment(d)

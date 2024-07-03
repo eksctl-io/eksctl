@@ -37,12 +37,13 @@ type StackManager interface {
 type CreateClientSet func() (kubeclient.Interface, error)
 
 type Manager struct {
-	clusterConfig   *api.ClusterConfig
-	eksAPI          awsapi.EKS
-	withOIDC        bool
-	oidcManager     *iamoidc.OpenIDConnectManager
-	stackManager    StackManager
-	createClientSet CreateClientSet
+	clusterConfig       *api.ClusterConfig
+	eksAPI              awsapi.EKS
+	withOIDC            bool
+	oidcManager         *iamoidc.OpenIDConnectManager
+	stackManager        StackManager
+	createClientSet     CreateClientSet
+	DisableAWSNodePatch bool
 }
 
 func New(clusterConfig *api.ClusterConfig, eksAPI awsapi.EKS, stackManager StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, createClientSet CreateClientSet) (*Manager, error) {

@@ -12,7 +12,6 @@ import (
 
 	"github.com/hashicorp/go-version"
 
-	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go/aws"
 
@@ -208,17 +207,6 @@ var _ = Describe("(Integration) Upgrading cluster", func() {
 				assertAddonError(updateAddonName, addonName)
 			}
 		})
-
-		It("should migrate to self-managed addons for testing `utils update`", func() {
-			for _, addonName := range defaultNetworkingAddons {
-				_, err := clusterProvider.AWSProvider.EKS().DeleteAddon(context.Background(), &awseks.DeleteAddonInput{
-					ClusterName: aws.String(defaultCluster),
-					AddonName:   aws.String(addonName),
-					Preserve:    true,
-				})
-				Expect(err).NotTo(HaveOccurred())
-			}
-		})
 	})
 
 	Context("addons", func() {
@@ -234,7 +222,7 @@ var _ = Describe("(Integration) Upgrading cluster", func() {
 				)
 			Expect(cmd).To(RunSuccessfully())
 
-			rawClient := getRawClient(clusterProvider)
+			rawClient := getRawClient(context.Background(), clusterProvider)
 			Eventually(func() string {
 				daemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "kube-proxy", metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
@@ -249,7 +237,7 @@ var _ = Describe("(Integration) Upgrading cluster", func() {
 		})
 
 		It("should upgrade aws-node", func() {
-			rawClient := getRawClient(clusterProvider)
+			rawClient := getRawClient(context.Background(), clusterProvider)
 			getAWSNodeVersion := func() string {
 				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
@@ -365,8 +353,10 @@ func defaultClusterConfig() *api.ClusterConfig {
 	}
 }
 
-func getRawClient(ctl *eks.ClusterProvider) *kubewrapper.RawClient {
-	rawClient, err := ctl.NewRawClient(defaultClusterConfig())
+func getRawClient(ctx context.Context, ctl *eks.ClusterProvider) *kubewrapper.RawClient {
+	clusterConfig := defaultClusterConfig()
+	Expect(ctl.RefreshClusterStatus(ctx, clusterConfig)).To(Succeed())
+	rawClient, err := ctl.NewRawClient(clusterConfig)
 	Expect(err).NotTo(HaveOccurred())
 	return rawClient
 }
