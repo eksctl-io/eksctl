@@ -242,7 +242,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 		logger.Warning(IAMPermissionsNotRequiredWarning(addon.Name))
 	}
 
-	if addon.CanonicalName() == api.VPCCNIAddon {
+	if !a.DisableAWSNodePatch && addon.CanonicalName() == api.VPCCNIAddon {
 		logger.Debug("patching AWS node")
 		err := a.patchAWSNodeSA(ctx)
 		if err != nil {

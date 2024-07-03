@@ -2,6 +2,7 @@ package builder_test
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"reflect"
 
@@ -20,8 +21,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-
-	_ "embed"
 )
 
 var _ = Describe("Cluster Template Builder", func() {
@@ -667,6 +666,12 @@ var _ = Describe("Cluster Template Builder", func() {
 				accessConfig := clusterTemplate.Resources["ControlPlane"].Properties.AccessConfig
 				Expect(accessConfig.AuthenticationMode).To(Equal(string(ekstypes.AuthenticationModeApi)))
 				Expect(accessConfig.BootstrapClusterCreatorAdminPermissions).To(BeFalse())
+			})
+		})
+
+		Context("bootstrapSelfManagedAddons in default config", func() {
+			It("should disable default addons", func() {
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.BootstrapSelfManagedAddons).To(BeFalse())
 			})
 		})
 	})

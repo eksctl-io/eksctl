@@ -9,6 +9,7 @@ import (
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 func updateKubeProxyCmd(cmd *cmdutils.Cmd) {
@@ -34,44 +35,17 @@ func updateKubeProxyCmd(cmd *cmdutils.Cmd) {
 }
 
 func doUpdateKubeProxy(cmd *cmdutils.Cmd) error {
-	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
-		return err
-	}
-
-	cfg := cmd.ClusterConfig
-	meta := cmd.ClusterConfig.Metadata
-
 	ctx := context.TODO()
-	ctl, err := cmd.NewProviderForExistingCluster(ctx)
-	if err != nil {
-		return err
-	}
-
-	if ok, err := ctl.CanUpdate(cfg); !ok {
-		return err
-	}
-
-	rawClient, err := ctl.NewRawClient(cfg)
-	if err != nil {
-		return err
-	}
-
-	kubernetesVersion, err := rawClient.ServerVersion()
-	if err != nil {
-		return err
-	}
-
-	updateRequired, err := defaultaddons.UpdateKubeProxy(ctx, defaultaddons.AddonInput{
-		RawClient:           rawClient,
-		ControlPlaneVersion: kubernetesVersion,
-		Region:              meta.Region,
-		EKSAPI:              ctl.AWSProvider.EKS(),
-	}, cmd.Plan)
-	if err != nil {
-		return err
-	}
-
-	cmdutils.LogPlanModeWarning(cmd.Plan && updateRequired)
-
-	return nil
+	return updateAddon(ctx, cmd, api.KubeProxyAddon, func(rawClient *kubernetes.RawClient, addonDescriber defaultaddons.AddonVersionDescriber) (bool, error) {
+		kubernetesVersion, err := rawClient.ServerVersion()
+		if err != nil {
+			return false, err
+		}
+		return defaultaddons.UpdateKubeProxy(ctx, defaultaddons.AddonInput{
+			RawClient:             rawClient,
+			ControlPlaneVersion:   kubernetesVersion,
+			Region:                cmd.ClusterConfig.Metadata.Region,
+			AddonVersionDescriber: addonDescriber,
+		}, cmd.Plan)
+	})
 }
