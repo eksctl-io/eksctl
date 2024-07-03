@@ -403,7 +403,7 @@ var _ = Describe("StackCollection", func() {
 		})
 
 		It("can retrieve stacks", func() {
-			p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cfn.ListStacksOutput{
+			p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(&cfn.ListStacksOutput{
 				StackSummaries: []types.StackSummary{
 					{
 						StackName: &stackNameWithEksctl,
@@ -418,7 +418,7 @@ var _ = Describe("StackCollection", func() {
 
 		When("the config stack doesn't match", func() {
 			It("returns no stack", func() {
-				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cfn.ListStacksOutput{}, nil)
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(&cfn.ListStacksOutput{}, nil)
 				cfg.Metadata.Name = "not-this"
 				sm := NewStackCollection(p, cfg)
 				stack, err := sm.GetClusterStackIfExists(context.Background())
@@ -429,7 +429,7 @@ var _ = Describe("StackCollection", func() {
 
 		When("ListStacks errors", func() {
 			It("errors", func() {
-				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(nil, errors.New("nope"))
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("nope"))
 				sm := NewStackCollection(p, cfg)
 				_, err := sm.GetClusterStackIfExists(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("nope")))

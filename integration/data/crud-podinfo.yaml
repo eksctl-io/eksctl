@@ -1,0 +1,53 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podinfo
+  labels:
+    app: podinfo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: podinfo
+  template:
+    metadata:
+      labels:
+        app: podinfo
+      annotations:
+        prometheus.io/scrape: 'true'
+    spec:
+      nodeSelector:
+        used-for: test-pods
+      containers:
+      - name: podinfod
+        image: stefanprodan/podinfo:1.5.1@sha256:702633d438950f3675d0763a4ca6cfcf21a4d065cd7f470446c67607b1a26750
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          runAsUser: 1000
+        command:
+        - ./podinfo
+        - --port=8080
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 5
+          failureThreshold: 1
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 10
+          failureThreshold: 2
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "10m"

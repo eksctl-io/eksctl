@@ -168,7 +168,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		mockCalls: func(m mockCalls) {
 			m.kubeProvider.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			m.kubeProvider.ServerVersionReturns("1.17", nil)
-			m.mockProvider.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+			m.mockProvider.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
 				StackSummaries: []cftypes.StackSummary{
 					{
 						StackName:   aws.String("eksctl-my-cluster-cluster"),
@@ -854,7 +854,7 @@ func mockProviderWithVPCSubnets(p *mockprovider.MockProvider, subnets *vpcSubnet
 }
 
 func mockProviderWithConfig(p *mockprovider.MockProvider, describeStacksOutput []cftypes.Output, subnets *vpcSubnets, vpcConfigRes *ekstypes.VpcConfigResponse, outpostConfig *ekstypes.OutpostConfigResponse, accessConfig *ekstypes.AccessConfigResponse) {
-	p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+	p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
 		StackSummaries: []cftypes.StackSummary{
 			{
 				StackName:   aws.String("eksctl-my-cluster-cluster"),
@@ -986,7 +986,7 @@ func mockProviderWithConfig(p *mockprovider.MockProvider, describeStacksOutput [
 		if vpcID == "" {
 			mp.MockEC2().On("DescribeSubnets", mock.Anything, &ec2.DescribeSubnetsInput{
 				SubnetIds: subnetIDs,
-			}).Return(&ec2.DescribeSubnetsOutput{Subnets: subnets}, nil)
+			}, mock.Anything).Return(&ec2.DescribeSubnetsOutput{Subnets: subnets}, nil)
 			return
 		}
 		mp.MockEC2().On("DescribeSubnets", mock.Anything, &ec2.DescribeSubnetsInput{
@@ -996,7 +996,7 @@ func mockProviderWithConfig(p *mockprovider.MockProvider, describeStacksOutput [
 					Values: []string{vpcID},
 				},
 			},
-		}).Return(&ec2.DescribeSubnetsOutput{Subnets: subnets}, nil)
+		}, mock.Anything).Return(&ec2.DescribeSubnetsOutput{Subnets: subnets}, nil)
 	}
 
 	mockDescribeSubnets(p, "", subnets.publicIDs)
@@ -1021,7 +1021,7 @@ func mockProviderWithConfig(p *mockprovider.MockProvider, describeStacksOutput [
 func mockProviderForUnownedCluster(p *mockprovider.MockProvider, k *eksfakes.FakeKubeProvider, extraSGRules ...ec2types.SecurityGroupRule) {
 	k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 	k.ServerVersionReturns("1.27", nil)
-	p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+	p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
 		StackSummaries: []cftypes.StackSummary{
 			{
 				StackName:   aws.String("eksctl-my-cluster-cluster"),
@@ -1052,7 +1052,7 @@ func mockProviderForUnownedCluster(p *mockprovider.MockProvider, k *eksfakes.Fak
 			},
 		},
 	}, nil)
-	p.MockEC2().On("DescribeSubnets", mock.Anything, mock.Anything).Return(&ec2.DescribeSubnetsOutput{
+	p.MockEC2().On("DescribeSubnets", mock.Anything, mock.Anything, mock.Anything).Return(&ec2.DescribeSubnetsOutput{
 		Subnets: []ec2types.Subnet{
 			{
 				SubnetId:         aws.String("subnet-custom1"),
@@ -1076,7 +1076,7 @@ func mockProviderForUnownedCluster(p *mockprovider.MockProvider, k *eksfakes.Fak
 		}
 		filter := input.Filters[0]
 		return *filter.Name == "group-id" && len(filter.Values) == 1 && filter.Values[0] == *sgID
-	})).Return(&ec2.DescribeSecurityGroupRulesOutput{
+	}), mock.Anything).Return(&ec2.DescribeSecurityGroupRulesOutput{
 		SecurityGroupRules: append([]ec2types.SecurityGroupRule{
 			{
 				Description:         aws.String("Allow control plane to communicate with worker nodes in group ng-1 (kubelet and workload TCP ports"),

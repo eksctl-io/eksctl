@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -11,15 +13,20 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
-	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 type AddonInput struct {
-	RawClient           kubernetes.RawClientInterface
-	EKSAPI              awsapi.EKS
-	ControlPlaneVersion string
-	Region              string
+	RawClient             kubernetes.RawClientInterface
+	AddonVersionDescriber AddonVersionDescriber
+	ControlPlaneVersion   string
+	Region                string
+}
+
+// AddonVersionDescriber describes the versions for an addon.
+type AddonVersionDescriber interface {
+	// DescribeAddonVersions describes the versions for an addon.
+	DescribeAddonVersions(ctx context.Context, params *eks.DescribeAddonVersionsInput, optFns ...func(options *eks.Options)) (*eks.DescribeAddonVersionsOutput, error)
 }
 
 // DoAddonsSupportMultiArch checks if the coredns/kubeproxy/awsnode support multi arch nodegroups

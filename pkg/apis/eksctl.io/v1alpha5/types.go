@@ -435,17 +435,6 @@ const (
 	IPV6Family = "IPv6"
 )
 
-// Values for core addons
-const (
-	minimumVPCCNIVersionForIPv6 = "1.10.0"
-	VPCCNIAddon                 = "vpc-cni"
-	KubeProxyAddon              = "kube-proxy"
-	CoreDNSAddon                = "coredns"
-	PodIdentityAgentAddon       = "eks-pod-identity-agent"
-	AWSEBSCSIDriverAddon        = "aws-ebs-csi-driver"
-	AWSEFSCSIDriverAddon        = "aws-efs-csi-driver"
-)
-
 // supported version of Karpenter
 const (
 	supportedKarpenterVersion = "v0.20.0"

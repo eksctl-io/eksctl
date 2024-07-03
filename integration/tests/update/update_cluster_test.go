@@ -14,9 +14,11 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go/aws"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -39,8 +41,9 @@ const (
 )
 
 var (
-	defaultCluster string
-	params         *tests.Params
+	defaultCluster  string
+	params          *tests.Params
+	clusterProvider *eks.ClusterProvider
 )
 
 func init() {
@@ -137,6 +140,10 @@ var _ = BeforeSuite(func() {
 		WithoutArg("--region", params.Region).
 		WithStdin(clusterutils.Reader(clusterConfig))
 	Expect(cmd).To(RunSuccessfully())
+
+	var err error
+	clusterProvider, err = newClusterProvider(context.Background())
+	Expect(err).NotTo(HaveOccurred())
 })
 
 var _ = Describe("(Integration) Upgrading cluster", func() {
@@ -175,17 +182,47 @@ var _ = Describe("(Integration) Upgrading cluster", func() {
 		})
 	})
 
+	Context("default networking addons", func() {
+		defaultNetworkingAddons := []string{"vpc-cni", "kube-proxy", "coredns"}
+
+		It("should suggest using `eksctl update addon` for updating default addons", func() {
+			assertAddonError := func(updateAddonName, addonName string) {
+				cmd := params.EksctlUtilsCmd.WithArgs(
+					fmt.Sprintf("update-%s", updateAddonName),
+					"--cluster", params.ClusterName,
+					"--verbose", "4",
+					"--approve",
+				)
+				session := cmd.Run()
+				ExpectWithOffset(1, session.ExitCode()).NotTo(BeZero())
+				ExpectWithOffset(1, string(session.Err.Contents())).To(ContainSubstring("Error: addon %s is installed as a managed EKS addon; "+
+					"to update it, use `eksctl update addon` instead", addonName))
+			}
+			assertAddonError("aws-node", "vpc-cni")
+			for _, addonName := range defaultNetworkingAddons {
+				updateAddonName := addonName
+				if addonName == "vpc-cni" {
+					updateAddonName = "aws-node"
+				}
+				assertAddonError(updateAddonName, addonName)
+			}
+		})
+	})
+
 	Context("addons", func() {
 		It("should upgrade kube-proxy", func() {
-			cmd := params.EksctlUtilsCmd.WithArgs(
-				"update-kube-proxy",
-				"--cluster", params.ClusterName,
-				"--verbose", "4",
-				"--approve",
-			)
+			cmd := params.EksctlUpdateCmd.
+				WithArgs(
+					"addon",
+					"--name", "kube-proxy",
+					"--cluster", params.ClusterName,
+					"--version", "latest",
+					"--wait",
+					"--verbose", "4",
+				)
 			Expect(cmd).To(RunSuccessfully())
 
-			rawClient := getRawClient(context.Background())
+			rawClient := getRawClient(context.Background(), clusterProvider)
 			Eventually(func() string {
 				daemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "kube-proxy", metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
@@ -200,7 +237,7 @@ var _ = Describe("(Integration) Upgrading cluster", func() {
 		})
 
 		It("should upgrade aws-node", func() {
-			rawClient := getRawClient(context.Background())
+			rawClient := getRawClient(context.Background(), clusterProvider)
 			getAWSNodeVersion := func() string {
 				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
@@ -210,24 +247,29 @@ var _ = Describe("(Integration) Upgrading cluster", func() {
 			}
 			preUpdateAWSNodeVersion := getAWSNodeVersion()
 
-			cmd := params.EksctlUtilsCmd.WithArgs(
-				"update-aws-node",
-				"--cluster", params.ClusterName,
-				"--verbose", "4",
-				"--approve",
-			)
+			cmd := params.EksctlUpdateCmd.
+				WithArgs(
+					"addon",
+					"--name", "vpc-cni",
+					"--cluster", params.ClusterName,
+					"--version", "latest",
+					"--wait",
+					"--verbose", "4",
+				)
 			Expect(cmd).To(RunSuccessfully())
-
 			Eventually(getAWSNodeVersion, k8sUpdatePollTimeout, k8sUpdatePollInterval).ShouldNot(Equal(preUpdateAWSNodeVersion))
 		})
 
 		It("should upgrade coredns", func() {
-			cmd := params.EksctlUtilsCmd.WithArgs(
-				"update-coredns",
-				"--cluster", params.ClusterName,
-				"--verbose", "4",
-				"--approve",
-			)
+			cmd := params.EksctlUpdateCmd.
+				WithArgs(
+					"addon",
+					"--name", "coredns",
+					"--cluster", params.ClusterName,
+					"--version", "latest",
+					"--wait",
+					"--verbose", "4",
+				)
 			Expect(cmd).To(RunSuccessfully())
 		})
 
@@ -285,19 +327,36 @@ var _ = AfterSuite(func() {
 	os.RemoveAll(params.TestDirectory)
 })
 
-func getRawClient(ctx context.Context) *kubewrapper.RawClient {
+func newClusterProvider(ctx context.Context) (*eks.ClusterProvider, error) {
 	cfg := &api.ClusterConfig{
 		Metadata: &api.ClusterMeta{
 			Name:   params.ClusterName,
 			Region: params.Region,
 		},
 	}
-	ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
-	Expect(err).NotTo(HaveOccurred())
+	ctl, err := eks.New(ctx, &api.ProviderConfig{Region: params.Region}, cfg)
+	if err != nil {
+		return nil, err
+	}
+	if err := ctl.RefreshClusterStatus(ctx, cfg); err != nil {
+		return nil, err
+	}
+	return ctl, nil
+}
 
-	err = ctl.RefreshClusterStatus(ctx, cfg)
-	Expect(err).ShouldNot(HaveOccurred())
-	rawClient, err := ctl.NewRawClient(cfg)
+func defaultClusterConfig() *api.ClusterConfig {
+	return &api.ClusterConfig{
+		Metadata: &api.ClusterMeta{
+			Name:   params.ClusterName,
+			Region: params.Region,
+		},
+	}
+}
+
+func getRawClient(ctx context.Context, ctl *eks.ClusterProvider) *kubewrapper.RawClient {
+	clusterConfig := defaultClusterConfig()
+	Expect(ctl.RefreshClusterStatus(ctx, clusterConfig)).To(Succeed())
+	rawClient, err := ctl.NewRawClient(clusterConfig)
 	Expect(err).NotTo(HaveOccurred())
 	return rawClient
 }

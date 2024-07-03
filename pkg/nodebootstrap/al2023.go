@@ -49,6 +49,7 @@ func newAL2023Bootstrapper(cfg *api.ClusterConfig, np api.NodePool, clusterDNS s
 		cfg:        cfg,
 		nodePool:   np,
 		clusterDNS: clusterDNS,
+		scripts:    []string{assets.AL2023XTablesLock},
 	}
 }
 

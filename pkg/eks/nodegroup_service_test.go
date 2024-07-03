@@ -326,13 +326,13 @@ func mockOutpostInstanceTypes(provider *mockprovider.MockProvider) {
 		instanceTypes[i] = it.InstanceType
 	}
 
-	provider.MockOutposts().On("GetOutpostInstanceTypes", mock.Anything, mock.Anything).Return(&awsoutposts.GetOutpostInstanceTypesOutput{
+	provider.MockOutposts().On("GetOutpostInstanceTypes", mock.Anything, mock.Anything, mock.Anything).Return(&awsoutposts.GetOutpostInstanceTypesOutput{
 		InstanceTypes: instanceTypeItems,
 	}, nil)
 
 	provider.MockEC2().On("DescribeInstanceTypes", mock.Anything, &ec2.DescribeInstanceTypesInput{
 		InstanceTypes: instanceTypes,
-	}).Return(&ec2.DescribeInstanceTypesOutput{
+	}, mock.Anything).Return(&ec2.DescribeInstanceTypesOutput{
 		InstanceTypes: instanceTypeInfoList,
 	}, nil)
 }

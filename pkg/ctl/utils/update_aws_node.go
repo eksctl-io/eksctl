@@ -9,6 +9,7 @@ import (
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 func updateAWSNodeCmd(cmd *cmdutils.Cmd) {
@@ -34,37 +35,11 @@ func updateAWSNodeCmd(cmd *cmdutils.Cmd) {
 }
 
 func doUpdateAWSNode(cmd *cmdutils.Cmd) error {
-	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
-		return err
-	}
-
-	cfg := cmd.ClusterConfig
-	meta := cmd.ClusterConfig.Metadata
-
 	ctx := context.TODO()
-	ctl, err := cmd.NewProviderForExistingCluster(ctx)
-	if err != nil {
-		return err
-	}
-
-	if ok, err := ctl.CanUpdate(cfg); !ok {
-		return err
-	}
-
-	rawClient, err := ctl.NewRawClient(cfg)
-	if err != nil {
-		return err
-	}
-
-	updateRequired, err := defaultaddons.UpdateAWSNode(ctx, defaultaddons.AddonInput{
-		RawClient: rawClient,
-		Region:    meta.Region,
-	}, cmd.Plan)
-	if err != nil {
-		return err
-	}
-
-	cmdutils.LogPlanModeWarning(cmd.Plan && updateRequired)
-
-	return nil
+	return updateAddon(ctx, cmd, api.VPCCNIAddon, func(rawClient *kubernetes.RawClient, _ defaultaddons.AddonVersionDescriber) (bool, error) {
+		return defaultaddons.UpdateAWSNode(ctx, defaultaddons.AddonInput{
+			RawClient: rawClient,
+			Region:    cmd.ClusterConfig.Metadata.Region,
+		}, cmd.Plan)
+	})
 }

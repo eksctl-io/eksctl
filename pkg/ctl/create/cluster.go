@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"strings"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -37,7 +38,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 	"github.com/weaveworks/eksctl/pkg/utils/nodes"
-	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -353,17 +353,15 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
 
 	eks.LogEnabledFeatures(cfg)
-	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(ctx, cfg)
-
-	var preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
-	if len(cfg.Addons) > 0 {
-		iamRoleCreator := &podidentityassociation.IAMRoleCreator{
-			ClusterName:  cfg.Metadata.Name,
-			StackCreator: stackManager,
-		}
-		preNodegroupAddons, postNodegroupAddons = addon.CreateAddonTasks(ctx, cfg, ctl, iamRoleCreator, true, cmd.ProviderConfig.WaitTimeout)
-		postClusterCreationTasks.Append(preNodegroupAddons)
+	iamRoleCreator := &podidentityassociation.IAMRoleCreator{
+		ClusterName:  cfg.Metadata.Name,
+		StackCreator: stackManager,
 	}
+	preNodegroupAddons, postNodegroupAddons, updateVPCCNITask, autoDefaultAddons := addon.CreateAddonTasks(ctx, cfg, ctl, iamRoleCreator, true, cmd.ProviderConfig.WaitTimeout)
+	if len(autoDefaultAddons) > 0 {
+		logger.Info("default addons %s were not specified, will install them as EKS addons", strings.Join(autoDefaultAddons, ", "))
+	}
+	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(ctx, cfg, preNodegroupAddons, updateVPCCNITask)
 
 	taskTree := stackManager.NewTasksToCreateCluster(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, cfg.AccessConfig, makeAccessEntryCreator(cfg.Metadata.Name, stackManager), postClusterCreationTasks)
 
