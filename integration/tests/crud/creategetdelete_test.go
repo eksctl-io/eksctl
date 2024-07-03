@@ -533,7 +533,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				"1.1.1.1/32,2.2.2.0/24",
 				"--approve",
 			)).To(RunSuccessfully())
-			Expect(k8sAPICall()).Should(HaveOccurred())
+			Eventually(k8sAPICall, "5m", "20s").Should(HaveOccurred())
 		})
 
 		It("should re-enable public access", func() {

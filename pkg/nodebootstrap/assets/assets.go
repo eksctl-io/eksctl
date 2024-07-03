@@ -21,9 +21,9 @@ var BootstrapHelperSh string
 var BootstrapUbuntuSh string
 
 // AL2023XTablesLock holds the contents for creating a lock file for AL2023 AMIs.
+//
 //go:embed scripts/al2023-xtables.lock.sh
 var AL2023XTablesLock string
-
 
 // EfaAl2Sh holds the efa.al2.sh contents
 //
