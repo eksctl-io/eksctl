@@ -75,9 +75,19 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2022-English-%s-EKS_Optimized-%s/%s", windowsAmiType(imageFamily), version, fieldName), nil
 	case api.NodeImageFamilyBottlerocket:
 		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/%s", imageType(imageFamily, instanceType, version), instanceEC2ArchName(instanceType), fieldName), nil
-	case api.NodeImageFamilyUbuntuPro2204, api.NodeImageFamilyUbuntu2204, api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
-		// FIXME: SSM lookup for Ubuntu EKS images is supported nowadays
-		return "", &UnsupportedQueryError{msg: fmt.Sprintf("SSM Parameter lookups for %s AMIs is not supported yet", imageFamily)}
+	case api.NodeImageFamilyUbuntu1804:
+		return "", &UnsupportedQueryError{msg: fmt.Sprintf("SSM Parameter lookups for %s AMIs is not supported", imageFamily)}
+	case api.NodeImageFamilyUbuntu2004,
+		api.NodeImageFamilyUbuntu2204,
+		api.NodeImageFamilyUbuntuPro2204:
+		if err := validateVersionForUbuntu(version, imageFamily); err != nil {
+			return "", err
+		}
+		eksProduct := "eks"
+		if imageFamily == api.NodeImageFamilyUbuntuPro2204 {
+			eksProduct = "eks-pro"
+		}
+		return fmt.Sprint("/aws/service/canonical/ubuntu/", eksProduct, "/", ubuntuReleaseName(imageFamily), "/", version, "/stable/current/", ubuntuArchName(instanceType), "/hvm/ebs-gp2/ami-id"), nil
 	default:
 		return "", fmt.Errorf("unknown image family %s", imageFamily)
 	}
@@ -118,6 +128,13 @@ func instanceEC2ArchName(instanceType string) string {
 	return "x86_64"
 }
 
+func ubuntuArchName(instanceType string) string {
+	if instanceutils.IsARMInstanceType(instanceType) {
+		return "arm64"
+	}
+	return "amd64"
+}
+
 func imageType(imageFamily, instanceType, version string) string {
 	family := utils.ToKebabCase(imageFamily)
 	switch imageFamily {
@@ -142,4 +159,53 @@ func windowsAmiType(imageFamily string) string {
 		return "Core"
 	}
 	return "Full"
+}
+
+func ubuntuReleaseName(imageFamily string) string {
+	switch imageFamily {
+	case api.NodeImageFamilyUbuntu2004:
+		return "20.04"
+	case api.NodeImageFamilyUbuntu2204, api.NodeImageFamilyUbuntuPro2204:
+		return "22.04"
+	default:
+		return "18.04"
+	}
+}
+
+func validateVersionForUbuntu(version, imageFamily string) error {
+	switch imageFamily {
+	case api.NodeImageFamilyUbuntu2004:
+		var err error
+		supportsUbuntu := false
+		const minVersion = api.Version1_21
+		const maxVersion = api.Version1_29
+		supportsUbuntu, err = utils.IsMinVersion(minVersion, version)
+		if err != nil {
+			return err
+		}
+		if !supportsUbuntu {
+			return &UnsupportedQueryError{msg: fmt.Sprintf("%s requires EKS version greater or equal than %s and lower than %s", imageFamily, minVersion, maxVersion)}
+		}
+		supportsUbuntu, err = utils.IsMinVersion(version, maxVersion)
+		if err != nil {
+			return err
+		}
+		if !supportsUbuntu {
+			return &UnsupportedQueryError{msg: fmt.Sprintf("%s requires EKS version greater or equal than %s and lower than %s", imageFamily, minVersion, maxVersion)}
+		}
+	case api.NodeImageFamilyUbuntu2204, api.NodeImageFamilyUbuntuPro2204:
+		var err error
+		supportsUbuntu := false
+		const minVersion = api.Version1_29
+		supportsUbuntu, err = utils.IsMinVersion(minVersion, version)
+		if err != nil {
+			return err
+		}
+		if !supportsUbuntu {
+			return &UnsupportedQueryError{msg: fmt.Sprintf("%s requires EKS version greater or equal than %s", imageFamily, minVersion)}
+		}
+	default:
+		return &UnsupportedQueryError{msg: fmt.Sprintf("SSM Parameter lookups for %s AMIs is not supported", imageFamily)}
+	}
+	return nil
 }
