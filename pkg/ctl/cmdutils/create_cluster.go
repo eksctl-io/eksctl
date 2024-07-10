@@ -1,6 +1,8 @@
 package cmdutils
 
 import (
+	"io"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
@@ -21,6 +23,8 @@ type CreateClusterCmdParams struct {
 	DryRun                bool
 	CreateNGOptions
 	CreateManagedNGOptions
+
+	ConfigReader io.Reader
 }
 
 // NodeGroupOptions holds options for creating nodegroups.

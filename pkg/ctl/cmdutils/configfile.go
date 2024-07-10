@@ -3,6 +3,7 @@ package cmdutils
 import (
 	"encoding/csv"
 	"fmt"
+	"io"
 	"reflect"
 	"strconv"
 	"strings"
@@ -35,6 +36,7 @@ type ClusterConfigLoader interface {
 
 type commonClusterConfigLoader struct {
 	*Cmd
+	configReader io.Reader
 
 	flagsIncompatibleWithConfigFile    sets.Set[string]
 	flagsIncompatibleWithoutConfigFile sets.Set[string]
@@ -125,7 +127,7 @@ func (l *commonClusterConfigLoader) Load() error {
 	// The reference to ClusterConfig should only be reassigned if ClusterConfigFile is specified
 	// because other parts of the code store the pointer locally and access it directly instead of via
 	// the Cmd reference
-	if l.ClusterConfig, err = eks.LoadConfigFromFile(l.ClusterConfigFile); err != nil {
+	if l.ClusterConfig, err = eks.LoadConfigWithReader(l.ClusterConfigFile, l.configReader); err != nil {
 		return err
 	}
 	meta := l.ClusterConfig.Metadata
@@ -199,6 +201,7 @@ func NewMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 // NewCreateClusterLoader will load config or use flags for 'eksctl create cluster'
 func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.NodeGroup, params *CreateClusterCmdParams) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
+	l.configReader = params.ConfigReader
 
 	ngFilter.SetExcludeAll(params.WithoutNodeGroup)
 
@@ -307,6 +310,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			if err := addon.Validate(); err != nil {
 				return err
 			}
+		}
+
+		if err := validateBareCluster(clusterConfig); err != nil {
+			return err
 		}
 
 		shallCreatePodIdentityAssociations := func(cfg *api.ClusterConfig) bool {
@@ -444,6 +451,22 @@ func validateDryRunOptions(cmd *cobra.Command, incompatibleFlags []string) error
 			msg = fmt.Sprintf("%s: set the AWS_PROFILE environment variable instead", msg)
 		}
 		return errors.New(msg)
+	}
+	return nil
+}
+
+// validateBareCluster validates a cluster for unsupported fields if VPC CNI is disabled.
+func validateBareCluster(clusterConfig *api.ClusterConfig) error {
+	if !clusterConfig.AddonsConfig.DisableDefaultAddons || slices.ContainsFunc(clusterConfig.Addons, func(addon *api.Addon) bool {
+		return addon.Name == api.VPCCNIAddon
+	}) {
+		return nil
+	}
+	if clusterConfig.HasNodes() || clusterConfig.IsFargateEnabled() || clusterConfig.Karpenter != nil || clusterConfig.HasGitOpsFluxConfigured() ||
+		(clusterConfig.IAM != nil && (len(clusterConfig.IAM.ServiceAccounts) > 0) || len(clusterConfig.IAM.PodIdentityAssociations) > 0) {
+		return errors.New("fields nodeGroups, managedNodeGroups, fargateProfiles, karpenter, gitops, iam.serviceAccounts, " +
+			"and iam.podIdentityAssociations are not supported during cluster creation in a cluster without VPC CNI; please remove these fields " +
+			"and add them back after cluster creation is successful")
 	}
 	return nil
 }
