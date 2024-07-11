@@ -48,4 +48,5 @@ type CreateNGOptions struct {
 	InstallNeuronDevicePlugin bool
 	InstallNvidiaDevicePlugin bool
 	DryRun                    bool
+	NodeGroupParallelism      int
 }

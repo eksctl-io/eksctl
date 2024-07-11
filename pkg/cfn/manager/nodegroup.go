@@ -46,6 +46,7 @@ type CreateNodeGroupOptions struct {
 	SkipEgressRules            bool
 	DisableAccessEntryCreation bool
 	VPCImporter                vpc.Importer
+	Parallelism                int
 }
 
 // A NodeGroupStackManager describes and creates nodegroup stacks.
@@ -81,7 +82,7 @@ type UnmanagedNodeGroupTask struct {
 
 // Create creates a TaskTree for creating nodegroups.
 func (t *UnmanagedNodeGroupTask) Create(ctx context.Context, options CreateNodeGroupOptions) *tasks.TaskTree {
-	taskTree := &tasks.TaskTree{Parallel: true}
+	taskTree := &tasks.TaskTree{Parallel: true, Limit: options.Parallelism}
 
 	for _, ng := range t.NodeGroups {
 		ng := ng

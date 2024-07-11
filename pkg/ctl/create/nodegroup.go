@@ -82,6 +82,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 			},
 			SkipOutdatedAddonsCheck: options.SkipOutdatedAddonsCheck,
 			ConfigFileProvided:      cmd.ClusterConfigFile != "",
+			Parallelism:             options.NodeGroupParallelism,
 		}, ngFilter)
 	})
 }
