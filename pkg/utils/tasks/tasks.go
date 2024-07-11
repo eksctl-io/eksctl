@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/kris-nova/logger"
+	"golang.org/x/sync/errgroup"
 )
 
 // Task is a common interface for the stack manager tasks.
@@ -50,6 +51,7 @@ type TaskTree struct {
 	Parallel  bool
 	PlanMode  bool
 	IsSubTask bool
+	Limit     int
 }
 
 // Append new tasks to the set
@@ -147,7 +149,11 @@ func (t *TaskTree) Do(allErrs chan error) error {
 	errs := make(chan error)
 
 	if t.Parallel {
-		go doParallelTasks(errs, t.Tasks)
+		if t.Limit > 0 {
+			go runInErrorGroup(t.Tasks, t.Limit, errs)
+		} else {
+			go doParallelTasks(errs, t.Tasks)
+		}
 	} else {
 		go doSequentialTasks(errs, t.Tasks)
 	}
@@ -173,7 +179,11 @@ func (t *TaskTree) DoAllSync() []error {
 	errs := make(chan error)
 
 	if t.Parallel {
-		go doParallelTasks(errs, t.Tasks)
+		if t.Limit > 0 {
+			go runInErrorGroup(t.Tasks, t.Limit, errs)
+		} else {
+			go doParallelTasks(errs, t.Tasks)
+		}
 	} else {
 		go doSequentialTasks(errs, t.Tasks)
 	}
@@ -215,6 +225,24 @@ func doParallelTasks(allErrs chan error, tasks []Task) {
 	logger.Debug("waiting for %d parallel tasks to complete", len(tasks))
 	wg.Wait()
 	close(allErrs)
+}
+
+func runInErrorGroup(tasks []Task, limit int, errs chan error) {
+	var eg errgroup.Group
+	eg.SetLimit(limit)
+	for _, t := range tasks {
+		t := t
+		eg.Go(func() error {
+			if ok := doSingleTask(errs, t); !ok {
+				logger.Debug("failed task: %s (will continue until other parallel tasks are completed)", t.Describe())
+			}
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		logger.Debug("error running tasks: %v", err)
+	}
+	close(errs)
 }
 
 func doSequentialTasks(allErrs chan error, tasks []Task) {
