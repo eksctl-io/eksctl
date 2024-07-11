@@ -1135,4 +1135,9 @@ func makeUnownedClusterConfig(clusterConfig *api.ClusterConfig) {
 			},
 		},
 	}
+	clusterConfig.NodeGroups = append(clusterConfig.NodeGroups, &api.NodeGroup{
+		NodeGroupBase: &api.NodeGroupBase{
+			Name: "ng",
+		},
+	})
 }
