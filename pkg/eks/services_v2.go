@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/ratelimit"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -85,6 +86,7 @@ func (s *ServicesV2) CloudFormation() awsapi.CloudFormation {
 				o.StandardOptions = []func(*retry.StandardOptions){
 					func(so *retry.StandardOptions) {
 						so.MaxAttempts = maxRetries
+						so.RateLimiter = ratelimit.None
 					},
 				}
 			})

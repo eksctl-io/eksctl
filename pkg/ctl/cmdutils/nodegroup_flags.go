@@ -64,6 +64,7 @@ func AddCommonCreateNodeGroupAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup, o
 	addCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
 	fs.BoolVarP(&options.InstallNeuronDevicePlugin, "install-neuron-plugin", "", true, "install Neuron plugin for Inferentia and Trainium nodes")
 	fs.BoolVarP(&options.InstallNvidiaDevicePlugin, "install-nvidia-plugin", "", true, "install Nvidia plugin for GPU nodes")
+	fs.IntVarP(&options.NodeGroupParallelism, "nodegroup-parallelism", "", 8, "Number of self-managed or managed nodegroups to create in parallel")
 }
 
 // AddInstanceSelectorOptions adds flags for EC2 instance selector

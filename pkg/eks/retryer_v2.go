@@ -1,15 +1,14 @@
 package eks
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/smithy-go"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -39,7 +38,10 @@ func (r *RetryerV2) IsErrorRetryable(err error) bool {
 	}
 
 	var oe *smithy.OperationError
-	return errors.As(err, &oe) && oe.Err != nil && isErrorRetryable(oe.Err)
+	if !errors.As(err, &oe) {
+		return true
+	}
+	return oe.Err != nil && isErrorRetryable(oe.Err)
 }
 
 func isErrorRetryable(err error) bool {
