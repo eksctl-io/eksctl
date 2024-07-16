@@ -80,9 +80,11 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 				return errors.Wrapf(err, "loading VPC spec for cluster %q", meta.Name)
 			}
 			isOwnedCluster = false
-			skipEgressRules, err = validateSecurityGroup(ctx, ctl.AWSProvider.EC2(), cfg.VPC.SecurityGroup)
-			if err != nil {
-				return err
+			if len(cfg.NodeGroups) > 0 {
+				skipEgressRules, err = validateSecurityGroup(ctx, ctl.AWSProvider.EC2(), cfg.VPC.SecurityGroup)
+				if err != nil {
+					return err
+				}
 			}
 
 		default:
