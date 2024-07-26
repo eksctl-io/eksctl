@@ -2,7 +2,7 @@ name: Update generated files
 on:
   workflow_dispatch: {}
   schedule:
-    - cron: "0 5 * * Thu"
+  - cron: "0 5 * * Thu"
 
 permissions:
   id-token: write
@@ -15,47 +15,47 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        resource: ["coredns", "aws-node"]    
+        resource: ["coredns", "aws-node", "nvidia-device-plugin"]
     name: Update ${{ matrix.resource }} and open PR
     runs-on: ubuntu-latest
     container: public.ecr.aws/eksctl/eksctl-build:833f4464e865a6398788bf6cbc5447967b8974b7
     env:
       GOPRIVATE: ""
     steps:
-      - name: Checkout
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 #v4.1.2
-        with:
-          token: ${{ secrets.EKSCTLBOT_TOKEN }}
-          fetch-depth: 0
-      - name: Configure AWS credentials for coredns update
-        if: ${{ matrix.resource == 'coredns' }}
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
-        with:
-          aws-region: us-west-2
-          role-duration-seconds: 900
-          role-session-name: eksctl-update-coredns-assets
-          role-to-assume: ${{ secrets.UPDATE_COREDNS_ROLE_ARN }}
-      - name: Setup identity as eksctl-bot
-        uses: ./.github/actions/setup-identity
-        with:
-          token: "${{ secrets.EKSCTLBOT_TOKEN }}"
-      - name: Cache go-build and mod
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 #v4.0.2
-        with:
-          path: |
-            ~/.cache/go-build/
-            ~/go/pkg/mod/
-          key: go-${{ hashFiles('go.sum') }}
-          restore-keys: |
-            go-
-      - name: Update ${{ matrix.resource }}
-        run: make update-${{ matrix.resource }}
-      - name: Upsert pull request
-        uses: peter-evans/create-pull-request@70a41aba780001da0a30141984ae2a0c95d8704e #v6.0.2
-        with:
-          token: ${{ secrets.EKSCTLBOT_TOKEN }}
-          commit-message: update ${{ matrix.resource }}
-          committer: eksctl-bot <eksctl-bot@users.noreply.github.com>
-          title: 'Update ${{ matrix.resource }}'
-          branch: update-${{ matrix.resource }}
-          labels: area/tech-debt
+    - name: Checkout
+      uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 #v4.1.2
+      with:
+        token: ${{ secrets.EKSCTLBOT_TOKEN }}
+        fetch-depth: 0
+    - name: Configure AWS credentials for coredns update
+      if: ${{ matrix.resource == 'coredns' }}
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+      with:
+        aws-region: us-west-2
+        role-duration-seconds: 900
+        role-session-name: eksctl-update-coredns-assets
+        role-to-assume: ${{ secrets.UPDATE_COREDNS_ROLE_ARN }}
+    - name: Setup identity as eksctl-bot
+      uses: ./.github/actions/setup-identity
+      with:
+        token: "${{ secrets.EKSCTLBOT_TOKEN }}"
+    - name: Cache go-build and mod
+      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 #v4.0.2
+      with:
+        path: |
+          ~/.cache/go-build/
+          ~/go/pkg/mod/
+        key: go-${{ hashFiles('go.sum') }}
+        restore-keys: |
+          go-
+    - name: Update ${{ matrix.resource }}
+      run: make update-${{ matrix.resource }}
+    - name: Upsert pull request
+      uses: peter-evans/create-pull-request@70a41aba780001da0a30141984ae2a0c95d8704e #v6.0.2
+      with:
+        token: ${{ secrets.EKSCTLBOT_TOKEN }}
+        commit-message: update ${{ matrix.resource }}${{ env.LATEST_RELEASE_TAG }}
+        committer: eksctl-bot <eksctl-bot@users.noreply.github.com>
+        title: 'Update ${{ matrix.resource }}${{ env.LATEST_RELEASE_TAG }}'
+        branch: update-${{ matrix.resource }}
+        labels: area/tech-debt
