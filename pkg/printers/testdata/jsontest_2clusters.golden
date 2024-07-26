@@ -35,7 +35,8 @@
     "RoleArn": null,
     "Status": "ACTIVE",
     "Tags": null,
-    "Version": null
+    "Version": null,
+    "UpgradePolicy": null
   },
   {
     "Id": null,
@@ -73,6 +74,7 @@
     "RoleArn": null,
     "Status": "ACTIVE",
     "Tags": null,
-    "Version": null
+    "Version": null,
+    "UpgradePolicy": null
   }
 ]
