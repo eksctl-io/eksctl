@@ -24,7 +24,17 @@ use `--install-nvidia-plugin=false` with the create command. For example:
 
 ```
 eksctl create cluster --node-type=p2.xlarge --install-nvidia-plugin=false
+```
 
+and, for versions 0.15.0 and above,
+
+```
+kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/<VERSION>/deployments/static/nvidia-device-plugin.yml
+```
+
+or, for older versions,
+
+```
 kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/<VERSION>/nvidia-device-plugin.yml
 ```
 
