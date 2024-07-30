@@ -49,6 +49,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				"elasticloadbalancing:DescribeTargetGroupAttributes",
 				"elasticloadbalancing:DescribeTargetHealth",
 				"elasticloadbalancing:DescribeTags",
+				"elasticloadbalancing:DescribeTrustStores",
 			},
 			"Resource": resourceAll,
 		},
