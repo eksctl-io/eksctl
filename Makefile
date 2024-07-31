@@ -160,6 +160,9 @@ generate-all: generate-always $(conditionally_generated_files) ## Re-generate al
 check-all-generated-files-up-to-date: generate-all ## Run the generate all command and verify there is no new diff
 	git diff --quiet -- $(conditionally_generated_files) || (git --no-pager diff $(conditionally_generated_files); echo "HINT: to fix this, run 'git commit $(conditionally_generated_files) --message \"Update generated files\"'"; exit 1)
 
+.PHONY: update-nvidia-device-plugin
+update-nvidia-device-plugin: ## fetch the latest static manifest
+	pkg/addons/assets/scripts/update_nvidia_device_plugin.sh
 
 .PHONY: update-aws-node
 update-aws-node: ## Re-download the aws-node manifests from AWS

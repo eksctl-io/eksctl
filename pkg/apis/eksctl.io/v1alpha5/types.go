@@ -171,6 +171,9 @@ const (
 	// RegionAPSouthEast4 represents the Asia-Pacific South East Region Melbourne
 	RegionAPSouthEast4 = "ap-southeast-4"
 
+	// RegionAPSouthEast5 represents the Asia-Pacific South East Region Kuala Lumpur
+	RegionAPSouthEast5 = "ap-southeast-5"
+
 	// RegionAPSouth1 represents the Asia-Pacific South Region Mumbai
 	RegionAPSouth1 = "ap-south-1"
 
@@ -385,6 +388,10 @@ const (
 
 	// eksResourceAccountAPSouthEast4 defines the AWS EKS account ID that provides node resources in ap-southeast-4
 	eksResourceAccountAPSouthEast4 = "491585149902"
+
+	// eksResourceAccountAPSouthEast5 defines the AWS EKS account ID that provides node resources in ap-southeast-5
+	eksResourceAccountAPSouthEast5 = "151610086707"
+
 	// eksResourceAccountUSISOEast1 defines the AWS EKS account ID that provides node resources in us-iso-east-1
 	eksResourceAccountUSISOEast1 = "725322719131"
 
@@ -516,6 +523,7 @@ func SupportedRegions() []string {
 		RegionAPSouthEast2,
 		RegionAPSouthEast3,
 		RegionAPSouthEast4,
+		RegionAPSouthEast5,
 		RegionAPSouth1,
 		RegionAPSouth2,
 		RegionAPEast1,
@@ -662,6 +670,8 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountAPSouthEast3
 	case RegionAPSouthEast4:
 		return eksResourceAccountAPSouthEast4
+	case RegionAPSouthEast5:
+		return eksResourceAccountAPSouthEast5
 	case RegionILCentral1:
 		return eksResourceAccountILCentral1
 	case RegionUSISOEast1:
