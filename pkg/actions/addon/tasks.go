@@ -14,6 +14,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
@@ -183,14 +184,20 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 }
 
 func createAddonManager(ctx context.Context, clusterProvider *eks.ClusterProvider, cfg *api.ClusterConfig) (*Manager, error) {
-	oidc, err := clusterProvider.NewOpenIDConnectManager(ctx, cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	oidcProviderExists, err := oidc.CheckProviderExists(ctx)
-	if err != nil {
-		return nil, err
+	var (
+		oidc               *iamoidc.OpenIDConnectManager
+		oidcProviderExists bool
+	)
+	if api.IsEnabled(cfg.IAM.WithOIDC) {
+		var err error
+		oidc, err = clusterProvider.NewOpenIDConnectManager(ctx, cfg)
+		if err != nil {
+			return nil, err
+		}
+		oidcProviderExists, err = oidc.CheckProviderExists(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	stackManager := clusterProvider.NewStackManager(cfg)
