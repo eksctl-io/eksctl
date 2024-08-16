@@ -601,7 +601,9 @@ var _ = Describe("AMI Auto Resolution", func() {
 		It("should support SSM parameter generation for all AMI types but Windows", func() {
 			var eksAMIType ekstypes.AMITypes
 			for _, amiType := range eksAMIType.Values() {
-				if amiType == ekstypes.AMITypesCustom || strings.HasPrefix(string(amiType), "WINDOWS_") {
+				if amiType == ekstypes.AMITypesCustom || strings.HasPrefix(string(amiType), "WINDOWS_") ||
+					// TODO: remove this condition after adding support for AL2023 Nvidia and Neuron AMI types.
+					amiType == ekstypes.AMITypesAl2023X8664Nvidia || amiType == ekstypes.AMITypesAl2023X8664Neuron {
 					continue
 				}
 				ssmParameterName := MakeManagedSSMParameterName(api.LatestVersion, amiType)
