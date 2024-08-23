@@ -273,6 +273,7 @@ var _ = Describe("create cluster", func() {
 
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = clusterName
+		clusterConfig.AddonsConfig.DisableDefaultAddons = true
 		clusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
 		clusterConfig.AccessConfig.AuthenticationMode = ekstypes.AuthenticationModeApiAndConfigMap
 
@@ -877,7 +878,7 @@ var (
 
 	updateMocksForNodegroups = func(status cftypes.StackStatus, outputs []cftypes.Output) func(mp *mockprovider.MockProvider) {
 		return func(mp *mockprovider.MockProvider) {
-			mp.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+			mp.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 				InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 					{
 						InstanceType: "g3.xlarge",
@@ -951,7 +952,7 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 				ZoneId:    aws.String("id"),
 			}},
 	}, nil)
-	p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
+	p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{
 		StackSummaries: []cftypes.StackSummary{
 			{
 				StackName:   aws.String(clusterStackName),
@@ -1039,7 +1040,7 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 				},
 			},
 		}, nil)
-	p.MockEC2().On("DescribeSubnets", mock.Anything, mock.Anything).Return(&ec2.DescribeSubnetsOutput{
+	p.MockEC2().On("DescribeSubnets", mock.Anything, mock.Anything, mock.Anything).Return(&ec2.DescribeSubnetsOutput{
 		Subnets: []ec2types.Subnet{},
 	}, nil)
 	p.MockEC2().On("DescribeVpcs", mock.Anything, mock.Anything).Return(&ec2.DescribeVpcsOutput{
@@ -1075,7 +1076,7 @@ func mockOutposts(provider *mockprovider.MockProvider, outpostID string) {
 	}, nil)
 	provider.MockOutposts().On("GetOutpostInstanceTypes", mock.Anything, &outposts.GetOutpostInstanceTypesInput{
 		OutpostId: aws.String(outpostID),
-	}).Return(&outposts.GetOutpostInstanceTypesOutput{
+	}, mock.Anything).Return(&outposts.GetOutpostInstanceTypesOutput{
 		InstanceTypes: []outpoststypes.InstanceTypeItem{
 			{
 				InstanceType: aws.String("m5.xlarge"),
@@ -1084,7 +1085,7 @@ func mockOutposts(provider *mockprovider.MockProvider, outpostID string) {
 	}, nil)
 	provider.MockEC2().On("DescribeInstanceTypes", mock.Anything, &ec2.DescribeInstanceTypesInput{
 		InstanceTypes: []ec2types.InstanceType{"m5.xlarge"},
-	}).Return(&ec2.DescribeInstanceTypesOutput{
+	}, mock.Anything).Return(&ec2.DescribeInstanceTypesOutput{
 		InstanceTypes: []ec2types.InstanceTypeInfo{
 			{
 				InstanceType: "m5.xlarge",

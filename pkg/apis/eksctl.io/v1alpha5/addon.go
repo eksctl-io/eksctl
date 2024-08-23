@@ -9,6 +9,18 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// Values for core addons
+const (
+	minimumVPCCNIVersionForIPv6 = "1.10.0"
+
+	VPCCNIAddon           = "vpc-cni"
+	KubeProxyAddon        = "kube-proxy"
+	CoreDNSAddon          = "coredns"
+	PodIdentityAgentAddon = "eks-pod-identity-agent"
+	AWSEBSCSIDriverAddon  = "aws-ebs-csi-driver"
+	AWSEFSCSIDriverAddon  = "aws-efs-csi-driver"
+)
+
 // Addon holds the EKS addon configuration
 type Addon struct {
 	// +required
@@ -64,6 +76,12 @@ type AddonsConfig struct {
 	// for supported addons that require IAM permissions.
 	// +optional
 	AutoApplyPodIdentityAssociations bool `json:"autoApplyPodIdentityAssociations,omitempty"`
+
+	// DisableDefaultAddons enables or disables creation of default networking addons when the cluster
+	// is created.
+	// By default, all default addons are installed as EKS addons.
+	// +optional
+	DisableDefaultAddons bool `json:"disableDefaultAddons,omitempty"`
 }
 
 func (a Addon) CanonicalName() string {

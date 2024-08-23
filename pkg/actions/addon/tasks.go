@@ -3,6 +3,7 @@ package addon
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -13,43 +14,105 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
-	preTasks := &tasks.TaskTree{Parallel: false}
-	postTasks := &tasks.TaskTree{Parallel: false}
-	var preAddons []*api.Addon
-	var postAddons []*api.Addon
-	for _, addon := range cfg.Addons {
-		if strings.EqualFold(addon.Name, api.VPCCNIAddon) ||
-			strings.EqualFold(addon.Name, api.PodIdentityAgentAddon) {
+var knownAddons = map[string]struct {
+	IsDefault             bool
+	CreateBeforeNodeGroup bool
+}{
+	api.VPCCNIAddon: {
+		IsDefault:             true,
+		CreateBeforeNodeGroup: true,
+	},
+	api.KubeProxyAddon: {
+		IsDefault:             true,
+		CreateBeforeNodeGroup: true,
+	},
+	api.CoreDNSAddon: {
+		IsDefault:             true,
+		CreateBeforeNodeGroup: true,
+	},
+	api.PodIdentityAgentAddon: {
+		CreateBeforeNodeGroup: true,
+	},
+	api.AWSEBSCSIDriverAddon: {},
+	api.AWSEFSCSIDriverAddon: {},
+}
+
+func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree, *tasks.GenericTask, []string) {
+	var addons []*api.Addon
+	var autoDefaultAddonNames []string
+	if !cfg.AddonsConfig.DisableDefaultAddons {
+		addons = make([]*api.Addon, len(cfg.Addons))
+		copy(addons, cfg.Addons)
+
+		for addonName, addonInfo := range knownAddons {
+			if addonInfo.IsDefault && !slices.ContainsFunc(cfg.Addons, func(a *api.Addon) bool {
+				return strings.EqualFold(a.Name, addonName)
+			}) {
+				addons = append(addons, &api.Addon{Name: addonName})
+				autoDefaultAddonNames = append(autoDefaultAddonNames, addonName)
+			}
+		}
+	} else {
+		addons = cfg.Addons
+	}
+
+	var (
+		preAddons  []*api.Addon
+		postAddons []*api.Addon
+	)
+	var vpcCNIAddon *api.Addon
+	for _, addon := range addons {
+		addonInfo, ok := knownAddons[addon.Name]
+		if ok && addonInfo.CreateBeforeNodeGroup {
 			preAddons = append(preAddons, addon)
 		} else {
 			postAddons = append(postAddons, addon)
 		}
+		if addon.Name == api.VPCCNIAddon {
+			vpcCNIAddon = addon
+		}
+	}
+	preTasks := &tasks.TaskTree{Parallel: false}
+	postTasks := &tasks.TaskTree{Parallel: false}
+
+	makeAddonTask := func(addons []*api.Addon, wait bool) *createAddonTask {
+		return &createAddonTask{
+			info:            "create addons",
+			addons:          addons,
+			ctx:             ctx,
+			cfg:             cfg,
+			clusterProvider: clusterProvider,
+			forceAll:        forceAll,
+			timeout:         timeout,
+			wait:            wait,
+			iamRoleCreator:  iamRoleCreator,
+		}
 	}
 
-	preAddonsTask := createAddonTask{
-		info:            "create addons",
-		addons:          preAddons,
-		ctx:             ctx,
-		cfg:             cfg,
-		clusterProvider: clusterProvider,
-		forceAll:        forceAll,
-		timeout:         timeout,
-		wait:            false,
-		iamRoleCreator:  iamRoleCreator,
+	if len(preAddons) > 0 {
+		preTasks.Append(makeAddonTask(preAddons, false))
 	}
-
-	preTasks.Append(&preAddonsTask)
-
-	postAddonsTask := preAddonsTask
-	postAddonsTask.addons = postAddons
-	postAddonsTask.wait = cfg.HasNodes()
-	postTasks.Append(&postAddonsTask)
-
-	return preTasks, postTasks
+	if len(postAddons) > 0 {
+		postTasks.Append(makeAddonTask(postAddons, cfg.HasNodes()))
+	}
+	var updateVPCCNI *tasks.GenericTask
+	if vpcCNIAddon != nil && api.IsEnabled(cfg.IAM.WithOIDC) {
+		updateVPCCNI = &tasks.GenericTask{
+			Description: "update VPC CNI to use IRSA if required",
+			Doer: func() error {
+				addonManager, err := createAddonManager(ctx, clusterProvider, cfg)
+				if err != nil {
+					return err
+				}
+				return addonManager.Update(ctx, vpcCNIAddon, nil, clusterProvider.AWSProvider.WaitTimeout())
+			},
+		}
+	}
+	return preTasks, postTasks, updateVPCCNI, autoDefaultAddonNames
 }
 
 type createAddonTask struct {
@@ -68,25 +131,12 @@ type createAddonTask struct {
 func (t *createAddonTask) Describe() string { return t.info }
 
 func (t *createAddonTask) Do(errorCh chan error) error {
-	oidc, err := t.clusterProvider.NewOpenIDConnectManager(t.ctx, t.cfg)
+	addonManager, err := createAddonManager(t.ctx, t.clusterProvider, t.cfg)
 	if err != nil {
 		return err
 	}
 
-	oidcProviderExists, err := oidc.CheckProviderExists(t.ctx)
-	if err != nil {
-		return err
-	}
-
-	stackManager := t.clusterProvider.NewStackManager(t.cfg)
-
-	addonManager, err := New(t.cfg, t.clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, func() (kubernetes.Interface, error) {
-		return t.clusterProvider.NewStdClientSet(t.cfg)
-	})
-	if err != nil {
-		return err
-	}
-
+	addonManager.DisableAWSNodePatch = true
 	// always install EKS Pod Identity Agent Addon first, if present,
 	// as other addons might require IAM permissions
 	for _, a := range t.addons {
@@ -95,6 +145,9 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		}
 		if t.forceAll {
 			a.Force = true
+		}
+		if !t.wait {
+			t.timeout = 0
 		}
 		err := addonManager.Create(t.ctx, a, t.iamRoleCreator, t.timeout)
 		if err != nil {
@@ -112,6 +165,9 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		if t.forceAll {
 			a.Force = true
 		}
+		if !t.wait {
+			t.timeout = 0
+		}
 		err := addonManager.Create(t.ctx, a, t.iamRoleCreator, t.timeout)
 		if err != nil {
 			go func() {
@@ -125,6 +181,30 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		errorCh <- nil
 	}()
 	return nil
+}
+
+func createAddonManager(ctx context.Context, clusterProvider *eks.ClusterProvider, cfg *api.ClusterConfig) (*Manager, error) {
+	var (
+		oidc               *iamoidc.OpenIDConnectManager
+		oidcProviderExists bool
+	)
+	if api.IsEnabled(cfg.IAM.WithOIDC) {
+		var err error
+		oidc, err = clusterProvider.NewOpenIDConnectManager(ctx, cfg)
+		if err != nil {
+			return nil, err
+		}
+		oidcProviderExists, err = oidc.CheckProviderExists(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	stackManager := clusterProvider.NewStackManager(cfg)
+
+	return New(cfg, clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, func() (kubernetes.Interface, error) {
+		return clusterProvider.NewStdClientSet(cfg)
+	})
 }
 
 type deleteAddonIAMTask struct {

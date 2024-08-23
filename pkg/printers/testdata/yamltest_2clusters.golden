@@ -30,6 +30,7 @@
   Status: ACTIVE
   Tags: null
   Version: null
+  UpgradePolicy: null
 - Id: null
   Arn: arn-87654321
   CertificateAuthority: null
@@ -62,3 +63,4 @@
   Status: ACTIVE
   Tags: null
   Version: null
+  UpgradePolicy: null

@@ -3,11 +3,13 @@ package cmdutils
 import (
 	"path/filepath"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 )
@@ -471,6 +473,123 @@ var _ = Describe("cmdutils configfile", func() {
 				testClusterEndpointAccessDefaults("test_data/cluster-with-vpc-private-access.yaml", true, true)
 			})
 		})
+
+		type bareClusterEntry struct {
+			updateClusterConfig func(*api.ClusterConfig)
+			expectErr           bool
+		}
+
+		DescribeTable("Bare Cluster validation", func(e bareClusterEntry) {
+			cmd := &Cmd{
+				CobraCommand:      newCmd(),
+				ClusterConfigFile: "-",
+				ClusterConfig:     api.NewClusterConfig(),
+				ProviderConfig:    api.ProviderConfig{},
+			}
+			clusterConfig := api.NewClusterConfig()
+			clusterConfig.Metadata.Name = "cluster"
+			clusterConfig.Metadata.Region = api.DefaultRegion
+			clusterConfig.AddonsConfig.DisableDefaultAddons = true
+			clusterConfig.Addons = []*api.Addon{
+				{
+					Name: api.CoreDNSAddon,
+				},
+			}
+			e.updateClusterConfig(clusterConfig)
+			err := NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, &CreateClusterCmdParams{
+				ConfigReader: clusterutils.Reader(clusterConfig),
+			}).Load()
+			if e.expectErr {
+				Expect(err).To(MatchError("fields nodeGroups, managedNodeGroups, fargateProfiles, karpenter, gitops, iam.serviceAccounts, " +
+					"and iam.podIdentityAssociations are not supported during cluster creation in a cluster without VPC CNI; please remove these fields " +
+					"and add them back after cluster creation is successful"))
+			} else {
+				Expect(err).NotTo(HaveOccurred())
+			}
+		},
+			Entry("nodeGroups", bareClusterEntry{
+				updateClusterConfig: func(c *api.ClusterConfig) {
+					ng := api.NewNodeGroup()
+					ng.Name = "ng"
+					ng.DesiredCapacity = aws.Int(1)
+					c.NodeGroups = []*api.NodeGroup{ng}
+				},
+				expectErr: true,
+			}),
+			Entry("managedNodeGroups", bareClusterEntry{
+				updateClusterConfig: func(c *api.ClusterConfig) {
+					ng := api.NewManagedNodeGroup()
+					ng.Name = "mng"
+					ng.DesiredCapacity = aws.Int(1)
+					c.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
+				},
+				expectErr: true,
+			}),
+			Entry("fargateProfiles", bareClusterEntry{
+				updateClusterConfig: func(c *api.ClusterConfig) {
+					c.FargateProfiles = []*api.FargateProfile{
+						{
+							Name: "test",
+							Selectors: []api.FargateProfileSelector{
+								{
+									Namespace: "default",
+								},
+							},
+						},
+					}
+				},
+				expectErr: true,
+			}),
+			Entry("gitops", bareClusterEntry{
+				updateClusterConfig: func(c *api.ClusterConfig) {
+					c.GitOps = &api.GitOps{
+						Flux: &api.Flux{
+							GitProvider: "github",
+							Flags: api.FluxFlags{
+								"owner": "aws",
+							},
+						},
+					}
+				},
+				expectErr: true,
+			}),
+			Entry("karpenter", bareClusterEntry{
+				updateClusterConfig: func(c *api.ClusterConfig) {
+					c.Karpenter = &api.Karpenter{}
+				},
+				expectErr: true,
+			}),
+			Entry("iam.serviceAccounts", bareClusterEntry{
+				updateClusterConfig: func(c *api.ClusterConfig) {
+					c.IAM.WithOIDC = api.Enabled()
+					c.IAM.ServiceAccounts = []*api.ClusterIAMServiceAccount{
+						{
+							ClusterIAMMeta: api.ClusterIAMMeta{
+								Name:      "test",
+								Namespace: "test",
+							},
+							AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
+						},
+					}
+				},
+				expectErr: true,
+			}),
+			Entry("iam.podIdentityAssociations", bareClusterEntry{
+				updateClusterConfig: func(c *api.ClusterConfig) {
+					c.Addons = append(c.Addons, &api.Addon{Name: api.PodIdentityAgentAddon})
+					c.IAM.PodIdentityAssociations = []api.PodIdentityAssociation{
+						{
+							Namespace:            "test",
+							PermissionPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
+						},
+					}
+				},
+				expectErr: true,
+			}),
+			Entry("no unsupported field set", bareClusterEntry{
+				updateClusterConfig: func(c *api.ClusterConfig) {},
+			}),
+		)
 	})
 
 	Describe("SetLabelLoader", func() {

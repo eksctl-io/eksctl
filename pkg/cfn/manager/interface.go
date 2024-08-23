@@ -84,15 +84,15 @@ type StackManager interface {
 	LookupCloudTrailEvents(ctx context.Context, i *Stack) ([]cttypes.Event, error)
 	MakeChangeSetName(action string) string
 	MakeClusterStackName() string
-	NewManagedNodeGroupTask(ctx context.Context, nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool, importer vpc.Importer) *tasks.TaskTree
+	NewManagedNodeGroupTask(ctx context.Context, nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool, importer vpc.Importer, nodeGroupParallelism int) *tasks.TaskTree
 	NewTasksToDeleteClusterWithNodeGroups(ctx context.Context, clusterStack *Stack, nodeGroupStacks []NodeGroupStack, clusterOperable bool, newOIDCManager NewOIDCManager, newTasksToDeleteAddonIAM NewTasksToDeleteAddonIAM, newTasksToDeletePodIdentityRole NewTasksToDeletePodIdentityRole, cluster *ekstypes.Cluster, clientSetGetter kubernetes.ClientSetGetter, wait, force bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error)
 	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *tasks.TaskTree
 	NewTaskToDeleteUnownedNodeGroup(ctx context.Context, clusterName, nodegroup string, nodeGroupDeleter NodeGroupDeleter, waitCondition *DeleteWaitCondition) tasks.Task
-	NewTasksToCreateCluster(ctx context.Context, nodeGroups []*api.NodeGroup, managedNodeGroups []*api.ManagedNodeGroup, accessConfig *api.AccessConfig, accessEntryCreator accessentry.CreatorInterface, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree
+	NewTasksToCreateCluster(ctx context.Context, nodeGroups []*api.NodeGroup, managedNodeGroups []*api.ManagedNodeGroup, accessConfig *api.AccessConfig, accessEntryCreator accessentry.CreatorInterface, nodeGroupParallelism int, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree
 	NewTasksToDeleteIAMServiceAccounts(ctx context.Context, serviceAccounts []string, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error)
 	NewTasksToDeleteNodeGroups(stacks []NodeGroupStack, shouldDelete func(_ string) bool, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error)
 	NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx context.Context, newOIDCManager NewOIDCManager, cluster *ekstypes.Cluster, clientSetGetter kubernetes.ClientSetGetter, force bool) (*tasks.TaskTree, error)
-	NewUnmanagedNodeGroupTask(ctx context.Context, nodeGroups []*api.NodeGroup, forceAddCNIPolicy, skipEgressRules, disableAccessEntryCreation bool, importer vpc.Importer) *tasks.TaskTree
+	NewUnmanagedNodeGroupTask(ctx context.Context, nodeGroups []*api.NodeGroup, forceAddCNIPolicy, skipEgressRules, disableAccessEntryCreation bool, importer vpc.Importer, nodeGroupParallelism int) *tasks.TaskTree
 	PropagateManagedNodeGroupTagsToASG(ngName string, ngTags map[string]string, asgNames []string, errCh chan error) error
 	RefreshFargatePodExecutionRoleARN(ctx context.Context) error
 	StackStatusIsNotTransitional(s *Stack) bool

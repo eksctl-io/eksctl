@@ -46,7 +46,7 @@ var _ = Describe("Addon Migration", func() {
 	mockAddonCalls := func(eksAddonsAPI *mocksv2.EKS) {
 		eksAddonsAPI.On("ListAddons", mock.Anything, &eks.ListAddonsInput{
 			ClusterName: aws.String(clusterName),
-		}).Return(&eks.ListAddonsOutput{
+		}, mock.Anything).Return(&eks.ListAddonsOutput{
 			Addons: []string{"vpc-cni"},
 		}, nil)
 		eksAddonsAPI.On("DescribeAddon", mock.Anything, &eks.DescribeAddonInput{

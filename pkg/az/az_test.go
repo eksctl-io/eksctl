@@ -215,7 +215,7 @@ var _ = Describe("AZ", func() {
 				},
 				LocationType: ec2types.LocationTypeAvailabilityZone,
 				MaxResults:   aws.Int32(100),
-			}).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+			}, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 				NextToken: aws.String("token"),
 				InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 					{
@@ -249,7 +249,7 @@ var _ = Describe("AZ", func() {
 				LocationType: ec2types.LocationTypeAvailabilityZone,
 				MaxResults:   aws.Int32(100),
 				NextToken:    aws.String("token"),
-			}).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+			}, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 				InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 					{
 						InstanceType: "t2.medium",
@@ -304,6 +304,128 @@ var _ = Describe("AZ", func() {
 		})
 	})
 
+	type unsupportedZoneEntry struct {
+		region        string
+		zoneNameToIDs map[string]string
+		expectedZones []string
+	}
+	DescribeTable("region with unsupported zone IDs", func(e unsupportedZoneEntry) {
+		var azs []ec2types.AvailabilityZone
+		for zoneName, zoneID := range e.zoneNameToIDs {
+			azs = append(azs, createAvailabilityZoneWithID(e.region, ec2types.AvailabilityZoneStateAvailable, zoneName, zoneID))
+		}
+		mockProvider := mockprovider.NewMockProvider()
+		mockProvider.MockEC2().On("DescribeAvailabilityZones", mock.Anything, &ec2.DescribeAvailabilityZonesInput{
+			Filters: []ec2types.Filter{
+				{
+					Name:   aws.String("region-name"),
+					Values: []string{e.region},
+				},
+				{
+					Name:   aws.String("state"),
+					Values: []string{string(ec2types.AvailabilityZoneStateAvailable)},
+				},
+				{
+					Name:   aws.String("zone-type"),
+					Values: []string{string(ec2types.LocationTypeAvailabilityZone)},
+				},
+			},
+		}).Return(&ec2.DescribeAvailabilityZonesOutput{
+			AvailabilityZones: azs,
+		}, nil)
+		mockProvider.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, &ec2.DescribeInstanceTypeOfferingsInput{
+			Filters: []ec2types.Filter{
+				{
+					Name:   aws.String("instance-type"),
+					Values: []string{"t2.small", "t2.medium"},
+				},
+				{
+					Name:   aws.String("location"),
+					Values: []string{"zone1", "zone2", "zone3", "zone4"},
+				},
+			},
+			LocationType: ec2types.LocationTypeAvailabilityZone,
+			MaxResults:   aws.Int32(100),
+		}, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
+			NextToken: aws.String("token"),
+			InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
+				{
+					InstanceType: "t2.small",
+					Location:     aws.String("zone1"),
+					LocationType: "availability-zone",
+				},
+				{
+					InstanceType: "t2.small",
+					Location:     aws.String("zone2"),
+					LocationType: "availability-zone",
+				},
+				{
+					InstanceType: "t2.small",
+					Location:     aws.String("zone4"),
+					LocationType: "availability-zone",
+				},
+				{
+					InstanceType: "t2.small",
+					Location:     aws.String("zone3"),
+					LocationType: "availability-zone",
+				},
+			},
+		}, nil)
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Metadata.Region = e.region
+		clusterConfig.NodeGroups = []*api.NodeGroup{
+			{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "test-az-1",
+				},
+			},
+			{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "test-az-2",
+				},
+			},
+		}
+		zones, err := az.GetAvailabilityZones(context.Background(), mockProvider.MockEC2(), e.region, clusterConfig)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(zones).To(ConsistOf(e.expectedZones))
+	},
+		Entry(api.RegionCNNorth1, unsupportedZoneEntry{
+			region: api.RegionCNNorth1,
+			zoneNameToIDs: map[string]string{
+				"zone1": "cnn1-az1",
+				"zone2": "cnn1-az2",
+				"zone4": "cnn1-az4",
+			},
+			expectedZones: []string{"zone1", "zone2"},
+		}),
+		Entry(api.RegionUSEast1, unsupportedZoneEntry{
+			region: api.RegionUSEast1,
+			zoneNameToIDs: map[string]string{
+				"zone1": "use1-az1",
+				"zone2": "use1-az3",
+				"zone3": "use1-az2",
+			},
+			expectedZones: []string{"zone1", "zone3"},
+		}),
+		Entry(api.RegionUSWest1, unsupportedZoneEntry{
+			region: api.RegionUSWest1,
+			zoneNameToIDs: map[string]string{
+				"zone1": "usw1-az2",
+				"zone2": "usw1-az1",
+				"zone3": "usw1-az3",
+			},
+			expectedZones: []string{"zone2", "zone3"},
+		}),
+		Entry(api.RegionCACentral1, unsupportedZoneEntry{
+			region: api.RegionCACentral1,
+			zoneNameToIDs: map[string]string{
+				"zone1": "cac1-az1",
+				"zone2": "cac1-az2",
+				"zone3": "cac1-az3",
+			},
+			expectedZones: []string{"zone1", "zone2"},
+		}),
+	)
 	When("the region contains zones that are denylisted", func() {
 		BeforeEach(func() {
 			region = api.RegionCNNorth1

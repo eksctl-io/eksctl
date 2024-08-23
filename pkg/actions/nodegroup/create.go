@@ -38,6 +38,7 @@ type CreateOpts struct {
 	DryRunSettings            DryRunSettings
 	SkipOutdatedAddonsCheck   bool
 	ConfigFileProvided        bool
+	Parallelism               int
 }
 
 type DryRunSettings struct {
@@ -79,9 +80,11 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 				return errors.Wrapf(err, "loading VPC spec for cluster %q", meta.Name)
 			}
 			isOwnedCluster = false
-			skipEgressRules, err = validateSecurityGroup(ctx, ctl.AWSProvider.EC2(), cfg.VPC.SecurityGroup)
-			if err != nil {
-				return err
+			if len(cfg.NodeGroups) > 0 {
+				skipEgressRules, err = validateSecurityGroup(ctx, ctl.AWSProvider.EC2(), cfg.VPC.SecurityGroup)
+				if err != nil {
+					return err
+				}
 			}
 
 		default:
@@ -171,7 +174,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, options.DryRunSettings.OutStream)
 	}
 
-	if err := m.nodeCreationTasks(ctx, isOwnedCluster, skipEgressRules, options.UpdateAuthConfigMap); err != nil {
+	if err := m.nodeCreationTasks(ctx, isOwnedCluster, skipEgressRules, options.UpdateAuthConfigMap, options.Parallelism); err != nil {
 		return err
 	}
 
@@ -203,7 +206,7 @@ func makeOutpostsService(clusterConfig *api.ClusterConfig, provider api.ClusterP
 	}
 }
 
-func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster, skipEgressRules bool, updateAuthConfigMap *bool) error {
+func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster, skipEgressRules bool, updateAuthConfigMap *bool, parallelism int) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 
@@ -259,10 +262,10 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster, skipEgr
 	}
 	disableAccessEntryCreation := !m.accessEntry.IsEnabled() || updateAuthConfigMap != nil
 	if nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(ctx, cfg.NodeGroups, !awsNodeUsesIRSA, skipEgressRules,
-		disableAccessEntryCreation, vpcImporter); nodeGroupTasks.Len() > 0 {
+		disableAccessEntryCreation, vpcImporter, parallelism); nodeGroupTasks.Len() > 0 {
 		allNodeGroupTasks.Append(nodeGroupTasks)
 	}
-	managedTasks := m.stackManager.NewManagedNodeGroupTask(ctx, cfg.ManagedNodeGroups, !awsNodeUsesIRSA, vpcImporter)
+	managedTasks := m.stackManager.NewManagedNodeGroupTask(ctx, cfg.ManagedNodeGroups, !awsNodeUsesIRSA, vpcImporter, parallelism)
 	if managedTasks.Len() > 0 {
 		allNodeGroupTasks.Append(managedTasks)
 	}

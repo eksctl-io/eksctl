@@ -49,7 +49,7 @@ var _ = Describe("Get", func() {
 				intialProvider.MockEKS().On("ListClusters", mock.Anything, &awseks.ListClustersInput{
 					MaxResults: aws.Int32(100),
 					Include:    []string{"all"},
-				}).Return(&awseks.ListClustersOutput{
+				}, mock.Anything).Return(&awseks.ListClustersOutput{
 					Clusters: []string{"cluster1", "cluster2", "cluster3"},
 				}, nil)
 
@@ -110,7 +110,7 @@ var _ = Describe("Get", func() {
 				intialProvider.MockEKS().On("ListClusters", mock.Anything, &awseks.ListClustersInput{
 					MaxResults: aws.Int32(100),
 					Include:    []string{"all"},
-				}).Return(nil, fmt.Errorf("foo"))
+				}, mock.Anything).Return(nil, fmt.Errorf("foo"))
 			})
 
 			It("errors", func() {
@@ -158,14 +158,14 @@ var _ = Describe("Get", func() {
 				providerRegion1.MockEKS().On("ListClusters", mock.Anything, &awseks.ListClustersInput{
 					MaxResults: aws.Int32(100),
 					Include:    []string{"all"},
-				}).Return(&awseks.ListClustersOutput{
+				}, mock.Anything).Return(&awseks.ListClustersOutput{
 					Clusters: []string{"cluster1"},
 				}, nil)
 
 				providerRegion2.MockEKS().On("ListClusters", mock.Anything, &awseks.ListClustersInput{
 					MaxResults: aws.Int32(100),
 					Include:    []string{"all"},
-				}).Return(&awseks.ListClustersOutput{
+				}, mock.Anything).Return(&awseks.ListClustersOutput{
 					Clusters: []string{"cluster2"},
 				}, nil)
 
@@ -242,7 +242,7 @@ var _ = Describe("Get", func() {
 				providerRegion1.MockEKS().On("ListClusters", mock.Anything, &awseks.ListClustersInput{
 					MaxResults: aws.Int32(100),
 					Include:    []string{"all"},
-				}).Return(&awseks.ListClustersOutput{
+				}, mock.Anything).Return(&awseks.ListClustersOutput{
 					Clusters: []string{"cluster1"},
 				}, nil)
 

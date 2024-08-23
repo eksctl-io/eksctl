@@ -499,7 +499,7 @@ var _ = Describe("VPC", func() {
 			},
 
 			mockEC2: func(ec2Mock *mocksv2.EC2) {
-				ec2Mock.On("DescribeSubnets", Anything, Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
+				ec2Mock.On("DescribeSubnets", Anything, Anything, Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
 					if len(input.Filters) > 0 {
 						return &ec2.DescribeSubnetsOutput{
 							Subnets: []ec2types.Subnet{
@@ -590,7 +590,7 @@ var _ = Describe("VPC", func() {
 			},
 
 			mockEC2: func(ec2Mock *mocksv2.EC2) {
-				ec2Mock.On("DescribeSubnets", Anything, Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
+				ec2Mock.On("DescribeSubnets", Anything, Anything, Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
 					if len(input.Filters) > 0 {
 						return &ec2.DescribeSubnetsOutput{
 							Subnets: []ec2types.Subnet{
@@ -673,7 +673,7 @@ var _ = Describe("VPC", func() {
 				},
 			},
 			mockEC2: func(ec2Mock *mocksv2.EC2) {
-				ec2Mock.On("DescribeSubnets", Anything, Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
+				ec2Mock.On("DescribeSubnets", Anything, Anything, Anything).Return(func(_ context.Context, input *ec2.DescribeSubnetsInput, _ ...func(options *ec2.Options)) *ec2.DescribeSubnetsOutput {
 					if len(input.Filters) > 0 {
 						return &ec2.DescribeSubnetsOutput{
 							Subnets: []ec2types.Subnet{
@@ -1218,6 +1218,7 @@ var _ = Describe("VPC", func() {
 				}, {
 					Name: strings.Pointer("cidr-block"), Values: []string{"192.168.64.0/18"},
 				}}},
+				Anything,
 			).Return(&ec2.DescribeSubnetsOutput{
 				Subnets: []ec2types.Subnet{
 					{
@@ -1235,6 +1236,7 @@ var _ = Describe("VPC", func() {
 				}, {
 					Name: strings.Pointer("availability-zone"), Values: []string{"az3"},
 				}}},
+				Anything,
 			).Return(&ec2.DescribeSubnetsOutput{
 				Subnets: []ec2types.Subnet{
 					{
@@ -1248,6 +1250,7 @@ var _ = Describe("VPC", func() {
 			p.MockEC2().On("DescribeSubnets",
 				Anything,
 				&ec2.DescribeSubnetsInput{SubnetIds: []string{"private1"}},
+				Anything,
 			).Return(&ec2.DescribeSubnetsOutput{
 				Subnets: []ec2types.Subnet{
 					{
@@ -1262,6 +1265,7 @@ var _ = Describe("VPC", func() {
 			p.MockEC2().On("DescribeSubnets",
 				Anything,
 				&ec2.DescribeSubnetsInput{SubnetIds: []string{"public1"}},
+				Anything,
 			).Return(&ec2.DescribeSubnetsOutput{
 				Subnets: []ec2types.Subnet{
 					{
