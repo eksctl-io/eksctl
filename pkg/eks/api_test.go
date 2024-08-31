@@ -153,7 +153,7 @@ var _ = Describe("eksctl API", func() {
 			awsProviderBuilderMock = e.overwriteAWSProviderBuilderMock
 		}
 
-		clusterProvider, err := eks.NewHelper(context.Background(), &api.ProviderConfig{}, clusterConfig, awsProviderBuilderMock)
+		clusterProvider, err := eks.NewHelper(context.Background(), &api.ProviderConfig{}, clusterConfig, eks.ConfigurationLoader{}, awsProviderBuilderMock)
 		if e.err != "" {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(e.err))
