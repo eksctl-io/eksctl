@@ -764,8 +764,8 @@ github.com/aws/aws-sdk-go-v2/service/outposts v1.38.0 h1:e4uIyH2aMFUtUaHjO/NCNBk
 github.com/aws/aws-sdk-go-v2/service/outposts v1.38.0/go.mod h1:6fqELmjNXUPBviJYhN4QzmMQRtuPAREMRKlhzfBD8j0=
 github.com/aws/aws-sdk-go-v2/service/pricing v1.17.0 h1:RQOMvPwte2H4ZqsiZmrla1crhBWDFnW8bZynkec5cGU=
 github.com/aws/aws-sdk-go-v2/service/pricing v1.17.0/go.mod h1:LJyh9figH3ZpSiVjR5umzbl6V3EpQdZR4Se1ayoUtfI=
-github.com/aws/aws-sdk-go-v2/service/ssm v1.49.5 h1:KBwyHzP2QG8J//hoGuPyHWZ5tgL1BzaoMURUkecpI4g=
-github.com/aws/aws-sdk-go-v2/service/ssm v1.49.5/go.mod h1:Ebk/HZmGhxWKDVxM4+pwbxGjm3RQOQLMjAEosI3ss9Q=
+github.com/aws/aws-sdk-go-v2/service/ssm v1.52.6 h1:uvd3OF/3jt2csfs2xZ64NIOukDY/YJYZiHqT9vP3Mhg=
+github.com/aws/aws-sdk-go-v2/service/ssm v1.52.6/go.mod h1:Bw2YSeqq/I4VyVs9JSfdT9ArqyAbQkJEwj13AVm0heg=
 github.com/aws/aws-sdk-go-v2/service/sso v1.20.5 h1:vN8hEbpRnL7+Hopy9dzmRle1xmDc7o8tmY0klsr175w=
 github.com/aws/aws-sdk-go-v2/service/sso v1.20.5/go.mod h1:qGzynb/msuZIE8I75DVRCUXw3o3ZyBmUvMwQ2t/BrGM=
 github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.4 h1:Jux+gDDyi1Lruk+KHF91tK2KCuY61kzoCpvtvJJBtOE=

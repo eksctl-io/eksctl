@@ -26,7 +26,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/iam v1.32.0
 	github.com/aws/aws-sdk-go-v2/service/kms v1.27.5
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.38.0
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.49.5
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.52.6
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.6
 	github.com/aws/smithy-go v1.20.4
 	github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20240508073157-fbfa1bc129f5
