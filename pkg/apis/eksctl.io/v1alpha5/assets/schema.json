@@ -776,8 +776,8 @@
         },
         "version": {
           "type": "string",
-          "description": "Valid variants are: `\"1.23\"`, `\"1.24\"`, `\"1.25\"`, `\"1.26\"`, `\"1.27\"`, `\"1.28\"`, `\"1.29\"`, `\"1.30\"` (default).",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;1.23&quot;</code>, <code>&quot;1.24&quot;</code>, <code>&quot;1.25&quot;</code>, <code>&quot;1.26&quot;</code>, <code>&quot;1.27&quot;</code>, <code>&quot;1.28&quot;</code>, <code>&quot;1.29&quot;</code>, <code>&quot;1.30&quot;</code> (default).",
+          "description": "Valid variants are: `\"1.23\"`, `\"1.24\"`, `\"1.25\"`, `\"1.26\"`, `\"1.27\"`, `\"1.28\"`, `\"1.29\"`, `\"1.30\"` (default), `\"1.31\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;1.23&quot;</code>, <code>&quot;1.24&quot;</code>, <code>&quot;1.25&quot;</code>, <code>&quot;1.26&quot;</code>, <code>&quot;1.27&quot;</code>, <code>&quot;1.28&quot;</code>, <code>&quot;1.29&quot;</code>, <code>&quot;1.30&quot;</code> (default), <code>&quot;1.31&quot;</code>.",
           "default": "1.30",
           "enum": [
             "1.23",
@@ -787,7 +787,8 @@
             "1.27",
             "1.28",
             "1.29",
-            "1.30"
+            "1.30",
+            "1.31"
           ]
         }
       },

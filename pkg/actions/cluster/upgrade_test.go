@@ -86,9 +86,9 @@ var _ = Describe("upgrade cluster", func() {
 		}),
 
 		Entry("fails when the version is still not supported", upgradeCase{
-			givenVersion:      "1.31",
+			givenVersion:      "1.32",
 			eksVersion:        api.LatestVersion,
-			expectedErrorText: "control plane version \"1.31\" is not known to this version of eksctl",
+			expectedErrorText: "control plane version \"1.32\" is not known to this version of eksctl",
 		}),
 	)
 })

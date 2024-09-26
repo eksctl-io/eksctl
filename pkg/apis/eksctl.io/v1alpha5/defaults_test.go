@@ -392,6 +392,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			}, false)
 			Expect(mng.AMIFamily).To(Equal(expectedAMIFamily))
 		},
+			Entry("EKS 1.31 uses AL2023", "1.31", NodeImageFamilyAmazonLinux2023),
 			Entry("EKS 1.30 uses AL2023", "1.30", NodeImageFamilyAmazonLinux2023),
 			Entry("EKS 1.29 uses AL2", "1.29", NodeImageFamilyAmazonLinux2),
 			Entry("EKS 1.28 uses AL2", "1.28", NodeImageFamilyAmazonLinux2),
