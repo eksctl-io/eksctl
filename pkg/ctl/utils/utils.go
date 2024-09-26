@@ -30,6 +30,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, describeAddonConfigurationCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, migrateToPodIdentityCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, migrateAccessEntryCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateZonalShiftConfigCmd)
 
 	return verbCmd
 }

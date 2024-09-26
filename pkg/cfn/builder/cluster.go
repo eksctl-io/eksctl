@@ -335,6 +335,11 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		kubernetesNetworkConfig.IpFamily = gfnt.NewString(strings.ToLower(ipFamily))
 	}
 	cluster.KubernetesNetworkConfig = kubernetesNetworkConfig
+	if c.spec.ZonalShiftConfig != nil && api.IsEnabled(c.spec.ZonalShiftConfig.Enabled) {
+		cluster.ZonalShiftConfig = &gfneks.Cluster_ZonalShift{
+			Enabled: gfnt.NewBoolean(true),
+		}
+	}
 
 	c.newResource("ControlPlane", &cluster)
 
