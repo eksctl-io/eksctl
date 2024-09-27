@@ -1,0 +1,70 @@
+# create a role which allows impersonating all of our users
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tachyon-node-impersonate
+rules:
+- apiGroups: [""]
+  resources: ["users"]
+  verbs: ["impersonate"]
+  resourceNames: ["kube-proxy", "ipamd", "aws-network-policy-agent", "coredns", "eks-runtime:ebs-csi-driver", "eks-runtime:neuron-device-plugin", "eks-managed:node-monitoring-agent"]
+---
+# let system:nodes have that role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tachyon-node-impersonate
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: system:nodes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tachyon-node-impersonate
+---
+# give kube-proxy user the system:node-proxier role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kube-proxy
+subjects:
+- kind: User
+  name: kube-proxy
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: system:node-proxier
+  apiGroup: rbac.authorization.k8s.io
+---
+# give ipamd user the aws-node role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ipamd
+subjects:
+- kind: User
+  name: ipamd
+  apiGroup: rbac.authorization.k8s.io
+- kind: User
+  name: aws-network-policy-agent
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: aws-node
+  apiGroup: rbac.authorization.k8s.io
+---
+# give coredns user the coredns role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: coredns
+subjects:
+- kind: User
+  name: coredns
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: system:coredns
+  apiGroup: rbac.authorization.k8s.io
+

@@ -1,0 +1,77 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: aws-node
+rules:
+- apiGroups:
+  - crd.k8s.amazonaws.com
+  resources:
+  - eniconfigs
+  verbs:
+  - list
+  - watch
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - list
+  - watch
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - list
+  - watch
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - list
+  - watch
+  - get
+- apiGroups:
+  - ""
+  - events.k8s.io
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+  - list
+- apiGroups:
+  - networking.k8s.aws
+  resources:
+  - policyendpoints
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.aws
+  resources:
+  - policyendpoints/status
+  verbs:
+  - get
+- apiGroups:
+  - vpcresources.k8s.aws
+  resources:
+  - cninodes
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+- apiGroups:
+  - eks.amazonaws.com
+  resources:
+  - cninodes
+  verbs:
+  - list
+  - watch
+  - get

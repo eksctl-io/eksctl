@@ -827,6 +827,11 @@ func (c *ClusterConfig) FindNodeGroupOutpostARN() (outpostARN string, found bool
 	return "", false
 }
 
+// IsAutonomousModeEnabled reports whether autonomous mode is enabled.
+func (c *ClusterConfig) IsAutonomousModeEnabled() bool {
+	return c.AutonomousModeConfig != nil && IsEnabled(c.AutonomousModeConfig.Enabled)
+}
+
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
 	CloudFormation() awsapi.CloudFormation
@@ -889,6 +894,10 @@ type ClusterConfig struct {
 
 	// +optional
 	KubernetesNetworkConfig *KubernetesNetworkConfig `json:"kubernetesNetworkConfig,omitempty"`
+
+	// AutonomousModeConfig holds the config for autonomous mode.
+	// +optional
+	AutonomousModeConfig *AutonomousModeConfig `json:"autonomousModeConfig,omitempty"`
 
 	// +optional
 	IAM *ClusterIAM `json:"iam,omitempty"`

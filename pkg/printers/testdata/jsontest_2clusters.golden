@@ -6,6 +6,7 @@
     "ClientRequestToken": null,
     "ConnectorConfig": null,
     "CreatedAt": "0001-01-01T00:00:00Z",
+    "ComputeConfig": null,
     "AccessConfig": {
       "AuthenticationMode": "API_AND_CONFIG_MAP",
       "BootstrapClusterCreatorAdminPermissions": true
@@ -34,6 +35,7 @@
     },
     "RoleArn": null,
     "Status": "ACTIVE",
+    "StorageConfig": null,
     "Tags": null,
     "Version": null,
     "UpgradePolicy": null,
@@ -46,6 +48,7 @@
     "ClientRequestToken": null,
     "ConnectorConfig": null,
     "CreatedAt": "0001-01-01T00:00:00Z",
+    "ComputeConfig": null,
     "AccessConfig": {
       "AuthenticationMode": "API_AND_CONFIG_MAP",
       "BootstrapClusterCreatorAdminPermissions": true
@@ -74,6 +77,7 @@
     },
     "RoleArn": null,
     "Status": "ACTIVE",
+    "StorageConfig": null,
     "Tags": null,
     "Version": null,
     "UpgradePolicy": null,

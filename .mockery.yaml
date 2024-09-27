@@ -66,6 +66,15 @@ packages:
           dir: "{{.InterfaceDir}}/mocks"
           outpkg: mocks
 
+  github.com/weaveworks/eksctl/pkg/actions/cluster:
+    config:
+      filename: "{{ .InterfaceName | snakecase }}.go"
+      with-expecter: true
+      dir: "{{.InterfaceDir}}/mocks"
+      outpkg: mocks
+    interfaces:
+      AutonomousModeDeleter: {}
+
   github.com/weaveworks/eksctl/pkg/actions/podidentityassociation:
     interfaces:
       StackDeleter:
@@ -77,3 +86,28 @@ packages:
         config:
           dir: "{{.InterfaceDir}}/mocks"
           outpkg: mocks
+
+  github.com/weaveworks/eksctl/pkg/autonomousmode:
+    config:
+      with-expecter: true
+      dir: "{{.InterfaceDir}}/mocks"
+      outpkg: mocks
+      filename: "{{ .InterfaceName | snakecase }}.go"
+    interfaces:
+      ClusterStackDescriber: {}
+      VPCImporter: {}
+      StackCreator: {}
+      StackDeleter: {}
+      RawClient: {}
+
+  github.com/weaveworks/eksctl/pkg/actions/autonomousmode:
+    config:
+      with-expecter: true
+      dir: "{{.InterfaceDir}}/mocks"
+      outpkg: mocks
+      filename: "{{ .InterfaceName | snakecase }}.go"
+    interfaces:
+      RoleManager: {}
+      NodeGroupDrainer: {}
+      SubnetsLoader: {}
+      NodeClassApplier: {}

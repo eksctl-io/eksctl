@@ -239,7 +239,8 @@ func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx
 
 	oidc, err := newOIDCManager()
 	if err != nil {
-		if _, ok := err.(*iamoidc.UnsupportedOIDCError); ok {
+		var oidcErr *iamoidc.UnsupportedOIDCError
+		if errors.As(err, &oidcErr) {
 			logger.Debug("OIDC is not supported for this cluster")
 			return taskTree, nil
 		}

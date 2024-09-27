@@ -2,22 +2,26 @@ package create
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os/exec"
 	"strings"
 	"sync"
+	"time"
 
-	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	kubeclient "k8s.io/client-go/kubernetes"
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
+
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 
 	"github.com/weaveworks/eksctl/pkg/accessentry"
 	accessentryactions "github.com/weaveworks/eksctl/pkg/actions/accessentry"
@@ -37,6 +41,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 	"github.com/weaveworks/eksctl/pkg/utils/nodes"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -118,7 +123,8 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 		fs.StringSliceVar(&params.AvailabilityZones, "zones", nil, "(auto-select if unspecified)")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
-		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		// TODO: timeouts.
+		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, 80*time.Minute)
 		fs.BoolVarP(&params.InstallWindowsVPCController, "install-vpc-controllers", "", false, "Install VPC controller that's required for Windows workloads")
 		fs.BoolVarP(&params.Fargate, "fargate", "", false, "Create a Fargate profile scheduling pods in the default and kube-system namespaces onto Fargate")
 		fs.BoolVarP(&params.DryRun, "dry-run", "", false, "Dry-run mode that skips cluster creation and outputs a ClusterConfig")
@@ -146,6 +152,10 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 		fs.StringVar(cfg.VPC.NAT.Gateway, "vpc-nat-mode", api.ClusterSingleNAT, "VPC NAT mode, valid options: HighlyAvailable, Single, Disable")
 	})
 
+	cmd.FlagSetGroup.InFlagSet("Autonomous Mode", func(fs *pflag.FlagSet) {
+		fs.BoolVar(&params.EnableAutonomousMode, "enable-autonomous-mode", false, "enables the Autonomous Mode")
+	})
+
 	cmdutils.AddInstanceSelectorOptions(cmd.FlagSetGroup, ng)
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
@@ -158,6 +168,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 
 func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams, ctl *eks.ClusterProvider,
 	makeAccessEntryCreator func(clusterName string, creator accessentryactions.StackCreator) accessentryactions.CreatorInterface) error {
+
 	var err error
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
@@ -345,22 +356,35 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		}
 		logFiltered()
 
-		logMsg("nodegroup", len(cfg.NodeGroups))
-		logMsg("managed nodegroup", len(cfg.ManagedNodeGroups))
+		if len(cfg.NodeGroups) > 0 {
+			logMsg("nodegroup", len(cfg.NodeGroups))
+		}
+		if len(cfg.ManagedNodeGroups) > 0 {
+			logMsg("managed nodegroup", len(cfg.ManagedNodeGroups))
+		}
 	}
 
 	logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
-
 	eks.LogEnabledFeatures(cfg)
-	iamRoleCreator := &podidentityassociation.IAMRoleCreator{
-		ClusterName:  cfg.Metadata.Name,
-		StackCreator: stackManager,
+
+	var (
+		postNodeGroupAddons      *tasks.TaskTree
+		postClusterCreationTasks *tasks.TaskTree
+	)
+	if cfg.IsAutonomousModeEnabled() {
+		postClusterCreationTasks = ctl.CreateExtraClusterConfigTasks(ctx, cfg, nil, nil)
+	} else {
+		iamRoleCreator := &podidentityassociation.IAMRoleCreator{
+			ClusterName:  cfg.Metadata.Name,
+			StackCreator: stackManager,
+		}
+		preNodegroupAddons, postAddons, updateVPCCNITask, autoDefaultAddons := addon.CreateAddonTasks(ctx, cfg, ctl, iamRoleCreator, true, cmd.ProviderConfig.WaitTimeout)
+		if len(autoDefaultAddons) > 0 {
+			logger.Info("default addons %s were not specified, will install them as EKS addons", strings.Join(autoDefaultAddons, ", "))
+		}
+		postNodeGroupAddons = postAddons
+		postClusterCreationTasks = ctl.CreateExtraClusterConfigTasks(ctx, cfg, preNodegroupAddons, updateVPCCNITask)
 	}
-	preNodegroupAddons, postNodegroupAddons, updateVPCCNITask, autoDefaultAddons := addon.CreateAddonTasks(ctx, cfg, ctl, iamRoleCreator, true, cmd.ProviderConfig.WaitTimeout)
-	if len(autoDefaultAddons) > 0 {
-		logger.Info("default addons %s were not specified, will install them as EKS addons", strings.Join(autoDefaultAddons, ", "))
-	}
-	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(ctx, cfg, preNodegroupAddons, updateVPCCNITask)
 
 	taskTree := stackManager.NewTasksToCreateCluster(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, cfg.AccessConfig, makeAccessEntryCreator(cfg.Metadata.Name, stackManager), params.NodeGroupParallelism, postClusterCreationTasks)
 
@@ -442,18 +466,22 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 						return err
 					}
 				}
-				logger.Success("created %d nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
+				if len(cfg.NodeGroups) > 0 {
+					logger.Success("created %d nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
+				}
 
 				for _, ng := range cfg.ManagedNodeGroups {
 					if err := eks.WaitForNodes(ngCtx, clientSet, ng); err != nil {
 						return err
 					}
 				}
-				logger.Success("created %d managed nodegroup(s) in cluster %q", len(cfg.ManagedNodeGroups), cfg.Metadata.Name)
+				if len(cfg.ManagedNodeGroups) > 0 {
+					logger.Success("created %d managed nodegroup(s) in cluster %q", len(cfg.ManagedNodeGroups), cfg.Metadata.Name)
+				}
 			}
 		}
-		if postNodegroupAddons != nil && postNodegroupAddons.Len() > 0 {
-			if errs := postNodegroupAddons.DoAllSync(); len(errs) > 0 {
+		if postNodeGroupAddons != nil && postNodeGroupAddons.Len() > 0 {
+			if errs := postNodeGroupAddons.DoAllSync(); len(errs) > 0 {
 				logger.Warning("%d error(s) occurred while creating addons", len(errs))
 				for _, err := range errs {
 					logger.Critical("%s\n", err.Error())
@@ -482,7 +510,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			config := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile().Name)
 			kubeConfigBytes, err := runtime.Encode(clientcmdlatest.Codec, config)
 			if err != nil {
-				return errors.Wrap(err, "generating kubeconfig")
+				return fmt.Errorf("generating kubeconfig: %w", err)
 			}
 			clientSet, err := makeClientSet()
 			if err != nil {
@@ -501,7 +529,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			installer, err := flux.New(clientSet, cfg.GitOps)
 			logger.Info("gitops configuration detected, setting installer to Flux v2")
 			if err != nil {
-				return errors.Wrapf(err, "could not initialise Flux installer")
+				return fmt.Errorf("could not initialise Flux installer: %w", err)
 			}
 
 			if err := installer.Run(); err != nil {
@@ -526,7 +554,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			logger.Info("disabling public endpoint access for the cluster")
 			cfg.VPC.ClusterEndpoints.PublicAccess = api.Disabled()
 			if err := ctl.UpdateClusterConfigForEndpoints(ctx, cfg); err != nil {
-				return errors.Wrap(err, "error disabling public endpoint access for the cluster")
+				return fmt.Errorf("error disabling public endpoint access for the cluster: %w", err)
 			}
 			logger.Info("fully private cluster %q has been created. For subsequent operations, eksctl must be run from within the cluster's VPC, a peered VPC or some other means like AWS Direct Connect", cfg.Metadata.Name)
 		}
@@ -646,7 +674,7 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 		return nil
 	}
 
-	if err := vpc.ImportSubnetsFromSpec(ctx, ctl.AWSProvider, cfg); err != nil {
+	if err := vpc.ImportSubnetsFromSpec(ctx, ctl.AWSProvider.EC2(), cfg); err != nil {
 		return err
 	}
 

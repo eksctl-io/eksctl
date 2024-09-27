@@ -3,10 +3,10 @@ package windows
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,7 +32,7 @@ func (w *IPAM) Enable(ctx context.Context) error {
 	vpcCNIConfig, err := configMaps.Get(ctx, vpcCNIName, metav1.GetOptions{})
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
-			return errors.Wrapf(err, "error getting ConfigMap %q", vpcCNIName)
+			return fmt.Errorf("error getting ConfigMap %q: %w", vpcCNIName, err)
 		}
 		return createConfigMap(ctx, configMaps)
 	}
@@ -44,12 +44,12 @@ func (w *IPAM) Enable(ctx context.Context) error {
 
 	patch, err := createPatch(vpcCNIConfig)
 	if err != nil {
-		return errors.Wrap(err, "error creating merge patch")
+		return fmt.Errorf("error creating merge patch: %w", err)
 	}
 
 	_, err = configMaps.Patch(ctx, vpcCNIName, types.StrategicMergePatchType, patch, metav1.PatchOptions{})
 	if err != nil {
-		return errors.Wrapf(err, "failed to patch resource %q", vpcCNIName)
+		return fmt.Errorf("failed to patch resource %q: %w", vpcCNIName, err)
 	}
 	return nil
 }

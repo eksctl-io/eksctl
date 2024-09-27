@@ -2,6 +2,7 @@ package nodegroup
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"k8s.io/client-go/kubernetes"
@@ -48,16 +49,8 @@ func (d *Drainer) Drain(ctx context.Context, input *DrainInput) error {
 			return nodeGroupDrainer.Drain(ctx, sem)
 		})
 	}
-	err := g.Wait()
-	if err != nil {
-		logger.Critical("Node group drain failed: %v", err)
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("draining nodegroups: %w", err)
 	}
-	waitForAllRoutinesToFinish(ctx, sem, parallelLimit)
-	return err
-}
-
-func waitForAllRoutinesToFinish(ctx context.Context, sem *semaphore.Weighted, size int64) {
-	if err := sem.Acquire(ctx, size); err != nil {
-		logger.Critical("failed to acquire semaphore while waiting for all routines to finish: %v", err)
-	}
+	return nil
 }

@@ -285,6 +285,34 @@
       "description": "holds the addons config.",
       "x-intellij-html-description": "holds the addons config."
     },
+    "AutonomousModeConfig": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "enables or disables Autonomous Mode.",
+          "x-intellij-html-description": "enables or disables Autonomous Mode."
+        },
+        "nodePools": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "a list of node pools to create.",
+          "x-intellij-html-description": "a list of node pools to create."
+        },
+        "nodeRoleARN": {
+          "$ref": "#/definitions/ARN",
+          "description": "node role to use for nodes launched by Autonomous Mode.",
+          "x-intellij-html-description": "node role to use for nodes launched by Autonomous Mode."
+        }
+      },
+      "preferredOrder": [
+        "enabled",
+        "nodeRoleARN",
+        "nodePools"
+      ],
+      "additionalProperties": false
+    },
     "CapacityReservation": {
       "properties": {
         "capacityReservationPreference": {
@@ -396,6 +424,11 @@
             "eksctl.io/v1alpha5"
           ]
         },
+        "autonomousModeConfig": {
+          "$ref": "#/definitions/AutonomousModeConfig",
+          "description": "holds the config for autonomous mode.",
+          "x-intellij-html-description": "holds the config for autonomous mode."
+        },
         "availabilityZones": {
           "items": {
             "type": "string"
@@ -489,6 +522,11 @@
         },
         "vpc": {
           "$ref": "#/definitions/ClusterVPC"
+        },
+        "zonalShiftConfig": {
+          "$ref": "#/definitions/ZonalShiftConfig",
+          "description": "specifies the zonal shift configuration.",
+          "x-intellij-html-description": "specifies the zonal shift configuration."
         }
       },
       "preferredOrder": [
@@ -496,6 +534,7 @@
         "apiVersion",
         "metadata",
         "kubernetesNetworkConfig",
+        "autonomousModeConfig",
         "iam",
         "iamIdentityMappings",
         "identityProviders",
@@ -513,7 +552,8 @@
         "secretsEncryption",
         "gitops",
         "karpenter",
-        "outpost"
+        "outpost",
+        "zonalShiftConfig"
       ],
       "additionalProperties": false,
       "description": "a simple config, to be replaced with Cluster API",
@@ -2593,6 +2633,21 @@
       "additionalProperties": false,
       "description": "for attaching common IAM policies",
       "x-intellij-html-description": "for attaching common IAM policies"
+    },
+    "ZonalShiftConfig": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "enables or disables zonal shift.",
+          "x-intellij-html-description": "enables or disables zonal shift."
+        }
+      },
+      "preferredOrder": [
+        "enabled"
+      ],
+      "additionalProperties": false,
+      "description": "holds the zonal shift configuration.",
+      "x-intellij-html-description": "holds the zonal shift configuration."
     },
     "github.com|aws|aws-sdk-go-v2|aws|arn.ARN": {
       "description": "captures the individual fields of an Amazon Resource Name. See http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html for more information.",

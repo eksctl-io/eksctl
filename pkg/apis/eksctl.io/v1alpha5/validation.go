@@ -225,6 +225,9 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	if err := validateAddonPodIdentityAssociations(cfg.Addons); err != nil {
 		return err
 	}
+	if err := ValidateAutonomousModeConfig(cfg); err != nil {
+		return err
+	}
 
 	if len(cfg.AccessConfig.AccessEntries) > 0 {
 		switch cfg.AccessConfig.AuthenticationMode {
