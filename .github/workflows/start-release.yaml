@@ -12,7 +12,7 @@ jobs:
     outputs:
       isRc: ${{ steps.vars.outputs.isRc }}
     steps:
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 #v4.1.2
+      - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 #v4.2.0
       - name: Set output
         id: vars
         run: |
