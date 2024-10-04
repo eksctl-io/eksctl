@@ -31,6 +31,8 @@ const (
 	MaxThroughput = 1000
 	MinIO1Iops    = DefaultNodeVolumeIO1IOPS
 	MaxIO1Iops    = 64000
+	MinIO2Iops    = DefaultNodeVolumeIO2IOPS
+	MaxIO2Iops    = 256000
 	MinGP3Iops    = DefaultNodeVolumeGP3IOPS
 	MaxGP3Iops    = 16000
 	OneDay        = 86400
@@ -718,6 +720,12 @@ func validateVolumeOpts(ng *NodeGroupBase, path string, controlPlaneOnOutposts b
 		if volumeType == NodeVolumeTypeIO1 {
 			if ng.VolumeIOPS != nil && !(*ng.VolumeIOPS >= MinIO1Iops && *ng.VolumeIOPS <= MaxIO1Iops) {
 				return fmt.Errorf("value for %s.volumeIOPS must be within range %d-%d", path, MinIO1Iops, MaxIO1Iops)
+			}
+		}
+
+		if volumeType == NodeVolumeTypeIO2 {
+			if ng.VolumeIOPS != nil && !(*ng.VolumeIOPS >= MinIO2Iops && *ng.VolumeIOPS <= MaxIO2Iops) {
+				return fmt.Errorf("value for %s.volumeIOPS must be within range %d-%d", path, MinIO2Iops, MaxIO2Iops)
 			}
 		}
 
