@@ -713,8 +713,8 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 func validateVolumeOpts(ng *NodeGroupBase, path string, controlPlaneOnOutposts bool) error {
 	if ng.VolumeType != nil {
 		volumeType := *ng.VolumeType
-		if ng.VolumeIOPS != nil && !(volumeType == NodeVolumeTypeIO1 || volumeType == NodeVolumeTypeGP3) {
-			return fmt.Errorf("%s.volumeIOPS is only supported for %s and %s volume types", path, NodeVolumeTypeIO1, NodeVolumeTypeGP3)
+		if ng.VolumeIOPS != nil && !(volumeType == NodeVolumeTypeIO1 || volumeType == NodeVolumeTypeIO2 || volumeType == NodeVolumeTypeGP3) {
+			return fmt.Errorf("%s.volumeIOPS is only supported for %s, %s and %s volume types", path, NodeVolumeTypeIO1, NodeVolumeTypeIO2, NodeVolumeTypeGP3)
 		}
 
 		if volumeType == NodeVolumeTypeIO1 {
