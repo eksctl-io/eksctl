@@ -42,6 +42,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				"elasticloadbalancing:DescribeLoadBalancers",
 				"elasticloadbalancing:DescribeLoadBalancerAttributes",
 				"elasticloadbalancing:DescribeListeners",
+				"elasticloadbalancing:DescribeListenerAttributes",
 				"elasticloadbalancing:DescribeListenerCertificates",
 				"elasticloadbalancing:DescribeSSLPolicies",
 				"elasticloadbalancing:DescribeRules",
@@ -190,6 +191,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 		{
 			"Effect": effectAllow,
 			"Action": []string{
+				"elasticloadbalancing:ModifyListenerAttributes",
 				"elasticloadbalancing:ModifyLoadBalancerAttributes",
 				"elasticloadbalancing:SetIpAddressType",
 				"elasticloadbalancing:SetSecurityGroups",
