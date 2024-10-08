@@ -687,6 +687,22 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 		}
 	}
 
+	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
+		fieldNotSupported := func(field string) error {
+			return &unsupportedFieldError{
+				ng:    ng,
+				path:  path,
+				field: field,
+			}
+		}
+		if ng.PreBootstrapCommands != nil {
+			return fieldNotSupported("preBootstrapCommands")
+		}
+		if ng.OverrideBootstrapCommand != nil {
+			return fieldNotSupported("overrideBootstrapCommand")
+		}
+	}
+
 	if ng.CapacityReservation != nil {
 		if ng.CapacityReservation.CapacityReservationPreference != nil {
 			if ng.CapacityReservation.CapacityReservationTarget != nil {
@@ -870,13 +886,6 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 	if IsWindowsImage(ng.AMIFamily) {
 		if ng.KubeletExtraConfig != nil {
 			return fieldNotSupported("kubeletExtraConfig")
-		}
-	} else if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
-		if ng.PreBootstrapCommands != nil {
-			return fieldNotSupported("preBootstrapCommands")
-		}
-		if ng.OverrideBootstrapCommand != nil {
-			return fieldNotSupported("overrideBootstrapCommand")
 		}
 	} else if ng.AMIFamily == NodeImageFamilyBottlerocket {
 		if ng.KubeletExtraConfig != nil {
