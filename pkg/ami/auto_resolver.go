@@ -25,11 +25,14 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 	return map[string]map[int]string{
 		api.NodeImageFamilyAmazonLinux2023: {
 			ImageClassGeneral: fmt.Sprintf("amazon-eks-node-al2023-x86_64-standard-%s-v*", version),
+			ImageClassNvidia:  fmt.Sprintf("amazon-eks-node-al2023-x86_64-nvidia-*-%s-v*", version),
+			ImageClassNeuron:  fmt.Sprintf("amazon-eks-node-al2023-x86_64-neuron-%s-v*", version),
 			ImageClassARM:     fmt.Sprintf("amazon-eks-node-al2023-arm64-standard-%s-v*", version),
 		},
 		api.NodeImageFamilyAmazonLinux2: {
 			ImageClassGeneral: fmt.Sprintf("amazon-eks-node-%s-v*", version),
-			ImageClassGPU:     fmt.Sprintf("amazon-eks-gpu-node-%s-*", version),
+			ImageClassNvidia:  fmt.Sprintf("amazon-eks-gpu-node-%s-*", version),
+			ImageClassNeuron:  fmt.Sprintf("amazon-eks-gpu-node-%s-*", version),
 			ImageClassARM:     fmt.Sprintf("amazon-eks-arm64-node-%s-*", version),
 		},
 		api.NodeImageFamilyUbuntuPro2204: {
@@ -90,16 +93,22 @@ func (r *AutoResolver) Resolve(ctx context.Context, region, version, instanceTyp
 
 	imageClasses := MakeImageSearchPatterns(version)[imageFamily]
 	namePattern := imageClasses[ImageClassGeneral]
-	if instanceutils.IsGPUInstanceType(instanceType) {
-		var ok bool
-		namePattern, ok = imageClasses[ImageClassGPU]
+	var ok bool
+	switch {
+	case instanceutils.IsNvidiaInstanceType(instanceType):
+		namePattern, ok = imageClasses[ImageClassNvidia]
 		if !ok {
-			logger.Critical("image family %s doesn't support GPU image class", imageFamily)
+			logger.Critical("image family %s doesn't support Nvidia GPU image class", imageFamily)
 			return "", NewErrFailedResolution(region, version, instanceType, imageFamily)
 		}
-	}
-
-	if instanceutils.IsARMInstanceType(instanceType) {
+	case instanceutils.IsNeuronInstanceType(instanceType):
+		var ok bool
+		namePattern, ok = imageClasses[ImageClassNeuron]
+		if !ok {
+			logger.Critical("image family %s doesn't support Neuron GPU image class", imageFamily)
+			return "", NewErrFailedResolution(region, version, instanceType, imageFamily)
+		}
+	case instanceutils.IsARMInstanceType(instanceType):
 		var ok bool
 		namePattern, ok = imageClasses[ImageClassARM]
 		if !ok {

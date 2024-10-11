@@ -19,14 +19,16 @@ import (
 // Variations of image classes
 const (
 	ImageClassGeneral = iota
-	ImageClassGPU
+	ImageClassNvidia
+	ImageClassNeuron
 	ImageClassARM
 )
 
 // ImageClasses is a list of image class names
 var ImageClasses = []string{
 	"ImageClassGeneral",
-	"ImageClassGPU",
+	"ImageClassNvidia",
+	"ImageClassNeuron",
 	"ImageClassARM",
 }
 
