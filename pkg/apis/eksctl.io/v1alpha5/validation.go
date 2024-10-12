@@ -661,12 +661,10 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 
 	instanceType := SelectInstanceType(np)
 
-	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 && instanceutils.IsNvidiaInstanceType(instanceType) {
-		return ErrUnsupportedInstanceTypes("GPU", NodeImageFamilyAmazonLinux2023,
-			fmt.Sprintf("EKS accelerated AMIs based on %s will be available at a later date", NodeImageFamilyAmazonLinux2023))
-	}
-
-	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyBottlerocket && ng.AMIFamily != "" {
+	if ng.AMIFamily != NodeImageFamilyAmazonLinux2023 &&
+		ng.AMIFamily != NodeImageFamilyAmazonLinux2 &&
+		ng.AMIFamily != NodeImageFamilyBottlerocket &&
+		ng.AMIFamily != "" {
 		if instanceutils.IsNvidiaInstanceType(instanceType) {
 			logger.Warning(GPUDriversWarning(ng.AMIFamily))
 		}
@@ -676,14 +674,32 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 		}
 	}
 
-	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != "" {
-		// Only AL2 supports Inferentia hosts.
+	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 &&
+		ng.AMIFamily != NodeImageFamilyAmazonLinux2023 &&
+		ng.AMIFamily != "" {
+		// Only AL2 and AL2023 support Inferentia hosts.
 		if instanceutils.IsInferentiaInstanceType(instanceType) {
 			return ErrUnsupportedInstanceTypes("Inferentia", ng.AMIFamily, fmt.Sprintf("please use %s instead", NodeImageFamilyAmazonLinux2))
 		}
-		// Only AL2 supports Trainium hosts.
+		// Only AL2 and AL2023 support Trainium hosts.
 		if instanceutils.IsTrainiumInstanceType(instanceType) {
 			return ErrUnsupportedInstanceTypes("Trainium", ng.AMIFamily, fmt.Sprintf("please use %s instead", NodeImageFamilyAmazonLinux2))
+		}
+	}
+
+	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
+		fieldNotSupported := func(field string) error {
+			return &unsupportedFieldError{
+				ng:    ng,
+				path:  path,
+				field: field,
+			}
+		}
+		if ng.PreBootstrapCommands != nil {
+			return fieldNotSupported("preBootstrapCommands")
+		}
+		if ng.OverrideBootstrapCommand != nil {
+			return fieldNotSupported("overrideBootstrapCommand")
 		}
 	}
 
@@ -870,13 +886,6 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 	if IsWindowsImage(ng.AMIFamily) {
 		if ng.KubeletExtraConfig != nil {
 			return fieldNotSupported("kubeletExtraConfig")
-		}
-	} else if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
-		if ng.PreBootstrapCommands != nil {
-			return fieldNotSupported("preBootstrapCommands")
-		}
-		if ng.OverrideBootstrapCommand != nil {
-			return fieldNotSupported("overrideBootstrapCommand")
 		}
 	} else if ng.AMIFamily == NodeImageFamilyBottlerocket {
 		if ng.KubeletExtraConfig != nil {

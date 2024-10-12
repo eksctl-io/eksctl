@@ -40,22 +40,16 @@ var _ = Describe("GPU instance support", func() {
 		assertValidationError(e, api.ValidateManagedNodeGroup(0, mng))
 	},
 		Entry("AL2023 INF", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyAmazonLinux2023,
-			gpuInstanceType:      "inf1.xlarge",
-			expectUnsupportedErr: true,
-			instanceTypeName:     "Inferentia",
+			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType: "inf1.xlarge",
 		}),
 		Entry("AL2023 TRN", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyAmazonLinux2023,
-			gpuInstanceType:      "trn1.2xlarge",
-			expectUnsupportedErr: true,
-			instanceTypeName:     "Trainium",
+			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType: "trn1.2xlarge",
 		}),
 		Entry("AL2023 NVIDIA", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyAmazonLinux2023,
-			gpuInstanceType:      "g4dn.xlarge",
-			expectUnsupportedErr: true,
-			instanceTypeName:     "GPU",
+			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType: "g4dn.xlarge",
 		}),
 		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "asdf",
@@ -107,22 +101,16 @@ var _ = Describe("GPU instance support", func() {
 
 	},
 		Entry("AL2023 INF", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyAmazonLinux2023,
-			gpuInstanceType:      "inf1.xlarge",
-			expectUnsupportedErr: true,
-			instanceTypeName:     "Inferentia",
+			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType: "inf1.xlarge",
 		}),
 		Entry("AL2023 TRN", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyAmazonLinux2023,
-			gpuInstanceType:      "trn1.2xlarge",
-			expectUnsupportedErr: true,
-			instanceTypeName:     "Trainium",
+			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType: "trn1.2xlarge",
 		}),
 		Entry("AL2023 NVIDIA", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyAmazonLinux2023,
-			gpuInstanceType:      "g4dn.xlarge",
-			expectUnsupportedErr: true,
-			instanceTypeName:     "GPU",
+			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType: "g4dn.xlarge",
 		}),
 		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "g4dn.xlarge",
