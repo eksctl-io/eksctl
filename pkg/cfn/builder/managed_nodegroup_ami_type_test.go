@@ -77,23 +77,24 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 		expectedAMIType: "AL2_x86_64",
 	}),
 
-	Entry("AMI type", amiTypeEntry{
-		nodeGroup: &api.ManagedNodeGroup{
-			NodeGroupBase: &api.NodeGroupBase{
-				Name: "test",
-			},
-		},
-		expectedAMIType: "AL2023_x86_64_STANDARD",
-	}),
-
-	Entry("default GPU instance type", amiTypeEntry{
+	Entry("default Nvidia GPU instance type", amiTypeEntry{
 		nodeGroup: &api.ManagedNodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
 				Name:         "test",
 				InstanceType: "p2.xlarge",
 			},
 		},
-		expectedAMIType: "AL2_x86_64_GPU",
+		expectedAMIType: "AL2023_x86_64_NVIDIA",
+	}),
+
+	Entry("default Neuron GPU instance type", amiTypeEntry{
+		nodeGroup: &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         "test",
+				InstanceType: "inf1.2xlarge",
+			},
+		},
+		expectedAMIType: "AL2023_x86_64_NEURON",
 	}),
 
 	Entry("AL2 GPU instance type", amiTypeEntry{
@@ -105,6 +106,16 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 			},
 		},
 		expectedAMIType: "AL2_x86_64_GPU",
+	}),
+
+	Entry("default ARM instance type", amiTypeEntry{
+		nodeGroup: &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         "test",
+				InstanceType: "a1.2xlarge",
+			},
+		},
+		expectedAMIType: "AL2023_ARM_64_STANDARD",
 	}),
 
 	Entry("AL2 ARM instance type", amiTypeEntry{

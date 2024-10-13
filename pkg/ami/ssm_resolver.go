@@ -55,8 +55,8 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 
 	switch imageFamily {
 	case api.NodeImageFamilyAmazonLinux2023:
-		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/%s/standard/recommended/%s",
-			version, utils.ToKebabCase(imageFamily), instanceEC2ArchName(instanceType), fieldName), nil
+		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/%s/%s/recommended/%s",
+			version, utils.ToKebabCase(imageFamily), instanceEC2ArchName(instanceType), imageType(imageFamily, instanceType, version), fieldName), nil
 	case api.NodeImageFamilyAmazonLinux2:
 		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/%s", version, imageType(imageFamily, instanceType, version), fieldName), nil
 	case api.NodeImageFamilyWindowsServer2019CoreContainer,
@@ -102,6 +102,10 @@ func MakeManagedSSMParameterName(version string, amiType ekstypes.AMITypes) stri
 	switch amiType {
 	case ekstypes.AMITypesAl2023X8664Standard:
 		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/x86_64/standard/recommended/release_version", version, utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2023))
+	case ekstypes.AMITypesAl2023X8664Nvidia:
+		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/x86_64/nvidia/recommended/release_version", version, utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2023))
+	case ekstypes.AMITypesAl2023X8664Neuron:
+		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/x86_64/neuron/recommended/release_version", version, utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2023))
 	case ekstypes.AMITypesAl2023Arm64Standard:
 		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/arm64/standard/recommended/release_version", version, utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2023))
 	case ekstypes.AMITypesAl2X8664:
@@ -138,6 +142,14 @@ func ubuntuArchName(instanceType string) string {
 func imageType(imageFamily, instanceType, version string) string {
 	family := utils.ToKebabCase(imageFamily)
 	switch imageFamily {
+	case api.NodeImageFamilyAmazonLinux2023:
+		if instanceutils.IsNvidiaInstanceType(instanceType) {
+			return "nvidia"
+		}
+		if instanceutils.IsNeuronInstanceType(instanceType) {
+			return "neuron"
+		}
+		return "standard"
 	case api.NodeImageFamilyBottlerocket:
 		if instanceutils.IsNvidiaInstanceType(instanceType) {
 			return fmt.Sprintf("%s-%s", version, "nvidia")
