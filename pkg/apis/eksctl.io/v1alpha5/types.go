@@ -959,6 +959,9 @@ type ClusterConfig struct {
 	// Outpost specifies the Outpost configuration.
 	// +optional
 	Outpost *Outpost `json:"outpost,omitempty"`
+
+	// ZonalShiftConfig specifies the zonal shift configuration.
+	ZonalShiftConfig *ZonalShiftConfig `json:"zonalShiftConfig,omitempty"`
 }
 
 // Outpost holds the Outpost configuration.
@@ -984,6 +987,12 @@ func (o *Outpost) SetInstanceType(instanceType string) {
 // HasPlacementGroup reports whether this Outpost has a placement group.
 func (o *Outpost) HasPlacementGroup() bool {
 	return o.ControlPlanePlacement != nil
+}
+
+// ZonalShiftConfig holds the zonal shift configuration.
+type ZonalShiftConfig struct {
+	// Enabled enables or disables zonal shift.
+	Enabled *bool `json:"enabled,omitempty"`
 }
 
 // OutpostInfo describes the Outpost info.
