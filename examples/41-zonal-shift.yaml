@@ -1,0 +1,11 @@
+# An example ClusterConfig that uses EKS Zonal Shift.
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: highly-available-cluster
+  region: us-west-2
+
+zonalShiftConfig:
+  enabled: true
