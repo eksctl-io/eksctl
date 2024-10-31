@@ -52,7 +52,7 @@ theme:
       - content.tooltips
       - content.tabs.link
       - content.code.copy
-    
+
 # Plugins
 plugins:
   - search
@@ -91,17 +91,17 @@ extra:
           - icon: material/thumb-down-outline
             name: This page could be improved
             data: 0
-            note: >- 
-              Thanks for your feedback! Help us improve this page by using our 
+            note: >-
+              Thanks for your feedback! Help us improve this page by using our
               <a href="https://github.com/eksctl-io/eksctl/issues/new/?title=[Feedback]+{title}+-+{url}" target="_blank" rel="noopener">feedback form <a>.
     consent:
       title: Cookie consent
-      description: >- 
+      description: >-
         We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users
         find what they're searching for. With your consent, you're helping us to make our documentation better.
       actions:
         - accept
-        - manage 
+        - manage
 
 extra_css:
   - stylesheets/extra.css
@@ -124,7 +124,7 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji 
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - attr_list
   - md_in_html
@@ -156,6 +156,7 @@ nav:
       - usage/fargate-support.md
       - usage/cluster-upgrade.md
       - usage/addon-upgrade.md
+      - usage/zonal-shift.md
     - Nodegroups:
       - usage/nodegroups.md
       - usage/nodegroup-unmanaged.md

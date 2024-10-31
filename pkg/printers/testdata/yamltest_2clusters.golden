@@ -31,6 +31,7 @@
   Tags: null
   Version: null
   UpgradePolicy: null
+  ZonalShiftConfig: null
 - Id: null
   Arn: arn-87654321
   CertificateAuthority: null
@@ -64,3 +65,4 @@
   Tags: null
   Version: null
   UpgradePolicy: null
+  ZonalShiftConfig: null
