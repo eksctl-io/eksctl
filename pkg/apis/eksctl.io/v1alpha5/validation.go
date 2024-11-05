@@ -767,9 +767,6 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 				field: field,
 			}
 		}
-		if ng.PreBootstrapCommands != nil {
-			return fieldNotSupported("preBootstrapCommands")
-		}
 		if ng.OverrideBootstrapCommand != nil {
 			return fieldNotSupported("overrideBootstrapCommand")
 		}

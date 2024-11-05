@@ -58,6 +58,11 @@ func (m *AL2023) UserData() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("generating node config: %w", err)
 	}
+
+	for _, command := range m.nodePool.BaseNodeGroup().PreBootstrapCommands {
+		m.scripts = append(m.scripts, "#!/bin/bash\n"+command)
+	}
+
 	if len(m.scripts) == 0 && len(m.cloudboot) == 0 && nodeConfig == nil {
 		return "", nil
 	}
