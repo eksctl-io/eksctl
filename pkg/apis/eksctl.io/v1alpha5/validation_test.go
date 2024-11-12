@@ -2183,6 +2183,14 @@ var _ = Describe("ClusterConfig validation", func() {
 			err = api.ValidateManagedNodeGroup(0, mng)
 			Expect(err).NotTo(HaveOccurred())
 
+			mng.AMIFamily = api.NodeImageFamilyUbuntu2404
+			err = api.ValidateManagedNodeGroup(0, mng)
+			Expect(err).NotTo(HaveOccurred())
+
+			mng.AMIFamily = api.NodeImageFamilyUbuntuPro2404
+			err = api.ValidateManagedNodeGroup(0, mng)
+			Expect(err).NotTo(HaveOccurred())
+
 			mng.AMIFamily = api.NodeImageFamilyBottlerocket
 			mng.OverrideBootstrapCommand = nil
 			err = api.ValidateManagedNodeGroup(0, mng)
