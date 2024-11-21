@@ -152,8 +152,8 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 		fs.StringVar(cfg.VPC.NAT.Gateway, "vpc-nat-mode", api.ClusterSingleNAT, "VPC NAT mode, valid options: HighlyAvailable, Single, Disable")
 	})
 
-	cmd.FlagSetGroup.InFlagSet("Autonomous Mode", func(fs *pflag.FlagSet) {
-		fs.BoolVar(&params.EnableAutonomousMode, "enable-autonomous-mode", false, "enables the Autonomous Mode")
+	cmd.FlagSetGroup.InFlagSet("Auto Mode", func(fs *pflag.FlagSet) {
+		fs.BoolVar(&params.EnableAutoMode, "enable-auto-mode", false, "enables Auto Mode")
 	})
 
 	cmdutils.AddInstanceSelectorOptions(cmd.FlagSetGroup, ng)
@@ -371,7 +371,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		postNodeGroupAddons      *tasks.TaskTree
 		postClusterCreationTasks *tasks.TaskTree
 	)
-	if cfg.IsAutonomousModeEnabled() {
+	if cfg.IsAutoModeEnabled() {
 		postClusterCreationTasks = ctl.CreateExtraClusterConfigTasks(ctx, cfg, nil, nil)
 	} else {
 		iamRoleCreator := &podidentityassociation.IAMRoleCreator{

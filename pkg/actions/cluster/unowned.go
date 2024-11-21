@@ -22,20 +22,20 @@ import (
 )
 
 type UnownedCluster struct {
-	cfg                   *api.ClusterConfig
-	ctl                   *eks.ClusterProvider
-	stackManager          manager.StackManager
-	autonomousModeDeleter AutonomousModeDeleter
-	newClientSet          func() (kubernetes.Interface, error)
-	newNodeGroupDrainer   func(clientSet kubernetes.Interface) NodeGroupDrainer
+	cfg                 *api.ClusterConfig
+	ctl                 *eks.ClusterProvider
+	stackManager        manager.StackManager
+	autoModeDeleter     AutoModeDeleter
+	newClientSet        func() (kubernetes.Interface, error)
+	newNodeGroupDrainer func(clientSet kubernetes.Interface) NodeGroupDrainer
 }
 
-func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, autonomousModeDeleter AutonomousModeDeleter) *UnownedCluster {
+func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, autoModeDeleter AutoModeDeleter) *UnownedCluster {
 	return &UnownedCluster{
-		cfg:                   cfg,
-		ctl:                   ctl,
-		autonomousModeDeleter: autonomousModeDeleter,
-		stackManager:          stackManager,
+		cfg:             cfg,
+		ctl:             ctl,
+		autoModeDeleter: autoModeDeleter,
+		stackManager:    stackManager,
 		newClientSet: func() (kubernetes.Interface, error) {
 			return ctl.NewStdClientSet(cfg)
 		},
@@ -127,7 +127,7 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval, podEvictionWa
 	if err := checkForUndeletedStacks(ctx, c.stackManager); err != nil {
 		return err
 	}
-	if err := c.autonomousModeDeleter.DeleteIfRequired(ctx); err != nil {
+	if err := c.autoModeDeleter.DeleteIfRequired(ctx); err != nil {
 		return err
 	}
 

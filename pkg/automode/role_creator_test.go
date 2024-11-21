@@ -1,4 +1,4 @@
-package autonomousmode_test
+package automode_test
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/weaveworks/eksctl/pkg/autonomousmode"
-	"github.com/weaveworks/eksctl/pkg/autonomousmode/mocks"
+	"github.com/weaveworks/eksctl/pkg/automode"
+	"github.com/weaveworks/eksctl/pkg/automode/mocks"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
@@ -23,7 +23,7 @@ type roleCreatorTest struct {
 
 var _ = DescribeTable("Role Creator", func(t roleCreatorTest) {
 	var stackCreator mocks.StackCreator
-	roleCreator := &autonomousmode.RoleCreator{
+	roleCreator := &automode.RoleCreator{
 		StackCreator: &stackCreator,
 	}
 	if t.updateMock != nil {
@@ -38,29 +38,29 @@ var _ = DescribeTable("Role Creator", func(t roleCreatorTest) {
 	Expect(nodeRoleARN).To(Equal(t.expectedNodeRoleARN))
 	stackCreator.AssertExpectations(GinkgoT())
 },
-	Entry("Autonomous Mode role exists in cluster stack", roleCreatorTest{
+	Entry("Auto Mode role exists in cluster stack", roleCreatorTest{
 		updateMock: func(s *mocks.StackCreator) {
 			s.EXPECT().GetClusterStackIfExists(mock.Anything).Return(&cfntypes.Stack{
 				Outputs: []cfntypes.Output{
 					{
-						OutputKey:   aws.String("AutonomousModeNodeRoleARN"),
-						OutputValue: aws.String("arn:aws:iam::000:role/AutonomousModeNodeRole"),
+						OutputKey:   aws.String("AutoModeNodeRoleARN"),
+						OutputValue: aws.String("arn:aws:iam::000:role/AutoModeNodeRole"),
 					},
 				},
 			}, nil).Once()
 		},
-		expectedNodeRoleARN: "arn:aws:iam::000:role/AutonomousModeNodeRole",
+		expectedNodeRoleARN: "arn:aws:iam::000:role/AutoModeNodeRole",
 	}),
-	Entry("Autonomous Mode role is missing in cluster stack", roleCreatorTest{
+	Entry("Auto Mode role is missing in cluster stack", roleCreatorTest{
 		updateMock: func(s *mocks.StackCreator) {
 			s.EXPECT().GetClusterStackIfExists(mock.Anything).Return(&cfntypes.Stack{}, nil).Once()
-			s.EXPECT().CreateStack(mock.Anything, "eksctl-cluster-autonomous-mode-role", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			s.EXPECT().CreateStack(mock.Anything, "eksctl-cluster-auto-mode-role", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 				RunAndReturn(func(ctx context.Context, _ string, resourceSet builder.ResourceSetReader, _, _ map[string]string, errCh chan error) error {
 					if err := resourceSet.GetAllOutputs(cfntypes.Stack{
 						Outputs: []cfntypes.Output{
 							{
-								OutputKey:   aws.String("AutonomousModeNodeRoleARN"),
-								OutputValue: aws.String("arn:aws:iam::000:role/AutonomousModeNodeRole"),
+								OutputKey:   aws.String("AutoModeNodeRoleARN"),
+								OutputValue: aws.String("arn:aws:iam::000:role/AutoModeNodeRole"),
 							},
 						},
 					}); err != nil {
@@ -70,6 +70,6 @@ var _ = DescribeTable("Role Creator", func(t roleCreatorTest) {
 					return nil
 				}).Once()
 		},
-		expectedNodeRoleARN: "arn:aws:iam::000:role/AutonomousModeNodeRole",
+		expectedNodeRoleARN: "arn:aws:iam::000:role/AutoModeNodeRole",
 	}),
 )

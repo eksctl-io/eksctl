@@ -21,26 +21,26 @@ import (
 )
 
 type OwnedCluster struct {
-	cfg                   *api.ClusterConfig
-	ctl                   *eks.ClusterProvider
-	clusterStack          *manager.Stack
-	stackManager          manager.StackManager
-	newClientSet          func() (kubernetes.Interface, error)
-	newNodeGroupDrainer   func(clientSet kubernetes.Interface) NodeGroupDrainer
-	autonomousModeDeleter AutonomousModeDeleter
+	cfg                 *api.ClusterConfig
+	ctl                 *eks.ClusterProvider
+	clusterStack        *manager.Stack
+	stackManager        manager.StackManager
+	newClientSet        func() (kubernetes.Interface, error)
+	newNodeGroupDrainer func(clientSet kubernetes.Interface) NodeGroupDrainer
+	autoModeDeleter     AutoModeDeleter
 }
 
-type AutonomousModeDeleter interface {
+type AutoModeDeleter interface {
 	DeleteIfRequired(ctx context.Context) error
 }
 
-func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager, autonomousModeDeleter AutonomousModeDeleter) *OwnedCluster {
+func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager, autoModeDeleter AutoModeDeleter) *OwnedCluster {
 	return &OwnedCluster{
-		cfg:                   cfg,
-		ctl:                   ctl,
-		clusterStack:          clusterStack,
-		autonomousModeDeleter: autonomousModeDeleter,
-		stackManager:          stackManager,
+		cfg:             cfg,
+		ctl:             ctl,
+		clusterStack:    clusterStack,
+		autoModeDeleter: autoModeDeleter,
+		stackManager:    stackManager,
 		newClientSet: func() (kubernetes.Interface, error) {
 			return ctl.NewStdClientSet(cfg)
 		},
@@ -177,7 +177,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 	if err := checkForUndeletedStacks(ctx, c.stackManager); err != nil {
 		return err
 	}
-	if err := c.autonomousModeDeleter.DeleteIfRequired(ctx); err != nil {
+	if err := c.autoModeDeleter.DeleteIfRequired(ctx); err != nil {
 		return err
 	}
 

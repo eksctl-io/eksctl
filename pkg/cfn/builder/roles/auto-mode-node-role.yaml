@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'Amazon EKS Karpenter NodeRole'
 Resources:
-  AutonomousModeNodeRole:
+  AutoModeNodeRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -21,8 +21,8 @@ Resources:
         - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodeMinimalPolicy"
 
 Outputs:
-  AutonomousModeNodeRoleARN:
+  AutoModeNodeRoleARN:
     Description: The role that EKS will use by default for launching instances
-    Value: !GetAtt AutonomousModeNodeRole.Arn
+    Value: !GetAtt AutoModeNodeRole.Arn
     Export:
       Name: !Sub "${AWS::StackName}-NodeRoleArn"

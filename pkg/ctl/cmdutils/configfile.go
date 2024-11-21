@@ -214,7 +214,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 		"vpc-cidr",
 		"vpc-nat-mode",
 		"vpc-from-kops-cluster",
-		"enable-autonomous-mode",
+		"enable-auto-mode",
 	}
 
 	l.flagsIncompatibleWithConfigFile.Insert(append(clusterFlagsIncompatibleWithConfigFile, commonNGFlagsIncompatibleWithConfigFile...)...)
@@ -312,14 +312,14 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				return err
 			}
 		}
-		if clusterConfig.IsAutonomousModeEnabled() {
+		if clusterConfig.IsAutoModeEnabled() {
 			if len(clusterConfig.NodeGroups) > 0 || len(clusterConfig.ManagedNodeGroups) > 0 {
 				return errors.New("creation of managed or self-managed nodegroups is not supported during cluster creation " +
-					"when Autonomous Mode is enabled; please create them post cluster creation using `eksctl create nodegroup`" +
+					"when Auto Mode is enabled; please create them post cluster creation using `eksctl create nodegroup`" +
 					" after creating core networking addons in the cluster")
 			}
 			if api.HasDefaultAddons(clusterConfig.Addons) {
-				return errors.New("core networking addons are not required on a cluster using Autonomous Mode; " +
+				return errors.New("core networking addons are not required on a cluster using Auto Mode; " +
 					"if you still wish to create them, use `eksctl create addon` post cluster creation")
 			}
 		}
@@ -373,9 +373,9 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			return fmt.Errorf("status fields are read-only")
 		}
 
-		if params.EnableAutonomousMode {
+		if params.EnableAutoMode {
 			incompatibleErr := func(flagName string) error {
-				return fmt.Errorf("cannot use --%s when Autonomous Mode is enabled", flagName)
+				return fmt.Errorf("cannot use --%s when Auto Mode is enabled", flagName)
 			}
 			if flagName, found := findChangedFlag(l.CobraCommand, commonNGFlagsIncompatibleWithConfigFile); found {
 				return incompatibleErr(flagName)
@@ -384,10 +384,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				return incompatibleErr("fargate")
 			}
 			if params.WithoutNodeGroup {
-				return errors.New("--without-nodegroup is the default behavior when Autonomous Mode is enabled")
+				return errors.New("--without-nodegroup is the default behavior when Auto Mode is enabled")
 			}
 			params.WithoutNodeGroup = true
-			l.ClusterConfig.AutonomousModeConfig = &api.AutonomousModeConfig{
+			l.ClusterConfig.AutoModeConfig = &api.AutoModeConfig{
 				Enabled: api.Enabled(),
 			}
 		}

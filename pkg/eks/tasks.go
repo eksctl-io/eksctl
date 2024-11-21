@@ -20,7 +20,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	"github.com/weaveworks/eksctl/pkg/addons"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/autonomousmode"
+	"github.com/weaveworks/eksctl/pkg/automode"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -205,23 +205,23 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 			return c.RefreshClusterStatus(ctx, cfg)
 		},
 	})
-	if cfg.IsAutonomousModeEnabled() {
+	if cfg.IsAutoModeEnabled() {
 		if cfg.VPC != nil && cfg.VPC.ID != "" {
-			logger.Info("subnets supplied in subnets.private and subnets.public will be used for nodes launched by Autonomous Mode; please create a new NodeClass " +
+			logger.Info("subnets supplied in subnets.private and subnets.public will be used for nodes launched by Auto Mode; please create a new NodeClass " +
 				"resource if you do not want to use cluster subnets")
 		}
 		newTasks.Append(&tasks.GenericTask{
-			Description: "apply node RBAC resources for Autonomous Mode",
+			Description: "apply node RBAC resources for Auto Mode",
 			Doer: func() error {
 				rawClient, err := c.NewRawClient(cfg)
 				if err != nil {
 					return fmt.Errorf("creating RawClient: %w", err)
 				}
-				rbacApplier := &autonomousmode.RBACApplier{
+				rbacApplier := &automode.RBACApplier{
 					RawClient: rawClient,
 				}
 				if err := rbacApplier.ApplyRBACResources(); err != nil {
-					return fmt.Errorf("applying node RBAC resources for Autonomous Mode: %w", err)
+					return fmt.Errorf("applying node RBAC resources for Auto Mode: %w", err)
 				}
 				return nil
 			},

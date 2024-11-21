@@ -74,7 +74,7 @@ packages:
       dir: "{{.InterfaceDir}}/mocks"
       outpkg: mocks
     interfaces:
-      AutonomousModeDeleter: {}
+      AutoModeDeleter: {}
 
   github.com/weaveworks/eksctl/pkg/actions/podidentityassociation:
     interfaces:
@@ -88,7 +88,7 @@ packages:
           dir: "{{.InterfaceDir}}/mocks"
           outpkg: mocks
 
-  github.com/weaveworks/eksctl/pkg/autonomousmode:
+  github.com/weaveworks/eksctl/pkg/automode:
     config:
       with-expecter: true
       dir: "{{.InterfaceDir}}/mocks"
@@ -99,7 +99,7 @@ packages:
       StackDeleter: {}
       RawClient: {}
 
-  github.com/weaveworks/eksctl/pkg/actions/autonomousmode:
+  github.com/weaveworks/eksctl/pkg/actions/automode:
     config:
       with-expecter: true
       dir: "{{.InterfaceDir}}/mocks"

@@ -9,33 +9,32 @@ import (
 	"github.com/spf13/pflag"
 	"k8s.io/client-go/kubernetes"
 
-	autonomousmodeactions "github.com/weaveworks/eksctl/pkg/actions/autonomousmode"
+	automodeactions "github.com/weaveworks/eksctl/pkg/actions/automode"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/autonomousmode"
-
+	"github.com/weaveworks/eksctl/pkg/automode"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-type autonomousModeOptions struct {
+type autoModeOptions struct {
 	drainNodeGroups      bool
 	drainParallel        int
 	ignoreMissingSubnets bool
 }
 
-func updateAutonomousModeConfigCmd(cmd *cmdutils.Cmd) {
+func updateAutoModeConfigCmd(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
-		"autonomous-mode-config",
-		"Update the Autonomous Mode config",
-		"Enable or disable Autonomous Mode on an existing cluster",
+		"auto-mode-config",
+		"Update the Auto Mode config",
+		"Enable or disable Auto Mode on an existing cluster",
 	)
 
-	var options autonomousModeOptions
-	cmd.FlagSetGroup.InFlagSet("Autonomous Mode", func(fs *pflag.FlagSet) {
+	var options autoModeOptions
+	cmd.FlagSetGroup.InFlagSet("Auto Mode", func(fs *pflag.FlagSet) {
 		fs.BoolVar(&options.drainNodeGroups, "drain-all-nodegroups", false, "Drains nodegroups after enabling "+
-			"Autonomous Mode in the cluster so that workloads on existing nodegroups are moved to the Autonomous Mode")
+			"Auto Mode in the cluster so that workloads on existing nodegroups are moved to the Auto Mode")
 		fs.IntVar(&options.drainParallel, "drain-parallel", 1, "Specifies the number of nodes to drain in parallel")
 		fs.BoolVar(&options.ignoreMissingSubnets, "ignore-missing-subnets", false, "If the cluster's CloudFormation stack "+
 			"contains any subnets that no longer exist, eksctl fails with an error. Specifying this flag suppresses the error.")
@@ -47,12 +46,12 @@ func updateAutonomousModeConfigCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
-		return updateAutonomousMode(cmd, options)
+		return updateAutoMode(cmd, options)
 	}
 }
 
-func updateAutonomousMode(cmd *cmdutils.Cmd, options autonomousModeOptions) error {
-	if err := cmdutils.NewAutonomousModeLoader(cmd).Load(); err != nil {
+func updateAutoMode(cmd *cmdutils.Cmd, options autoModeOptions) error {
+	if err := cmdutils.NewAutoModeLoader(cmd).Load(); err != nil {
 		return err
 	}
 	if options.drainParallel < 0 {
@@ -73,24 +72,24 @@ func updateAutonomousMode(cmd *cmdutils.Cmd, options autonomousModeOptions) erro
 	if err != nil {
 		return err
 	}
-	autonomousModeUpdater := &autonomousmodeactions.Updater{
+	autoModeUpdater := &automodeactions.Updater{
 		EKSUpdater: ctl.AWSProvider.EKS(),
 		RoleManager: &roleManager{
-			RoleCreator: &autonomousmode.RoleCreator{
+			RoleCreator: &automode.RoleCreator{
 				StackCreator: stackManager,
 			},
-			RoleDeleter: &autonomousmode.RoleDeleter{
+			RoleDeleter: &automode.RoleDeleter{
 				Cluster:      ctl.Status.ClusterInfo.Cluster,
 				StackDeleter: stackManager,
 			},
 		},
 		CoreV1Interface: clientSet.CoreV1(),
-		RBACApplier: &autonomousmode.RBACApplier{
+		RBACApplier: &automode.RBACApplier{
 			RawClient: rawClient,
 		},
 	}
 	if options.drainNodeGroups {
-		autonomousModeUpdater.Drainer = &nodeGroupDrainer{
+		autoModeUpdater.Drainer = &nodeGroupDrainer{
 			nodeGroupLister: &eks.NodeGroupLister{
 				NodeGroupStackLister: stackManager,
 			},
@@ -98,7 +97,7 @@ func updateAutonomousMode(cmd *cmdutils.Cmd, options autonomousModeOptions) erro
 			drainParallel: options.drainParallel,
 		}
 	}
-	return autonomousModeUpdater.Update(ctx, cmd.ClusterConfig, ctl.Status.ClusterInfo.Cluster)
+	return autoModeUpdater.Update(ctx, cmd.ClusterConfig, ctl.Status.ClusterInfo.Cluster)
 }
 
 type nodeGroupDrainer struct {
@@ -127,6 +126,6 @@ func (d *nodeGroupDrainer) Drain(ctx context.Context) error {
 }
 
 type roleManager struct {
-	*autonomousmode.RoleCreator
-	*autonomousmode.RoleDeleter
+	*automode.RoleCreator
+	*automode.RoleDeleter
 }

@@ -154,9 +154,9 @@ func (v *IPv6VPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Value, *
 	addSubnetOutput(publicSubnetResourceRefs, v.clusterConfig.VPC.Subnets.Public, outputs.ClusterSubnetsPublic)
 
 	return vpcResourceRef, &SubnetDetails{
-		Private:        privateSubnets,
-		Public:         publicSubnets,
-		autonomousMode: v.clusterConfig.IsAutonomousModeEnabled(),
+		Private:  privateSubnets,
+		Public:   publicSubnets,
+		autoMode: v.clusterConfig.IsAutoModeEnabled(),
 	}, nil
 }
 

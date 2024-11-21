@@ -1,4 +1,4 @@
-package autonomousmode_test
+package automode_test
 
 import (
 	"testing"
@@ -6,6 +6,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
-func TestAutonomousMode(t *testing.T) {
+func TestAutoMode(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }

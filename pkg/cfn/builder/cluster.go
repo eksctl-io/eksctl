@@ -311,18 +311,18 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		Version: gfnt.NewString(c.spec.Metadata.Version),
 	}
 
-	if cc := c.spec.AutonomousModeConfig; cc != nil && api.IsEnabled(cc.Enabled) {
+	if cc := c.spec.AutoModeConfig; cc != nil && api.IsEnabled(cc.Enabled) {
 		computeConfig := &gfneks.Cluster_ComputeConfig{
 			Enabled: gfnt.NewBoolean(true),
 		}
 		cluster.ComputeConfig = computeConfig
 		if cc.NodeRoleARN.IsZero() {
 			if cc.HasNodePools() {
-				autonomousModeRefs, err := AddAutonomousModeResources(c.rs.template)
+				autoModeRefs, err := AddAutoModeResources(c.rs.template)
 				if err != nil {
 					return fmt.Errorf("error building cluster compute roles: %w", err)
 				}
-				computeConfig.NodeRoleArn = autonomousModeRefs.NodeRole
+				computeConfig.NodeRoleArn = autoModeRefs.NodeRole
 			}
 		} else {
 			computeConfig.NodeRoleArn = gfnt.NewString(cc.NodeRoleARN.String())

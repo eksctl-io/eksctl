@@ -64,7 +64,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return errors.New("--update-auth-configmap is not supported when authenticationMode is set to API")
 	}
 
-	if cfg.IsAutonomousModeEnabled() && (len(cfg.ManagedNodeGroups) > 0 || len(cfg.NodeGroups) > 0) {
+	if cfg.IsAutoModeEnabled() && (len(cfg.ManagedNodeGroups) > 0 || len(cfg.NodeGroups) > 0) {
 		addonHelper := &addon.Helper{
 			Lister:      ctl.AWSProvider.EKS(),
 			ClusterName: cfg.Metadata.Name,

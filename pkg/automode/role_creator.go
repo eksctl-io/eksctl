@@ -1,4 +1,4 @@
-package autonomousmode
+package automode
 
 import (
 	"context"
@@ -15,7 +15,7 @@ type StackCreator interface {
 	GetClusterStackIfExists(ctx context.Context) (*cfntypes.Stack, error)
 }
 
-// A RoleCreator creates an IAM role for nodes launched by Autonomous Mode.
+// A RoleCreator creates an IAM role for nodes launched by Auto Mode.
 type RoleCreator struct {
 	StackCreator StackCreator
 }
@@ -27,11 +27,11 @@ func (r *RoleCreator) CreateOrImport(ctx context.Context, clusterName string) (s
 		return "", fmt.Errorf("getting cluster stack: %w", err)
 	}
 	if clusterStack != nil {
-		if nodeRoleARN, found := builder.GetAutonomousModeOutputs(*clusterStack); found {
+		if nodeRoleARN, found := builder.GetAutoModeOutputs(*clusterStack); found {
 			return nodeRoleARN, nil
 		}
 	}
-	resourceSet, err := builder.CreateAutonomousModeResourceSet()
+	resourceSet, err := builder.CreateAutoModeResourceSet()
 	if err != nil {
 		return "", err
 	}
@@ -47,9 +47,9 @@ func (r *RoleCreator) CreateOrImport(ctx context.Context, clusterName string) (s
 			return "", err
 		}
 	}
-	return resourceSet.GetAutonomousModeRoleARN(), nil
+	return resourceSet.GetAutoModeRoleARN(), nil
 }
 
 func makeStackName(clusterName string) string {
-	return fmt.Sprintf("eksctl-%s-autonomous-mode-role", clusterName)
+	return fmt.Sprintf("eksctl-%s-auto-mode-role", clusterName)
 }

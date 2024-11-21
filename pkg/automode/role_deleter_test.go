@@ -1,4 +1,4 @@
-package autonomousmode_test
+package automode_test
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/weaveworks/eksctl/pkg/autonomousmode"
-	"github.com/weaveworks/eksctl/pkg/autonomousmode/mocks"
+	"github.com/weaveworks/eksctl/pkg/automode"
+	"github.com/weaveworks/eksctl/pkg/automode/mocks"
 )
 
 type roleDeleterTest struct {
@@ -26,7 +26,7 @@ type roleDeleterTest struct {
 
 var _ = DescribeTable("Role Creator", func(t roleDeleterTest) {
 	var stackDeleter mocks.StackDeleter
-	roleDeleter := &autonomousmode.RoleDeleter{
+	roleDeleter := &automode.RoleDeleter{
 		Cluster:      t.cluster,
 		StackDeleter: &stackDeleter,
 	}
@@ -41,7 +41,7 @@ var _ = DescribeTable("Role Creator", func(t roleDeleterTest) {
 	}
 	stackDeleter.AssertExpectations(GinkgoT())
 },
-	Entry("Autonomous Mode is disabled", roleDeleterTest{
+	Entry("Auto Mode is disabled", roleDeleterTest{
 		cluster: &ekstypes.Cluster{
 			ComputeConfig: &ekstypes.ComputeConfigResponse{
 				Enabled: aws.Bool(false),
@@ -56,7 +56,7 @@ var _ = DescribeTable("Role Creator", func(t roleDeleterTest) {
 			},
 		},
 		updateMock: func(d *mocks.StackDeleter) {
-			d.EXPECT().DescribeStack(mock.Anything, &cfntypes.Stack{StackName: aws.String("eksctl-cluster-autonomous-mode-role")}).
+			d.EXPECT().DescribeStack(mock.Anything, &cfntypes.Stack{StackName: aws.String("eksctl-cluster-auto-mode-role")}).
 				Return(nil, &smithy.OperationError{
 					Err: errors.New("ValidationError"),
 				}).Once()
@@ -71,7 +71,7 @@ var _ = DescribeTable("Role Creator", func(t roleDeleterTest) {
 		},
 		updateMock: func(d *mocks.StackDeleter) {
 			var stack cfntypes.Stack
-			d.EXPECT().DescribeStack(mock.Anything, &cfntypes.Stack{StackName: aws.String("eksctl-cluster-autonomous-mode-role")}).
+			d.EXPECT().DescribeStack(mock.Anything, &cfntypes.Stack{StackName: aws.String("eksctl-cluster-auto-mode-role")}).
 				Return(&stack, nil).Once()
 			d.EXPECT().DeleteStackSync(mock.Anything, &stack).Return(nil).Once()
 		},

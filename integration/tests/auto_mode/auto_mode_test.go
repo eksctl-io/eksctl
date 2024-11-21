@@ -2,7 +2,7 @@
 // +build integration
 
 //revive:disable Not changing package name
-package autonomous_mode
+package auto_mode
 
 import (
 	"context"
@@ -31,14 +31,14 @@ var params *tests.Params
 
 func init() {
 	testing.Init()
-	params = tests.NewParams("autonomous-mode")
+	params = tests.NewParams("auto-mode")
 }
 
-func TestAutonomousMode(t *testing.T) {
+func TestAutoMode(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var _ = Describe("Autonomous Mode", Ordered, func() {
+var _ = Describe("Auto Mode", Ordered, func() {
 	var clusterConfig *api.ClusterConfig
 	var eksAPI awsapi.EKS
 	describeComputeConfig := func() *ekstypes.ComputeConfigResponse {
@@ -49,7 +49,7 @@ var _ = Describe("Autonomous Mode", Ordered, func() {
 		return cluster.Cluster.ComputeConfig
 	}
 
-	assertAutonomousMode := func(enabled bool) {
+	assertAutoMode := func(enabled bool) {
 		cc := describeComputeConfig()
 		Expect(*cc.Enabled).To(Equal(enabled), "expected computeConfig.enabled to be %v", enabled)
 		if enabled {
@@ -62,11 +62,11 @@ var _ = Describe("Autonomous Mode", Ordered, func() {
 	}
 
 	BeforeAll(func() {
-		By("creating a cluster with Autonomous Mode enabled")
+		By("creating a cluster with Auto Mode enabled")
 		clusterConfig = api.NewClusterConfig()
 		clusterConfig.Metadata.Name = params.ClusterName
 		clusterConfig.Metadata.Region = params.Region
-		clusterConfig.AutonomousModeConfig = &api.AutonomousModeConfig{
+		clusterConfig.AutoModeConfig = &api.AutoModeConfig{
 			Enabled: api.Enabled(),
 		}
 		cmd := params.EksctlCreateCmd.
@@ -85,11 +85,11 @@ var _ = Describe("Autonomous Mode", Ordered, func() {
 		eksAPI = ctl.AWSProvider.EKS()
 	})
 
-	It("should have Autonomous Mode enabled", func() {
-		assertAutonomousMode(true)
+	It("should have Auto Mode enabled", func() {
+		assertAutoMode(true)
 	})
 
-	It("should schedule workloads on nodes launched by Autonomous Mode", func() {
+	It("should schedule workloads on nodes launched by Auto Mode", func() {
 		test, err := kube.NewTest(params.KubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 		d := test.CreateDeploymentFromFile(test.Namespace, "../../data/podinfo.yaml")
@@ -112,12 +112,12 @@ var _ = Describe("Autonomous Mode", Ordered, func() {
 		}
 	})
 
-	It("should disable and re-enable Autonomous Mode", func() {
-		updateAutonomousMode := func(enabled bool) {
-			clusterConfig.AutonomousModeConfig.Enabled = aws.Bool(enabled)
+	It("should disable and re-enable Auto Mode", func() {
+		updateAutoMode := func(enabled bool) {
+			clusterConfig.AutoModeConfig.Enabled = aws.Bool(enabled)
 			cmd := params.EksctlUpdateCmd.
 				WithArgs(
-					"autonomous-mode-config",
+					"auto-mode-config",
 					"--config-file=-",
 					"--verbose", "4",
 				).
@@ -126,12 +126,12 @@ var _ = Describe("Autonomous Mode", Ordered, func() {
 
 			Expect(cmd).To(RunSuccessfully())
 		}
-		By("disabling Autonomous Mode")
-		updateAutonomousMode(false)
-		assertAutonomousMode(false)
-		By("enabling Autonomous Mode")
-		updateAutonomousMode(true)
-		assertAutonomousMode(true)
+		By("disabling Auto Mode")
+		updateAutoMode(false)
+		assertAutoMode(false)
+		By("enabling Auto Mode")
+		updateAutoMode(true)
+		assertAutoMode(true)
 	})
 })
 

@@ -35,8 +35,8 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 		}
 	} else {
 		addons = cfg.Addons
-		if cfg.IsAutonomousModeEnabled() && len(cfg.NodeGroups) == 0 && len(cfg.ManagedNodeGroups) == 0 {
-			logger.Info("default EKS addons are not required for a cluster using Autonomous Mode; " +
+		if cfg.IsAutoModeEnabled() && len(cfg.NodeGroups) == 0 && len(cfg.ManagedNodeGroups) == 0 {
+			logger.Info("default EKS addons are not required for a cluster using Auto Mode; " +
 				"if nodegroups are not required, consider setting `addonsConfig.disableDefaultAddons: true` during " +
 				"cluster creation, or deleting default addons using `eksctl delete addon`")
 		}

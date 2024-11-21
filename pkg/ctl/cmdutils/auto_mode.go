@@ -8,8 +8,8 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-// NewAutonomousModeLoader creates a new loader for Autonomous Mode.
-func NewAutonomousModeLoader(cmd *Cmd) ClusterConfigLoader {
+// NewAutoModeLoader creates a new loader for Auto Mode.
+func NewAutoModeLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 	l.validateWithConfigFile = func() error {
 		meta := cmd.ClusterConfig.Metadata
@@ -19,15 +19,15 @@ func NewAutonomousModeLoader(cmd *Cmd) ClusterConfigLoader {
 		if meta.Region == "" {
 			return ErrMustBeSet("metadata.region")
 		}
-		cc := cmd.ClusterConfig.AutonomousModeConfig
+		cc := cmd.ClusterConfig.AutoModeConfig
 		if cc == nil {
-			return ErrMustBeSet("autonomousModeConfig")
+			return ErrMustBeSet("autoModeConfig")
 		}
 		if cc.Enabled == nil {
-			return errors.New("autonomousModeConfig.enabled must be set to either true or false when updating Autonomous Mode config")
+			return errors.New("autoModeConfig.enabled must be set to either true or false when updating Auto Mode config")
 		}
 		api.SetClusterConfigDefaults(cmd.ClusterConfig)
-		if err := api.ValidateAutonomousModeConfig(cmd.ClusterConfig); err != nil {
+		if err := api.ValidateAutoModeConfig(cmd.ClusterConfig); err != nil {
 			return err
 		}
 		const (
@@ -39,10 +39,10 @@ func NewAutonomousModeLoader(cmd *Cmd) ClusterConfigLoader {
 			return cmd.CobraCommand.Flag(flagName).Changed
 		}) {
 			if api.IsDisabled(cc.Enabled) {
-				return fmt.Errorf("cannot specify --%s or --%s when autonomousModeConfig.enabled is false", drainParallel, drainNodeGroups)
+				return fmt.Errorf("cannot specify --%s or --%s when autoModeConfig.enabled is false", drainParallel, drainNodeGroups)
 			}
 			if !cc.HasNodePools() {
-				return fmt.Errorf("cannot specify --%s or --%s when autonomousModeConfig.nodePools is empty", drainParallel, drainNodeGroups)
+				return fmt.Errorf("cannot specify --%s or --%s when autoModeConfig.nodePools is empty", drainParallel, drainNodeGroups)
 			}
 		}
 		return nil

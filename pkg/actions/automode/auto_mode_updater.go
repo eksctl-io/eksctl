@@ -1,4 +1,4 @@
-package autonomousmode
+package automode
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/autonomousmode"
+	"github.com/weaveworks/eksctl/pkg/automode"
 	"github.com/weaveworks/eksctl/pkg/eks/waiter"
 )
 
@@ -41,86 +41,86 @@ type RoleManager interface {
 	DeleteIfRequired(ctx context.Context) error
 }
 
-// An Updater enables or disables Autonomous Mode.
+// An Updater enables or disables Auto Mode.
 type Updater struct {
 	RoleManager     RoleManager
 	CoreV1Interface corev1client.CoreV1Interface
 	EKSUpdater      EKSUpdater
 	Drainer         NodeGroupDrainer
-	RBACApplier     *autonomousmode.RBACApplier
+	RBACApplier     *automode.RBACApplier
 }
 
-// Update updates the cluster to match the autonomousModeConfig settings supplied in clusterConfig.
+// Update updates the cluster to match the autoModeConfig settings supplied in clusterConfig.
 func (u *Updater) Update(ctx context.Context, clusterConfig *api.ClusterConfig, currentCluster *ekstypes.Cluster) error {
-	autonomousModeEnabled := func() bool {
+	autoModeEnabled := func() bool {
 		cc := currentCluster.ComputeConfig
 		return cc != nil && *cc.Enabled
 	}
-	if clusterConfig.IsAutonomousModeEnabled() {
-		if autonomousModeEnabled() {
-			amc := clusterConfig.AutonomousModeConfig
+	if clusterConfig.IsAutoModeEnabled() {
+		if autoModeEnabled() {
+			amc := clusterConfig.AutoModeConfig
 			if !amc.NodeRoleARN.IsZero() && currentCluster.ComputeConfig.NodeRoleArn != nil &&
 				*currentCluster.ComputeConfig.NodeRoleArn != amc.NodeRoleARN.String() {
-				return errors.New("autonomousModeConfig.nodeRoleARN cannot be modified")
+				return errors.New("autoModeConfig.nodeRoleARN cannot be modified")
 			}
 			nodePoolsMatch := len(*amc.NodePools) == len(currentCluster.ComputeConfig.NodePools) && (len(*amc.NodePools) == 0 || slices.ContainsFunc(*amc.NodePools, func(np string) bool {
 				return slices.Contains(currentCluster.ComputeConfig.NodePools, np)
 			}))
 			if nodePoolsMatch {
-				logger.Info("Autonomous Mode is already enabled and up-to-date")
+				logger.Info("Auto Mode is already enabled and up-to-date")
 				return nil
 			}
 		} else {
-			logger.Info("enabling Autonomous Mode")
+			logger.Info("enabling Auto Mode")
 		}
-		if err := u.enableAutonomousMode(ctx, clusterConfig.AutonomousModeConfig, currentCluster.ComputeConfig, clusterConfig.Metadata.Name); err != nil {
-			return fmt.Errorf("enabling Autonomous Mode: %w", err)
+		if err := u.enableAutoMode(ctx, clusterConfig.AutoModeConfig, currentCluster.ComputeConfig, clusterConfig.Metadata.Name); err != nil {
+			return fmt.Errorf("enabling Auto Mode: %w", err)
 		}
-		if clusterConfig.AutonomousModeConfig.HasNodePools() {
-			logger.Info("cluster subnets will be used for nodes launched by Autonomous Mode; please create a new NodeClass " +
+		if clusterConfig.AutoModeConfig.HasNodePools() {
+			logger.Info("cluster subnets will be used for nodes launched by Auto Mode; please create a new NodeClass " +
 				"resource if you do not want to use cluster subnets")
 		}
-		logger.Info("applying node RBAC resources for Autonomous Mode")
+		logger.Info("applying node RBAC resources for Auto Mode")
 		if err := u.RBACApplier.ApplyRBACResources(); err != nil {
 			return err
 		}
-		logger.Info("Autonomous Mode enabled successfully")
+		logger.Info("Auto Mode enabled successfully")
 		return nil
 	}
-	if !autonomousModeEnabled() {
-		logger.Info("Autonomous Mode is already disabled")
+	if !autoModeEnabled() {
+		logger.Info("Auto Mode is already disabled")
 		return nil
 	}
-	if err := u.disableAutonomousMode(ctx, clusterConfig.Metadata.Name); err != nil {
-		return fmt.Errorf("disabling Autonomous Mode: %w", err)
+	if err := u.disableAutoMode(ctx, clusterConfig.Metadata.Name); err != nil {
+		return fmt.Errorf("disabling Auto Mode: %w", err)
 	}
 	if err := u.RBACApplier.DeleteRBACResources(); err != nil {
 		return err
 	}
-	logger.Info("Autonomous Mode disabled successfully")
+	logger.Info("Auto Mode disabled successfully")
 	return nil
 }
 
-func (u *Updater) enableAutonomousMode(ctx context.Context, autonomousModeConfig *api.AutonomousModeConfig, currentClusterCompute *ekstypes.ComputeConfigResponse, clusterName string) error {
+func (u *Updater) enableAutoMode(ctx context.Context, autoModeConfig *api.AutoModeConfig, currentClusterCompute *ekstypes.ComputeConfigResponse, clusterName string) error {
 	if err := u.preflightCheck(ctx); err != nil {
 		return err
 	}
 	computeConfigReq := &ekstypes.ComputeConfigRequest{
 		Enabled:   aws.Bool(true),
-		NodePools: *autonomousModeConfig.NodePools,
+		NodePools: *autoModeConfig.NodePools,
 	}
 	if len(computeConfigReq.NodePools) > 0 {
 		if currentClusterCompute != nil && currentClusterCompute.NodeRoleArn != nil {
 			computeConfigReq.NodeRoleArn = currentClusterCompute.NodeRoleArn
-		} else if autonomousModeConfig.NodeRoleARN.IsZero() {
-			logger.Info("creating node role for Autonomous Mode")
+		} else if autoModeConfig.NodeRoleARN.IsZero() {
+			logger.Info("creating node role for Auto Mode")
 			nodeRoleARN, err := u.RoleManager.CreateOrImport(ctx, clusterName)
 			if err != nil {
-				return fmt.Errorf("creating node role to use for Autonomous Mode nodes: %w", err)
+				return fmt.Errorf("creating node role to use for Auto Mode nodes: %w", err)
 			}
 			computeConfigReq.NodeRoleArn = aws.String(nodeRoleARN)
 		} else {
-			computeConfigReq.NodeRoleArn = aws.String(autonomousModeConfig.NodeRoleARN.String())
+			computeConfigReq.NodeRoleArn = aws.String(autoModeConfig.NodeRoleARN.String())
 		}
 	}
 	if err := u.updateClusterConfig(ctx, &eks.UpdateClusterConfigInput{
@@ -150,12 +150,12 @@ func (u *Updater) enableAutonomousMode(ctx context.Context, autonomousModeConfig
 		}
 	}
 	logger.Info("core networking addons can now be deleted using `eksctl delete addon` as they are not required " +
-		"for a cluster using Autonomous Mode")
+		"for a cluster using Auto Mode")
 	return nil
 }
 
-func (u *Updater) disableAutonomousMode(ctx context.Context, clusterName string) error {
-	logger.Info("disabling Autonomous Mode")
+func (u *Updater) disableAutoMode(ctx context.Context, clusterName string) error {
+	logger.Info("disabling Auto Mode")
 	if err := u.updateClusterConfig(ctx, &eks.UpdateClusterConfigInput{
 		Name: aws.String(clusterName),
 		ComputeConfig: &ekstypes.ComputeConfigRequest{
@@ -175,7 +175,7 @@ func (u *Updater) disableAutonomousMode(ctx context.Context, clusterName string)
 		return err
 	}
 	if err := u.RoleManager.DeleteIfRequired(ctx); err != nil {
-		return fmt.Errorf("deleting IAM resources for Autonomous Mode: %w", err)
+		return fmt.Errorf("deleting IAM resources for Auto Mode: %w", err)
 	}
 	return nil
 }

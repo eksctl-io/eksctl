@@ -63,9 +63,9 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 	} else if cfg.AccessConfig.AuthenticationMode == "" {
 		cfg.AccessConfig.AuthenticationMode = getDefaultAuthenticationMode(cfg.IsControlPlaneOnOutposts())
 	}
-	if cfg.IsAutonomousModeEnabled() && cfg.AutonomousModeConfig.NodePools == nil {
-		defaultNodePools := slices.Clone(AutonomousModeKnownNodePools)
-		cfg.AutonomousModeConfig.NodePools = &defaultNodePools
+	if cfg.IsAutoModeEnabled() && cfg.AutoModeConfig.NodePools == nil {
+		defaultNodePools := slices.Clone(AutoModeKnownNodePools)
+		cfg.AutoModeConfig.NodePools = &defaultNodePools
 	}
 
 	if cfg.PrivateCluster == nil {

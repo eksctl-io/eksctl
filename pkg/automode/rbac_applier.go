@@ -1,4 +1,4 @@
-package autonomousmode
+package automode
 
 import (
 	"embed"

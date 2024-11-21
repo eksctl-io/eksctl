@@ -1,4 +1,4 @@
-package autonomousmode
+package automode
 
 import (
 	"context"
@@ -17,13 +17,13 @@ type StackDeleter interface {
 	DescribeStack(ctx context.Context, stack *cfntypes.Stack) (*cfntypes.Stack, error)
 }
 
-// A RoleDeleter deletes the IAM role created for Autonomous Mode.
+// A RoleDeleter deletes the IAM role created for Auto Mode.
 type RoleDeleter struct {
 	StackDeleter StackDeleter
 	Cluster      *ekstypes.Cluster
 }
 
-// DeleteIfRequired deletes the node role used by Autonomous Mode if it exists.
+// DeleteIfRequired deletes the node role used by Auto Mode if it exists.
 func (d *RoleDeleter) DeleteIfRequired(ctx context.Context) error {
 	if cc := d.Cluster.ComputeConfig; cc == nil || !*cc.Enabled {
 		return nil
@@ -33,10 +33,10 @@ func (d *RoleDeleter) DeleteIfRequired(ctx context.Context) error {
 		if manager.IsStackDoesNotExistError(err) {
 			return nil
 		}
-		return fmt.Errorf("describing Autonomous Mode stack: %w", err)
+		return fmt.Errorf("describing Auto Mode stack: %w", err)
 	}
 	if err := d.StackDeleter.DeleteStackSync(ctx, stack); err != nil {
-		return fmt.Errorf("deleting Autonomous Mode resources: %w", err)
+		return fmt.Errorf("deleting Auto Mode resources: %w", err)
 	}
 	return nil
 }

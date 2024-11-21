@@ -225,7 +225,7 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	if err := validateAddonPodIdentityAssociations(cfg.Addons); err != nil {
 		return err
 	}
-	if err := ValidateAutonomousModeConfig(cfg); err != nil {
+	if err := ValidateAutoModeConfig(cfg); err != nil {
 		return err
 	}
 

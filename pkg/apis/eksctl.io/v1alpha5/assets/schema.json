@@ -289,8 +289,8 @@
       "properties": {
         "enabled": {
           "type": "boolean",
-          "description": "enables or disables Autonomous Mode.",
-          "x-intellij-html-description": "enables or disables Autonomous Mode."
+          "description": "enables or disables Auto Mode.",
+          "x-intellij-html-description": "enables or disables Auto Mode."
         },
         "nodePools": {
           "items": {
@@ -302,8 +302,8 @@
         },
         "nodeRoleARN": {
           "$ref": "#/definitions/ARN",
-          "description": "node role to use for nodes launched by Autonomous Mode.",
-          "x-intellij-html-description": "node role to use for nodes launched by Autonomous Mode."
+          "description": "node role to use for nodes launched by Auto Mode.",
+          "x-intellij-html-description": "node role to use for nodes launched by Auto Mode."
         }
       },
       "preferredOrder": [
@@ -426,8 +426,8 @@
         },
         "autonomousModeConfig": {
           "$ref": "#/definitions/AutonomousModeConfig",
-          "description": "holds the config for autonomous mode.",
-          "x-intellij-html-description": "holds the config for autonomous mode."
+          "description": "holds the config for Auto Mode.",
+          "x-intellij-html-description": "holds the config for Auto Mode."
         },
         "availabilityZones": {
           "items": {

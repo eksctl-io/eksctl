@@ -1,4 +1,4 @@
-package autonomousmode_test
+package automode_test
 
 import (
 	"context"
@@ -13,20 +13,20 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubernetesfake "k8s.io/client-go/kubernetes/fake"
 
-	autonomousmodeactions "github.com/weaveworks/eksctl/pkg/actions/autonomousmode"
-	"github.com/weaveworks/eksctl/pkg/actions/autonomousmode/mocks"
+	automodeactions "github.com/weaveworks/eksctl/pkg/actions/automode"
+	"github.com/weaveworks/eksctl/pkg/actions/automode/mocks"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/autonomousmode"
-	autonomousmodemocks "github.com/weaveworks/eksctl/pkg/autonomousmode/mocks"
+	"github.com/weaveworks/eksctl/pkg/automode"
+	automodemocks "github.com/weaveworks/eksctl/pkg/automode/mocks"
 	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
 )
 
 type updaterTest struct {
-	autonomousModeConfig *api.AutonomousModeConfig
-	vpc                  *api.ClusterVPC
-	currentCluster       *ekstypes.Cluster
-	updateMocks          func(*updaterMocks)
-	drainNodes           bool
+	autoModeConfig *api.AutoModeConfig
+	vpc            *api.ClusterVPC
+	currentCluster *ekstypes.Cluster
+	updateMocks    func(*updaterMocks)
+	drainNodes     bool
 
 	expectedErr string
 }
@@ -35,11 +35,11 @@ type updaterMocks struct {
 	roleManager mocks.RoleManager
 	drainer     mocks.NodeGroupDrainer
 	eksUpdater  mocksv2.EKS
-	rawClient   autonomousmodemocks.RawClient
+	rawClient   automodemocks.RawClient
 	clientSet   *kubernetesfake.Clientset
 }
 
-var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
+var _ = DescribeTable("Auto Mode Updater", func(t updaterTest) {
 	var um updaterMocks
 	um.clientSet = kubernetesfake.NewSimpleClientset()
 	clusterConfig := api.NewClusterConfig()
@@ -47,13 +47,13 @@ var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
 	if t.updateMocks != nil {
 		t.updateMocks(&um)
 	}
-	clusterConfig.AutonomousModeConfig = t.autonomousModeConfig
+	clusterConfig.AutoModeConfig = t.autoModeConfig
 	clusterConfig.VPC = t.vpc
-	updater := &autonomousmodeactions.Updater{
+	updater := &automodeactions.Updater{
 		RoleManager:     &um.roleManager,
 		CoreV1Interface: um.clientSet.CoreV1(),
 		EKSUpdater:      &um.eksUpdater,
-		RBACApplier: &autonomousmode.RBACApplier{
+		RBACApplier: &automode.RBACApplier{
 			RawClient: &um.rawClient,
 		},
 	}
@@ -79,7 +79,7 @@ var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
 
 },
 	Entry("attempt to update nodeRoleARN", updaterTest{
-		autonomousModeConfig: &api.AutonomousModeConfig{
+		autoModeConfig: &api.AutoModeConfig{
 			Enabled:     api.Enabled(),
 			NodeRoleARN: api.MustParseARN("arn:aws:iam::000:role/CustomNodeRole"),
 			NodePools:   &[]string{"general-purpose", "system"},
@@ -90,24 +90,24 @@ var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
 				NodeRoleArn: aws.String("arn:aws:iam::000:role/NodeRole"),
 			},
 		},
-		expectedErr: "autonomousModeConfig.nodeRoleARN cannot be modified",
+		expectedErr: "autoModeConfig.nodeRoleARN cannot be modified",
 	}),
-	Entry("Autonomous Mode enabled and up-to-date", updaterTest{
-		autonomousModeConfig: &api.AutonomousModeConfig{
+	Entry("Auto Mode enabled and up-to-date", updaterTest{
+		autoModeConfig: &api.AutoModeConfig{
 			Enabled:   api.Enabled(),
-			NodePools: &[]string{api.AutonomousModeNodePoolGeneralPurpose, api.AutonomousModeNodePoolSystem},
+			NodePools: &[]string{api.AutoModeNodePoolGeneralPurpose, api.AutoModeNodePoolSystem},
 		},
 		currentCluster: &ekstypes.Cluster{
 			ComputeConfig: &ekstypes.ComputeConfigResponse{
 				Enabled:   aws.Bool(true),
-				NodePools: []string{api.AutonomousModeNodePoolSystem, api.AutonomousModeNodePoolGeneralPurpose},
+				NodePools: []string{api.AutoModeNodePoolSystem, api.AutoModeNodePoolGeneralPurpose},
 			},
 		},
 	}),
-	Entry("enabling Autonomous Mode with default values", updaterTest{
-		autonomousModeConfig: &api.AutonomousModeConfig{
+	Entry("enabling Auto Mode with default values", updaterTest{
+		autoModeConfig: &api.AutoModeConfig{
 			Enabled:   api.Enabled(),
-			NodePools: &[]string{api.AutonomousModeNodePoolGeneralPurpose, api.AutonomousModeNodePoolSystem},
+			NodePools: &[]string{api.AutoModeNodePoolGeneralPurpose, api.AutoModeNodePoolSystem},
 		},
 		currentCluster: &ekstypes.Cluster{
 			ComputeConfig: &ekstypes.ComputeConfigResponse{
@@ -116,14 +116,14 @@ var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
 		},
 		updateMocks: func(u *updaterMocks) {
 			u.roleManager.EXPECT().CreateOrImport(mock.Anything, "cluster").Return("arn:aws:iam::000:role/NodeRole", nil).Once()
-			mockEnableAutonomousMode(u, "arn:aws:iam::000:role/NodeRole", []string{api.AutonomousModeNodePoolGeneralPurpose, api.AutonomousModeNodePoolSystem})
+			mockEnableAutoMode(u, "arn:aws:iam::000:role/NodeRole", []string{api.AutoModeNodePoolGeneralPurpose, api.AutoModeNodePoolSystem})
 		},
 	}),
-	Entry("enabling Autonomous Mode with a custom nodeRoleARN and node pools", updaterTest{
-		autonomousModeConfig: &api.AutonomousModeConfig{
+	Entry("enabling Auto Mode with a custom nodeRoleARN and node pools", updaterTest{
+		autoModeConfig: &api.AutoModeConfig{
 			Enabled:     aws.Bool(true),
 			NodeRoleARN: api.MustParseARN("arn:aws:iam::000:role/CustomNodeRole"),
-			NodePools:   &[]string{api.AutonomousModeNodePoolGeneralPurpose},
+			NodePools:   &[]string{api.AutoModeNodePoolGeneralPurpose},
 		},
 		currentCluster: &ekstypes.Cluster{
 			ComputeConfig: &ekstypes.ComputeConfigResponse{
@@ -131,14 +131,14 @@ var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
 			},
 		},
 		updateMocks: func(u *updaterMocks) {
-			mockEnableAutonomousMode(u, "arn:aws:iam::000:role/CustomNodeRole", []string{api.AutonomousModeNodePoolGeneralPurpose})
+			mockEnableAutoMode(u, "arn:aws:iam::000:role/CustomNodeRole", []string{api.AutoModeNodePoolGeneralPurpose})
 		},
 	}),
-	Entry("enabling Autonomous Mode with a pre-existing VPC", updaterTest{
-		autonomousModeConfig: &api.AutonomousModeConfig{
+	Entry("enabling Auto Mode with a pre-existing VPC", updaterTest{
+		autoModeConfig: &api.AutoModeConfig{
 			Enabled:     aws.Bool(true),
 			NodeRoleARN: api.MustParseARN("arn:aws:iam::000:role/CustomNodeRole"),
-			NodePools:   &[]string{api.AutonomousModeNodePoolGeneralPurpose},
+			NodePools:   &[]string{api.AutoModeNodePoolGeneralPurpose},
 		},
 		vpc: &api.ClusterVPC{
 			Network: api.Network{
@@ -153,14 +153,14 @@ var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
 		updateMocks: func(u *updaterMocks) {
 			mockUpdateClusterConfig(u, &ekstypes.ComputeConfigRequest{
 				Enabled:     aws.Bool(true),
-				NodePools:   []string{api.AutonomousModeNodePoolGeneralPurpose},
+				NodePools:   []string{api.AutoModeNodePoolGeneralPurpose},
 				NodeRoleArn: aws.String("arn:aws:iam::000:role/CustomNodeRole"),
 			})
 			u.rawClient.EXPECT().CreateOrReplace(mock.Anything, false).Return(nil)
 		},
 	}),
-	Entry("disabling Autonomous Mode", updaterTest{
-		autonomousModeConfig: &api.AutonomousModeConfig{
+	Entry("disabling Auto Mode", updaterTest{
+		autoModeConfig: &api.AutoModeConfig{
 			Enabled: aws.Bool(false),
 		},
 		currentCluster: &ekstypes.Cluster{
@@ -176,10 +176,10 @@ var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
 			u.rawClient.EXPECT().Delete(mock.Anything).Return(nil)
 		},
 	}),
-	Entry("Karpenter pods exist in the cluster when enabling Autonomous Mode", updaterTest{
-		autonomousModeConfig: &api.AutonomousModeConfig{
+	Entry("Karpenter pods exist in the cluster when enabling Auto Mode", updaterTest{
+		autoModeConfig: &api.AutoModeConfig{
 			Enabled:   api.Enabled(),
-			NodePools: &[]string{api.AutonomousModeNodePoolGeneralPurpose, api.AutonomousModeNodePoolSystem},
+			NodePools: &[]string{api.AutoModeNodePoolGeneralPurpose, api.AutoModeNodePoolSystem},
 		},
 		currentCluster: &ekstypes.Cluster{
 			ComputeConfig: &ekstypes.ComputeConfigResponse{
@@ -199,12 +199,12 @@ var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
 			}, metav1.CreateOptions{})
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 		},
-		expectedErr: "enabling Autonomous Mode: found Karpenter pods in namespace karpenter; either delete Karpenter or scale it down to zero and rerun the command",
+		expectedErr: "enabling Auto Mode: found Karpenter pods in namespace karpenter; either delete Karpenter or scale it down to zero and rerun the command",
 	}),
-	Entry("drain existing nodes after enabling Autonomous Mode", updaterTest{
-		autonomousModeConfig: &api.AutonomousModeConfig{
+	Entry("drain existing nodes after enabling Auto Mode", updaterTest{
+		autoModeConfig: &api.AutoModeConfig{
 			Enabled:   api.Enabled(),
-			NodePools: &[]string{api.AutonomousModeNodePoolGeneralPurpose, api.AutonomousModeNodePoolSystem},
+			NodePools: &[]string{api.AutoModeNodePoolGeneralPurpose, api.AutoModeNodePoolSystem},
 		},
 		currentCluster: &ekstypes.Cluster{
 			ComputeConfig: &ekstypes.ComputeConfigResponse{
@@ -215,12 +215,12 @@ var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
 		updateMocks: func(u *updaterMocks) {
 			u.drainer.EXPECT().Drain(mock.Anything).Return(nil).Once()
 			u.roleManager.EXPECT().CreateOrImport(mock.Anything, "cluster").Return("arn:aws:iam::000:role/NodeRole", nil).Once()
-			mockEnableAutonomousMode(u, "arn:aws:iam::000:role/NodeRole", []string{api.AutonomousModeNodePoolGeneralPurpose, api.AutonomousModeNodePoolSystem})
+			mockEnableAutoMode(u, "arn:aws:iam::000:role/NodeRole", []string{api.AutoModeNodePoolGeneralPurpose, api.AutoModeNodePoolSystem})
 		},
 	}),
 )
 
-func mockEnableAutonomousMode(u *updaterMocks, nodeRoleARN string, nodePools []string) {
+func mockEnableAutoMode(u *updaterMocks, nodeRoleARN string, nodePools []string) {
 	mockUpdateClusterConfig(u, &ekstypes.ComputeConfigRequest{
 		Enabled:     aws.Bool(true),
 		NodePools:   nodePools,

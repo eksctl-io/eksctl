@@ -49,7 +49,7 @@ var _ = Describe("Delete", func() {
 		ranDeleteClusterTasks    bool
 		ctl                      *eks.ClusterProvider
 		fakeClientSet            *fake.Clientset
-		autonomousModeDeleter    *mocks.AutonomousModeDeleter
+		autoModeDeleter          *mocks.AutoModeDeleter
 	)
 
 	BeforeEach(func() {
@@ -58,8 +58,8 @@ var _ = Describe("Delete", func() {
 		cfg = api.NewClusterConfig()
 		cfg.Metadata.Name = clusterName
 		fakeStackManager = new(fakes.FakeStackManager)
-		autonomousModeDeleter = &mocks.AutonomousModeDeleter{}
-		autonomousModeDeleter.EXPECT().DeleteIfRequired(mock.Anything).Return(nil).Once()
+		autoModeDeleter = &mocks.AutoModeDeleter{}
+		autoModeDeleter.EXPECT().DeleteIfRequired(mock.Anything).Return(nil).Once()
 		ranDeleteDeprecatedTasks = false
 		ranDeleteClusterTasks = false
 		ctl = &eks.ClusterProvider{AWSProvider: p, Status: &eks.ProviderStatus{
@@ -116,7 +116,7 @@ var _ = Describe("Delete", func() {
 
 			fakeStackManager.GetKarpenterStackReturns(karpenterStack, nil)
 
-			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autonomousModeDeleter)
+			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autoModeDeleter)
 			fakeClientSet = fake.NewSimpleClientset()
 
 			c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -184,7 +184,7 @@ var _ = Describe("Delete", func() {
 					Tasks: []tasks.Task{},
 				}, nil)
 
-				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autonomousModeDeleter)
+				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autoModeDeleter)
 				fakeClientSet = fake.NewSimpleClientset()
 
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -249,7 +249,7 @@ var _ = Describe("Delete", func() {
 					Tasks: []tasks.Task{},
 				}, nil)
 
-				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autonomousModeDeleter)
+				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autoModeDeleter)
 				fakeClientSet = fake.NewSimpleClientset()
 
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -319,7 +319,7 @@ var _ = Describe("Delete", func() {
 				}}},
 			}, nil)
 
-			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autonomousModeDeleter)
+			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autoModeDeleter)
 			c.SetNewNodeGroupDrainer(func(clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 				mockedDrainer := &drainerMockOwned{}
 				mockedDrainer.On("Drain", mock.Anything).Return(nil)
