@@ -3,6 +3,7 @@ package vpc
 import (
 	"context"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"net"
 	"slices"
@@ -15,7 +16,6 @@ import (
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/bxcodec/faker/support/slice"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -616,7 +616,7 @@ func ValidateLegacySubnetsForNodeGroups(ctx context.Context, spec *api.ClusterCo
 		}
 
 		logger.Critical(err.Error())
-		return errors.Errorf("subnets for one or more new nodegroups don't meet requirements. "+
+		return fmt.Errorf("subnets for one or more new nodegroups don't meet requirements. "+
 			"To fix this, please run `eksctl utils update-legacy-subnet-settings --cluster %s`",
 			spec.Metadata.Name)
 	}

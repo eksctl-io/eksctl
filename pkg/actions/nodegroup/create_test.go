@@ -2,6 +2,7 @@ package nodegroup_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -14,7 +15,6 @@ import (
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"

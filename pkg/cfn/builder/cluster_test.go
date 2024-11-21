@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"reflect"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -13,7 +14,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/tidwall/gjson"
 

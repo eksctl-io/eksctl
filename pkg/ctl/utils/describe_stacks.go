@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"golang.org/x/exp/slices"
@@ -39,12 +38,12 @@ func describeStacksCmd(cmd *cmdutils.Cmd) {
 				cmd.CobraCommand.Flags().Changed("events") ||
 				cmd.CobraCommand.Flags().Changed("trails") ||
 				cmd.CobraCommand.Flags().Changed("resource-status") {
-				return errors.Errorf("since the output flag is specified, the flags `all`, `events`, `trail` and `resource-status` cannot be used")
+				return fmt.Errorf("since the output flag is specified, the flags `all`, `events`, `trail` and `resource-status` cannot be used")
 			}
 		}
 		switch output {
 		case printers.TableType:
-			return errors.Errorf("output type %q is not supported", output)
+			return fmt.Errorf("output type %q is not supported", output)
 		case "":
 		default:
 			printer, err = printers.NewPrinter(output)

@@ -1,6 +1,7 @@
 package v1alpha5
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"regexp"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -304,7 +304,7 @@ func validateCloudWatchLogging(clusterConfig *ClusterConfig) error {
 			}
 		}
 		if isUnknown {
-			return errors.Errorf("log type %q (cloudWatch.clusterLogging.enableTypes[%d]) is unknown", logType, i)
+			return fmt.Errorf("log type %q (cloudWatch.clusterLogging.enableTypes[%d]) is unknown", logType, i)
 		}
 	}
 	if logRetentionDays := clusterConfig.CloudWatch.ClusterLogging.LogRetentionInDays; logRetentionDays != 0 {
@@ -313,7 +313,7 @@ func validateCloudWatchLogging(clusterConfig *ClusterConfig) error {
 				return nil
 			}
 		}
-		return errors.Errorf("invalid value %d for logRetentionInDays; supported values are %v", logRetentionDays, LogRetentionInDaysValues)
+		return fmt.Errorf("invalid value %d for logRetentionInDays; supported values are %v", logRetentionDays, LogRetentionInDaysValues)
 	}
 
 	return nil
@@ -540,7 +540,7 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 		}
 		serviceIP := c.KubernetesNetworkConfig.ServiceIPv4CIDR
 		if _, _, err := net.ParseCIDR(serviceIP); serviceIP != "" && err != nil {
-			return errors.Wrap(err, "invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR")
+			return fmt.Errorf("invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR: %w", err)
 		}
 	}
 
@@ -566,7 +566,7 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 
 		if version, err := utils.CompareVersions(c.Metadata.Version, Version1_21); err != nil {
 			return fmt.Errorf("failed to convert %s cluster version to semver: %w", c.Metadata.Version, err)
-		} else if err == nil && version == -1 {
+		} else if version == -1 {
 			return fmt.Errorf("cluster version must be >= %s", Version1_21)
 		}
 	default:
@@ -781,7 +781,7 @@ func validateIdentityProvider(idP IdentityProvider) error {
 func validateIdentityProviders(idPs []IdentityProvider) error {
 	for k, idP := range idPs {
 		if err := validateIdentityProvider(idP); err != nil {
-			return errors.Wrapf(err, "identityProviders[%d] is invalid", k)
+			return fmt.Errorf("identityProviders[%d] is invalid: %w", k, err)
 		}
 	}
 	return nil
@@ -838,7 +838,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		if attachPolicyARNs := ng.IAM.AttachPolicyARNs; len(attachPolicyARNs) > 0 {
 			for _, policyARN := range attachPolicyARNs {
 				if _, err := arn.Parse(policyARN); err != nil {
-					return errors.Wrapf(err, "invalid ARN %q in %s.iam.attachPolicyARNs", policyARN, path)
+					return fmt.Errorf("invalid ARN %q in %s.iam.attachPolicyARNs: %w", policyARN, path, err)
 				}
 
 			}
@@ -849,7 +849,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 	}
 
 	if ng.AMI != "" && ng.AMIFamily == "" {
-		return errors.Errorf("when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag")
+		return errors.New("when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag")
 	}
 
 	if ng.Bottlerocket != nil && ng.AMIFamily != NodeImageFamilyBottlerocket {
@@ -861,7 +861,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		ng.AMIFamily != NodeImageFamilyAmazonLinux2023 &&
 		ng.AMIFamily != NodeImageFamilyBottlerocket &&
 		!IsWindowsImage(ng.AMIFamily) {
-		return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
+		return fmt.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 	}
 
 	if err := validateTaints(ng.Taints); err != nil {
@@ -1198,20 +1198,20 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 	}
 
 	if IsEnabled(ng.SecurityGroups.WithLocal) || IsEnabled(ng.SecurityGroups.WithShared) {
-		return errors.Errorf("securityGroups.withLocal and securityGroups.withShared are not supported for managed nodegroups (%s.securityGroups)", path)
+		return fmt.Errorf("securityGroups.withLocal and securityGroups.withShared are not supported for managed nodegroups (%s.securityGroups)", path)
 	}
 
 	if ng.InstanceType != "" {
 		if len(ng.InstanceTypes) > 0 {
-			return errors.Errorf("only one of instanceType or instanceTypes can be specified (%s)", path)
+			return fmt.Errorf("only one of instanceType or instanceTypes can be specified (%s)", path)
 		}
 		if !ng.InstanceSelector.IsZero() {
-			return errors.Errorf("cannot set instanceType when instanceSelector is specified (%s)", path)
+			return fmt.Errorf("cannot set instanceType when instanceSelector is specified (%s)", path)
 		}
 	}
 
 	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 && ng.MaxPodsPerNode > 0 {
-		return errors.Errorf("eksctl does not support configuring maxPodsPerNode EKS-managed nodes based on %s", NodeImageFamilyAmazonLinux2023)
+		return fmt.Errorf("eksctl does not support configuring maxPodsPerNode EKS-managed nodes based on %s", NodeImageFamilyAmazonLinux2023)
 	}
 
 	if ng.AMIFamily == NodeImageFamilyBottlerocket {
@@ -1255,17 +1255,17 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 	switch {
 	case ng.LaunchTemplate != nil:
 		if ng.LaunchTemplate.ID == "" {
-			return errors.Errorf("launchTemplate.id is required if launchTemplate is set (%s.%s)", path, "launchTemplate")
+			return fmt.Errorf("launchTemplate.id is required if launchTemplate is set (%s.%s)", path, "launchTemplate")
 		}
 
 		if ng.LaunchTemplate.Version != nil {
 			// TODO support `latest` and `default`
 			versionNumber, err := strconv.ParseInt(*ng.LaunchTemplate.Version, 10, 64)
 			if err != nil {
-				return errors.Wrap(err, "invalid launch template version")
+				return fmt.Errorf("invalid launch template version: %w", err)
 			}
 			if versionNumber < 1 {
-				return errors.Errorf("launchTemplate.version must be >= 1 (%s.%s)", path, "launchTemplate.version")
+				return fmt.Errorf("launchTemplate.version must be >= 1 (%s.launchTemplate.version)", path)
 			}
 		}
 
@@ -1279,28 +1279,28 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 				"volumeSize", "instanceName", "instancePrefix", "maxPodsPerNode", "disableIMDSv1",
 				"disablePodIMDS", "preBootstrapCommands", "overrideBootstrapCommand", "placement",
 			}
-			return errors.Errorf("cannot set %s in managedNodeGroup when a launch template is supplied", strings.Join(incompatibleFields, ", "))
+			return fmt.Errorf("cannot set %s in managedNodeGroup when a launch template is supplied", strings.Join(incompatibleFields, ", "))
 		}
 
 	case ng.AMI != "":
 		if !IsAMI(ng.AMI) {
-			return errors.Errorf("invalid AMI %q (%s.%s)", ng.AMI, path, "ami")
+			return fmt.Errorf("invalid AMI %q (%s.%s)", ng.AMI, path, "ami")
 		}
 		if ng.AMIFamily == "" {
-			return errors.Errorf("when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag")
+			return errors.New("when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag")
 		}
 		if !IsAmazonLinuxImage(ng.AMIFamily) && !IsUbuntuImage(ng.AMIFamily) {
-			return errors.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s are supported", ng.AMIFamily,
+			return fmt.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s are supported", ng.AMIFamily,
 				strings.Join(append(SupportedAmazonLinuxImages, SupportedUbuntuImages...), ", "))
 		}
 		if ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023 {
-			return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
+			return fmt.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 		}
 		if ng.OverrideBootstrapCommand != nil && ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
-			return errors.Errorf("%[1]s.overrideBootstrapCommand is not supported when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
+			return fmt.Errorf("%[1]s.overrideBootstrapCommand is not supported when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 		}
 		notSupportedWithCustomAMIErr := func(field string) error {
-			return errors.Errorf("%s.%s is not supported when using a custom AMI (%s.ami)", path, field, path)
+			return fmt.Errorf("%s.%s is not supported when using a custom AMI (%s.ami)", path, field, path)
 		}
 		if ng.MaxPodsPerNode != 0 {
 			return notSupportedWithCustomAMIErr("maxPodsPerNode")
@@ -1313,7 +1313,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		}
 
 	case ng.OverrideBootstrapCommand != nil:
-		return errors.Errorf("%s.overrideBootstrapCommand can only be set when a custom AMI (%s.ami) is specified", path, path)
+		return fmt.Errorf("%s.overrideBootstrapCommand can only be set when a custom AMI (%s.ami) is specified", path, path)
 	}
 
 	return nil
@@ -1336,7 +1336,7 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 
 	if ng.InstanceType != "" && ng.InstanceType != "mixed" {
 		makeError := func(featureStr string) error {
-			return errors.Errorf(`instanceType should be "mixed" or unset when using the %s feature`, featureStr)
+			return fmt.Errorf(`instanceType should be "mixed" or unset when using the %s feature`, featureStr)
 		}
 		if ng.InstancesDistribution != nil {
 			return makeError("instances distribution")
@@ -1590,7 +1590,7 @@ func (fp FargateProfile) Validate() error {
 	}
 	for i, selector := range fp.Selectors {
 		if err := selector.Validate(); err != nil {
-			return errors.Wrapf(err, "invalid Fargate profile %q: invalid profile selector at index #%v", fp.Name, i)
+			return fmt.Errorf("invalid Fargate profile %q: invalid profile selector at index #%v: %w", fp.Name, i, err)
 		}
 	}
 	return nil
@@ -1666,7 +1666,7 @@ func ValidateSecretsEncryption(clusterConfig *ClusterConfig) error {
 	}
 
 	if _, err := arn.Parse(clusterConfig.SecretsEncryption.KeyARN); err != nil {
-		return errors.Wrapf(err, "invalid ARN in secretsEncryption.keyARN: %q", clusterConfig.SecretsEncryption.KeyARN)
+		return fmt.Errorf("invalid ARN in secretsEncryption.keyARN: %q: %w", clusterConfig.SecretsEncryption.KeyARN, err)
 	}
 	return nil
 }

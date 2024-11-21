@@ -2,12 +2,11 @@ package identityproviders
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -57,7 +56,7 @@ func (m *Manager) Get(ctx context.Context, options GetIdentityProvidersOptions) 
 			}
 		}
 		if getCfg == nil {
-			return summaries, errors.Errorf("couldn't find identity provider %s", options.Name)
+			return summaries, fmt.Errorf("couldn't find identity provider %s", options.Name)
 		}
 		configs = []ekstypes.IdentityProviderConfig{*getCfg}
 	}

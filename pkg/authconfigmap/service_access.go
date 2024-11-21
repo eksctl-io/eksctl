@@ -1,18 +1,17 @@
 package authconfigmap
 
 import (
-	"fmt"
-
 	// go go:embed to work
 	_ "embed"
+	"fmt"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime"
+
 	"github.com/weaveworks/eksctl/pkg/assetutil"
 	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 //go:embed assets/emr-containers-rbac.yaml
@@ -55,16 +54,16 @@ func NewServiceAccess(rawClient *kubernetes.RawClient, acm *AuthConfigMap, accou
 }
 
 // Grant grants access to the specified service
-func (s *ServiceAccess) Grant(serviceName, namespace string, partition string) error {
+func (s *ServiceAccess) Grant(serviceName, namespace, partition string) error {
 	resources, serviceDetails, err := lookupService(serviceName)
 	if err != nil {
 		return err
 	}
 	if serviceDetails.Namespaced && namespace == "" {
-		return errors.Errorf("namespace is required for %s", serviceName)
+		return fmt.Errorf("namespace is required for %s", serviceName)
 	}
 	if !serviceDetails.Namespaced && namespace != "" {
-		return errors.Errorf("namespace is not valid for %s", serviceName)
+		return fmt.Errorf("namespace is not valid for %s", serviceName)
 	}
 
 	list, err := kubernetes.NewList(resources)
@@ -92,7 +91,7 @@ func (s *ServiceAccess) Grant(serviceName, namespace string, partition string) e
 	}
 
 	if err := s.acm.Save(); err != nil {
-		return errors.Wrap(err, "error applying service role")
+		return fmt.Errorf("error applying service role: %w", err)
 	}
 	return nil
 }
@@ -101,7 +100,7 @@ func (s *ServiceAccess) applyResource(o runtime.Object, namespace string) error 
 	if namespace != "" {
 		metadataAccessor := meta.NewAccessor()
 		if err := metadataAccessor.SetNamespace(o, namespace); err != nil {
-			return errors.Wrap(err, "unexpected error setting namespace")
+			return fmt.Errorf("unexpected error setting namespace: %w", err)
 		}
 	}
 	r, err := s.rawClient.NewRawResource(o)
@@ -111,7 +110,7 @@ func (s *ServiceAccess) applyResource(o runtime.Object, namespace string) error 
 
 	msg, err := r.CreateOrReplace(false)
 	if err != nil {
-		return errors.Wrap(err, "error applying resource")
+		return fmt.Errorf("error applying resource: %w", err)
 	}
 	logger.Info(msg)
 	return nil
@@ -132,6 +131,6 @@ func lookupService(serviceName string) (resources []byte, sd serviceDetails, err
 	case emrContainers:
 		return emrContainersRbacYamlBytes, emrContainersService, nil
 	default:
-		return nil, sd, errors.Errorf("invalid service name %q", serviceName)
+		return nil, sd, fmt.Errorf("invalid service name %q", serviceName)
 	}
 }

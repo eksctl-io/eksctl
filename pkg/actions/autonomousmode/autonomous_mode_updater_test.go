@@ -11,8 +11,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	kubernetesfake "k8s.io/client-go/kubernetes/fake"
 
 	autonomousmodeactions "github.com/weaveworks/eksctl/pkg/actions/autonomousmode"
@@ -34,13 +32,11 @@ type updaterTest struct {
 }
 
 type updaterMocks struct {
-	roleManager      mocks.RoleManager
-	drainer          mocks.NodeGroupDrainer
-	subnetsLoader    mocks.SubnetsLoader
-	nodeClassApplier mocks.NodeClassApplier
-	eksUpdater       mocksv2.EKS
-	rawClient        autonomousmodemocks.RawClient
-	clientSet        *kubernetesfake.Clientset
+	roleManager mocks.RoleManager
+	drainer     mocks.NodeGroupDrainer
+	eksUpdater  mocksv2.EKS
+	rawClient   autonomousmodemocks.RawClient
+	clientSet   *kubernetesfake.Clientset
 }
 
 var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
@@ -54,11 +50,9 @@ var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
 	clusterConfig.AutonomousModeConfig = t.autonomousModeConfig
 	clusterConfig.VPC = t.vpc
 	updater := &autonomousmodeactions.Updater{
-		RoleManager:      &um.roleManager,
-		CoreV1Interface:  um.clientSet.CoreV1(),
-		EKSUpdater:       &um.eksUpdater,
-		SubnetsLoader:    &um.subnetsLoader,
-		NodeClassApplier: &um.nodeClassApplier,
+		RoleManager:     &um.roleManager,
+		CoreV1Interface: um.clientSet.CoreV1(),
+		EKSUpdater:      &um.eksUpdater,
 		RBACApplier: &autonomousmode.RBACApplier{
 			RawClient: &um.rawClient,
 		},
@@ -78,8 +72,6 @@ var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
 		&um.roleManager,
 		&um.eksUpdater,
 		&um.drainer,
-		&um.subnetsLoader,
-		&um.nodeClassApplier,
 		&um.rawClient,
 	} {
 		asserter.AssertExpectations(GinkgoT())
@@ -196,13 +188,6 @@ var _ = DescribeTable("Autonomous Mode Updater", func(t updaterTest) {
 		},
 		drainNodes: true,
 		updateMocks: func(u *updaterMocks) {
-			var uu unstructured.Unstructured
-			uu.SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   "eks.amazonaws.com",
-				Version: "v1",
-				Kind:    "NodeClass",
-			})
-			u.clientSet = kubernetesfake.NewSimpleClientset(&uu)
 			_, err := u.clientSet.CoreV1().Pods("karpenter").Create(context.Background(), &corev1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "karpenter-123-123",
@@ -241,9 +226,6 @@ func mockEnableAutonomousMode(u *updaterMocks, nodeRoleARN string, nodePools []s
 		NodePools:   nodePools,
 		NodeRoleArn: aws.String(nodeRoleARN),
 	})
-	subnetIDs := []string{"subnet-1", "subnet-2"}
-	u.subnetsLoader.EXPECT().LoadSubnets(mock.Anything, mock.Anything).Return(subnetIDs, true, nil).Once()
-	u.nodeClassApplier.EXPECT().PatchSubnets(mock.Anything, subnetIDs).Return(nil).Once()
 	u.rawClient.EXPECT().CreateOrReplace(mock.Anything, false).Return(nil)
 }
 

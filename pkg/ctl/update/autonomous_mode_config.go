@@ -64,32 +64,17 @@ func updateAutonomousMode(cmd *cmdutils.Cmd, options autonomousModeOptions) erro
 	if err != nil {
 		return err
 	}
-	dynamicClient, err := ctl.NewDynamicClient(cmd.ClusterConfig)
-	if err != nil {
-		return err
-	}
 	clientSet, err := ctl.NewStdClientSet(cmd.ClusterConfig)
 	if err != nil {
 		return err
 	}
-
 	stackManager := ctl.NewStackManager(cmd.ClusterConfig)
-
-	nodeClassApplier := &autonomousmode.EKSNodeClassApplier{
-		DynamicClient: dynamicClient,
-	}
-	subnetsLoader := &autonomousmode.SubnetsLoader{
-		ClusterStackDescriber: stackManager,
-		VPCImporter:           ctl,
-		IgnoreMissingSubnets:  options.ignoreMissingSubnets,
-	}
 	rawClient, err := ctl.NewRawClient(cmd.ClusterConfig)
 	if err != nil {
 		return err
 	}
 	autonomousModeUpdater := &autonomousmodeactions.Updater{
-		NodeClassApplier: nodeClassApplier,
-		EKSUpdater:       ctl.AWSProvider.EKS(),
+		EKSUpdater: ctl.AWSProvider.EKS(),
 		RoleManager: &roleManager{
 			RoleCreator: &autonomousmode.RoleCreator{
 				StackCreator: stackManager,
@@ -100,7 +85,6 @@ func updateAutonomousMode(cmd *cmdutils.Cmd, options autonomousModeOptions) erro
 			},
 		},
 		CoreV1Interface: clientSet.CoreV1(),
-		SubnetsLoader:   subnetsLoader,
 		RBACApplier: &autonomousmode.RBACApplier{
 			RawClient: rawClient,
 		},

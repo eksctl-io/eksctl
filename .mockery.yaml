@@ -7,6 +7,7 @@ packages:
     config:
       all: true
       dir: "./pkg/eks/mocksv2"
+      with-expecter: true
       outpkg: mocksv2
 
   github.com/weaveworks/eksctl/pkg/eks:
@@ -94,8 +95,6 @@ packages:
       outpkg: mocks
       filename: "{{ .InterfaceName | snakecase }}.go"
     interfaces:
-      ClusterStackDescriber: {}
-      VPCImporter: {}
       StackCreator: {}
       StackDeleter: {}
       RawClient: {}
@@ -109,5 +108,3 @@ packages:
     interfaces:
       RoleManager: {}
       NodeGroupDrainer: {}
-      SubnetsLoader: {}
-      NodeClassApplier: {}

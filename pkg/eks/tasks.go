@@ -2,6 +2,7 @@ package eks
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/windows"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -104,7 +104,7 @@ func (v *VPCControllerTask) Do(errCh chan error) error {
 	// TODO PlanMode doesn't work as intended
 	vpcController := addons.NewVPCController(rawClient, irsa, v.ClusterConfig.Status, v.ClusterProvider.AWSProvider.Region(), v.PlanMode)
 	if err := vpcController.Deploy(v.Context); err != nil {
-		return errors.Wrap(err, "error installing VPC controller")
+		return fmt.Errorf("error installing VPC controller: %w", err)
 	}
 	return nil
 }
@@ -127,7 +127,7 @@ func (n *devicePluginTask) Do(errCh chan error) error {
 	}
 	devicePlugin := n.mkPlugin(rawClient, n.clusterProvider.AWSProvider.Region(), false, n.spec)
 	if err := devicePlugin.Deploy(); err != nil {
-		return errors.Wrap(err, "error installing device plugin")
+		return fmt.Errorf("error installing device plugin: %w", err)
 	}
 	logger.Info(n.logMessage)
 	return nil
@@ -207,7 +207,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 	})
 	if cfg.IsAutonomousModeEnabled() {
 		if cfg.VPC != nil && cfg.VPC.ID != "" {
-			logger.Info("subnets supplied in subnets.private and subnets.public will be used for nodes launched by Autonomous Mode; please patch the NodeClass " +
+			logger.Info("subnets supplied in subnets.private and subnets.public will be used for nodes launched by Autonomous Mode; please create a new NodeClass " +
 				"resource if you do not want to use cluster subnets")
 		}
 		newTasks.Append(&tasks.GenericTask{
@@ -247,7 +247,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 						RetentionInDays: aws.Int32(int32(logRetentionDays)),
 					})
 					if err != nil {
-						return errors.Wrap(err, "error updating log retention settings")
+						return fmt.Errorf("error updating log retention settings: %w", err)
 					}
 					logger.Info("set log retention to %d days for CloudWatch logging", logRetentionDays)
 					return nil
@@ -277,16 +277,16 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 			Doer: func() error {
 				clientSet, err := c.NewStdClientSet(cfg)
 				if err != nil {
-					return errors.Wrap(err, "error creating Clientset")
+					return fmt.Errorf("error creating Clientset: %w", err)
 				}
 
 				rawClient, err := c.NewRawClient(cfg)
 				if err != nil {
-					return errors.Wrap(err, "error creating rawClient")
+					return fmt.Errorf("error creating rawClient: %w", err)
 				}
 				m, err := iamidentitymapping.New(cfg, clientSet, rawClient, cfg.Metadata.Region)
 				if err != nil {
-					return errors.Wrap(err, "error initialising iamidentitymapping")
+					return fmt.Errorf("error initialising iamidentitymapping: %w", err)
 				}
 
 				for _, mapping := range cfg.IAMIdentityMappings {

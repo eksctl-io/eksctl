@@ -41,25 +41,13 @@ type RoleManager interface {
 	DeleteIfRequired(ctx context.Context) error
 }
 
-// SubnetsLoader loads subnets for use by nodes launched by Autonomous Mode.
-type SubnetsLoader interface {
-	LoadSubnets(ctx context.Context, clusterConfig *api.ClusterConfig) ([]string, bool, error)
-}
-
-// NodeClassApplier patches AutonomousMode to use private subnets.
-type NodeClassApplier interface {
-	PatchSubnets(ctx context.Context, subnetIDs []string) error
-}
-
 // An Updater enables or disables Autonomous Mode.
 type Updater struct {
-	RoleManager      RoleManager
-	CoreV1Interface  corev1client.CoreV1Interface
-	EKSUpdater       EKSUpdater
-	Drainer          NodeGroupDrainer
-	SubnetsLoader    SubnetsLoader
-	NodeClassApplier NodeClassApplier
-	RBACApplier      *autonomousmode.RBACApplier
+	RoleManager     RoleManager
+	CoreV1Interface corev1client.CoreV1Interface
+	EKSUpdater      EKSUpdater
+	Drainer         NodeGroupDrainer
+	RBACApplier     *autonomousmode.RBACApplier
 }
 
 // Update updates the cluster to match the autonomousModeConfig settings supplied in clusterConfig.
@@ -89,26 +77,8 @@ func (u *Updater) Update(ctx context.Context, clusterConfig *api.ClusterConfig, 
 			return fmt.Errorf("enabling Autonomous Mode: %w", err)
 		}
 		if clusterConfig.AutonomousModeConfig.HasNodePools() {
-			if clusterConfig.VPC == nil || clusterConfig.VPC.ID == "" {
-				subnetIDs, hasDedicatedVPC, err := u.SubnetsLoader.LoadSubnets(ctx, clusterConfig)
-				if err != nil {
-					return fmt.Errorf("loading subnets to use for Autonomous Mode: %w", err)
-				}
-				if len(subnetIDs) == 0 {
-					if hasDedicatedVPC {
-						logger.Warning("could not find private subnets to use for Autonomous Mode; please patch the NodeClass " +
-							"resource if you do not want to use cluster subnets for Autonomous Mode")
-					}
-					return nil
-				}
-				logger.Info("configuring Autonomous Mode to use private subnets: %v", subnetIDs)
-				if err := u.NodeClassApplier.PatchSubnets(ctx, subnetIDs); err != nil {
-					return fmt.Errorf("patching Autonomous Mode to use private subnets: %w", err)
-				}
-			} else {
-				logger.Info("cluster subnets will be used for nodes launched by Autonomous Mode; please patch the NodeClass " +
-					"resource if you do not want to use cluster subnets")
-			}
+			logger.Info("cluster subnets will be used for nodes launched by Autonomous Mode; please create a new NodeClass " +
+				"resource if you do not want to use cluster subnets")
 		}
 		logger.Info("applying node RBAC resources for Autonomous Mode")
 		if err := u.RBACApplier.ApplyRBACResources(); err != nil {

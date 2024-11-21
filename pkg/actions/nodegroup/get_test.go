@@ -10,12 +10,9 @@ import (
 	cftypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/pkg/errors"
-
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/smithy-go"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
@@ -574,9 +571,9 @@ var _ = Describe("Get", func() {
 		})
 		When("there is no associated stack to the nodegroup", func() {
 			It("returns a summary of the node group without a StackName", func() {
-				fakeStackManager.DescribeNodeGroupStackReturns(nil, errors.Wrap(&smithy.OperationError{
+				fakeStackManager.DescribeNodeGroupStackReturns(nil, fmt.Errorf("nope: %w", &smithy.OperationError{
 					Err: fmt.Errorf("ValidationError"),
-				}, "nope"))
+				}))
 				summary, err := m.Get(context.Background(), ngName)
 				Expect(err).NotTo(HaveOccurred())
 
