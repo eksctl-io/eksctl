@@ -41,9 +41,6 @@ var (
 		}
 		return fmt.Sprintf("the recommended way to provide IAM permissions for %q addon is via %s; after addon creation is completed, %s", addonName, method, commandSuggestion)
 	}
-	IRSADeprecatedWarning = func(addonName string) string {
-		return fmt.Sprintf("IRSA has been deprecated; %s", iamPermissionsRecommended(addonName, true, false))
-	}
 	OIDCDisabledWarning = func(addonName string, supportsPodIDs, isIRSASetExplicitly bool) string {
 		irsaUsedMessage := fmt.Sprintf("recommended policies were found for %q addon", addonName)
 		if isIRSASetExplicitly {
@@ -166,7 +163,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 			}
 			logger.Info("IRSA is set for %q addon; will use this to configure IAM permissions", addon.Name)
 			if supportsPodIDs {
-				logger.Warning(IRSADeprecatedWarning(addon.Name))
+				logger.Warning(iamPermissionsRecommended(addon.Name, true, false))
 			}
 
 			if addon.ServiceAccountRoleARN != "" {
@@ -223,7 +220,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 				break
 			}
 			if supportsPodIDs {
-				logger.Warning(IRSADeprecatedWarning(addon.Name))
+				logger.Warning(iamPermissionsRecommended(addon.Name, true, false))
 			}
 
 			logger.Info("creating role using recommended policies for %q addon", addon.Name)
