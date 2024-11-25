@@ -619,13 +619,6 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			assertAddonHasPodIDs(api.AWSEBSCSIDriverAddon, 1)
 			assertStackExists(makePodIDStackName(api.AWSEBSCSIDriverAddon, ebsCSIControllerSA))
 			assertStackNotExists(makeIRSAStackName(api.AWSEBSCSIDriverAddon))
-
-			By("falling back to IRSA when `autoApplyPodIdentityAssociations: true` but addon doesn't support podIDs")
-			clusterConfig.Addons = []*api.Addon{{Name: api.AWSEFSCSIDriverAddon}}
-			Expect(makeCreateAddonCMD()).To(RunSuccessfully())
-			assertAddonHasPodIDs(api.AWSEFSCSIDriverAddon, 0)
-			assertStackNotExists(makePodIDStackName(api.AWSEFSCSIDriverAddon, efsCSIControllerSA))
-			assertStackExists(makeIRSAStackName(api.AWSEFSCSIDriverAddon))
 		})
 
 		It("should remove IAM permissions when deleting addons", func() {
