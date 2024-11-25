@@ -43,10 +43,15 @@ func ValidateAutoModeConfig(clusterConfig *ClusterConfig) error {
 			if len(*autoModeConfig.NodePools) == 0 && !autoModeConfig.NodeRoleARN.IsZero() {
 				return errors.New("cannot specify autoModeConfig.nodeRoleARN when autoModeConfig.nodePools is empty")
 			}
+			seenNodePools := map[string]struct{}{}
 			for _, np := range *autoModeConfig.NodePools {
+				if _, ok := seenNodePools[np]; ok {
+					return fmt.Errorf("found duplicate node pool: %q", np)
+				}
 				if !slices.Contains(AutoModeKnownNodePools, np) {
 					return fmt.Errorf("invalid NodePool %q", np)
 				}
+				seenNodePools[np] = struct{}{}
 			}
 		}
 	} else if !autoModeConfig.NodeRoleARN.IsZero() || autoModeConfig.HasNodePools() {

@@ -285,7 +285,7 @@
       "description": "holds the addons config.",
       "x-intellij-html-description": "holds the addons config."
     },
-    "AutonomousModeConfig": {
+    "AutoModeConfig": {
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -424,8 +424,8 @@
             "eksctl.io/v1alpha5"
           ]
         },
-        "autonomousModeConfig": {
-          "$ref": "#/definitions/AutonomousModeConfig",
+        "autoModeConfig": {
+          "$ref": "#/definitions/AutoModeConfig",
           "description": "holds the config for Auto Mode.",
           "x-intellij-html-description": "holds the config for Auto Mode."
         },
@@ -534,7 +534,7 @@
         "apiVersion",
         "metadata",
         "kubernetesNetworkConfig",
-        "autonomousModeConfig",
+        "autoModeConfig",
         "iam",
         "iamIdentityMappings",
         "identityProviders",

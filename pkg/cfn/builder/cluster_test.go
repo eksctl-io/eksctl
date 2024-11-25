@@ -283,7 +283,6 @@ var _ = Describe("Cluster Template Builder", func() {
 		})
 
 		It("should add the correct policies and references to the ServiceRole ARN", func() {
-			// TODO: test new policies.
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(ContainElements(makePolicyARNRef("AmazonEKSClusterPolicy"), makePolicyARNRef("AmazonEKSVPCResourceController")))
 		})
 
@@ -322,7 +321,6 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 
 			It("only adds the AmazonEKSClusterPolicy to the service role policy arn", func() {
-				// TODO: test new policies.
 				Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns[0]).To(Equal(makePolicyARNRef("AmazonEKSClusterPolicy")))
 			})
 		})

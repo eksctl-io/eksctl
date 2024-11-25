@@ -3,11 +3,15 @@ package update
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	automodeactions "github.com/weaveworks/eksctl/pkg/actions/automode"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
@@ -68,7 +72,7 @@ func updateAutoMode(cmd *cmdutils.Cmd, options autoModeOptions) error {
 		return err
 	}
 	stackManager := ctl.NewStackManager(cmd.ClusterConfig)
-	rawClient, err := ctl.NewRawClient(cmd.ClusterConfig)
+	clusterRoleName, err := getClusterRoleName(ctl.Status.ClusterInfo.Cluster)
 	if err != nil {
 		return err
 	}
@@ -83,10 +87,13 @@ func updateAutoMode(cmd *cmdutils.Cmd, options autoModeOptions) error {
 				StackDeleter: stackManager,
 			},
 		},
-		CoreV1Interface: clientSet.CoreV1(),
-		RBACApplier: &automode.RBACApplier{
-			RawClient: rawClient,
+		ClusterRoleManager: &automode.ClusterRoleManager{
+			StackManager:    stackManager,
+			IAMRoleManager:  ctl.AWSProvider.IAM(),
+			ClusterRoleName: clusterRoleName,
+			Region:          cmd.ClusterConfig.Metadata.Region,
 		},
+		PodsGetter: clientSet.CoreV1(),
 	}
 	if options.drainNodeGroups {
 		autoModeUpdater.Drainer = &nodeGroupDrainer{
@@ -123,6 +130,18 @@ func (d *nodeGroupDrainer) Drain(ctx context.Context) error {
 		PodEvictionWaitPeriod: 10 * time.Second,
 		Parallel:              d.drainParallel,
 	})
+}
+
+func getClusterRoleName(cluster *ekstypes.Cluster) (string, error) {
+	roleARN, err := arn.Parse(*cluster.RoleArn)
+	if err != nil {
+		return "", fmt.Errorf("parsing cluster role ARN %q: %w", *cluster.RoleArn, err)
+	}
+	parts := strings.Split(roleARN.Resource, "/")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("expected role to have pattern %q; got %q: %w", "role/role-name", roleARN.Resource, err)
+	}
+	return parts[1], nil
 }
 
 type roleManager struct {

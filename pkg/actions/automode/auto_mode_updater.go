@@ -7,15 +7,15 @@ import (
 	"slices"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
-	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/automode"
 	"github.com/weaveworks/eksctl/pkg/eks/waiter"
 )
 
@@ -41,13 +41,19 @@ type RoleManager interface {
 	DeleteIfRequired(ctx context.Context) error
 }
 
+// A ClusterRoleManager manages the cluster role.
+type ClusterRoleManager interface {
+	UpdateRoleForAutoMode(ctx context.Context) error
+	DeleteAutoModePolicies(ctx context.Context) error
+}
+
 // An Updater enables or disables Auto Mode.
 type Updater struct {
-	RoleManager     RoleManager
-	CoreV1Interface corev1client.CoreV1Interface
-	EKSUpdater      EKSUpdater
-	Drainer         NodeGroupDrainer
-	RBACApplier     *automode.RBACApplier
+	RoleManager        RoleManager
+	ClusterRoleManager ClusterRoleManager
+	PodsGetter         corev1client.PodsGetter
+	EKSUpdater         EKSUpdater
+	Drainer            NodeGroupDrainer
 }
 
 // Update updates the cluster to match the autoModeConfig settings supplied in clusterConfig.
@@ -57,8 +63,8 @@ func (u *Updater) Update(ctx context.Context, clusterConfig *api.ClusterConfig, 
 		return cc != nil && *cc.Enabled
 	}
 	if clusterConfig.IsAutoModeEnabled() {
+		amc := clusterConfig.AutoModeConfig
 		if autoModeEnabled() {
-			amc := clusterConfig.AutoModeConfig
 			if !amc.NodeRoleARN.IsZero() && currentCluster.ComputeConfig.NodeRoleArn != nil &&
 				*currentCluster.ComputeConfig.NodeRoleArn != amc.NodeRoleARN.String() {
 				return errors.New("autoModeConfig.nodeRoleARN cannot be modified")
@@ -73,16 +79,12 @@ func (u *Updater) Update(ctx context.Context, clusterConfig *api.ClusterConfig, 
 		} else {
 			logger.Info("enabling Auto Mode")
 		}
-		if err := u.enableAutoMode(ctx, clusterConfig.AutoModeConfig, currentCluster.ComputeConfig, clusterConfig.Metadata.Name); err != nil {
+		if err := u.enableAutoMode(ctx, amc, currentCluster.ComputeConfig, clusterConfig.Metadata.Name); err != nil {
 			return fmt.Errorf("enabling Auto Mode: %w", err)
 		}
-		if clusterConfig.AutoModeConfig.HasNodePools() {
+		if amc.HasNodePools() {
 			logger.Info("cluster subnets will be used for nodes launched by Auto Mode; please create a new NodeClass " +
 				"resource if you do not want to use cluster subnets")
-		}
-		logger.Info("applying node RBAC resources for Auto Mode")
-		if err := u.RBACApplier.ApplyRBACResources(); err != nil {
-			return err
 		}
 		logger.Info("Auto Mode enabled successfully")
 		return nil
@@ -94,9 +96,6 @@ func (u *Updater) Update(ctx context.Context, clusterConfig *api.ClusterConfig, 
 	if err := u.disableAutoMode(ctx, clusterConfig.Metadata.Name); err != nil {
 		return fmt.Errorf("disabling Auto Mode: %w", err)
 	}
-	if err := u.RBACApplier.DeleteRBACResources(); err != nil {
-		return err
-	}
 	logger.Info("Auto Mode disabled successfully")
 	return nil
 }
@@ -104,6 +103,9 @@ func (u *Updater) Update(ctx context.Context, clusterConfig *api.ClusterConfig, 
 func (u *Updater) enableAutoMode(ctx context.Context, autoModeConfig *api.AutoModeConfig, currentClusterCompute *ekstypes.ComputeConfigResponse, clusterName string) error {
 	if err := u.preflightCheck(ctx); err != nil {
 		return err
+	}
+	if err := u.ClusterRoleManager.UpdateRoleForAutoMode(ctx); err != nil {
+		return fmt.Errorf("updating cluster role to use Auto Mode: %w", err)
 	}
 	computeConfigReq := &ekstypes.ComputeConfigRequest{
 		Enabled:   aws.Bool(true),
@@ -177,6 +179,9 @@ func (u *Updater) disableAutoMode(ctx context.Context, clusterName string) error
 	if err := u.RoleManager.DeleteIfRequired(ctx); err != nil {
 		return fmt.Errorf("deleting IAM resources for Auto Mode: %w", err)
 	}
+	if err := u.ClusterRoleManager.DeleteAutoModePolicies(ctx); err != nil {
+		return fmt.Errorf("deleting Auto Mode policies from cluster role: %w", err)
+	}
 	return nil
 }
 
@@ -204,7 +209,7 @@ func (u *Updater) preflightCheck(ctx context.Context) error {
 	}
 	knownKarpenterNamespaces := []string{metav1.NamespaceSystem, "karpenter"}
 	for _, ns := range knownKarpenterNamespaces {
-		podList, err := u.CoreV1Interface.Pods(ns).List(ctx, metav1.ListOptions{
+		podList, err := u.PodsGetter.Pods(ns).List(ctx, metav1.ListOptions{
 			LabelSelector: "app.kubernetes.io/instance=karpenter",
 		})
 		if err != nil {

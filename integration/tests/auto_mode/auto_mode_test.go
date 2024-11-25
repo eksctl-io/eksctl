@@ -6,16 +6,16 @@ package auto_mode
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -93,9 +93,7 @@ var _ = Describe("Auto Mode", Ordered, func() {
 		test, err := kube.NewTest(params.KubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 		d := test.CreateDeploymentFromFile(test.Namespace, "../../data/podinfo.yaml")
-		start := time.Now()
 		test.WaitForDeploymentReady(d, 30*time.Minute)
-		fmt.Println("dep ready after", time.Since(start))
 		deployment, err := test.GetDeployment(test.Namespace, "podinfo")
 		Expect(err).NotTo(HaveOccurred())
 		nodeList := test.ListNodes(metav1.ListOptions{})
@@ -104,7 +102,7 @@ var _ = Describe("Auto Mode", Ordered, func() {
 		const labelName = "eks.amazonaws.com/compute-type"
 		computeType, ok := node.Labels[labelName]
 		Expect(ok).To(BeTrue(), "expected to find label %s on node %s", labelName, node.Name)
-		Expect(computeType).To(Equal("eks-managed"))
+		Expect(computeType).To(Equal("auto"))
 		podList := test.ListPodsFromDeployment(deployment)
 		Expect(podList.Items).To(HaveLen(2))
 		for _, pod := range podList.Items {

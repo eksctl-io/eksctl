@@ -9,8 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 
-	"github.com/weaveworks/eksctl/pkg/windows"
-
 	"github.com/kris-nova/logger"
 
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -20,13 +18,13 @@ import (
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	"github.com/weaveworks/eksctl/pkg/addons"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/automode"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+	"github.com/weaveworks/eksctl/pkg/windows"
 )
 
 type clusterConfigTask struct {
@@ -205,27 +203,9 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 			return c.RefreshClusterStatus(ctx, cfg)
 		},
 	})
-	if cfg.IsAutoModeEnabled() {
-		if cfg.VPC != nil && cfg.VPC.ID != "" {
-			logger.Info("subnets supplied in subnets.private and subnets.public will be used for nodes launched by Auto Mode; please create a new NodeClass " +
-				"resource if you do not want to use cluster subnets")
-		}
-		newTasks.Append(&tasks.GenericTask{
-			Description: "apply node RBAC resources for Auto Mode",
-			Doer: func() error {
-				rawClient, err := c.NewRawClient(cfg)
-				if err != nil {
-					return fmt.Errorf("creating RawClient: %w", err)
-				}
-				rbacApplier := &automode.RBACApplier{
-					RawClient: rawClient,
-				}
-				if err := rbacApplier.ApplyRBACResources(); err != nil {
-					return fmt.Errorf("applying node RBAC resources for Auto Mode: %w", err)
-				}
-				return nil
-			},
-		})
+	if cfg.IsAutoModeEnabled() && cfg.VPC != nil && cfg.VPC.ID != "" {
+		logger.Info("subnets supplied in subnets.private and subnets.public will be used for nodes launched by Auto Mode; please create a new NodeClass " +
+			"resource if you do not want to use cluster subnets")
 	}
 
 	if api.IsEnabled(cfg.IAM.WithOIDC) {

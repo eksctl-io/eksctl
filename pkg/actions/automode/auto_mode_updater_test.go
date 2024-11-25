@@ -3,9 +3,6 @@ package automode_test
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
-	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -13,11 +10,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubernetesfake "k8s.io/client-go/kubernetes/fake"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	automodeactions "github.com/weaveworks/eksctl/pkg/actions/automode"
 	"github.com/weaveworks/eksctl/pkg/actions/automode/mocks"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/automode"
-	automodemocks "github.com/weaveworks/eksctl/pkg/automode/mocks"
 	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
 )
 
@@ -32,11 +31,11 @@ type updaterTest struct {
 }
 
 type updaterMocks struct {
-	roleManager mocks.RoleManager
-	drainer     mocks.NodeGroupDrainer
-	eksUpdater  mocksv2.EKS
-	rawClient   automodemocks.RawClient
-	clientSet   *kubernetesfake.Clientset
+	roleManager        mocks.RoleManager
+	clusterRoleManager mocks.ClusterRoleManager
+	drainer            mocks.NodeGroupDrainer
+	eksUpdater         mocksv2.EKS
+	clientSet          *kubernetesfake.Clientset
 }
 
 var _ = DescribeTable("Auto Mode Updater", func(t updaterTest) {
@@ -50,12 +49,10 @@ var _ = DescribeTable("Auto Mode Updater", func(t updaterTest) {
 	clusterConfig.AutoModeConfig = t.autoModeConfig
 	clusterConfig.VPC = t.vpc
 	updater := &automodeactions.Updater{
-		RoleManager:     &um.roleManager,
-		CoreV1Interface: um.clientSet.CoreV1(),
-		EKSUpdater:      &um.eksUpdater,
-		RBACApplier: &automode.RBACApplier{
-			RawClient: &um.rawClient,
-		},
+		RoleManager:        &um.roleManager,
+		ClusterRoleManager: &um.clusterRoleManager,
+		PodsGetter:         um.clientSet.CoreV1(),
+		EKSUpdater:         &um.eksUpdater,
 	}
 	if t.drainNodes {
 		updater.Drainer = &um.drainer
@@ -70,9 +67,9 @@ var _ = DescribeTable("Auto Mode Updater", func(t updaterTest) {
 		AssertExpectations(t mock.TestingT) bool
 	}{
 		&um.roleManager,
+		&um.clusterRoleManager,
 		&um.eksUpdater,
 		&um.drainer,
-		&um.rawClient,
 	} {
 		asserter.AssertExpectations(GinkgoT())
 	}
@@ -151,12 +148,12 @@ var _ = DescribeTable("Auto Mode Updater", func(t updaterTest) {
 			},
 		},
 		updateMocks: func(u *updaterMocks) {
+			u.clusterRoleManager.EXPECT().UpdateRoleForAutoMode(mock.Anything).Return(nil).Once()
 			mockUpdateClusterConfig(u, &ekstypes.ComputeConfigRequest{
 				Enabled:     aws.Bool(true),
 				NodePools:   []string{api.AutoModeNodePoolGeneralPurpose},
 				NodeRoleArn: aws.String("arn:aws:iam::000:role/CustomNodeRole"),
 			})
-			u.rawClient.EXPECT().CreateOrReplace(mock.Anything, false).Return(nil)
 		},
 	}),
 	Entry("disabling Auto Mode", updaterTest{
@@ -173,7 +170,7 @@ var _ = DescribeTable("Auto Mode Updater", func(t updaterTest) {
 				Enabled: aws.Bool(false),
 			})
 			u.roleManager.EXPECT().DeleteIfRequired(mock.Anything).Return(nil).Once()
-			u.rawClient.EXPECT().Delete(mock.Anything).Return(nil)
+			u.clusterRoleManager.EXPECT().DeleteAutoModePolicies(mock.Anything).Return(nil).Once()
 		},
 	}),
 	Entry("Karpenter pods exist in the cluster when enabling Auto Mode", updaterTest{
@@ -221,12 +218,12 @@ var _ = DescribeTable("Auto Mode Updater", func(t updaterTest) {
 )
 
 func mockEnableAutoMode(u *updaterMocks, nodeRoleARN string, nodePools []string) {
+	u.clusterRoleManager.EXPECT().UpdateRoleForAutoMode(mock.Anything).Return(nil).Once()
 	mockUpdateClusterConfig(u, &ekstypes.ComputeConfigRequest{
 		Enabled:     aws.Bool(true),
 		NodePools:   nodePools,
 		NodeRoleArn: aws.String(nodeRoleARN),
 	})
-	u.rawClient.EXPECT().CreateOrReplace(mock.Anything, false).Return(nil)
 }
 
 func mockUpdateClusterConfig(u *updaterMocks, computeConfig *ekstypes.ComputeConfigRequest) {

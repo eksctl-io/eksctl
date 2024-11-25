@@ -6,8 +6,9 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 
-	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/kris-nova/logger"
+
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -129,6 +130,9 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 }
 
 func validatePodIdentityAgentAddon(ctx context.Context, eksAPI awsapi.EKS, cfg *api.ClusterConfig) error {
+	if cfg.IsAutoModeEnabled() && len(cfg.NodeGroups) == 0 && len(cfg.ManagedNodeGroups) == 0 {
+		return nil
+	}
 	isPodIdentityAgentInstalled, err := podidentityassociation.IsPodIdentityAgentInstalled(ctx, eksAPI, cfg.Metadata.Name)
 	if err != nil {
 		return err

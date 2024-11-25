@@ -341,11 +341,9 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 		}
 
 		if shallCreatePodIdentityAssociations(clusterConfig) {
-			addonNames := []string{}
-			for _, addon := range clusterConfig.Addons {
-				addonNames = append(addonNames, addon.Name)
-			}
-			if !slices.Contains(addonNames, api.PodIdentityAgentAddon) {
+			if !clusterConfig.IsAutoModeEnabled() && !slices.ContainsFunc(clusterConfig.Addons, func(addon *api.Addon) bool {
+				return addon.Name == api.PodIdentityAgentAddon
+			}) {
 				suggestion := fmt.Sprintf("please add %q addon to the config file", api.PodIdentityAgentAddon)
 				return api.ErrPodIdentityAgentNotInstalled(suggestion)
 			}

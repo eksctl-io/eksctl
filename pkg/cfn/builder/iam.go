@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+
 	"github.com/kris-nova/logger"
 
 	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
@@ -66,8 +67,7 @@ func (c *ClusterResourceSet) WithIAM() bool {
 
 // WithNamedIAM states, if specifically named IAM roles will be created or not
 func (c *ClusterResourceSet) WithNamedIAM() bool {
-	// FIXME after feature is live on production.
-	return true
+	return c.rs.withNamedIAM
 }
 
 func (c *ClusterResourceSet) addResourcesForIAM() {
@@ -90,36 +90,19 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 			ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(iamPolicyAmazonEKSLocalOutpostClusterPolicy)...),
 		}
 	} else {
-		managedPolicyARNs := []string{iamPolicyAmazonEKSClusterPolicy, "service-role/AmazonEBSCSIDriverPolicy"}
+		managedPolicyARNs := []string{iamPolicyAmazonEKSClusterPolicy}
 		if !api.IsDisabled(c.spec.IAM.VPCResourceControllerPolicy) {
 			managedPolicyARNs = append(managedPolicyARNs, iamPolicyAmazonEKSVPCResourceController)
 		}
-
+		if c.spec.IsAutoModeEnabled() {
+			managedPolicyARNs = append(managedPolicyARNs, AutoModeIAMPolicies...)
+		}
 		role = &gfniam.Role{
-			AssumeRolePolicyDocument: cft.MakePolicyDocument(
-				cft.MapOfInterfaces{
-					"Effect": "Allow",
-					"Action": []string{
-						"sts:AssumeRole",
-						"sts:TagSession",
-					},
-					"Principal": map[string]interface{}{
-						"Service": "eks.amazonaws.com",
-					},
-				},
+			AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentWithAction(
+				"sts:TagSession",
+				MakeServiceRef("EKS"),
 			),
-			ManagedPolicyArns: gfnt.NewSlice(append(makePolicyARNs(managedPolicyARNs...),
-				makePolicyARNWithAccountID("EKSNodeOperatorMockPolicy", "EKSNetworkOperatorMockPolicy")...)...),
-			Policies: []gfniam.Role_Policy{
-				{
-					PolicyName: gfnt.NewString("ServiceLinkedRoleCreation"),
-					PolicyDocument: cft.MakePolicyDocument(cft.MapOfInterfaces{
-						"Effect":   "Allow",
-						"Action":   "iam:CreateServiceLinkedRole",
-						"Resource": "*",
-					}),
-				},
-			},
+			ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyARNs...)...),
 		}
 	}
 
@@ -321,7 +304,7 @@ func newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary 
 func (*IAMRoleResourceSet) WithIAM() bool { return true }
 
 // WithNamedIAM returns false
-func (rs *IAMRoleResourceSet) WithNamedIAM() bool { return true || rs.roleName != "" }
+func (rs *IAMRoleResourceSet) WithNamedIAM() bool { return rs.roleName != "" }
 
 // AddAllResources adds all resources for the stack
 func (rs *IAMRoleResourceSet) AddAllResources() error {

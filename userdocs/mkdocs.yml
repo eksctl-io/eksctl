@@ -144,6 +144,7 @@ nav:
   - User Guide:
     - Clusters:
       - usage/creating-and-managing-clusters.md
+      - usage/auto-mode.md
       - usage/access-entries.md
       - usage/outposts.md
       - usage/unowned-clusters.md

@@ -12,6 +12,17 @@ import (
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
+const (
+	iamPolicyAmazonEKSComputePolicy       = "AmazonEKSComputePolicy"
+	iamPolicyAmazonEKSBlockStoragePolicy  = "AmazonEKSBlockStoragePolicy"
+	iamPolicyAmazonEKSLoadBalancingPolicy = "AmazonEKSLoadBalancingPolicy"
+	iamPolicyAmazonEKSNetworkingPolicy    = "AmazonEKSNetworkingPolicy"
+)
+
+// AutoModeIAMPolicies is a list of policies required by EKS Auto Mode.
+var AutoModeIAMPolicies = []string{iamPolicyAmazonEKSComputePolicy, iamPolicyAmazonEKSBlockStoragePolicy,
+	iamPolicyAmazonEKSLoadBalancingPolicy, iamPolicyAmazonEKSNetworkingPolicy}
+
 //go:embed roles/auto-mode-node-role.yaml
 var autoModeNodeRoleTemplate []byte
 

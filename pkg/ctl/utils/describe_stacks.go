@@ -2,21 +2,22 @@ package utils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"golang.org/x/exp/slices"
 
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/printers"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
 func describeStacksCmd(cmd *cmdutils.Cmd) {
@@ -38,7 +39,7 @@ func describeStacksCmd(cmd *cmdutils.Cmd) {
 				cmd.CobraCommand.Flags().Changed("events") ||
 				cmd.CobraCommand.Flags().Changed("trails") ||
 				cmd.CobraCommand.Flags().Changed("resource-status") {
-				return fmt.Errorf("since the output flag is specified, the flags `all`, `events`, `trail` and `resource-status` cannot be used")
+				return errors.New("since the output flag is specified, the flags `all`, `events`, `trail` and `resource-status` cannot be used")
 			}
 		}
 		switch output {

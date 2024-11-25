@@ -108,3 +108,4 @@ packages:
     interfaces:
       RoleManager: {}
       NodeGroupDrainer: {}
+      ClusterRoleManager: {}
