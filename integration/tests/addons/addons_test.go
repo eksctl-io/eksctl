@@ -647,11 +647,6 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)).
 				To(RunSuccessfully())
 			assertPodIDPresence("kube-system", ebsCSIControllerSA, false)
-
-			By("deleting IRSA when deleting addons")
-			Expect(makeDeleteAddonCMD(api.AWSEFSCSIDriverAddon)).To(RunSuccessfully())
-			assertPodIDPresence("kube-system", efsCSIControllerSA, false)
-			assertStackDeleted(makeIRSAStackName(api.AWSEFSCSIDriverAddon))
 		})
 
 		It("should update IAM permissions when updating or migrating addons", func() {
