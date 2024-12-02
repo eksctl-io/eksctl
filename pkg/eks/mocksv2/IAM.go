@@ -3574,6 +3574,154 @@ func (_c *IAM_DetachUserPolicy_Call) RunAndReturn(run func(context.Context, *iam
 	return _c
 }
 
+// DisableOrganizationsRootCredentialsManagement provides a mock function with given fields: ctx, params, optFns
+func (_m *IAM) DisableOrganizationsRootCredentialsManagement(ctx context.Context, params *iam.DisableOrganizationsRootCredentialsManagementInput, optFns ...func(*iam.Options)) (*iam.DisableOrganizationsRootCredentialsManagementOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DisableOrganizationsRootCredentialsManagement")
+	}
+
+	var r0 *iam.DisableOrganizationsRootCredentialsManagementOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DisableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) (*iam.DisableOrganizationsRootCredentialsManagementOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DisableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) *iam.DisableOrganizationsRootCredentialsManagementOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.DisableOrganizationsRootCredentialsManagementOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DisableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IAM_DisableOrganizationsRootCredentialsManagement_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisableOrganizationsRootCredentialsManagement'
+type IAM_DisableOrganizationsRootCredentialsManagement_Call struct {
+	*mock.Call
+}
+
+// DisableOrganizationsRootCredentialsManagement is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DisableOrganizationsRootCredentialsManagementInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DisableOrganizationsRootCredentialsManagement(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DisableOrganizationsRootCredentialsManagement_Call {
+	return &IAM_DisableOrganizationsRootCredentialsManagement_Call{Call: _e.mock.On("DisableOrganizationsRootCredentialsManagement",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DisableOrganizationsRootCredentialsManagement_Call) Run(run func(ctx context.Context, params *iam.DisableOrganizationsRootCredentialsManagementInput, optFns ...func(*iam.Options))) *IAM_DisableOrganizationsRootCredentialsManagement_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DisableOrganizationsRootCredentialsManagementInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DisableOrganizationsRootCredentialsManagement_Call) Return(_a0 *iam.DisableOrganizationsRootCredentialsManagementOutput, _a1 error) *IAM_DisableOrganizationsRootCredentialsManagement_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DisableOrganizationsRootCredentialsManagement_Call) RunAndReturn(run func(context.Context, *iam.DisableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) (*iam.DisableOrganizationsRootCredentialsManagementOutput, error)) *IAM_DisableOrganizationsRootCredentialsManagement_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DisableOrganizationsRootSessions provides a mock function with given fields: ctx, params, optFns
+func (_m *IAM) DisableOrganizationsRootSessions(ctx context.Context, params *iam.DisableOrganizationsRootSessionsInput, optFns ...func(*iam.Options)) (*iam.DisableOrganizationsRootSessionsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DisableOrganizationsRootSessions")
+	}
+
+	var r0 *iam.DisableOrganizationsRootSessionsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DisableOrganizationsRootSessionsInput, ...func(*iam.Options)) (*iam.DisableOrganizationsRootSessionsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DisableOrganizationsRootSessionsInput, ...func(*iam.Options)) *iam.DisableOrganizationsRootSessionsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.DisableOrganizationsRootSessionsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DisableOrganizationsRootSessionsInput, ...func(*iam.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IAM_DisableOrganizationsRootSessions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisableOrganizationsRootSessions'
+type IAM_DisableOrganizationsRootSessions_Call struct {
+	*mock.Call
+}
+
+// DisableOrganizationsRootSessions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DisableOrganizationsRootSessionsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DisableOrganizationsRootSessions(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DisableOrganizationsRootSessions_Call {
+	return &IAM_DisableOrganizationsRootSessions_Call{Call: _e.mock.On("DisableOrganizationsRootSessions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DisableOrganizationsRootSessions_Call) Run(run func(ctx context.Context, params *iam.DisableOrganizationsRootSessionsInput, optFns ...func(*iam.Options))) *IAM_DisableOrganizationsRootSessions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DisableOrganizationsRootSessionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DisableOrganizationsRootSessions_Call) Return(_a0 *iam.DisableOrganizationsRootSessionsOutput, _a1 error) *IAM_DisableOrganizationsRootSessions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DisableOrganizationsRootSessions_Call) RunAndReturn(run func(context.Context, *iam.DisableOrganizationsRootSessionsInput, ...func(*iam.Options)) (*iam.DisableOrganizationsRootSessionsOutput, error)) *IAM_DisableOrganizationsRootSessions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // EnableMFADevice provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) EnableMFADevice(ctx context.Context, params *iam.EnableMFADeviceInput, optFns ...func(*iam.Options)) (*iam.EnableMFADeviceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3644,6 +3792,154 @@ func (_c *IAM_EnableMFADevice_Call) Return(_a0 *iam.EnableMFADeviceOutput, _a1 e
 }
 
 func (_c *IAM_EnableMFADevice_Call) RunAndReturn(run func(context.Context, *iam.EnableMFADeviceInput, ...func(*iam.Options)) (*iam.EnableMFADeviceOutput, error)) *IAM_EnableMFADevice_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// EnableOrganizationsRootCredentialsManagement provides a mock function with given fields: ctx, params, optFns
+func (_m *IAM) EnableOrganizationsRootCredentialsManagement(ctx context.Context, params *iam.EnableOrganizationsRootCredentialsManagementInput, optFns ...func(*iam.Options)) (*iam.EnableOrganizationsRootCredentialsManagementOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnableOrganizationsRootCredentialsManagement")
+	}
+
+	var r0 *iam.EnableOrganizationsRootCredentialsManagementOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.EnableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) (*iam.EnableOrganizationsRootCredentialsManagementOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.EnableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) *iam.EnableOrganizationsRootCredentialsManagementOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.EnableOrganizationsRootCredentialsManagementOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.EnableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IAM_EnableOrganizationsRootCredentialsManagement_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnableOrganizationsRootCredentialsManagement'
+type IAM_EnableOrganizationsRootCredentialsManagement_Call struct {
+	*mock.Call
+}
+
+// EnableOrganizationsRootCredentialsManagement is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.EnableOrganizationsRootCredentialsManagementInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) EnableOrganizationsRootCredentialsManagement(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_EnableOrganizationsRootCredentialsManagement_Call {
+	return &IAM_EnableOrganizationsRootCredentialsManagement_Call{Call: _e.mock.On("EnableOrganizationsRootCredentialsManagement",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_EnableOrganizationsRootCredentialsManagement_Call) Run(run func(ctx context.Context, params *iam.EnableOrganizationsRootCredentialsManagementInput, optFns ...func(*iam.Options))) *IAM_EnableOrganizationsRootCredentialsManagement_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.EnableOrganizationsRootCredentialsManagementInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_EnableOrganizationsRootCredentialsManagement_Call) Return(_a0 *iam.EnableOrganizationsRootCredentialsManagementOutput, _a1 error) *IAM_EnableOrganizationsRootCredentialsManagement_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_EnableOrganizationsRootCredentialsManagement_Call) RunAndReturn(run func(context.Context, *iam.EnableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) (*iam.EnableOrganizationsRootCredentialsManagementOutput, error)) *IAM_EnableOrganizationsRootCredentialsManagement_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// EnableOrganizationsRootSessions provides a mock function with given fields: ctx, params, optFns
+func (_m *IAM) EnableOrganizationsRootSessions(ctx context.Context, params *iam.EnableOrganizationsRootSessionsInput, optFns ...func(*iam.Options)) (*iam.EnableOrganizationsRootSessionsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnableOrganizationsRootSessions")
+	}
+
+	var r0 *iam.EnableOrganizationsRootSessionsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.EnableOrganizationsRootSessionsInput, ...func(*iam.Options)) (*iam.EnableOrganizationsRootSessionsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.EnableOrganizationsRootSessionsInput, ...func(*iam.Options)) *iam.EnableOrganizationsRootSessionsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.EnableOrganizationsRootSessionsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.EnableOrganizationsRootSessionsInput, ...func(*iam.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IAM_EnableOrganizationsRootSessions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnableOrganizationsRootSessions'
+type IAM_EnableOrganizationsRootSessions_Call struct {
+	*mock.Call
+}
+
+// EnableOrganizationsRootSessions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.EnableOrganizationsRootSessionsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) EnableOrganizationsRootSessions(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_EnableOrganizationsRootSessions_Call {
+	return &IAM_EnableOrganizationsRootSessions_Call{Call: _e.mock.On("EnableOrganizationsRootSessions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_EnableOrganizationsRootSessions_Call) Run(run func(ctx context.Context, params *iam.EnableOrganizationsRootSessionsInput, optFns ...func(*iam.Options))) *IAM_EnableOrganizationsRootSessions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.EnableOrganizationsRootSessionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_EnableOrganizationsRootSessions_Call) Return(_a0 *iam.EnableOrganizationsRootSessionsOutput, _a1 error) *IAM_EnableOrganizationsRootSessions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_EnableOrganizationsRootSessions_Call) RunAndReturn(run func(context.Context, *iam.EnableOrganizationsRootSessionsInput, ...func(*iam.Options)) (*iam.EnableOrganizationsRootSessionsOutput, error)) *IAM_EnableOrganizationsRootSessions_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -6974,6 +7270,80 @@ func (_c *IAM_ListOpenIDConnectProviders_Call) Return(_a0 *iam.ListOpenIDConnect
 }
 
 func (_c *IAM_ListOpenIDConnectProviders_Call) RunAndReturn(run func(context.Context, *iam.ListOpenIDConnectProvidersInput, ...func(*iam.Options)) (*iam.ListOpenIDConnectProvidersOutput, error)) *IAM_ListOpenIDConnectProviders_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListOrganizationsFeatures provides a mock function with given fields: ctx, params, optFns
+func (_m *IAM) ListOrganizationsFeatures(ctx context.Context, params *iam.ListOrganizationsFeaturesInput, optFns ...func(*iam.Options)) (*iam.ListOrganizationsFeaturesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListOrganizationsFeatures")
+	}
+
+	var r0 *iam.ListOrganizationsFeaturesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListOrganizationsFeaturesInput, ...func(*iam.Options)) (*iam.ListOrganizationsFeaturesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListOrganizationsFeaturesInput, ...func(*iam.Options)) *iam.ListOrganizationsFeaturesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListOrganizationsFeaturesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListOrganizationsFeaturesInput, ...func(*iam.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IAM_ListOrganizationsFeatures_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOrganizationsFeatures'
+type IAM_ListOrganizationsFeatures_Call struct {
+	*mock.Call
+}
+
+// ListOrganizationsFeatures is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListOrganizationsFeaturesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListOrganizationsFeatures(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListOrganizationsFeatures_Call {
+	return &IAM_ListOrganizationsFeatures_Call{Call: _e.mock.On("ListOrganizationsFeatures",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListOrganizationsFeatures_Call) Run(run func(ctx context.Context, params *iam.ListOrganizationsFeaturesInput, optFns ...func(*iam.Options))) *IAM_ListOrganizationsFeatures_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListOrganizationsFeaturesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListOrganizationsFeatures_Call) Return(_a0 *iam.ListOrganizationsFeaturesOutput, _a1 error) *IAM_ListOrganizationsFeatures_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListOrganizationsFeatures_Call) RunAndReturn(run func(context.Context, *iam.ListOrganizationsFeaturesInput, ...func(*iam.Options)) (*iam.ListOrganizationsFeaturesOutput, error)) *IAM_ListOrganizationsFeatures_Call {
 	_c.Call.Return(run)
 	return _c
 }

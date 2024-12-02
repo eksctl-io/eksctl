@@ -3352,6 +3352,80 @@ func (_c *SSM_DescribeInstancePatches_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
+// DescribeInstanceProperties provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) DescribeInstanceProperties(ctx context.Context, params *ssm.DescribeInstancePropertiesInput, optFns ...func(*ssm.Options)) (*ssm.DescribeInstancePropertiesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeInstanceProperties")
+	}
+
+	var r0 *ssm.DescribeInstancePropertiesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeInstancePropertiesInput, ...func(*ssm.Options)) (*ssm.DescribeInstancePropertiesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeInstancePropertiesInput, ...func(*ssm.Options)) *ssm.DescribeInstancePropertiesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.DescribeInstancePropertiesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.DescribeInstancePropertiesInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SSM_DescribeInstanceProperties_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeInstanceProperties'
+type SSM_DescribeInstanceProperties_Call struct {
+	*mock.Call
+}
+
+// DescribeInstanceProperties is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeInstancePropertiesInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeInstanceProperties(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeInstanceProperties_Call {
+	return &SSM_DescribeInstanceProperties_Call{Call: _e.mock.On("DescribeInstanceProperties",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeInstanceProperties_Call) Run(run func(ctx context.Context, params *ssm.DescribeInstancePropertiesInput, optFns ...func(*ssm.Options))) *SSM_DescribeInstanceProperties_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeInstancePropertiesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeInstanceProperties_Call) Return(_a0 *ssm.DescribeInstancePropertiesOutput, _a1 error) *SSM_DescribeInstanceProperties_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeInstanceProperties_Call) RunAndReturn(run func(context.Context, *ssm.DescribeInstancePropertiesInput, ...func(*ssm.Options)) (*ssm.DescribeInstancePropertiesOutput, error)) *SSM_DescribeInstanceProperties_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeInventoryDeletions provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeInventoryDeletions(ctx context.Context, params *ssm.DescribeInventoryDeletionsInput, optFns ...func(*ssm.Options)) (*ssm.DescribeInventoryDeletionsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5124,6 +5198,80 @@ func (_c *SSM_GetDocument_Call) Return(_a0 *ssm.GetDocumentOutput, _a1 error) *S
 }
 
 func (_c *SSM_GetDocument_Call) RunAndReturn(run func(context.Context, *ssm.GetDocumentInput, ...func(*ssm.Options)) (*ssm.GetDocumentOutput, error)) *SSM_GetDocument_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetExecutionPreview provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) GetExecutionPreview(ctx context.Context, params *ssm.GetExecutionPreviewInput, optFns ...func(*ssm.Options)) (*ssm.GetExecutionPreviewOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetExecutionPreview")
+	}
+
+	var r0 *ssm.GetExecutionPreviewOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.GetExecutionPreviewInput, ...func(*ssm.Options)) (*ssm.GetExecutionPreviewOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.GetExecutionPreviewInput, ...func(*ssm.Options)) *ssm.GetExecutionPreviewOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.GetExecutionPreviewOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.GetExecutionPreviewInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SSM_GetExecutionPreview_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetExecutionPreview'
+type SSM_GetExecutionPreview_Call struct {
+	*mock.Call
+}
+
+// GetExecutionPreview is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetExecutionPreviewInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetExecutionPreview(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetExecutionPreview_Call {
+	return &SSM_GetExecutionPreview_Call{Call: _e.mock.On("GetExecutionPreview",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetExecutionPreview_Call) Run(run func(ctx context.Context, params *ssm.GetExecutionPreviewInput, optFns ...func(*ssm.Options))) *SSM_GetExecutionPreview_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetExecutionPreviewInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetExecutionPreview_Call) Return(_a0 *ssm.GetExecutionPreviewOutput, _a1 error) *SSM_GetExecutionPreview_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetExecutionPreview_Call) RunAndReturn(run func(context.Context, *ssm.GetExecutionPreviewInput, ...func(*ssm.Options)) (*ssm.GetExecutionPreviewOutput, error)) *SSM_GetExecutionPreview_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -7274,6 +7422,154 @@ func (_c *SSM_ListInventoryEntries_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
+// ListNodes provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) ListNodes(ctx context.Context, params *ssm.ListNodesInput, optFns ...func(*ssm.Options)) (*ssm.ListNodesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListNodes")
+	}
+
+	var r0 *ssm.ListNodesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListNodesInput, ...func(*ssm.Options)) (*ssm.ListNodesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListNodesInput, ...func(*ssm.Options)) *ssm.ListNodesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.ListNodesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.ListNodesInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SSM_ListNodes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListNodes'
+type SSM_ListNodes_Call struct {
+	*mock.Call
+}
+
+// ListNodes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListNodesInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListNodes(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListNodes_Call {
+	return &SSM_ListNodes_Call{Call: _e.mock.On("ListNodes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListNodes_Call) Run(run func(ctx context.Context, params *ssm.ListNodesInput, optFns ...func(*ssm.Options))) *SSM_ListNodes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListNodesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListNodes_Call) Return(_a0 *ssm.ListNodesOutput, _a1 error) *SSM_ListNodes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListNodes_Call) RunAndReturn(run func(context.Context, *ssm.ListNodesInput, ...func(*ssm.Options)) (*ssm.ListNodesOutput, error)) *SSM_ListNodes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListNodesSummary provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) ListNodesSummary(ctx context.Context, params *ssm.ListNodesSummaryInput, optFns ...func(*ssm.Options)) (*ssm.ListNodesSummaryOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListNodesSummary")
+	}
+
+	var r0 *ssm.ListNodesSummaryOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListNodesSummaryInput, ...func(*ssm.Options)) (*ssm.ListNodesSummaryOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListNodesSummaryInput, ...func(*ssm.Options)) *ssm.ListNodesSummaryOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.ListNodesSummaryOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.ListNodesSummaryInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SSM_ListNodesSummary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListNodesSummary'
+type SSM_ListNodesSummary_Call struct {
+	*mock.Call
+}
+
+// ListNodesSummary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListNodesSummaryInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListNodesSummary(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListNodesSummary_Call {
+	return &SSM_ListNodesSummary_Call{Call: _e.mock.On("ListNodesSummary",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListNodesSummary_Call) Run(run func(ctx context.Context, params *ssm.ListNodesSummaryInput, optFns ...func(*ssm.Options))) *SSM_ListNodesSummary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListNodesSummaryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListNodesSummary_Call) Return(_a0 *ssm.ListNodesSummaryOutput, _a1 error) *SSM_ListNodesSummary_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListNodesSummary_Call) RunAndReturn(run func(context.Context, *ssm.ListNodesSummaryInput, ...func(*ssm.Options)) (*ssm.ListNodesSummaryOutput, error)) *SSM_ListNodesSummary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListOpsItemEvents provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) ListOpsItemEvents(ctx context.Context, params *ssm.ListOpsItemEventsInput, optFns ...func(*ssm.Options)) (*ssm.ListOpsItemEventsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -9017,6 +9313,80 @@ func (_c *SSM_StartChangeRequestExecution_Call) Return(_a0 *ssm.StartChangeReque
 }
 
 func (_c *SSM_StartChangeRequestExecution_Call) RunAndReturn(run func(context.Context, *ssm.StartChangeRequestExecutionInput, ...func(*ssm.Options)) (*ssm.StartChangeRequestExecutionOutput, error)) *SSM_StartChangeRequestExecution_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// StartExecutionPreview provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) StartExecutionPreview(ctx context.Context, params *ssm.StartExecutionPreviewInput, optFns ...func(*ssm.Options)) (*ssm.StartExecutionPreviewOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartExecutionPreview")
+	}
+
+	var r0 *ssm.StartExecutionPreviewOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.StartExecutionPreviewInput, ...func(*ssm.Options)) (*ssm.StartExecutionPreviewOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.StartExecutionPreviewInput, ...func(*ssm.Options)) *ssm.StartExecutionPreviewOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.StartExecutionPreviewOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.StartExecutionPreviewInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SSM_StartExecutionPreview_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartExecutionPreview'
+type SSM_StartExecutionPreview_Call struct {
+	*mock.Call
+}
+
+// StartExecutionPreview is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.StartExecutionPreviewInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) StartExecutionPreview(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_StartExecutionPreview_Call {
+	return &SSM_StartExecutionPreview_Call{Call: _e.mock.On("StartExecutionPreview",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_StartExecutionPreview_Call) Run(run func(ctx context.Context, params *ssm.StartExecutionPreviewInput, optFns ...func(*ssm.Options))) *SSM_StartExecutionPreview_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.StartExecutionPreviewInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_StartExecutionPreview_Call) Return(_a0 *ssm.StartExecutionPreviewOutput, _a1 error) *SSM_StartExecutionPreview_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_StartExecutionPreview_Call) RunAndReturn(run func(context.Context, *ssm.StartExecutionPreviewInput, ...func(*ssm.Options)) (*ssm.StartExecutionPreviewOutput, error)) *SSM_StartExecutionPreview_Call {
 	_c.Call.Return(run)
 	return _c
 }

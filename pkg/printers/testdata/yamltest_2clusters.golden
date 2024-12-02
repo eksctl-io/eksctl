@@ -17,6 +17,7 @@
   Name: test-cluster-1
   OutpostConfig: null
   PlatformVersion: null
+  RemoteNetworkConfig: null
   ResourcesVpcConfig:
     ClusterSecurityGroupId: null
     EndpointPrivateAccess: false
@@ -53,6 +54,7 @@
   Name: test-cluster-2
   OutpostConfig: null
   PlatformVersion: null
+  RemoteNetworkConfig: null
   ResourcesVpcConfig:
     ClusterSecurityGroupId: null
     EndpointPrivateAccess: false

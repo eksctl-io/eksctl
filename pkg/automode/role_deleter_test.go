@@ -20,8 +20,7 @@ type roleDeleterTest struct {
 	updateMock func(*mocks.StackDeleter)
 	cluster    *ekstypes.Cluster
 
-	expectedNodeRoleARN string
-	expectedErr         string
+	expectedErr string
 }
 
 var _ = DescribeTable("Role Creator", func(t roleDeleterTest) {

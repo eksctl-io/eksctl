@@ -245,6 +245,80 @@ func (_c *CloudTrail_CreateChannel_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
+// CreateDashboard provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) CreateDashboard(ctx context.Context, params *cloudtrail.CreateDashboardInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.CreateDashboardOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDashboard")
+	}
+
+	var r0 *cloudtrail.CreateDashboardOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.CreateDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.CreateDashboardOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.CreateDashboardInput, ...func(*cloudtrail.Options)) *cloudtrail.CreateDashboardOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.CreateDashboardOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.CreateDashboardInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_CreateDashboard_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateDashboard'
+type CloudTrail_CreateDashboard_Call struct {
+	*mock.Call
+}
+
+// CreateDashboard is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.CreateDashboardInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) CreateDashboard(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_CreateDashboard_Call {
+	return &CloudTrail_CreateDashboard_Call{Call: _e.mock.On("CreateDashboard",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_CreateDashboard_Call) Run(run func(ctx context.Context, params *cloudtrail.CreateDashboardInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_CreateDashboard_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.CreateDashboardInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_CreateDashboard_Call) Return(_a0 *cloudtrail.CreateDashboardOutput, _a1 error) *CloudTrail_CreateDashboard_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_CreateDashboard_Call) RunAndReturn(run func(context.Context, *cloudtrail.CreateDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.CreateDashboardOutput, error)) *CloudTrail_CreateDashboard_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateEventDataStore provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) CreateEventDataStore(ctx context.Context, params *cloudtrail.CreateEventDataStoreInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.CreateEventDataStoreOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -463,6 +537,80 @@ func (_c *CloudTrail_DeleteChannel_Call) Return(_a0 *cloudtrail.DeleteChannelOut
 }
 
 func (_c *CloudTrail_DeleteChannel_Call) RunAndReturn(run func(context.Context, *cloudtrail.DeleteChannelInput, ...func(*cloudtrail.Options)) (*cloudtrail.DeleteChannelOutput, error)) *CloudTrail_DeleteChannel_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteDashboard provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) DeleteDashboard(ctx context.Context, params *cloudtrail.DeleteDashboardInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.DeleteDashboardOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteDashboard")
+	}
+
+	var r0 *cloudtrail.DeleteDashboardOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.DeleteDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.DeleteDashboardOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.DeleteDashboardInput, ...func(*cloudtrail.Options)) *cloudtrail.DeleteDashboardOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.DeleteDashboardOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.DeleteDashboardInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_DeleteDashboard_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteDashboard'
+type CloudTrail_DeleteDashboard_Call struct {
+	*mock.Call
+}
+
+// DeleteDashboard is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.DeleteDashboardInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) DeleteDashboard(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_DeleteDashboard_Call {
+	return &CloudTrail_DeleteDashboard_Call{Call: _e.mock.On("DeleteDashboard",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_DeleteDashboard_Call) Run(run func(ctx context.Context, params *cloudtrail.DeleteDashboardInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_DeleteDashboard_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.DeleteDashboardInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_DeleteDashboard_Call) Return(_a0 *cloudtrail.DeleteDashboardOutput, _a1 error) *CloudTrail_DeleteDashboard_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_DeleteDashboard_Call) RunAndReturn(run func(context.Context, *cloudtrail.DeleteDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.DeleteDashboardOutput, error)) *CloudTrail_DeleteDashboard_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1059,6 +1207,80 @@ func (_c *CloudTrail_EnableFederation_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
+// GenerateQuery provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) GenerateQuery(ctx context.Context, params *cloudtrail.GenerateQueryInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.GenerateQueryOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GenerateQuery")
+	}
+
+	var r0 *cloudtrail.GenerateQueryOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GenerateQueryInput, ...func(*cloudtrail.Options)) (*cloudtrail.GenerateQueryOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GenerateQueryInput, ...func(*cloudtrail.Options)) *cloudtrail.GenerateQueryOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GenerateQueryOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.GenerateQueryInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_GenerateQuery_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateQuery'
+type CloudTrail_GenerateQuery_Call struct {
+	*mock.Call
+}
+
+// GenerateQuery is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GenerateQueryInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GenerateQuery(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GenerateQuery_Call {
+	return &CloudTrail_GenerateQuery_Call{Call: _e.mock.On("GenerateQuery",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GenerateQuery_Call) Run(run func(ctx context.Context, params *cloudtrail.GenerateQueryInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GenerateQuery_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GenerateQueryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GenerateQuery_Call) Return(_a0 *cloudtrail.GenerateQueryOutput, _a1 error) *CloudTrail_GenerateQuery_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GenerateQuery_Call) RunAndReturn(run func(context.Context, *cloudtrail.GenerateQueryInput, ...func(*cloudtrail.Options)) (*cloudtrail.GenerateQueryOutput, error)) *CloudTrail_GenerateQuery_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetChannel provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) GetChannel(ctx context.Context, params *cloudtrail.GetChannelInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.GetChannelOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1129,6 +1351,80 @@ func (_c *CloudTrail_GetChannel_Call) Return(_a0 *cloudtrail.GetChannelOutput, _
 }
 
 func (_c *CloudTrail_GetChannel_Call) RunAndReturn(run func(context.Context, *cloudtrail.GetChannelInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetChannelOutput, error)) *CloudTrail_GetChannel_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetDashboard provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) GetDashboard(ctx context.Context, params *cloudtrail.GetDashboardInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.GetDashboardOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDashboard")
+	}
+
+	var r0 *cloudtrail.GetDashboardOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetDashboardOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetDashboardInput, ...func(*cloudtrail.Options)) *cloudtrail.GetDashboardOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GetDashboardOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.GetDashboardInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_GetDashboard_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDashboard'
+type CloudTrail_GetDashboard_Call struct {
+	*mock.Call
+}
+
+// GetDashboard is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GetDashboardInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GetDashboard(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GetDashboard_Call {
+	return &CloudTrail_GetDashboard_Call{Call: _e.mock.On("GetDashboard",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GetDashboard_Call) Run(run func(ctx context.Context, params *cloudtrail.GetDashboardInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GetDashboard_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GetDashboardInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GetDashboard_Call) Return(_a0 *cloudtrail.GetDashboardOutput, _a1 error) *CloudTrail_GetDashboard_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GetDashboard_Call) RunAndReturn(run func(context.Context, *cloudtrail.GetDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetDashboardOutput, error)) *CloudTrail_GetDashboard_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1795,6 +2091,80 @@ func (_c *CloudTrail_ListChannels_Call) Return(_a0 *cloudtrail.ListChannelsOutpu
 }
 
 func (_c *CloudTrail_ListChannels_Call) RunAndReturn(run func(context.Context, *cloudtrail.ListChannelsInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListChannelsOutput, error)) *CloudTrail_ListChannels_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListDashboards provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) ListDashboards(ctx context.Context, params *cloudtrail.ListDashboardsInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.ListDashboardsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListDashboards")
+	}
+
+	var r0 *cloudtrail.ListDashboardsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListDashboardsInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListDashboardsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListDashboardsInput, ...func(*cloudtrail.Options)) *cloudtrail.ListDashboardsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.ListDashboardsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.ListDashboardsInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_ListDashboards_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDashboards'
+type CloudTrail_ListDashboards_Call struct {
+	*mock.Call
+}
+
+// ListDashboards is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.ListDashboardsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) ListDashboards(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_ListDashboards_Call {
+	return &CloudTrail_ListDashboards_Call{Call: _e.mock.On("ListDashboards",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_ListDashboards_Call) Run(run func(ctx context.Context, params *cloudtrail.ListDashboardsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_ListDashboards_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.ListDashboardsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_ListDashboards_Call) Return(_a0 *cloudtrail.ListDashboardsOutput, _a1 error) *CloudTrail_ListDashboards_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_ListDashboards_Call) RunAndReturn(run func(context.Context, *cloudtrail.ListDashboardsInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListDashboardsOutput, error)) *CloudTrail_ListDashboards_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2954,6 +3324,80 @@ func (_c *CloudTrail_RestoreEventDataStore_Call) RunAndReturn(run func(context.C
 	return _c
 }
 
+// StartDashboardRefresh provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) StartDashboardRefresh(ctx context.Context, params *cloudtrail.StartDashboardRefreshInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.StartDashboardRefreshOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartDashboardRefresh")
+	}
+
+	var r0 *cloudtrail.StartDashboardRefreshOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.StartDashboardRefreshInput, ...func(*cloudtrail.Options)) (*cloudtrail.StartDashboardRefreshOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.StartDashboardRefreshInput, ...func(*cloudtrail.Options)) *cloudtrail.StartDashboardRefreshOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.StartDashboardRefreshOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.StartDashboardRefreshInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_StartDashboardRefresh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartDashboardRefresh'
+type CloudTrail_StartDashboardRefresh_Call struct {
+	*mock.Call
+}
+
+// StartDashboardRefresh is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.StartDashboardRefreshInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) StartDashboardRefresh(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_StartDashboardRefresh_Call {
+	return &CloudTrail_StartDashboardRefresh_Call{Call: _e.mock.On("StartDashboardRefresh",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_StartDashboardRefresh_Call) Run(run func(ctx context.Context, params *cloudtrail.StartDashboardRefreshInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_StartDashboardRefresh_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.StartDashboardRefreshInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_StartDashboardRefresh_Call) Return(_a0 *cloudtrail.StartDashboardRefreshOutput, _a1 error) *CloudTrail_StartDashboardRefresh_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_StartDashboardRefresh_Call) RunAndReturn(run func(context.Context, *cloudtrail.StartDashboardRefreshInput, ...func(*cloudtrail.Options)) (*cloudtrail.StartDashboardRefreshOutput, error)) *CloudTrail_StartDashboardRefresh_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StartEventDataStoreIngestion provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) StartEventDataStoreIngestion(ctx context.Context, params *cloudtrail.StartEventDataStoreIngestionInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.StartEventDataStoreIngestionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3542,6 +3986,80 @@ func (_c *CloudTrail_UpdateChannel_Call) Return(_a0 *cloudtrail.UpdateChannelOut
 }
 
 func (_c *CloudTrail_UpdateChannel_Call) RunAndReturn(run func(context.Context, *cloudtrail.UpdateChannelInput, ...func(*cloudtrail.Options)) (*cloudtrail.UpdateChannelOutput, error)) *CloudTrail_UpdateChannel_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateDashboard provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) UpdateDashboard(ctx context.Context, params *cloudtrail.UpdateDashboardInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.UpdateDashboardOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateDashboard")
+	}
+
+	var r0 *cloudtrail.UpdateDashboardOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.UpdateDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.UpdateDashboardOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.UpdateDashboardInput, ...func(*cloudtrail.Options)) *cloudtrail.UpdateDashboardOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.UpdateDashboardOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.UpdateDashboardInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_UpdateDashboard_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateDashboard'
+type CloudTrail_UpdateDashboard_Call struct {
+	*mock.Call
+}
+
+// UpdateDashboard is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.UpdateDashboardInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) UpdateDashboard(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_UpdateDashboard_Call {
+	return &CloudTrail_UpdateDashboard_Call{Call: _e.mock.On("UpdateDashboard",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_UpdateDashboard_Call) Run(run func(ctx context.Context, params *cloudtrail.UpdateDashboardInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_UpdateDashboard_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.UpdateDashboardInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_UpdateDashboard_Call) Return(_a0 *cloudtrail.UpdateDashboardOutput, _a1 error) *CloudTrail_UpdateDashboard_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_UpdateDashboard_Call) RunAndReturn(run func(context.Context, *cloudtrail.UpdateDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.UpdateDashboardOutput, error)) *CloudTrail_UpdateDashboard_Call {
 	_c.Call.Return(run)
 	return _c
 }

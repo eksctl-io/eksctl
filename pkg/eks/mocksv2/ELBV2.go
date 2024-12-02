@@ -836,6 +836,80 @@ func (_c *ELBV2_DeleteRule_Call) RunAndReturn(run func(context.Context, *elastic
 	return _c
 }
 
+// DeleteSharedTrustStoreAssociation provides a mock function with given fields: ctx, params, optFns
+func (_m *ELBV2) DeleteSharedTrustStoreAssociation(ctx context.Context, params *elasticloadbalancingv2.DeleteSharedTrustStoreAssociationInput, optFns ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.DeleteSharedTrustStoreAssociationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteSharedTrustStoreAssociation")
+	}
+
+	var r0 *elasticloadbalancingv2.DeleteSharedTrustStoreAssociationOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *elasticloadbalancingv2.DeleteSharedTrustStoreAssociationInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.DeleteSharedTrustStoreAssociationOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *elasticloadbalancingv2.DeleteSharedTrustStoreAssociationInput, ...func(*elasticloadbalancingv2.Options)) *elasticloadbalancingv2.DeleteSharedTrustStoreAssociationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*elasticloadbalancingv2.DeleteSharedTrustStoreAssociationOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *elasticloadbalancingv2.DeleteSharedTrustStoreAssociationInput, ...func(*elasticloadbalancingv2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ELBV2_DeleteSharedTrustStoreAssociation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSharedTrustStoreAssociation'
+type ELBV2_DeleteSharedTrustStoreAssociation_Call struct {
+	*mock.Call
+}
+
+// DeleteSharedTrustStoreAssociation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancingv2.DeleteSharedTrustStoreAssociationInput
+//   - optFns ...func(*elasticloadbalancingv2.Options)
+func (_e *ELBV2_Expecter) DeleteSharedTrustStoreAssociation(ctx interface{}, params interface{}, optFns ...interface{}) *ELBV2_DeleteSharedTrustStoreAssociation_Call {
+	return &ELBV2_DeleteSharedTrustStoreAssociation_Call{Call: _e.mock.On("DeleteSharedTrustStoreAssociation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELBV2_DeleteSharedTrustStoreAssociation_Call) Run(run func(ctx context.Context, params *elasticloadbalancingv2.DeleteSharedTrustStoreAssociationInput, optFns ...func(*elasticloadbalancingv2.Options))) *ELBV2_DeleteSharedTrustStoreAssociation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancingv2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancingv2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancingv2.DeleteSharedTrustStoreAssociationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELBV2_DeleteSharedTrustStoreAssociation_Call) Return(_a0 *elasticloadbalancingv2.DeleteSharedTrustStoreAssociationOutput, _a1 error) *ELBV2_DeleteSharedTrustStoreAssociation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELBV2_DeleteSharedTrustStoreAssociation_Call) RunAndReturn(run func(context.Context, *elasticloadbalancingv2.DeleteSharedTrustStoreAssociationInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.DeleteSharedTrustStoreAssociationOutput, error)) *ELBV2_DeleteSharedTrustStoreAssociation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteTargetGroup provides a mock function with given fields: ctx, params, optFns
 func (_m *ELBV2) DeleteTargetGroup(ctx context.Context, params *elasticloadbalancingv2.DeleteTargetGroupInput, optFns ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.DeleteTargetGroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1128,6 +1202,154 @@ func (_c *ELBV2_DescribeAccountLimits_Call) Return(_a0 *elasticloadbalancingv2.D
 }
 
 func (_c *ELBV2_DescribeAccountLimits_Call) RunAndReturn(run func(context.Context, *elasticloadbalancingv2.DescribeAccountLimitsInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.DescribeAccountLimitsOutput, error)) *ELBV2_DescribeAccountLimits_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DescribeCapacityReservation provides a mock function with given fields: ctx, params, optFns
+func (_m *ELBV2) DescribeCapacityReservation(ctx context.Context, params *elasticloadbalancingv2.DescribeCapacityReservationInput, optFns ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.DescribeCapacityReservationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeCapacityReservation")
+	}
+
+	var r0 *elasticloadbalancingv2.DescribeCapacityReservationOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *elasticloadbalancingv2.DescribeCapacityReservationInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.DescribeCapacityReservationOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *elasticloadbalancingv2.DescribeCapacityReservationInput, ...func(*elasticloadbalancingv2.Options)) *elasticloadbalancingv2.DescribeCapacityReservationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*elasticloadbalancingv2.DescribeCapacityReservationOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *elasticloadbalancingv2.DescribeCapacityReservationInput, ...func(*elasticloadbalancingv2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ELBV2_DescribeCapacityReservation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeCapacityReservation'
+type ELBV2_DescribeCapacityReservation_Call struct {
+	*mock.Call
+}
+
+// DescribeCapacityReservation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancingv2.DescribeCapacityReservationInput
+//   - optFns ...func(*elasticloadbalancingv2.Options)
+func (_e *ELBV2_Expecter) DescribeCapacityReservation(ctx interface{}, params interface{}, optFns ...interface{}) *ELBV2_DescribeCapacityReservation_Call {
+	return &ELBV2_DescribeCapacityReservation_Call{Call: _e.mock.On("DescribeCapacityReservation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELBV2_DescribeCapacityReservation_Call) Run(run func(ctx context.Context, params *elasticloadbalancingv2.DescribeCapacityReservationInput, optFns ...func(*elasticloadbalancingv2.Options))) *ELBV2_DescribeCapacityReservation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancingv2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancingv2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancingv2.DescribeCapacityReservationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELBV2_DescribeCapacityReservation_Call) Return(_a0 *elasticloadbalancingv2.DescribeCapacityReservationOutput, _a1 error) *ELBV2_DescribeCapacityReservation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELBV2_DescribeCapacityReservation_Call) RunAndReturn(run func(context.Context, *elasticloadbalancingv2.DescribeCapacityReservationInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.DescribeCapacityReservationOutput, error)) *ELBV2_DescribeCapacityReservation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DescribeListenerAttributes provides a mock function with given fields: ctx, params, optFns
+func (_m *ELBV2) DescribeListenerAttributes(ctx context.Context, params *elasticloadbalancingv2.DescribeListenerAttributesInput, optFns ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.DescribeListenerAttributesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeListenerAttributes")
+	}
+
+	var r0 *elasticloadbalancingv2.DescribeListenerAttributesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *elasticloadbalancingv2.DescribeListenerAttributesInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.DescribeListenerAttributesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *elasticloadbalancingv2.DescribeListenerAttributesInput, ...func(*elasticloadbalancingv2.Options)) *elasticloadbalancingv2.DescribeListenerAttributesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*elasticloadbalancingv2.DescribeListenerAttributesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *elasticloadbalancingv2.DescribeListenerAttributesInput, ...func(*elasticloadbalancingv2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ELBV2_DescribeListenerAttributes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeListenerAttributes'
+type ELBV2_DescribeListenerAttributes_Call struct {
+	*mock.Call
+}
+
+// DescribeListenerAttributes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancingv2.DescribeListenerAttributesInput
+//   - optFns ...func(*elasticloadbalancingv2.Options)
+func (_e *ELBV2_Expecter) DescribeListenerAttributes(ctx interface{}, params interface{}, optFns ...interface{}) *ELBV2_DescribeListenerAttributes_Call {
+	return &ELBV2_DescribeListenerAttributes_Call{Call: _e.mock.On("DescribeListenerAttributes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELBV2_DescribeListenerAttributes_Call) Run(run func(ctx context.Context, params *elasticloadbalancingv2.DescribeListenerAttributesInput, optFns ...func(*elasticloadbalancingv2.Options))) *ELBV2_DescribeListenerAttributes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancingv2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancingv2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancingv2.DescribeListenerAttributesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELBV2_DescribeListenerAttributes_Call) Return(_a0 *elasticloadbalancingv2.DescribeListenerAttributesOutput, _a1 error) *ELBV2_DescribeListenerAttributes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELBV2_DescribeListenerAttributes_Call) RunAndReturn(run func(context.Context, *elasticloadbalancingv2.DescribeListenerAttributesInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.DescribeListenerAttributesOutput, error)) *ELBV2_DescribeListenerAttributes_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2094,6 +2316,80 @@ func (_c *ELBV2_DescribeTrustStores_Call) RunAndReturn(run func(context.Context,
 	return _c
 }
 
+// GetResourcePolicy provides a mock function with given fields: ctx, params, optFns
+func (_m *ELBV2) GetResourcePolicy(ctx context.Context, params *elasticloadbalancingv2.GetResourcePolicyInput, optFns ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.GetResourcePolicyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetResourcePolicy")
+	}
+
+	var r0 *elasticloadbalancingv2.GetResourcePolicyOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *elasticloadbalancingv2.GetResourcePolicyInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.GetResourcePolicyOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *elasticloadbalancingv2.GetResourcePolicyInput, ...func(*elasticloadbalancingv2.Options)) *elasticloadbalancingv2.GetResourcePolicyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*elasticloadbalancingv2.GetResourcePolicyOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *elasticloadbalancingv2.GetResourcePolicyInput, ...func(*elasticloadbalancingv2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ELBV2_GetResourcePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetResourcePolicy'
+type ELBV2_GetResourcePolicy_Call struct {
+	*mock.Call
+}
+
+// GetResourcePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancingv2.GetResourcePolicyInput
+//   - optFns ...func(*elasticloadbalancingv2.Options)
+func (_e *ELBV2_Expecter) GetResourcePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *ELBV2_GetResourcePolicy_Call {
+	return &ELBV2_GetResourcePolicy_Call{Call: _e.mock.On("GetResourcePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELBV2_GetResourcePolicy_Call) Run(run func(ctx context.Context, params *elasticloadbalancingv2.GetResourcePolicyInput, optFns ...func(*elasticloadbalancingv2.Options))) *ELBV2_GetResourcePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancingv2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancingv2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancingv2.GetResourcePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELBV2_GetResourcePolicy_Call) Return(_a0 *elasticloadbalancingv2.GetResourcePolicyOutput, _a1 error) *ELBV2_GetResourcePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELBV2_GetResourcePolicy_Call) RunAndReturn(run func(context.Context, *elasticloadbalancingv2.GetResourcePolicyInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.GetResourcePolicyOutput, error)) *ELBV2_GetResourcePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTrustStoreCaCertificatesBundle provides a mock function with given fields: ctx, params, optFns
 func (_m *ELBV2) GetTrustStoreCaCertificatesBundle(ctx context.Context, params *elasticloadbalancingv2.GetTrustStoreCaCertificatesBundleInput, optFns ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.GetTrustStoreCaCertificatesBundleOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2242,6 +2538,80 @@ func (_c *ELBV2_GetTrustStoreRevocationContent_Call) RunAndReturn(run func(conte
 	return _c
 }
 
+// ModifyCapacityReservation provides a mock function with given fields: ctx, params, optFns
+func (_m *ELBV2) ModifyCapacityReservation(ctx context.Context, params *elasticloadbalancingv2.ModifyCapacityReservationInput, optFns ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.ModifyCapacityReservationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ModifyCapacityReservation")
+	}
+
+	var r0 *elasticloadbalancingv2.ModifyCapacityReservationOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *elasticloadbalancingv2.ModifyCapacityReservationInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.ModifyCapacityReservationOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *elasticloadbalancingv2.ModifyCapacityReservationInput, ...func(*elasticloadbalancingv2.Options)) *elasticloadbalancingv2.ModifyCapacityReservationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*elasticloadbalancingv2.ModifyCapacityReservationOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *elasticloadbalancingv2.ModifyCapacityReservationInput, ...func(*elasticloadbalancingv2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ELBV2_ModifyCapacityReservation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ModifyCapacityReservation'
+type ELBV2_ModifyCapacityReservation_Call struct {
+	*mock.Call
+}
+
+// ModifyCapacityReservation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancingv2.ModifyCapacityReservationInput
+//   - optFns ...func(*elasticloadbalancingv2.Options)
+func (_e *ELBV2_Expecter) ModifyCapacityReservation(ctx interface{}, params interface{}, optFns ...interface{}) *ELBV2_ModifyCapacityReservation_Call {
+	return &ELBV2_ModifyCapacityReservation_Call{Call: _e.mock.On("ModifyCapacityReservation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELBV2_ModifyCapacityReservation_Call) Run(run func(ctx context.Context, params *elasticloadbalancingv2.ModifyCapacityReservationInput, optFns ...func(*elasticloadbalancingv2.Options))) *ELBV2_ModifyCapacityReservation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancingv2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancingv2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancingv2.ModifyCapacityReservationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELBV2_ModifyCapacityReservation_Call) Return(_a0 *elasticloadbalancingv2.ModifyCapacityReservationOutput, _a1 error) *ELBV2_ModifyCapacityReservation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELBV2_ModifyCapacityReservation_Call) RunAndReturn(run func(context.Context, *elasticloadbalancingv2.ModifyCapacityReservationInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.ModifyCapacityReservationOutput, error)) *ELBV2_ModifyCapacityReservation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ModifyListener provides a mock function with given fields: ctx, params, optFns
 func (_m *ELBV2) ModifyListener(ctx context.Context, params *elasticloadbalancingv2.ModifyListenerInput, optFns ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.ModifyListenerOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2312,6 +2682,80 @@ func (_c *ELBV2_ModifyListener_Call) Return(_a0 *elasticloadbalancingv2.ModifyLi
 }
 
 func (_c *ELBV2_ModifyListener_Call) RunAndReturn(run func(context.Context, *elasticloadbalancingv2.ModifyListenerInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.ModifyListenerOutput, error)) *ELBV2_ModifyListener_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ModifyListenerAttributes provides a mock function with given fields: ctx, params, optFns
+func (_m *ELBV2) ModifyListenerAttributes(ctx context.Context, params *elasticloadbalancingv2.ModifyListenerAttributesInput, optFns ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.ModifyListenerAttributesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ModifyListenerAttributes")
+	}
+
+	var r0 *elasticloadbalancingv2.ModifyListenerAttributesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *elasticloadbalancingv2.ModifyListenerAttributesInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.ModifyListenerAttributesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *elasticloadbalancingv2.ModifyListenerAttributesInput, ...func(*elasticloadbalancingv2.Options)) *elasticloadbalancingv2.ModifyListenerAttributesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*elasticloadbalancingv2.ModifyListenerAttributesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *elasticloadbalancingv2.ModifyListenerAttributesInput, ...func(*elasticloadbalancingv2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ELBV2_ModifyListenerAttributes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ModifyListenerAttributes'
+type ELBV2_ModifyListenerAttributes_Call struct {
+	*mock.Call
+}
+
+// ModifyListenerAttributes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancingv2.ModifyListenerAttributesInput
+//   - optFns ...func(*elasticloadbalancingv2.Options)
+func (_e *ELBV2_Expecter) ModifyListenerAttributes(ctx interface{}, params interface{}, optFns ...interface{}) *ELBV2_ModifyListenerAttributes_Call {
+	return &ELBV2_ModifyListenerAttributes_Call{Call: _e.mock.On("ModifyListenerAttributes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELBV2_ModifyListenerAttributes_Call) Run(run func(ctx context.Context, params *elasticloadbalancingv2.ModifyListenerAttributesInput, optFns ...func(*elasticloadbalancingv2.Options))) *ELBV2_ModifyListenerAttributes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancingv2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancingv2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancingv2.ModifyListenerAttributesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELBV2_ModifyListenerAttributes_Call) Return(_a0 *elasticloadbalancingv2.ModifyListenerAttributesOutput, _a1 error) *ELBV2_ModifyListenerAttributes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELBV2_ModifyListenerAttributes_Call) RunAndReturn(run func(context.Context, *elasticloadbalancingv2.ModifyListenerAttributesInput, ...func(*elasticloadbalancingv2.Options)) (*elasticloadbalancingv2.ModifyListenerAttributesOutput, error)) *ELBV2_ModifyListenerAttributes_Call {
 	_c.Call.Return(run)
 	return _c
 }

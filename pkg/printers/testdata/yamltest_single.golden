@@ -17,6 +17,7 @@
   Name: test-cluster
   OutpostConfig: null
   PlatformVersion: null
+  RemoteNetworkConfig: null
   ResourcesVpcConfig:
     ClusterSecurityGroupId: null
     EndpointPrivateAccess: false

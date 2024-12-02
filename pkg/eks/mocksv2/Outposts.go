@@ -22,6 +22,80 @@ func (_m *Outposts) EXPECT() *Outposts_Expecter {
 	return &Outposts_Expecter{mock: &_m.Mock}
 }
 
+// CancelCapacityTask provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) CancelCapacityTask(ctx context.Context, params *outposts.CancelCapacityTaskInput, optFns ...func(*outposts.Options)) (*outposts.CancelCapacityTaskOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CancelCapacityTask")
+	}
+
+	var r0 *outposts.CancelCapacityTaskOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.CancelCapacityTaskInput, ...func(*outposts.Options)) (*outposts.CancelCapacityTaskOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.CancelCapacityTaskInput, ...func(*outposts.Options)) *outposts.CancelCapacityTaskOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.CancelCapacityTaskOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.CancelCapacityTaskInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_CancelCapacityTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelCapacityTask'
+type Outposts_CancelCapacityTask_Call struct {
+	*mock.Call
+}
+
+// CancelCapacityTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.CancelCapacityTaskInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) CancelCapacityTask(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_CancelCapacityTask_Call {
+	return &Outposts_CancelCapacityTask_Call{Call: _e.mock.On("CancelCapacityTask",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_CancelCapacityTask_Call) Run(run func(ctx context.Context, params *outposts.CancelCapacityTaskInput, optFns ...func(*outposts.Options))) *Outposts_CancelCapacityTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.CancelCapacityTaskInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_CancelCapacityTask_Call) Return(_a0 *outposts.CancelCapacityTaskOutput, _a1 error) *Outposts_CancelCapacityTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_CancelCapacityTask_Call) RunAndReturn(run func(context.Context, *outposts.CancelCapacityTaskInput, ...func(*outposts.Options)) (*outposts.CancelCapacityTaskOutput, error)) *Outposts_CancelCapacityTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CancelOrder provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) CancelOrder(ctx context.Context, params *outposts.CancelOrderInput, optFns ...func(*outposts.Options)) (*outposts.CancelOrderOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -466,6 +540,80 @@ func (_c *Outposts_DeleteSite_Call) RunAndReturn(run func(context.Context, *outp
 	return _c
 }
 
+// GetCapacityTask provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) GetCapacityTask(ctx context.Context, params *outposts.GetCapacityTaskInput, optFns ...func(*outposts.Options)) (*outposts.GetCapacityTaskOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCapacityTask")
+	}
+
+	var r0 *outposts.GetCapacityTaskOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.GetCapacityTaskInput, ...func(*outposts.Options)) (*outposts.GetCapacityTaskOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.GetCapacityTaskInput, ...func(*outposts.Options)) *outposts.GetCapacityTaskOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.GetCapacityTaskOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.GetCapacityTaskInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_GetCapacityTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCapacityTask'
+type Outposts_GetCapacityTask_Call struct {
+	*mock.Call
+}
+
+// GetCapacityTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.GetCapacityTaskInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) GetCapacityTask(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_GetCapacityTask_Call {
+	return &Outposts_GetCapacityTask_Call{Call: _e.mock.On("GetCapacityTask",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_GetCapacityTask_Call) Run(run func(ctx context.Context, params *outposts.GetCapacityTaskInput, optFns ...func(*outposts.Options))) *Outposts_GetCapacityTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.GetCapacityTaskInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_GetCapacityTask_Call) Return(_a0 *outposts.GetCapacityTaskOutput, _a1 error) *Outposts_GetCapacityTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_GetCapacityTask_Call) RunAndReturn(run func(context.Context, *outposts.GetCapacityTaskInput, ...func(*outposts.Options)) (*outposts.GetCapacityTaskOutput, error)) *Outposts_GetCapacityTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCatalogItem provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) GetCatalogItem(ctx context.Context, params *outposts.GetCatalogItemInput, optFns ...func(*outposts.Options)) (*outposts.GetCatalogItemOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -836,6 +984,80 @@ func (_c *Outposts_GetOutpostInstanceTypes_Call) RunAndReturn(run func(context.C
 	return _c
 }
 
+// GetOutpostSupportedInstanceTypes provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) GetOutpostSupportedInstanceTypes(ctx context.Context, params *outposts.GetOutpostSupportedInstanceTypesInput, optFns ...func(*outposts.Options)) (*outposts.GetOutpostSupportedInstanceTypesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOutpostSupportedInstanceTypes")
+	}
+
+	var r0 *outposts.GetOutpostSupportedInstanceTypesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.GetOutpostSupportedInstanceTypesInput, ...func(*outposts.Options)) (*outposts.GetOutpostSupportedInstanceTypesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.GetOutpostSupportedInstanceTypesInput, ...func(*outposts.Options)) *outposts.GetOutpostSupportedInstanceTypesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.GetOutpostSupportedInstanceTypesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.GetOutpostSupportedInstanceTypesInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_GetOutpostSupportedInstanceTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOutpostSupportedInstanceTypes'
+type Outposts_GetOutpostSupportedInstanceTypes_Call struct {
+	*mock.Call
+}
+
+// GetOutpostSupportedInstanceTypes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.GetOutpostSupportedInstanceTypesInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) GetOutpostSupportedInstanceTypes(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_GetOutpostSupportedInstanceTypes_Call {
+	return &Outposts_GetOutpostSupportedInstanceTypes_Call{Call: _e.mock.On("GetOutpostSupportedInstanceTypes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_GetOutpostSupportedInstanceTypes_Call) Run(run func(ctx context.Context, params *outposts.GetOutpostSupportedInstanceTypesInput, optFns ...func(*outposts.Options))) *Outposts_GetOutpostSupportedInstanceTypes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.GetOutpostSupportedInstanceTypesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_GetOutpostSupportedInstanceTypes_Call) Return(_a0 *outposts.GetOutpostSupportedInstanceTypesOutput, _a1 error) *Outposts_GetOutpostSupportedInstanceTypes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_GetOutpostSupportedInstanceTypes_Call) RunAndReturn(run func(context.Context, *outposts.GetOutpostSupportedInstanceTypesInput, ...func(*outposts.Options)) (*outposts.GetOutpostSupportedInstanceTypesOutput, error)) *Outposts_GetOutpostSupportedInstanceTypes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSite provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) GetSite(ctx context.Context, params *outposts.GetSiteInput, optFns ...func(*outposts.Options)) (*outposts.GetSiteOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -984,6 +1206,80 @@ func (_c *Outposts_GetSiteAddress_Call) RunAndReturn(run func(context.Context, *
 	return _c
 }
 
+// ListAssetInstances provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) ListAssetInstances(ctx context.Context, params *outposts.ListAssetInstancesInput, optFns ...func(*outposts.Options)) (*outposts.ListAssetInstancesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAssetInstances")
+	}
+
+	var r0 *outposts.ListAssetInstancesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.ListAssetInstancesInput, ...func(*outposts.Options)) (*outposts.ListAssetInstancesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.ListAssetInstancesInput, ...func(*outposts.Options)) *outposts.ListAssetInstancesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.ListAssetInstancesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.ListAssetInstancesInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_ListAssetInstances_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAssetInstances'
+type Outposts_ListAssetInstances_Call struct {
+	*mock.Call
+}
+
+// ListAssetInstances is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.ListAssetInstancesInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) ListAssetInstances(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_ListAssetInstances_Call {
+	return &Outposts_ListAssetInstances_Call{Call: _e.mock.On("ListAssetInstances",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_ListAssetInstances_Call) Run(run func(ctx context.Context, params *outposts.ListAssetInstancesInput, optFns ...func(*outposts.Options))) *Outposts_ListAssetInstances_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.ListAssetInstancesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_ListAssetInstances_Call) Return(_a0 *outposts.ListAssetInstancesOutput, _a1 error) *Outposts_ListAssetInstances_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_ListAssetInstances_Call) RunAndReturn(run func(context.Context, *outposts.ListAssetInstancesInput, ...func(*outposts.Options)) (*outposts.ListAssetInstancesOutput, error)) *Outposts_ListAssetInstances_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListAssets provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) ListAssets(ctx context.Context, params *outposts.ListAssetsInput, optFns ...func(*outposts.Options)) (*outposts.ListAssetsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1054,6 +1350,154 @@ func (_c *Outposts_ListAssets_Call) Return(_a0 *outposts.ListAssetsOutput, _a1 e
 }
 
 func (_c *Outposts_ListAssets_Call) RunAndReturn(run func(context.Context, *outposts.ListAssetsInput, ...func(*outposts.Options)) (*outposts.ListAssetsOutput, error)) *Outposts_ListAssets_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListBlockingInstancesForCapacityTask provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) ListBlockingInstancesForCapacityTask(ctx context.Context, params *outposts.ListBlockingInstancesForCapacityTaskInput, optFns ...func(*outposts.Options)) (*outposts.ListBlockingInstancesForCapacityTaskOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListBlockingInstancesForCapacityTask")
+	}
+
+	var r0 *outposts.ListBlockingInstancesForCapacityTaskOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.ListBlockingInstancesForCapacityTaskInput, ...func(*outposts.Options)) (*outposts.ListBlockingInstancesForCapacityTaskOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.ListBlockingInstancesForCapacityTaskInput, ...func(*outposts.Options)) *outposts.ListBlockingInstancesForCapacityTaskOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.ListBlockingInstancesForCapacityTaskOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.ListBlockingInstancesForCapacityTaskInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_ListBlockingInstancesForCapacityTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListBlockingInstancesForCapacityTask'
+type Outposts_ListBlockingInstancesForCapacityTask_Call struct {
+	*mock.Call
+}
+
+// ListBlockingInstancesForCapacityTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.ListBlockingInstancesForCapacityTaskInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) ListBlockingInstancesForCapacityTask(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_ListBlockingInstancesForCapacityTask_Call {
+	return &Outposts_ListBlockingInstancesForCapacityTask_Call{Call: _e.mock.On("ListBlockingInstancesForCapacityTask",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_ListBlockingInstancesForCapacityTask_Call) Run(run func(ctx context.Context, params *outposts.ListBlockingInstancesForCapacityTaskInput, optFns ...func(*outposts.Options))) *Outposts_ListBlockingInstancesForCapacityTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.ListBlockingInstancesForCapacityTaskInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_ListBlockingInstancesForCapacityTask_Call) Return(_a0 *outposts.ListBlockingInstancesForCapacityTaskOutput, _a1 error) *Outposts_ListBlockingInstancesForCapacityTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_ListBlockingInstancesForCapacityTask_Call) RunAndReturn(run func(context.Context, *outposts.ListBlockingInstancesForCapacityTaskInput, ...func(*outposts.Options)) (*outposts.ListBlockingInstancesForCapacityTaskOutput, error)) *Outposts_ListBlockingInstancesForCapacityTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListCapacityTasks provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) ListCapacityTasks(ctx context.Context, params *outposts.ListCapacityTasksInput, optFns ...func(*outposts.Options)) (*outposts.ListCapacityTasksOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListCapacityTasks")
+	}
+
+	var r0 *outposts.ListCapacityTasksOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.ListCapacityTasksInput, ...func(*outposts.Options)) (*outposts.ListCapacityTasksOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.ListCapacityTasksInput, ...func(*outposts.Options)) *outposts.ListCapacityTasksOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.ListCapacityTasksOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.ListCapacityTasksInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_ListCapacityTasks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListCapacityTasks'
+type Outposts_ListCapacityTasks_Call struct {
+	*mock.Call
+}
+
+// ListCapacityTasks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.ListCapacityTasksInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) ListCapacityTasks(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_ListCapacityTasks_Call {
+	return &Outposts_ListCapacityTasks_Call{Call: _e.mock.On("ListCapacityTasks",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_ListCapacityTasks_Call) Run(run func(ctx context.Context, params *outposts.ListCapacityTasksInput, optFns ...func(*outposts.Options))) *Outposts_ListCapacityTasks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.ListCapacityTasksInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_ListCapacityTasks_Call) Return(_a0 *outposts.ListCapacityTasksOutput, _a1 error) *Outposts_ListCapacityTasks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_ListCapacityTasks_Call) RunAndReturn(run func(context.Context, *outposts.ListCapacityTasksInput, ...func(*outposts.Options)) (*outposts.ListCapacityTasksOutput, error)) *Outposts_ListCapacityTasks_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1469,6 +1913,80 @@ func (_c *Outposts_Options_Call) Return(_a0 outposts.Options) *Outposts_Options_
 }
 
 func (_c *Outposts_Options_Call) RunAndReturn(run func() outposts.Options) *Outposts_Options_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// StartCapacityTask provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) StartCapacityTask(ctx context.Context, params *outposts.StartCapacityTaskInput, optFns ...func(*outposts.Options)) (*outposts.StartCapacityTaskOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartCapacityTask")
+	}
+
+	var r0 *outposts.StartCapacityTaskOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.StartCapacityTaskInput, ...func(*outposts.Options)) (*outposts.StartCapacityTaskOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.StartCapacityTaskInput, ...func(*outposts.Options)) *outposts.StartCapacityTaskOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.StartCapacityTaskOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.StartCapacityTaskInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_StartCapacityTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartCapacityTask'
+type Outposts_StartCapacityTask_Call struct {
+	*mock.Call
+}
+
+// StartCapacityTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.StartCapacityTaskInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) StartCapacityTask(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_StartCapacityTask_Call {
+	return &Outposts_StartCapacityTask_Call{Call: _e.mock.On("StartCapacityTask",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_StartCapacityTask_Call) Run(run func(ctx context.Context, params *outposts.StartCapacityTaskInput, optFns ...func(*outposts.Options))) *Outposts_StartCapacityTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.StartCapacityTaskInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_StartCapacityTask_Call) Return(_a0 *outposts.StartCapacityTaskOutput, _a1 error) *Outposts_StartCapacityTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_StartCapacityTask_Call) RunAndReturn(run func(context.Context, *outposts.StartCapacityTaskInput, ...func(*outposts.Options)) (*outposts.StartCapacityTaskOutput, error)) *Outposts_StartCapacityTask_Call {
 	_c.Call.Return(run)
 	return _c
 }

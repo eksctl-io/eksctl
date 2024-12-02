@@ -3649,6 +3649,80 @@ func (_c *CloudFormation_ListGeneratedTemplates_Call) RunAndReturn(run func(cont
 	return _c
 }
 
+// ListHookResults provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) ListHookResults(ctx context.Context, params *cloudformation.ListHookResultsInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListHookResultsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListHookResults")
+	}
+
+	var r0 *cloudformation.ListHookResultsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListHookResultsInput, ...func(*cloudformation.Options)) (*cloudformation.ListHookResultsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListHookResultsInput, ...func(*cloudformation.Options)) *cloudformation.ListHookResultsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.ListHookResultsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListHookResultsInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudFormation_ListHookResults_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListHookResults'
+type CloudFormation_ListHookResults_Call struct {
+	*mock.Call
+}
+
+// ListHookResults is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListHookResultsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListHookResults(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListHookResults_Call {
+	return &CloudFormation_ListHookResults_Call{Call: _e.mock.On("ListHookResults",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListHookResults_Call) Run(run func(ctx context.Context, params *cloudformation.ListHookResultsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListHookResults_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListHookResultsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListHookResults_Call) Return(_a0 *cloudformation.ListHookResultsOutput, _a1 error) *CloudFormation_ListHookResults_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListHookResults_Call) RunAndReturn(run func(context.Context, *cloudformation.ListHookResultsInput, ...func(*cloudformation.Options)) (*cloudformation.ListHookResultsOutput, error)) *CloudFormation_ListHookResults_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListImports provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ListImports(ctx context.Context, params *cloudformation.ListImportsInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListImportsOutput, error) {
 	_va := make([]interface{}, len(optFns))
