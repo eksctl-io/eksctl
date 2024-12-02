@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"reflect"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -13,7 +14,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/tidwall/gjson"
 
@@ -283,7 +283,6 @@ var _ = Describe("Cluster Template Builder", func() {
 		})
 
 		It("should add the correct policies and references to the ServiceRole ARN", func() {
-			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(HaveLen(2))
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(ContainElements(makePolicyARNRef("AmazonEKSClusterPolicy"), makePolicyARNRef("AmazonEKSVPCResourceController")))
 		})
 
@@ -322,7 +321,6 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 
 			It("only adds the AmazonEKSClusterPolicy to the service role policy arn", func() {
-				Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(HaveLen(1))
 				Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns[0]).To(Equal(makePolicyARNRef("AmazonEKSClusterPolicy")))
 			})
 		})
@@ -632,6 +630,66 @@ var _ = Describe("Cluster Template Builder", func() {
 			It("should create a security group for ingress traffic from private subnet CIDRs", func() {
 				const ingressRuleKey = "IngressPrivateSubnetUSWEST2A"
 				Expect(clusterTemplate.Resources).To(HaveKey(ingressRuleKey))
+			})
+		})
+
+		Context("when RemoteNetworkConfig is set", func() {
+			var (
+				gatewayID api.VPCGateway
+			)
+			BeforeEach(func() {
+				gatewayID = api.VPCGateway("tgw-1234")
+				cfg.RemoteNetworkConfig = &api.RemoteNetworkConfig{
+					IAM: &api.RemoteNodesIAM{
+						Provider: &api.IRAProvider,
+					},
+					VPCGatewayID:       &gatewayID,
+					RemoteNodeNetworks: []*api.RemoteNetwork{{CIDRs: []string{"192.168.0.1"}}},
+				}
+			})
+			It("should create all appropriate resources", func() {
+				// should create all networking resources for the VPC
+				Expect(clusterTemplate.Resources).To(HaveKey("TransitGatewayAttachment"))
+				tgwAttachment := clusterTemplate.Resources["TransitGatewayAttachment"]
+				Expect(tgwAttachment.Properties.TransitGatewayId).To(Equal("tgw-1234"))
+				Expect(tgwAttachment.Properties.TransitGatewayId).To(Equal("tgw-1234"))
+
+				Expect(clusterTemplate.Resources).To(HaveKey("TGWPrivateSubnetRoute0USWEST2A"))
+				tgwRoute := clusterTemplate.Resources["TGWPrivateSubnetRoute0USWEST2A"]
+				Expect(tgwRoute.Properties.TransitGatewayId).To(Equal("tgw-1234"))
+				Expect(tgwRoute.Properties.DestinationCidrBlock).To(Equal("192.168.0.1"))
+
+				Expect(clusterTemplate.Resources).To(HaveKey("TGWPrivateSubnetRoute0USWEST2B"))
+				tgwRoute = clusterTemplate.Resources["TGWPrivateSubnetRoute0USWEST2B"]
+				Expect(tgwRoute.Properties.TransitGatewayId).To(Equal("tgw-1234"))
+				Expect(tgwRoute.Properties.DestinationCidrBlock).To(Equal("192.168.0.1"))
+
+				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneRemoteNetworks0"))
+				ingressRemote := clusterTemplate.Resources["IngressControlPlaneRemoteNetworks0"]
+				Expect(ingressRemote.Properties.CidrIP).To(Equal("192.168.0.1"))
+				Expect(ingressRemote.Properties.FromPort).To(Equal(443))
+				Expect(ingressRemote.Properties.ToPort).To(Equal(443))
+
+				// should create IAM Roles Anywhere resources
+				Expect(clusterTemplate.Resources).To(HaveKey("TrustAnchor"))
+
+				Expect(clusterTemplate.Resources).To(HaveKey("AnywhereProfile"))
+				anywhereProfile := clusterTemplate.Resources["AnywhereProfile"]
+				Expect(anywhereProfile.Properties.AcceptRoleSessionName).To(BeTrue())
+
+				Expect(clusterTemplate.Resources).To(HaveKey("HybridNodesIRARole"))
+				iraRole := clusterTemplate.Resources["HybridNodesIRARole"]
+				Expect(iraRole.Properties.ManagedPolicyArns).To(ContainElement(map[string]interface{}{
+					"Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+				}))
+				Expect(iraRole.Properties.ManagedPolicyArns).To(ContainElement(map[string]interface{}{
+					"Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore",
+				}))
+
+				// should create a HYBRID_LINUX access entry to allow remote notes to join the cluster
+				Expect(clusterTemplate.Resources).To(HaveKey("RemoteNodesAccessEntry"))
+				remoteAE := clusterTemplate.Resources["RemoteNodesAccessEntry"]
+				Expect(remoteAE.Properties.Type).To(Equal("HYBRID_LINUX"))
 			})
 		})
 

@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"golang.org/x/oauth2"
+	"k8s.io/client-go/dynamic"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -63,7 +63,7 @@ func GetUsername(roleArn string) string {
 func (c *Client) new(tokenSource oauth2.TokenSource) (*Client, error) {
 	rawConfig, err := clientcmd.NewDefaultClientConfig(*c.Config, &clientcmd.ConfigOverrides{}).ClientConfig()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create API client configuration from client config")
+		return nil, fmt.Errorf("failed to create API client configuration from client config: %w", err)
 	}
 	rawConfig.WrapTransport = transport.TokenSourceWrapTransport(transport.NewCachedTokenSource(tokenSource))
 
@@ -78,9 +78,18 @@ func (c *Client) new(tokenSource oauth2.TokenSource) (*Client, error) {
 func (c *Client) NewClientSet() (*kubernetes.Clientset, error) {
 	client, err := kubernetes.NewForConfig(c.rawConfig)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create API client")
+		return nil, fmt.Errorf("failed to create API client: %w", err)
 	}
 	return client, nil
+}
+
+// NewDynamicClient creates a new DynamicClient.
+func (c *KubernetesProvider) NewDynamicClient(clusterInfo kubeconfig.ClusterInfo) (*dynamic.DynamicClient, error) {
+	client, _, err := c.newClientSet(clusterInfo)
+	if err != nil {
+		return nil, err
+	}
+	return dynamic.NewForConfig(client.rawConfig)
 }
 
 // NewStdClientSet creates a new API client.
@@ -175,13 +184,13 @@ func WaitForNodes(ctx context.Context, clientSet kubernetes.Interface, ng KubeNo
 	readyNodes := sets.New[string]()
 	watcher, err := clientSet.CoreV1().Nodes().Watch(context.TODO(), ng.ListOptions())
 	if err != nil {
-		return errors.Wrap(err, "creating node watcher")
+		return fmt.Errorf("creating node watcher: %w", err)
 	}
 	defer watcher.Stop()
 
 	counter, err := GetNodes(clientSet, ng)
 	if err != nil {
-		return errors.Wrap(err, "listing nodes")
+		return fmt.Errorf("listing nodes: %w", err)
 	}
 
 	logger.Info("waiting for at least %d node(s) to become ready in %q", minSize, ng.NameString())
@@ -224,7 +233,7 @@ func WaitForNodes(ctx context.Context, clientSet kubernetes.Interface, ng KubeNo
 	}
 
 	if _, err = GetNodes(clientSet, ng); err != nil {
-		return errors.Wrap(err, "re-listing nodes")
+		return fmt.Errorf("re-listing nodes: %w", err)
 	}
 
 	return nil

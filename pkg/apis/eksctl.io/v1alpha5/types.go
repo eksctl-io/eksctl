@@ -5,11 +5,10 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
@@ -723,6 +722,83 @@ func (k *KubernetesNetworkConfig) IPv6Enabled() bool {
 	return strings.EqualFold(k.IPFamily, IPV6Family)
 }
 
+// VPCGatewayID the ID of the gateway that facilitates external connectivity
+// from customer's VPC to their remote network(s).
+// Valid options are Transit Gateway and Virtual Private Gateway.
+type VPCGateway string
+
+var (
+	SSMProvider                 = "ssm"
+	IRAProvider                 = "ira"
+	transitGatewayPrefix        = "tgw"
+	virtualPrivateGatewayPrefix = "vgw"
+)
+
+func (v *VPCGateway) IsSet() bool {
+	return v != nil && *v != ""
+}
+
+func (v *VPCGateway) IsTransitGateway() bool {
+	return v != nil && strings.HasPrefix(string(*v), transitGatewayPrefix)
+}
+
+func (v *VPCGateway) IsVirtualPrivateGateway() bool {
+	return v != nil && strings.HasPrefix(string(*v), virtualPrivateGatewayPrefix)
+}
+
+// RemoteNetworkConfig
+type RemoteNetworkConfig struct {
+	// +optional
+	IAM *RemoteNodesIAM `json:"iam,omitempty"`
+	// +required
+	VPCGatewayID *VPCGateway `json:"vpcGatewayID,omitempty"`
+	// +required
+	RemoteNodeNetworks []*RemoteNetwork `json:"remoteNodeNetworks,omitempty"`
+	// +optional
+	RemotePodNetworks []*RemoteNetwork `json:"remotePodNetworks,omitempty"`
+}
+
+type RemoteNodesIAM struct {
+	// Provider the AWS service responsible for provisioning IAM credentials to remote nodes.
+	// Valid options are `SSM` (System Manager), default, and `IRA` (IAM Roles anywhere).
+	// Required IRA config (i.e. TrustAnchor, AnywhereProfile) will be created by eksctl behind the scenes.
+	// +optional
+	Provider *string `json:"provider,omitempty"`
+	// RoleARN the IAM Role ARN to be added to aws-auth configmap for remote nodes.
+	// If not set, eksctl creates the role behind the scenes, adds an entry into the configmap and sets up any other SSM/IRA config.
+	// If set, eksctl will only add the configmap entry, while creating any required SSM/IRA config falls under user's responsibility.
+	// +optional
+	RoleARN *string `json:"roleARN,omitempty"`
+	// CABundleCert the CA bundle certificate used by IRA trust anchor.
+	// Can't be set if Provider is SSM.
+	// +optional
+	CABundleCert *string `json:"caBundleCert,omitempty"`
+}
+
+// RemoteNetwork
+type RemoteNetwork struct {
+	CIDRs []string `json:"cidrs,omitempty"`
+}
+
+func (r *RemoteNetworkConfig) ToRemoteNetworksPool() []string {
+	remoteNetworksPool := []string{}
+	for _, r := range r.RemoteNodeNetworks {
+		remoteNetworksPool = append(remoteNetworksPool, r.CIDRs...)
+	}
+	for _, r := range r.RemotePodNetworks {
+		remoteNetworksPool = append(remoteNetworksPool, r.CIDRs...)
+	}
+	return remoteNetworksPool
+}
+
+func (r *RemoteNetworkConfig) HasRemoteNodesEnabled() bool {
+	return r.RemoteNodeNetworks != nil && len(r.RemoteNodeNetworks) > 0
+}
+
+func (c *ClusterConfig) HasRemoteNetworkingConfigured() bool {
+	return c.RemoteNetworkConfig != nil && (len(c.RemoteNetworkConfig.RemoteNodeNetworks) > 0 || len(c.RemoteNetworkConfig.RemotePodNetworks) > 0)
+}
+
 type EKSCTLCreated string
 
 // ClusterStatus holds read-only attributes of a cluster
@@ -827,6 +903,11 @@ func (c *ClusterConfig) FindNodeGroupOutpostARN() (outpostARN string, found bool
 	return "", false
 }
 
+// IsAutoModeEnabled reports whether Auto Mode is enabled.
+func (c *ClusterConfig) IsAutoModeEnabled() bool {
+	return c.AutoModeConfig != nil && IsEnabled(c.AutoModeConfig.Enabled)
+}
+
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
 	CloudFormation() awsapi.CloudFormation
@@ -889,6 +970,13 @@ type ClusterConfig struct {
 
 	// +optional
 	KubernetesNetworkConfig *KubernetesNetworkConfig `json:"kubernetesNetworkConfig,omitempty"`
+
+	// AutoModeConfig holds the config for Auto Mode.
+	// +optional
+	AutoModeConfig *AutoModeConfig `json:"autoModeConfig,omitempty"`
+
+	// +optional
+	RemoteNetworkConfig *RemoteNetworkConfig `json:"remoteNetworkConfig,omitempty"`
 
 	// +optional
 	IAM *ClusterIAM `json:"iam,omitempty"`

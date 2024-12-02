@@ -207,8 +207,8 @@ func (d *DeleteUnownedNodegroupTask) Do() error {
 		}
 
 		if err := w.WaitWithTimeout(d.wait.Timeout); err != nil {
-			if err == context.DeadlineExceeded {
-				return errors.Errorf("timed out waiting for nodegroup deletion after %s", d.wait.Timeout)
+			if errors.Is(err, context.DeadlineExceeded) {
+				return fmt.Errorf("timed out waiting for nodegroup deletion after %s", d.wait.Timeout)
 			}
 			return err
 		}
@@ -239,7 +239,8 @@ func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx
 
 	oidc, err := newOIDCManager()
 	if err != nil {
-		if _, ok := err.(*iamoidc.UnsupportedOIDCError); ok {
+		var oidcErr *iamoidc.UnsupportedOIDCError
+		if errors.As(err, &oidcErr) {
 			logger.Debug("OIDC is not supported for this cluster")
 			return taskTree, nil
 		}

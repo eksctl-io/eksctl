@@ -21,6 +21,7 @@ type CreateClusterCmdParams struct {
 	WithoutNodeGroup      bool
 	Fargate               bool
 	DryRun                bool
+	EnableAutoMode        bool
 	CreateNGOptions
 	CreateManagedNGOptions
 

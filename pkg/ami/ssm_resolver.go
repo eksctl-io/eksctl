@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -70,7 +68,7 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 			return "", err
 		}
 		if !supportsWindows2022 {
-			return "", errors.Errorf("Windows Server 2022 %s requires EKS version %s and above", windowsAmiType(imageFamily), minVersion)
+			return "", fmt.Errorf("Windows Server 2022 %s requires EKS version %s and above", windowsAmiType(imageFamily), minVersion)
 		}
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2022-English-%s-EKS_Optimized-%s/%s", windowsAmiType(imageFamily), version, fieldName), nil
 	case api.NodeImageFamilyBottlerocket:

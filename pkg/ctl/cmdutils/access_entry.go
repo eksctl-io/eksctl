@@ -50,7 +50,7 @@ func NewCreateAccessEntryLoader(cmd *Cmd, accessEntry *api.AccessEntry) ClusterC
 	return l
 }
 
-// NewGetAccessEntriesLoader loads config file and validates command for `eksctl get accessentry`.
+// NewGetAccessEntryLoader loads config file and validates command for `eksctl get accessentry`.
 func NewGetAccessEntryLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 	l.flagsIncompatibleWithConfigFile.Insert(accessEntryFlagsIncompatibleWithConfigFile...)

@@ -14,6 +14,88 @@ type Outposts struct {
 	mock.Mock
 }
 
+type Outposts_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *Outposts) EXPECT() *Outposts_Expecter {
+	return &Outposts_Expecter{mock: &_m.Mock}
+}
+
+// CancelCapacityTask provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) CancelCapacityTask(ctx context.Context, params *outposts.CancelCapacityTaskInput, optFns ...func(*outposts.Options)) (*outposts.CancelCapacityTaskOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CancelCapacityTask")
+	}
+
+	var r0 *outposts.CancelCapacityTaskOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.CancelCapacityTaskInput, ...func(*outposts.Options)) (*outposts.CancelCapacityTaskOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.CancelCapacityTaskInput, ...func(*outposts.Options)) *outposts.CancelCapacityTaskOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.CancelCapacityTaskOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.CancelCapacityTaskInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_CancelCapacityTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelCapacityTask'
+type Outposts_CancelCapacityTask_Call struct {
+	*mock.Call
+}
+
+// CancelCapacityTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.CancelCapacityTaskInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) CancelCapacityTask(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_CancelCapacityTask_Call {
+	return &Outposts_CancelCapacityTask_Call{Call: _e.mock.On("CancelCapacityTask",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_CancelCapacityTask_Call) Run(run func(ctx context.Context, params *outposts.CancelCapacityTaskInput, optFns ...func(*outposts.Options))) *Outposts_CancelCapacityTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.CancelCapacityTaskInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_CancelCapacityTask_Call) Return(_a0 *outposts.CancelCapacityTaskOutput, _a1 error) *Outposts_CancelCapacityTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_CancelCapacityTask_Call) RunAndReturn(run func(context.Context, *outposts.CancelCapacityTaskInput, ...func(*outposts.Options)) (*outposts.CancelCapacityTaskOutput, error)) *Outposts_CancelCapacityTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CancelOrder provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) CancelOrder(ctx context.Context, params *outposts.CancelOrderInput, optFns ...func(*outposts.Options)) (*outposts.CancelOrderOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -49,6 +131,43 @@ func (_m *Outposts) CancelOrder(ctx context.Context, params *outposts.CancelOrde
 	}
 
 	return r0, r1
+}
+
+// Outposts_CancelOrder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelOrder'
+type Outposts_CancelOrder_Call struct {
+	*mock.Call
+}
+
+// CancelOrder is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.CancelOrderInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) CancelOrder(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_CancelOrder_Call {
+	return &Outposts_CancelOrder_Call{Call: _e.mock.On("CancelOrder",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_CancelOrder_Call) Run(run func(ctx context.Context, params *outposts.CancelOrderInput, optFns ...func(*outposts.Options))) *Outposts_CancelOrder_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.CancelOrderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_CancelOrder_Call) Return(_a0 *outposts.CancelOrderOutput, _a1 error) *Outposts_CancelOrder_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_CancelOrder_Call) RunAndReturn(run func(context.Context, *outposts.CancelOrderInput, ...func(*outposts.Options)) (*outposts.CancelOrderOutput, error)) *Outposts_CancelOrder_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateOrder provides a mock function with given fields: ctx, params, optFns
@@ -88,6 +207,43 @@ func (_m *Outposts) CreateOrder(ctx context.Context, params *outposts.CreateOrde
 	return r0, r1
 }
 
+// Outposts_CreateOrder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateOrder'
+type Outposts_CreateOrder_Call struct {
+	*mock.Call
+}
+
+// CreateOrder is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.CreateOrderInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) CreateOrder(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_CreateOrder_Call {
+	return &Outposts_CreateOrder_Call{Call: _e.mock.On("CreateOrder",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_CreateOrder_Call) Run(run func(ctx context.Context, params *outposts.CreateOrderInput, optFns ...func(*outposts.Options))) *Outposts_CreateOrder_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.CreateOrderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_CreateOrder_Call) Return(_a0 *outposts.CreateOrderOutput, _a1 error) *Outposts_CreateOrder_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_CreateOrder_Call) RunAndReturn(run func(context.Context, *outposts.CreateOrderInput, ...func(*outposts.Options)) (*outposts.CreateOrderOutput, error)) *Outposts_CreateOrder_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateOutpost provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) CreateOutpost(ctx context.Context, params *outposts.CreateOutpostInput, optFns ...func(*outposts.Options)) (*outposts.CreateOutpostOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -123,6 +279,43 @@ func (_m *Outposts) CreateOutpost(ctx context.Context, params *outposts.CreateOu
 	}
 
 	return r0, r1
+}
+
+// Outposts_CreateOutpost_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateOutpost'
+type Outposts_CreateOutpost_Call struct {
+	*mock.Call
+}
+
+// CreateOutpost is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.CreateOutpostInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) CreateOutpost(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_CreateOutpost_Call {
+	return &Outposts_CreateOutpost_Call{Call: _e.mock.On("CreateOutpost",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_CreateOutpost_Call) Run(run func(ctx context.Context, params *outposts.CreateOutpostInput, optFns ...func(*outposts.Options))) *Outposts_CreateOutpost_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.CreateOutpostInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_CreateOutpost_Call) Return(_a0 *outposts.CreateOutpostOutput, _a1 error) *Outposts_CreateOutpost_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_CreateOutpost_Call) RunAndReturn(run func(context.Context, *outposts.CreateOutpostInput, ...func(*outposts.Options)) (*outposts.CreateOutpostOutput, error)) *Outposts_CreateOutpost_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateSite provides a mock function with given fields: ctx, params, optFns
@@ -162,6 +355,43 @@ func (_m *Outposts) CreateSite(ctx context.Context, params *outposts.CreateSiteI
 	return r0, r1
 }
 
+// Outposts_CreateSite_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSite'
+type Outposts_CreateSite_Call struct {
+	*mock.Call
+}
+
+// CreateSite is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.CreateSiteInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) CreateSite(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_CreateSite_Call {
+	return &Outposts_CreateSite_Call{Call: _e.mock.On("CreateSite",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_CreateSite_Call) Run(run func(ctx context.Context, params *outposts.CreateSiteInput, optFns ...func(*outposts.Options))) *Outposts_CreateSite_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.CreateSiteInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_CreateSite_Call) Return(_a0 *outposts.CreateSiteOutput, _a1 error) *Outposts_CreateSite_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_CreateSite_Call) RunAndReturn(run func(context.Context, *outposts.CreateSiteInput, ...func(*outposts.Options)) (*outposts.CreateSiteOutput, error)) *Outposts_CreateSite_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteOutpost provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) DeleteOutpost(ctx context.Context, params *outposts.DeleteOutpostInput, optFns ...func(*outposts.Options)) (*outposts.DeleteOutpostOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -197,6 +427,43 @@ func (_m *Outposts) DeleteOutpost(ctx context.Context, params *outposts.DeleteOu
 	}
 
 	return r0, r1
+}
+
+// Outposts_DeleteOutpost_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteOutpost'
+type Outposts_DeleteOutpost_Call struct {
+	*mock.Call
+}
+
+// DeleteOutpost is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.DeleteOutpostInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) DeleteOutpost(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_DeleteOutpost_Call {
+	return &Outposts_DeleteOutpost_Call{Call: _e.mock.On("DeleteOutpost",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_DeleteOutpost_Call) Run(run func(ctx context.Context, params *outposts.DeleteOutpostInput, optFns ...func(*outposts.Options))) *Outposts_DeleteOutpost_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.DeleteOutpostInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_DeleteOutpost_Call) Return(_a0 *outposts.DeleteOutpostOutput, _a1 error) *Outposts_DeleteOutpost_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_DeleteOutpost_Call) RunAndReturn(run func(context.Context, *outposts.DeleteOutpostInput, ...func(*outposts.Options)) (*outposts.DeleteOutpostOutput, error)) *Outposts_DeleteOutpost_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteSite provides a mock function with given fields: ctx, params, optFns
@@ -236,6 +503,117 @@ func (_m *Outposts) DeleteSite(ctx context.Context, params *outposts.DeleteSiteI
 	return r0, r1
 }
 
+// Outposts_DeleteSite_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSite'
+type Outposts_DeleteSite_Call struct {
+	*mock.Call
+}
+
+// DeleteSite is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.DeleteSiteInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) DeleteSite(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_DeleteSite_Call {
+	return &Outposts_DeleteSite_Call{Call: _e.mock.On("DeleteSite",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_DeleteSite_Call) Run(run func(ctx context.Context, params *outposts.DeleteSiteInput, optFns ...func(*outposts.Options))) *Outposts_DeleteSite_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.DeleteSiteInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_DeleteSite_Call) Return(_a0 *outposts.DeleteSiteOutput, _a1 error) *Outposts_DeleteSite_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_DeleteSite_Call) RunAndReturn(run func(context.Context, *outposts.DeleteSiteInput, ...func(*outposts.Options)) (*outposts.DeleteSiteOutput, error)) *Outposts_DeleteSite_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetCapacityTask provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) GetCapacityTask(ctx context.Context, params *outposts.GetCapacityTaskInput, optFns ...func(*outposts.Options)) (*outposts.GetCapacityTaskOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCapacityTask")
+	}
+
+	var r0 *outposts.GetCapacityTaskOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.GetCapacityTaskInput, ...func(*outposts.Options)) (*outposts.GetCapacityTaskOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.GetCapacityTaskInput, ...func(*outposts.Options)) *outposts.GetCapacityTaskOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.GetCapacityTaskOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.GetCapacityTaskInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_GetCapacityTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCapacityTask'
+type Outposts_GetCapacityTask_Call struct {
+	*mock.Call
+}
+
+// GetCapacityTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.GetCapacityTaskInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) GetCapacityTask(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_GetCapacityTask_Call {
+	return &Outposts_GetCapacityTask_Call{Call: _e.mock.On("GetCapacityTask",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_GetCapacityTask_Call) Run(run func(ctx context.Context, params *outposts.GetCapacityTaskInput, optFns ...func(*outposts.Options))) *Outposts_GetCapacityTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.GetCapacityTaskInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_GetCapacityTask_Call) Return(_a0 *outposts.GetCapacityTaskOutput, _a1 error) *Outposts_GetCapacityTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_GetCapacityTask_Call) RunAndReturn(run func(context.Context, *outposts.GetCapacityTaskInput, ...func(*outposts.Options)) (*outposts.GetCapacityTaskOutput, error)) *Outposts_GetCapacityTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCatalogItem provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) GetCatalogItem(ctx context.Context, params *outposts.GetCatalogItemInput, optFns ...func(*outposts.Options)) (*outposts.GetCatalogItemOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -271,6 +649,43 @@ func (_m *Outposts) GetCatalogItem(ctx context.Context, params *outposts.GetCata
 	}
 
 	return r0, r1
+}
+
+// Outposts_GetCatalogItem_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCatalogItem'
+type Outposts_GetCatalogItem_Call struct {
+	*mock.Call
+}
+
+// GetCatalogItem is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.GetCatalogItemInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) GetCatalogItem(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_GetCatalogItem_Call {
+	return &Outposts_GetCatalogItem_Call{Call: _e.mock.On("GetCatalogItem",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_GetCatalogItem_Call) Run(run func(ctx context.Context, params *outposts.GetCatalogItemInput, optFns ...func(*outposts.Options))) *Outposts_GetCatalogItem_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.GetCatalogItemInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_GetCatalogItem_Call) Return(_a0 *outposts.GetCatalogItemOutput, _a1 error) *Outposts_GetCatalogItem_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_GetCatalogItem_Call) RunAndReturn(run func(context.Context, *outposts.GetCatalogItemInput, ...func(*outposts.Options)) (*outposts.GetCatalogItemOutput, error)) *Outposts_GetCatalogItem_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetConnection provides a mock function with given fields: ctx, params, optFns
@@ -310,6 +725,43 @@ func (_m *Outposts) GetConnection(ctx context.Context, params *outposts.GetConne
 	return r0, r1
 }
 
+// Outposts_GetConnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetConnection'
+type Outposts_GetConnection_Call struct {
+	*mock.Call
+}
+
+// GetConnection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.GetConnectionInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) GetConnection(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_GetConnection_Call {
+	return &Outposts_GetConnection_Call{Call: _e.mock.On("GetConnection",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_GetConnection_Call) Run(run func(ctx context.Context, params *outposts.GetConnectionInput, optFns ...func(*outposts.Options))) *Outposts_GetConnection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.GetConnectionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_GetConnection_Call) Return(_a0 *outposts.GetConnectionOutput, _a1 error) *Outposts_GetConnection_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_GetConnection_Call) RunAndReturn(run func(context.Context, *outposts.GetConnectionInput, ...func(*outposts.Options)) (*outposts.GetConnectionOutput, error)) *Outposts_GetConnection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetOrder provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) GetOrder(ctx context.Context, params *outposts.GetOrderInput, optFns ...func(*outposts.Options)) (*outposts.GetOrderOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -345,6 +797,43 @@ func (_m *Outposts) GetOrder(ctx context.Context, params *outposts.GetOrderInput
 	}
 
 	return r0, r1
+}
+
+// Outposts_GetOrder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOrder'
+type Outposts_GetOrder_Call struct {
+	*mock.Call
+}
+
+// GetOrder is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.GetOrderInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) GetOrder(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_GetOrder_Call {
+	return &Outposts_GetOrder_Call{Call: _e.mock.On("GetOrder",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_GetOrder_Call) Run(run func(ctx context.Context, params *outposts.GetOrderInput, optFns ...func(*outposts.Options))) *Outposts_GetOrder_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.GetOrderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_GetOrder_Call) Return(_a0 *outposts.GetOrderOutput, _a1 error) *Outposts_GetOrder_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_GetOrder_Call) RunAndReturn(run func(context.Context, *outposts.GetOrderInput, ...func(*outposts.Options)) (*outposts.GetOrderOutput, error)) *Outposts_GetOrder_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetOutpost provides a mock function with given fields: ctx, params, optFns
@@ -384,6 +873,43 @@ func (_m *Outposts) GetOutpost(ctx context.Context, params *outposts.GetOutpostI
 	return r0, r1
 }
 
+// Outposts_GetOutpost_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOutpost'
+type Outposts_GetOutpost_Call struct {
+	*mock.Call
+}
+
+// GetOutpost is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.GetOutpostInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) GetOutpost(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_GetOutpost_Call {
+	return &Outposts_GetOutpost_Call{Call: _e.mock.On("GetOutpost",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_GetOutpost_Call) Run(run func(ctx context.Context, params *outposts.GetOutpostInput, optFns ...func(*outposts.Options))) *Outposts_GetOutpost_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.GetOutpostInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_GetOutpost_Call) Return(_a0 *outposts.GetOutpostOutput, _a1 error) *Outposts_GetOutpost_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_GetOutpost_Call) RunAndReturn(run func(context.Context, *outposts.GetOutpostInput, ...func(*outposts.Options)) (*outposts.GetOutpostOutput, error)) *Outposts_GetOutpost_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetOutpostInstanceTypes provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) GetOutpostInstanceTypes(ctx context.Context, params *outposts.GetOutpostInstanceTypesInput, optFns ...func(*outposts.Options)) (*outposts.GetOutpostInstanceTypesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -419,6 +945,117 @@ func (_m *Outposts) GetOutpostInstanceTypes(ctx context.Context, params *outpost
 	}
 
 	return r0, r1
+}
+
+// Outposts_GetOutpostInstanceTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOutpostInstanceTypes'
+type Outposts_GetOutpostInstanceTypes_Call struct {
+	*mock.Call
+}
+
+// GetOutpostInstanceTypes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.GetOutpostInstanceTypesInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) GetOutpostInstanceTypes(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_GetOutpostInstanceTypes_Call {
+	return &Outposts_GetOutpostInstanceTypes_Call{Call: _e.mock.On("GetOutpostInstanceTypes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_GetOutpostInstanceTypes_Call) Run(run func(ctx context.Context, params *outposts.GetOutpostInstanceTypesInput, optFns ...func(*outposts.Options))) *Outposts_GetOutpostInstanceTypes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.GetOutpostInstanceTypesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_GetOutpostInstanceTypes_Call) Return(_a0 *outposts.GetOutpostInstanceTypesOutput, _a1 error) *Outposts_GetOutpostInstanceTypes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_GetOutpostInstanceTypes_Call) RunAndReturn(run func(context.Context, *outposts.GetOutpostInstanceTypesInput, ...func(*outposts.Options)) (*outposts.GetOutpostInstanceTypesOutput, error)) *Outposts_GetOutpostInstanceTypes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetOutpostSupportedInstanceTypes provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) GetOutpostSupportedInstanceTypes(ctx context.Context, params *outposts.GetOutpostSupportedInstanceTypesInput, optFns ...func(*outposts.Options)) (*outposts.GetOutpostSupportedInstanceTypesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOutpostSupportedInstanceTypes")
+	}
+
+	var r0 *outposts.GetOutpostSupportedInstanceTypesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.GetOutpostSupportedInstanceTypesInput, ...func(*outposts.Options)) (*outposts.GetOutpostSupportedInstanceTypesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.GetOutpostSupportedInstanceTypesInput, ...func(*outposts.Options)) *outposts.GetOutpostSupportedInstanceTypesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.GetOutpostSupportedInstanceTypesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.GetOutpostSupportedInstanceTypesInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_GetOutpostSupportedInstanceTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOutpostSupportedInstanceTypes'
+type Outposts_GetOutpostSupportedInstanceTypes_Call struct {
+	*mock.Call
+}
+
+// GetOutpostSupportedInstanceTypes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.GetOutpostSupportedInstanceTypesInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) GetOutpostSupportedInstanceTypes(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_GetOutpostSupportedInstanceTypes_Call {
+	return &Outposts_GetOutpostSupportedInstanceTypes_Call{Call: _e.mock.On("GetOutpostSupportedInstanceTypes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_GetOutpostSupportedInstanceTypes_Call) Run(run func(ctx context.Context, params *outposts.GetOutpostSupportedInstanceTypesInput, optFns ...func(*outposts.Options))) *Outposts_GetOutpostSupportedInstanceTypes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.GetOutpostSupportedInstanceTypesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_GetOutpostSupportedInstanceTypes_Call) Return(_a0 *outposts.GetOutpostSupportedInstanceTypesOutput, _a1 error) *Outposts_GetOutpostSupportedInstanceTypes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_GetOutpostSupportedInstanceTypes_Call) RunAndReturn(run func(context.Context, *outposts.GetOutpostSupportedInstanceTypesInput, ...func(*outposts.Options)) (*outposts.GetOutpostSupportedInstanceTypesOutput, error)) *Outposts_GetOutpostSupportedInstanceTypes_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetSite provides a mock function with given fields: ctx, params, optFns
@@ -458,6 +1095,43 @@ func (_m *Outposts) GetSite(ctx context.Context, params *outposts.GetSiteInput, 
 	return r0, r1
 }
 
+// Outposts_GetSite_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSite'
+type Outposts_GetSite_Call struct {
+	*mock.Call
+}
+
+// GetSite is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.GetSiteInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) GetSite(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_GetSite_Call {
+	return &Outposts_GetSite_Call{Call: _e.mock.On("GetSite",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_GetSite_Call) Run(run func(ctx context.Context, params *outposts.GetSiteInput, optFns ...func(*outposts.Options))) *Outposts_GetSite_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.GetSiteInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_GetSite_Call) Return(_a0 *outposts.GetSiteOutput, _a1 error) *Outposts_GetSite_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_GetSite_Call) RunAndReturn(run func(context.Context, *outposts.GetSiteInput, ...func(*outposts.Options)) (*outposts.GetSiteOutput, error)) *Outposts_GetSite_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSiteAddress provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) GetSiteAddress(ctx context.Context, params *outposts.GetSiteAddressInput, optFns ...func(*outposts.Options)) (*outposts.GetSiteAddressOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -493,6 +1167,117 @@ func (_m *Outposts) GetSiteAddress(ctx context.Context, params *outposts.GetSite
 	}
 
 	return r0, r1
+}
+
+// Outposts_GetSiteAddress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSiteAddress'
+type Outposts_GetSiteAddress_Call struct {
+	*mock.Call
+}
+
+// GetSiteAddress is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.GetSiteAddressInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) GetSiteAddress(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_GetSiteAddress_Call {
+	return &Outposts_GetSiteAddress_Call{Call: _e.mock.On("GetSiteAddress",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_GetSiteAddress_Call) Run(run func(ctx context.Context, params *outposts.GetSiteAddressInput, optFns ...func(*outposts.Options))) *Outposts_GetSiteAddress_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.GetSiteAddressInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_GetSiteAddress_Call) Return(_a0 *outposts.GetSiteAddressOutput, _a1 error) *Outposts_GetSiteAddress_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_GetSiteAddress_Call) RunAndReturn(run func(context.Context, *outposts.GetSiteAddressInput, ...func(*outposts.Options)) (*outposts.GetSiteAddressOutput, error)) *Outposts_GetSiteAddress_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListAssetInstances provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) ListAssetInstances(ctx context.Context, params *outposts.ListAssetInstancesInput, optFns ...func(*outposts.Options)) (*outposts.ListAssetInstancesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAssetInstances")
+	}
+
+	var r0 *outposts.ListAssetInstancesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.ListAssetInstancesInput, ...func(*outposts.Options)) (*outposts.ListAssetInstancesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.ListAssetInstancesInput, ...func(*outposts.Options)) *outposts.ListAssetInstancesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.ListAssetInstancesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.ListAssetInstancesInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_ListAssetInstances_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAssetInstances'
+type Outposts_ListAssetInstances_Call struct {
+	*mock.Call
+}
+
+// ListAssetInstances is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.ListAssetInstancesInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) ListAssetInstances(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_ListAssetInstances_Call {
+	return &Outposts_ListAssetInstances_Call{Call: _e.mock.On("ListAssetInstances",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_ListAssetInstances_Call) Run(run func(ctx context.Context, params *outposts.ListAssetInstancesInput, optFns ...func(*outposts.Options))) *Outposts_ListAssetInstances_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.ListAssetInstancesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_ListAssetInstances_Call) Return(_a0 *outposts.ListAssetInstancesOutput, _a1 error) *Outposts_ListAssetInstances_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_ListAssetInstances_Call) RunAndReturn(run func(context.Context, *outposts.ListAssetInstancesInput, ...func(*outposts.Options)) (*outposts.ListAssetInstancesOutput, error)) *Outposts_ListAssetInstances_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListAssets provides a mock function with given fields: ctx, params, optFns
@@ -532,6 +1317,191 @@ func (_m *Outposts) ListAssets(ctx context.Context, params *outposts.ListAssetsI
 	return r0, r1
 }
 
+// Outposts_ListAssets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAssets'
+type Outposts_ListAssets_Call struct {
+	*mock.Call
+}
+
+// ListAssets is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.ListAssetsInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) ListAssets(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_ListAssets_Call {
+	return &Outposts_ListAssets_Call{Call: _e.mock.On("ListAssets",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_ListAssets_Call) Run(run func(ctx context.Context, params *outposts.ListAssetsInput, optFns ...func(*outposts.Options))) *Outposts_ListAssets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.ListAssetsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_ListAssets_Call) Return(_a0 *outposts.ListAssetsOutput, _a1 error) *Outposts_ListAssets_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_ListAssets_Call) RunAndReturn(run func(context.Context, *outposts.ListAssetsInput, ...func(*outposts.Options)) (*outposts.ListAssetsOutput, error)) *Outposts_ListAssets_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListBlockingInstancesForCapacityTask provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) ListBlockingInstancesForCapacityTask(ctx context.Context, params *outposts.ListBlockingInstancesForCapacityTaskInput, optFns ...func(*outposts.Options)) (*outposts.ListBlockingInstancesForCapacityTaskOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListBlockingInstancesForCapacityTask")
+	}
+
+	var r0 *outposts.ListBlockingInstancesForCapacityTaskOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.ListBlockingInstancesForCapacityTaskInput, ...func(*outposts.Options)) (*outposts.ListBlockingInstancesForCapacityTaskOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.ListBlockingInstancesForCapacityTaskInput, ...func(*outposts.Options)) *outposts.ListBlockingInstancesForCapacityTaskOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.ListBlockingInstancesForCapacityTaskOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.ListBlockingInstancesForCapacityTaskInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_ListBlockingInstancesForCapacityTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListBlockingInstancesForCapacityTask'
+type Outposts_ListBlockingInstancesForCapacityTask_Call struct {
+	*mock.Call
+}
+
+// ListBlockingInstancesForCapacityTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.ListBlockingInstancesForCapacityTaskInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) ListBlockingInstancesForCapacityTask(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_ListBlockingInstancesForCapacityTask_Call {
+	return &Outposts_ListBlockingInstancesForCapacityTask_Call{Call: _e.mock.On("ListBlockingInstancesForCapacityTask",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_ListBlockingInstancesForCapacityTask_Call) Run(run func(ctx context.Context, params *outposts.ListBlockingInstancesForCapacityTaskInput, optFns ...func(*outposts.Options))) *Outposts_ListBlockingInstancesForCapacityTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.ListBlockingInstancesForCapacityTaskInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_ListBlockingInstancesForCapacityTask_Call) Return(_a0 *outposts.ListBlockingInstancesForCapacityTaskOutput, _a1 error) *Outposts_ListBlockingInstancesForCapacityTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_ListBlockingInstancesForCapacityTask_Call) RunAndReturn(run func(context.Context, *outposts.ListBlockingInstancesForCapacityTaskInput, ...func(*outposts.Options)) (*outposts.ListBlockingInstancesForCapacityTaskOutput, error)) *Outposts_ListBlockingInstancesForCapacityTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListCapacityTasks provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) ListCapacityTasks(ctx context.Context, params *outposts.ListCapacityTasksInput, optFns ...func(*outposts.Options)) (*outposts.ListCapacityTasksOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListCapacityTasks")
+	}
+
+	var r0 *outposts.ListCapacityTasksOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.ListCapacityTasksInput, ...func(*outposts.Options)) (*outposts.ListCapacityTasksOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.ListCapacityTasksInput, ...func(*outposts.Options)) *outposts.ListCapacityTasksOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.ListCapacityTasksOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.ListCapacityTasksInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_ListCapacityTasks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListCapacityTasks'
+type Outposts_ListCapacityTasks_Call struct {
+	*mock.Call
+}
+
+// ListCapacityTasks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.ListCapacityTasksInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) ListCapacityTasks(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_ListCapacityTasks_Call {
+	return &Outposts_ListCapacityTasks_Call{Call: _e.mock.On("ListCapacityTasks",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_ListCapacityTasks_Call) Run(run func(ctx context.Context, params *outposts.ListCapacityTasksInput, optFns ...func(*outposts.Options))) *Outposts_ListCapacityTasks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.ListCapacityTasksInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_ListCapacityTasks_Call) Return(_a0 *outposts.ListCapacityTasksOutput, _a1 error) *Outposts_ListCapacityTasks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_ListCapacityTasks_Call) RunAndReturn(run func(context.Context, *outposts.ListCapacityTasksInput, ...func(*outposts.Options)) (*outposts.ListCapacityTasksOutput, error)) *Outposts_ListCapacityTasks_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListCatalogItems provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) ListCatalogItems(ctx context.Context, params *outposts.ListCatalogItemsInput, optFns ...func(*outposts.Options)) (*outposts.ListCatalogItemsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -567,6 +1537,43 @@ func (_m *Outposts) ListCatalogItems(ctx context.Context, params *outposts.ListC
 	}
 
 	return r0, r1
+}
+
+// Outposts_ListCatalogItems_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListCatalogItems'
+type Outposts_ListCatalogItems_Call struct {
+	*mock.Call
+}
+
+// ListCatalogItems is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.ListCatalogItemsInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) ListCatalogItems(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_ListCatalogItems_Call {
+	return &Outposts_ListCatalogItems_Call{Call: _e.mock.On("ListCatalogItems",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_ListCatalogItems_Call) Run(run func(ctx context.Context, params *outposts.ListCatalogItemsInput, optFns ...func(*outposts.Options))) *Outposts_ListCatalogItems_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.ListCatalogItemsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_ListCatalogItems_Call) Return(_a0 *outposts.ListCatalogItemsOutput, _a1 error) *Outposts_ListCatalogItems_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_ListCatalogItems_Call) RunAndReturn(run func(context.Context, *outposts.ListCatalogItemsInput, ...func(*outposts.Options)) (*outposts.ListCatalogItemsOutput, error)) *Outposts_ListCatalogItems_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListOrders provides a mock function with given fields: ctx, params, optFns
@@ -606,6 +1613,43 @@ func (_m *Outposts) ListOrders(ctx context.Context, params *outposts.ListOrdersI
 	return r0, r1
 }
 
+// Outposts_ListOrders_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOrders'
+type Outposts_ListOrders_Call struct {
+	*mock.Call
+}
+
+// ListOrders is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.ListOrdersInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) ListOrders(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_ListOrders_Call {
+	return &Outposts_ListOrders_Call{Call: _e.mock.On("ListOrders",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_ListOrders_Call) Run(run func(ctx context.Context, params *outposts.ListOrdersInput, optFns ...func(*outposts.Options))) *Outposts_ListOrders_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.ListOrdersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_ListOrders_Call) Return(_a0 *outposts.ListOrdersOutput, _a1 error) *Outposts_ListOrders_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_ListOrders_Call) RunAndReturn(run func(context.Context, *outposts.ListOrdersInput, ...func(*outposts.Options)) (*outposts.ListOrdersOutput, error)) *Outposts_ListOrders_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListOutposts provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) ListOutposts(ctx context.Context, params *outposts.ListOutpostsInput, optFns ...func(*outposts.Options)) (*outposts.ListOutpostsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -641,6 +1685,43 @@ func (_m *Outposts) ListOutposts(ctx context.Context, params *outposts.ListOutpo
 	}
 
 	return r0, r1
+}
+
+// Outposts_ListOutposts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOutposts'
+type Outposts_ListOutposts_Call struct {
+	*mock.Call
+}
+
+// ListOutposts is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.ListOutpostsInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) ListOutposts(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_ListOutposts_Call {
+	return &Outposts_ListOutposts_Call{Call: _e.mock.On("ListOutposts",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_ListOutposts_Call) Run(run func(ctx context.Context, params *outposts.ListOutpostsInput, optFns ...func(*outposts.Options))) *Outposts_ListOutposts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.ListOutpostsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_ListOutposts_Call) Return(_a0 *outposts.ListOutpostsOutput, _a1 error) *Outposts_ListOutposts_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_ListOutposts_Call) RunAndReturn(run func(context.Context, *outposts.ListOutpostsInput, ...func(*outposts.Options)) (*outposts.ListOutpostsOutput, error)) *Outposts_ListOutposts_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListSites provides a mock function with given fields: ctx, params, optFns
@@ -680,6 +1761,43 @@ func (_m *Outposts) ListSites(ctx context.Context, params *outposts.ListSitesInp
 	return r0, r1
 }
 
+// Outposts_ListSites_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSites'
+type Outposts_ListSites_Call struct {
+	*mock.Call
+}
+
+// ListSites is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.ListSitesInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) ListSites(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_ListSites_Call {
+	return &Outposts_ListSites_Call{Call: _e.mock.On("ListSites",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_ListSites_Call) Run(run func(ctx context.Context, params *outposts.ListSitesInput, optFns ...func(*outposts.Options))) *Outposts_ListSites_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.ListSitesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_ListSites_Call) Return(_a0 *outposts.ListSitesOutput, _a1 error) *Outposts_ListSites_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_ListSites_Call) RunAndReturn(run func(context.Context, *outposts.ListSitesInput, ...func(*outposts.Options)) (*outposts.ListSitesOutput, error)) *Outposts_ListSites_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListTagsForResource provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) ListTagsForResource(ctx context.Context, params *outposts.ListTagsForResourceInput, optFns ...func(*outposts.Options)) (*outposts.ListTagsForResourceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -717,6 +1835,43 @@ func (_m *Outposts) ListTagsForResource(ctx context.Context, params *outposts.Li
 	return r0, r1
 }
 
+// Outposts_ListTagsForResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTagsForResource'
+type Outposts_ListTagsForResource_Call struct {
+	*mock.Call
+}
+
+// ListTagsForResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.ListTagsForResourceInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) ListTagsForResource(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_ListTagsForResource_Call {
+	return &Outposts_ListTagsForResource_Call{Call: _e.mock.On("ListTagsForResource",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_ListTagsForResource_Call) Run(run func(ctx context.Context, params *outposts.ListTagsForResourceInput, optFns ...func(*outposts.Options))) *Outposts_ListTagsForResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.ListTagsForResourceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_ListTagsForResource_Call) Return(_a0 *outposts.ListTagsForResourceOutput, _a1 error) *Outposts_ListTagsForResource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_ListTagsForResource_Call) RunAndReturn(run func(context.Context, *outposts.ListTagsForResourceInput, ...func(*outposts.Options)) (*outposts.ListTagsForResourceOutput, error)) *Outposts_ListTagsForResource_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Options provides a mock function with given fields:
 func (_m *Outposts) Options() outposts.Options {
 	ret := _m.Called()
@@ -733,6 +1888,107 @@ func (_m *Outposts) Options() outposts.Options {
 	}
 
 	return r0
+}
+
+// Outposts_Options_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Options'
+type Outposts_Options_Call struct {
+	*mock.Call
+}
+
+// Options is a helper method to define mock.On call
+func (_e *Outposts_Expecter) Options() *Outposts_Options_Call {
+	return &Outposts_Options_Call{Call: _e.mock.On("Options")}
+}
+
+func (_c *Outposts_Options_Call) Run(run func()) *Outposts_Options_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Outposts_Options_Call) Return(_a0 outposts.Options) *Outposts_Options_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Outposts_Options_Call) RunAndReturn(run func() outposts.Options) *Outposts_Options_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// StartCapacityTask provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) StartCapacityTask(ctx context.Context, params *outposts.StartCapacityTaskInput, optFns ...func(*outposts.Options)) (*outposts.StartCapacityTaskOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartCapacityTask")
+	}
+
+	var r0 *outposts.StartCapacityTaskOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.StartCapacityTaskInput, ...func(*outposts.Options)) (*outposts.StartCapacityTaskOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.StartCapacityTaskInput, ...func(*outposts.Options)) *outposts.StartCapacityTaskOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.StartCapacityTaskOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.StartCapacityTaskInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_StartCapacityTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartCapacityTask'
+type Outposts_StartCapacityTask_Call struct {
+	*mock.Call
+}
+
+// StartCapacityTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.StartCapacityTaskInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) StartCapacityTask(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_StartCapacityTask_Call {
+	return &Outposts_StartCapacityTask_Call{Call: _e.mock.On("StartCapacityTask",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_StartCapacityTask_Call) Run(run func(ctx context.Context, params *outposts.StartCapacityTaskInput, optFns ...func(*outposts.Options))) *Outposts_StartCapacityTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.StartCapacityTaskInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_StartCapacityTask_Call) Return(_a0 *outposts.StartCapacityTaskOutput, _a1 error) *Outposts_StartCapacityTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_StartCapacityTask_Call) RunAndReturn(run func(context.Context, *outposts.StartCapacityTaskInput, ...func(*outposts.Options)) (*outposts.StartCapacityTaskOutput, error)) *Outposts_StartCapacityTask_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // StartConnection provides a mock function with given fields: ctx, params, optFns
@@ -772,6 +2028,43 @@ func (_m *Outposts) StartConnection(ctx context.Context, params *outposts.StartC
 	return r0, r1
 }
 
+// Outposts_StartConnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartConnection'
+type Outposts_StartConnection_Call struct {
+	*mock.Call
+}
+
+// StartConnection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.StartConnectionInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) StartConnection(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_StartConnection_Call {
+	return &Outposts_StartConnection_Call{Call: _e.mock.On("StartConnection",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_StartConnection_Call) Run(run func(ctx context.Context, params *outposts.StartConnectionInput, optFns ...func(*outposts.Options))) *Outposts_StartConnection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.StartConnectionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_StartConnection_Call) Return(_a0 *outposts.StartConnectionOutput, _a1 error) *Outposts_StartConnection_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_StartConnection_Call) RunAndReturn(run func(context.Context, *outposts.StartConnectionInput, ...func(*outposts.Options)) (*outposts.StartConnectionOutput, error)) *Outposts_StartConnection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TagResource provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) TagResource(ctx context.Context, params *outposts.TagResourceInput, optFns ...func(*outposts.Options)) (*outposts.TagResourceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -807,6 +2100,43 @@ func (_m *Outposts) TagResource(ctx context.Context, params *outposts.TagResourc
 	}
 
 	return r0, r1
+}
+
+// Outposts_TagResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TagResource'
+type Outposts_TagResource_Call struct {
+	*mock.Call
+}
+
+// TagResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.TagResourceInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) TagResource(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_TagResource_Call {
+	return &Outposts_TagResource_Call{Call: _e.mock.On("TagResource",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_TagResource_Call) Run(run func(ctx context.Context, params *outposts.TagResourceInput, optFns ...func(*outposts.Options))) *Outposts_TagResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.TagResourceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_TagResource_Call) Return(_a0 *outposts.TagResourceOutput, _a1 error) *Outposts_TagResource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_TagResource_Call) RunAndReturn(run func(context.Context, *outposts.TagResourceInput, ...func(*outposts.Options)) (*outposts.TagResourceOutput, error)) *Outposts_TagResource_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UntagResource provides a mock function with given fields: ctx, params, optFns
@@ -846,6 +2176,43 @@ func (_m *Outposts) UntagResource(ctx context.Context, params *outposts.UntagRes
 	return r0, r1
 }
 
+// Outposts_UntagResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UntagResource'
+type Outposts_UntagResource_Call struct {
+	*mock.Call
+}
+
+// UntagResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.UntagResourceInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) UntagResource(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_UntagResource_Call {
+	return &Outposts_UntagResource_Call{Call: _e.mock.On("UntagResource",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_UntagResource_Call) Run(run func(ctx context.Context, params *outposts.UntagResourceInput, optFns ...func(*outposts.Options))) *Outposts_UntagResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.UntagResourceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_UntagResource_Call) Return(_a0 *outposts.UntagResourceOutput, _a1 error) *Outposts_UntagResource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_UntagResource_Call) RunAndReturn(run func(context.Context, *outposts.UntagResourceInput, ...func(*outposts.Options)) (*outposts.UntagResourceOutput, error)) *Outposts_UntagResource_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateOutpost provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) UpdateOutpost(ctx context.Context, params *outposts.UpdateOutpostInput, optFns ...func(*outposts.Options)) (*outposts.UpdateOutpostOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -881,6 +2248,43 @@ func (_m *Outposts) UpdateOutpost(ctx context.Context, params *outposts.UpdateOu
 	}
 
 	return r0, r1
+}
+
+// Outposts_UpdateOutpost_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateOutpost'
+type Outposts_UpdateOutpost_Call struct {
+	*mock.Call
+}
+
+// UpdateOutpost is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.UpdateOutpostInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) UpdateOutpost(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_UpdateOutpost_Call {
+	return &Outposts_UpdateOutpost_Call{Call: _e.mock.On("UpdateOutpost",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_UpdateOutpost_Call) Run(run func(ctx context.Context, params *outposts.UpdateOutpostInput, optFns ...func(*outposts.Options))) *Outposts_UpdateOutpost_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.UpdateOutpostInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_UpdateOutpost_Call) Return(_a0 *outposts.UpdateOutpostOutput, _a1 error) *Outposts_UpdateOutpost_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_UpdateOutpost_Call) RunAndReturn(run func(context.Context, *outposts.UpdateOutpostInput, ...func(*outposts.Options)) (*outposts.UpdateOutpostOutput, error)) *Outposts_UpdateOutpost_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateSite provides a mock function with given fields: ctx, params, optFns
@@ -920,6 +2324,43 @@ func (_m *Outposts) UpdateSite(ctx context.Context, params *outposts.UpdateSiteI
 	return r0, r1
 }
 
+// Outposts_UpdateSite_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateSite'
+type Outposts_UpdateSite_Call struct {
+	*mock.Call
+}
+
+// UpdateSite is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.UpdateSiteInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) UpdateSite(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_UpdateSite_Call {
+	return &Outposts_UpdateSite_Call{Call: _e.mock.On("UpdateSite",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_UpdateSite_Call) Run(run func(ctx context.Context, params *outposts.UpdateSiteInput, optFns ...func(*outposts.Options))) *Outposts_UpdateSite_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.UpdateSiteInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_UpdateSite_Call) Return(_a0 *outposts.UpdateSiteOutput, _a1 error) *Outposts_UpdateSite_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_UpdateSite_Call) RunAndReturn(run func(context.Context, *outposts.UpdateSiteInput, ...func(*outposts.Options)) (*outposts.UpdateSiteOutput, error)) *Outposts_UpdateSite_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateSiteAddress provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) UpdateSiteAddress(ctx context.Context, params *outposts.UpdateSiteAddressInput, optFns ...func(*outposts.Options)) (*outposts.UpdateSiteAddressOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -957,6 +2398,43 @@ func (_m *Outposts) UpdateSiteAddress(ctx context.Context, params *outposts.Upda
 	return r0, r1
 }
 
+// Outposts_UpdateSiteAddress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateSiteAddress'
+type Outposts_UpdateSiteAddress_Call struct {
+	*mock.Call
+}
+
+// UpdateSiteAddress is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.UpdateSiteAddressInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) UpdateSiteAddress(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_UpdateSiteAddress_Call {
+	return &Outposts_UpdateSiteAddress_Call{Call: _e.mock.On("UpdateSiteAddress",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_UpdateSiteAddress_Call) Run(run func(ctx context.Context, params *outposts.UpdateSiteAddressInput, optFns ...func(*outposts.Options))) *Outposts_UpdateSiteAddress_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.UpdateSiteAddressInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_UpdateSiteAddress_Call) Return(_a0 *outposts.UpdateSiteAddressOutput, _a1 error) *Outposts_UpdateSiteAddress_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_UpdateSiteAddress_Call) RunAndReturn(run func(context.Context, *outposts.UpdateSiteAddressInput, ...func(*outposts.Options)) (*outposts.UpdateSiteAddressOutput, error)) *Outposts_UpdateSiteAddress_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateSiteRackPhysicalProperties provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) UpdateSiteRackPhysicalProperties(ctx context.Context, params *outposts.UpdateSiteRackPhysicalPropertiesInput, optFns ...func(*outposts.Options)) (*outposts.UpdateSiteRackPhysicalPropertiesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -992,6 +2470,43 @@ func (_m *Outposts) UpdateSiteRackPhysicalProperties(ctx context.Context, params
 	}
 
 	return r0, r1
+}
+
+// Outposts_UpdateSiteRackPhysicalProperties_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateSiteRackPhysicalProperties'
+type Outposts_UpdateSiteRackPhysicalProperties_Call struct {
+	*mock.Call
+}
+
+// UpdateSiteRackPhysicalProperties is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.UpdateSiteRackPhysicalPropertiesInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) UpdateSiteRackPhysicalProperties(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_UpdateSiteRackPhysicalProperties_Call {
+	return &Outposts_UpdateSiteRackPhysicalProperties_Call{Call: _e.mock.On("UpdateSiteRackPhysicalProperties",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_UpdateSiteRackPhysicalProperties_Call) Run(run func(ctx context.Context, params *outposts.UpdateSiteRackPhysicalPropertiesInput, optFns ...func(*outposts.Options))) *Outposts_UpdateSiteRackPhysicalProperties_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.UpdateSiteRackPhysicalPropertiesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_UpdateSiteRackPhysicalProperties_Call) Return(_a0 *outposts.UpdateSiteRackPhysicalPropertiesOutput, _a1 error) *Outposts_UpdateSiteRackPhysicalProperties_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_UpdateSiteRackPhysicalProperties_Call) RunAndReturn(run func(context.Context, *outposts.UpdateSiteRackPhysicalPropertiesInput, ...func(*outposts.Options)) (*outposts.UpdateSiteRackPhysicalPropertiesOutput, error)) *Outposts_UpdateSiteRackPhysicalProperties_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewOutposts creates a new instance of Outposts. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

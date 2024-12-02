@@ -2,6 +2,7 @@ package ami
 
 import (
 	"context"
+	"errors"
 
 	"github.com/kris-nova/logger"
 
@@ -21,7 +22,8 @@ func (r *MultiResolver) Resolve(ctx context.Context, region, version, instanceTy
 	for _, resolver := range r.delegates {
 		ami, err := resolver.Resolve(ctx, region, version, instanceType, imageFamily)
 		if err != nil {
-			if _, ok := err.(*UnsupportedQueryError); ok {
+			var queryErr *UnsupportedQueryError
+			if errors.As(err, &queryErr) {
 				logger.Debug(err.Error())
 				continue
 			}

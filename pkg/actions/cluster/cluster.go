@@ -10,6 +10,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/automode"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
@@ -35,9 +36,13 @@ func New(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider) 
 		return nil, err
 	}
 
+	autoModeDeleter := &automode.RoleDeleter{
+		Cluster:      ctl.Status.ClusterInfo.Cluster,
+		StackDeleter: stackManager,
+	}
 	if clusterStack != nil {
 		logger.Debug("cluster %q was created by eksctl", cfg.Metadata.Name)
-		return NewOwnedCluster(cfg, ctl, clusterStack, stackManager), nil
+		return NewOwnedCluster(cfg, ctl, clusterStack, stackManager, autoModeDeleter), nil
 	}
 
 	if !clusterExists {
@@ -46,5 +51,5 @@ func New(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider) 
 
 	logger.Debug("cluster %q was not created by eksctl", cfg.Metadata.Name)
 
-	return NewUnownedCluster(cfg, ctl, stackManager), nil
+	return NewUnownedCluster(cfg, ctl, stackManager, autoModeDeleter), nil
 }

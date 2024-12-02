@@ -1,6 +1,6 @@
 ---
-AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Networking and roles for EKSCTL unowned cluster integration test'
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Networking and roles for EKSCTL unowned cluster integration test"
 
 Mappings:
   ServicePrincipalPartitionMap:
@@ -8,7 +8,8 @@ Mappings:
       EC2: ec2.amazonaws.com
       EKS: eks.amazonaws.com
       EKSFargatePods: eks-fargate-pods.amazonaws.com
-
+      IRA: rolesanywhere.amazonaws.com
+      SSM: ssm.amazonaws.com
 Parameters:
   VpcBlock:
     Type: String
@@ -48,8 +49,7 @@ Parameters:
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
-      -
-        Label:
+      - Label:
           default: "Worker Network Configuration"
         Parameters:
           - VpcBlock
@@ -64,23 +64,23 @@ Conditions:
   Has2Azs:
     Fn::Or:
       - Fn::Equals:
-        - {Ref: 'AWS::Region'}
-        - ap-south-1
+          - { Ref: "AWS::Region" }
+          - ap-south-1
       - Fn::Equals:
-        - {Ref: 'AWS::Region'}
-        - ap-northeast-2
+          - { Ref: "AWS::Region" }
+          - ap-northeast-2
       - Fn::Equals:
-        - {Ref: 'AWS::Region'}
-        - ca-central-1
+          - { Ref: "AWS::Region" }
+          - ca-central-1
       - Fn::Equals:
-        - {Ref: 'AWS::Region'}
-        - cn-north-1
+          - { Ref: "AWS::Region" }
+          - cn-north-1
       - Fn::Equals:
-        - {Ref: 'AWS::Region'}
-        - sa-east-1
+          - { Ref: "AWS::Region" }
+          - sa-east-1
       - Fn::Equals:
-        - {Ref: 'AWS::Region'}
-        - us-west-1
+          - { Ref: "AWS::Region" }
+          - us-west-1
 
   HasMoreThan2Azs:
     Fn::Not:
@@ -101,7 +101,7 @@ Resources:
                     - ServicePrincipalPartitionMap
                     - Ref: AWS::Partition
                     - EC2
-        Version: '2012-10-17'
+        Version: "2012-10-17"
       ManagedPolicyArns:
         - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy
@@ -129,7 +129,7 @@ Resources:
                     - ServicePrincipalPartitionMap
                     - Ref: AWS::Partition
                     - EKSFargatePods
-        Version: '2012-10-17'
+        Version: "2012-10-17"
       ManagedPolicyArns:
         - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/AmazonEKSClusterPolicy
         - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/AmazonEKSVPCResourceController
@@ -140,12 +140,12 @@ Resources:
   VPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock:  !Ref VpcBlock
+      CidrBlock: !Ref VpcBlock
       EnableDnsSupport: true
       EnableDnsHostnames: true
       Tags:
-      - Key: Name
-        Value: !Sub '${AWS::StackName}-VPC'
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-VPC"
 
   InternetGateway:
     Type: "AWS::EC2::InternetGateway"
@@ -161,20 +161,20 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       Tags:
-      - Key: Name
-        Value: Public Subnets
-      - Key: Network
-        Value: Public
+        - Key: Name
+          Value: Public Subnets
+        - Key: Network
+          Value: Public
 
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
       Tags:
-      - Key: Name
-        Value: Private Subnets
-      - Key: Network
-        Value: Private
+        - Key: Name
+          Value: Private Subnets
+        - Key: Network
+          Value: Private
 
   Route:
     DependsOn: VPCGatewayAttachment
@@ -192,18 +192,18 @@ Resources:
       MapPublicIpOnLaunch: true
       AvailabilityZone:
         Fn::Select:
-        - '0'
-        - Fn::GetAZs:
-            Ref: AWS::Region
+          - "0"
+          - Fn::GetAZs:
+              Ref: AWS::Region
       CidrBlock:
         Ref: Subnet01Block
       VpcId:
         Ref: VPC
       Tags:
-      - Key: Name
-        Value: !Sub "${AWS::StackName}-Subnet01"
-      - Key: kubernetes.io/role/elb
-        Value: 1
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-Subnet01"
+        - Key: kubernetes.io/role/elb
+          Value: 1
 
   Subnet02:
     Type: AWS::EC2::Subnet
@@ -213,18 +213,18 @@ Resources:
       MapPublicIpOnLaunch: true
       AvailabilityZone:
         Fn::Select:
-        - '1'
-        - Fn::GetAZs:
-            Ref: AWS::Region
+          - "1"
+          - Fn::GetAZs:
+              Ref: AWS::Region
       CidrBlock:
         Ref: Subnet02Block
       VpcId:
         Ref: VPC
       Tags:
-      - Key: Name
-        Value: !Sub "${AWS::StackName}-Subnet02"
-      - Key: kubernetes.io/role/elb
-        Value: 1
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-Subnet02"
+        - Key: kubernetes.io/role/elb
+          Value: 1
 
   Subnet03:
     Condition: HasMoreThan2Azs
@@ -235,18 +235,18 @@ Resources:
       MapPublicIpOnLaunch: true
       AvailabilityZone:
         Fn::Select:
-        - '2'
-        - Fn::GetAZs:
-            Ref: AWS::Region
+          - "2"
+          - Fn::GetAZs:
+              Ref: AWS::Region
       CidrBlock:
         Ref: Subnet03Block
       VpcId:
         Ref: VPC
       Tags:
-      - Key: Name
-        Value: !Sub "${AWS::StackName}-Subnet03"
-      - Key: kubernetes.io/role/elb
-        Value: 1
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-Subnet03"
+        - Key: kubernetes.io/role/elb
+          Value: 1
 
   Subnet04:
     Type: AWS::EC2::Subnet
@@ -255,16 +255,16 @@ Resources:
     Properties:
       AvailabilityZone:
         Fn::Select:
-        - '1'
-        - Fn::GetAZs:
-            Ref: AWS::Region
+          - "1"
+          - Fn::GetAZs:
+              Ref: AWS::Region
       CidrBlock:
         Ref: Subnet04Block
       VpcId:
         Ref: VPC
       Tags:
-      - Key: Name
-        Value: !Sub "${AWS::StackName}-Subnet04"
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-Subnet04"
 
   Subnet05:
     Type: AWS::EC2::Subnet
@@ -273,16 +273,16 @@ Resources:
     Properties:
       AvailabilityZone:
         Fn::Select:
-        - '1'
-        - Fn::GetAZs:
-            Ref: AWS::Region
+          - "1"
+          - Fn::GetAZs:
+              Ref: AWS::Region
       CidrBlock:
         Ref: Subnet05Block
       VpcId:
         Ref: VPC
       Tags:
-      - Key: Name
-        Value: !Sub "${AWS::StackName}-Subnet05"
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-Subnet05"
 
   Subnet06:
     Condition: HasMoreThan2Azs
@@ -292,16 +292,16 @@ Resources:
     Properties:
       AvailabilityZone:
         Fn::Select:
-        - '1'
-        - Fn::GetAZs:
-            Ref: AWS::Region
+          - "1"
+          - Fn::GetAZs:
+              Ref: AWS::Region
       CidrBlock:
         Ref: Subnet06Block
       VpcId:
         Ref: VPC
       Tags:
-      - Key: Name
-        Value: !Sub "${AWS::StackName}-Subnet06"
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-Subnet06"
 
   Subnet01RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -351,8 +351,8 @@ Outputs:
   ClusterRoleARN:
     Value:
       Fn::GetAtt:
-          - "ClusterRole"
-          - "Arn"
+        - "ClusterRole"
+        - "Arn"
     Export:
       Name:
         Fn::Sub: "${AWS::StackName}::ClusterRoleARN"
@@ -370,21 +370,21 @@ Outputs:
     Description: All private subnets in the VPC
     Value:
       Fn::If:
-      - HasMoreThan2Azs
-      - !Join [ ",", [ !Ref Subnet04, !Ref Subnet05, !Ref Subnet06 ] ]
-      - !Join [ ",", [ !Ref Subnet04, !Ref Subnet05 ] ]
+        - HasMoreThan2Azs
+        - !Join [",", [!Ref Subnet04, !Ref Subnet05, !Ref Subnet06]]
+        - !Join [",", [!Ref Subnet04, !Ref Subnet05]]
 
   PublicSubnetIds:
     Description: All public subnets in the VPC
     Value:
       Fn::If:
-      - HasMoreThan2Azs
-      - !Join [ ",", [ !Ref Subnet01, !Ref Subnet02, !Ref Subnet03 ] ]
-      - !Join [ ",", [ !Ref Subnet01, !Ref Subnet02 ] ]
+        - HasMoreThan2Azs
+        - !Join [",", [!Ref Subnet01, !Ref Subnet02, !Ref Subnet03]]
+        - !Join [",", [!Ref Subnet01, !Ref Subnet02]]
 
   SecurityGroups:
     Description: Security group for the cluster control plane communication with worker nodes
-    Value: !Join [ ",", [ !Ref ControlPlaneSecurityGroup ] ]
+    Value: !Join [",", [!Ref ControlPlaneSecurityGroup]]
 
   VpcId:
     Description: The VPC Id

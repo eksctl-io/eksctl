@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -10,8 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-
-	"github.com/pkg/errors"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 

@@ -6,7 +6,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -23,7 +22,7 @@ func (m *Manager) Create(ctx context.Context, mapping *api.IAMIdentityMapping) e
 	if mapping.ServiceName != "" {
 		parsedARN, err := arn.Parse(m.clusterConfig.Status.ARN)
 		if err != nil {
-			return errors.Wrap(err, "error parsing cluster ARN")
+			return fmt.Errorf("error parsing cluster ARN: %w", err)
 		}
 		sa := authconfigmap.NewServiceAccess(m.rawClient, acm, parsedARN.AccountID)
 		return sa.Grant(mapping.ServiceName, mapping.Namespace, api.Partitions.ForRegion(m.region))

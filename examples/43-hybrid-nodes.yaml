@@ -1,0 +1,23 @@
+# An example of cluster config with remote networking configured.
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: hybrid-nodes
+  region: us-west-2
+
+accessConfig:
+  authenticationMode: API_AND_CONFIG_MAP
+
+vpc:
+  cidr: 10.226.98.0/23
+
+remoteNetworkConfig:
+  vpcGatewayID: tgw-028fbe2348e6eed74
+  iam:
+    provider: IRA # default is ssm
+    caBundleCert: xxxx
+  remoteNodeNetworks:
+    # eksctl will create, behind the scenes, SG rules, routes, and a VPC gateway attachment,
+    # to facilitate communication between remote network(s) and EKS control plane, via the attached gateway
+    - cidrs: ["10.80.146.0/24"]

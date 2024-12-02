@@ -14,6 +14,14 @@ type EKS struct {
 	mock.Mock
 }
 
+type EKS_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *EKS) EXPECT() *EKS_Expecter {
+	return &EKS_Expecter{mock: &_m.Mock}
+}
+
 // AssociateAccessPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) AssociateAccessPolicy(ctx context.Context, params *eks.AssociateAccessPolicyInput, optFns ...func(*eks.Options)) (*eks.AssociateAccessPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -49,6 +57,43 @@ func (_m *EKS) AssociateAccessPolicy(ctx context.Context, params *eks.AssociateA
 	}
 
 	return r0, r1
+}
+
+// EKS_AssociateAccessPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AssociateAccessPolicy'
+type EKS_AssociateAccessPolicy_Call struct {
+	*mock.Call
+}
+
+// AssociateAccessPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.AssociateAccessPolicyInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) AssociateAccessPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_AssociateAccessPolicy_Call {
+	return &EKS_AssociateAccessPolicy_Call{Call: _e.mock.On("AssociateAccessPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_AssociateAccessPolicy_Call) Run(run func(ctx context.Context, params *eks.AssociateAccessPolicyInput, optFns ...func(*eks.Options))) *EKS_AssociateAccessPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.AssociateAccessPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_AssociateAccessPolicy_Call) Return(_a0 *eks.AssociateAccessPolicyOutput, _a1 error) *EKS_AssociateAccessPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_AssociateAccessPolicy_Call) RunAndReturn(run func(context.Context, *eks.AssociateAccessPolicyInput, ...func(*eks.Options)) (*eks.AssociateAccessPolicyOutput, error)) *EKS_AssociateAccessPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // AssociateEncryptionConfig provides a mock function with given fields: ctx, params, optFns
@@ -88,6 +133,43 @@ func (_m *EKS) AssociateEncryptionConfig(ctx context.Context, params *eks.Associ
 	return r0, r1
 }
 
+// EKS_AssociateEncryptionConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AssociateEncryptionConfig'
+type EKS_AssociateEncryptionConfig_Call struct {
+	*mock.Call
+}
+
+// AssociateEncryptionConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.AssociateEncryptionConfigInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) AssociateEncryptionConfig(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_AssociateEncryptionConfig_Call {
+	return &EKS_AssociateEncryptionConfig_Call{Call: _e.mock.On("AssociateEncryptionConfig",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_AssociateEncryptionConfig_Call) Run(run func(ctx context.Context, params *eks.AssociateEncryptionConfigInput, optFns ...func(*eks.Options))) *EKS_AssociateEncryptionConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.AssociateEncryptionConfigInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_AssociateEncryptionConfig_Call) Return(_a0 *eks.AssociateEncryptionConfigOutput, _a1 error) *EKS_AssociateEncryptionConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_AssociateEncryptionConfig_Call) RunAndReturn(run func(context.Context, *eks.AssociateEncryptionConfigInput, ...func(*eks.Options)) (*eks.AssociateEncryptionConfigOutput, error)) *EKS_AssociateEncryptionConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AssociateIdentityProviderConfig provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) AssociateIdentityProviderConfig(ctx context.Context, params *eks.AssociateIdentityProviderConfigInput, optFns ...func(*eks.Options)) (*eks.AssociateIdentityProviderConfigOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -123,6 +205,43 @@ func (_m *EKS) AssociateIdentityProviderConfig(ctx context.Context, params *eks.
 	}
 
 	return r0, r1
+}
+
+// EKS_AssociateIdentityProviderConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AssociateIdentityProviderConfig'
+type EKS_AssociateIdentityProviderConfig_Call struct {
+	*mock.Call
+}
+
+// AssociateIdentityProviderConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.AssociateIdentityProviderConfigInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) AssociateIdentityProviderConfig(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_AssociateIdentityProviderConfig_Call {
+	return &EKS_AssociateIdentityProviderConfig_Call{Call: _e.mock.On("AssociateIdentityProviderConfig",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_AssociateIdentityProviderConfig_Call) Run(run func(ctx context.Context, params *eks.AssociateIdentityProviderConfigInput, optFns ...func(*eks.Options))) *EKS_AssociateIdentityProviderConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.AssociateIdentityProviderConfigInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_AssociateIdentityProviderConfig_Call) Return(_a0 *eks.AssociateIdentityProviderConfigOutput, _a1 error) *EKS_AssociateIdentityProviderConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_AssociateIdentityProviderConfig_Call) RunAndReturn(run func(context.Context, *eks.AssociateIdentityProviderConfigInput, ...func(*eks.Options)) (*eks.AssociateIdentityProviderConfigOutput, error)) *EKS_AssociateIdentityProviderConfig_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateAccessEntry provides a mock function with given fields: ctx, params, optFns
@@ -162,6 +281,43 @@ func (_m *EKS) CreateAccessEntry(ctx context.Context, params *eks.CreateAccessEn
 	return r0, r1
 }
 
+// EKS_CreateAccessEntry_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAccessEntry'
+type EKS_CreateAccessEntry_Call struct {
+	*mock.Call
+}
+
+// CreateAccessEntry is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.CreateAccessEntryInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) CreateAccessEntry(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_CreateAccessEntry_Call {
+	return &EKS_CreateAccessEntry_Call{Call: _e.mock.On("CreateAccessEntry",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_CreateAccessEntry_Call) Run(run func(ctx context.Context, params *eks.CreateAccessEntryInput, optFns ...func(*eks.Options))) *EKS_CreateAccessEntry_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.CreateAccessEntryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_CreateAccessEntry_Call) Return(_a0 *eks.CreateAccessEntryOutput, _a1 error) *EKS_CreateAccessEntry_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_CreateAccessEntry_Call) RunAndReturn(run func(context.Context, *eks.CreateAccessEntryInput, ...func(*eks.Options)) (*eks.CreateAccessEntryOutput, error)) *EKS_CreateAccessEntry_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateAddon provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) CreateAddon(ctx context.Context, params *eks.CreateAddonInput, optFns ...func(*eks.Options)) (*eks.CreateAddonOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -197,6 +353,43 @@ func (_m *EKS) CreateAddon(ctx context.Context, params *eks.CreateAddonInput, op
 	}
 
 	return r0, r1
+}
+
+// EKS_CreateAddon_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAddon'
+type EKS_CreateAddon_Call struct {
+	*mock.Call
+}
+
+// CreateAddon is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.CreateAddonInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) CreateAddon(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_CreateAddon_Call {
+	return &EKS_CreateAddon_Call{Call: _e.mock.On("CreateAddon",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_CreateAddon_Call) Run(run func(ctx context.Context, params *eks.CreateAddonInput, optFns ...func(*eks.Options))) *EKS_CreateAddon_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.CreateAddonInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_CreateAddon_Call) Return(_a0 *eks.CreateAddonOutput, _a1 error) *EKS_CreateAddon_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_CreateAddon_Call) RunAndReturn(run func(context.Context, *eks.CreateAddonInput, ...func(*eks.Options)) (*eks.CreateAddonOutput, error)) *EKS_CreateAddon_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateCluster provides a mock function with given fields: ctx, params, optFns
@@ -236,6 +429,43 @@ func (_m *EKS) CreateCluster(ctx context.Context, params *eks.CreateClusterInput
 	return r0, r1
 }
 
+// EKS_CreateCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateCluster'
+type EKS_CreateCluster_Call struct {
+	*mock.Call
+}
+
+// CreateCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.CreateClusterInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) CreateCluster(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_CreateCluster_Call {
+	return &EKS_CreateCluster_Call{Call: _e.mock.On("CreateCluster",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_CreateCluster_Call) Run(run func(ctx context.Context, params *eks.CreateClusterInput, optFns ...func(*eks.Options))) *EKS_CreateCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.CreateClusterInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_CreateCluster_Call) Return(_a0 *eks.CreateClusterOutput, _a1 error) *EKS_CreateCluster_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_CreateCluster_Call) RunAndReturn(run func(context.Context, *eks.CreateClusterInput, ...func(*eks.Options)) (*eks.CreateClusterOutput, error)) *EKS_CreateCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateEksAnywhereSubscription provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) CreateEksAnywhereSubscription(ctx context.Context, params *eks.CreateEksAnywhereSubscriptionInput, optFns ...func(*eks.Options)) (*eks.CreateEksAnywhereSubscriptionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -271,6 +501,43 @@ func (_m *EKS) CreateEksAnywhereSubscription(ctx context.Context, params *eks.Cr
 	}
 
 	return r0, r1
+}
+
+// EKS_CreateEksAnywhereSubscription_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateEksAnywhereSubscription'
+type EKS_CreateEksAnywhereSubscription_Call struct {
+	*mock.Call
+}
+
+// CreateEksAnywhereSubscription is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.CreateEksAnywhereSubscriptionInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) CreateEksAnywhereSubscription(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_CreateEksAnywhereSubscription_Call {
+	return &EKS_CreateEksAnywhereSubscription_Call{Call: _e.mock.On("CreateEksAnywhereSubscription",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_CreateEksAnywhereSubscription_Call) Run(run func(ctx context.Context, params *eks.CreateEksAnywhereSubscriptionInput, optFns ...func(*eks.Options))) *EKS_CreateEksAnywhereSubscription_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.CreateEksAnywhereSubscriptionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_CreateEksAnywhereSubscription_Call) Return(_a0 *eks.CreateEksAnywhereSubscriptionOutput, _a1 error) *EKS_CreateEksAnywhereSubscription_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_CreateEksAnywhereSubscription_Call) RunAndReturn(run func(context.Context, *eks.CreateEksAnywhereSubscriptionInput, ...func(*eks.Options)) (*eks.CreateEksAnywhereSubscriptionOutput, error)) *EKS_CreateEksAnywhereSubscription_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateFargateProfile provides a mock function with given fields: ctx, params, optFns
@@ -310,6 +577,43 @@ func (_m *EKS) CreateFargateProfile(ctx context.Context, params *eks.CreateFarga
 	return r0, r1
 }
 
+// EKS_CreateFargateProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateFargateProfile'
+type EKS_CreateFargateProfile_Call struct {
+	*mock.Call
+}
+
+// CreateFargateProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.CreateFargateProfileInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) CreateFargateProfile(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_CreateFargateProfile_Call {
+	return &EKS_CreateFargateProfile_Call{Call: _e.mock.On("CreateFargateProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_CreateFargateProfile_Call) Run(run func(ctx context.Context, params *eks.CreateFargateProfileInput, optFns ...func(*eks.Options))) *EKS_CreateFargateProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.CreateFargateProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_CreateFargateProfile_Call) Return(_a0 *eks.CreateFargateProfileOutput, _a1 error) *EKS_CreateFargateProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_CreateFargateProfile_Call) RunAndReturn(run func(context.Context, *eks.CreateFargateProfileInput, ...func(*eks.Options)) (*eks.CreateFargateProfileOutput, error)) *EKS_CreateFargateProfile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateNodegroup provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) CreateNodegroup(ctx context.Context, params *eks.CreateNodegroupInput, optFns ...func(*eks.Options)) (*eks.CreateNodegroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -345,6 +649,43 @@ func (_m *EKS) CreateNodegroup(ctx context.Context, params *eks.CreateNodegroupI
 	}
 
 	return r0, r1
+}
+
+// EKS_CreateNodegroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateNodegroup'
+type EKS_CreateNodegroup_Call struct {
+	*mock.Call
+}
+
+// CreateNodegroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.CreateNodegroupInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) CreateNodegroup(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_CreateNodegroup_Call {
+	return &EKS_CreateNodegroup_Call{Call: _e.mock.On("CreateNodegroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_CreateNodegroup_Call) Run(run func(ctx context.Context, params *eks.CreateNodegroupInput, optFns ...func(*eks.Options))) *EKS_CreateNodegroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.CreateNodegroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_CreateNodegroup_Call) Return(_a0 *eks.CreateNodegroupOutput, _a1 error) *EKS_CreateNodegroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_CreateNodegroup_Call) RunAndReturn(run func(context.Context, *eks.CreateNodegroupInput, ...func(*eks.Options)) (*eks.CreateNodegroupOutput, error)) *EKS_CreateNodegroup_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreatePodIdentityAssociation provides a mock function with given fields: ctx, params, optFns
@@ -384,6 +725,43 @@ func (_m *EKS) CreatePodIdentityAssociation(ctx context.Context, params *eks.Cre
 	return r0, r1
 }
 
+// EKS_CreatePodIdentityAssociation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreatePodIdentityAssociation'
+type EKS_CreatePodIdentityAssociation_Call struct {
+	*mock.Call
+}
+
+// CreatePodIdentityAssociation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.CreatePodIdentityAssociationInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) CreatePodIdentityAssociation(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_CreatePodIdentityAssociation_Call {
+	return &EKS_CreatePodIdentityAssociation_Call{Call: _e.mock.On("CreatePodIdentityAssociation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_CreatePodIdentityAssociation_Call) Run(run func(ctx context.Context, params *eks.CreatePodIdentityAssociationInput, optFns ...func(*eks.Options))) *EKS_CreatePodIdentityAssociation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.CreatePodIdentityAssociationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_CreatePodIdentityAssociation_Call) Return(_a0 *eks.CreatePodIdentityAssociationOutput, _a1 error) *EKS_CreatePodIdentityAssociation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_CreatePodIdentityAssociation_Call) RunAndReturn(run func(context.Context, *eks.CreatePodIdentityAssociationInput, ...func(*eks.Options)) (*eks.CreatePodIdentityAssociationOutput, error)) *EKS_CreatePodIdentityAssociation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteAccessEntry provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DeleteAccessEntry(ctx context.Context, params *eks.DeleteAccessEntryInput, optFns ...func(*eks.Options)) (*eks.DeleteAccessEntryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -419,6 +797,43 @@ func (_m *EKS) DeleteAccessEntry(ctx context.Context, params *eks.DeleteAccessEn
 	}
 
 	return r0, r1
+}
+
+// EKS_DeleteAccessEntry_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAccessEntry'
+type EKS_DeleteAccessEntry_Call struct {
+	*mock.Call
+}
+
+// DeleteAccessEntry is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DeleteAccessEntryInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DeleteAccessEntry(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DeleteAccessEntry_Call {
+	return &EKS_DeleteAccessEntry_Call{Call: _e.mock.On("DeleteAccessEntry",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DeleteAccessEntry_Call) Run(run func(ctx context.Context, params *eks.DeleteAccessEntryInput, optFns ...func(*eks.Options))) *EKS_DeleteAccessEntry_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DeleteAccessEntryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DeleteAccessEntry_Call) Return(_a0 *eks.DeleteAccessEntryOutput, _a1 error) *EKS_DeleteAccessEntry_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DeleteAccessEntry_Call) RunAndReturn(run func(context.Context, *eks.DeleteAccessEntryInput, ...func(*eks.Options)) (*eks.DeleteAccessEntryOutput, error)) *EKS_DeleteAccessEntry_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteAddon provides a mock function with given fields: ctx, params, optFns
@@ -458,6 +873,43 @@ func (_m *EKS) DeleteAddon(ctx context.Context, params *eks.DeleteAddonInput, op
 	return r0, r1
 }
 
+// EKS_DeleteAddon_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAddon'
+type EKS_DeleteAddon_Call struct {
+	*mock.Call
+}
+
+// DeleteAddon is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DeleteAddonInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DeleteAddon(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DeleteAddon_Call {
+	return &EKS_DeleteAddon_Call{Call: _e.mock.On("DeleteAddon",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DeleteAddon_Call) Run(run func(ctx context.Context, params *eks.DeleteAddonInput, optFns ...func(*eks.Options))) *EKS_DeleteAddon_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DeleteAddonInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DeleteAddon_Call) Return(_a0 *eks.DeleteAddonOutput, _a1 error) *EKS_DeleteAddon_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DeleteAddon_Call) RunAndReturn(run func(context.Context, *eks.DeleteAddonInput, ...func(*eks.Options)) (*eks.DeleteAddonOutput, error)) *EKS_DeleteAddon_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteCluster provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DeleteCluster(ctx context.Context, params *eks.DeleteClusterInput, optFns ...func(*eks.Options)) (*eks.DeleteClusterOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -493,6 +945,43 @@ func (_m *EKS) DeleteCluster(ctx context.Context, params *eks.DeleteClusterInput
 	}
 
 	return r0, r1
+}
+
+// EKS_DeleteCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteCluster'
+type EKS_DeleteCluster_Call struct {
+	*mock.Call
+}
+
+// DeleteCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DeleteClusterInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DeleteCluster(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DeleteCluster_Call {
+	return &EKS_DeleteCluster_Call{Call: _e.mock.On("DeleteCluster",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DeleteCluster_Call) Run(run func(ctx context.Context, params *eks.DeleteClusterInput, optFns ...func(*eks.Options))) *EKS_DeleteCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DeleteClusterInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DeleteCluster_Call) Return(_a0 *eks.DeleteClusterOutput, _a1 error) *EKS_DeleteCluster_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DeleteCluster_Call) RunAndReturn(run func(context.Context, *eks.DeleteClusterInput, ...func(*eks.Options)) (*eks.DeleteClusterOutput, error)) *EKS_DeleteCluster_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteEksAnywhereSubscription provides a mock function with given fields: ctx, params, optFns
@@ -532,6 +1021,43 @@ func (_m *EKS) DeleteEksAnywhereSubscription(ctx context.Context, params *eks.De
 	return r0, r1
 }
 
+// EKS_DeleteEksAnywhereSubscription_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteEksAnywhereSubscription'
+type EKS_DeleteEksAnywhereSubscription_Call struct {
+	*mock.Call
+}
+
+// DeleteEksAnywhereSubscription is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DeleteEksAnywhereSubscriptionInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DeleteEksAnywhereSubscription(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DeleteEksAnywhereSubscription_Call {
+	return &EKS_DeleteEksAnywhereSubscription_Call{Call: _e.mock.On("DeleteEksAnywhereSubscription",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DeleteEksAnywhereSubscription_Call) Run(run func(ctx context.Context, params *eks.DeleteEksAnywhereSubscriptionInput, optFns ...func(*eks.Options))) *EKS_DeleteEksAnywhereSubscription_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DeleteEksAnywhereSubscriptionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DeleteEksAnywhereSubscription_Call) Return(_a0 *eks.DeleteEksAnywhereSubscriptionOutput, _a1 error) *EKS_DeleteEksAnywhereSubscription_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DeleteEksAnywhereSubscription_Call) RunAndReturn(run func(context.Context, *eks.DeleteEksAnywhereSubscriptionInput, ...func(*eks.Options)) (*eks.DeleteEksAnywhereSubscriptionOutput, error)) *EKS_DeleteEksAnywhereSubscription_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteFargateProfile provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DeleteFargateProfile(ctx context.Context, params *eks.DeleteFargateProfileInput, optFns ...func(*eks.Options)) (*eks.DeleteFargateProfileOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -567,6 +1093,43 @@ func (_m *EKS) DeleteFargateProfile(ctx context.Context, params *eks.DeleteFarga
 	}
 
 	return r0, r1
+}
+
+// EKS_DeleteFargateProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteFargateProfile'
+type EKS_DeleteFargateProfile_Call struct {
+	*mock.Call
+}
+
+// DeleteFargateProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DeleteFargateProfileInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DeleteFargateProfile(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DeleteFargateProfile_Call {
+	return &EKS_DeleteFargateProfile_Call{Call: _e.mock.On("DeleteFargateProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DeleteFargateProfile_Call) Run(run func(ctx context.Context, params *eks.DeleteFargateProfileInput, optFns ...func(*eks.Options))) *EKS_DeleteFargateProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DeleteFargateProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DeleteFargateProfile_Call) Return(_a0 *eks.DeleteFargateProfileOutput, _a1 error) *EKS_DeleteFargateProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DeleteFargateProfile_Call) RunAndReturn(run func(context.Context, *eks.DeleteFargateProfileInput, ...func(*eks.Options)) (*eks.DeleteFargateProfileOutput, error)) *EKS_DeleteFargateProfile_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteNodegroup provides a mock function with given fields: ctx, params, optFns
@@ -606,6 +1169,43 @@ func (_m *EKS) DeleteNodegroup(ctx context.Context, params *eks.DeleteNodegroupI
 	return r0, r1
 }
 
+// EKS_DeleteNodegroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteNodegroup'
+type EKS_DeleteNodegroup_Call struct {
+	*mock.Call
+}
+
+// DeleteNodegroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DeleteNodegroupInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DeleteNodegroup(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DeleteNodegroup_Call {
+	return &EKS_DeleteNodegroup_Call{Call: _e.mock.On("DeleteNodegroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DeleteNodegroup_Call) Run(run func(ctx context.Context, params *eks.DeleteNodegroupInput, optFns ...func(*eks.Options))) *EKS_DeleteNodegroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DeleteNodegroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DeleteNodegroup_Call) Return(_a0 *eks.DeleteNodegroupOutput, _a1 error) *EKS_DeleteNodegroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DeleteNodegroup_Call) RunAndReturn(run func(context.Context, *eks.DeleteNodegroupInput, ...func(*eks.Options)) (*eks.DeleteNodegroupOutput, error)) *EKS_DeleteNodegroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeletePodIdentityAssociation provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DeletePodIdentityAssociation(ctx context.Context, params *eks.DeletePodIdentityAssociationInput, optFns ...func(*eks.Options)) (*eks.DeletePodIdentityAssociationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -641,6 +1241,43 @@ func (_m *EKS) DeletePodIdentityAssociation(ctx context.Context, params *eks.Del
 	}
 
 	return r0, r1
+}
+
+// EKS_DeletePodIdentityAssociation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePodIdentityAssociation'
+type EKS_DeletePodIdentityAssociation_Call struct {
+	*mock.Call
+}
+
+// DeletePodIdentityAssociation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DeletePodIdentityAssociationInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DeletePodIdentityAssociation(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DeletePodIdentityAssociation_Call {
+	return &EKS_DeletePodIdentityAssociation_Call{Call: _e.mock.On("DeletePodIdentityAssociation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DeletePodIdentityAssociation_Call) Run(run func(ctx context.Context, params *eks.DeletePodIdentityAssociationInput, optFns ...func(*eks.Options))) *EKS_DeletePodIdentityAssociation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DeletePodIdentityAssociationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DeletePodIdentityAssociation_Call) Return(_a0 *eks.DeletePodIdentityAssociationOutput, _a1 error) *EKS_DeletePodIdentityAssociation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DeletePodIdentityAssociation_Call) RunAndReturn(run func(context.Context, *eks.DeletePodIdentityAssociationInput, ...func(*eks.Options)) (*eks.DeletePodIdentityAssociationOutput, error)) *EKS_DeletePodIdentityAssociation_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeregisterCluster provides a mock function with given fields: ctx, params, optFns
@@ -680,6 +1317,43 @@ func (_m *EKS) DeregisterCluster(ctx context.Context, params *eks.DeregisterClus
 	return r0, r1
 }
 
+// EKS_DeregisterCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeregisterCluster'
+type EKS_DeregisterCluster_Call struct {
+	*mock.Call
+}
+
+// DeregisterCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DeregisterClusterInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DeregisterCluster(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DeregisterCluster_Call {
+	return &EKS_DeregisterCluster_Call{Call: _e.mock.On("DeregisterCluster",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DeregisterCluster_Call) Run(run func(ctx context.Context, params *eks.DeregisterClusterInput, optFns ...func(*eks.Options))) *EKS_DeregisterCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DeregisterClusterInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DeregisterCluster_Call) Return(_a0 *eks.DeregisterClusterOutput, _a1 error) *EKS_DeregisterCluster_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DeregisterCluster_Call) RunAndReturn(run func(context.Context, *eks.DeregisterClusterInput, ...func(*eks.Options)) (*eks.DeregisterClusterOutput, error)) *EKS_DeregisterCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeAccessEntry provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DescribeAccessEntry(ctx context.Context, params *eks.DescribeAccessEntryInput, optFns ...func(*eks.Options)) (*eks.DescribeAccessEntryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -715,6 +1389,43 @@ func (_m *EKS) DescribeAccessEntry(ctx context.Context, params *eks.DescribeAcce
 	}
 
 	return r0, r1
+}
+
+// EKS_DescribeAccessEntry_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAccessEntry'
+type EKS_DescribeAccessEntry_Call struct {
+	*mock.Call
+}
+
+// DescribeAccessEntry is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribeAccessEntryInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribeAccessEntry(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribeAccessEntry_Call {
+	return &EKS_DescribeAccessEntry_Call{Call: _e.mock.On("DescribeAccessEntry",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribeAccessEntry_Call) Run(run func(ctx context.Context, params *eks.DescribeAccessEntryInput, optFns ...func(*eks.Options))) *EKS_DescribeAccessEntry_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribeAccessEntryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribeAccessEntry_Call) Return(_a0 *eks.DescribeAccessEntryOutput, _a1 error) *EKS_DescribeAccessEntry_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribeAccessEntry_Call) RunAndReturn(run func(context.Context, *eks.DescribeAccessEntryInput, ...func(*eks.Options)) (*eks.DescribeAccessEntryOutput, error)) *EKS_DescribeAccessEntry_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeAddon provides a mock function with given fields: ctx, params, optFns
@@ -754,6 +1465,43 @@ func (_m *EKS) DescribeAddon(ctx context.Context, params *eks.DescribeAddonInput
 	return r0, r1
 }
 
+// EKS_DescribeAddon_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAddon'
+type EKS_DescribeAddon_Call struct {
+	*mock.Call
+}
+
+// DescribeAddon is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribeAddonInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribeAddon(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribeAddon_Call {
+	return &EKS_DescribeAddon_Call{Call: _e.mock.On("DescribeAddon",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribeAddon_Call) Run(run func(ctx context.Context, params *eks.DescribeAddonInput, optFns ...func(*eks.Options))) *EKS_DescribeAddon_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribeAddonInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribeAddon_Call) Return(_a0 *eks.DescribeAddonOutput, _a1 error) *EKS_DescribeAddon_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribeAddon_Call) RunAndReturn(run func(context.Context, *eks.DescribeAddonInput, ...func(*eks.Options)) (*eks.DescribeAddonOutput, error)) *EKS_DescribeAddon_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeAddonConfiguration provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DescribeAddonConfiguration(ctx context.Context, params *eks.DescribeAddonConfigurationInput, optFns ...func(*eks.Options)) (*eks.DescribeAddonConfigurationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -789,6 +1537,43 @@ func (_m *EKS) DescribeAddonConfiguration(ctx context.Context, params *eks.Descr
 	}
 
 	return r0, r1
+}
+
+// EKS_DescribeAddonConfiguration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAddonConfiguration'
+type EKS_DescribeAddonConfiguration_Call struct {
+	*mock.Call
+}
+
+// DescribeAddonConfiguration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribeAddonConfigurationInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribeAddonConfiguration(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribeAddonConfiguration_Call {
+	return &EKS_DescribeAddonConfiguration_Call{Call: _e.mock.On("DescribeAddonConfiguration",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribeAddonConfiguration_Call) Run(run func(ctx context.Context, params *eks.DescribeAddonConfigurationInput, optFns ...func(*eks.Options))) *EKS_DescribeAddonConfiguration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribeAddonConfigurationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribeAddonConfiguration_Call) Return(_a0 *eks.DescribeAddonConfigurationOutput, _a1 error) *EKS_DescribeAddonConfiguration_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribeAddonConfiguration_Call) RunAndReturn(run func(context.Context, *eks.DescribeAddonConfigurationInput, ...func(*eks.Options)) (*eks.DescribeAddonConfigurationOutput, error)) *EKS_DescribeAddonConfiguration_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeAddonVersions provides a mock function with given fields: ctx, params, optFns
@@ -828,6 +1613,43 @@ func (_m *EKS) DescribeAddonVersions(ctx context.Context, params *eks.DescribeAd
 	return r0, r1
 }
 
+// EKS_DescribeAddonVersions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAddonVersions'
+type EKS_DescribeAddonVersions_Call struct {
+	*mock.Call
+}
+
+// DescribeAddonVersions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribeAddonVersionsInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribeAddonVersions(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribeAddonVersions_Call {
+	return &EKS_DescribeAddonVersions_Call{Call: _e.mock.On("DescribeAddonVersions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribeAddonVersions_Call) Run(run func(ctx context.Context, params *eks.DescribeAddonVersionsInput, optFns ...func(*eks.Options))) *EKS_DescribeAddonVersions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribeAddonVersionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribeAddonVersions_Call) Return(_a0 *eks.DescribeAddonVersionsOutput, _a1 error) *EKS_DescribeAddonVersions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribeAddonVersions_Call) RunAndReturn(run func(context.Context, *eks.DescribeAddonVersionsInput, ...func(*eks.Options)) (*eks.DescribeAddonVersionsOutput, error)) *EKS_DescribeAddonVersions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeCluster provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DescribeCluster(ctx context.Context, params *eks.DescribeClusterInput, optFns ...func(*eks.Options)) (*eks.DescribeClusterOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -863,6 +1685,43 @@ func (_m *EKS) DescribeCluster(ctx context.Context, params *eks.DescribeClusterI
 	}
 
 	return r0, r1
+}
+
+// EKS_DescribeCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeCluster'
+type EKS_DescribeCluster_Call struct {
+	*mock.Call
+}
+
+// DescribeCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribeClusterInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribeCluster(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribeCluster_Call {
+	return &EKS_DescribeCluster_Call{Call: _e.mock.On("DescribeCluster",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribeCluster_Call) Run(run func(ctx context.Context, params *eks.DescribeClusterInput, optFns ...func(*eks.Options))) *EKS_DescribeCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribeClusterInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribeCluster_Call) Return(_a0 *eks.DescribeClusterOutput, _a1 error) *EKS_DescribeCluster_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribeCluster_Call) RunAndReturn(run func(context.Context, *eks.DescribeClusterInput, ...func(*eks.Options)) (*eks.DescribeClusterOutput, error)) *EKS_DescribeCluster_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeEksAnywhereSubscription provides a mock function with given fields: ctx, params, optFns
@@ -902,6 +1761,43 @@ func (_m *EKS) DescribeEksAnywhereSubscription(ctx context.Context, params *eks.
 	return r0, r1
 }
 
+// EKS_DescribeEksAnywhereSubscription_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeEksAnywhereSubscription'
+type EKS_DescribeEksAnywhereSubscription_Call struct {
+	*mock.Call
+}
+
+// DescribeEksAnywhereSubscription is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribeEksAnywhereSubscriptionInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribeEksAnywhereSubscription(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribeEksAnywhereSubscription_Call {
+	return &EKS_DescribeEksAnywhereSubscription_Call{Call: _e.mock.On("DescribeEksAnywhereSubscription",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribeEksAnywhereSubscription_Call) Run(run func(ctx context.Context, params *eks.DescribeEksAnywhereSubscriptionInput, optFns ...func(*eks.Options))) *EKS_DescribeEksAnywhereSubscription_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribeEksAnywhereSubscriptionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribeEksAnywhereSubscription_Call) Return(_a0 *eks.DescribeEksAnywhereSubscriptionOutput, _a1 error) *EKS_DescribeEksAnywhereSubscription_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribeEksAnywhereSubscription_Call) RunAndReturn(run func(context.Context, *eks.DescribeEksAnywhereSubscriptionInput, ...func(*eks.Options)) (*eks.DescribeEksAnywhereSubscriptionOutput, error)) *EKS_DescribeEksAnywhereSubscription_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeFargateProfile provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DescribeFargateProfile(ctx context.Context, params *eks.DescribeFargateProfileInput, optFns ...func(*eks.Options)) (*eks.DescribeFargateProfileOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -937,6 +1833,43 @@ func (_m *EKS) DescribeFargateProfile(ctx context.Context, params *eks.DescribeF
 	}
 
 	return r0, r1
+}
+
+// EKS_DescribeFargateProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeFargateProfile'
+type EKS_DescribeFargateProfile_Call struct {
+	*mock.Call
+}
+
+// DescribeFargateProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribeFargateProfileInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribeFargateProfile(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribeFargateProfile_Call {
+	return &EKS_DescribeFargateProfile_Call{Call: _e.mock.On("DescribeFargateProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribeFargateProfile_Call) Run(run func(ctx context.Context, params *eks.DescribeFargateProfileInput, optFns ...func(*eks.Options))) *EKS_DescribeFargateProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribeFargateProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribeFargateProfile_Call) Return(_a0 *eks.DescribeFargateProfileOutput, _a1 error) *EKS_DescribeFargateProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribeFargateProfile_Call) RunAndReturn(run func(context.Context, *eks.DescribeFargateProfileInput, ...func(*eks.Options)) (*eks.DescribeFargateProfileOutput, error)) *EKS_DescribeFargateProfile_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeIdentityProviderConfig provides a mock function with given fields: ctx, params, optFns
@@ -976,6 +1909,43 @@ func (_m *EKS) DescribeIdentityProviderConfig(ctx context.Context, params *eks.D
 	return r0, r1
 }
 
+// EKS_DescribeIdentityProviderConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeIdentityProviderConfig'
+type EKS_DescribeIdentityProviderConfig_Call struct {
+	*mock.Call
+}
+
+// DescribeIdentityProviderConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribeIdentityProviderConfigInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribeIdentityProviderConfig(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribeIdentityProviderConfig_Call {
+	return &EKS_DescribeIdentityProviderConfig_Call{Call: _e.mock.On("DescribeIdentityProviderConfig",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribeIdentityProviderConfig_Call) Run(run func(ctx context.Context, params *eks.DescribeIdentityProviderConfigInput, optFns ...func(*eks.Options))) *EKS_DescribeIdentityProviderConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribeIdentityProviderConfigInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribeIdentityProviderConfig_Call) Return(_a0 *eks.DescribeIdentityProviderConfigOutput, _a1 error) *EKS_DescribeIdentityProviderConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribeIdentityProviderConfig_Call) RunAndReturn(run func(context.Context, *eks.DescribeIdentityProviderConfigInput, ...func(*eks.Options)) (*eks.DescribeIdentityProviderConfigOutput, error)) *EKS_DescribeIdentityProviderConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeInsight provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DescribeInsight(ctx context.Context, params *eks.DescribeInsightInput, optFns ...func(*eks.Options)) (*eks.DescribeInsightOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1011,6 +1981,43 @@ func (_m *EKS) DescribeInsight(ctx context.Context, params *eks.DescribeInsightI
 	}
 
 	return r0, r1
+}
+
+// EKS_DescribeInsight_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeInsight'
+type EKS_DescribeInsight_Call struct {
+	*mock.Call
+}
+
+// DescribeInsight is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribeInsightInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribeInsight(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribeInsight_Call {
+	return &EKS_DescribeInsight_Call{Call: _e.mock.On("DescribeInsight",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribeInsight_Call) Run(run func(ctx context.Context, params *eks.DescribeInsightInput, optFns ...func(*eks.Options))) *EKS_DescribeInsight_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribeInsightInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribeInsight_Call) Return(_a0 *eks.DescribeInsightOutput, _a1 error) *EKS_DescribeInsight_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribeInsight_Call) RunAndReturn(run func(context.Context, *eks.DescribeInsightInput, ...func(*eks.Options)) (*eks.DescribeInsightOutput, error)) *EKS_DescribeInsight_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeNodegroup provides a mock function with given fields: ctx, params, optFns
@@ -1050,6 +2057,43 @@ func (_m *EKS) DescribeNodegroup(ctx context.Context, params *eks.DescribeNodegr
 	return r0, r1
 }
 
+// EKS_DescribeNodegroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeNodegroup'
+type EKS_DescribeNodegroup_Call struct {
+	*mock.Call
+}
+
+// DescribeNodegroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribeNodegroupInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribeNodegroup(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribeNodegroup_Call {
+	return &EKS_DescribeNodegroup_Call{Call: _e.mock.On("DescribeNodegroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribeNodegroup_Call) Run(run func(ctx context.Context, params *eks.DescribeNodegroupInput, optFns ...func(*eks.Options))) *EKS_DescribeNodegroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribeNodegroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribeNodegroup_Call) Return(_a0 *eks.DescribeNodegroupOutput, _a1 error) *EKS_DescribeNodegroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribeNodegroup_Call) RunAndReturn(run func(context.Context, *eks.DescribeNodegroupInput, ...func(*eks.Options)) (*eks.DescribeNodegroupOutput, error)) *EKS_DescribeNodegroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribePodIdentityAssociation provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DescribePodIdentityAssociation(ctx context.Context, params *eks.DescribePodIdentityAssociationInput, optFns ...func(*eks.Options)) (*eks.DescribePodIdentityAssociationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1085,6 +2129,43 @@ func (_m *EKS) DescribePodIdentityAssociation(ctx context.Context, params *eks.D
 	}
 
 	return r0, r1
+}
+
+// EKS_DescribePodIdentityAssociation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribePodIdentityAssociation'
+type EKS_DescribePodIdentityAssociation_Call struct {
+	*mock.Call
+}
+
+// DescribePodIdentityAssociation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribePodIdentityAssociationInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribePodIdentityAssociation(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribePodIdentityAssociation_Call {
+	return &EKS_DescribePodIdentityAssociation_Call{Call: _e.mock.On("DescribePodIdentityAssociation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribePodIdentityAssociation_Call) Run(run func(ctx context.Context, params *eks.DescribePodIdentityAssociationInput, optFns ...func(*eks.Options))) *EKS_DescribePodIdentityAssociation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribePodIdentityAssociationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribePodIdentityAssociation_Call) Return(_a0 *eks.DescribePodIdentityAssociationOutput, _a1 error) *EKS_DescribePodIdentityAssociation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribePodIdentityAssociation_Call) RunAndReturn(run func(context.Context, *eks.DescribePodIdentityAssociationInput, ...func(*eks.Options)) (*eks.DescribePodIdentityAssociationOutput, error)) *EKS_DescribePodIdentityAssociation_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeUpdate provides a mock function with given fields: ctx, params, optFns
@@ -1124,6 +2205,43 @@ func (_m *EKS) DescribeUpdate(ctx context.Context, params *eks.DescribeUpdateInp
 	return r0, r1
 }
 
+// EKS_DescribeUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeUpdate'
+type EKS_DescribeUpdate_Call struct {
+	*mock.Call
+}
+
+// DescribeUpdate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribeUpdateInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribeUpdate(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribeUpdate_Call {
+	return &EKS_DescribeUpdate_Call{Call: _e.mock.On("DescribeUpdate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribeUpdate_Call) Run(run func(ctx context.Context, params *eks.DescribeUpdateInput, optFns ...func(*eks.Options))) *EKS_DescribeUpdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribeUpdateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribeUpdate_Call) Return(_a0 *eks.DescribeUpdateOutput, _a1 error) *EKS_DescribeUpdate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribeUpdate_Call) RunAndReturn(run func(context.Context, *eks.DescribeUpdateInput, ...func(*eks.Options)) (*eks.DescribeUpdateOutput, error)) *EKS_DescribeUpdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DisassociateAccessPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DisassociateAccessPolicy(ctx context.Context, params *eks.DisassociateAccessPolicyInput, optFns ...func(*eks.Options)) (*eks.DisassociateAccessPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1159,6 +2277,43 @@ func (_m *EKS) DisassociateAccessPolicy(ctx context.Context, params *eks.Disasso
 	}
 
 	return r0, r1
+}
+
+// EKS_DisassociateAccessPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisassociateAccessPolicy'
+type EKS_DisassociateAccessPolicy_Call struct {
+	*mock.Call
+}
+
+// DisassociateAccessPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DisassociateAccessPolicyInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DisassociateAccessPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DisassociateAccessPolicy_Call {
+	return &EKS_DisassociateAccessPolicy_Call{Call: _e.mock.On("DisassociateAccessPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DisassociateAccessPolicy_Call) Run(run func(ctx context.Context, params *eks.DisassociateAccessPolicyInput, optFns ...func(*eks.Options))) *EKS_DisassociateAccessPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DisassociateAccessPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DisassociateAccessPolicy_Call) Return(_a0 *eks.DisassociateAccessPolicyOutput, _a1 error) *EKS_DisassociateAccessPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DisassociateAccessPolicy_Call) RunAndReturn(run func(context.Context, *eks.DisassociateAccessPolicyInput, ...func(*eks.Options)) (*eks.DisassociateAccessPolicyOutput, error)) *EKS_DisassociateAccessPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DisassociateIdentityProviderConfig provides a mock function with given fields: ctx, params, optFns
@@ -1198,6 +2353,43 @@ func (_m *EKS) DisassociateIdentityProviderConfig(ctx context.Context, params *e
 	return r0, r1
 }
 
+// EKS_DisassociateIdentityProviderConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisassociateIdentityProviderConfig'
+type EKS_DisassociateIdentityProviderConfig_Call struct {
+	*mock.Call
+}
+
+// DisassociateIdentityProviderConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DisassociateIdentityProviderConfigInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DisassociateIdentityProviderConfig(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DisassociateIdentityProviderConfig_Call {
+	return &EKS_DisassociateIdentityProviderConfig_Call{Call: _e.mock.On("DisassociateIdentityProviderConfig",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DisassociateIdentityProviderConfig_Call) Run(run func(ctx context.Context, params *eks.DisassociateIdentityProviderConfigInput, optFns ...func(*eks.Options))) *EKS_DisassociateIdentityProviderConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DisassociateIdentityProviderConfigInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DisassociateIdentityProviderConfig_Call) Return(_a0 *eks.DisassociateIdentityProviderConfigOutput, _a1 error) *EKS_DisassociateIdentityProviderConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DisassociateIdentityProviderConfig_Call) RunAndReturn(run func(context.Context, *eks.DisassociateIdentityProviderConfigInput, ...func(*eks.Options)) (*eks.DisassociateIdentityProviderConfigOutput, error)) *EKS_DisassociateIdentityProviderConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListAccessEntries provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) ListAccessEntries(ctx context.Context, params *eks.ListAccessEntriesInput, optFns ...func(*eks.Options)) (*eks.ListAccessEntriesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1233,6 +2425,43 @@ func (_m *EKS) ListAccessEntries(ctx context.Context, params *eks.ListAccessEntr
 	}
 
 	return r0, r1
+}
+
+// EKS_ListAccessEntries_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAccessEntries'
+type EKS_ListAccessEntries_Call struct {
+	*mock.Call
+}
+
+// ListAccessEntries is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListAccessEntriesInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListAccessEntries(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListAccessEntries_Call {
+	return &EKS_ListAccessEntries_Call{Call: _e.mock.On("ListAccessEntries",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListAccessEntries_Call) Run(run func(ctx context.Context, params *eks.ListAccessEntriesInput, optFns ...func(*eks.Options))) *EKS_ListAccessEntries_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListAccessEntriesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListAccessEntries_Call) Return(_a0 *eks.ListAccessEntriesOutput, _a1 error) *EKS_ListAccessEntries_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListAccessEntries_Call) RunAndReturn(run func(context.Context, *eks.ListAccessEntriesInput, ...func(*eks.Options)) (*eks.ListAccessEntriesOutput, error)) *EKS_ListAccessEntries_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListAccessPolicies provides a mock function with given fields: ctx, params, optFns
@@ -1272,6 +2501,43 @@ func (_m *EKS) ListAccessPolicies(ctx context.Context, params *eks.ListAccessPol
 	return r0, r1
 }
 
+// EKS_ListAccessPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAccessPolicies'
+type EKS_ListAccessPolicies_Call struct {
+	*mock.Call
+}
+
+// ListAccessPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListAccessPoliciesInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListAccessPolicies(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListAccessPolicies_Call {
+	return &EKS_ListAccessPolicies_Call{Call: _e.mock.On("ListAccessPolicies",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListAccessPolicies_Call) Run(run func(ctx context.Context, params *eks.ListAccessPoliciesInput, optFns ...func(*eks.Options))) *EKS_ListAccessPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListAccessPoliciesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListAccessPolicies_Call) Return(_a0 *eks.ListAccessPoliciesOutput, _a1 error) *EKS_ListAccessPolicies_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListAccessPolicies_Call) RunAndReturn(run func(context.Context, *eks.ListAccessPoliciesInput, ...func(*eks.Options)) (*eks.ListAccessPoliciesOutput, error)) *EKS_ListAccessPolicies_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListAddons provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) ListAddons(ctx context.Context, params *eks.ListAddonsInput, optFns ...func(*eks.Options)) (*eks.ListAddonsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1307,6 +2573,43 @@ func (_m *EKS) ListAddons(ctx context.Context, params *eks.ListAddonsInput, optF
 	}
 
 	return r0, r1
+}
+
+// EKS_ListAddons_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAddons'
+type EKS_ListAddons_Call struct {
+	*mock.Call
+}
+
+// ListAddons is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListAddonsInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListAddons(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListAddons_Call {
+	return &EKS_ListAddons_Call{Call: _e.mock.On("ListAddons",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListAddons_Call) Run(run func(ctx context.Context, params *eks.ListAddonsInput, optFns ...func(*eks.Options))) *EKS_ListAddons_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListAddonsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListAddons_Call) Return(_a0 *eks.ListAddonsOutput, _a1 error) *EKS_ListAddons_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListAddons_Call) RunAndReturn(run func(context.Context, *eks.ListAddonsInput, ...func(*eks.Options)) (*eks.ListAddonsOutput, error)) *EKS_ListAddons_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListAssociatedAccessPolicies provides a mock function with given fields: ctx, params, optFns
@@ -1346,6 +2649,43 @@ func (_m *EKS) ListAssociatedAccessPolicies(ctx context.Context, params *eks.Lis
 	return r0, r1
 }
 
+// EKS_ListAssociatedAccessPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAssociatedAccessPolicies'
+type EKS_ListAssociatedAccessPolicies_Call struct {
+	*mock.Call
+}
+
+// ListAssociatedAccessPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListAssociatedAccessPoliciesInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListAssociatedAccessPolicies(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListAssociatedAccessPolicies_Call {
+	return &EKS_ListAssociatedAccessPolicies_Call{Call: _e.mock.On("ListAssociatedAccessPolicies",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListAssociatedAccessPolicies_Call) Run(run func(ctx context.Context, params *eks.ListAssociatedAccessPoliciesInput, optFns ...func(*eks.Options))) *EKS_ListAssociatedAccessPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListAssociatedAccessPoliciesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListAssociatedAccessPolicies_Call) Return(_a0 *eks.ListAssociatedAccessPoliciesOutput, _a1 error) *EKS_ListAssociatedAccessPolicies_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListAssociatedAccessPolicies_Call) RunAndReturn(run func(context.Context, *eks.ListAssociatedAccessPoliciesInput, ...func(*eks.Options)) (*eks.ListAssociatedAccessPoliciesOutput, error)) *EKS_ListAssociatedAccessPolicies_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListClusters provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) ListClusters(ctx context.Context, params *eks.ListClustersInput, optFns ...func(*eks.Options)) (*eks.ListClustersOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1381,6 +2721,43 @@ func (_m *EKS) ListClusters(ctx context.Context, params *eks.ListClustersInput, 
 	}
 
 	return r0, r1
+}
+
+// EKS_ListClusters_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListClusters'
+type EKS_ListClusters_Call struct {
+	*mock.Call
+}
+
+// ListClusters is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListClustersInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListClusters(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListClusters_Call {
+	return &EKS_ListClusters_Call{Call: _e.mock.On("ListClusters",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListClusters_Call) Run(run func(ctx context.Context, params *eks.ListClustersInput, optFns ...func(*eks.Options))) *EKS_ListClusters_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListClustersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListClusters_Call) Return(_a0 *eks.ListClustersOutput, _a1 error) *EKS_ListClusters_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListClusters_Call) RunAndReturn(run func(context.Context, *eks.ListClustersInput, ...func(*eks.Options)) (*eks.ListClustersOutput, error)) *EKS_ListClusters_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListEksAnywhereSubscriptions provides a mock function with given fields: ctx, params, optFns
@@ -1420,6 +2797,43 @@ func (_m *EKS) ListEksAnywhereSubscriptions(ctx context.Context, params *eks.Lis
 	return r0, r1
 }
 
+// EKS_ListEksAnywhereSubscriptions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListEksAnywhereSubscriptions'
+type EKS_ListEksAnywhereSubscriptions_Call struct {
+	*mock.Call
+}
+
+// ListEksAnywhereSubscriptions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListEksAnywhereSubscriptionsInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListEksAnywhereSubscriptions(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListEksAnywhereSubscriptions_Call {
+	return &EKS_ListEksAnywhereSubscriptions_Call{Call: _e.mock.On("ListEksAnywhereSubscriptions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListEksAnywhereSubscriptions_Call) Run(run func(ctx context.Context, params *eks.ListEksAnywhereSubscriptionsInput, optFns ...func(*eks.Options))) *EKS_ListEksAnywhereSubscriptions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListEksAnywhereSubscriptionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListEksAnywhereSubscriptions_Call) Return(_a0 *eks.ListEksAnywhereSubscriptionsOutput, _a1 error) *EKS_ListEksAnywhereSubscriptions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListEksAnywhereSubscriptions_Call) RunAndReturn(run func(context.Context, *eks.ListEksAnywhereSubscriptionsInput, ...func(*eks.Options)) (*eks.ListEksAnywhereSubscriptionsOutput, error)) *EKS_ListEksAnywhereSubscriptions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListFargateProfiles provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) ListFargateProfiles(ctx context.Context, params *eks.ListFargateProfilesInput, optFns ...func(*eks.Options)) (*eks.ListFargateProfilesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1455,6 +2869,43 @@ func (_m *EKS) ListFargateProfiles(ctx context.Context, params *eks.ListFargateP
 	}
 
 	return r0, r1
+}
+
+// EKS_ListFargateProfiles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListFargateProfiles'
+type EKS_ListFargateProfiles_Call struct {
+	*mock.Call
+}
+
+// ListFargateProfiles is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListFargateProfilesInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListFargateProfiles(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListFargateProfiles_Call {
+	return &EKS_ListFargateProfiles_Call{Call: _e.mock.On("ListFargateProfiles",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListFargateProfiles_Call) Run(run func(ctx context.Context, params *eks.ListFargateProfilesInput, optFns ...func(*eks.Options))) *EKS_ListFargateProfiles_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListFargateProfilesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListFargateProfiles_Call) Return(_a0 *eks.ListFargateProfilesOutput, _a1 error) *EKS_ListFargateProfiles_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListFargateProfiles_Call) RunAndReturn(run func(context.Context, *eks.ListFargateProfilesInput, ...func(*eks.Options)) (*eks.ListFargateProfilesOutput, error)) *EKS_ListFargateProfiles_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListIdentityProviderConfigs provides a mock function with given fields: ctx, params, optFns
@@ -1494,6 +2945,43 @@ func (_m *EKS) ListIdentityProviderConfigs(ctx context.Context, params *eks.List
 	return r0, r1
 }
 
+// EKS_ListIdentityProviderConfigs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListIdentityProviderConfigs'
+type EKS_ListIdentityProviderConfigs_Call struct {
+	*mock.Call
+}
+
+// ListIdentityProviderConfigs is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListIdentityProviderConfigsInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListIdentityProviderConfigs(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListIdentityProviderConfigs_Call {
+	return &EKS_ListIdentityProviderConfigs_Call{Call: _e.mock.On("ListIdentityProviderConfigs",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListIdentityProviderConfigs_Call) Run(run func(ctx context.Context, params *eks.ListIdentityProviderConfigsInput, optFns ...func(*eks.Options))) *EKS_ListIdentityProviderConfigs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListIdentityProviderConfigsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListIdentityProviderConfigs_Call) Return(_a0 *eks.ListIdentityProviderConfigsOutput, _a1 error) *EKS_ListIdentityProviderConfigs_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListIdentityProviderConfigs_Call) RunAndReturn(run func(context.Context, *eks.ListIdentityProviderConfigsInput, ...func(*eks.Options)) (*eks.ListIdentityProviderConfigsOutput, error)) *EKS_ListIdentityProviderConfigs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListInsights provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) ListInsights(ctx context.Context, params *eks.ListInsightsInput, optFns ...func(*eks.Options)) (*eks.ListInsightsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1529,6 +3017,43 @@ func (_m *EKS) ListInsights(ctx context.Context, params *eks.ListInsightsInput, 
 	}
 
 	return r0, r1
+}
+
+// EKS_ListInsights_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListInsights'
+type EKS_ListInsights_Call struct {
+	*mock.Call
+}
+
+// ListInsights is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListInsightsInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListInsights(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListInsights_Call {
+	return &EKS_ListInsights_Call{Call: _e.mock.On("ListInsights",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListInsights_Call) Run(run func(ctx context.Context, params *eks.ListInsightsInput, optFns ...func(*eks.Options))) *EKS_ListInsights_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListInsightsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListInsights_Call) Return(_a0 *eks.ListInsightsOutput, _a1 error) *EKS_ListInsights_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListInsights_Call) RunAndReturn(run func(context.Context, *eks.ListInsightsInput, ...func(*eks.Options)) (*eks.ListInsightsOutput, error)) *EKS_ListInsights_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListNodegroups provides a mock function with given fields: ctx, params, optFns
@@ -1568,6 +3093,43 @@ func (_m *EKS) ListNodegroups(ctx context.Context, params *eks.ListNodegroupsInp
 	return r0, r1
 }
 
+// EKS_ListNodegroups_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListNodegroups'
+type EKS_ListNodegroups_Call struct {
+	*mock.Call
+}
+
+// ListNodegroups is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListNodegroupsInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListNodegroups(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListNodegroups_Call {
+	return &EKS_ListNodegroups_Call{Call: _e.mock.On("ListNodegroups",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListNodegroups_Call) Run(run func(ctx context.Context, params *eks.ListNodegroupsInput, optFns ...func(*eks.Options))) *EKS_ListNodegroups_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListNodegroupsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListNodegroups_Call) Return(_a0 *eks.ListNodegroupsOutput, _a1 error) *EKS_ListNodegroups_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListNodegroups_Call) RunAndReturn(run func(context.Context, *eks.ListNodegroupsInput, ...func(*eks.Options)) (*eks.ListNodegroupsOutput, error)) *EKS_ListNodegroups_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListPodIdentityAssociations provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) ListPodIdentityAssociations(ctx context.Context, params *eks.ListPodIdentityAssociationsInput, optFns ...func(*eks.Options)) (*eks.ListPodIdentityAssociationsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1603,6 +3165,43 @@ func (_m *EKS) ListPodIdentityAssociations(ctx context.Context, params *eks.List
 	}
 
 	return r0, r1
+}
+
+// EKS_ListPodIdentityAssociations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPodIdentityAssociations'
+type EKS_ListPodIdentityAssociations_Call struct {
+	*mock.Call
+}
+
+// ListPodIdentityAssociations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListPodIdentityAssociationsInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListPodIdentityAssociations(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListPodIdentityAssociations_Call {
+	return &EKS_ListPodIdentityAssociations_Call{Call: _e.mock.On("ListPodIdentityAssociations",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListPodIdentityAssociations_Call) Run(run func(ctx context.Context, params *eks.ListPodIdentityAssociationsInput, optFns ...func(*eks.Options))) *EKS_ListPodIdentityAssociations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListPodIdentityAssociationsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListPodIdentityAssociations_Call) Return(_a0 *eks.ListPodIdentityAssociationsOutput, _a1 error) *EKS_ListPodIdentityAssociations_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListPodIdentityAssociations_Call) RunAndReturn(run func(context.Context, *eks.ListPodIdentityAssociationsInput, ...func(*eks.Options)) (*eks.ListPodIdentityAssociationsOutput, error)) *EKS_ListPodIdentityAssociations_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListTagsForResource provides a mock function with given fields: ctx, params, optFns
@@ -1642,6 +3241,43 @@ func (_m *EKS) ListTagsForResource(ctx context.Context, params *eks.ListTagsForR
 	return r0, r1
 }
 
+// EKS_ListTagsForResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTagsForResource'
+type EKS_ListTagsForResource_Call struct {
+	*mock.Call
+}
+
+// ListTagsForResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListTagsForResourceInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListTagsForResource(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListTagsForResource_Call {
+	return &EKS_ListTagsForResource_Call{Call: _e.mock.On("ListTagsForResource",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListTagsForResource_Call) Run(run func(ctx context.Context, params *eks.ListTagsForResourceInput, optFns ...func(*eks.Options))) *EKS_ListTagsForResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListTagsForResourceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListTagsForResource_Call) Return(_a0 *eks.ListTagsForResourceOutput, _a1 error) *EKS_ListTagsForResource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListTagsForResource_Call) RunAndReturn(run func(context.Context, *eks.ListTagsForResourceInput, ...func(*eks.Options)) (*eks.ListTagsForResourceOutput, error)) *EKS_ListTagsForResource_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListUpdates provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) ListUpdates(ctx context.Context, params *eks.ListUpdatesInput, optFns ...func(*eks.Options)) (*eks.ListUpdatesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1679,6 +3315,43 @@ func (_m *EKS) ListUpdates(ctx context.Context, params *eks.ListUpdatesInput, op
 	return r0, r1
 }
 
+// EKS_ListUpdates_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListUpdates'
+type EKS_ListUpdates_Call struct {
+	*mock.Call
+}
+
+// ListUpdates is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListUpdatesInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListUpdates(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListUpdates_Call {
+	return &EKS_ListUpdates_Call{Call: _e.mock.On("ListUpdates",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListUpdates_Call) Run(run func(ctx context.Context, params *eks.ListUpdatesInput, optFns ...func(*eks.Options))) *EKS_ListUpdates_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListUpdatesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListUpdates_Call) Return(_a0 *eks.ListUpdatesOutput, _a1 error) *EKS_ListUpdates_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListUpdates_Call) RunAndReturn(run func(context.Context, *eks.ListUpdatesInput, ...func(*eks.Options)) (*eks.ListUpdatesOutput, error)) *EKS_ListUpdates_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Options provides a mock function with given fields:
 func (_m *EKS) Options() eks.Options {
 	ret := _m.Called()
@@ -1695,6 +3368,33 @@ func (_m *EKS) Options() eks.Options {
 	}
 
 	return r0
+}
+
+// EKS_Options_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Options'
+type EKS_Options_Call struct {
+	*mock.Call
+}
+
+// Options is a helper method to define mock.On call
+func (_e *EKS_Expecter) Options() *EKS_Options_Call {
+	return &EKS_Options_Call{Call: _e.mock.On("Options")}
+}
+
+func (_c *EKS_Options_Call) Run(run func()) *EKS_Options_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *EKS_Options_Call) Return(_a0 eks.Options) *EKS_Options_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *EKS_Options_Call) RunAndReturn(run func() eks.Options) *EKS_Options_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // RegisterCluster provides a mock function with given fields: ctx, params, optFns
@@ -1734,6 +3434,43 @@ func (_m *EKS) RegisterCluster(ctx context.Context, params *eks.RegisterClusterI
 	return r0, r1
 }
 
+// EKS_RegisterCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterCluster'
+type EKS_RegisterCluster_Call struct {
+	*mock.Call
+}
+
+// RegisterCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.RegisterClusterInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) RegisterCluster(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_RegisterCluster_Call {
+	return &EKS_RegisterCluster_Call{Call: _e.mock.On("RegisterCluster",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_RegisterCluster_Call) Run(run func(ctx context.Context, params *eks.RegisterClusterInput, optFns ...func(*eks.Options))) *EKS_RegisterCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.RegisterClusterInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_RegisterCluster_Call) Return(_a0 *eks.RegisterClusterOutput, _a1 error) *EKS_RegisterCluster_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_RegisterCluster_Call) RunAndReturn(run func(context.Context, *eks.RegisterClusterInput, ...func(*eks.Options)) (*eks.RegisterClusterOutput, error)) *EKS_RegisterCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TagResource provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) TagResource(ctx context.Context, params *eks.TagResourceInput, optFns ...func(*eks.Options)) (*eks.TagResourceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1769,6 +3506,43 @@ func (_m *EKS) TagResource(ctx context.Context, params *eks.TagResourceInput, op
 	}
 
 	return r0, r1
+}
+
+// EKS_TagResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TagResource'
+type EKS_TagResource_Call struct {
+	*mock.Call
+}
+
+// TagResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.TagResourceInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) TagResource(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_TagResource_Call {
+	return &EKS_TagResource_Call{Call: _e.mock.On("TagResource",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_TagResource_Call) Run(run func(ctx context.Context, params *eks.TagResourceInput, optFns ...func(*eks.Options))) *EKS_TagResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.TagResourceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_TagResource_Call) Return(_a0 *eks.TagResourceOutput, _a1 error) *EKS_TagResource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_TagResource_Call) RunAndReturn(run func(context.Context, *eks.TagResourceInput, ...func(*eks.Options)) (*eks.TagResourceOutput, error)) *EKS_TagResource_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UntagResource provides a mock function with given fields: ctx, params, optFns
@@ -1808,6 +3582,43 @@ func (_m *EKS) UntagResource(ctx context.Context, params *eks.UntagResourceInput
 	return r0, r1
 }
 
+// EKS_UntagResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UntagResource'
+type EKS_UntagResource_Call struct {
+	*mock.Call
+}
+
+// UntagResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.UntagResourceInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) UntagResource(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_UntagResource_Call {
+	return &EKS_UntagResource_Call{Call: _e.mock.On("UntagResource",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_UntagResource_Call) Run(run func(ctx context.Context, params *eks.UntagResourceInput, optFns ...func(*eks.Options))) *EKS_UntagResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.UntagResourceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_UntagResource_Call) Return(_a0 *eks.UntagResourceOutput, _a1 error) *EKS_UntagResource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_UntagResource_Call) RunAndReturn(run func(context.Context, *eks.UntagResourceInput, ...func(*eks.Options)) (*eks.UntagResourceOutput, error)) *EKS_UntagResource_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateAccessEntry provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) UpdateAccessEntry(ctx context.Context, params *eks.UpdateAccessEntryInput, optFns ...func(*eks.Options)) (*eks.UpdateAccessEntryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1843,6 +3654,43 @@ func (_m *EKS) UpdateAccessEntry(ctx context.Context, params *eks.UpdateAccessEn
 	}
 
 	return r0, r1
+}
+
+// EKS_UpdateAccessEntry_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAccessEntry'
+type EKS_UpdateAccessEntry_Call struct {
+	*mock.Call
+}
+
+// UpdateAccessEntry is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.UpdateAccessEntryInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) UpdateAccessEntry(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_UpdateAccessEntry_Call {
+	return &EKS_UpdateAccessEntry_Call{Call: _e.mock.On("UpdateAccessEntry",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_UpdateAccessEntry_Call) Run(run func(ctx context.Context, params *eks.UpdateAccessEntryInput, optFns ...func(*eks.Options))) *EKS_UpdateAccessEntry_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.UpdateAccessEntryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_UpdateAccessEntry_Call) Return(_a0 *eks.UpdateAccessEntryOutput, _a1 error) *EKS_UpdateAccessEntry_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_UpdateAccessEntry_Call) RunAndReturn(run func(context.Context, *eks.UpdateAccessEntryInput, ...func(*eks.Options)) (*eks.UpdateAccessEntryOutput, error)) *EKS_UpdateAccessEntry_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateAddon provides a mock function with given fields: ctx, params, optFns
@@ -1882,6 +3730,43 @@ func (_m *EKS) UpdateAddon(ctx context.Context, params *eks.UpdateAddonInput, op
 	return r0, r1
 }
 
+// EKS_UpdateAddon_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAddon'
+type EKS_UpdateAddon_Call struct {
+	*mock.Call
+}
+
+// UpdateAddon is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.UpdateAddonInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) UpdateAddon(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_UpdateAddon_Call {
+	return &EKS_UpdateAddon_Call{Call: _e.mock.On("UpdateAddon",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_UpdateAddon_Call) Run(run func(ctx context.Context, params *eks.UpdateAddonInput, optFns ...func(*eks.Options))) *EKS_UpdateAddon_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.UpdateAddonInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_UpdateAddon_Call) Return(_a0 *eks.UpdateAddonOutput, _a1 error) *EKS_UpdateAddon_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_UpdateAddon_Call) RunAndReturn(run func(context.Context, *eks.UpdateAddonInput, ...func(*eks.Options)) (*eks.UpdateAddonOutput, error)) *EKS_UpdateAddon_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateClusterConfig provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) UpdateClusterConfig(ctx context.Context, params *eks.UpdateClusterConfigInput, optFns ...func(*eks.Options)) (*eks.UpdateClusterConfigOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1917,6 +3802,43 @@ func (_m *EKS) UpdateClusterConfig(ctx context.Context, params *eks.UpdateCluste
 	}
 
 	return r0, r1
+}
+
+// EKS_UpdateClusterConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateClusterConfig'
+type EKS_UpdateClusterConfig_Call struct {
+	*mock.Call
+}
+
+// UpdateClusterConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.UpdateClusterConfigInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) UpdateClusterConfig(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_UpdateClusterConfig_Call {
+	return &EKS_UpdateClusterConfig_Call{Call: _e.mock.On("UpdateClusterConfig",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_UpdateClusterConfig_Call) Run(run func(ctx context.Context, params *eks.UpdateClusterConfigInput, optFns ...func(*eks.Options))) *EKS_UpdateClusterConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.UpdateClusterConfigInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_UpdateClusterConfig_Call) Return(_a0 *eks.UpdateClusterConfigOutput, _a1 error) *EKS_UpdateClusterConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_UpdateClusterConfig_Call) RunAndReturn(run func(context.Context, *eks.UpdateClusterConfigInput, ...func(*eks.Options)) (*eks.UpdateClusterConfigOutput, error)) *EKS_UpdateClusterConfig_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateClusterVersion provides a mock function with given fields: ctx, params, optFns
@@ -1956,6 +3878,43 @@ func (_m *EKS) UpdateClusterVersion(ctx context.Context, params *eks.UpdateClust
 	return r0, r1
 }
 
+// EKS_UpdateClusterVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateClusterVersion'
+type EKS_UpdateClusterVersion_Call struct {
+	*mock.Call
+}
+
+// UpdateClusterVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.UpdateClusterVersionInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) UpdateClusterVersion(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_UpdateClusterVersion_Call {
+	return &EKS_UpdateClusterVersion_Call{Call: _e.mock.On("UpdateClusterVersion",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_UpdateClusterVersion_Call) Run(run func(ctx context.Context, params *eks.UpdateClusterVersionInput, optFns ...func(*eks.Options))) *EKS_UpdateClusterVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.UpdateClusterVersionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_UpdateClusterVersion_Call) Return(_a0 *eks.UpdateClusterVersionOutput, _a1 error) *EKS_UpdateClusterVersion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_UpdateClusterVersion_Call) RunAndReturn(run func(context.Context, *eks.UpdateClusterVersionInput, ...func(*eks.Options)) (*eks.UpdateClusterVersionOutput, error)) *EKS_UpdateClusterVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateEksAnywhereSubscription provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) UpdateEksAnywhereSubscription(ctx context.Context, params *eks.UpdateEksAnywhereSubscriptionInput, optFns ...func(*eks.Options)) (*eks.UpdateEksAnywhereSubscriptionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1991,6 +3950,43 @@ func (_m *EKS) UpdateEksAnywhereSubscription(ctx context.Context, params *eks.Up
 	}
 
 	return r0, r1
+}
+
+// EKS_UpdateEksAnywhereSubscription_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateEksAnywhereSubscription'
+type EKS_UpdateEksAnywhereSubscription_Call struct {
+	*mock.Call
+}
+
+// UpdateEksAnywhereSubscription is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.UpdateEksAnywhereSubscriptionInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) UpdateEksAnywhereSubscription(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_UpdateEksAnywhereSubscription_Call {
+	return &EKS_UpdateEksAnywhereSubscription_Call{Call: _e.mock.On("UpdateEksAnywhereSubscription",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_UpdateEksAnywhereSubscription_Call) Run(run func(ctx context.Context, params *eks.UpdateEksAnywhereSubscriptionInput, optFns ...func(*eks.Options))) *EKS_UpdateEksAnywhereSubscription_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.UpdateEksAnywhereSubscriptionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_UpdateEksAnywhereSubscription_Call) Return(_a0 *eks.UpdateEksAnywhereSubscriptionOutput, _a1 error) *EKS_UpdateEksAnywhereSubscription_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_UpdateEksAnywhereSubscription_Call) RunAndReturn(run func(context.Context, *eks.UpdateEksAnywhereSubscriptionInput, ...func(*eks.Options)) (*eks.UpdateEksAnywhereSubscriptionOutput, error)) *EKS_UpdateEksAnywhereSubscription_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateNodegroupConfig provides a mock function with given fields: ctx, params, optFns
@@ -2030,6 +4026,43 @@ func (_m *EKS) UpdateNodegroupConfig(ctx context.Context, params *eks.UpdateNode
 	return r0, r1
 }
 
+// EKS_UpdateNodegroupConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateNodegroupConfig'
+type EKS_UpdateNodegroupConfig_Call struct {
+	*mock.Call
+}
+
+// UpdateNodegroupConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.UpdateNodegroupConfigInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) UpdateNodegroupConfig(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_UpdateNodegroupConfig_Call {
+	return &EKS_UpdateNodegroupConfig_Call{Call: _e.mock.On("UpdateNodegroupConfig",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_UpdateNodegroupConfig_Call) Run(run func(ctx context.Context, params *eks.UpdateNodegroupConfigInput, optFns ...func(*eks.Options))) *EKS_UpdateNodegroupConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.UpdateNodegroupConfigInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_UpdateNodegroupConfig_Call) Return(_a0 *eks.UpdateNodegroupConfigOutput, _a1 error) *EKS_UpdateNodegroupConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_UpdateNodegroupConfig_Call) RunAndReturn(run func(context.Context, *eks.UpdateNodegroupConfigInput, ...func(*eks.Options)) (*eks.UpdateNodegroupConfigOutput, error)) *EKS_UpdateNodegroupConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateNodegroupVersion provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) UpdateNodegroupVersion(ctx context.Context, params *eks.UpdateNodegroupVersionInput, optFns ...func(*eks.Options)) (*eks.UpdateNodegroupVersionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2067,6 +4100,43 @@ func (_m *EKS) UpdateNodegroupVersion(ctx context.Context, params *eks.UpdateNod
 	return r0, r1
 }
 
+// EKS_UpdateNodegroupVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateNodegroupVersion'
+type EKS_UpdateNodegroupVersion_Call struct {
+	*mock.Call
+}
+
+// UpdateNodegroupVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.UpdateNodegroupVersionInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) UpdateNodegroupVersion(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_UpdateNodegroupVersion_Call {
+	return &EKS_UpdateNodegroupVersion_Call{Call: _e.mock.On("UpdateNodegroupVersion",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_UpdateNodegroupVersion_Call) Run(run func(ctx context.Context, params *eks.UpdateNodegroupVersionInput, optFns ...func(*eks.Options))) *EKS_UpdateNodegroupVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.UpdateNodegroupVersionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_UpdateNodegroupVersion_Call) Return(_a0 *eks.UpdateNodegroupVersionOutput, _a1 error) *EKS_UpdateNodegroupVersion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_UpdateNodegroupVersion_Call) RunAndReturn(run func(context.Context, *eks.UpdateNodegroupVersionInput, ...func(*eks.Options)) (*eks.UpdateNodegroupVersionOutput, error)) *EKS_UpdateNodegroupVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdatePodIdentityAssociation provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) UpdatePodIdentityAssociation(ctx context.Context, params *eks.UpdatePodIdentityAssociationInput, optFns ...func(*eks.Options)) (*eks.UpdatePodIdentityAssociationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2102,6 +4172,43 @@ func (_m *EKS) UpdatePodIdentityAssociation(ctx context.Context, params *eks.Upd
 	}
 
 	return r0, r1
+}
+
+// EKS_UpdatePodIdentityAssociation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdatePodIdentityAssociation'
+type EKS_UpdatePodIdentityAssociation_Call struct {
+	*mock.Call
+}
+
+// UpdatePodIdentityAssociation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.UpdatePodIdentityAssociationInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) UpdatePodIdentityAssociation(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_UpdatePodIdentityAssociation_Call {
+	return &EKS_UpdatePodIdentityAssociation_Call{Call: _e.mock.On("UpdatePodIdentityAssociation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_UpdatePodIdentityAssociation_Call) Run(run func(ctx context.Context, params *eks.UpdatePodIdentityAssociationInput, optFns ...func(*eks.Options))) *EKS_UpdatePodIdentityAssociation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.UpdatePodIdentityAssociationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_UpdatePodIdentityAssociation_Call) Return(_a0 *eks.UpdatePodIdentityAssociationOutput, _a1 error) *EKS_UpdatePodIdentityAssociation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_UpdatePodIdentityAssociation_Call) RunAndReturn(run func(context.Context, *eks.UpdatePodIdentityAssociationInput, ...func(*eks.Options)) (*eks.UpdatePodIdentityAssociationOutput, error)) *EKS_UpdatePodIdentityAssociation_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewEKS creates a new instance of EKS. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

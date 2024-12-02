@@ -22,18 +22,27 @@ func MakePolicyDocument(statements ...MapOfInterfaces) MapOfInterfaces {
 	}
 }
 
-// MakeAssumeRolePolicyDocumentForServices constructs a trust policy for given services
+// MakeAssumeRolePolicyDocumentForServices constructs a trust policy for given services.
 func MakeAssumeRolePolicyDocumentForServices(services ...*gfn.Value) MapOfInterfaces {
+	return MakeAssumeRolePolicyDocumentWithAction("", services...)
+}
+
+// MakeAssumeRolePolicyDocumentWithAction constructs a trust policy for given services and action.
+func MakeAssumeRolePolicyDocumentWithAction(action string, services ...*gfn.Value) MapOfInterfaces {
+	actions := []string{"sts:AssumeRole"}
+	if action != "" {
+		actions = append(actions, action)
+	}
 	return MakePolicyDocument(MapOfInterfaces{
 		"Effect": "Allow",
-		"Action": []string{"sts:AssumeRole"},
+		"Action": actions,
 		"Principal": map[string][]*gfn.Value{
 			"Service": services,
 		},
 	})
 }
 
-// MakeAssumeRolePolicyDocumentForServices constructs a trust policy for given services with given conditions
+// MakeAssumeRolePolicyDocumentForServicesWithConditions constructs a trust policy for given services with given conditions.
 func MakeAssumeRolePolicyDocumentForServicesWithConditions(condition MapOfInterfaces, services ...*gfn.Value) MapOfInterfaces {
 	return MakePolicyDocument(MapOfInterfaces{
 		"Effect":    "Allow",
@@ -67,6 +76,18 @@ func MakeAssumeRolePolicyDocumentForPodIdentity() MapOfInterfaces {
 		},
 		"Principal": map[string]string{
 			"Service": api.EKSServicePrincipal,
+		},
+	})
+}
+
+// MakeAssumeRolePolicyDocumentForServices constructs a trust policy for given services with given conditions and extra actions
+func MakeAssumeRolePolicyDocumentForServicesWithConditionsAndActions(condition MapOfInterfaces, extraActions []string, services ...*gfn.Value) MapOfInterfaces {
+	return MakePolicyDocument(MapOfInterfaces{
+		"Effect":    "Allow",
+		"Action":    append([]string{"sts:AssumeRole"}, extraActions...),
+		"Condition": condition,
+		"Principal": map[string][]*gfn.Value{
+			"Service": services,
 		},
 	})
 }
