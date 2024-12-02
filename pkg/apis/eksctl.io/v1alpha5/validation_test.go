@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -945,6 +946,104 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 		})
 	})
+
+	type remoteNetworkConfigEntry struct {
+		overrideConfig func(*api.ClusterConfig)
+		expectedErr    string
+	}
+	DescribeTable("RemoteNetworkConfig", func(e remoteNetworkConfigEntry) {
+		cfg := api.NewClusterConfig()
+		api.SetClusterConfigDefaults(cfg)
+		api.SetClusterEndpointAccessDefaults(cfg.VPC)
+		gatewayID := api.VPCGateway("tgw-1234")
+		cfg.RemoteNetworkConfig = &api.RemoteNetworkConfig{
+			RemoteNodeNetworks: []*api.RemoteNetwork{{CIDRs: []string{"192.168.0.1"}}},
+			VPCGatewayID:       &gatewayID,
+		}
+		e.overrideConfig(cfg)
+		Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring(e.expectedErr)))
+	},
+
+		Entry("public cluster endpoint access is disabled", remoteNetworkConfigEntry{
+			overrideConfig: func(cc *api.ClusterConfig) {
+				cc.VPC.ClusterEndpoints = &api.ClusterEndpoints{
+					PublicAccess: api.Disabled(),
+				}
+			},
+			expectedErr: "remoteNetworkConfig requires public cluster endpoint access",
+		}),
+		Entry("fully private EKS cluster", remoteNetworkConfigEntry{
+			overrideConfig: func(cc *api.ClusterConfig) {
+				cc.PrivateCluster = &api.PrivateCluster{
+					Enabled: true,
+				}
+			},
+			expectedErr: "remoteNetworkConfig is not supported on fully private EKS cluster",
+		}),
+		Entry("IPv6 family", remoteNetworkConfigEntry{
+			overrideConfig: func(cc *api.ClusterConfig) {
+				cc.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+				// setup other pre-requisites for IPv6
+				cc.IAM.WithOIDC = aws.Bool(true)
+				cc.Addons = []*api.Addon{
+					{Name: api.VPCCNIAddon},
+					{Name: api.CoreDNSAddon},
+					{Name: api.KubeProxyAddon},
+				}
+			},
+			expectedErr: "remoteNetworkConfig is not supported on EKS cluster configured with IPv6 address family",
+		}),
+		Entry("authenticationMode is ConfigMap", remoteNetworkConfigEntry{
+			overrideConfig: func(cc *api.ClusterConfig) {
+				cc.AccessConfig = &api.AccessConfig{
+					AuthenticationMode: ekstypes.AuthenticationModeConfigMap,
+				}
+			},
+			expectedErr: fmt.Sprintf("remoteNetworkConfig requires authenticationMode to be either %q or %q", ekstypes.AuthenticationModeApiAndConfigMap, ekstypes.AuthenticationModeApi),
+		}),
+		Entry("remoteNodeNetworks is empty", remoteNetworkConfigEntry{
+			overrideConfig: func(cc *api.ClusterConfig) {
+				cc.RemoteNetworkConfig = &api.RemoteNetworkConfig{}
+			},
+			expectedErr: "remoteNetworkConfig.remoteNodeNetworks must be set and non-empty",
+		}),
+		Entry("both vpcGatewayID and pre-existing VPC are set", remoteNetworkConfigEntry{
+			overrideConfig: func(cc *api.ClusterConfig) {
+				cc.VPC.ID = "vpc-1234"
+			},
+			expectedErr: "remoteNetworkConfig.vpcGatewayID is not supported when using pre-existing VPC",
+		}),
+		Entry("both vpcGatewayID and pre-existing VPC are missing", remoteNetworkConfigEntry{
+			overrideConfig: func(cc *api.ClusterConfig) {
+				cc.RemoteNetworkConfig.VPCGatewayID = nil
+			},
+			expectedErr: "remoteNetworkConfig.vpcGatewayID must be set and non-empty",
+		}),
+		Entry("unsupported vpcGateway type", remoteNetworkConfigEntry{
+			overrideConfig: func(cc *api.ClusterConfig) {
+				gatewayID := api.VPCGateway("igw-1234")
+				cc.RemoteNetworkConfig.VPCGatewayID = &gatewayID
+			},
+			expectedErr: "invalid value \"igw-1234\" provided for remoteNetworkConfig.vpcGatewayID",
+		}),
+		Entry("unsupported credentials provider", remoteNetworkConfigEntry{
+			overrideConfig: func(cc *api.ClusterConfig) {
+				cc.RemoteNetworkConfig.IAM = &api.RemoteNodesIAM{
+					Provider: aws.String("BLOB"),
+				}
+			},
+			expectedErr: "invalid value \"BLOB\" provided for remoteNetworkConfig.iam.provider",
+		}),
+		Entry("CABundle cert is missing when using IRA", remoteNetworkConfigEntry{
+			overrideConfig: func(cc *api.ClusterConfig) {
+				cc.RemoteNetworkConfig.IAM = &api.RemoteNodesIAM{
+					Provider: aws.String("IRA"),
+				}
+			},
+			expectedErr: "remoteNetworkConfig.iam.caBundleCert is required when using IAMRolesAnywhere credentials provider",
+		}),
+	)
+
 	Describe("network config", func() {
 		var (
 			cfg *api.ClusterConfig

@@ -633,6 +633,66 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 		})
 
+		Context("when RemoteNetworkConfig is set", func() {
+			var (
+				gatewayID api.VPCGateway
+			)
+			BeforeEach(func() {
+				gatewayID = api.VPCGateway("tgw-1234")
+				cfg.RemoteNetworkConfig = &api.RemoteNetworkConfig{
+					IAM: &api.RemoteNodesIAM{
+						Provider: &api.IRAProvider,
+					},
+					VPCGatewayID:       &gatewayID,
+					RemoteNodeNetworks: []*api.RemoteNetwork{{CIDRs: []string{"192.168.0.1"}}},
+				}
+			})
+			It("should create all appropriate resources", func() {
+				// should create all networking resources for the VPC
+				Expect(clusterTemplate.Resources).To(HaveKey("TransitGatewayAttachment"))
+				tgwAttachment := clusterTemplate.Resources["TransitGatewayAttachment"]
+				Expect(tgwAttachment.Properties.TransitGatewayId).To(Equal("tgw-1234"))
+				Expect(tgwAttachment.Properties.TransitGatewayId).To(Equal("tgw-1234"))
+
+				Expect(clusterTemplate.Resources).To(HaveKey("TGWPrivateSubnetRoute0USWEST2A"))
+				tgwRoute := clusterTemplate.Resources["TGWPrivateSubnetRoute0USWEST2A"]
+				Expect(tgwRoute.Properties.TransitGatewayId).To(Equal("tgw-1234"))
+				Expect(tgwRoute.Properties.DestinationCidrBlock).To(Equal("192.168.0.1"))
+
+				Expect(clusterTemplate.Resources).To(HaveKey("TGWPrivateSubnetRoute0USWEST2B"))
+				tgwRoute = clusterTemplate.Resources["TGWPrivateSubnetRoute0USWEST2B"]
+				Expect(tgwRoute.Properties.TransitGatewayId).To(Equal("tgw-1234"))
+				Expect(tgwRoute.Properties.DestinationCidrBlock).To(Equal("192.168.0.1"))
+
+				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneRemoteNetworks0"))
+				ingressRemote := clusterTemplate.Resources["IngressControlPlaneRemoteNetworks0"]
+				Expect(ingressRemote.Properties.CidrIP).To(Equal("192.168.0.1"))
+				Expect(ingressRemote.Properties.FromPort).To(Equal(443))
+				Expect(ingressRemote.Properties.ToPort).To(Equal(443))
+
+				// should create IAM Roles Anywhere resources
+				Expect(clusterTemplate.Resources).To(HaveKey("TrustAnchor"))
+
+				Expect(clusterTemplate.Resources).To(HaveKey("AnywhereProfile"))
+				anywhereProfile := clusterTemplate.Resources["AnywhereProfile"]
+				Expect(anywhereProfile.Properties.AcceptRoleSessionName).To(BeTrue())
+
+				Expect(clusterTemplate.Resources).To(HaveKey("HybridNodesIRARole"))
+				iraRole := clusterTemplate.Resources["HybridNodesIRARole"]
+				Expect(iraRole.Properties.ManagedPolicyArns).To(ContainElement(map[string]interface{}{
+					"Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+				}))
+				Expect(iraRole.Properties.ManagedPolicyArns).To(ContainElement(map[string]interface{}{
+					"Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore",
+				}))
+
+				// should create a HYBRID_LINUX access entry to allow remote notes to join the cluster
+				Expect(clusterTemplate.Resources).To(HaveKey("RemoteNodesAccessEntry"))
+				remoteAE := clusterTemplate.Resources["RemoteNodesAccessEntry"]
+				Expect(remoteAE.Properties.Type).To(Equal("HYBRID_LINUX"))
+			})
+		})
+
 		Context("when adding vpc resources fails", func() {
 			BeforeEach(func() {
 				cfg.VPC = &api.ClusterVPC{}

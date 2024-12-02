@@ -79,3 +79,15 @@ func MakeAssumeRolePolicyDocumentForPodIdentity() MapOfInterfaces {
 		},
 	})
 }
+
+// MakeAssumeRolePolicyDocumentForServices constructs a trust policy for given services with given conditions and extra actions
+func MakeAssumeRolePolicyDocumentForServicesWithConditionsAndActions(condition MapOfInterfaces, extraActions []string, services ...*gfn.Value) MapOfInterfaces {
+	return MakePolicyDocument(MapOfInterfaces{
+		"Effect":    "Allow",
+		"Action":    append([]string{"sts:AssumeRole"}, extraActions...),
+		"Condition": condition,
+		"Principal": map[string][]*gfn.Value{
+			"Service": services,
+		},
+	})
+}

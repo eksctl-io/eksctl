@@ -89,6 +89,9 @@ func (c *ClusterResourceSet) AddAllResources(ctx context.Context) error {
 	if err := c.addResourcesForControlPlane(subnetDetails); err != nil {
 		return err
 	}
+	if c.spec.HasRemoteNetworkingConfigured() {
+		c.addAccessEntryForRemoteNodes()
+	}
 
 	if len(c.spec.FargateProfiles) > 0 {
 		c.addResourcesForFargate()
@@ -129,6 +132,19 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcID *gfnt.Value) *c
 			GroupDescription: gfnt.NewString("Communication between the control plane and worker nodegroups"),
 			VpcId:            vpcID,
 		})
+
+		if c.spec.HasRemoteNetworkingConfigured() {
+			for i, remoteNetworkCIRD := range c.spec.RemoteNetworkConfig.ToRemoteNetworksPool() {
+				c.newResource(fmt.Sprintf("IngressControlPlaneRemoteNetworks%d", i), &gfnec2.SecurityGroupIngress{
+					GroupId:     refControlPlaneSG,
+					CidrIp:      gfnt.NewString(remoteNetworkCIRD),
+					Description: gfnt.NewString(fmt.Sprintf("Allow nodes/pods from remote network (%s) to communicate to controlplane", remoteNetworkCIRD)),
+					IpProtocol:  gfnt.NewString("tcp"),
+					FromPort:    sgPortHTTPS,
+					ToPort:      sgPortHTTPS,
+				})
+			}
+		}
 
 		if len(c.spec.VPC.ExtraCIDRs) > 0 {
 			for i, cidr := range c.spec.VPC.ExtraCIDRs {
@@ -378,6 +394,20 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		}
 	}
 
+	if c.spec.HasRemoteNetworkingConfigured() {
+		cluster.RemoteNetworkConfig = &gfneks.Cluster_RemoteNetworkConfig{}
+		for _, remoteNetwork := range c.spec.RemoteNetworkConfig.RemotePodNetworks {
+			cluster.RemoteNetworkConfig.RemotePodNetworks = append(cluster.RemoteNetworkConfig.RemotePodNetworks, gfneks.RemoteNetworks{
+				CIDRs: gfnt.NewStringSlice(remoteNetwork.CIDRs...),
+			})
+		}
+		for _, remoteNetwork := range c.spec.RemoteNetworkConfig.RemoteNodeNetworks {
+			cluster.RemoteNetworkConfig.RemoteNodeNetworks = append(cluster.RemoteNetworkConfig.RemoteNodeNetworks, gfneks.RemoteNetworks{
+				CIDRs: gfnt.NewStringSlice(remoteNetwork.CIDRs...),
+			})
+		}
+	}
+
 	c.newResource("ControlPlane", &cluster)
 
 	if c.spec.Status == nil {
@@ -410,6 +440,26 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 			return nil
 		})
 	return nil
+}
+
+func (c *ClusterResourceSet) addAccessEntryForRemoteNodes() {
+	getRemoteNodesRoleName := func() string {
+		switch *c.spec.RemoteNetworkConfig.IAM.Provider {
+		case api.SSMProvider:
+			return SSMRole
+		case api.IRAProvider:
+			return IRARole
+		default:
+			// Validations should ensure this is never reached
+			return ""
+		}
+	}
+	c.newResource("RemoteNodesAccessEntry", &gfneks.AccessEntry{
+		PrincipalArn:               gfnt.MakeFnGetAttString(getRemoteNodesRoleName(), "Arn"),
+		ClusterName:                gfnt.NewString(c.spec.Metadata.Name),
+		Type:                       gfnt.NewString(string(api.AccessEntryTypeHybridLinux)),
+		AWSCloudFormationDependsOn: []string{"ControlPlane"},
+	})
 }
 
 func makeCFNTags(clusterConfig *api.ClusterConfig) []gfncfn.Tag {

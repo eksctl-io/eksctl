@@ -24,6 +24,8 @@ type partitions []partition
 var standardServiceMappings = map[string]string{
 	"EC2":            "ec2.amazonaws.com",
 	"EKS":            "eks.amazonaws.com",
+	"SSM":            "ssm.amazonaws.com",
+	"IRA":            "rolesanywhere.amazonaws.com",
 	"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
 }
 
