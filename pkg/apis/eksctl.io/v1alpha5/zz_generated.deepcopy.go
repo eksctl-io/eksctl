@@ -394,14 +394,14 @@ func (in *ClusterConfig) DeepCopyInto(out *ClusterConfig) {
 		*out = new(KubernetesNetworkConfig)
 		**out = **in
 	}
-	if in.RemoteNetworkConfig != nil {
-		in, out := &in.RemoteNetworkConfig, &out.RemoteNetworkConfig
-		*out = new(RemoteNetworkConfig)
-		(*in).DeepCopyInto(*out)
-	}
 	if in.AutoModeConfig != nil {
 		in, out := &in.AutoModeConfig, &out.AutoModeConfig
 		*out = new(AutoModeConfig)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.RemoteNetworkConfig != nil {
+		in, out := &in.RemoteNetworkConfig, &out.RemoteNetworkConfig
+		*out = new(RemoteNetworkConfig)
 		(*in).DeepCopyInto(*out)
 	}
 	if in.IAM != nil {
