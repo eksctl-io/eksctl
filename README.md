@@ -10,6 +10,12 @@ You can create a cluster in minutes with just one command – **`eksctl create c
 
 _Need help? Join [Eksctl Slack][slackjoin]._
 
+## New: EKS Auto Mode Support
+
+`eksctl` now supports EKS Auto Mode! EKS Auto Mode automates routine tasks for cluster compute, storage, and networking. Learn how to [create an EKS Auto Mode Cluster with eksctl](https://docs.aws.amazon.com/eks/latest/userguide/automode-get-started-eksctl.html).
+
+Version 0.195.0 or greater is required.
+
 ## Installation
 
 `eksctl` is available to install from official releases as described below. We recommend that you install `eksctl` from only the official GitHub releases. You may opt to use a third-party installer, but please be advised that AWS does not maintain nor support these methods of installation. Use them at your own discretion.
