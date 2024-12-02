@@ -231,12 +231,12 @@ func mockUpdateClusterConfig(u *updaterMocks, computeConfig *ekstypes.ComputeCon
 		Name:          aws.String("cluster"),
 		ComputeConfig: computeConfig,
 		KubernetesNetworkConfig: &ekstypes.KubernetesNetworkConfigRequest{
-			ElasticLoadBalancing: &ekstypes.ElasticLoadBalancingRequest{
+			ElasticLoadBalancing: &ekstypes.ElasticLoadBalancing{
 				Enabled: computeConfig.Enabled,
 			},
 		},
 		StorageConfig: &ekstypes.StorageConfigRequest{
-			BlockStorage: &ekstypes.BlockStorageRequest{
+			BlockStorage: &ekstypes.BlockStorage{
 				Enabled: computeConfig.Enabled,
 			},
 		},

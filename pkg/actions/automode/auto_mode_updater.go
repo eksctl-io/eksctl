@@ -129,12 +129,12 @@ func (u *Updater) enableAutoMode(ctx context.Context, autoModeConfig *api.AutoMo
 		Name:          aws.String(clusterName),
 		ComputeConfig: computeConfigReq,
 		KubernetesNetworkConfig: &ekstypes.KubernetesNetworkConfigRequest{
-			ElasticLoadBalancing: &ekstypes.ElasticLoadBalancingRequest{
+			ElasticLoadBalancing: &ekstypes.ElasticLoadBalancing{
 				Enabled: aws.Bool(true),
 			},
 		},
 		StorageConfig: &ekstypes.StorageConfigRequest{
-			BlockStorage: &ekstypes.BlockStorageRequest{
+			BlockStorage: &ekstypes.BlockStorage{
 				Enabled: aws.Bool(true),
 			},
 		},
@@ -164,12 +164,12 @@ func (u *Updater) disableAutoMode(ctx context.Context, clusterName string) error
 			Enabled: aws.Bool(false),
 		},
 		KubernetesNetworkConfig: &ekstypes.KubernetesNetworkConfigRequest{
-			ElasticLoadBalancing: &ekstypes.ElasticLoadBalancingRequest{
+			ElasticLoadBalancing: &ekstypes.ElasticLoadBalancing{
 				Enabled: aws.Bool(false),
 			},
 		},
 		StorageConfig: &ekstypes.StorageConfigRequest{
-			BlockStorage: &ekstypes.BlockStorageRequest{
+			BlockStorage: &ekstypes.BlockStorage{
 				Enabled: aws.Bool(false),
 			},
 		},
