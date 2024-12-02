@@ -517,6 +517,9 @@
           "description": "allows configuring a fully-private cluster in which no node has outbound internet access, and private access to AWS services is enabled via VPC endpoints",
           "x-intellij-html-description": "allows configuring a fully-private cluster in which no node has outbound internet access, and private access to AWS services is enabled via VPC endpoints"
         },
+        "remoteNetworkConfig": {
+          "$ref": "#/definitions/RemoteNetworkConfig"
+        },
         "secretsEncryption": {
           "$ref": "#/definitions/SecretsEncryption"
         },
@@ -535,6 +538,7 @@
         "metadata",
         "kubernetesNetworkConfig",
         "autoModeConfig",
+        "remoteNetworkConfig",
         "iam",
         "iamIdentityMappings",
         "identityProviders",
@@ -2506,6 +2510,82 @@
       "description": "defines the configuration for a fully-private cluster.",
       "x-intellij-html-description": "defines the configuration for a fully-private cluster."
     },
+    "RemoteNetwork": {
+      "properties": {
+        "cidrs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "preferredOrder": [
+        "cidrs"
+      ],
+      "additionalProperties": false,
+      "description": "RemoteNetwork",
+      "x-intellij-html-description": "RemoteNetwork"
+    },
+    "RemoteNetworkConfig": {
+      "required": [
+        "vpcGatewayID",
+        "remoteNodeNetworks"
+      ],
+      "properties": {
+        "iam": {
+          "$ref": "#/definitions/RemoteNodesIAM"
+        },
+        "remoteNodeNetworks": {
+          "items": {
+            "$ref": "#/definitions/RemoteNetwork"
+          },
+          "type": "array"
+        },
+        "remotePodNetworks": {
+          "items": {
+            "$ref": "#/definitions/RemoteNetwork"
+          },
+          "type": "array"
+        },
+        "vpcGatewayID": {
+          "$ref": "#/definitions/VPCGateway"
+        }
+      },
+      "preferredOrder": [
+        "iam",
+        "vpcGatewayID",
+        "remoteNodeNetworks",
+        "remotePodNetworks"
+      ],
+      "additionalProperties": false,
+      "description": "RemoteNetworkConfig",
+      "x-intellij-html-description": "RemoteNetworkConfig"
+    },
+    "RemoteNodesIAM": {
+      "properties": {
+        "caBundleCert": {
+          "type": "string",
+          "description": "the CA bundle certificate used by IRA trust anchor. Can't be set if Provider is SSM.",
+          "x-intellij-html-description": "the CA bundle certificate used by IRA trust anchor. Can't be set if Provider is SSM."
+        },
+        "provider": {
+          "type": "string",
+          "description": "the AWS service responsible for provisioning IAM credentials to remote nodes. Valid options are `SSM` (System Manager), default, and `IRA` (IAM Roles anywhere). Required IRA config (i.e. TrustAnchor, AnywhereProfile) will be created by eksctl behind the scenes.",
+          "x-intellij-html-description": "the AWS service responsible for provisioning IAM credentials to remote nodes. Valid options are <code>SSM</code> (System Manager), default, and <code>IRA</code> (IAM Roles anywhere). Required IRA config (i.e. TrustAnchor, AnywhereProfile) will be created by eksctl behind the scenes."
+        },
+        "roleARN": {
+          "type": "string",
+          "description": "the IAM Role ARN to be added to aws-auth configmap for remote nodes. If not set, eksctl creates the role behind the scenes, adds an entry into the configmap and sets up any other SSM/IRA config. If set, eksctl will only add the configmap entry, while creating any required SSM/IRA config falls under user's responsibility.",
+          "x-intellij-html-description": "the IAM Role ARN to be added to aws-auth configmap for remote nodes. If not set, eksctl creates the role behind the scenes, adds an entry into the configmap and sets up any other SSM/IRA config. If set, eksctl will only add the configmap entry, while creating any required SSM/IRA config falls under user's responsibility."
+        }
+      },
+      "preferredOrder": [
+        "provider",
+        "roleARN",
+        "caBundleCert"
+      ],
+      "additionalProperties": false
+    },
     "SecretsEncryption": {
       "required": [
         "keyARN"
@@ -2521,6 +2601,11 @@
       "additionalProperties": false,
       "description": "defines the configuration for KMS encryption provider",
       "x-intellij-html-description": "defines the configuration for KMS encryption provider"
+    },
+    "VPCGateway": {
+      "type": "string",
+      "description": "VPCGatewayID the ID of the gateway that facilitates external connectivity from customer's VPC to their remote network(s). Valid options are Transit Gateway and Virtual Private Gateway.",
+      "x-intellij-html-description": "VPCGatewayID the ID of the gateway that facilitates external connectivity from customer's VPC to their remote network(s). Valid options are Transit Gateway and Virtual Private Gateway."
     },
     "VolumeMapping": {
       "properties": {

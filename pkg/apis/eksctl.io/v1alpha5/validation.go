@@ -82,6 +82,71 @@ func setNonEmpty(field string) error {
 	return fmt.Errorf("%s must be set and non-empty", field)
 }
 
+func (c *ClusterConfig) validateRemoteNetworkingConfig() error {
+	rnc := c.RemoteNetworkConfig
+	if rnc == nil {
+		return nil
+	}
+
+	if !IsEnabled(c.VPC.ClusterEndpoints.PublicAccess) {
+		return fmt.Errorf("remoteNetworkConfig requires public cluster endpoint access")
+	}
+
+	if c.IsFullyPrivate() {
+		return fmt.Errorf("remoteNetworkConfig is not supported on fully private EKS cluster")
+	}
+
+	if c.IPv6Enabled() {
+		return fmt.Errorf("remoteNetworkConfig is not supported on EKS cluster configured with IPv6 address family")
+	}
+
+	if c.AccessConfig.AuthenticationMode == ekstypes.AuthenticationModeConfigMap {
+		return fmt.Errorf("remoteNetworkConfig requires authenticationMode to be either %q or %q", ekstypes.AuthenticationModeApiAndConfigMap, ekstypes.AuthenticationModeApi)
+	}
+
+	if len(rnc.RemoteNodeNetworks) == 0 {
+		return setNonEmpty("remoteNetworkConfig.remoteNodeNetworks")
+	}
+
+	if c.VPC.ID != "" {
+		if rnc.VPCGatewayID.IsSet() {
+			return fmt.Errorf("remoteNetworkConfig.vpcGatewayID is not supported when using pre-existing VPC")
+		}
+	} else {
+		if !rnc.VPCGatewayID.IsSet() {
+			return setNonEmpty("remoteNetworkConfig.vpcGatewayID")
+		}
+		// vpcGatewayId must be either a virtual private gateway or a transit gateway
+		if !rnc.VPCGatewayID.IsTransitGateway() && !rnc.VPCGatewayID.IsVirtualPrivateGateway() {
+			return fmt.Errorf("invalid value %q provided for remoteNetworkConfig.vpcGatewayID; "+
+				"only transit gateway (tgw-*) or virtual private gateway (vgw-*) IDs are supported", *rnc.VPCGatewayID)
+		}
+	}
+
+	// credentials provider must be either SSM or IAM Roles Anywhere
+	if !strings.EqualFold(*rnc.IAM.Provider, SSMProvider) &&
+		!strings.EqualFold(*rnc.IAM.Provider, IRAProvider) {
+		return fmt.Errorf("invalid value %q provided for remoteNetworkConfig.iam.provider; only %q and %q are supported",
+			*rnc.IAM.Provider, SSMProvider, IRAProvider)
+	}
+
+	// CABundleCert should only be set of credentials provider is IAM Roles Anywhere
+	if strings.EqualFold(*rnc.IAM.Provider, SSMProvider) && rnc.IAM.CABundleCert != nil {
+		return fmt.Errorf("remoteNetworkConfig.iam.caBundleCert is not supported when using SSM credentials provider")
+	}
+
+	if strings.EqualFold(*rnc.IAM.Provider, IRAProvider) && rnc.IAM.CABundleCert == nil {
+		return fmt.Errorf("remoteNetworkConfig.iam.caBundleCert is required when using IAMRolesAnywhere credentials provider")
+	}
+
+	if IsSetAndNonEmptyString(rnc.IAM.RoleARN) {
+		logger.Warning("remoteNetworkConfig.iam.roleARN is set; eksctl will add a corresponding entry in aws-auth configmap; " +
+			"but won't setup an additional SSM or IAMRolesAnywhere required config")
+	}
+
+	return nil
+}
+
 // ValidateClusterConfig checks compatible fields of a given ClusterConfig
 func ValidateClusterConfig(cfg *ClusterConfig) error {
 	if IsDisabled(cfg.IAM.WithOIDC) && len(cfg.IAM.ServiceAccounts) > 0 {
@@ -103,6 +168,10 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	}
 
 	if err := cfg.validateKubernetesNetworkConfig(); err != nil {
+		return err
+	}
+
+	if err := cfg.validateRemoteNetworkingConfig(); err != nil {
 		return err
 	}
 

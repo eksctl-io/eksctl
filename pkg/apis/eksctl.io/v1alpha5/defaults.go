@@ -79,6 +79,15 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 	if cfg.Karpenter != nil && cfg.Karpenter.CreateServiceAccount == nil {
 		cfg.Karpenter.CreateServiceAccount = Disabled()
 	}
+
+	if cfg.RemoteNetworkConfig != nil {
+		if cfg.RemoteNetworkConfig.IAM == nil {
+			cfg.RemoteNetworkConfig.IAM = &RemoteNodesIAM{}
+		}
+		if cfg.RemoteNetworkConfig.IAM.Provider == nil {
+			cfg.RemoteNetworkConfig.IAM.Provider = &SSMProvider
+		}
+	}
 }
 
 // IAMServiceAccountsWithImplicitServiceAccounts adds implicitly created
