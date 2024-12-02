@@ -10,18 +10,14 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/weaveworks/eksctl/pkg/drain/evictor"
-
-	corev1 "k8s.io/api/core/v1"
-
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
-
-	"github.com/weaveworks/eksctl/pkg/eks"
-
 	cmap "github.com/orcaman/concurrent-map"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/weaveworks/eksctl/pkg/drain/evictor"
+	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 // this is our custom addition, it's not part of the package
@@ -89,7 +85,7 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, m
 // Drain drains a nodegroup
 func (n *NodeGroupDrainer) Drain(ctx context.Context, sem *semaphore.Weighted) error {
 	if err := n.evictor.CanUseEvictions(); err != nil {
-		return errors.Wrap(err, "checking if cluster implements policy API")
+		return fmt.Errorf("checking if cluster implements policy API: %w", err)
 	}
 
 	listOptions := n.ng.ListOptions()
@@ -148,7 +144,7 @@ func (n *NodeGroupDrainer) Drain(ctx context.Context, sem *semaphore.Weighted) e
 				node := node
 				g.Go(func() error {
 					if err := sem.Acquire(ctx, 1); err != nil {
-						return errors.Wrapf(err, "failed to acquire semaphore")
+						return fmt.Errorf("failed to acquire semaphore: %w", err)
 					}
 					defer sem.Release(1)
 
@@ -233,7 +229,7 @@ func (n *NodeGroupDrainer) evictPods(ctx context.Context, node string) error {
 			for _, pod := range pods {
 				if err := n.evictor.EvictOrDeletePod(pod); err != nil {
 					if !isEvictionErrorRecoverable(err) {
-						return errors.Wrapf(err, "unrecoverable error evicting pod: %s/%s", pod.Namespace, pod.Name)
+						return fmt.Errorf("unrecoverable error evicting pod: %s/%s: %w", pod.Namespace, pod.Name, err)
 					}
 					logger.Debug("recoverable pod eviction failure: %q", err)
 					failedEvictions = true

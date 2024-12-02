@@ -9,7 +9,6 @@ import (
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
@@ -101,7 +100,7 @@ func (c *StackCollection) waitUntilStackIsCreated(ctx context.Context, i *Stack,
 		return
 	}
 	if err := stack.GetAllOutputs(*s); err != nil {
-		errs <- errors.Wrapf(err, "getting stack %q outputs", *i.StackName)
+		errs <- fmt.Errorf("getting stack %q outputs: %w", *i.StackName, err)
 		return
 	}
 	errs <- nil

@@ -2,13 +2,13 @@ package addon
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -317,7 +317,7 @@ func (a *Manager) patchAWSNodeSA(ctx context.Context) error {
 
 	_, err = serviceAccounts.Patch(ctx, "aws-node", types.JSONPatchType, []byte(fmt.Sprintf(`[{"op": "remove", "path": "/metadata/managedFields/%d"}]`, managerIndex)), metav1.PatchOptions{})
 	if err != nil {
-		return errors.Wrap(err, "failed to patch sa")
+		return fmt.Errorf("failed to patch sa: %w", err)
 	}
 
 	return nil
@@ -370,7 +370,7 @@ func (a *Manager) patchAWSNodeDaemonSet(ctx context.Context) error {
 }
 `), metav1.PatchOptions{})
 		if err != nil {
-			return errors.Wrap(err, "failed to patch daemon set")
+			return fmt.Errorf("failed to patch daemon set: %w", err)
 		}
 		// update the daemonset so the next patch can work.
 		_, err = daemonSets.Get(ctx, "aws-node", metav1.GetOptions{})
@@ -385,7 +385,7 @@ func (a *Manager) patchAWSNodeDaemonSet(ctx context.Context) error {
 
 	_, err = daemonSets.Patch(ctx, "aws-node", types.JSONPatchType, []byte(fmt.Sprintf(`[{"op": "remove", "path": "/metadata/managedFields/%d"}]`, managerIndex)), metav1.PatchOptions{})
 	if err != nil {
-		return errors.Wrap(err, "failed to patch daemon set")
+		return fmt.Errorf("failed to patch daemon set: %w", err)
 	}
 
 	return nil

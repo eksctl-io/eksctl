@@ -7,8 +7,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/pkg/errors"
+
 	"github.com/tidwall/gjson"
+
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
@@ -71,7 +72,7 @@ func (c *ClusterResourceSet) AddAllResources(ctx context.Context) error {
 
 	vpcID, subnetDetails, err := c.vpcResourceSet.CreateTemplate(ctx)
 	if err != nil {
-		return errors.Wrap(err, "error adding VPC resources")
+		return fmt.Errorf("error adding VPC resources: %w", err)
 	}
 
 	clusterSG := c.addResourcesForSecurityGroups(vpcID)
@@ -80,12 +81,14 @@ func (c *ClusterResourceSet) AddAllResources(ctx context.Context) error {
 		vpcEndpointResourceSet := NewVPCEndpointResourceSet(c.ec2API, c.region, c.rs, c.spec, vpcID, subnetDetails.Private, clusterSG.ClusterSharedNode)
 
 		if err := vpcEndpointResourceSet.AddResources(ctx); err != nil {
-			return errors.Wrap(err, "error adding resources for VPC endpoints")
+			return fmt.Errorf("error adding resources for VPC endpoints: %w", err)
 		}
 	}
 
 	c.addResourcesForIAM()
-	c.addResourcesForControlPlane(subnetDetails)
+	if err := c.addResourcesForControlPlane(subnetDetails); err != nil {
+		return err
+	}
 
 	if len(c.spec.FargateProfiles) > 0 {
 		c.addResourcesForFargate()
@@ -265,7 +268,7 @@ func (c *ClusterResourceSet) newResource(name string, resource gfn.Resource) *gf
 	return c.rs.newResource(name, resource)
 }
 
-func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDetails) {
+func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDetails) error {
 	clusterVPC := &gfneks.Cluster_ResourcesVpcConfig{
 		EndpointPublicAccess:  gfnt.NewBoolean(*c.spec.VPC.ClusterEndpoints.PublicAccess),
 		EndpointPrivateAccess: gfnt.NewBoolean(*c.spec.VPC.ClusterEndpoints.PrivateAccess),
@@ -310,6 +313,38 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		Version: gfnt.NewString(c.spec.Metadata.Version),
 	}
 
+	if cc := c.spec.AutoModeConfig; cc != nil && api.IsEnabled(cc.Enabled) {
+		computeConfig := &gfneks.Cluster_ComputeConfig{
+			Enabled: gfnt.NewBoolean(true),
+		}
+		cluster.ComputeConfig = computeConfig
+		if cc.NodeRoleARN.IsZero() {
+			if cc.HasNodePools() {
+				autoModeRefs, err := AddAutoModeResources(c.rs.template)
+				if err != nil {
+					return fmt.Errorf("error building cluster compute roles: %w", err)
+				}
+				computeConfig.NodeRoleArn = autoModeRefs.NodeRole
+			}
+		} else {
+			computeConfig.NodeRoleArn = gfnt.NewString(cc.NodeRoleARN.String())
+		}
+		if cc.HasNodePools() {
+			computeConfig.NodePools = gfnt.NewStringSlice(*cc.NodePools...)
+		}
+
+		cluster.KubernetesNetworkConfig = &gfneks.Cluster_KubernetesNetworkConfig{
+			ElasticLoadBalancing: &gfneks.Cluster_ElasticLoadBalancing{
+				Enabled: gfnt.NewBoolean(true),
+			},
+		}
+		cluster.StorageConfig = &gfneks.Cluster_StorageConfig{
+			BlockStorage: &gfneks.Cluster_BlockStorage{
+				Enabled: gfnt.NewBoolean(true),
+			},
+		}
+	}
+
 	if c.spec.IsControlPlaneOnOutposts() {
 		cluster.OutpostConfig = &gfneks.Cluster_OutpostConfig{
 			OutpostArns:              gfnt.NewStringSlice(c.spec.Outpost.ControlPlaneOutpostARN),
@@ -322,12 +357,14 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		}
 	}
 
-	kubernetesNetworkConfig := &gfneks.Cluster_KubernetesNetworkConfig{}
+	kubernetesNetworkConfig := cluster.KubernetesNetworkConfig
+	if kubernetesNetworkConfig == nil {
+		kubernetesNetworkConfig = &gfneks.Cluster_KubernetesNetworkConfig{}
+	}
 	if knc := c.spec.KubernetesNetworkConfig; knc != nil {
 		if knc.ServiceIPv4CIDR != "" {
 			kubernetesNetworkConfig.ServiceIpv4Cidr = gfnt.NewString(knc.ServiceIPv4CIDR)
 		}
-
 		ipFamily := knc.IPFamily
 		if ipFamily == "" {
 			ipFamily = api.IPV4Family
@@ -350,7 +387,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 	c.rs.defineOutputFromAtt(outputs.ClusterCertificateAuthorityData, "ControlPlane", "CertificateAuthorityData", false, func(v string) error {
 		caData, err := base64.StdEncoding.DecodeString(v)
 		if err != nil {
-			return errors.Wrap(err, "decoding certificate authority data")
+			return fmt.Errorf("decoding certificate authority data: %w", err)
 		}
 		c.spec.Status.CertificateAuthorityData = caData
 		return nil
@@ -372,6 +409,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		true, func(s string) error {
 			return nil
 		})
+	return nil
 }
 
 func makeCFNTags(clusterConfig *api.ClusterConfig) []gfncfn.Tag {

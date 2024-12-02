@@ -187,8 +187,8 @@ func sharedTags(cluster *ekstypes.Cluster) map[string]string {
 }
 
 // LoadClusterVPC loads the VPC configuration.
-func (c *ClusterProvider) LoadClusterVPC(ctx context.Context, spec *api.ClusterConfig, stack *manager.Stack) error {
-	return vpc.UseFromClusterStack(ctx, c.AWSProvider, stack, spec)
+func (c *ClusterProvider) LoadClusterVPC(ctx context.Context, spec *api.ClusterConfig, stack *manager.Stack, ignoreDrift bool) error {
+	return vpc.UseFromClusterStack(ctx, c.AWSProvider, stack, spec, ignoreDrift)
 }
 
 // GetCluster display details of an EKS cluster in your account

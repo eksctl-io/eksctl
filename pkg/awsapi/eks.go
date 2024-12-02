@@ -383,6 +383,10 @@ type EKS interface {
 	// with. For more information about the VPC requirements, see [https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html]in the Amazon EKS
 	// User Guide .
 	//
+	// You can also use this API operation to enable or disable ARC zonal shift. If
+	// zonal shift is enabled, Amazon Web Services configures zonal autoshift for the
+	// cluster.
+	//
 	// Cluster updates are asynchronous, and they should finish within a few minutes.
 	// During an update, the cluster status moves to UPDATING (this status transition
 	// is eventually consistent). When the update is complete (either Failed or

@@ -15,6 +15,14 @@ type CloudTrail struct {
 	mock.Mock
 }
 
+type CloudTrail_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *CloudTrail) EXPECT() *CloudTrail_Expecter {
+	return &CloudTrail_Expecter{mock: &_m.Mock}
+}
+
 // AddTags provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) AddTags(ctx context.Context, params *cloudtrail.AddTagsInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.AddTagsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -50,6 +58,43 @@ func (_m *CloudTrail) AddTags(ctx context.Context, params *cloudtrail.AddTagsInp
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_AddTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddTags'
+type CloudTrail_AddTags_Call struct {
+	*mock.Call
+}
+
+// AddTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.AddTagsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) AddTags(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_AddTags_Call {
+	return &CloudTrail_AddTags_Call{Call: _e.mock.On("AddTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_AddTags_Call) Run(run func(ctx context.Context, params *cloudtrail.AddTagsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_AddTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.AddTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_AddTags_Call) Return(_a0 *cloudtrail.AddTagsOutput, _a1 error) *CloudTrail_AddTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_AddTags_Call) RunAndReturn(run func(context.Context, *cloudtrail.AddTagsInput, ...func(*cloudtrail.Options)) (*cloudtrail.AddTagsOutput, error)) *CloudTrail_AddTags_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CancelQuery provides a mock function with given fields: ctx, params, optFns
@@ -89,6 +134,43 @@ func (_m *CloudTrail) CancelQuery(ctx context.Context, params *cloudtrail.Cancel
 	return r0, r1
 }
 
+// CloudTrail_CancelQuery_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelQuery'
+type CloudTrail_CancelQuery_Call struct {
+	*mock.Call
+}
+
+// CancelQuery is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.CancelQueryInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) CancelQuery(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_CancelQuery_Call {
+	return &CloudTrail_CancelQuery_Call{Call: _e.mock.On("CancelQuery",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_CancelQuery_Call) Run(run func(ctx context.Context, params *cloudtrail.CancelQueryInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_CancelQuery_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.CancelQueryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_CancelQuery_Call) Return(_a0 *cloudtrail.CancelQueryOutput, _a1 error) *CloudTrail_CancelQuery_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_CancelQuery_Call) RunAndReturn(run func(context.Context, *cloudtrail.CancelQueryInput, ...func(*cloudtrail.Options)) (*cloudtrail.CancelQueryOutput, error)) *CloudTrail_CancelQuery_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateChannel provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) CreateChannel(ctx context.Context, params *cloudtrail.CreateChannelInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.CreateChannelOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -124,6 +206,117 @@ func (_m *CloudTrail) CreateChannel(ctx context.Context, params *cloudtrail.Crea
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_CreateChannel_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateChannel'
+type CloudTrail_CreateChannel_Call struct {
+	*mock.Call
+}
+
+// CreateChannel is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.CreateChannelInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) CreateChannel(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_CreateChannel_Call {
+	return &CloudTrail_CreateChannel_Call{Call: _e.mock.On("CreateChannel",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_CreateChannel_Call) Run(run func(ctx context.Context, params *cloudtrail.CreateChannelInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_CreateChannel_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.CreateChannelInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_CreateChannel_Call) Return(_a0 *cloudtrail.CreateChannelOutput, _a1 error) *CloudTrail_CreateChannel_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_CreateChannel_Call) RunAndReturn(run func(context.Context, *cloudtrail.CreateChannelInput, ...func(*cloudtrail.Options)) (*cloudtrail.CreateChannelOutput, error)) *CloudTrail_CreateChannel_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateDashboard provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) CreateDashboard(ctx context.Context, params *cloudtrail.CreateDashboardInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.CreateDashboardOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDashboard")
+	}
+
+	var r0 *cloudtrail.CreateDashboardOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.CreateDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.CreateDashboardOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.CreateDashboardInput, ...func(*cloudtrail.Options)) *cloudtrail.CreateDashboardOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.CreateDashboardOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.CreateDashboardInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_CreateDashboard_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateDashboard'
+type CloudTrail_CreateDashboard_Call struct {
+	*mock.Call
+}
+
+// CreateDashboard is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.CreateDashboardInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) CreateDashboard(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_CreateDashboard_Call {
+	return &CloudTrail_CreateDashboard_Call{Call: _e.mock.On("CreateDashboard",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_CreateDashboard_Call) Run(run func(ctx context.Context, params *cloudtrail.CreateDashboardInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_CreateDashboard_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.CreateDashboardInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_CreateDashboard_Call) Return(_a0 *cloudtrail.CreateDashboardOutput, _a1 error) *CloudTrail_CreateDashboard_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_CreateDashboard_Call) RunAndReturn(run func(context.Context, *cloudtrail.CreateDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.CreateDashboardOutput, error)) *CloudTrail_CreateDashboard_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateEventDataStore provides a mock function with given fields: ctx, params, optFns
@@ -163,6 +356,43 @@ func (_m *CloudTrail) CreateEventDataStore(ctx context.Context, params *cloudtra
 	return r0, r1
 }
 
+// CloudTrail_CreateEventDataStore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateEventDataStore'
+type CloudTrail_CreateEventDataStore_Call struct {
+	*mock.Call
+}
+
+// CreateEventDataStore is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.CreateEventDataStoreInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) CreateEventDataStore(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_CreateEventDataStore_Call {
+	return &CloudTrail_CreateEventDataStore_Call{Call: _e.mock.On("CreateEventDataStore",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_CreateEventDataStore_Call) Run(run func(ctx context.Context, params *cloudtrail.CreateEventDataStoreInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_CreateEventDataStore_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.CreateEventDataStoreInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_CreateEventDataStore_Call) Return(_a0 *cloudtrail.CreateEventDataStoreOutput, _a1 error) *CloudTrail_CreateEventDataStore_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_CreateEventDataStore_Call) RunAndReturn(run func(context.Context, *cloudtrail.CreateEventDataStoreInput, ...func(*cloudtrail.Options)) (*cloudtrail.CreateEventDataStoreOutput, error)) *CloudTrail_CreateEventDataStore_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateTrail provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) CreateTrail(ctx context.Context, params *cloudtrail.CreateTrailInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.CreateTrailOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -198,6 +428,43 @@ func (_m *CloudTrail) CreateTrail(ctx context.Context, params *cloudtrail.Create
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_CreateTrail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateTrail'
+type CloudTrail_CreateTrail_Call struct {
+	*mock.Call
+}
+
+// CreateTrail is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.CreateTrailInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) CreateTrail(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_CreateTrail_Call {
+	return &CloudTrail_CreateTrail_Call{Call: _e.mock.On("CreateTrail",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_CreateTrail_Call) Run(run func(ctx context.Context, params *cloudtrail.CreateTrailInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_CreateTrail_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.CreateTrailInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_CreateTrail_Call) Return(_a0 *cloudtrail.CreateTrailOutput, _a1 error) *CloudTrail_CreateTrail_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_CreateTrail_Call) RunAndReturn(run func(context.Context, *cloudtrail.CreateTrailInput, ...func(*cloudtrail.Options)) (*cloudtrail.CreateTrailOutput, error)) *CloudTrail_CreateTrail_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteChannel provides a mock function with given fields: ctx, params, optFns
@@ -237,6 +504,117 @@ func (_m *CloudTrail) DeleteChannel(ctx context.Context, params *cloudtrail.Dele
 	return r0, r1
 }
 
+// CloudTrail_DeleteChannel_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteChannel'
+type CloudTrail_DeleteChannel_Call struct {
+	*mock.Call
+}
+
+// DeleteChannel is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.DeleteChannelInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) DeleteChannel(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_DeleteChannel_Call {
+	return &CloudTrail_DeleteChannel_Call{Call: _e.mock.On("DeleteChannel",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_DeleteChannel_Call) Run(run func(ctx context.Context, params *cloudtrail.DeleteChannelInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_DeleteChannel_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.DeleteChannelInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_DeleteChannel_Call) Return(_a0 *cloudtrail.DeleteChannelOutput, _a1 error) *CloudTrail_DeleteChannel_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_DeleteChannel_Call) RunAndReturn(run func(context.Context, *cloudtrail.DeleteChannelInput, ...func(*cloudtrail.Options)) (*cloudtrail.DeleteChannelOutput, error)) *CloudTrail_DeleteChannel_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteDashboard provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) DeleteDashboard(ctx context.Context, params *cloudtrail.DeleteDashboardInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.DeleteDashboardOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteDashboard")
+	}
+
+	var r0 *cloudtrail.DeleteDashboardOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.DeleteDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.DeleteDashboardOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.DeleteDashboardInput, ...func(*cloudtrail.Options)) *cloudtrail.DeleteDashboardOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.DeleteDashboardOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.DeleteDashboardInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_DeleteDashboard_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteDashboard'
+type CloudTrail_DeleteDashboard_Call struct {
+	*mock.Call
+}
+
+// DeleteDashboard is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.DeleteDashboardInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) DeleteDashboard(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_DeleteDashboard_Call {
+	return &CloudTrail_DeleteDashboard_Call{Call: _e.mock.On("DeleteDashboard",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_DeleteDashboard_Call) Run(run func(ctx context.Context, params *cloudtrail.DeleteDashboardInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_DeleteDashboard_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.DeleteDashboardInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_DeleteDashboard_Call) Return(_a0 *cloudtrail.DeleteDashboardOutput, _a1 error) *CloudTrail_DeleteDashboard_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_DeleteDashboard_Call) RunAndReturn(run func(context.Context, *cloudtrail.DeleteDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.DeleteDashboardOutput, error)) *CloudTrail_DeleteDashboard_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteEventDataStore provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) DeleteEventDataStore(ctx context.Context, params *cloudtrail.DeleteEventDataStoreInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.DeleteEventDataStoreOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -272,6 +650,43 @@ func (_m *CloudTrail) DeleteEventDataStore(ctx context.Context, params *cloudtra
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_DeleteEventDataStore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteEventDataStore'
+type CloudTrail_DeleteEventDataStore_Call struct {
+	*mock.Call
+}
+
+// DeleteEventDataStore is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.DeleteEventDataStoreInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) DeleteEventDataStore(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_DeleteEventDataStore_Call {
+	return &CloudTrail_DeleteEventDataStore_Call{Call: _e.mock.On("DeleteEventDataStore",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_DeleteEventDataStore_Call) Run(run func(ctx context.Context, params *cloudtrail.DeleteEventDataStoreInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_DeleteEventDataStore_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.DeleteEventDataStoreInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_DeleteEventDataStore_Call) Return(_a0 *cloudtrail.DeleteEventDataStoreOutput, _a1 error) *CloudTrail_DeleteEventDataStore_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_DeleteEventDataStore_Call) RunAndReturn(run func(context.Context, *cloudtrail.DeleteEventDataStoreInput, ...func(*cloudtrail.Options)) (*cloudtrail.DeleteEventDataStoreOutput, error)) *CloudTrail_DeleteEventDataStore_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteResourcePolicy provides a mock function with given fields: ctx, params, optFns
@@ -311,6 +726,43 @@ func (_m *CloudTrail) DeleteResourcePolicy(ctx context.Context, params *cloudtra
 	return r0, r1
 }
 
+// CloudTrail_DeleteResourcePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteResourcePolicy'
+type CloudTrail_DeleteResourcePolicy_Call struct {
+	*mock.Call
+}
+
+// DeleteResourcePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.DeleteResourcePolicyInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) DeleteResourcePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_DeleteResourcePolicy_Call {
+	return &CloudTrail_DeleteResourcePolicy_Call{Call: _e.mock.On("DeleteResourcePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_DeleteResourcePolicy_Call) Run(run func(ctx context.Context, params *cloudtrail.DeleteResourcePolicyInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_DeleteResourcePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.DeleteResourcePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_DeleteResourcePolicy_Call) Return(_a0 *cloudtrail.DeleteResourcePolicyOutput, _a1 error) *CloudTrail_DeleteResourcePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_DeleteResourcePolicy_Call) RunAndReturn(run func(context.Context, *cloudtrail.DeleteResourcePolicyInput, ...func(*cloudtrail.Options)) (*cloudtrail.DeleteResourcePolicyOutput, error)) *CloudTrail_DeleteResourcePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteTrail provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) DeleteTrail(ctx context.Context, params *cloudtrail.DeleteTrailInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.DeleteTrailOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -346,6 +798,43 @@ func (_m *CloudTrail) DeleteTrail(ctx context.Context, params *cloudtrail.Delete
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_DeleteTrail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteTrail'
+type CloudTrail_DeleteTrail_Call struct {
+	*mock.Call
+}
+
+// DeleteTrail is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.DeleteTrailInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) DeleteTrail(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_DeleteTrail_Call {
+	return &CloudTrail_DeleteTrail_Call{Call: _e.mock.On("DeleteTrail",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_DeleteTrail_Call) Run(run func(ctx context.Context, params *cloudtrail.DeleteTrailInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_DeleteTrail_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.DeleteTrailInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_DeleteTrail_Call) Return(_a0 *cloudtrail.DeleteTrailOutput, _a1 error) *CloudTrail_DeleteTrail_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_DeleteTrail_Call) RunAndReturn(run func(context.Context, *cloudtrail.DeleteTrailInput, ...func(*cloudtrail.Options)) (*cloudtrail.DeleteTrailOutput, error)) *CloudTrail_DeleteTrail_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeregisterOrganizationDelegatedAdmin provides a mock function with given fields: ctx, params, optFns
@@ -385,6 +874,43 @@ func (_m *CloudTrail) DeregisterOrganizationDelegatedAdmin(ctx context.Context, 
 	return r0, r1
 }
 
+// CloudTrail_DeregisterOrganizationDelegatedAdmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeregisterOrganizationDelegatedAdmin'
+type CloudTrail_DeregisterOrganizationDelegatedAdmin_Call struct {
+	*mock.Call
+}
+
+// DeregisterOrganizationDelegatedAdmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.DeregisterOrganizationDelegatedAdminInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) DeregisterOrganizationDelegatedAdmin(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_DeregisterOrganizationDelegatedAdmin_Call {
+	return &CloudTrail_DeregisterOrganizationDelegatedAdmin_Call{Call: _e.mock.On("DeregisterOrganizationDelegatedAdmin",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_DeregisterOrganizationDelegatedAdmin_Call) Run(run func(ctx context.Context, params *cloudtrail.DeregisterOrganizationDelegatedAdminInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_DeregisterOrganizationDelegatedAdmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.DeregisterOrganizationDelegatedAdminInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_DeregisterOrganizationDelegatedAdmin_Call) Return(_a0 *cloudtrail.DeregisterOrganizationDelegatedAdminOutput, _a1 error) *CloudTrail_DeregisterOrganizationDelegatedAdmin_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_DeregisterOrganizationDelegatedAdmin_Call) RunAndReturn(run func(context.Context, *cloudtrail.DeregisterOrganizationDelegatedAdminInput, ...func(*cloudtrail.Options)) (*cloudtrail.DeregisterOrganizationDelegatedAdminOutput, error)) *CloudTrail_DeregisterOrganizationDelegatedAdmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeQuery provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) DescribeQuery(ctx context.Context, params *cloudtrail.DescribeQueryInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.DescribeQueryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -420,6 +946,43 @@ func (_m *CloudTrail) DescribeQuery(ctx context.Context, params *cloudtrail.Desc
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_DescribeQuery_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeQuery'
+type CloudTrail_DescribeQuery_Call struct {
+	*mock.Call
+}
+
+// DescribeQuery is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.DescribeQueryInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) DescribeQuery(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_DescribeQuery_Call {
+	return &CloudTrail_DescribeQuery_Call{Call: _e.mock.On("DescribeQuery",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_DescribeQuery_Call) Run(run func(ctx context.Context, params *cloudtrail.DescribeQueryInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_DescribeQuery_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.DescribeQueryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_DescribeQuery_Call) Return(_a0 *cloudtrail.DescribeQueryOutput, _a1 error) *CloudTrail_DescribeQuery_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_DescribeQuery_Call) RunAndReturn(run func(context.Context, *cloudtrail.DescribeQueryInput, ...func(*cloudtrail.Options)) (*cloudtrail.DescribeQueryOutput, error)) *CloudTrail_DescribeQuery_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeTrails provides a mock function with given fields: ctx, params, optFns
@@ -459,6 +1022,43 @@ func (_m *CloudTrail) DescribeTrails(ctx context.Context, params *cloudtrail.Des
 	return r0, r1
 }
 
+// CloudTrail_DescribeTrails_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeTrails'
+type CloudTrail_DescribeTrails_Call struct {
+	*mock.Call
+}
+
+// DescribeTrails is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.DescribeTrailsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) DescribeTrails(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_DescribeTrails_Call {
+	return &CloudTrail_DescribeTrails_Call{Call: _e.mock.On("DescribeTrails",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_DescribeTrails_Call) Run(run func(ctx context.Context, params *cloudtrail.DescribeTrailsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_DescribeTrails_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.DescribeTrailsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_DescribeTrails_Call) Return(_a0 *cloudtrail.DescribeTrailsOutput, _a1 error) *CloudTrail_DescribeTrails_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_DescribeTrails_Call) RunAndReturn(run func(context.Context, *cloudtrail.DescribeTrailsInput, ...func(*cloudtrail.Options)) (*cloudtrail.DescribeTrailsOutput, error)) *CloudTrail_DescribeTrails_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DisableFederation provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) DisableFederation(ctx context.Context, params *cloudtrail.DisableFederationInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.DisableFederationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -494,6 +1094,43 @@ func (_m *CloudTrail) DisableFederation(ctx context.Context, params *cloudtrail.
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_DisableFederation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisableFederation'
+type CloudTrail_DisableFederation_Call struct {
+	*mock.Call
+}
+
+// DisableFederation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.DisableFederationInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) DisableFederation(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_DisableFederation_Call {
+	return &CloudTrail_DisableFederation_Call{Call: _e.mock.On("DisableFederation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_DisableFederation_Call) Run(run func(ctx context.Context, params *cloudtrail.DisableFederationInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_DisableFederation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.DisableFederationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_DisableFederation_Call) Return(_a0 *cloudtrail.DisableFederationOutput, _a1 error) *CloudTrail_DisableFederation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_DisableFederation_Call) RunAndReturn(run func(context.Context, *cloudtrail.DisableFederationInput, ...func(*cloudtrail.Options)) (*cloudtrail.DisableFederationOutput, error)) *CloudTrail_DisableFederation_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // EnableFederation provides a mock function with given fields: ctx, params, optFns
@@ -533,6 +1170,117 @@ func (_m *CloudTrail) EnableFederation(ctx context.Context, params *cloudtrail.E
 	return r0, r1
 }
 
+// CloudTrail_EnableFederation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnableFederation'
+type CloudTrail_EnableFederation_Call struct {
+	*mock.Call
+}
+
+// EnableFederation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.EnableFederationInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) EnableFederation(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_EnableFederation_Call {
+	return &CloudTrail_EnableFederation_Call{Call: _e.mock.On("EnableFederation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_EnableFederation_Call) Run(run func(ctx context.Context, params *cloudtrail.EnableFederationInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_EnableFederation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.EnableFederationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_EnableFederation_Call) Return(_a0 *cloudtrail.EnableFederationOutput, _a1 error) *CloudTrail_EnableFederation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_EnableFederation_Call) RunAndReturn(run func(context.Context, *cloudtrail.EnableFederationInput, ...func(*cloudtrail.Options)) (*cloudtrail.EnableFederationOutput, error)) *CloudTrail_EnableFederation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GenerateQuery provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) GenerateQuery(ctx context.Context, params *cloudtrail.GenerateQueryInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.GenerateQueryOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GenerateQuery")
+	}
+
+	var r0 *cloudtrail.GenerateQueryOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GenerateQueryInput, ...func(*cloudtrail.Options)) (*cloudtrail.GenerateQueryOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GenerateQueryInput, ...func(*cloudtrail.Options)) *cloudtrail.GenerateQueryOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GenerateQueryOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.GenerateQueryInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_GenerateQuery_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateQuery'
+type CloudTrail_GenerateQuery_Call struct {
+	*mock.Call
+}
+
+// GenerateQuery is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GenerateQueryInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GenerateQuery(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GenerateQuery_Call {
+	return &CloudTrail_GenerateQuery_Call{Call: _e.mock.On("GenerateQuery",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GenerateQuery_Call) Run(run func(ctx context.Context, params *cloudtrail.GenerateQueryInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GenerateQuery_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GenerateQueryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GenerateQuery_Call) Return(_a0 *cloudtrail.GenerateQueryOutput, _a1 error) *CloudTrail_GenerateQuery_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GenerateQuery_Call) RunAndReturn(run func(context.Context, *cloudtrail.GenerateQueryInput, ...func(*cloudtrail.Options)) (*cloudtrail.GenerateQueryOutput, error)) *CloudTrail_GenerateQuery_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetChannel provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) GetChannel(ctx context.Context, params *cloudtrail.GetChannelInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.GetChannelOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -568,6 +1316,117 @@ func (_m *CloudTrail) GetChannel(ctx context.Context, params *cloudtrail.GetChan
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_GetChannel_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetChannel'
+type CloudTrail_GetChannel_Call struct {
+	*mock.Call
+}
+
+// GetChannel is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GetChannelInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GetChannel(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GetChannel_Call {
+	return &CloudTrail_GetChannel_Call{Call: _e.mock.On("GetChannel",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GetChannel_Call) Run(run func(ctx context.Context, params *cloudtrail.GetChannelInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GetChannel_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GetChannelInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GetChannel_Call) Return(_a0 *cloudtrail.GetChannelOutput, _a1 error) *CloudTrail_GetChannel_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GetChannel_Call) RunAndReturn(run func(context.Context, *cloudtrail.GetChannelInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetChannelOutput, error)) *CloudTrail_GetChannel_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetDashboard provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) GetDashboard(ctx context.Context, params *cloudtrail.GetDashboardInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.GetDashboardOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDashboard")
+	}
+
+	var r0 *cloudtrail.GetDashboardOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetDashboardOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetDashboardInput, ...func(*cloudtrail.Options)) *cloudtrail.GetDashboardOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GetDashboardOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.GetDashboardInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_GetDashboard_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDashboard'
+type CloudTrail_GetDashboard_Call struct {
+	*mock.Call
+}
+
+// GetDashboard is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GetDashboardInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GetDashboard(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GetDashboard_Call {
+	return &CloudTrail_GetDashboard_Call{Call: _e.mock.On("GetDashboard",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GetDashboard_Call) Run(run func(ctx context.Context, params *cloudtrail.GetDashboardInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GetDashboard_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GetDashboardInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GetDashboard_Call) Return(_a0 *cloudtrail.GetDashboardOutput, _a1 error) *CloudTrail_GetDashboard_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GetDashboard_Call) RunAndReturn(run func(context.Context, *cloudtrail.GetDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetDashboardOutput, error)) *CloudTrail_GetDashboard_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetEventDataStore provides a mock function with given fields: ctx, params, optFns
@@ -607,6 +1466,43 @@ func (_m *CloudTrail) GetEventDataStore(ctx context.Context, params *cloudtrail.
 	return r0, r1
 }
 
+// CloudTrail_GetEventDataStore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetEventDataStore'
+type CloudTrail_GetEventDataStore_Call struct {
+	*mock.Call
+}
+
+// GetEventDataStore is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GetEventDataStoreInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GetEventDataStore(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GetEventDataStore_Call {
+	return &CloudTrail_GetEventDataStore_Call{Call: _e.mock.On("GetEventDataStore",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GetEventDataStore_Call) Run(run func(ctx context.Context, params *cloudtrail.GetEventDataStoreInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GetEventDataStore_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GetEventDataStoreInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GetEventDataStore_Call) Return(_a0 *cloudtrail.GetEventDataStoreOutput, _a1 error) *CloudTrail_GetEventDataStore_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GetEventDataStore_Call) RunAndReturn(run func(context.Context, *cloudtrail.GetEventDataStoreInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetEventDataStoreOutput, error)) *CloudTrail_GetEventDataStore_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetEventSelectors provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) GetEventSelectors(ctx context.Context, params *cloudtrail.GetEventSelectorsInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.GetEventSelectorsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -642,6 +1538,43 @@ func (_m *CloudTrail) GetEventSelectors(ctx context.Context, params *cloudtrail.
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_GetEventSelectors_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetEventSelectors'
+type CloudTrail_GetEventSelectors_Call struct {
+	*mock.Call
+}
+
+// GetEventSelectors is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GetEventSelectorsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GetEventSelectors(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GetEventSelectors_Call {
+	return &CloudTrail_GetEventSelectors_Call{Call: _e.mock.On("GetEventSelectors",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GetEventSelectors_Call) Run(run func(ctx context.Context, params *cloudtrail.GetEventSelectorsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GetEventSelectors_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GetEventSelectorsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GetEventSelectors_Call) Return(_a0 *cloudtrail.GetEventSelectorsOutput, _a1 error) *CloudTrail_GetEventSelectors_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GetEventSelectors_Call) RunAndReturn(run func(context.Context, *cloudtrail.GetEventSelectorsInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetEventSelectorsOutput, error)) *CloudTrail_GetEventSelectors_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetImport provides a mock function with given fields: ctx, params, optFns
@@ -681,6 +1614,43 @@ func (_m *CloudTrail) GetImport(ctx context.Context, params *cloudtrail.GetImpor
 	return r0, r1
 }
 
+// CloudTrail_GetImport_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetImport'
+type CloudTrail_GetImport_Call struct {
+	*mock.Call
+}
+
+// GetImport is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GetImportInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GetImport(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GetImport_Call {
+	return &CloudTrail_GetImport_Call{Call: _e.mock.On("GetImport",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GetImport_Call) Run(run func(ctx context.Context, params *cloudtrail.GetImportInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GetImport_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GetImportInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GetImport_Call) Return(_a0 *cloudtrail.GetImportOutput, _a1 error) *CloudTrail_GetImport_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GetImport_Call) RunAndReturn(run func(context.Context, *cloudtrail.GetImportInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetImportOutput, error)) *CloudTrail_GetImport_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetInsightSelectors provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) GetInsightSelectors(ctx context.Context, params *cloudtrail.GetInsightSelectorsInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.GetInsightSelectorsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -716,6 +1686,43 @@ func (_m *CloudTrail) GetInsightSelectors(ctx context.Context, params *cloudtrai
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_GetInsightSelectors_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetInsightSelectors'
+type CloudTrail_GetInsightSelectors_Call struct {
+	*mock.Call
+}
+
+// GetInsightSelectors is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GetInsightSelectorsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GetInsightSelectors(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GetInsightSelectors_Call {
+	return &CloudTrail_GetInsightSelectors_Call{Call: _e.mock.On("GetInsightSelectors",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GetInsightSelectors_Call) Run(run func(ctx context.Context, params *cloudtrail.GetInsightSelectorsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GetInsightSelectors_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GetInsightSelectorsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GetInsightSelectors_Call) Return(_a0 *cloudtrail.GetInsightSelectorsOutput, _a1 error) *CloudTrail_GetInsightSelectors_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GetInsightSelectors_Call) RunAndReturn(run func(context.Context, *cloudtrail.GetInsightSelectorsInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetInsightSelectorsOutput, error)) *CloudTrail_GetInsightSelectors_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetQueryResults provides a mock function with given fields: ctx, params, optFns
@@ -755,6 +1762,43 @@ func (_m *CloudTrail) GetQueryResults(ctx context.Context, params *cloudtrail.Ge
 	return r0, r1
 }
 
+// CloudTrail_GetQueryResults_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetQueryResults'
+type CloudTrail_GetQueryResults_Call struct {
+	*mock.Call
+}
+
+// GetQueryResults is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GetQueryResultsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GetQueryResults(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GetQueryResults_Call {
+	return &CloudTrail_GetQueryResults_Call{Call: _e.mock.On("GetQueryResults",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GetQueryResults_Call) Run(run func(ctx context.Context, params *cloudtrail.GetQueryResultsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GetQueryResults_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GetQueryResultsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GetQueryResults_Call) Return(_a0 *cloudtrail.GetQueryResultsOutput, _a1 error) *CloudTrail_GetQueryResults_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GetQueryResults_Call) RunAndReturn(run func(context.Context, *cloudtrail.GetQueryResultsInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetQueryResultsOutput, error)) *CloudTrail_GetQueryResults_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetResourcePolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) GetResourcePolicy(ctx context.Context, params *cloudtrail.GetResourcePolicyInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.GetResourcePolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -790,6 +1834,43 @@ func (_m *CloudTrail) GetResourcePolicy(ctx context.Context, params *cloudtrail.
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_GetResourcePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetResourcePolicy'
+type CloudTrail_GetResourcePolicy_Call struct {
+	*mock.Call
+}
+
+// GetResourcePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GetResourcePolicyInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GetResourcePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GetResourcePolicy_Call {
+	return &CloudTrail_GetResourcePolicy_Call{Call: _e.mock.On("GetResourcePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GetResourcePolicy_Call) Run(run func(ctx context.Context, params *cloudtrail.GetResourcePolicyInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GetResourcePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GetResourcePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GetResourcePolicy_Call) Return(_a0 *cloudtrail.GetResourcePolicyOutput, _a1 error) *CloudTrail_GetResourcePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GetResourcePolicy_Call) RunAndReturn(run func(context.Context, *cloudtrail.GetResourcePolicyInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetResourcePolicyOutput, error)) *CloudTrail_GetResourcePolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetTrail provides a mock function with given fields: ctx, params, optFns
@@ -829,6 +1910,43 @@ func (_m *CloudTrail) GetTrail(ctx context.Context, params *cloudtrail.GetTrailI
 	return r0, r1
 }
 
+// CloudTrail_GetTrail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTrail'
+type CloudTrail_GetTrail_Call struct {
+	*mock.Call
+}
+
+// GetTrail is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GetTrailInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GetTrail(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GetTrail_Call {
+	return &CloudTrail_GetTrail_Call{Call: _e.mock.On("GetTrail",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GetTrail_Call) Run(run func(ctx context.Context, params *cloudtrail.GetTrailInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GetTrail_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GetTrailInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GetTrail_Call) Return(_a0 *cloudtrail.GetTrailOutput, _a1 error) *CloudTrail_GetTrail_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GetTrail_Call) RunAndReturn(run func(context.Context, *cloudtrail.GetTrailInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetTrailOutput, error)) *CloudTrail_GetTrail_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTrailStatus provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) GetTrailStatus(ctx context.Context, params *cloudtrail.GetTrailStatusInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.GetTrailStatusOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -864,6 +1982,43 @@ func (_m *CloudTrail) GetTrailStatus(ctx context.Context, params *cloudtrail.Get
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_GetTrailStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTrailStatus'
+type CloudTrail_GetTrailStatus_Call struct {
+	*mock.Call
+}
+
+// GetTrailStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GetTrailStatusInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GetTrailStatus(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GetTrailStatus_Call {
+	return &CloudTrail_GetTrailStatus_Call{Call: _e.mock.On("GetTrailStatus",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GetTrailStatus_Call) Run(run func(ctx context.Context, params *cloudtrail.GetTrailStatusInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GetTrailStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GetTrailStatusInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GetTrailStatus_Call) Return(_a0 *cloudtrail.GetTrailStatusOutput, _a1 error) *CloudTrail_GetTrailStatus_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GetTrailStatus_Call) RunAndReturn(run func(context.Context, *cloudtrail.GetTrailStatusInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetTrailStatusOutput, error)) *CloudTrail_GetTrailStatus_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListChannels provides a mock function with given fields: ctx, params, optFns
@@ -903,6 +2058,117 @@ func (_m *CloudTrail) ListChannels(ctx context.Context, params *cloudtrail.ListC
 	return r0, r1
 }
 
+// CloudTrail_ListChannels_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListChannels'
+type CloudTrail_ListChannels_Call struct {
+	*mock.Call
+}
+
+// ListChannels is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.ListChannelsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) ListChannels(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_ListChannels_Call {
+	return &CloudTrail_ListChannels_Call{Call: _e.mock.On("ListChannels",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_ListChannels_Call) Run(run func(ctx context.Context, params *cloudtrail.ListChannelsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_ListChannels_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.ListChannelsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_ListChannels_Call) Return(_a0 *cloudtrail.ListChannelsOutput, _a1 error) *CloudTrail_ListChannels_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_ListChannels_Call) RunAndReturn(run func(context.Context, *cloudtrail.ListChannelsInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListChannelsOutput, error)) *CloudTrail_ListChannels_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListDashboards provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) ListDashboards(ctx context.Context, params *cloudtrail.ListDashboardsInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.ListDashboardsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListDashboards")
+	}
+
+	var r0 *cloudtrail.ListDashboardsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListDashboardsInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListDashboardsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListDashboardsInput, ...func(*cloudtrail.Options)) *cloudtrail.ListDashboardsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.ListDashboardsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.ListDashboardsInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_ListDashboards_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDashboards'
+type CloudTrail_ListDashboards_Call struct {
+	*mock.Call
+}
+
+// ListDashboards is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.ListDashboardsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) ListDashboards(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_ListDashboards_Call {
+	return &CloudTrail_ListDashboards_Call{Call: _e.mock.On("ListDashboards",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_ListDashboards_Call) Run(run func(ctx context.Context, params *cloudtrail.ListDashboardsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_ListDashboards_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.ListDashboardsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_ListDashboards_Call) Return(_a0 *cloudtrail.ListDashboardsOutput, _a1 error) *CloudTrail_ListDashboards_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_ListDashboards_Call) RunAndReturn(run func(context.Context, *cloudtrail.ListDashboardsInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListDashboardsOutput, error)) *CloudTrail_ListDashboards_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListEventDataStores provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) ListEventDataStores(ctx context.Context, params *cloudtrail.ListEventDataStoresInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.ListEventDataStoresOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -938,6 +2204,43 @@ func (_m *CloudTrail) ListEventDataStores(ctx context.Context, params *cloudtrai
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_ListEventDataStores_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListEventDataStores'
+type CloudTrail_ListEventDataStores_Call struct {
+	*mock.Call
+}
+
+// ListEventDataStores is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.ListEventDataStoresInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) ListEventDataStores(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_ListEventDataStores_Call {
+	return &CloudTrail_ListEventDataStores_Call{Call: _e.mock.On("ListEventDataStores",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_ListEventDataStores_Call) Run(run func(ctx context.Context, params *cloudtrail.ListEventDataStoresInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_ListEventDataStores_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.ListEventDataStoresInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_ListEventDataStores_Call) Return(_a0 *cloudtrail.ListEventDataStoresOutput, _a1 error) *CloudTrail_ListEventDataStores_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_ListEventDataStores_Call) RunAndReturn(run func(context.Context, *cloudtrail.ListEventDataStoresInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListEventDataStoresOutput, error)) *CloudTrail_ListEventDataStores_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListImportFailures provides a mock function with given fields: ctx, params, optFns
@@ -977,6 +2280,43 @@ func (_m *CloudTrail) ListImportFailures(ctx context.Context, params *cloudtrail
 	return r0, r1
 }
 
+// CloudTrail_ListImportFailures_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListImportFailures'
+type CloudTrail_ListImportFailures_Call struct {
+	*mock.Call
+}
+
+// ListImportFailures is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.ListImportFailuresInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) ListImportFailures(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_ListImportFailures_Call {
+	return &CloudTrail_ListImportFailures_Call{Call: _e.mock.On("ListImportFailures",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_ListImportFailures_Call) Run(run func(ctx context.Context, params *cloudtrail.ListImportFailuresInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_ListImportFailures_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.ListImportFailuresInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_ListImportFailures_Call) Return(_a0 *cloudtrail.ListImportFailuresOutput, _a1 error) *CloudTrail_ListImportFailures_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_ListImportFailures_Call) RunAndReturn(run func(context.Context, *cloudtrail.ListImportFailuresInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListImportFailuresOutput, error)) *CloudTrail_ListImportFailures_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListImports provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) ListImports(ctx context.Context, params *cloudtrail.ListImportsInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.ListImportsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1012,6 +2352,43 @@ func (_m *CloudTrail) ListImports(ctx context.Context, params *cloudtrail.ListIm
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_ListImports_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListImports'
+type CloudTrail_ListImports_Call struct {
+	*mock.Call
+}
+
+// ListImports is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.ListImportsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) ListImports(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_ListImports_Call {
+	return &CloudTrail_ListImports_Call{Call: _e.mock.On("ListImports",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_ListImports_Call) Run(run func(ctx context.Context, params *cloudtrail.ListImportsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_ListImports_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.ListImportsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_ListImports_Call) Return(_a0 *cloudtrail.ListImportsOutput, _a1 error) *CloudTrail_ListImports_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_ListImports_Call) RunAndReturn(run func(context.Context, *cloudtrail.ListImportsInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListImportsOutput, error)) *CloudTrail_ListImports_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListInsightsMetricData provides a mock function with given fields: ctx, params, optFns
@@ -1051,6 +2428,43 @@ func (_m *CloudTrail) ListInsightsMetricData(ctx context.Context, params *cloudt
 	return r0, r1
 }
 
+// CloudTrail_ListInsightsMetricData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListInsightsMetricData'
+type CloudTrail_ListInsightsMetricData_Call struct {
+	*mock.Call
+}
+
+// ListInsightsMetricData is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.ListInsightsMetricDataInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) ListInsightsMetricData(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_ListInsightsMetricData_Call {
+	return &CloudTrail_ListInsightsMetricData_Call{Call: _e.mock.On("ListInsightsMetricData",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_ListInsightsMetricData_Call) Run(run func(ctx context.Context, params *cloudtrail.ListInsightsMetricDataInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_ListInsightsMetricData_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.ListInsightsMetricDataInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_ListInsightsMetricData_Call) Return(_a0 *cloudtrail.ListInsightsMetricDataOutput, _a1 error) *CloudTrail_ListInsightsMetricData_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_ListInsightsMetricData_Call) RunAndReturn(run func(context.Context, *cloudtrail.ListInsightsMetricDataInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListInsightsMetricDataOutput, error)) *CloudTrail_ListInsightsMetricData_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListPublicKeys provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) ListPublicKeys(ctx context.Context, params *cloudtrail.ListPublicKeysInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.ListPublicKeysOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1086,6 +2500,43 @@ func (_m *CloudTrail) ListPublicKeys(ctx context.Context, params *cloudtrail.Lis
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_ListPublicKeys_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPublicKeys'
+type CloudTrail_ListPublicKeys_Call struct {
+	*mock.Call
+}
+
+// ListPublicKeys is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.ListPublicKeysInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) ListPublicKeys(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_ListPublicKeys_Call {
+	return &CloudTrail_ListPublicKeys_Call{Call: _e.mock.On("ListPublicKeys",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_ListPublicKeys_Call) Run(run func(ctx context.Context, params *cloudtrail.ListPublicKeysInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_ListPublicKeys_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.ListPublicKeysInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_ListPublicKeys_Call) Return(_a0 *cloudtrail.ListPublicKeysOutput, _a1 error) *CloudTrail_ListPublicKeys_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_ListPublicKeys_Call) RunAndReturn(run func(context.Context, *cloudtrail.ListPublicKeysInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListPublicKeysOutput, error)) *CloudTrail_ListPublicKeys_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListQueries provides a mock function with given fields: ctx, params, optFns
@@ -1125,6 +2576,43 @@ func (_m *CloudTrail) ListQueries(ctx context.Context, params *cloudtrail.ListQu
 	return r0, r1
 }
 
+// CloudTrail_ListQueries_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListQueries'
+type CloudTrail_ListQueries_Call struct {
+	*mock.Call
+}
+
+// ListQueries is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.ListQueriesInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) ListQueries(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_ListQueries_Call {
+	return &CloudTrail_ListQueries_Call{Call: _e.mock.On("ListQueries",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_ListQueries_Call) Run(run func(ctx context.Context, params *cloudtrail.ListQueriesInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_ListQueries_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.ListQueriesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_ListQueries_Call) Return(_a0 *cloudtrail.ListQueriesOutput, _a1 error) *CloudTrail_ListQueries_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_ListQueries_Call) RunAndReturn(run func(context.Context, *cloudtrail.ListQueriesInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListQueriesOutput, error)) *CloudTrail_ListQueries_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListTags provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) ListTags(ctx context.Context, params *cloudtrail.ListTagsInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.ListTagsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1160,6 +2648,43 @@ func (_m *CloudTrail) ListTags(ctx context.Context, params *cloudtrail.ListTagsI
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_ListTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTags'
+type CloudTrail_ListTags_Call struct {
+	*mock.Call
+}
+
+// ListTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.ListTagsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) ListTags(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_ListTags_Call {
+	return &CloudTrail_ListTags_Call{Call: _e.mock.On("ListTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_ListTags_Call) Run(run func(ctx context.Context, params *cloudtrail.ListTagsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_ListTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.ListTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_ListTags_Call) Return(_a0 *cloudtrail.ListTagsOutput, _a1 error) *CloudTrail_ListTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_ListTags_Call) RunAndReturn(run func(context.Context, *cloudtrail.ListTagsInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListTagsOutput, error)) *CloudTrail_ListTags_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListTrails provides a mock function with given fields: ctx, params, optFns
@@ -1199,6 +2724,43 @@ func (_m *CloudTrail) ListTrails(ctx context.Context, params *cloudtrail.ListTra
 	return r0, r1
 }
 
+// CloudTrail_ListTrails_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTrails'
+type CloudTrail_ListTrails_Call struct {
+	*mock.Call
+}
+
+// ListTrails is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.ListTrailsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) ListTrails(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_ListTrails_Call {
+	return &CloudTrail_ListTrails_Call{Call: _e.mock.On("ListTrails",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_ListTrails_Call) Run(run func(ctx context.Context, params *cloudtrail.ListTrailsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_ListTrails_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.ListTrailsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_ListTrails_Call) Return(_a0 *cloudtrail.ListTrailsOutput, _a1 error) *CloudTrail_ListTrails_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_ListTrails_Call) RunAndReturn(run func(context.Context, *cloudtrail.ListTrailsInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListTrailsOutput, error)) *CloudTrail_ListTrails_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // LookupEvents provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) LookupEvents(ctx context.Context, params *cloudtrail.LookupEventsInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.LookupEventsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1236,6 +2798,43 @@ func (_m *CloudTrail) LookupEvents(ctx context.Context, params *cloudtrail.Looku
 	return r0, r1
 }
 
+// CloudTrail_LookupEvents_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LookupEvents'
+type CloudTrail_LookupEvents_Call struct {
+	*mock.Call
+}
+
+// LookupEvents is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.LookupEventsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) LookupEvents(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_LookupEvents_Call {
+	return &CloudTrail_LookupEvents_Call{Call: _e.mock.On("LookupEvents",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_LookupEvents_Call) Run(run func(ctx context.Context, params *cloudtrail.LookupEventsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_LookupEvents_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.LookupEventsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_LookupEvents_Call) Return(_a0 *cloudtrail.LookupEventsOutput, _a1 error) *CloudTrail_LookupEvents_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_LookupEvents_Call) RunAndReturn(run func(context.Context, *cloudtrail.LookupEventsInput, ...func(*cloudtrail.Options)) (*cloudtrail.LookupEventsOutput, error)) *CloudTrail_LookupEvents_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Options provides a mock function with given fields:
 func (_m *CloudTrail) Options() cloudtrail.Options {
 	ret := _m.Called()
@@ -1252,6 +2851,33 @@ func (_m *CloudTrail) Options() cloudtrail.Options {
 	}
 
 	return r0
+}
+
+// CloudTrail_Options_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Options'
+type CloudTrail_Options_Call struct {
+	*mock.Call
+}
+
+// Options is a helper method to define mock.On call
+func (_e *CloudTrail_Expecter) Options() *CloudTrail_Options_Call {
+	return &CloudTrail_Options_Call{Call: _e.mock.On("Options")}
+}
+
+func (_c *CloudTrail_Options_Call) Run(run func()) *CloudTrail_Options_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *CloudTrail_Options_Call) Return(_a0 cloudtrail.Options) *CloudTrail_Options_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CloudTrail_Options_Call) RunAndReturn(run func() cloudtrail.Options) *CloudTrail_Options_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // PutEventSelectors provides a mock function with given fields: ctx, params, optFns
@@ -1291,6 +2917,43 @@ func (_m *CloudTrail) PutEventSelectors(ctx context.Context, params *cloudtrail.
 	return r0, r1
 }
 
+// CloudTrail_PutEventSelectors_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutEventSelectors'
+type CloudTrail_PutEventSelectors_Call struct {
+	*mock.Call
+}
+
+// PutEventSelectors is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.PutEventSelectorsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) PutEventSelectors(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_PutEventSelectors_Call {
+	return &CloudTrail_PutEventSelectors_Call{Call: _e.mock.On("PutEventSelectors",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_PutEventSelectors_Call) Run(run func(ctx context.Context, params *cloudtrail.PutEventSelectorsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_PutEventSelectors_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.PutEventSelectorsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_PutEventSelectors_Call) Return(_a0 *cloudtrail.PutEventSelectorsOutput, _a1 error) *CloudTrail_PutEventSelectors_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_PutEventSelectors_Call) RunAndReturn(run func(context.Context, *cloudtrail.PutEventSelectorsInput, ...func(*cloudtrail.Options)) (*cloudtrail.PutEventSelectorsOutput, error)) *CloudTrail_PutEventSelectors_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutInsightSelectors provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) PutInsightSelectors(ctx context.Context, params *cloudtrail.PutInsightSelectorsInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.PutInsightSelectorsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1326,6 +2989,43 @@ func (_m *CloudTrail) PutInsightSelectors(ctx context.Context, params *cloudtrai
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_PutInsightSelectors_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutInsightSelectors'
+type CloudTrail_PutInsightSelectors_Call struct {
+	*mock.Call
+}
+
+// PutInsightSelectors is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.PutInsightSelectorsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) PutInsightSelectors(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_PutInsightSelectors_Call {
+	return &CloudTrail_PutInsightSelectors_Call{Call: _e.mock.On("PutInsightSelectors",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_PutInsightSelectors_Call) Run(run func(ctx context.Context, params *cloudtrail.PutInsightSelectorsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_PutInsightSelectors_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.PutInsightSelectorsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_PutInsightSelectors_Call) Return(_a0 *cloudtrail.PutInsightSelectorsOutput, _a1 error) *CloudTrail_PutInsightSelectors_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_PutInsightSelectors_Call) RunAndReturn(run func(context.Context, *cloudtrail.PutInsightSelectorsInput, ...func(*cloudtrail.Options)) (*cloudtrail.PutInsightSelectorsOutput, error)) *CloudTrail_PutInsightSelectors_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // PutResourcePolicy provides a mock function with given fields: ctx, params, optFns
@@ -1365,6 +3065,43 @@ func (_m *CloudTrail) PutResourcePolicy(ctx context.Context, params *cloudtrail.
 	return r0, r1
 }
 
+// CloudTrail_PutResourcePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutResourcePolicy'
+type CloudTrail_PutResourcePolicy_Call struct {
+	*mock.Call
+}
+
+// PutResourcePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.PutResourcePolicyInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) PutResourcePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_PutResourcePolicy_Call {
+	return &CloudTrail_PutResourcePolicy_Call{Call: _e.mock.On("PutResourcePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_PutResourcePolicy_Call) Run(run func(ctx context.Context, params *cloudtrail.PutResourcePolicyInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_PutResourcePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.PutResourcePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_PutResourcePolicy_Call) Return(_a0 *cloudtrail.PutResourcePolicyOutput, _a1 error) *CloudTrail_PutResourcePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_PutResourcePolicy_Call) RunAndReturn(run func(context.Context, *cloudtrail.PutResourcePolicyInput, ...func(*cloudtrail.Options)) (*cloudtrail.PutResourcePolicyOutput, error)) *CloudTrail_PutResourcePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RegisterOrganizationDelegatedAdmin provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) RegisterOrganizationDelegatedAdmin(ctx context.Context, params *cloudtrail.RegisterOrganizationDelegatedAdminInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.RegisterOrganizationDelegatedAdminOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1400,6 +3137,43 @@ func (_m *CloudTrail) RegisterOrganizationDelegatedAdmin(ctx context.Context, pa
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_RegisterOrganizationDelegatedAdmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterOrganizationDelegatedAdmin'
+type CloudTrail_RegisterOrganizationDelegatedAdmin_Call struct {
+	*mock.Call
+}
+
+// RegisterOrganizationDelegatedAdmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.RegisterOrganizationDelegatedAdminInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) RegisterOrganizationDelegatedAdmin(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_RegisterOrganizationDelegatedAdmin_Call {
+	return &CloudTrail_RegisterOrganizationDelegatedAdmin_Call{Call: _e.mock.On("RegisterOrganizationDelegatedAdmin",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_RegisterOrganizationDelegatedAdmin_Call) Run(run func(ctx context.Context, params *cloudtrail.RegisterOrganizationDelegatedAdminInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_RegisterOrganizationDelegatedAdmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.RegisterOrganizationDelegatedAdminInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_RegisterOrganizationDelegatedAdmin_Call) Return(_a0 *cloudtrail.RegisterOrganizationDelegatedAdminOutput, _a1 error) *CloudTrail_RegisterOrganizationDelegatedAdmin_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_RegisterOrganizationDelegatedAdmin_Call) RunAndReturn(run func(context.Context, *cloudtrail.RegisterOrganizationDelegatedAdminInput, ...func(*cloudtrail.Options)) (*cloudtrail.RegisterOrganizationDelegatedAdminOutput, error)) *CloudTrail_RegisterOrganizationDelegatedAdmin_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // RemoveTags provides a mock function with given fields: ctx, params, optFns
@@ -1439,6 +3213,43 @@ func (_m *CloudTrail) RemoveTags(ctx context.Context, params *cloudtrail.RemoveT
 	return r0, r1
 }
 
+// CloudTrail_RemoveTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveTags'
+type CloudTrail_RemoveTags_Call struct {
+	*mock.Call
+}
+
+// RemoveTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.RemoveTagsInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) RemoveTags(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_RemoveTags_Call {
+	return &CloudTrail_RemoveTags_Call{Call: _e.mock.On("RemoveTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_RemoveTags_Call) Run(run func(ctx context.Context, params *cloudtrail.RemoveTagsInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_RemoveTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.RemoveTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_RemoveTags_Call) Return(_a0 *cloudtrail.RemoveTagsOutput, _a1 error) *CloudTrail_RemoveTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_RemoveTags_Call) RunAndReturn(run func(context.Context, *cloudtrail.RemoveTagsInput, ...func(*cloudtrail.Options)) (*cloudtrail.RemoveTagsOutput, error)) *CloudTrail_RemoveTags_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RestoreEventDataStore provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) RestoreEventDataStore(ctx context.Context, params *cloudtrail.RestoreEventDataStoreInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.RestoreEventDataStoreOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1474,6 +3285,117 @@ func (_m *CloudTrail) RestoreEventDataStore(ctx context.Context, params *cloudtr
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_RestoreEventDataStore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RestoreEventDataStore'
+type CloudTrail_RestoreEventDataStore_Call struct {
+	*mock.Call
+}
+
+// RestoreEventDataStore is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.RestoreEventDataStoreInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) RestoreEventDataStore(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_RestoreEventDataStore_Call {
+	return &CloudTrail_RestoreEventDataStore_Call{Call: _e.mock.On("RestoreEventDataStore",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_RestoreEventDataStore_Call) Run(run func(ctx context.Context, params *cloudtrail.RestoreEventDataStoreInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_RestoreEventDataStore_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.RestoreEventDataStoreInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_RestoreEventDataStore_Call) Return(_a0 *cloudtrail.RestoreEventDataStoreOutput, _a1 error) *CloudTrail_RestoreEventDataStore_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_RestoreEventDataStore_Call) RunAndReturn(run func(context.Context, *cloudtrail.RestoreEventDataStoreInput, ...func(*cloudtrail.Options)) (*cloudtrail.RestoreEventDataStoreOutput, error)) *CloudTrail_RestoreEventDataStore_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// StartDashboardRefresh provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) StartDashboardRefresh(ctx context.Context, params *cloudtrail.StartDashboardRefreshInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.StartDashboardRefreshOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartDashboardRefresh")
+	}
+
+	var r0 *cloudtrail.StartDashboardRefreshOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.StartDashboardRefreshInput, ...func(*cloudtrail.Options)) (*cloudtrail.StartDashboardRefreshOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.StartDashboardRefreshInput, ...func(*cloudtrail.Options)) *cloudtrail.StartDashboardRefreshOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.StartDashboardRefreshOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.StartDashboardRefreshInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_StartDashboardRefresh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartDashboardRefresh'
+type CloudTrail_StartDashboardRefresh_Call struct {
+	*mock.Call
+}
+
+// StartDashboardRefresh is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.StartDashboardRefreshInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) StartDashboardRefresh(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_StartDashboardRefresh_Call {
+	return &CloudTrail_StartDashboardRefresh_Call{Call: _e.mock.On("StartDashboardRefresh",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_StartDashboardRefresh_Call) Run(run func(ctx context.Context, params *cloudtrail.StartDashboardRefreshInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_StartDashboardRefresh_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.StartDashboardRefreshInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_StartDashboardRefresh_Call) Return(_a0 *cloudtrail.StartDashboardRefreshOutput, _a1 error) *CloudTrail_StartDashboardRefresh_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_StartDashboardRefresh_Call) RunAndReturn(run func(context.Context, *cloudtrail.StartDashboardRefreshInput, ...func(*cloudtrail.Options)) (*cloudtrail.StartDashboardRefreshOutput, error)) *CloudTrail_StartDashboardRefresh_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // StartEventDataStoreIngestion provides a mock function with given fields: ctx, params, optFns
@@ -1513,6 +3435,43 @@ func (_m *CloudTrail) StartEventDataStoreIngestion(ctx context.Context, params *
 	return r0, r1
 }
 
+// CloudTrail_StartEventDataStoreIngestion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartEventDataStoreIngestion'
+type CloudTrail_StartEventDataStoreIngestion_Call struct {
+	*mock.Call
+}
+
+// StartEventDataStoreIngestion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.StartEventDataStoreIngestionInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) StartEventDataStoreIngestion(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_StartEventDataStoreIngestion_Call {
+	return &CloudTrail_StartEventDataStoreIngestion_Call{Call: _e.mock.On("StartEventDataStoreIngestion",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_StartEventDataStoreIngestion_Call) Run(run func(ctx context.Context, params *cloudtrail.StartEventDataStoreIngestionInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_StartEventDataStoreIngestion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.StartEventDataStoreIngestionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_StartEventDataStoreIngestion_Call) Return(_a0 *cloudtrail.StartEventDataStoreIngestionOutput, _a1 error) *CloudTrail_StartEventDataStoreIngestion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_StartEventDataStoreIngestion_Call) RunAndReturn(run func(context.Context, *cloudtrail.StartEventDataStoreIngestionInput, ...func(*cloudtrail.Options)) (*cloudtrail.StartEventDataStoreIngestionOutput, error)) *CloudTrail_StartEventDataStoreIngestion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StartImport provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) StartImport(ctx context.Context, params *cloudtrail.StartImportInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.StartImportOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1548,6 +3507,43 @@ func (_m *CloudTrail) StartImport(ctx context.Context, params *cloudtrail.StartI
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_StartImport_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartImport'
+type CloudTrail_StartImport_Call struct {
+	*mock.Call
+}
+
+// StartImport is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.StartImportInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) StartImport(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_StartImport_Call {
+	return &CloudTrail_StartImport_Call{Call: _e.mock.On("StartImport",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_StartImport_Call) Run(run func(ctx context.Context, params *cloudtrail.StartImportInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_StartImport_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.StartImportInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_StartImport_Call) Return(_a0 *cloudtrail.StartImportOutput, _a1 error) *CloudTrail_StartImport_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_StartImport_Call) RunAndReturn(run func(context.Context, *cloudtrail.StartImportInput, ...func(*cloudtrail.Options)) (*cloudtrail.StartImportOutput, error)) *CloudTrail_StartImport_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // StartLogging provides a mock function with given fields: ctx, params, optFns
@@ -1587,6 +3583,43 @@ func (_m *CloudTrail) StartLogging(ctx context.Context, params *cloudtrail.Start
 	return r0, r1
 }
 
+// CloudTrail_StartLogging_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartLogging'
+type CloudTrail_StartLogging_Call struct {
+	*mock.Call
+}
+
+// StartLogging is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.StartLoggingInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) StartLogging(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_StartLogging_Call {
+	return &CloudTrail_StartLogging_Call{Call: _e.mock.On("StartLogging",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_StartLogging_Call) Run(run func(ctx context.Context, params *cloudtrail.StartLoggingInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_StartLogging_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.StartLoggingInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_StartLogging_Call) Return(_a0 *cloudtrail.StartLoggingOutput, _a1 error) *CloudTrail_StartLogging_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_StartLogging_Call) RunAndReturn(run func(context.Context, *cloudtrail.StartLoggingInput, ...func(*cloudtrail.Options)) (*cloudtrail.StartLoggingOutput, error)) *CloudTrail_StartLogging_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StartQuery provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) StartQuery(ctx context.Context, params *cloudtrail.StartQueryInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.StartQueryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1622,6 +3655,43 @@ func (_m *CloudTrail) StartQuery(ctx context.Context, params *cloudtrail.StartQu
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_StartQuery_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartQuery'
+type CloudTrail_StartQuery_Call struct {
+	*mock.Call
+}
+
+// StartQuery is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.StartQueryInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) StartQuery(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_StartQuery_Call {
+	return &CloudTrail_StartQuery_Call{Call: _e.mock.On("StartQuery",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_StartQuery_Call) Run(run func(ctx context.Context, params *cloudtrail.StartQueryInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_StartQuery_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.StartQueryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_StartQuery_Call) Return(_a0 *cloudtrail.StartQueryOutput, _a1 error) *CloudTrail_StartQuery_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_StartQuery_Call) RunAndReturn(run func(context.Context, *cloudtrail.StartQueryInput, ...func(*cloudtrail.Options)) (*cloudtrail.StartQueryOutput, error)) *CloudTrail_StartQuery_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // StopEventDataStoreIngestion provides a mock function with given fields: ctx, params, optFns
@@ -1661,6 +3731,43 @@ func (_m *CloudTrail) StopEventDataStoreIngestion(ctx context.Context, params *c
 	return r0, r1
 }
 
+// CloudTrail_StopEventDataStoreIngestion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StopEventDataStoreIngestion'
+type CloudTrail_StopEventDataStoreIngestion_Call struct {
+	*mock.Call
+}
+
+// StopEventDataStoreIngestion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.StopEventDataStoreIngestionInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) StopEventDataStoreIngestion(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_StopEventDataStoreIngestion_Call {
+	return &CloudTrail_StopEventDataStoreIngestion_Call{Call: _e.mock.On("StopEventDataStoreIngestion",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_StopEventDataStoreIngestion_Call) Run(run func(ctx context.Context, params *cloudtrail.StopEventDataStoreIngestionInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_StopEventDataStoreIngestion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.StopEventDataStoreIngestionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_StopEventDataStoreIngestion_Call) Return(_a0 *cloudtrail.StopEventDataStoreIngestionOutput, _a1 error) *CloudTrail_StopEventDataStoreIngestion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_StopEventDataStoreIngestion_Call) RunAndReturn(run func(context.Context, *cloudtrail.StopEventDataStoreIngestionInput, ...func(*cloudtrail.Options)) (*cloudtrail.StopEventDataStoreIngestionOutput, error)) *CloudTrail_StopEventDataStoreIngestion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StopImport provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) StopImport(ctx context.Context, params *cloudtrail.StopImportInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.StopImportOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1696,6 +3803,43 @@ func (_m *CloudTrail) StopImport(ctx context.Context, params *cloudtrail.StopImp
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_StopImport_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StopImport'
+type CloudTrail_StopImport_Call struct {
+	*mock.Call
+}
+
+// StopImport is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.StopImportInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) StopImport(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_StopImport_Call {
+	return &CloudTrail_StopImport_Call{Call: _e.mock.On("StopImport",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_StopImport_Call) Run(run func(ctx context.Context, params *cloudtrail.StopImportInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_StopImport_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.StopImportInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_StopImport_Call) Return(_a0 *cloudtrail.StopImportOutput, _a1 error) *CloudTrail_StopImport_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_StopImport_Call) RunAndReturn(run func(context.Context, *cloudtrail.StopImportInput, ...func(*cloudtrail.Options)) (*cloudtrail.StopImportOutput, error)) *CloudTrail_StopImport_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // StopLogging provides a mock function with given fields: ctx, params, optFns
@@ -1735,6 +3879,43 @@ func (_m *CloudTrail) StopLogging(ctx context.Context, params *cloudtrail.StopLo
 	return r0, r1
 }
 
+// CloudTrail_StopLogging_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StopLogging'
+type CloudTrail_StopLogging_Call struct {
+	*mock.Call
+}
+
+// StopLogging is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.StopLoggingInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) StopLogging(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_StopLogging_Call {
+	return &CloudTrail_StopLogging_Call{Call: _e.mock.On("StopLogging",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_StopLogging_Call) Run(run func(ctx context.Context, params *cloudtrail.StopLoggingInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_StopLogging_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.StopLoggingInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_StopLogging_Call) Return(_a0 *cloudtrail.StopLoggingOutput, _a1 error) *CloudTrail_StopLogging_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_StopLogging_Call) RunAndReturn(run func(context.Context, *cloudtrail.StopLoggingInput, ...func(*cloudtrail.Options)) (*cloudtrail.StopLoggingOutput, error)) *CloudTrail_StopLogging_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateChannel provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) UpdateChannel(ctx context.Context, params *cloudtrail.UpdateChannelInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.UpdateChannelOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1770,6 +3951,117 @@ func (_m *CloudTrail) UpdateChannel(ctx context.Context, params *cloudtrail.Upda
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_UpdateChannel_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateChannel'
+type CloudTrail_UpdateChannel_Call struct {
+	*mock.Call
+}
+
+// UpdateChannel is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.UpdateChannelInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) UpdateChannel(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_UpdateChannel_Call {
+	return &CloudTrail_UpdateChannel_Call{Call: _e.mock.On("UpdateChannel",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_UpdateChannel_Call) Run(run func(ctx context.Context, params *cloudtrail.UpdateChannelInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_UpdateChannel_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.UpdateChannelInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_UpdateChannel_Call) Return(_a0 *cloudtrail.UpdateChannelOutput, _a1 error) *CloudTrail_UpdateChannel_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_UpdateChannel_Call) RunAndReturn(run func(context.Context, *cloudtrail.UpdateChannelInput, ...func(*cloudtrail.Options)) (*cloudtrail.UpdateChannelOutput, error)) *CloudTrail_UpdateChannel_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateDashboard provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) UpdateDashboard(ctx context.Context, params *cloudtrail.UpdateDashboardInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.UpdateDashboardOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateDashboard")
+	}
+
+	var r0 *cloudtrail.UpdateDashboardOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.UpdateDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.UpdateDashboardOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.UpdateDashboardInput, ...func(*cloudtrail.Options)) *cloudtrail.UpdateDashboardOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.UpdateDashboardOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.UpdateDashboardInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_UpdateDashboard_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateDashboard'
+type CloudTrail_UpdateDashboard_Call struct {
+	*mock.Call
+}
+
+// UpdateDashboard is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.UpdateDashboardInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) UpdateDashboard(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_UpdateDashboard_Call {
+	return &CloudTrail_UpdateDashboard_Call{Call: _e.mock.On("UpdateDashboard",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_UpdateDashboard_Call) Run(run func(ctx context.Context, params *cloudtrail.UpdateDashboardInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_UpdateDashboard_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.UpdateDashboardInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_UpdateDashboard_Call) Return(_a0 *cloudtrail.UpdateDashboardOutput, _a1 error) *CloudTrail_UpdateDashboard_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_UpdateDashboard_Call) RunAndReturn(run func(context.Context, *cloudtrail.UpdateDashboardInput, ...func(*cloudtrail.Options)) (*cloudtrail.UpdateDashboardOutput, error)) *CloudTrail_UpdateDashboard_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateEventDataStore provides a mock function with given fields: ctx, params, optFns
@@ -1809,6 +4101,43 @@ func (_m *CloudTrail) UpdateEventDataStore(ctx context.Context, params *cloudtra
 	return r0, r1
 }
 
+// CloudTrail_UpdateEventDataStore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateEventDataStore'
+type CloudTrail_UpdateEventDataStore_Call struct {
+	*mock.Call
+}
+
+// UpdateEventDataStore is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.UpdateEventDataStoreInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) UpdateEventDataStore(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_UpdateEventDataStore_Call {
+	return &CloudTrail_UpdateEventDataStore_Call{Call: _e.mock.On("UpdateEventDataStore",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_UpdateEventDataStore_Call) Run(run func(ctx context.Context, params *cloudtrail.UpdateEventDataStoreInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_UpdateEventDataStore_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.UpdateEventDataStoreInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_UpdateEventDataStore_Call) Return(_a0 *cloudtrail.UpdateEventDataStoreOutput, _a1 error) *CloudTrail_UpdateEventDataStore_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_UpdateEventDataStore_Call) RunAndReturn(run func(context.Context, *cloudtrail.UpdateEventDataStoreInput, ...func(*cloudtrail.Options)) (*cloudtrail.UpdateEventDataStoreOutput, error)) *CloudTrail_UpdateEventDataStore_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateTrail provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) UpdateTrail(ctx context.Context, params *cloudtrail.UpdateTrailInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.UpdateTrailOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1844,6 +4173,43 @@ func (_m *CloudTrail) UpdateTrail(ctx context.Context, params *cloudtrail.Update
 	}
 
 	return r0, r1
+}
+
+// CloudTrail_UpdateTrail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateTrail'
+type CloudTrail_UpdateTrail_Call struct {
+	*mock.Call
+}
+
+// UpdateTrail is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.UpdateTrailInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) UpdateTrail(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_UpdateTrail_Call {
+	return &CloudTrail_UpdateTrail_Call{Call: _e.mock.On("UpdateTrail",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_UpdateTrail_Call) Run(run func(ctx context.Context, params *cloudtrail.UpdateTrailInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_UpdateTrail_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.UpdateTrailInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_UpdateTrail_Call) Return(_a0 *cloudtrail.UpdateTrailOutput, _a1 error) *CloudTrail_UpdateTrail_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_UpdateTrail_Call) RunAndReturn(run func(context.Context, *cloudtrail.UpdateTrailInput, ...func(*cloudtrail.Options)) (*cloudtrail.UpdateTrailOutput, error)) *CloudTrail_UpdateTrail_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewCloudTrail creates a new instance of CloudTrail. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

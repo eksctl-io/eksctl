@@ -2,9 +2,11 @@ package fargate
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -26,7 +28,7 @@ func makeClusterStackName(clusterName string) string {
 func (t *createFargateStackTask) Do(errs chan error) error {
 	rs := builder.NewFargateResourceSet(t.cfg)
 	if err := rs.AddAllResources(); err != nil {
-		return errors.Wrap(err, "couldn't add all resources to fargate resource set")
+		return fmt.Errorf("couldn't add all resources to fargate resource set: %w", err)
 	}
 	return t.stackManager.CreateStack(context.TODO(), makeClusterStackName(t.cfg.Metadata.Name), rs, nil, nil, errs)
 }

@@ -1,0 +1,17 @@
+# A sample ClusterConfig file that creates a cluster with Auto Mode enabled.
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: auto-mode-cluster
+  region: us-west-2
+
+autoModeConfig:
+  # defaults to false
+  enabled: true
+  # optional, defaults to [general-purpose, system].
+  # To disable creation of nodePools, set it to the empty array ([]).
+  nodePools: [general-purpose, system]
+  # optional, eksctl creates a new role if this is not supplied
+  # and nodePools are present.
+#  nodeRoleARN: ""

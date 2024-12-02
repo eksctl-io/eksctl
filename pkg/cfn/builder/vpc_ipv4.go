@@ -47,6 +47,7 @@ type SubnetDetails struct {
 	PublicLocalZone  []SubnetResource
 
 	controlPlaneOnOutposts bool
+	autoMode               bool
 }
 
 // NewIPv4VPCResourceSet creates and returns a new VPCResourceSet
@@ -57,6 +58,7 @@ func NewIPv4VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec
 		ec2API:        ec2API,
 		subnetDetails: &SubnetDetails{
 			controlPlaneOnOutposts: clusterConfig.IsControlPlaneOnOutposts(),
+			autoMode:               clusterConfig.IsAutoModeEnabled(),
 		},
 		extendForOutposts: extendForOutposts,
 	}
@@ -140,6 +142,9 @@ func (v *IPv4VPCResourceSet) addResources() error {
 func (s *SubnetDetails) ControlPlaneSubnetRefs() []*gfnt.Value {
 	privateSubnetRefs := s.PrivateSubnetRefs()
 	if s.controlPlaneOnOutposts && len(privateSubnetRefs) > 0 {
+		return privateSubnetRefs
+	}
+	if s.autoMode {
 		return privateSubnetRefs
 	}
 	return append(s.PublicSubnetRefs(), privateSubnetRefs...)

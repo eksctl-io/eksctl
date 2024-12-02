@@ -5,11 +5,10 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
@@ -827,6 +826,11 @@ func (c *ClusterConfig) FindNodeGroupOutpostARN() (outpostARN string, found bool
 	return "", false
 }
 
+// IsAutoModeEnabled reports whether Auto Mode is enabled.
+func (c *ClusterConfig) IsAutoModeEnabled() bool {
+	return c.AutoModeConfig != nil && IsEnabled(c.AutoModeConfig.Enabled)
+}
+
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
 	CloudFormation() awsapi.CloudFormation
@@ -889,6 +893,10 @@ type ClusterConfig struct {
 
 	// +optional
 	KubernetesNetworkConfig *KubernetesNetworkConfig `json:"kubernetesNetworkConfig,omitempty"`
+
+	// AutoModeConfig holds the config for Auto Mode.
+	// +optional
+	AutoModeConfig *AutoModeConfig `json:"autoModeConfig,omitempty"`
 
 	// +optional
 	IAM *ClusterIAM `json:"iam,omitempty"`

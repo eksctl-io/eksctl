@@ -5,9 +5,8 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/kris-nova/logger"
 
-	"github.com/weaveworks/eksctl/pkg/iam"
+	"github.com/kris-nova/logger"
 
 	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -15,6 +14,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
+	"github.com/weaveworks/eksctl/pkg/iam"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
 
@@ -94,8 +94,12 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 		if !api.IsDisabled(c.spec.IAM.VPCResourceControllerPolicy) {
 			managedPolicyARNs = append(managedPolicyARNs, iamPolicyAmazonEKSVPCResourceController)
 		}
+		if c.spec.IsAutoModeEnabled() {
+			managedPolicyARNs = append(managedPolicyARNs, AutoModeIAMPolicies...)
+		}
 		role = &gfniam.Role{
-			AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
+			AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentWithAction(
+				"sts:TagSession",
 				MakeServiceRef("EKS"),
 			),
 			ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyARNs...)...),

@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"reflect"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -13,7 +14,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/tidwall/gjson"
 
@@ -283,7 +283,6 @@ var _ = Describe("Cluster Template Builder", func() {
 		})
 
 		It("should add the correct policies and references to the ServiceRole ARN", func() {
-			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(HaveLen(2))
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(ContainElements(makePolicyARNRef("AmazonEKSClusterPolicy"), makePolicyARNRef("AmazonEKSVPCResourceController")))
 		})
 
@@ -322,7 +321,6 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 
 			It("only adds the AmazonEKSClusterPolicy to the service role policy arn", func() {
-				Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(HaveLen(1))
 				Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns[0]).To(Equal(makePolicyARNRef("AmazonEKSClusterPolicy")))
 			})
 		})

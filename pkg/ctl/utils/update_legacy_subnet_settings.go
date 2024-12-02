@@ -65,7 +65,7 @@ func doUpdateLegacySubnetSettings(cmd *cmdutils.Cmd) error {
 	if err != nil {
 		return fmt.Errorf("error describing cluster stack: %w", err)
 	}
-	if err := ctl.LoadClusterVPC(ctx, cfg, stack); err != nil {
+	if err := ctl.LoadClusterVPC(ctx, cfg, stack, true); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 	}
 
