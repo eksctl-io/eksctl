@@ -34,6 +34,12 @@ const (
 	ClusterServiceRoleARN           = "ServiceRoleARN"
 	ClusterFeatureNATMode           = "FeatureNATMode"
 
+	// outputs for remote nodes
+	RemoteNodesRoleARN             = "RemoteNodesRoleARN"
+	RemoteNodesIntermediateRoleARN = "RemoteNodesIntermediateRoleARN"
+	RemoteNodesTrustAnchorARN      = "RemoteNodesTrustAnchorARN"
+	RemoteNodesAnywhereProfileARN  = "RemoteNodesAnywhereProfileARN"
+
 	// outputs from nodegroup stack
 	NodeGroupInstanceRoleARN    = "InstanceRoleARN"
 	NodeGroupInstanceProfileARN = "InstanceProfileARN"

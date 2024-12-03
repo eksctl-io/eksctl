@@ -14,6 +14,14 @@ type ELB struct {
 	mock.Mock
 }
 
+type ELB_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *ELB) EXPECT() *ELB_Expecter {
+	return &ELB_Expecter{mock: &_m.Mock}
+}
+
 // AddTags provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) AddTags(ctx context.Context, params *elasticloadbalancing.AddTagsInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.AddTagsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -49,6 +57,43 @@ func (_m *ELB) AddTags(ctx context.Context, params *elasticloadbalancing.AddTags
 	}
 
 	return r0, r1
+}
+
+// ELB_AddTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddTags'
+type ELB_AddTags_Call struct {
+	*mock.Call
+}
+
+// AddTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.AddTagsInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) AddTags(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_AddTags_Call {
+	return &ELB_AddTags_Call{Call: _e.mock.On("AddTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_AddTags_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.AddTagsInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_AddTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.AddTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_AddTags_Call) Return(_a0 *elasticloadbalancing.AddTagsOutput, _a1 error) *ELB_AddTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_AddTags_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.AddTagsInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.AddTagsOutput, error)) *ELB_AddTags_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ApplySecurityGroupsToLoadBalancer provides a mock function with given fields: ctx, params, optFns
@@ -88,6 +133,43 @@ func (_m *ELB) ApplySecurityGroupsToLoadBalancer(ctx context.Context, params *el
 	return r0, r1
 }
 
+// ELB_ApplySecurityGroupsToLoadBalancer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ApplySecurityGroupsToLoadBalancer'
+type ELB_ApplySecurityGroupsToLoadBalancer_Call struct {
+	*mock.Call
+}
+
+// ApplySecurityGroupsToLoadBalancer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.ApplySecurityGroupsToLoadBalancerInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) ApplySecurityGroupsToLoadBalancer(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_ApplySecurityGroupsToLoadBalancer_Call {
+	return &ELB_ApplySecurityGroupsToLoadBalancer_Call{Call: _e.mock.On("ApplySecurityGroupsToLoadBalancer",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_ApplySecurityGroupsToLoadBalancer_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.ApplySecurityGroupsToLoadBalancerInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_ApplySecurityGroupsToLoadBalancer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.ApplySecurityGroupsToLoadBalancerInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_ApplySecurityGroupsToLoadBalancer_Call) Return(_a0 *elasticloadbalancing.ApplySecurityGroupsToLoadBalancerOutput, _a1 error) *ELB_ApplySecurityGroupsToLoadBalancer_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_ApplySecurityGroupsToLoadBalancer_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.ApplySecurityGroupsToLoadBalancerInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.ApplySecurityGroupsToLoadBalancerOutput, error)) *ELB_ApplySecurityGroupsToLoadBalancer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AttachLoadBalancerToSubnets provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) AttachLoadBalancerToSubnets(ctx context.Context, params *elasticloadbalancing.AttachLoadBalancerToSubnetsInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.AttachLoadBalancerToSubnetsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -123,6 +205,43 @@ func (_m *ELB) AttachLoadBalancerToSubnets(ctx context.Context, params *elasticl
 	}
 
 	return r0, r1
+}
+
+// ELB_AttachLoadBalancerToSubnets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachLoadBalancerToSubnets'
+type ELB_AttachLoadBalancerToSubnets_Call struct {
+	*mock.Call
+}
+
+// AttachLoadBalancerToSubnets is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.AttachLoadBalancerToSubnetsInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) AttachLoadBalancerToSubnets(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_AttachLoadBalancerToSubnets_Call {
+	return &ELB_AttachLoadBalancerToSubnets_Call{Call: _e.mock.On("AttachLoadBalancerToSubnets",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_AttachLoadBalancerToSubnets_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.AttachLoadBalancerToSubnetsInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_AttachLoadBalancerToSubnets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.AttachLoadBalancerToSubnetsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_AttachLoadBalancerToSubnets_Call) Return(_a0 *elasticloadbalancing.AttachLoadBalancerToSubnetsOutput, _a1 error) *ELB_AttachLoadBalancerToSubnets_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_AttachLoadBalancerToSubnets_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.AttachLoadBalancerToSubnetsInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.AttachLoadBalancerToSubnetsOutput, error)) *ELB_AttachLoadBalancerToSubnets_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ConfigureHealthCheck provides a mock function with given fields: ctx, params, optFns
@@ -162,6 +281,43 @@ func (_m *ELB) ConfigureHealthCheck(ctx context.Context, params *elasticloadbala
 	return r0, r1
 }
 
+// ELB_ConfigureHealthCheck_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ConfigureHealthCheck'
+type ELB_ConfigureHealthCheck_Call struct {
+	*mock.Call
+}
+
+// ConfigureHealthCheck is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.ConfigureHealthCheckInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) ConfigureHealthCheck(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_ConfigureHealthCheck_Call {
+	return &ELB_ConfigureHealthCheck_Call{Call: _e.mock.On("ConfigureHealthCheck",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_ConfigureHealthCheck_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.ConfigureHealthCheckInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_ConfigureHealthCheck_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.ConfigureHealthCheckInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_ConfigureHealthCheck_Call) Return(_a0 *elasticloadbalancing.ConfigureHealthCheckOutput, _a1 error) *ELB_ConfigureHealthCheck_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_ConfigureHealthCheck_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.ConfigureHealthCheckInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.ConfigureHealthCheckOutput, error)) *ELB_ConfigureHealthCheck_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateAppCookieStickinessPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) CreateAppCookieStickinessPolicy(ctx context.Context, params *elasticloadbalancing.CreateAppCookieStickinessPolicyInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.CreateAppCookieStickinessPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -197,6 +353,43 @@ func (_m *ELB) CreateAppCookieStickinessPolicy(ctx context.Context, params *elas
 	}
 
 	return r0, r1
+}
+
+// ELB_CreateAppCookieStickinessPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAppCookieStickinessPolicy'
+type ELB_CreateAppCookieStickinessPolicy_Call struct {
+	*mock.Call
+}
+
+// CreateAppCookieStickinessPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.CreateAppCookieStickinessPolicyInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) CreateAppCookieStickinessPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_CreateAppCookieStickinessPolicy_Call {
+	return &ELB_CreateAppCookieStickinessPolicy_Call{Call: _e.mock.On("CreateAppCookieStickinessPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_CreateAppCookieStickinessPolicy_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.CreateAppCookieStickinessPolicyInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_CreateAppCookieStickinessPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.CreateAppCookieStickinessPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_CreateAppCookieStickinessPolicy_Call) Return(_a0 *elasticloadbalancing.CreateAppCookieStickinessPolicyOutput, _a1 error) *ELB_CreateAppCookieStickinessPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_CreateAppCookieStickinessPolicy_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.CreateAppCookieStickinessPolicyInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.CreateAppCookieStickinessPolicyOutput, error)) *ELB_CreateAppCookieStickinessPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateLBCookieStickinessPolicy provides a mock function with given fields: ctx, params, optFns
@@ -236,6 +429,43 @@ func (_m *ELB) CreateLBCookieStickinessPolicy(ctx context.Context, params *elast
 	return r0, r1
 }
 
+// ELB_CreateLBCookieStickinessPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateLBCookieStickinessPolicy'
+type ELB_CreateLBCookieStickinessPolicy_Call struct {
+	*mock.Call
+}
+
+// CreateLBCookieStickinessPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.CreateLBCookieStickinessPolicyInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) CreateLBCookieStickinessPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_CreateLBCookieStickinessPolicy_Call {
+	return &ELB_CreateLBCookieStickinessPolicy_Call{Call: _e.mock.On("CreateLBCookieStickinessPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_CreateLBCookieStickinessPolicy_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.CreateLBCookieStickinessPolicyInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_CreateLBCookieStickinessPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.CreateLBCookieStickinessPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_CreateLBCookieStickinessPolicy_Call) Return(_a0 *elasticloadbalancing.CreateLBCookieStickinessPolicyOutput, _a1 error) *ELB_CreateLBCookieStickinessPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_CreateLBCookieStickinessPolicy_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.CreateLBCookieStickinessPolicyInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.CreateLBCookieStickinessPolicyOutput, error)) *ELB_CreateLBCookieStickinessPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateLoadBalancer provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) CreateLoadBalancer(ctx context.Context, params *elasticloadbalancing.CreateLoadBalancerInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.CreateLoadBalancerOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -271,6 +501,43 @@ func (_m *ELB) CreateLoadBalancer(ctx context.Context, params *elasticloadbalanc
 	}
 
 	return r0, r1
+}
+
+// ELB_CreateLoadBalancer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateLoadBalancer'
+type ELB_CreateLoadBalancer_Call struct {
+	*mock.Call
+}
+
+// CreateLoadBalancer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.CreateLoadBalancerInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) CreateLoadBalancer(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_CreateLoadBalancer_Call {
+	return &ELB_CreateLoadBalancer_Call{Call: _e.mock.On("CreateLoadBalancer",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_CreateLoadBalancer_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.CreateLoadBalancerInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_CreateLoadBalancer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.CreateLoadBalancerInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_CreateLoadBalancer_Call) Return(_a0 *elasticloadbalancing.CreateLoadBalancerOutput, _a1 error) *ELB_CreateLoadBalancer_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_CreateLoadBalancer_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.CreateLoadBalancerInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.CreateLoadBalancerOutput, error)) *ELB_CreateLoadBalancer_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateLoadBalancerListeners provides a mock function with given fields: ctx, params, optFns
@@ -310,6 +577,43 @@ func (_m *ELB) CreateLoadBalancerListeners(ctx context.Context, params *elasticl
 	return r0, r1
 }
 
+// ELB_CreateLoadBalancerListeners_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateLoadBalancerListeners'
+type ELB_CreateLoadBalancerListeners_Call struct {
+	*mock.Call
+}
+
+// CreateLoadBalancerListeners is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.CreateLoadBalancerListenersInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) CreateLoadBalancerListeners(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_CreateLoadBalancerListeners_Call {
+	return &ELB_CreateLoadBalancerListeners_Call{Call: _e.mock.On("CreateLoadBalancerListeners",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_CreateLoadBalancerListeners_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.CreateLoadBalancerListenersInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_CreateLoadBalancerListeners_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.CreateLoadBalancerListenersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_CreateLoadBalancerListeners_Call) Return(_a0 *elasticloadbalancing.CreateLoadBalancerListenersOutput, _a1 error) *ELB_CreateLoadBalancerListeners_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_CreateLoadBalancerListeners_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.CreateLoadBalancerListenersInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.CreateLoadBalancerListenersOutput, error)) *ELB_CreateLoadBalancerListeners_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateLoadBalancerPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) CreateLoadBalancerPolicy(ctx context.Context, params *elasticloadbalancing.CreateLoadBalancerPolicyInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.CreateLoadBalancerPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -345,6 +649,43 @@ func (_m *ELB) CreateLoadBalancerPolicy(ctx context.Context, params *elasticload
 	}
 
 	return r0, r1
+}
+
+// ELB_CreateLoadBalancerPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateLoadBalancerPolicy'
+type ELB_CreateLoadBalancerPolicy_Call struct {
+	*mock.Call
+}
+
+// CreateLoadBalancerPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.CreateLoadBalancerPolicyInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) CreateLoadBalancerPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_CreateLoadBalancerPolicy_Call {
+	return &ELB_CreateLoadBalancerPolicy_Call{Call: _e.mock.On("CreateLoadBalancerPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_CreateLoadBalancerPolicy_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.CreateLoadBalancerPolicyInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_CreateLoadBalancerPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.CreateLoadBalancerPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_CreateLoadBalancerPolicy_Call) Return(_a0 *elasticloadbalancing.CreateLoadBalancerPolicyOutput, _a1 error) *ELB_CreateLoadBalancerPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_CreateLoadBalancerPolicy_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.CreateLoadBalancerPolicyInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.CreateLoadBalancerPolicyOutput, error)) *ELB_CreateLoadBalancerPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteLoadBalancer provides a mock function with given fields: ctx, params, optFns
@@ -384,6 +725,43 @@ func (_m *ELB) DeleteLoadBalancer(ctx context.Context, params *elasticloadbalanc
 	return r0, r1
 }
 
+// ELB_DeleteLoadBalancer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteLoadBalancer'
+type ELB_DeleteLoadBalancer_Call struct {
+	*mock.Call
+}
+
+// DeleteLoadBalancer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.DeleteLoadBalancerInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) DeleteLoadBalancer(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_DeleteLoadBalancer_Call {
+	return &ELB_DeleteLoadBalancer_Call{Call: _e.mock.On("DeleteLoadBalancer",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_DeleteLoadBalancer_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.DeleteLoadBalancerInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_DeleteLoadBalancer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.DeleteLoadBalancerInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_DeleteLoadBalancer_Call) Return(_a0 *elasticloadbalancing.DeleteLoadBalancerOutput, _a1 error) *ELB_DeleteLoadBalancer_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_DeleteLoadBalancer_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.DeleteLoadBalancerInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DeleteLoadBalancerOutput, error)) *ELB_DeleteLoadBalancer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteLoadBalancerListeners provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) DeleteLoadBalancerListeners(ctx context.Context, params *elasticloadbalancing.DeleteLoadBalancerListenersInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DeleteLoadBalancerListenersOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -419,6 +797,43 @@ func (_m *ELB) DeleteLoadBalancerListeners(ctx context.Context, params *elasticl
 	}
 
 	return r0, r1
+}
+
+// ELB_DeleteLoadBalancerListeners_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteLoadBalancerListeners'
+type ELB_DeleteLoadBalancerListeners_Call struct {
+	*mock.Call
+}
+
+// DeleteLoadBalancerListeners is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.DeleteLoadBalancerListenersInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) DeleteLoadBalancerListeners(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_DeleteLoadBalancerListeners_Call {
+	return &ELB_DeleteLoadBalancerListeners_Call{Call: _e.mock.On("DeleteLoadBalancerListeners",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_DeleteLoadBalancerListeners_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.DeleteLoadBalancerListenersInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_DeleteLoadBalancerListeners_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.DeleteLoadBalancerListenersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_DeleteLoadBalancerListeners_Call) Return(_a0 *elasticloadbalancing.DeleteLoadBalancerListenersOutput, _a1 error) *ELB_DeleteLoadBalancerListeners_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_DeleteLoadBalancerListeners_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.DeleteLoadBalancerListenersInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DeleteLoadBalancerListenersOutput, error)) *ELB_DeleteLoadBalancerListeners_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteLoadBalancerPolicy provides a mock function with given fields: ctx, params, optFns
@@ -458,6 +873,43 @@ func (_m *ELB) DeleteLoadBalancerPolicy(ctx context.Context, params *elasticload
 	return r0, r1
 }
 
+// ELB_DeleteLoadBalancerPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteLoadBalancerPolicy'
+type ELB_DeleteLoadBalancerPolicy_Call struct {
+	*mock.Call
+}
+
+// DeleteLoadBalancerPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.DeleteLoadBalancerPolicyInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) DeleteLoadBalancerPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_DeleteLoadBalancerPolicy_Call {
+	return &ELB_DeleteLoadBalancerPolicy_Call{Call: _e.mock.On("DeleteLoadBalancerPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_DeleteLoadBalancerPolicy_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.DeleteLoadBalancerPolicyInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_DeleteLoadBalancerPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.DeleteLoadBalancerPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_DeleteLoadBalancerPolicy_Call) Return(_a0 *elasticloadbalancing.DeleteLoadBalancerPolicyOutput, _a1 error) *ELB_DeleteLoadBalancerPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_DeleteLoadBalancerPolicy_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.DeleteLoadBalancerPolicyInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DeleteLoadBalancerPolicyOutput, error)) *ELB_DeleteLoadBalancerPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeregisterInstancesFromLoadBalancer provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) DeregisterInstancesFromLoadBalancer(ctx context.Context, params *elasticloadbalancing.DeregisterInstancesFromLoadBalancerInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DeregisterInstancesFromLoadBalancerOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -493,6 +945,43 @@ func (_m *ELB) DeregisterInstancesFromLoadBalancer(ctx context.Context, params *
 	}
 
 	return r0, r1
+}
+
+// ELB_DeregisterInstancesFromLoadBalancer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeregisterInstancesFromLoadBalancer'
+type ELB_DeregisterInstancesFromLoadBalancer_Call struct {
+	*mock.Call
+}
+
+// DeregisterInstancesFromLoadBalancer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.DeregisterInstancesFromLoadBalancerInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) DeregisterInstancesFromLoadBalancer(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_DeregisterInstancesFromLoadBalancer_Call {
+	return &ELB_DeregisterInstancesFromLoadBalancer_Call{Call: _e.mock.On("DeregisterInstancesFromLoadBalancer",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_DeregisterInstancesFromLoadBalancer_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.DeregisterInstancesFromLoadBalancerInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_DeregisterInstancesFromLoadBalancer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.DeregisterInstancesFromLoadBalancerInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_DeregisterInstancesFromLoadBalancer_Call) Return(_a0 *elasticloadbalancing.DeregisterInstancesFromLoadBalancerOutput, _a1 error) *ELB_DeregisterInstancesFromLoadBalancer_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_DeregisterInstancesFromLoadBalancer_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.DeregisterInstancesFromLoadBalancerInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DeregisterInstancesFromLoadBalancerOutput, error)) *ELB_DeregisterInstancesFromLoadBalancer_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeAccountLimits provides a mock function with given fields: ctx, params, optFns
@@ -532,6 +1021,43 @@ func (_m *ELB) DescribeAccountLimits(ctx context.Context, params *elasticloadbal
 	return r0, r1
 }
 
+// ELB_DescribeAccountLimits_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAccountLimits'
+type ELB_DescribeAccountLimits_Call struct {
+	*mock.Call
+}
+
+// DescribeAccountLimits is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.DescribeAccountLimitsInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) DescribeAccountLimits(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_DescribeAccountLimits_Call {
+	return &ELB_DescribeAccountLimits_Call{Call: _e.mock.On("DescribeAccountLimits",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_DescribeAccountLimits_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.DescribeAccountLimitsInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_DescribeAccountLimits_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.DescribeAccountLimitsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_DescribeAccountLimits_Call) Return(_a0 *elasticloadbalancing.DescribeAccountLimitsOutput, _a1 error) *ELB_DescribeAccountLimits_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_DescribeAccountLimits_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.DescribeAccountLimitsInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DescribeAccountLimitsOutput, error)) *ELB_DescribeAccountLimits_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeInstanceHealth provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) DescribeInstanceHealth(ctx context.Context, params *elasticloadbalancing.DescribeInstanceHealthInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DescribeInstanceHealthOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -567,6 +1093,43 @@ func (_m *ELB) DescribeInstanceHealth(ctx context.Context, params *elasticloadba
 	}
 
 	return r0, r1
+}
+
+// ELB_DescribeInstanceHealth_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeInstanceHealth'
+type ELB_DescribeInstanceHealth_Call struct {
+	*mock.Call
+}
+
+// DescribeInstanceHealth is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.DescribeInstanceHealthInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) DescribeInstanceHealth(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_DescribeInstanceHealth_Call {
+	return &ELB_DescribeInstanceHealth_Call{Call: _e.mock.On("DescribeInstanceHealth",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_DescribeInstanceHealth_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.DescribeInstanceHealthInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_DescribeInstanceHealth_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.DescribeInstanceHealthInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_DescribeInstanceHealth_Call) Return(_a0 *elasticloadbalancing.DescribeInstanceHealthOutput, _a1 error) *ELB_DescribeInstanceHealth_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_DescribeInstanceHealth_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.DescribeInstanceHealthInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DescribeInstanceHealthOutput, error)) *ELB_DescribeInstanceHealth_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeLoadBalancerAttributes provides a mock function with given fields: ctx, params, optFns
@@ -606,6 +1169,43 @@ func (_m *ELB) DescribeLoadBalancerAttributes(ctx context.Context, params *elast
 	return r0, r1
 }
 
+// ELB_DescribeLoadBalancerAttributes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeLoadBalancerAttributes'
+type ELB_DescribeLoadBalancerAttributes_Call struct {
+	*mock.Call
+}
+
+// DescribeLoadBalancerAttributes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.DescribeLoadBalancerAttributesInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) DescribeLoadBalancerAttributes(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_DescribeLoadBalancerAttributes_Call {
+	return &ELB_DescribeLoadBalancerAttributes_Call{Call: _e.mock.On("DescribeLoadBalancerAttributes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_DescribeLoadBalancerAttributes_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.DescribeLoadBalancerAttributesInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_DescribeLoadBalancerAttributes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.DescribeLoadBalancerAttributesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_DescribeLoadBalancerAttributes_Call) Return(_a0 *elasticloadbalancing.DescribeLoadBalancerAttributesOutput, _a1 error) *ELB_DescribeLoadBalancerAttributes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_DescribeLoadBalancerAttributes_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.DescribeLoadBalancerAttributesInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DescribeLoadBalancerAttributesOutput, error)) *ELB_DescribeLoadBalancerAttributes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeLoadBalancerPolicies provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) DescribeLoadBalancerPolicies(ctx context.Context, params *elasticloadbalancing.DescribeLoadBalancerPoliciesInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DescribeLoadBalancerPoliciesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -641,6 +1241,43 @@ func (_m *ELB) DescribeLoadBalancerPolicies(ctx context.Context, params *elastic
 	}
 
 	return r0, r1
+}
+
+// ELB_DescribeLoadBalancerPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeLoadBalancerPolicies'
+type ELB_DescribeLoadBalancerPolicies_Call struct {
+	*mock.Call
+}
+
+// DescribeLoadBalancerPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.DescribeLoadBalancerPoliciesInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) DescribeLoadBalancerPolicies(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_DescribeLoadBalancerPolicies_Call {
+	return &ELB_DescribeLoadBalancerPolicies_Call{Call: _e.mock.On("DescribeLoadBalancerPolicies",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_DescribeLoadBalancerPolicies_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.DescribeLoadBalancerPoliciesInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_DescribeLoadBalancerPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.DescribeLoadBalancerPoliciesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_DescribeLoadBalancerPolicies_Call) Return(_a0 *elasticloadbalancing.DescribeLoadBalancerPoliciesOutput, _a1 error) *ELB_DescribeLoadBalancerPolicies_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_DescribeLoadBalancerPolicies_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.DescribeLoadBalancerPoliciesInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DescribeLoadBalancerPoliciesOutput, error)) *ELB_DescribeLoadBalancerPolicies_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeLoadBalancerPolicyTypes provides a mock function with given fields: ctx, params, optFns
@@ -680,6 +1317,43 @@ func (_m *ELB) DescribeLoadBalancerPolicyTypes(ctx context.Context, params *elas
 	return r0, r1
 }
 
+// ELB_DescribeLoadBalancerPolicyTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeLoadBalancerPolicyTypes'
+type ELB_DescribeLoadBalancerPolicyTypes_Call struct {
+	*mock.Call
+}
+
+// DescribeLoadBalancerPolicyTypes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.DescribeLoadBalancerPolicyTypesInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) DescribeLoadBalancerPolicyTypes(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_DescribeLoadBalancerPolicyTypes_Call {
+	return &ELB_DescribeLoadBalancerPolicyTypes_Call{Call: _e.mock.On("DescribeLoadBalancerPolicyTypes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_DescribeLoadBalancerPolicyTypes_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.DescribeLoadBalancerPolicyTypesInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_DescribeLoadBalancerPolicyTypes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.DescribeLoadBalancerPolicyTypesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_DescribeLoadBalancerPolicyTypes_Call) Return(_a0 *elasticloadbalancing.DescribeLoadBalancerPolicyTypesOutput, _a1 error) *ELB_DescribeLoadBalancerPolicyTypes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_DescribeLoadBalancerPolicyTypes_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.DescribeLoadBalancerPolicyTypesInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DescribeLoadBalancerPolicyTypesOutput, error)) *ELB_DescribeLoadBalancerPolicyTypes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeLoadBalancers provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) DescribeLoadBalancers(ctx context.Context, params *elasticloadbalancing.DescribeLoadBalancersInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DescribeLoadBalancersOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -715,6 +1389,43 @@ func (_m *ELB) DescribeLoadBalancers(ctx context.Context, params *elasticloadbal
 	}
 
 	return r0, r1
+}
+
+// ELB_DescribeLoadBalancers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeLoadBalancers'
+type ELB_DescribeLoadBalancers_Call struct {
+	*mock.Call
+}
+
+// DescribeLoadBalancers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.DescribeLoadBalancersInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) DescribeLoadBalancers(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_DescribeLoadBalancers_Call {
+	return &ELB_DescribeLoadBalancers_Call{Call: _e.mock.On("DescribeLoadBalancers",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_DescribeLoadBalancers_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.DescribeLoadBalancersInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_DescribeLoadBalancers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.DescribeLoadBalancersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_DescribeLoadBalancers_Call) Return(_a0 *elasticloadbalancing.DescribeLoadBalancersOutput, _a1 error) *ELB_DescribeLoadBalancers_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_DescribeLoadBalancers_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.DescribeLoadBalancersInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DescribeLoadBalancersOutput, error)) *ELB_DescribeLoadBalancers_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeTags provides a mock function with given fields: ctx, params, optFns
@@ -754,6 +1465,43 @@ func (_m *ELB) DescribeTags(ctx context.Context, params *elasticloadbalancing.De
 	return r0, r1
 }
 
+// ELB_DescribeTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeTags'
+type ELB_DescribeTags_Call struct {
+	*mock.Call
+}
+
+// DescribeTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.DescribeTagsInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) DescribeTags(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_DescribeTags_Call {
+	return &ELB_DescribeTags_Call{Call: _e.mock.On("DescribeTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_DescribeTags_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.DescribeTagsInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_DescribeTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.DescribeTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_DescribeTags_Call) Return(_a0 *elasticloadbalancing.DescribeTagsOutput, _a1 error) *ELB_DescribeTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_DescribeTags_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.DescribeTagsInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DescribeTagsOutput, error)) *ELB_DescribeTags_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DetachLoadBalancerFromSubnets provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) DetachLoadBalancerFromSubnets(ctx context.Context, params *elasticloadbalancing.DetachLoadBalancerFromSubnetsInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DetachLoadBalancerFromSubnetsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -789,6 +1537,43 @@ func (_m *ELB) DetachLoadBalancerFromSubnets(ctx context.Context, params *elasti
 	}
 
 	return r0, r1
+}
+
+// ELB_DetachLoadBalancerFromSubnets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachLoadBalancerFromSubnets'
+type ELB_DetachLoadBalancerFromSubnets_Call struct {
+	*mock.Call
+}
+
+// DetachLoadBalancerFromSubnets is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.DetachLoadBalancerFromSubnetsInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) DetachLoadBalancerFromSubnets(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_DetachLoadBalancerFromSubnets_Call {
+	return &ELB_DetachLoadBalancerFromSubnets_Call{Call: _e.mock.On("DetachLoadBalancerFromSubnets",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_DetachLoadBalancerFromSubnets_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.DetachLoadBalancerFromSubnetsInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_DetachLoadBalancerFromSubnets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.DetachLoadBalancerFromSubnetsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_DetachLoadBalancerFromSubnets_Call) Return(_a0 *elasticloadbalancing.DetachLoadBalancerFromSubnetsOutput, _a1 error) *ELB_DetachLoadBalancerFromSubnets_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_DetachLoadBalancerFromSubnets_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.DetachLoadBalancerFromSubnetsInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DetachLoadBalancerFromSubnetsOutput, error)) *ELB_DetachLoadBalancerFromSubnets_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DisableAvailabilityZonesForLoadBalancer provides a mock function with given fields: ctx, params, optFns
@@ -828,6 +1613,43 @@ func (_m *ELB) DisableAvailabilityZonesForLoadBalancer(ctx context.Context, para
 	return r0, r1
 }
 
+// ELB_DisableAvailabilityZonesForLoadBalancer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisableAvailabilityZonesForLoadBalancer'
+type ELB_DisableAvailabilityZonesForLoadBalancer_Call struct {
+	*mock.Call
+}
+
+// DisableAvailabilityZonesForLoadBalancer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.DisableAvailabilityZonesForLoadBalancerInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) DisableAvailabilityZonesForLoadBalancer(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_DisableAvailabilityZonesForLoadBalancer_Call {
+	return &ELB_DisableAvailabilityZonesForLoadBalancer_Call{Call: _e.mock.On("DisableAvailabilityZonesForLoadBalancer",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_DisableAvailabilityZonesForLoadBalancer_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.DisableAvailabilityZonesForLoadBalancerInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_DisableAvailabilityZonesForLoadBalancer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.DisableAvailabilityZonesForLoadBalancerInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_DisableAvailabilityZonesForLoadBalancer_Call) Return(_a0 *elasticloadbalancing.DisableAvailabilityZonesForLoadBalancerOutput, _a1 error) *ELB_DisableAvailabilityZonesForLoadBalancer_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_DisableAvailabilityZonesForLoadBalancer_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.DisableAvailabilityZonesForLoadBalancerInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.DisableAvailabilityZonesForLoadBalancerOutput, error)) *ELB_DisableAvailabilityZonesForLoadBalancer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // EnableAvailabilityZonesForLoadBalancer provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) EnableAvailabilityZonesForLoadBalancer(ctx context.Context, params *elasticloadbalancing.EnableAvailabilityZonesForLoadBalancerInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.EnableAvailabilityZonesForLoadBalancerOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -863,6 +1685,43 @@ func (_m *ELB) EnableAvailabilityZonesForLoadBalancer(ctx context.Context, param
 	}
 
 	return r0, r1
+}
+
+// ELB_EnableAvailabilityZonesForLoadBalancer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnableAvailabilityZonesForLoadBalancer'
+type ELB_EnableAvailabilityZonesForLoadBalancer_Call struct {
+	*mock.Call
+}
+
+// EnableAvailabilityZonesForLoadBalancer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.EnableAvailabilityZonesForLoadBalancerInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) EnableAvailabilityZonesForLoadBalancer(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_EnableAvailabilityZonesForLoadBalancer_Call {
+	return &ELB_EnableAvailabilityZonesForLoadBalancer_Call{Call: _e.mock.On("EnableAvailabilityZonesForLoadBalancer",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_EnableAvailabilityZonesForLoadBalancer_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.EnableAvailabilityZonesForLoadBalancerInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_EnableAvailabilityZonesForLoadBalancer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.EnableAvailabilityZonesForLoadBalancerInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_EnableAvailabilityZonesForLoadBalancer_Call) Return(_a0 *elasticloadbalancing.EnableAvailabilityZonesForLoadBalancerOutput, _a1 error) *ELB_EnableAvailabilityZonesForLoadBalancer_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_EnableAvailabilityZonesForLoadBalancer_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.EnableAvailabilityZonesForLoadBalancerInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.EnableAvailabilityZonesForLoadBalancerOutput, error)) *ELB_EnableAvailabilityZonesForLoadBalancer_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ModifyLoadBalancerAttributes provides a mock function with given fields: ctx, params, optFns
@@ -902,6 +1761,43 @@ func (_m *ELB) ModifyLoadBalancerAttributes(ctx context.Context, params *elastic
 	return r0, r1
 }
 
+// ELB_ModifyLoadBalancerAttributes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ModifyLoadBalancerAttributes'
+type ELB_ModifyLoadBalancerAttributes_Call struct {
+	*mock.Call
+}
+
+// ModifyLoadBalancerAttributes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.ModifyLoadBalancerAttributesInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) ModifyLoadBalancerAttributes(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_ModifyLoadBalancerAttributes_Call {
+	return &ELB_ModifyLoadBalancerAttributes_Call{Call: _e.mock.On("ModifyLoadBalancerAttributes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_ModifyLoadBalancerAttributes_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.ModifyLoadBalancerAttributesInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_ModifyLoadBalancerAttributes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.ModifyLoadBalancerAttributesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_ModifyLoadBalancerAttributes_Call) Return(_a0 *elasticloadbalancing.ModifyLoadBalancerAttributesOutput, _a1 error) *ELB_ModifyLoadBalancerAttributes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_ModifyLoadBalancerAttributes_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.ModifyLoadBalancerAttributesInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.ModifyLoadBalancerAttributesOutput, error)) *ELB_ModifyLoadBalancerAttributes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Options provides a mock function with given fields:
 func (_m *ELB) Options() elasticloadbalancing.Options {
 	ret := _m.Called()
@@ -918,6 +1814,33 @@ func (_m *ELB) Options() elasticloadbalancing.Options {
 	}
 
 	return r0
+}
+
+// ELB_Options_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Options'
+type ELB_Options_Call struct {
+	*mock.Call
+}
+
+// Options is a helper method to define mock.On call
+func (_e *ELB_Expecter) Options() *ELB_Options_Call {
+	return &ELB_Options_Call{Call: _e.mock.On("Options")}
+}
+
+func (_c *ELB_Options_Call) Run(run func()) *ELB_Options_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ELB_Options_Call) Return(_a0 elasticloadbalancing.Options) *ELB_Options_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ELB_Options_Call) RunAndReturn(run func() elasticloadbalancing.Options) *ELB_Options_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // RegisterInstancesWithLoadBalancer provides a mock function with given fields: ctx, params, optFns
@@ -957,6 +1880,43 @@ func (_m *ELB) RegisterInstancesWithLoadBalancer(ctx context.Context, params *el
 	return r0, r1
 }
 
+// ELB_RegisterInstancesWithLoadBalancer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterInstancesWithLoadBalancer'
+type ELB_RegisterInstancesWithLoadBalancer_Call struct {
+	*mock.Call
+}
+
+// RegisterInstancesWithLoadBalancer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.RegisterInstancesWithLoadBalancerInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) RegisterInstancesWithLoadBalancer(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_RegisterInstancesWithLoadBalancer_Call {
+	return &ELB_RegisterInstancesWithLoadBalancer_Call{Call: _e.mock.On("RegisterInstancesWithLoadBalancer",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_RegisterInstancesWithLoadBalancer_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.RegisterInstancesWithLoadBalancerInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_RegisterInstancesWithLoadBalancer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.RegisterInstancesWithLoadBalancerInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_RegisterInstancesWithLoadBalancer_Call) Return(_a0 *elasticloadbalancing.RegisterInstancesWithLoadBalancerOutput, _a1 error) *ELB_RegisterInstancesWithLoadBalancer_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_RegisterInstancesWithLoadBalancer_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.RegisterInstancesWithLoadBalancerInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.RegisterInstancesWithLoadBalancerOutput, error)) *ELB_RegisterInstancesWithLoadBalancer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveTags provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) RemoveTags(ctx context.Context, params *elasticloadbalancing.RemoveTagsInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.RemoveTagsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -992,6 +1952,43 @@ func (_m *ELB) RemoveTags(ctx context.Context, params *elasticloadbalancing.Remo
 	}
 
 	return r0, r1
+}
+
+// ELB_RemoveTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveTags'
+type ELB_RemoveTags_Call struct {
+	*mock.Call
+}
+
+// RemoveTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.RemoveTagsInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) RemoveTags(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_RemoveTags_Call {
+	return &ELB_RemoveTags_Call{Call: _e.mock.On("RemoveTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_RemoveTags_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.RemoveTagsInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_RemoveTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.RemoveTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_RemoveTags_Call) Return(_a0 *elasticloadbalancing.RemoveTagsOutput, _a1 error) *ELB_RemoveTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_RemoveTags_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.RemoveTagsInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.RemoveTagsOutput, error)) *ELB_RemoveTags_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // SetLoadBalancerListenerSSLCertificate provides a mock function with given fields: ctx, params, optFns
@@ -1031,6 +2028,43 @@ func (_m *ELB) SetLoadBalancerListenerSSLCertificate(ctx context.Context, params
 	return r0, r1
 }
 
+// ELB_SetLoadBalancerListenerSSLCertificate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetLoadBalancerListenerSSLCertificate'
+type ELB_SetLoadBalancerListenerSSLCertificate_Call struct {
+	*mock.Call
+}
+
+// SetLoadBalancerListenerSSLCertificate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.SetLoadBalancerListenerSSLCertificateInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) SetLoadBalancerListenerSSLCertificate(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_SetLoadBalancerListenerSSLCertificate_Call {
+	return &ELB_SetLoadBalancerListenerSSLCertificate_Call{Call: _e.mock.On("SetLoadBalancerListenerSSLCertificate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_SetLoadBalancerListenerSSLCertificate_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.SetLoadBalancerListenerSSLCertificateInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_SetLoadBalancerListenerSSLCertificate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.SetLoadBalancerListenerSSLCertificateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_SetLoadBalancerListenerSSLCertificate_Call) Return(_a0 *elasticloadbalancing.SetLoadBalancerListenerSSLCertificateOutput, _a1 error) *ELB_SetLoadBalancerListenerSSLCertificate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_SetLoadBalancerListenerSSLCertificate_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.SetLoadBalancerListenerSSLCertificateInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.SetLoadBalancerListenerSSLCertificateOutput, error)) *ELB_SetLoadBalancerListenerSSLCertificate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetLoadBalancerPoliciesForBackendServer provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) SetLoadBalancerPoliciesForBackendServer(ctx context.Context, params *elasticloadbalancing.SetLoadBalancerPoliciesForBackendServerInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.SetLoadBalancerPoliciesForBackendServerOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1068,6 +2102,43 @@ func (_m *ELB) SetLoadBalancerPoliciesForBackendServer(ctx context.Context, para
 	return r0, r1
 }
 
+// ELB_SetLoadBalancerPoliciesForBackendServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetLoadBalancerPoliciesForBackendServer'
+type ELB_SetLoadBalancerPoliciesForBackendServer_Call struct {
+	*mock.Call
+}
+
+// SetLoadBalancerPoliciesForBackendServer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.SetLoadBalancerPoliciesForBackendServerInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) SetLoadBalancerPoliciesForBackendServer(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_SetLoadBalancerPoliciesForBackendServer_Call {
+	return &ELB_SetLoadBalancerPoliciesForBackendServer_Call{Call: _e.mock.On("SetLoadBalancerPoliciesForBackendServer",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_SetLoadBalancerPoliciesForBackendServer_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.SetLoadBalancerPoliciesForBackendServerInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_SetLoadBalancerPoliciesForBackendServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.SetLoadBalancerPoliciesForBackendServerInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_SetLoadBalancerPoliciesForBackendServer_Call) Return(_a0 *elasticloadbalancing.SetLoadBalancerPoliciesForBackendServerOutput, _a1 error) *ELB_SetLoadBalancerPoliciesForBackendServer_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_SetLoadBalancerPoliciesForBackendServer_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.SetLoadBalancerPoliciesForBackendServerInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.SetLoadBalancerPoliciesForBackendServerOutput, error)) *ELB_SetLoadBalancerPoliciesForBackendServer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetLoadBalancerPoliciesOfListener provides a mock function with given fields: ctx, params, optFns
 func (_m *ELB) SetLoadBalancerPoliciesOfListener(ctx context.Context, params *elasticloadbalancing.SetLoadBalancerPoliciesOfListenerInput, optFns ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.SetLoadBalancerPoliciesOfListenerOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1103,6 +2174,43 @@ func (_m *ELB) SetLoadBalancerPoliciesOfListener(ctx context.Context, params *el
 	}
 
 	return r0, r1
+}
+
+// ELB_SetLoadBalancerPoliciesOfListener_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetLoadBalancerPoliciesOfListener'
+type ELB_SetLoadBalancerPoliciesOfListener_Call struct {
+	*mock.Call
+}
+
+// SetLoadBalancerPoliciesOfListener is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *elasticloadbalancing.SetLoadBalancerPoliciesOfListenerInput
+//   - optFns ...func(*elasticloadbalancing.Options)
+func (_e *ELB_Expecter) SetLoadBalancerPoliciesOfListener(ctx interface{}, params interface{}, optFns ...interface{}) *ELB_SetLoadBalancerPoliciesOfListener_Call {
+	return &ELB_SetLoadBalancerPoliciesOfListener_Call{Call: _e.mock.On("SetLoadBalancerPoliciesOfListener",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ELB_SetLoadBalancerPoliciesOfListener_Call) Run(run func(ctx context.Context, params *elasticloadbalancing.SetLoadBalancerPoliciesOfListenerInput, optFns ...func(*elasticloadbalancing.Options))) *ELB_SetLoadBalancerPoliciesOfListener_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*elasticloadbalancing.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*elasticloadbalancing.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*elasticloadbalancing.SetLoadBalancerPoliciesOfListenerInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ELB_SetLoadBalancerPoliciesOfListener_Call) Return(_a0 *elasticloadbalancing.SetLoadBalancerPoliciesOfListenerOutput, _a1 error) *ELB_SetLoadBalancerPoliciesOfListener_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ELB_SetLoadBalancerPoliciesOfListener_Call) RunAndReturn(run func(context.Context, *elasticloadbalancing.SetLoadBalancerPoliciesOfListenerInput, ...func(*elasticloadbalancing.Options)) (*elasticloadbalancing.SetLoadBalancerPoliciesOfListenerOutput, error)) *ELB_SetLoadBalancerPoliciesOfListener_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewELB creates a new instance of ELB. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

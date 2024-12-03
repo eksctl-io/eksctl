@@ -18,143 +18,232 @@ type ELBV2 interface {
 	// functional options.
 	Options() elasticloadbalancingv2.Options
 	// Adds the specified SSL server certificate to the certificate list for the
-	// specified HTTPS or TLS listener. If the certificate in already in the
-	// certificate list, the call is successful but the certificate is not added again.
-	// For more information, see HTTPS listeners (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html)
-	// in the Application Load Balancers Guide or TLS listeners (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html)
-	// in the Network Load Balancers Guide.
+	// specified HTTPS or TLS listener.
+	//
+	// If the certificate in already in the certificate list, the call is successful
+	// but the certificate is not added again.
+	//
+	// For more information, see [HTTPS listeners] in the Application Load Balancers Guide or [TLS listeners] in the
+	// Network Load Balancers Guide.
+	//
+	// [TLS listeners]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html
+	// [HTTPS listeners]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html
 	AddListenerCertificates(ctx context.Context, params *AddListenerCertificatesInput, optFns ...func(*Options)) (*AddListenerCertificatesOutput, error)
 	// Adds the specified tags to the specified Elastic Load Balancing resource. You
 	// can tag your Application Load Balancers, Network Load Balancers, Gateway Load
-	// Balancers, target groups, trust stores, listeners, and rules. Each tag consists
-	// of a key and an optional value. If a resource already has a tag with the same
-	// key, AddTags updates its value.
+	// Balancers, target groups, trust stores, listeners, and rules.
+	//
+	// Each tag consists of a key and an optional value. If a resource already has a
+	// tag with the same key, AddTags updates its value.
 	AddTags(ctx context.Context, params *AddTagsInput, optFns ...func(*Options)) (*AddTagsOutput, error)
 	// Adds the specified revocation file to the specified trust store.
 	AddTrustStoreRevocations(ctx context.Context, params *AddTrustStoreRevocationsInput, optFns ...func(*Options)) (*AddTrustStoreRevocationsOutput, error)
 	// Creates a listener for the specified Application Load Balancer, Network Load
-	// Balancer, or Gateway Load Balancer. For more information, see the following:
-	//   - Listeners for your Application Load Balancers (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html)
-	//   - Listeners for your Network Load Balancers (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-listeners.html)
-	//   - Listeners for your Gateway Load Balancers (https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/gateway-listeners.html)
+	// Balancer, or Gateway Load Balancer.
+	//
+	// For more information, see the following:
+	//
+	// [Listeners for your Application Load Balancers]
+	//
+	// [Listeners for your Network Load Balancers]
+	//
+	// [Listeners for your Gateway Load Balancers]
 	//
 	// This operation is idempotent, which means that it completes at most one time.
 	// If you attempt to create multiple listeners with the same settings, each call
 	// succeeds.
+	//
+	// [Listeners for your Gateway Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/gateway-listeners.html
+	// [Listeners for your Application Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html
+	// [Listeners for your Network Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-listeners.html
 	CreateListener(ctx context.Context, params *CreateListenerInput, optFns ...func(*Options)) (*CreateListenerOutput, error)
 	// Creates an Application Load Balancer, Network Load Balancer, or Gateway Load
-	// Balancer. For more information, see the following:
-	//   - Application Load Balancers (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html)
-	//   - Network Load Balancers (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/network-load-balancers.html)
-	//   - Gateway Load Balancers (https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/gateway-load-balancers.html)
+	// Balancer.
+	//
+	// For more information, see the following:
+	//
+	// [Application Load Balancers]
+	//
+	// [Network Load Balancers]
+	//
+	// [Gateway Load Balancers]
 	//
 	// This operation is idempotent, which means that it completes at most one time.
 	// If you attempt to create multiple load balancers with the same settings, each
 	// call succeeds.
+	//
+	// [Gateway Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/gateway-load-balancers.html
+	// [Network Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/network-load-balancers.html
+	// [Application Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html
 	CreateLoadBalancer(ctx context.Context, params *CreateLoadBalancerInput, optFns ...func(*Options)) (*CreateLoadBalancerOutput, error)
 	// Creates a rule for the specified listener. The listener must be associated with
-	// an Application Load Balancer. Each rule consists of a priority, one or more
-	// actions, and one or more conditions. Rules are evaluated in priority order, from
-	// the lowest value to the highest value. When the conditions for a rule are met,
-	// its actions are performed. If the conditions for no rules are met, the actions
-	// for the default rule are performed. For more information, see Listener rules (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#listener-rules)
-	// in the Application Load Balancers Guide.
+	// an Application Load Balancer.
+	//
+	// Each rule consists of a priority, one or more actions, and one or more
+	// conditions. Rules are evaluated in priority order, from the lowest value to the
+	// highest value. When the conditions for a rule are met, its actions are
+	// performed. If the conditions for no rules are met, the actions for the default
+	// rule are performed. For more information, see [Listener rules]in the Application Load Balancers
+	// Guide.
+	//
+	// [Listener rules]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#listener-rules
 	CreateRule(ctx context.Context, params *CreateRuleInput, optFns ...func(*Options)) (*CreateRuleOutput, error)
-	// Creates a target group. For more information, see the following:
-	//   - Target groups for your Application Load Balancers (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html)
-	//   - Target groups for your Network Load Balancers (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html)
-	//   - Target groups for your Gateway Load Balancers (https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/target-groups.html)
+	// Creates a target group.
+	//
+	// For more information, see the following:
+	//
+	// [Target groups for your Application Load Balancers]
+	//
+	// [Target groups for your Network Load Balancers]
+	//
+	// [Target groups for your Gateway Load Balancers]
 	//
 	// This operation is idempotent, which means that it completes at most one time.
 	// If you attempt to create multiple target groups with the same settings, each
 	// call succeeds.
+	//
+	// [Target groups for your Gateway Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/target-groups.html
+	// [Target groups for your Application Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html
+	// [Target groups for your Network Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html
 	CreateTargetGroup(ctx context.Context, params *CreateTargetGroupInput, optFns ...func(*Options)) (*CreateTargetGroupOutput, error)
 	// Creates a trust store.
 	CreateTrustStore(ctx context.Context, params *CreateTrustStoreInput, optFns ...func(*Options)) (*CreateTrustStoreOutput, error)
-	// Deletes the specified listener. Alternatively, your listener is deleted when
-	// you delete the load balancer to which it is attached.
+	// Deletes the specified listener.
+	//
+	// Alternatively, your listener is deleted when you delete the load balancer to
+	// which it is attached.
 	DeleteListener(ctx context.Context, params *DeleteListenerInput, optFns ...func(*Options)) (*DeleteListenerOutput, error)
 	// Deletes the specified Application Load Balancer, Network Load Balancer, or
-	// Gateway Load Balancer. Deleting a load balancer also deletes its listeners. You
-	// can't delete a load balancer if deletion protection is enabled. If the load
-	// balancer does not exist or has already been deleted, the call succeeds. Deleting
-	// a load balancer does not affect its registered targets. For example, your EC2
-	// instances continue to run and are still registered to their target groups. If
-	// you no longer need these EC2 instances, you can stop or terminate them.
+	// Gateway Load Balancer. Deleting a load balancer also deletes its listeners.
+	//
+	// You can't delete a load balancer if deletion protection is enabled. If the load
+	// balancer does not exist or has already been deleted, the call succeeds.
+	//
+	// Deleting a load balancer does not affect its registered targets. For example,
+	// your EC2 instances continue to run and are still registered to their target
+	// groups. If you no longer need these EC2 instances, you can stop or terminate
+	// them.
 	DeleteLoadBalancer(ctx context.Context, params *DeleteLoadBalancerInput, optFns ...func(*Options)) (*DeleteLoadBalancerOutput, error)
-	// Deletes the specified rule. You can't delete the default rule.
+	// Deletes the specified rule.
+	//
+	// You can't delete the default rule.
 	DeleteRule(ctx context.Context, params *DeleteRuleInput, optFns ...func(*Options)) (*DeleteRuleOutput, error)
-	// Deletes the specified target group. You can delete a target group if it is not
-	// referenced by any actions. Deleting a target group also deletes any associated
-	// health checks. Deleting a target group does not affect its registered targets.
-	// For example, any EC2 instances continue to run until you stop or terminate them.
+	// Deletes a shared trust store association.
+	DeleteSharedTrustStoreAssociation(ctx context.Context, params *DeleteSharedTrustStoreAssociationInput, optFns ...func(*Options)) (*DeleteSharedTrustStoreAssociationOutput, error)
+	// Deletes the specified target group.
+	//
+	// You can delete a target group if it is not referenced by any actions. Deleting
+	// a target group also deletes any associated health checks. Deleting a target
+	// group does not affect its registered targets. For example, any EC2 instances
+	// continue to run until you stop or terminate them.
 	DeleteTargetGroup(ctx context.Context, params *DeleteTargetGroupInput, optFns ...func(*Options)) (*DeleteTargetGroupOutput, error)
 	// Deletes a trust store.
 	DeleteTrustStore(ctx context.Context, params *DeleteTrustStoreInput, optFns ...func(*Options)) (*DeleteTrustStoreOutput, error)
 	// Deregisters the specified targets from the specified target group. After the
 	// targets are deregistered, they no longer receive traffic from the load balancer.
+	//
 	// The load balancer stops sending requests to targets that are deregistering, but
 	// uses connection draining to ensure that in-flight traffic completes on the
 	// existing connections. This deregistration delay is configured by default but can
-	// be updated for each target group. For more information, see the following:
-	//   - Deregistration delay (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html#deregistration-delay)
-	//     in the Application Load Balancers User Guide
-	//   - Deregistration delay (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html#deregistration-delay)
-	//     in the Network Load Balancers User Guide
-	//   - Deregistration delay (https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/target-groups.html#deregistration-delay)
-	//     in the Gateway Load Balancers User Guide
+	// be updated for each target group.
+	//
+	// For more information, see the following:
+	//
+	// [Deregistration delay]
+	//   - in the Application Load Balancers User Guide
+	//
+	// [Deregistration delay]
+	//   - in the Network Load Balancers User Guide
+	//
+	// [Deregistration delay]
+	//   - in the Gateway Load Balancers User Guide
 	//
 	// Note: If the specified target does not exist, the action returns successfully.
+	//
+	// [Deregistration delay]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/target-groups.html#deregistration-delay
 	DeregisterTargets(ctx context.Context, params *DeregisterTargetsInput, optFns ...func(*Options)) (*DeregisterTargetsOutput, error)
 	// Describes the current Elastic Load Balancing resource limits for your Amazon
-	// Web Services account. For more information, see the following:
-	//   - Quotas for your Application Load Balancers (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-limits.html)
-	//   - Quotas for your Network Load Balancers (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-limits.html)
-	//   - Quotas for your Gateway Load Balancers (https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/quotas-limits.html)
+	// Web Services account.
+	//
+	// For more information, see the following:
+	//
+	// [Quotas for your Application Load Balancers]
+	//
+	// [Quotas for your Network Load Balancers]
+	//
+	// [Quotas for your Gateway Load Balancers]
+	//
+	// [Quotas for your Gateway Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/quotas-limits.html
+	// [Quotas for your Application Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-limits.html
+	// [Quotas for your Network Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-limits.html
 	DescribeAccountLimits(ctx context.Context, params *DescribeAccountLimitsInput, optFns ...func(*Options)) (*DescribeAccountLimitsOutput, error)
+	// Describes the capacity reservation status for the specified load balancer.
+	DescribeCapacityReservation(ctx context.Context, params *DescribeCapacityReservationInput, optFns ...func(*Options)) (*DescribeCapacityReservationOutput, error)
+	// Describes the attributes for the specified listener.
+	DescribeListenerAttributes(ctx context.Context, params *DescribeListenerAttributesInput, optFns ...func(*Options)) (*DescribeListenerAttributesOutput, error)
 	// Describes the default certificate and the certificate list for the specified
-	// HTTPS or TLS listener. If the default certificate is also in the certificate
-	// list, it appears twice in the results (once with IsDefault set to true and once
-	// with IsDefault set to false). For more information, see SSL certificates (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#https-listener-certificates)
-	// in the Application Load Balancers Guide or Server certificates (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#tls-listener-certificate)
-	// in the Network Load Balancers Guide.
+	// HTTPS or TLS listener.
+	//
+	// If the default certificate is also in the certificate list, it appears twice in
+	// the results (once with IsDefault set to true and once with IsDefault set to
+	// false).
+	//
+	// For more information, see [SSL certificates] in the Application Load Balancers Guide or [Server certificates] in the
+	// Network Load Balancers Guide.
+	//
+	// [Server certificates]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#tls-listener-certificate
+	// [SSL certificates]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#https-listener-certificates
 	DescribeListenerCertificates(ctx context.Context, params *DescribeListenerCertificatesInput, optFns ...func(*Options)) (*DescribeListenerCertificatesOutput, error)
 	// Describes the specified listeners or the listeners for the specified
 	// Application Load Balancer, Network Load Balancer, or Gateway Load Balancer. You
 	// must specify either a load balancer or one or more listeners.
 	DescribeListeners(ctx context.Context, params *DescribeListenersInput, optFns ...func(*Options)) (*DescribeListenersOutput, error)
 	// Describes the attributes for the specified Application Load Balancer, Network
-	// Load Balancer, or Gateway Load Balancer. For more information, see the
-	// following:
-	//   - Load balancer attributes (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#load-balancer-attributes)
-	//     in the Application Load Balancers Guide
-	//   - Load balancer attributes (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/network-load-balancers.html#load-balancer-attributes)
-	//     in the Network Load Balancers Guide
-	//   - Load balancer attributes (https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/gateway-load-balancers.html#load-balancer-attributes)
-	//     in the Gateway Load Balancers Guide
+	// Load Balancer, or Gateway Load Balancer.
+	//
+	// For more information, see the following:
+	//
+	// [Load balancer attributes]
+	//   - in the Application Load Balancers Guide
+	//
+	// [Load balancer attributes]
+	//   - in the Network Load Balancers Guide
+	//
+	// [Load balancer attributes]
+	//   - in the Gateway Load Balancers Guide
+	//
+	// [Load balancer attributes]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/gateway-load-balancers.html#load-balancer-attributes
 	DescribeLoadBalancerAttributes(ctx context.Context, params *DescribeLoadBalancerAttributesInput, optFns ...func(*Options)) (*DescribeLoadBalancerAttributesOutput, error)
 	// Describes the specified load balancers or all of your load balancers.
 	DescribeLoadBalancers(ctx context.Context, params *DescribeLoadBalancersInput, optFns ...func(*Options)) (*DescribeLoadBalancersOutput, error)
 	// Describes the specified rules or the rules for the specified listener. You must
 	// specify either a listener or one or more rules.
 	DescribeRules(ctx context.Context, params *DescribeRulesInput, optFns ...func(*Options)) (*DescribeRulesOutput, error)
-	// Describes the specified policies or all policies used for SSL negotiation. For
-	// more information, see Security policies (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies)
-	// in the Application Load Balancers Guide or Security policies (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#describe-ssl-policies)
-	// in the Network Load Balancers Guide.
+	// Describes the specified policies or all policies used for SSL negotiation.
+	//
+	// For more information, see [Security policies] in the Application Load Balancers Guide or [Security policies] in the
+	// Network Load Balancers Guide.
+	//
+	// [Security policies]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#describe-ssl-policies
 	DescribeSSLPolicies(ctx context.Context, params *DescribeSSLPoliciesInput, optFns ...func(*Options)) (*DescribeSSLPoliciesOutput, error)
 	// Describes the tags for the specified Elastic Load Balancing resources. You can
 	// describe the tags for one or more Application Load Balancers, Network Load
 	// Balancers, Gateway Load Balancers, target groups, listeners, or rules.
 	DescribeTags(ctx context.Context, params *DescribeTagsInput, optFns ...func(*Options)) (*DescribeTagsOutput, error)
-	// Describes the attributes for the specified target group. For more information,
-	// see the following:
-	//   - Target group attributes (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html#target-group-attributes)
-	//     in the Application Load Balancers Guide
-	//   - Target group attributes (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html#target-group-attributes)
-	//     in the Network Load Balancers Guide
-	//   - Target group attributes (https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/target-groups.html#target-group-attributes)
-	//     in the Gateway Load Balancers Guide
+	// Describes the attributes for the specified target group.
+	//
+	// For more information, see the following:
+	//
+	// [Target group attributes]
+	//   - in the Application Load Balancers Guide
+	//
+	// [Target group attributes]
+	//   - in the Network Load Balancers Guide
+	//
+	// [Target group attributes]
+	//   - in the Gateway Load Balancers Guide
+	//
+	// [Target group attributes]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/target-groups.html#target-group-attributes
 	DescribeTargetGroupAttributes(ctx context.Context, params *DescribeTargetGroupAttributesInput, optFns ...func(*Options)) (*DescribeTargetGroupAttributesOutput, error)
 	// Describes the specified target groups or all of your target groups. By default,
 	// all target groups are described. Alternatively, you can specify one of the
@@ -165,54 +254,75 @@ type ELBV2 interface {
 	DescribeTargetHealth(ctx context.Context, params *DescribeTargetHealthInput, optFns ...func(*Options)) (*DescribeTargetHealthOutput, error)
 	// Describes all resources associated with the specified trust store.
 	DescribeTrustStoreAssociations(ctx context.Context, params *DescribeTrustStoreAssociationsInput, optFns ...func(*Options)) (*DescribeTrustStoreAssociationsOutput, error)
-	// Describes the revocation files in use by the specified trust store arn, or
-	// revocation ID.
+	// Describes the revocation files in use by the specified trust store or
+	// revocation files.
 	DescribeTrustStoreRevocations(ctx context.Context, params *DescribeTrustStoreRevocationsInput, optFns ...func(*Options)) (*DescribeTrustStoreRevocationsOutput, error)
-	// Describes all trust stores for a given account by trust store arn’s or name.
+	// Describes all trust stores for the specified account.
 	DescribeTrustStores(ctx context.Context, params *DescribeTrustStoresInput, optFns ...func(*Options)) (*DescribeTrustStoresOutput, error)
-	// Retrieves the ca certificate bundle. This action returns a pre-signed S3 URI
-	// which is active for ten minutes.
+	// Retrieves the resource policy for a specified resource.
+	GetResourcePolicy(ctx context.Context, params *GetResourcePolicyInput, optFns ...func(*Options)) (*GetResourcePolicyOutput, error)
+	// Retrieves the ca certificate bundle.
+	//
+	// This action returns a pre-signed S3 URI which is active for ten minutes.
 	GetTrustStoreCaCertificatesBundle(ctx context.Context, params *GetTrustStoreCaCertificatesBundleInput, optFns ...func(*Options)) (*GetTrustStoreCaCertificatesBundleOutput, error)
-	// Retrieves the specified revocation file. This action returns a pre-signed S3
-	// URI which is active for ten minutes.
+	// Retrieves the specified revocation file.
+	//
+	// This action returns a pre-signed S3 URI which is active for ten minutes.
 	GetTrustStoreRevocationContent(ctx context.Context, params *GetTrustStoreRevocationContentInput, optFns ...func(*Options)) (*GetTrustStoreRevocationContentOutput, error)
+	// Modifies the capacity reservation of the specified load balancer.
+	//
+	// When modifying capacity reservation, you must include at least one
+	// MinimumLoadBalancerCapacity or ResetCapacityReservation .
+	ModifyCapacityReservation(ctx context.Context, params *ModifyCapacityReservationInput, optFns ...func(*Options)) (*ModifyCapacityReservationOutput, error)
 	// Replaces the specified properties of the specified listener. Any properties
-	// that you do not specify remain unchanged. Changing the protocol from HTTPS to
-	// HTTP, or from TLS to TCP, removes the security policy and default certificate
-	// properties. If you change the protocol from HTTP to HTTPS, or from TCP to TLS,
-	// you must add the security policy and default certificate properties. To add an
-	// item to a list, remove an item from a list, or update an item in a list, you
-	// must provide the entire list. For example, to add an action, specify a list with
-	// the current actions plus the new action.
+	// that you do not specify remain unchanged.
+	//
+	// Changing the protocol from HTTPS to HTTP, or from TLS to TCP, removes the
+	// security policy and default certificate properties. If you change the protocol
+	// from HTTP to HTTPS, or from TCP to TLS, you must add the security policy and
+	// default certificate properties.
+	//
+	// To add an item to a list, remove an item from a list, or update an item in a
+	// list, you must provide the entire list. For example, to add an action, specify a
+	// list with the current actions plus the new action.
 	ModifyListener(ctx context.Context, params *ModifyListenerInput, optFns ...func(*Options)) (*ModifyListenerOutput, error)
+	// Modifies the specified attributes of the specified listener.
+	ModifyListenerAttributes(ctx context.Context, params *ModifyListenerAttributesInput, optFns ...func(*Options)) (*ModifyListenerAttributesOutput, error)
 	// Modifies the specified attributes of the specified Application Load Balancer,
-	// Network Load Balancer, or Gateway Load Balancer. If any of the specified
-	// attributes can't be modified as requested, the call fails. Any existing
-	// attributes that you do not modify retain their current values.
+	// Network Load Balancer, or Gateway Load Balancer.
+	//
+	// If any of the specified attributes can't be modified as requested, the call
+	// fails. Any existing attributes that you do not modify retain their current
+	// values.
 	ModifyLoadBalancerAttributes(ctx context.Context, params *ModifyLoadBalancerAttributesInput, optFns ...func(*Options)) (*ModifyLoadBalancerAttributesOutput, error)
 	// Replaces the specified properties of the specified rule. Any properties that
-	// you do not specify are unchanged. To add an item to a list, remove an item from
-	// a list, or update an item in a list, you must provide the entire list. For
-	// example, to add an action, specify a list with the current actions plus the new
-	// action.
+	// you do not specify are unchanged.
+	//
+	// To add an item to a list, remove an item from a list, or update an item in a
+	// list, you must provide the entire list. For example, to add an action, specify a
+	// list with the current actions plus the new action.
 	ModifyRule(ctx context.Context, params *ModifyRuleInput, optFns ...func(*Options)) (*ModifyRuleOutput, error)
 	// Modifies the health checks used when evaluating the health state of the targets
 	// in the specified target group.
 	ModifyTargetGroup(ctx context.Context, params *ModifyTargetGroupInput, optFns ...func(*Options)) (*ModifyTargetGroupOutput, error)
 	// Modifies the specified attributes of the specified target group.
 	ModifyTargetGroupAttributes(ctx context.Context, params *ModifyTargetGroupAttributesInput, optFns ...func(*Options)) (*ModifyTargetGroupAttributesOutput, error)
-	// Update the ca certificate bundle for a given trust store.
+	// Update the ca certificate bundle for the specified trust store.
 	ModifyTrustStore(ctx context.Context, params *ModifyTrustStoreInput, optFns ...func(*Options)) (*ModifyTrustStoreOutput, error)
-	// Registers the specified targets with the specified target group. If the target
-	// is an EC2 instance, it must be in the running state when you register it. By
-	// default, the load balancer routes requests to registered targets using the
+	// Registers the specified targets with the specified target group.
+	//
+	// If the target is an EC2 instance, it must be in the running state when you
+	// register it.
+	//
+	// By default, the load balancer routes requests to registered targets using the
 	// protocol and port for the target group. Alternatively, you can override the port
 	// for a target when you register it. You can register each EC2 instance or IP
-	// address with the same target group multiple times using different ports. With a
-	// Network Load Balancer, you cannot register instances by instance ID if they have
-	// the following instance types: C1, CC1, CC2, CG1, CG2, CR1, CS1, G1, G2, HI1,
-	// HS1, M1, M2, M3, and T1. You can register instances of these types by IP
-	// address.
+	// address with the same target group multiple times using different ports.
+	//
+	// With a Network Load Balancer, you can't register instances by instance ID if
+	// they have the following instance types: C1, CC1, CC2, CG1, CG2, CR1, CS1, G1,
+	// G2, HI1, HS1, M1, M2, M3, and T1. You can register instances of these types by
+	// IP address.
 	RegisterTargets(ctx context.Context, params *RegisterTargetsInput, optFns ...func(*Options)) (*RegisterTargetsOutput, error)
 	// Removes the specified certificate from the certificate list for the specified
 	// HTTPS or TLS listener.
@@ -226,22 +336,26 @@ type ELBV2 interface {
 	// Sets the type of IP addresses used by the subnets of the specified load
 	// balancer.
 	SetIpAddressType(ctx context.Context, params *SetIpAddressTypeInput, optFns ...func(*Options)) (*SetIpAddressTypeOutput, error)
-	// Sets the priorities of the specified rules. You can reorder the rules as long
-	// as there are no priority conflicts in the new order. Any existing rules that you
-	// do not specify retain their current priority.
+	// Sets the priorities of the specified rules.
+	//
+	// You can reorder the rules as long as there are no priority conflicts in the new
+	// order. Any existing rules that you do not specify retain their current priority.
 	SetRulePriorities(ctx context.Context, params *SetRulePrioritiesInput, optFns ...func(*Options)) (*SetRulePrioritiesOutput, error)
 	// Associates the specified security groups with the specified Application Load
 	// Balancer or Network Load Balancer. The specified security groups override the
-	// previously associated security groups. You can't perform this operation on a
-	// Network Load Balancer unless you specified a security group for the load
-	// balancer when you created it. You can't associate a security group with a
-	// Gateway Load Balancer.
+	// previously associated security groups.
+	//
+	// You can't perform this operation on a Network Load Balancer unless you
+	// specified a security group for the load balancer when you created it.
+	//
+	// You can't associate a security group with a Gateway Load Balancer.
 	SetSecurityGroups(ctx context.Context, params *SetSecurityGroupsInput, optFns ...func(*Options)) (*SetSecurityGroupsOutput, error)
 	// Enables the Availability Zones for the specified public subnets for the
 	// specified Application Load Balancer, Network Load Balancer or Gateway Load
-	// Balancer. The specified subnets replace the previously enabled subnets. When you
-	// specify subnets for a Network Load Balancer, or Gateway Load Balancer you must
-	// include all subnets that were enabled previously, with their existing
+	// Balancer. The specified subnets replace the previously enabled subnets.
+	//
+	// When you specify subnets for a Network Load Balancer, or Gateway Load Balancer
+	// you must include all subnets that were enabled previously, with their existing
 	// configurations, plus any additional subnets.
 	SetSubnets(ctx context.Context, params *SetSubnetsInput, optFns ...func(*Options)) (*SetSubnetsOutput, error)
 }

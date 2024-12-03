@@ -52,7 +52,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 	Context("draining node groups", func() {
 		When("disable eviction flag is set to false", func() {
 			It("drain the node groups", func() {
-				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, nil)
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
 					return fakeClientSet, nil
 				})
@@ -80,7 +80,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 
 		When("disable eviction flag is set to true", func() {
 			It("drain the node groups", func() {
-				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, nil)
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
 					return fakeClientSet, nil
 				})
@@ -109,7 +109,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 
 		When("no node group stacks exist", func() {
 			It("does no draining at all", func() {
-				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, nil)
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
 					return fakeClientSet, nil
 				})

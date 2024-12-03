@@ -370,6 +370,14 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg = NewClusterConfig()
 		})
 
+		Describe("RemoteNetworkConfig", func() {
+			It("should set default credentials provider to SSM", func() {
+				cfg.RemoteNetworkConfig = &RemoteNetworkConfig{}
+				SetClusterConfigDefaults(cfg)
+				Expect(*cfg.RemoteNetworkConfig.IAM.Provider).To(Equal(SSMProvider))
+			})
+		})
+
 		Describe("SetDefaultFargateProfile", func() {
 			It("should create a default Fargate profile with two selectors matching default and kube-system w/o any label", func() {
 				Expect(cfg.FargateProfiles).To(HaveLen(0))

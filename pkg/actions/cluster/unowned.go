@@ -2,12 +2,13 @@ package cluster
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
@@ -24,15 +25,17 @@ type UnownedCluster struct {
 	cfg                 *api.ClusterConfig
 	ctl                 *eks.ClusterProvider
 	stackManager        manager.StackManager
+	autoModeDeleter     AutoModeDeleter
 	newClientSet        func() (kubernetes.Interface, error)
 	newNodeGroupDrainer func(clientSet kubernetes.Interface) NodeGroupDrainer
 }
 
-func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) *UnownedCluster {
+func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, autoModeDeleter AutoModeDeleter) *UnownedCluster {
 	return &UnownedCluster{
-		cfg:          cfg,
-		ctl:          ctl,
-		stackManager: stackManager,
+		cfg:             cfg,
+		ctl:             ctl,
+		autoModeDeleter: autoModeDeleter,
+		stackManager:    stackManager,
 		newClientSet: func() (kubernetes.Interface, error) {
 			return ctl.NewStdClientSet(cfg)
 		},
@@ -92,12 +95,10 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval, podEvictionWa
 	}
 
 	if err := deleteSharedResources(ctx, c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
-		if err != nil {
-			if force {
-				logger.Warning("error occurred during deletion: %v", err)
-			} else {
-				return err
-			}
+		if force {
+			logger.Warning("error occurred during deletion: %v", err)
+		} else {
+			return err
 		}
 	}
 
@@ -112,12 +113,10 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval, podEvictionWa
 	}
 
 	if err := c.deleteIAMAndOIDC(ctx, wait, clusterOperable, clientSet, force); err != nil {
-		if err != nil {
-			if force {
-				logger.Warning("error occurred during deletion: %v", err)
-			} else {
-				return err
-			}
+		if force {
+			logger.Warning("error occurred during deletion: %v", err)
+		} else {
+			return err
 		}
 	}
 
@@ -126,6 +125,9 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval, podEvictionWa
 	}
 
 	if err := checkForUndeletedStacks(ctx, c.stackManager); err != nil {
+		return err
+	}
+	if err := c.autoModeDeleter.DeleteIfRequired(ctx); err != nil {
 		return err
 	}
 
@@ -155,9 +157,9 @@ func (c *UnownedCluster) checkClusterExists(ctx context.Context, clusterName str
 	})
 	if err != nil {
 		if isNotFound(err) {
-			return errors.Errorf("cluster %q not found", clusterName)
+			return fmt.Errorf("cluster %q not found", clusterName)
 		}
-		return errors.Wrapf(err, "error describing cluster %q", clusterName)
+		return fmt.Errorf("error describing cluster %q: %w", clusterName, err)
 	}
 	return nil
 }

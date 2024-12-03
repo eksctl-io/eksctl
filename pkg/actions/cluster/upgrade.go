@@ -2,12 +2,13 @@ package cluster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/weaveworks/eksctl/pkg/printers"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -62,7 +63,7 @@ func requiresVersionUpgrade(clusterMeta *api.ClusterMeta, currentEKSVersion stri
 	}
 
 	if c, err := utils.CompareVersions(clusterMeta.Version, currentEKSVersion); err != nil {
-		return false, errors.Wrap(err, "couldn't compare versions for upgrade")
+		return false, fmt.Errorf("couldn't compare versions for upgrade: %w", err)
 	} else if c < 0 {
 		return false, fmt.Errorf("cannot upgrade to a lower version. Found given target version %q, current cluster version %q", clusterMeta.Version, currentEKSVersion)
 	}

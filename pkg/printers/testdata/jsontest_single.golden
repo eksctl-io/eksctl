@@ -9,6 +9,7 @@
             "AuthenticationMode": "API_AND_CONFIG_MAP",
             "BootstrapClusterCreatorAdminPermissions": true
           },
+          "ComputeConfig": null,
           "EncryptionConfig": null,
           "Endpoint": null,
           "Health": null,
@@ -19,6 +20,7 @@
           "Name": "test-cluster",
           "OutpostConfig": null,
           "PlatformVersion": null,
+          "RemoteNetworkConfig": null,
           "ResourcesVpcConfig": {
             "ClusterSecurityGroupId": null,
             "EndpointPrivateAccess": false,
@@ -33,6 +35,7 @@
           },
           "RoleArn": null,
           "Status": "ACTIVE",
+          "StorageConfig": null,
           "Tags": null,
           "Version": null,
           "UpgradePolicy": null,

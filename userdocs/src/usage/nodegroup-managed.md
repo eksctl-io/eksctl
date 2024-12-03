@@ -116,7 +116,7 @@ managedNodeGroups:
 
 ```yaml
 # cluster.yaml
-# A cluster with an unmanaged nodegroup and two managed nodegroups.
+# A cluster with a managed nodegroup with customization.
 ---
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig

@@ -2,6 +2,7 @@ package cluster_test
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -11,11 +12,11 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/weaveworks/eksctl/pkg/actions/cluster"
+	"github.com/weaveworks/eksctl/pkg/actions/cluster/mocks"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -33,7 +34,7 @@ type drainerMockOwned struct {
 	mock.Mock
 }
 
-func (d *drainerMockOwned) Drain(ctx context.Context, input *nodegroup.DrainInput) error {
+func (d *drainerMockOwned) Drain(_ context.Context, input *nodegroup.DrainInput) error {
 	args := d.Called(input)
 	return args.Error(0)
 }
@@ -48,6 +49,7 @@ var _ = Describe("Delete", func() {
 		ranDeleteClusterTasks    bool
 		ctl                      *eks.ClusterProvider
 		fakeClientSet            *fake.Clientset
+		autoModeDeleter          *mocks.AutoModeDeleter
 	)
 
 	BeforeEach(func() {
@@ -56,6 +58,8 @@ var _ = Describe("Delete", func() {
 		cfg = api.NewClusterConfig()
 		cfg.Metadata.Name = clusterName
 		fakeStackManager = new(fakes.FakeStackManager)
+		autoModeDeleter = &mocks.AutoModeDeleter{}
+		autoModeDeleter.EXPECT().DeleteIfRequired(mock.Anything).Return(nil).Once()
 		ranDeleteDeprecatedTasks = false
 		ranDeleteClusterTasks = false
 		ctl = &eks.ClusterProvider{AWSProvider: p, Status: &eks.ProviderStatus{
@@ -112,7 +116,7 @@ var _ = Describe("Delete", func() {
 
 			fakeStackManager.GetKarpenterStackReturns(karpenterStack, nil)
 
-			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autoModeDeleter)
 			fakeClientSet = fake.NewSimpleClientset()
 
 			c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -180,7 +184,7 @@ var _ = Describe("Delete", func() {
 					Tasks: []tasks.Task{},
 				}, nil)
 
-				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autoModeDeleter)
 				fakeClientSet = fake.NewSimpleClientset()
 
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -245,7 +249,7 @@ var _ = Describe("Delete", func() {
 					Tasks: []tasks.Task{},
 				}, nil)
 
-				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autoModeDeleter)
 				fakeClientSet = fake.NewSimpleClientset()
 
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -315,7 +319,7 @@ var _ = Describe("Delete", func() {
 				}}},
 			}, nil)
 
-			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager, autoModeDeleter)
 			c.SetNewNodeGroupDrainer(func(clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 				mockedDrainer := &drainerMockOwned{}
 				mockedDrainer.On("Drain", mock.Anything).Return(nil)

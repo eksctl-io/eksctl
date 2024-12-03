@@ -18,29 +18,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-var knownAddons = map[string]struct {
-	IsDefault             bool
-	CreateBeforeNodeGroup bool
-}{
-	api.VPCCNIAddon: {
-		IsDefault:             true,
-		CreateBeforeNodeGroup: true,
-	},
-	api.KubeProxyAddon: {
-		IsDefault:             true,
-		CreateBeforeNodeGroup: true,
-	},
-	api.CoreDNSAddon: {
-		IsDefault:             true,
-		CreateBeforeNodeGroup: true,
-	},
-	api.PodIdentityAgentAddon: {
-		CreateBeforeNodeGroup: true,
-	},
-	api.AWSEBSCSIDriverAddon: {},
-	api.AWSEFSCSIDriverAddon: {},
-}
-
 func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree, *tasks.GenericTask, []string) {
 	var addons []*api.Addon
 	var autoDefaultAddonNames []string
@@ -48,7 +25,7 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 		addons = make([]*api.Addon, len(cfg.Addons))
 		copy(addons, cfg.Addons)
 
-		for addonName, addonInfo := range knownAddons {
+		for addonName, addonInfo := range api.KnownAddons {
 			if addonInfo.IsDefault && !slices.ContainsFunc(cfg.Addons, func(a *api.Addon) bool {
 				return strings.EqualFold(a.Name, addonName)
 			}) {
@@ -58,6 +35,11 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 		}
 	} else {
 		addons = cfg.Addons
+		if cfg.IsAutoModeEnabled() && len(cfg.NodeGroups) == 0 && len(cfg.ManagedNodeGroups) == 0 {
+			logger.Info("default EKS addons are not required for a cluster using Auto Mode; " +
+				"if nodegroups are not required, consider setting `addonsConfig.disableDefaultAddons: true` during " +
+				"cluster creation, or deleting default addons using `eksctl delete addon`")
+		}
 	}
 
 	var (
@@ -66,7 +48,7 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 	)
 	var vpcCNIAddon *api.Addon
 	for _, addon := range addons {
-		addonInfo, ok := knownAddons[addon.Name]
+		addonInfo, ok := api.KnownAddons[addon.Name]
 		if ok && addonInfo.CreateBeforeNodeGroup {
 			preAddons = append(preAddons, addon)
 		} else {

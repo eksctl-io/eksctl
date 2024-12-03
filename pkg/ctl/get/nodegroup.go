@@ -2,20 +2,18 @@ package get
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
-
 	"github.com/kris-nova/logger"
-
-	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
-
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/printers"
@@ -104,9 +102,9 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		// is yaml or json we should return an empty object.
 		if len(summaries) == 0 {
 			if ng.Name == "" {
-				return errors.Errorf("No nodegroups found")
+				return errors.New("No nodegroups found")
 			}
-			return errors.Errorf("nodegroup with name %v not found", ng.Name)
+			return fmt.Errorf("nodegroup with name %v not found", ng.Name)
 		}
 		addSummaryTableColumns(printer.(*printers.TablePrinter))
 	}

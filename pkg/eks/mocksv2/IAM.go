@@ -14,6 +14,14 @@ type IAM struct {
 	mock.Mock
 }
 
+type IAM_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *IAM) EXPECT() *IAM_Expecter {
+	return &IAM_Expecter{mock: &_m.Mock}
+}
+
 // AddClientIDToOpenIDConnectProvider provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) AddClientIDToOpenIDConnectProvider(ctx context.Context, params *iam.AddClientIDToOpenIDConnectProviderInput, optFns ...func(*iam.Options)) (*iam.AddClientIDToOpenIDConnectProviderOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -49,6 +57,43 @@ func (_m *IAM) AddClientIDToOpenIDConnectProvider(ctx context.Context, params *i
 	}
 
 	return r0, r1
+}
+
+// IAM_AddClientIDToOpenIDConnectProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddClientIDToOpenIDConnectProvider'
+type IAM_AddClientIDToOpenIDConnectProvider_Call struct {
+	*mock.Call
+}
+
+// AddClientIDToOpenIDConnectProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.AddClientIDToOpenIDConnectProviderInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) AddClientIDToOpenIDConnectProvider(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_AddClientIDToOpenIDConnectProvider_Call {
+	return &IAM_AddClientIDToOpenIDConnectProvider_Call{Call: _e.mock.On("AddClientIDToOpenIDConnectProvider",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_AddClientIDToOpenIDConnectProvider_Call) Run(run func(ctx context.Context, params *iam.AddClientIDToOpenIDConnectProviderInput, optFns ...func(*iam.Options))) *IAM_AddClientIDToOpenIDConnectProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.AddClientIDToOpenIDConnectProviderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_AddClientIDToOpenIDConnectProvider_Call) Return(_a0 *iam.AddClientIDToOpenIDConnectProviderOutput, _a1 error) *IAM_AddClientIDToOpenIDConnectProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_AddClientIDToOpenIDConnectProvider_Call) RunAndReturn(run func(context.Context, *iam.AddClientIDToOpenIDConnectProviderInput, ...func(*iam.Options)) (*iam.AddClientIDToOpenIDConnectProviderOutput, error)) *IAM_AddClientIDToOpenIDConnectProvider_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // AddRoleToInstanceProfile provides a mock function with given fields: ctx, params, optFns
@@ -88,6 +133,43 @@ func (_m *IAM) AddRoleToInstanceProfile(ctx context.Context, params *iam.AddRole
 	return r0, r1
 }
 
+// IAM_AddRoleToInstanceProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddRoleToInstanceProfile'
+type IAM_AddRoleToInstanceProfile_Call struct {
+	*mock.Call
+}
+
+// AddRoleToInstanceProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.AddRoleToInstanceProfileInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) AddRoleToInstanceProfile(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_AddRoleToInstanceProfile_Call {
+	return &IAM_AddRoleToInstanceProfile_Call{Call: _e.mock.On("AddRoleToInstanceProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_AddRoleToInstanceProfile_Call) Run(run func(ctx context.Context, params *iam.AddRoleToInstanceProfileInput, optFns ...func(*iam.Options))) *IAM_AddRoleToInstanceProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.AddRoleToInstanceProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_AddRoleToInstanceProfile_Call) Return(_a0 *iam.AddRoleToInstanceProfileOutput, _a1 error) *IAM_AddRoleToInstanceProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_AddRoleToInstanceProfile_Call) RunAndReturn(run func(context.Context, *iam.AddRoleToInstanceProfileInput, ...func(*iam.Options)) (*iam.AddRoleToInstanceProfileOutput, error)) *IAM_AddRoleToInstanceProfile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AddUserToGroup provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) AddUserToGroup(ctx context.Context, params *iam.AddUserToGroupInput, optFns ...func(*iam.Options)) (*iam.AddUserToGroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -123,6 +205,43 @@ func (_m *IAM) AddUserToGroup(ctx context.Context, params *iam.AddUserToGroupInp
 	}
 
 	return r0, r1
+}
+
+// IAM_AddUserToGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddUserToGroup'
+type IAM_AddUserToGroup_Call struct {
+	*mock.Call
+}
+
+// AddUserToGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.AddUserToGroupInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) AddUserToGroup(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_AddUserToGroup_Call {
+	return &IAM_AddUserToGroup_Call{Call: _e.mock.On("AddUserToGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_AddUserToGroup_Call) Run(run func(ctx context.Context, params *iam.AddUserToGroupInput, optFns ...func(*iam.Options))) *IAM_AddUserToGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.AddUserToGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_AddUserToGroup_Call) Return(_a0 *iam.AddUserToGroupOutput, _a1 error) *IAM_AddUserToGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_AddUserToGroup_Call) RunAndReturn(run func(context.Context, *iam.AddUserToGroupInput, ...func(*iam.Options)) (*iam.AddUserToGroupOutput, error)) *IAM_AddUserToGroup_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // AttachGroupPolicy provides a mock function with given fields: ctx, params, optFns
@@ -162,6 +281,43 @@ func (_m *IAM) AttachGroupPolicy(ctx context.Context, params *iam.AttachGroupPol
 	return r0, r1
 }
 
+// IAM_AttachGroupPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachGroupPolicy'
+type IAM_AttachGroupPolicy_Call struct {
+	*mock.Call
+}
+
+// AttachGroupPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.AttachGroupPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) AttachGroupPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_AttachGroupPolicy_Call {
+	return &IAM_AttachGroupPolicy_Call{Call: _e.mock.On("AttachGroupPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_AttachGroupPolicy_Call) Run(run func(ctx context.Context, params *iam.AttachGroupPolicyInput, optFns ...func(*iam.Options))) *IAM_AttachGroupPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.AttachGroupPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_AttachGroupPolicy_Call) Return(_a0 *iam.AttachGroupPolicyOutput, _a1 error) *IAM_AttachGroupPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_AttachGroupPolicy_Call) RunAndReturn(run func(context.Context, *iam.AttachGroupPolicyInput, ...func(*iam.Options)) (*iam.AttachGroupPolicyOutput, error)) *IAM_AttachGroupPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AttachRolePolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) AttachRolePolicy(ctx context.Context, params *iam.AttachRolePolicyInput, optFns ...func(*iam.Options)) (*iam.AttachRolePolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -197,6 +353,43 @@ func (_m *IAM) AttachRolePolicy(ctx context.Context, params *iam.AttachRolePolic
 	}
 
 	return r0, r1
+}
+
+// IAM_AttachRolePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachRolePolicy'
+type IAM_AttachRolePolicy_Call struct {
+	*mock.Call
+}
+
+// AttachRolePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.AttachRolePolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) AttachRolePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_AttachRolePolicy_Call {
+	return &IAM_AttachRolePolicy_Call{Call: _e.mock.On("AttachRolePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_AttachRolePolicy_Call) Run(run func(ctx context.Context, params *iam.AttachRolePolicyInput, optFns ...func(*iam.Options))) *IAM_AttachRolePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.AttachRolePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_AttachRolePolicy_Call) Return(_a0 *iam.AttachRolePolicyOutput, _a1 error) *IAM_AttachRolePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_AttachRolePolicy_Call) RunAndReturn(run func(context.Context, *iam.AttachRolePolicyInput, ...func(*iam.Options)) (*iam.AttachRolePolicyOutput, error)) *IAM_AttachRolePolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // AttachUserPolicy provides a mock function with given fields: ctx, params, optFns
@@ -236,6 +429,43 @@ func (_m *IAM) AttachUserPolicy(ctx context.Context, params *iam.AttachUserPolic
 	return r0, r1
 }
 
+// IAM_AttachUserPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachUserPolicy'
+type IAM_AttachUserPolicy_Call struct {
+	*mock.Call
+}
+
+// AttachUserPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.AttachUserPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) AttachUserPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_AttachUserPolicy_Call {
+	return &IAM_AttachUserPolicy_Call{Call: _e.mock.On("AttachUserPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_AttachUserPolicy_Call) Run(run func(ctx context.Context, params *iam.AttachUserPolicyInput, optFns ...func(*iam.Options))) *IAM_AttachUserPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.AttachUserPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_AttachUserPolicy_Call) Return(_a0 *iam.AttachUserPolicyOutput, _a1 error) *IAM_AttachUserPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_AttachUserPolicy_Call) RunAndReturn(run func(context.Context, *iam.AttachUserPolicyInput, ...func(*iam.Options)) (*iam.AttachUserPolicyOutput, error)) *IAM_AttachUserPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ChangePassword provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ChangePassword(ctx context.Context, params *iam.ChangePasswordInput, optFns ...func(*iam.Options)) (*iam.ChangePasswordOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -271,6 +501,43 @@ func (_m *IAM) ChangePassword(ctx context.Context, params *iam.ChangePasswordInp
 	}
 
 	return r0, r1
+}
+
+// IAM_ChangePassword_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ChangePassword'
+type IAM_ChangePassword_Call struct {
+	*mock.Call
+}
+
+// ChangePassword is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ChangePasswordInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ChangePassword(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ChangePassword_Call {
+	return &IAM_ChangePassword_Call{Call: _e.mock.On("ChangePassword",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ChangePassword_Call) Run(run func(ctx context.Context, params *iam.ChangePasswordInput, optFns ...func(*iam.Options))) *IAM_ChangePassword_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ChangePasswordInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ChangePassword_Call) Return(_a0 *iam.ChangePasswordOutput, _a1 error) *IAM_ChangePassword_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ChangePassword_Call) RunAndReturn(run func(context.Context, *iam.ChangePasswordInput, ...func(*iam.Options)) (*iam.ChangePasswordOutput, error)) *IAM_ChangePassword_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateAccessKey provides a mock function with given fields: ctx, params, optFns
@@ -310,6 +577,43 @@ func (_m *IAM) CreateAccessKey(ctx context.Context, params *iam.CreateAccessKeyI
 	return r0, r1
 }
 
+// IAM_CreateAccessKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAccessKey'
+type IAM_CreateAccessKey_Call struct {
+	*mock.Call
+}
+
+// CreateAccessKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreateAccessKeyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreateAccessKey(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreateAccessKey_Call {
+	return &IAM_CreateAccessKey_Call{Call: _e.mock.On("CreateAccessKey",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreateAccessKey_Call) Run(run func(ctx context.Context, params *iam.CreateAccessKeyInput, optFns ...func(*iam.Options))) *IAM_CreateAccessKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreateAccessKeyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreateAccessKey_Call) Return(_a0 *iam.CreateAccessKeyOutput, _a1 error) *IAM_CreateAccessKey_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreateAccessKey_Call) RunAndReturn(run func(context.Context, *iam.CreateAccessKeyInput, ...func(*iam.Options)) (*iam.CreateAccessKeyOutput, error)) *IAM_CreateAccessKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateAccountAlias provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) CreateAccountAlias(ctx context.Context, params *iam.CreateAccountAliasInput, optFns ...func(*iam.Options)) (*iam.CreateAccountAliasOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -345,6 +649,43 @@ func (_m *IAM) CreateAccountAlias(ctx context.Context, params *iam.CreateAccount
 	}
 
 	return r0, r1
+}
+
+// IAM_CreateAccountAlias_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAccountAlias'
+type IAM_CreateAccountAlias_Call struct {
+	*mock.Call
+}
+
+// CreateAccountAlias is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreateAccountAliasInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreateAccountAlias(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreateAccountAlias_Call {
+	return &IAM_CreateAccountAlias_Call{Call: _e.mock.On("CreateAccountAlias",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreateAccountAlias_Call) Run(run func(ctx context.Context, params *iam.CreateAccountAliasInput, optFns ...func(*iam.Options))) *IAM_CreateAccountAlias_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreateAccountAliasInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreateAccountAlias_Call) Return(_a0 *iam.CreateAccountAliasOutput, _a1 error) *IAM_CreateAccountAlias_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreateAccountAlias_Call) RunAndReturn(run func(context.Context, *iam.CreateAccountAliasInput, ...func(*iam.Options)) (*iam.CreateAccountAliasOutput, error)) *IAM_CreateAccountAlias_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateGroup provides a mock function with given fields: ctx, params, optFns
@@ -384,6 +725,43 @@ func (_m *IAM) CreateGroup(ctx context.Context, params *iam.CreateGroupInput, op
 	return r0, r1
 }
 
+// IAM_CreateGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateGroup'
+type IAM_CreateGroup_Call struct {
+	*mock.Call
+}
+
+// CreateGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreateGroupInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreateGroup(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreateGroup_Call {
+	return &IAM_CreateGroup_Call{Call: _e.mock.On("CreateGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreateGroup_Call) Run(run func(ctx context.Context, params *iam.CreateGroupInput, optFns ...func(*iam.Options))) *IAM_CreateGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreateGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreateGroup_Call) Return(_a0 *iam.CreateGroupOutput, _a1 error) *IAM_CreateGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreateGroup_Call) RunAndReturn(run func(context.Context, *iam.CreateGroupInput, ...func(*iam.Options)) (*iam.CreateGroupOutput, error)) *IAM_CreateGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateInstanceProfile provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) CreateInstanceProfile(ctx context.Context, params *iam.CreateInstanceProfileInput, optFns ...func(*iam.Options)) (*iam.CreateInstanceProfileOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -419,6 +797,43 @@ func (_m *IAM) CreateInstanceProfile(ctx context.Context, params *iam.CreateInst
 	}
 
 	return r0, r1
+}
+
+// IAM_CreateInstanceProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateInstanceProfile'
+type IAM_CreateInstanceProfile_Call struct {
+	*mock.Call
+}
+
+// CreateInstanceProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreateInstanceProfileInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreateInstanceProfile(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreateInstanceProfile_Call {
+	return &IAM_CreateInstanceProfile_Call{Call: _e.mock.On("CreateInstanceProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreateInstanceProfile_Call) Run(run func(ctx context.Context, params *iam.CreateInstanceProfileInput, optFns ...func(*iam.Options))) *IAM_CreateInstanceProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreateInstanceProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreateInstanceProfile_Call) Return(_a0 *iam.CreateInstanceProfileOutput, _a1 error) *IAM_CreateInstanceProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreateInstanceProfile_Call) RunAndReturn(run func(context.Context, *iam.CreateInstanceProfileInput, ...func(*iam.Options)) (*iam.CreateInstanceProfileOutput, error)) *IAM_CreateInstanceProfile_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateLoginProfile provides a mock function with given fields: ctx, params, optFns
@@ -458,6 +873,43 @@ func (_m *IAM) CreateLoginProfile(ctx context.Context, params *iam.CreateLoginPr
 	return r0, r1
 }
 
+// IAM_CreateLoginProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateLoginProfile'
+type IAM_CreateLoginProfile_Call struct {
+	*mock.Call
+}
+
+// CreateLoginProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreateLoginProfileInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreateLoginProfile(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreateLoginProfile_Call {
+	return &IAM_CreateLoginProfile_Call{Call: _e.mock.On("CreateLoginProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreateLoginProfile_Call) Run(run func(ctx context.Context, params *iam.CreateLoginProfileInput, optFns ...func(*iam.Options))) *IAM_CreateLoginProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreateLoginProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreateLoginProfile_Call) Return(_a0 *iam.CreateLoginProfileOutput, _a1 error) *IAM_CreateLoginProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreateLoginProfile_Call) RunAndReturn(run func(context.Context, *iam.CreateLoginProfileInput, ...func(*iam.Options)) (*iam.CreateLoginProfileOutput, error)) *IAM_CreateLoginProfile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateOpenIDConnectProvider provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) CreateOpenIDConnectProvider(ctx context.Context, params *iam.CreateOpenIDConnectProviderInput, optFns ...func(*iam.Options)) (*iam.CreateOpenIDConnectProviderOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -493,6 +945,43 @@ func (_m *IAM) CreateOpenIDConnectProvider(ctx context.Context, params *iam.Crea
 	}
 
 	return r0, r1
+}
+
+// IAM_CreateOpenIDConnectProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateOpenIDConnectProvider'
+type IAM_CreateOpenIDConnectProvider_Call struct {
+	*mock.Call
+}
+
+// CreateOpenIDConnectProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreateOpenIDConnectProviderInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreateOpenIDConnectProvider(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreateOpenIDConnectProvider_Call {
+	return &IAM_CreateOpenIDConnectProvider_Call{Call: _e.mock.On("CreateOpenIDConnectProvider",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreateOpenIDConnectProvider_Call) Run(run func(ctx context.Context, params *iam.CreateOpenIDConnectProviderInput, optFns ...func(*iam.Options))) *IAM_CreateOpenIDConnectProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreateOpenIDConnectProviderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreateOpenIDConnectProvider_Call) Return(_a0 *iam.CreateOpenIDConnectProviderOutput, _a1 error) *IAM_CreateOpenIDConnectProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreateOpenIDConnectProvider_Call) RunAndReturn(run func(context.Context, *iam.CreateOpenIDConnectProviderInput, ...func(*iam.Options)) (*iam.CreateOpenIDConnectProviderOutput, error)) *IAM_CreateOpenIDConnectProvider_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreatePolicy provides a mock function with given fields: ctx, params, optFns
@@ -532,6 +1021,43 @@ func (_m *IAM) CreatePolicy(ctx context.Context, params *iam.CreatePolicyInput, 
 	return r0, r1
 }
 
+// IAM_CreatePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreatePolicy'
+type IAM_CreatePolicy_Call struct {
+	*mock.Call
+}
+
+// CreatePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreatePolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreatePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreatePolicy_Call {
+	return &IAM_CreatePolicy_Call{Call: _e.mock.On("CreatePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreatePolicy_Call) Run(run func(ctx context.Context, params *iam.CreatePolicyInput, optFns ...func(*iam.Options))) *IAM_CreatePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreatePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreatePolicy_Call) Return(_a0 *iam.CreatePolicyOutput, _a1 error) *IAM_CreatePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreatePolicy_Call) RunAndReturn(run func(context.Context, *iam.CreatePolicyInput, ...func(*iam.Options)) (*iam.CreatePolicyOutput, error)) *IAM_CreatePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreatePolicyVersion provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) CreatePolicyVersion(ctx context.Context, params *iam.CreatePolicyVersionInput, optFns ...func(*iam.Options)) (*iam.CreatePolicyVersionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -567,6 +1093,43 @@ func (_m *IAM) CreatePolicyVersion(ctx context.Context, params *iam.CreatePolicy
 	}
 
 	return r0, r1
+}
+
+// IAM_CreatePolicyVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreatePolicyVersion'
+type IAM_CreatePolicyVersion_Call struct {
+	*mock.Call
+}
+
+// CreatePolicyVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreatePolicyVersionInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreatePolicyVersion(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreatePolicyVersion_Call {
+	return &IAM_CreatePolicyVersion_Call{Call: _e.mock.On("CreatePolicyVersion",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreatePolicyVersion_Call) Run(run func(ctx context.Context, params *iam.CreatePolicyVersionInput, optFns ...func(*iam.Options))) *IAM_CreatePolicyVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreatePolicyVersionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreatePolicyVersion_Call) Return(_a0 *iam.CreatePolicyVersionOutput, _a1 error) *IAM_CreatePolicyVersion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreatePolicyVersion_Call) RunAndReturn(run func(context.Context, *iam.CreatePolicyVersionInput, ...func(*iam.Options)) (*iam.CreatePolicyVersionOutput, error)) *IAM_CreatePolicyVersion_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateRole provides a mock function with given fields: ctx, params, optFns
@@ -606,6 +1169,43 @@ func (_m *IAM) CreateRole(ctx context.Context, params *iam.CreateRoleInput, optF
 	return r0, r1
 }
 
+// IAM_CreateRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateRole'
+type IAM_CreateRole_Call struct {
+	*mock.Call
+}
+
+// CreateRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreateRoleInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreateRole(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreateRole_Call {
+	return &IAM_CreateRole_Call{Call: _e.mock.On("CreateRole",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreateRole_Call) Run(run func(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options))) *IAM_CreateRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreateRoleInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreateRole_Call) Return(_a0 *iam.CreateRoleOutput, _a1 error) *IAM_CreateRole_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreateRole_Call) RunAndReturn(run func(context.Context, *iam.CreateRoleInput, ...func(*iam.Options)) (*iam.CreateRoleOutput, error)) *IAM_CreateRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateSAMLProvider provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) CreateSAMLProvider(ctx context.Context, params *iam.CreateSAMLProviderInput, optFns ...func(*iam.Options)) (*iam.CreateSAMLProviderOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -641,6 +1241,43 @@ func (_m *IAM) CreateSAMLProvider(ctx context.Context, params *iam.CreateSAMLPro
 	}
 
 	return r0, r1
+}
+
+// IAM_CreateSAMLProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSAMLProvider'
+type IAM_CreateSAMLProvider_Call struct {
+	*mock.Call
+}
+
+// CreateSAMLProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreateSAMLProviderInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreateSAMLProvider(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreateSAMLProvider_Call {
+	return &IAM_CreateSAMLProvider_Call{Call: _e.mock.On("CreateSAMLProvider",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreateSAMLProvider_Call) Run(run func(ctx context.Context, params *iam.CreateSAMLProviderInput, optFns ...func(*iam.Options))) *IAM_CreateSAMLProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreateSAMLProviderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreateSAMLProvider_Call) Return(_a0 *iam.CreateSAMLProviderOutput, _a1 error) *IAM_CreateSAMLProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreateSAMLProvider_Call) RunAndReturn(run func(context.Context, *iam.CreateSAMLProviderInput, ...func(*iam.Options)) (*iam.CreateSAMLProviderOutput, error)) *IAM_CreateSAMLProvider_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateServiceLinkedRole provides a mock function with given fields: ctx, params, optFns
@@ -680,6 +1317,43 @@ func (_m *IAM) CreateServiceLinkedRole(ctx context.Context, params *iam.CreateSe
 	return r0, r1
 }
 
+// IAM_CreateServiceLinkedRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateServiceLinkedRole'
+type IAM_CreateServiceLinkedRole_Call struct {
+	*mock.Call
+}
+
+// CreateServiceLinkedRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreateServiceLinkedRoleInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreateServiceLinkedRole(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreateServiceLinkedRole_Call {
+	return &IAM_CreateServiceLinkedRole_Call{Call: _e.mock.On("CreateServiceLinkedRole",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreateServiceLinkedRole_Call) Run(run func(ctx context.Context, params *iam.CreateServiceLinkedRoleInput, optFns ...func(*iam.Options))) *IAM_CreateServiceLinkedRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreateServiceLinkedRoleInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreateServiceLinkedRole_Call) Return(_a0 *iam.CreateServiceLinkedRoleOutput, _a1 error) *IAM_CreateServiceLinkedRole_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreateServiceLinkedRole_Call) RunAndReturn(run func(context.Context, *iam.CreateServiceLinkedRoleInput, ...func(*iam.Options)) (*iam.CreateServiceLinkedRoleOutput, error)) *IAM_CreateServiceLinkedRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateServiceSpecificCredential provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) CreateServiceSpecificCredential(ctx context.Context, params *iam.CreateServiceSpecificCredentialInput, optFns ...func(*iam.Options)) (*iam.CreateServiceSpecificCredentialOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -715,6 +1389,43 @@ func (_m *IAM) CreateServiceSpecificCredential(ctx context.Context, params *iam.
 	}
 
 	return r0, r1
+}
+
+// IAM_CreateServiceSpecificCredential_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateServiceSpecificCredential'
+type IAM_CreateServiceSpecificCredential_Call struct {
+	*mock.Call
+}
+
+// CreateServiceSpecificCredential is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreateServiceSpecificCredentialInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreateServiceSpecificCredential(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreateServiceSpecificCredential_Call {
+	return &IAM_CreateServiceSpecificCredential_Call{Call: _e.mock.On("CreateServiceSpecificCredential",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreateServiceSpecificCredential_Call) Run(run func(ctx context.Context, params *iam.CreateServiceSpecificCredentialInput, optFns ...func(*iam.Options))) *IAM_CreateServiceSpecificCredential_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreateServiceSpecificCredentialInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreateServiceSpecificCredential_Call) Return(_a0 *iam.CreateServiceSpecificCredentialOutput, _a1 error) *IAM_CreateServiceSpecificCredential_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreateServiceSpecificCredential_Call) RunAndReturn(run func(context.Context, *iam.CreateServiceSpecificCredentialInput, ...func(*iam.Options)) (*iam.CreateServiceSpecificCredentialOutput, error)) *IAM_CreateServiceSpecificCredential_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateUser provides a mock function with given fields: ctx, params, optFns
@@ -754,6 +1465,43 @@ func (_m *IAM) CreateUser(ctx context.Context, params *iam.CreateUserInput, optF
 	return r0, r1
 }
 
+// IAM_CreateUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateUser'
+type IAM_CreateUser_Call struct {
+	*mock.Call
+}
+
+// CreateUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreateUserInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreateUser(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreateUser_Call {
+	return &IAM_CreateUser_Call{Call: _e.mock.On("CreateUser",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreateUser_Call) Run(run func(ctx context.Context, params *iam.CreateUserInput, optFns ...func(*iam.Options))) *IAM_CreateUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreateUserInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreateUser_Call) Return(_a0 *iam.CreateUserOutput, _a1 error) *IAM_CreateUser_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreateUser_Call) RunAndReturn(run func(context.Context, *iam.CreateUserInput, ...func(*iam.Options)) (*iam.CreateUserOutput, error)) *IAM_CreateUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateVirtualMFADevice provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) CreateVirtualMFADevice(ctx context.Context, params *iam.CreateVirtualMFADeviceInput, optFns ...func(*iam.Options)) (*iam.CreateVirtualMFADeviceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -789,6 +1537,43 @@ func (_m *IAM) CreateVirtualMFADevice(ctx context.Context, params *iam.CreateVir
 	}
 
 	return r0, r1
+}
+
+// IAM_CreateVirtualMFADevice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateVirtualMFADevice'
+type IAM_CreateVirtualMFADevice_Call struct {
+	*mock.Call
+}
+
+// CreateVirtualMFADevice is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreateVirtualMFADeviceInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreateVirtualMFADevice(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreateVirtualMFADevice_Call {
+	return &IAM_CreateVirtualMFADevice_Call{Call: _e.mock.On("CreateVirtualMFADevice",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreateVirtualMFADevice_Call) Run(run func(ctx context.Context, params *iam.CreateVirtualMFADeviceInput, optFns ...func(*iam.Options))) *IAM_CreateVirtualMFADevice_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreateVirtualMFADeviceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreateVirtualMFADevice_Call) Return(_a0 *iam.CreateVirtualMFADeviceOutput, _a1 error) *IAM_CreateVirtualMFADevice_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreateVirtualMFADevice_Call) RunAndReturn(run func(context.Context, *iam.CreateVirtualMFADeviceInput, ...func(*iam.Options)) (*iam.CreateVirtualMFADeviceOutput, error)) *IAM_CreateVirtualMFADevice_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeactivateMFADevice provides a mock function with given fields: ctx, params, optFns
@@ -828,6 +1613,43 @@ func (_m *IAM) DeactivateMFADevice(ctx context.Context, params *iam.DeactivateMF
 	return r0, r1
 }
 
+// IAM_DeactivateMFADevice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeactivateMFADevice'
+type IAM_DeactivateMFADevice_Call struct {
+	*mock.Call
+}
+
+// DeactivateMFADevice is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeactivateMFADeviceInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeactivateMFADevice(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeactivateMFADevice_Call {
+	return &IAM_DeactivateMFADevice_Call{Call: _e.mock.On("DeactivateMFADevice",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeactivateMFADevice_Call) Run(run func(ctx context.Context, params *iam.DeactivateMFADeviceInput, optFns ...func(*iam.Options))) *IAM_DeactivateMFADevice_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeactivateMFADeviceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeactivateMFADevice_Call) Return(_a0 *iam.DeactivateMFADeviceOutput, _a1 error) *IAM_DeactivateMFADevice_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeactivateMFADevice_Call) RunAndReturn(run func(context.Context, *iam.DeactivateMFADeviceInput, ...func(*iam.Options)) (*iam.DeactivateMFADeviceOutput, error)) *IAM_DeactivateMFADevice_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteAccessKey provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) DeleteAccessKey(ctx context.Context, params *iam.DeleteAccessKeyInput, optFns ...func(*iam.Options)) (*iam.DeleteAccessKeyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -863,6 +1685,43 @@ func (_m *IAM) DeleteAccessKey(ctx context.Context, params *iam.DeleteAccessKeyI
 	}
 
 	return r0, r1
+}
+
+// IAM_DeleteAccessKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAccessKey'
+type IAM_DeleteAccessKey_Call struct {
+	*mock.Call
+}
+
+// DeleteAccessKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteAccessKeyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteAccessKey(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteAccessKey_Call {
+	return &IAM_DeleteAccessKey_Call{Call: _e.mock.On("DeleteAccessKey",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteAccessKey_Call) Run(run func(ctx context.Context, params *iam.DeleteAccessKeyInput, optFns ...func(*iam.Options))) *IAM_DeleteAccessKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteAccessKeyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteAccessKey_Call) Return(_a0 *iam.DeleteAccessKeyOutput, _a1 error) *IAM_DeleteAccessKey_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteAccessKey_Call) RunAndReturn(run func(context.Context, *iam.DeleteAccessKeyInput, ...func(*iam.Options)) (*iam.DeleteAccessKeyOutput, error)) *IAM_DeleteAccessKey_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteAccountAlias provides a mock function with given fields: ctx, params, optFns
@@ -902,6 +1761,43 @@ func (_m *IAM) DeleteAccountAlias(ctx context.Context, params *iam.DeleteAccount
 	return r0, r1
 }
 
+// IAM_DeleteAccountAlias_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAccountAlias'
+type IAM_DeleteAccountAlias_Call struct {
+	*mock.Call
+}
+
+// DeleteAccountAlias is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteAccountAliasInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteAccountAlias(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteAccountAlias_Call {
+	return &IAM_DeleteAccountAlias_Call{Call: _e.mock.On("DeleteAccountAlias",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteAccountAlias_Call) Run(run func(ctx context.Context, params *iam.DeleteAccountAliasInput, optFns ...func(*iam.Options))) *IAM_DeleteAccountAlias_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteAccountAliasInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteAccountAlias_Call) Return(_a0 *iam.DeleteAccountAliasOutput, _a1 error) *IAM_DeleteAccountAlias_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteAccountAlias_Call) RunAndReturn(run func(context.Context, *iam.DeleteAccountAliasInput, ...func(*iam.Options)) (*iam.DeleteAccountAliasOutput, error)) *IAM_DeleteAccountAlias_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteAccountPasswordPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) DeleteAccountPasswordPolicy(ctx context.Context, params *iam.DeleteAccountPasswordPolicyInput, optFns ...func(*iam.Options)) (*iam.DeleteAccountPasswordPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -937,6 +1833,43 @@ func (_m *IAM) DeleteAccountPasswordPolicy(ctx context.Context, params *iam.Dele
 	}
 
 	return r0, r1
+}
+
+// IAM_DeleteAccountPasswordPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAccountPasswordPolicy'
+type IAM_DeleteAccountPasswordPolicy_Call struct {
+	*mock.Call
+}
+
+// DeleteAccountPasswordPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteAccountPasswordPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteAccountPasswordPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteAccountPasswordPolicy_Call {
+	return &IAM_DeleteAccountPasswordPolicy_Call{Call: _e.mock.On("DeleteAccountPasswordPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteAccountPasswordPolicy_Call) Run(run func(ctx context.Context, params *iam.DeleteAccountPasswordPolicyInput, optFns ...func(*iam.Options))) *IAM_DeleteAccountPasswordPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteAccountPasswordPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteAccountPasswordPolicy_Call) Return(_a0 *iam.DeleteAccountPasswordPolicyOutput, _a1 error) *IAM_DeleteAccountPasswordPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteAccountPasswordPolicy_Call) RunAndReturn(run func(context.Context, *iam.DeleteAccountPasswordPolicyInput, ...func(*iam.Options)) (*iam.DeleteAccountPasswordPolicyOutput, error)) *IAM_DeleteAccountPasswordPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteGroup provides a mock function with given fields: ctx, params, optFns
@@ -976,6 +1909,43 @@ func (_m *IAM) DeleteGroup(ctx context.Context, params *iam.DeleteGroupInput, op
 	return r0, r1
 }
 
+// IAM_DeleteGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteGroup'
+type IAM_DeleteGroup_Call struct {
+	*mock.Call
+}
+
+// DeleteGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteGroupInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteGroup(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteGroup_Call {
+	return &IAM_DeleteGroup_Call{Call: _e.mock.On("DeleteGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteGroup_Call) Run(run func(ctx context.Context, params *iam.DeleteGroupInput, optFns ...func(*iam.Options))) *IAM_DeleteGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteGroup_Call) Return(_a0 *iam.DeleteGroupOutput, _a1 error) *IAM_DeleteGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteGroup_Call) RunAndReturn(run func(context.Context, *iam.DeleteGroupInput, ...func(*iam.Options)) (*iam.DeleteGroupOutput, error)) *IAM_DeleteGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteGroupPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) DeleteGroupPolicy(ctx context.Context, params *iam.DeleteGroupPolicyInput, optFns ...func(*iam.Options)) (*iam.DeleteGroupPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1011,6 +1981,43 @@ func (_m *IAM) DeleteGroupPolicy(ctx context.Context, params *iam.DeleteGroupPol
 	}
 
 	return r0, r1
+}
+
+// IAM_DeleteGroupPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteGroupPolicy'
+type IAM_DeleteGroupPolicy_Call struct {
+	*mock.Call
+}
+
+// DeleteGroupPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteGroupPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteGroupPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteGroupPolicy_Call {
+	return &IAM_DeleteGroupPolicy_Call{Call: _e.mock.On("DeleteGroupPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteGroupPolicy_Call) Run(run func(ctx context.Context, params *iam.DeleteGroupPolicyInput, optFns ...func(*iam.Options))) *IAM_DeleteGroupPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteGroupPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteGroupPolicy_Call) Return(_a0 *iam.DeleteGroupPolicyOutput, _a1 error) *IAM_DeleteGroupPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteGroupPolicy_Call) RunAndReturn(run func(context.Context, *iam.DeleteGroupPolicyInput, ...func(*iam.Options)) (*iam.DeleteGroupPolicyOutput, error)) *IAM_DeleteGroupPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteInstanceProfile provides a mock function with given fields: ctx, params, optFns
@@ -1050,6 +2057,43 @@ func (_m *IAM) DeleteInstanceProfile(ctx context.Context, params *iam.DeleteInst
 	return r0, r1
 }
 
+// IAM_DeleteInstanceProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteInstanceProfile'
+type IAM_DeleteInstanceProfile_Call struct {
+	*mock.Call
+}
+
+// DeleteInstanceProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteInstanceProfileInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteInstanceProfile(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteInstanceProfile_Call {
+	return &IAM_DeleteInstanceProfile_Call{Call: _e.mock.On("DeleteInstanceProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteInstanceProfile_Call) Run(run func(ctx context.Context, params *iam.DeleteInstanceProfileInput, optFns ...func(*iam.Options))) *IAM_DeleteInstanceProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteInstanceProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteInstanceProfile_Call) Return(_a0 *iam.DeleteInstanceProfileOutput, _a1 error) *IAM_DeleteInstanceProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteInstanceProfile_Call) RunAndReturn(run func(context.Context, *iam.DeleteInstanceProfileInput, ...func(*iam.Options)) (*iam.DeleteInstanceProfileOutput, error)) *IAM_DeleteInstanceProfile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteLoginProfile provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) DeleteLoginProfile(ctx context.Context, params *iam.DeleteLoginProfileInput, optFns ...func(*iam.Options)) (*iam.DeleteLoginProfileOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1085,6 +2129,43 @@ func (_m *IAM) DeleteLoginProfile(ctx context.Context, params *iam.DeleteLoginPr
 	}
 
 	return r0, r1
+}
+
+// IAM_DeleteLoginProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteLoginProfile'
+type IAM_DeleteLoginProfile_Call struct {
+	*mock.Call
+}
+
+// DeleteLoginProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteLoginProfileInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteLoginProfile(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteLoginProfile_Call {
+	return &IAM_DeleteLoginProfile_Call{Call: _e.mock.On("DeleteLoginProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteLoginProfile_Call) Run(run func(ctx context.Context, params *iam.DeleteLoginProfileInput, optFns ...func(*iam.Options))) *IAM_DeleteLoginProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteLoginProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteLoginProfile_Call) Return(_a0 *iam.DeleteLoginProfileOutput, _a1 error) *IAM_DeleteLoginProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteLoginProfile_Call) RunAndReturn(run func(context.Context, *iam.DeleteLoginProfileInput, ...func(*iam.Options)) (*iam.DeleteLoginProfileOutput, error)) *IAM_DeleteLoginProfile_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteOpenIDConnectProvider provides a mock function with given fields: ctx, params, optFns
@@ -1124,6 +2205,43 @@ func (_m *IAM) DeleteOpenIDConnectProvider(ctx context.Context, params *iam.Dele
 	return r0, r1
 }
 
+// IAM_DeleteOpenIDConnectProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteOpenIDConnectProvider'
+type IAM_DeleteOpenIDConnectProvider_Call struct {
+	*mock.Call
+}
+
+// DeleteOpenIDConnectProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteOpenIDConnectProviderInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteOpenIDConnectProvider(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteOpenIDConnectProvider_Call {
+	return &IAM_DeleteOpenIDConnectProvider_Call{Call: _e.mock.On("DeleteOpenIDConnectProvider",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteOpenIDConnectProvider_Call) Run(run func(ctx context.Context, params *iam.DeleteOpenIDConnectProviderInput, optFns ...func(*iam.Options))) *IAM_DeleteOpenIDConnectProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteOpenIDConnectProviderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteOpenIDConnectProvider_Call) Return(_a0 *iam.DeleteOpenIDConnectProviderOutput, _a1 error) *IAM_DeleteOpenIDConnectProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteOpenIDConnectProvider_Call) RunAndReturn(run func(context.Context, *iam.DeleteOpenIDConnectProviderInput, ...func(*iam.Options)) (*iam.DeleteOpenIDConnectProviderOutput, error)) *IAM_DeleteOpenIDConnectProvider_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeletePolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) DeletePolicy(ctx context.Context, params *iam.DeletePolicyInput, optFns ...func(*iam.Options)) (*iam.DeletePolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1159,6 +2277,43 @@ func (_m *IAM) DeletePolicy(ctx context.Context, params *iam.DeletePolicyInput, 
 	}
 
 	return r0, r1
+}
+
+// IAM_DeletePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePolicy'
+type IAM_DeletePolicy_Call struct {
+	*mock.Call
+}
+
+// DeletePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeletePolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeletePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeletePolicy_Call {
+	return &IAM_DeletePolicy_Call{Call: _e.mock.On("DeletePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeletePolicy_Call) Run(run func(ctx context.Context, params *iam.DeletePolicyInput, optFns ...func(*iam.Options))) *IAM_DeletePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeletePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeletePolicy_Call) Return(_a0 *iam.DeletePolicyOutput, _a1 error) *IAM_DeletePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeletePolicy_Call) RunAndReturn(run func(context.Context, *iam.DeletePolicyInput, ...func(*iam.Options)) (*iam.DeletePolicyOutput, error)) *IAM_DeletePolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeletePolicyVersion provides a mock function with given fields: ctx, params, optFns
@@ -1198,6 +2353,43 @@ func (_m *IAM) DeletePolicyVersion(ctx context.Context, params *iam.DeletePolicy
 	return r0, r1
 }
 
+// IAM_DeletePolicyVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePolicyVersion'
+type IAM_DeletePolicyVersion_Call struct {
+	*mock.Call
+}
+
+// DeletePolicyVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeletePolicyVersionInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeletePolicyVersion(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeletePolicyVersion_Call {
+	return &IAM_DeletePolicyVersion_Call{Call: _e.mock.On("DeletePolicyVersion",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeletePolicyVersion_Call) Run(run func(ctx context.Context, params *iam.DeletePolicyVersionInput, optFns ...func(*iam.Options))) *IAM_DeletePolicyVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeletePolicyVersionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeletePolicyVersion_Call) Return(_a0 *iam.DeletePolicyVersionOutput, _a1 error) *IAM_DeletePolicyVersion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeletePolicyVersion_Call) RunAndReturn(run func(context.Context, *iam.DeletePolicyVersionInput, ...func(*iam.Options)) (*iam.DeletePolicyVersionOutput, error)) *IAM_DeletePolicyVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteRole provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) DeleteRole(ctx context.Context, params *iam.DeleteRoleInput, optFns ...func(*iam.Options)) (*iam.DeleteRoleOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1233,6 +2425,43 @@ func (_m *IAM) DeleteRole(ctx context.Context, params *iam.DeleteRoleInput, optF
 	}
 
 	return r0, r1
+}
+
+// IAM_DeleteRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteRole'
+type IAM_DeleteRole_Call struct {
+	*mock.Call
+}
+
+// DeleteRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteRoleInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteRole(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteRole_Call {
+	return &IAM_DeleteRole_Call{Call: _e.mock.On("DeleteRole",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteRole_Call) Run(run func(ctx context.Context, params *iam.DeleteRoleInput, optFns ...func(*iam.Options))) *IAM_DeleteRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteRoleInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteRole_Call) Return(_a0 *iam.DeleteRoleOutput, _a1 error) *IAM_DeleteRole_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteRole_Call) RunAndReturn(run func(context.Context, *iam.DeleteRoleInput, ...func(*iam.Options)) (*iam.DeleteRoleOutput, error)) *IAM_DeleteRole_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteRolePermissionsBoundary provides a mock function with given fields: ctx, params, optFns
@@ -1272,6 +2501,43 @@ func (_m *IAM) DeleteRolePermissionsBoundary(ctx context.Context, params *iam.De
 	return r0, r1
 }
 
+// IAM_DeleteRolePermissionsBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteRolePermissionsBoundary'
+type IAM_DeleteRolePermissionsBoundary_Call struct {
+	*mock.Call
+}
+
+// DeleteRolePermissionsBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteRolePermissionsBoundaryInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteRolePermissionsBoundary(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteRolePermissionsBoundary_Call {
+	return &IAM_DeleteRolePermissionsBoundary_Call{Call: _e.mock.On("DeleteRolePermissionsBoundary",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteRolePermissionsBoundary_Call) Run(run func(ctx context.Context, params *iam.DeleteRolePermissionsBoundaryInput, optFns ...func(*iam.Options))) *IAM_DeleteRolePermissionsBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteRolePermissionsBoundaryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteRolePermissionsBoundary_Call) Return(_a0 *iam.DeleteRolePermissionsBoundaryOutput, _a1 error) *IAM_DeleteRolePermissionsBoundary_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteRolePermissionsBoundary_Call) RunAndReturn(run func(context.Context, *iam.DeleteRolePermissionsBoundaryInput, ...func(*iam.Options)) (*iam.DeleteRolePermissionsBoundaryOutput, error)) *IAM_DeleteRolePermissionsBoundary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteRolePolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) DeleteRolePolicy(ctx context.Context, params *iam.DeleteRolePolicyInput, optFns ...func(*iam.Options)) (*iam.DeleteRolePolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1307,6 +2573,43 @@ func (_m *IAM) DeleteRolePolicy(ctx context.Context, params *iam.DeleteRolePolic
 	}
 
 	return r0, r1
+}
+
+// IAM_DeleteRolePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteRolePolicy'
+type IAM_DeleteRolePolicy_Call struct {
+	*mock.Call
+}
+
+// DeleteRolePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteRolePolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteRolePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteRolePolicy_Call {
+	return &IAM_DeleteRolePolicy_Call{Call: _e.mock.On("DeleteRolePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteRolePolicy_Call) Run(run func(ctx context.Context, params *iam.DeleteRolePolicyInput, optFns ...func(*iam.Options))) *IAM_DeleteRolePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteRolePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteRolePolicy_Call) Return(_a0 *iam.DeleteRolePolicyOutput, _a1 error) *IAM_DeleteRolePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteRolePolicy_Call) RunAndReturn(run func(context.Context, *iam.DeleteRolePolicyInput, ...func(*iam.Options)) (*iam.DeleteRolePolicyOutput, error)) *IAM_DeleteRolePolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteSAMLProvider provides a mock function with given fields: ctx, params, optFns
@@ -1346,6 +2649,43 @@ func (_m *IAM) DeleteSAMLProvider(ctx context.Context, params *iam.DeleteSAMLPro
 	return r0, r1
 }
 
+// IAM_DeleteSAMLProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSAMLProvider'
+type IAM_DeleteSAMLProvider_Call struct {
+	*mock.Call
+}
+
+// DeleteSAMLProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteSAMLProviderInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteSAMLProvider(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteSAMLProvider_Call {
+	return &IAM_DeleteSAMLProvider_Call{Call: _e.mock.On("DeleteSAMLProvider",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteSAMLProvider_Call) Run(run func(ctx context.Context, params *iam.DeleteSAMLProviderInput, optFns ...func(*iam.Options))) *IAM_DeleteSAMLProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteSAMLProviderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteSAMLProvider_Call) Return(_a0 *iam.DeleteSAMLProviderOutput, _a1 error) *IAM_DeleteSAMLProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteSAMLProvider_Call) RunAndReturn(run func(context.Context, *iam.DeleteSAMLProviderInput, ...func(*iam.Options)) (*iam.DeleteSAMLProviderOutput, error)) *IAM_DeleteSAMLProvider_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteSSHPublicKey provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) DeleteSSHPublicKey(ctx context.Context, params *iam.DeleteSSHPublicKeyInput, optFns ...func(*iam.Options)) (*iam.DeleteSSHPublicKeyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1381,6 +2721,43 @@ func (_m *IAM) DeleteSSHPublicKey(ctx context.Context, params *iam.DeleteSSHPubl
 	}
 
 	return r0, r1
+}
+
+// IAM_DeleteSSHPublicKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSSHPublicKey'
+type IAM_DeleteSSHPublicKey_Call struct {
+	*mock.Call
+}
+
+// DeleteSSHPublicKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteSSHPublicKeyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteSSHPublicKey(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteSSHPublicKey_Call {
+	return &IAM_DeleteSSHPublicKey_Call{Call: _e.mock.On("DeleteSSHPublicKey",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteSSHPublicKey_Call) Run(run func(ctx context.Context, params *iam.DeleteSSHPublicKeyInput, optFns ...func(*iam.Options))) *IAM_DeleteSSHPublicKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteSSHPublicKeyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteSSHPublicKey_Call) Return(_a0 *iam.DeleteSSHPublicKeyOutput, _a1 error) *IAM_DeleteSSHPublicKey_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteSSHPublicKey_Call) RunAndReturn(run func(context.Context, *iam.DeleteSSHPublicKeyInput, ...func(*iam.Options)) (*iam.DeleteSSHPublicKeyOutput, error)) *IAM_DeleteSSHPublicKey_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteServerCertificate provides a mock function with given fields: ctx, params, optFns
@@ -1420,6 +2797,43 @@ func (_m *IAM) DeleteServerCertificate(ctx context.Context, params *iam.DeleteSe
 	return r0, r1
 }
 
+// IAM_DeleteServerCertificate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteServerCertificate'
+type IAM_DeleteServerCertificate_Call struct {
+	*mock.Call
+}
+
+// DeleteServerCertificate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteServerCertificateInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteServerCertificate(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteServerCertificate_Call {
+	return &IAM_DeleteServerCertificate_Call{Call: _e.mock.On("DeleteServerCertificate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteServerCertificate_Call) Run(run func(ctx context.Context, params *iam.DeleteServerCertificateInput, optFns ...func(*iam.Options))) *IAM_DeleteServerCertificate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteServerCertificateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteServerCertificate_Call) Return(_a0 *iam.DeleteServerCertificateOutput, _a1 error) *IAM_DeleteServerCertificate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteServerCertificate_Call) RunAndReturn(run func(context.Context, *iam.DeleteServerCertificateInput, ...func(*iam.Options)) (*iam.DeleteServerCertificateOutput, error)) *IAM_DeleteServerCertificate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteServiceLinkedRole provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) DeleteServiceLinkedRole(ctx context.Context, params *iam.DeleteServiceLinkedRoleInput, optFns ...func(*iam.Options)) (*iam.DeleteServiceLinkedRoleOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1455,6 +2869,43 @@ func (_m *IAM) DeleteServiceLinkedRole(ctx context.Context, params *iam.DeleteSe
 	}
 
 	return r0, r1
+}
+
+// IAM_DeleteServiceLinkedRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteServiceLinkedRole'
+type IAM_DeleteServiceLinkedRole_Call struct {
+	*mock.Call
+}
+
+// DeleteServiceLinkedRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteServiceLinkedRoleInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteServiceLinkedRole(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteServiceLinkedRole_Call {
+	return &IAM_DeleteServiceLinkedRole_Call{Call: _e.mock.On("DeleteServiceLinkedRole",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteServiceLinkedRole_Call) Run(run func(ctx context.Context, params *iam.DeleteServiceLinkedRoleInput, optFns ...func(*iam.Options))) *IAM_DeleteServiceLinkedRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteServiceLinkedRoleInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteServiceLinkedRole_Call) Return(_a0 *iam.DeleteServiceLinkedRoleOutput, _a1 error) *IAM_DeleteServiceLinkedRole_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteServiceLinkedRole_Call) RunAndReturn(run func(context.Context, *iam.DeleteServiceLinkedRoleInput, ...func(*iam.Options)) (*iam.DeleteServiceLinkedRoleOutput, error)) *IAM_DeleteServiceLinkedRole_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteServiceSpecificCredential provides a mock function with given fields: ctx, params, optFns
@@ -1494,6 +2945,43 @@ func (_m *IAM) DeleteServiceSpecificCredential(ctx context.Context, params *iam.
 	return r0, r1
 }
 
+// IAM_DeleteServiceSpecificCredential_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteServiceSpecificCredential'
+type IAM_DeleteServiceSpecificCredential_Call struct {
+	*mock.Call
+}
+
+// DeleteServiceSpecificCredential is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteServiceSpecificCredentialInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteServiceSpecificCredential(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteServiceSpecificCredential_Call {
+	return &IAM_DeleteServiceSpecificCredential_Call{Call: _e.mock.On("DeleteServiceSpecificCredential",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteServiceSpecificCredential_Call) Run(run func(ctx context.Context, params *iam.DeleteServiceSpecificCredentialInput, optFns ...func(*iam.Options))) *IAM_DeleteServiceSpecificCredential_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteServiceSpecificCredentialInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteServiceSpecificCredential_Call) Return(_a0 *iam.DeleteServiceSpecificCredentialOutput, _a1 error) *IAM_DeleteServiceSpecificCredential_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteServiceSpecificCredential_Call) RunAndReturn(run func(context.Context, *iam.DeleteServiceSpecificCredentialInput, ...func(*iam.Options)) (*iam.DeleteServiceSpecificCredentialOutput, error)) *IAM_DeleteServiceSpecificCredential_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteSigningCertificate provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) DeleteSigningCertificate(ctx context.Context, params *iam.DeleteSigningCertificateInput, optFns ...func(*iam.Options)) (*iam.DeleteSigningCertificateOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1529,6 +3017,43 @@ func (_m *IAM) DeleteSigningCertificate(ctx context.Context, params *iam.DeleteS
 	}
 
 	return r0, r1
+}
+
+// IAM_DeleteSigningCertificate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSigningCertificate'
+type IAM_DeleteSigningCertificate_Call struct {
+	*mock.Call
+}
+
+// DeleteSigningCertificate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteSigningCertificateInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteSigningCertificate(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteSigningCertificate_Call {
+	return &IAM_DeleteSigningCertificate_Call{Call: _e.mock.On("DeleteSigningCertificate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteSigningCertificate_Call) Run(run func(ctx context.Context, params *iam.DeleteSigningCertificateInput, optFns ...func(*iam.Options))) *IAM_DeleteSigningCertificate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteSigningCertificateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteSigningCertificate_Call) Return(_a0 *iam.DeleteSigningCertificateOutput, _a1 error) *IAM_DeleteSigningCertificate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteSigningCertificate_Call) RunAndReturn(run func(context.Context, *iam.DeleteSigningCertificateInput, ...func(*iam.Options)) (*iam.DeleteSigningCertificateOutput, error)) *IAM_DeleteSigningCertificate_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteUser provides a mock function with given fields: ctx, params, optFns
@@ -1568,6 +3093,43 @@ func (_m *IAM) DeleteUser(ctx context.Context, params *iam.DeleteUserInput, optF
 	return r0, r1
 }
 
+// IAM_DeleteUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteUser'
+type IAM_DeleteUser_Call struct {
+	*mock.Call
+}
+
+// DeleteUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteUserInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteUser(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteUser_Call {
+	return &IAM_DeleteUser_Call{Call: _e.mock.On("DeleteUser",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteUser_Call) Run(run func(ctx context.Context, params *iam.DeleteUserInput, optFns ...func(*iam.Options))) *IAM_DeleteUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteUserInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteUser_Call) Return(_a0 *iam.DeleteUserOutput, _a1 error) *IAM_DeleteUser_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteUser_Call) RunAndReturn(run func(context.Context, *iam.DeleteUserInput, ...func(*iam.Options)) (*iam.DeleteUserOutput, error)) *IAM_DeleteUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteUserPermissionsBoundary provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) DeleteUserPermissionsBoundary(ctx context.Context, params *iam.DeleteUserPermissionsBoundaryInput, optFns ...func(*iam.Options)) (*iam.DeleteUserPermissionsBoundaryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1603,6 +3165,43 @@ func (_m *IAM) DeleteUserPermissionsBoundary(ctx context.Context, params *iam.De
 	}
 
 	return r0, r1
+}
+
+// IAM_DeleteUserPermissionsBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteUserPermissionsBoundary'
+type IAM_DeleteUserPermissionsBoundary_Call struct {
+	*mock.Call
+}
+
+// DeleteUserPermissionsBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteUserPermissionsBoundaryInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteUserPermissionsBoundary(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteUserPermissionsBoundary_Call {
+	return &IAM_DeleteUserPermissionsBoundary_Call{Call: _e.mock.On("DeleteUserPermissionsBoundary",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteUserPermissionsBoundary_Call) Run(run func(ctx context.Context, params *iam.DeleteUserPermissionsBoundaryInput, optFns ...func(*iam.Options))) *IAM_DeleteUserPermissionsBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteUserPermissionsBoundaryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteUserPermissionsBoundary_Call) Return(_a0 *iam.DeleteUserPermissionsBoundaryOutput, _a1 error) *IAM_DeleteUserPermissionsBoundary_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteUserPermissionsBoundary_Call) RunAndReturn(run func(context.Context, *iam.DeleteUserPermissionsBoundaryInput, ...func(*iam.Options)) (*iam.DeleteUserPermissionsBoundaryOutput, error)) *IAM_DeleteUserPermissionsBoundary_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteUserPolicy provides a mock function with given fields: ctx, params, optFns
@@ -1642,6 +3241,43 @@ func (_m *IAM) DeleteUserPolicy(ctx context.Context, params *iam.DeleteUserPolic
 	return r0, r1
 }
 
+// IAM_DeleteUserPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteUserPolicy'
+type IAM_DeleteUserPolicy_Call struct {
+	*mock.Call
+}
+
+// DeleteUserPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteUserPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteUserPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteUserPolicy_Call {
+	return &IAM_DeleteUserPolicy_Call{Call: _e.mock.On("DeleteUserPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteUserPolicy_Call) Run(run func(ctx context.Context, params *iam.DeleteUserPolicyInput, optFns ...func(*iam.Options))) *IAM_DeleteUserPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteUserPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteUserPolicy_Call) Return(_a0 *iam.DeleteUserPolicyOutput, _a1 error) *IAM_DeleteUserPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteUserPolicy_Call) RunAndReturn(run func(context.Context, *iam.DeleteUserPolicyInput, ...func(*iam.Options)) (*iam.DeleteUserPolicyOutput, error)) *IAM_DeleteUserPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteVirtualMFADevice provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) DeleteVirtualMFADevice(ctx context.Context, params *iam.DeleteVirtualMFADeviceInput, optFns ...func(*iam.Options)) (*iam.DeleteVirtualMFADeviceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1677,6 +3313,43 @@ func (_m *IAM) DeleteVirtualMFADevice(ctx context.Context, params *iam.DeleteVir
 	}
 
 	return r0, r1
+}
+
+// IAM_DeleteVirtualMFADevice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteVirtualMFADevice'
+type IAM_DeleteVirtualMFADevice_Call struct {
+	*mock.Call
+}
+
+// DeleteVirtualMFADevice is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DeleteVirtualMFADeviceInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DeleteVirtualMFADevice(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DeleteVirtualMFADevice_Call {
+	return &IAM_DeleteVirtualMFADevice_Call{Call: _e.mock.On("DeleteVirtualMFADevice",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DeleteVirtualMFADevice_Call) Run(run func(ctx context.Context, params *iam.DeleteVirtualMFADeviceInput, optFns ...func(*iam.Options))) *IAM_DeleteVirtualMFADevice_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DeleteVirtualMFADeviceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DeleteVirtualMFADevice_Call) Return(_a0 *iam.DeleteVirtualMFADeviceOutput, _a1 error) *IAM_DeleteVirtualMFADevice_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DeleteVirtualMFADevice_Call) RunAndReturn(run func(context.Context, *iam.DeleteVirtualMFADeviceInput, ...func(*iam.Options)) (*iam.DeleteVirtualMFADeviceOutput, error)) *IAM_DeleteVirtualMFADevice_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DetachGroupPolicy provides a mock function with given fields: ctx, params, optFns
@@ -1716,6 +3389,43 @@ func (_m *IAM) DetachGroupPolicy(ctx context.Context, params *iam.DetachGroupPol
 	return r0, r1
 }
 
+// IAM_DetachGroupPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachGroupPolicy'
+type IAM_DetachGroupPolicy_Call struct {
+	*mock.Call
+}
+
+// DetachGroupPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DetachGroupPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DetachGroupPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DetachGroupPolicy_Call {
+	return &IAM_DetachGroupPolicy_Call{Call: _e.mock.On("DetachGroupPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DetachGroupPolicy_Call) Run(run func(ctx context.Context, params *iam.DetachGroupPolicyInput, optFns ...func(*iam.Options))) *IAM_DetachGroupPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DetachGroupPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DetachGroupPolicy_Call) Return(_a0 *iam.DetachGroupPolicyOutput, _a1 error) *IAM_DetachGroupPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DetachGroupPolicy_Call) RunAndReturn(run func(context.Context, *iam.DetachGroupPolicyInput, ...func(*iam.Options)) (*iam.DetachGroupPolicyOutput, error)) *IAM_DetachGroupPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DetachRolePolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) DetachRolePolicy(ctx context.Context, params *iam.DetachRolePolicyInput, optFns ...func(*iam.Options)) (*iam.DetachRolePolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1751,6 +3461,43 @@ func (_m *IAM) DetachRolePolicy(ctx context.Context, params *iam.DetachRolePolic
 	}
 
 	return r0, r1
+}
+
+// IAM_DetachRolePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachRolePolicy'
+type IAM_DetachRolePolicy_Call struct {
+	*mock.Call
+}
+
+// DetachRolePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DetachRolePolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DetachRolePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DetachRolePolicy_Call {
+	return &IAM_DetachRolePolicy_Call{Call: _e.mock.On("DetachRolePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DetachRolePolicy_Call) Run(run func(ctx context.Context, params *iam.DetachRolePolicyInput, optFns ...func(*iam.Options))) *IAM_DetachRolePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DetachRolePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DetachRolePolicy_Call) Return(_a0 *iam.DetachRolePolicyOutput, _a1 error) *IAM_DetachRolePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DetachRolePolicy_Call) RunAndReturn(run func(context.Context, *iam.DetachRolePolicyInput, ...func(*iam.Options)) (*iam.DetachRolePolicyOutput, error)) *IAM_DetachRolePolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DetachUserPolicy provides a mock function with given fields: ctx, params, optFns
@@ -1790,6 +3537,191 @@ func (_m *IAM) DetachUserPolicy(ctx context.Context, params *iam.DetachUserPolic
 	return r0, r1
 }
 
+// IAM_DetachUserPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachUserPolicy'
+type IAM_DetachUserPolicy_Call struct {
+	*mock.Call
+}
+
+// DetachUserPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DetachUserPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DetachUserPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DetachUserPolicy_Call {
+	return &IAM_DetachUserPolicy_Call{Call: _e.mock.On("DetachUserPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DetachUserPolicy_Call) Run(run func(ctx context.Context, params *iam.DetachUserPolicyInput, optFns ...func(*iam.Options))) *IAM_DetachUserPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DetachUserPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DetachUserPolicy_Call) Return(_a0 *iam.DetachUserPolicyOutput, _a1 error) *IAM_DetachUserPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DetachUserPolicy_Call) RunAndReturn(run func(context.Context, *iam.DetachUserPolicyInput, ...func(*iam.Options)) (*iam.DetachUserPolicyOutput, error)) *IAM_DetachUserPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DisableOrganizationsRootCredentialsManagement provides a mock function with given fields: ctx, params, optFns
+func (_m *IAM) DisableOrganizationsRootCredentialsManagement(ctx context.Context, params *iam.DisableOrganizationsRootCredentialsManagementInput, optFns ...func(*iam.Options)) (*iam.DisableOrganizationsRootCredentialsManagementOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DisableOrganizationsRootCredentialsManagement")
+	}
+
+	var r0 *iam.DisableOrganizationsRootCredentialsManagementOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DisableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) (*iam.DisableOrganizationsRootCredentialsManagementOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DisableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) *iam.DisableOrganizationsRootCredentialsManagementOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.DisableOrganizationsRootCredentialsManagementOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DisableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IAM_DisableOrganizationsRootCredentialsManagement_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisableOrganizationsRootCredentialsManagement'
+type IAM_DisableOrganizationsRootCredentialsManagement_Call struct {
+	*mock.Call
+}
+
+// DisableOrganizationsRootCredentialsManagement is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DisableOrganizationsRootCredentialsManagementInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DisableOrganizationsRootCredentialsManagement(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DisableOrganizationsRootCredentialsManagement_Call {
+	return &IAM_DisableOrganizationsRootCredentialsManagement_Call{Call: _e.mock.On("DisableOrganizationsRootCredentialsManagement",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DisableOrganizationsRootCredentialsManagement_Call) Run(run func(ctx context.Context, params *iam.DisableOrganizationsRootCredentialsManagementInput, optFns ...func(*iam.Options))) *IAM_DisableOrganizationsRootCredentialsManagement_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DisableOrganizationsRootCredentialsManagementInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DisableOrganizationsRootCredentialsManagement_Call) Return(_a0 *iam.DisableOrganizationsRootCredentialsManagementOutput, _a1 error) *IAM_DisableOrganizationsRootCredentialsManagement_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DisableOrganizationsRootCredentialsManagement_Call) RunAndReturn(run func(context.Context, *iam.DisableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) (*iam.DisableOrganizationsRootCredentialsManagementOutput, error)) *IAM_DisableOrganizationsRootCredentialsManagement_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DisableOrganizationsRootSessions provides a mock function with given fields: ctx, params, optFns
+func (_m *IAM) DisableOrganizationsRootSessions(ctx context.Context, params *iam.DisableOrganizationsRootSessionsInput, optFns ...func(*iam.Options)) (*iam.DisableOrganizationsRootSessionsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DisableOrganizationsRootSessions")
+	}
+
+	var r0 *iam.DisableOrganizationsRootSessionsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DisableOrganizationsRootSessionsInput, ...func(*iam.Options)) (*iam.DisableOrganizationsRootSessionsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DisableOrganizationsRootSessionsInput, ...func(*iam.Options)) *iam.DisableOrganizationsRootSessionsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.DisableOrganizationsRootSessionsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DisableOrganizationsRootSessionsInput, ...func(*iam.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IAM_DisableOrganizationsRootSessions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisableOrganizationsRootSessions'
+type IAM_DisableOrganizationsRootSessions_Call struct {
+	*mock.Call
+}
+
+// DisableOrganizationsRootSessions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.DisableOrganizationsRootSessionsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) DisableOrganizationsRootSessions(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_DisableOrganizationsRootSessions_Call {
+	return &IAM_DisableOrganizationsRootSessions_Call{Call: _e.mock.On("DisableOrganizationsRootSessions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_DisableOrganizationsRootSessions_Call) Run(run func(ctx context.Context, params *iam.DisableOrganizationsRootSessionsInput, optFns ...func(*iam.Options))) *IAM_DisableOrganizationsRootSessions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.DisableOrganizationsRootSessionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_DisableOrganizationsRootSessions_Call) Return(_a0 *iam.DisableOrganizationsRootSessionsOutput, _a1 error) *IAM_DisableOrganizationsRootSessions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_DisableOrganizationsRootSessions_Call) RunAndReturn(run func(context.Context, *iam.DisableOrganizationsRootSessionsInput, ...func(*iam.Options)) (*iam.DisableOrganizationsRootSessionsOutput, error)) *IAM_DisableOrganizationsRootSessions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // EnableMFADevice provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) EnableMFADevice(ctx context.Context, params *iam.EnableMFADeviceInput, optFns ...func(*iam.Options)) (*iam.EnableMFADeviceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1825,6 +3757,191 @@ func (_m *IAM) EnableMFADevice(ctx context.Context, params *iam.EnableMFADeviceI
 	}
 
 	return r0, r1
+}
+
+// IAM_EnableMFADevice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnableMFADevice'
+type IAM_EnableMFADevice_Call struct {
+	*mock.Call
+}
+
+// EnableMFADevice is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.EnableMFADeviceInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) EnableMFADevice(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_EnableMFADevice_Call {
+	return &IAM_EnableMFADevice_Call{Call: _e.mock.On("EnableMFADevice",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_EnableMFADevice_Call) Run(run func(ctx context.Context, params *iam.EnableMFADeviceInput, optFns ...func(*iam.Options))) *IAM_EnableMFADevice_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.EnableMFADeviceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_EnableMFADevice_Call) Return(_a0 *iam.EnableMFADeviceOutput, _a1 error) *IAM_EnableMFADevice_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_EnableMFADevice_Call) RunAndReturn(run func(context.Context, *iam.EnableMFADeviceInput, ...func(*iam.Options)) (*iam.EnableMFADeviceOutput, error)) *IAM_EnableMFADevice_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// EnableOrganizationsRootCredentialsManagement provides a mock function with given fields: ctx, params, optFns
+func (_m *IAM) EnableOrganizationsRootCredentialsManagement(ctx context.Context, params *iam.EnableOrganizationsRootCredentialsManagementInput, optFns ...func(*iam.Options)) (*iam.EnableOrganizationsRootCredentialsManagementOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnableOrganizationsRootCredentialsManagement")
+	}
+
+	var r0 *iam.EnableOrganizationsRootCredentialsManagementOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.EnableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) (*iam.EnableOrganizationsRootCredentialsManagementOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.EnableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) *iam.EnableOrganizationsRootCredentialsManagementOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.EnableOrganizationsRootCredentialsManagementOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.EnableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IAM_EnableOrganizationsRootCredentialsManagement_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnableOrganizationsRootCredentialsManagement'
+type IAM_EnableOrganizationsRootCredentialsManagement_Call struct {
+	*mock.Call
+}
+
+// EnableOrganizationsRootCredentialsManagement is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.EnableOrganizationsRootCredentialsManagementInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) EnableOrganizationsRootCredentialsManagement(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_EnableOrganizationsRootCredentialsManagement_Call {
+	return &IAM_EnableOrganizationsRootCredentialsManagement_Call{Call: _e.mock.On("EnableOrganizationsRootCredentialsManagement",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_EnableOrganizationsRootCredentialsManagement_Call) Run(run func(ctx context.Context, params *iam.EnableOrganizationsRootCredentialsManagementInput, optFns ...func(*iam.Options))) *IAM_EnableOrganizationsRootCredentialsManagement_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.EnableOrganizationsRootCredentialsManagementInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_EnableOrganizationsRootCredentialsManagement_Call) Return(_a0 *iam.EnableOrganizationsRootCredentialsManagementOutput, _a1 error) *IAM_EnableOrganizationsRootCredentialsManagement_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_EnableOrganizationsRootCredentialsManagement_Call) RunAndReturn(run func(context.Context, *iam.EnableOrganizationsRootCredentialsManagementInput, ...func(*iam.Options)) (*iam.EnableOrganizationsRootCredentialsManagementOutput, error)) *IAM_EnableOrganizationsRootCredentialsManagement_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// EnableOrganizationsRootSessions provides a mock function with given fields: ctx, params, optFns
+func (_m *IAM) EnableOrganizationsRootSessions(ctx context.Context, params *iam.EnableOrganizationsRootSessionsInput, optFns ...func(*iam.Options)) (*iam.EnableOrganizationsRootSessionsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnableOrganizationsRootSessions")
+	}
+
+	var r0 *iam.EnableOrganizationsRootSessionsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.EnableOrganizationsRootSessionsInput, ...func(*iam.Options)) (*iam.EnableOrganizationsRootSessionsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.EnableOrganizationsRootSessionsInput, ...func(*iam.Options)) *iam.EnableOrganizationsRootSessionsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.EnableOrganizationsRootSessionsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.EnableOrganizationsRootSessionsInput, ...func(*iam.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IAM_EnableOrganizationsRootSessions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnableOrganizationsRootSessions'
+type IAM_EnableOrganizationsRootSessions_Call struct {
+	*mock.Call
+}
+
+// EnableOrganizationsRootSessions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.EnableOrganizationsRootSessionsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) EnableOrganizationsRootSessions(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_EnableOrganizationsRootSessions_Call {
+	return &IAM_EnableOrganizationsRootSessions_Call{Call: _e.mock.On("EnableOrganizationsRootSessions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_EnableOrganizationsRootSessions_Call) Run(run func(ctx context.Context, params *iam.EnableOrganizationsRootSessionsInput, optFns ...func(*iam.Options))) *IAM_EnableOrganizationsRootSessions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.EnableOrganizationsRootSessionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_EnableOrganizationsRootSessions_Call) Return(_a0 *iam.EnableOrganizationsRootSessionsOutput, _a1 error) *IAM_EnableOrganizationsRootSessions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_EnableOrganizationsRootSessions_Call) RunAndReturn(run func(context.Context, *iam.EnableOrganizationsRootSessionsInput, ...func(*iam.Options)) (*iam.EnableOrganizationsRootSessionsOutput, error)) *IAM_EnableOrganizationsRootSessions_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GenerateCredentialReport provides a mock function with given fields: ctx, params, optFns
@@ -1864,6 +3981,43 @@ func (_m *IAM) GenerateCredentialReport(ctx context.Context, params *iam.Generat
 	return r0, r1
 }
 
+// IAM_GenerateCredentialReport_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateCredentialReport'
+type IAM_GenerateCredentialReport_Call struct {
+	*mock.Call
+}
+
+// GenerateCredentialReport is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GenerateCredentialReportInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GenerateCredentialReport(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GenerateCredentialReport_Call {
+	return &IAM_GenerateCredentialReport_Call{Call: _e.mock.On("GenerateCredentialReport",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GenerateCredentialReport_Call) Run(run func(ctx context.Context, params *iam.GenerateCredentialReportInput, optFns ...func(*iam.Options))) *IAM_GenerateCredentialReport_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GenerateCredentialReportInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GenerateCredentialReport_Call) Return(_a0 *iam.GenerateCredentialReportOutput, _a1 error) *IAM_GenerateCredentialReport_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GenerateCredentialReport_Call) RunAndReturn(run func(context.Context, *iam.GenerateCredentialReportInput, ...func(*iam.Options)) (*iam.GenerateCredentialReportOutput, error)) *IAM_GenerateCredentialReport_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GenerateOrganizationsAccessReport provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GenerateOrganizationsAccessReport(ctx context.Context, params *iam.GenerateOrganizationsAccessReportInput, optFns ...func(*iam.Options)) (*iam.GenerateOrganizationsAccessReportOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1899,6 +4053,43 @@ func (_m *IAM) GenerateOrganizationsAccessReport(ctx context.Context, params *ia
 	}
 
 	return r0, r1
+}
+
+// IAM_GenerateOrganizationsAccessReport_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateOrganizationsAccessReport'
+type IAM_GenerateOrganizationsAccessReport_Call struct {
+	*mock.Call
+}
+
+// GenerateOrganizationsAccessReport is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GenerateOrganizationsAccessReportInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GenerateOrganizationsAccessReport(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GenerateOrganizationsAccessReport_Call {
+	return &IAM_GenerateOrganizationsAccessReport_Call{Call: _e.mock.On("GenerateOrganizationsAccessReport",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GenerateOrganizationsAccessReport_Call) Run(run func(ctx context.Context, params *iam.GenerateOrganizationsAccessReportInput, optFns ...func(*iam.Options))) *IAM_GenerateOrganizationsAccessReport_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GenerateOrganizationsAccessReportInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GenerateOrganizationsAccessReport_Call) Return(_a0 *iam.GenerateOrganizationsAccessReportOutput, _a1 error) *IAM_GenerateOrganizationsAccessReport_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GenerateOrganizationsAccessReport_Call) RunAndReturn(run func(context.Context, *iam.GenerateOrganizationsAccessReportInput, ...func(*iam.Options)) (*iam.GenerateOrganizationsAccessReportOutput, error)) *IAM_GenerateOrganizationsAccessReport_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GenerateServiceLastAccessedDetails provides a mock function with given fields: ctx, params, optFns
@@ -1938,6 +4129,43 @@ func (_m *IAM) GenerateServiceLastAccessedDetails(ctx context.Context, params *i
 	return r0, r1
 }
 
+// IAM_GenerateServiceLastAccessedDetails_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateServiceLastAccessedDetails'
+type IAM_GenerateServiceLastAccessedDetails_Call struct {
+	*mock.Call
+}
+
+// GenerateServiceLastAccessedDetails is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GenerateServiceLastAccessedDetailsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GenerateServiceLastAccessedDetails(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GenerateServiceLastAccessedDetails_Call {
+	return &IAM_GenerateServiceLastAccessedDetails_Call{Call: _e.mock.On("GenerateServiceLastAccessedDetails",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GenerateServiceLastAccessedDetails_Call) Run(run func(ctx context.Context, params *iam.GenerateServiceLastAccessedDetailsInput, optFns ...func(*iam.Options))) *IAM_GenerateServiceLastAccessedDetails_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GenerateServiceLastAccessedDetailsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GenerateServiceLastAccessedDetails_Call) Return(_a0 *iam.GenerateServiceLastAccessedDetailsOutput, _a1 error) *IAM_GenerateServiceLastAccessedDetails_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GenerateServiceLastAccessedDetails_Call) RunAndReturn(run func(context.Context, *iam.GenerateServiceLastAccessedDetailsInput, ...func(*iam.Options)) (*iam.GenerateServiceLastAccessedDetailsOutput, error)) *IAM_GenerateServiceLastAccessedDetails_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAccessKeyLastUsed provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetAccessKeyLastUsed(ctx context.Context, params *iam.GetAccessKeyLastUsedInput, optFns ...func(*iam.Options)) (*iam.GetAccessKeyLastUsedOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1973,6 +4201,43 @@ func (_m *IAM) GetAccessKeyLastUsed(ctx context.Context, params *iam.GetAccessKe
 	}
 
 	return r0, r1
+}
+
+// IAM_GetAccessKeyLastUsed_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccessKeyLastUsed'
+type IAM_GetAccessKeyLastUsed_Call struct {
+	*mock.Call
+}
+
+// GetAccessKeyLastUsed is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetAccessKeyLastUsedInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetAccessKeyLastUsed(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetAccessKeyLastUsed_Call {
+	return &IAM_GetAccessKeyLastUsed_Call{Call: _e.mock.On("GetAccessKeyLastUsed",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetAccessKeyLastUsed_Call) Run(run func(ctx context.Context, params *iam.GetAccessKeyLastUsedInput, optFns ...func(*iam.Options))) *IAM_GetAccessKeyLastUsed_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetAccessKeyLastUsedInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetAccessKeyLastUsed_Call) Return(_a0 *iam.GetAccessKeyLastUsedOutput, _a1 error) *IAM_GetAccessKeyLastUsed_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetAccessKeyLastUsed_Call) RunAndReturn(run func(context.Context, *iam.GetAccessKeyLastUsedInput, ...func(*iam.Options)) (*iam.GetAccessKeyLastUsedOutput, error)) *IAM_GetAccessKeyLastUsed_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetAccountAuthorizationDetails provides a mock function with given fields: ctx, params, optFns
@@ -2012,6 +4277,43 @@ func (_m *IAM) GetAccountAuthorizationDetails(ctx context.Context, params *iam.G
 	return r0, r1
 }
 
+// IAM_GetAccountAuthorizationDetails_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountAuthorizationDetails'
+type IAM_GetAccountAuthorizationDetails_Call struct {
+	*mock.Call
+}
+
+// GetAccountAuthorizationDetails is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetAccountAuthorizationDetailsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetAccountAuthorizationDetails(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetAccountAuthorizationDetails_Call {
+	return &IAM_GetAccountAuthorizationDetails_Call{Call: _e.mock.On("GetAccountAuthorizationDetails",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetAccountAuthorizationDetails_Call) Run(run func(ctx context.Context, params *iam.GetAccountAuthorizationDetailsInput, optFns ...func(*iam.Options))) *IAM_GetAccountAuthorizationDetails_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetAccountAuthorizationDetailsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetAccountAuthorizationDetails_Call) Return(_a0 *iam.GetAccountAuthorizationDetailsOutput, _a1 error) *IAM_GetAccountAuthorizationDetails_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetAccountAuthorizationDetails_Call) RunAndReturn(run func(context.Context, *iam.GetAccountAuthorizationDetailsInput, ...func(*iam.Options)) (*iam.GetAccountAuthorizationDetailsOutput, error)) *IAM_GetAccountAuthorizationDetails_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAccountPasswordPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetAccountPasswordPolicy(ctx context.Context, params *iam.GetAccountPasswordPolicyInput, optFns ...func(*iam.Options)) (*iam.GetAccountPasswordPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2047,6 +4349,43 @@ func (_m *IAM) GetAccountPasswordPolicy(ctx context.Context, params *iam.GetAcco
 	}
 
 	return r0, r1
+}
+
+// IAM_GetAccountPasswordPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountPasswordPolicy'
+type IAM_GetAccountPasswordPolicy_Call struct {
+	*mock.Call
+}
+
+// GetAccountPasswordPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetAccountPasswordPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetAccountPasswordPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetAccountPasswordPolicy_Call {
+	return &IAM_GetAccountPasswordPolicy_Call{Call: _e.mock.On("GetAccountPasswordPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetAccountPasswordPolicy_Call) Run(run func(ctx context.Context, params *iam.GetAccountPasswordPolicyInput, optFns ...func(*iam.Options))) *IAM_GetAccountPasswordPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetAccountPasswordPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetAccountPasswordPolicy_Call) Return(_a0 *iam.GetAccountPasswordPolicyOutput, _a1 error) *IAM_GetAccountPasswordPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetAccountPasswordPolicy_Call) RunAndReturn(run func(context.Context, *iam.GetAccountPasswordPolicyInput, ...func(*iam.Options)) (*iam.GetAccountPasswordPolicyOutput, error)) *IAM_GetAccountPasswordPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetAccountSummary provides a mock function with given fields: ctx, params, optFns
@@ -2086,6 +4425,43 @@ func (_m *IAM) GetAccountSummary(ctx context.Context, params *iam.GetAccountSumm
 	return r0, r1
 }
 
+// IAM_GetAccountSummary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountSummary'
+type IAM_GetAccountSummary_Call struct {
+	*mock.Call
+}
+
+// GetAccountSummary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetAccountSummaryInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetAccountSummary(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetAccountSummary_Call {
+	return &IAM_GetAccountSummary_Call{Call: _e.mock.On("GetAccountSummary",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetAccountSummary_Call) Run(run func(ctx context.Context, params *iam.GetAccountSummaryInput, optFns ...func(*iam.Options))) *IAM_GetAccountSummary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetAccountSummaryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetAccountSummary_Call) Return(_a0 *iam.GetAccountSummaryOutput, _a1 error) *IAM_GetAccountSummary_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetAccountSummary_Call) RunAndReturn(run func(context.Context, *iam.GetAccountSummaryInput, ...func(*iam.Options)) (*iam.GetAccountSummaryOutput, error)) *IAM_GetAccountSummary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetContextKeysForCustomPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetContextKeysForCustomPolicy(ctx context.Context, params *iam.GetContextKeysForCustomPolicyInput, optFns ...func(*iam.Options)) (*iam.GetContextKeysForCustomPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2121,6 +4497,43 @@ func (_m *IAM) GetContextKeysForCustomPolicy(ctx context.Context, params *iam.Ge
 	}
 
 	return r0, r1
+}
+
+// IAM_GetContextKeysForCustomPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetContextKeysForCustomPolicy'
+type IAM_GetContextKeysForCustomPolicy_Call struct {
+	*mock.Call
+}
+
+// GetContextKeysForCustomPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetContextKeysForCustomPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetContextKeysForCustomPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetContextKeysForCustomPolicy_Call {
+	return &IAM_GetContextKeysForCustomPolicy_Call{Call: _e.mock.On("GetContextKeysForCustomPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetContextKeysForCustomPolicy_Call) Run(run func(ctx context.Context, params *iam.GetContextKeysForCustomPolicyInput, optFns ...func(*iam.Options))) *IAM_GetContextKeysForCustomPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetContextKeysForCustomPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetContextKeysForCustomPolicy_Call) Return(_a0 *iam.GetContextKeysForCustomPolicyOutput, _a1 error) *IAM_GetContextKeysForCustomPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetContextKeysForCustomPolicy_Call) RunAndReturn(run func(context.Context, *iam.GetContextKeysForCustomPolicyInput, ...func(*iam.Options)) (*iam.GetContextKeysForCustomPolicyOutput, error)) *IAM_GetContextKeysForCustomPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetContextKeysForPrincipalPolicy provides a mock function with given fields: ctx, params, optFns
@@ -2160,6 +4573,43 @@ func (_m *IAM) GetContextKeysForPrincipalPolicy(ctx context.Context, params *iam
 	return r0, r1
 }
 
+// IAM_GetContextKeysForPrincipalPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetContextKeysForPrincipalPolicy'
+type IAM_GetContextKeysForPrincipalPolicy_Call struct {
+	*mock.Call
+}
+
+// GetContextKeysForPrincipalPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetContextKeysForPrincipalPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetContextKeysForPrincipalPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetContextKeysForPrincipalPolicy_Call {
+	return &IAM_GetContextKeysForPrincipalPolicy_Call{Call: _e.mock.On("GetContextKeysForPrincipalPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetContextKeysForPrincipalPolicy_Call) Run(run func(ctx context.Context, params *iam.GetContextKeysForPrincipalPolicyInput, optFns ...func(*iam.Options))) *IAM_GetContextKeysForPrincipalPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetContextKeysForPrincipalPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetContextKeysForPrincipalPolicy_Call) Return(_a0 *iam.GetContextKeysForPrincipalPolicyOutput, _a1 error) *IAM_GetContextKeysForPrincipalPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetContextKeysForPrincipalPolicy_Call) RunAndReturn(run func(context.Context, *iam.GetContextKeysForPrincipalPolicyInput, ...func(*iam.Options)) (*iam.GetContextKeysForPrincipalPolicyOutput, error)) *IAM_GetContextKeysForPrincipalPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCredentialReport provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetCredentialReport(ctx context.Context, params *iam.GetCredentialReportInput, optFns ...func(*iam.Options)) (*iam.GetCredentialReportOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2195,6 +4645,43 @@ func (_m *IAM) GetCredentialReport(ctx context.Context, params *iam.GetCredentia
 	}
 
 	return r0, r1
+}
+
+// IAM_GetCredentialReport_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCredentialReport'
+type IAM_GetCredentialReport_Call struct {
+	*mock.Call
+}
+
+// GetCredentialReport is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetCredentialReportInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetCredentialReport(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetCredentialReport_Call {
+	return &IAM_GetCredentialReport_Call{Call: _e.mock.On("GetCredentialReport",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetCredentialReport_Call) Run(run func(ctx context.Context, params *iam.GetCredentialReportInput, optFns ...func(*iam.Options))) *IAM_GetCredentialReport_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetCredentialReportInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetCredentialReport_Call) Return(_a0 *iam.GetCredentialReportOutput, _a1 error) *IAM_GetCredentialReport_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetCredentialReport_Call) RunAndReturn(run func(context.Context, *iam.GetCredentialReportInput, ...func(*iam.Options)) (*iam.GetCredentialReportOutput, error)) *IAM_GetCredentialReport_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetGroup provides a mock function with given fields: ctx, params, optFns
@@ -2234,6 +4721,43 @@ func (_m *IAM) GetGroup(ctx context.Context, params *iam.GetGroupInput, optFns .
 	return r0, r1
 }
 
+// IAM_GetGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGroup'
+type IAM_GetGroup_Call struct {
+	*mock.Call
+}
+
+// GetGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetGroupInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetGroup(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetGroup_Call {
+	return &IAM_GetGroup_Call{Call: _e.mock.On("GetGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetGroup_Call) Run(run func(ctx context.Context, params *iam.GetGroupInput, optFns ...func(*iam.Options))) *IAM_GetGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetGroup_Call) Return(_a0 *iam.GetGroupOutput, _a1 error) *IAM_GetGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetGroup_Call) RunAndReturn(run func(context.Context, *iam.GetGroupInput, ...func(*iam.Options)) (*iam.GetGroupOutput, error)) *IAM_GetGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetGroupPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetGroupPolicy(ctx context.Context, params *iam.GetGroupPolicyInput, optFns ...func(*iam.Options)) (*iam.GetGroupPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2269,6 +4793,43 @@ func (_m *IAM) GetGroupPolicy(ctx context.Context, params *iam.GetGroupPolicyInp
 	}
 
 	return r0, r1
+}
+
+// IAM_GetGroupPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGroupPolicy'
+type IAM_GetGroupPolicy_Call struct {
+	*mock.Call
+}
+
+// GetGroupPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetGroupPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetGroupPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetGroupPolicy_Call {
+	return &IAM_GetGroupPolicy_Call{Call: _e.mock.On("GetGroupPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetGroupPolicy_Call) Run(run func(ctx context.Context, params *iam.GetGroupPolicyInput, optFns ...func(*iam.Options))) *IAM_GetGroupPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetGroupPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetGroupPolicy_Call) Return(_a0 *iam.GetGroupPolicyOutput, _a1 error) *IAM_GetGroupPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetGroupPolicy_Call) RunAndReturn(run func(context.Context, *iam.GetGroupPolicyInput, ...func(*iam.Options)) (*iam.GetGroupPolicyOutput, error)) *IAM_GetGroupPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetInstanceProfile provides a mock function with given fields: ctx, params, optFns
@@ -2308,6 +4869,43 @@ func (_m *IAM) GetInstanceProfile(ctx context.Context, params *iam.GetInstancePr
 	return r0, r1
 }
 
+// IAM_GetInstanceProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetInstanceProfile'
+type IAM_GetInstanceProfile_Call struct {
+	*mock.Call
+}
+
+// GetInstanceProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetInstanceProfileInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetInstanceProfile(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetInstanceProfile_Call {
+	return &IAM_GetInstanceProfile_Call{Call: _e.mock.On("GetInstanceProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetInstanceProfile_Call) Run(run func(ctx context.Context, params *iam.GetInstanceProfileInput, optFns ...func(*iam.Options))) *IAM_GetInstanceProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetInstanceProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetInstanceProfile_Call) Return(_a0 *iam.GetInstanceProfileOutput, _a1 error) *IAM_GetInstanceProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetInstanceProfile_Call) RunAndReturn(run func(context.Context, *iam.GetInstanceProfileInput, ...func(*iam.Options)) (*iam.GetInstanceProfileOutput, error)) *IAM_GetInstanceProfile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetLoginProfile provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetLoginProfile(ctx context.Context, params *iam.GetLoginProfileInput, optFns ...func(*iam.Options)) (*iam.GetLoginProfileOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2343,6 +4941,43 @@ func (_m *IAM) GetLoginProfile(ctx context.Context, params *iam.GetLoginProfileI
 	}
 
 	return r0, r1
+}
+
+// IAM_GetLoginProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLoginProfile'
+type IAM_GetLoginProfile_Call struct {
+	*mock.Call
+}
+
+// GetLoginProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetLoginProfileInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetLoginProfile(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetLoginProfile_Call {
+	return &IAM_GetLoginProfile_Call{Call: _e.mock.On("GetLoginProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetLoginProfile_Call) Run(run func(ctx context.Context, params *iam.GetLoginProfileInput, optFns ...func(*iam.Options))) *IAM_GetLoginProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetLoginProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetLoginProfile_Call) Return(_a0 *iam.GetLoginProfileOutput, _a1 error) *IAM_GetLoginProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetLoginProfile_Call) RunAndReturn(run func(context.Context, *iam.GetLoginProfileInput, ...func(*iam.Options)) (*iam.GetLoginProfileOutput, error)) *IAM_GetLoginProfile_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetMFADevice provides a mock function with given fields: ctx, params, optFns
@@ -2382,6 +5017,43 @@ func (_m *IAM) GetMFADevice(ctx context.Context, params *iam.GetMFADeviceInput, 
 	return r0, r1
 }
 
+// IAM_GetMFADevice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMFADevice'
+type IAM_GetMFADevice_Call struct {
+	*mock.Call
+}
+
+// GetMFADevice is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetMFADeviceInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetMFADevice(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetMFADevice_Call {
+	return &IAM_GetMFADevice_Call{Call: _e.mock.On("GetMFADevice",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetMFADevice_Call) Run(run func(ctx context.Context, params *iam.GetMFADeviceInput, optFns ...func(*iam.Options))) *IAM_GetMFADevice_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetMFADeviceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetMFADevice_Call) Return(_a0 *iam.GetMFADeviceOutput, _a1 error) *IAM_GetMFADevice_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetMFADevice_Call) RunAndReturn(run func(context.Context, *iam.GetMFADeviceInput, ...func(*iam.Options)) (*iam.GetMFADeviceOutput, error)) *IAM_GetMFADevice_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetOpenIDConnectProvider provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetOpenIDConnectProvider(ctx context.Context, params *iam.GetOpenIDConnectProviderInput, optFns ...func(*iam.Options)) (*iam.GetOpenIDConnectProviderOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2417,6 +5089,43 @@ func (_m *IAM) GetOpenIDConnectProvider(ctx context.Context, params *iam.GetOpen
 	}
 
 	return r0, r1
+}
+
+// IAM_GetOpenIDConnectProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOpenIDConnectProvider'
+type IAM_GetOpenIDConnectProvider_Call struct {
+	*mock.Call
+}
+
+// GetOpenIDConnectProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetOpenIDConnectProviderInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetOpenIDConnectProvider(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetOpenIDConnectProvider_Call {
+	return &IAM_GetOpenIDConnectProvider_Call{Call: _e.mock.On("GetOpenIDConnectProvider",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetOpenIDConnectProvider_Call) Run(run func(ctx context.Context, params *iam.GetOpenIDConnectProviderInput, optFns ...func(*iam.Options))) *IAM_GetOpenIDConnectProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetOpenIDConnectProviderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetOpenIDConnectProvider_Call) Return(_a0 *iam.GetOpenIDConnectProviderOutput, _a1 error) *IAM_GetOpenIDConnectProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetOpenIDConnectProvider_Call) RunAndReturn(run func(context.Context, *iam.GetOpenIDConnectProviderInput, ...func(*iam.Options)) (*iam.GetOpenIDConnectProviderOutput, error)) *IAM_GetOpenIDConnectProvider_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetOrganizationsAccessReport provides a mock function with given fields: ctx, params, optFns
@@ -2456,6 +5165,43 @@ func (_m *IAM) GetOrganizationsAccessReport(ctx context.Context, params *iam.Get
 	return r0, r1
 }
 
+// IAM_GetOrganizationsAccessReport_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOrganizationsAccessReport'
+type IAM_GetOrganizationsAccessReport_Call struct {
+	*mock.Call
+}
+
+// GetOrganizationsAccessReport is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetOrganizationsAccessReportInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetOrganizationsAccessReport(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetOrganizationsAccessReport_Call {
+	return &IAM_GetOrganizationsAccessReport_Call{Call: _e.mock.On("GetOrganizationsAccessReport",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetOrganizationsAccessReport_Call) Run(run func(ctx context.Context, params *iam.GetOrganizationsAccessReportInput, optFns ...func(*iam.Options))) *IAM_GetOrganizationsAccessReport_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetOrganizationsAccessReportInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetOrganizationsAccessReport_Call) Return(_a0 *iam.GetOrganizationsAccessReportOutput, _a1 error) *IAM_GetOrganizationsAccessReport_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetOrganizationsAccessReport_Call) RunAndReturn(run func(context.Context, *iam.GetOrganizationsAccessReportInput, ...func(*iam.Options)) (*iam.GetOrganizationsAccessReportOutput, error)) *IAM_GetOrganizationsAccessReport_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetPolicy(ctx context.Context, params *iam.GetPolicyInput, optFns ...func(*iam.Options)) (*iam.GetPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2491,6 +5237,43 @@ func (_m *IAM) GetPolicy(ctx context.Context, params *iam.GetPolicyInput, optFns
 	}
 
 	return r0, r1
+}
+
+// IAM_GetPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPolicy'
+type IAM_GetPolicy_Call struct {
+	*mock.Call
+}
+
+// GetPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetPolicy_Call {
+	return &IAM_GetPolicy_Call{Call: _e.mock.On("GetPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetPolicy_Call) Run(run func(ctx context.Context, params *iam.GetPolicyInput, optFns ...func(*iam.Options))) *IAM_GetPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetPolicy_Call) Return(_a0 *iam.GetPolicyOutput, _a1 error) *IAM_GetPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetPolicy_Call) RunAndReturn(run func(context.Context, *iam.GetPolicyInput, ...func(*iam.Options)) (*iam.GetPolicyOutput, error)) *IAM_GetPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetPolicyVersion provides a mock function with given fields: ctx, params, optFns
@@ -2530,6 +5313,43 @@ func (_m *IAM) GetPolicyVersion(ctx context.Context, params *iam.GetPolicyVersio
 	return r0, r1
 }
 
+// IAM_GetPolicyVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPolicyVersion'
+type IAM_GetPolicyVersion_Call struct {
+	*mock.Call
+}
+
+// GetPolicyVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetPolicyVersionInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetPolicyVersion(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetPolicyVersion_Call {
+	return &IAM_GetPolicyVersion_Call{Call: _e.mock.On("GetPolicyVersion",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetPolicyVersion_Call) Run(run func(ctx context.Context, params *iam.GetPolicyVersionInput, optFns ...func(*iam.Options))) *IAM_GetPolicyVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetPolicyVersionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetPolicyVersion_Call) Return(_a0 *iam.GetPolicyVersionOutput, _a1 error) *IAM_GetPolicyVersion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetPolicyVersion_Call) RunAndReturn(run func(context.Context, *iam.GetPolicyVersionInput, ...func(*iam.Options)) (*iam.GetPolicyVersionOutput, error)) *IAM_GetPolicyVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetRole provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetRole(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2565,6 +5385,43 @@ func (_m *IAM) GetRole(ctx context.Context, params *iam.GetRoleInput, optFns ...
 	}
 
 	return r0, r1
+}
+
+// IAM_GetRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRole'
+type IAM_GetRole_Call struct {
+	*mock.Call
+}
+
+// GetRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetRoleInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetRole(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetRole_Call {
+	return &IAM_GetRole_Call{Call: _e.mock.On("GetRole",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetRole_Call) Run(run func(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options))) *IAM_GetRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetRoleInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetRole_Call) Return(_a0 *iam.GetRoleOutput, _a1 error) *IAM_GetRole_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetRole_Call) RunAndReturn(run func(context.Context, *iam.GetRoleInput, ...func(*iam.Options)) (*iam.GetRoleOutput, error)) *IAM_GetRole_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetRolePolicy provides a mock function with given fields: ctx, params, optFns
@@ -2604,6 +5461,43 @@ func (_m *IAM) GetRolePolicy(ctx context.Context, params *iam.GetRolePolicyInput
 	return r0, r1
 }
 
+// IAM_GetRolePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRolePolicy'
+type IAM_GetRolePolicy_Call struct {
+	*mock.Call
+}
+
+// GetRolePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetRolePolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetRolePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetRolePolicy_Call {
+	return &IAM_GetRolePolicy_Call{Call: _e.mock.On("GetRolePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetRolePolicy_Call) Run(run func(ctx context.Context, params *iam.GetRolePolicyInput, optFns ...func(*iam.Options))) *IAM_GetRolePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetRolePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetRolePolicy_Call) Return(_a0 *iam.GetRolePolicyOutput, _a1 error) *IAM_GetRolePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetRolePolicy_Call) RunAndReturn(run func(context.Context, *iam.GetRolePolicyInput, ...func(*iam.Options)) (*iam.GetRolePolicyOutput, error)) *IAM_GetRolePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSAMLProvider provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetSAMLProvider(ctx context.Context, params *iam.GetSAMLProviderInput, optFns ...func(*iam.Options)) (*iam.GetSAMLProviderOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2639,6 +5533,43 @@ func (_m *IAM) GetSAMLProvider(ctx context.Context, params *iam.GetSAMLProviderI
 	}
 
 	return r0, r1
+}
+
+// IAM_GetSAMLProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSAMLProvider'
+type IAM_GetSAMLProvider_Call struct {
+	*mock.Call
+}
+
+// GetSAMLProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetSAMLProviderInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetSAMLProvider(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetSAMLProvider_Call {
+	return &IAM_GetSAMLProvider_Call{Call: _e.mock.On("GetSAMLProvider",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetSAMLProvider_Call) Run(run func(ctx context.Context, params *iam.GetSAMLProviderInput, optFns ...func(*iam.Options))) *IAM_GetSAMLProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetSAMLProviderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetSAMLProvider_Call) Return(_a0 *iam.GetSAMLProviderOutput, _a1 error) *IAM_GetSAMLProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetSAMLProvider_Call) RunAndReturn(run func(context.Context, *iam.GetSAMLProviderInput, ...func(*iam.Options)) (*iam.GetSAMLProviderOutput, error)) *IAM_GetSAMLProvider_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetSSHPublicKey provides a mock function with given fields: ctx, params, optFns
@@ -2678,6 +5609,43 @@ func (_m *IAM) GetSSHPublicKey(ctx context.Context, params *iam.GetSSHPublicKeyI
 	return r0, r1
 }
 
+// IAM_GetSSHPublicKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSSHPublicKey'
+type IAM_GetSSHPublicKey_Call struct {
+	*mock.Call
+}
+
+// GetSSHPublicKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetSSHPublicKeyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetSSHPublicKey(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetSSHPublicKey_Call {
+	return &IAM_GetSSHPublicKey_Call{Call: _e.mock.On("GetSSHPublicKey",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetSSHPublicKey_Call) Run(run func(ctx context.Context, params *iam.GetSSHPublicKeyInput, optFns ...func(*iam.Options))) *IAM_GetSSHPublicKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetSSHPublicKeyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetSSHPublicKey_Call) Return(_a0 *iam.GetSSHPublicKeyOutput, _a1 error) *IAM_GetSSHPublicKey_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetSSHPublicKey_Call) RunAndReturn(run func(context.Context, *iam.GetSSHPublicKeyInput, ...func(*iam.Options)) (*iam.GetSSHPublicKeyOutput, error)) *IAM_GetSSHPublicKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetServerCertificate provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetServerCertificate(ctx context.Context, params *iam.GetServerCertificateInput, optFns ...func(*iam.Options)) (*iam.GetServerCertificateOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2713,6 +5681,43 @@ func (_m *IAM) GetServerCertificate(ctx context.Context, params *iam.GetServerCe
 	}
 
 	return r0, r1
+}
+
+// IAM_GetServerCertificate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetServerCertificate'
+type IAM_GetServerCertificate_Call struct {
+	*mock.Call
+}
+
+// GetServerCertificate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetServerCertificateInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetServerCertificate(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetServerCertificate_Call {
+	return &IAM_GetServerCertificate_Call{Call: _e.mock.On("GetServerCertificate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetServerCertificate_Call) Run(run func(ctx context.Context, params *iam.GetServerCertificateInput, optFns ...func(*iam.Options))) *IAM_GetServerCertificate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetServerCertificateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetServerCertificate_Call) Return(_a0 *iam.GetServerCertificateOutput, _a1 error) *IAM_GetServerCertificate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetServerCertificate_Call) RunAndReturn(run func(context.Context, *iam.GetServerCertificateInput, ...func(*iam.Options)) (*iam.GetServerCertificateOutput, error)) *IAM_GetServerCertificate_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetServiceLastAccessedDetails provides a mock function with given fields: ctx, params, optFns
@@ -2752,6 +5757,43 @@ func (_m *IAM) GetServiceLastAccessedDetails(ctx context.Context, params *iam.Ge
 	return r0, r1
 }
 
+// IAM_GetServiceLastAccessedDetails_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetServiceLastAccessedDetails'
+type IAM_GetServiceLastAccessedDetails_Call struct {
+	*mock.Call
+}
+
+// GetServiceLastAccessedDetails is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetServiceLastAccessedDetailsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetServiceLastAccessedDetails(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetServiceLastAccessedDetails_Call {
+	return &IAM_GetServiceLastAccessedDetails_Call{Call: _e.mock.On("GetServiceLastAccessedDetails",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetServiceLastAccessedDetails_Call) Run(run func(ctx context.Context, params *iam.GetServiceLastAccessedDetailsInput, optFns ...func(*iam.Options))) *IAM_GetServiceLastAccessedDetails_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetServiceLastAccessedDetailsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetServiceLastAccessedDetails_Call) Return(_a0 *iam.GetServiceLastAccessedDetailsOutput, _a1 error) *IAM_GetServiceLastAccessedDetails_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetServiceLastAccessedDetails_Call) RunAndReturn(run func(context.Context, *iam.GetServiceLastAccessedDetailsInput, ...func(*iam.Options)) (*iam.GetServiceLastAccessedDetailsOutput, error)) *IAM_GetServiceLastAccessedDetails_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetServiceLastAccessedDetailsWithEntities provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetServiceLastAccessedDetailsWithEntities(ctx context.Context, params *iam.GetServiceLastAccessedDetailsWithEntitiesInput, optFns ...func(*iam.Options)) (*iam.GetServiceLastAccessedDetailsWithEntitiesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2787,6 +5829,43 @@ func (_m *IAM) GetServiceLastAccessedDetailsWithEntities(ctx context.Context, pa
 	}
 
 	return r0, r1
+}
+
+// IAM_GetServiceLastAccessedDetailsWithEntities_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetServiceLastAccessedDetailsWithEntities'
+type IAM_GetServiceLastAccessedDetailsWithEntities_Call struct {
+	*mock.Call
+}
+
+// GetServiceLastAccessedDetailsWithEntities is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetServiceLastAccessedDetailsWithEntitiesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetServiceLastAccessedDetailsWithEntities(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetServiceLastAccessedDetailsWithEntities_Call {
+	return &IAM_GetServiceLastAccessedDetailsWithEntities_Call{Call: _e.mock.On("GetServiceLastAccessedDetailsWithEntities",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetServiceLastAccessedDetailsWithEntities_Call) Run(run func(ctx context.Context, params *iam.GetServiceLastAccessedDetailsWithEntitiesInput, optFns ...func(*iam.Options))) *IAM_GetServiceLastAccessedDetailsWithEntities_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetServiceLastAccessedDetailsWithEntitiesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetServiceLastAccessedDetailsWithEntities_Call) Return(_a0 *iam.GetServiceLastAccessedDetailsWithEntitiesOutput, _a1 error) *IAM_GetServiceLastAccessedDetailsWithEntities_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetServiceLastAccessedDetailsWithEntities_Call) RunAndReturn(run func(context.Context, *iam.GetServiceLastAccessedDetailsWithEntitiesInput, ...func(*iam.Options)) (*iam.GetServiceLastAccessedDetailsWithEntitiesOutput, error)) *IAM_GetServiceLastAccessedDetailsWithEntities_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetServiceLinkedRoleDeletionStatus provides a mock function with given fields: ctx, params, optFns
@@ -2826,6 +5905,43 @@ func (_m *IAM) GetServiceLinkedRoleDeletionStatus(ctx context.Context, params *i
 	return r0, r1
 }
 
+// IAM_GetServiceLinkedRoleDeletionStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetServiceLinkedRoleDeletionStatus'
+type IAM_GetServiceLinkedRoleDeletionStatus_Call struct {
+	*mock.Call
+}
+
+// GetServiceLinkedRoleDeletionStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetServiceLinkedRoleDeletionStatusInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetServiceLinkedRoleDeletionStatus(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetServiceLinkedRoleDeletionStatus_Call {
+	return &IAM_GetServiceLinkedRoleDeletionStatus_Call{Call: _e.mock.On("GetServiceLinkedRoleDeletionStatus",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetServiceLinkedRoleDeletionStatus_Call) Run(run func(ctx context.Context, params *iam.GetServiceLinkedRoleDeletionStatusInput, optFns ...func(*iam.Options))) *IAM_GetServiceLinkedRoleDeletionStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetServiceLinkedRoleDeletionStatusInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetServiceLinkedRoleDeletionStatus_Call) Return(_a0 *iam.GetServiceLinkedRoleDeletionStatusOutput, _a1 error) *IAM_GetServiceLinkedRoleDeletionStatus_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetServiceLinkedRoleDeletionStatus_Call) RunAndReturn(run func(context.Context, *iam.GetServiceLinkedRoleDeletionStatusInput, ...func(*iam.Options)) (*iam.GetServiceLinkedRoleDeletionStatusOutput, error)) *IAM_GetServiceLinkedRoleDeletionStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUser provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) GetUser(ctx context.Context, params *iam.GetUserInput, optFns ...func(*iam.Options)) (*iam.GetUserOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2861,6 +5977,43 @@ func (_m *IAM) GetUser(ctx context.Context, params *iam.GetUserInput, optFns ...
 	}
 
 	return r0, r1
+}
+
+// IAM_GetUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUser'
+type IAM_GetUser_Call struct {
+	*mock.Call
+}
+
+// GetUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetUserInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetUser(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetUser_Call {
+	return &IAM_GetUser_Call{Call: _e.mock.On("GetUser",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetUser_Call) Run(run func(ctx context.Context, params *iam.GetUserInput, optFns ...func(*iam.Options))) *IAM_GetUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetUserInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetUser_Call) Return(_a0 *iam.GetUserOutput, _a1 error) *IAM_GetUser_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetUser_Call) RunAndReturn(run func(context.Context, *iam.GetUserInput, ...func(*iam.Options)) (*iam.GetUserOutput, error)) *IAM_GetUser_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetUserPolicy provides a mock function with given fields: ctx, params, optFns
@@ -2900,6 +6053,43 @@ func (_m *IAM) GetUserPolicy(ctx context.Context, params *iam.GetUserPolicyInput
 	return r0, r1
 }
 
+// IAM_GetUserPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserPolicy'
+type IAM_GetUserPolicy_Call struct {
+	*mock.Call
+}
+
+// GetUserPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.GetUserPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) GetUserPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_GetUserPolicy_Call {
+	return &IAM_GetUserPolicy_Call{Call: _e.mock.On("GetUserPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_GetUserPolicy_Call) Run(run func(ctx context.Context, params *iam.GetUserPolicyInput, optFns ...func(*iam.Options))) *IAM_GetUserPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.GetUserPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_GetUserPolicy_Call) Return(_a0 *iam.GetUserPolicyOutput, _a1 error) *IAM_GetUserPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_GetUserPolicy_Call) RunAndReturn(run func(context.Context, *iam.GetUserPolicyInput, ...func(*iam.Options)) (*iam.GetUserPolicyOutput, error)) *IAM_GetUserPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListAccessKeys provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListAccessKeys(ctx context.Context, params *iam.ListAccessKeysInput, optFns ...func(*iam.Options)) (*iam.ListAccessKeysOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2935,6 +6125,43 @@ func (_m *IAM) ListAccessKeys(ctx context.Context, params *iam.ListAccessKeysInp
 	}
 
 	return r0, r1
+}
+
+// IAM_ListAccessKeys_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAccessKeys'
+type IAM_ListAccessKeys_Call struct {
+	*mock.Call
+}
+
+// ListAccessKeys is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListAccessKeysInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListAccessKeys(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListAccessKeys_Call {
+	return &IAM_ListAccessKeys_Call{Call: _e.mock.On("ListAccessKeys",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListAccessKeys_Call) Run(run func(ctx context.Context, params *iam.ListAccessKeysInput, optFns ...func(*iam.Options))) *IAM_ListAccessKeys_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListAccessKeysInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListAccessKeys_Call) Return(_a0 *iam.ListAccessKeysOutput, _a1 error) *IAM_ListAccessKeys_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListAccessKeys_Call) RunAndReturn(run func(context.Context, *iam.ListAccessKeysInput, ...func(*iam.Options)) (*iam.ListAccessKeysOutput, error)) *IAM_ListAccessKeys_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListAccountAliases provides a mock function with given fields: ctx, params, optFns
@@ -2974,6 +6201,43 @@ func (_m *IAM) ListAccountAliases(ctx context.Context, params *iam.ListAccountAl
 	return r0, r1
 }
 
+// IAM_ListAccountAliases_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAccountAliases'
+type IAM_ListAccountAliases_Call struct {
+	*mock.Call
+}
+
+// ListAccountAliases is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListAccountAliasesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListAccountAliases(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListAccountAliases_Call {
+	return &IAM_ListAccountAliases_Call{Call: _e.mock.On("ListAccountAliases",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListAccountAliases_Call) Run(run func(ctx context.Context, params *iam.ListAccountAliasesInput, optFns ...func(*iam.Options))) *IAM_ListAccountAliases_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListAccountAliasesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListAccountAliases_Call) Return(_a0 *iam.ListAccountAliasesOutput, _a1 error) *IAM_ListAccountAliases_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListAccountAliases_Call) RunAndReturn(run func(context.Context, *iam.ListAccountAliasesInput, ...func(*iam.Options)) (*iam.ListAccountAliasesOutput, error)) *IAM_ListAccountAliases_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListAttachedGroupPolicies provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListAttachedGroupPolicies(ctx context.Context, params *iam.ListAttachedGroupPoliciesInput, optFns ...func(*iam.Options)) (*iam.ListAttachedGroupPoliciesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3009,6 +6273,43 @@ func (_m *IAM) ListAttachedGroupPolicies(ctx context.Context, params *iam.ListAt
 	}
 
 	return r0, r1
+}
+
+// IAM_ListAttachedGroupPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAttachedGroupPolicies'
+type IAM_ListAttachedGroupPolicies_Call struct {
+	*mock.Call
+}
+
+// ListAttachedGroupPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListAttachedGroupPoliciesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListAttachedGroupPolicies(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListAttachedGroupPolicies_Call {
+	return &IAM_ListAttachedGroupPolicies_Call{Call: _e.mock.On("ListAttachedGroupPolicies",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListAttachedGroupPolicies_Call) Run(run func(ctx context.Context, params *iam.ListAttachedGroupPoliciesInput, optFns ...func(*iam.Options))) *IAM_ListAttachedGroupPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListAttachedGroupPoliciesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListAttachedGroupPolicies_Call) Return(_a0 *iam.ListAttachedGroupPoliciesOutput, _a1 error) *IAM_ListAttachedGroupPolicies_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListAttachedGroupPolicies_Call) RunAndReturn(run func(context.Context, *iam.ListAttachedGroupPoliciesInput, ...func(*iam.Options)) (*iam.ListAttachedGroupPoliciesOutput, error)) *IAM_ListAttachedGroupPolicies_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListAttachedRolePolicies provides a mock function with given fields: ctx, params, optFns
@@ -3048,6 +6349,43 @@ func (_m *IAM) ListAttachedRolePolicies(ctx context.Context, params *iam.ListAtt
 	return r0, r1
 }
 
+// IAM_ListAttachedRolePolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAttachedRolePolicies'
+type IAM_ListAttachedRolePolicies_Call struct {
+	*mock.Call
+}
+
+// ListAttachedRolePolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListAttachedRolePoliciesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListAttachedRolePolicies(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListAttachedRolePolicies_Call {
+	return &IAM_ListAttachedRolePolicies_Call{Call: _e.mock.On("ListAttachedRolePolicies",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListAttachedRolePolicies_Call) Run(run func(ctx context.Context, params *iam.ListAttachedRolePoliciesInput, optFns ...func(*iam.Options))) *IAM_ListAttachedRolePolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListAttachedRolePoliciesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListAttachedRolePolicies_Call) Return(_a0 *iam.ListAttachedRolePoliciesOutput, _a1 error) *IAM_ListAttachedRolePolicies_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListAttachedRolePolicies_Call) RunAndReturn(run func(context.Context, *iam.ListAttachedRolePoliciesInput, ...func(*iam.Options)) (*iam.ListAttachedRolePoliciesOutput, error)) *IAM_ListAttachedRolePolicies_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListAttachedUserPolicies provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListAttachedUserPolicies(ctx context.Context, params *iam.ListAttachedUserPoliciesInput, optFns ...func(*iam.Options)) (*iam.ListAttachedUserPoliciesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3083,6 +6421,43 @@ func (_m *IAM) ListAttachedUserPolicies(ctx context.Context, params *iam.ListAtt
 	}
 
 	return r0, r1
+}
+
+// IAM_ListAttachedUserPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAttachedUserPolicies'
+type IAM_ListAttachedUserPolicies_Call struct {
+	*mock.Call
+}
+
+// ListAttachedUserPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListAttachedUserPoliciesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListAttachedUserPolicies(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListAttachedUserPolicies_Call {
+	return &IAM_ListAttachedUserPolicies_Call{Call: _e.mock.On("ListAttachedUserPolicies",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListAttachedUserPolicies_Call) Run(run func(ctx context.Context, params *iam.ListAttachedUserPoliciesInput, optFns ...func(*iam.Options))) *IAM_ListAttachedUserPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListAttachedUserPoliciesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListAttachedUserPolicies_Call) Return(_a0 *iam.ListAttachedUserPoliciesOutput, _a1 error) *IAM_ListAttachedUserPolicies_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListAttachedUserPolicies_Call) RunAndReturn(run func(context.Context, *iam.ListAttachedUserPoliciesInput, ...func(*iam.Options)) (*iam.ListAttachedUserPoliciesOutput, error)) *IAM_ListAttachedUserPolicies_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListEntitiesForPolicy provides a mock function with given fields: ctx, params, optFns
@@ -3122,6 +6497,43 @@ func (_m *IAM) ListEntitiesForPolicy(ctx context.Context, params *iam.ListEntiti
 	return r0, r1
 }
 
+// IAM_ListEntitiesForPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListEntitiesForPolicy'
+type IAM_ListEntitiesForPolicy_Call struct {
+	*mock.Call
+}
+
+// ListEntitiesForPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListEntitiesForPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListEntitiesForPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListEntitiesForPolicy_Call {
+	return &IAM_ListEntitiesForPolicy_Call{Call: _e.mock.On("ListEntitiesForPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListEntitiesForPolicy_Call) Run(run func(ctx context.Context, params *iam.ListEntitiesForPolicyInput, optFns ...func(*iam.Options))) *IAM_ListEntitiesForPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListEntitiesForPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListEntitiesForPolicy_Call) Return(_a0 *iam.ListEntitiesForPolicyOutput, _a1 error) *IAM_ListEntitiesForPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListEntitiesForPolicy_Call) RunAndReturn(run func(context.Context, *iam.ListEntitiesForPolicyInput, ...func(*iam.Options)) (*iam.ListEntitiesForPolicyOutput, error)) *IAM_ListEntitiesForPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListGroupPolicies provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListGroupPolicies(ctx context.Context, params *iam.ListGroupPoliciesInput, optFns ...func(*iam.Options)) (*iam.ListGroupPoliciesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3157,6 +6569,43 @@ func (_m *IAM) ListGroupPolicies(ctx context.Context, params *iam.ListGroupPolic
 	}
 
 	return r0, r1
+}
+
+// IAM_ListGroupPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListGroupPolicies'
+type IAM_ListGroupPolicies_Call struct {
+	*mock.Call
+}
+
+// ListGroupPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListGroupPoliciesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListGroupPolicies(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListGroupPolicies_Call {
+	return &IAM_ListGroupPolicies_Call{Call: _e.mock.On("ListGroupPolicies",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListGroupPolicies_Call) Run(run func(ctx context.Context, params *iam.ListGroupPoliciesInput, optFns ...func(*iam.Options))) *IAM_ListGroupPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListGroupPoliciesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListGroupPolicies_Call) Return(_a0 *iam.ListGroupPoliciesOutput, _a1 error) *IAM_ListGroupPolicies_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListGroupPolicies_Call) RunAndReturn(run func(context.Context, *iam.ListGroupPoliciesInput, ...func(*iam.Options)) (*iam.ListGroupPoliciesOutput, error)) *IAM_ListGroupPolicies_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListGroups provides a mock function with given fields: ctx, params, optFns
@@ -3196,6 +6645,43 @@ func (_m *IAM) ListGroups(ctx context.Context, params *iam.ListGroupsInput, optF
 	return r0, r1
 }
 
+// IAM_ListGroups_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListGroups'
+type IAM_ListGroups_Call struct {
+	*mock.Call
+}
+
+// ListGroups is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListGroupsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListGroups(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListGroups_Call {
+	return &IAM_ListGroups_Call{Call: _e.mock.On("ListGroups",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListGroups_Call) Run(run func(ctx context.Context, params *iam.ListGroupsInput, optFns ...func(*iam.Options))) *IAM_ListGroups_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListGroupsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListGroups_Call) Return(_a0 *iam.ListGroupsOutput, _a1 error) *IAM_ListGroups_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListGroups_Call) RunAndReturn(run func(context.Context, *iam.ListGroupsInput, ...func(*iam.Options)) (*iam.ListGroupsOutput, error)) *IAM_ListGroups_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListGroupsForUser provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListGroupsForUser(ctx context.Context, params *iam.ListGroupsForUserInput, optFns ...func(*iam.Options)) (*iam.ListGroupsForUserOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3231,6 +6717,43 @@ func (_m *IAM) ListGroupsForUser(ctx context.Context, params *iam.ListGroupsForU
 	}
 
 	return r0, r1
+}
+
+// IAM_ListGroupsForUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListGroupsForUser'
+type IAM_ListGroupsForUser_Call struct {
+	*mock.Call
+}
+
+// ListGroupsForUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListGroupsForUserInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListGroupsForUser(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListGroupsForUser_Call {
+	return &IAM_ListGroupsForUser_Call{Call: _e.mock.On("ListGroupsForUser",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListGroupsForUser_Call) Run(run func(ctx context.Context, params *iam.ListGroupsForUserInput, optFns ...func(*iam.Options))) *IAM_ListGroupsForUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListGroupsForUserInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListGroupsForUser_Call) Return(_a0 *iam.ListGroupsForUserOutput, _a1 error) *IAM_ListGroupsForUser_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListGroupsForUser_Call) RunAndReturn(run func(context.Context, *iam.ListGroupsForUserInput, ...func(*iam.Options)) (*iam.ListGroupsForUserOutput, error)) *IAM_ListGroupsForUser_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListInstanceProfileTags provides a mock function with given fields: ctx, params, optFns
@@ -3270,6 +6793,43 @@ func (_m *IAM) ListInstanceProfileTags(ctx context.Context, params *iam.ListInst
 	return r0, r1
 }
 
+// IAM_ListInstanceProfileTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListInstanceProfileTags'
+type IAM_ListInstanceProfileTags_Call struct {
+	*mock.Call
+}
+
+// ListInstanceProfileTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListInstanceProfileTagsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListInstanceProfileTags(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListInstanceProfileTags_Call {
+	return &IAM_ListInstanceProfileTags_Call{Call: _e.mock.On("ListInstanceProfileTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListInstanceProfileTags_Call) Run(run func(ctx context.Context, params *iam.ListInstanceProfileTagsInput, optFns ...func(*iam.Options))) *IAM_ListInstanceProfileTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListInstanceProfileTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListInstanceProfileTags_Call) Return(_a0 *iam.ListInstanceProfileTagsOutput, _a1 error) *IAM_ListInstanceProfileTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListInstanceProfileTags_Call) RunAndReturn(run func(context.Context, *iam.ListInstanceProfileTagsInput, ...func(*iam.Options)) (*iam.ListInstanceProfileTagsOutput, error)) *IAM_ListInstanceProfileTags_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListInstanceProfiles provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListInstanceProfiles(ctx context.Context, params *iam.ListInstanceProfilesInput, optFns ...func(*iam.Options)) (*iam.ListInstanceProfilesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3305,6 +6865,43 @@ func (_m *IAM) ListInstanceProfiles(ctx context.Context, params *iam.ListInstanc
 	}
 
 	return r0, r1
+}
+
+// IAM_ListInstanceProfiles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListInstanceProfiles'
+type IAM_ListInstanceProfiles_Call struct {
+	*mock.Call
+}
+
+// ListInstanceProfiles is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListInstanceProfilesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListInstanceProfiles(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListInstanceProfiles_Call {
+	return &IAM_ListInstanceProfiles_Call{Call: _e.mock.On("ListInstanceProfiles",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListInstanceProfiles_Call) Run(run func(ctx context.Context, params *iam.ListInstanceProfilesInput, optFns ...func(*iam.Options))) *IAM_ListInstanceProfiles_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListInstanceProfilesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListInstanceProfiles_Call) Return(_a0 *iam.ListInstanceProfilesOutput, _a1 error) *IAM_ListInstanceProfiles_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListInstanceProfiles_Call) RunAndReturn(run func(context.Context, *iam.ListInstanceProfilesInput, ...func(*iam.Options)) (*iam.ListInstanceProfilesOutput, error)) *IAM_ListInstanceProfiles_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListInstanceProfilesForRole provides a mock function with given fields: ctx, params, optFns
@@ -3344,6 +6941,43 @@ func (_m *IAM) ListInstanceProfilesForRole(ctx context.Context, params *iam.List
 	return r0, r1
 }
 
+// IAM_ListInstanceProfilesForRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListInstanceProfilesForRole'
+type IAM_ListInstanceProfilesForRole_Call struct {
+	*mock.Call
+}
+
+// ListInstanceProfilesForRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListInstanceProfilesForRoleInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListInstanceProfilesForRole(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListInstanceProfilesForRole_Call {
+	return &IAM_ListInstanceProfilesForRole_Call{Call: _e.mock.On("ListInstanceProfilesForRole",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListInstanceProfilesForRole_Call) Run(run func(ctx context.Context, params *iam.ListInstanceProfilesForRoleInput, optFns ...func(*iam.Options))) *IAM_ListInstanceProfilesForRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListInstanceProfilesForRoleInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListInstanceProfilesForRole_Call) Return(_a0 *iam.ListInstanceProfilesForRoleOutput, _a1 error) *IAM_ListInstanceProfilesForRole_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListInstanceProfilesForRole_Call) RunAndReturn(run func(context.Context, *iam.ListInstanceProfilesForRoleInput, ...func(*iam.Options)) (*iam.ListInstanceProfilesForRoleOutput, error)) *IAM_ListInstanceProfilesForRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListMFADeviceTags provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListMFADeviceTags(ctx context.Context, params *iam.ListMFADeviceTagsInput, optFns ...func(*iam.Options)) (*iam.ListMFADeviceTagsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3379,6 +7013,43 @@ func (_m *IAM) ListMFADeviceTags(ctx context.Context, params *iam.ListMFADeviceT
 	}
 
 	return r0, r1
+}
+
+// IAM_ListMFADeviceTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListMFADeviceTags'
+type IAM_ListMFADeviceTags_Call struct {
+	*mock.Call
+}
+
+// ListMFADeviceTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListMFADeviceTagsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListMFADeviceTags(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListMFADeviceTags_Call {
+	return &IAM_ListMFADeviceTags_Call{Call: _e.mock.On("ListMFADeviceTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListMFADeviceTags_Call) Run(run func(ctx context.Context, params *iam.ListMFADeviceTagsInput, optFns ...func(*iam.Options))) *IAM_ListMFADeviceTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListMFADeviceTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListMFADeviceTags_Call) Return(_a0 *iam.ListMFADeviceTagsOutput, _a1 error) *IAM_ListMFADeviceTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListMFADeviceTags_Call) RunAndReturn(run func(context.Context, *iam.ListMFADeviceTagsInput, ...func(*iam.Options)) (*iam.ListMFADeviceTagsOutput, error)) *IAM_ListMFADeviceTags_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListMFADevices provides a mock function with given fields: ctx, params, optFns
@@ -3418,6 +7089,43 @@ func (_m *IAM) ListMFADevices(ctx context.Context, params *iam.ListMFADevicesInp
 	return r0, r1
 }
 
+// IAM_ListMFADevices_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListMFADevices'
+type IAM_ListMFADevices_Call struct {
+	*mock.Call
+}
+
+// ListMFADevices is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListMFADevicesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListMFADevices(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListMFADevices_Call {
+	return &IAM_ListMFADevices_Call{Call: _e.mock.On("ListMFADevices",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListMFADevices_Call) Run(run func(ctx context.Context, params *iam.ListMFADevicesInput, optFns ...func(*iam.Options))) *IAM_ListMFADevices_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListMFADevicesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListMFADevices_Call) Return(_a0 *iam.ListMFADevicesOutput, _a1 error) *IAM_ListMFADevices_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListMFADevices_Call) RunAndReturn(run func(context.Context, *iam.ListMFADevicesInput, ...func(*iam.Options)) (*iam.ListMFADevicesOutput, error)) *IAM_ListMFADevices_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListOpenIDConnectProviderTags provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListOpenIDConnectProviderTags(ctx context.Context, params *iam.ListOpenIDConnectProviderTagsInput, optFns ...func(*iam.Options)) (*iam.ListOpenIDConnectProviderTagsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3453,6 +7161,43 @@ func (_m *IAM) ListOpenIDConnectProviderTags(ctx context.Context, params *iam.Li
 	}
 
 	return r0, r1
+}
+
+// IAM_ListOpenIDConnectProviderTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOpenIDConnectProviderTags'
+type IAM_ListOpenIDConnectProviderTags_Call struct {
+	*mock.Call
+}
+
+// ListOpenIDConnectProviderTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListOpenIDConnectProviderTagsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListOpenIDConnectProviderTags(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListOpenIDConnectProviderTags_Call {
+	return &IAM_ListOpenIDConnectProviderTags_Call{Call: _e.mock.On("ListOpenIDConnectProviderTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListOpenIDConnectProviderTags_Call) Run(run func(ctx context.Context, params *iam.ListOpenIDConnectProviderTagsInput, optFns ...func(*iam.Options))) *IAM_ListOpenIDConnectProviderTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListOpenIDConnectProviderTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListOpenIDConnectProviderTags_Call) Return(_a0 *iam.ListOpenIDConnectProviderTagsOutput, _a1 error) *IAM_ListOpenIDConnectProviderTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListOpenIDConnectProviderTags_Call) RunAndReturn(run func(context.Context, *iam.ListOpenIDConnectProviderTagsInput, ...func(*iam.Options)) (*iam.ListOpenIDConnectProviderTagsOutput, error)) *IAM_ListOpenIDConnectProviderTags_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListOpenIDConnectProviders provides a mock function with given fields: ctx, params, optFns
@@ -3492,6 +7237,117 @@ func (_m *IAM) ListOpenIDConnectProviders(ctx context.Context, params *iam.ListO
 	return r0, r1
 }
 
+// IAM_ListOpenIDConnectProviders_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOpenIDConnectProviders'
+type IAM_ListOpenIDConnectProviders_Call struct {
+	*mock.Call
+}
+
+// ListOpenIDConnectProviders is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListOpenIDConnectProvidersInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListOpenIDConnectProviders(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListOpenIDConnectProviders_Call {
+	return &IAM_ListOpenIDConnectProviders_Call{Call: _e.mock.On("ListOpenIDConnectProviders",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListOpenIDConnectProviders_Call) Run(run func(ctx context.Context, params *iam.ListOpenIDConnectProvidersInput, optFns ...func(*iam.Options))) *IAM_ListOpenIDConnectProviders_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListOpenIDConnectProvidersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListOpenIDConnectProviders_Call) Return(_a0 *iam.ListOpenIDConnectProvidersOutput, _a1 error) *IAM_ListOpenIDConnectProviders_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListOpenIDConnectProviders_Call) RunAndReturn(run func(context.Context, *iam.ListOpenIDConnectProvidersInput, ...func(*iam.Options)) (*iam.ListOpenIDConnectProvidersOutput, error)) *IAM_ListOpenIDConnectProviders_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListOrganizationsFeatures provides a mock function with given fields: ctx, params, optFns
+func (_m *IAM) ListOrganizationsFeatures(ctx context.Context, params *iam.ListOrganizationsFeaturesInput, optFns ...func(*iam.Options)) (*iam.ListOrganizationsFeaturesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListOrganizationsFeatures")
+	}
+
+	var r0 *iam.ListOrganizationsFeaturesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListOrganizationsFeaturesInput, ...func(*iam.Options)) (*iam.ListOrganizationsFeaturesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListOrganizationsFeaturesInput, ...func(*iam.Options)) *iam.ListOrganizationsFeaturesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListOrganizationsFeaturesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListOrganizationsFeaturesInput, ...func(*iam.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IAM_ListOrganizationsFeatures_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOrganizationsFeatures'
+type IAM_ListOrganizationsFeatures_Call struct {
+	*mock.Call
+}
+
+// ListOrganizationsFeatures is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListOrganizationsFeaturesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListOrganizationsFeatures(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListOrganizationsFeatures_Call {
+	return &IAM_ListOrganizationsFeatures_Call{Call: _e.mock.On("ListOrganizationsFeatures",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListOrganizationsFeatures_Call) Run(run func(ctx context.Context, params *iam.ListOrganizationsFeaturesInput, optFns ...func(*iam.Options))) *IAM_ListOrganizationsFeatures_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListOrganizationsFeaturesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListOrganizationsFeatures_Call) Return(_a0 *iam.ListOrganizationsFeaturesOutput, _a1 error) *IAM_ListOrganizationsFeatures_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListOrganizationsFeatures_Call) RunAndReturn(run func(context.Context, *iam.ListOrganizationsFeaturesInput, ...func(*iam.Options)) (*iam.ListOrganizationsFeaturesOutput, error)) *IAM_ListOrganizationsFeatures_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListPolicies provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListPolicies(ctx context.Context, params *iam.ListPoliciesInput, optFns ...func(*iam.Options)) (*iam.ListPoliciesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3527,6 +7383,43 @@ func (_m *IAM) ListPolicies(ctx context.Context, params *iam.ListPoliciesInput, 
 	}
 
 	return r0, r1
+}
+
+// IAM_ListPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPolicies'
+type IAM_ListPolicies_Call struct {
+	*mock.Call
+}
+
+// ListPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListPoliciesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListPolicies(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListPolicies_Call {
+	return &IAM_ListPolicies_Call{Call: _e.mock.On("ListPolicies",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListPolicies_Call) Run(run func(ctx context.Context, params *iam.ListPoliciesInput, optFns ...func(*iam.Options))) *IAM_ListPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListPoliciesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListPolicies_Call) Return(_a0 *iam.ListPoliciesOutput, _a1 error) *IAM_ListPolicies_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListPolicies_Call) RunAndReturn(run func(context.Context, *iam.ListPoliciesInput, ...func(*iam.Options)) (*iam.ListPoliciesOutput, error)) *IAM_ListPolicies_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListPoliciesGrantingServiceAccess provides a mock function with given fields: ctx, params, optFns
@@ -3566,6 +7459,43 @@ func (_m *IAM) ListPoliciesGrantingServiceAccess(ctx context.Context, params *ia
 	return r0, r1
 }
 
+// IAM_ListPoliciesGrantingServiceAccess_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPoliciesGrantingServiceAccess'
+type IAM_ListPoliciesGrantingServiceAccess_Call struct {
+	*mock.Call
+}
+
+// ListPoliciesGrantingServiceAccess is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListPoliciesGrantingServiceAccessInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListPoliciesGrantingServiceAccess(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListPoliciesGrantingServiceAccess_Call {
+	return &IAM_ListPoliciesGrantingServiceAccess_Call{Call: _e.mock.On("ListPoliciesGrantingServiceAccess",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListPoliciesGrantingServiceAccess_Call) Run(run func(ctx context.Context, params *iam.ListPoliciesGrantingServiceAccessInput, optFns ...func(*iam.Options))) *IAM_ListPoliciesGrantingServiceAccess_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListPoliciesGrantingServiceAccessInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListPoliciesGrantingServiceAccess_Call) Return(_a0 *iam.ListPoliciesGrantingServiceAccessOutput, _a1 error) *IAM_ListPoliciesGrantingServiceAccess_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListPoliciesGrantingServiceAccess_Call) RunAndReturn(run func(context.Context, *iam.ListPoliciesGrantingServiceAccessInput, ...func(*iam.Options)) (*iam.ListPoliciesGrantingServiceAccessOutput, error)) *IAM_ListPoliciesGrantingServiceAccess_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListPolicyTags provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListPolicyTags(ctx context.Context, params *iam.ListPolicyTagsInput, optFns ...func(*iam.Options)) (*iam.ListPolicyTagsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3601,6 +7531,43 @@ func (_m *IAM) ListPolicyTags(ctx context.Context, params *iam.ListPolicyTagsInp
 	}
 
 	return r0, r1
+}
+
+// IAM_ListPolicyTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPolicyTags'
+type IAM_ListPolicyTags_Call struct {
+	*mock.Call
+}
+
+// ListPolicyTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListPolicyTagsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListPolicyTags(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListPolicyTags_Call {
+	return &IAM_ListPolicyTags_Call{Call: _e.mock.On("ListPolicyTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListPolicyTags_Call) Run(run func(ctx context.Context, params *iam.ListPolicyTagsInput, optFns ...func(*iam.Options))) *IAM_ListPolicyTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListPolicyTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListPolicyTags_Call) Return(_a0 *iam.ListPolicyTagsOutput, _a1 error) *IAM_ListPolicyTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListPolicyTags_Call) RunAndReturn(run func(context.Context, *iam.ListPolicyTagsInput, ...func(*iam.Options)) (*iam.ListPolicyTagsOutput, error)) *IAM_ListPolicyTags_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListPolicyVersions provides a mock function with given fields: ctx, params, optFns
@@ -3640,6 +7607,43 @@ func (_m *IAM) ListPolicyVersions(ctx context.Context, params *iam.ListPolicyVer
 	return r0, r1
 }
 
+// IAM_ListPolicyVersions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPolicyVersions'
+type IAM_ListPolicyVersions_Call struct {
+	*mock.Call
+}
+
+// ListPolicyVersions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListPolicyVersionsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListPolicyVersions(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListPolicyVersions_Call {
+	return &IAM_ListPolicyVersions_Call{Call: _e.mock.On("ListPolicyVersions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListPolicyVersions_Call) Run(run func(ctx context.Context, params *iam.ListPolicyVersionsInput, optFns ...func(*iam.Options))) *IAM_ListPolicyVersions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListPolicyVersionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListPolicyVersions_Call) Return(_a0 *iam.ListPolicyVersionsOutput, _a1 error) *IAM_ListPolicyVersions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListPolicyVersions_Call) RunAndReturn(run func(context.Context, *iam.ListPolicyVersionsInput, ...func(*iam.Options)) (*iam.ListPolicyVersionsOutput, error)) *IAM_ListPolicyVersions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListRolePolicies provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListRolePolicies(ctx context.Context, params *iam.ListRolePoliciesInput, optFns ...func(*iam.Options)) (*iam.ListRolePoliciesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3675,6 +7679,43 @@ func (_m *IAM) ListRolePolicies(ctx context.Context, params *iam.ListRolePolicie
 	}
 
 	return r0, r1
+}
+
+// IAM_ListRolePolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListRolePolicies'
+type IAM_ListRolePolicies_Call struct {
+	*mock.Call
+}
+
+// ListRolePolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListRolePoliciesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListRolePolicies(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListRolePolicies_Call {
+	return &IAM_ListRolePolicies_Call{Call: _e.mock.On("ListRolePolicies",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListRolePolicies_Call) Run(run func(ctx context.Context, params *iam.ListRolePoliciesInput, optFns ...func(*iam.Options))) *IAM_ListRolePolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListRolePoliciesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListRolePolicies_Call) Return(_a0 *iam.ListRolePoliciesOutput, _a1 error) *IAM_ListRolePolicies_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListRolePolicies_Call) RunAndReturn(run func(context.Context, *iam.ListRolePoliciesInput, ...func(*iam.Options)) (*iam.ListRolePoliciesOutput, error)) *IAM_ListRolePolicies_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListRoleTags provides a mock function with given fields: ctx, params, optFns
@@ -3714,6 +7755,43 @@ func (_m *IAM) ListRoleTags(ctx context.Context, params *iam.ListRoleTagsInput, 
 	return r0, r1
 }
 
+// IAM_ListRoleTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListRoleTags'
+type IAM_ListRoleTags_Call struct {
+	*mock.Call
+}
+
+// ListRoleTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListRoleTagsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListRoleTags(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListRoleTags_Call {
+	return &IAM_ListRoleTags_Call{Call: _e.mock.On("ListRoleTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListRoleTags_Call) Run(run func(ctx context.Context, params *iam.ListRoleTagsInput, optFns ...func(*iam.Options))) *IAM_ListRoleTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListRoleTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListRoleTags_Call) Return(_a0 *iam.ListRoleTagsOutput, _a1 error) *IAM_ListRoleTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListRoleTags_Call) RunAndReturn(run func(context.Context, *iam.ListRoleTagsInput, ...func(*iam.Options)) (*iam.ListRoleTagsOutput, error)) *IAM_ListRoleTags_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListRoles provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListRoles(ctx context.Context, params *iam.ListRolesInput, optFns ...func(*iam.Options)) (*iam.ListRolesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3749,6 +7827,43 @@ func (_m *IAM) ListRoles(ctx context.Context, params *iam.ListRolesInput, optFns
 	}
 
 	return r0, r1
+}
+
+// IAM_ListRoles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListRoles'
+type IAM_ListRoles_Call struct {
+	*mock.Call
+}
+
+// ListRoles is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListRolesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListRoles(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListRoles_Call {
+	return &IAM_ListRoles_Call{Call: _e.mock.On("ListRoles",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListRoles_Call) Run(run func(ctx context.Context, params *iam.ListRolesInput, optFns ...func(*iam.Options))) *IAM_ListRoles_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListRolesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListRoles_Call) Return(_a0 *iam.ListRolesOutput, _a1 error) *IAM_ListRoles_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListRoles_Call) RunAndReturn(run func(context.Context, *iam.ListRolesInput, ...func(*iam.Options)) (*iam.ListRolesOutput, error)) *IAM_ListRoles_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListSAMLProviderTags provides a mock function with given fields: ctx, params, optFns
@@ -3788,6 +7903,43 @@ func (_m *IAM) ListSAMLProviderTags(ctx context.Context, params *iam.ListSAMLPro
 	return r0, r1
 }
 
+// IAM_ListSAMLProviderTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSAMLProviderTags'
+type IAM_ListSAMLProviderTags_Call struct {
+	*mock.Call
+}
+
+// ListSAMLProviderTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListSAMLProviderTagsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListSAMLProviderTags(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListSAMLProviderTags_Call {
+	return &IAM_ListSAMLProviderTags_Call{Call: _e.mock.On("ListSAMLProviderTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListSAMLProviderTags_Call) Run(run func(ctx context.Context, params *iam.ListSAMLProviderTagsInput, optFns ...func(*iam.Options))) *IAM_ListSAMLProviderTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListSAMLProviderTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListSAMLProviderTags_Call) Return(_a0 *iam.ListSAMLProviderTagsOutput, _a1 error) *IAM_ListSAMLProviderTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListSAMLProviderTags_Call) RunAndReturn(run func(context.Context, *iam.ListSAMLProviderTagsInput, ...func(*iam.Options)) (*iam.ListSAMLProviderTagsOutput, error)) *IAM_ListSAMLProviderTags_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListSAMLProviders provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListSAMLProviders(ctx context.Context, params *iam.ListSAMLProvidersInput, optFns ...func(*iam.Options)) (*iam.ListSAMLProvidersOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3823,6 +7975,43 @@ func (_m *IAM) ListSAMLProviders(ctx context.Context, params *iam.ListSAMLProvid
 	}
 
 	return r0, r1
+}
+
+// IAM_ListSAMLProviders_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSAMLProviders'
+type IAM_ListSAMLProviders_Call struct {
+	*mock.Call
+}
+
+// ListSAMLProviders is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListSAMLProvidersInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListSAMLProviders(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListSAMLProviders_Call {
+	return &IAM_ListSAMLProviders_Call{Call: _e.mock.On("ListSAMLProviders",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListSAMLProviders_Call) Run(run func(ctx context.Context, params *iam.ListSAMLProvidersInput, optFns ...func(*iam.Options))) *IAM_ListSAMLProviders_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListSAMLProvidersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListSAMLProviders_Call) Return(_a0 *iam.ListSAMLProvidersOutput, _a1 error) *IAM_ListSAMLProviders_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListSAMLProviders_Call) RunAndReturn(run func(context.Context, *iam.ListSAMLProvidersInput, ...func(*iam.Options)) (*iam.ListSAMLProvidersOutput, error)) *IAM_ListSAMLProviders_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListSSHPublicKeys provides a mock function with given fields: ctx, params, optFns
@@ -3862,6 +8051,43 @@ func (_m *IAM) ListSSHPublicKeys(ctx context.Context, params *iam.ListSSHPublicK
 	return r0, r1
 }
 
+// IAM_ListSSHPublicKeys_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSSHPublicKeys'
+type IAM_ListSSHPublicKeys_Call struct {
+	*mock.Call
+}
+
+// ListSSHPublicKeys is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListSSHPublicKeysInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListSSHPublicKeys(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListSSHPublicKeys_Call {
+	return &IAM_ListSSHPublicKeys_Call{Call: _e.mock.On("ListSSHPublicKeys",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListSSHPublicKeys_Call) Run(run func(ctx context.Context, params *iam.ListSSHPublicKeysInput, optFns ...func(*iam.Options))) *IAM_ListSSHPublicKeys_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListSSHPublicKeysInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListSSHPublicKeys_Call) Return(_a0 *iam.ListSSHPublicKeysOutput, _a1 error) *IAM_ListSSHPublicKeys_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListSSHPublicKeys_Call) RunAndReturn(run func(context.Context, *iam.ListSSHPublicKeysInput, ...func(*iam.Options)) (*iam.ListSSHPublicKeysOutput, error)) *IAM_ListSSHPublicKeys_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListServerCertificateTags provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListServerCertificateTags(ctx context.Context, params *iam.ListServerCertificateTagsInput, optFns ...func(*iam.Options)) (*iam.ListServerCertificateTagsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3897,6 +8123,43 @@ func (_m *IAM) ListServerCertificateTags(ctx context.Context, params *iam.ListSe
 	}
 
 	return r0, r1
+}
+
+// IAM_ListServerCertificateTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListServerCertificateTags'
+type IAM_ListServerCertificateTags_Call struct {
+	*mock.Call
+}
+
+// ListServerCertificateTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListServerCertificateTagsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListServerCertificateTags(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListServerCertificateTags_Call {
+	return &IAM_ListServerCertificateTags_Call{Call: _e.mock.On("ListServerCertificateTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListServerCertificateTags_Call) Run(run func(ctx context.Context, params *iam.ListServerCertificateTagsInput, optFns ...func(*iam.Options))) *IAM_ListServerCertificateTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListServerCertificateTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListServerCertificateTags_Call) Return(_a0 *iam.ListServerCertificateTagsOutput, _a1 error) *IAM_ListServerCertificateTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListServerCertificateTags_Call) RunAndReturn(run func(context.Context, *iam.ListServerCertificateTagsInput, ...func(*iam.Options)) (*iam.ListServerCertificateTagsOutput, error)) *IAM_ListServerCertificateTags_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListServerCertificates provides a mock function with given fields: ctx, params, optFns
@@ -3936,6 +8199,43 @@ func (_m *IAM) ListServerCertificates(ctx context.Context, params *iam.ListServe
 	return r0, r1
 }
 
+// IAM_ListServerCertificates_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListServerCertificates'
+type IAM_ListServerCertificates_Call struct {
+	*mock.Call
+}
+
+// ListServerCertificates is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListServerCertificatesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListServerCertificates(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListServerCertificates_Call {
+	return &IAM_ListServerCertificates_Call{Call: _e.mock.On("ListServerCertificates",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListServerCertificates_Call) Run(run func(ctx context.Context, params *iam.ListServerCertificatesInput, optFns ...func(*iam.Options))) *IAM_ListServerCertificates_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListServerCertificatesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListServerCertificates_Call) Return(_a0 *iam.ListServerCertificatesOutput, _a1 error) *IAM_ListServerCertificates_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListServerCertificates_Call) RunAndReturn(run func(context.Context, *iam.ListServerCertificatesInput, ...func(*iam.Options)) (*iam.ListServerCertificatesOutput, error)) *IAM_ListServerCertificates_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListServiceSpecificCredentials provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListServiceSpecificCredentials(ctx context.Context, params *iam.ListServiceSpecificCredentialsInput, optFns ...func(*iam.Options)) (*iam.ListServiceSpecificCredentialsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3971,6 +8271,43 @@ func (_m *IAM) ListServiceSpecificCredentials(ctx context.Context, params *iam.L
 	}
 
 	return r0, r1
+}
+
+// IAM_ListServiceSpecificCredentials_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListServiceSpecificCredentials'
+type IAM_ListServiceSpecificCredentials_Call struct {
+	*mock.Call
+}
+
+// ListServiceSpecificCredentials is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListServiceSpecificCredentialsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListServiceSpecificCredentials(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListServiceSpecificCredentials_Call {
+	return &IAM_ListServiceSpecificCredentials_Call{Call: _e.mock.On("ListServiceSpecificCredentials",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListServiceSpecificCredentials_Call) Run(run func(ctx context.Context, params *iam.ListServiceSpecificCredentialsInput, optFns ...func(*iam.Options))) *IAM_ListServiceSpecificCredentials_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListServiceSpecificCredentialsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListServiceSpecificCredentials_Call) Return(_a0 *iam.ListServiceSpecificCredentialsOutput, _a1 error) *IAM_ListServiceSpecificCredentials_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListServiceSpecificCredentials_Call) RunAndReturn(run func(context.Context, *iam.ListServiceSpecificCredentialsInput, ...func(*iam.Options)) (*iam.ListServiceSpecificCredentialsOutput, error)) *IAM_ListServiceSpecificCredentials_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListSigningCertificates provides a mock function with given fields: ctx, params, optFns
@@ -4010,6 +8347,43 @@ func (_m *IAM) ListSigningCertificates(ctx context.Context, params *iam.ListSign
 	return r0, r1
 }
 
+// IAM_ListSigningCertificates_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSigningCertificates'
+type IAM_ListSigningCertificates_Call struct {
+	*mock.Call
+}
+
+// ListSigningCertificates is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListSigningCertificatesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListSigningCertificates(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListSigningCertificates_Call {
+	return &IAM_ListSigningCertificates_Call{Call: _e.mock.On("ListSigningCertificates",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListSigningCertificates_Call) Run(run func(ctx context.Context, params *iam.ListSigningCertificatesInput, optFns ...func(*iam.Options))) *IAM_ListSigningCertificates_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListSigningCertificatesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListSigningCertificates_Call) Return(_a0 *iam.ListSigningCertificatesOutput, _a1 error) *IAM_ListSigningCertificates_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListSigningCertificates_Call) RunAndReturn(run func(context.Context, *iam.ListSigningCertificatesInput, ...func(*iam.Options)) (*iam.ListSigningCertificatesOutput, error)) *IAM_ListSigningCertificates_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListUserPolicies provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListUserPolicies(ctx context.Context, params *iam.ListUserPoliciesInput, optFns ...func(*iam.Options)) (*iam.ListUserPoliciesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4045,6 +8419,43 @@ func (_m *IAM) ListUserPolicies(ctx context.Context, params *iam.ListUserPolicie
 	}
 
 	return r0, r1
+}
+
+// IAM_ListUserPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListUserPolicies'
+type IAM_ListUserPolicies_Call struct {
+	*mock.Call
+}
+
+// ListUserPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListUserPoliciesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListUserPolicies(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListUserPolicies_Call {
+	return &IAM_ListUserPolicies_Call{Call: _e.mock.On("ListUserPolicies",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListUserPolicies_Call) Run(run func(ctx context.Context, params *iam.ListUserPoliciesInput, optFns ...func(*iam.Options))) *IAM_ListUserPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListUserPoliciesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListUserPolicies_Call) Return(_a0 *iam.ListUserPoliciesOutput, _a1 error) *IAM_ListUserPolicies_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListUserPolicies_Call) RunAndReturn(run func(context.Context, *iam.ListUserPoliciesInput, ...func(*iam.Options)) (*iam.ListUserPoliciesOutput, error)) *IAM_ListUserPolicies_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListUserTags provides a mock function with given fields: ctx, params, optFns
@@ -4084,6 +8495,43 @@ func (_m *IAM) ListUserTags(ctx context.Context, params *iam.ListUserTagsInput, 
 	return r0, r1
 }
 
+// IAM_ListUserTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListUserTags'
+type IAM_ListUserTags_Call struct {
+	*mock.Call
+}
+
+// ListUserTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListUserTagsInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListUserTags(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListUserTags_Call {
+	return &IAM_ListUserTags_Call{Call: _e.mock.On("ListUserTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListUserTags_Call) Run(run func(ctx context.Context, params *iam.ListUserTagsInput, optFns ...func(*iam.Options))) *IAM_ListUserTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListUserTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListUserTags_Call) Return(_a0 *iam.ListUserTagsOutput, _a1 error) *IAM_ListUserTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListUserTags_Call) RunAndReturn(run func(context.Context, *iam.ListUserTagsInput, ...func(*iam.Options)) (*iam.ListUserTagsOutput, error)) *IAM_ListUserTags_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListUsers provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ListUsers(ctx context.Context, params *iam.ListUsersInput, optFns ...func(*iam.Options)) (*iam.ListUsersOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4119,6 +8567,43 @@ func (_m *IAM) ListUsers(ctx context.Context, params *iam.ListUsersInput, optFns
 	}
 
 	return r0, r1
+}
+
+// IAM_ListUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListUsers'
+type IAM_ListUsers_Call struct {
+	*mock.Call
+}
+
+// ListUsers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListUsersInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListUsers(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListUsers_Call {
+	return &IAM_ListUsers_Call{Call: _e.mock.On("ListUsers",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListUsers_Call) Run(run func(ctx context.Context, params *iam.ListUsersInput, optFns ...func(*iam.Options))) *IAM_ListUsers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListUsersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListUsers_Call) Return(_a0 *iam.ListUsersOutput, _a1 error) *IAM_ListUsers_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListUsers_Call) RunAndReturn(run func(context.Context, *iam.ListUsersInput, ...func(*iam.Options)) (*iam.ListUsersOutput, error)) *IAM_ListUsers_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListVirtualMFADevices provides a mock function with given fields: ctx, params, optFns
@@ -4158,6 +8643,43 @@ func (_m *IAM) ListVirtualMFADevices(ctx context.Context, params *iam.ListVirtua
 	return r0, r1
 }
 
+// IAM_ListVirtualMFADevices_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListVirtualMFADevices'
+type IAM_ListVirtualMFADevices_Call struct {
+	*mock.Call
+}
+
+// ListVirtualMFADevices is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ListVirtualMFADevicesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ListVirtualMFADevices(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ListVirtualMFADevices_Call {
+	return &IAM_ListVirtualMFADevices_Call{Call: _e.mock.On("ListVirtualMFADevices",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ListVirtualMFADevices_Call) Run(run func(ctx context.Context, params *iam.ListVirtualMFADevicesInput, optFns ...func(*iam.Options))) *IAM_ListVirtualMFADevices_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ListVirtualMFADevicesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ListVirtualMFADevices_Call) Return(_a0 *iam.ListVirtualMFADevicesOutput, _a1 error) *IAM_ListVirtualMFADevices_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ListVirtualMFADevices_Call) RunAndReturn(run func(context.Context, *iam.ListVirtualMFADevicesInput, ...func(*iam.Options)) (*iam.ListVirtualMFADevicesOutput, error)) *IAM_ListVirtualMFADevices_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Options provides a mock function with given fields:
 func (_m *IAM) Options() iam.Options {
 	ret := _m.Called()
@@ -4174,6 +8696,33 @@ func (_m *IAM) Options() iam.Options {
 	}
 
 	return r0
+}
+
+// IAM_Options_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Options'
+type IAM_Options_Call struct {
+	*mock.Call
+}
+
+// Options is a helper method to define mock.On call
+func (_e *IAM_Expecter) Options() *IAM_Options_Call {
+	return &IAM_Options_Call{Call: _e.mock.On("Options")}
+}
+
+func (_c *IAM_Options_Call) Run(run func()) *IAM_Options_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *IAM_Options_Call) Return(_a0 iam.Options) *IAM_Options_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *IAM_Options_Call) RunAndReturn(run func() iam.Options) *IAM_Options_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // PutGroupPolicy provides a mock function with given fields: ctx, params, optFns
@@ -4213,6 +8762,43 @@ func (_m *IAM) PutGroupPolicy(ctx context.Context, params *iam.PutGroupPolicyInp
 	return r0, r1
 }
 
+// IAM_PutGroupPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutGroupPolicy'
+type IAM_PutGroupPolicy_Call struct {
+	*mock.Call
+}
+
+// PutGroupPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.PutGroupPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) PutGroupPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_PutGroupPolicy_Call {
+	return &IAM_PutGroupPolicy_Call{Call: _e.mock.On("PutGroupPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_PutGroupPolicy_Call) Run(run func(ctx context.Context, params *iam.PutGroupPolicyInput, optFns ...func(*iam.Options))) *IAM_PutGroupPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.PutGroupPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_PutGroupPolicy_Call) Return(_a0 *iam.PutGroupPolicyOutput, _a1 error) *IAM_PutGroupPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_PutGroupPolicy_Call) RunAndReturn(run func(context.Context, *iam.PutGroupPolicyInput, ...func(*iam.Options)) (*iam.PutGroupPolicyOutput, error)) *IAM_PutGroupPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutRolePermissionsBoundary provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) PutRolePermissionsBoundary(ctx context.Context, params *iam.PutRolePermissionsBoundaryInput, optFns ...func(*iam.Options)) (*iam.PutRolePermissionsBoundaryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4248,6 +8834,43 @@ func (_m *IAM) PutRolePermissionsBoundary(ctx context.Context, params *iam.PutRo
 	}
 
 	return r0, r1
+}
+
+// IAM_PutRolePermissionsBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutRolePermissionsBoundary'
+type IAM_PutRolePermissionsBoundary_Call struct {
+	*mock.Call
+}
+
+// PutRolePermissionsBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.PutRolePermissionsBoundaryInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) PutRolePermissionsBoundary(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_PutRolePermissionsBoundary_Call {
+	return &IAM_PutRolePermissionsBoundary_Call{Call: _e.mock.On("PutRolePermissionsBoundary",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_PutRolePermissionsBoundary_Call) Run(run func(ctx context.Context, params *iam.PutRolePermissionsBoundaryInput, optFns ...func(*iam.Options))) *IAM_PutRolePermissionsBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.PutRolePermissionsBoundaryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_PutRolePermissionsBoundary_Call) Return(_a0 *iam.PutRolePermissionsBoundaryOutput, _a1 error) *IAM_PutRolePermissionsBoundary_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_PutRolePermissionsBoundary_Call) RunAndReturn(run func(context.Context, *iam.PutRolePermissionsBoundaryInput, ...func(*iam.Options)) (*iam.PutRolePermissionsBoundaryOutput, error)) *IAM_PutRolePermissionsBoundary_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // PutRolePolicy provides a mock function with given fields: ctx, params, optFns
@@ -4287,6 +8910,43 @@ func (_m *IAM) PutRolePolicy(ctx context.Context, params *iam.PutRolePolicyInput
 	return r0, r1
 }
 
+// IAM_PutRolePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutRolePolicy'
+type IAM_PutRolePolicy_Call struct {
+	*mock.Call
+}
+
+// PutRolePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.PutRolePolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) PutRolePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_PutRolePolicy_Call {
+	return &IAM_PutRolePolicy_Call{Call: _e.mock.On("PutRolePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_PutRolePolicy_Call) Run(run func(ctx context.Context, params *iam.PutRolePolicyInput, optFns ...func(*iam.Options))) *IAM_PutRolePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.PutRolePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_PutRolePolicy_Call) Return(_a0 *iam.PutRolePolicyOutput, _a1 error) *IAM_PutRolePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_PutRolePolicy_Call) RunAndReturn(run func(context.Context, *iam.PutRolePolicyInput, ...func(*iam.Options)) (*iam.PutRolePolicyOutput, error)) *IAM_PutRolePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutUserPermissionsBoundary provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) PutUserPermissionsBoundary(ctx context.Context, params *iam.PutUserPermissionsBoundaryInput, optFns ...func(*iam.Options)) (*iam.PutUserPermissionsBoundaryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4322,6 +8982,43 @@ func (_m *IAM) PutUserPermissionsBoundary(ctx context.Context, params *iam.PutUs
 	}
 
 	return r0, r1
+}
+
+// IAM_PutUserPermissionsBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutUserPermissionsBoundary'
+type IAM_PutUserPermissionsBoundary_Call struct {
+	*mock.Call
+}
+
+// PutUserPermissionsBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.PutUserPermissionsBoundaryInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) PutUserPermissionsBoundary(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_PutUserPermissionsBoundary_Call {
+	return &IAM_PutUserPermissionsBoundary_Call{Call: _e.mock.On("PutUserPermissionsBoundary",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_PutUserPermissionsBoundary_Call) Run(run func(ctx context.Context, params *iam.PutUserPermissionsBoundaryInput, optFns ...func(*iam.Options))) *IAM_PutUserPermissionsBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.PutUserPermissionsBoundaryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_PutUserPermissionsBoundary_Call) Return(_a0 *iam.PutUserPermissionsBoundaryOutput, _a1 error) *IAM_PutUserPermissionsBoundary_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_PutUserPermissionsBoundary_Call) RunAndReturn(run func(context.Context, *iam.PutUserPermissionsBoundaryInput, ...func(*iam.Options)) (*iam.PutUserPermissionsBoundaryOutput, error)) *IAM_PutUserPermissionsBoundary_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // PutUserPolicy provides a mock function with given fields: ctx, params, optFns
@@ -4361,6 +9058,43 @@ func (_m *IAM) PutUserPolicy(ctx context.Context, params *iam.PutUserPolicyInput
 	return r0, r1
 }
 
+// IAM_PutUserPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutUserPolicy'
+type IAM_PutUserPolicy_Call struct {
+	*mock.Call
+}
+
+// PutUserPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.PutUserPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) PutUserPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_PutUserPolicy_Call {
+	return &IAM_PutUserPolicy_Call{Call: _e.mock.On("PutUserPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_PutUserPolicy_Call) Run(run func(ctx context.Context, params *iam.PutUserPolicyInput, optFns ...func(*iam.Options))) *IAM_PutUserPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.PutUserPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_PutUserPolicy_Call) Return(_a0 *iam.PutUserPolicyOutput, _a1 error) *IAM_PutUserPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_PutUserPolicy_Call) RunAndReturn(run func(context.Context, *iam.PutUserPolicyInput, ...func(*iam.Options)) (*iam.PutUserPolicyOutput, error)) *IAM_PutUserPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveClientIDFromOpenIDConnectProvider provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) RemoveClientIDFromOpenIDConnectProvider(ctx context.Context, params *iam.RemoveClientIDFromOpenIDConnectProviderInput, optFns ...func(*iam.Options)) (*iam.RemoveClientIDFromOpenIDConnectProviderOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4396,6 +9130,43 @@ func (_m *IAM) RemoveClientIDFromOpenIDConnectProvider(ctx context.Context, para
 	}
 
 	return r0, r1
+}
+
+// IAM_RemoveClientIDFromOpenIDConnectProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveClientIDFromOpenIDConnectProvider'
+type IAM_RemoveClientIDFromOpenIDConnectProvider_Call struct {
+	*mock.Call
+}
+
+// RemoveClientIDFromOpenIDConnectProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.RemoveClientIDFromOpenIDConnectProviderInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) RemoveClientIDFromOpenIDConnectProvider(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_RemoveClientIDFromOpenIDConnectProvider_Call {
+	return &IAM_RemoveClientIDFromOpenIDConnectProvider_Call{Call: _e.mock.On("RemoveClientIDFromOpenIDConnectProvider",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_RemoveClientIDFromOpenIDConnectProvider_Call) Run(run func(ctx context.Context, params *iam.RemoveClientIDFromOpenIDConnectProviderInput, optFns ...func(*iam.Options))) *IAM_RemoveClientIDFromOpenIDConnectProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.RemoveClientIDFromOpenIDConnectProviderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_RemoveClientIDFromOpenIDConnectProvider_Call) Return(_a0 *iam.RemoveClientIDFromOpenIDConnectProviderOutput, _a1 error) *IAM_RemoveClientIDFromOpenIDConnectProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_RemoveClientIDFromOpenIDConnectProvider_Call) RunAndReturn(run func(context.Context, *iam.RemoveClientIDFromOpenIDConnectProviderInput, ...func(*iam.Options)) (*iam.RemoveClientIDFromOpenIDConnectProviderOutput, error)) *IAM_RemoveClientIDFromOpenIDConnectProvider_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // RemoveRoleFromInstanceProfile provides a mock function with given fields: ctx, params, optFns
@@ -4435,6 +9206,43 @@ func (_m *IAM) RemoveRoleFromInstanceProfile(ctx context.Context, params *iam.Re
 	return r0, r1
 }
 
+// IAM_RemoveRoleFromInstanceProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveRoleFromInstanceProfile'
+type IAM_RemoveRoleFromInstanceProfile_Call struct {
+	*mock.Call
+}
+
+// RemoveRoleFromInstanceProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.RemoveRoleFromInstanceProfileInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) RemoveRoleFromInstanceProfile(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_RemoveRoleFromInstanceProfile_Call {
+	return &IAM_RemoveRoleFromInstanceProfile_Call{Call: _e.mock.On("RemoveRoleFromInstanceProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_RemoveRoleFromInstanceProfile_Call) Run(run func(ctx context.Context, params *iam.RemoveRoleFromInstanceProfileInput, optFns ...func(*iam.Options))) *IAM_RemoveRoleFromInstanceProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.RemoveRoleFromInstanceProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_RemoveRoleFromInstanceProfile_Call) Return(_a0 *iam.RemoveRoleFromInstanceProfileOutput, _a1 error) *IAM_RemoveRoleFromInstanceProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_RemoveRoleFromInstanceProfile_Call) RunAndReturn(run func(context.Context, *iam.RemoveRoleFromInstanceProfileInput, ...func(*iam.Options)) (*iam.RemoveRoleFromInstanceProfileOutput, error)) *IAM_RemoveRoleFromInstanceProfile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveUserFromGroup provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) RemoveUserFromGroup(ctx context.Context, params *iam.RemoveUserFromGroupInput, optFns ...func(*iam.Options)) (*iam.RemoveUserFromGroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4470,6 +9278,43 @@ func (_m *IAM) RemoveUserFromGroup(ctx context.Context, params *iam.RemoveUserFr
 	}
 
 	return r0, r1
+}
+
+// IAM_RemoveUserFromGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveUserFromGroup'
+type IAM_RemoveUserFromGroup_Call struct {
+	*mock.Call
+}
+
+// RemoveUserFromGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.RemoveUserFromGroupInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) RemoveUserFromGroup(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_RemoveUserFromGroup_Call {
+	return &IAM_RemoveUserFromGroup_Call{Call: _e.mock.On("RemoveUserFromGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_RemoveUserFromGroup_Call) Run(run func(ctx context.Context, params *iam.RemoveUserFromGroupInput, optFns ...func(*iam.Options))) *IAM_RemoveUserFromGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.RemoveUserFromGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_RemoveUserFromGroup_Call) Return(_a0 *iam.RemoveUserFromGroupOutput, _a1 error) *IAM_RemoveUserFromGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_RemoveUserFromGroup_Call) RunAndReturn(run func(context.Context, *iam.RemoveUserFromGroupInput, ...func(*iam.Options)) (*iam.RemoveUserFromGroupOutput, error)) *IAM_RemoveUserFromGroup_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ResetServiceSpecificCredential provides a mock function with given fields: ctx, params, optFns
@@ -4509,6 +9354,43 @@ func (_m *IAM) ResetServiceSpecificCredential(ctx context.Context, params *iam.R
 	return r0, r1
 }
 
+// IAM_ResetServiceSpecificCredential_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResetServiceSpecificCredential'
+type IAM_ResetServiceSpecificCredential_Call struct {
+	*mock.Call
+}
+
+// ResetServiceSpecificCredential is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ResetServiceSpecificCredentialInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ResetServiceSpecificCredential(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ResetServiceSpecificCredential_Call {
+	return &IAM_ResetServiceSpecificCredential_Call{Call: _e.mock.On("ResetServiceSpecificCredential",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ResetServiceSpecificCredential_Call) Run(run func(ctx context.Context, params *iam.ResetServiceSpecificCredentialInput, optFns ...func(*iam.Options))) *IAM_ResetServiceSpecificCredential_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ResetServiceSpecificCredentialInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ResetServiceSpecificCredential_Call) Return(_a0 *iam.ResetServiceSpecificCredentialOutput, _a1 error) *IAM_ResetServiceSpecificCredential_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ResetServiceSpecificCredential_Call) RunAndReturn(run func(context.Context, *iam.ResetServiceSpecificCredentialInput, ...func(*iam.Options)) (*iam.ResetServiceSpecificCredentialOutput, error)) *IAM_ResetServiceSpecificCredential_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ResyncMFADevice provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) ResyncMFADevice(ctx context.Context, params *iam.ResyncMFADeviceInput, optFns ...func(*iam.Options)) (*iam.ResyncMFADeviceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4544,6 +9426,43 @@ func (_m *IAM) ResyncMFADevice(ctx context.Context, params *iam.ResyncMFADeviceI
 	}
 
 	return r0, r1
+}
+
+// IAM_ResyncMFADevice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResyncMFADevice'
+type IAM_ResyncMFADevice_Call struct {
+	*mock.Call
+}
+
+// ResyncMFADevice is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.ResyncMFADeviceInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) ResyncMFADevice(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_ResyncMFADevice_Call {
+	return &IAM_ResyncMFADevice_Call{Call: _e.mock.On("ResyncMFADevice",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_ResyncMFADevice_Call) Run(run func(ctx context.Context, params *iam.ResyncMFADeviceInput, optFns ...func(*iam.Options))) *IAM_ResyncMFADevice_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.ResyncMFADeviceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_ResyncMFADevice_Call) Return(_a0 *iam.ResyncMFADeviceOutput, _a1 error) *IAM_ResyncMFADevice_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_ResyncMFADevice_Call) RunAndReturn(run func(context.Context, *iam.ResyncMFADeviceInput, ...func(*iam.Options)) (*iam.ResyncMFADeviceOutput, error)) *IAM_ResyncMFADevice_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // SetDefaultPolicyVersion provides a mock function with given fields: ctx, params, optFns
@@ -4583,6 +9502,43 @@ func (_m *IAM) SetDefaultPolicyVersion(ctx context.Context, params *iam.SetDefau
 	return r0, r1
 }
 
+// IAM_SetDefaultPolicyVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetDefaultPolicyVersion'
+type IAM_SetDefaultPolicyVersion_Call struct {
+	*mock.Call
+}
+
+// SetDefaultPolicyVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.SetDefaultPolicyVersionInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) SetDefaultPolicyVersion(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_SetDefaultPolicyVersion_Call {
+	return &IAM_SetDefaultPolicyVersion_Call{Call: _e.mock.On("SetDefaultPolicyVersion",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_SetDefaultPolicyVersion_Call) Run(run func(ctx context.Context, params *iam.SetDefaultPolicyVersionInput, optFns ...func(*iam.Options))) *IAM_SetDefaultPolicyVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.SetDefaultPolicyVersionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_SetDefaultPolicyVersion_Call) Return(_a0 *iam.SetDefaultPolicyVersionOutput, _a1 error) *IAM_SetDefaultPolicyVersion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_SetDefaultPolicyVersion_Call) RunAndReturn(run func(context.Context, *iam.SetDefaultPolicyVersionInput, ...func(*iam.Options)) (*iam.SetDefaultPolicyVersionOutput, error)) *IAM_SetDefaultPolicyVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetSecurityTokenServicePreferences provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) SetSecurityTokenServicePreferences(ctx context.Context, params *iam.SetSecurityTokenServicePreferencesInput, optFns ...func(*iam.Options)) (*iam.SetSecurityTokenServicePreferencesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4618,6 +9574,43 @@ func (_m *IAM) SetSecurityTokenServicePreferences(ctx context.Context, params *i
 	}
 
 	return r0, r1
+}
+
+// IAM_SetSecurityTokenServicePreferences_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetSecurityTokenServicePreferences'
+type IAM_SetSecurityTokenServicePreferences_Call struct {
+	*mock.Call
+}
+
+// SetSecurityTokenServicePreferences is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.SetSecurityTokenServicePreferencesInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) SetSecurityTokenServicePreferences(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_SetSecurityTokenServicePreferences_Call {
+	return &IAM_SetSecurityTokenServicePreferences_Call{Call: _e.mock.On("SetSecurityTokenServicePreferences",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_SetSecurityTokenServicePreferences_Call) Run(run func(ctx context.Context, params *iam.SetSecurityTokenServicePreferencesInput, optFns ...func(*iam.Options))) *IAM_SetSecurityTokenServicePreferences_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.SetSecurityTokenServicePreferencesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_SetSecurityTokenServicePreferences_Call) Return(_a0 *iam.SetSecurityTokenServicePreferencesOutput, _a1 error) *IAM_SetSecurityTokenServicePreferences_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_SetSecurityTokenServicePreferences_Call) RunAndReturn(run func(context.Context, *iam.SetSecurityTokenServicePreferencesInput, ...func(*iam.Options)) (*iam.SetSecurityTokenServicePreferencesOutput, error)) *IAM_SetSecurityTokenServicePreferences_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // SimulateCustomPolicy provides a mock function with given fields: ctx, params, optFns
@@ -4657,6 +9650,43 @@ func (_m *IAM) SimulateCustomPolicy(ctx context.Context, params *iam.SimulateCus
 	return r0, r1
 }
 
+// IAM_SimulateCustomPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SimulateCustomPolicy'
+type IAM_SimulateCustomPolicy_Call struct {
+	*mock.Call
+}
+
+// SimulateCustomPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.SimulateCustomPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) SimulateCustomPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_SimulateCustomPolicy_Call {
+	return &IAM_SimulateCustomPolicy_Call{Call: _e.mock.On("SimulateCustomPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_SimulateCustomPolicy_Call) Run(run func(ctx context.Context, params *iam.SimulateCustomPolicyInput, optFns ...func(*iam.Options))) *IAM_SimulateCustomPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.SimulateCustomPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_SimulateCustomPolicy_Call) Return(_a0 *iam.SimulateCustomPolicyOutput, _a1 error) *IAM_SimulateCustomPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_SimulateCustomPolicy_Call) RunAndReturn(run func(context.Context, *iam.SimulateCustomPolicyInput, ...func(*iam.Options)) (*iam.SimulateCustomPolicyOutput, error)) *IAM_SimulateCustomPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SimulatePrincipalPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) SimulatePrincipalPolicy(ctx context.Context, params *iam.SimulatePrincipalPolicyInput, optFns ...func(*iam.Options)) (*iam.SimulatePrincipalPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4692,6 +9722,43 @@ func (_m *IAM) SimulatePrincipalPolicy(ctx context.Context, params *iam.Simulate
 	}
 
 	return r0, r1
+}
+
+// IAM_SimulatePrincipalPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SimulatePrincipalPolicy'
+type IAM_SimulatePrincipalPolicy_Call struct {
+	*mock.Call
+}
+
+// SimulatePrincipalPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.SimulatePrincipalPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) SimulatePrincipalPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_SimulatePrincipalPolicy_Call {
+	return &IAM_SimulatePrincipalPolicy_Call{Call: _e.mock.On("SimulatePrincipalPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_SimulatePrincipalPolicy_Call) Run(run func(ctx context.Context, params *iam.SimulatePrincipalPolicyInput, optFns ...func(*iam.Options))) *IAM_SimulatePrincipalPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.SimulatePrincipalPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_SimulatePrincipalPolicy_Call) Return(_a0 *iam.SimulatePrincipalPolicyOutput, _a1 error) *IAM_SimulatePrincipalPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_SimulatePrincipalPolicy_Call) RunAndReturn(run func(context.Context, *iam.SimulatePrincipalPolicyInput, ...func(*iam.Options)) (*iam.SimulatePrincipalPolicyOutput, error)) *IAM_SimulatePrincipalPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // TagInstanceProfile provides a mock function with given fields: ctx, params, optFns
@@ -4731,6 +9798,43 @@ func (_m *IAM) TagInstanceProfile(ctx context.Context, params *iam.TagInstancePr
 	return r0, r1
 }
 
+// IAM_TagInstanceProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TagInstanceProfile'
+type IAM_TagInstanceProfile_Call struct {
+	*mock.Call
+}
+
+// TagInstanceProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.TagInstanceProfileInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) TagInstanceProfile(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_TagInstanceProfile_Call {
+	return &IAM_TagInstanceProfile_Call{Call: _e.mock.On("TagInstanceProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_TagInstanceProfile_Call) Run(run func(ctx context.Context, params *iam.TagInstanceProfileInput, optFns ...func(*iam.Options))) *IAM_TagInstanceProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.TagInstanceProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_TagInstanceProfile_Call) Return(_a0 *iam.TagInstanceProfileOutput, _a1 error) *IAM_TagInstanceProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_TagInstanceProfile_Call) RunAndReturn(run func(context.Context, *iam.TagInstanceProfileInput, ...func(*iam.Options)) (*iam.TagInstanceProfileOutput, error)) *IAM_TagInstanceProfile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TagMFADevice provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) TagMFADevice(ctx context.Context, params *iam.TagMFADeviceInput, optFns ...func(*iam.Options)) (*iam.TagMFADeviceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4766,6 +9870,43 @@ func (_m *IAM) TagMFADevice(ctx context.Context, params *iam.TagMFADeviceInput, 
 	}
 
 	return r0, r1
+}
+
+// IAM_TagMFADevice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TagMFADevice'
+type IAM_TagMFADevice_Call struct {
+	*mock.Call
+}
+
+// TagMFADevice is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.TagMFADeviceInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) TagMFADevice(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_TagMFADevice_Call {
+	return &IAM_TagMFADevice_Call{Call: _e.mock.On("TagMFADevice",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_TagMFADevice_Call) Run(run func(ctx context.Context, params *iam.TagMFADeviceInput, optFns ...func(*iam.Options))) *IAM_TagMFADevice_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.TagMFADeviceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_TagMFADevice_Call) Return(_a0 *iam.TagMFADeviceOutput, _a1 error) *IAM_TagMFADevice_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_TagMFADevice_Call) RunAndReturn(run func(context.Context, *iam.TagMFADeviceInput, ...func(*iam.Options)) (*iam.TagMFADeviceOutput, error)) *IAM_TagMFADevice_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // TagOpenIDConnectProvider provides a mock function with given fields: ctx, params, optFns
@@ -4805,6 +9946,43 @@ func (_m *IAM) TagOpenIDConnectProvider(ctx context.Context, params *iam.TagOpen
 	return r0, r1
 }
 
+// IAM_TagOpenIDConnectProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TagOpenIDConnectProvider'
+type IAM_TagOpenIDConnectProvider_Call struct {
+	*mock.Call
+}
+
+// TagOpenIDConnectProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.TagOpenIDConnectProviderInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) TagOpenIDConnectProvider(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_TagOpenIDConnectProvider_Call {
+	return &IAM_TagOpenIDConnectProvider_Call{Call: _e.mock.On("TagOpenIDConnectProvider",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_TagOpenIDConnectProvider_Call) Run(run func(ctx context.Context, params *iam.TagOpenIDConnectProviderInput, optFns ...func(*iam.Options))) *IAM_TagOpenIDConnectProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.TagOpenIDConnectProviderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_TagOpenIDConnectProvider_Call) Return(_a0 *iam.TagOpenIDConnectProviderOutput, _a1 error) *IAM_TagOpenIDConnectProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_TagOpenIDConnectProvider_Call) RunAndReturn(run func(context.Context, *iam.TagOpenIDConnectProviderInput, ...func(*iam.Options)) (*iam.TagOpenIDConnectProviderOutput, error)) *IAM_TagOpenIDConnectProvider_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TagPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) TagPolicy(ctx context.Context, params *iam.TagPolicyInput, optFns ...func(*iam.Options)) (*iam.TagPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4840,6 +10018,43 @@ func (_m *IAM) TagPolicy(ctx context.Context, params *iam.TagPolicyInput, optFns
 	}
 
 	return r0, r1
+}
+
+// IAM_TagPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TagPolicy'
+type IAM_TagPolicy_Call struct {
+	*mock.Call
+}
+
+// TagPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.TagPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) TagPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_TagPolicy_Call {
+	return &IAM_TagPolicy_Call{Call: _e.mock.On("TagPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_TagPolicy_Call) Run(run func(ctx context.Context, params *iam.TagPolicyInput, optFns ...func(*iam.Options))) *IAM_TagPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.TagPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_TagPolicy_Call) Return(_a0 *iam.TagPolicyOutput, _a1 error) *IAM_TagPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_TagPolicy_Call) RunAndReturn(run func(context.Context, *iam.TagPolicyInput, ...func(*iam.Options)) (*iam.TagPolicyOutput, error)) *IAM_TagPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // TagRole provides a mock function with given fields: ctx, params, optFns
@@ -4879,6 +10094,43 @@ func (_m *IAM) TagRole(ctx context.Context, params *iam.TagRoleInput, optFns ...
 	return r0, r1
 }
 
+// IAM_TagRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TagRole'
+type IAM_TagRole_Call struct {
+	*mock.Call
+}
+
+// TagRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.TagRoleInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) TagRole(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_TagRole_Call {
+	return &IAM_TagRole_Call{Call: _e.mock.On("TagRole",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_TagRole_Call) Run(run func(ctx context.Context, params *iam.TagRoleInput, optFns ...func(*iam.Options))) *IAM_TagRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.TagRoleInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_TagRole_Call) Return(_a0 *iam.TagRoleOutput, _a1 error) *IAM_TagRole_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_TagRole_Call) RunAndReturn(run func(context.Context, *iam.TagRoleInput, ...func(*iam.Options)) (*iam.TagRoleOutput, error)) *IAM_TagRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TagSAMLProvider provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) TagSAMLProvider(ctx context.Context, params *iam.TagSAMLProviderInput, optFns ...func(*iam.Options)) (*iam.TagSAMLProviderOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4914,6 +10166,43 @@ func (_m *IAM) TagSAMLProvider(ctx context.Context, params *iam.TagSAMLProviderI
 	}
 
 	return r0, r1
+}
+
+// IAM_TagSAMLProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TagSAMLProvider'
+type IAM_TagSAMLProvider_Call struct {
+	*mock.Call
+}
+
+// TagSAMLProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.TagSAMLProviderInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) TagSAMLProvider(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_TagSAMLProvider_Call {
+	return &IAM_TagSAMLProvider_Call{Call: _e.mock.On("TagSAMLProvider",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_TagSAMLProvider_Call) Run(run func(ctx context.Context, params *iam.TagSAMLProviderInput, optFns ...func(*iam.Options))) *IAM_TagSAMLProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.TagSAMLProviderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_TagSAMLProvider_Call) Return(_a0 *iam.TagSAMLProviderOutput, _a1 error) *IAM_TagSAMLProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_TagSAMLProvider_Call) RunAndReturn(run func(context.Context, *iam.TagSAMLProviderInput, ...func(*iam.Options)) (*iam.TagSAMLProviderOutput, error)) *IAM_TagSAMLProvider_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // TagServerCertificate provides a mock function with given fields: ctx, params, optFns
@@ -4953,6 +10242,43 @@ func (_m *IAM) TagServerCertificate(ctx context.Context, params *iam.TagServerCe
 	return r0, r1
 }
 
+// IAM_TagServerCertificate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TagServerCertificate'
+type IAM_TagServerCertificate_Call struct {
+	*mock.Call
+}
+
+// TagServerCertificate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.TagServerCertificateInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) TagServerCertificate(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_TagServerCertificate_Call {
+	return &IAM_TagServerCertificate_Call{Call: _e.mock.On("TagServerCertificate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_TagServerCertificate_Call) Run(run func(ctx context.Context, params *iam.TagServerCertificateInput, optFns ...func(*iam.Options))) *IAM_TagServerCertificate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.TagServerCertificateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_TagServerCertificate_Call) Return(_a0 *iam.TagServerCertificateOutput, _a1 error) *IAM_TagServerCertificate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_TagServerCertificate_Call) RunAndReturn(run func(context.Context, *iam.TagServerCertificateInput, ...func(*iam.Options)) (*iam.TagServerCertificateOutput, error)) *IAM_TagServerCertificate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TagUser provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) TagUser(ctx context.Context, params *iam.TagUserInput, optFns ...func(*iam.Options)) (*iam.TagUserOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4988,6 +10314,43 @@ func (_m *IAM) TagUser(ctx context.Context, params *iam.TagUserInput, optFns ...
 	}
 
 	return r0, r1
+}
+
+// IAM_TagUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TagUser'
+type IAM_TagUser_Call struct {
+	*mock.Call
+}
+
+// TagUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.TagUserInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) TagUser(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_TagUser_Call {
+	return &IAM_TagUser_Call{Call: _e.mock.On("TagUser",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_TagUser_Call) Run(run func(ctx context.Context, params *iam.TagUserInput, optFns ...func(*iam.Options))) *IAM_TagUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.TagUserInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_TagUser_Call) Return(_a0 *iam.TagUserOutput, _a1 error) *IAM_TagUser_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_TagUser_Call) RunAndReturn(run func(context.Context, *iam.TagUserInput, ...func(*iam.Options)) (*iam.TagUserOutput, error)) *IAM_TagUser_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UntagInstanceProfile provides a mock function with given fields: ctx, params, optFns
@@ -5027,6 +10390,43 @@ func (_m *IAM) UntagInstanceProfile(ctx context.Context, params *iam.UntagInstan
 	return r0, r1
 }
 
+// IAM_UntagInstanceProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UntagInstanceProfile'
+type IAM_UntagInstanceProfile_Call struct {
+	*mock.Call
+}
+
+// UntagInstanceProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UntagInstanceProfileInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UntagInstanceProfile(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UntagInstanceProfile_Call {
+	return &IAM_UntagInstanceProfile_Call{Call: _e.mock.On("UntagInstanceProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UntagInstanceProfile_Call) Run(run func(ctx context.Context, params *iam.UntagInstanceProfileInput, optFns ...func(*iam.Options))) *IAM_UntagInstanceProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UntagInstanceProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UntagInstanceProfile_Call) Return(_a0 *iam.UntagInstanceProfileOutput, _a1 error) *IAM_UntagInstanceProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UntagInstanceProfile_Call) RunAndReturn(run func(context.Context, *iam.UntagInstanceProfileInput, ...func(*iam.Options)) (*iam.UntagInstanceProfileOutput, error)) *IAM_UntagInstanceProfile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UntagMFADevice provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) UntagMFADevice(ctx context.Context, params *iam.UntagMFADeviceInput, optFns ...func(*iam.Options)) (*iam.UntagMFADeviceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5062,6 +10462,43 @@ func (_m *IAM) UntagMFADevice(ctx context.Context, params *iam.UntagMFADeviceInp
 	}
 
 	return r0, r1
+}
+
+// IAM_UntagMFADevice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UntagMFADevice'
+type IAM_UntagMFADevice_Call struct {
+	*mock.Call
+}
+
+// UntagMFADevice is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UntagMFADeviceInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UntagMFADevice(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UntagMFADevice_Call {
+	return &IAM_UntagMFADevice_Call{Call: _e.mock.On("UntagMFADevice",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UntagMFADevice_Call) Run(run func(ctx context.Context, params *iam.UntagMFADeviceInput, optFns ...func(*iam.Options))) *IAM_UntagMFADevice_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UntagMFADeviceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UntagMFADevice_Call) Return(_a0 *iam.UntagMFADeviceOutput, _a1 error) *IAM_UntagMFADevice_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UntagMFADevice_Call) RunAndReturn(run func(context.Context, *iam.UntagMFADeviceInput, ...func(*iam.Options)) (*iam.UntagMFADeviceOutput, error)) *IAM_UntagMFADevice_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UntagOpenIDConnectProvider provides a mock function with given fields: ctx, params, optFns
@@ -5101,6 +10538,43 @@ func (_m *IAM) UntagOpenIDConnectProvider(ctx context.Context, params *iam.Untag
 	return r0, r1
 }
 
+// IAM_UntagOpenIDConnectProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UntagOpenIDConnectProvider'
+type IAM_UntagOpenIDConnectProvider_Call struct {
+	*mock.Call
+}
+
+// UntagOpenIDConnectProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UntagOpenIDConnectProviderInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UntagOpenIDConnectProvider(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UntagOpenIDConnectProvider_Call {
+	return &IAM_UntagOpenIDConnectProvider_Call{Call: _e.mock.On("UntagOpenIDConnectProvider",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UntagOpenIDConnectProvider_Call) Run(run func(ctx context.Context, params *iam.UntagOpenIDConnectProviderInput, optFns ...func(*iam.Options))) *IAM_UntagOpenIDConnectProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UntagOpenIDConnectProviderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UntagOpenIDConnectProvider_Call) Return(_a0 *iam.UntagOpenIDConnectProviderOutput, _a1 error) *IAM_UntagOpenIDConnectProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UntagOpenIDConnectProvider_Call) RunAndReturn(run func(context.Context, *iam.UntagOpenIDConnectProviderInput, ...func(*iam.Options)) (*iam.UntagOpenIDConnectProviderOutput, error)) *IAM_UntagOpenIDConnectProvider_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UntagPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) UntagPolicy(ctx context.Context, params *iam.UntagPolicyInput, optFns ...func(*iam.Options)) (*iam.UntagPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5136,6 +10610,43 @@ func (_m *IAM) UntagPolicy(ctx context.Context, params *iam.UntagPolicyInput, op
 	}
 
 	return r0, r1
+}
+
+// IAM_UntagPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UntagPolicy'
+type IAM_UntagPolicy_Call struct {
+	*mock.Call
+}
+
+// UntagPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UntagPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UntagPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UntagPolicy_Call {
+	return &IAM_UntagPolicy_Call{Call: _e.mock.On("UntagPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UntagPolicy_Call) Run(run func(ctx context.Context, params *iam.UntagPolicyInput, optFns ...func(*iam.Options))) *IAM_UntagPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UntagPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UntagPolicy_Call) Return(_a0 *iam.UntagPolicyOutput, _a1 error) *IAM_UntagPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UntagPolicy_Call) RunAndReturn(run func(context.Context, *iam.UntagPolicyInput, ...func(*iam.Options)) (*iam.UntagPolicyOutput, error)) *IAM_UntagPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UntagRole provides a mock function with given fields: ctx, params, optFns
@@ -5175,6 +10686,43 @@ func (_m *IAM) UntagRole(ctx context.Context, params *iam.UntagRoleInput, optFns
 	return r0, r1
 }
 
+// IAM_UntagRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UntagRole'
+type IAM_UntagRole_Call struct {
+	*mock.Call
+}
+
+// UntagRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UntagRoleInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UntagRole(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UntagRole_Call {
+	return &IAM_UntagRole_Call{Call: _e.mock.On("UntagRole",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UntagRole_Call) Run(run func(ctx context.Context, params *iam.UntagRoleInput, optFns ...func(*iam.Options))) *IAM_UntagRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UntagRoleInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UntagRole_Call) Return(_a0 *iam.UntagRoleOutput, _a1 error) *IAM_UntagRole_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UntagRole_Call) RunAndReturn(run func(context.Context, *iam.UntagRoleInput, ...func(*iam.Options)) (*iam.UntagRoleOutput, error)) *IAM_UntagRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UntagSAMLProvider provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) UntagSAMLProvider(ctx context.Context, params *iam.UntagSAMLProviderInput, optFns ...func(*iam.Options)) (*iam.UntagSAMLProviderOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5210,6 +10758,43 @@ func (_m *IAM) UntagSAMLProvider(ctx context.Context, params *iam.UntagSAMLProvi
 	}
 
 	return r0, r1
+}
+
+// IAM_UntagSAMLProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UntagSAMLProvider'
+type IAM_UntagSAMLProvider_Call struct {
+	*mock.Call
+}
+
+// UntagSAMLProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UntagSAMLProviderInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UntagSAMLProvider(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UntagSAMLProvider_Call {
+	return &IAM_UntagSAMLProvider_Call{Call: _e.mock.On("UntagSAMLProvider",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UntagSAMLProvider_Call) Run(run func(ctx context.Context, params *iam.UntagSAMLProviderInput, optFns ...func(*iam.Options))) *IAM_UntagSAMLProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UntagSAMLProviderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UntagSAMLProvider_Call) Return(_a0 *iam.UntagSAMLProviderOutput, _a1 error) *IAM_UntagSAMLProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UntagSAMLProvider_Call) RunAndReturn(run func(context.Context, *iam.UntagSAMLProviderInput, ...func(*iam.Options)) (*iam.UntagSAMLProviderOutput, error)) *IAM_UntagSAMLProvider_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UntagServerCertificate provides a mock function with given fields: ctx, params, optFns
@@ -5249,6 +10834,43 @@ func (_m *IAM) UntagServerCertificate(ctx context.Context, params *iam.UntagServ
 	return r0, r1
 }
 
+// IAM_UntagServerCertificate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UntagServerCertificate'
+type IAM_UntagServerCertificate_Call struct {
+	*mock.Call
+}
+
+// UntagServerCertificate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UntagServerCertificateInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UntagServerCertificate(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UntagServerCertificate_Call {
+	return &IAM_UntagServerCertificate_Call{Call: _e.mock.On("UntagServerCertificate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UntagServerCertificate_Call) Run(run func(ctx context.Context, params *iam.UntagServerCertificateInput, optFns ...func(*iam.Options))) *IAM_UntagServerCertificate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UntagServerCertificateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UntagServerCertificate_Call) Return(_a0 *iam.UntagServerCertificateOutput, _a1 error) *IAM_UntagServerCertificate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UntagServerCertificate_Call) RunAndReturn(run func(context.Context, *iam.UntagServerCertificateInput, ...func(*iam.Options)) (*iam.UntagServerCertificateOutput, error)) *IAM_UntagServerCertificate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UntagUser provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) UntagUser(ctx context.Context, params *iam.UntagUserInput, optFns ...func(*iam.Options)) (*iam.UntagUserOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5284,6 +10906,43 @@ func (_m *IAM) UntagUser(ctx context.Context, params *iam.UntagUserInput, optFns
 	}
 
 	return r0, r1
+}
+
+// IAM_UntagUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UntagUser'
+type IAM_UntagUser_Call struct {
+	*mock.Call
+}
+
+// UntagUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UntagUserInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UntagUser(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UntagUser_Call {
+	return &IAM_UntagUser_Call{Call: _e.mock.On("UntagUser",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UntagUser_Call) Run(run func(ctx context.Context, params *iam.UntagUserInput, optFns ...func(*iam.Options))) *IAM_UntagUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UntagUserInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UntagUser_Call) Return(_a0 *iam.UntagUserOutput, _a1 error) *IAM_UntagUser_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UntagUser_Call) RunAndReturn(run func(context.Context, *iam.UntagUserInput, ...func(*iam.Options)) (*iam.UntagUserOutput, error)) *IAM_UntagUser_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateAccessKey provides a mock function with given fields: ctx, params, optFns
@@ -5323,6 +10982,43 @@ func (_m *IAM) UpdateAccessKey(ctx context.Context, params *iam.UpdateAccessKeyI
 	return r0, r1
 }
 
+// IAM_UpdateAccessKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAccessKey'
+type IAM_UpdateAccessKey_Call struct {
+	*mock.Call
+}
+
+// UpdateAccessKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateAccessKeyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateAccessKey(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateAccessKey_Call {
+	return &IAM_UpdateAccessKey_Call{Call: _e.mock.On("UpdateAccessKey",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateAccessKey_Call) Run(run func(ctx context.Context, params *iam.UpdateAccessKeyInput, optFns ...func(*iam.Options))) *IAM_UpdateAccessKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateAccessKeyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateAccessKey_Call) Return(_a0 *iam.UpdateAccessKeyOutput, _a1 error) *IAM_UpdateAccessKey_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateAccessKey_Call) RunAndReturn(run func(context.Context, *iam.UpdateAccessKeyInput, ...func(*iam.Options)) (*iam.UpdateAccessKeyOutput, error)) *IAM_UpdateAccessKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateAccountPasswordPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) UpdateAccountPasswordPolicy(ctx context.Context, params *iam.UpdateAccountPasswordPolicyInput, optFns ...func(*iam.Options)) (*iam.UpdateAccountPasswordPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5358,6 +11054,43 @@ func (_m *IAM) UpdateAccountPasswordPolicy(ctx context.Context, params *iam.Upda
 	}
 
 	return r0, r1
+}
+
+// IAM_UpdateAccountPasswordPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAccountPasswordPolicy'
+type IAM_UpdateAccountPasswordPolicy_Call struct {
+	*mock.Call
+}
+
+// UpdateAccountPasswordPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateAccountPasswordPolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateAccountPasswordPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateAccountPasswordPolicy_Call {
+	return &IAM_UpdateAccountPasswordPolicy_Call{Call: _e.mock.On("UpdateAccountPasswordPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateAccountPasswordPolicy_Call) Run(run func(ctx context.Context, params *iam.UpdateAccountPasswordPolicyInput, optFns ...func(*iam.Options))) *IAM_UpdateAccountPasswordPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateAccountPasswordPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateAccountPasswordPolicy_Call) Return(_a0 *iam.UpdateAccountPasswordPolicyOutput, _a1 error) *IAM_UpdateAccountPasswordPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateAccountPasswordPolicy_Call) RunAndReturn(run func(context.Context, *iam.UpdateAccountPasswordPolicyInput, ...func(*iam.Options)) (*iam.UpdateAccountPasswordPolicyOutput, error)) *IAM_UpdateAccountPasswordPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateAssumeRolePolicy provides a mock function with given fields: ctx, params, optFns
@@ -5397,6 +11130,43 @@ func (_m *IAM) UpdateAssumeRolePolicy(ctx context.Context, params *iam.UpdateAss
 	return r0, r1
 }
 
+// IAM_UpdateAssumeRolePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAssumeRolePolicy'
+type IAM_UpdateAssumeRolePolicy_Call struct {
+	*mock.Call
+}
+
+// UpdateAssumeRolePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateAssumeRolePolicyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateAssumeRolePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateAssumeRolePolicy_Call {
+	return &IAM_UpdateAssumeRolePolicy_Call{Call: _e.mock.On("UpdateAssumeRolePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateAssumeRolePolicy_Call) Run(run func(ctx context.Context, params *iam.UpdateAssumeRolePolicyInput, optFns ...func(*iam.Options))) *IAM_UpdateAssumeRolePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateAssumeRolePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateAssumeRolePolicy_Call) Return(_a0 *iam.UpdateAssumeRolePolicyOutput, _a1 error) *IAM_UpdateAssumeRolePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateAssumeRolePolicy_Call) RunAndReturn(run func(context.Context, *iam.UpdateAssumeRolePolicyInput, ...func(*iam.Options)) (*iam.UpdateAssumeRolePolicyOutput, error)) *IAM_UpdateAssumeRolePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateGroup provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) UpdateGroup(ctx context.Context, params *iam.UpdateGroupInput, optFns ...func(*iam.Options)) (*iam.UpdateGroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5432,6 +11202,43 @@ func (_m *IAM) UpdateGroup(ctx context.Context, params *iam.UpdateGroupInput, op
 	}
 
 	return r0, r1
+}
+
+// IAM_UpdateGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateGroup'
+type IAM_UpdateGroup_Call struct {
+	*mock.Call
+}
+
+// UpdateGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateGroupInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateGroup(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateGroup_Call {
+	return &IAM_UpdateGroup_Call{Call: _e.mock.On("UpdateGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateGroup_Call) Run(run func(ctx context.Context, params *iam.UpdateGroupInput, optFns ...func(*iam.Options))) *IAM_UpdateGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateGroup_Call) Return(_a0 *iam.UpdateGroupOutput, _a1 error) *IAM_UpdateGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateGroup_Call) RunAndReturn(run func(context.Context, *iam.UpdateGroupInput, ...func(*iam.Options)) (*iam.UpdateGroupOutput, error)) *IAM_UpdateGroup_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateLoginProfile provides a mock function with given fields: ctx, params, optFns
@@ -5471,6 +11278,43 @@ func (_m *IAM) UpdateLoginProfile(ctx context.Context, params *iam.UpdateLoginPr
 	return r0, r1
 }
 
+// IAM_UpdateLoginProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateLoginProfile'
+type IAM_UpdateLoginProfile_Call struct {
+	*mock.Call
+}
+
+// UpdateLoginProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateLoginProfileInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateLoginProfile(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateLoginProfile_Call {
+	return &IAM_UpdateLoginProfile_Call{Call: _e.mock.On("UpdateLoginProfile",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateLoginProfile_Call) Run(run func(ctx context.Context, params *iam.UpdateLoginProfileInput, optFns ...func(*iam.Options))) *IAM_UpdateLoginProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateLoginProfileInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateLoginProfile_Call) Return(_a0 *iam.UpdateLoginProfileOutput, _a1 error) *IAM_UpdateLoginProfile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateLoginProfile_Call) RunAndReturn(run func(context.Context, *iam.UpdateLoginProfileInput, ...func(*iam.Options)) (*iam.UpdateLoginProfileOutput, error)) *IAM_UpdateLoginProfile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateOpenIDConnectProviderThumbprint provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) UpdateOpenIDConnectProviderThumbprint(ctx context.Context, params *iam.UpdateOpenIDConnectProviderThumbprintInput, optFns ...func(*iam.Options)) (*iam.UpdateOpenIDConnectProviderThumbprintOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5506,6 +11350,43 @@ func (_m *IAM) UpdateOpenIDConnectProviderThumbprint(ctx context.Context, params
 	}
 
 	return r0, r1
+}
+
+// IAM_UpdateOpenIDConnectProviderThumbprint_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateOpenIDConnectProviderThumbprint'
+type IAM_UpdateOpenIDConnectProviderThumbprint_Call struct {
+	*mock.Call
+}
+
+// UpdateOpenIDConnectProviderThumbprint is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateOpenIDConnectProviderThumbprintInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateOpenIDConnectProviderThumbprint(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateOpenIDConnectProviderThumbprint_Call {
+	return &IAM_UpdateOpenIDConnectProviderThumbprint_Call{Call: _e.mock.On("UpdateOpenIDConnectProviderThumbprint",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateOpenIDConnectProviderThumbprint_Call) Run(run func(ctx context.Context, params *iam.UpdateOpenIDConnectProviderThumbprintInput, optFns ...func(*iam.Options))) *IAM_UpdateOpenIDConnectProviderThumbprint_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateOpenIDConnectProviderThumbprintInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateOpenIDConnectProviderThumbprint_Call) Return(_a0 *iam.UpdateOpenIDConnectProviderThumbprintOutput, _a1 error) *IAM_UpdateOpenIDConnectProviderThumbprint_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateOpenIDConnectProviderThumbprint_Call) RunAndReturn(run func(context.Context, *iam.UpdateOpenIDConnectProviderThumbprintInput, ...func(*iam.Options)) (*iam.UpdateOpenIDConnectProviderThumbprintOutput, error)) *IAM_UpdateOpenIDConnectProviderThumbprint_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateRole provides a mock function with given fields: ctx, params, optFns
@@ -5545,6 +11426,43 @@ func (_m *IAM) UpdateRole(ctx context.Context, params *iam.UpdateRoleInput, optF
 	return r0, r1
 }
 
+// IAM_UpdateRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateRole'
+type IAM_UpdateRole_Call struct {
+	*mock.Call
+}
+
+// UpdateRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateRoleInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateRole(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateRole_Call {
+	return &IAM_UpdateRole_Call{Call: _e.mock.On("UpdateRole",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateRole_Call) Run(run func(ctx context.Context, params *iam.UpdateRoleInput, optFns ...func(*iam.Options))) *IAM_UpdateRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateRoleInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateRole_Call) Return(_a0 *iam.UpdateRoleOutput, _a1 error) *IAM_UpdateRole_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateRole_Call) RunAndReturn(run func(context.Context, *iam.UpdateRoleInput, ...func(*iam.Options)) (*iam.UpdateRoleOutput, error)) *IAM_UpdateRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateRoleDescription provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) UpdateRoleDescription(ctx context.Context, params *iam.UpdateRoleDescriptionInput, optFns ...func(*iam.Options)) (*iam.UpdateRoleDescriptionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5580,6 +11498,43 @@ func (_m *IAM) UpdateRoleDescription(ctx context.Context, params *iam.UpdateRole
 	}
 
 	return r0, r1
+}
+
+// IAM_UpdateRoleDescription_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateRoleDescription'
+type IAM_UpdateRoleDescription_Call struct {
+	*mock.Call
+}
+
+// UpdateRoleDescription is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateRoleDescriptionInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateRoleDescription(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateRoleDescription_Call {
+	return &IAM_UpdateRoleDescription_Call{Call: _e.mock.On("UpdateRoleDescription",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateRoleDescription_Call) Run(run func(ctx context.Context, params *iam.UpdateRoleDescriptionInput, optFns ...func(*iam.Options))) *IAM_UpdateRoleDescription_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateRoleDescriptionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateRoleDescription_Call) Return(_a0 *iam.UpdateRoleDescriptionOutput, _a1 error) *IAM_UpdateRoleDescription_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateRoleDescription_Call) RunAndReturn(run func(context.Context, *iam.UpdateRoleDescriptionInput, ...func(*iam.Options)) (*iam.UpdateRoleDescriptionOutput, error)) *IAM_UpdateRoleDescription_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateSAMLProvider provides a mock function with given fields: ctx, params, optFns
@@ -5619,6 +11574,43 @@ func (_m *IAM) UpdateSAMLProvider(ctx context.Context, params *iam.UpdateSAMLPro
 	return r0, r1
 }
 
+// IAM_UpdateSAMLProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateSAMLProvider'
+type IAM_UpdateSAMLProvider_Call struct {
+	*mock.Call
+}
+
+// UpdateSAMLProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateSAMLProviderInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateSAMLProvider(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateSAMLProvider_Call {
+	return &IAM_UpdateSAMLProvider_Call{Call: _e.mock.On("UpdateSAMLProvider",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateSAMLProvider_Call) Run(run func(ctx context.Context, params *iam.UpdateSAMLProviderInput, optFns ...func(*iam.Options))) *IAM_UpdateSAMLProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateSAMLProviderInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateSAMLProvider_Call) Return(_a0 *iam.UpdateSAMLProviderOutput, _a1 error) *IAM_UpdateSAMLProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateSAMLProvider_Call) RunAndReturn(run func(context.Context, *iam.UpdateSAMLProviderInput, ...func(*iam.Options)) (*iam.UpdateSAMLProviderOutput, error)) *IAM_UpdateSAMLProvider_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateSSHPublicKey provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) UpdateSSHPublicKey(ctx context.Context, params *iam.UpdateSSHPublicKeyInput, optFns ...func(*iam.Options)) (*iam.UpdateSSHPublicKeyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5654,6 +11646,43 @@ func (_m *IAM) UpdateSSHPublicKey(ctx context.Context, params *iam.UpdateSSHPubl
 	}
 
 	return r0, r1
+}
+
+// IAM_UpdateSSHPublicKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateSSHPublicKey'
+type IAM_UpdateSSHPublicKey_Call struct {
+	*mock.Call
+}
+
+// UpdateSSHPublicKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateSSHPublicKeyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateSSHPublicKey(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateSSHPublicKey_Call {
+	return &IAM_UpdateSSHPublicKey_Call{Call: _e.mock.On("UpdateSSHPublicKey",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateSSHPublicKey_Call) Run(run func(ctx context.Context, params *iam.UpdateSSHPublicKeyInput, optFns ...func(*iam.Options))) *IAM_UpdateSSHPublicKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateSSHPublicKeyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateSSHPublicKey_Call) Return(_a0 *iam.UpdateSSHPublicKeyOutput, _a1 error) *IAM_UpdateSSHPublicKey_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateSSHPublicKey_Call) RunAndReturn(run func(context.Context, *iam.UpdateSSHPublicKeyInput, ...func(*iam.Options)) (*iam.UpdateSSHPublicKeyOutput, error)) *IAM_UpdateSSHPublicKey_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateServerCertificate provides a mock function with given fields: ctx, params, optFns
@@ -5693,6 +11722,43 @@ func (_m *IAM) UpdateServerCertificate(ctx context.Context, params *iam.UpdateSe
 	return r0, r1
 }
 
+// IAM_UpdateServerCertificate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateServerCertificate'
+type IAM_UpdateServerCertificate_Call struct {
+	*mock.Call
+}
+
+// UpdateServerCertificate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateServerCertificateInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateServerCertificate(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateServerCertificate_Call {
+	return &IAM_UpdateServerCertificate_Call{Call: _e.mock.On("UpdateServerCertificate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateServerCertificate_Call) Run(run func(ctx context.Context, params *iam.UpdateServerCertificateInput, optFns ...func(*iam.Options))) *IAM_UpdateServerCertificate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateServerCertificateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateServerCertificate_Call) Return(_a0 *iam.UpdateServerCertificateOutput, _a1 error) *IAM_UpdateServerCertificate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateServerCertificate_Call) RunAndReturn(run func(context.Context, *iam.UpdateServerCertificateInput, ...func(*iam.Options)) (*iam.UpdateServerCertificateOutput, error)) *IAM_UpdateServerCertificate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateServiceSpecificCredential provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) UpdateServiceSpecificCredential(ctx context.Context, params *iam.UpdateServiceSpecificCredentialInput, optFns ...func(*iam.Options)) (*iam.UpdateServiceSpecificCredentialOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5728,6 +11794,43 @@ func (_m *IAM) UpdateServiceSpecificCredential(ctx context.Context, params *iam.
 	}
 
 	return r0, r1
+}
+
+// IAM_UpdateServiceSpecificCredential_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateServiceSpecificCredential'
+type IAM_UpdateServiceSpecificCredential_Call struct {
+	*mock.Call
+}
+
+// UpdateServiceSpecificCredential is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateServiceSpecificCredentialInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateServiceSpecificCredential(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateServiceSpecificCredential_Call {
+	return &IAM_UpdateServiceSpecificCredential_Call{Call: _e.mock.On("UpdateServiceSpecificCredential",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateServiceSpecificCredential_Call) Run(run func(ctx context.Context, params *iam.UpdateServiceSpecificCredentialInput, optFns ...func(*iam.Options))) *IAM_UpdateServiceSpecificCredential_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateServiceSpecificCredentialInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateServiceSpecificCredential_Call) Return(_a0 *iam.UpdateServiceSpecificCredentialOutput, _a1 error) *IAM_UpdateServiceSpecificCredential_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateServiceSpecificCredential_Call) RunAndReturn(run func(context.Context, *iam.UpdateServiceSpecificCredentialInput, ...func(*iam.Options)) (*iam.UpdateServiceSpecificCredentialOutput, error)) *IAM_UpdateServiceSpecificCredential_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateSigningCertificate provides a mock function with given fields: ctx, params, optFns
@@ -5767,6 +11870,43 @@ func (_m *IAM) UpdateSigningCertificate(ctx context.Context, params *iam.UpdateS
 	return r0, r1
 }
 
+// IAM_UpdateSigningCertificate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateSigningCertificate'
+type IAM_UpdateSigningCertificate_Call struct {
+	*mock.Call
+}
+
+// UpdateSigningCertificate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateSigningCertificateInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateSigningCertificate(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateSigningCertificate_Call {
+	return &IAM_UpdateSigningCertificate_Call{Call: _e.mock.On("UpdateSigningCertificate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateSigningCertificate_Call) Run(run func(ctx context.Context, params *iam.UpdateSigningCertificateInput, optFns ...func(*iam.Options))) *IAM_UpdateSigningCertificate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateSigningCertificateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateSigningCertificate_Call) Return(_a0 *iam.UpdateSigningCertificateOutput, _a1 error) *IAM_UpdateSigningCertificate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateSigningCertificate_Call) RunAndReturn(run func(context.Context, *iam.UpdateSigningCertificateInput, ...func(*iam.Options)) (*iam.UpdateSigningCertificateOutput, error)) *IAM_UpdateSigningCertificate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateUser provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) UpdateUser(ctx context.Context, params *iam.UpdateUserInput, optFns ...func(*iam.Options)) (*iam.UpdateUserOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5802,6 +11942,43 @@ func (_m *IAM) UpdateUser(ctx context.Context, params *iam.UpdateUserInput, optF
 	}
 
 	return r0, r1
+}
+
+// IAM_UpdateUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateUser'
+type IAM_UpdateUser_Call struct {
+	*mock.Call
+}
+
+// UpdateUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UpdateUserInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UpdateUser(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UpdateUser_Call {
+	return &IAM_UpdateUser_Call{Call: _e.mock.On("UpdateUser",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UpdateUser_Call) Run(run func(ctx context.Context, params *iam.UpdateUserInput, optFns ...func(*iam.Options))) *IAM_UpdateUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UpdateUserInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UpdateUser_Call) Return(_a0 *iam.UpdateUserOutput, _a1 error) *IAM_UpdateUser_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UpdateUser_Call) RunAndReturn(run func(context.Context, *iam.UpdateUserInput, ...func(*iam.Options)) (*iam.UpdateUserOutput, error)) *IAM_UpdateUser_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UploadSSHPublicKey provides a mock function with given fields: ctx, params, optFns
@@ -5841,6 +12018,43 @@ func (_m *IAM) UploadSSHPublicKey(ctx context.Context, params *iam.UploadSSHPubl
 	return r0, r1
 }
 
+// IAM_UploadSSHPublicKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UploadSSHPublicKey'
+type IAM_UploadSSHPublicKey_Call struct {
+	*mock.Call
+}
+
+// UploadSSHPublicKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UploadSSHPublicKeyInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UploadSSHPublicKey(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UploadSSHPublicKey_Call {
+	return &IAM_UploadSSHPublicKey_Call{Call: _e.mock.On("UploadSSHPublicKey",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UploadSSHPublicKey_Call) Run(run func(ctx context.Context, params *iam.UploadSSHPublicKeyInput, optFns ...func(*iam.Options))) *IAM_UploadSSHPublicKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UploadSSHPublicKeyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UploadSSHPublicKey_Call) Return(_a0 *iam.UploadSSHPublicKeyOutput, _a1 error) *IAM_UploadSSHPublicKey_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UploadSSHPublicKey_Call) RunAndReturn(run func(context.Context, *iam.UploadSSHPublicKeyInput, ...func(*iam.Options)) (*iam.UploadSSHPublicKeyOutput, error)) *IAM_UploadSSHPublicKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UploadServerCertificate provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) UploadServerCertificate(ctx context.Context, params *iam.UploadServerCertificateInput, optFns ...func(*iam.Options)) (*iam.UploadServerCertificateOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5878,6 +12092,43 @@ func (_m *IAM) UploadServerCertificate(ctx context.Context, params *iam.UploadSe
 	return r0, r1
 }
 
+// IAM_UploadServerCertificate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UploadServerCertificate'
+type IAM_UploadServerCertificate_Call struct {
+	*mock.Call
+}
+
+// UploadServerCertificate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UploadServerCertificateInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UploadServerCertificate(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UploadServerCertificate_Call {
+	return &IAM_UploadServerCertificate_Call{Call: _e.mock.On("UploadServerCertificate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UploadServerCertificate_Call) Run(run func(ctx context.Context, params *iam.UploadServerCertificateInput, optFns ...func(*iam.Options))) *IAM_UploadServerCertificate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UploadServerCertificateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UploadServerCertificate_Call) Return(_a0 *iam.UploadServerCertificateOutput, _a1 error) *IAM_UploadServerCertificate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UploadServerCertificate_Call) RunAndReturn(run func(context.Context, *iam.UploadServerCertificateInput, ...func(*iam.Options)) (*iam.UploadServerCertificateOutput, error)) *IAM_UploadServerCertificate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UploadSigningCertificate provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) UploadSigningCertificate(ctx context.Context, params *iam.UploadSigningCertificateInput, optFns ...func(*iam.Options)) (*iam.UploadSigningCertificateOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5913,6 +12164,43 @@ func (_m *IAM) UploadSigningCertificate(ctx context.Context, params *iam.UploadS
 	}
 
 	return r0, r1
+}
+
+// IAM_UploadSigningCertificate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UploadSigningCertificate'
+type IAM_UploadSigningCertificate_Call struct {
+	*mock.Call
+}
+
+// UploadSigningCertificate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.UploadSigningCertificateInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) UploadSigningCertificate(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_UploadSigningCertificate_Call {
+	return &IAM_UploadSigningCertificate_Call{Call: _e.mock.On("UploadSigningCertificate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_UploadSigningCertificate_Call) Run(run func(ctx context.Context, params *iam.UploadSigningCertificateInput, optFns ...func(*iam.Options))) *IAM_UploadSigningCertificate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.UploadSigningCertificateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_UploadSigningCertificate_Call) Return(_a0 *iam.UploadSigningCertificateOutput, _a1 error) *IAM_UploadSigningCertificate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_UploadSigningCertificate_Call) RunAndReturn(run func(context.Context, *iam.UploadSigningCertificateInput, ...func(*iam.Options)) (*iam.UploadSigningCertificateOutput, error)) *IAM_UploadSigningCertificate_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewIAM creates a new instance of IAM. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

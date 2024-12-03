@@ -2,7 +2,7 @@ package associate
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -45,7 +45,7 @@ func newAssociateIdentityProviderLoader(cmd *cmdutils.Cmd) cmdutils.ClusterConfi
 
 	l.Validate(func(cmd *cmdutils.Cmd) error {
 		if len(cmd.ClusterConfig.IdentityProviders) == 0 {
-			return fmt.Errorf("No identity providers provided")
+			return errors.New("no identity providers provided")
 		}
 		return nil
 	})

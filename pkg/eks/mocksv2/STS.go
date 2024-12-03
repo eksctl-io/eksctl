@@ -14,6 +14,14 @@ type STS struct {
 	mock.Mock
 }
 
+type STS_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *STS) EXPECT() *STS_Expecter {
+	return &STS_Expecter{mock: &_m.Mock}
+}
+
 // GetCallerIdentity provides a mock function with given fields: ctx, params, optFns
 func (_m *STS) GetCallerIdentity(ctx context.Context, params *sts.GetCallerIdentityInput, optFns ...func(*sts.Options)) (*sts.GetCallerIdentityOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -49,6 +57,43 @@ func (_m *STS) GetCallerIdentity(ctx context.Context, params *sts.GetCallerIdent
 	}
 
 	return r0, r1
+}
+
+// STS_GetCallerIdentity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCallerIdentity'
+type STS_GetCallerIdentity_Call struct {
+	*mock.Call
+}
+
+// GetCallerIdentity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *sts.GetCallerIdentityInput
+//   - optFns ...func(*sts.Options)
+func (_e *STS_Expecter) GetCallerIdentity(ctx interface{}, params interface{}, optFns ...interface{}) *STS_GetCallerIdentity_Call {
+	return &STS_GetCallerIdentity_Call{Call: _e.mock.On("GetCallerIdentity",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *STS_GetCallerIdentity_Call) Run(run func(ctx context.Context, params *sts.GetCallerIdentityInput, optFns ...func(*sts.Options))) *STS_GetCallerIdentity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*sts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*sts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*sts.GetCallerIdentityInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *STS_GetCallerIdentity_Call) Return(_a0 *sts.GetCallerIdentityOutput, _a1 error) *STS_GetCallerIdentity_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *STS_GetCallerIdentity_Call) RunAndReturn(run func(context.Context, *sts.GetCallerIdentityInput, ...func(*sts.Options)) (*sts.GetCallerIdentityOutput, error)) *STS_GetCallerIdentity_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewSTS creates a new instance of STS. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

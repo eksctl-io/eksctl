@@ -15,6 +15,14 @@ type CloudFormation struct {
 	mock.Mock
 }
 
+type CloudFormation_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *CloudFormation) EXPECT() *CloudFormation_Expecter {
+	return &CloudFormation_Expecter{mock: &_m.Mock}
+}
+
 // ActivateOrganizationsAccess provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ActivateOrganizationsAccess(ctx context.Context, params *cloudformation.ActivateOrganizationsAccessInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ActivateOrganizationsAccessOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -50,6 +58,43 @@ func (_m *CloudFormation) ActivateOrganizationsAccess(ctx context.Context, param
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_ActivateOrganizationsAccess_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ActivateOrganizationsAccess'
+type CloudFormation_ActivateOrganizationsAccess_Call struct {
+	*mock.Call
+}
+
+// ActivateOrganizationsAccess is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ActivateOrganizationsAccessInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ActivateOrganizationsAccess(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ActivateOrganizationsAccess_Call {
+	return &CloudFormation_ActivateOrganizationsAccess_Call{Call: _e.mock.On("ActivateOrganizationsAccess",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ActivateOrganizationsAccess_Call) Run(run func(ctx context.Context, params *cloudformation.ActivateOrganizationsAccessInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ActivateOrganizationsAccess_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ActivateOrganizationsAccessInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ActivateOrganizationsAccess_Call) Return(_a0 *cloudformation.ActivateOrganizationsAccessOutput, _a1 error) *CloudFormation_ActivateOrganizationsAccess_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ActivateOrganizationsAccess_Call) RunAndReturn(run func(context.Context, *cloudformation.ActivateOrganizationsAccessInput, ...func(*cloudformation.Options)) (*cloudformation.ActivateOrganizationsAccessOutput, error)) *CloudFormation_ActivateOrganizationsAccess_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ActivateType provides a mock function with given fields: ctx, params, optFns
@@ -89,6 +134,43 @@ func (_m *CloudFormation) ActivateType(ctx context.Context, params *cloudformati
 	return r0, r1
 }
 
+// CloudFormation_ActivateType_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ActivateType'
+type CloudFormation_ActivateType_Call struct {
+	*mock.Call
+}
+
+// ActivateType is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ActivateTypeInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ActivateType(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ActivateType_Call {
+	return &CloudFormation_ActivateType_Call{Call: _e.mock.On("ActivateType",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ActivateType_Call) Run(run func(ctx context.Context, params *cloudformation.ActivateTypeInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ActivateType_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ActivateTypeInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ActivateType_Call) Return(_a0 *cloudformation.ActivateTypeOutput, _a1 error) *CloudFormation_ActivateType_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ActivateType_Call) RunAndReturn(run func(context.Context, *cloudformation.ActivateTypeInput, ...func(*cloudformation.Options)) (*cloudformation.ActivateTypeOutput, error)) *CloudFormation_ActivateType_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // BatchDescribeTypeConfigurations provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) BatchDescribeTypeConfigurations(ctx context.Context, params *cloudformation.BatchDescribeTypeConfigurationsInput, optFns ...func(*cloudformation.Options)) (*cloudformation.BatchDescribeTypeConfigurationsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -124,6 +206,43 @@ func (_m *CloudFormation) BatchDescribeTypeConfigurations(ctx context.Context, p
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_BatchDescribeTypeConfigurations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BatchDescribeTypeConfigurations'
+type CloudFormation_BatchDescribeTypeConfigurations_Call struct {
+	*mock.Call
+}
+
+// BatchDescribeTypeConfigurations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.BatchDescribeTypeConfigurationsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) BatchDescribeTypeConfigurations(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_BatchDescribeTypeConfigurations_Call {
+	return &CloudFormation_BatchDescribeTypeConfigurations_Call{Call: _e.mock.On("BatchDescribeTypeConfigurations",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_BatchDescribeTypeConfigurations_Call) Run(run func(ctx context.Context, params *cloudformation.BatchDescribeTypeConfigurationsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_BatchDescribeTypeConfigurations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.BatchDescribeTypeConfigurationsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_BatchDescribeTypeConfigurations_Call) Return(_a0 *cloudformation.BatchDescribeTypeConfigurationsOutput, _a1 error) *CloudFormation_BatchDescribeTypeConfigurations_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_BatchDescribeTypeConfigurations_Call) RunAndReturn(run func(context.Context, *cloudformation.BatchDescribeTypeConfigurationsInput, ...func(*cloudformation.Options)) (*cloudformation.BatchDescribeTypeConfigurationsOutput, error)) *CloudFormation_BatchDescribeTypeConfigurations_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CancelUpdateStack provides a mock function with given fields: ctx, params, optFns
@@ -163,6 +282,43 @@ func (_m *CloudFormation) CancelUpdateStack(ctx context.Context, params *cloudfo
 	return r0, r1
 }
 
+// CloudFormation_CancelUpdateStack_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelUpdateStack'
+type CloudFormation_CancelUpdateStack_Call struct {
+	*mock.Call
+}
+
+// CancelUpdateStack is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.CancelUpdateStackInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) CancelUpdateStack(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_CancelUpdateStack_Call {
+	return &CloudFormation_CancelUpdateStack_Call{Call: _e.mock.On("CancelUpdateStack",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_CancelUpdateStack_Call) Run(run func(ctx context.Context, params *cloudformation.CancelUpdateStackInput, optFns ...func(*cloudformation.Options))) *CloudFormation_CancelUpdateStack_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.CancelUpdateStackInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_CancelUpdateStack_Call) Return(_a0 *cloudformation.CancelUpdateStackOutput, _a1 error) *CloudFormation_CancelUpdateStack_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_CancelUpdateStack_Call) RunAndReturn(run func(context.Context, *cloudformation.CancelUpdateStackInput, ...func(*cloudformation.Options)) (*cloudformation.CancelUpdateStackOutput, error)) *CloudFormation_CancelUpdateStack_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ContinueUpdateRollback provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ContinueUpdateRollback(ctx context.Context, params *cloudformation.ContinueUpdateRollbackInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ContinueUpdateRollbackOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -198,6 +354,43 @@ func (_m *CloudFormation) ContinueUpdateRollback(ctx context.Context, params *cl
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_ContinueUpdateRollback_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ContinueUpdateRollback'
+type CloudFormation_ContinueUpdateRollback_Call struct {
+	*mock.Call
+}
+
+// ContinueUpdateRollback is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ContinueUpdateRollbackInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ContinueUpdateRollback(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ContinueUpdateRollback_Call {
+	return &CloudFormation_ContinueUpdateRollback_Call{Call: _e.mock.On("ContinueUpdateRollback",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ContinueUpdateRollback_Call) Run(run func(ctx context.Context, params *cloudformation.ContinueUpdateRollbackInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ContinueUpdateRollback_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ContinueUpdateRollbackInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ContinueUpdateRollback_Call) Return(_a0 *cloudformation.ContinueUpdateRollbackOutput, _a1 error) *CloudFormation_ContinueUpdateRollback_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ContinueUpdateRollback_Call) RunAndReturn(run func(context.Context, *cloudformation.ContinueUpdateRollbackInput, ...func(*cloudformation.Options)) (*cloudformation.ContinueUpdateRollbackOutput, error)) *CloudFormation_ContinueUpdateRollback_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateChangeSet provides a mock function with given fields: ctx, params, optFns
@@ -237,6 +430,43 @@ func (_m *CloudFormation) CreateChangeSet(ctx context.Context, params *cloudform
 	return r0, r1
 }
 
+// CloudFormation_CreateChangeSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateChangeSet'
+type CloudFormation_CreateChangeSet_Call struct {
+	*mock.Call
+}
+
+// CreateChangeSet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.CreateChangeSetInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) CreateChangeSet(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_CreateChangeSet_Call {
+	return &CloudFormation_CreateChangeSet_Call{Call: _e.mock.On("CreateChangeSet",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_CreateChangeSet_Call) Run(run func(ctx context.Context, params *cloudformation.CreateChangeSetInput, optFns ...func(*cloudformation.Options))) *CloudFormation_CreateChangeSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.CreateChangeSetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_CreateChangeSet_Call) Return(_a0 *cloudformation.CreateChangeSetOutput, _a1 error) *CloudFormation_CreateChangeSet_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_CreateChangeSet_Call) RunAndReturn(run func(context.Context, *cloudformation.CreateChangeSetInput, ...func(*cloudformation.Options)) (*cloudformation.CreateChangeSetOutput, error)) *CloudFormation_CreateChangeSet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateGeneratedTemplate provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) CreateGeneratedTemplate(ctx context.Context, params *cloudformation.CreateGeneratedTemplateInput, optFns ...func(*cloudformation.Options)) (*cloudformation.CreateGeneratedTemplateOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -272,6 +502,43 @@ func (_m *CloudFormation) CreateGeneratedTemplate(ctx context.Context, params *c
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_CreateGeneratedTemplate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateGeneratedTemplate'
+type CloudFormation_CreateGeneratedTemplate_Call struct {
+	*mock.Call
+}
+
+// CreateGeneratedTemplate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.CreateGeneratedTemplateInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) CreateGeneratedTemplate(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_CreateGeneratedTemplate_Call {
+	return &CloudFormation_CreateGeneratedTemplate_Call{Call: _e.mock.On("CreateGeneratedTemplate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_CreateGeneratedTemplate_Call) Run(run func(ctx context.Context, params *cloudformation.CreateGeneratedTemplateInput, optFns ...func(*cloudformation.Options))) *CloudFormation_CreateGeneratedTemplate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.CreateGeneratedTemplateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_CreateGeneratedTemplate_Call) Return(_a0 *cloudformation.CreateGeneratedTemplateOutput, _a1 error) *CloudFormation_CreateGeneratedTemplate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_CreateGeneratedTemplate_Call) RunAndReturn(run func(context.Context, *cloudformation.CreateGeneratedTemplateInput, ...func(*cloudformation.Options)) (*cloudformation.CreateGeneratedTemplateOutput, error)) *CloudFormation_CreateGeneratedTemplate_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateStack provides a mock function with given fields: ctx, params, optFns
@@ -311,6 +578,43 @@ func (_m *CloudFormation) CreateStack(ctx context.Context, params *cloudformatio
 	return r0, r1
 }
 
+// CloudFormation_CreateStack_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateStack'
+type CloudFormation_CreateStack_Call struct {
+	*mock.Call
+}
+
+// CreateStack is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.CreateStackInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) CreateStack(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_CreateStack_Call {
+	return &CloudFormation_CreateStack_Call{Call: _e.mock.On("CreateStack",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_CreateStack_Call) Run(run func(ctx context.Context, params *cloudformation.CreateStackInput, optFns ...func(*cloudformation.Options))) *CloudFormation_CreateStack_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.CreateStackInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_CreateStack_Call) Return(_a0 *cloudformation.CreateStackOutput, _a1 error) *CloudFormation_CreateStack_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_CreateStack_Call) RunAndReturn(run func(context.Context, *cloudformation.CreateStackInput, ...func(*cloudformation.Options)) (*cloudformation.CreateStackOutput, error)) *CloudFormation_CreateStack_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateStackInstances provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) CreateStackInstances(ctx context.Context, params *cloudformation.CreateStackInstancesInput, optFns ...func(*cloudformation.Options)) (*cloudformation.CreateStackInstancesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -346,6 +650,43 @@ func (_m *CloudFormation) CreateStackInstances(ctx context.Context, params *clou
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_CreateStackInstances_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateStackInstances'
+type CloudFormation_CreateStackInstances_Call struct {
+	*mock.Call
+}
+
+// CreateStackInstances is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.CreateStackInstancesInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) CreateStackInstances(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_CreateStackInstances_Call {
+	return &CloudFormation_CreateStackInstances_Call{Call: _e.mock.On("CreateStackInstances",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_CreateStackInstances_Call) Run(run func(ctx context.Context, params *cloudformation.CreateStackInstancesInput, optFns ...func(*cloudformation.Options))) *CloudFormation_CreateStackInstances_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.CreateStackInstancesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_CreateStackInstances_Call) Return(_a0 *cloudformation.CreateStackInstancesOutput, _a1 error) *CloudFormation_CreateStackInstances_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_CreateStackInstances_Call) RunAndReturn(run func(context.Context, *cloudformation.CreateStackInstancesInput, ...func(*cloudformation.Options)) (*cloudformation.CreateStackInstancesOutput, error)) *CloudFormation_CreateStackInstances_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateStackSet provides a mock function with given fields: ctx, params, optFns
@@ -385,6 +726,43 @@ func (_m *CloudFormation) CreateStackSet(ctx context.Context, params *cloudforma
 	return r0, r1
 }
 
+// CloudFormation_CreateStackSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateStackSet'
+type CloudFormation_CreateStackSet_Call struct {
+	*mock.Call
+}
+
+// CreateStackSet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.CreateStackSetInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) CreateStackSet(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_CreateStackSet_Call {
+	return &CloudFormation_CreateStackSet_Call{Call: _e.mock.On("CreateStackSet",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_CreateStackSet_Call) Run(run func(ctx context.Context, params *cloudformation.CreateStackSetInput, optFns ...func(*cloudformation.Options))) *CloudFormation_CreateStackSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.CreateStackSetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_CreateStackSet_Call) Return(_a0 *cloudformation.CreateStackSetOutput, _a1 error) *CloudFormation_CreateStackSet_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_CreateStackSet_Call) RunAndReturn(run func(context.Context, *cloudformation.CreateStackSetInput, ...func(*cloudformation.Options)) (*cloudformation.CreateStackSetOutput, error)) *CloudFormation_CreateStackSet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeactivateOrganizationsAccess provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DeactivateOrganizationsAccess(ctx context.Context, params *cloudformation.DeactivateOrganizationsAccessInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DeactivateOrganizationsAccessOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -420,6 +798,43 @@ func (_m *CloudFormation) DeactivateOrganizationsAccess(ctx context.Context, par
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DeactivateOrganizationsAccess_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeactivateOrganizationsAccess'
+type CloudFormation_DeactivateOrganizationsAccess_Call struct {
+	*mock.Call
+}
+
+// DeactivateOrganizationsAccess is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DeactivateOrganizationsAccessInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DeactivateOrganizationsAccess(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DeactivateOrganizationsAccess_Call {
+	return &CloudFormation_DeactivateOrganizationsAccess_Call{Call: _e.mock.On("DeactivateOrganizationsAccess",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DeactivateOrganizationsAccess_Call) Run(run func(ctx context.Context, params *cloudformation.DeactivateOrganizationsAccessInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DeactivateOrganizationsAccess_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DeactivateOrganizationsAccessInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DeactivateOrganizationsAccess_Call) Return(_a0 *cloudformation.DeactivateOrganizationsAccessOutput, _a1 error) *CloudFormation_DeactivateOrganizationsAccess_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DeactivateOrganizationsAccess_Call) RunAndReturn(run func(context.Context, *cloudformation.DeactivateOrganizationsAccessInput, ...func(*cloudformation.Options)) (*cloudformation.DeactivateOrganizationsAccessOutput, error)) *CloudFormation_DeactivateOrganizationsAccess_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeactivateType provides a mock function with given fields: ctx, params, optFns
@@ -459,6 +874,43 @@ func (_m *CloudFormation) DeactivateType(ctx context.Context, params *cloudforma
 	return r0, r1
 }
 
+// CloudFormation_DeactivateType_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeactivateType'
+type CloudFormation_DeactivateType_Call struct {
+	*mock.Call
+}
+
+// DeactivateType is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DeactivateTypeInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DeactivateType(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DeactivateType_Call {
+	return &CloudFormation_DeactivateType_Call{Call: _e.mock.On("DeactivateType",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DeactivateType_Call) Run(run func(ctx context.Context, params *cloudformation.DeactivateTypeInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DeactivateType_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DeactivateTypeInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DeactivateType_Call) Return(_a0 *cloudformation.DeactivateTypeOutput, _a1 error) *CloudFormation_DeactivateType_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DeactivateType_Call) RunAndReturn(run func(context.Context, *cloudformation.DeactivateTypeInput, ...func(*cloudformation.Options)) (*cloudformation.DeactivateTypeOutput, error)) *CloudFormation_DeactivateType_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteChangeSet provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DeleteChangeSet(ctx context.Context, params *cloudformation.DeleteChangeSetInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DeleteChangeSetOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -494,6 +946,43 @@ func (_m *CloudFormation) DeleteChangeSet(ctx context.Context, params *cloudform
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DeleteChangeSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteChangeSet'
+type CloudFormation_DeleteChangeSet_Call struct {
+	*mock.Call
+}
+
+// DeleteChangeSet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DeleteChangeSetInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DeleteChangeSet(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DeleteChangeSet_Call {
+	return &CloudFormation_DeleteChangeSet_Call{Call: _e.mock.On("DeleteChangeSet",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DeleteChangeSet_Call) Run(run func(ctx context.Context, params *cloudformation.DeleteChangeSetInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DeleteChangeSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DeleteChangeSetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DeleteChangeSet_Call) Return(_a0 *cloudformation.DeleteChangeSetOutput, _a1 error) *CloudFormation_DeleteChangeSet_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DeleteChangeSet_Call) RunAndReturn(run func(context.Context, *cloudformation.DeleteChangeSetInput, ...func(*cloudformation.Options)) (*cloudformation.DeleteChangeSetOutput, error)) *CloudFormation_DeleteChangeSet_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteGeneratedTemplate provides a mock function with given fields: ctx, params, optFns
@@ -533,6 +1022,43 @@ func (_m *CloudFormation) DeleteGeneratedTemplate(ctx context.Context, params *c
 	return r0, r1
 }
 
+// CloudFormation_DeleteGeneratedTemplate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteGeneratedTemplate'
+type CloudFormation_DeleteGeneratedTemplate_Call struct {
+	*mock.Call
+}
+
+// DeleteGeneratedTemplate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DeleteGeneratedTemplateInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DeleteGeneratedTemplate(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DeleteGeneratedTemplate_Call {
+	return &CloudFormation_DeleteGeneratedTemplate_Call{Call: _e.mock.On("DeleteGeneratedTemplate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DeleteGeneratedTemplate_Call) Run(run func(ctx context.Context, params *cloudformation.DeleteGeneratedTemplateInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DeleteGeneratedTemplate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DeleteGeneratedTemplateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DeleteGeneratedTemplate_Call) Return(_a0 *cloudformation.DeleteGeneratedTemplateOutput, _a1 error) *CloudFormation_DeleteGeneratedTemplate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DeleteGeneratedTemplate_Call) RunAndReturn(run func(context.Context, *cloudformation.DeleteGeneratedTemplateInput, ...func(*cloudformation.Options)) (*cloudformation.DeleteGeneratedTemplateOutput, error)) *CloudFormation_DeleteGeneratedTemplate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteStack provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DeleteStack(ctx context.Context, params *cloudformation.DeleteStackInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DeleteStackOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -568,6 +1094,43 @@ func (_m *CloudFormation) DeleteStack(ctx context.Context, params *cloudformatio
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DeleteStack_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteStack'
+type CloudFormation_DeleteStack_Call struct {
+	*mock.Call
+}
+
+// DeleteStack is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DeleteStackInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DeleteStack(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DeleteStack_Call {
+	return &CloudFormation_DeleteStack_Call{Call: _e.mock.On("DeleteStack",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DeleteStack_Call) Run(run func(ctx context.Context, params *cloudformation.DeleteStackInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DeleteStack_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DeleteStackInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DeleteStack_Call) Return(_a0 *cloudformation.DeleteStackOutput, _a1 error) *CloudFormation_DeleteStack_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DeleteStack_Call) RunAndReturn(run func(context.Context, *cloudformation.DeleteStackInput, ...func(*cloudformation.Options)) (*cloudformation.DeleteStackOutput, error)) *CloudFormation_DeleteStack_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteStackInstances provides a mock function with given fields: ctx, params, optFns
@@ -607,6 +1170,43 @@ func (_m *CloudFormation) DeleteStackInstances(ctx context.Context, params *clou
 	return r0, r1
 }
 
+// CloudFormation_DeleteStackInstances_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteStackInstances'
+type CloudFormation_DeleteStackInstances_Call struct {
+	*mock.Call
+}
+
+// DeleteStackInstances is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DeleteStackInstancesInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DeleteStackInstances(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DeleteStackInstances_Call {
+	return &CloudFormation_DeleteStackInstances_Call{Call: _e.mock.On("DeleteStackInstances",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DeleteStackInstances_Call) Run(run func(ctx context.Context, params *cloudformation.DeleteStackInstancesInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DeleteStackInstances_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DeleteStackInstancesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DeleteStackInstances_Call) Return(_a0 *cloudformation.DeleteStackInstancesOutput, _a1 error) *CloudFormation_DeleteStackInstances_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DeleteStackInstances_Call) RunAndReturn(run func(context.Context, *cloudformation.DeleteStackInstancesInput, ...func(*cloudformation.Options)) (*cloudformation.DeleteStackInstancesOutput, error)) *CloudFormation_DeleteStackInstances_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteStackSet provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DeleteStackSet(ctx context.Context, params *cloudformation.DeleteStackSetInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DeleteStackSetOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -642,6 +1242,43 @@ func (_m *CloudFormation) DeleteStackSet(ctx context.Context, params *cloudforma
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DeleteStackSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteStackSet'
+type CloudFormation_DeleteStackSet_Call struct {
+	*mock.Call
+}
+
+// DeleteStackSet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DeleteStackSetInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DeleteStackSet(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DeleteStackSet_Call {
+	return &CloudFormation_DeleteStackSet_Call{Call: _e.mock.On("DeleteStackSet",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DeleteStackSet_Call) Run(run func(ctx context.Context, params *cloudformation.DeleteStackSetInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DeleteStackSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DeleteStackSetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DeleteStackSet_Call) Return(_a0 *cloudformation.DeleteStackSetOutput, _a1 error) *CloudFormation_DeleteStackSet_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DeleteStackSet_Call) RunAndReturn(run func(context.Context, *cloudformation.DeleteStackSetInput, ...func(*cloudformation.Options)) (*cloudformation.DeleteStackSetOutput, error)) *CloudFormation_DeleteStackSet_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeregisterType provides a mock function with given fields: ctx, params, optFns
@@ -681,6 +1318,43 @@ func (_m *CloudFormation) DeregisterType(ctx context.Context, params *cloudforma
 	return r0, r1
 }
 
+// CloudFormation_DeregisterType_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeregisterType'
+type CloudFormation_DeregisterType_Call struct {
+	*mock.Call
+}
+
+// DeregisterType is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DeregisterTypeInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DeregisterType(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DeregisterType_Call {
+	return &CloudFormation_DeregisterType_Call{Call: _e.mock.On("DeregisterType",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DeregisterType_Call) Run(run func(ctx context.Context, params *cloudformation.DeregisterTypeInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DeregisterType_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DeregisterTypeInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DeregisterType_Call) Return(_a0 *cloudformation.DeregisterTypeOutput, _a1 error) *CloudFormation_DeregisterType_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DeregisterType_Call) RunAndReturn(run func(context.Context, *cloudformation.DeregisterTypeInput, ...func(*cloudformation.Options)) (*cloudformation.DeregisterTypeOutput, error)) *CloudFormation_DeregisterType_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeAccountLimits provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DescribeAccountLimits(ctx context.Context, params *cloudformation.DescribeAccountLimitsInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DescribeAccountLimitsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -716,6 +1390,43 @@ func (_m *CloudFormation) DescribeAccountLimits(ctx context.Context, params *clo
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DescribeAccountLimits_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAccountLimits'
+type CloudFormation_DescribeAccountLimits_Call struct {
+	*mock.Call
+}
+
+// DescribeAccountLimits is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeAccountLimitsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeAccountLimits(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeAccountLimits_Call {
+	return &CloudFormation_DescribeAccountLimits_Call{Call: _e.mock.On("DescribeAccountLimits",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeAccountLimits_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeAccountLimitsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeAccountLimits_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeAccountLimitsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeAccountLimits_Call) Return(_a0 *cloudformation.DescribeAccountLimitsOutput, _a1 error) *CloudFormation_DescribeAccountLimits_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeAccountLimits_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeAccountLimitsInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeAccountLimitsOutput, error)) *CloudFormation_DescribeAccountLimits_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeChangeSet provides a mock function with given fields: ctx, params, optFns
@@ -755,6 +1466,43 @@ func (_m *CloudFormation) DescribeChangeSet(ctx context.Context, params *cloudfo
 	return r0, r1
 }
 
+// CloudFormation_DescribeChangeSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeChangeSet'
+type CloudFormation_DescribeChangeSet_Call struct {
+	*mock.Call
+}
+
+// DescribeChangeSet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeChangeSetInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeChangeSet(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeChangeSet_Call {
+	return &CloudFormation_DescribeChangeSet_Call{Call: _e.mock.On("DescribeChangeSet",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeChangeSet_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeChangeSetInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeChangeSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeChangeSetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeChangeSet_Call) Return(_a0 *cloudformation.DescribeChangeSetOutput, _a1 error) *CloudFormation_DescribeChangeSet_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeChangeSet_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeChangeSetInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeChangeSetOutput, error)) *CloudFormation_DescribeChangeSet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeChangeSetHooks provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DescribeChangeSetHooks(ctx context.Context, params *cloudformation.DescribeChangeSetHooksInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DescribeChangeSetHooksOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -790,6 +1538,43 @@ func (_m *CloudFormation) DescribeChangeSetHooks(ctx context.Context, params *cl
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DescribeChangeSetHooks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeChangeSetHooks'
+type CloudFormation_DescribeChangeSetHooks_Call struct {
+	*mock.Call
+}
+
+// DescribeChangeSetHooks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeChangeSetHooksInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeChangeSetHooks(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeChangeSetHooks_Call {
+	return &CloudFormation_DescribeChangeSetHooks_Call{Call: _e.mock.On("DescribeChangeSetHooks",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeChangeSetHooks_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeChangeSetHooksInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeChangeSetHooks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeChangeSetHooksInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeChangeSetHooks_Call) Return(_a0 *cloudformation.DescribeChangeSetHooksOutput, _a1 error) *CloudFormation_DescribeChangeSetHooks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeChangeSetHooks_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeChangeSetHooksInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeChangeSetHooksOutput, error)) *CloudFormation_DescribeChangeSetHooks_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeGeneratedTemplate provides a mock function with given fields: ctx, params, optFns
@@ -829,6 +1614,43 @@ func (_m *CloudFormation) DescribeGeneratedTemplate(ctx context.Context, params 
 	return r0, r1
 }
 
+// CloudFormation_DescribeGeneratedTemplate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeGeneratedTemplate'
+type CloudFormation_DescribeGeneratedTemplate_Call struct {
+	*mock.Call
+}
+
+// DescribeGeneratedTemplate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeGeneratedTemplateInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeGeneratedTemplate(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeGeneratedTemplate_Call {
+	return &CloudFormation_DescribeGeneratedTemplate_Call{Call: _e.mock.On("DescribeGeneratedTemplate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeGeneratedTemplate_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeGeneratedTemplateInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeGeneratedTemplate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeGeneratedTemplateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeGeneratedTemplate_Call) Return(_a0 *cloudformation.DescribeGeneratedTemplateOutput, _a1 error) *CloudFormation_DescribeGeneratedTemplate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeGeneratedTemplate_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeGeneratedTemplateInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeGeneratedTemplateOutput, error)) *CloudFormation_DescribeGeneratedTemplate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeOrganizationsAccess provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DescribeOrganizationsAccess(ctx context.Context, params *cloudformation.DescribeOrganizationsAccessInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DescribeOrganizationsAccessOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -864,6 +1686,43 @@ func (_m *CloudFormation) DescribeOrganizationsAccess(ctx context.Context, param
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DescribeOrganizationsAccess_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeOrganizationsAccess'
+type CloudFormation_DescribeOrganizationsAccess_Call struct {
+	*mock.Call
+}
+
+// DescribeOrganizationsAccess is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeOrganizationsAccessInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeOrganizationsAccess(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeOrganizationsAccess_Call {
+	return &CloudFormation_DescribeOrganizationsAccess_Call{Call: _e.mock.On("DescribeOrganizationsAccess",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeOrganizationsAccess_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeOrganizationsAccessInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeOrganizationsAccess_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeOrganizationsAccessInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeOrganizationsAccess_Call) Return(_a0 *cloudformation.DescribeOrganizationsAccessOutput, _a1 error) *CloudFormation_DescribeOrganizationsAccess_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeOrganizationsAccess_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeOrganizationsAccessInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeOrganizationsAccessOutput, error)) *CloudFormation_DescribeOrganizationsAccess_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribePublisher provides a mock function with given fields: ctx, params, optFns
@@ -903,6 +1762,43 @@ func (_m *CloudFormation) DescribePublisher(ctx context.Context, params *cloudfo
 	return r0, r1
 }
 
+// CloudFormation_DescribePublisher_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribePublisher'
+type CloudFormation_DescribePublisher_Call struct {
+	*mock.Call
+}
+
+// DescribePublisher is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribePublisherInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribePublisher(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribePublisher_Call {
+	return &CloudFormation_DescribePublisher_Call{Call: _e.mock.On("DescribePublisher",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribePublisher_Call) Run(run func(ctx context.Context, params *cloudformation.DescribePublisherInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribePublisher_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribePublisherInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribePublisher_Call) Return(_a0 *cloudformation.DescribePublisherOutput, _a1 error) *CloudFormation_DescribePublisher_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribePublisher_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribePublisherInput, ...func(*cloudformation.Options)) (*cloudformation.DescribePublisherOutput, error)) *CloudFormation_DescribePublisher_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeResourceScan provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DescribeResourceScan(ctx context.Context, params *cloudformation.DescribeResourceScanInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DescribeResourceScanOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -938,6 +1834,43 @@ func (_m *CloudFormation) DescribeResourceScan(ctx context.Context, params *clou
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DescribeResourceScan_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeResourceScan'
+type CloudFormation_DescribeResourceScan_Call struct {
+	*mock.Call
+}
+
+// DescribeResourceScan is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeResourceScanInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeResourceScan(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeResourceScan_Call {
+	return &CloudFormation_DescribeResourceScan_Call{Call: _e.mock.On("DescribeResourceScan",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeResourceScan_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeResourceScanInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeResourceScan_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeResourceScanInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeResourceScan_Call) Return(_a0 *cloudformation.DescribeResourceScanOutput, _a1 error) *CloudFormation_DescribeResourceScan_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeResourceScan_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeResourceScanInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeResourceScanOutput, error)) *CloudFormation_DescribeResourceScan_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeStackDriftDetectionStatus provides a mock function with given fields: ctx, params, optFns
@@ -977,6 +1910,43 @@ func (_m *CloudFormation) DescribeStackDriftDetectionStatus(ctx context.Context,
 	return r0, r1
 }
 
+// CloudFormation_DescribeStackDriftDetectionStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeStackDriftDetectionStatus'
+type CloudFormation_DescribeStackDriftDetectionStatus_Call struct {
+	*mock.Call
+}
+
+// DescribeStackDriftDetectionStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeStackDriftDetectionStatusInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeStackDriftDetectionStatus(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeStackDriftDetectionStatus_Call {
+	return &CloudFormation_DescribeStackDriftDetectionStatus_Call{Call: _e.mock.On("DescribeStackDriftDetectionStatus",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeStackDriftDetectionStatus_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeStackDriftDetectionStatusInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeStackDriftDetectionStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeStackDriftDetectionStatusInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackDriftDetectionStatus_Call) Return(_a0 *cloudformation.DescribeStackDriftDetectionStatusOutput, _a1 error) *CloudFormation_DescribeStackDriftDetectionStatus_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackDriftDetectionStatus_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeStackDriftDetectionStatusInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeStackDriftDetectionStatusOutput, error)) *CloudFormation_DescribeStackDriftDetectionStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeStackEvents provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DescribeStackEvents(ctx context.Context, params *cloudformation.DescribeStackEventsInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DescribeStackEventsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1012,6 +1982,43 @@ func (_m *CloudFormation) DescribeStackEvents(ctx context.Context, params *cloud
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DescribeStackEvents_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeStackEvents'
+type CloudFormation_DescribeStackEvents_Call struct {
+	*mock.Call
+}
+
+// DescribeStackEvents is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeStackEventsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeStackEvents(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeStackEvents_Call {
+	return &CloudFormation_DescribeStackEvents_Call{Call: _e.mock.On("DescribeStackEvents",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeStackEvents_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeStackEventsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeStackEvents_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeStackEventsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackEvents_Call) Return(_a0 *cloudformation.DescribeStackEventsOutput, _a1 error) *CloudFormation_DescribeStackEvents_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackEvents_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeStackEventsInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeStackEventsOutput, error)) *CloudFormation_DescribeStackEvents_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeStackInstance provides a mock function with given fields: ctx, params, optFns
@@ -1051,6 +2058,43 @@ func (_m *CloudFormation) DescribeStackInstance(ctx context.Context, params *clo
 	return r0, r1
 }
 
+// CloudFormation_DescribeStackInstance_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeStackInstance'
+type CloudFormation_DescribeStackInstance_Call struct {
+	*mock.Call
+}
+
+// DescribeStackInstance is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeStackInstanceInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeStackInstance(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeStackInstance_Call {
+	return &CloudFormation_DescribeStackInstance_Call{Call: _e.mock.On("DescribeStackInstance",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeStackInstance_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeStackInstanceInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeStackInstance_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeStackInstanceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackInstance_Call) Return(_a0 *cloudformation.DescribeStackInstanceOutput, _a1 error) *CloudFormation_DescribeStackInstance_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackInstance_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeStackInstanceInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeStackInstanceOutput, error)) *CloudFormation_DescribeStackInstance_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeStackResource provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DescribeStackResource(ctx context.Context, params *cloudformation.DescribeStackResourceInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DescribeStackResourceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1086,6 +2130,43 @@ func (_m *CloudFormation) DescribeStackResource(ctx context.Context, params *clo
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DescribeStackResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeStackResource'
+type CloudFormation_DescribeStackResource_Call struct {
+	*mock.Call
+}
+
+// DescribeStackResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeStackResourceInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeStackResource(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeStackResource_Call {
+	return &CloudFormation_DescribeStackResource_Call{Call: _e.mock.On("DescribeStackResource",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeStackResource_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeStackResourceInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeStackResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeStackResourceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackResource_Call) Return(_a0 *cloudformation.DescribeStackResourceOutput, _a1 error) *CloudFormation_DescribeStackResource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackResource_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeStackResourceInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeStackResourceOutput, error)) *CloudFormation_DescribeStackResource_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeStackResourceDrifts provides a mock function with given fields: ctx, params, optFns
@@ -1125,6 +2206,43 @@ func (_m *CloudFormation) DescribeStackResourceDrifts(ctx context.Context, param
 	return r0, r1
 }
 
+// CloudFormation_DescribeStackResourceDrifts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeStackResourceDrifts'
+type CloudFormation_DescribeStackResourceDrifts_Call struct {
+	*mock.Call
+}
+
+// DescribeStackResourceDrifts is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeStackResourceDriftsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeStackResourceDrifts(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeStackResourceDrifts_Call {
+	return &CloudFormation_DescribeStackResourceDrifts_Call{Call: _e.mock.On("DescribeStackResourceDrifts",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeStackResourceDrifts_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeStackResourceDriftsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeStackResourceDrifts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeStackResourceDriftsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackResourceDrifts_Call) Return(_a0 *cloudformation.DescribeStackResourceDriftsOutput, _a1 error) *CloudFormation_DescribeStackResourceDrifts_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackResourceDrifts_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeStackResourceDriftsInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeStackResourceDriftsOutput, error)) *CloudFormation_DescribeStackResourceDrifts_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeStackResources provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DescribeStackResources(ctx context.Context, params *cloudformation.DescribeStackResourcesInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DescribeStackResourcesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1160,6 +2278,43 @@ func (_m *CloudFormation) DescribeStackResources(ctx context.Context, params *cl
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DescribeStackResources_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeStackResources'
+type CloudFormation_DescribeStackResources_Call struct {
+	*mock.Call
+}
+
+// DescribeStackResources is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeStackResourcesInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeStackResources(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeStackResources_Call {
+	return &CloudFormation_DescribeStackResources_Call{Call: _e.mock.On("DescribeStackResources",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeStackResources_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeStackResourcesInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeStackResources_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeStackResourcesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackResources_Call) Return(_a0 *cloudformation.DescribeStackResourcesOutput, _a1 error) *CloudFormation_DescribeStackResources_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackResources_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeStackResourcesInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeStackResourcesOutput, error)) *CloudFormation_DescribeStackResources_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeStackSet provides a mock function with given fields: ctx, params, optFns
@@ -1199,6 +2354,43 @@ func (_m *CloudFormation) DescribeStackSet(ctx context.Context, params *cloudfor
 	return r0, r1
 }
 
+// CloudFormation_DescribeStackSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeStackSet'
+type CloudFormation_DescribeStackSet_Call struct {
+	*mock.Call
+}
+
+// DescribeStackSet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeStackSetInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeStackSet(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeStackSet_Call {
+	return &CloudFormation_DescribeStackSet_Call{Call: _e.mock.On("DescribeStackSet",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeStackSet_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeStackSetInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeStackSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeStackSetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackSet_Call) Return(_a0 *cloudformation.DescribeStackSetOutput, _a1 error) *CloudFormation_DescribeStackSet_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackSet_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeStackSetInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeStackSetOutput, error)) *CloudFormation_DescribeStackSet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeStackSetOperation provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DescribeStackSetOperation(ctx context.Context, params *cloudformation.DescribeStackSetOperationInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DescribeStackSetOperationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1234,6 +2426,43 @@ func (_m *CloudFormation) DescribeStackSetOperation(ctx context.Context, params 
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DescribeStackSetOperation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeStackSetOperation'
+type CloudFormation_DescribeStackSetOperation_Call struct {
+	*mock.Call
+}
+
+// DescribeStackSetOperation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeStackSetOperationInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeStackSetOperation(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeStackSetOperation_Call {
+	return &CloudFormation_DescribeStackSetOperation_Call{Call: _e.mock.On("DescribeStackSetOperation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeStackSetOperation_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeStackSetOperationInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeStackSetOperation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeStackSetOperationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackSetOperation_Call) Return(_a0 *cloudformation.DescribeStackSetOperationOutput, _a1 error) *CloudFormation_DescribeStackSetOperation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStackSetOperation_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeStackSetOperationInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeStackSetOperationOutput, error)) *CloudFormation_DescribeStackSetOperation_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeStacks provides a mock function with given fields: ctx, params, optFns
@@ -1273,6 +2502,43 @@ func (_m *CloudFormation) DescribeStacks(ctx context.Context, params *cloudforma
 	return r0, r1
 }
 
+// CloudFormation_DescribeStacks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeStacks'
+type CloudFormation_DescribeStacks_Call struct {
+	*mock.Call
+}
+
+// DescribeStacks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeStacksInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeStacks(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeStacks_Call {
+	return &CloudFormation_DescribeStacks_Call{Call: _e.mock.On("DescribeStacks",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeStacks_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeStacksInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeStacks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeStacksInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStacks_Call) Return(_a0 *cloudformation.DescribeStacksOutput, _a1 error) *CloudFormation_DescribeStacks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeStacks_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeStacksInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeStacksOutput, error)) *CloudFormation_DescribeStacks_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeType provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DescribeType(ctx context.Context, params *cloudformation.DescribeTypeInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DescribeTypeOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1308,6 +2574,43 @@ func (_m *CloudFormation) DescribeType(ctx context.Context, params *cloudformati
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DescribeType_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeType'
+type CloudFormation_DescribeType_Call struct {
+	*mock.Call
+}
+
+// DescribeType is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeTypeInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeType(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeType_Call {
+	return &CloudFormation_DescribeType_Call{Call: _e.mock.On("DescribeType",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeType_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeTypeInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeType_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeTypeInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeType_Call) Return(_a0 *cloudformation.DescribeTypeOutput, _a1 error) *CloudFormation_DescribeType_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeType_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeTypeInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeTypeOutput, error)) *CloudFormation_DescribeType_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeTypeRegistration provides a mock function with given fields: ctx, params, optFns
@@ -1347,6 +2650,43 @@ func (_m *CloudFormation) DescribeTypeRegistration(ctx context.Context, params *
 	return r0, r1
 }
 
+// CloudFormation_DescribeTypeRegistration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeTypeRegistration'
+type CloudFormation_DescribeTypeRegistration_Call struct {
+	*mock.Call
+}
+
+// DescribeTypeRegistration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DescribeTypeRegistrationInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DescribeTypeRegistration(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DescribeTypeRegistration_Call {
+	return &CloudFormation_DescribeTypeRegistration_Call{Call: _e.mock.On("DescribeTypeRegistration",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DescribeTypeRegistration_Call) Run(run func(ctx context.Context, params *cloudformation.DescribeTypeRegistrationInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DescribeTypeRegistration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DescribeTypeRegistrationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DescribeTypeRegistration_Call) Return(_a0 *cloudformation.DescribeTypeRegistrationOutput, _a1 error) *CloudFormation_DescribeTypeRegistration_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DescribeTypeRegistration_Call) RunAndReturn(run func(context.Context, *cloudformation.DescribeTypeRegistrationInput, ...func(*cloudformation.Options)) (*cloudformation.DescribeTypeRegistrationOutput, error)) *CloudFormation_DescribeTypeRegistration_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DetectStackDrift provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DetectStackDrift(ctx context.Context, params *cloudformation.DetectStackDriftInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DetectStackDriftOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1382,6 +2722,43 @@ func (_m *CloudFormation) DetectStackDrift(ctx context.Context, params *cloudfor
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DetectStackDrift_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetectStackDrift'
+type CloudFormation_DetectStackDrift_Call struct {
+	*mock.Call
+}
+
+// DetectStackDrift is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DetectStackDriftInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DetectStackDrift(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DetectStackDrift_Call {
+	return &CloudFormation_DetectStackDrift_Call{Call: _e.mock.On("DetectStackDrift",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DetectStackDrift_Call) Run(run func(ctx context.Context, params *cloudformation.DetectStackDriftInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DetectStackDrift_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DetectStackDriftInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DetectStackDrift_Call) Return(_a0 *cloudformation.DetectStackDriftOutput, _a1 error) *CloudFormation_DetectStackDrift_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DetectStackDrift_Call) RunAndReturn(run func(context.Context, *cloudformation.DetectStackDriftInput, ...func(*cloudformation.Options)) (*cloudformation.DetectStackDriftOutput, error)) *CloudFormation_DetectStackDrift_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DetectStackResourceDrift provides a mock function with given fields: ctx, params, optFns
@@ -1421,6 +2798,43 @@ func (_m *CloudFormation) DetectStackResourceDrift(ctx context.Context, params *
 	return r0, r1
 }
 
+// CloudFormation_DetectStackResourceDrift_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetectStackResourceDrift'
+type CloudFormation_DetectStackResourceDrift_Call struct {
+	*mock.Call
+}
+
+// DetectStackResourceDrift is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DetectStackResourceDriftInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DetectStackResourceDrift(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DetectStackResourceDrift_Call {
+	return &CloudFormation_DetectStackResourceDrift_Call{Call: _e.mock.On("DetectStackResourceDrift",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DetectStackResourceDrift_Call) Run(run func(ctx context.Context, params *cloudformation.DetectStackResourceDriftInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DetectStackResourceDrift_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DetectStackResourceDriftInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DetectStackResourceDrift_Call) Return(_a0 *cloudformation.DetectStackResourceDriftOutput, _a1 error) *CloudFormation_DetectStackResourceDrift_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DetectStackResourceDrift_Call) RunAndReturn(run func(context.Context, *cloudformation.DetectStackResourceDriftInput, ...func(*cloudformation.Options)) (*cloudformation.DetectStackResourceDriftOutput, error)) *CloudFormation_DetectStackResourceDrift_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DetectStackSetDrift provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) DetectStackSetDrift(ctx context.Context, params *cloudformation.DetectStackSetDriftInput, optFns ...func(*cloudformation.Options)) (*cloudformation.DetectStackSetDriftOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1456,6 +2870,43 @@ func (_m *CloudFormation) DetectStackSetDrift(ctx context.Context, params *cloud
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_DetectStackSetDrift_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetectStackSetDrift'
+type CloudFormation_DetectStackSetDrift_Call struct {
+	*mock.Call
+}
+
+// DetectStackSetDrift is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.DetectStackSetDriftInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) DetectStackSetDrift(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_DetectStackSetDrift_Call {
+	return &CloudFormation_DetectStackSetDrift_Call{Call: _e.mock.On("DetectStackSetDrift",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_DetectStackSetDrift_Call) Run(run func(ctx context.Context, params *cloudformation.DetectStackSetDriftInput, optFns ...func(*cloudformation.Options))) *CloudFormation_DetectStackSetDrift_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.DetectStackSetDriftInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_DetectStackSetDrift_Call) Return(_a0 *cloudformation.DetectStackSetDriftOutput, _a1 error) *CloudFormation_DetectStackSetDrift_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_DetectStackSetDrift_Call) RunAndReturn(run func(context.Context, *cloudformation.DetectStackSetDriftInput, ...func(*cloudformation.Options)) (*cloudformation.DetectStackSetDriftOutput, error)) *CloudFormation_DetectStackSetDrift_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // EstimateTemplateCost provides a mock function with given fields: ctx, params, optFns
@@ -1495,6 +2946,43 @@ func (_m *CloudFormation) EstimateTemplateCost(ctx context.Context, params *clou
 	return r0, r1
 }
 
+// CloudFormation_EstimateTemplateCost_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EstimateTemplateCost'
+type CloudFormation_EstimateTemplateCost_Call struct {
+	*mock.Call
+}
+
+// EstimateTemplateCost is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.EstimateTemplateCostInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) EstimateTemplateCost(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_EstimateTemplateCost_Call {
+	return &CloudFormation_EstimateTemplateCost_Call{Call: _e.mock.On("EstimateTemplateCost",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_EstimateTemplateCost_Call) Run(run func(ctx context.Context, params *cloudformation.EstimateTemplateCostInput, optFns ...func(*cloudformation.Options))) *CloudFormation_EstimateTemplateCost_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.EstimateTemplateCostInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_EstimateTemplateCost_Call) Return(_a0 *cloudformation.EstimateTemplateCostOutput, _a1 error) *CloudFormation_EstimateTemplateCost_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_EstimateTemplateCost_Call) RunAndReturn(run func(context.Context, *cloudformation.EstimateTemplateCostInput, ...func(*cloudformation.Options)) (*cloudformation.EstimateTemplateCostOutput, error)) *CloudFormation_EstimateTemplateCost_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ExecuteChangeSet provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ExecuteChangeSet(ctx context.Context, params *cloudformation.ExecuteChangeSetInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ExecuteChangeSetOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1530,6 +3018,43 @@ func (_m *CloudFormation) ExecuteChangeSet(ctx context.Context, params *cloudfor
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_ExecuteChangeSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ExecuteChangeSet'
+type CloudFormation_ExecuteChangeSet_Call struct {
+	*mock.Call
+}
+
+// ExecuteChangeSet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ExecuteChangeSetInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ExecuteChangeSet(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ExecuteChangeSet_Call {
+	return &CloudFormation_ExecuteChangeSet_Call{Call: _e.mock.On("ExecuteChangeSet",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ExecuteChangeSet_Call) Run(run func(ctx context.Context, params *cloudformation.ExecuteChangeSetInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ExecuteChangeSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ExecuteChangeSetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ExecuteChangeSet_Call) Return(_a0 *cloudformation.ExecuteChangeSetOutput, _a1 error) *CloudFormation_ExecuteChangeSet_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ExecuteChangeSet_Call) RunAndReturn(run func(context.Context, *cloudformation.ExecuteChangeSetInput, ...func(*cloudformation.Options)) (*cloudformation.ExecuteChangeSetOutput, error)) *CloudFormation_ExecuteChangeSet_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetGeneratedTemplate provides a mock function with given fields: ctx, params, optFns
@@ -1569,6 +3094,43 @@ func (_m *CloudFormation) GetGeneratedTemplate(ctx context.Context, params *clou
 	return r0, r1
 }
 
+// CloudFormation_GetGeneratedTemplate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGeneratedTemplate'
+type CloudFormation_GetGeneratedTemplate_Call struct {
+	*mock.Call
+}
+
+// GetGeneratedTemplate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.GetGeneratedTemplateInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) GetGeneratedTemplate(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_GetGeneratedTemplate_Call {
+	return &CloudFormation_GetGeneratedTemplate_Call{Call: _e.mock.On("GetGeneratedTemplate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_GetGeneratedTemplate_Call) Run(run func(ctx context.Context, params *cloudformation.GetGeneratedTemplateInput, optFns ...func(*cloudformation.Options))) *CloudFormation_GetGeneratedTemplate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.GetGeneratedTemplateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_GetGeneratedTemplate_Call) Return(_a0 *cloudformation.GetGeneratedTemplateOutput, _a1 error) *CloudFormation_GetGeneratedTemplate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_GetGeneratedTemplate_Call) RunAndReturn(run func(context.Context, *cloudformation.GetGeneratedTemplateInput, ...func(*cloudformation.Options)) (*cloudformation.GetGeneratedTemplateOutput, error)) *CloudFormation_GetGeneratedTemplate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetStackPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) GetStackPolicy(ctx context.Context, params *cloudformation.GetStackPolicyInput, optFns ...func(*cloudformation.Options)) (*cloudformation.GetStackPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1604,6 +3166,43 @@ func (_m *CloudFormation) GetStackPolicy(ctx context.Context, params *cloudforma
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_GetStackPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetStackPolicy'
+type CloudFormation_GetStackPolicy_Call struct {
+	*mock.Call
+}
+
+// GetStackPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.GetStackPolicyInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) GetStackPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_GetStackPolicy_Call {
+	return &CloudFormation_GetStackPolicy_Call{Call: _e.mock.On("GetStackPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_GetStackPolicy_Call) Run(run func(ctx context.Context, params *cloudformation.GetStackPolicyInput, optFns ...func(*cloudformation.Options))) *CloudFormation_GetStackPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.GetStackPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_GetStackPolicy_Call) Return(_a0 *cloudformation.GetStackPolicyOutput, _a1 error) *CloudFormation_GetStackPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_GetStackPolicy_Call) RunAndReturn(run func(context.Context, *cloudformation.GetStackPolicyInput, ...func(*cloudformation.Options)) (*cloudformation.GetStackPolicyOutput, error)) *CloudFormation_GetStackPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetTemplate provides a mock function with given fields: ctx, params, optFns
@@ -1643,6 +3242,43 @@ func (_m *CloudFormation) GetTemplate(ctx context.Context, params *cloudformatio
 	return r0, r1
 }
 
+// CloudFormation_GetTemplate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTemplate'
+type CloudFormation_GetTemplate_Call struct {
+	*mock.Call
+}
+
+// GetTemplate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.GetTemplateInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) GetTemplate(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_GetTemplate_Call {
+	return &CloudFormation_GetTemplate_Call{Call: _e.mock.On("GetTemplate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_GetTemplate_Call) Run(run func(ctx context.Context, params *cloudformation.GetTemplateInput, optFns ...func(*cloudformation.Options))) *CloudFormation_GetTemplate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.GetTemplateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_GetTemplate_Call) Return(_a0 *cloudformation.GetTemplateOutput, _a1 error) *CloudFormation_GetTemplate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_GetTemplate_Call) RunAndReturn(run func(context.Context, *cloudformation.GetTemplateInput, ...func(*cloudformation.Options)) (*cloudformation.GetTemplateOutput, error)) *CloudFormation_GetTemplate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTemplateSummary provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) GetTemplateSummary(ctx context.Context, params *cloudformation.GetTemplateSummaryInput, optFns ...func(*cloudformation.Options)) (*cloudformation.GetTemplateSummaryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1678,6 +3314,43 @@ func (_m *CloudFormation) GetTemplateSummary(ctx context.Context, params *cloudf
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_GetTemplateSummary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTemplateSummary'
+type CloudFormation_GetTemplateSummary_Call struct {
+	*mock.Call
+}
+
+// GetTemplateSummary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.GetTemplateSummaryInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) GetTemplateSummary(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_GetTemplateSummary_Call {
+	return &CloudFormation_GetTemplateSummary_Call{Call: _e.mock.On("GetTemplateSummary",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_GetTemplateSummary_Call) Run(run func(ctx context.Context, params *cloudformation.GetTemplateSummaryInput, optFns ...func(*cloudformation.Options))) *CloudFormation_GetTemplateSummary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.GetTemplateSummaryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_GetTemplateSummary_Call) Return(_a0 *cloudformation.GetTemplateSummaryOutput, _a1 error) *CloudFormation_GetTemplateSummary_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_GetTemplateSummary_Call) RunAndReturn(run func(context.Context, *cloudformation.GetTemplateSummaryInput, ...func(*cloudformation.Options)) (*cloudformation.GetTemplateSummaryOutput, error)) *CloudFormation_GetTemplateSummary_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ImportStacksToStackSet provides a mock function with given fields: ctx, params, optFns
@@ -1717,6 +3390,43 @@ func (_m *CloudFormation) ImportStacksToStackSet(ctx context.Context, params *cl
 	return r0, r1
 }
 
+// CloudFormation_ImportStacksToStackSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ImportStacksToStackSet'
+type CloudFormation_ImportStacksToStackSet_Call struct {
+	*mock.Call
+}
+
+// ImportStacksToStackSet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ImportStacksToStackSetInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ImportStacksToStackSet(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ImportStacksToStackSet_Call {
+	return &CloudFormation_ImportStacksToStackSet_Call{Call: _e.mock.On("ImportStacksToStackSet",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ImportStacksToStackSet_Call) Run(run func(ctx context.Context, params *cloudformation.ImportStacksToStackSetInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ImportStacksToStackSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ImportStacksToStackSetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ImportStacksToStackSet_Call) Return(_a0 *cloudformation.ImportStacksToStackSetOutput, _a1 error) *CloudFormation_ImportStacksToStackSet_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ImportStacksToStackSet_Call) RunAndReturn(run func(context.Context, *cloudformation.ImportStacksToStackSetInput, ...func(*cloudformation.Options)) (*cloudformation.ImportStacksToStackSetOutput, error)) *CloudFormation_ImportStacksToStackSet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListChangeSets provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ListChangeSets(ctx context.Context, params *cloudformation.ListChangeSetsInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListChangeSetsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1752,6 +3462,43 @@ func (_m *CloudFormation) ListChangeSets(ctx context.Context, params *cloudforma
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_ListChangeSets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListChangeSets'
+type CloudFormation_ListChangeSets_Call struct {
+	*mock.Call
+}
+
+// ListChangeSets is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListChangeSetsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListChangeSets(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListChangeSets_Call {
+	return &CloudFormation_ListChangeSets_Call{Call: _e.mock.On("ListChangeSets",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListChangeSets_Call) Run(run func(ctx context.Context, params *cloudformation.ListChangeSetsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListChangeSets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListChangeSetsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListChangeSets_Call) Return(_a0 *cloudformation.ListChangeSetsOutput, _a1 error) *CloudFormation_ListChangeSets_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListChangeSets_Call) RunAndReturn(run func(context.Context, *cloudformation.ListChangeSetsInput, ...func(*cloudformation.Options)) (*cloudformation.ListChangeSetsOutput, error)) *CloudFormation_ListChangeSets_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListExports provides a mock function with given fields: ctx, params, optFns
@@ -1791,6 +3538,43 @@ func (_m *CloudFormation) ListExports(ctx context.Context, params *cloudformatio
 	return r0, r1
 }
 
+// CloudFormation_ListExports_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListExports'
+type CloudFormation_ListExports_Call struct {
+	*mock.Call
+}
+
+// ListExports is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListExportsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListExports(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListExports_Call {
+	return &CloudFormation_ListExports_Call{Call: _e.mock.On("ListExports",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListExports_Call) Run(run func(ctx context.Context, params *cloudformation.ListExportsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListExports_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListExportsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListExports_Call) Return(_a0 *cloudformation.ListExportsOutput, _a1 error) *CloudFormation_ListExports_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListExports_Call) RunAndReturn(run func(context.Context, *cloudformation.ListExportsInput, ...func(*cloudformation.Options)) (*cloudformation.ListExportsOutput, error)) *CloudFormation_ListExports_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListGeneratedTemplates provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ListGeneratedTemplates(ctx context.Context, params *cloudformation.ListGeneratedTemplatesInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListGeneratedTemplatesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1826,6 +3610,117 @@ func (_m *CloudFormation) ListGeneratedTemplates(ctx context.Context, params *cl
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_ListGeneratedTemplates_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListGeneratedTemplates'
+type CloudFormation_ListGeneratedTemplates_Call struct {
+	*mock.Call
+}
+
+// ListGeneratedTemplates is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListGeneratedTemplatesInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListGeneratedTemplates(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListGeneratedTemplates_Call {
+	return &CloudFormation_ListGeneratedTemplates_Call{Call: _e.mock.On("ListGeneratedTemplates",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListGeneratedTemplates_Call) Run(run func(ctx context.Context, params *cloudformation.ListGeneratedTemplatesInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListGeneratedTemplates_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListGeneratedTemplatesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListGeneratedTemplates_Call) Return(_a0 *cloudformation.ListGeneratedTemplatesOutput, _a1 error) *CloudFormation_ListGeneratedTemplates_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListGeneratedTemplates_Call) RunAndReturn(run func(context.Context, *cloudformation.ListGeneratedTemplatesInput, ...func(*cloudformation.Options)) (*cloudformation.ListGeneratedTemplatesOutput, error)) *CloudFormation_ListGeneratedTemplates_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListHookResults provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudFormation) ListHookResults(ctx context.Context, params *cloudformation.ListHookResultsInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListHookResultsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListHookResults")
+	}
+
+	var r0 *cloudformation.ListHookResultsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListHookResultsInput, ...func(*cloudformation.Options)) (*cloudformation.ListHookResultsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListHookResultsInput, ...func(*cloudformation.Options)) *cloudformation.ListHookResultsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.ListHookResultsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListHookResultsInput, ...func(*cloudformation.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudFormation_ListHookResults_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListHookResults'
+type CloudFormation_ListHookResults_Call struct {
+	*mock.Call
+}
+
+// ListHookResults is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListHookResultsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListHookResults(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListHookResults_Call {
+	return &CloudFormation_ListHookResults_Call{Call: _e.mock.On("ListHookResults",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListHookResults_Call) Run(run func(ctx context.Context, params *cloudformation.ListHookResultsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListHookResults_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListHookResultsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListHookResults_Call) Return(_a0 *cloudformation.ListHookResultsOutput, _a1 error) *CloudFormation_ListHookResults_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListHookResults_Call) RunAndReturn(run func(context.Context, *cloudformation.ListHookResultsInput, ...func(*cloudformation.Options)) (*cloudformation.ListHookResultsOutput, error)) *CloudFormation_ListHookResults_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListImports provides a mock function with given fields: ctx, params, optFns
@@ -1865,6 +3760,43 @@ func (_m *CloudFormation) ListImports(ctx context.Context, params *cloudformatio
 	return r0, r1
 }
 
+// CloudFormation_ListImports_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListImports'
+type CloudFormation_ListImports_Call struct {
+	*mock.Call
+}
+
+// ListImports is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListImportsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListImports(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListImports_Call {
+	return &CloudFormation_ListImports_Call{Call: _e.mock.On("ListImports",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListImports_Call) Run(run func(ctx context.Context, params *cloudformation.ListImportsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListImports_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListImportsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListImports_Call) Return(_a0 *cloudformation.ListImportsOutput, _a1 error) *CloudFormation_ListImports_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListImports_Call) RunAndReturn(run func(context.Context, *cloudformation.ListImportsInput, ...func(*cloudformation.Options)) (*cloudformation.ListImportsOutput, error)) *CloudFormation_ListImports_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListResourceScanRelatedResources provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ListResourceScanRelatedResources(ctx context.Context, params *cloudformation.ListResourceScanRelatedResourcesInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListResourceScanRelatedResourcesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1900,6 +3832,43 @@ func (_m *CloudFormation) ListResourceScanRelatedResources(ctx context.Context, 
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_ListResourceScanRelatedResources_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListResourceScanRelatedResources'
+type CloudFormation_ListResourceScanRelatedResources_Call struct {
+	*mock.Call
+}
+
+// ListResourceScanRelatedResources is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListResourceScanRelatedResourcesInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListResourceScanRelatedResources(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListResourceScanRelatedResources_Call {
+	return &CloudFormation_ListResourceScanRelatedResources_Call{Call: _e.mock.On("ListResourceScanRelatedResources",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListResourceScanRelatedResources_Call) Run(run func(ctx context.Context, params *cloudformation.ListResourceScanRelatedResourcesInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListResourceScanRelatedResources_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListResourceScanRelatedResourcesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListResourceScanRelatedResources_Call) Return(_a0 *cloudformation.ListResourceScanRelatedResourcesOutput, _a1 error) *CloudFormation_ListResourceScanRelatedResources_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListResourceScanRelatedResources_Call) RunAndReturn(run func(context.Context, *cloudformation.ListResourceScanRelatedResourcesInput, ...func(*cloudformation.Options)) (*cloudformation.ListResourceScanRelatedResourcesOutput, error)) *CloudFormation_ListResourceScanRelatedResources_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListResourceScanResources provides a mock function with given fields: ctx, params, optFns
@@ -1939,6 +3908,43 @@ func (_m *CloudFormation) ListResourceScanResources(ctx context.Context, params 
 	return r0, r1
 }
 
+// CloudFormation_ListResourceScanResources_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListResourceScanResources'
+type CloudFormation_ListResourceScanResources_Call struct {
+	*mock.Call
+}
+
+// ListResourceScanResources is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListResourceScanResourcesInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListResourceScanResources(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListResourceScanResources_Call {
+	return &CloudFormation_ListResourceScanResources_Call{Call: _e.mock.On("ListResourceScanResources",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListResourceScanResources_Call) Run(run func(ctx context.Context, params *cloudformation.ListResourceScanResourcesInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListResourceScanResources_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListResourceScanResourcesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListResourceScanResources_Call) Return(_a0 *cloudformation.ListResourceScanResourcesOutput, _a1 error) *CloudFormation_ListResourceScanResources_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListResourceScanResources_Call) RunAndReturn(run func(context.Context, *cloudformation.ListResourceScanResourcesInput, ...func(*cloudformation.Options)) (*cloudformation.ListResourceScanResourcesOutput, error)) *CloudFormation_ListResourceScanResources_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListResourceScans provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ListResourceScans(ctx context.Context, params *cloudformation.ListResourceScansInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListResourceScansOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1974,6 +3980,43 @@ func (_m *CloudFormation) ListResourceScans(ctx context.Context, params *cloudfo
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_ListResourceScans_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListResourceScans'
+type CloudFormation_ListResourceScans_Call struct {
+	*mock.Call
+}
+
+// ListResourceScans is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListResourceScansInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListResourceScans(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListResourceScans_Call {
+	return &CloudFormation_ListResourceScans_Call{Call: _e.mock.On("ListResourceScans",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListResourceScans_Call) Run(run func(ctx context.Context, params *cloudformation.ListResourceScansInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListResourceScans_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListResourceScansInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListResourceScans_Call) Return(_a0 *cloudformation.ListResourceScansOutput, _a1 error) *CloudFormation_ListResourceScans_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListResourceScans_Call) RunAndReturn(run func(context.Context, *cloudformation.ListResourceScansInput, ...func(*cloudformation.Options)) (*cloudformation.ListResourceScansOutput, error)) *CloudFormation_ListResourceScans_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListStackInstanceResourceDrifts provides a mock function with given fields: ctx, params, optFns
@@ -2013,6 +4056,43 @@ func (_m *CloudFormation) ListStackInstanceResourceDrifts(ctx context.Context, p
 	return r0, r1
 }
 
+// CloudFormation_ListStackInstanceResourceDrifts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListStackInstanceResourceDrifts'
+type CloudFormation_ListStackInstanceResourceDrifts_Call struct {
+	*mock.Call
+}
+
+// ListStackInstanceResourceDrifts is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListStackInstanceResourceDriftsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListStackInstanceResourceDrifts(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListStackInstanceResourceDrifts_Call {
+	return &CloudFormation_ListStackInstanceResourceDrifts_Call{Call: _e.mock.On("ListStackInstanceResourceDrifts",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListStackInstanceResourceDrifts_Call) Run(run func(ctx context.Context, params *cloudformation.ListStackInstanceResourceDriftsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListStackInstanceResourceDrifts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListStackInstanceResourceDriftsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListStackInstanceResourceDrifts_Call) Return(_a0 *cloudformation.ListStackInstanceResourceDriftsOutput, _a1 error) *CloudFormation_ListStackInstanceResourceDrifts_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListStackInstanceResourceDrifts_Call) RunAndReturn(run func(context.Context, *cloudformation.ListStackInstanceResourceDriftsInput, ...func(*cloudformation.Options)) (*cloudformation.ListStackInstanceResourceDriftsOutput, error)) *CloudFormation_ListStackInstanceResourceDrifts_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListStackInstances provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ListStackInstances(ctx context.Context, params *cloudformation.ListStackInstancesInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListStackInstancesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2048,6 +4128,43 @@ func (_m *CloudFormation) ListStackInstances(ctx context.Context, params *cloudf
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_ListStackInstances_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListStackInstances'
+type CloudFormation_ListStackInstances_Call struct {
+	*mock.Call
+}
+
+// ListStackInstances is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListStackInstancesInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListStackInstances(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListStackInstances_Call {
+	return &CloudFormation_ListStackInstances_Call{Call: _e.mock.On("ListStackInstances",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListStackInstances_Call) Run(run func(ctx context.Context, params *cloudformation.ListStackInstancesInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListStackInstances_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListStackInstancesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListStackInstances_Call) Return(_a0 *cloudformation.ListStackInstancesOutput, _a1 error) *CloudFormation_ListStackInstances_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListStackInstances_Call) RunAndReturn(run func(context.Context, *cloudformation.ListStackInstancesInput, ...func(*cloudformation.Options)) (*cloudformation.ListStackInstancesOutput, error)) *CloudFormation_ListStackInstances_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListStackResources provides a mock function with given fields: ctx, params, optFns
@@ -2087,6 +4204,43 @@ func (_m *CloudFormation) ListStackResources(ctx context.Context, params *cloudf
 	return r0, r1
 }
 
+// CloudFormation_ListStackResources_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListStackResources'
+type CloudFormation_ListStackResources_Call struct {
+	*mock.Call
+}
+
+// ListStackResources is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListStackResourcesInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListStackResources(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListStackResources_Call {
+	return &CloudFormation_ListStackResources_Call{Call: _e.mock.On("ListStackResources",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListStackResources_Call) Run(run func(ctx context.Context, params *cloudformation.ListStackResourcesInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListStackResources_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListStackResourcesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListStackResources_Call) Return(_a0 *cloudformation.ListStackResourcesOutput, _a1 error) *CloudFormation_ListStackResources_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListStackResources_Call) RunAndReturn(run func(context.Context, *cloudformation.ListStackResourcesInput, ...func(*cloudformation.Options)) (*cloudformation.ListStackResourcesOutput, error)) *CloudFormation_ListStackResources_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListStackSetAutoDeploymentTargets provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ListStackSetAutoDeploymentTargets(ctx context.Context, params *cloudformation.ListStackSetAutoDeploymentTargetsInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListStackSetAutoDeploymentTargetsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2122,6 +4276,43 @@ func (_m *CloudFormation) ListStackSetAutoDeploymentTargets(ctx context.Context,
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_ListStackSetAutoDeploymentTargets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListStackSetAutoDeploymentTargets'
+type CloudFormation_ListStackSetAutoDeploymentTargets_Call struct {
+	*mock.Call
+}
+
+// ListStackSetAutoDeploymentTargets is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListStackSetAutoDeploymentTargetsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListStackSetAutoDeploymentTargets(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListStackSetAutoDeploymentTargets_Call {
+	return &CloudFormation_ListStackSetAutoDeploymentTargets_Call{Call: _e.mock.On("ListStackSetAutoDeploymentTargets",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListStackSetAutoDeploymentTargets_Call) Run(run func(ctx context.Context, params *cloudformation.ListStackSetAutoDeploymentTargetsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListStackSetAutoDeploymentTargets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListStackSetAutoDeploymentTargetsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListStackSetAutoDeploymentTargets_Call) Return(_a0 *cloudformation.ListStackSetAutoDeploymentTargetsOutput, _a1 error) *CloudFormation_ListStackSetAutoDeploymentTargets_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListStackSetAutoDeploymentTargets_Call) RunAndReturn(run func(context.Context, *cloudformation.ListStackSetAutoDeploymentTargetsInput, ...func(*cloudformation.Options)) (*cloudformation.ListStackSetAutoDeploymentTargetsOutput, error)) *CloudFormation_ListStackSetAutoDeploymentTargets_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListStackSetOperationResults provides a mock function with given fields: ctx, params, optFns
@@ -2161,6 +4352,43 @@ func (_m *CloudFormation) ListStackSetOperationResults(ctx context.Context, para
 	return r0, r1
 }
 
+// CloudFormation_ListStackSetOperationResults_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListStackSetOperationResults'
+type CloudFormation_ListStackSetOperationResults_Call struct {
+	*mock.Call
+}
+
+// ListStackSetOperationResults is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListStackSetOperationResultsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListStackSetOperationResults(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListStackSetOperationResults_Call {
+	return &CloudFormation_ListStackSetOperationResults_Call{Call: _e.mock.On("ListStackSetOperationResults",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListStackSetOperationResults_Call) Run(run func(ctx context.Context, params *cloudformation.ListStackSetOperationResultsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListStackSetOperationResults_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListStackSetOperationResultsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListStackSetOperationResults_Call) Return(_a0 *cloudformation.ListStackSetOperationResultsOutput, _a1 error) *CloudFormation_ListStackSetOperationResults_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListStackSetOperationResults_Call) RunAndReturn(run func(context.Context, *cloudformation.ListStackSetOperationResultsInput, ...func(*cloudformation.Options)) (*cloudformation.ListStackSetOperationResultsOutput, error)) *CloudFormation_ListStackSetOperationResults_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListStackSetOperations provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ListStackSetOperations(ctx context.Context, params *cloudformation.ListStackSetOperationsInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListStackSetOperationsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2196,6 +4424,43 @@ func (_m *CloudFormation) ListStackSetOperations(ctx context.Context, params *cl
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_ListStackSetOperations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListStackSetOperations'
+type CloudFormation_ListStackSetOperations_Call struct {
+	*mock.Call
+}
+
+// ListStackSetOperations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListStackSetOperationsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListStackSetOperations(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListStackSetOperations_Call {
+	return &CloudFormation_ListStackSetOperations_Call{Call: _e.mock.On("ListStackSetOperations",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListStackSetOperations_Call) Run(run func(ctx context.Context, params *cloudformation.ListStackSetOperationsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListStackSetOperations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListStackSetOperationsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListStackSetOperations_Call) Return(_a0 *cloudformation.ListStackSetOperationsOutput, _a1 error) *CloudFormation_ListStackSetOperations_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListStackSetOperations_Call) RunAndReturn(run func(context.Context, *cloudformation.ListStackSetOperationsInput, ...func(*cloudformation.Options)) (*cloudformation.ListStackSetOperationsOutput, error)) *CloudFormation_ListStackSetOperations_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListStackSets provides a mock function with given fields: ctx, params, optFns
@@ -2235,6 +4500,43 @@ func (_m *CloudFormation) ListStackSets(ctx context.Context, params *cloudformat
 	return r0, r1
 }
 
+// CloudFormation_ListStackSets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListStackSets'
+type CloudFormation_ListStackSets_Call struct {
+	*mock.Call
+}
+
+// ListStackSets is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListStackSetsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListStackSets(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListStackSets_Call {
+	return &CloudFormation_ListStackSets_Call{Call: _e.mock.On("ListStackSets",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListStackSets_Call) Run(run func(ctx context.Context, params *cloudformation.ListStackSetsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListStackSets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListStackSetsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListStackSets_Call) Return(_a0 *cloudformation.ListStackSetsOutput, _a1 error) *CloudFormation_ListStackSets_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListStackSets_Call) RunAndReturn(run func(context.Context, *cloudformation.ListStackSetsInput, ...func(*cloudformation.Options)) (*cloudformation.ListStackSetsOutput, error)) *CloudFormation_ListStackSets_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListStacks provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ListStacks(ctx context.Context, params *cloudformation.ListStacksInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListStacksOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2270,6 +4572,43 @@ func (_m *CloudFormation) ListStacks(ctx context.Context, params *cloudformation
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_ListStacks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListStacks'
+type CloudFormation_ListStacks_Call struct {
+	*mock.Call
+}
+
+// ListStacks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListStacksInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListStacks(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListStacks_Call {
+	return &CloudFormation_ListStacks_Call{Call: _e.mock.On("ListStacks",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListStacks_Call) Run(run func(ctx context.Context, params *cloudformation.ListStacksInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListStacks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListStacksInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListStacks_Call) Return(_a0 *cloudformation.ListStacksOutput, _a1 error) *CloudFormation_ListStacks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListStacks_Call) RunAndReturn(run func(context.Context, *cloudformation.ListStacksInput, ...func(*cloudformation.Options)) (*cloudformation.ListStacksOutput, error)) *CloudFormation_ListStacks_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListTypeRegistrations provides a mock function with given fields: ctx, params, optFns
@@ -2309,6 +4648,43 @@ func (_m *CloudFormation) ListTypeRegistrations(ctx context.Context, params *clo
 	return r0, r1
 }
 
+// CloudFormation_ListTypeRegistrations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTypeRegistrations'
+type CloudFormation_ListTypeRegistrations_Call struct {
+	*mock.Call
+}
+
+// ListTypeRegistrations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListTypeRegistrationsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListTypeRegistrations(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListTypeRegistrations_Call {
+	return &CloudFormation_ListTypeRegistrations_Call{Call: _e.mock.On("ListTypeRegistrations",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListTypeRegistrations_Call) Run(run func(ctx context.Context, params *cloudformation.ListTypeRegistrationsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListTypeRegistrations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListTypeRegistrationsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListTypeRegistrations_Call) Return(_a0 *cloudformation.ListTypeRegistrationsOutput, _a1 error) *CloudFormation_ListTypeRegistrations_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListTypeRegistrations_Call) RunAndReturn(run func(context.Context, *cloudformation.ListTypeRegistrationsInput, ...func(*cloudformation.Options)) (*cloudformation.ListTypeRegistrationsOutput, error)) *CloudFormation_ListTypeRegistrations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListTypeVersions provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ListTypeVersions(ctx context.Context, params *cloudformation.ListTypeVersionsInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ListTypeVersionsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2344,6 +4720,43 @@ func (_m *CloudFormation) ListTypeVersions(ctx context.Context, params *cloudfor
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_ListTypeVersions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTypeVersions'
+type CloudFormation_ListTypeVersions_Call struct {
+	*mock.Call
+}
+
+// ListTypeVersions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListTypeVersionsInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListTypeVersions(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListTypeVersions_Call {
+	return &CloudFormation_ListTypeVersions_Call{Call: _e.mock.On("ListTypeVersions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListTypeVersions_Call) Run(run func(ctx context.Context, params *cloudformation.ListTypeVersionsInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListTypeVersions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListTypeVersionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListTypeVersions_Call) Return(_a0 *cloudformation.ListTypeVersionsOutput, _a1 error) *CloudFormation_ListTypeVersions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListTypeVersions_Call) RunAndReturn(run func(context.Context, *cloudformation.ListTypeVersionsInput, ...func(*cloudformation.Options)) (*cloudformation.ListTypeVersionsOutput, error)) *CloudFormation_ListTypeVersions_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListTypes provides a mock function with given fields: ctx, params, optFns
@@ -2383,6 +4796,43 @@ func (_m *CloudFormation) ListTypes(ctx context.Context, params *cloudformation.
 	return r0, r1
 }
 
+// CloudFormation_ListTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTypes'
+type CloudFormation_ListTypes_Call struct {
+	*mock.Call
+}
+
+// ListTypes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ListTypesInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ListTypes(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ListTypes_Call {
+	return &CloudFormation_ListTypes_Call{Call: _e.mock.On("ListTypes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ListTypes_Call) Run(run func(ctx context.Context, params *cloudformation.ListTypesInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ListTypes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ListTypesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ListTypes_Call) Return(_a0 *cloudformation.ListTypesOutput, _a1 error) *CloudFormation_ListTypes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ListTypes_Call) RunAndReturn(run func(context.Context, *cloudformation.ListTypesInput, ...func(*cloudformation.Options)) (*cloudformation.ListTypesOutput, error)) *CloudFormation_ListTypes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Options provides a mock function with given fields:
 func (_m *CloudFormation) Options() cloudformation.Options {
 	ret := _m.Called()
@@ -2399,6 +4849,33 @@ func (_m *CloudFormation) Options() cloudformation.Options {
 	}
 
 	return r0
+}
+
+// CloudFormation_Options_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Options'
+type CloudFormation_Options_Call struct {
+	*mock.Call
+}
+
+// Options is a helper method to define mock.On call
+func (_e *CloudFormation_Expecter) Options() *CloudFormation_Options_Call {
+	return &CloudFormation_Options_Call{Call: _e.mock.On("Options")}
+}
+
+func (_c *CloudFormation_Options_Call) Run(run func()) *CloudFormation_Options_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *CloudFormation_Options_Call) Return(_a0 cloudformation.Options) *CloudFormation_Options_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CloudFormation_Options_Call) RunAndReturn(run func() cloudformation.Options) *CloudFormation_Options_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // PublishType provides a mock function with given fields: ctx, params, optFns
@@ -2438,6 +4915,43 @@ func (_m *CloudFormation) PublishType(ctx context.Context, params *cloudformatio
 	return r0, r1
 }
 
+// CloudFormation_PublishType_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PublishType'
+type CloudFormation_PublishType_Call struct {
+	*mock.Call
+}
+
+// PublishType is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.PublishTypeInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) PublishType(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_PublishType_Call {
+	return &CloudFormation_PublishType_Call{Call: _e.mock.On("PublishType",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_PublishType_Call) Run(run func(ctx context.Context, params *cloudformation.PublishTypeInput, optFns ...func(*cloudformation.Options))) *CloudFormation_PublishType_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.PublishTypeInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_PublishType_Call) Return(_a0 *cloudformation.PublishTypeOutput, _a1 error) *CloudFormation_PublishType_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_PublishType_Call) RunAndReturn(run func(context.Context, *cloudformation.PublishTypeInput, ...func(*cloudformation.Options)) (*cloudformation.PublishTypeOutput, error)) *CloudFormation_PublishType_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RecordHandlerProgress provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) RecordHandlerProgress(ctx context.Context, params *cloudformation.RecordHandlerProgressInput, optFns ...func(*cloudformation.Options)) (*cloudformation.RecordHandlerProgressOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2473,6 +4987,43 @@ func (_m *CloudFormation) RecordHandlerProgress(ctx context.Context, params *clo
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_RecordHandlerProgress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RecordHandlerProgress'
+type CloudFormation_RecordHandlerProgress_Call struct {
+	*mock.Call
+}
+
+// RecordHandlerProgress is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.RecordHandlerProgressInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) RecordHandlerProgress(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_RecordHandlerProgress_Call {
+	return &CloudFormation_RecordHandlerProgress_Call{Call: _e.mock.On("RecordHandlerProgress",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_RecordHandlerProgress_Call) Run(run func(ctx context.Context, params *cloudformation.RecordHandlerProgressInput, optFns ...func(*cloudformation.Options))) *CloudFormation_RecordHandlerProgress_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.RecordHandlerProgressInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_RecordHandlerProgress_Call) Return(_a0 *cloudformation.RecordHandlerProgressOutput, _a1 error) *CloudFormation_RecordHandlerProgress_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_RecordHandlerProgress_Call) RunAndReturn(run func(context.Context, *cloudformation.RecordHandlerProgressInput, ...func(*cloudformation.Options)) (*cloudformation.RecordHandlerProgressOutput, error)) *CloudFormation_RecordHandlerProgress_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // RegisterPublisher provides a mock function with given fields: ctx, params, optFns
@@ -2512,6 +5063,43 @@ func (_m *CloudFormation) RegisterPublisher(ctx context.Context, params *cloudfo
 	return r0, r1
 }
 
+// CloudFormation_RegisterPublisher_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterPublisher'
+type CloudFormation_RegisterPublisher_Call struct {
+	*mock.Call
+}
+
+// RegisterPublisher is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.RegisterPublisherInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) RegisterPublisher(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_RegisterPublisher_Call {
+	return &CloudFormation_RegisterPublisher_Call{Call: _e.mock.On("RegisterPublisher",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_RegisterPublisher_Call) Run(run func(ctx context.Context, params *cloudformation.RegisterPublisherInput, optFns ...func(*cloudformation.Options))) *CloudFormation_RegisterPublisher_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.RegisterPublisherInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_RegisterPublisher_Call) Return(_a0 *cloudformation.RegisterPublisherOutput, _a1 error) *CloudFormation_RegisterPublisher_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_RegisterPublisher_Call) RunAndReturn(run func(context.Context, *cloudformation.RegisterPublisherInput, ...func(*cloudformation.Options)) (*cloudformation.RegisterPublisherOutput, error)) *CloudFormation_RegisterPublisher_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RegisterType provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) RegisterType(ctx context.Context, params *cloudformation.RegisterTypeInput, optFns ...func(*cloudformation.Options)) (*cloudformation.RegisterTypeOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2547,6 +5135,43 @@ func (_m *CloudFormation) RegisterType(ctx context.Context, params *cloudformati
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_RegisterType_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterType'
+type CloudFormation_RegisterType_Call struct {
+	*mock.Call
+}
+
+// RegisterType is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.RegisterTypeInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) RegisterType(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_RegisterType_Call {
+	return &CloudFormation_RegisterType_Call{Call: _e.mock.On("RegisterType",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_RegisterType_Call) Run(run func(ctx context.Context, params *cloudformation.RegisterTypeInput, optFns ...func(*cloudformation.Options))) *CloudFormation_RegisterType_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.RegisterTypeInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_RegisterType_Call) Return(_a0 *cloudformation.RegisterTypeOutput, _a1 error) *CloudFormation_RegisterType_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_RegisterType_Call) RunAndReturn(run func(context.Context, *cloudformation.RegisterTypeInput, ...func(*cloudformation.Options)) (*cloudformation.RegisterTypeOutput, error)) *CloudFormation_RegisterType_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // RollbackStack provides a mock function with given fields: ctx, params, optFns
@@ -2586,6 +5211,43 @@ func (_m *CloudFormation) RollbackStack(ctx context.Context, params *cloudformat
 	return r0, r1
 }
 
+// CloudFormation_RollbackStack_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RollbackStack'
+type CloudFormation_RollbackStack_Call struct {
+	*mock.Call
+}
+
+// RollbackStack is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.RollbackStackInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) RollbackStack(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_RollbackStack_Call {
+	return &CloudFormation_RollbackStack_Call{Call: _e.mock.On("RollbackStack",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_RollbackStack_Call) Run(run func(ctx context.Context, params *cloudformation.RollbackStackInput, optFns ...func(*cloudformation.Options))) *CloudFormation_RollbackStack_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.RollbackStackInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_RollbackStack_Call) Return(_a0 *cloudformation.RollbackStackOutput, _a1 error) *CloudFormation_RollbackStack_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_RollbackStack_Call) RunAndReturn(run func(context.Context, *cloudformation.RollbackStackInput, ...func(*cloudformation.Options)) (*cloudformation.RollbackStackOutput, error)) *CloudFormation_RollbackStack_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetStackPolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) SetStackPolicy(ctx context.Context, params *cloudformation.SetStackPolicyInput, optFns ...func(*cloudformation.Options)) (*cloudformation.SetStackPolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2621,6 +5283,43 @@ func (_m *CloudFormation) SetStackPolicy(ctx context.Context, params *cloudforma
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_SetStackPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetStackPolicy'
+type CloudFormation_SetStackPolicy_Call struct {
+	*mock.Call
+}
+
+// SetStackPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.SetStackPolicyInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) SetStackPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_SetStackPolicy_Call {
+	return &CloudFormation_SetStackPolicy_Call{Call: _e.mock.On("SetStackPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_SetStackPolicy_Call) Run(run func(ctx context.Context, params *cloudformation.SetStackPolicyInput, optFns ...func(*cloudformation.Options))) *CloudFormation_SetStackPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.SetStackPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_SetStackPolicy_Call) Return(_a0 *cloudformation.SetStackPolicyOutput, _a1 error) *CloudFormation_SetStackPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_SetStackPolicy_Call) RunAndReturn(run func(context.Context, *cloudformation.SetStackPolicyInput, ...func(*cloudformation.Options)) (*cloudformation.SetStackPolicyOutput, error)) *CloudFormation_SetStackPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // SetTypeConfiguration provides a mock function with given fields: ctx, params, optFns
@@ -2660,6 +5359,43 @@ func (_m *CloudFormation) SetTypeConfiguration(ctx context.Context, params *clou
 	return r0, r1
 }
 
+// CloudFormation_SetTypeConfiguration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetTypeConfiguration'
+type CloudFormation_SetTypeConfiguration_Call struct {
+	*mock.Call
+}
+
+// SetTypeConfiguration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.SetTypeConfigurationInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) SetTypeConfiguration(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_SetTypeConfiguration_Call {
+	return &CloudFormation_SetTypeConfiguration_Call{Call: _e.mock.On("SetTypeConfiguration",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_SetTypeConfiguration_Call) Run(run func(ctx context.Context, params *cloudformation.SetTypeConfigurationInput, optFns ...func(*cloudformation.Options))) *CloudFormation_SetTypeConfiguration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.SetTypeConfigurationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_SetTypeConfiguration_Call) Return(_a0 *cloudformation.SetTypeConfigurationOutput, _a1 error) *CloudFormation_SetTypeConfiguration_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_SetTypeConfiguration_Call) RunAndReturn(run func(context.Context, *cloudformation.SetTypeConfigurationInput, ...func(*cloudformation.Options)) (*cloudformation.SetTypeConfigurationOutput, error)) *CloudFormation_SetTypeConfiguration_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetTypeDefaultVersion provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) SetTypeDefaultVersion(ctx context.Context, params *cloudformation.SetTypeDefaultVersionInput, optFns ...func(*cloudformation.Options)) (*cloudformation.SetTypeDefaultVersionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2695,6 +5431,43 @@ func (_m *CloudFormation) SetTypeDefaultVersion(ctx context.Context, params *clo
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_SetTypeDefaultVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetTypeDefaultVersion'
+type CloudFormation_SetTypeDefaultVersion_Call struct {
+	*mock.Call
+}
+
+// SetTypeDefaultVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.SetTypeDefaultVersionInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) SetTypeDefaultVersion(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_SetTypeDefaultVersion_Call {
+	return &CloudFormation_SetTypeDefaultVersion_Call{Call: _e.mock.On("SetTypeDefaultVersion",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_SetTypeDefaultVersion_Call) Run(run func(ctx context.Context, params *cloudformation.SetTypeDefaultVersionInput, optFns ...func(*cloudformation.Options))) *CloudFormation_SetTypeDefaultVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.SetTypeDefaultVersionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_SetTypeDefaultVersion_Call) Return(_a0 *cloudformation.SetTypeDefaultVersionOutput, _a1 error) *CloudFormation_SetTypeDefaultVersion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_SetTypeDefaultVersion_Call) RunAndReturn(run func(context.Context, *cloudformation.SetTypeDefaultVersionInput, ...func(*cloudformation.Options)) (*cloudformation.SetTypeDefaultVersionOutput, error)) *CloudFormation_SetTypeDefaultVersion_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // SignalResource provides a mock function with given fields: ctx, params, optFns
@@ -2734,6 +5507,43 @@ func (_m *CloudFormation) SignalResource(ctx context.Context, params *cloudforma
 	return r0, r1
 }
 
+// CloudFormation_SignalResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SignalResource'
+type CloudFormation_SignalResource_Call struct {
+	*mock.Call
+}
+
+// SignalResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.SignalResourceInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) SignalResource(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_SignalResource_Call {
+	return &CloudFormation_SignalResource_Call{Call: _e.mock.On("SignalResource",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_SignalResource_Call) Run(run func(ctx context.Context, params *cloudformation.SignalResourceInput, optFns ...func(*cloudformation.Options))) *CloudFormation_SignalResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.SignalResourceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_SignalResource_Call) Return(_a0 *cloudformation.SignalResourceOutput, _a1 error) *CloudFormation_SignalResource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_SignalResource_Call) RunAndReturn(run func(context.Context, *cloudformation.SignalResourceInput, ...func(*cloudformation.Options)) (*cloudformation.SignalResourceOutput, error)) *CloudFormation_SignalResource_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StartResourceScan provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) StartResourceScan(ctx context.Context, params *cloudformation.StartResourceScanInput, optFns ...func(*cloudformation.Options)) (*cloudformation.StartResourceScanOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2769,6 +5579,43 @@ func (_m *CloudFormation) StartResourceScan(ctx context.Context, params *cloudfo
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_StartResourceScan_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartResourceScan'
+type CloudFormation_StartResourceScan_Call struct {
+	*mock.Call
+}
+
+// StartResourceScan is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.StartResourceScanInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) StartResourceScan(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_StartResourceScan_Call {
+	return &CloudFormation_StartResourceScan_Call{Call: _e.mock.On("StartResourceScan",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_StartResourceScan_Call) Run(run func(ctx context.Context, params *cloudformation.StartResourceScanInput, optFns ...func(*cloudformation.Options))) *CloudFormation_StartResourceScan_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.StartResourceScanInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_StartResourceScan_Call) Return(_a0 *cloudformation.StartResourceScanOutput, _a1 error) *CloudFormation_StartResourceScan_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_StartResourceScan_Call) RunAndReturn(run func(context.Context, *cloudformation.StartResourceScanInput, ...func(*cloudformation.Options)) (*cloudformation.StartResourceScanOutput, error)) *CloudFormation_StartResourceScan_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // StopStackSetOperation provides a mock function with given fields: ctx, params, optFns
@@ -2808,6 +5655,43 @@ func (_m *CloudFormation) StopStackSetOperation(ctx context.Context, params *clo
 	return r0, r1
 }
 
+// CloudFormation_StopStackSetOperation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StopStackSetOperation'
+type CloudFormation_StopStackSetOperation_Call struct {
+	*mock.Call
+}
+
+// StopStackSetOperation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.StopStackSetOperationInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) StopStackSetOperation(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_StopStackSetOperation_Call {
+	return &CloudFormation_StopStackSetOperation_Call{Call: _e.mock.On("StopStackSetOperation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_StopStackSetOperation_Call) Run(run func(ctx context.Context, params *cloudformation.StopStackSetOperationInput, optFns ...func(*cloudformation.Options))) *CloudFormation_StopStackSetOperation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.StopStackSetOperationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_StopStackSetOperation_Call) Return(_a0 *cloudformation.StopStackSetOperationOutput, _a1 error) *CloudFormation_StopStackSetOperation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_StopStackSetOperation_Call) RunAndReturn(run func(context.Context, *cloudformation.StopStackSetOperationInput, ...func(*cloudformation.Options)) (*cloudformation.StopStackSetOperationOutput, error)) *CloudFormation_StopStackSetOperation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TestType provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) TestType(ctx context.Context, params *cloudformation.TestTypeInput, optFns ...func(*cloudformation.Options)) (*cloudformation.TestTypeOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2843,6 +5727,43 @@ func (_m *CloudFormation) TestType(ctx context.Context, params *cloudformation.T
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_TestType_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TestType'
+type CloudFormation_TestType_Call struct {
+	*mock.Call
+}
+
+// TestType is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.TestTypeInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) TestType(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_TestType_Call {
+	return &CloudFormation_TestType_Call{Call: _e.mock.On("TestType",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_TestType_Call) Run(run func(ctx context.Context, params *cloudformation.TestTypeInput, optFns ...func(*cloudformation.Options))) *CloudFormation_TestType_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.TestTypeInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_TestType_Call) Return(_a0 *cloudformation.TestTypeOutput, _a1 error) *CloudFormation_TestType_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_TestType_Call) RunAndReturn(run func(context.Context, *cloudformation.TestTypeInput, ...func(*cloudformation.Options)) (*cloudformation.TestTypeOutput, error)) *CloudFormation_TestType_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateGeneratedTemplate provides a mock function with given fields: ctx, params, optFns
@@ -2882,6 +5803,43 @@ func (_m *CloudFormation) UpdateGeneratedTemplate(ctx context.Context, params *c
 	return r0, r1
 }
 
+// CloudFormation_UpdateGeneratedTemplate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateGeneratedTemplate'
+type CloudFormation_UpdateGeneratedTemplate_Call struct {
+	*mock.Call
+}
+
+// UpdateGeneratedTemplate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.UpdateGeneratedTemplateInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) UpdateGeneratedTemplate(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_UpdateGeneratedTemplate_Call {
+	return &CloudFormation_UpdateGeneratedTemplate_Call{Call: _e.mock.On("UpdateGeneratedTemplate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_UpdateGeneratedTemplate_Call) Run(run func(ctx context.Context, params *cloudformation.UpdateGeneratedTemplateInput, optFns ...func(*cloudformation.Options))) *CloudFormation_UpdateGeneratedTemplate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.UpdateGeneratedTemplateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_UpdateGeneratedTemplate_Call) Return(_a0 *cloudformation.UpdateGeneratedTemplateOutput, _a1 error) *CloudFormation_UpdateGeneratedTemplate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_UpdateGeneratedTemplate_Call) RunAndReturn(run func(context.Context, *cloudformation.UpdateGeneratedTemplateInput, ...func(*cloudformation.Options)) (*cloudformation.UpdateGeneratedTemplateOutput, error)) *CloudFormation_UpdateGeneratedTemplate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateStack provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) UpdateStack(ctx context.Context, params *cloudformation.UpdateStackInput, optFns ...func(*cloudformation.Options)) (*cloudformation.UpdateStackOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2917,6 +5875,43 @@ func (_m *CloudFormation) UpdateStack(ctx context.Context, params *cloudformatio
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_UpdateStack_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateStack'
+type CloudFormation_UpdateStack_Call struct {
+	*mock.Call
+}
+
+// UpdateStack is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.UpdateStackInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) UpdateStack(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_UpdateStack_Call {
+	return &CloudFormation_UpdateStack_Call{Call: _e.mock.On("UpdateStack",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_UpdateStack_Call) Run(run func(ctx context.Context, params *cloudformation.UpdateStackInput, optFns ...func(*cloudformation.Options))) *CloudFormation_UpdateStack_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.UpdateStackInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_UpdateStack_Call) Return(_a0 *cloudformation.UpdateStackOutput, _a1 error) *CloudFormation_UpdateStack_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_UpdateStack_Call) RunAndReturn(run func(context.Context, *cloudformation.UpdateStackInput, ...func(*cloudformation.Options)) (*cloudformation.UpdateStackOutput, error)) *CloudFormation_UpdateStack_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateStackInstances provides a mock function with given fields: ctx, params, optFns
@@ -2956,6 +5951,43 @@ func (_m *CloudFormation) UpdateStackInstances(ctx context.Context, params *clou
 	return r0, r1
 }
 
+// CloudFormation_UpdateStackInstances_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateStackInstances'
+type CloudFormation_UpdateStackInstances_Call struct {
+	*mock.Call
+}
+
+// UpdateStackInstances is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.UpdateStackInstancesInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) UpdateStackInstances(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_UpdateStackInstances_Call {
+	return &CloudFormation_UpdateStackInstances_Call{Call: _e.mock.On("UpdateStackInstances",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_UpdateStackInstances_Call) Run(run func(ctx context.Context, params *cloudformation.UpdateStackInstancesInput, optFns ...func(*cloudformation.Options))) *CloudFormation_UpdateStackInstances_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.UpdateStackInstancesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_UpdateStackInstances_Call) Return(_a0 *cloudformation.UpdateStackInstancesOutput, _a1 error) *CloudFormation_UpdateStackInstances_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_UpdateStackInstances_Call) RunAndReturn(run func(context.Context, *cloudformation.UpdateStackInstancesInput, ...func(*cloudformation.Options)) (*cloudformation.UpdateStackInstancesOutput, error)) *CloudFormation_UpdateStackInstances_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateStackSet provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) UpdateStackSet(ctx context.Context, params *cloudformation.UpdateStackSetInput, optFns ...func(*cloudformation.Options)) (*cloudformation.UpdateStackSetOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2991,6 +6023,43 @@ func (_m *CloudFormation) UpdateStackSet(ctx context.Context, params *cloudforma
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_UpdateStackSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateStackSet'
+type CloudFormation_UpdateStackSet_Call struct {
+	*mock.Call
+}
+
+// UpdateStackSet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.UpdateStackSetInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) UpdateStackSet(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_UpdateStackSet_Call {
+	return &CloudFormation_UpdateStackSet_Call{Call: _e.mock.On("UpdateStackSet",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_UpdateStackSet_Call) Run(run func(ctx context.Context, params *cloudformation.UpdateStackSetInput, optFns ...func(*cloudformation.Options))) *CloudFormation_UpdateStackSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.UpdateStackSetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_UpdateStackSet_Call) Return(_a0 *cloudformation.UpdateStackSetOutput, _a1 error) *CloudFormation_UpdateStackSet_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_UpdateStackSet_Call) RunAndReturn(run func(context.Context, *cloudformation.UpdateStackSetInput, ...func(*cloudformation.Options)) (*cloudformation.UpdateStackSetOutput, error)) *CloudFormation_UpdateStackSet_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateTerminationProtection provides a mock function with given fields: ctx, params, optFns
@@ -3030,6 +6099,43 @@ func (_m *CloudFormation) UpdateTerminationProtection(ctx context.Context, param
 	return r0, r1
 }
 
+// CloudFormation_UpdateTerminationProtection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateTerminationProtection'
+type CloudFormation_UpdateTerminationProtection_Call struct {
+	*mock.Call
+}
+
+// UpdateTerminationProtection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.UpdateTerminationProtectionInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) UpdateTerminationProtection(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_UpdateTerminationProtection_Call {
+	return &CloudFormation_UpdateTerminationProtection_Call{Call: _e.mock.On("UpdateTerminationProtection",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_UpdateTerminationProtection_Call) Run(run func(ctx context.Context, params *cloudformation.UpdateTerminationProtectionInput, optFns ...func(*cloudformation.Options))) *CloudFormation_UpdateTerminationProtection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.UpdateTerminationProtectionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_UpdateTerminationProtection_Call) Return(_a0 *cloudformation.UpdateTerminationProtectionOutput, _a1 error) *CloudFormation_UpdateTerminationProtection_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_UpdateTerminationProtection_Call) RunAndReturn(run func(context.Context, *cloudformation.UpdateTerminationProtectionInput, ...func(*cloudformation.Options)) (*cloudformation.UpdateTerminationProtectionOutput, error)) *CloudFormation_UpdateTerminationProtection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ValidateTemplate provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudFormation) ValidateTemplate(ctx context.Context, params *cloudformation.ValidateTemplateInput, optFns ...func(*cloudformation.Options)) (*cloudformation.ValidateTemplateOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3065,6 +6171,43 @@ func (_m *CloudFormation) ValidateTemplate(ctx context.Context, params *cloudfor
 	}
 
 	return r0, r1
+}
+
+// CloudFormation_ValidateTemplate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidateTemplate'
+type CloudFormation_ValidateTemplate_Call struct {
+	*mock.Call
+}
+
+// ValidateTemplate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudformation.ValidateTemplateInput
+//   - optFns ...func(*cloudformation.Options)
+func (_e *CloudFormation_Expecter) ValidateTemplate(ctx interface{}, params interface{}, optFns ...interface{}) *CloudFormation_ValidateTemplate_Call {
+	return &CloudFormation_ValidateTemplate_Call{Call: _e.mock.On("ValidateTemplate",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudFormation_ValidateTemplate_Call) Run(run func(ctx context.Context, params *cloudformation.ValidateTemplateInput, optFns ...func(*cloudformation.Options))) *CloudFormation_ValidateTemplate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudformation.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudformation.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudformation.ValidateTemplateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudFormation_ValidateTemplate_Call) Return(_a0 *cloudformation.ValidateTemplateOutput, _a1 error) *CloudFormation_ValidateTemplate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudFormation_ValidateTemplate_Call) RunAndReturn(run func(context.Context, *cloudformation.ValidateTemplateInput, ...func(*cloudformation.Options)) (*cloudformation.ValidateTemplateOutput, error)) *CloudFormation_ValidateTemplate_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewCloudFormation creates a new instance of CloudFormation. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

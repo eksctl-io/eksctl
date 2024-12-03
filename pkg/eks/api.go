@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/client-go/dynamic"
 
 	awsv2 "github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
@@ -60,6 +61,7 @@ type KubernetesProvider struct {
 type KubeProvider interface {
 	NewRawClient(clusterInfo kubeconfig.ClusterInfo) (*kubernetes.RawClient, error)
 	NewStdClientSet(clusterInfo kubeconfig.ClusterInfo) (k8sclient.Interface, error)
+	NewDynamicClient(clusterInfo kubeconfig.ClusterInfo) (*dynamic.DynamicClient, error)
 	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
 	WaitForControlPlane(meta *api.ClusterMeta, clientSet *kubernetes.RawClient, waitTimeout time.Duration) error
 }
@@ -485,7 +487,7 @@ func (c *ClusterProvider) NewStackManager(spec *api.ClusterConfig) manager.Stack
 // configuration into the spec
 // At the moment VPC and KubernetesNetworkConfig are respected
 func (c *ClusterProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stack *manager.Stack) error {
-	if err := c.LoadClusterVPC(ctx, spec, stack); err != nil {
+	if err := c.LoadClusterVPC(ctx, spec, stack, true); err != nil {
 		return err
 	}
 	return c.RefreshClusterStatus(ctx, spec)

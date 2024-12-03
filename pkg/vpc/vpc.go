@@ -3,6 +3,7 @@ package vpc
 import (
 	"context"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"net"
 	"slices"
@@ -15,7 +16,6 @@ import (
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/bxcodec/faker/support/slice"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -25,6 +25,16 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 	"github.com/weaveworks/eksctl/pkg/utils/nodes"
 )
+
+// StackDriftError represents a stack drift error.
+type StackDriftError struct {
+	Msg string
+}
+
+// Error implements the error interface.
+func (s *StackDriftError) Error() string {
+	return s.Msg
+}
 
 // SetSubnets defines CIDRs for each of the subnets,
 // it must be called after SetAvailabilityZones.
@@ -260,7 +270,7 @@ func describeVPC(ctx context.Context, ec2API awsapi.EC2, vpcID string) (ec2types
 // based on stack outputs
 // NOTE: it doesn't expect any fields in spec.VPC to be set, the remote state
 // is treated as the source of truth
-func UseFromClusterStack(ctx context.Context, provider api.ClusterProvider, stack *types.Stack, spec *api.ClusterConfig) error {
+func UseFromClusterStack(ctx context.Context, provider api.ClusterProvider, stack *types.Stack, spec *api.ClusterConfig, ignoreDrift bool) error {
 	if spec.VPC == nil {
 		spec.VPC = api.NewClusterVPC(spec.IPv6Enabled())
 	}
@@ -332,8 +342,14 @@ func UseFromClusterStack(ctx context.Context, provider api.ClusterProvider, stac
 		stackDriftFound := false
 		for _, ssID := range stackSubnets {
 			if !slices.Contains(vpcSubnets, ssID) {
+				msg := fmt.Sprintf("%s was found in cluster's CloudFormation stack outputs, but has been removed from VPC %s outside of eksctl", ssID, spec.VPC.ID)
+				if !ignoreDrift {
+					return &StackDriftError{
+						Msg: msg,
+					}
+				}
 				stackDriftFound = true
-				logger.Warning("%s was found on cluster cloudformation stack outputs, but has been removed from VPC %s outside of eksctl", ssID, spec.VPC.ID)
+				logger.Warning(msg)
 				continue
 			}
 			toBeImported = append(toBeImported, ssID)
@@ -600,7 +616,7 @@ func ValidateLegacySubnetsForNodeGroups(ctx context.Context, spec *api.ClusterCo
 		}
 
 		logger.Critical(err.Error())
-		return errors.Errorf("subnets for one or more new nodegroups don't meet requirements. "+
+		return fmt.Errorf("subnets for one or more new nodegroups don't meet requirements. "+
 			"To fix this, please run `eksctl utils update-legacy-subnet-settings --cluster %s`",
 			spec.Metadata.Name)
 	}
@@ -647,17 +663,17 @@ func EnsureMapPublicIPOnLaunchEnabled(ctx context.Context, ec2API awsapi.EC2, su
 // then pass resulting subnets to ImportSubnets
 // NOTE: it does respect all fields set in spec.VPC, and will error if
 // there is a mismatch of local vs remote states
-func ImportSubnetsFromSpec(ctx context.Context, provider api.ClusterProvider, spec *api.ClusterConfig) error {
+func ImportSubnetsFromSpec(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConfig) error {
 	if spec.VPC.ID != "" {
 		// ensure VPC gets imported and validated first, if it's already set
-		if err := importVPC(ctx, provider.EC2(), spec, spec.VPC.ID); err != nil {
+		if err := importVPC(ctx, ec2API, spec, spec.VPC.ID); err != nil {
 			return err
 		}
 	}
-	if err := importSubnetsForTopology(ctx, provider.EC2(), spec, api.SubnetTopologyPrivate); err != nil {
+	if err := importSubnetsForTopology(ctx, ec2API, spec, api.SubnetTopologyPrivate); err != nil {
 		return err
 	}
-	if err := importSubnetsForTopology(ctx, provider.EC2(), spec, api.SubnetTopologyPublic); err != nil {
+	if err := importSubnetsForTopology(ctx, ec2API, spec, api.SubnetTopologyPublic); err != nil {
 		return err
 	}
 	// to clean up invalid subnets based on AZ after importing both private and public subnets

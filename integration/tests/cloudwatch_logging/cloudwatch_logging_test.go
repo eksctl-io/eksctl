@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/pkg/errors"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
@@ -29,7 +28,7 @@ func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
 	if err := api.Register(); err != nil {
-		panic(errors.Wrap(err, "unexpected error registering API scheme"))
+		panic(fmt.Errorf("unexpected error registering API scheme: %w", err))
 	}
 	params = tests.NewParams("cloudwatch")
 }

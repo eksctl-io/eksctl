@@ -27,14 +27,20 @@ type OwnedCluster struct {
 	stackManager        manager.StackManager
 	newClientSet        func() (kubernetes.Interface, error)
 	newNodeGroupDrainer func(clientSet kubernetes.Interface) NodeGroupDrainer
+	autoModeDeleter     AutoModeDeleter
 }
 
-func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager) *OwnedCluster {
+type AutoModeDeleter interface {
+	DeleteIfRequired(ctx context.Context) error
+}
+
+func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager, autoModeDeleter AutoModeDeleter) *OwnedCluster {
 	return &OwnedCluster{
-		cfg:          cfg,
-		ctl:          ctl,
-		clusterStack: clusterStack,
-		stackManager: stackManager,
+		cfg:             cfg,
+		ctl:             ctl,
+		clusterStack:    clusterStack,
+		autoModeDeleter: autoModeDeleter,
+		stackManager:    stackManager,
 		newClientSet: func() (kubernetes.Interface, error) {
 			return ctl.NewStdClientSet(cfg)
 		},
@@ -47,7 +53,7 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterSt
 }
 
 func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
-	if err := vpc.UseFromClusterStack(ctx, c.ctl.AWSProvider, c.clusterStack, c.cfg); err != nil {
+	if err := vpc.UseFromClusterStack(ctx, c.ctl.AWSProvider, c.clusterStack, c.cfg, true); err != nil {
 		return fmt.Errorf("getting VPC configuration for cluster %q: %w", c.cfg.Metadata.Name, err)
 	}
 
@@ -106,12 +112,10 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 	}
 
 	if err := deleteSharedResources(ctx, c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
-		if err != nil {
-			if force {
-				logger.Warning("error occurred during deletion: %v", err)
-			} else {
-				return err
-			}
+		if force {
+			logger.Warning("error occurred during deletion: %v", err)
+		} else {
+			return err
 		}
 	}
 
@@ -141,7 +145,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 		if err != nil {
 			return fmt.Errorf("error describing cluster stack: %w", err)
 		}
-		if err := c.ctl.LoadClusterVPC(ctx, c.cfg, stack); err != nil {
+		if err := c.ctl.LoadClusterVPC(ctx, c.cfg, stack, true); err != nil {
 			return fmt.Errorf("getting VPC configuration for cluster %q: %w", c.cfg.Metadata.Name, err)
 		}
 
@@ -171,6 +175,9 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 	}
 
 	if err := checkForUndeletedStacks(ctx, c.stackManager); err != nil {
+		return err
+	}
+	if err := c.autoModeDeleter.DeleteIfRequired(ctx); err != nil {
 		return err
 	}
 

@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -85,7 +84,7 @@ func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setCont
 	kubectlConfig := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), roleARN, ctl.AWSProvider.Profile().Name)
 	filename, err := kubeconfig.Write(outputPath, *kubectlConfig, setContext)
 	if err != nil {
-		return errors.Wrap(err, "writing kubeconfig")
+		return fmt.Errorf("writing kubeconfig: %w", err)
 	}
 
 	logger.Success("saved kubeconfig as %q", filename)

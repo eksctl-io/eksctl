@@ -2,13 +2,13 @@ package addon
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -40,9 +40,6 @@ var (
 			commandSuggestion = updateAddonRecommended(supportsPodIDs)
 		}
 		return fmt.Sprintf("the recommended way to provide IAM permissions for %q addon is via %s; after addon creation is completed, %s", addonName, method, commandSuggestion)
-	}
-	IRSADeprecatedWarning = func(addonName string) string {
-		return fmt.Sprintf("IRSA has been deprecated; %s", iamPermissionsRecommended(addonName, true, false))
 	}
 	OIDCDisabledWarning = func(addonName string, supportsPodIDs, isIRSASetExplicitly bool) string {
 		irsaUsedMessage := fmt.Sprintf("recommended policies were found for %q addon", addonName)
@@ -166,7 +163,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 			}
 			logger.Info("IRSA is set for %q addon; will use this to configure IAM permissions", addon.Name)
 			if supportsPodIDs {
-				logger.Warning(IRSADeprecatedWarning(addon.Name))
+				logger.Warning(iamPermissionsRecommended(addon.Name, true, false))
 			}
 
 			if addon.ServiceAccountRoleARN != "" {
@@ -223,7 +220,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 				break
 			}
 			if supportsPodIDs {
-				logger.Warning(IRSADeprecatedWarning(addon.Name))
+				logger.Warning(iamPermissionsRecommended(addon.Name, true, false))
 			}
 
 			logger.Info("creating role using recommended policies for %q addon", addon.Name)
@@ -317,7 +314,7 @@ func (a *Manager) patchAWSNodeSA(ctx context.Context) error {
 
 	_, err = serviceAccounts.Patch(ctx, "aws-node", types.JSONPatchType, []byte(fmt.Sprintf(`[{"op": "remove", "path": "/metadata/managedFields/%d"}]`, managerIndex)), metav1.PatchOptions{})
 	if err != nil {
-		return errors.Wrap(err, "failed to patch sa")
+		return fmt.Errorf("failed to patch sa: %w", err)
 	}
 
 	return nil
@@ -370,7 +367,7 @@ func (a *Manager) patchAWSNodeDaemonSet(ctx context.Context) error {
 }
 `), metav1.PatchOptions{})
 		if err != nil {
-			return errors.Wrap(err, "failed to patch daemon set")
+			return fmt.Errorf("failed to patch daemon set: %w", err)
 		}
 		// update the daemonset so the next patch can work.
 		_, err = daemonSets.Get(ctx, "aws-node", metav1.GetOptions{})
@@ -385,7 +382,7 @@ func (a *Manager) patchAWSNodeDaemonSet(ctx context.Context) error {
 
 	_, err = daemonSets.Patch(ctx, "aws-node", types.JSONPatchType, []byte(fmt.Sprintf(`[{"op": "remove", "path": "/metadata/managedFields/%d"}]`, managerIndex)), metav1.PatchOptions{})
 	if err != nil {
-		return errors.Wrap(err, "failed to patch daemon set")
+		return fmt.Errorf("failed to patch daemon set: %w", err)
 	}
 
 	return nil

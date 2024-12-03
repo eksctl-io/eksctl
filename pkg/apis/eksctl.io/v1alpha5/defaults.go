@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -62,6 +63,10 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 	} else if cfg.AccessConfig.AuthenticationMode == "" {
 		cfg.AccessConfig.AuthenticationMode = getDefaultAuthenticationMode(cfg.IsControlPlaneOnOutposts())
 	}
+	if cfg.IsAutoModeEnabled() && cfg.AutoModeConfig.NodePools == nil {
+		defaultNodePools := slices.Clone(AutoModeKnownNodePools)
+		cfg.AutoModeConfig.NodePools = &defaultNodePools
+	}
 
 	if cfg.PrivateCluster == nil {
 		cfg.PrivateCluster = &PrivateCluster{}
@@ -73,6 +78,15 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 
 	if cfg.Karpenter != nil && cfg.Karpenter.CreateServiceAccount == nil {
 		cfg.Karpenter.CreateServiceAccount = Disabled()
+	}
+
+	if cfg.RemoteNetworkConfig != nil {
+		if cfg.RemoteNetworkConfig.IAM == nil {
+			cfg.RemoteNetworkConfig.IAM = &RemoteNodesIAM{}
+		}
+		if cfg.RemoteNetworkConfig.IAM.Provider == nil {
+			cfg.RemoteNetworkConfig.IAM.Provider = &SSMProvider
+		}
 	}
 }
 

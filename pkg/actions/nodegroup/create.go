@@ -2,6 +2,7 @@ package nodegroup
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -11,8 +12,8 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
+	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -63,6 +64,16 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return errors.New("--update-auth-configmap is not supported when authenticationMode is set to API")
 	}
 
+	if cfg.IsAutoModeEnabled() && (len(cfg.ManagedNodeGroups) > 0 || len(cfg.NodeGroups) > 0) {
+		addonHelper := &addon.Helper{
+			Lister:      ctl.AWSProvider.EKS(),
+			ClusterName: cfg.Metadata.Name,
+		}
+		if err := addonHelper.ValidateNodeGroupCreation(ctx); err != nil {
+			return fmt.Errorf("checking if core networking addons are installed: %w", err)
+		}
+	}
+
 	var (
 		isOwnedCluster  = true
 		skipEgressRules = false
@@ -70,34 +81,32 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 
 	clusterStack, err := m.stackManager.DescribeClusterStack(ctx)
 	if err != nil {
-		switch err.(type) {
-		case *manager.StackNotFoundErr:
-			if cfg.IsControlPlaneOnOutposts() {
-				return errors.New("Outposts is not supported on non eksctl-managed clusters")
-			}
-			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", err.Error())
-			if err := loadVPCFromConfig(ctx, ctl.AWSProvider, cfg); err != nil {
-				return errors.Wrapf(err, "loading VPC spec for cluster %q", meta.Name)
-			}
-			isOwnedCluster = false
-			if len(cfg.NodeGroups) > 0 {
-				skipEgressRules, err = validateSecurityGroup(ctx, ctl.AWSProvider.EC2(), cfg.VPC.SecurityGroup)
-				if err != nil {
-					return err
-				}
-			}
-
-		default:
+		var stackNotFoundErr *manager.StackNotFoundErr
+		if !errors.As(err, &stackNotFoundErr) {
 			return fmt.Errorf("getting existing configuration for cluster %q: %w", meta.Name, err)
 		}
-
+		if cfg.IsControlPlaneOnOutposts() {
+			return errors.New("Outposts is not supported on non eksctl-managed clusters")
+		}
+		logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", err.Error())
+		if err := loadVPCFromConfig(ctx, ctl.AWSProvider, cfg); err != nil {
+			return fmt.Errorf("loading VPC spec for cluster %q: %w", meta.Name, err)
+		}
+		isOwnedCluster = false
+		if len(cfg.NodeGroups) > 0 {
+			skipEgressRules, err = validateSecurityGroup(ctx, ctl.AWSProvider.EC2(), cfg.VPC.SecurityGroup)
+			if err != nil {
+				return err
+			}
+		}
 	} else if err := ctl.LoadClusterIntoSpecFromStack(ctx, cfg, clusterStack); err != nil {
 		return err
 	}
 
 	rawClient, err := ctl.NewRawClient(cfg)
 	if err != nil {
-		if _, ok := err.(*kubernetes.APIServerUnreachableError); ok {
+		var unreachableErr *kubernetes.APIServerUnreachableError
+		if errors.As(err, &unreachableErr) {
 			const msg = "eksctl requires connectivity to the API server to create nodegroups"
 			if cfg.IsControlPlaneOnOutposts() {
 				return fmt.Errorf("%s; please ensure the Outpost VPC is associated with your local gateway and you are able to connect to the API server before rerunning the command: %w", msg, err)
@@ -134,7 +143,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 
 	if isOwnedCluster {
 		if err := ctl.ValidateClusterForCompatibility(ctx, cfg, m.stackManager); err != nil {
-			return errors.Wrap(err, "cluster compatibility check failed")
+			return fmt.Errorf("cluster compatibility check failed: %w", err)
 		}
 	}
 
@@ -243,7 +252,7 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster, skipEgr
 
 	awsNodeUsesIRSA, err := eks.DoesAWSNodeUseIRSA(ctx, m.ctl.AWSProvider, m.clientSet)
 	if err != nil {
-		return errors.Wrap(err, "couldn't check aws-node for annotation")
+		return fmt.Errorf("couldn't check aws-node for annotation: %w", err)
 	}
 
 	if !awsNodeUsesIRSA && api.IsEnabled(cfg.IAM.WithOIDC) {
@@ -348,7 +357,7 @@ func loadVPCFromConfig(ctx context.Context, provider api.ClusterProvider, cfg *a
 		return errors.New("VPC configuration required for creating nodegroups on clusters not owned by eksctl: vpc.subnets, vpc.id, vpc.securityGroup")
 	}
 
-	if err := vpc.ImportSubnetsFromSpec(ctx, provider, cfg); err != nil {
+	if err := vpc.ImportSubnetsFromSpec(ctx, provider.EC2(), cfg); err != nil {
 		return err
 	}
 	if err := cfg.HasSufficientSubnets(); err != nil {

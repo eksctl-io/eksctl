@@ -354,7 +354,8 @@ func (c *StackCollection) updateStack(ctx context.Context, options UpdateStackOp
 		return err
 	}
 	if err := c.doWaitUntilChangeSetIsCreated(ctx, options.Stack, options.ChangeSetName); err != nil {
-		if _, ok := err.(*NoChangeError); ok {
+		var noChangeErr *NoChangeError
+		if errors.As(err, &noChangeErr) {
 			if ignoreNoChangeError {
 				return nil
 			}
@@ -392,7 +393,7 @@ func (c *StackCollection) DescribeStack(ctx context.Context, i *Stack) (*Stack, 
 	}
 	resp, err := c.cloudformationAPI.DescribeStacks(ctx, input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "describing CloudFormation stack %q", *i.StackName)
+		return nil, fmt.Errorf("describing CloudFormation stack %q: %w", *i.StackName, err)
 	}
 	if len(resp.Stacks) == 0 {
 		return nil, fmt.Errorf("no CloudFormation stack found for %s", *i.StackName)

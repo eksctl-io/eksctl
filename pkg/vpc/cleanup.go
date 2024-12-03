@@ -10,7 +10,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -37,7 +36,7 @@ func findDanglingENIs(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterC
 
 	securityGroupRE, err := regexp.Compile(fmtSecurityGroupNameRegexForCluster(spec.Metadata.Name))
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create security group regex")
+		return nil, fmt.Errorf("failed to create security group regex: %w", err)
 	}
 
 	var eniIDs []string
@@ -77,7 +76,7 @@ func CleanupNetworkInterfaces(ctx context.Context, ec2API awsapi.EC2, spec *api.
 			NetworkInterfaceId: &eniID,
 		}
 		if _, err := ec2API.DeleteNetworkInterface(ctx, input); err != nil {
-			return errors.Wrapf(err, "unable to delete network interface %q", eniID)
+			return fmt.Errorf("unable to delete network interface %q: %w", eniID, err)
 		}
 		logger.Debug("deleted network interface %q", eniID)
 	}

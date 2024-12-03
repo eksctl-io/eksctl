@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Amazon EKS Karpenter NodeRole'
+Resources:
+  AutoModeNodeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "Fn::FindInMap":
+                    - "ServicePrincipalPartitionMap"
+                    - Ref: "AWS::Partition"
+                    - "EC2"
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodeMinimalPolicy"
+
+Outputs:
+  AutoModeNodeRoleARN:
+    Description: The role that EKS will use by default for launching instances
+    Value: !GetAtt AutoModeNodeRole.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-NodeRoleArn"

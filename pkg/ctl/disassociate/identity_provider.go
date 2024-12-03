@@ -2,7 +2,7 @@ package disassociate
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -53,13 +53,13 @@ func newDisassociateIdentityProviderLoader(cmd *cmdutils.Cmd, cliProvidedIDP cli
 
 	l.ValidateWithConfigFile(func(cmd *cmdutils.Cmd) error {
 		if len(cmd.ClusterConfig.IdentityProviders) == 0 {
-			return fmt.Errorf("No identity providers provided")
+			return errors.New("no identity providers provided")
 		}
 		return nil
 	})
 	l.ValidateWithoutConfigFile(func(cmd *cmdutils.Cmd) error {
 		if len(cmd.ClusterConfig.IdentityProviders) == 0 && cliProvidedIDP.Name == "" {
-			return fmt.Errorf("No identity providers provided")
+			return errors.New("no identity providers provided")
 		}
 		return nil
 	})

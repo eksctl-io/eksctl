@@ -829,7 +829,7 @@ var _ = Describe("Create", func() {
 				Expect(*input.ServiceAccountRoleArn).To(Equal("arn:aws:iam::111122223333:role/role-name-1"))
 			},
 			validateCustomLoggerOutput: func(output string) {
-				Expect(output).NotTo(ContainSubstring("IRSA has been deprecated"))
+				Expect(output).NotTo(ContainSubstring("the recommended way to provide IAM permissions"))
 			},
 		}),
 
@@ -871,8 +871,7 @@ var _ = Describe("Create", func() {
 				Expect(stackManager.CreateStackCallCount()).To(Equal(1))
 			},
 			validateCustomLoggerOutput: func(output string) {
-				Expect(output).To(ContainSubstring("IRSA has been deprecated; " +
-					"the recommended way to provide IAM permissions for \"my-addon\" addon is via pod identity associations; " +
+				Expect(output).To(ContainSubstring("the recommended way to provide IAM permissions for \"my-addon\" addon is via pod identity associations; " +
 					"after addon creation is completed, run `eksctl utils migrate-to-pod-identity`"))
 			},
 		}),
@@ -912,8 +911,7 @@ var _ = Describe("Create", func() {
 				Expect(stackManager.CreateStackCallCount()).To(Equal(1))
 			},
 			validateCustomLoggerOutput: func(output string) {
-				Expect(output).To(ContainSubstring("IRSA has been deprecated; " +
-					"the recommended way to provide IAM permissions for \"vpc-cni\" addon is via pod identity associations; " +
+				Expect(output).To(ContainSubstring("the recommended way to provide IAM permissions for \"vpc-cni\" addon is via pod identity associations; " +
 					"after addon creation is completed, run `eksctl utils migrate-to-pod-identity`"))
 			},
 		}),
@@ -957,8 +955,7 @@ var _ = Describe("Create", func() {
 				Expect(stackManager.CreateStackCallCount()).To(Equal(1))
 			},
 			validateCustomLoggerOutput: func(output string) {
-				Expect(output).To(ContainSubstring("IRSA has been deprecated; " +
-					"the recommended way to provide IAM permissions for \"vpc-cni\" addon is via pod identity associations; " +
+				Expect(output).To(ContainSubstring("the recommended way to provide IAM permissions for \"vpc-cni\" addon is via pod identity associations; " +
 					"after addon creation is completed, run `eksctl utils migrate-to-pod-identity`"))
 			},
 		}),
@@ -996,8 +993,7 @@ var _ = Describe("Create", func() {
 				Expect(stackManager.CreateStackCallCount()).To(Equal(1))
 			},
 			validateCustomLoggerOutput: func(output string) {
-				Expect(output).To(ContainSubstring("IRSA has been deprecated; " +
-					"the recommended way to provide IAM permissions for \"aws-ebs-csi-driver\" addon is via pod identity associations; " +
+				Expect(output).To(ContainSubstring("the recommended way to provide IAM permissions for \"aws-ebs-csi-driver\" addon is via pod identity associations; " +
 					"after addon creation is completed, run `eksctl utils migrate-to-pod-identity`"))
 			},
 		}),
@@ -1035,7 +1031,7 @@ var _ = Describe("Create", func() {
 				Expect(stackManager.CreateStackCallCount()).To(Equal(1))
 			},
 			validateCustomLoggerOutput: func(output string) {
-				Expect(output).NotTo(ContainSubstring("IRSA has been deprecated"))
+				Expect(output).NotTo(ContainSubstring("the recommended way to provide IAM permissions"))
 			},
 		}),
 

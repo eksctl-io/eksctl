@@ -10,7 +10,6 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -38,7 +37,7 @@ func Use(ctx context.Context, ec2API awsapi.EC2, ng *api.NodeGroupBase) error {
 		ImageIds: []string{ng.AMI},
 	})
 	if err != nil {
-		return errors.Wrapf(err, "unable to find image %q", ng.AMI)
+		return fmt.Errorf("unable to find image %q: %w", ng.AMI, err)
 	}
 
 	// This will never return more than one as we are looking up a single ami id
@@ -83,7 +82,7 @@ func findRootDeviceMapping(image ec2types.Image) (ec2types.BlockDeviceMapping, e
 			return deviceMapping, nil
 		}
 	}
-	return ec2types.BlockDeviceMapping{}, errors.Errorf("failed to find root device mapping for AMI %q", *image.ImageId)
+	return ec2types.BlockDeviceMapping{}, fmt.Errorf("failed to find root device mapping for AMI %q", *image.ImageId)
 }
 
 // FindImage will get the AMI to use for the EKS nodes by querying AWS EC2 API.
@@ -118,7 +117,7 @@ func FindImage(ctx context.Context, ec2API awsapi.EC2, ownerAccount, namePattern
 
 	output, err := ec2API.DescribeImages(ctx, input)
 	if err != nil {
-		return "", errors.Wrapf(err, "error querying AWS for images")
+		return "", fmt.Errorf("error querying AWS for images: %w", err)
 	}
 
 	if len(output.Images) < 1 {

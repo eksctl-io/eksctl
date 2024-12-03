@@ -2,13 +2,12 @@ package waiter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/kris-nova/logger"
-
-	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -17,7 +16,6 @@ import (
 	smithytime "github.com/aws/smithy-go/time"
 	smithywaiter "github.com/aws/smithy-go/waiter"
 
-	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/utils/apierrors"
 )
 
@@ -51,9 +49,15 @@ type UpdateWaiterOptions struct {
 	Retryable func(context.Context, *eks.DescribeUpdateInput, *eks.DescribeUpdateOutput, error) (bool, error)
 }
 
+// UpdateDescriber describes an EKS update operation.
+type UpdateDescriber interface {
+	// DescribeUpdate describes an update to an EKS resource.
+	DescribeUpdate(ctx context.Context, params *eks.DescribeUpdateInput, optFns ...func(*eks.Options)) (*eks.DescribeUpdateOutput, error)
+}
+
 type UpdateWaiter struct {
-	client  awsapi.EKS
-	options UpdateWaiterOptions
+	updateDescriber UpdateDescriber
+	options         UpdateWaiterOptions
 }
 
 type UpdateFailedError struct {
@@ -67,7 +71,7 @@ func (u *UpdateFailedError) Error() string {
 
 // NewUpdateWaiter constructs an UpdateWaiter.
 // It provides an interface similar to the waiter types in the AWS SDK.
-func NewUpdateWaiter(client awsapi.EKS, optFns ...func(options *UpdateWaiterOptions)) *UpdateWaiter {
+func NewUpdateWaiter(updateDescriber UpdateDescriber, optFns ...func(options *UpdateWaiterOptions)) *UpdateWaiter {
 	options := UpdateWaiterOptions{
 		MinDelay: 30 * time.Second,
 		MaxDelay: 120 * time.Second,
@@ -97,8 +101,8 @@ func NewUpdateWaiter(client awsapi.EKS, optFns ...func(options *UpdateWaiterOpti
 		fn(&options)
 	}
 	return &UpdateWaiter{
-		client:  client,
-		options: options,
+		updateDescriber: updateDescriber,
+		options:         options,
 	}
 }
 
@@ -147,7 +151,7 @@ func (w *UpdateWaiter) WaitForOutput(ctx context.Context, params *eks.DescribeUp
 
 		logger.Debug(options.RetryAttemptLogMessage)
 
-		out, err := w.client.DescribeUpdate(ctx, params, func(o *eks.Options) {
+		out, err := w.updateDescriber.DescribeUpdate(ctx, params, func(o *eks.Options) {
 			o.APIOptions = append(o.APIOptions, apiOptions...)
 		})
 

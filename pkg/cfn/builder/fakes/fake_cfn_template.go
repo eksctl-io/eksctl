@@ -20,6 +20,7 @@ type Tag struct {
 }
 
 type Properties struct {
+	AcceptRoleSessionName                bool
 	EnableDNSHostnames, EnableDNSSupport bool
 	GroupDescription                     string
 	Description                          string
@@ -30,6 +31,7 @@ type Properties struct {
 	SourceSecurityGroupID                interface{}
 	DestinationSecurityGroupID           interface{}
 
+	Type                     string
 	Path, RoleName           string
 	Roles, ManagedPolicyArns []interface{}
 	PermissionsBoundary      interface{}
@@ -62,12 +64,12 @@ type Properties struct {
 	CidrIP, CidrIPv6, IPProtocol string
 	FromPort, ToPort             int
 
-	VpcID, SubnetID                                         interface{}
-	EgressOnlyInternetGatewayID, RouteTableID, AllocationID interface{}
-	GatewayID, InternetGatewayID, NatGatewayID              interface{}
-	DestinationCidrBlock, DestinationIpv6CidrBlock          interface{}
-	MapPublicIPOnLaunch                                     bool
-	AssignIpv6AddressOnCreation                             *bool
+	VpcID, SubnetID                                                            interface{}
+	EgressOnlyInternetGatewayID, RouteTableID, AllocationID                    interface{}
+	GatewayID, InternetGatewayID, NatGatewayID, VpnGatewayId, TransitGatewayId interface{}
+	DestinationCidrBlock, DestinationIpv6CidrBlock                             interface{}
+	MapPublicIPOnLaunch                                                        bool
+	AssignIpv6AddressOnCreation                                                *bool
 
 	Ipv6CidrBlock           interface{}
 	Ipv6Pool                string
@@ -77,7 +79,8 @@ type Properties struct {
 	AmazonProvidedIpv6CidrBlock bool
 	AvailabilityZone, Domain    string
 
-	Name, Version      string
+	Name               interface{}
+	Version            string
 	RoleArn            interface{}
 	ResourcesVpcConfig struct {
 		SecurityGroupIDs      []interface{}

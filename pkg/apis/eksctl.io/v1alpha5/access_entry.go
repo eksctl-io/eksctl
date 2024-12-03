@@ -53,6 +53,8 @@ const (
 	AccessEntryTypeWindows AccessEntryType = "EC2_WINDOWS"
 	// AccessEntryTypeFargateLinux specifies the Fargate Linux access entry type.
 	AccessEntryTypeFargateLinux AccessEntryType = "FARGATE_LINUX"
+	// AccessEntryTypeHybridLinux specifies the Hybrid Linux access entry type.
+	AccessEntryTypeHybridLinux AccessEntryType = "HYBRID_LINUX"
 	// AccessEntryTypeStandard specifies a standard access entry type.
 	AccessEntryTypeStandard AccessEntryType = "STANDARD"
 )
@@ -144,7 +146,7 @@ func validateAccessEntries(accessEntries []AccessEntry) error {
 
 		switch AccessEntryType(ae.Type) {
 		case "", AccessEntryTypeStandard:
-		case AccessEntryTypeLinux, AccessEntryTypeWindows, AccessEntryTypeFargateLinux:
+		case AccessEntryTypeLinux, AccessEntryTypeWindows, AccessEntryTypeFargateLinux, AccessEntryTypeHybridLinux:
 			if len(ae.KubernetesGroups) > 0 || ae.KubernetesUsername != "" {
 				return fmt.Errorf("cannot specify %s.kubernetesGroups nor %s.kubernetesUsername when type is set to %s", path, path, ae.Type)
 			}

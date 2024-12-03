@@ -4,13 +4,13 @@
 package dumplogs
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
-	"github.com/pkg/errors"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/weaveworks/eksctl/integration/tests"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -22,7 +22,7 @@ var params *tests.Params
 func init() {
 	testing.Init()
 	if err := api.Register(); err != nil {
-		panic(errors.Wrap(err, "unexpected error registering API scheme"))
+		panic(fmt.Errorf("unexpected error registering API scheme: %w", err))
 	}
 	params = tests.NewParams("dump_logs")
 }

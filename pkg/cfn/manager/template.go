@@ -2,11 +2,10 @@ package manager
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
-	"github.com/pkg/errors"
-
 	"github.com/weaveworks/goformation/v4"
 )
 
@@ -29,7 +28,7 @@ func ensureJSONResponse(templateBody []byte) (string, error) {
 	//since json is valid yaml we just need to check the response is valid yaml
 	template, err := goformation.ParseYAML(templateBody)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to parse GetStackTemplate response")
+		return "", fmt.Errorf("failed to parse GetStackTemplate response: %w", err)
 	}
 	bytes, err := template.JSON()
 	return string(bytes), err

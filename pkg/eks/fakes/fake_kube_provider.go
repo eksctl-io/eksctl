@@ -9,10 +9,24 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
+	"k8s.io/client-go/dynamic"
 	kubernetesa "k8s.io/client-go/kubernetes"
 )
 
 type FakeKubeProvider struct {
+	NewDynamicClientStub        func(kubeconfig.ClusterInfo) (*dynamic.DynamicClient, error)
+	newDynamicClientMutex       sync.RWMutex
+	newDynamicClientArgsForCall []struct {
+		arg1 kubeconfig.ClusterInfo
+	}
+	newDynamicClientReturns struct {
+		result1 *dynamic.DynamicClient
+		result2 error
+	}
+	newDynamicClientReturnsOnCall map[int]struct {
+		result1 *dynamic.DynamicClient
+		result2 error
+	}
 	NewRawClientStub        func(kubeconfig.ClusterInfo) (*kubernetes.RawClient, error)
 	newRawClientMutex       sync.RWMutex
 	newRawClientArgsForCall []struct {
@@ -67,6 +81,70 @@ type FakeKubeProvider struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeKubeProvider) NewDynamicClient(arg1 kubeconfig.ClusterInfo) (*dynamic.DynamicClient, error) {
+	fake.newDynamicClientMutex.Lock()
+	ret, specificReturn := fake.newDynamicClientReturnsOnCall[len(fake.newDynamicClientArgsForCall)]
+	fake.newDynamicClientArgsForCall = append(fake.newDynamicClientArgsForCall, struct {
+		arg1 kubeconfig.ClusterInfo
+	}{arg1})
+	stub := fake.NewDynamicClientStub
+	fakeReturns := fake.newDynamicClientReturns
+	fake.recordInvocation("NewDynamicClient", []interface{}{arg1})
+	fake.newDynamicClientMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKubeProvider) NewDynamicClientCallCount() int {
+	fake.newDynamicClientMutex.RLock()
+	defer fake.newDynamicClientMutex.RUnlock()
+	return len(fake.newDynamicClientArgsForCall)
+}
+
+func (fake *FakeKubeProvider) NewDynamicClientCalls(stub func(kubeconfig.ClusterInfo) (*dynamic.DynamicClient, error)) {
+	fake.newDynamicClientMutex.Lock()
+	defer fake.newDynamicClientMutex.Unlock()
+	fake.NewDynamicClientStub = stub
+}
+
+func (fake *FakeKubeProvider) NewDynamicClientArgsForCall(i int) kubeconfig.ClusterInfo {
+	fake.newDynamicClientMutex.RLock()
+	defer fake.newDynamicClientMutex.RUnlock()
+	argsForCall := fake.newDynamicClientArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeKubeProvider) NewDynamicClientReturns(result1 *dynamic.DynamicClient, result2 error) {
+	fake.newDynamicClientMutex.Lock()
+	defer fake.newDynamicClientMutex.Unlock()
+	fake.NewDynamicClientStub = nil
+	fake.newDynamicClientReturns = struct {
+		result1 *dynamic.DynamicClient
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKubeProvider) NewDynamicClientReturnsOnCall(i int, result1 *dynamic.DynamicClient, result2 error) {
+	fake.newDynamicClientMutex.Lock()
+	defer fake.newDynamicClientMutex.Unlock()
+	fake.NewDynamicClientStub = nil
+	if fake.newDynamicClientReturnsOnCall == nil {
+		fake.newDynamicClientReturnsOnCall = make(map[int]struct {
+			result1 *dynamic.DynamicClient
+			result2 error
+		})
+	}
+	fake.newDynamicClientReturnsOnCall[i] = struct {
+		result1 *dynamic.DynamicClient
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeKubeProvider) NewRawClient(arg1 kubeconfig.ClusterInfo) (*kubernetes.RawClient, error) {
@@ -327,6 +405,8 @@ func (fake *FakeKubeProvider) WaitForControlPlaneReturnsOnCall(i int, result1 er
 func (fake *FakeKubeProvider) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.newDynamicClientMutex.RLock()
+	defer fake.newDynamicClientMutex.RUnlock()
 	fake.newRawClientMutex.RLock()
 	defer fake.newRawClientMutex.RUnlock()
 	fake.newStdClientSetMutex.RLock()

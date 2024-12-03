@@ -1,21 +1,21 @@
 package nodegroup
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/pkg/errors"
 )
 
 // ParseReleaseVersion parses an AMI release version string that's in the format `1.18.8-20201007`
 func ParseReleaseVersion(releaseVersion string) (AMIReleaseVersion, error) {
 	parts := strings.Split(releaseVersion, "-")
 	if len(parts) != 2 {
-		return AMIReleaseVersion{}, errors.Errorf("unexpected format for release version: %q", releaseVersion)
+		return AMIReleaseVersion{}, fmt.Errorf("unexpected format for release version: %q", releaseVersion)
 	}
 	v, err := semver.ParseTolerant(parts[0])
 	if err != nil {
-		return AMIReleaseVersion{}, errors.Wrap(err, "invalid SemVer version")
+		return AMIReleaseVersion{}, fmt.Errorf("invalid SemVer version: %w", err)
 	}
 	return AMIReleaseVersion{
 		Version: v,

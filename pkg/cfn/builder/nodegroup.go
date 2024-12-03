@@ -2,10 +2,10 @@ package builder
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
 	"k8s.io/utils/strings/slices"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -285,7 +285,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) err
 	launchTemplateName := gfnt.MakeFnSubString(fmt.Sprintf("${%s}", gfnt.StackName))
 	launchTemplateData, err := newLaunchTemplateData(ctx, n)
 	if err != nil {
-		return errors.Wrap(err, "could not add resources for nodegroup")
+		return fmt.Errorf("could not add resources for nodegroup: %w", err)
 	}
 
 	ng := n.options.NodeGroup
@@ -473,7 +473,7 @@ func newLaunchTemplateData(ctx context.Context, n *NodeGroupResourceSet) (*gfnec
 	}
 
 	if err := buildNetworkInterfaces(ctx, launchTemplateData, ng.InstanceTypeList(), api.IsEnabled(ng.EFAEnabled), n.securityGroups, n.ec2API); err != nil {
-		return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
+		return nil, fmt.Errorf("couldn't build network interfaces for launch template data: %w", err)
 	}
 
 	if api.IsEnabled(ng.EFAEnabled) && ng.Placement == nil {
