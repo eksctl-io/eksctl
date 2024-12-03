@@ -1,5 +1,7 @@
 # EKS Hybrid Nodes
 
+## Introduction
+
 AWS EKS introduces Hybrid Nodes, a new feature that enables you to run on-premises and edge applications on customer-managed infrastructure with the same AWS EKS clusters, features, and tools you use in the AWS Cloud. AWS EKS Hybird Nodes brings an AWS-managed Kubernetes experience to on-premises environments for customers to simplify and standardize how you run applications across on-premises, edge and cloud environments. Read more at [EKS Hybrid Nodes][eks-hybrid-nodes].
 
 To facilitate support for this feature, eksctl introduces a new top-level field called `remoteNetworkConfig`. Any Hybrid Nodes related configuration shall be set up via this field, as part of the config file; there are no CLI flags counterparts. Additionally, at launch, any remote network config can only be set up during cluster creation and cannot be updated afterwards. This means, you won't be able to update existing clusters to use Hybrid Nodes. 
@@ -46,7 +48,7 @@ remoteNetworkConfig:
     # used to validate the X.509 certificates provided by your nodes.
     # can only be set when provider is IAMRolesAnywhere.
     caBundleCert: xxxx
- ```
+```
 
 The ARN of the Hybrid Nodes Role created by eksctl is needed later in the process of joining your remote nodes to the cluster, to setup `NodeConfig` for `nodeadm`, and to create activations (if using SSM). To fetch it, use:
 
@@ -65,7 +67,7 @@ If you have a pre-existing IAM Roles Anywhere configuration in place, or you are
 remoteNetworkConfig:
   iam:
     roleARN: arn:aws:iam::000011112222:role/HybridNodesRole
- ```
+```
 
 To map the role to a Kubernetes identity and authorise the remote nodes to join the EKS cluster, eksctl creates an access entry with Hybrid Nodes IAM Role as principal ARN and of type `HYBRID_LINUX`. i.e.
 
@@ -86,7 +88,7 @@ eksctl get accessentry --cluster my-cluster --principal-arn arn:aws:iam::0000111
 Container Networking Interface (CNI): The AWS VPC CNI can’t be used with hybrid nodes. The core capabilities of Cilium and Calico are supported for use with hybrid nodes. You can manage your CNI with your choice of tooling such as Helm. For more information, see [Configure a CNI for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html).
 
 ???+ note
-    If you install VPC CNI in your cluster for your self-managed or EKS-managed nodegroups, you have to use `v1.19.0-eksbuild.1` or later, as this includes an udpate to the add-on's deaemonset to exclude it from being installed on Hybrid Nodes.
+    If you install VPC CNI in your cluster for your self-managed or EKS-managed nodegroups, you have to use `v1.19.0-eksbuild.1` or later, as this includes an udpate to the add-on's daemonset to exclude it from being installed on Hybrid Nodes.
 
 ## Further references
 
