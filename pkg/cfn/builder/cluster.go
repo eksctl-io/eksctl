@@ -341,6 +341,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 					return fmt.Errorf("error building cluster compute roles: %w", err)
 				}
 				computeConfig.NodeRoleArn = autoModeRefs.NodeRole
+				c.rs.withIAM = true
 			}
 		} else {
 			computeConfig.NodeRoleArn = gfnt.NewString(cc.NodeRoleARN.String())
