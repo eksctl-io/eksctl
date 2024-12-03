@@ -1,7 +1,7 @@
 # ARM Support
 
 EKS supports 64-bit ARM architecture with its [Graviton processors](https://aws.amazon.com/ec2/graviton/). To create a cluster,
-select one of the Graviton-based instance types (`a1`, `t4g`, `m6g`, `m7g`, `m6gd`, `c6g`, `c7g`, `c6gd`, `r6g`, `r7g`, `r6gd`) and run:
+select one of the Graviton-based instance types (`a1`, `t4g`, `m6g`, `m7g`, `m6gd`, `c6g`, `c7g`, `c6gd`, `r6g`, `r7g`, `r6gd`, `m8g`, `r8g`, `c8g`) and run:
 
 
 ```
