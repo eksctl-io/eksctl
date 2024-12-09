@@ -759,19 +759,6 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 		}
 	}
 
-	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
-		fieldNotSupported := func(field string) error {
-			return &unsupportedFieldError{
-				ng:    ng,
-				path:  path,
-				field: field,
-			}
-		}
-		if ng.OverrideBootstrapCommand != nil {
-			return fieldNotSupported("overrideBootstrapCommand")
-		}
-	}
-
 	if ng.CapacityReservation != nil {
 		if ng.CapacityReservation.CapacityReservationPreference != nil {
 			if ng.CapacityReservation.CapacityReservationTarget != nil {
@@ -1276,10 +1263,6 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		}
 	}
 
-	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 && ng.MaxPodsPerNode > 0 {
-		return fmt.Errorf("eksctl does not support configuring maxPodsPerNode EKS-managed nodes based on %s", NodeImageFamilyAmazonLinux2023)
-	}
-
 	if ng.AMIFamily == NodeImageFamilyBottlerocket {
 		fieldNotSupported := func(field string) error {
 			return &unsupportedFieldError{
@@ -1362,9 +1345,6 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		if ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023 {
 			return fmt.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 		}
-		if ng.OverrideBootstrapCommand != nil && ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
-			return fmt.Errorf("%[1]s.overrideBootstrapCommand is not supported when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
-		}
 		notSupportedWithCustomAMIErr := func(field string) error {
 			return fmt.Errorf("%s.%s is not supported when using a custom AMI (%s.ami)", path, field, path)
 		}
@@ -1378,7 +1358,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 			return notSupportedWithCustomAMIErr("releaseVersion")
 		}
 
-	case ng.OverrideBootstrapCommand != nil:
+	case ng.OverrideBootstrapCommand != nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023:
 		return fmt.Errorf("%s.overrideBootstrapCommand can only be set when a custom AMI (%s.ami) is specified", path, path)
 	}
 

@@ -102,7 +102,7 @@ set -ex
 	return script
 }
 
-func createMimeMessage(writer io.Writer, scripts, cloudboots []string, nodeConfig *nodeadm.NodeConfig, mimeBoundary string) error {
+func createMimeMessage(writer io.Writer, scripts, cloudboots []string, nodeConfigs []*nodeadm.NodeConfig, mimeBoundary string) error {
 	mw := multipart.NewWriter(writer)
 	if mimeBoundary != "" {
 		if err := mw.SetBoundary(mimeBoundary); err != nil {
@@ -139,8 +139,8 @@ func createMimeMessage(writer io.Writer, scripts, cloudboots []string, nodeConfi
 		}
 	}
 
-	if nodeConfig != nil {
-		yamlData, err := yaml.Marshal(nodeConfig)
+	for _, nc := range nodeConfigs {
+		yamlData, err := yaml.Marshal(nc)
 		if err != nil {
 			return fmt.Errorf("error marshalling node configuration: %w", err)
 		}

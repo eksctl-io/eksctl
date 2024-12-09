@@ -2178,33 +2178,6 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
-	Describe("AmazonLinux2023 node groups", func() {
-		It("returns an error when setting maxPodsPerNode for managed nodegroups", func() {
-			ng := api.NewManagedNodeGroup()
-			ng.AMIFamily = api.NodeImageFamilyAmazonLinux2023
-			ng.MaxPodsPerNode = 5
-			err := api.ValidateManagedNodeGroup(0, ng)
-			Expect(err).To(MatchError(ContainSubstring("eksctl does not support configuring maxPodsPerNode EKS-managed nodes")))
-		})
-		It("returns an error when setting overrideBootstrapCommand for self-managed nodegroups", func() {
-			cfg := api.NewClusterConfig()
-			ng := cfg.NewNodeGroup()
-			ng.Name = "node-group"
-			ng.AMI = "ami-1234"
-			ng.AMIFamily = api.NodeImageFamilyAmazonLinux2023
-			ng.OverrideBootstrapCommand = aws.String("echo 'rubarb'")
-			Expect(api.ValidateNodeGroup(0, ng, cfg)).To(MatchError(ContainSubstring(fmt.Sprintf("overrideBootstrapCommand is not supported for %s nodegroups", api.NodeImageFamilyAmazonLinux2023))))
-		})
-		It("returns an error when setting overrideBootstrapCommand for EKS-managed nodegroups", func() {
-			ng := api.NewManagedNodeGroup()
-			ng.Name = "node-group"
-			ng.AMI = "ami-1234"
-			ng.AMIFamily = api.NodeImageFamilyAmazonLinux2023
-			ng.OverrideBootstrapCommand = aws.String("echo 'rubarb'")
-			Expect(api.ValidateManagedNodeGroup(0, ng)).To(MatchError(ContainSubstring(fmt.Sprintf("overrideBootstrapCommand is not supported for %s nodegroups", api.NodeImageFamilyAmazonLinux2023))))
-		})
-	})
-
 	Describe("Windows node groups", func() {
 		It("returns an error with unsupported fields", func() {
 			doc := api.InlineDocument{

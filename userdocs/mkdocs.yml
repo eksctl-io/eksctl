@@ -162,6 +162,7 @@ nav:
       - usage/nodegroups.md
       - usage/nodegroup-unmanaged.md
       - usage/nodegroup-managed.md
+      - usage/node-bootstrapping.md
       - usage/launch-template-support.md
       - usage/nodegroup-with-custom-subnet.md
       - usage/nodegroup-customize-dns.md
