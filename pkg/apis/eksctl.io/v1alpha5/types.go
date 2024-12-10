@@ -411,6 +411,8 @@ const (
 	NodeVolumeTypeGP3 = "gp3"
 	// NodeVolumeTypeIO1 is Provisioned IOPS SSD
 	NodeVolumeTypeIO1 = "io1"
+	// NodeVolumeTypeIO2 is Provisioned IOPS SSD
+	NodeVolumeTypeIO2 = "io2"
 	// NodeVolumeTypeSC1 is Cold HDD
 	NodeVolumeTypeSC1 = "sc1"
 	// NodeVolumeTypeST1 is Throughput Optimized HDD
@@ -431,6 +433,8 @@ const (
 	DefaultNodeVolumeThroughput = 125
 	// DefaultNodeVolumeIO1IOPS defines the default throughput for io1 volumes, set to the min value
 	DefaultNodeVolumeIO1IOPS = 100
+	// DefaultNodeVolumeIO2IOPS defines the default throughput for io2 volumes, set to the min value
+	DefaultNodeVolumeIO2IOPS = 100
 	// DefaultNodeVolumeGP3IOPS defines the default throughput for gp3, set to the min value
 	DefaultNodeVolumeGP3IOPS = 3000
 )
@@ -605,6 +609,7 @@ func SupportedNodeVolumeTypes() []string {
 		NodeVolumeTypeGP2,
 		NodeVolumeTypeGP3,
 		NodeVolumeTypeIO1,
+		NodeVolumeTypeIO2,
 		NodeVolumeTypeSC1,
 		NodeVolumeTypeST1,
 	}
