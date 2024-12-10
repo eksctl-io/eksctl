@@ -30,11 +30,14 @@ type subnetCase struct {
 var _ = Describe("VPC Configuration", func() {
 	DescribeTable("Subnet import",
 		func(e subnetCase) {
-			err := ImportSubnet(e.subnets, e.localSubnetsConfig, &ec2types.Subnet{
+			ec2Subnet := ec2types.Subnet{
 				AvailabilityZone: aws.String(e.az),
 				SubnetId:         aws.String(e.subnetID),
-				CidrBlock:        aws.String(e.cidr),
-			}, func(subnet *ec2types.Subnet) string {
+			}
+			if len(e.cidr) > 0 {
+				ec2Subnet.CidrBlock = aws.String(e.cidr)
+			}
+			err := ImportSubnet(e.subnets, e.localSubnetsConfig, &ec2Subnet, func(subnet *ec2types.Subnet) string {
 				return *subnet.AvailabilityZone
 			})
 			if e.err != "" {
@@ -74,6 +77,22 @@ var _ = Describe("VPC Configuration", func() {
 					AZ:   "us-east-1a",
 					ID:   "subnet-1",
 					CIDR: ipnet.MustParseCIDR("192.168.0.0/16"),
+				},
+			}),
+		}),
+		Entry("Existing subnets w/o IPv4 CIDR", subnetCase{
+			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"us-east-1a": {},
+			}),
+			localSubnetsConfig: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"us-east-1a": {},
+			}),
+			az:       "us-east-1a",
+			subnetID: "subnet-1",
+			expected: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"us-east-1a": {
+					AZ: "us-east-1a",
+					ID: "subnet-1",
 				},
 			}),
 		}),

@@ -307,7 +307,8 @@ func validateLocalConfigAgainstRemote(localSubnetsConfig AZSubnetMapping, remote
 		if localSubnet.ID != "" && localSubnet.ID != remoteSubnet.ID {
 			return "", fmt.Errorf("subnet ID %q, found in config file, is not the same as subnet ID %q, found in remote VPC config", localSubnet.ID, remoteSubnet.ID)
 		}
-		if localSubnet.CIDR.String() != "" && localSubnet.CIDR.String() != remoteSubnet.CIDR.String() {
+		if localSubnet.CIDR.String() != "" && remoteSubnet.CIDR.String() != "" &&
+			localSubnet.CIDR.String() != remoteSubnet.CIDR.String() {
 			return "", fmt.Errorf("subnet CIDR %q, found in config file, is not the same as subnet CIDR %q, found in remote VPC config", localSubnet.CIDR.String(), remoteSubnet.CIDR.String())
 		}
 		return subnetAlias, nil
@@ -347,15 +348,17 @@ func validateLocalConfigAgainstRemote(localSubnetsConfig AZSubnetMapping, remote
 }
 
 func remoteSubnetToAZSubnetSpec(subnet *ec2types.Subnet) (AZSubnetSpec, error) {
-	subnetCIDR, err := ipnet.ParseCIDR(*subnet.CidrBlock)
-	if err != nil {
-		return AZSubnetSpec{}, fmt.Errorf("unexpected error parsing subnet CIDR %q: %w", *subnet.CidrBlock, err)
+	subnetSpec := AZSubnetSpec{
+		ID: *subnet.SubnetId,
+		AZ: *subnet.AvailabilityZone,
 	}
 
-	subnetSpec := AZSubnetSpec{
-		ID:   *subnet.SubnetId,
-		AZ:   *subnet.AvailabilityZone,
-		CIDR: subnetCIDR,
+	if subnet.CidrBlock != nil {
+		subnetCIDR, err := ipnet.ParseCIDR(*subnet.CidrBlock)
+		if err != nil {
+			return AZSubnetSpec{}, fmt.Errorf("unexpected error parsing subnet CIDR %q: %w", *subnet.CidrBlock, err)
+		}
+		subnetSpec.CIDR = subnetCIDR
 	}
 
 	if subnet.OutpostArn != nil {
