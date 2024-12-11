@@ -1,0 +1,32 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Valid CloudFormation template",
+    "Resources": {
+        "EcsClusterDefaultAutoScalingGroupASGC1A785DB": {
+            "Type": "AWS::AutoScaling::AutoScalingGroup",
+            "Properties": {
+                "MaxSize": "1",
+                "MinSize": "1",
+                "DesiredCapacity": "1",
+                "LaunchConfigurationName": {
+                    "Ref": "EcsClusterDefaultAutoScalingGroupLaunchConfigB7E376C1"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "PropagateAtLaunch": true,
+                        "Value": "aws-ecs-integ-ecs/EcsCluster/DefaultAutoScalingGroup"
+                    }
+                ],
+                "VPCZoneIdentifier": [
+                    {
+                        "Ref": "VpcPrivateSubnet1Subnet536B997A"
+                    },
+                    {
+                        "Ref": "VpcPrivateSubnet2Subnet3788AAA1"
+                    }
+                ]
+            }
+        }
+    }
+}

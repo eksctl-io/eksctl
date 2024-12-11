@@ -1,0 +1,142 @@
+package {{.PackageName}}
+
+{{if not .IsCustomProperty}}
+import (
+	"encoding/json"
+	"fmt"
+	"bytes"
+	{{if .Resource.HasValueProperty}}
+	"goformation/v4/cloudformation/types"{{end}}
+	{{if .HasTags}}
+	"goformation/v4/cloudformation/cloudformation"{{end}}
+	"goformation/v4/cloudformation/policies"
+)
+{{else}}
+import ({{if .Resource.HasValueProperty}}
+	"goformation/v4/cloudformation/types"{{end}}
+	{{if .HasTags}}
+	"goformation/v4/cloudformation/cloudformation"{{end}}
+	"goformation/v4/cloudformation/policies"
+)
+{{end}}
+
+// {{.StructName}} AWS CloudFormation Resource ({{.Name}})
+// See: {{.Resource.Documentation}}
+type {{.StructName}} struct {
+    {{range $name, $property := .Resource.Properties}}
+    {{$prop_name := $name}}
+    {{if (eq ($prop_name) ("DependsOn"))}}{{$prop_name = "DependsOnProp"}}{{end}}
+    // {{$name}} AWS CloudFormation Property
+    // Required: {{$property.Required}}
+    // See: {{$property.Documentation}}
+    {{$prop_name}} {{if (or ($property.IsPolymorphic) ($property.IsCustomType) )}}*{{end}}{{$property.GoType $.Name $.Basename $name $.PackageName}} `json:"{{$name}}{{if (not (and ($property.IsNumeric) ($property.Required)))}},omitempty{{end}}"`
+    {{end}}
+	{{if .HasUpdatePolicy }}// AWSCloudFormationUpdatePolicy represents a CloudFormation UpdatePolicy
+	AWSCloudFormationUpdatePolicy *policies.UpdatePolicy `json:"-"`{{ end }}
+
+	{{if .HasCreationPolicy }}// AWSCloudFormationCreationPolicy represents a CloudFormation CreationPolicy
+	AWSCloudFormationCreationPolicy *policies.CreationPolicy `json:"-"`
+	{{ end }}
+	// AWSCloudFormationDeletionPolicy represents a CloudFormation DeletionPolicy
+	AWSCloudFormationDeletionPolicy policies.DeletionPolicy `json:"-"`
+
+	// AWSCloudFormationUpdateReplacePolicy represents a CloudFormation UpdateReplacePolicy
+	AWSCloudFormationUpdateReplacePolicy policies.UpdateReplacePolicy `json:"-"`
+
+    // AWSCloudFormationDependsOn stores the logical ID of the resources to be created before this resource
+    AWSCloudFormationDependsOn []string `json:"-"`
+
+    // AWSCloudFormationMetadata stores structured data associated with this resource
+    AWSCloudFormationMetadata map[string]interface{} `json:"-"`
+
+    // AWSCloudFormationCondition stores the logical ID of the condition that must be satisfied for this resource to be created
+    AWSCloudFormationCondition string `json:"-"`
+
+}
+
+// AWSCloudFormationType returns the AWS CloudFormation resource type
+func (r *{{.StructName}}) AWSCloudFormationType() string {
+    return "{{.Name}}"
+}
+
+{{if not .IsCustomProperty}}
+// MarshalJSON is a custom JSON marshalling hook that embeds this object into
+// an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
+func (r {{.StructName}}) MarshalJSON() ([]byte, error) {
+	type Properties {{.StructName}}
+	return json.Marshal(&struct{
+		Type string
+		{{if .IsCustomProperty}}Properties{{else}}Properties Properties{{end}}
+		DependsOn []string `json:"DependsOn,omitempty"`
+		Metadata  map[string]interface{} `json:"Metadata,omitempty"`
+		DeletionPolicy policies.DeletionPolicy `json:"DeletionPolicy,omitempty"`
+		UpdateReplacePolicy policies.UpdateReplacePolicy `json:"UpdateReplacePolicy,omitempty"`
+		Condition string `json:"Condition,omitempty"`
+		{{if .HasUpdatePolicy}}UpdatePolicy *policies.UpdatePolicy `json:"UpdatePolicy,omitempty"`{{end}}
+		{{if .HasCreationPolicy}}CreationPolicy *policies.CreationPolicy `json:"CreationPolicy,omitempty"`{{end}}
+	}{
+		Type: r.AWSCloudFormationType(),
+		Properties: (Properties)(r),
+		DependsOn: r.AWSCloudFormationDependsOn,
+		Metadata: r.AWSCloudFormationMetadata,
+		DeletionPolicy: r.AWSCloudFormationDeletionPolicy,
+		UpdateReplacePolicy: r.AWSCloudFormationUpdateReplacePolicy,
+		Condition: r.AWSCloudFormationCondition,
+		{{if .HasUpdatePolicy}}UpdatePolicy: r.AWSCloudFormationUpdatePolicy,{{end}}
+		{{if .HasCreationPolicy}}CreationPolicy: r.AWSCloudFormationCreationPolicy,{{end}}
+	})
+}
+
+
+
+// UnmarshalJSON is a custom JSON unmarshalling hook that strips the outer
+// AWS CloudFormation resource object, and just keeps the 'Properties' field.
+func (r *{{.StructName}}) UnmarshalJSON(b []byte) error {
+	type Properties {{.StructName}}
+	res := &struct {
+		Type string
+		{{if .IsCustomProperty}}Properties{{else}}Properties *Properties{{end}}
+		DependsOn []string
+		Metadata map[string]interface{}
+		DeletionPolicy string
+		UpdateReplacePolicy string
+		Condition string
+		{{if .HasUpdatePolicy}}UpdatePolicy *policies.UpdatePolicy {{end}}
+		{{if .HasCreationPolicy}}CreationPolicy *policies.CreationPolicy{{end}}
+	}{}
+
+	dec := json.NewDecoder(bytes.NewReader(b))
+	dec.DisallowUnknownFields() // Force error if unknown field is found
+
+	if err := dec.Decode(&res); err != nil {
+		fmt.Printf("ERROR: %s\n", err)
+		return err
+	}
+
+	// If the resource has no Properties set, it could be nil
+	if res.Properties != nil {
+		*r = {{.StructName}}(*res.Properties)
+	}
+	if res.DependsOn != nil {
+		r.AWSCloudFormationDependsOn = res.DependsOn
+	}
+	if res.Metadata != nil {
+		r.AWSCloudFormationMetadata = res.Metadata
+	}
+	if res.DeletionPolicy != "" {
+		r.AWSCloudFormationDeletionPolicy = policies.DeletionPolicy(res.DeletionPolicy)
+	}
+	if res.UpdateReplacePolicy != "" {
+		r.AWSCloudFormationUpdateReplacePolicy = policies.UpdateReplacePolicy(res.UpdateReplacePolicy)
+	}
+	if res.Condition != "" {
+		r.AWSCloudFormationCondition = res.Condition
+	} {{if .HasUpdatePolicy }}
+		if res.UpdatePolicy != nil { r.AWSCloudFormationUpdatePolicy = res.UpdatePolicy }
+	{{end}} {{if .HasCreationPolicy}}
+		if res.CreationPolicy != nil { r.AWSCloudFormationCreationPolicy = res.CreationPolicy }
+	{{end}}
+	return nil
+}
+
+{{end}}

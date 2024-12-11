@@ -1,0 +1,94 @@
+"{{.Name}}": {
+
+{{if .Property.IsPolymorphic}}
+    "anyOf": [
+        {{if .Property.PrimitiveTypes}}
+            {
+                "type": [
+                    {{$length := len .Property.PrimitiveTypes}}{{$rc := counter $length}}{{range $index, $primitiveType := .Property.PrimitiveTypes}}
+                        "{{convertToJSONType $primitiveType}}"{{if call $rc}},{{end}}
+                    {{end}}
+                ]
+            }{{if (or .Property.PrimitiveItemTypes (or .Property.Types .Property.ItemTypes))}},{{end}}
+        {{end}}
+
+        {{if .Property.PrimitiveItemTypes}}
+            {{$length := len .Property.PrimitiveItemTypes}}{{$rc := counter $length}}{{range $index, $primitiveItemType := .Property.PrimitiveItemTypes}}
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "{{convertToJSONType $primitiveItemType}}"
+                    }
+                }{{if (or (call $rc) (or $.Property.Types $.Property.ItemTypes))}},{{end}}
+            {{end}}
+        {{end}}
+
+        {{if .Property.Types}}
+            {{$length := len .Property.Types}}{{$rc := counter $length}}{{range $index, $customType := .Property.Types}}
+                { "$ref": "#/definitions/{{$.Parent}}.{{$customType}}" }{{if (or (call $rc) $.Property.ItemTypes)}},{{end}}
+            {{end}}
+        {{end}}
+
+        {{if .Property.ItemTypes}}
+            {{$length := len .Property.ItemTypes}}{{$rc := counter $length}}{{range $index, $itemType := .Property.ItemTypes}}
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/{{$.Parent}}.{{$itemType}}"
+                    }
+                }{{if call $rc}},{{end}}
+            {{end}}
+        {{end}}
+    ]
+{{else}}
+
+    {{if .Property.IsCustomType}}
+        "$ref": "#/definitions/{{.Parent}}.{{.Property.Type}}"
+    {{end}}
+
+    {{if .Property.IsPrimitive}}
+        "type": "{{.Property.GetJSONPrimitiveType}}"
+    {{end}}
+
+    {{if .Property.IsMap}}
+        "type": "object",
+        {{if .Property.HasJSONPrimitiveType}}
+        "patternProperties": {
+            "^[a-zA-Z0-9]+$": {
+                "type": "{{.Property.GetJSONPrimitiveType}}"
+            }
+        },
+        "additionalProperties": true
+        {{else}}
+        "patternProperties": {
+            "^[a-zA-Z0-9]+$": {
+                {{ if eq .Property.ItemType "Tag" }}
+                    "$ref": "#/definitions/Tag"
+                {{else}}
+                    "$ref": "#/definitions/{{.Parent}}.{{.Property.ItemType}}"
+                {{end}}
+            }
+        },
+        "additionalProperties": false
+        {{end}}
+    {{end}}
+
+    {{if .Property.IsList}}
+        "type": "array",
+        {{if .Property.HasJSONPrimitiveType}}
+        "items": {
+            "type": "{{.Property.GetJSONPrimitiveType}}"
+        }
+        {{else}}
+        "items": {
+            {{ if eq .Property.ItemType "Tag" }}
+                "$ref": "#/definitions/Tag"
+             {{else}}
+                "$ref": "#/definitions/{{.Parent}}.{{.Property.ItemType}}"
+            {{end}}
+        }
+        {{end}}
+    {{end}}
+
+{{end}}
+}

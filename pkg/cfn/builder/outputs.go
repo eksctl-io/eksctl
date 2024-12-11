@@ -1,10 +1,11 @@
 package builder
 
 import (
+	gfnt "goformation/v4/cloudformation/types"
+
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 func (r *resourceSet) defineOutput(name string, value interface{}, export bool, fn outputs.Collector) {

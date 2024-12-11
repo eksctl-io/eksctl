@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: A template for testing AWS::Serverless::Api resources
+Resources:
+
+  ServerlessApiWithDefinitionUriAsString:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: test-name
+      StageName: test-stage-name
+      DefinitionUri: test-definition-uri
+      CacheClusterEnabled: true
+      CacheClusterSize: test-cache-cluster-size
+      Variables:
+        NAME: VALUE
+
+  ServerlessApiWithDefinitionUriAsS3Location:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: test-name
+      StageName: test-stage-name
+      DefinitionUri:
+        Bucket: test-bucket
+        Key: test-key
+        Version: 1
+      CacheClusterEnabled: true
+      CacheClusterSize: test-cache-cluster-size
+      Variables:
+        NAME: VALUE
+
+  ServerlessApiWithDefinitionBodyAsJSON:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: test-name
+      StageName: test-stage-name
+      DefinitionBody: |
+        {
+          "DefinitionKey": "test-definition-value"
+        }
+      CacheClusterEnabled: true
+      CacheClusterSize: test-cache-cluster-size
+      Variables:
+        NAME: VALUE
+
+  ServerlessApiWithDefinitionBodyAsYAML:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: test-name
+      StageName: test-stage-name
+      DefinitionBody:
+        DefinitionKey: test-definition-value
+      CacheClusterEnabled: true
+      CacheClusterSize: test-cache-cluster-size
+      Variables:
+        NAME: VALUE
+
+  ServerlessApiWithMethodSettingsAsYAML:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: test-name
+      StageName: test-stage-name
+      MethodSettings:
+      - LoggingLevel: ERROR
+        MetricsEnabled: true
+      CacheClusterEnabled: true
+      CacheClusterSize: test-cache-cluster-size
+      Variables:
+        NAME: VALUE
+
+  ServerlessApiWithAccessLogSettingAsYAML:
+    Type: AWS::Serverless::Api
+    Properties:
+      AccessLogSetting:
+        DestinationArn: "arn:test"
+        Format: "{customKey: $context.Key}"

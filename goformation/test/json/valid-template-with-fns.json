@@ -1,0 +1,36 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "Valid template with an intrinsic function",
+  "Resources" : {
+    "MyServerlessFunctionLogicalID": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "index.handler",
+        "Code": {
+          "S3Bucket": "testBucket",
+          "S3Key": "mySourceCode.zip"
+        },
+        "Role": {
+          "Fn::GetAtt": ["FunctionNameRole", "Arn"]
+        },
+        "Runtime": "nodejs10.x"
+      }
+    },
+    "FunctionNameRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Action": ["sts:AssumeRole"],
+            "Effect": "Allow",
+            "Principal": {
+              "Service": ["lambda.amazonaws.com"]
+            }
+          }]
+        }
+      }
+    }
+  }
+}

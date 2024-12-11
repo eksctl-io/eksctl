@@ -1,0 +1,118 @@
+package {{.PackageName}}
+
+import (
+	"sort"
+	"encoding/json"
+
+	{{if .Property.GoTypeIsValue}}
+	"goformation/v4/cloudformation/types"{{end}}
+	"goformation/v4/cloudformation/utils"
+)
+
+// {{.Name}} is a helper struct that can hold either a {{.TypesJoined}} value
+type {{.Name}} struct {
+	{{range $type := $.Property.PrimitiveTypes}}
+	{{$type}} *{{convertToGoType $type}}{{end}}
+
+	{{range $type := $.Property.PrimitiveItemTypes}}
+	{{$type}}Array *[]{{convertToGoType $type}}{{end}}
+
+	{{range $type := $.Property.Types}}
+	{{$type}} *{{$.Basename}}_{{$type}}{{end}}
+
+	{{range $type := $.Property.ItemTypes}}
+	{{$type}}Array *[]{{$.Basename}}_{{$type}}{{end}}
+}
+
+func (r {{.Name}}) value() interface{} {
+	ret := []interface{}{}
+
+	{{range $type := $.Property.PrimitiveTypes}}
+		if r.{{$type}} != nil {
+			ret = append(ret, r.{{$type}})
+		}
+	{{end}}
+
+	{{range $type := $.Property.PrimitiveItemTypes}}
+		if r.{{$type}}Array != nil {
+			ret = append(ret, r.{{$type}}Array)
+		}
+	{{end}}
+
+	{{ if (.Property.Types) }}
+		{{range $type := $.Property.Types}}
+			if r.{{$type}} != nil {
+				ret = append(ret, *r.{{$type}})
+			}
+		{{end}}
+	{{end}}
+
+	{{range $type := $.Property.ItemTypes}}
+		if r.{{$type}}Array != nil {
+			ret = append(ret, r.{{$type}}Array)
+		}
+	{{end}}
+
+	sort.Sort(utils.ByJSONLength(ret)) // Heuristic to select best attribute
+	if len(ret) > 0 {
+		return ret[0]
+	}
+
+	return nil
+}
+
+func (r {{.Name}}) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.value())
+}
+
+// Hook into the marshaller
+func (r *{{.Name}}) UnmarshalJSON(b []byte) error {
+
+	// Unmarshal into interface{} to check it's type
+	var typecheck interface{}
+	if err := json.Unmarshal(b, &typecheck); err != nil {
+		return err
+	}
+
+	switch val := typecheck.(type) {
+
+		{{range $type := $.Property.PrimitiveTypes}}
+			case {{convertToPureGoType $type}}:
+			v, err := types.NewValueFromPrimitive(val)
+			if err != nil {
+				return err
+			}
+			r.{{$type}} = &v
+		{{end}}
+
+		{{range $type := $.Property.PrimitiveItemTypes}}
+			case []{{convertToPureGoType $type}}:
+			var values []*types.Value
+			for _, vv := range val {
+			    vvv, err := types.NewValueFromPrimitive(vv)
+			    if err != nil {
+			        return err
+			    }
+			    values = append(values, vvv)
+			}
+			r.{{$type}}Array = &values
+		{{end}}
+
+		case map[string]interface{}:
+			val = val // This ensures val is used to stop an error
+		{{range $type := $.Property.Types}}
+			json.Unmarshal(b, &r.{{$type}})
+		{{end}}
+
+		case []interface{}:
+		{{range $type := $.Property.PrimitiveItemTypes}}
+			json.Unmarshal(b, &r.{{$type}}Array)
+		{{end}}
+		{{range $type := $.Property.ItemTypes}}
+			json.Unmarshal(b, &r.{{$type}}Array)
+		{{end}}
+
+	}
+
+	return nil
+}

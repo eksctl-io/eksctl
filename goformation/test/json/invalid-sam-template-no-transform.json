@@ -1,0 +1,14 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "Template has a Serverless resource, but no transform",
+  "Resources" : {
+    "MyServerlessFunctionLogicalID": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "index.handler",
+        "CodeUri": "s3://testBucket/mySourceCode.zip",
+        "Runtime": "nodejs4.3"
+      }
+    }
+  }
+}
