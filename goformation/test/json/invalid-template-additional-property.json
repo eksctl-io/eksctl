@@ -1,0 +1,26 @@
+{
+  "Hello" : "World",
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "Has invalid root property 'Hello'",
+  "Resources" : {
+    "MyRoute53HostedZone" : {
+      "Type" : "AWS::Route53::HostedZone",
+      "Properties" : {
+        "Name" :  "example.com"
+      }
+    },
+    "MySNSTopic" : {
+      "Type" : "AWS::SNS::Topic",
+      "Properties" : {
+        "DisplayName" : "test-sns-topic-display-name",
+        "Subscription" : [
+          {
+            "Endpoint" : "test-sns-topic-subscription-endpoint",
+            "Protocol" : "test-sns-topic-subscription-protocol"
+          }
+        ],
+        "TopicName" : "test-sns-topic-name"
+      }
+    }
+  }
+}

@@ -15,8 +15,8 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 
-	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+	gfnec2 "goformation/v4/cloudformation/ec2"
+	gfnt "goformation/v4/cloudformation/types"
 )
 
 // A VPCEndpointResourceSet holds the resources required for VPC endpoints.

@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SAM template for testing AWS::Serverless::Api.Cors with both string and Cors Configuration object
+Resources:
+
+  RestApiWithCorsConfiguration:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "${AWS::StackName}-rest-api"
+      StageName: Prod
+      TracingEnabled: false
+      EndpointConfiguration: EDGE
+      MethodSettings:
+        - DataTraceEnabled: false
+          HttpMethod: "*"
+          LoggingLevel: ERROR
+          MetricsEnabled: true
+          ResourcePath: /*
+      Cors:
+        AllowHeaders: "'Authorization,authorization'"
+        AllowOrigin: "'*'"
+
+  RestApiWithCorsString:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "${AWS::StackName}-rest-api"
+      StageName: Prod
+      TracingEnabled: false
+      EndpointConfiguration: EDGE
+      MethodSettings:
+        - DataTraceEnabled: false
+          HttpMethod: "*"
+          LoggingLevel: ERROR
+          MetricsEnabled: true
+          ResourcePath: /*
+      Cors: "'www.example.com'"
+
+    

@@ -6,6 +6,10 @@ import (
 	"fmt"
 	"testing"
 
+	"goformation/v4"
+	gfneks "goformation/v4/cloudformation/eks"
+	gfnt "goformation/v4/cloudformation/types"
+
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/stretchr/testify/require"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -15,9 +19,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
-	"github.com/weaveworks/goformation/v4"
-	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 func TestManagedPolicyResources(t *testing.T) {

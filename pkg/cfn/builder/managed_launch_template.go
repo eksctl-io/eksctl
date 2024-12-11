@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
-	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+	"goformation/v4/cloudformation/cloudformation"
+	gfnec2 "goformation/v4/cloudformation/ec2"
+	gfnt "goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )

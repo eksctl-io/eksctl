@@ -3,12 +3,13 @@ package builder
 import (
 	"fmt"
 
+	gfn "goformation/v4/cloudformation"
+	gfnevents "goformation/v4/cloudformation/events"
+	gfniam "goformation/v4/cloudformation/iam"
+	gfnsqs "goformation/v4/cloudformation/sqs"
+	gfnt "goformation/v4/cloudformation/types"
+
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	gfn "github.com/weaveworks/goformation/v4/cloudformation"
-	gfnevents "github.com/weaveworks/goformation/v4/cloudformation/events"
-	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
-	gfnsqs "github.com/weaveworks/goformation/v4/cloudformation/sqs"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"

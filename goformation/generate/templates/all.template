@@ -1,0 +1,40 @@
+package cloudformation
+
+import (
+	"fmt"{{range $resource := .Resources}}
+	"goformation/v4/cloudformation/{{$resource.PackageName}}"{{end}}
+)
+
+// AllResources fetches an iterable map all CloudFormation and SAM resources
+func AllResources() map[string]Resource {
+    return map[string]Resource{ {{range $resource := .Resources}}
+        "{{$resource.Name}}": &{{$resource.PackageName}}.{{$resource.StructName}}{},{{end}}
+    }
+}
+
+{{range $resource := .Resources}}
+// GetAll{{$resource.BaseName}}{{$resource.StructName}}Resources retrieves all {{$resource.PackageName}}.{{$resource.StructName}} items from an AWS CloudFormation template
+func (t *Template) GetAll{{$resource.BaseName}}{{$resource.StructName}}Resources () map[string]*{{$resource.PackageName}}.{{$resource.StructName}} {
+    results := map[string]*{{$resource.PackageName}}.{{$resource.StructName}}{}
+	for name, untyped := range t.Resources {
+		switch resource := untyped.(type) {
+		case *{{$resource.PackageName}}.{{$resource.StructName}}:
+			results[name] = resource
+		}
+	}
+	return results
+}
+
+// Get{{$resource.BaseName}}{{$resource.StructName}}WithName retrieves all {{$resource.PackageName}}.{{$resource.StructName}} items from an AWS CloudFormation template
+// whose logical ID matches the provided name. Returns an error if not found.
+func (t *Template) Get{{$resource.BaseName}}{{$resource.StructName}}WithName (name string) (*{{$resource.PackageName}}.{{$resource.StructName}}, error) {
+	if untyped, ok := t.Resources[name]; ok {
+		switch resource := untyped.(type) {
+		case *{{$resource.PackageName}}.{{$resource.StructName}}:
+			return resource, nil
+		}
+	}
+    return nil, fmt.Errorf("resource %q of type {{$resource.PackageName}}.{{$resource.StructName}} not found", name)
+}
+
+{{end}}

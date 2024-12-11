@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"goformation/v4"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
-	"github.com/weaveworks/goformation/v4"
 )
 
 // GetStackTemplate gets the Cloudformation template for a stack

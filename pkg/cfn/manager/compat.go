@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	gfnt "goformation/v4/cloudformation/types"
+
 	"github.com/kris-nova/logger"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"

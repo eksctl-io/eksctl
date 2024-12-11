@@ -1,0 +1,12 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "Has non-alphanumeric resource name",
+  "Resources" : {
+    "My_Route_53_Hosted_Zone" : {
+      "Type" : "AWS::Route53::HostedZone",
+      "Properties" : {
+        "Name" :  "example.com"
+      }
+    }
+  }
+}
