@@ -177,6 +177,7 @@ nav:
       - usage/windows-worker-nodes.md
       - usage/nodegroup-additional-volume-mappings.md
       - usage/hybrid-nodes.md
+      - usage/nodegroup-node-repair-config.md
     - usage/eksctl-karpenter.md
     - usage/eksctl-anywhere.md
     - GitOps:
