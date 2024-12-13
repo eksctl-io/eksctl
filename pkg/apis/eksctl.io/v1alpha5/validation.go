@@ -616,8 +616,13 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 	switch strings.ToLower(c.KubernetesNetworkConfig.IPFamily) {
 	case strings.ToLower(IPV4Family), "":
 	case strings.ToLower(IPV6Family):
-		if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
-			return fmt.Errorf("the default core addons must be defined for IPv6; missing addon(s): %s", strings.Join(missing, ", "))
+		if !c.IsAutoModeEnabled() {
+			if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
+				return fmt.Errorf("the default core addons must be defined for IPv6; missing addon(s): %s; either define them or use EKS Auto Mode", strings.Join(missing, ", "))
+			}
+			if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
+				return fmt.Errorf("oidc needs to be enabled if IPv6 is set; either set it or use EKS Auto Mode")
+			}
 		}
 
 		unsupportedVersion, err := c.unsupportedVPCCNIAddonVersion()
@@ -627,10 +632,6 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 
 		if unsupportedVersion {
 			return fmt.Errorf("%s version must be at least version %s for IPv6", VPCCNIAddon, minimumVPCCNIVersionForIPv6)
-		}
-
-		if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
-			return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
 		}
 
 		if version, err := utils.CompareVersions(c.Metadata.Version, Version1_21); err != nil {

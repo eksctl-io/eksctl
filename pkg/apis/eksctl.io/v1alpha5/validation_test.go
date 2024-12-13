@@ -1159,6 +1159,20 @@ var _ = Describe("ClusterConfig validation", func() {
 					})
 				})
 
+				When("ipFamily is set to IPv6, no managed addons are provided, but auto-mode is used", func() {
+					It("accepts the setting", func() {
+						cfg.VPC.NAT = nil
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.AutoModeConfig = &api.AutoModeConfig{
+							Enabled: aws.Bool(true),
+						}
+						err = api.ValidateClusterConfig(cfg)
+						Expect(err).To(BeNil())
+					})
+				})
+
 				When("the vpc-cni version is configured", func() {
 					When("the version of the vpc-cni is too low", func() {
 						It("returns an error", func() {
@@ -1255,6 +1269,22 @@ var _ = Describe("ClusterConfig validation", func() {
 						)
 						err = api.ValidateClusterConfig(cfg)
 						Expect(err).To(MatchError(ContainSubstring("oidc needs to be enabled if IPv6 is set")))
+					})
+				})
+
+				When("iam is not set, but auto-mode is used", func() {
+					It("accepts the setting", func() {
+						cfg.VPC.NAT = nil
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon},
+						)
+						cfg.AutoModeConfig = &api.AutoModeConfig{
+							Enabled: aws.Bool(true),
+						}
+						err = api.ValidateClusterConfig(cfg)
+						Expect(err).To(BeNil())
 					})
 				})
 
