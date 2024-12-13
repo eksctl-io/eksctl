@@ -117,6 +117,14 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 		managedResource.UpdateConfig = updateConfig
 	}
 
+	if m.nodeGroup.NodeRepairConfig != nil {
+		nodeRepairConfig := &gfneks.Nodegroup_NodeRepairConfig{}
+		if m.nodeGroup.NodeRepairConfig.Enabled != nil {
+			nodeRepairConfig.Enabled = gfnt.NewBoolean(*m.nodeGroup.NodeRepairConfig.Enabled)
+		}
+		managedResource.NodeRepairConfig = nodeRepairConfig
+	}
+
 	if m.nodeGroup.Spot {
 		// TODO use constant from SDK
 		managedResource.CapacityType = gfnt.NewString("SPOT")

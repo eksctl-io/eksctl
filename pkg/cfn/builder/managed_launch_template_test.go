@@ -266,6 +266,19 @@ API_SERVER_URL=https://test.com
 			resourcesFilename: "spot.json",
 		}),
 
+		Entry("With node repair enabled", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "node-repair-enabled",
+					InstanceType: "m5.xlarge",
+				},
+				NodeRepairConfig: &api.NodeGroupNodeRepairConfig{
+					Enabled: aws.Bool(true),
+				},
+			},
+			resourcesFilename: "node-repair-enabled.json",
+		}),
+
 		Entry("Without instance type set in the launch template", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{

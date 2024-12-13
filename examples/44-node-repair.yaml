@@ -1,0 +1,13 @@
+# An example ClusterConfig that uses a managed node group with auto repair.
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-44
+  region: us-west-2
+
+managedNodeGroups:
+- name: ng-1
+  nodeRepairConfig:
+    enabled: true

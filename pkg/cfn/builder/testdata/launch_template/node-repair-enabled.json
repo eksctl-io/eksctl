@@ -1,0 +1,176 @@
+{
+    "LaunchTemplate": {
+        "Type": "AWS::EC2::LaunchTemplate",
+        "Properties": {
+            "LaunchTemplateData": {
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/xvda",
+                        "Ebs": {
+                            "Iops": 3000,
+                            "Throughput": 125,
+                            "VolumeSize": 80,
+                            "VolumeType": "gp3"
+                        }
+                    }
+                ],
+                "MetadataOptions": {
+                    "HttpPutResponseHopLimit": 2,
+                    "HttpTokens": "required"
+                },
+                "SecurityGroupIds": [
+                    {
+                        "Fn::ImportValue": "eksctl-lt::ClusterSecurityGroupId"
+                    }
+                ],
+                "TagSpecifications": [
+                    {
+                        "ResourceType": "instance",
+                        "Tags": [
+                            {
+                                "Key": "Name",
+                                "Value": "lt-node-repair-enabled-Node"
+                            },
+                            {
+                                "Key": "alpha.eksctl.io/nodegroup-name",
+                                "Value": "node-repair-enabled"
+                            },
+                            {
+                                "Key": "alpha.eksctl.io/nodegroup-type",
+                                "Value": "managed"
+                            }
+                        ]
+                    },
+                    {
+                        "ResourceType": "volume",
+                        "Tags": [
+                        {
+                            "Key": "Name",
+                            "Value": "lt-node-repair-enabled-Node"
+                        },
+                        {
+                            "Key": "alpha.eksctl.io/nodegroup-name",
+                            "Value": "node-repair-enabled"
+                        },
+                        {
+                            "Key": "alpha.eksctl.io/nodegroup-type",
+                            "Value": "managed"
+                        }
+                        ]
+                    },
+                    {
+                        "ResourceType": "network-interface",
+                        "Tags": [
+                        {
+                            "Key": "Name",
+                            "Value": "lt-node-repair-enabled-Node"
+                        },
+                        {
+                            "Key": "alpha.eksctl.io/nodegroup-name",
+                            "Value": "node-repair-enabled"
+                        },
+                        {
+                            "Key": "alpha.eksctl.io/nodegroup-type",
+                            "Value": "managed"
+                        }
+                        ]
+                    }
+                ]
+            },
+            "LaunchTemplateName": {
+                "Fn::Sub": "${AWS::StackName}"
+            }
+        }
+    },
+    "ManagedNodeGroup": {
+        "Type": "AWS::EKS::Nodegroup",
+        "Properties": {
+            "AmiType": "AL2023_x86_64_STANDARD",
+            "ClusterName": "lt",
+            "Labels": {
+                "alpha.eksctl.io/cluster-name": "lt",
+                "alpha.eksctl.io/nodegroup-name": "node-repair-enabled"
+            },
+            "InstanceTypes": ["m5.xlarge"],
+            "NodeRole": {
+                "Fn::GetAtt": [
+                    "NodeInstanceRole",
+                    "Arn"
+                ]
+            },
+            "NodegroupName": "node-repair-enabled",
+            "ScalingConfig": {
+                "DesiredSize": 2,
+                "MaxSize": 2,
+                "MinSize": 2
+            },
+            "Subnets": [
+                "subnet-public-us-west-2a"
+            ],
+            "Tags": {
+                "alpha.eksctl.io/nodegroup-name": "node-repair-enabled",
+                "alpha.eksctl.io/nodegroup-type": "managed"
+            },
+            "LaunchTemplate": {
+                "Id": {
+                    "Ref": "LaunchTemplate"
+                }
+            },
+            "NodeRepairConfig": {
+                "Enabled": true
+            }
+        }
+    },
+    "NodeInstanceRole": {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+            "AssumeRolePolicyDocument": {
+                "Statement": [
+                    {
+                        "Action": [
+                            "sts:AssumeRole"
+                        ],
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": [
+                                {
+                                    "Fn::FindInMap": [
+                                        "ServicePrincipalPartitionMap",
+                                        {
+                                            "Ref": "AWS::Partition"
+                                        },
+                                        "EC2"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "Version": "2012-10-17"
+            },
+            "ManagedPolicyArns": [
+                {
+                    "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+                },
+                {
+                    "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+                },
+                {
+                    "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEKS_CNI_Policy"
+                },
+                {
+                    "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
+                }
+            ],
+            "Path": "/",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": {
+                        "Fn::Sub": "${AWS::StackName}/NodeInstanceRole"
+                    }
+                }
+            ]
+        }
+    }
+}
