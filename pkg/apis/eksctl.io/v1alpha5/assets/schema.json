@@ -1469,6 +1469,11 @@
         "name": {
           "type": "string"
         },
+        "nodeRepairConfig": {
+          "$ref": "#/definitions/NodeGroupNodeRepairConfig",
+          "description": "configures the auto repair feature of the nodegroup",
+          "x-intellij-html-description": "configures the auto repair feature of the nodegroup"
+        },
         "outpostARN": {
           "type": "string",
           "description": "specifies the Outpost ARN in which the nodegroup should be created.",
@@ -1633,7 +1638,8 @@
         "taints",
         "updateConfig",
         "launchTemplate",
-        "releaseVersion"
+        "releaseVersion",
+        "nodeRepairConfig"
       ],
       "additionalProperties": false,
       "description": "represents an EKS-managed nodegroup",
@@ -2204,6 +2210,21 @@
       "additionalProperties": false,
       "description": "holds the configuration for [spot instances](/usage/spot-instances/)",
       "x-intellij-html-description": "holds the configuration for <a href=\"/usage/spot-instances/\">spot instances</a>"
+    },
+    "NodeGroupNodeRepairConfig": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enables the auto repair feature for the nodegroup",
+          "x-intellij-html-description": "Enables the auto repair feature for the nodegroup"
+        }
+      },
+      "preferredOrder": [
+        "enabled"
+      ],
+      "additionalProperties": false,
+      "description": "contains the auto repair configuration for the nodegroup",
+      "x-intellij-html-description": "contains the auto repair configuration for the nodegroup"
     },
     "NodeGroupSGs": {
       "properties": {

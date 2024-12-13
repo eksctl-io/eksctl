@@ -1596,6 +1596,13 @@ type (
 		// +optional
 		MaxUnavailablePercentage *int `json:"maxUnavailablePercentage,omitempty"`
 	}
+
+	// NodeGroupNodeRepairConfig contains the auto repair configuration for the nodegroup
+	NodeGroupNodeRepairConfig struct {
+		// Enables the auto repair feature for the nodegroup
+		// +optional
+		Enabled *bool `json:"enabled,omitempty"`
+	}
 )
 
 // MetricsCollection used by the scaling config,
@@ -1882,6 +1889,10 @@ type ManagedNodeGroup struct {
 
 	// ReleaseVersion the AMI version of the EKS optimized AMI to use
 	ReleaseVersion string `json:"releaseVersion"`
+
+	// NodeRepairConfig configures the auto repair feature of the nodegroup
+	// +optional
+	NodeRepairConfig *NodeGroupNodeRepairConfig `json:"nodeRepairConfig,omitempty"`
 
 	// Internal fields
 

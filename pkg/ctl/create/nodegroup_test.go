@@ -85,6 +85,10 @@ var _ = Describe("create nodegroup", func() {
 				args:  []string{"--cluster", "foo", "--spot"},
 				error: "--spot is only valid with managed nodegroups (--managed)",
 			}),
+			Entry("with enable-node-repair flag", invalidParamsCase{
+				args:  []string{"--cluster", "foo", "--enable-node-repair"},
+				error: "--enable-node-repair is only valid with managed nodegroups (--managed)",
+			}),
 			Entry("with instance-types flag", invalidParamsCase{
 				args:  []string{"--cluster", "foo", "--instance-types", "some-type"},
 				error: "--instance-types is only valid with managed nodegroups (--managed)",

@@ -14,8 +14,8 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 
-	"github.com/weaveworks/goformation/v4"
-	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
+	"goformation/v4"
+	gfneks "goformation/v4/cloudformation/eks"
 )
 
 type amiTypeEntry struct {

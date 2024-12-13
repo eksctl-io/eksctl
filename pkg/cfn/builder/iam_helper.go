@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	gfn "goformation/v4/cloudformation"
+	gfniam "goformation/v4/cloudformation/iam"
+	gfnt "goformation/v4/cloudformation/types"
+
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
-	gfn "github.com/weaveworks/goformation/v4/cloudformation"
-	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 

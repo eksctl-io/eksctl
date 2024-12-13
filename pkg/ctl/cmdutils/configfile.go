@@ -71,6 +71,7 @@ var (
 	commonNGFlagsIncompatibleWithConfigFile = []string{
 		"managed",
 		"spot",
+		"enable-node-repair",
 		"instance-types",
 		"nodes",
 		"nodes-min",
@@ -605,11 +606,17 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup, options CreateManagedNGOptio
 			AttachIDs: ngBase.SecurityGroups.AttachIDs,
 		}
 	}
-	return &api.ManagedNodeGroup{
+	mng := &api.ManagedNodeGroup{
 		NodeGroupBase: &ngBase,
 		Spot:          options.Spot,
 		InstanceTypes: options.InstanceTypes,
 	}
+	if options.NodeRepairEnabled {
+		mng.NodeRepairConfig = &api.NodeGroupNodeRepairConfig{
+			Enabled: &options.NodeRepairEnabled,
+		}
+	}
+	return mng
 }
 
 func validateUnsupportedCLIFeatures(ng *api.ManagedNodeGroup) error {
@@ -620,7 +627,7 @@ func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
 	if managed {
 		return nil
 	}
-	flagsValidOnlyWithMNG := []string{"spot", "instance-types"}
+	flagsValidOnlyWithMNG := []string{"spot", "enable-node-repair", "instance-types"}
 	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithMNG); found {
 		return errors.Errorf("--%s is only valid with managed nodegroups (--managed)", flagName)
 	}

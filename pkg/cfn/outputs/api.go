@@ -3,9 +3,10 @@ package outputs
 import (
 	"fmt"
 
+	gfn "goformation/v4/cloudformation"
+	gfnt "goformation/v4/cloudformation/types"
+
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	gfn "github.com/weaveworks/goformation/v4/cloudformation"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )

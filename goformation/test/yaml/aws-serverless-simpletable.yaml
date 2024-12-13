@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: A template for testing AWS::Serverless::SimpleTable resources
+Resources:
+  TestSimpleTable:
+    Type: AWS::Serverless::SimpleTable
+    DeletionPolicy: Retain
+    Properties:
+      PrimaryKey:
+        Name: test-primary-key-name
+        Type: test-primary-key-type
+      ProvisionedThroughput:
+        ReadCapacityUnits: 100
+        WriteCapacityUnits: 200
+  TestSimpleTableNoProperties:
+    Type: AWS::Serverless::SimpleTable

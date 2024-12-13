@@ -1,8 +1,9 @@
 package template
 
 import (
+	gfn "goformation/v4/cloudformation/types"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	gfn "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 // AttachPolicy attaches the specified policy document

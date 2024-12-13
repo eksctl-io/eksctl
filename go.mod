@@ -16,7 +16,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.11
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.51.1
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.56.1
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.46.2
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.46.3
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.45.0
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.36.3
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.166.0
@@ -68,9 +68,9 @@ require (
 	github.com/tj/assert v0.0.3
 	github.com/vburenin/ifacemaker v1.2.1
 	github.com/vektra/mockery/v2 v2.38.0
-	github.com/weaveworks/goformation/v4 v4.10.2-0.20241201182214-a53d427b2c56
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xgfone/netaddr v0.5.1
+	goformation/v4 v4.0.0
 	golang.org/x/crypto v0.22.0
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
 	golang.org/x/oauth2 v0.18.0
@@ -465,3 +465,6 @@ replace (
 
 // Ensure k8s dependencies are also pinned accordingly
 replace github.com/acomagu/bufpipe => github.com/acomagu/bufpipe v1.0.4
+
+// Use a local fork of goformation
+replace goformation/v4 => ./goformation

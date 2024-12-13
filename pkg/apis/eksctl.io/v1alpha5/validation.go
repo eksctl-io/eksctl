@@ -616,8 +616,13 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 	switch strings.ToLower(c.KubernetesNetworkConfig.IPFamily) {
 	case strings.ToLower(IPV4Family), "":
 	case strings.ToLower(IPV6Family):
-		if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
-			return fmt.Errorf("the default core addons must be defined for IPv6; missing addon(s): %s", strings.Join(missing, ", "))
+		if !c.IsAutoModeEnabled() {
+			if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
+				return fmt.Errorf("the default core addons must be defined for IPv6; missing addon(s): %s; either define them or use EKS Auto Mode", strings.Join(missing, ", "))
+			}
+			if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
+				return fmt.Errorf("oidc needs to be enabled if IPv6 is set; either set it or use EKS Auto Mode")
+			}
 		}
 
 		unsupportedVersion, err := c.unsupportedVPCCNIAddonVersion()
@@ -627,10 +632,6 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 
 		if unsupportedVersion {
 			return fmt.Errorf("%s version must be at least version %s for IPv6", VPCCNIAddon, minimumVPCCNIVersionForIPv6)
-		}
-
-		if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
-			return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
 		}
 
 		if version, err := utils.CompareVersions(c.Metadata.Version, Version1_21); err != nil {
@@ -756,19 +757,6 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 		// Only AL2 and AL2023 support Trainium hosts.
 		if instanceutils.IsTrainiumInstanceType(instanceType) {
 			return ErrUnsupportedInstanceTypes("Trainium", ng.AMIFamily, fmt.Sprintf("please use %s instead", NodeImageFamilyAmazonLinux2))
-		}
-	}
-
-	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
-		fieldNotSupported := func(field string) error {
-			return &unsupportedFieldError{
-				ng:    ng,
-				path:  path,
-				field: field,
-			}
-		}
-		if ng.OverrideBootstrapCommand != nil {
-			return fieldNotSupported("overrideBootstrapCommand")
 		}
 	}
 
@@ -1276,10 +1264,6 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		}
 	}
 
-	if ng.AMIFamily == NodeImageFamilyAmazonLinux2023 && ng.MaxPodsPerNode > 0 {
-		return fmt.Errorf("eksctl does not support configuring maxPodsPerNode EKS-managed nodes based on %s", NodeImageFamilyAmazonLinux2023)
-	}
-
 	if ng.AMIFamily == NodeImageFamilyBottlerocket {
 		fieldNotSupported := func(field string) error {
 			return &unsupportedFieldError{
@@ -1362,9 +1346,6 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		if ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023 {
 			return fmt.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 		}
-		if ng.OverrideBootstrapCommand != nil && ng.AMIFamily == NodeImageFamilyAmazonLinux2023 {
-			return fmt.Errorf("%[1]s.overrideBootstrapCommand is not supported when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
-		}
 		notSupportedWithCustomAMIErr := func(field string) error {
 			return fmt.Errorf("%s.%s is not supported when using a custom AMI (%s.ami)", path, field, path)
 		}
@@ -1378,7 +1359,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 			return notSupportedWithCustomAMIErr("releaseVersion")
 		}
 
-	case ng.OverrideBootstrapCommand != nil:
+	case ng.OverrideBootstrapCommand != nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023:
 		return fmt.Errorf("%s.overrideBootstrapCommand can only be set when a custom AMI (%s.ami) is specified", path, path)
 	}
 

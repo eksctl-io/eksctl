@@ -1,0 +1,8 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Custom Resource Test"
+Resources:
+  MyCustomResource:
+    Type: Custom::MyResource
+    Properties:
+      ServiceToken: lambda.arn
+      CustomProperty: property_value

@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 
+	gfnec2 "goformation/v4/cloudformation/ec2"
+	gfneks "goformation/v4/cloudformation/eks"
+	gfnt "goformation/v4/cloudformation/types"
+
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
-	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 	corev1 "k8s.io/api/core/v1"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -114,6 +115,14 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 			updateConfig.MaxUnavailablePercentage = gfnt.NewInteger(*m.nodeGroup.UpdateConfig.MaxUnavailablePercentage)
 		}
 		managedResource.UpdateConfig = updateConfig
+	}
+
+	if m.nodeGroup.NodeRepairConfig != nil {
+		nodeRepairConfig := &gfneks.Nodegroup_NodeRepairConfig{}
+		if m.nodeGroup.NodeRepairConfig.Enabled != nil {
+			nodeRepairConfig.Enabled = gfnt.NewBoolean(*m.nodeGroup.NodeRepairConfig.Enabled)
+		}
+		managedResource.NodeRepairConfig = nodeRepairConfig
 	}
 
 	if m.nodeGroup.Spot {

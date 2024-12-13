@@ -1,0 +1,20 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "Has wrong type for AWS::SNS::Topic.Subscription",
+  "Resources" : {
+    "MyRoute53HostedZone" : {
+      "Type" : "AWS::Route53::HostedZone",
+      "Properties" : {
+        "Name" :  "example.com"
+      }
+    },
+    "MySNSTopic" : {
+      "Type" : "AWS::SNS::Topic",
+      "Properties" : {
+        "DisplayName" : "test-sns-topic-display-name",
+        "Subscription" : "HelloWorld",
+        "TopicName" : "test-sns-topic-name"
+      }
+    }
+  }
+}
