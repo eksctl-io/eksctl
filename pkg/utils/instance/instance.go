@@ -14,6 +14,8 @@ func IsARMInstanceType(instanceType string) bool {
 		strings.HasPrefix(instanceType, "m6g") ||
 		strings.HasPrefix(instanceType, "m7g") ||
 		strings.HasPrefix(instanceType, "m8g") ||
+		strings.HasPrefix(instanceType, "r8g") ||
+		strings.HasPrefix(instanceType, "c8g") ||
 		strings.HasPrefix(instanceType, "c6g") ||
 		strings.HasPrefix(instanceType, "c7g") ||
 		strings.HasPrefix(instanceType, "r6g") ||
