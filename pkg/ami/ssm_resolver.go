@@ -88,6 +88,16 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 		return fmt.Sprint("/aws/service/canonical/ubuntu/", eksProduct, "/", ubuntuReleaseName(imageFamily), "/", version, "/stable/current/", ubuntuArchName(instanceType), "/hvm/ebs-gp2/ami-id"), nil
 	default:
 		return "", fmt.Errorf("unknown image family %s", imageFamily)
+	case api.NodeImageFamilyUbuntu2404,
+		api.NodeImageFamilyUbuntuPro2404:
+		if err := validateVersionForUbuntu(version, imageFamily); err != nil {
+			return "", err
+		}
+		eksProduct := "eks"
+		if imageFamily == api.NodeImageFamilyUbuntuPro2404 {
+			eksProduct = "eks-pro"
+		}
+		return fmt.Sprint("/aws/service/canonical/ubuntu/", eksProduct, "/", ubuntuReleaseName(imageFamily), "/", version, "/stable/current/", ubuntuArchName(instanceType), "/hvm/ebs-gp3/ami-id"), nil
 	}
 }
 
@@ -177,6 +187,8 @@ func ubuntuReleaseName(imageFamily string) string {
 		return "20.04"
 	case api.NodeImageFamilyUbuntu2204, api.NodeImageFamilyUbuntuPro2204:
 		return "22.04"
+	case api.NodeImageFamilyUbuntu2404, api.NodeImageFamilyUbuntuPro2404:
+		return "24.04"
 	default:
 		return "18.04"
 	}
@@ -207,6 +219,17 @@ func validateVersionForUbuntu(version, imageFamily string) error {
 		var err error
 		supportsUbuntu := false
 		const minVersion = api.Version1_29
+		supportsUbuntu, err = utils.IsMinVersion(minVersion, version)
+		if err != nil {
+			return err
+		}
+		if !supportsUbuntu {
+			return &UnsupportedQueryError{msg: fmt.Sprintf("%s requires EKS version greater or equal than %s", imageFamily, minVersion)}
+		}
+	case api.NodeImageFamilyUbuntu2404, api.NodeImageFamilyUbuntuPro2404:
+		var err error
+		supportsUbuntu := false
+		const minVersion = api.Version1_31
 		supportsUbuntu, err = utils.IsMinVersion(minVersion, version)
 		if err != nil {
 			return err
