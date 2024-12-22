@@ -9,14 +9,17 @@ const (
 	PartitionUSGov = "aws-us-gov"
 	PartitionISO   = "aws-iso"
 	PartitionISOB  = "aws-iso-b"
+	PartitionISOF  = "aws-iso-f"
+	PartitionISOE  = "aws-iso-e"
 )
 
 // partition is an AWS partition.
 type partition struct {
-	name                        string
-	serviceMappings             map[string]string
-	regions                     []string
-	endpointServiceDomainPrefix string
+	name                           string
+	serviceMappings                map[string]string
+	regions                        []string
+	endpointServiceDomainPrefix    string
+	endpointServiceDomainPrefixAlt string
 }
 
 type partitions []partition
@@ -76,6 +79,28 @@ var Partitions = partitions{
 		regions:                     []string{RegionUSISOBEast1},
 		endpointServiceDomainPrefix: "gov.sgov.sc2s",
 	},
+	{
+		name: PartitionISOE,
+		serviceMappings: map[string]string{
+			"EC2":            "ec2.amazonaws.com",
+			"EKS":            "eks.amazonaws.com",
+			"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
+		},
+		regions:                        []string{RegionEUISOEWest1},
+		endpointServiceDomainPrefix:    standardPartitionServiceDomainPrefix,
+		endpointServiceDomainPrefixAlt: "uk.adc-e.cloud",
+	},
+	{
+		name: PartitionISOF,
+		serviceMappings: map[string]string{
+			"EC2":            "ec2.amazonaws.com",
+			"EKS":            "eks.amazonaws.com",
+			"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
+		},
+		regions:                        []string{RegionUSISOFSouth1, RegionUSISOFEast1},
+		endpointServiceDomainPrefix:    standardPartitionServiceDomainPrefix,
+		endpointServiceDomainPrefixAlt: "gov.ic.hci.csp",
+	},
 }
 
 // ForRegion returns the partition a region belongs to.
@@ -104,6 +129,17 @@ func (p partitions) GetEndpointServiceDomainPrefix(endpointService EndpointServi
 				case PartitionISO, PartitionISOB:
 					if endpointService.RequiresISOPrefix {
 						return pt.endpointServiceDomainPrefix
+					}
+					return standardPartitionServiceDomainPrefix
+				case PartitionISOE, PartitionISOF:
+					if endpointService.RequiresISOPrefix {
+						//in these partitions four endpoints have an alternate domain prefix
+						switch endpointService.Name {
+						case "ebs", "ecr.api", "ecr.dkr", "execute-api":
+							return pt.endpointServiceDomainPrefixAlt
+						default:
+							return pt.endpointServiceDomainPrefix
+						}
 					}
 					return standardPartitionServiceDomainPrefix
 				default:
