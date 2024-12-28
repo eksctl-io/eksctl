@@ -1,0 +1,54 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "Valid CloudFormation template",
+  "Resources" : {
+    "MyRoute53HostedZone" : {
+      "Type" : "AWS::Route53::HostedZone",
+      "Properties" : {
+        "Name" :  "example.com"
+      },
+      "DependsOn" : "MySNSTopic",
+      "DeletionPolicy" : "Retain"
+    },
+    "MySNSTopic" : {
+      "Type" : "AWS::SNS::Topic",
+      "Properties" : {
+        "DisplayName" : "test-sns-topic-display-name",
+        "Subscription" : [
+          {
+            "Endpoint" : "test-sns-topic-subscription-endpoint",
+            "Protocol" : "test-sns-topic-subscription-protocol"
+          }
+        ],
+        "TopicName" : "test-sns-topic-name"
+      }
+    },
+    "MyAutoScalingGroup": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "DependsOn": ["MySNSTopic", "MyRoute53HostedZone"],
+      "Properties": {
+        "LaunchConfigurationName": "MyLaunchConfig",
+        "DesiredCapacity": "3",
+        "MinSize": "1",
+        "MaxSize": "4"
+      },
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": "3",
+          "Timeout": "PT15M"
+        }
+      },
+      "UpdatePolicy" : {
+        "AutoScalingScheduledAction" : {
+          "IgnoreUnmodifiedGroupSizeProperties" : "true"
+        },
+        "AutoScalingRollingUpdate" : {
+          "MinInstancesInService" : "1",
+          "MaxBatchSize" : "2",
+          "PauseTime" : "PT1M",
+          "WaitOnResourceSignals" : "true"
+        }
+      }
+    }
+  }
+}

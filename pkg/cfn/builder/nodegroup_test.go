@@ -14,9 +14,10 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 
+	gfnt "goformation/v4/cloudformation/types"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"

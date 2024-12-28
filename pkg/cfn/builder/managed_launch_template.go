@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pkg/errors"
-	"github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
-	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+	"goformation/v4/cloudformation/cloudformation"
+	gfnec2 "goformation/v4/cloudformation/ec2"
+	gfnt "goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -75,7 +74,7 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(ctx context.Context
 		efaSG := m.addEFASecurityGroup(m.vpcImporter.VPC(), m.clusterConfig.Metadata.Name, desc)
 		securityGroupIDs = append(securityGroupIDs, efaSG)
 		if err := buildNetworkInterfaces(ctx, launchTemplateData, mng.InstanceTypeList(), true, securityGroupIDs, m.ec2API); err != nil {
-			return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
+			return nil, fmt.Errorf("couldn't build network interfaces for launch template data: %w", err)
 		}
 		if mng.Placement == nil {
 			groupName := m.newResource("NodeGroupPlacementGroup", &gfnec2.PlacementGroup{

@@ -2,15 +2,15 @@ package builder
 
 import (
 	"context"
+	"fmt"
 	"math"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/pkg/errors"
-	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+	gfnec2 "goformation/v4/cloudformation/ec2"
+	gfnt "goformation/v4/cloudformation/types"
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 )
@@ -45,7 +45,7 @@ func buildNetworkInterfaces(
 
 		info, err := ec2API.DescribeInstanceTypes(ctx, input)
 		if err != nil {
-			return errors.Wrapf(err, "couldn't retrieve instance type description for %v", instanceTypes)
+			return fmt.Errorf("couldn't retrieve instance type description for %v: %w", instanceTypes, err)
 		}
 
 		var numEFAs = math.MaxFloat64
@@ -53,7 +53,7 @@ func buildNetworkInterfaces(
 			networkInfo := it.NetworkInfo
 			numEFAs = math.Min(float64(aws.ToInt32(networkInfo.MaximumNetworkCards)), numEFAs)
 			if !aws.ToBool(networkInfo.EfaSupported) {
-				return errors.Errorf("instance type %s does not support EFA", it.InstanceType)
+				return fmt.Errorf("instance type %s does not support EFA", it.InstanceType)
 			}
 		}
 

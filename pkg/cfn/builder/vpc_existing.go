@@ -2,15 +2,16 @@ package builder
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
+	gfnt "goformation/v4/cloudformation/types"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/pkg/errors"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -58,7 +59,7 @@ func (v *ExistingVPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Valu
 		}
 	}
 	if err := v.importExistingResources(ctx); err != nil {
-		return nil, nil, errors.Wrap(err, "error importing VPC resources")
+		return nil, nil, fmt.Errorf("error importing VPC resources: %w", err)
 	}
 
 	v.addOutputs(ctx)
@@ -145,7 +146,7 @@ func makeSubnetResources(subnets map[string]api.AZSubnetSpec, subnetRoutes map[s
 		if subnetRoutes != nil {
 			rt, ok := subnetRoutes[network.ID]
 			if !ok {
-				return nil, errors.Errorf("failed to find an explicit route table associated with subnet %q; "+
+				return nil, fmt.Errorf("failed to find an explicit route table associated with subnet %q; "+
 					"eksctl does not modify the main route table if a subnet is not associated with an explicit route table", network.ID)
 			}
 			sr.RouteTable = gfnt.NewString(rt)
@@ -175,7 +176,7 @@ func importRouteTables(ctx context.Context, ec2API awsapi.EC2, subnets map[strin
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			return nil, errors.Wrap(err, "error describing route tables")
+			return nil, fmt.Errorf("error describing route tables: %w", err)
 		}
 
 		routeTables = append(routeTables, output.RouteTables...)

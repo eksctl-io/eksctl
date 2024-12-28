@@ -2,13 +2,14 @@ package waiter
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 )
@@ -56,10 +57,10 @@ func describeStackStatus(ctx context.Context, cfnAPI awsapi.CloudFormation, stac
 		StackName: aws.String(stackID),
 	})
 	if err != nil {
-		return nil, false, errors.Wrap(err, "error describing stack")
+		return nil, false, fmt.Errorf("error describing stack: %w", err)
 	}
 	if len(output.Stacks) != 1 {
-		return nil, false, errors.Errorf("expected a single stack; got %d", len(output.Stacks))
+		return nil, false, fmt.Errorf("expected a single stack; got %d", len(output.Stacks))
 	}
 
 	switch stack := output.Stacks[0]; stack.StackStatus {

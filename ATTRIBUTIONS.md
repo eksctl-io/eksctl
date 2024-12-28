@@ -80,7 +80,6 @@ License version 2.0, we include the full text of the package's License below.
 * `github.com/tj/assert`
 * `github.com/vburenin/ifacemaker`
 * `github.com/vektra/mockery/v2`
-* `github.com/weaveworks/goformation/v4`
 * `github.com/weaveworks/schemer`
 * `github.com/xgfone/netaddr`
 * `golang.org/x/crypto`
@@ -16961,27 +16960,6 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-### github.com/weaveworks/goformation/v4
-
-Apache License version 2.0
-
-Subdependencies:
-* `github.com/awslabs/goformation/v4`
-* `github.com/imdario/mergo`
-* `github.com/onsi/ginkgo`
-* `github.com/onsi/gomega`
-* `github.com/sanathkr/go-yaml`
-* `github.com/sanathkr/yaml`
-* `github.com/stretchr/testify`
-* `github.com/xeipuuv/gojsonpointer`
-* `github.com/xeipuuv/gojsonreference`
-* `github.com/xeipuuv/gojsonschema`
-
-#### github.com/awslabs/goformation/v4
-
-Apache License version 2.0
-
 
 
 #### github.com/onsi/ginkgo

@@ -3,9 +3,10 @@ package outputs
 import (
 	"fmt"
 
+	gfn "goformation/v4/cloudformation"
+	gfnt "goformation/v4/cloudformation/types"
+
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	gfn "github.com/weaveworks/goformation/v4/cloudformation"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -33,6 +34,12 @@ const (
 	ClusterSharedNodeSecurityGroup  = "SharedNodeSecurityGroup"
 	ClusterServiceRoleARN           = "ServiceRoleARN"
 	ClusterFeatureNATMode           = "FeatureNATMode"
+
+	// outputs for remote nodes
+	RemoteNodesRoleARN             = "RemoteNodesRoleARN"
+	RemoteNodesIntermediateRoleARN = "RemoteNodesIntermediateRoleARN"
+	RemoteNodesTrustAnchorARN      = "RemoteNodesTrustAnchorARN"
+	RemoteNodesAnywhereProfileARN  = "RemoteNodesAnywhereProfileARN"
 
 	// outputs from nodegroup stack
 	NodeGroupInstanceRoleARN    = "InstanceRoleARN"

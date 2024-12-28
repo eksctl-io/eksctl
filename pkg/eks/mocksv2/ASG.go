@@ -15,6 +15,14 @@ type ASG struct {
 	mock.Mock
 }
 
+type ASG_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *ASG) EXPECT() *ASG_Expecter {
+	return &ASG_Expecter{mock: &_m.Mock}
+}
+
 // AttachInstances provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) AttachInstances(ctx context.Context, params *autoscaling.AttachInstancesInput, optFns ...func(*autoscaling.Options)) (*autoscaling.AttachInstancesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -50,6 +58,43 @@ func (_m *ASG) AttachInstances(ctx context.Context, params *autoscaling.AttachIn
 	}
 
 	return r0, r1
+}
+
+// ASG_AttachInstances_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachInstances'
+type ASG_AttachInstances_Call struct {
+	*mock.Call
+}
+
+// AttachInstances is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.AttachInstancesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) AttachInstances(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_AttachInstances_Call {
+	return &ASG_AttachInstances_Call{Call: _e.mock.On("AttachInstances",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_AttachInstances_Call) Run(run func(ctx context.Context, params *autoscaling.AttachInstancesInput, optFns ...func(*autoscaling.Options))) *ASG_AttachInstances_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.AttachInstancesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_AttachInstances_Call) Return(_a0 *autoscaling.AttachInstancesOutput, _a1 error) *ASG_AttachInstances_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_AttachInstances_Call) RunAndReturn(run func(context.Context, *autoscaling.AttachInstancesInput, ...func(*autoscaling.Options)) (*autoscaling.AttachInstancesOutput, error)) *ASG_AttachInstances_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // AttachLoadBalancerTargetGroups provides a mock function with given fields: ctx, params, optFns
@@ -89,6 +134,43 @@ func (_m *ASG) AttachLoadBalancerTargetGroups(ctx context.Context, params *autos
 	return r0, r1
 }
 
+// ASG_AttachLoadBalancerTargetGroups_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachLoadBalancerTargetGroups'
+type ASG_AttachLoadBalancerTargetGroups_Call struct {
+	*mock.Call
+}
+
+// AttachLoadBalancerTargetGroups is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.AttachLoadBalancerTargetGroupsInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) AttachLoadBalancerTargetGroups(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_AttachLoadBalancerTargetGroups_Call {
+	return &ASG_AttachLoadBalancerTargetGroups_Call{Call: _e.mock.On("AttachLoadBalancerTargetGroups",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_AttachLoadBalancerTargetGroups_Call) Run(run func(ctx context.Context, params *autoscaling.AttachLoadBalancerTargetGroupsInput, optFns ...func(*autoscaling.Options))) *ASG_AttachLoadBalancerTargetGroups_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.AttachLoadBalancerTargetGroupsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_AttachLoadBalancerTargetGroups_Call) Return(_a0 *autoscaling.AttachLoadBalancerTargetGroupsOutput, _a1 error) *ASG_AttachLoadBalancerTargetGroups_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_AttachLoadBalancerTargetGroups_Call) RunAndReturn(run func(context.Context, *autoscaling.AttachLoadBalancerTargetGroupsInput, ...func(*autoscaling.Options)) (*autoscaling.AttachLoadBalancerTargetGroupsOutput, error)) *ASG_AttachLoadBalancerTargetGroups_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AttachLoadBalancers provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) AttachLoadBalancers(ctx context.Context, params *autoscaling.AttachLoadBalancersInput, optFns ...func(*autoscaling.Options)) (*autoscaling.AttachLoadBalancersOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -124,6 +206,43 @@ func (_m *ASG) AttachLoadBalancers(ctx context.Context, params *autoscaling.Atta
 	}
 
 	return r0, r1
+}
+
+// ASG_AttachLoadBalancers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachLoadBalancers'
+type ASG_AttachLoadBalancers_Call struct {
+	*mock.Call
+}
+
+// AttachLoadBalancers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.AttachLoadBalancersInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) AttachLoadBalancers(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_AttachLoadBalancers_Call {
+	return &ASG_AttachLoadBalancers_Call{Call: _e.mock.On("AttachLoadBalancers",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_AttachLoadBalancers_Call) Run(run func(ctx context.Context, params *autoscaling.AttachLoadBalancersInput, optFns ...func(*autoscaling.Options))) *ASG_AttachLoadBalancers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.AttachLoadBalancersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_AttachLoadBalancers_Call) Return(_a0 *autoscaling.AttachLoadBalancersOutput, _a1 error) *ASG_AttachLoadBalancers_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_AttachLoadBalancers_Call) RunAndReturn(run func(context.Context, *autoscaling.AttachLoadBalancersInput, ...func(*autoscaling.Options)) (*autoscaling.AttachLoadBalancersOutput, error)) *ASG_AttachLoadBalancers_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // AttachTrafficSources provides a mock function with given fields: ctx, params, optFns
@@ -163,6 +282,43 @@ func (_m *ASG) AttachTrafficSources(ctx context.Context, params *autoscaling.Att
 	return r0, r1
 }
 
+// ASG_AttachTrafficSources_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachTrafficSources'
+type ASG_AttachTrafficSources_Call struct {
+	*mock.Call
+}
+
+// AttachTrafficSources is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.AttachTrafficSourcesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) AttachTrafficSources(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_AttachTrafficSources_Call {
+	return &ASG_AttachTrafficSources_Call{Call: _e.mock.On("AttachTrafficSources",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_AttachTrafficSources_Call) Run(run func(ctx context.Context, params *autoscaling.AttachTrafficSourcesInput, optFns ...func(*autoscaling.Options))) *ASG_AttachTrafficSources_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.AttachTrafficSourcesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_AttachTrafficSources_Call) Return(_a0 *autoscaling.AttachTrafficSourcesOutput, _a1 error) *ASG_AttachTrafficSources_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_AttachTrafficSources_Call) RunAndReturn(run func(context.Context, *autoscaling.AttachTrafficSourcesInput, ...func(*autoscaling.Options)) (*autoscaling.AttachTrafficSourcesOutput, error)) *ASG_AttachTrafficSources_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // BatchDeleteScheduledAction provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) BatchDeleteScheduledAction(ctx context.Context, params *autoscaling.BatchDeleteScheduledActionInput, optFns ...func(*autoscaling.Options)) (*autoscaling.BatchDeleteScheduledActionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -198,6 +354,43 @@ func (_m *ASG) BatchDeleteScheduledAction(ctx context.Context, params *autoscali
 	}
 
 	return r0, r1
+}
+
+// ASG_BatchDeleteScheduledAction_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BatchDeleteScheduledAction'
+type ASG_BatchDeleteScheduledAction_Call struct {
+	*mock.Call
+}
+
+// BatchDeleteScheduledAction is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.BatchDeleteScheduledActionInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) BatchDeleteScheduledAction(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_BatchDeleteScheduledAction_Call {
+	return &ASG_BatchDeleteScheduledAction_Call{Call: _e.mock.On("BatchDeleteScheduledAction",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_BatchDeleteScheduledAction_Call) Run(run func(ctx context.Context, params *autoscaling.BatchDeleteScheduledActionInput, optFns ...func(*autoscaling.Options))) *ASG_BatchDeleteScheduledAction_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.BatchDeleteScheduledActionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_BatchDeleteScheduledAction_Call) Return(_a0 *autoscaling.BatchDeleteScheduledActionOutput, _a1 error) *ASG_BatchDeleteScheduledAction_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_BatchDeleteScheduledAction_Call) RunAndReturn(run func(context.Context, *autoscaling.BatchDeleteScheduledActionInput, ...func(*autoscaling.Options)) (*autoscaling.BatchDeleteScheduledActionOutput, error)) *ASG_BatchDeleteScheduledAction_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // BatchPutScheduledUpdateGroupAction provides a mock function with given fields: ctx, params, optFns
@@ -237,6 +430,43 @@ func (_m *ASG) BatchPutScheduledUpdateGroupAction(ctx context.Context, params *a
 	return r0, r1
 }
 
+// ASG_BatchPutScheduledUpdateGroupAction_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BatchPutScheduledUpdateGroupAction'
+type ASG_BatchPutScheduledUpdateGroupAction_Call struct {
+	*mock.Call
+}
+
+// BatchPutScheduledUpdateGroupAction is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.BatchPutScheduledUpdateGroupActionInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) BatchPutScheduledUpdateGroupAction(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_BatchPutScheduledUpdateGroupAction_Call {
+	return &ASG_BatchPutScheduledUpdateGroupAction_Call{Call: _e.mock.On("BatchPutScheduledUpdateGroupAction",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_BatchPutScheduledUpdateGroupAction_Call) Run(run func(ctx context.Context, params *autoscaling.BatchPutScheduledUpdateGroupActionInput, optFns ...func(*autoscaling.Options))) *ASG_BatchPutScheduledUpdateGroupAction_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.BatchPutScheduledUpdateGroupActionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_BatchPutScheduledUpdateGroupAction_Call) Return(_a0 *autoscaling.BatchPutScheduledUpdateGroupActionOutput, _a1 error) *ASG_BatchPutScheduledUpdateGroupAction_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_BatchPutScheduledUpdateGroupAction_Call) RunAndReturn(run func(context.Context, *autoscaling.BatchPutScheduledUpdateGroupActionInput, ...func(*autoscaling.Options)) (*autoscaling.BatchPutScheduledUpdateGroupActionOutput, error)) *ASG_BatchPutScheduledUpdateGroupAction_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CancelInstanceRefresh provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) CancelInstanceRefresh(ctx context.Context, params *autoscaling.CancelInstanceRefreshInput, optFns ...func(*autoscaling.Options)) (*autoscaling.CancelInstanceRefreshOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -272,6 +502,43 @@ func (_m *ASG) CancelInstanceRefresh(ctx context.Context, params *autoscaling.Ca
 	}
 
 	return r0, r1
+}
+
+// ASG_CancelInstanceRefresh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelInstanceRefresh'
+type ASG_CancelInstanceRefresh_Call struct {
+	*mock.Call
+}
+
+// CancelInstanceRefresh is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.CancelInstanceRefreshInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) CancelInstanceRefresh(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_CancelInstanceRefresh_Call {
+	return &ASG_CancelInstanceRefresh_Call{Call: _e.mock.On("CancelInstanceRefresh",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_CancelInstanceRefresh_Call) Run(run func(ctx context.Context, params *autoscaling.CancelInstanceRefreshInput, optFns ...func(*autoscaling.Options))) *ASG_CancelInstanceRefresh_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.CancelInstanceRefreshInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_CancelInstanceRefresh_Call) Return(_a0 *autoscaling.CancelInstanceRefreshOutput, _a1 error) *ASG_CancelInstanceRefresh_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_CancelInstanceRefresh_Call) RunAndReturn(run func(context.Context, *autoscaling.CancelInstanceRefreshInput, ...func(*autoscaling.Options)) (*autoscaling.CancelInstanceRefreshOutput, error)) *ASG_CancelInstanceRefresh_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CompleteLifecycleAction provides a mock function with given fields: ctx, params, optFns
@@ -311,6 +578,43 @@ func (_m *ASG) CompleteLifecycleAction(ctx context.Context, params *autoscaling.
 	return r0, r1
 }
 
+// ASG_CompleteLifecycleAction_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CompleteLifecycleAction'
+type ASG_CompleteLifecycleAction_Call struct {
+	*mock.Call
+}
+
+// CompleteLifecycleAction is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.CompleteLifecycleActionInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) CompleteLifecycleAction(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_CompleteLifecycleAction_Call {
+	return &ASG_CompleteLifecycleAction_Call{Call: _e.mock.On("CompleteLifecycleAction",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_CompleteLifecycleAction_Call) Run(run func(ctx context.Context, params *autoscaling.CompleteLifecycleActionInput, optFns ...func(*autoscaling.Options))) *ASG_CompleteLifecycleAction_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.CompleteLifecycleActionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_CompleteLifecycleAction_Call) Return(_a0 *autoscaling.CompleteLifecycleActionOutput, _a1 error) *ASG_CompleteLifecycleAction_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_CompleteLifecycleAction_Call) RunAndReturn(run func(context.Context, *autoscaling.CompleteLifecycleActionInput, ...func(*autoscaling.Options)) (*autoscaling.CompleteLifecycleActionOutput, error)) *ASG_CompleteLifecycleAction_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateAutoScalingGroup provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) CreateAutoScalingGroup(ctx context.Context, params *autoscaling.CreateAutoScalingGroupInput, optFns ...func(*autoscaling.Options)) (*autoscaling.CreateAutoScalingGroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -346,6 +650,43 @@ func (_m *ASG) CreateAutoScalingGroup(ctx context.Context, params *autoscaling.C
 	}
 
 	return r0, r1
+}
+
+// ASG_CreateAutoScalingGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAutoScalingGroup'
+type ASG_CreateAutoScalingGroup_Call struct {
+	*mock.Call
+}
+
+// CreateAutoScalingGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.CreateAutoScalingGroupInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) CreateAutoScalingGroup(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_CreateAutoScalingGroup_Call {
+	return &ASG_CreateAutoScalingGroup_Call{Call: _e.mock.On("CreateAutoScalingGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_CreateAutoScalingGroup_Call) Run(run func(ctx context.Context, params *autoscaling.CreateAutoScalingGroupInput, optFns ...func(*autoscaling.Options))) *ASG_CreateAutoScalingGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.CreateAutoScalingGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_CreateAutoScalingGroup_Call) Return(_a0 *autoscaling.CreateAutoScalingGroupOutput, _a1 error) *ASG_CreateAutoScalingGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_CreateAutoScalingGroup_Call) RunAndReturn(run func(context.Context, *autoscaling.CreateAutoScalingGroupInput, ...func(*autoscaling.Options)) (*autoscaling.CreateAutoScalingGroupOutput, error)) *ASG_CreateAutoScalingGroup_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateLaunchConfiguration provides a mock function with given fields: ctx, params, optFns
@@ -385,6 +726,43 @@ func (_m *ASG) CreateLaunchConfiguration(ctx context.Context, params *autoscalin
 	return r0, r1
 }
 
+// ASG_CreateLaunchConfiguration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateLaunchConfiguration'
+type ASG_CreateLaunchConfiguration_Call struct {
+	*mock.Call
+}
+
+// CreateLaunchConfiguration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.CreateLaunchConfigurationInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) CreateLaunchConfiguration(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_CreateLaunchConfiguration_Call {
+	return &ASG_CreateLaunchConfiguration_Call{Call: _e.mock.On("CreateLaunchConfiguration",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_CreateLaunchConfiguration_Call) Run(run func(ctx context.Context, params *autoscaling.CreateLaunchConfigurationInput, optFns ...func(*autoscaling.Options))) *ASG_CreateLaunchConfiguration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.CreateLaunchConfigurationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_CreateLaunchConfiguration_Call) Return(_a0 *autoscaling.CreateLaunchConfigurationOutput, _a1 error) *ASG_CreateLaunchConfiguration_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_CreateLaunchConfiguration_Call) RunAndReturn(run func(context.Context, *autoscaling.CreateLaunchConfigurationInput, ...func(*autoscaling.Options)) (*autoscaling.CreateLaunchConfigurationOutput, error)) *ASG_CreateLaunchConfiguration_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateOrUpdateTags provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) CreateOrUpdateTags(ctx context.Context, params *autoscaling.CreateOrUpdateTagsInput, optFns ...func(*autoscaling.Options)) (*autoscaling.CreateOrUpdateTagsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -420,6 +798,43 @@ func (_m *ASG) CreateOrUpdateTags(ctx context.Context, params *autoscaling.Creat
 	}
 
 	return r0, r1
+}
+
+// ASG_CreateOrUpdateTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateOrUpdateTags'
+type ASG_CreateOrUpdateTags_Call struct {
+	*mock.Call
+}
+
+// CreateOrUpdateTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.CreateOrUpdateTagsInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) CreateOrUpdateTags(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_CreateOrUpdateTags_Call {
+	return &ASG_CreateOrUpdateTags_Call{Call: _e.mock.On("CreateOrUpdateTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_CreateOrUpdateTags_Call) Run(run func(ctx context.Context, params *autoscaling.CreateOrUpdateTagsInput, optFns ...func(*autoscaling.Options))) *ASG_CreateOrUpdateTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.CreateOrUpdateTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_CreateOrUpdateTags_Call) Return(_a0 *autoscaling.CreateOrUpdateTagsOutput, _a1 error) *ASG_CreateOrUpdateTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_CreateOrUpdateTags_Call) RunAndReturn(run func(context.Context, *autoscaling.CreateOrUpdateTagsInput, ...func(*autoscaling.Options)) (*autoscaling.CreateOrUpdateTagsOutput, error)) *ASG_CreateOrUpdateTags_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteAutoScalingGroup provides a mock function with given fields: ctx, params, optFns
@@ -459,6 +874,43 @@ func (_m *ASG) DeleteAutoScalingGroup(ctx context.Context, params *autoscaling.D
 	return r0, r1
 }
 
+// ASG_DeleteAutoScalingGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAutoScalingGroup'
+type ASG_DeleteAutoScalingGroup_Call struct {
+	*mock.Call
+}
+
+// DeleteAutoScalingGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DeleteAutoScalingGroupInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DeleteAutoScalingGroup(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DeleteAutoScalingGroup_Call {
+	return &ASG_DeleteAutoScalingGroup_Call{Call: _e.mock.On("DeleteAutoScalingGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DeleteAutoScalingGroup_Call) Run(run func(ctx context.Context, params *autoscaling.DeleteAutoScalingGroupInput, optFns ...func(*autoscaling.Options))) *ASG_DeleteAutoScalingGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DeleteAutoScalingGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DeleteAutoScalingGroup_Call) Return(_a0 *autoscaling.DeleteAutoScalingGroupOutput, _a1 error) *ASG_DeleteAutoScalingGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DeleteAutoScalingGroup_Call) RunAndReturn(run func(context.Context, *autoscaling.DeleteAutoScalingGroupInput, ...func(*autoscaling.Options)) (*autoscaling.DeleteAutoScalingGroupOutput, error)) *ASG_DeleteAutoScalingGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteLaunchConfiguration provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DeleteLaunchConfiguration(ctx context.Context, params *autoscaling.DeleteLaunchConfigurationInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DeleteLaunchConfigurationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -494,6 +946,43 @@ func (_m *ASG) DeleteLaunchConfiguration(ctx context.Context, params *autoscalin
 	}
 
 	return r0, r1
+}
+
+// ASG_DeleteLaunchConfiguration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteLaunchConfiguration'
+type ASG_DeleteLaunchConfiguration_Call struct {
+	*mock.Call
+}
+
+// DeleteLaunchConfiguration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DeleteLaunchConfigurationInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DeleteLaunchConfiguration(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DeleteLaunchConfiguration_Call {
+	return &ASG_DeleteLaunchConfiguration_Call{Call: _e.mock.On("DeleteLaunchConfiguration",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DeleteLaunchConfiguration_Call) Run(run func(ctx context.Context, params *autoscaling.DeleteLaunchConfigurationInput, optFns ...func(*autoscaling.Options))) *ASG_DeleteLaunchConfiguration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DeleteLaunchConfigurationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DeleteLaunchConfiguration_Call) Return(_a0 *autoscaling.DeleteLaunchConfigurationOutput, _a1 error) *ASG_DeleteLaunchConfiguration_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DeleteLaunchConfiguration_Call) RunAndReturn(run func(context.Context, *autoscaling.DeleteLaunchConfigurationInput, ...func(*autoscaling.Options)) (*autoscaling.DeleteLaunchConfigurationOutput, error)) *ASG_DeleteLaunchConfiguration_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteLifecycleHook provides a mock function with given fields: ctx, params, optFns
@@ -533,6 +1022,43 @@ func (_m *ASG) DeleteLifecycleHook(ctx context.Context, params *autoscaling.Dele
 	return r0, r1
 }
 
+// ASG_DeleteLifecycleHook_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteLifecycleHook'
+type ASG_DeleteLifecycleHook_Call struct {
+	*mock.Call
+}
+
+// DeleteLifecycleHook is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DeleteLifecycleHookInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DeleteLifecycleHook(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DeleteLifecycleHook_Call {
+	return &ASG_DeleteLifecycleHook_Call{Call: _e.mock.On("DeleteLifecycleHook",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DeleteLifecycleHook_Call) Run(run func(ctx context.Context, params *autoscaling.DeleteLifecycleHookInput, optFns ...func(*autoscaling.Options))) *ASG_DeleteLifecycleHook_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DeleteLifecycleHookInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DeleteLifecycleHook_Call) Return(_a0 *autoscaling.DeleteLifecycleHookOutput, _a1 error) *ASG_DeleteLifecycleHook_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DeleteLifecycleHook_Call) RunAndReturn(run func(context.Context, *autoscaling.DeleteLifecycleHookInput, ...func(*autoscaling.Options)) (*autoscaling.DeleteLifecycleHookOutput, error)) *ASG_DeleteLifecycleHook_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteNotificationConfiguration provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DeleteNotificationConfiguration(ctx context.Context, params *autoscaling.DeleteNotificationConfigurationInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DeleteNotificationConfigurationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -568,6 +1094,43 @@ func (_m *ASG) DeleteNotificationConfiguration(ctx context.Context, params *auto
 	}
 
 	return r0, r1
+}
+
+// ASG_DeleteNotificationConfiguration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteNotificationConfiguration'
+type ASG_DeleteNotificationConfiguration_Call struct {
+	*mock.Call
+}
+
+// DeleteNotificationConfiguration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DeleteNotificationConfigurationInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DeleteNotificationConfiguration(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DeleteNotificationConfiguration_Call {
+	return &ASG_DeleteNotificationConfiguration_Call{Call: _e.mock.On("DeleteNotificationConfiguration",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DeleteNotificationConfiguration_Call) Run(run func(ctx context.Context, params *autoscaling.DeleteNotificationConfigurationInput, optFns ...func(*autoscaling.Options))) *ASG_DeleteNotificationConfiguration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DeleteNotificationConfigurationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DeleteNotificationConfiguration_Call) Return(_a0 *autoscaling.DeleteNotificationConfigurationOutput, _a1 error) *ASG_DeleteNotificationConfiguration_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DeleteNotificationConfiguration_Call) RunAndReturn(run func(context.Context, *autoscaling.DeleteNotificationConfigurationInput, ...func(*autoscaling.Options)) (*autoscaling.DeleteNotificationConfigurationOutput, error)) *ASG_DeleteNotificationConfiguration_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeletePolicy provides a mock function with given fields: ctx, params, optFns
@@ -607,6 +1170,43 @@ func (_m *ASG) DeletePolicy(ctx context.Context, params *autoscaling.DeletePolic
 	return r0, r1
 }
 
+// ASG_DeletePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePolicy'
+type ASG_DeletePolicy_Call struct {
+	*mock.Call
+}
+
+// DeletePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DeletePolicyInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DeletePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DeletePolicy_Call {
+	return &ASG_DeletePolicy_Call{Call: _e.mock.On("DeletePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DeletePolicy_Call) Run(run func(ctx context.Context, params *autoscaling.DeletePolicyInput, optFns ...func(*autoscaling.Options))) *ASG_DeletePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DeletePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DeletePolicy_Call) Return(_a0 *autoscaling.DeletePolicyOutput, _a1 error) *ASG_DeletePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DeletePolicy_Call) RunAndReturn(run func(context.Context, *autoscaling.DeletePolicyInput, ...func(*autoscaling.Options)) (*autoscaling.DeletePolicyOutput, error)) *ASG_DeletePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteScheduledAction provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DeleteScheduledAction(ctx context.Context, params *autoscaling.DeleteScheduledActionInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DeleteScheduledActionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -642,6 +1242,43 @@ func (_m *ASG) DeleteScheduledAction(ctx context.Context, params *autoscaling.De
 	}
 
 	return r0, r1
+}
+
+// ASG_DeleteScheduledAction_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteScheduledAction'
+type ASG_DeleteScheduledAction_Call struct {
+	*mock.Call
+}
+
+// DeleteScheduledAction is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DeleteScheduledActionInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DeleteScheduledAction(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DeleteScheduledAction_Call {
+	return &ASG_DeleteScheduledAction_Call{Call: _e.mock.On("DeleteScheduledAction",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DeleteScheduledAction_Call) Run(run func(ctx context.Context, params *autoscaling.DeleteScheduledActionInput, optFns ...func(*autoscaling.Options))) *ASG_DeleteScheduledAction_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DeleteScheduledActionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DeleteScheduledAction_Call) Return(_a0 *autoscaling.DeleteScheduledActionOutput, _a1 error) *ASG_DeleteScheduledAction_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DeleteScheduledAction_Call) RunAndReturn(run func(context.Context, *autoscaling.DeleteScheduledActionInput, ...func(*autoscaling.Options)) (*autoscaling.DeleteScheduledActionOutput, error)) *ASG_DeleteScheduledAction_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteTags provides a mock function with given fields: ctx, params, optFns
@@ -681,6 +1318,43 @@ func (_m *ASG) DeleteTags(ctx context.Context, params *autoscaling.DeleteTagsInp
 	return r0, r1
 }
 
+// ASG_DeleteTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteTags'
+type ASG_DeleteTags_Call struct {
+	*mock.Call
+}
+
+// DeleteTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DeleteTagsInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DeleteTags(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DeleteTags_Call {
+	return &ASG_DeleteTags_Call{Call: _e.mock.On("DeleteTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DeleteTags_Call) Run(run func(ctx context.Context, params *autoscaling.DeleteTagsInput, optFns ...func(*autoscaling.Options))) *ASG_DeleteTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DeleteTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DeleteTags_Call) Return(_a0 *autoscaling.DeleteTagsOutput, _a1 error) *ASG_DeleteTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DeleteTags_Call) RunAndReturn(run func(context.Context, *autoscaling.DeleteTagsInput, ...func(*autoscaling.Options)) (*autoscaling.DeleteTagsOutput, error)) *ASG_DeleteTags_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteWarmPool provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DeleteWarmPool(ctx context.Context, params *autoscaling.DeleteWarmPoolInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DeleteWarmPoolOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -716,6 +1390,43 @@ func (_m *ASG) DeleteWarmPool(ctx context.Context, params *autoscaling.DeleteWar
 	}
 
 	return r0, r1
+}
+
+// ASG_DeleteWarmPool_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteWarmPool'
+type ASG_DeleteWarmPool_Call struct {
+	*mock.Call
+}
+
+// DeleteWarmPool is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DeleteWarmPoolInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DeleteWarmPool(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DeleteWarmPool_Call {
+	return &ASG_DeleteWarmPool_Call{Call: _e.mock.On("DeleteWarmPool",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DeleteWarmPool_Call) Run(run func(ctx context.Context, params *autoscaling.DeleteWarmPoolInput, optFns ...func(*autoscaling.Options))) *ASG_DeleteWarmPool_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DeleteWarmPoolInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DeleteWarmPool_Call) Return(_a0 *autoscaling.DeleteWarmPoolOutput, _a1 error) *ASG_DeleteWarmPool_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DeleteWarmPool_Call) RunAndReturn(run func(context.Context, *autoscaling.DeleteWarmPoolInput, ...func(*autoscaling.Options)) (*autoscaling.DeleteWarmPoolOutput, error)) *ASG_DeleteWarmPool_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeAccountLimits provides a mock function with given fields: ctx, params, optFns
@@ -755,6 +1466,43 @@ func (_m *ASG) DescribeAccountLimits(ctx context.Context, params *autoscaling.De
 	return r0, r1
 }
 
+// ASG_DescribeAccountLimits_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAccountLimits'
+type ASG_DescribeAccountLimits_Call struct {
+	*mock.Call
+}
+
+// DescribeAccountLimits is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeAccountLimitsInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeAccountLimits(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeAccountLimits_Call {
+	return &ASG_DescribeAccountLimits_Call{Call: _e.mock.On("DescribeAccountLimits",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeAccountLimits_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeAccountLimitsInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeAccountLimits_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeAccountLimitsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeAccountLimits_Call) Return(_a0 *autoscaling.DescribeAccountLimitsOutput, _a1 error) *ASG_DescribeAccountLimits_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeAccountLimits_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeAccountLimitsInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeAccountLimitsOutput, error)) *ASG_DescribeAccountLimits_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeAdjustmentTypes provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DescribeAdjustmentTypes(ctx context.Context, params *autoscaling.DescribeAdjustmentTypesInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeAdjustmentTypesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -790,6 +1538,43 @@ func (_m *ASG) DescribeAdjustmentTypes(ctx context.Context, params *autoscaling.
 	}
 
 	return r0, r1
+}
+
+// ASG_DescribeAdjustmentTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAdjustmentTypes'
+type ASG_DescribeAdjustmentTypes_Call struct {
+	*mock.Call
+}
+
+// DescribeAdjustmentTypes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeAdjustmentTypesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeAdjustmentTypes(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeAdjustmentTypes_Call {
+	return &ASG_DescribeAdjustmentTypes_Call{Call: _e.mock.On("DescribeAdjustmentTypes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeAdjustmentTypes_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeAdjustmentTypesInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeAdjustmentTypes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeAdjustmentTypesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeAdjustmentTypes_Call) Return(_a0 *autoscaling.DescribeAdjustmentTypesOutput, _a1 error) *ASG_DescribeAdjustmentTypes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeAdjustmentTypes_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeAdjustmentTypesInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeAdjustmentTypesOutput, error)) *ASG_DescribeAdjustmentTypes_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeAutoScalingGroups provides a mock function with given fields: ctx, params, optFns
@@ -829,6 +1614,43 @@ func (_m *ASG) DescribeAutoScalingGroups(ctx context.Context, params *autoscalin
 	return r0, r1
 }
 
+// ASG_DescribeAutoScalingGroups_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAutoScalingGroups'
+type ASG_DescribeAutoScalingGroups_Call struct {
+	*mock.Call
+}
+
+// DescribeAutoScalingGroups is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeAutoScalingGroupsInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeAutoScalingGroups(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeAutoScalingGroups_Call {
+	return &ASG_DescribeAutoScalingGroups_Call{Call: _e.mock.On("DescribeAutoScalingGroups",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeAutoScalingGroups_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeAutoScalingGroupsInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeAutoScalingGroups_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeAutoScalingGroupsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeAutoScalingGroups_Call) Return(_a0 *autoscaling.DescribeAutoScalingGroupsOutput, _a1 error) *ASG_DescribeAutoScalingGroups_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeAutoScalingGroups_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeAutoScalingGroupsInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeAutoScalingGroupsOutput, error)) *ASG_DescribeAutoScalingGroups_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeAutoScalingInstances provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DescribeAutoScalingInstances(ctx context.Context, params *autoscaling.DescribeAutoScalingInstancesInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeAutoScalingInstancesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -864,6 +1686,43 @@ func (_m *ASG) DescribeAutoScalingInstances(ctx context.Context, params *autosca
 	}
 
 	return r0, r1
+}
+
+// ASG_DescribeAutoScalingInstances_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAutoScalingInstances'
+type ASG_DescribeAutoScalingInstances_Call struct {
+	*mock.Call
+}
+
+// DescribeAutoScalingInstances is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeAutoScalingInstancesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeAutoScalingInstances(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeAutoScalingInstances_Call {
+	return &ASG_DescribeAutoScalingInstances_Call{Call: _e.mock.On("DescribeAutoScalingInstances",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeAutoScalingInstances_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeAutoScalingInstancesInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeAutoScalingInstances_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeAutoScalingInstancesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeAutoScalingInstances_Call) Return(_a0 *autoscaling.DescribeAutoScalingInstancesOutput, _a1 error) *ASG_DescribeAutoScalingInstances_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeAutoScalingInstances_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeAutoScalingInstancesInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeAutoScalingInstancesOutput, error)) *ASG_DescribeAutoScalingInstances_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeAutoScalingNotificationTypes provides a mock function with given fields: ctx, params, optFns
@@ -903,6 +1762,43 @@ func (_m *ASG) DescribeAutoScalingNotificationTypes(ctx context.Context, params 
 	return r0, r1
 }
 
+// ASG_DescribeAutoScalingNotificationTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAutoScalingNotificationTypes'
+type ASG_DescribeAutoScalingNotificationTypes_Call struct {
+	*mock.Call
+}
+
+// DescribeAutoScalingNotificationTypes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeAutoScalingNotificationTypesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeAutoScalingNotificationTypes(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeAutoScalingNotificationTypes_Call {
+	return &ASG_DescribeAutoScalingNotificationTypes_Call{Call: _e.mock.On("DescribeAutoScalingNotificationTypes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeAutoScalingNotificationTypes_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeAutoScalingNotificationTypesInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeAutoScalingNotificationTypes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeAutoScalingNotificationTypesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeAutoScalingNotificationTypes_Call) Return(_a0 *autoscaling.DescribeAutoScalingNotificationTypesOutput, _a1 error) *ASG_DescribeAutoScalingNotificationTypes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeAutoScalingNotificationTypes_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeAutoScalingNotificationTypesInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeAutoScalingNotificationTypesOutput, error)) *ASG_DescribeAutoScalingNotificationTypes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeInstanceRefreshes provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DescribeInstanceRefreshes(ctx context.Context, params *autoscaling.DescribeInstanceRefreshesInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeInstanceRefreshesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -938,6 +1834,43 @@ func (_m *ASG) DescribeInstanceRefreshes(ctx context.Context, params *autoscalin
 	}
 
 	return r0, r1
+}
+
+// ASG_DescribeInstanceRefreshes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeInstanceRefreshes'
+type ASG_DescribeInstanceRefreshes_Call struct {
+	*mock.Call
+}
+
+// DescribeInstanceRefreshes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeInstanceRefreshesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeInstanceRefreshes(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeInstanceRefreshes_Call {
+	return &ASG_DescribeInstanceRefreshes_Call{Call: _e.mock.On("DescribeInstanceRefreshes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeInstanceRefreshes_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeInstanceRefreshesInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeInstanceRefreshes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeInstanceRefreshesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeInstanceRefreshes_Call) Return(_a0 *autoscaling.DescribeInstanceRefreshesOutput, _a1 error) *ASG_DescribeInstanceRefreshes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeInstanceRefreshes_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeInstanceRefreshesInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeInstanceRefreshesOutput, error)) *ASG_DescribeInstanceRefreshes_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeLaunchConfigurations provides a mock function with given fields: ctx, params, optFns
@@ -977,6 +1910,43 @@ func (_m *ASG) DescribeLaunchConfigurations(ctx context.Context, params *autosca
 	return r0, r1
 }
 
+// ASG_DescribeLaunchConfigurations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeLaunchConfigurations'
+type ASG_DescribeLaunchConfigurations_Call struct {
+	*mock.Call
+}
+
+// DescribeLaunchConfigurations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeLaunchConfigurationsInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeLaunchConfigurations(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeLaunchConfigurations_Call {
+	return &ASG_DescribeLaunchConfigurations_Call{Call: _e.mock.On("DescribeLaunchConfigurations",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeLaunchConfigurations_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeLaunchConfigurationsInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeLaunchConfigurations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeLaunchConfigurationsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeLaunchConfigurations_Call) Return(_a0 *autoscaling.DescribeLaunchConfigurationsOutput, _a1 error) *ASG_DescribeLaunchConfigurations_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeLaunchConfigurations_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeLaunchConfigurationsInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeLaunchConfigurationsOutput, error)) *ASG_DescribeLaunchConfigurations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeLifecycleHookTypes provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DescribeLifecycleHookTypes(ctx context.Context, params *autoscaling.DescribeLifecycleHookTypesInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeLifecycleHookTypesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1012,6 +1982,43 @@ func (_m *ASG) DescribeLifecycleHookTypes(ctx context.Context, params *autoscali
 	}
 
 	return r0, r1
+}
+
+// ASG_DescribeLifecycleHookTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeLifecycleHookTypes'
+type ASG_DescribeLifecycleHookTypes_Call struct {
+	*mock.Call
+}
+
+// DescribeLifecycleHookTypes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeLifecycleHookTypesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeLifecycleHookTypes(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeLifecycleHookTypes_Call {
+	return &ASG_DescribeLifecycleHookTypes_Call{Call: _e.mock.On("DescribeLifecycleHookTypes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeLifecycleHookTypes_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeLifecycleHookTypesInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeLifecycleHookTypes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeLifecycleHookTypesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeLifecycleHookTypes_Call) Return(_a0 *autoscaling.DescribeLifecycleHookTypesOutput, _a1 error) *ASG_DescribeLifecycleHookTypes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeLifecycleHookTypes_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeLifecycleHookTypesInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeLifecycleHookTypesOutput, error)) *ASG_DescribeLifecycleHookTypes_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeLifecycleHooks provides a mock function with given fields: ctx, params, optFns
@@ -1051,6 +2058,43 @@ func (_m *ASG) DescribeLifecycleHooks(ctx context.Context, params *autoscaling.D
 	return r0, r1
 }
 
+// ASG_DescribeLifecycleHooks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeLifecycleHooks'
+type ASG_DescribeLifecycleHooks_Call struct {
+	*mock.Call
+}
+
+// DescribeLifecycleHooks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeLifecycleHooksInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeLifecycleHooks(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeLifecycleHooks_Call {
+	return &ASG_DescribeLifecycleHooks_Call{Call: _e.mock.On("DescribeLifecycleHooks",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeLifecycleHooks_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeLifecycleHooksInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeLifecycleHooks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeLifecycleHooksInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeLifecycleHooks_Call) Return(_a0 *autoscaling.DescribeLifecycleHooksOutput, _a1 error) *ASG_DescribeLifecycleHooks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeLifecycleHooks_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeLifecycleHooksInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeLifecycleHooksOutput, error)) *ASG_DescribeLifecycleHooks_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeLoadBalancerTargetGroups provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DescribeLoadBalancerTargetGroups(ctx context.Context, params *autoscaling.DescribeLoadBalancerTargetGroupsInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeLoadBalancerTargetGroupsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1086,6 +2130,43 @@ func (_m *ASG) DescribeLoadBalancerTargetGroups(ctx context.Context, params *aut
 	}
 
 	return r0, r1
+}
+
+// ASG_DescribeLoadBalancerTargetGroups_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeLoadBalancerTargetGroups'
+type ASG_DescribeLoadBalancerTargetGroups_Call struct {
+	*mock.Call
+}
+
+// DescribeLoadBalancerTargetGroups is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeLoadBalancerTargetGroupsInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeLoadBalancerTargetGroups(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeLoadBalancerTargetGroups_Call {
+	return &ASG_DescribeLoadBalancerTargetGroups_Call{Call: _e.mock.On("DescribeLoadBalancerTargetGroups",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeLoadBalancerTargetGroups_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeLoadBalancerTargetGroupsInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeLoadBalancerTargetGroups_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeLoadBalancerTargetGroupsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeLoadBalancerTargetGroups_Call) Return(_a0 *autoscaling.DescribeLoadBalancerTargetGroupsOutput, _a1 error) *ASG_DescribeLoadBalancerTargetGroups_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeLoadBalancerTargetGroups_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeLoadBalancerTargetGroupsInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeLoadBalancerTargetGroupsOutput, error)) *ASG_DescribeLoadBalancerTargetGroups_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeLoadBalancers provides a mock function with given fields: ctx, params, optFns
@@ -1125,6 +2206,43 @@ func (_m *ASG) DescribeLoadBalancers(ctx context.Context, params *autoscaling.De
 	return r0, r1
 }
 
+// ASG_DescribeLoadBalancers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeLoadBalancers'
+type ASG_DescribeLoadBalancers_Call struct {
+	*mock.Call
+}
+
+// DescribeLoadBalancers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeLoadBalancersInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeLoadBalancers(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeLoadBalancers_Call {
+	return &ASG_DescribeLoadBalancers_Call{Call: _e.mock.On("DescribeLoadBalancers",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeLoadBalancers_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeLoadBalancersInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeLoadBalancers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeLoadBalancersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeLoadBalancers_Call) Return(_a0 *autoscaling.DescribeLoadBalancersOutput, _a1 error) *ASG_DescribeLoadBalancers_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeLoadBalancers_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeLoadBalancersInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeLoadBalancersOutput, error)) *ASG_DescribeLoadBalancers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeMetricCollectionTypes provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DescribeMetricCollectionTypes(ctx context.Context, params *autoscaling.DescribeMetricCollectionTypesInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeMetricCollectionTypesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1160,6 +2278,43 @@ func (_m *ASG) DescribeMetricCollectionTypes(ctx context.Context, params *autosc
 	}
 
 	return r0, r1
+}
+
+// ASG_DescribeMetricCollectionTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeMetricCollectionTypes'
+type ASG_DescribeMetricCollectionTypes_Call struct {
+	*mock.Call
+}
+
+// DescribeMetricCollectionTypes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeMetricCollectionTypesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeMetricCollectionTypes(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeMetricCollectionTypes_Call {
+	return &ASG_DescribeMetricCollectionTypes_Call{Call: _e.mock.On("DescribeMetricCollectionTypes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeMetricCollectionTypes_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeMetricCollectionTypesInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeMetricCollectionTypes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeMetricCollectionTypesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeMetricCollectionTypes_Call) Return(_a0 *autoscaling.DescribeMetricCollectionTypesOutput, _a1 error) *ASG_DescribeMetricCollectionTypes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeMetricCollectionTypes_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeMetricCollectionTypesInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeMetricCollectionTypesOutput, error)) *ASG_DescribeMetricCollectionTypes_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeNotificationConfigurations provides a mock function with given fields: ctx, params, optFns
@@ -1199,6 +2354,43 @@ func (_m *ASG) DescribeNotificationConfigurations(ctx context.Context, params *a
 	return r0, r1
 }
 
+// ASG_DescribeNotificationConfigurations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeNotificationConfigurations'
+type ASG_DescribeNotificationConfigurations_Call struct {
+	*mock.Call
+}
+
+// DescribeNotificationConfigurations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeNotificationConfigurationsInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeNotificationConfigurations(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeNotificationConfigurations_Call {
+	return &ASG_DescribeNotificationConfigurations_Call{Call: _e.mock.On("DescribeNotificationConfigurations",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeNotificationConfigurations_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeNotificationConfigurationsInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeNotificationConfigurations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeNotificationConfigurationsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeNotificationConfigurations_Call) Return(_a0 *autoscaling.DescribeNotificationConfigurationsOutput, _a1 error) *ASG_DescribeNotificationConfigurations_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeNotificationConfigurations_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeNotificationConfigurationsInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeNotificationConfigurationsOutput, error)) *ASG_DescribeNotificationConfigurations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribePolicies provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DescribePolicies(ctx context.Context, params *autoscaling.DescribePoliciesInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribePoliciesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1234,6 +2426,43 @@ func (_m *ASG) DescribePolicies(ctx context.Context, params *autoscaling.Describ
 	}
 
 	return r0, r1
+}
+
+// ASG_DescribePolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribePolicies'
+type ASG_DescribePolicies_Call struct {
+	*mock.Call
+}
+
+// DescribePolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribePoliciesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribePolicies(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribePolicies_Call {
+	return &ASG_DescribePolicies_Call{Call: _e.mock.On("DescribePolicies",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribePolicies_Call) Run(run func(ctx context.Context, params *autoscaling.DescribePoliciesInput, optFns ...func(*autoscaling.Options))) *ASG_DescribePolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribePoliciesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribePolicies_Call) Return(_a0 *autoscaling.DescribePoliciesOutput, _a1 error) *ASG_DescribePolicies_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribePolicies_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribePoliciesInput, ...func(*autoscaling.Options)) (*autoscaling.DescribePoliciesOutput, error)) *ASG_DescribePolicies_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeScalingActivities provides a mock function with given fields: ctx, params, optFns
@@ -1273,6 +2502,43 @@ func (_m *ASG) DescribeScalingActivities(ctx context.Context, params *autoscalin
 	return r0, r1
 }
 
+// ASG_DescribeScalingActivities_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeScalingActivities'
+type ASG_DescribeScalingActivities_Call struct {
+	*mock.Call
+}
+
+// DescribeScalingActivities is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeScalingActivitiesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeScalingActivities(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeScalingActivities_Call {
+	return &ASG_DescribeScalingActivities_Call{Call: _e.mock.On("DescribeScalingActivities",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeScalingActivities_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeScalingActivitiesInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeScalingActivities_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeScalingActivitiesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeScalingActivities_Call) Return(_a0 *autoscaling.DescribeScalingActivitiesOutput, _a1 error) *ASG_DescribeScalingActivities_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeScalingActivities_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeScalingActivitiesInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeScalingActivitiesOutput, error)) *ASG_DescribeScalingActivities_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeScalingProcessTypes provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DescribeScalingProcessTypes(ctx context.Context, params *autoscaling.DescribeScalingProcessTypesInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeScalingProcessTypesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1308,6 +2574,43 @@ func (_m *ASG) DescribeScalingProcessTypes(ctx context.Context, params *autoscal
 	}
 
 	return r0, r1
+}
+
+// ASG_DescribeScalingProcessTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeScalingProcessTypes'
+type ASG_DescribeScalingProcessTypes_Call struct {
+	*mock.Call
+}
+
+// DescribeScalingProcessTypes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeScalingProcessTypesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeScalingProcessTypes(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeScalingProcessTypes_Call {
+	return &ASG_DescribeScalingProcessTypes_Call{Call: _e.mock.On("DescribeScalingProcessTypes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeScalingProcessTypes_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeScalingProcessTypesInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeScalingProcessTypes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeScalingProcessTypesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeScalingProcessTypes_Call) Return(_a0 *autoscaling.DescribeScalingProcessTypesOutput, _a1 error) *ASG_DescribeScalingProcessTypes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeScalingProcessTypes_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeScalingProcessTypesInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeScalingProcessTypesOutput, error)) *ASG_DescribeScalingProcessTypes_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeScheduledActions provides a mock function with given fields: ctx, params, optFns
@@ -1347,6 +2650,43 @@ func (_m *ASG) DescribeScheduledActions(ctx context.Context, params *autoscaling
 	return r0, r1
 }
 
+// ASG_DescribeScheduledActions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeScheduledActions'
+type ASG_DescribeScheduledActions_Call struct {
+	*mock.Call
+}
+
+// DescribeScheduledActions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeScheduledActionsInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeScheduledActions(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeScheduledActions_Call {
+	return &ASG_DescribeScheduledActions_Call{Call: _e.mock.On("DescribeScheduledActions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeScheduledActions_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeScheduledActionsInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeScheduledActions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeScheduledActionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeScheduledActions_Call) Return(_a0 *autoscaling.DescribeScheduledActionsOutput, _a1 error) *ASG_DescribeScheduledActions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeScheduledActions_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeScheduledActionsInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeScheduledActionsOutput, error)) *ASG_DescribeScheduledActions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeTags provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DescribeTags(ctx context.Context, params *autoscaling.DescribeTagsInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeTagsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1382,6 +2722,43 @@ func (_m *ASG) DescribeTags(ctx context.Context, params *autoscaling.DescribeTag
 	}
 
 	return r0, r1
+}
+
+// ASG_DescribeTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeTags'
+type ASG_DescribeTags_Call struct {
+	*mock.Call
+}
+
+// DescribeTags is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeTagsInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeTags(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeTags_Call {
+	return &ASG_DescribeTags_Call{Call: _e.mock.On("DescribeTags",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeTags_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeTagsInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeTags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeTagsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeTags_Call) Return(_a0 *autoscaling.DescribeTagsOutput, _a1 error) *ASG_DescribeTags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeTags_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeTagsInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeTagsOutput, error)) *ASG_DescribeTags_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeTerminationPolicyTypes provides a mock function with given fields: ctx, params, optFns
@@ -1421,6 +2798,43 @@ func (_m *ASG) DescribeTerminationPolicyTypes(ctx context.Context, params *autos
 	return r0, r1
 }
 
+// ASG_DescribeTerminationPolicyTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeTerminationPolicyTypes'
+type ASG_DescribeTerminationPolicyTypes_Call struct {
+	*mock.Call
+}
+
+// DescribeTerminationPolicyTypes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeTerminationPolicyTypesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeTerminationPolicyTypes(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeTerminationPolicyTypes_Call {
+	return &ASG_DescribeTerminationPolicyTypes_Call{Call: _e.mock.On("DescribeTerminationPolicyTypes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeTerminationPolicyTypes_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeTerminationPolicyTypesInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeTerminationPolicyTypes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeTerminationPolicyTypesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeTerminationPolicyTypes_Call) Return(_a0 *autoscaling.DescribeTerminationPolicyTypesOutput, _a1 error) *ASG_DescribeTerminationPolicyTypes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeTerminationPolicyTypes_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeTerminationPolicyTypesInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeTerminationPolicyTypesOutput, error)) *ASG_DescribeTerminationPolicyTypes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeTrafficSources provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DescribeTrafficSources(ctx context.Context, params *autoscaling.DescribeTrafficSourcesInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeTrafficSourcesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1456,6 +2870,43 @@ func (_m *ASG) DescribeTrafficSources(ctx context.Context, params *autoscaling.D
 	}
 
 	return r0, r1
+}
+
+// ASG_DescribeTrafficSources_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeTrafficSources'
+type ASG_DescribeTrafficSources_Call struct {
+	*mock.Call
+}
+
+// DescribeTrafficSources is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeTrafficSourcesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeTrafficSources(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeTrafficSources_Call {
+	return &ASG_DescribeTrafficSources_Call{Call: _e.mock.On("DescribeTrafficSources",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeTrafficSources_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeTrafficSourcesInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeTrafficSources_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeTrafficSourcesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeTrafficSources_Call) Return(_a0 *autoscaling.DescribeTrafficSourcesOutput, _a1 error) *ASG_DescribeTrafficSources_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeTrafficSources_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeTrafficSourcesInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeTrafficSourcesOutput, error)) *ASG_DescribeTrafficSources_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeWarmPool provides a mock function with given fields: ctx, params, optFns
@@ -1495,6 +2946,43 @@ func (_m *ASG) DescribeWarmPool(ctx context.Context, params *autoscaling.Describ
 	return r0, r1
 }
 
+// ASG_DescribeWarmPool_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeWarmPool'
+type ASG_DescribeWarmPool_Call struct {
+	*mock.Call
+}
+
+// DescribeWarmPool is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DescribeWarmPoolInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DescribeWarmPool(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DescribeWarmPool_Call {
+	return &ASG_DescribeWarmPool_Call{Call: _e.mock.On("DescribeWarmPool",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DescribeWarmPool_Call) Run(run func(ctx context.Context, params *autoscaling.DescribeWarmPoolInput, optFns ...func(*autoscaling.Options))) *ASG_DescribeWarmPool_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DescribeWarmPoolInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DescribeWarmPool_Call) Return(_a0 *autoscaling.DescribeWarmPoolOutput, _a1 error) *ASG_DescribeWarmPool_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DescribeWarmPool_Call) RunAndReturn(run func(context.Context, *autoscaling.DescribeWarmPoolInput, ...func(*autoscaling.Options)) (*autoscaling.DescribeWarmPoolOutput, error)) *ASG_DescribeWarmPool_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DetachInstances provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DetachInstances(ctx context.Context, params *autoscaling.DetachInstancesInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DetachInstancesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1530,6 +3018,43 @@ func (_m *ASG) DetachInstances(ctx context.Context, params *autoscaling.DetachIn
 	}
 
 	return r0, r1
+}
+
+// ASG_DetachInstances_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachInstances'
+type ASG_DetachInstances_Call struct {
+	*mock.Call
+}
+
+// DetachInstances is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DetachInstancesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DetachInstances(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DetachInstances_Call {
+	return &ASG_DetachInstances_Call{Call: _e.mock.On("DetachInstances",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DetachInstances_Call) Run(run func(ctx context.Context, params *autoscaling.DetachInstancesInput, optFns ...func(*autoscaling.Options))) *ASG_DetachInstances_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DetachInstancesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DetachInstances_Call) Return(_a0 *autoscaling.DetachInstancesOutput, _a1 error) *ASG_DetachInstances_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DetachInstances_Call) RunAndReturn(run func(context.Context, *autoscaling.DetachInstancesInput, ...func(*autoscaling.Options)) (*autoscaling.DetachInstancesOutput, error)) *ASG_DetachInstances_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DetachLoadBalancerTargetGroups provides a mock function with given fields: ctx, params, optFns
@@ -1569,6 +3094,43 @@ func (_m *ASG) DetachLoadBalancerTargetGroups(ctx context.Context, params *autos
 	return r0, r1
 }
 
+// ASG_DetachLoadBalancerTargetGroups_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachLoadBalancerTargetGroups'
+type ASG_DetachLoadBalancerTargetGroups_Call struct {
+	*mock.Call
+}
+
+// DetachLoadBalancerTargetGroups is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DetachLoadBalancerTargetGroupsInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DetachLoadBalancerTargetGroups(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DetachLoadBalancerTargetGroups_Call {
+	return &ASG_DetachLoadBalancerTargetGroups_Call{Call: _e.mock.On("DetachLoadBalancerTargetGroups",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DetachLoadBalancerTargetGroups_Call) Run(run func(ctx context.Context, params *autoscaling.DetachLoadBalancerTargetGroupsInput, optFns ...func(*autoscaling.Options))) *ASG_DetachLoadBalancerTargetGroups_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DetachLoadBalancerTargetGroupsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DetachLoadBalancerTargetGroups_Call) Return(_a0 *autoscaling.DetachLoadBalancerTargetGroupsOutput, _a1 error) *ASG_DetachLoadBalancerTargetGroups_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DetachLoadBalancerTargetGroups_Call) RunAndReturn(run func(context.Context, *autoscaling.DetachLoadBalancerTargetGroupsInput, ...func(*autoscaling.Options)) (*autoscaling.DetachLoadBalancerTargetGroupsOutput, error)) *ASG_DetachLoadBalancerTargetGroups_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DetachLoadBalancers provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DetachLoadBalancers(ctx context.Context, params *autoscaling.DetachLoadBalancersInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DetachLoadBalancersOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1604,6 +3166,43 @@ func (_m *ASG) DetachLoadBalancers(ctx context.Context, params *autoscaling.Deta
 	}
 
 	return r0, r1
+}
+
+// ASG_DetachLoadBalancers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachLoadBalancers'
+type ASG_DetachLoadBalancers_Call struct {
+	*mock.Call
+}
+
+// DetachLoadBalancers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DetachLoadBalancersInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DetachLoadBalancers(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DetachLoadBalancers_Call {
+	return &ASG_DetachLoadBalancers_Call{Call: _e.mock.On("DetachLoadBalancers",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DetachLoadBalancers_Call) Run(run func(ctx context.Context, params *autoscaling.DetachLoadBalancersInput, optFns ...func(*autoscaling.Options))) *ASG_DetachLoadBalancers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DetachLoadBalancersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DetachLoadBalancers_Call) Return(_a0 *autoscaling.DetachLoadBalancersOutput, _a1 error) *ASG_DetachLoadBalancers_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DetachLoadBalancers_Call) RunAndReturn(run func(context.Context, *autoscaling.DetachLoadBalancersInput, ...func(*autoscaling.Options)) (*autoscaling.DetachLoadBalancersOutput, error)) *ASG_DetachLoadBalancers_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DetachTrafficSources provides a mock function with given fields: ctx, params, optFns
@@ -1643,6 +3242,43 @@ func (_m *ASG) DetachTrafficSources(ctx context.Context, params *autoscaling.Det
 	return r0, r1
 }
 
+// ASG_DetachTrafficSources_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachTrafficSources'
+type ASG_DetachTrafficSources_Call struct {
+	*mock.Call
+}
+
+// DetachTrafficSources is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DetachTrafficSourcesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DetachTrafficSources(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DetachTrafficSources_Call {
+	return &ASG_DetachTrafficSources_Call{Call: _e.mock.On("DetachTrafficSources",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DetachTrafficSources_Call) Run(run func(ctx context.Context, params *autoscaling.DetachTrafficSourcesInput, optFns ...func(*autoscaling.Options))) *ASG_DetachTrafficSources_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DetachTrafficSourcesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DetachTrafficSources_Call) Return(_a0 *autoscaling.DetachTrafficSourcesOutput, _a1 error) *ASG_DetachTrafficSources_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DetachTrafficSources_Call) RunAndReturn(run func(context.Context, *autoscaling.DetachTrafficSourcesInput, ...func(*autoscaling.Options)) (*autoscaling.DetachTrafficSourcesOutput, error)) *ASG_DetachTrafficSources_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DisableMetricsCollection provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) DisableMetricsCollection(ctx context.Context, params *autoscaling.DisableMetricsCollectionInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DisableMetricsCollectionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1678,6 +3314,43 @@ func (_m *ASG) DisableMetricsCollection(ctx context.Context, params *autoscaling
 	}
 
 	return r0, r1
+}
+
+// ASG_DisableMetricsCollection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisableMetricsCollection'
+type ASG_DisableMetricsCollection_Call struct {
+	*mock.Call
+}
+
+// DisableMetricsCollection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.DisableMetricsCollectionInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) DisableMetricsCollection(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_DisableMetricsCollection_Call {
+	return &ASG_DisableMetricsCollection_Call{Call: _e.mock.On("DisableMetricsCollection",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_DisableMetricsCollection_Call) Run(run func(ctx context.Context, params *autoscaling.DisableMetricsCollectionInput, optFns ...func(*autoscaling.Options))) *ASG_DisableMetricsCollection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.DisableMetricsCollectionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_DisableMetricsCollection_Call) Return(_a0 *autoscaling.DisableMetricsCollectionOutput, _a1 error) *ASG_DisableMetricsCollection_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_DisableMetricsCollection_Call) RunAndReturn(run func(context.Context, *autoscaling.DisableMetricsCollectionInput, ...func(*autoscaling.Options)) (*autoscaling.DisableMetricsCollectionOutput, error)) *ASG_DisableMetricsCollection_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // EnableMetricsCollection provides a mock function with given fields: ctx, params, optFns
@@ -1717,6 +3390,43 @@ func (_m *ASG) EnableMetricsCollection(ctx context.Context, params *autoscaling.
 	return r0, r1
 }
 
+// ASG_EnableMetricsCollection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnableMetricsCollection'
+type ASG_EnableMetricsCollection_Call struct {
+	*mock.Call
+}
+
+// EnableMetricsCollection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.EnableMetricsCollectionInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) EnableMetricsCollection(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_EnableMetricsCollection_Call {
+	return &ASG_EnableMetricsCollection_Call{Call: _e.mock.On("EnableMetricsCollection",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_EnableMetricsCollection_Call) Run(run func(ctx context.Context, params *autoscaling.EnableMetricsCollectionInput, optFns ...func(*autoscaling.Options))) *ASG_EnableMetricsCollection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.EnableMetricsCollectionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_EnableMetricsCollection_Call) Return(_a0 *autoscaling.EnableMetricsCollectionOutput, _a1 error) *ASG_EnableMetricsCollection_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_EnableMetricsCollection_Call) RunAndReturn(run func(context.Context, *autoscaling.EnableMetricsCollectionInput, ...func(*autoscaling.Options)) (*autoscaling.EnableMetricsCollectionOutput, error)) *ASG_EnableMetricsCollection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // EnterStandby provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) EnterStandby(ctx context.Context, params *autoscaling.EnterStandbyInput, optFns ...func(*autoscaling.Options)) (*autoscaling.EnterStandbyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1752,6 +3462,43 @@ func (_m *ASG) EnterStandby(ctx context.Context, params *autoscaling.EnterStandb
 	}
 
 	return r0, r1
+}
+
+// ASG_EnterStandby_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnterStandby'
+type ASG_EnterStandby_Call struct {
+	*mock.Call
+}
+
+// EnterStandby is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.EnterStandbyInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) EnterStandby(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_EnterStandby_Call {
+	return &ASG_EnterStandby_Call{Call: _e.mock.On("EnterStandby",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_EnterStandby_Call) Run(run func(ctx context.Context, params *autoscaling.EnterStandbyInput, optFns ...func(*autoscaling.Options))) *ASG_EnterStandby_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.EnterStandbyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_EnterStandby_Call) Return(_a0 *autoscaling.EnterStandbyOutput, _a1 error) *ASG_EnterStandby_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_EnterStandby_Call) RunAndReturn(run func(context.Context, *autoscaling.EnterStandbyInput, ...func(*autoscaling.Options)) (*autoscaling.EnterStandbyOutput, error)) *ASG_EnterStandby_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ExecutePolicy provides a mock function with given fields: ctx, params, optFns
@@ -1791,6 +3538,43 @@ func (_m *ASG) ExecutePolicy(ctx context.Context, params *autoscaling.ExecutePol
 	return r0, r1
 }
 
+// ASG_ExecutePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ExecutePolicy'
+type ASG_ExecutePolicy_Call struct {
+	*mock.Call
+}
+
+// ExecutePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.ExecutePolicyInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) ExecutePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_ExecutePolicy_Call {
+	return &ASG_ExecutePolicy_Call{Call: _e.mock.On("ExecutePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_ExecutePolicy_Call) Run(run func(ctx context.Context, params *autoscaling.ExecutePolicyInput, optFns ...func(*autoscaling.Options))) *ASG_ExecutePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.ExecutePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_ExecutePolicy_Call) Return(_a0 *autoscaling.ExecutePolicyOutput, _a1 error) *ASG_ExecutePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_ExecutePolicy_Call) RunAndReturn(run func(context.Context, *autoscaling.ExecutePolicyInput, ...func(*autoscaling.Options)) (*autoscaling.ExecutePolicyOutput, error)) *ASG_ExecutePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ExitStandby provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) ExitStandby(ctx context.Context, params *autoscaling.ExitStandbyInput, optFns ...func(*autoscaling.Options)) (*autoscaling.ExitStandbyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1826,6 +3610,43 @@ func (_m *ASG) ExitStandby(ctx context.Context, params *autoscaling.ExitStandbyI
 	}
 
 	return r0, r1
+}
+
+// ASG_ExitStandby_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ExitStandby'
+type ASG_ExitStandby_Call struct {
+	*mock.Call
+}
+
+// ExitStandby is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.ExitStandbyInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) ExitStandby(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_ExitStandby_Call {
+	return &ASG_ExitStandby_Call{Call: _e.mock.On("ExitStandby",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_ExitStandby_Call) Run(run func(ctx context.Context, params *autoscaling.ExitStandbyInput, optFns ...func(*autoscaling.Options))) *ASG_ExitStandby_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.ExitStandbyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_ExitStandby_Call) Return(_a0 *autoscaling.ExitStandbyOutput, _a1 error) *ASG_ExitStandby_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_ExitStandby_Call) RunAndReturn(run func(context.Context, *autoscaling.ExitStandbyInput, ...func(*autoscaling.Options)) (*autoscaling.ExitStandbyOutput, error)) *ASG_ExitStandby_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetPredictiveScalingForecast provides a mock function with given fields: ctx, params, optFns
@@ -1865,6 +3686,43 @@ func (_m *ASG) GetPredictiveScalingForecast(ctx context.Context, params *autosca
 	return r0, r1
 }
 
+// ASG_GetPredictiveScalingForecast_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPredictiveScalingForecast'
+type ASG_GetPredictiveScalingForecast_Call struct {
+	*mock.Call
+}
+
+// GetPredictiveScalingForecast is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.GetPredictiveScalingForecastInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) GetPredictiveScalingForecast(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_GetPredictiveScalingForecast_Call {
+	return &ASG_GetPredictiveScalingForecast_Call{Call: _e.mock.On("GetPredictiveScalingForecast",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_GetPredictiveScalingForecast_Call) Run(run func(ctx context.Context, params *autoscaling.GetPredictiveScalingForecastInput, optFns ...func(*autoscaling.Options))) *ASG_GetPredictiveScalingForecast_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.GetPredictiveScalingForecastInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_GetPredictiveScalingForecast_Call) Return(_a0 *autoscaling.GetPredictiveScalingForecastOutput, _a1 error) *ASG_GetPredictiveScalingForecast_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_GetPredictiveScalingForecast_Call) RunAndReturn(run func(context.Context, *autoscaling.GetPredictiveScalingForecastInput, ...func(*autoscaling.Options)) (*autoscaling.GetPredictiveScalingForecastOutput, error)) *ASG_GetPredictiveScalingForecast_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Options provides a mock function with given fields:
 func (_m *ASG) Options() autoscaling.Options {
 	ret := _m.Called()
@@ -1881,6 +3739,33 @@ func (_m *ASG) Options() autoscaling.Options {
 	}
 
 	return r0
+}
+
+// ASG_Options_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Options'
+type ASG_Options_Call struct {
+	*mock.Call
+}
+
+// Options is a helper method to define mock.On call
+func (_e *ASG_Expecter) Options() *ASG_Options_Call {
+	return &ASG_Options_Call{Call: _e.mock.On("Options")}
+}
+
+func (_c *ASG_Options_Call) Run(run func()) *ASG_Options_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ASG_Options_Call) Return(_a0 autoscaling.Options) *ASG_Options_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ASG_Options_Call) RunAndReturn(run func() autoscaling.Options) *ASG_Options_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // PutLifecycleHook provides a mock function with given fields: ctx, params, optFns
@@ -1920,6 +3805,43 @@ func (_m *ASG) PutLifecycleHook(ctx context.Context, params *autoscaling.PutLife
 	return r0, r1
 }
 
+// ASG_PutLifecycleHook_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutLifecycleHook'
+type ASG_PutLifecycleHook_Call struct {
+	*mock.Call
+}
+
+// PutLifecycleHook is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.PutLifecycleHookInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) PutLifecycleHook(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_PutLifecycleHook_Call {
+	return &ASG_PutLifecycleHook_Call{Call: _e.mock.On("PutLifecycleHook",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_PutLifecycleHook_Call) Run(run func(ctx context.Context, params *autoscaling.PutLifecycleHookInput, optFns ...func(*autoscaling.Options))) *ASG_PutLifecycleHook_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.PutLifecycleHookInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_PutLifecycleHook_Call) Return(_a0 *autoscaling.PutLifecycleHookOutput, _a1 error) *ASG_PutLifecycleHook_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_PutLifecycleHook_Call) RunAndReturn(run func(context.Context, *autoscaling.PutLifecycleHookInput, ...func(*autoscaling.Options)) (*autoscaling.PutLifecycleHookOutput, error)) *ASG_PutLifecycleHook_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutNotificationConfiguration provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) PutNotificationConfiguration(ctx context.Context, params *autoscaling.PutNotificationConfigurationInput, optFns ...func(*autoscaling.Options)) (*autoscaling.PutNotificationConfigurationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1955,6 +3877,43 @@ func (_m *ASG) PutNotificationConfiguration(ctx context.Context, params *autosca
 	}
 
 	return r0, r1
+}
+
+// ASG_PutNotificationConfiguration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutNotificationConfiguration'
+type ASG_PutNotificationConfiguration_Call struct {
+	*mock.Call
+}
+
+// PutNotificationConfiguration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.PutNotificationConfigurationInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) PutNotificationConfiguration(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_PutNotificationConfiguration_Call {
+	return &ASG_PutNotificationConfiguration_Call{Call: _e.mock.On("PutNotificationConfiguration",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_PutNotificationConfiguration_Call) Run(run func(ctx context.Context, params *autoscaling.PutNotificationConfigurationInput, optFns ...func(*autoscaling.Options))) *ASG_PutNotificationConfiguration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.PutNotificationConfigurationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_PutNotificationConfiguration_Call) Return(_a0 *autoscaling.PutNotificationConfigurationOutput, _a1 error) *ASG_PutNotificationConfiguration_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_PutNotificationConfiguration_Call) RunAndReturn(run func(context.Context, *autoscaling.PutNotificationConfigurationInput, ...func(*autoscaling.Options)) (*autoscaling.PutNotificationConfigurationOutput, error)) *ASG_PutNotificationConfiguration_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // PutScalingPolicy provides a mock function with given fields: ctx, params, optFns
@@ -1994,6 +3953,43 @@ func (_m *ASG) PutScalingPolicy(ctx context.Context, params *autoscaling.PutScal
 	return r0, r1
 }
 
+// ASG_PutScalingPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutScalingPolicy'
+type ASG_PutScalingPolicy_Call struct {
+	*mock.Call
+}
+
+// PutScalingPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.PutScalingPolicyInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) PutScalingPolicy(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_PutScalingPolicy_Call {
+	return &ASG_PutScalingPolicy_Call{Call: _e.mock.On("PutScalingPolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_PutScalingPolicy_Call) Run(run func(ctx context.Context, params *autoscaling.PutScalingPolicyInput, optFns ...func(*autoscaling.Options))) *ASG_PutScalingPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.PutScalingPolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_PutScalingPolicy_Call) Return(_a0 *autoscaling.PutScalingPolicyOutput, _a1 error) *ASG_PutScalingPolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_PutScalingPolicy_Call) RunAndReturn(run func(context.Context, *autoscaling.PutScalingPolicyInput, ...func(*autoscaling.Options)) (*autoscaling.PutScalingPolicyOutput, error)) *ASG_PutScalingPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutScheduledUpdateGroupAction provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) PutScheduledUpdateGroupAction(ctx context.Context, params *autoscaling.PutScheduledUpdateGroupActionInput, optFns ...func(*autoscaling.Options)) (*autoscaling.PutScheduledUpdateGroupActionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2029,6 +4025,43 @@ func (_m *ASG) PutScheduledUpdateGroupAction(ctx context.Context, params *autosc
 	}
 
 	return r0, r1
+}
+
+// ASG_PutScheduledUpdateGroupAction_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutScheduledUpdateGroupAction'
+type ASG_PutScheduledUpdateGroupAction_Call struct {
+	*mock.Call
+}
+
+// PutScheduledUpdateGroupAction is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.PutScheduledUpdateGroupActionInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) PutScheduledUpdateGroupAction(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_PutScheduledUpdateGroupAction_Call {
+	return &ASG_PutScheduledUpdateGroupAction_Call{Call: _e.mock.On("PutScheduledUpdateGroupAction",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_PutScheduledUpdateGroupAction_Call) Run(run func(ctx context.Context, params *autoscaling.PutScheduledUpdateGroupActionInput, optFns ...func(*autoscaling.Options))) *ASG_PutScheduledUpdateGroupAction_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.PutScheduledUpdateGroupActionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_PutScheduledUpdateGroupAction_Call) Return(_a0 *autoscaling.PutScheduledUpdateGroupActionOutput, _a1 error) *ASG_PutScheduledUpdateGroupAction_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_PutScheduledUpdateGroupAction_Call) RunAndReturn(run func(context.Context, *autoscaling.PutScheduledUpdateGroupActionInput, ...func(*autoscaling.Options)) (*autoscaling.PutScheduledUpdateGroupActionOutput, error)) *ASG_PutScheduledUpdateGroupAction_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // PutWarmPool provides a mock function with given fields: ctx, params, optFns
@@ -2068,6 +4101,43 @@ func (_m *ASG) PutWarmPool(ctx context.Context, params *autoscaling.PutWarmPoolI
 	return r0, r1
 }
 
+// ASG_PutWarmPool_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutWarmPool'
+type ASG_PutWarmPool_Call struct {
+	*mock.Call
+}
+
+// PutWarmPool is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.PutWarmPoolInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) PutWarmPool(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_PutWarmPool_Call {
+	return &ASG_PutWarmPool_Call{Call: _e.mock.On("PutWarmPool",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_PutWarmPool_Call) Run(run func(ctx context.Context, params *autoscaling.PutWarmPoolInput, optFns ...func(*autoscaling.Options))) *ASG_PutWarmPool_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.PutWarmPoolInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_PutWarmPool_Call) Return(_a0 *autoscaling.PutWarmPoolOutput, _a1 error) *ASG_PutWarmPool_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_PutWarmPool_Call) RunAndReturn(run func(context.Context, *autoscaling.PutWarmPoolInput, ...func(*autoscaling.Options)) (*autoscaling.PutWarmPoolOutput, error)) *ASG_PutWarmPool_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RecordLifecycleActionHeartbeat provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) RecordLifecycleActionHeartbeat(ctx context.Context, params *autoscaling.RecordLifecycleActionHeartbeatInput, optFns ...func(*autoscaling.Options)) (*autoscaling.RecordLifecycleActionHeartbeatOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2103,6 +4173,43 @@ func (_m *ASG) RecordLifecycleActionHeartbeat(ctx context.Context, params *autos
 	}
 
 	return r0, r1
+}
+
+// ASG_RecordLifecycleActionHeartbeat_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RecordLifecycleActionHeartbeat'
+type ASG_RecordLifecycleActionHeartbeat_Call struct {
+	*mock.Call
+}
+
+// RecordLifecycleActionHeartbeat is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.RecordLifecycleActionHeartbeatInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) RecordLifecycleActionHeartbeat(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_RecordLifecycleActionHeartbeat_Call {
+	return &ASG_RecordLifecycleActionHeartbeat_Call{Call: _e.mock.On("RecordLifecycleActionHeartbeat",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_RecordLifecycleActionHeartbeat_Call) Run(run func(ctx context.Context, params *autoscaling.RecordLifecycleActionHeartbeatInput, optFns ...func(*autoscaling.Options))) *ASG_RecordLifecycleActionHeartbeat_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.RecordLifecycleActionHeartbeatInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_RecordLifecycleActionHeartbeat_Call) Return(_a0 *autoscaling.RecordLifecycleActionHeartbeatOutput, _a1 error) *ASG_RecordLifecycleActionHeartbeat_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_RecordLifecycleActionHeartbeat_Call) RunAndReturn(run func(context.Context, *autoscaling.RecordLifecycleActionHeartbeatInput, ...func(*autoscaling.Options)) (*autoscaling.RecordLifecycleActionHeartbeatOutput, error)) *ASG_RecordLifecycleActionHeartbeat_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ResumeProcesses provides a mock function with given fields: ctx, params, optFns
@@ -2142,6 +4249,43 @@ func (_m *ASG) ResumeProcesses(ctx context.Context, params *autoscaling.ResumePr
 	return r0, r1
 }
 
+// ASG_ResumeProcesses_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResumeProcesses'
+type ASG_ResumeProcesses_Call struct {
+	*mock.Call
+}
+
+// ResumeProcesses is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.ResumeProcessesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) ResumeProcesses(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_ResumeProcesses_Call {
+	return &ASG_ResumeProcesses_Call{Call: _e.mock.On("ResumeProcesses",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_ResumeProcesses_Call) Run(run func(ctx context.Context, params *autoscaling.ResumeProcessesInput, optFns ...func(*autoscaling.Options))) *ASG_ResumeProcesses_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.ResumeProcessesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_ResumeProcesses_Call) Return(_a0 *autoscaling.ResumeProcessesOutput, _a1 error) *ASG_ResumeProcesses_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_ResumeProcesses_Call) RunAndReturn(run func(context.Context, *autoscaling.ResumeProcessesInput, ...func(*autoscaling.Options)) (*autoscaling.ResumeProcessesOutput, error)) *ASG_ResumeProcesses_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RollbackInstanceRefresh provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) RollbackInstanceRefresh(ctx context.Context, params *autoscaling.RollbackInstanceRefreshInput, optFns ...func(*autoscaling.Options)) (*autoscaling.RollbackInstanceRefreshOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2177,6 +4321,43 @@ func (_m *ASG) RollbackInstanceRefresh(ctx context.Context, params *autoscaling.
 	}
 
 	return r0, r1
+}
+
+// ASG_RollbackInstanceRefresh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RollbackInstanceRefresh'
+type ASG_RollbackInstanceRefresh_Call struct {
+	*mock.Call
+}
+
+// RollbackInstanceRefresh is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.RollbackInstanceRefreshInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) RollbackInstanceRefresh(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_RollbackInstanceRefresh_Call {
+	return &ASG_RollbackInstanceRefresh_Call{Call: _e.mock.On("RollbackInstanceRefresh",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_RollbackInstanceRefresh_Call) Run(run func(ctx context.Context, params *autoscaling.RollbackInstanceRefreshInput, optFns ...func(*autoscaling.Options))) *ASG_RollbackInstanceRefresh_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.RollbackInstanceRefreshInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_RollbackInstanceRefresh_Call) Return(_a0 *autoscaling.RollbackInstanceRefreshOutput, _a1 error) *ASG_RollbackInstanceRefresh_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_RollbackInstanceRefresh_Call) RunAndReturn(run func(context.Context, *autoscaling.RollbackInstanceRefreshInput, ...func(*autoscaling.Options)) (*autoscaling.RollbackInstanceRefreshOutput, error)) *ASG_RollbackInstanceRefresh_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // SetDesiredCapacity provides a mock function with given fields: ctx, params, optFns
@@ -2216,6 +4397,43 @@ func (_m *ASG) SetDesiredCapacity(ctx context.Context, params *autoscaling.SetDe
 	return r0, r1
 }
 
+// ASG_SetDesiredCapacity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetDesiredCapacity'
+type ASG_SetDesiredCapacity_Call struct {
+	*mock.Call
+}
+
+// SetDesiredCapacity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.SetDesiredCapacityInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) SetDesiredCapacity(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_SetDesiredCapacity_Call {
+	return &ASG_SetDesiredCapacity_Call{Call: _e.mock.On("SetDesiredCapacity",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_SetDesiredCapacity_Call) Run(run func(ctx context.Context, params *autoscaling.SetDesiredCapacityInput, optFns ...func(*autoscaling.Options))) *ASG_SetDesiredCapacity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.SetDesiredCapacityInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_SetDesiredCapacity_Call) Return(_a0 *autoscaling.SetDesiredCapacityOutput, _a1 error) *ASG_SetDesiredCapacity_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_SetDesiredCapacity_Call) RunAndReturn(run func(context.Context, *autoscaling.SetDesiredCapacityInput, ...func(*autoscaling.Options)) (*autoscaling.SetDesiredCapacityOutput, error)) *ASG_SetDesiredCapacity_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetInstanceHealth provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) SetInstanceHealth(ctx context.Context, params *autoscaling.SetInstanceHealthInput, optFns ...func(*autoscaling.Options)) (*autoscaling.SetInstanceHealthOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2251,6 +4469,43 @@ func (_m *ASG) SetInstanceHealth(ctx context.Context, params *autoscaling.SetIns
 	}
 
 	return r0, r1
+}
+
+// ASG_SetInstanceHealth_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetInstanceHealth'
+type ASG_SetInstanceHealth_Call struct {
+	*mock.Call
+}
+
+// SetInstanceHealth is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.SetInstanceHealthInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) SetInstanceHealth(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_SetInstanceHealth_Call {
+	return &ASG_SetInstanceHealth_Call{Call: _e.mock.On("SetInstanceHealth",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_SetInstanceHealth_Call) Run(run func(ctx context.Context, params *autoscaling.SetInstanceHealthInput, optFns ...func(*autoscaling.Options))) *ASG_SetInstanceHealth_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.SetInstanceHealthInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_SetInstanceHealth_Call) Return(_a0 *autoscaling.SetInstanceHealthOutput, _a1 error) *ASG_SetInstanceHealth_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_SetInstanceHealth_Call) RunAndReturn(run func(context.Context, *autoscaling.SetInstanceHealthInput, ...func(*autoscaling.Options)) (*autoscaling.SetInstanceHealthOutput, error)) *ASG_SetInstanceHealth_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // SetInstanceProtection provides a mock function with given fields: ctx, params, optFns
@@ -2290,6 +4545,43 @@ func (_m *ASG) SetInstanceProtection(ctx context.Context, params *autoscaling.Se
 	return r0, r1
 }
 
+// ASG_SetInstanceProtection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetInstanceProtection'
+type ASG_SetInstanceProtection_Call struct {
+	*mock.Call
+}
+
+// SetInstanceProtection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.SetInstanceProtectionInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) SetInstanceProtection(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_SetInstanceProtection_Call {
+	return &ASG_SetInstanceProtection_Call{Call: _e.mock.On("SetInstanceProtection",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_SetInstanceProtection_Call) Run(run func(ctx context.Context, params *autoscaling.SetInstanceProtectionInput, optFns ...func(*autoscaling.Options))) *ASG_SetInstanceProtection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.SetInstanceProtectionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_SetInstanceProtection_Call) Return(_a0 *autoscaling.SetInstanceProtectionOutput, _a1 error) *ASG_SetInstanceProtection_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_SetInstanceProtection_Call) RunAndReturn(run func(context.Context, *autoscaling.SetInstanceProtectionInput, ...func(*autoscaling.Options)) (*autoscaling.SetInstanceProtectionOutput, error)) *ASG_SetInstanceProtection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StartInstanceRefresh provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) StartInstanceRefresh(ctx context.Context, params *autoscaling.StartInstanceRefreshInput, optFns ...func(*autoscaling.Options)) (*autoscaling.StartInstanceRefreshOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2325,6 +4617,43 @@ func (_m *ASG) StartInstanceRefresh(ctx context.Context, params *autoscaling.Sta
 	}
 
 	return r0, r1
+}
+
+// ASG_StartInstanceRefresh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartInstanceRefresh'
+type ASG_StartInstanceRefresh_Call struct {
+	*mock.Call
+}
+
+// StartInstanceRefresh is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.StartInstanceRefreshInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) StartInstanceRefresh(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_StartInstanceRefresh_Call {
+	return &ASG_StartInstanceRefresh_Call{Call: _e.mock.On("StartInstanceRefresh",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_StartInstanceRefresh_Call) Run(run func(ctx context.Context, params *autoscaling.StartInstanceRefreshInput, optFns ...func(*autoscaling.Options))) *ASG_StartInstanceRefresh_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.StartInstanceRefreshInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_StartInstanceRefresh_Call) Return(_a0 *autoscaling.StartInstanceRefreshOutput, _a1 error) *ASG_StartInstanceRefresh_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_StartInstanceRefresh_Call) RunAndReturn(run func(context.Context, *autoscaling.StartInstanceRefreshInput, ...func(*autoscaling.Options)) (*autoscaling.StartInstanceRefreshOutput, error)) *ASG_StartInstanceRefresh_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // SuspendProcesses provides a mock function with given fields: ctx, params, optFns
@@ -2364,6 +4693,43 @@ func (_m *ASG) SuspendProcesses(ctx context.Context, params *autoscaling.Suspend
 	return r0, r1
 }
 
+// ASG_SuspendProcesses_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SuspendProcesses'
+type ASG_SuspendProcesses_Call struct {
+	*mock.Call
+}
+
+// SuspendProcesses is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.SuspendProcessesInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) SuspendProcesses(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_SuspendProcesses_Call {
+	return &ASG_SuspendProcesses_Call{Call: _e.mock.On("SuspendProcesses",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_SuspendProcesses_Call) Run(run func(ctx context.Context, params *autoscaling.SuspendProcessesInput, optFns ...func(*autoscaling.Options))) *ASG_SuspendProcesses_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.SuspendProcessesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_SuspendProcesses_Call) Return(_a0 *autoscaling.SuspendProcessesOutput, _a1 error) *ASG_SuspendProcesses_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_SuspendProcesses_Call) RunAndReturn(run func(context.Context, *autoscaling.SuspendProcessesInput, ...func(*autoscaling.Options)) (*autoscaling.SuspendProcessesOutput, error)) *ASG_SuspendProcesses_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TerminateInstanceInAutoScalingGroup provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) TerminateInstanceInAutoScalingGroup(ctx context.Context, params *autoscaling.TerminateInstanceInAutoScalingGroupInput, optFns ...func(*autoscaling.Options)) (*autoscaling.TerminateInstanceInAutoScalingGroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2401,6 +4767,43 @@ func (_m *ASG) TerminateInstanceInAutoScalingGroup(ctx context.Context, params *
 	return r0, r1
 }
 
+// ASG_TerminateInstanceInAutoScalingGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TerminateInstanceInAutoScalingGroup'
+type ASG_TerminateInstanceInAutoScalingGroup_Call struct {
+	*mock.Call
+}
+
+// TerminateInstanceInAutoScalingGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.TerminateInstanceInAutoScalingGroupInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) TerminateInstanceInAutoScalingGroup(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_TerminateInstanceInAutoScalingGroup_Call {
+	return &ASG_TerminateInstanceInAutoScalingGroup_Call{Call: _e.mock.On("TerminateInstanceInAutoScalingGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_TerminateInstanceInAutoScalingGroup_Call) Run(run func(ctx context.Context, params *autoscaling.TerminateInstanceInAutoScalingGroupInput, optFns ...func(*autoscaling.Options))) *ASG_TerminateInstanceInAutoScalingGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.TerminateInstanceInAutoScalingGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_TerminateInstanceInAutoScalingGroup_Call) Return(_a0 *autoscaling.TerminateInstanceInAutoScalingGroupOutput, _a1 error) *ASG_TerminateInstanceInAutoScalingGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_TerminateInstanceInAutoScalingGroup_Call) RunAndReturn(run func(context.Context, *autoscaling.TerminateInstanceInAutoScalingGroupInput, ...func(*autoscaling.Options)) (*autoscaling.TerminateInstanceInAutoScalingGroupOutput, error)) *ASG_TerminateInstanceInAutoScalingGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateAutoScalingGroup provides a mock function with given fields: ctx, params, optFns
 func (_m *ASG) UpdateAutoScalingGroup(ctx context.Context, params *autoscaling.UpdateAutoScalingGroupInput, optFns ...func(*autoscaling.Options)) (*autoscaling.UpdateAutoScalingGroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2436,6 +4839,43 @@ func (_m *ASG) UpdateAutoScalingGroup(ctx context.Context, params *autoscaling.U
 	}
 
 	return r0, r1
+}
+
+// ASG_UpdateAutoScalingGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAutoScalingGroup'
+type ASG_UpdateAutoScalingGroup_Call struct {
+	*mock.Call
+}
+
+// UpdateAutoScalingGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *autoscaling.UpdateAutoScalingGroupInput
+//   - optFns ...func(*autoscaling.Options)
+func (_e *ASG_Expecter) UpdateAutoScalingGroup(ctx interface{}, params interface{}, optFns ...interface{}) *ASG_UpdateAutoScalingGroup_Call {
+	return &ASG_UpdateAutoScalingGroup_Call{Call: _e.mock.On("UpdateAutoScalingGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *ASG_UpdateAutoScalingGroup_Call) Run(run func(ctx context.Context, params *autoscaling.UpdateAutoScalingGroupInput, optFns ...func(*autoscaling.Options))) *ASG_UpdateAutoScalingGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*autoscaling.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*autoscaling.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*autoscaling.UpdateAutoScalingGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *ASG_UpdateAutoScalingGroup_Call) Return(_a0 *autoscaling.UpdateAutoScalingGroupOutput, _a1 error) *ASG_UpdateAutoScalingGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ASG_UpdateAutoScalingGroup_Call) RunAndReturn(run func(context.Context, *autoscaling.UpdateAutoScalingGroupInput, ...func(*autoscaling.Options)) (*autoscaling.UpdateAutoScalingGroupOutput, error)) *ASG_UpdateAutoScalingGroup_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewASG creates a new instance of ASG. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

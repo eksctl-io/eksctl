@@ -3,13 +3,14 @@ package builder
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 
-	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
-	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+	gfncfn "goformation/v4/cloudformation/cloudformation"
+	gfnec2 "goformation/v4/cloudformation/ec2"
+	gfnt "goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -30,6 +31,7 @@ type IPv4VPCResourceSet struct {
 	ec2API            awsapi.EC2
 	vpcID             *gfnt.Value
 	subnetDetails     *SubnetDetails
+	azToRTMap         map[string]*gfnt.Value
 	extendForOutposts bool
 }
 
@@ -47,6 +49,7 @@ type SubnetDetails struct {
 	PublicLocalZone  []SubnetResource
 
 	controlPlaneOnOutposts bool
+	autoMode               bool
 }
 
 // NewIPv4VPCResourceSet creates and returns a new VPCResourceSet
@@ -57,7 +60,9 @@ func NewIPv4VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec
 		ec2API:        ec2API,
 		subnetDetails: &SubnetDetails{
 			controlPlaneOnOutposts: clusterConfig.IsControlPlaneOnOutposts(),
+			autoMode:               clusterConfig.IsAutoModeEnabled(),
 		},
+		azToRTMap:         make(map[string]*gfnt.Value),
 		extendForOutposts: extendForOutposts,
 	}
 }
@@ -80,20 +85,36 @@ func (v *IPv4VPCResourceSet) addResources() error {
 		EnableDnsHostnames: gfnt.True(),
 	})
 
+	// Add base private networking config, which is common to all eksctl created VPCs i.e.
+	// - Private Subnets
+	// - Private Route Tables
+	v.addPrivateRouteTables()
+	v.subnetDetails.Private = v.addSubnets(nil, api.SubnetTopologyPrivate, vpc.Subnets.Private)
+
 	if v.clusterConfig.IsFullyPrivate() {
-		v.noNAT()
-		v.subnetDetails.Private = v.addSubnets(nil, api.SubnetTopologyPrivate, vpc.Subnets.Private)
+		// if the cluster if fully private, we have already added all required resources
 		return nil
 	}
 
-	refIG := v.rs.newResource("InternetGateway", &gfnec2.InternetGateway{})
-	vpcGA := "VPCGatewayAttachment"
+	// Add full private networking config i.e.
+	// - NAT Gateway(s)
+	// - Hybrid Nodes Networking
+	if err := v.addNATGateways(); err != nil {
+		return err
+	}
+	if v.clusterConfig.HasRemoteNetworkingConfigured() {
+		v.addHybridNodesNetworking()
+	}
 
-	v.rs.newResource(vpcGA, &gfnec2.VPCGatewayAttachment{
+	// Add public networking config i.e.
+	// - Public Subnets
+	// - Public Route Table
+	// - Internet Gateway
+	refIG := v.rs.newResource("InternetGateway", &gfnec2.InternetGateway{})
+	v.rs.newResource("VPCGatewayAttachment", &gfnec2.VPCGatewayAttachment{
 		InternetGatewayId: refIG,
 		VpcId:             v.vpcID,
 	})
-
 	refPublicRT := v.rs.newResource("PublicRouteTable", &gfnec2.RouteTable{
 		VpcId: v.vpcID,
 	})
@@ -107,24 +128,17 @@ func (v *IPv4VPCResourceSet) addResources() error {
 			RouteTableId:               refPublicRT,
 			DestinationIpv6CidrBlock:   gfnt.NewString(InternetIPv6CIDR),
 			GatewayId:                  refIG,
-			AWSCloudFormationDependsOn: []string{vpcGA},
+			AWSCloudFormationDependsOn: []string{"VPCGatewayAttachment"},
 		})
 	}
-
 	v.rs.newResource("PublicSubnetRoute", &gfnec2.Route{
 		RouteTableId:               refPublicRT,
 		DestinationCidrBlock:       gfnt.NewString(InternetCIDR),
 		GatewayId:                  refIG,
-		AWSCloudFormationDependsOn: []string{vpcGA},
+		AWSCloudFormationDependsOn: []string{"VPCGatewayAttachment"},
 	})
-
 	v.subnetDetails.Public = v.addSubnets(refPublicRT, api.SubnetTopologyPublic, vpc.Subnets.Public)
 
-	if err := v.addNATGateways(); err != nil {
-		return err
-	}
-
-	v.subnetDetails.Private = v.addSubnets(nil, api.SubnetTopologyPrivate, vpc.Subnets.Private)
 	if vpc.LocalZoneSubnets != nil {
 		if len(vpc.LocalZoneSubnets.Public) > 0 {
 			v.subnetDetails.PublicLocalZone = v.addSubnets(refPublicRT, api.SubnetTopologyPublic, vpc.LocalZoneSubnets.Public)
@@ -140,6 +154,9 @@ func (v *IPv4VPCResourceSet) addResources() error {
 func (s *SubnetDetails) ControlPlaneSubnetRefs() []*gfnt.Value {
 	privateSubnetRefs := s.PrivateSubnetRefs()
 	if s.controlPlaneOnOutposts && len(privateSubnetRefs) > 0 {
+		return privateSubnetRefs
+	}
+	if s.autoMode {
 		return privateSubnetRefs
 	}
 	return append(s.PublicSubnetRefs(), privateSubnetRefs...)
@@ -314,6 +331,86 @@ func (v *IPv4VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTo
 	return subnetResources
 }
 
+func (v *IPv4VPCResourceSet) getPrivateRouteTableRefForAZ(az string) *gfnt.Value {
+	return v.azToRTMap[az]
+}
+
+func (v *IPv4VPCResourceSet) addPrivateRouteTables() {
+	forEachPrivateSubnet(v.clusterConfig.VPC, func(subnetAlias string) {
+		subnetAZResourceName := makeAZResourceName(subnetAlias)
+
+		refRT := v.rs.newResource("PrivateRouteTable"+subnetAZResourceName, &gfnec2.RouteTable{
+			VpcId: v.vpcID,
+		})
+		v.azToRTMap[subnetAZResourceName] = refRT
+
+		v.rs.newResource("RouteTableAssociationPrivate"+subnetAZResourceName, &gfnec2.SubnetRouteTableAssociation{
+			SubnetId:     gfnt.MakeRef("SubnetPrivate" + subnetAZResourceName),
+			RouteTableId: refRT,
+		})
+	})
+}
+
+func (v *IPv4VPCResourceSet) addHybridNodesNetworking() {
+	switch {
+	case v.clusterConfig.RemoteNetworkConfig.VPCGatewayID.IsVirtualPrivateGateway():
+		VGWRef := gfnt.NewString(string(*v.clusterConfig.RemoteNetworkConfig.VPCGatewayID))
+		v.rs.newResource("VirtualPrivateGatewayAttachment", &gfnec2.VPCGatewayAttachment{
+			VpnGatewayId: VGWRef,
+			VpcId:        v.vpcID,
+		})
+		forEachPrivateSubnet(v.clusterConfig.VPC, func(subnetAlias string) {
+			subnetAZResourceName := makeAZResourceName(subnetAlias)
+			for i, remoteNetworkCIDR := range v.clusterConfig.RemoteNetworkConfig.ToRemoteNetworksPool() {
+				v.rs.newResource("VGWPrivateSubnetRoute"+strconv.Itoa(i)+subnetAZResourceName, &gfnec2.Route{
+					RouteTableId:               v.getPrivateRouteTableRefForAZ(subnetAZResourceName),
+					DestinationCidrBlock:       gfnt.NewString(remoteNetworkCIDR),
+					GatewayId:                  VGWRef,
+					AWSCloudFormationDependsOn: []string{"VirtualPrivateGatewayAttachment"},
+				})
+			}
+		})
+
+	case v.clusterConfig.RemoteNetworkConfig.VPCGatewayID.IsTransitGateway():
+		privateSubnetRefs := []*gfnt.Value{}
+		forEachPrivateSubnet(v.clusterConfig.VPC, func(subnetAlias string) {
+			subnetAZResourceName := makeAZResourceName(subnetAlias)
+			privateSubnetRefs = append(privateSubnetRefs, gfnt.MakeRef("SubnetPrivate"+subnetAZResourceName))
+		})
+		TGWRef := gfnt.NewString(string(*v.clusterConfig.RemoteNetworkConfig.VPCGatewayID))
+		v.rs.newResource("TransitGatewayAttachment", &gfnec2.TransitGatewayAttachment{
+			//nolint: golint
+			TransitGatewayId: TGWRef,
+			VpcId:            v.vpcID,
+			SubnetIds:        gfnt.NewSlice(privateSubnetRefs...),
+		})
+		forEachPrivateSubnet(v.clusterConfig.VPC, func(subnetAlias string) {
+			subnetAZResourceName := makeAZResourceName(subnetAlias)
+			for i, remoteNetworkCIDR := range v.clusterConfig.RemoteNetworkConfig.ToRemoteNetworksPool() {
+				v.rs.newResource("TGWPrivateSubnetRoute"+strconv.Itoa(i)+subnetAZResourceName, &gfnec2.Route{
+					RouteTableId:               v.getPrivateRouteTableRefForAZ(subnetAZResourceName),
+					DestinationCidrBlock:       gfnt.NewString(remoteNetworkCIDR),
+					TransitGatewayId:           TGWRef,
+					AWSCloudFormationDependsOn: []string{"TransitGatewayAttachment"},
+				})
+			}
+		})
+	default:
+		return
+	}
+}
+
+func forEachPrivateSubnet(clusterVPC *api.ClusterVPC, fn func(subnetAlias string)) {
+	for subnetAlias := range clusterVPC.Subnets.Private {
+		fn(subnetAlias)
+	}
+	if clusterVPC.LocalZoneSubnets != nil {
+		for subnetAlias := range clusterVPC.LocalZoneSubnets.Private {
+			fn(subnetAlias)
+		}
+	}
+}
+
 func (v *IPv4VPCResourceSet) addNATGateways() error {
 	switch *v.clusterConfig.VPC.NAT.Gateway {
 	case api.ClusterHighlyAvailableNAT:
@@ -321,7 +418,7 @@ func (v *IPv4VPCResourceSet) addNATGateways() error {
 	case api.ClusterSingleNAT:
 		v.singleNAT()
 	case api.ClusterDisableNAT:
-		v.noNAT()
+		// Nothing to do
 	default:
 		// TODO validate this before starting to add resources
 		return fmt.Errorf("%s is not a valid NAT gateway mode", *v.clusterConfig.VPC.NAT.Gateway)
@@ -390,48 +487,15 @@ func (v *IPv4VPCResourceSet) singleNAT() {
 		SubnetId:     gfnt.MakeRef("SubnetPublic" + firstUpperAZ),
 	})
 
-	forEachNATSubnet(v.clusterConfig.VPC, func(subnetAlias string) {
+	forEachPrivateSubnet(v.clusterConfig.VPC, func(subnetAlias string) {
 		subnetAZResourceName := makeAZResourceName(subnetAlias)
 
-		refRT := v.rs.newResource("PrivateRouteTable"+subnetAZResourceName, &gfnec2.RouteTable{
-			VpcId: v.vpcID,
-		})
-
 		v.rs.newResource("NATPrivateSubnetRoute"+subnetAZResourceName, &gfnec2.Route{
-			RouteTableId:         refRT,
+			RouteTableId:         v.getPrivateRouteTableRefForAZ(subnetAZResourceName),
 			DestinationCidrBlock: gfnt.NewString(InternetCIDR),
 			NatGatewayId:         refNG,
 		})
-		v.rs.newResource("RouteTableAssociationPrivate"+subnetAZResourceName, &gfnec2.SubnetRouteTableAssociation{
-			SubnetId:     gfnt.MakeRef("SubnetPrivate" + subnetAZResourceName),
-			RouteTableId: refRT,
-		})
 	})
-}
-
-func (v *IPv4VPCResourceSet) noNAT() {
-	forEachNATSubnet(v.clusterConfig.VPC, func(subnetAlias string) {
-		subnetAZResourceName := makeAZResourceName(subnetAlias)
-
-		refRT := v.rs.newResource("PrivateRouteTable"+subnetAZResourceName, &gfnec2.RouteTable{
-			VpcId: v.vpcID,
-		})
-		v.rs.newResource("RouteTableAssociationPrivate"+subnetAZResourceName, &gfnec2.SubnetRouteTableAssociation{
-			SubnetId:     gfnt.MakeRef("SubnetPrivate" + subnetAZResourceName),
-			RouteTableId: refRT,
-		})
-	})
-}
-
-func forEachNATSubnet(clusterVPC *api.ClusterVPC, fn func(subnetAlias string)) {
-	for subnetAlias := range clusterVPC.Subnets.Private {
-		fn(subnetAlias)
-	}
-	if clusterVPC.LocalZoneSubnets != nil {
-		for subnetAlias := range clusterVPC.LocalZoneSubnets.Private {
-			fn(subnetAlias)
-		}
-	}
 }
 
 func makeAZResourceName(subnetAZ string) string {

@@ -14,6 +14,14 @@ type SSM struct {
 	mock.Mock
 }
 
+type SSM_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *SSM) EXPECT() *SSM_Expecter {
+	return &SSM_Expecter{mock: &_m.Mock}
+}
+
 // AddTagsToResource provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) AddTagsToResource(ctx context.Context, params *ssm.AddTagsToResourceInput, optFns ...func(*ssm.Options)) (*ssm.AddTagsToResourceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -49,6 +57,43 @@ func (_m *SSM) AddTagsToResource(ctx context.Context, params *ssm.AddTagsToResou
 	}
 
 	return r0, r1
+}
+
+// SSM_AddTagsToResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddTagsToResource'
+type SSM_AddTagsToResource_Call struct {
+	*mock.Call
+}
+
+// AddTagsToResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.AddTagsToResourceInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) AddTagsToResource(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_AddTagsToResource_Call {
+	return &SSM_AddTagsToResource_Call{Call: _e.mock.On("AddTagsToResource",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_AddTagsToResource_Call) Run(run func(ctx context.Context, params *ssm.AddTagsToResourceInput, optFns ...func(*ssm.Options))) *SSM_AddTagsToResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.AddTagsToResourceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_AddTagsToResource_Call) Return(_a0 *ssm.AddTagsToResourceOutput, _a1 error) *SSM_AddTagsToResource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_AddTagsToResource_Call) RunAndReturn(run func(context.Context, *ssm.AddTagsToResourceInput, ...func(*ssm.Options)) (*ssm.AddTagsToResourceOutput, error)) *SSM_AddTagsToResource_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // AssociateOpsItemRelatedItem provides a mock function with given fields: ctx, params, optFns
@@ -88,6 +133,43 @@ func (_m *SSM) AssociateOpsItemRelatedItem(ctx context.Context, params *ssm.Asso
 	return r0, r1
 }
 
+// SSM_AssociateOpsItemRelatedItem_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AssociateOpsItemRelatedItem'
+type SSM_AssociateOpsItemRelatedItem_Call struct {
+	*mock.Call
+}
+
+// AssociateOpsItemRelatedItem is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.AssociateOpsItemRelatedItemInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) AssociateOpsItemRelatedItem(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_AssociateOpsItemRelatedItem_Call {
+	return &SSM_AssociateOpsItemRelatedItem_Call{Call: _e.mock.On("AssociateOpsItemRelatedItem",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_AssociateOpsItemRelatedItem_Call) Run(run func(ctx context.Context, params *ssm.AssociateOpsItemRelatedItemInput, optFns ...func(*ssm.Options))) *SSM_AssociateOpsItemRelatedItem_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.AssociateOpsItemRelatedItemInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_AssociateOpsItemRelatedItem_Call) Return(_a0 *ssm.AssociateOpsItemRelatedItemOutput, _a1 error) *SSM_AssociateOpsItemRelatedItem_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_AssociateOpsItemRelatedItem_Call) RunAndReturn(run func(context.Context, *ssm.AssociateOpsItemRelatedItemInput, ...func(*ssm.Options)) (*ssm.AssociateOpsItemRelatedItemOutput, error)) *SSM_AssociateOpsItemRelatedItem_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CancelCommand provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) CancelCommand(ctx context.Context, params *ssm.CancelCommandInput, optFns ...func(*ssm.Options)) (*ssm.CancelCommandOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -123,6 +205,43 @@ func (_m *SSM) CancelCommand(ctx context.Context, params *ssm.CancelCommandInput
 	}
 
 	return r0, r1
+}
+
+// SSM_CancelCommand_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelCommand'
+type SSM_CancelCommand_Call struct {
+	*mock.Call
+}
+
+// CancelCommand is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.CancelCommandInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) CancelCommand(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_CancelCommand_Call {
+	return &SSM_CancelCommand_Call{Call: _e.mock.On("CancelCommand",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_CancelCommand_Call) Run(run func(ctx context.Context, params *ssm.CancelCommandInput, optFns ...func(*ssm.Options))) *SSM_CancelCommand_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.CancelCommandInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_CancelCommand_Call) Return(_a0 *ssm.CancelCommandOutput, _a1 error) *SSM_CancelCommand_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_CancelCommand_Call) RunAndReturn(run func(context.Context, *ssm.CancelCommandInput, ...func(*ssm.Options)) (*ssm.CancelCommandOutput, error)) *SSM_CancelCommand_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CancelMaintenanceWindowExecution provides a mock function with given fields: ctx, params, optFns
@@ -162,6 +281,43 @@ func (_m *SSM) CancelMaintenanceWindowExecution(ctx context.Context, params *ssm
 	return r0, r1
 }
 
+// SSM_CancelMaintenanceWindowExecution_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelMaintenanceWindowExecution'
+type SSM_CancelMaintenanceWindowExecution_Call struct {
+	*mock.Call
+}
+
+// CancelMaintenanceWindowExecution is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.CancelMaintenanceWindowExecutionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) CancelMaintenanceWindowExecution(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_CancelMaintenanceWindowExecution_Call {
+	return &SSM_CancelMaintenanceWindowExecution_Call{Call: _e.mock.On("CancelMaintenanceWindowExecution",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_CancelMaintenanceWindowExecution_Call) Run(run func(ctx context.Context, params *ssm.CancelMaintenanceWindowExecutionInput, optFns ...func(*ssm.Options))) *SSM_CancelMaintenanceWindowExecution_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.CancelMaintenanceWindowExecutionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_CancelMaintenanceWindowExecution_Call) Return(_a0 *ssm.CancelMaintenanceWindowExecutionOutput, _a1 error) *SSM_CancelMaintenanceWindowExecution_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_CancelMaintenanceWindowExecution_Call) RunAndReturn(run func(context.Context, *ssm.CancelMaintenanceWindowExecutionInput, ...func(*ssm.Options)) (*ssm.CancelMaintenanceWindowExecutionOutput, error)) *SSM_CancelMaintenanceWindowExecution_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateActivation provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) CreateActivation(ctx context.Context, params *ssm.CreateActivationInput, optFns ...func(*ssm.Options)) (*ssm.CreateActivationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -197,6 +353,43 @@ func (_m *SSM) CreateActivation(ctx context.Context, params *ssm.CreateActivatio
 	}
 
 	return r0, r1
+}
+
+// SSM_CreateActivation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateActivation'
+type SSM_CreateActivation_Call struct {
+	*mock.Call
+}
+
+// CreateActivation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.CreateActivationInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) CreateActivation(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_CreateActivation_Call {
+	return &SSM_CreateActivation_Call{Call: _e.mock.On("CreateActivation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_CreateActivation_Call) Run(run func(ctx context.Context, params *ssm.CreateActivationInput, optFns ...func(*ssm.Options))) *SSM_CreateActivation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.CreateActivationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_CreateActivation_Call) Return(_a0 *ssm.CreateActivationOutput, _a1 error) *SSM_CreateActivation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_CreateActivation_Call) RunAndReturn(run func(context.Context, *ssm.CreateActivationInput, ...func(*ssm.Options)) (*ssm.CreateActivationOutput, error)) *SSM_CreateActivation_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateAssociation provides a mock function with given fields: ctx, params, optFns
@@ -236,6 +429,43 @@ func (_m *SSM) CreateAssociation(ctx context.Context, params *ssm.CreateAssociat
 	return r0, r1
 }
 
+// SSM_CreateAssociation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAssociation'
+type SSM_CreateAssociation_Call struct {
+	*mock.Call
+}
+
+// CreateAssociation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.CreateAssociationInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) CreateAssociation(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_CreateAssociation_Call {
+	return &SSM_CreateAssociation_Call{Call: _e.mock.On("CreateAssociation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_CreateAssociation_Call) Run(run func(ctx context.Context, params *ssm.CreateAssociationInput, optFns ...func(*ssm.Options))) *SSM_CreateAssociation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.CreateAssociationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_CreateAssociation_Call) Return(_a0 *ssm.CreateAssociationOutput, _a1 error) *SSM_CreateAssociation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_CreateAssociation_Call) RunAndReturn(run func(context.Context, *ssm.CreateAssociationInput, ...func(*ssm.Options)) (*ssm.CreateAssociationOutput, error)) *SSM_CreateAssociation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateAssociationBatch provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) CreateAssociationBatch(ctx context.Context, params *ssm.CreateAssociationBatchInput, optFns ...func(*ssm.Options)) (*ssm.CreateAssociationBatchOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -271,6 +501,43 @@ func (_m *SSM) CreateAssociationBatch(ctx context.Context, params *ssm.CreateAss
 	}
 
 	return r0, r1
+}
+
+// SSM_CreateAssociationBatch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAssociationBatch'
+type SSM_CreateAssociationBatch_Call struct {
+	*mock.Call
+}
+
+// CreateAssociationBatch is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.CreateAssociationBatchInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) CreateAssociationBatch(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_CreateAssociationBatch_Call {
+	return &SSM_CreateAssociationBatch_Call{Call: _e.mock.On("CreateAssociationBatch",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_CreateAssociationBatch_Call) Run(run func(ctx context.Context, params *ssm.CreateAssociationBatchInput, optFns ...func(*ssm.Options))) *SSM_CreateAssociationBatch_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.CreateAssociationBatchInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_CreateAssociationBatch_Call) Return(_a0 *ssm.CreateAssociationBatchOutput, _a1 error) *SSM_CreateAssociationBatch_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_CreateAssociationBatch_Call) RunAndReturn(run func(context.Context, *ssm.CreateAssociationBatchInput, ...func(*ssm.Options)) (*ssm.CreateAssociationBatchOutput, error)) *SSM_CreateAssociationBatch_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateDocument provides a mock function with given fields: ctx, params, optFns
@@ -310,6 +577,43 @@ func (_m *SSM) CreateDocument(ctx context.Context, params *ssm.CreateDocumentInp
 	return r0, r1
 }
 
+// SSM_CreateDocument_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateDocument'
+type SSM_CreateDocument_Call struct {
+	*mock.Call
+}
+
+// CreateDocument is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.CreateDocumentInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) CreateDocument(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_CreateDocument_Call {
+	return &SSM_CreateDocument_Call{Call: _e.mock.On("CreateDocument",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_CreateDocument_Call) Run(run func(ctx context.Context, params *ssm.CreateDocumentInput, optFns ...func(*ssm.Options))) *SSM_CreateDocument_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.CreateDocumentInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_CreateDocument_Call) Return(_a0 *ssm.CreateDocumentOutput, _a1 error) *SSM_CreateDocument_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_CreateDocument_Call) RunAndReturn(run func(context.Context, *ssm.CreateDocumentInput, ...func(*ssm.Options)) (*ssm.CreateDocumentOutput, error)) *SSM_CreateDocument_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateMaintenanceWindow provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) CreateMaintenanceWindow(ctx context.Context, params *ssm.CreateMaintenanceWindowInput, optFns ...func(*ssm.Options)) (*ssm.CreateMaintenanceWindowOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -345,6 +649,43 @@ func (_m *SSM) CreateMaintenanceWindow(ctx context.Context, params *ssm.CreateMa
 	}
 
 	return r0, r1
+}
+
+// SSM_CreateMaintenanceWindow_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateMaintenanceWindow'
+type SSM_CreateMaintenanceWindow_Call struct {
+	*mock.Call
+}
+
+// CreateMaintenanceWindow is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.CreateMaintenanceWindowInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) CreateMaintenanceWindow(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_CreateMaintenanceWindow_Call {
+	return &SSM_CreateMaintenanceWindow_Call{Call: _e.mock.On("CreateMaintenanceWindow",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_CreateMaintenanceWindow_Call) Run(run func(ctx context.Context, params *ssm.CreateMaintenanceWindowInput, optFns ...func(*ssm.Options))) *SSM_CreateMaintenanceWindow_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.CreateMaintenanceWindowInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_CreateMaintenanceWindow_Call) Return(_a0 *ssm.CreateMaintenanceWindowOutput, _a1 error) *SSM_CreateMaintenanceWindow_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_CreateMaintenanceWindow_Call) RunAndReturn(run func(context.Context, *ssm.CreateMaintenanceWindowInput, ...func(*ssm.Options)) (*ssm.CreateMaintenanceWindowOutput, error)) *SSM_CreateMaintenanceWindow_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateOpsItem provides a mock function with given fields: ctx, params, optFns
@@ -384,6 +725,43 @@ func (_m *SSM) CreateOpsItem(ctx context.Context, params *ssm.CreateOpsItemInput
 	return r0, r1
 }
 
+// SSM_CreateOpsItem_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateOpsItem'
+type SSM_CreateOpsItem_Call struct {
+	*mock.Call
+}
+
+// CreateOpsItem is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.CreateOpsItemInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) CreateOpsItem(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_CreateOpsItem_Call {
+	return &SSM_CreateOpsItem_Call{Call: _e.mock.On("CreateOpsItem",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_CreateOpsItem_Call) Run(run func(ctx context.Context, params *ssm.CreateOpsItemInput, optFns ...func(*ssm.Options))) *SSM_CreateOpsItem_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.CreateOpsItemInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_CreateOpsItem_Call) Return(_a0 *ssm.CreateOpsItemOutput, _a1 error) *SSM_CreateOpsItem_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_CreateOpsItem_Call) RunAndReturn(run func(context.Context, *ssm.CreateOpsItemInput, ...func(*ssm.Options)) (*ssm.CreateOpsItemOutput, error)) *SSM_CreateOpsItem_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateOpsMetadata provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) CreateOpsMetadata(ctx context.Context, params *ssm.CreateOpsMetadataInput, optFns ...func(*ssm.Options)) (*ssm.CreateOpsMetadataOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -419,6 +797,43 @@ func (_m *SSM) CreateOpsMetadata(ctx context.Context, params *ssm.CreateOpsMetad
 	}
 
 	return r0, r1
+}
+
+// SSM_CreateOpsMetadata_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateOpsMetadata'
+type SSM_CreateOpsMetadata_Call struct {
+	*mock.Call
+}
+
+// CreateOpsMetadata is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.CreateOpsMetadataInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) CreateOpsMetadata(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_CreateOpsMetadata_Call {
+	return &SSM_CreateOpsMetadata_Call{Call: _e.mock.On("CreateOpsMetadata",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_CreateOpsMetadata_Call) Run(run func(ctx context.Context, params *ssm.CreateOpsMetadataInput, optFns ...func(*ssm.Options))) *SSM_CreateOpsMetadata_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.CreateOpsMetadataInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_CreateOpsMetadata_Call) Return(_a0 *ssm.CreateOpsMetadataOutput, _a1 error) *SSM_CreateOpsMetadata_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_CreateOpsMetadata_Call) RunAndReturn(run func(context.Context, *ssm.CreateOpsMetadataInput, ...func(*ssm.Options)) (*ssm.CreateOpsMetadataOutput, error)) *SSM_CreateOpsMetadata_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreatePatchBaseline provides a mock function with given fields: ctx, params, optFns
@@ -458,6 +873,43 @@ func (_m *SSM) CreatePatchBaseline(ctx context.Context, params *ssm.CreatePatchB
 	return r0, r1
 }
 
+// SSM_CreatePatchBaseline_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreatePatchBaseline'
+type SSM_CreatePatchBaseline_Call struct {
+	*mock.Call
+}
+
+// CreatePatchBaseline is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.CreatePatchBaselineInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) CreatePatchBaseline(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_CreatePatchBaseline_Call {
+	return &SSM_CreatePatchBaseline_Call{Call: _e.mock.On("CreatePatchBaseline",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_CreatePatchBaseline_Call) Run(run func(ctx context.Context, params *ssm.CreatePatchBaselineInput, optFns ...func(*ssm.Options))) *SSM_CreatePatchBaseline_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.CreatePatchBaselineInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_CreatePatchBaseline_Call) Return(_a0 *ssm.CreatePatchBaselineOutput, _a1 error) *SSM_CreatePatchBaseline_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_CreatePatchBaseline_Call) RunAndReturn(run func(context.Context, *ssm.CreatePatchBaselineInput, ...func(*ssm.Options)) (*ssm.CreatePatchBaselineOutput, error)) *SSM_CreatePatchBaseline_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateResourceDataSync provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) CreateResourceDataSync(ctx context.Context, params *ssm.CreateResourceDataSyncInput, optFns ...func(*ssm.Options)) (*ssm.CreateResourceDataSyncOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -493,6 +945,43 @@ func (_m *SSM) CreateResourceDataSync(ctx context.Context, params *ssm.CreateRes
 	}
 
 	return r0, r1
+}
+
+// SSM_CreateResourceDataSync_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateResourceDataSync'
+type SSM_CreateResourceDataSync_Call struct {
+	*mock.Call
+}
+
+// CreateResourceDataSync is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.CreateResourceDataSyncInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) CreateResourceDataSync(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_CreateResourceDataSync_Call {
+	return &SSM_CreateResourceDataSync_Call{Call: _e.mock.On("CreateResourceDataSync",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_CreateResourceDataSync_Call) Run(run func(ctx context.Context, params *ssm.CreateResourceDataSyncInput, optFns ...func(*ssm.Options))) *SSM_CreateResourceDataSync_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.CreateResourceDataSyncInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_CreateResourceDataSync_Call) Return(_a0 *ssm.CreateResourceDataSyncOutput, _a1 error) *SSM_CreateResourceDataSync_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_CreateResourceDataSync_Call) RunAndReturn(run func(context.Context, *ssm.CreateResourceDataSyncInput, ...func(*ssm.Options)) (*ssm.CreateResourceDataSyncOutput, error)) *SSM_CreateResourceDataSync_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteActivation provides a mock function with given fields: ctx, params, optFns
@@ -532,6 +1021,43 @@ func (_m *SSM) DeleteActivation(ctx context.Context, params *ssm.DeleteActivatio
 	return r0, r1
 }
 
+// SSM_DeleteActivation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteActivation'
+type SSM_DeleteActivation_Call struct {
+	*mock.Call
+}
+
+// DeleteActivation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeleteActivationInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeleteActivation(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeleteActivation_Call {
+	return &SSM_DeleteActivation_Call{Call: _e.mock.On("DeleteActivation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeleteActivation_Call) Run(run func(ctx context.Context, params *ssm.DeleteActivationInput, optFns ...func(*ssm.Options))) *SSM_DeleteActivation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeleteActivationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeleteActivation_Call) Return(_a0 *ssm.DeleteActivationOutput, _a1 error) *SSM_DeleteActivation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeleteActivation_Call) RunAndReturn(run func(context.Context, *ssm.DeleteActivationInput, ...func(*ssm.Options)) (*ssm.DeleteActivationOutput, error)) *SSM_DeleteActivation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteAssociation provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DeleteAssociation(ctx context.Context, params *ssm.DeleteAssociationInput, optFns ...func(*ssm.Options)) (*ssm.DeleteAssociationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -567,6 +1093,43 @@ func (_m *SSM) DeleteAssociation(ctx context.Context, params *ssm.DeleteAssociat
 	}
 
 	return r0, r1
+}
+
+// SSM_DeleteAssociation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAssociation'
+type SSM_DeleteAssociation_Call struct {
+	*mock.Call
+}
+
+// DeleteAssociation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeleteAssociationInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeleteAssociation(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeleteAssociation_Call {
+	return &SSM_DeleteAssociation_Call{Call: _e.mock.On("DeleteAssociation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeleteAssociation_Call) Run(run func(ctx context.Context, params *ssm.DeleteAssociationInput, optFns ...func(*ssm.Options))) *SSM_DeleteAssociation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeleteAssociationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeleteAssociation_Call) Return(_a0 *ssm.DeleteAssociationOutput, _a1 error) *SSM_DeleteAssociation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeleteAssociation_Call) RunAndReturn(run func(context.Context, *ssm.DeleteAssociationInput, ...func(*ssm.Options)) (*ssm.DeleteAssociationOutput, error)) *SSM_DeleteAssociation_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteDocument provides a mock function with given fields: ctx, params, optFns
@@ -606,6 +1169,43 @@ func (_m *SSM) DeleteDocument(ctx context.Context, params *ssm.DeleteDocumentInp
 	return r0, r1
 }
 
+// SSM_DeleteDocument_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteDocument'
+type SSM_DeleteDocument_Call struct {
+	*mock.Call
+}
+
+// DeleteDocument is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeleteDocumentInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeleteDocument(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeleteDocument_Call {
+	return &SSM_DeleteDocument_Call{Call: _e.mock.On("DeleteDocument",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeleteDocument_Call) Run(run func(ctx context.Context, params *ssm.DeleteDocumentInput, optFns ...func(*ssm.Options))) *SSM_DeleteDocument_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeleteDocumentInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeleteDocument_Call) Return(_a0 *ssm.DeleteDocumentOutput, _a1 error) *SSM_DeleteDocument_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeleteDocument_Call) RunAndReturn(run func(context.Context, *ssm.DeleteDocumentInput, ...func(*ssm.Options)) (*ssm.DeleteDocumentOutput, error)) *SSM_DeleteDocument_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteInventory provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DeleteInventory(ctx context.Context, params *ssm.DeleteInventoryInput, optFns ...func(*ssm.Options)) (*ssm.DeleteInventoryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -641,6 +1241,43 @@ func (_m *SSM) DeleteInventory(ctx context.Context, params *ssm.DeleteInventoryI
 	}
 
 	return r0, r1
+}
+
+// SSM_DeleteInventory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteInventory'
+type SSM_DeleteInventory_Call struct {
+	*mock.Call
+}
+
+// DeleteInventory is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeleteInventoryInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeleteInventory(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeleteInventory_Call {
+	return &SSM_DeleteInventory_Call{Call: _e.mock.On("DeleteInventory",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeleteInventory_Call) Run(run func(ctx context.Context, params *ssm.DeleteInventoryInput, optFns ...func(*ssm.Options))) *SSM_DeleteInventory_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeleteInventoryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeleteInventory_Call) Return(_a0 *ssm.DeleteInventoryOutput, _a1 error) *SSM_DeleteInventory_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeleteInventory_Call) RunAndReturn(run func(context.Context, *ssm.DeleteInventoryInput, ...func(*ssm.Options)) (*ssm.DeleteInventoryOutput, error)) *SSM_DeleteInventory_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteMaintenanceWindow provides a mock function with given fields: ctx, params, optFns
@@ -680,6 +1317,43 @@ func (_m *SSM) DeleteMaintenanceWindow(ctx context.Context, params *ssm.DeleteMa
 	return r0, r1
 }
 
+// SSM_DeleteMaintenanceWindow_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteMaintenanceWindow'
+type SSM_DeleteMaintenanceWindow_Call struct {
+	*mock.Call
+}
+
+// DeleteMaintenanceWindow is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeleteMaintenanceWindowInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeleteMaintenanceWindow(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeleteMaintenanceWindow_Call {
+	return &SSM_DeleteMaintenanceWindow_Call{Call: _e.mock.On("DeleteMaintenanceWindow",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeleteMaintenanceWindow_Call) Run(run func(ctx context.Context, params *ssm.DeleteMaintenanceWindowInput, optFns ...func(*ssm.Options))) *SSM_DeleteMaintenanceWindow_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeleteMaintenanceWindowInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeleteMaintenanceWindow_Call) Return(_a0 *ssm.DeleteMaintenanceWindowOutput, _a1 error) *SSM_DeleteMaintenanceWindow_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeleteMaintenanceWindow_Call) RunAndReturn(run func(context.Context, *ssm.DeleteMaintenanceWindowInput, ...func(*ssm.Options)) (*ssm.DeleteMaintenanceWindowOutput, error)) *SSM_DeleteMaintenanceWindow_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteOpsItem provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DeleteOpsItem(ctx context.Context, params *ssm.DeleteOpsItemInput, optFns ...func(*ssm.Options)) (*ssm.DeleteOpsItemOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -715,6 +1389,43 @@ func (_m *SSM) DeleteOpsItem(ctx context.Context, params *ssm.DeleteOpsItemInput
 	}
 
 	return r0, r1
+}
+
+// SSM_DeleteOpsItem_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteOpsItem'
+type SSM_DeleteOpsItem_Call struct {
+	*mock.Call
+}
+
+// DeleteOpsItem is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeleteOpsItemInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeleteOpsItem(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeleteOpsItem_Call {
+	return &SSM_DeleteOpsItem_Call{Call: _e.mock.On("DeleteOpsItem",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeleteOpsItem_Call) Run(run func(ctx context.Context, params *ssm.DeleteOpsItemInput, optFns ...func(*ssm.Options))) *SSM_DeleteOpsItem_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeleteOpsItemInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeleteOpsItem_Call) Return(_a0 *ssm.DeleteOpsItemOutput, _a1 error) *SSM_DeleteOpsItem_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeleteOpsItem_Call) RunAndReturn(run func(context.Context, *ssm.DeleteOpsItemInput, ...func(*ssm.Options)) (*ssm.DeleteOpsItemOutput, error)) *SSM_DeleteOpsItem_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteOpsMetadata provides a mock function with given fields: ctx, params, optFns
@@ -754,6 +1465,43 @@ func (_m *SSM) DeleteOpsMetadata(ctx context.Context, params *ssm.DeleteOpsMetad
 	return r0, r1
 }
 
+// SSM_DeleteOpsMetadata_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteOpsMetadata'
+type SSM_DeleteOpsMetadata_Call struct {
+	*mock.Call
+}
+
+// DeleteOpsMetadata is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeleteOpsMetadataInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeleteOpsMetadata(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeleteOpsMetadata_Call {
+	return &SSM_DeleteOpsMetadata_Call{Call: _e.mock.On("DeleteOpsMetadata",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeleteOpsMetadata_Call) Run(run func(ctx context.Context, params *ssm.DeleteOpsMetadataInput, optFns ...func(*ssm.Options))) *SSM_DeleteOpsMetadata_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeleteOpsMetadataInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeleteOpsMetadata_Call) Return(_a0 *ssm.DeleteOpsMetadataOutput, _a1 error) *SSM_DeleteOpsMetadata_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeleteOpsMetadata_Call) RunAndReturn(run func(context.Context, *ssm.DeleteOpsMetadataInput, ...func(*ssm.Options)) (*ssm.DeleteOpsMetadataOutput, error)) *SSM_DeleteOpsMetadata_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteParameter provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DeleteParameter(ctx context.Context, params *ssm.DeleteParameterInput, optFns ...func(*ssm.Options)) (*ssm.DeleteParameterOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -789,6 +1537,43 @@ func (_m *SSM) DeleteParameter(ctx context.Context, params *ssm.DeleteParameterI
 	}
 
 	return r0, r1
+}
+
+// SSM_DeleteParameter_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteParameter'
+type SSM_DeleteParameter_Call struct {
+	*mock.Call
+}
+
+// DeleteParameter is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeleteParameterInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeleteParameter(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeleteParameter_Call {
+	return &SSM_DeleteParameter_Call{Call: _e.mock.On("DeleteParameter",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeleteParameter_Call) Run(run func(ctx context.Context, params *ssm.DeleteParameterInput, optFns ...func(*ssm.Options))) *SSM_DeleteParameter_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeleteParameterInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeleteParameter_Call) Return(_a0 *ssm.DeleteParameterOutput, _a1 error) *SSM_DeleteParameter_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeleteParameter_Call) RunAndReturn(run func(context.Context, *ssm.DeleteParameterInput, ...func(*ssm.Options)) (*ssm.DeleteParameterOutput, error)) *SSM_DeleteParameter_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteParameters provides a mock function with given fields: ctx, params, optFns
@@ -828,6 +1613,43 @@ func (_m *SSM) DeleteParameters(ctx context.Context, params *ssm.DeleteParameter
 	return r0, r1
 }
 
+// SSM_DeleteParameters_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteParameters'
+type SSM_DeleteParameters_Call struct {
+	*mock.Call
+}
+
+// DeleteParameters is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeleteParametersInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeleteParameters(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeleteParameters_Call {
+	return &SSM_DeleteParameters_Call{Call: _e.mock.On("DeleteParameters",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeleteParameters_Call) Run(run func(ctx context.Context, params *ssm.DeleteParametersInput, optFns ...func(*ssm.Options))) *SSM_DeleteParameters_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeleteParametersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeleteParameters_Call) Return(_a0 *ssm.DeleteParametersOutput, _a1 error) *SSM_DeleteParameters_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeleteParameters_Call) RunAndReturn(run func(context.Context, *ssm.DeleteParametersInput, ...func(*ssm.Options)) (*ssm.DeleteParametersOutput, error)) *SSM_DeleteParameters_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeletePatchBaseline provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DeletePatchBaseline(ctx context.Context, params *ssm.DeletePatchBaselineInput, optFns ...func(*ssm.Options)) (*ssm.DeletePatchBaselineOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -863,6 +1685,43 @@ func (_m *SSM) DeletePatchBaseline(ctx context.Context, params *ssm.DeletePatchB
 	}
 
 	return r0, r1
+}
+
+// SSM_DeletePatchBaseline_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePatchBaseline'
+type SSM_DeletePatchBaseline_Call struct {
+	*mock.Call
+}
+
+// DeletePatchBaseline is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeletePatchBaselineInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeletePatchBaseline(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeletePatchBaseline_Call {
+	return &SSM_DeletePatchBaseline_Call{Call: _e.mock.On("DeletePatchBaseline",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeletePatchBaseline_Call) Run(run func(ctx context.Context, params *ssm.DeletePatchBaselineInput, optFns ...func(*ssm.Options))) *SSM_DeletePatchBaseline_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeletePatchBaselineInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeletePatchBaseline_Call) Return(_a0 *ssm.DeletePatchBaselineOutput, _a1 error) *SSM_DeletePatchBaseline_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeletePatchBaseline_Call) RunAndReturn(run func(context.Context, *ssm.DeletePatchBaselineInput, ...func(*ssm.Options)) (*ssm.DeletePatchBaselineOutput, error)) *SSM_DeletePatchBaseline_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteResourceDataSync provides a mock function with given fields: ctx, params, optFns
@@ -902,6 +1761,43 @@ func (_m *SSM) DeleteResourceDataSync(ctx context.Context, params *ssm.DeleteRes
 	return r0, r1
 }
 
+// SSM_DeleteResourceDataSync_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteResourceDataSync'
+type SSM_DeleteResourceDataSync_Call struct {
+	*mock.Call
+}
+
+// DeleteResourceDataSync is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeleteResourceDataSyncInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeleteResourceDataSync(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeleteResourceDataSync_Call {
+	return &SSM_DeleteResourceDataSync_Call{Call: _e.mock.On("DeleteResourceDataSync",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeleteResourceDataSync_Call) Run(run func(ctx context.Context, params *ssm.DeleteResourceDataSyncInput, optFns ...func(*ssm.Options))) *SSM_DeleteResourceDataSync_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeleteResourceDataSyncInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeleteResourceDataSync_Call) Return(_a0 *ssm.DeleteResourceDataSyncOutput, _a1 error) *SSM_DeleteResourceDataSync_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeleteResourceDataSync_Call) RunAndReturn(run func(context.Context, *ssm.DeleteResourceDataSyncInput, ...func(*ssm.Options)) (*ssm.DeleteResourceDataSyncOutput, error)) *SSM_DeleteResourceDataSync_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteResourcePolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DeleteResourcePolicy(ctx context.Context, params *ssm.DeleteResourcePolicyInput, optFns ...func(*ssm.Options)) (*ssm.DeleteResourcePolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -937,6 +1833,43 @@ func (_m *SSM) DeleteResourcePolicy(ctx context.Context, params *ssm.DeleteResou
 	}
 
 	return r0, r1
+}
+
+// SSM_DeleteResourcePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteResourcePolicy'
+type SSM_DeleteResourcePolicy_Call struct {
+	*mock.Call
+}
+
+// DeleteResourcePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeleteResourcePolicyInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeleteResourcePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeleteResourcePolicy_Call {
+	return &SSM_DeleteResourcePolicy_Call{Call: _e.mock.On("DeleteResourcePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeleteResourcePolicy_Call) Run(run func(ctx context.Context, params *ssm.DeleteResourcePolicyInput, optFns ...func(*ssm.Options))) *SSM_DeleteResourcePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeleteResourcePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeleteResourcePolicy_Call) Return(_a0 *ssm.DeleteResourcePolicyOutput, _a1 error) *SSM_DeleteResourcePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeleteResourcePolicy_Call) RunAndReturn(run func(context.Context, *ssm.DeleteResourcePolicyInput, ...func(*ssm.Options)) (*ssm.DeleteResourcePolicyOutput, error)) *SSM_DeleteResourcePolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeregisterManagedInstance provides a mock function with given fields: ctx, params, optFns
@@ -976,6 +1909,43 @@ func (_m *SSM) DeregisterManagedInstance(ctx context.Context, params *ssm.Deregi
 	return r0, r1
 }
 
+// SSM_DeregisterManagedInstance_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeregisterManagedInstance'
+type SSM_DeregisterManagedInstance_Call struct {
+	*mock.Call
+}
+
+// DeregisterManagedInstance is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeregisterManagedInstanceInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeregisterManagedInstance(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeregisterManagedInstance_Call {
+	return &SSM_DeregisterManagedInstance_Call{Call: _e.mock.On("DeregisterManagedInstance",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeregisterManagedInstance_Call) Run(run func(ctx context.Context, params *ssm.DeregisterManagedInstanceInput, optFns ...func(*ssm.Options))) *SSM_DeregisterManagedInstance_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeregisterManagedInstanceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeregisterManagedInstance_Call) Return(_a0 *ssm.DeregisterManagedInstanceOutput, _a1 error) *SSM_DeregisterManagedInstance_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeregisterManagedInstance_Call) RunAndReturn(run func(context.Context, *ssm.DeregisterManagedInstanceInput, ...func(*ssm.Options)) (*ssm.DeregisterManagedInstanceOutput, error)) *SSM_DeregisterManagedInstance_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeregisterPatchBaselineForPatchGroup provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DeregisterPatchBaselineForPatchGroup(ctx context.Context, params *ssm.DeregisterPatchBaselineForPatchGroupInput, optFns ...func(*ssm.Options)) (*ssm.DeregisterPatchBaselineForPatchGroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1011,6 +1981,43 @@ func (_m *SSM) DeregisterPatchBaselineForPatchGroup(ctx context.Context, params 
 	}
 
 	return r0, r1
+}
+
+// SSM_DeregisterPatchBaselineForPatchGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeregisterPatchBaselineForPatchGroup'
+type SSM_DeregisterPatchBaselineForPatchGroup_Call struct {
+	*mock.Call
+}
+
+// DeregisterPatchBaselineForPatchGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeregisterPatchBaselineForPatchGroupInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeregisterPatchBaselineForPatchGroup(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeregisterPatchBaselineForPatchGroup_Call {
+	return &SSM_DeregisterPatchBaselineForPatchGroup_Call{Call: _e.mock.On("DeregisterPatchBaselineForPatchGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeregisterPatchBaselineForPatchGroup_Call) Run(run func(ctx context.Context, params *ssm.DeregisterPatchBaselineForPatchGroupInput, optFns ...func(*ssm.Options))) *SSM_DeregisterPatchBaselineForPatchGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeregisterPatchBaselineForPatchGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeregisterPatchBaselineForPatchGroup_Call) Return(_a0 *ssm.DeregisterPatchBaselineForPatchGroupOutput, _a1 error) *SSM_DeregisterPatchBaselineForPatchGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeregisterPatchBaselineForPatchGroup_Call) RunAndReturn(run func(context.Context, *ssm.DeregisterPatchBaselineForPatchGroupInput, ...func(*ssm.Options)) (*ssm.DeregisterPatchBaselineForPatchGroupOutput, error)) *SSM_DeregisterPatchBaselineForPatchGroup_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeregisterTargetFromMaintenanceWindow provides a mock function with given fields: ctx, params, optFns
@@ -1050,6 +2057,43 @@ func (_m *SSM) DeregisterTargetFromMaintenanceWindow(ctx context.Context, params
 	return r0, r1
 }
 
+// SSM_DeregisterTargetFromMaintenanceWindow_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeregisterTargetFromMaintenanceWindow'
+type SSM_DeregisterTargetFromMaintenanceWindow_Call struct {
+	*mock.Call
+}
+
+// DeregisterTargetFromMaintenanceWindow is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeregisterTargetFromMaintenanceWindowInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeregisterTargetFromMaintenanceWindow(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeregisterTargetFromMaintenanceWindow_Call {
+	return &SSM_DeregisterTargetFromMaintenanceWindow_Call{Call: _e.mock.On("DeregisterTargetFromMaintenanceWindow",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeregisterTargetFromMaintenanceWindow_Call) Run(run func(ctx context.Context, params *ssm.DeregisterTargetFromMaintenanceWindowInput, optFns ...func(*ssm.Options))) *SSM_DeregisterTargetFromMaintenanceWindow_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeregisterTargetFromMaintenanceWindowInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeregisterTargetFromMaintenanceWindow_Call) Return(_a0 *ssm.DeregisterTargetFromMaintenanceWindowOutput, _a1 error) *SSM_DeregisterTargetFromMaintenanceWindow_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeregisterTargetFromMaintenanceWindow_Call) RunAndReturn(run func(context.Context, *ssm.DeregisterTargetFromMaintenanceWindowInput, ...func(*ssm.Options)) (*ssm.DeregisterTargetFromMaintenanceWindowOutput, error)) *SSM_DeregisterTargetFromMaintenanceWindow_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeregisterTaskFromMaintenanceWindow provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DeregisterTaskFromMaintenanceWindow(ctx context.Context, params *ssm.DeregisterTaskFromMaintenanceWindowInput, optFns ...func(*ssm.Options)) (*ssm.DeregisterTaskFromMaintenanceWindowOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1085,6 +2129,43 @@ func (_m *SSM) DeregisterTaskFromMaintenanceWindow(ctx context.Context, params *
 	}
 
 	return r0, r1
+}
+
+// SSM_DeregisterTaskFromMaintenanceWindow_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeregisterTaskFromMaintenanceWindow'
+type SSM_DeregisterTaskFromMaintenanceWindow_Call struct {
+	*mock.Call
+}
+
+// DeregisterTaskFromMaintenanceWindow is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DeregisterTaskFromMaintenanceWindowInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DeregisterTaskFromMaintenanceWindow(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DeregisterTaskFromMaintenanceWindow_Call {
+	return &SSM_DeregisterTaskFromMaintenanceWindow_Call{Call: _e.mock.On("DeregisterTaskFromMaintenanceWindow",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DeregisterTaskFromMaintenanceWindow_Call) Run(run func(ctx context.Context, params *ssm.DeregisterTaskFromMaintenanceWindowInput, optFns ...func(*ssm.Options))) *SSM_DeregisterTaskFromMaintenanceWindow_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DeregisterTaskFromMaintenanceWindowInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DeregisterTaskFromMaintenanceWindow_Call) Return(_a0 *ssm.DeregisterTaskFromMaintenanceWindowOutput, _a1 error) *SSM_DeregisterTaskFromMaintenanceWindow_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DeregisterTaskFromMaintenanceWindow_Call) RunAndReturn(run func(context.Context, *ssm.DeregisterTaskFromMaintenanceWindowInput, ...func(*ssm.Options)) (*ssm.DeregisterTaskFromMaintenanceWindowOutput, error)) *SSM_DeregisterTaskFromMaintenanceWindow_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeActivations provides a mock function with given fields: ctx, params, optFns
@@ -1124,6 +2205,43 @@ func (_m *SSM) DescribeActivations(ctx context.Context, params *ssm.DescribeActi
 	return r0, r1
 }
 
+// SSM_DescribeActivations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeActivations'
+type SSM_DescribeActivations_Call struct {
+	*mock.Call
+}
+
+// DescribeActivations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeActivationsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeActivations(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeActivations_Call {
+	return &SSM_DescribeActivations_Call{Call: _e.mock.On("DescribeActivations",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeActivations_Call) Run(run func(ctx context.Context, params *ssm.DescribeActivationsInput, optFns ...func(*ssm.Options))) *SSM_DescribeActivations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeActivationsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeActivations_Call) Return(_a0 *ssm.DescribeActivationsOutput, _a1 error) *SSM_DescribeActivations_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeActivations_Call) RunAndReturn(run func(context.Context, *ssm.DescribeActivationsInput, ...func(*ssm.Options)) (*ssm.DescribeActivationsOutput, error)) *SSM_DescribeActivations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeAssociation provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeAssociation(ctx context.Context, params *ssm.DescribeAssociationInput, optFns ...func(*ssm.Options)) (*ssm.DescribeAssociationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1159,6 +2277,43 @@ func (_m *SSM) DescribeAssociation(ctx context.Context, params *ssm.DescribeAsso
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeAssociation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAssociation'
+type SSM_DescribeAssociation_Call struct {
+	*mock.Call
+}
+
+// DescribeAssociation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeAssociationInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeAssociation(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeAssociation_Call {
+	return &SSM_DescribeAssociation_Call{Call: _e.mock.On("DescribeAssociation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeAssociation_Call) Run(run func(ctx context.Context, params *ssm.DescribeAssociationInput, optFns ...func(*ssm.Options))) *SSM_DescribeAssociation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeAssociationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeAssociation_Call) Return(_a0 *ssm.DescribeAssociationOutput, _a1 error) *SSM_DescribeAssociation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeAssociation_Call) RunAndReturn(run func(context.Context, *ssm.DescribeAssociationInput, ...func(*ssm.Options)) (*ssm.DescribeAssociationOutput, error)) *SSM_DescribeAssociation_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeAssociationExecutionTargets provides a mock function with given fields: ctx, params, optFns
@@ -1198,6 +2353,43 @@ func (_m *SSM) DescribeAssociationExecutionTargets(ctx context.Context, params *
 	return r0, r1
 }
 
+// SSM_DescribeAssociationExecutionTargets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAssociationExecutionTargets'
+type SSM_DescribeAssociationExecutionTargets_Call struct {
+	*mock.Call
+}
+
+// DescribeAssociationExecutionTargets is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeAssociationExecutionTargetsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeAssociationExecutionTargets(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeAssociationExecutionTargets_Call {
+	return &SSM_DescribeAssociationExecutionTargets_Call{Call: _e.mock.On("DescribeAssociationExecutionTargets",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeAssociationExecutionTargets_Call) Run(run func(ctx context.Context, params *ssm.DescribeAssociationExecutionTargetsInput, optFns ...func(*ssm.Options))) *SSM_DescribeAssociationExecutionTargets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeAssociationExecutionTargetsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeAssociationExecutionTargets_Call) Return(_a0 *ssm.DescribeAssociationExecutionTargetsOutput, _a1 error) *SSM_DescribeAssociationExecutionTargets_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeAssociationExecutionTargets_Call) RunAndReturn(run func(context.Context, *ssm.DescribeAssociationExecutionTargetsInput, ...func(*ssm.Options)) (*ssm.DescribeAssociationExecutionTargetsOutput, error)) *SSM_DescribeAssociationExecutionTargets_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeAssociationExecutions provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeAssociationExecutions(ctx context.Context, params *ssm.DescribeAssociationExecutionsInput, optFns ...func(*ssm.Options)) (*ssm.DescribeAssociationExecutionsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1233,6 +2425,43 @@ func (_m *SSM) DescribeAssociationExecutions(ctx context.Context, params *ssm.De
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeAssociationExecutions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAssociationExecutions'
+type SSM_DescribeAssociationExecutions_Call struct {
+	*mock.Call
+}
+
+// DescribeAssociationExecutions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeAssociationExecutionsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeAssociationExecutions(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeAssociationExecutions_Call {
+	return &SSM_DescribeAssociationExecutions_Call{Call: _e.mock.On("DescribeAssociationExecutions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeAssociationExecutions_Call) Run(run func(ctx context.Context, params *ssm.DescribeAssociationExecutionsInput, optFns ...func(*ssm.Options))) *SSM_DescribeAssociationExecutions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeAssociationExecutionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeAssociationExecutions_Call) Return(_a0 *ssm.DescribeAssociationExecutionsOutput, _a1 error) *SSM_DescribeAssociationExecutions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeAssociationExecutions_Call) RunAndReturn(run func(context.Context, *ssm.DescribeAssociationExecutionsInput, ...func(*ssm.Options)) (*ssm.DescribeAssociationExecutionsOutput, error)) *SSM_DescribeAssociationExecutions_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeAutomationExecutions provides a mock function with given fields: ctx, params, optFns
@@ -1272,6 +2501,43 @@ func (_m *SSM) DescribeAutomationExecutions(ctx context.Context, params *ssm.Des
 	return r0, r1
 }
 
+// SSM_DescribeAutomationExecutions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAutomationExecutions'
+type SSM_DescribeAutomationExecutions_Call struct {
+	*mock.Call
+}
+
+// DescribeAutomationExecutions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeAutomationExecutionsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeAutomationExecutions(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeAutomationExecutions_Call {
+	return &SSM_DescribeAutomationExecutions_Call{Call: _e.mock.On("DescribeAutomationExecutions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeAutomationExecutions_Call) Run(run func(ctx context.Context, params *ssm.DescribeAutomationExecutionsInput, optFns ...func(*ssm.Options))) *SSM_DescribeAutomationExecutions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeAutomationExecutionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeAutomationExecutions_Call) Return(_a0 *ssm.DescribeAutomationExecutionsOutput, _a1 error) *SSM_DescribeAutomationExecutions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeAutomationExecutions_Call) RunAndReturn(run func(context.Context, *ssm.DescribeAutomationExecutionsInput, ...func(*ssm.Options)) (*ssm.DescribeAutomationExecutionsOutput, error)) *SSM_DescribeAutomationExecutions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeAutomationStepExecutions provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeAutomationStepExecutions(ctx context.Context, params *ssm.DescribeAutomationStepExecutionsInput, optFns ...func(*ssm.Options)) (*ssm.DescribeAutomationStepExecutionsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1307,6 +2573,43 @@ func (_m *SSM) DescribeAutomationStepExecutions(ctx context.Context, params *ssm
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeAutomationStepExecutions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAutomationStepExecutions'
+type SSM_DescribeAutomationStepExecutions_Call struct {
+	*mock.Call
+}
+
+// DescribeAutomationStepExecutions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeAutomationStepExecutionsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeAutomationStepExecutions(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeAutomationStepExecutions_Call {
+	return &SSM_DescribeAutomationStepExecutions_Call{Call: _e.mock.On("DescribeAutomationStepExecutions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeAutomationStepExecutions_Call) Run(run func(ctx context.Context, params *ssm.DescribeAutomationStepExecutionsInput, optFns ...func(*ssm.Options))) *SSM_DescribeAutomationStepExecutions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeAutomationStepExecutionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeAutomationStepExecutions_Call) Return(_a0 *ssm.DescribeAutomationStepExecutionsOutput, _a1 error) *SSM_DescribeAutomationStepExecutions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeAutomationStepExecutions_Call) RunAndReturn(run func(context.Context, *ssm.DescribeAutomationStepExecutionsInput, ...func(*ssm.Options)) (*ssm.DescribeAutomationStepExecutionsOutput, error)) *SSM_DescribeAutomationStepExecutions_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeAvailablePatches provides a mock function with given fields: ctx, params, optFns
@@ -1346,6 +2649,43 @@ func (_m *SSM) DescribeAvailablePatches(ctx context.Context, params *ssm.Describ
 	return r0, r1
 }
 
+// SSM_DescribeAvailablePatches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeAvailablePatches'
+type SSM_DescribeAvailablePatches_Call struct {
+	*mock.Call
+}
+
+// DescribeAvailablePatches is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeAvailablePatchesInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeAvailablePatches(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeAvailablePatches_Call {
+	return &SSM_DescribeAvailablePatches_Call{Call: _e.mock.On("DescribeAvailablePatches",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeAvailablePatches_Call) Run(run func(ctx context.Context, params *ssm.DescribeAvailablePatchesInput, optFns ...func(*ssm.Options))) *SSM_DescribeAvailablePatches_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeAvailablePatchesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeAvailablePatches_Call) Return(_a0 *ssm.DescribeAvailablePatchesOutput, _a1 error) *SSM_DescribeAvailablePatches_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeAvailablePatches_Call) RunAndReturn(run func(context.Context, *ssm.DescribeAvailablePatchesInput, ...func(*ssm.Options)) (*ssm.DescribeAvailablePatchesOutput, error)) *SSM_DescribeAvailablePatches_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeDocument provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeDocument(ctx context.Context, params *ssm.DescribeDocumentInput, optFns ...func(*ssm.Options)) (*ssm.DescribeDocumentOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1381,6 +2721,43 @@ func (_m *SSM) DescribeDocument(ctx context.Context, params *ssm.DescribeDocumen
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeDocument_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeDocument'
+type SSM_DescribeDocument_Call struct {
+	*mock.Call
+}
+
+// DescribeDocument is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeDocumentInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeDocument(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeDocument_Call {
+	return &SSM_DescribeDocument_Call{Call: _e.mock.On("DescribeDocument",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeDocument_Call) Run(run func(ctx context.Context, params *ssm.DescribeDocumentInput, optFns ...func(*ssm.Options))) *SSM_DescribeDocument_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeDocumentInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeDocument_Call) Return(_a0 *ssm.DescribeDocumentOutput, _a1 error) *SSM_DescribeDocument_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeDocument_Call) RunAndReturn(run func(context.Context, *ssm.DescribeDocumentInput, ...func(*ssm.Options)) (*ssm.DescribeDocumentOutput, error)) *SSM_DescribeDocument_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeDocumentPermission provides a mock function with given fields: ctx, params, optFns
@@ -1420,6 +2797,43 @@ func (_m *SSM) DescribeDocumentPermission(ctx context.Context, params *ssm.Descr
 	return r0, r1
 }
 
+// SSM_DescribeDocumentPermission_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeDocumentPermission'
+type SSM_DescribeDocumentPermission_Call struct {
+	*mock.Call
+}
+
+// DescribeDocumentPermission is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeDocumentPermissionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeDocumentPermission(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeDocumentPermission_Call {
+	return &SSM_DescribeDocumentPermission_Call{Call: _e.mock.On("DescribeDocumentPermission",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeDocumentPermission_Call) Run(run func(ctx context.Context, params *ssm.DescribeDocumentPermissionInput, optFns ...func(*ssm.Options))) *SSM_DescribeDocumentPermission_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeDocumentPermissionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeDocumentPermission_Call) Return(_a0 *ssm.DescribeDocumentPermissionOutput, _a1 error) *SSM_DescribeDocumentPermission_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeDocumentPermission_Call) RunAndReturn(run func(context.Context, *ssm.DescribeDocumentPermissionInput, ...func(*ssm.Options)) (*ssm.DescribeDocumentPermissionOutput, error)) *SSM_DescribeDocumentPermission_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeEffectiveInstanceAssociations provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeEffectiveInstanceAssociations(ctx context.Context, params *ssm.DescribeEffectiveInstanceAssociationsInput, optFns ...func(*ssm.Options)) (*ssm.DescribeEffectiveInstanceAssociationsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1455,6 +2869,43 @@ func (_m *SSM) DescribeEffectiveInstanceAssociations(ctx context.Context, params
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeEffectiveInstanceAssociations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeEffectiveInstanceAssociations'
+type SSM_DescribeEffectiveInstanceAssociations_Call struct {
+	*mock.Call
+}
+
+// DescribeEffectiveInstanceAssociations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeEffectiveInstanceAssociationsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeEffectiveInstanceAssociations(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeEffectiveInstanceAssociations_Call {
+	return &SSM_DescribeEffectiveInstanceAssociations_Call{Call: _e.mock.On("DescribeEffectiveInstanceAssociations",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeEffectiveInstanceAssociations_Call) Run(run func(ctx context.Context, params *ssm.DescribeEffectiveInstanceAssociationsInput, optFns ...func(*ssm.Options))) *SSM_DescribeEffectiveInstanceAssociations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeEffectiveInstanceAssociationsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeEffectiveInstanceAssociations_Call) Return(_a0 *ssm.DescribeEffectiveInstanceAssociationsOutput, _a1 error) *SSM_DescribeEffectiveInstanceAssociations_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeEffectiveInstanceAssociations_Call) RunAndReturn(run func(context.Context, *ssm.DescribeEffectiveInstanceAssociationsInput, ...func(*ssm.Options)) (*ssm.DescribeEffectiveInstanceAssociationsOutput, error)) *SSM_DescribeEffectiveInstanceAssociations_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeEffectivePatchesForPatchBaseline provides a mock function with given fields: ctx, params, optFns
@@ -1494,6 +2945,43 @@ func (_m *SSM) DescribeEffectivePatchesForPatchBaseline(ctx context.Context, par
 	return r0, r1
 }
 
+// SSM_DescribeEffectivePatchesForPatchBaseline_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeEffectivePatchesForPatchBaseline'
+type SSM_DescribeEffectivePatchesForPatchBaseline_Call struct {
+	*mock.Call
+}
+
+// DescribeEffectivePatchesForPatchBaseline is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeEffectivePatchesForPatchBaselineInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeEffectivePatchesForPatchBaseline(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeEffectivePatchesForPatchBaseline_Call {
+	return &SSM_DescribeEffectivePatchesForPatchBaseline_Call{Call: _e.mock.On("DescribeEffectivePatchesForPatchBaseline",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeEffectivePatchesForPatchBaseline_Call) Run(run func(ctx context.Context, params *ssm.DescribeEffectivePatchesForPatchBaselineInput, optFns ...func(*ssm.Options))) *SSM_DescribeEffectivePatchesForPatchBaseline_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeEffectivePatchesForPatchBaselineInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeEffectivePatchesForPatchBaseline_Call) Return(_a0 *ssm.DescribeEffectivePatchesForPatchBaselineOutput, _a1 error) *SSM_DescribeEffectivePatchesForPatchBaseline_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeEffectivePatchesForPatchBaseline_Call) RunAndReturn(run func(context.Context, *ssm.DescribeEffectivePatchesForPatchBaselineInput, ...func(*ssm.Options)) (*ssm.DescribeEffectivePatchesForPatchBaselineOutput, error)) *SSM_DescribeEffectivePatchesForPatchBaseline_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeInstanceAssociationsStatus provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeInstanceAssociationsStatus(ctx context.Context, params *ssm.DescribeInstanceAssociationsStatusInput, optFns ...func(*ssm.Options)) (*ssm.DescribeInstanceAssociationsStatusOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1529,6 +3017,43 @@ func (_m *SSM) DescribeInstanceAssociationsStatus(ctx context.Context, params *s
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeInstanceAssociationsStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeInstanceAssociationsStatus'
+type SSM_DescribeInstanceAssociationsStatus_Call struct {
+	*mock.Call
+}
+
+// DescribeInstanceAssociationsStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeInstanceAssociationsStatusInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeInstanceAssociationsStatus(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeInstanceAssociationsStatus_Call {
+	return &SSM_DescribeInstanceAssociationsStatus_Call{Call: _e.mock.On("DescribeInstanceAssociationsStatus",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeInstanceAssociationsStatus_Call) Run(run func(ctx context.Context, params *ssm.DescribeInstanceAssociationsStatusInput, optFns ...func(*ssm.Options))) *SSM_DescribeInstanceAssociationsStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeInstanceAssociationsStatusInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeInstanceAssociationsStatus_Call) Return(_a0 *ssm.DescribeInstanceAssociationsStatusOutput, _a1 error) *SSM_DescribeInstanceAssociationsStatus_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeInstanceAssociationsStatus_Call) RunAndReturn(run func(context.Context, *ssm.DescribeInstanceAssociationsStatusInput, ...func(*ssm.Options)) (*ssm.DescribeInstanceAssociationsStatusOutput, error)) *SSM_DescribeInstanceAssociationsStatus_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeInstanceInformation provides a mock function with given fields: ctx, params, optFns
@@ -1568,6 +3093,43 @@ func (_m *SSM) DescribeInstanceInformation(ctx context.Context, params *ssm.Desc
 	return r0, r1
 }
 
+// SSM_DescribeInstanceInformation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeInstanceInformation'
+type SSM_DescribeInstanceInformation_Call struct {
+	*mock.Call
+}
+
+// DescribeInstanceInformation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeInstanceInformationInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeInstanceInformation(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeInstanceInformation_Call {
+	return &SSM_DescribeInstanceInformation_Call{Call: _e.mock.On("DescribeInstanceInformation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeInstanceInformation_Call) Run(run func(ctx context.Context, params *ssm.DescribeInstanceInformationInput, optFns ...func(*ssm.Options))) *SSM_DescribeInstanceInformation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeInstanceInformationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeInstanceInformation_Call) Return(_a0 *ssm.DescribeInstanceInformationOutput, _a1 error) *SSM_DescribeInstanceInformation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeInstanceInformation_Call) RunAndReturn(run func(context.Context, *ssm.DescribeInstanceInformationInput, ...func(*ssm.Options)) (*ssm.DescribeInstanceInformationOutput, error)) *SSM_DescribeInstanceInformation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeInstancePatchStates provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeInstancePatchStates(ctx context.Context, params *ssm.DescribeInstancePatchStatesInput, optFns ...func(*ssm.Options)) (*ssm.DescribeInstancePatchStatesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1603,6 +3165,43 @@ func (_m *SSM) DescribeInstancePatchStates(ctx context.Context, params *ssm.Desc
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeInstancePatchStates_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeInstancePatchStates'
+type SSM_DescribeInstancePatchStates_Call struct {
+	*mock.Call
+}
+
+// DescribeInstancePatchStates is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeInstancePatchStatesInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeInstancePatchStates(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeInstancePatchStates_Call {
+	return &SSM_DescribeInstancePatchStates_Call{Call: _e.mock.On("DescribeInstancePatchStates",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeInstancePatchStates_Call) Run(run func(ctx context.Context, params *ssm.DescribeInstancePatchStatesInput, optFns ...func(*ssm.Options))) *SSM_DescribeInstancePatchStates_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeInstancePatchStatesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeInstancePatchStates_Call) Return(_a0 *ssm.DescribeInstancePatchStatesOutput, _a1 error) *SSM_DescribeInstancePatchStates_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeInstancePatchStates_Call) RunAndReturn(run func(context.Context, *ssm.DescribeInstancePatchStatesInput, ...func(*ssm.Options)) (*ssm.DescribeInstancePatchStatesOutput, error)) *SSM_DescribeInstancePatchStates_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeInstancePatchStatesForPatchGroup provides a mock function with given fields: ctx, params, optFns
@@ -1642,6 +3241,43 @@ func (_m *SSM) DescribeInstancePatchStatesForPatchGroup(ctx context.Context, par
 	return r0, r1
 }
 
+// SSM_DescribeInstancePatchStatesForPatchGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeInstancePatchStatesForPatchGroup'
+type SSM_DescribeInstancePatchStatesForPatchGroup_Call struct {
+	*mock.Call
+}
+
+// DescribeInstancePatchStatesForPatchGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeInstancePatchStatesForPatchGroupInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeInstancePatchStatesForPatchGroup(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeInstancePatchStatesForPatchGroup_Call {
+	return &SSM_DescribeInstancePatchStatesForPatchGroup_Call{Call: _e.mock.On("DescribeInstancePatchStatesForPatchGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeInstancePatchStatesForPatchGroup_Call) Run(run func(ctx context.Context, params *ssm.DescribeInstancePatchStatesForPatchGroupInput, optFns ...func(*ssm.Options))) *SSM_DescribeInstancePatchStatesForPatchGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeInstancePatchStatesForPatchGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeInstancePatchStatesForPatchGroup_Call) Return(_a0 *ssm.DescribeInstancePatchStatesForPatchGroupOutput, _a1 error) *SSM_DescribeInstancePatchStatesForPatchGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeInstancePatchStatesForPatchGroup_Call) RunAndReturn(run func(context.Context, *ssm.DescribeInstancePatchStatesForPatchGroupInput, ...func(*ssm.Options)) (*ssm.DescribeInstancePatchStatesForPatchGroupOutput, error)) *SSM_DescribeInstancePatchStatesForPatchGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeInstancePatches provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeInstancePatches(ctx context.Context, params *ssm.DescribeInstancePatchesInput, optFns ...func(*ssm.Options)) (*ssm.DescribeInstancePatchesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1677,6 +3313,117 @@ func (_m *SSM) DescribeInstancePatches(ctx context.Context, params *ssm.Describe
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeInstancePatches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeInstancePatches'
+type SSM_DescribeInstancePatches_Call struct {
+	*mock.Call
+}
+
+// DescribeInstancePatches is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeInstancePatchesInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeInstancePatches(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeInstancePatches_Call {
+	return &SSM_DescribeInstancePatches_Call{Call: _e.mock.On("DescribeInstancePatches",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeInstancePatches_Call) Run(run func(ctx context.Context, params *ssm.DescribeInstancePatchesInput, optFns ...func(*ssm.Options))) *SSM_DescribeInstancePatches_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeInstancePatchesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeInstancePatches_Call) Return(_a0 *ssm.DescribeInstancePatchesOutput, _a1 error) *SSM_DescribeInstancePatches_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeInstancePatches_Call) RunAndReturn(run func(context.Context, *ssm.DescribeInstancePatchesInput, ...func(*ssm.Options)) (*ssm.DescribeInstancePatchesOutput, error)) *SSM_DescribeInstancePatches_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DescribeInstanceProperties provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) DescribeInstanceProperties(ctx context.Context, params *ssm.DescribeInstancePropertiesInput, optFns ...func(*ssm.Options)) (*ssm.DescribeInstancePropertiesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeInstanceProperties")
+	}
+
+	var r0 *ssm.DescribeInstancePropertiesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeInstancePropertiesInput, ...func(*ssm.Options)) (*ssm.DescribeInstancePropertiesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeInstancePropertiesInput, ...func(*ssm.Options)) *ssm.DescribeInstancePropertiesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.DescribeInstancePropertiesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.DescribeInstancePropertiesInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SSM_DescribeInstanceProperties_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeInstanceProperties'
+type SSM_DescribeInstanceProperties_Call struct {
+	*mock.Call
+}
+
+// DescribeInstanceProperties is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeInstancePropertiesInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeInstanceProperties(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeInstanceProperties_Call {
+	return &SSM_DescribeInstanceProperties_Call{Call: _e.mock.On("DescribeInstanceProperties",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeInstanceProperties_Call) Run(run func(ctx context.Context, params *ssm.DescribeInstancePropertiesInput, optFns ...func(*ssm.Options))) *SSM_DescribeInstanceProperties_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeInstancePropertiesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeInstanceProperties_Call) Return(_a0 *ssm.DescribeInstancePropertiesOutput, _a1 error) *SSM_DescribeInstanceProperties_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeInstanceProperties_Call) RunAndReturn(run func(context.Context, *ssm.DescribeInstancePropertiesInput, ...func(*ssm.Options)) (*ssm.DescribeInstancePropertiesOutput, error)) *SSM_DescribeInstanceProperties_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeInventoryDeletions provides a mock function with given fields: ctx, params, optFns
@@ -1716,6 +3463,43 @@ func (_m *SSM) DescribeInventoryDeletions(ctx context.Context, params *ssm.Descr
 	return r0, r1
 }
 
+// SSM_DescribeInventoryDeletions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeInventoryDeletions'
+type SSM_DescribeInventoryDeletions_Call struct {
+	*mock.Call
+}
+
+// DescribeInventoryDeletions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeInventoryDeletionsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeInventoryDeletions(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeInventoryDeletions_Call {
+	return &SSM_DescribeInventoryDeletions_Call{Call: _e.mock.On("DescribeInventoryDeletions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeInventoryDeletions_Call) Run(run func(ctx context.Context, params *ssm.DescribeInventoryDeletionsInput, optFns ...func(*ssm.Options))) *SSM_DescribeInventoryDeletions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeInventoryDeletionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeInventoryDeletions_Call) Return(_a0 *ssm.DescribeInventoryDeletionsOutput, _a1 error) *SSM_DescribeInventoryDeletions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeInventoryDeletions_Call) RunAndReturn(run func(context.Context, *ssm.DescribeInventoryDeletionsInput, ...func(*ssm.Options)) (*ssm.DescribeInventoryDeletionsOutput, error)) *SSM_DescribeInventoryDeletions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeMaintenanceWindowExecutionTaskInvocations provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeMaintenanceWindowExecutionTaskInvocations(ctx context.Context, params *ssm.DescribeMaintenanceWindowExecutionTaskInvocationsInput, optFns ...func(*ssm.Options)) (*ssm.DescribeMaintenanceWindowExecutionTaskInvocationsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1751,6 +3535,43 @@ func (_m *SSM) DescribeMaintenanceWindowExecutionTaskInvocations(ctx context.Con
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeMaintenanceWindowExecutionTaskInvocations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeMaintenanceWindowExecutionTaskInvocations'
+type SSM_DescribeMaintenanceWindowExecutionTaskInvocations_Call struct {
+	*mock.Call
+}
+
+// DescribeMaintenanceWindowExecutionTaskInvocations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeMaintenanceWindowExecutionTaskInvocationsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeMaintenanceWindowExecutionTaskInvocations(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeMaintenanceWindowExecutionTaskInvocations_Call {
+	return &SSM_DescribeMaintenanceWindowExecutionTaskInvocations_Call{Call: _e.mock.On("DescribeMaintenanceWindowExecutionTaskInvocations",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeMaintenanceWindowExecutionTaskInvocations_Call) Run(run func(ctx context.Context, params *ssm.DescribeMaintenanceWindowExecutionTaskInvocationsInput, optFns ...func(*ssm.Options))) *SSM_DescribeMaintenanceWindowExecutionTaskInvocations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeMaintenanceWindowExecutionTaskInvocationsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowExecutionTaskInvocations_Call) Return(_a0 *ssm.DescribeMaintenanceWindowExecutionTaskInvocationsOutput, _a1 error) *SSM_DescribeMaintenanceWindowExecutionTaskInvocations_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowExecutionTaskInvocations_Call) RunAndReturn(run func(context.Context, *ssm.DescribeMaintenanceWindowExecutionTaskInvocationsInput, ...func(*ssm.Options)) (*ssm.DescribeMaintenanceWindowExecutionTaskInvocationsOutput, error)) *SSM_DescribeMaintenanceWindowExecutionTaskInvocations_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeMaintenanceWindowExecutionTasks provides a mock function with given fields: ctx, params, optFns
@@ -1790,6 +3611,43 @@ func (_m *SSM) DescribeMaintenanceWindowExecutionTasks(ctx context.Context, para
 	return r0, r1
 }
 
+// SSM_DescribeMaintenanceWindowExecutionTasks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeMaintenanceWindowExecutionTasks'
+type SSM_DescribeMaintenanceWindowExecutionTasks_Call struct {
+	*mock.Call
+}
+
+// DescribeMaintenanceWindowExecutionTasks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeMaintenanceWindowExecutionTasksInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeMaintenanceWindowExecutionTasks(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeMaintenanceWindowExecutionTasks_Call {
+	return &SSM_DescribeMaintenanceWindowExecutionTasks_Call{Call: _e.mock.On("DescribeMaintenanceWindowExecutionTasks",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeMaintenanceWindowExecutionTasks_Call) Run(run func(ctx context.Context, params *ssm.DescribeMaintenanceWindowExecutionTasksInput, optFns ...func(*ssm.Options))) *SSM_DescribeMaintenanceWindowExecutionTasks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeMaintenanceWindowExecutionTasksInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowExecutionTasks_Call) Return(_a0 *ssm.DescribeMaintenanceWindowExecutionTasksOutput, _a1 error) *SSM_DescribeMaintenanceWindowExecutionTasks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowExecutionTasks_Call) RunAndReturn(run func(context.Context, *ssm.DescribeMaintenanceWindowExecutionTasksInput, ...func(*ssm.Options)) (*ssm.DescribeMaintenanceWindowExecutionTasksOutput, error)) *SSM_DescribeMaintenanceWindowExecutionTasks_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeMaintenanceWindowExecutions provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeMaintenanceWindowExecutions(ctx context.Context, params *ssm.DescribeMaintenanceWindowExecutionsInput, optFns ...func(*ssm.Options)) (*ssm.DescribeMaintenanceWindowExecutionsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1825,6 +3683,43 @@ func (_m *SSM) DescribeMaintenanceWindowExecutions(ctx context.Context, params *
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeMaintenanceWindowExecutions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeMaintenanceWindowExecutions'
+type SSM_DescribeMaintenanceWindowExecutions_Call struct {
+	*mock.Call
+}
+
+// DescribeMaintenanceWindowExecutions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeMaintenanceWindowExecutionsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeMaintenanceWindowExecutions(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeMaintenanceWindowExecutions_Call {
+	return &SSM_DescribeMaintenanceWindowExecutions_Call{Call: _e.mock.On("DescribeMaintenanceWindowExecutions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeMaintenanceWindowExecutions_Call) Run(run func(ctx context.Context, params *ssm.DescribeMaintenanceWindowExecutionsInput, optFns ...func(*ssm.Options))) *SSM_DescribeMaintenanceWindowExecutions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeMaintenanceWindowExecutionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowExecutions_Call) Return(_a0 *ssm.DescribeMaintenanceWindowExecutionsOutput, _a1 error) *SSM_DescribeMaintenanceWindowExecutions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowExecutions_Call) RunAndReturn(run func(context.Context, *ssm.DescribeMaintenanceWindowExecutionsInput, ...func(*ssm.Options)) (*ssm.DescribeMaintenanceWindowExecutionsOutput, error)) *SSM_DescribeMaintenanceWindowExecutions_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeMaintenanceWindowSchedule provides a mock function with given fields: ctx, params, optFns
@@ -1864,6 +3759,43 @@ func (_m *SSM) DescribeMaintenanceWindowSchedule(ctx context.Context, params *ss
 	return r0, r1
 }
 
+// SSM_DescribeMaintenanceWindowSchedule_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeMaintenanceWindowSchedule'
+type SSM_DescribeMaintenanceWindowSchedule_Call struct {
+	*mock.Call
+}
+
+// DescribeMaintenanceWindowSchedule is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeMaintenanceWindowScheduleInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeMaintenanceWindowSchedule(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeMaintenanceWindowSchedule_Call {
+	return &SSM_DescribeMaintenanceWindowSchedule_Call{Call: _e.mock.On("DescribeMaintenanceWindowSchedule",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeMaintenanceWindowSchedule_Call) Run(run func(ctx context.Context, params *ssm.DescribeMaintenanceWindowScheduleInput, optFns ...func(*ssm.Options))) *SSM_DescribeMaintenanceWindowSchedule_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeMaintenanceWindowScheduleInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowSchedule_Call) Return(_a0 *ssm.DescribeMaintenanceWindowScheduleOutput, _a1 error) *SSM_DescribeMaintenanceWindowSchedule_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowSchedule_Call) RunAndReturn(run func(context.Context, *ssm.DescribeMaintenanceWindowScheduleInput, ...func(*ssm.Options)) (*ssm.DescribeMaintenanceWindowScheduleOutput, error)) *SSM_DescribeMaintenanceWindowSchedule_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeMaintenanceWindowTargets provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeMaintenanceWindowTargets(ctx context.Context, params *ssm.DescribeMaintenanceWindowTargetsInput, optFns ...func(*ssm.Options)) (*ssm.DescribeMaintenanceWindowTargetsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1899,6 +3831,43 @@ func (_m *SSM) DescribeMaintenanceWindowTargets(ctx context.Context, params *ssm
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeMaintenanceWindowTargets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeMaintenanceWindowTargets'
+type SSM_DescribeMaintenanceWindowTargets_Call struct {
+	*mock.Call
+}
+
+// DescribeMaintenanceWindowTargets is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeMaintenanceWindowTargetsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeMaintenanceWindowTargets(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeMaintenanceWindowTargets_Call {
+	return &SSM_DescribeMaintenanceWindowTargets_Call{Call: _e.mock.On("DescribeMaintenanceWindowTargets",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeMaintenanceWindowTargets_Call) Run(run func(ctx context.Context, params *ssm.DescribeMaintenanceWindowTargetsInput, optFns ...func(*ssm.Options))) *SSM_DescribeMaintenanceWindowTargets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeMaintenanceWindowTargetsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowTargets_Call) Return(_a0 *ssm.DescribeMaintenanceWindowTargetsOutput, _a1 error) *SSM_DescribeMaintenanceWindowTargets_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowTargets_Call) RunAndReturn(run func(context.Context, *ssm.DescribeMaintenanceWindowTargetsInput, ...func(*ssm.Options)) (*ssm.DescribeMaintenanceWindowTargetsOutput, error)) *SSM_DescribeMaintenanceWindowTargets_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeMaintenanceWindowTasks provides a mock function with given fields: ctx, params, optFns
@@ -1938,6 +3907,43 @@ func (_m *SSM) DescribeMaintenanceWindowTasks(ctx context.Context, params *ssm.D
 	return r0, r1
 }
 
+// SSM_DescribeMaintenanceWindowTasks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeMaintenanceWindowTasks'
+type SSM_DescribeMaintenanceWindowTasks_Call struct {
+	*mock.Call
+}
+
+// DescribeMaintenanceWindowTasks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeMaintenanceWindowTasksInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeMaintenanceWindowTasks(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeMaintenanceWindowTasks_Call {
+	return &SSM_DescribeMaintenanceWindowTasks_Call{Call: _e.mock.On("DescribeMaintenanceWindowTasks",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeMaintenanceWindowTasks_Call) Run(run func(ctx context.Context, params *ssm.DescribeMaintenanceWindowTasksInput, optFns ...func(*ssm.Options))) *SSM_DescribeMaintenanceWindowTasks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeMaintenanceWindowTasksInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowTasks_Call) Return(_a0 *ssm.DescribeMaintenanceWindowTasksOutput, _a1 error) *SSM_DescribeMaintenanceWindowTasks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowTasks_Call) RunAndReturn(run func(context.Context, *ssm.DescribeMaintenanceWindowTasksInput, ...func(*ssm.Options)) (*ssm.DescribeMaintenanceWindowTasksOutput, error)) *SSM_DescribeMaintenanceWindowTasks_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeMaintenanceWindows provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeMaintenanceWindows(ctx context.Context, params *ssm.DescribeMaintenanceWindowsInput, optFns ...func(*ssm.Options)) (*ssm.DescribeMaintenanceWindowsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -1973,6 +3979,43 @@ func (_m *SSM) DescribeMaintenanceWindows(ctx context.Context, params *ssm.Descr
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeMaintenanceWindows_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeMaintenanceWindows'
+type SSM_DescribeMaintenanceWindows_Call struct {
+	*mock.Call
+}
+
+// DescribeMaintenanceWindows is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeMaintenanceWindowsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeMaintenanceWindows(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeMaintenanceWindows_Call {
+	return &SSM_DescribeMaintenanceWindows_Call{Call: _e.mock.On("DescribeMaintenanceWindows",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeMaintenanceWindows_Call) Run(run func(ctx context.Context, params *ssm.DescribeMaintenanceWindowsInput, optFns ...func(*ssm.Options))) *SSM_DescribeMaintenanceWindows_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeMaintenanceWindowsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindows_Call) Return(_a0 *ssm.DescribeMaintenanceWindowsOutput, _a1 error) *SSM_DescribeMaintenanceWindows_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindows_Call) RunAndReturn(run func(context.Context, *ssm.DescribeMaintenanceWindowsInput, ...func(*ssm.Options)) (*ssm.DescribeMaintenanceWindowsOutput, error)) *SSM_DescribeMaintenanceWindows_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeMaintenanceWindowsForTarget provides a mock function with given fields: ctx, params, optFns
@@ -2012,6 +4055,43 @@ func (_m *SSM) DescribeMaintenanceWindowsForTarget(ctx context.Context, params *
 	return r0, r1
 }
 
+// SSM_DescribeMaintenanceWindowsForTarget_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeMaintenanceWindowsForTarget'
+type SSM_DescribeMaintenanceWindowsForTarget_Call struct {
+	*mock.Call
+}
+
+// DescribeMaintenanceWindowsForTarget is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeMaintenanceWindowsForTargetInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeMaintenanceWindowsForTarget(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeMaintenanceWindowsForTarget_Call {
+	return &SSM_DescribeMaintenanceWindowsForTarget_Call{Call: _e.mock.On("DescribeMaintenanceWindowsForTarget",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeMaintenanceWindowsForTarget_Call) Run(run func(ctx context.Context, params *ssm.DescribeMaintenanceWindowsForTargetInput, optFns ...func(*ssm.Options))) *SSM_DescribeMaintenanceWindowsForTarget_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeMaintenanceWindowsForTargetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowsForTarget_Call) Return(_a0 *ssm.DescribeMaintenanceWindowsForTargetOutput, _a1 error) *SSM_DescribeMaintenanceWindowsForTarget_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeMaintenanceWindowsForTarget_Call) RunAndReturn(run func(context.Context, *ssm.DescribeMaintenanceWindowsForTargetInput, ...func(*ssm.Options)) (*ssm.DescribeMaintenanceWindowsForTargetOutput, error)) *SSM_DescribeMaintenanceWindowsForTarget_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeOpsItems provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeOpsItems(ctx context.Context, params *ssm.DescribeOpsItemsInput, optFns ...func(*ssm.Options)) (*ssm.DescribeOpsItemsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2047,6 +4127,43 @@ func (_m *SSM) DescribeOpsItems(ctx context.Context, params *ssm.DescribeOpsItem
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeOpsItems_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeOpsItems'
+type SSM_DescribeOpsItems_Call struct {
+	*mock.Call
+}
+
+// DescribeOpsItems is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeOpsItemsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeOpsItems(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeOpsItems_Call {
+	return &SSM_DescribeOpsItems_Call{Call: _e.mock.On("DescribeOpsItems",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeOpsItems_Call) Run(run func(ctx context.Context, params *ssm.DescribeOpsItemsInput, optFns ...func(*ssm.Options))) *SSM_DescribeOpsItems_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeOpsItemsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeOpsItems_Call) Return(_a0 *ssm.DescribeOpsItemsOutput, _a1 error) *SSM_DescribeOpsItems_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeOpsItems_Call) RunAndReturn(run func(context.Context, *ssm.DescribeOpsItemsInput, ...func(*ssm.Options)) (*ssm.DescribeOpsItemsOutput, error)) *SSM_DescribeOpsItems_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribeParameters provides a mock function with given fields: ctx, params, optFns
@@ -2086,6 +4203,43 @@ func (_m *SSM) DescribeParameters(ctx context.Context, params *ssm.DescribeParam
 	return r0, r1
 }
 
+// SSM_DescribeParameters_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeParameters'
+type SSM_DescribeParameters_Call struct {
+	*mock.Call
+}
+
+// DescribeParameters is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeParametersInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeParameters(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeParameters_Call {
+	return &SSM_DescribeParameters_Call{Call: _e.mock.On("DescribeParameters",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeParameters_Call) Run(run func(ctx context.Context, params *ssm.DescribeParametersInput, optFns ...func(*ssm.Options))) *SSM_DescribeParameters_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeParametersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeParameters_Call) Return(_a0 *ssm.DescribeParametersOutput, _a1 error) *SSM_DescribeParameters_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeParameters_Call) RunAndReturn(run func(context.Context, *ssm.DescribeParametersInput, ...func(*ssm.Options)) (*ssm.DescribeParametersOutput, error)) *SSM_DescribeParameters_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribePatchBaselines provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribePatchBaselines(ctx context.Context, params *ssm.DescribePatchBaselinesInput, optFns ...func(*ssm.Options)) (*ssm.DescribePatchBaselinesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2121,6 +4275,43 @@ func (_m *SSM) DescribePatchBaselines(ctx context.Context, params *ssm.DescribeP
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribePatchBaselines_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribePatchBaselines'
+type SSM_DescribePatchBaselines_Call struct {
+	*mock.Call
+}
+
+// DescribePatchBaselines is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribePatchBaselinesInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribePatchBaselines(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribePatchBaselines_Call {
+	return &SSM_DescribePatchBaselines_Call{Call: _e.mock.On("DescribePatchBaselines",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribePatchBaselines_Call) Run(run func(ctx context.Context, params *ssm.DescribePatchBaselinesInput, optFns ...func(*ssm.Options))) *SSM_DescribePatchBaselines_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribePatchBaselinesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribePatchBaselines_Call) Return(_a0 *ssm.DescribePatchBaselinesOutput, _a1 error) *SSM_DescribePatchBaselines_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribePatchBaselines_Call) RunAndReturn(run func(context.Context, *ssm.DescribePatchBaselinesInput, ...func(*ssm.Options)) (*ssm.DescribePatchBaselinesOutput, error)) *SSM_DescribePatchBaselines_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribePatchGroupState provides a mock function with given fields: ctx, params, optFns
@@ -2160,6 +4351,43 @@ func (_m *SSM) DescribePatchGroupState(ctx context.Context, params *ssm.Describe
 	return r0, r1
 }
 
+// SSM_DescribePatchGroupState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribePatchGroupState'
+type SSM_DescribePatchGroupState_Call struct {
+	*mock.Call
+}
+
+// DescribePatchGroupState is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribePatchGroupStateInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribePatchGroupState(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribePatchGroupState_Call {
+	return &SSM_DescribePatchGroupState_Call{Call: _e.mock.On("DescribePatchGroupState",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribePatchGroupState_Call) Run(run func(ctx context.Context, params *ssm.DescribePatchGroupStateInput, optFns ...func(*ssm.Options))) *SSM_DescribePatchGroupState_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribePatchGroupStateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribePatchGroupState_Call) Return(_a0 *ssm.DescribePatchGroupStateOutput, _a1 error) *SSM_DescribePatchGroupState_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribePatchGroupState_Call) RunAndReturn(run func(context.Context, *ssm.DescribePatchGroupStateInput, ...func(*ssm.Options)) (*ssm.DescribePatchGroupStateOutput, error)) *SSM_DescribePatchGroupState_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribePatchGroups provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribePatchGroups(ctx context.Context, params *ssm.DescribePatchGroupsInput, optFns ...func(*ssm.Options)) (*ssm.DescribePatchGroupsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2195,6 +4423,43 @@ func (_m *SSM) DescribePatchGroups(ctx context.Context, params *ssm.DescribePatc
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribePatchGroups_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribePatchGroups'
+type SSM_DescribePatchGroups_Call struct {
+	*mock.Call
+}
+
+// DescribePatchGroups is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribePatchGroupsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribePatchGroups(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribePatchGroups_Call {
+	return &SSM_DescribePatchGroups_Call{Call: _e.mock.On("DescribePatchGroups",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribePatchGroups_Call) Run(run func(ctx context.Context, params *ssm.DescribePatchGroupsInput, optFns ...func(*ssm.Options))) *SSM_DescribePatchGroups_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribePatchGroupsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribePatchGroups_Call) Return(_a0 *ssm.DescribePatchGroupsOutput, _a1 error) *SSM_DescribePatchGroups_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribePatchGroups_Call) RunAndReturn(run func(context.Context, *ssm.DescribePatchGroupsInput, ...func(*ssm.Options)) (*ssm.DescribePatchGroupsOutput, error)) *SSM_DescribePatchGroups_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DescribePatchProperties provides a mock function with given fields: ctx, params, optFns
@@ -2234,6 +4499,43 @@ func (_m *SSM) DescribePatchProperties(ctx context.Context, params *ssm.Describe
 	return r0, r1
 }
 
+// SSM_DescribePatchProperties_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribePatchProperties'
+type SSM_DescribePatchProperties_Call struct {
+	*mock.Call
+}
+
+// DescribePatchProperties is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribePatchPropertiesInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribePatchProperties(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribePatchProperties_Call {
+	return &SSM_DescribePatchProperties_Call{Call: _e.mock.On("DescribePatchProperties",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribePatchProperties_Call) Run(run func(ctx context.Context, params *ssm.DescribePatchPropertiesInput, optFns ...func(*ssm.Options))) *SSM_DescribePatchProperties_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribePatchPropertiesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribePatchProperties_Call) Return(_a0 *ssm.DescribePatchPropertiesOutput, _a1 error) *SSM_DescribePatchProperties_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribePatchProperties_Call) RunAndReturn(run func(context.Context, *ssm.DescribePatchPropertiesInput, ...func(*ssm.Options)) (*ssm.DescribePatchPropertiesOutput, error)) *SSM_DescribePatchProperties_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeSessions provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) DescribeSessions(ctx context.Context, params *ssm.DescribeSessionsInput, optFns ...func(*ssm.Options)) (*ssm.DescribeSessionsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2269,6 +4571,43 @@ func (_m *SSM) DescribeSessions(ctx context.Context, params *ssm.DescribeSession
 	}
 
 	return r0, r1
+}
+
+// SSM_DescribeSessions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeSessions'
+type SSM_DescribeSessions_Call struct {
+	*mock.Call
+}
+
+// DescribeSessions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DescribeSessionsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DescribeSessions(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DescribeSessions_Call {
+	return &SSM_DescribeSessions_Call{Call: _e.mock.On("DescribeSessions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DescribeSessions_Call) Run(run func(ctx context.Context, params *ssm.DescribeSessionsInput, optFns ...func(*ssm.Options))) *SSM_DescribeSessions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DescribeSessionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DescribeSessions_Call) Return(_a0 *ssm.DescribeSessionsOutput, _a1 error) *SSM_DescribeSessions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DescribeSessions_Call) RunAndReturn(run func(context.Context, *ssm.DescribeSessionsInput, ...func(*ssm.Options)) (*ssm.DescribeSessionsOutput, error)) *SSM_DescribeSessions_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DisassociateOpsItemRelatedItem provides a mock function with given fields: ctx, params, optFns
@@ -2308,6 +4647,43 @@ func (_m *SSM) DisassociateOpsItemRelatedItem(ctx context.Context, params *ssm.D
 	return r0, r1
 }
 
+// SSM_DisassociateOpsItemRelatedItem_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisassociateOpsItemRelatedItem'
+type SSM_DisassociateOpsItemRelatedItem_Call struct {
+	*mock.Call
+}
+
+// DisassociateOpsItemRelatedItem is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.DisassociateOpsItemRelatedItemInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) DisassociateOpsItemRelatedItem(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_DisassociateOpsItemRelatedItem_Call {
+	return &SSM_DisassociateOpsItemRelatedItem_Call{Call: _e.mock.On("DisassociateOpsItemRelatedItem",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_DisassociateOpsItemRelatedItem_Call) Run(run func(ctx context.Context, params *ssm.DisassociateOpsItemRelatedItemInput, optFns ...func(*ssm.Options))) *SSM_DisassociateOpsItemRelatedItem_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.DisassociateOpsItemRelatedItemInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_DisassociateOpsItemRelatedItem_Call) Return(_a0 *ssm.DisassociateOpsItemRelatedItemOutput, _a1 error) *SSM_DisassociateOpsItemRelatedItem_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_DisassociateOpsItemRelatedItem_Call) RunAndReturn(run func(context.Context, *ssm.DisassociateOpsItemRelatedItemInput, ...func(*ssm.Options)) (*ssm.DisassociateOpsItemRelatedItemOutput, error)) *SSM_DisassociateOpsItemRelatedItem_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAutomationExecution provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetAutomationExecution(ctx context.Context, params *ssm.GetAutomationExecutionInput, optFns ...func(*ssm.Options)) (*ssm.GetAutomationExecutionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2343,6 +4719,43 @@ func (_m *SSM) GetAutomationExecution(ctx context.Context, params *ssm.GetAutoma
 	}
 
 	return r0, r1
+}
+
+// SSM_GetAutomationExecution_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAutomationExecution'
+type SSM_GetAutomationExecution_Call struct {
+	*mock.Call
+}
+
+// GetAutomationExecution is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetAutomationExecutionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetAutomationExecution(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetAutomationExecution_Call {
+	return &SSM_GetAutomationExecution_Call{Call: _e.mock.On("GetAutomationExecution",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetAutomationExecution_Call) Run(run func(ctx context.Context, params *ssm.GetAutomationExecutionInput, optFns ...func(*ssm.Options))) *SSM_GetAutomationExecution_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetAutomationExecutionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetAutomationExecution_Call) Return(_a0 *ssm.GetAutomationExecutionOutput, _a1 error) *SSM_GetAutomationExecution_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetAutomationExecution_Call) RunAndReturn(run func(context.Context, *ssm.GetAutomationExecutionInput, ...func(*ssm.Options)) (*ssm.GetAutomationExecutionOutput, error)) *SSM_GetAutomationExecution_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetCalendarState provides a mock function with given fields: ctx, params, optFns
@@ -2382,6 +4795,43 @@ func (_m *SSM) GetCalendarState(ctx context.Context, params *ssm.GetCalendarStat
 	return r0, r1
 }
 
+// SSM_GetCalendarState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCalendarState'
+type SSM_GetCalendarState_Call struct {
+	*mock.Call
+}
+
+// GetCalendarState is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetCalendarStateInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetCalendarState(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetCalendarState_Call {
+	return &SSM_GetCalendarState_Call{Call: _e.mock.On("GetCalendarState",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetCalendarState_Call) Run(run func(ctx context.Context, params *ssm.GetCalendarStateInput, optFns ...func(*ssm.Options))) *SSM_GetCalendarState_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetCalendarStateInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetCalendarState_Call) Return(_a0 *ssm.GetCalendarStateOutput, _a1 error) *SSM_GetCalendarState_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetCalendarState_Call) RunAndReturn(run func(context.Context, *ssm.GetCalendarStateInput, ...func(*ssm.Options)) (*ssm.GetCalendarStateOutput, error)) *SSM_GetCalendarState_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCommandInvocation provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetCommandInvocation(ctx context.Context, params *ssm.GetCommandInvocationInput, optFns ...func(*ssm.Options)) (*ssm.GetCommandInvocationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2417,6 +4867,43 @@ func (_m *SSM) GetCommandInvocation(ctx context.Context, params *ssm.GetCommandI
 	}
 
 	return r0, r1
+}
+
+// SSM_GetCommandInvocation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCommandInvocation'
+type SSM_GetCommandInvocation_Call struct {
+	*mock.Call
+}
+
+// GetCommandInvocation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetCommandInvocationInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetCommandInvocation(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetCommandInvocation_Call {
+	return &SSM_GetCommandInvocation_Call{Call: _e.mock.On("GetCommandInvocation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetCommandInvocation_Call) Run(run func(ctx context.Context, params *ssm.GetCommandInvocationInput, optFns ...func(*ssm.Options))) *SSM_GetCommandInvocation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetCommandInvocationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetCommandInvocation_Call) Return(_a0 *ssm.GetCommandInvocationOutput, _a1 error) *SSM_GetCommandInvocation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetCommandInvocation_Call) RunAndReturn(run func(context.Context, *ssm.GetCommandInvocationInput, ...func(*ssm.Options)) (*ssm.GetCommandInvocationOutput, error)) *SSM_GetCommandInvocation_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetConnectionStatus provides a mock function with given fields: ctx, params, optFns
@@ -2456,6 +4943,43 @@ func (_m *SSM) GetConnectionStatus(ctx context.Context, params *ssm.GetConnectio
 	return r0, r1
 }
 
+// SSM_GetConnectionStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetConnectionStatus'
+type SSM_GetConnectionStatus_Call struct {
+	*mock.Call
+}
+
+// GetConnectionStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetConnectionStatusInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetConnectionStatus(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetConnectionStatus_Call {
+	return &SSM_GetConnectionStatus_Call{Call: _e.mock.On("GetConnectionStatus",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetConnectionStatus_Call) Run(run func(ctx context.Context, params *ssm.GetConnectionStatusInput, optFns ...func(*ssm.Options))) *SSM_GetConnectionStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetConnectionStatusInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetConnectionStatus_Call) Return(_a0 *ssm.GetConnectionStatusOutput, _a1 error) *SSM_GetConnectionStatus_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetConnectionStatus_Call) RunAndReturn(run func(context.Context, *ssm.GetConnectionStatusInput, ...func(*ssm.Options)) (*ssm.GetConnectionStatusOutput, error)) *SSM_GetConnectionStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetDefaultPatchBaseline provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetDefaultPatchBaseline(ctx context.Context, params *ssm.GetDefaultPatchBaselineInput, optFns ...func(*ssm.Options)) (*ssm.GetDefaultPatchBaselineOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2491,6 +5015,43 @@ func (_m *SSM) GetDefaultPatchBaseline(ctx context.Context, params *ssm.GetDefau
 	}
 
 	return r0, r1
+}
+
+// SSM_GetDefaultPatchBaseline_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDefaultPatchBaseline'
+type SSM_GetDefaultPatchBaseline_Call struct {
+	*mock.Call
+}
+
+// GetDefaultPatchBaseline is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetDefaultPatchBaselineInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetDefaultPatchBaseline(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetDefaultPatchBaseline_Call {
+	return &SSM_GetDefaultPatchBaseline_Call{Call: _e.mock.On("GetDefaultPatchBaseline",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetDefaultPatchBaseline_Call) Run(run func(ctx context.Context, params *ssm.GetDefaultPatchBaselineInput, optFns ...func(*ssm.Options))) *SSM_GetDefaultPatchBaseline_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetDefaultPatchBaselineInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetDefaultPatchBaseline_Call) Return(_a0 *ssm.GetDefaultPatchBaselineOutput, _a1 error) *SSM_GetDefaultPatchBaseline_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetDefaultPatchBaseline_Call) RunAndReturn(run func(context.Context, *ssm.GetDefaultPatchBaselineInput, ...func(*ssm.Options)) (*ssm.GetDefaultPatchBaselineOutput, error)) *SSM_GetDefaultPatchBaseline_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetDeployablePatchSnapshotForInstance provides a mock function with given fields: ctx, params, optFns
@@ -2530,6 +5091,43 @@ func (_m *SSM) GetDeployablePatchSnapshotForInstance(ctx context.Context, params
 	return r0, r1
 }
 
+// SSM_GetDeployablePatchSnapshotForInstance_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDeployablePatchSnapshotForInstance'
+type SSM_GetDeployablePatchSnapshotForInstance_Call struct {
+	*mock.Call
+}
+
+// GetDeployablePatchSnapshotForInstance is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetDeployablePatchSnapshotForInstanceInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetDeployablePatchSnapshotForInstance(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetDeployablePatchSnapshotForInstance_Call {
+	return &SSM_GetDeployablePatchSnapshotForInstance_Call{Call: _e.mock.On("GetDeployablePatchSnapshotForInstance",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetDeployablePatchSnapshotForInstance_Call) Run(run func(ctx context.Context, params *ssm.GetDeployablePatchSnapshotForInstanceInput, optFns ...func(*ssm.Options))) *SSM_GetDeployablePatchSnapshotForInstance_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetDeployablePatchSnapshotForInstanceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetDeployablePatchSnapshotForInstance_Call) Return(_a0 *ssm.GetDeployablePatchSnapshotForInstanceOutput, _a1 error) *SSM_GetDeployablePatchSnapshotForInstance_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetDeployablePatchSnapshotForInstance_Call) RunAndReturn(run func(context.Context, *ssm.GetDeployablePatchSnapshotForInstanceInput, ...func(*ssm.Options)) (*ssm.GetDeployablePatchSnapshotForInstanceOutput, error)) *SSM_GetDeployablePatchSnapshotForInstance_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetDocument provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetDocument(ctx context.Context, params *ssm.GetDocumentInput, optFns ...func(*ssm.Options)) (*ssm.GetDocumentOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2565,6 +5163,117 @@ func (_m *SSM) GetDocument(ctx context.Context, params *ssm.GetDocumentInput, op
 	}
 
 	return r0, r1
+}
+
+// SSM_GetDocument_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDocument'
+type SSM_GetDocument_Call struct {
+	*mock.Call
+}
+
+// GetDocument is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetDocumentInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetDocument(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetDocument_Call {
+	return &SSM_GetDocument_Call{Call: _e.mock.On("GetDocument",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetDocument_Call) Run(run func(ctx context.Context, params *ssm.GetDocumentInput, optFns ...func(*ssm.Options))) *SSM_GetDocument_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetDocumentInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetDocument_Call) Return(_a0 *ssm.GetDocumentOutput, _a1 error) *SSM_GetDocument_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetDocument_Call) RunAndReturn(run func(context.Context, *ssm.GetDocumentInput, ...func(*ssm.Options)) (*ssm.GetDocumentOutput, error)) *SSM_GetDocument_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetExecutionPreview provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) GetExecutionPreview(ctx context.Context, params *ssm.GetExecutionPreviewInput, optFns ...func(*ssm.Options)) (*ssm.GetExecutionPreviewOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetExecutionPreview")
+	}
+
+	var r0 *ssm.GetExecutionPreviewOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.GetExecutionPreviewInput, ...func(*ssm.Options)) (*ssm.GetExecutionPreviewOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.GetExecutionPreviewInput, ...func(*ssm.Options)) *ssm.GetExecutionPreviewOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.GetExecutionPreviewOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.GetExecutionPreviewInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SSM_GetExecutionPreview_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetExecutionPreview'
+type SSM_GetExecutionPreview_Call struct {
+	*mock.Call
+}
+
+// GetExecutionPreview is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetExecutionPreviewInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetExecutionPreview(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetExecutionPreview_Call {
+	return &SSM_GetExecutionPreview_Call{Call: _e.mock.On("GetExecutionPreview",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetExecutionPreview_Call) Run(run func(ctx context.Context, params *ssm.GetExecutionPreviewInput, optFns ...func(*ssm.Options))) *SSM_GetExecutionPreview_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetExecutionPreviewInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetExecutionPreview_Call) Return(_a0 *ssm.GetExecutionPreviewOutput, _a1 error) *SSM_GetExecutionPreview_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetExecutionPreview_Call) RunAndReturn(run func(context.Context, *ssm.GetExecutionPreviewInput, ...func(*ssm.Options)) (*ssm.GetExecutionPreviewOutput, error)) *SSM_GetExecutionPreview_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetInventory provides a mock function with given fields: ctx, params, optFns
@@ -2604,6 +5313,43 @@ func (_m *SSM) GetInventory(ctx context.Context, params *ssm.GetInventoryInput, 
 	return r0, r1
 }
 
+// SSM_GetInventory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetInventory'
+type SSM_GetInventory_Call struct {
+	*mock.Call
+}
+
+// GetInventory is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetInventoryInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetInventory(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetInventory_Call {
+	return &SSM_GetInventory_Call{Call: _e.mock.On("GetInventory",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetInventory_Call) Run(run func(ctx context.Context, params *ssm.GetInventoryInput, optFns ...func(*ssm.Options))) *SSM_GetInventory_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetInventoryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetInventory_Call) Return(_a0 *ssm.GetInventoryOutput, _a1 error) *SSM_GetInventory_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetInventory_Call) RunAndReturn(run func(context.Context, *ssm.GetInventoryInput, ...func(*ssm.Options)) (*ssm.GetInventoryOutput, error)) *SSM_GetInventory_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetInventorySchema provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetInventorySchema(ctx context.Context, params *ssm.GetInventorySchemaInput, optFns ...func(*ssm.Options)) (*ssm.GetInventorySchemaOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2639,6 +5385,43 @@ func (_m *SSM) GetInventorySchema(ctx context.Context, params *ssm.GetInventoryS
 	}
 
 	return r0, r1
+}
+
+// SSM_GetInventorySchema_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetInventorySchema'
+type SSM_GetInventorySchema_Call struct {
+	*mock.Call
+}
+
+// GetInventorySchema is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetInventorySchemaInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetInventorySchema(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetInventorySchema_Call {
+	return &SSM_GetInventorySchema_Call{Call: _e.mock.On("GetInventorySchema",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetInventorySchema_Call) Run(run func(ctx context.Context, params *ssm.GetInventorySchemaInput, optFns ...func(*ssm.Options))) *SSM_GetInventorySchema_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetInventorySchemaInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetInventorySchema_Call) Return(_a0 *ssm.GetInventorySchemaOutput, _a1 error) *SSM_GetInventorySchema_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetInventorySchema_Call) RunAndReturn(run func(context.Context, *ssm.GetInventorySchemaInput, ...func(*ssm.Options)) (*ssm.GetInventorySchemaOutput, error)) *SSM_GetInventorySchema_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetMaintenanceWindow provides a mock function with given fields: ctx, params, optFns
@@ -2678,6 +5461,43 @@ func (_m *SSM) GetMaintenanceWindow(ctx context.Context, params *ssm.GetMaintena
 	return r0, r1
 }
 
+// SSM_GetMaintenanceWindow_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMaintenanceWindow'
+type SSM_GetMaintenanceWindow_Call struct {
+	*mock.Call
+}
+
+// GetMaintenanceWindow is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetMaintenanceWindowInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetMaintenanceWindow(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetMaintenanceWindow_Call {
+	return &SSM_GetMaintenanceWindow_Call{Call: _e.mock.On("GetMaintenanceWindow",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetMaintenanceWindow_Call) Run(run func(ctx context.Context, params *ssm.GetMaintenanceWindowInput, optFns ...func(*ssm.Options))) *SSM_GetMaintenanceWindow_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetMaintenanceWindowInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetMaintenanceWindow_Call) Return(_a0 *ssm.GetMaintenanceWindowOutput, _a1 error) *SSM_GetMaintenanceWindow_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetMaintenanceWindow_Call) RunAndReturn(run func(context.Context, *ssm.GetMaintenanceWindowInput, ...func(*ssm.Options)) (*ssm.GetMaintenanceWindowOutput, error)) *SSM_GetMaintenanceWindow_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetMaintenanceWindowExecution provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetMaintenanceWindowExecution(ctx context.Context, params *ssm.GetMaintenanceWindowExecutionInput, optFns ...func(*ssm.Options)) (*ssm.GetMaintenanceWindowExecutionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2713,6 +5533,43 @@ func (_m *SSM) GetMaintenanceWindowExecution(ctx context.Context, params *ssm.Ge
 	}
 
 	return r0, r1
+}
+
+// SSM_GetMaintenanceWindowExecution_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMaintenanceWindowExecution'
+type SSM_GetMaintenanceWindowExecution_Call struct {
+	*mock.Call
+}
+
+// GetMaintenanceWindowExecution is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetMaintenanceWindowExecutionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetMaintenanceWindowExecution(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetMaintenanceWindowExecution_Call {
+	return &SSM_GetMaintenanceWindowExecution_Call{Call: _e.mock.On("GetMaintenanceWindowExecution",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetMaintenanceWindowExecution_Call) Run(run func(ctx context.Context, params *ssm.GetMaintenanceWindowExecutionInput, optFns ...func(*ssm.Options))) *SSM_GetMaintenanceWindowExecution_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetMaintenanceWindowExecutionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetMaintenanceWindowExecution_Call) Return(_a0 *ssm.GetMaintenanceWindowExecutionOutput, _a1 error) *SSM_GetMaintenanceWindowExecution_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetMaintenanceWindowExecution_Call) RunAndReturn(run func(context.Context, *ssm.GetMaintenanceWindowExecutionInput, ...func(*ssm.Options)) (*ssm.GetMaintenanceWindowExecutionOutput, error)) *SSM_GetMaintenanceWindowExecution_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetMaintenanceWindowExecutionTask provides a mock function with given fields: ctx, params, optFns
@@ -2752,6 +5609,43 @@ func (_m *SSM) GetMaintenanceWindowExecutionTask(ctx context.Context, params *ss
 	return r0, r1
 }
 
+// SSM_GetMaintenanceWindowExecutionTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMaintenanceWindowExecutionTask'
+type SSM_GetMaintenanceWindowExecutionTask_Call struct {
+	*mock.Call
+}
+
+// GetMaintenanceWindowExecutionTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetMaintenanceWindowExecutionTaskInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetMaintenanceWindowExecutionTask(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetMaintenanceWindowExecutionTask_Call {
+	return &SSM_GetMaintenanceWindowExecutionTask_Call{Call: _e.mock.On("GetMaintenanceWindowExecutionTask",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetMaintenanceWindowExecutionTask_Call) Run(run func(ctx context.Context, params *ssm.GetMaintenanceWindowExecutionTaskInput, optFns ...func(*ssm.Options))) *SSM_GetMaintenanceWindowExecutionTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetMaintenanceWindowExecutionTaskInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetMaintenanceWindowExecutionTask_Call) Return(_a0 *ssm.GetMaintenanceWindowExecutionTaskOutput, _a1 error) *SSM_GetMaintenanceWindowExecutionTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetMaintenanceWindowExecutionTask_Call) RunAndReturn(run func(context.Context, *ssm.GetMaintenanceWindowExecutionTaskInput, ...func(*ssm.Options)) (*ssm.GetMaintenanceWindowExecutionTaskOutput, error)) *SSM_GetMaintenanceWindowExecutionTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetMaintenanceWindowExecutionTaskInvocation provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetMaintenanceWindowExecutionTaskInvocation(ctx context.Context, params *ssm.GetMaintenanceWindowExecutionTaskInvocationInput, optFns ...func(*ssm.Options)) (*ssm.GetMaintenanceWindowExecutionTaskInvocationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2787,6 +5681,43 @@ func (_m *SSM) GetMaintenanceWindowExecutionTaskInvocation(ctx context.Context, 
 	}
 
 	return r0, r1
+}
+
+// SSM_GetMaintenanceWindowExecutionTaskInvocation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMaintenanceWindowExecutionTaskInvocation'
+type SSM_GetMaintenanceWindowExecutionTaskInvocation_Call struct {
+	*mock.Call
+}
+
+// GetMaintenanceWindowExecutionTaskInvocation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetMaintenanceWindowExecutionTaskInvocationInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetMaintenanceWindowExecutionTaskInvocation(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetMaintenanceWindowExecutionTaskInvocation_Call {
+	return &SSM_GetMaintenanceWindowExecutionTaskInvocation_Call{Call: _e.mock.On("GetMaintenanceWindowExecutionTaskInvocation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetMaintenanceWindowExecutionTaskInvocation_Call) Run(run func(ctx context.Context, params *ssm.GetMaintenanceWindowExecutionTaskInvocationInput, optFns ...func(*ssm.Options))) *SSM_GetMaintenanceWindowExecutionTaskInvocation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetMaintenanceWindowExecutionTaskInvocationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetMaintenanceWindowExecutionTaskInvocation_Call) Return(_a0 *ssm.GetMaintenanceWindowExecutionTaskInvocationOutput, _a1 error) *SSM_GetMaintenanceWindowExecutionTaskInvocation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetMaintenanceWindowExecutionTaskInvocation_Call) RunAndReturn(run func(context.Context, *ssm.GetMaintenanceWindowExecutionTaskInvocationInput, ...func(*ssm.Options)) (*ssm.GetMaintenanceWindowExecutionTaskInvocationOutput, error)) *SSM_GetMaintenanceWindowExecutionTaskInvocation_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetMaintenanceWindowTask provides a mock function with given fields: ctx, params, optFns
@@ -2826,6 +5757,43 @@ func (_m *SSM) GetMaintenanceWindowTask(ctx context.Context, params *ssm.GetMain
 	return r0, r1
 }
 
+// SSM_GetMaintenanceWindowTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMaintenanceWindowTask'
+type SSM_GetMaintenanceWindowTask_Call struct {
+	*mock.Call
+}
+
+// GetMaintenanceWindowTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetMaintenanceWindowTaskInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetMaintenanceWindowTask(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetMaintenanceWindowTask_Call {
+	return &SSM_GetMaintenanceWindowTask_Call{Call: _e.mock.On("GetMaintenanceWindowTask",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetMaintenanceWindowTask_Call) Run(run func(ctx context.Context, params *ssm.GetMaintenanceWindowTaskInput, optFns ...func(*ssm.Options))) *SSM_GetMaintenanceWindowTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetMaintenanceWindowTaskInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetMaintenanceWindowTask_Call) Return(_a0 *ssm.GetMaintenanceWindowTaskOutput, _a1 error) *SSM_GetMaintenanceWindowTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetMaintenanceWindowTask_Call) RunAndReturn(run func(context.Context, *ssm.GetMaintenanceWindowTaskInput, ...func(*ssm.Options)) (*ssm.GetMaintenanceWindowTaskOutput, error)) *SSM_GetMaintenanceWindowTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetOpsItem provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetOpsItem(ctx context.Context, params *ssm.GetOpsItemInput, optFns ...func(*ssm.Options)) (*ssm.GetOpsItemOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2861,6 +5829,43 @@ func (_m *SSM) GetOpsItem(ctx context.Context, params *ssm.GetOpsItemInput, optF
 	}
 
 	return r0, r1
+}
+
+// SSM_GetOpsItem_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOpsItem'
+type SSM_GetOpsItem_Call struct {
+	*mock.Call
+}
+
+// GetOpsItem is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetOpsItemInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetOpsItem(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetOpsItem_Call {
+	return &SSM_GetOpsItem_Call{Call: _e.mock.On("GetOpsItem",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetOpsItem_Call) Run(run func(ctx context.Context, params *ssm.GetOpsItemInput, optFns ...func(*ssm.Options))) *SSM_GetOpsItem_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetOpsItemInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetOpsItem_Call) Return(_a0 *ssm.GetOpsItemOutput, _a1 error) *SSM_GetOpsItem_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetOpsItem_Call) RunAndReturn(run func(context.Context, *ssm.GetOpsItemInput, ...func(*ssm.Options)) (*ssm.GetOpsItemOutput, error)) *SSM_GetOpsItem_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetOpsMetadata provides a mock function with given fields: ctx, params, optFns
@@ -2900,6 +5905,43 @@ func (_m *SSM) GetOpsMetadata(ctx context.Context, params *ssm.GetOpsMetadataInp
 	return r0, r1
 }
 
+// SSM_GetOpsMetadata_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOpsMetadata'
+type SSM_GetOpsMetadata_Call struct {
+	*mock.Call
+}
+
+// GetOpsMetadata is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetOpsMetadataInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetOpsMetadata(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetOpsMetadata_Call {
+	return &SSM_GetOpsMetadata_Call{Call: _e.mock.On("GetOpsMetadata",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetOpsMetadata_Call) Run(run func(ctx context.Context, params *ssm.GetOpsMetadataInput, optFns ...func(*ssm.Options))) *SSM_GetOpsMetadata_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetOpsMetadataInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetOpsMetadata_Call) Return(_a0 *ssm.GetOpsMetadataOutput, _a1 error) *SSM_GetOpsMetadata_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetOpsMetadata_Call) RunAndReturn(run func(context.Context, *ssm.GetOpsMetadataInput, ...func(*ssm.Options)) (*ssm.GetOpsMetadataOutput, error)) *SSM_GetOpsMetadata_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetOpsSummary provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetOpsSummary(ctx context.Context, params *ssm.GetOpsSummaryInput, optFns ...func(*ssm.Options)) (*ssm.GetOpsSummaryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2935,6 +5977,43 @@ func (_m *SSM) GetOpsSummary(ctx context.Context, params *ssm.GetOpsSummaryInput
 	}
 
 	return r0, r1
+}
+
+// SSM_GetOpsSummary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOpsSummary'
+type SSM_GetOpsSummary_Call struct {
+	*mock.Call
+}
+
+// GetOpsSummary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetOpsSummaryInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetOpsSummary(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetOpsSummary_Call {
+	return &SSM_GetOpsSummary_Call{Call: _e.mock.On("GetOpsSummary",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetOpsSummary_Call) Run(run func(ctx context.Context, params *ssm.GetOpsSummaryInput, optFns ...func(*ssm.Options))) *SSM_GetOpsSummary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetOpsSummaryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetOpsSummary_Call) Return(_a0 *ssm.GetOpsSummaryOutput, _a1 error) *SSM_GetOpsSummary_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetOpsSummary_Call) RunAndReturn(run func(context.Context, *ssm.GetOpsSummaryInput, ...func(*ssm.Options)) (*ssm.GetOpsSummaryOutput, error)) *SSM_GetOpsSummary_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetParameter provides a mock function with given fields: ctx, params, optFns
@@ -2974,6 +6053,43 @@ func (_m *SSM) GetParameter(ctx context.Context, params *ssm.GetParameterInput, 
 	return r0, r1
 }
 
+// SSM_GetParameter_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetParameter'
+type SSM_GetParameter_Call struct {
+	*mock.Call
+}
+
+// GetParameter is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetParameterInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetParameter(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetParameter_Call {
+	return &SSM_GetParameter_Call{Call: _e.mock.On("GetParameter",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetParameter_Call) Run(run func(ctx context.Context, params *ssm.GetParameterInput, optFns ...func(*ssm.Options))) *SSM_GetParameter_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetParameterInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetParameter_Call) Return(_a0 *ssm.GetParameterOutput, _a1 error) *SSM_GetParameter_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetParameter_Call) RunAndReturn(run func(context.Context, *ssm.GetParameterInput, ...func(*ssm.Options)) (*ssm.GetParameterOutput, error)) *SSM_GetParameter_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetParameterHistory provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetParameterHistory(ctx context.Context, params *ssm.GetParameterHistoryInput, optFns ...func(*ssm.Options)) (*ssm.GetParameterHistoryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3009,6 +6125,43 @@ func (_m *SSM) GetParameterHistory(ctx context.Context, params *ssm.GetParameter
 	}
 
 	return r0, r1
+}
+
+// SSM_GetParameterHistory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetParameterHistory'
+type SSM_GetParameterHistory_Call struct {
+	*mock.Call
+}
+
+// GetParameterHistory is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetParameterHistoryInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetParameterHistory(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetParameterHistory_Call {
+	return &SSM_GetParameterHistory_Call{Call: _e.mock.On("GetParameterHistory",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetParameterHistory_Call) Run(run func(ctx context.Context, params *ssm.GetParameterHistoryInput, optFns ...func(*ssm.Options))) *SSM_GetParameterHistory_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetParameterHistoryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetParameterHistory_Call) Return(_a0 *ssm.GetParameterHistoryOutput, _a1 error) *SSM_GetParameterHistory_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetParameterHistory_Call) RunAndReturn(run func(context.Context, *ssm.GetParameterHistoryInput, ...func(*ssm.Options)) (*ssm.GetParameterHistoryOutput, error)) *SSM_GetParameterHistory_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetParameters provides a mock function with given fields: ctx, params, optFns
@@ -3048,6 +6201,43 @@ func (_m *SSM) GetParameters(ctx context.Context, params *ssm.GetParametersInput
 	return r0, r1
 }
 
+// SSM_GetParameters_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetParameters'
+type SSM_GetParameters_Call struct {
+	*mock.Call
+}
+
+// GetParameters is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetParametersInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetParameters(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetParameters_Call {
+	return &SSM_GetParameters_Call{Call: _e.mock.On("GetParameters",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetParameters_Call) Run(run func(ctx context.Context, params *ssm.GetParametersInput, optFns ...func(*ssm.Options))) *SSM_GetParameters_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetParametersInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetParameters_Call) Return(_a0 *ssm.GetParametersOutput, _a1 error) *SSM_GetParameters_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetParameters_Call) RunAndReturn(run func(context.Context, *ssm.GetParametersInput, ...func(*ssm.Options)) (*ssm.GetParametersOutput, error)) *SSM_GetParameters_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetParametersByPath provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetParametersByPath(ctx context.Context, params *ssm.GetParametersByPathInput, optFns ...func(*ssm.Options)) (*ssm.GetParametersByPathOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3083,6 +6273,43 @@ func (_m *SSM) GetParametersByPath(ctx context.Context, params *ssm.GetParameter
 	}
 
 	return r0, r1
+}
+
+// SSM_GetParametersByPath_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetParametersByPath'
+type SSM_GetParametersByPath_Call struct {
+	*mock.Call
+}
+
+// GetParametersByPath is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetParametersByPathInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetParametersByPath(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetParametersByPath_Call {
+	return &SSM_GetParametersByPath_Call{Call: _e.mock.On("GetParametersByPath",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetParametersByPath_Call) Run(run func(ctx context.Context, params *ssm.GetParametersByPathInput, optFns ...func(*ssm.Options))) *SSM_GetParametersByPath_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetParametersByPathInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetParametersByPath_Call) Return(_a0 *ssm.GetParametersByPathOutput, _a1 error) *SSM_GetParametersByPath_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetParametersByPath_Call) RunAndReturn(run func(context.Context, *ssm.GetParametersByPathInput, ...func(*ssm.Options)) (*ssm.GetParametersByPathOutput, error)) *SSM_GetParametersByPath_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetPatchBaseline provides a mock function with given fields: ctx, params, optFns
@@ -3122,6 +6349,43 @@ func (_m *SSM) GetPatchBaseline(ctx context.Context, params *ssm.GetPatchBaselin
 	return r0, r1
 }
 
+// SSM_GetPatchBaseline_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPatchBaseline'
+type SSM_GetPatchBaseline_Call struct {
+	*mock.Call
+}
+
+// GetPatchBaseline is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetPatchBaselineInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetPatchBaseline(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetPatchBaseline_Call {
+	return &SSM_GetPatchBaseline_Call{Call: _e.mock.On("GetPatchBaseline",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetPatchBaseline_Call) Run(run func(ctx context.Context, params *ssm.GetPatchBaselineInput, optFns ...func(*ssm.Options))) *SSM_GetPatchBaseline_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetPatchBaselineInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetPatchBaseline_Call) Return(_a0 *ssm.GetPatchBaselineOutput, _a1 error) *SSM_GetPatchBaseline_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetPatchBaseline_Call) RunAndReturn(run func(context.Context, *ssm.GetPatchBaselineInput, ...func(*ssm.Options)) (*ssm.GetPatchBaselineOutput, error)) *SSM_GetPatchBaseline_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetPatchBaselineForPatchGroup provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetPatchBaselineForPatchGroup(ctx context.Context, params *ssm.GetPatchBaselineForPatchGroupInput, optFns ...func(*ssm.Options)) (*ssm.GetPatchBaselineForPatchGroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3157,6 +6421,43 @@ func (_m *SSM) GetPatchBaselineForPatchGroup(ctx context.Context, params *ssm.Ge
 	}
 
 	return r0, r1
+}
+
+// SSM_GetPatchBaselineForPatchGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPatchBaselineForPatchGroup'
+type SSM_GetPatchBaselineForPatchGroup_Call struct {
+	*mock.Call
+}
+
+// GetPatchBaselineForPatchGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetPatchBaselineForPatchGroupInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetPatchBaselineForPatchGroup(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetPatchBaselineForPatchGroup_Call {
+	return &SSM_GetPatchBaselineForPatchGroup_Call{Call: _e.mock.On("GetPatchBaselineForPatchGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetPatchBaselineForPatchGroup_Call) Run(run func(ctx context.Context, params *ssm.GetPatchBaselineForPatchGroupInput, optFns ...func(*ssm.Options))) *SSM_GetPatchBaselineForPatchGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetPatchBaselineForPatchGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetPatchBaselineForPatchGroup_Call) Return(_a0 *ssm.GetPatchBaselineForPatchGroupOutput, _a1 error) *SSM_GetPatchBaselineForPatchGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetPatchBaselineForPatchGroup_Call) RunAndReturn(run func(context.Context, *ssm.GetPatchBaselineForPatchGroupInput, ...func(*ssm.Options)) (*ssm.GetPatchBaselineForPatchGroupOutput, error)) *SSM_GetPatchBaselineForPatchGroup_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetResourcePolicies provides a mock function with given fields: ctx, params, optFns
@@ -3196,6 +6497,43 @@ func (_m *SSM) GetResourcePolicies(ctx context.Context, params *ssm.GetResourceP
 	return r0, r1
 }
 
+// SSM_GetResourcePolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetResourcePolicies'
+type SSM_GetResourcePolicies_Call struct {
+	*mock.Call
+}
+
+// GetResourcePolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetResourcePoliciesInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetResourcePolicies(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetResourcePolicies_Call {
+	return &SSM_GetResourcePolicies_Call{Call: _e.mock.On("GetResourcePolicies",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetResourcePolicies_Call) Run(run func(ctx context.Context, params *ssm.GetResourcePoliciesInput, optFns ...func(*ssm.Options))) *SSM_GetResourcePolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetResourcePoliciesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetResourcePolicies_Call) Return(_a0 *ssm.GetResourcePoliciesOutput, _a1 error) *SSM_GetResourcePolicies_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetResourcePolicies_Call) RunAndReturn(run func(context.Context, *ssm.GetResourcePoliciesInput, ...func(*ssm.Options)) (*ssm.GetResourcePoliciesOutput, error)) *SSM_GetResourcePolicies_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetServiceSetting provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetServiceSetting(ctx context.Context, params *ssm.GetServiceSettingInput, optFns ...func(*ssm.Options)) (*ssm.GetServiceSettingOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3231,6 +6569,43 @@ func (_m *SSM) GetServiceSetting(ctx context.Context, params *ssm.GetServiceSett
 	}
 
 	return r0, r1
+}
+
+// SSM_GetServiceSetting_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetServiceSetting'
+type SSM_GetServiceSetting_Call struct {
+	*mock.Call
+}
+
+// GetServiceSetting is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetServiceSettingInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetServiceSetting(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetServiceSetting_Call {
+	return &SSM_GetServiceSetting_Call{Call: _e.mock.On("GetServiceSetting",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetServiceSetting_Call) Run(run func(ctx context.Context, params *ssm.GetServiceSettingInput, optFns ...func(*ssm.Options))) *SSM_GetServiceSetting_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetServiceSettingInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetServiceSetting_Call) Return(_a0 *ssm.GetServiceSettingOutput, _a1 error) *SSM_GetServiceSetting_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetServiceSetting_Call) RunAndReturn(run func(context.Context, *ssm.GetServiceSettingInput, ...func(*ssm.Options)) (*ssm.GetServiceSettingOutput, error)) *SSM_GetServiceSetting_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // LabelParameterVersion provides a mock function with given fields: ctx, params, optFns
@@ -3270,6 +6645,43 @@ func (_m *SSM) LabelParameterVersion(ctx context.Context, params *ssm.LabelParam
 	return r0, r1
 }
 
+// SSM_LabelParameterVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LabelParameterVersion'
+type SSM_LabelParameterVersion_Call struct {
+	*mock.Call
+}
+
+// LabelParameterVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.LabelParameterVersionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) LabelParameterVersion(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_LabelParameterVersion_Call {
+	return &SSM_LabelParameterVersion_Call{Call: _e.mock.On("LabelParameterVersion",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_LabelParameterVersion_Call) Run(run func(ctx context.Context, params *ssm.LabelParameterVersionInput, optFns ...func(*ssm.Options))) *SSM_LabelParameterVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.LabelParameterVersionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_LabelParameterVersion_Call) Return(_a0 *ssm.LabelParameterVersionOutput, _a1 error) *SSM_LabelParameterVersion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_LabelParameterVersion_Call) RunAndReturn(run func(context.Context, *ssm.LabelParameterVersionInput, ...func(*ssm.Options)) (*ssm.LabelParameterVersionOutput, error)) *SSM_LabelParameterVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListAssociationVersions provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) ListAssociationVersions(ctx context.Context, params *ssm.ListAssociationVersionsInput, optFns ...func(*ssm.Options)) (*ssm.ListAssociationVersionsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3305,6 +6717,43 @@ func (_m *SSM) ListAssociationVersions(ctx context.Context, params *ssm.ListAsso
 	}
 
 	return r0, r1
+}
+
+// SSM_ListAssociationVersions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAssociationVersions'
+type SSM_ListAssociationVersions_Call struct {
+	*mock.Call
+}
+
+// ListAssociationVersions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListAssociationVersionsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListAssociationVersions(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListAssociationVersions_Call {
+	return &SSM_ListAssociationVersions_Call{Call: _e.mock.On("ListAssociationVersions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListAssociationVersions_Call) Run(run func(ctx context.Context, params *ssm.ListAssociationVersionsInput, optFns ...func(*ssm.Options))) *SSM_ListAssociationVersions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListAssociationVersionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListAssociationVersions_Call) Return(_a0 *ssm.ListAssociationVersionsOutput, _a1 error) *SSM_ListAssociationVersions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListAssociationVersions_Call) RunAndReturn(run func(context.Context, *ssm.ListAssociationVersionsInput, ...func(*ssm.Options)) (*ssm.ListAssociationVersionsOutput, error)) *SSM_ListAssociationVersions_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListAssociations provides a mock function with given fields: ctx, params, optFns
@@ -3344,6 +6793,43 @@ func (_m *SSM) ListAssociations(ctx context.Context, params *ssm.ListAssociation
 	return r0, r1
 }
 
+// SSM_ListAssociations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAssociations'
+type SSM_ListAssociations_Call struct {
+	*mock.Call
+}
+
+// ListAssociations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListAssociationsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListAssociations(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListAssociations_Call {
+	return &SSM_ListAssociations_Call{Call: _e.mock.On("ListAssociations",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListAssociations_Call) Run(run func(ctx context.Context, params *ssm.ListAssociationsInput, optFns ...func(*ssm.Options))) *SSM_ListAssociations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListAssociationsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListAssociations_Call) Return(_a0 *ssm.ListAssociationsOutput, _a1 error) *SSM_ListAssociations_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListAssociations_Call) RunAndReturn(run func(context.Context, *ssm.ListAssociationsInput, ...func(*ssm.Options)) (*ssm.ListAssociationsOutput, error)) *SSM_ListAssociations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListCommandInvocations provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) ListCommandInvocations(ctx context.Context, params *ssm.ListCommandInvocationsInput, optFns ...func(*ssm.Options)) (*ssm.ListCommandInvocationsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3379,6 +6865,43 @@ func (_m *SSM) ListCommandInvocations(ctx context.Context, params *ssm.ListComma
 	}
 
 	return r0, r1
+}
+
+// SSM_ListCommandInvocations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListCommandInvocations'
+type SSM_ListCommandInvocations_Call struct {
+	*mock.Call
+}
+
+// ListCommandInvocations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListCommandInvocationsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListCommandInvocations(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListCommandInvocations_Call {
+	return &SSM_ListCommandInvocations_Call{Call: _e.mock.On("ListCommandInvocations",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListCommandInvocations_Call) Run(run func(ctx context.Context, params *ssm.ListCommandInvocationsInput, optFns ...func(*ssm.Options))) *SSM_ListCommandInvocations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListCommandInvocationsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListCommandInvocations_Call) Return(_a0 *ssm.ListCommandInvocationsOutput, _a1 error) *SSM_ListCommandInvocations_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListCommandInvocations_Call) RunAndReturn(run func(context.Context, *ssm.ListCommandInvocationsInput, ...func(*ssm.Options)) (*ssm.ListCommandInvocationsOutput, error)) *SSM_ListCommandInvocations_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListCommands provides a mock function with given fields: ctx, params, optFns
@@ -3418,6 +6941,43 @@ func (_m *SSM) ListCommands(ctx context.Context, params *ssm.ListCommandsInput, 
 	return r0, r1
 }
 
+// SSM_ListCommands_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListCommands'
+type SSM_ListCommands_Call struct {
+	*mock.Call
+}
+
+// ListCommands is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListCommandsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListCommands(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListCommands_Call {
+	return &SSM_ListCommands_Call{Call: _e.mock.On("ListCommands",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListCommands_Call) Run(run func(ctx context.Context, params *ssm.ListCommandsInput, optFns ...func(*ssm.Options))) *SSM_ListCommands_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListCommandsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListCommands_Call) Return(_a0 *ssm.ListCommandsOutput, _a1 error) *SSM_ListCommands_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListCommands_Call) RunAndReturn(run func(context.Context, *ssm.ListCommandsInput, ...func(*ssm.Options)) (*ssm.ListCommandsOutput, error)) *SSM_ListCommands_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListComplianceItems provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) ListComplianceItems(ctx context.Context, params *ssm.ListComplianceItemsInput, optFns ...func(*ssm.Options)) (*ssm.ListComplianceItemsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3453,6 +7013,43 @@ func (_m *SSM) ListComplianceItems(ctx context.Context, params *ssm.ListComplian
 	}
 
 	return r0, r1
+}
+
+// SSM_ListComplianceItems_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListComplianceItems'
+type SSM_ListComplianceItems_Call struct {
+	*mock.Call
+}
+
+// ListComplianceItems is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListComplianceItemsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListComplianceItems(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListComplianceItems_Call {
+	return &SSM_ListComplianceItems_Call{Call: _e.mock.On("ListComplianceItems",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListComplianceItems_Call) Run(run func(ctx context.Context, params *ssm.ListComplianceItemsInput, optFns ...func(*ssm.Options))) *SSM_ListComplianceItems_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListComplianceItemsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListComplianceItems_Call) Return(_a0 *ssm.ListComplianceItemsOutput, _a1 error) *SSM_ListComplianceItems_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListComplianceItems_Call) RunAndReturn(run func(context.Context, *ssm.ListComplianceItemsInput, ...func(*ssm.Options)) (*ssm.ListComplianceItemsOutput, error)) *SSM_ListComplianceItems_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListComplianceSummaries provides a mock function with given fields: ctx, params, optFns
@@ -3492,6 +7089,43 @@ func (_m *SSM) ListComplianceSummaries(ctx context.Context, params *ssm.ListComp
 	return r0, r1
 }
 
+// SSM_ListComplianceSummaries_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListComplianceSummaries'
+type SSM_ListComplianceSummaries_Call struct {
+	*mock.Call
+}
+
+// ListComplianceSummaries is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListComplianceSummariesInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListComplianceSummaries(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListComplianceSummaries_Call {
+	return &SSM_ListComplianceSummaries_Call{Call: _e.mock.On("ListComplianceSummaries",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListComplianceSummaries_Call) Run(run func(ctx context.Context, params *ssm.ListComplianceSummariesInput, optFns ...func(*ssm.Options))) *SSM_ListComplianceSummaries_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListComplianceSummariesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListComplianceSummaries_Call) Return(_a0 *ssm.ListComplianceSummariesOutput, _a1 error) *SSM_ListComplianceSummaries_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListComplianceSummaries_Call) RunAndReturn(run func(context.Context, *ssm.ListComplianceSummariesInput, ...func(*ssm.Options)) (*ssm.ListComplianceSummariesOutput, error)) *SSM_ListComplianceSummaries_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListDocumentMetadataHistory provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) ListDocumentMetadataHistory(ctx context.Context, params *ssm.ListDocumentMetadataHistoryInput, optFns ...func(*ssm.Options)) (*ssm.ListDocumentMetadataHistoryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3527,6 +7161,43 @@ func (_m *SSM) ListDocumentMetadataHistory(ctx context.Context, params *ssm.List
 	}
 
 	return r0, r1
+}
+
+// SSM_ListDocumentMetadataHistory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDocumentMetadataHistory'
+type SSM_ListDocumentMetadataHistory_Call struct {
+	*mock.Call
+}
+
+// ListDocumentMetadataHistory is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListDocumentMetadataHistoryInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListDocumentMetadataHistory(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListDocumentMetadataHistory_Call {
+	return &SSM_ListDocumentMetadataHistory_Call{Call: _e.mock.On("ListDocumentMetadataHistory",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListDocumentMetadataHistory_Call) Run(run func(ctx context.Context, params *ssm.ListDocumentMetadataHistoryInput, optFns ...func(*ssm.Options))) *SSM_ListDocumentMetadataHistory_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListDocumentMetadataHistoryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListDocumentMetadataHistory_Call) Return(_a0 *ssm.ListDocumentMetadataHistoryOutput, _a1 error) *SSM_ListDocumentMetadataHistory_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListDocumentMetadataHistory_Call) RunAndReturn(run func(context.Context, *ssm.ListDocumentMetadataHistoryInput, ...func(*ssm.Options)) (*ssm.ListDocumentMetadataHistoryOutput, error)) *SSM_ListDocumentMetadataHistory_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListDocumentVersions provides a mock function with given fields: ctx, params, optFns
@@ -3566,6 +7237,43 @@ func (_m *SSM) ListDocumentVersions(ctx context.Context, params *ssm.ListDocumen
 	return r0, r1
 }
 
+// SSM_ListDocumentVersions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDocumentVersions'
+type SSM_ListDocumentVersions_Call struct {
+	*mock.Call
+}
+
+// ListDocumentVersions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListDocumentVersionsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListDocumentVersions(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListDocumentVersions_Call {
+	return &SSM_ListDocumentVersions_Call{Call: _e.mock.On("ListDocumentVersions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListDocumentVersions_Call) Run(run func(ctx context.Context, params *ssm.ListDocumentVersionsInput, optFns ...func(*ssm.Options))) *SSM_ListDocumentVersions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListDocumentVersionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListDocumentVersions_Call) Return(_a0 *ssm.ListDocumentVersionsOutput, _a1 error) *SSM_ListDocumentVersions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListDocumentVersions_Call) RunAndReturn(run func(context.Context, *ssm.ListDocumentVersionsInput, ...func(*ssm.Options)) (*ssm.ListDocumentVersionsOutput, error)) *SSM_ListDocumentVersions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListDocuments provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) ListDocuments(ctx context.Context, params *ssm.ListDocumentsInput, optFns ...func(*ssm.Options)) (*ssm.ListDocumentsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3601,6 +7309,43 @@ func (_m *SSM) ListDocuments(ctx context.Context, params *ssm.ListDocumentsInput
 	}
 
 	return r0, r1
+}
+
+// SSM_ListDocuments_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDocuments'
+type SSM_ListDocuments_Call struct {
+	*mock.Call
+}
+
+// ListDocuments is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListDocumentsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListDocuments(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListDocuments_Call {
+	return &SSM_ListDocuments_Call{Call: _e.mock.On("ListDocuments",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListDocuments_Call) Run(run func(ctx context.Context, params *ssm.ListDocumentsInput, optFns ...func(*ssm.Options))) *SSM_ListDocuments_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListDocumentsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListDocuments_Call) Return(_a0 *ssm.ListDocumentsOutput, _a1 error) *SSM_ListDocuments_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListDocuments_Call) RunAndReturn(run func(context.Context, *ssm.ListDocumentsInput, ...func(*ssm.Options)) (*ssm.ListDocumentsOutput, error)) *SSM_ListDocuments_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListInventoryEntries provides a mock function with given fields: ctx, params, optFns
@@ -3640,6 +7385,191 @@ func (_m *SSM) ListInventoryEntries(ctx context.Context, params *ssm.ListInvento
 	return r0, r1
 }
 
+// SSM_ListInventoryEntries_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListInventoryEntries'
+type SSM_ListInventoryEntries_Call struct {
+	*mock.Call
+}
+
+// ListInventoryEntries is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListInventoryEntriesInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListInventoryEntries(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListInventoryEntries_Call {
+	return &SSM_ListInventoryEntries_Call{Call: _e.mock.On("ListInventoryEntries",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListInventoryEntries_Call) Run(run func(ctx context.Context, params *ssm.ListInventoryEntriesInput, optFns ...func(*ssm.Options))) *SSM_ListInventoryEntries_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListInventoryEntriesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListInventoryEntries_Call) Return(_a0 *ssm.ListInventoryEntriesOutput, _a1 error) *SSM_ListInventoryEntries_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListInventoryEntries_Call) RunAndReturn(run func(context.Context, *ssm.ListInventoryEntriesInput, ...func(*ssm.Options)) (*ssm.ListInventoryEntriesOutput, error)) *SSM_ListInventoryEntries_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListNodes provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) ListNodes(ctx context.Context, params *ssm.ListNodesInput, optFns ...func(*ssm.Options)) (*ssm.ListNodesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListNodes")
+	}
+
+	var r0 *ssm.ListNodesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListNodesInput, ...func(*ssm.Options)) (*ssm.ListNodesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListNodesInput, ...func(*ssm.Options)) *ssm.ListNodesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.ListNodesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.ListNodesInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SSM_ListNodes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListNodes'
+type SSM_ListNodes_Call struct {
+	*mock.Call
+}
+
+// ListNodes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListNodesInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListNodes(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListNodes_Call {
+	return &SSM_ListNodes_Call{Call: _e.mock.On("ListNodes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListNodes_Call) Run(run func(ctx context.Context, params *ssm.ListNodesInput, optFns ...func(*ssm.Options))) *SSM_ListNodes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListNodesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListNodes_Call) Return(_a0 *ssm.ListNodesOutput, _a1 error) *SSM_ListNodes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListNodes_Call) RunAndReturn(run func(context.Context, *ssm.ListNodesInput, ...func(*ssm.Options)) (*ssm.ListNodesOutput, error)) *SSM_ListNodes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListNodesSummary provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) ListNodesSummary(ctx context.Context, params *ssm.ListNodesSummaryInput, optFns ...func(*ssm.Options)) (*ssm.ListNodesSummaryOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListNodesSummary")
+	}
+
+	var r0 *ssm.ListNodesSummaryOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListNodesSummaryInput, ...func(*ssm.Options)) (*ssm.ListNodesSummaryOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListNodesSummaryInput, ...func(*ssm.Options)) *ssm.ListNodesSummaryOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.ListNodesSummaryOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.ListNodesSummaryInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SSM_ListNodesSummary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListNodesSummary'
+type SSM_ListNodesSummary_Call struct {
+	*mock.Call
+}
+
+// ListNodesSummary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListNodesSummaryInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListNodesSummary(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListNodesSummary_Call {
+	return &SSM_ListNodesSummary_Call{Call: _e.mock.On("ListNodesSummary",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListNodesSummary_Call) Run(run func(ctx context.Context, params *ssm.ListNodesSummaryInput, optFns ...func(*ssm.Options))) *SSM_ListNodesSummary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListNodesSummaryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListNodesSummary_Call) Return(_a0 *ssm.ListNodesSummaryOutput, _a1 error) *SSM_ListNodesSummary_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListNodesSummary_Call) RunAndReturn(run func(context.Context, *ssm.ListNodesSummaryInput, ...func(*ssm.Options)) (*ssm.ListNodesSummaryOutput, error)) *SSM_ListNodesSummary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListOpsItemEvents provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) ListOpsItemEvents(ctx context.Context, params *ssm.ListOpsItemEventsInput, optFns ...func(*ssm.Options)) (*ssm.ListOpsItemEventsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3675,6 +7605,43 @@ func (_m *SSM) ListOpsItemEvents(ctx context.Context, params *ssm.ListOpsItemEve
 	}
 
 	return r0, r1
+}
+
+// SSM_ListOpsItemEvents_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOpsItemEvents'
+type SSM_ListOpsItemEvents_Call struct {
+	*mock.Call
+}
+
+// ListOpsItemEvents is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListOpsItemEventsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListOpsItemEvents(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListOpsItemEvents_Call {
+	return &SSM_ListOpsItemEvents_Call{Call: _e.mock.On("ListOpsItemEvents",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListOpsItemEvents_Call) Run(run func(ctx context.Context, params *ssm.ListOpsItemEventsInput, optFns ...func(*ssm.Options))) *SSM_ListOpsItemEvents_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListOpsItemEventsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListOpsItemEvents_Call) Return(_a0 *ssm.ListOpsItemEventsOutput, _a1 error) *SSM_ListOpsItemEvents_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListOpsItemEvents_Call) RunAndReturn(run func(context.Context, *ssm.ListOpsItemEventsInput, ...func(*ssm.Options)) (*ssm.ListOpsItemEventsOutput, error)) *SSM_ListOpsItemEvents_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListOpsItemRelatedItems provides a mock function with given fields: ctx, params, optFns
@@ -3714,6 +7681,43 @@ func (_m *SSM) ListOpsItemRelatedItems(ctx context.Context, params *ssm.ListOpsI
 	return r0, r1
 }
 
+// SSM_ListOpsItemRelatedItems_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOpsItemRelatedItems'
+type SSM_ListOpsItemRelatedItems_Call struct {
+	*mock.Call
+}
+
+// ListOpsItemRelatedItems is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListOpsItemRelatedItemsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListOpsItemRelatedItems(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListOpsItemRelatedItems_Call {
+	return &SSM_ListOpsItemRelatedItems_Call{Call: _e.mock.On("ListOpsItemRelatedItems",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListOpsItemRelatedItems_Call) Run(run func(ctx context.Context, params *ssm.ListOpsItemRelatedItemsInput, optFns ...func(*ssm.Options))) *SSM_ListOpsItemRelatedItems_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListOpsItemRelatedItemsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListOpsItemRelatedItems_Call) Return(_a0 *ssm.ListOpsItemRelatedItemsOutput, _a1 error) *SSM_ListOpsItemRelatedItems_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListOpsItemRelatedItems_Call) RunAndReturn(run func(context.Context, *ssm.ListOpsItemRelatedItemsInput, ...func(*ssm.Options)) (*ssm.ListOpsItemRelatedItemsOutput, error)) *SSM_ListOpsItemRelatedItems_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListOpsMetadata provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) ListOpsMetadata(ctx context.Context, params *ssm.ListOpsMetadataInput, optFns ...func(*ssm.Options)) (*ssm.ListOpsMetadataOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3749,6 +7753,43 @@ func (_m *SSM) ListOpsMetadata(ctx context.Context, params *ssm.ListOpsMetadataI
 	}
 
 	return r0, r1
+}
+
+// SSM_ListOpsMetadata_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOpsMetadata'
+type SSM_ListOpsMetadata_Call struct {
+	*mock.Call
+}
+
+// ListOpsMetadata is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListOpsMetadataInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListOpsMetadata(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListOpsMetadata_Call {
+	return &SSM_ListOpsMetadata_Call{Call: _e.mock.On("ListOpsMetadata",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListOpsMetadata_Call) Run(run func(ctx context.Context, params *ssm.ListOpsMetadataInput, optFns ...func(*ssm.Options))) *SSM_ListOpsMetadata_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListOpsMetadataInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListOpsMetadata_Call) Return(_a0 *ssm.ListOpsMetadataOutput, _a1 error) *SSM_ListOpsMetadata_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListOpsMetadata_Call) RunAndReturn(run func(context.Context, *ssm.ListOpsMetadataInput, ...func(*ssm.Options)) (*ssm.ListOpsMetadataOutput, error)) *SSM_ListOpsMetadata_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListResourceComplianceSummaries provides a mock function with given fields: ctx, params, optFns
@@ -3788,6 +7829,43 @@ func (_m *SSM) ListResourceComplianceSummaries(ctx context.Context, params *ssm.
 	return r0, r1
 }
 
+// SSM_ListResourceComplianceSummaries_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListResourceComplianceSummaries'
+type SSM_ListResourceComplianceSummaries_Call struct {
+	*mock.Call
+}
+
+// ListResourceComplianceSummaries is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListResourceComplianceSummariesInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListResourceComplianceSummaries(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListResourceComplianceSummaries_Call {
+	return &SSM_ListResourceComplianceSummaries_Call{Call: _e.mock.On("ListResourceComplianceSummaries",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListResourceComplianceSummaries_Call) Run(run func(ctx context.Context, params *ssm.ListResourceComplianceSummariesInput, optFns ...func(*ssm.Options))) *SSM_ListResourceComplianceSummaries_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListResourceComplianceSummariesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListResourceComplianceSummaries_Call) Return(_a0 *ssm.ListResourceComplianceSummariesOutput, _a1 error) *SSM_ListResourceComplianceSummaries_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListResourceComplianceSummaries_Call) RunAndReturn(run func(context.Context, *ssm.ListResourceComplianceSummariesInput, ...func(*ssm.Options)) (*ssm.ListResourceComplianceSummariesOutput, error)) *SSM_ListResourceComplianceSummaries_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListResourceDataSync provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) ListResourceDataSync(ctx context.Context, params *ssm.ListResourceDataSyncInput, optFns ...func(*ssm.Options)) (*ssm.ListResourceDataSyncOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3823,6 +7901,43 @@ func (_m *SSM) ListResourceDataSync(ctx context.Context, params *ssm.ListResourc
 	}
 
 	return r0, r1
+}
+
+// SSM_ListResourceDataSync_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListResourceDataSync'
+type SSM_ListResourceDataSync_Call struct {
+	*mock.Call
+}
+
+// ListResourceDataSync is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListResourceDataSyncInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListResourceDataSync(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListResourceDataSync_Call {
+	return &SSM_ListResourceDataSync_Call{Call: _e.mock.On("ListResourceDataSync",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListResourceDataSync_Call) Run(run func(ctx context.Context, params *ssm.ListResourceDataSyncInput, optFns ...func(*ssm.Options))) *SSM_ListResourceDataSync_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListResourceDataSyncInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListResourceDataSync_Call) Return(_a0 *ssm.ListResourceDataSyncOutput, _a1 error) *SSM_ListResourceDataSync_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListResourceDataSync_Call) RunAndReturn(run func(context.Context, *ssm.ListResourceDataSyncInput, ...func(*ssm.Options)) (*ssm.ListResourceDataSyncOutput, error)) *SSM_ListResourceDataSync_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListTagsForResource provides a mock function with given fields: ctx, params, optFns
@@ -3862,6 +7977,43 @@ func (_m *SSM) ListTagsForResource(ctx context.Context, params *ssm.ListTagsForR
 	return r0, r1
 }
 
+// SSM_ListTagsForResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTagsForResource'
+type SSM_ListTagsForResource_Call struct {
+	*mock.Call
+}
+
+// ListTagsForResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ListTagsForResourceInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ListTagsForResource(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ListTagsForResource_Call {
+	return &SSM_ListTagsForResource_Call{Call: _e.mock.On("ListTagsForResource",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ListTagsForResource_Call) Run(run func(ctx context.Context, params *ssm.ListTagsForResourceInput, optFns ...func(*ssm.Options))) *SSM_ListTagsForResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ListTagsForResourceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ListTagsForResource_Call) Return(_a0 *ssm.ListTagsForResourceOutput, _a1 error) *SSM_ListTagsForResource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ListTagsForResource_Call) RunAndReturn(run func(context.Context, *ssm.ListTagsForResourceInput, ...func(*ssm.Options)) (*ssm.ListTagsForResourceOutput, error)) *SSM_ListTagsForResource_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ModifyDocumentPermission provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) ModifyDocumentPermission(ctx context.Context, params *ssm.ModifyDocumentPermissionInput, optFns ...func(*ssm.Options)) (*ssm.ModifyDocumentPermissionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3899,6 +8051,43 @@ func (_m *SSM) ModifyDocumentPermission(ctx context.Context, params *ssm.ModifyD
 	return r0, r1
 }
 
+// SSM_ModifyDocumentPermission_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ModifyDocumentPermission'
+type SSM_ModifyDocumentPermission_Call struct {
+	*mock.Call
+}
+
+// ModifyDocumentPermission is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ModifyDocumentPermissionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ModifyDocumentPermission(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ModifyDocumentPermission_Call {
+	return &SSM_ModifyDocumentPermission_Call{Call: _e.mock.On("ModifyDocumentPermission",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ModifyDocumentPermission_Call) Run(run func(ctx context.Context, params *ssm.ModifyDocumentPermissionInput, optFns ...func(*ssm.Options))) *SSM_ModifyDocumentPermission_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ModifyDocumentPermissionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ModifyDocumentPermission_Call) Return(_a0 *ssm.ModifyDocumentPermissionOutput, _a1 error) *SSM_ModifyDocumentPermission_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ModifyDocumentPermission_Call) RunAndReturn(run func(context.Context, *ssm.ModifyDocumentPermissionInput, ...func(*ssm.Options)) (*ssm.ModifyDocumentPermissionOutput, error)) *SSM_ModifyDocumentPermission_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Options provides a mock function with given fields:
 func (_m *SSM) Options() ssm.Options {
 	ret := _m.Called()
@@ -3915,6 +8104,33 @@ func (_m *SSM) Options() ssm.Options {
 	}
 
 	return r0
+}
+
+// SSM_Options_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Options'
+type SSM_Options_Call struct {
+	*mock.Call
+}
+
+// Options is a helper method to define mock.On call
+func (_e *SSM_Expecter) Options() *SSM_Options_Call {
+	return &SSM_Options_Call{Call: _e.mock.On("Options")}
+}
+
+func (_c *SSM_Options_Call) Run(run func()) *SSM_Options_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *SSM_Options_Call) Return(_a0 ssm.Options) *SSM_Options_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *SSM_Options_Call) RunAndReturn(run func() ssm.Options) *SSM_Options_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // PutComplianceItems provides a mock function with given fields: ctx, params, optFns
@@ -3954,6 +8170,43 @@ func (_m *SSM) PutComplianceItems(ctx context.Context, params *ssm.PutCompliance
 	return r0, r1
 }
 
+// SSM_PutComplianceItems_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutComplianceItems'
+type SSM_PutComplianceItems_Call struct {
+	*mock.Call
+}
+
+// PutComplianceItems is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.PutComplianceItemsInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) PutComplianceItems(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_PutComplianceItems_Call {
+	return &SSM_PutComplianceItems_Call{Call: _e.mock.On("PutComplianceItems",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_PutComplianceItems_Call) Run(run func(ctx context.Context, params *ssm.PutComplianceItemsInput, optFns ...func(*ssm.Options))) *SSM_PutComplianceItems_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.PutComplianceItemsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_PutComplianceItems_Call) Return(_a0 *ssm.PutComplianceItemsOutput, _a1 error) *SSM_PutComplianceItems_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_PutComplianceItems_Call) RunAndReturn(run func(context.Context, *ssm.PutComplianceItemsInput, ...func(*ssm.Options)) (*ssm.PutComplianceItemsOutput, error)) *SSM_PutComplianceItems_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutInventory provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) PutInventory(ctx context.Context, params *ssm.PutInventoryInput, optFns ...func(*ssm.Options)) (*ssm.PutInventoryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3989,6 +8242,43 @@ func (_m *SSM) PutInventory(ctx context.Context, params *ssm.PutInventoryInput, 
 	}
 
 	return r0, r1
+}
+
+// SSM_PutInventory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutInventory'
+type SSM_PutInventory_Call struct {
+	*mock.Call
+}
+
+// PutInventory is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.PutInventoryInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) PutInventory(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_PutInventory_Call {
+	return &SSM_PutInventory_Call{Call: _e.mock.On("PutInventory",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_PutInventory_Call) Run(run func(ctx context.Context, params *ssm.PutInventoryInput, optFns ...func(*ssm.Options))) *SSM_PutInventory_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.PutInventoryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_PutInventory_Call) Return(_a0 *ssm.PutInventoryOutput, _a1 error) *SSM_PutInventory_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_PutInventory_Call) RunAndReturn(run func(context.Context, *ssm.PutInventoryInput, ...func(*ssm.Options)) (*ssm.PutInventoryOutput, error)) *SSM_PutInventory_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // PutParameter provides a mock function with given fields: ctx, params, optFns
@@ -4028,6 +8318,43 @@ func (_m *SSM) PutParameter(ctx context.Context, params *ssm.PutParameterInput, 
 	return r0, r1
 }
 
+// SSM_PutParameter_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutParameter'
+type SSM_PutParameter_Call struct {
+	*mock.Call
+}
+
+// PutParameter is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.PutParameterInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) PutParameter(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_PutParameter_Call {
+	return &SSM_PutParameter_Call{Call: _e.mock.On("PutParameter",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_PutParameter_Call) Run(run func(ctx context.Context, params *ssm.PutParameterInput, optFns ...func(*ssm.Options))) *SSM_PutParameter_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.PutParameterInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_PutParameter_Call) Return(_a0 *ssm.PutParameterOutput, _a1 error) *SSM_PutParameter_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_PutParameter_Call) RunAndReturn(run func(context.Context, *ssm.PutParameterInput, ...func(*ssm.Options)) (*ssm.PutParameterOutput, error)) *SSM_PutParameter_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutResourcePolicy provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) PutResourcePolicy(ctx context.Context, params *ssm.PutResourcePolicyInput, optFns ...func(*ssm.Options)) (*ssm.PutResourcePolicyOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4063,6 +8390,43 @@ func (_m *SSM) PutResourcePolicy(ctx context.Context, params *ssm.PutResourcePol
 	}
 
 	return r0, r1
+}
+
+// SSM_PutResourcePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutResourcePolicy'
+type SSM_PutResourcePolicy_Call struct {
+	*mock.Call
+}
+
+// PutResourcePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.PutResourcePolicyInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) PutResourcePolicy(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_PutResourcePolicy_Call {
+	return &SSM_PutResourcePolicy_Call{Call: _e.mock.On("PutResourcePolicy",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_PutResourcePolicy_Call) Run(run func(ctx context.Context, params *ssm.PutResourcePolicyInput, optFns ...func(*ssm.Options))) *SSM_PutResourcePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.PutResourcePolicyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_PutResourcePolicy_Call) Return(_a0 *ssm.PutResourcePolicyOutput, _a1 error) *SSM_PutResourcePolicy_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_PutResourcePolicy_Call) RunAndReturn(run func(context.Context, *ssm.PutResourcePolicyInput, ...func(*ssm.Options)) (*ssm.PutResourcePolicyOutput, error)) *SSM_PutResourcePolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // RegisterDefaultPatchBaseline provides a mock function with given fields: ctx, params, optFns
@@ -4102,6 +8466,43 @@ func (_m *SSM) RegisterDefaultPatchBaseline(ctx context.Context, params *ssm.Reg
 	return r0, r1
 }
 
+// SSM_RegisterDefaultPatchBaseline_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterDefaultPatchBaseline'
+type SSM_RegisterDefaultPatchBaseline_Call struct {
+	*mock.Call
+}
+
+// RegisterDefaultPatchBaseline is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.RegisterDefaultPatchBaselineInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) RegisterDefaultPatchBaseline(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_RegisterDefaultPatchBaseline_Call {
+	return &SSM_RegisterDefaultPatchBaseline_Call{Call: _e.mock.On("RegisterDefaultPatchBaseline",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_RegisterDefaultPatchBaseline_Call) Run(run func(ctx context.Context, params *ssm.RegisterDefaultPatchBaselineInput, optFns ...func(*ssm.Options))) *SSM_RegisterDefaultPatchBaseline_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.RegisterDefaultPatchBaselineInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_RegisterDefaultPatchBaseline_Call) Return(_a0 *ssm.RegisterDefaultPatchBaselineOutput, _a1 error) *SSM_RegisterDefaultPatchBaseline_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_RegisterDefaultPatchBaseline_Call) RunAndReturn(run func(context.Context, *ssm.RegisterDefaultPatchBaselineInput, ...func(*ssm.Options)) (*ssm.RegisterDefaultPatchBaselineOutput, error)) *SSM_RegisterDefaultPatchBaseline_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RegisterPatchBaselineForPatchGroup provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) RegisterPatchBaselineForPatchGroup(ctx context.Context, params *ssm.RegisterPatchBaselineForPatchGroupInput, optFns ...func(*ssm.Options)) (*ssm.RegisterPatchBaselineForPatchGroupOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4137,6 +8538,43 @@ func (_m *SSM) RegisterPatchBaselineForPatchGroup(ctx context.Context, params *s
 	}
 
 	return r0, r1
+}
+
+// SSM_RegisterPatchBaselineForPatchGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterPatchBaselineForPatchGroup'
+type SSM_RegisterPatchBaselineForPatchGroup_Call struct {
+	*mock.Call
+}
+
+// RegisterPatchBaselineForPatchGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.RegisterPatchBaselineForPatchGroupInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) RegisterPatchBaselineForPatchGroup(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_RegisterPatchBaselineForPatchGroup_Call {
+	return &SSM_RegisterPatchBaselineForPatchGroup_Call{Call: _e.mock.On("RegisterPatchBaselineForPatchGroup",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_RegisterPatchBaselineForPatchGroup_Call) Run(run func(ctx context.Context, params *ssm.RegisterPatchBaselineForPatchGroupInput, optFns ...func(*ssm.Options))) *SSM_RegisterPatchBaselineForPatchGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.RegisterPatchBaselineForPatchGroupInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_RegisterPatchBaselineForPatchGroup_Call) Return(_a0 *ssm.RegisterPatchBaselineForPatchGroupOutput, _a1 error) *SSM_RegisterPatchBaselineForPatchGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_RegisterPatchBaselineForPatchGroup_Call) RunAndReturn(run func(context.Context, *ssm.RegisterPatchBaselineForPatchGroupInput, ...func(*ssm.Options)) (*ssm.RegisterPatchBaselineForPatchGroupOutput, error)) *SSM_RegisterPatchBaselineForPatchGroup_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // RegisterTargetWithMaintenanceWindow provides a mock function with given fields: ctx, params, optFns
@@ -4176,6 +8614,43 @@ func (_m *SSM) RegisterTargetWithMaintenanceWindow(ctx context.Context, params *
 	return r0, r1
 }
 
+// SSM_RegisterTargetWithMaintenanceWindow_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterTargetWithMaintenanceWindow'
+type SSM_RegisterTargetWithMaintenanceWindow_Call struct {
+	*mock.Call
+}
+
+// RegisterTargetWithMaintenanceWindow is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.RegisterTargetWithMaintenanceWindowInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) RegisterTargetWithMaintenanceWindow(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_RegisterTargetWithMaintenanceWindow_Call {
+	return &SSM_RegisterTargetWithMaintenanceWindow_Call{Call: _e.mock.On("RegisterTargetWithMaintenanceWindow",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_RegisterTargetWithMaintenanceWindow_Call) Run(run func(ctx context.Context, params *ssm.RegisterTargetWithMaintenanceWindowInput, optFns ...func(*ssm.Options))) *SSM_RegisterTargetWithMaintenanceWindow_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.RegisterTargetWithMaintenanceWindowInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_RegisterTargetWithMaintenanceWindow_Call) Return(_a0 *ssm.RegisterTargetWithMaintenanceWindowOutput, _a1 error) *SSM_RegisterTargetWithMaintenanceWindow_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_RegisterTargetWithMaintenanceWindow_Call) RunAndReturn(run func(context.Context, *ssm.RegisterTargetWithMaintenanceWindowInput, ...func(*ssm.Options)) (*ssm.RegisterTargetWithMaintenanceWindowOutput, error)) *SSM_RegisterTargetWithMaintenanceWindow_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RegisterTaskWithMaintenanceWindow provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) RegisterTaskWithMaintenanceWindow(ctx context.Context, params *ssm.RegisterTaskWithMaintenanceWindowInput, optFns ...func(*ssm.Options)) (*ssm.RegisterTaskWithMaintenanceWindowOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4211,6 +8686,43 @@ func (_m *SSM) RegisterTaskWithMaintenanceWindow(ctx context.Context, params *ss
 	}
 
 	return r0, r1
+}
+
+// SSM_RegisterTaskWithMaintenanceWindow_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterTaskWithMaintenanceWindow'
+type SSM_RegisterTaskWithMaintenanceWindow_Call struct {
+	*mock.Call
+}
+
+// RegisterTaskWithMaintenanceWindow is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.RegisterTaskWithMaintenanceWindowInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) RegisterTaskWithMaintenanceWindow(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_RegisterTaskWithMaintenanceWindow_Call {
+	return &SSM_RegisterTaskWithMaintenanceWindow_Call{Call: _e.mock.On("RegisterTaskWithMaintenanceWindow",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_RegisterTaskWithMaintenanceWindow_Call) Run(run func(ctx context.Context, params *ssm.RegisterTaskWithMaintenanceWindowInput, optFns ...func(*ssm.Options))) *SSM_RegisterTaskWithMaintenanceWindow_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.RegisterTaskWithMaintenanceWindowInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_RegisterTaskWithMaintenanceWindow_Call) Return(_a0 *ssm.RegisterTaskWithMaintenanceWindowOutput, _a1 error) *SSM_RegisterTaskWithMaintenanceWindow_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_RegisterTaskWithMaintenanceWindow_Call) RunAndReturn(run func(context.Context, *ssm.RegisterTaskWithMaintenanceWindowInput, ...func(*ssm.Options)) (*ssm.RegisterTaskWithMaintenanceWindowOutput, error)) *SSM_RegisterTaskWithMaintenanceWindow_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // RemoveTagsFromResource provides a mock function with given fields: ctx, params, optFns
@@ -4250,6 +8762,43 @@ func (_m *SSM) RemoveTagsFromResource(ctx context.Context, params *ssm.RemoveTag
 	return r0, r1
 }
 
+// SSM_RemoveTagsFromResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveTagsFromResource'
+type SSM_RemoveTagsFromResource_Call struct {
+	*mock.Call
+}
+
+// RemoveTagsFromResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.RemoveTagsFromResourceInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) RemoveTagsFromResource(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_RemoveTagsFromResource_Call {
+	return &SSM_RemoveTagsFromResource_Call{Call: _e.mock.On("RemoveTagsFromResource",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_RemoveTagsFromResource_Call) Run(run func(ctx context.Context, params *ssm.RemoveTagsFromResourceInput, optFns ...func(*ssm.Options))) *SSM_RemoveTagsFromResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.RemoveTagsFromResourceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_RemoveTagsFromResource_Call) Return(_a0 *ssm.RemoveTagsFromResourceOutput, _a1 error) *SSM_RemoveTagsFromResource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_RemoveTagsFromResource_Call) RunAndReturn(run func(context.Context, *ssm.RemoveTagsFromResourceInput, ...func(*ssm.Options)) (*ssm.RemoveTagsFromResourceOutput, error)) *SSM_RemoveTagsFromResource_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ResetServiceSetting provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) ResetServiceSetting(ctx context.Context, params *ssm.ResetServiceSettingInput, optFns ...func(*ssm.Options)) (*ssm.ResetServiceSettingOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4285,6 +8834,43 @@ func (_m *SSM) ResetServiceSetting(ctx context.Context, params *ssm.ResetService
 	}
 
 	return r0, r1
+}
+
+// SSM_ResetServiceSetting_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResetServiceSetting'
+type SSM_ResetServiceSetting_Call struct {
+	*mock.Call
+}
+
+// ResetServiceSetting is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ResetServiceSettingInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ResetServiceSetting(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ResetServiceSetting_Call {
+	return &SSM_ResetServiceSetting_Call{Call: _e.mock.On("ResetServiceSetting",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ResetServiceSetting_Call) Run(run func(ctx context.Context, params *ssm.ResetServiceSettingInput, optFns ...func(*ssm.Options))) *SSM_ResetServiceSetting_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ResetServiceSettingInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ResetServiceSetting_Call) Return(_a0 *ssm.ResetServiceSettingOutput, _a1 error) *SSM_ResetServiceSetting_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ResetServiceSetting_Call) RunAndReturn(run func(context.Context, *ssm.ResetServiceSettingInput, ...func(*ssm.Options)) (*ssm.ResetServiceSettingOutput, error)) *SSM_ResetServiceSetting_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ResumeSession provides a mock function with given fields: ctx, params, optFns
@@ -4324,6 +8910,43 @@ func (_m *SSM) ResumeSession(ctx context.Context, params *ssm.ResumeSessionInput
 	return r0, r1
 }
 
+// SSM_ResumeSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResumeSession'
+type SSM_ResumeSession_Call struct {
+	*mock.Call
+}
+
+// ResumeSession is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.ResumeSessionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) ResumeSession(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_ResumeSession_Call {
+	return &SSM_ResumeSession_Call{Call: _e.mock.On("ResumeSession",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_ResumeSession_Call) Run(run func(ctx context.Context, params *ssm.ResumeSessionInput, optFns ...func(*ssm.Options))) *SSM_ResumeSession_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.ResumeSessionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_ResumeSession_Call) Return(_a0 *ssm.ResumeSessionOutput, _a1 error) *SSM_ResumeSession_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_ResumeSession_Call) RunAndReturn(run func(context.Context, *ssm.ResumeSessionInput, ...func(*ssm.Options)) (*ssm.ResumeSessionOutput, error)) *SSM_ResumeSession_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SendAutomationSignal provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) SendAutomationSignal(ctx context.Context, params *ssm.SendAutomationSignalInput, optFns ...func(*ssm.Options)) (*ssm.SendAutomationSignalOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4359,6 +8982,43 @@ func (_m *SSM) SendAutomationSignal(ctx context.Context, params *ssm.SendAutomat
 	}
 
 	return r0, r1
+}
+
+// SSM_SendAutomationSignal_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendAutomationSignal'
+type SSM_SendAutomationSignal_Call struct {
+	*mock.Call
+}
+
+// SendAutomationSignal is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.SendAutomationSignalInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) SendAutomationSignal(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_SendAutomationSignal_Call {
+	return &SSM_SendAutomationSignal_Call{Call: _e.mock.On("SendAutomationSignal",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_SendAutomationSignal_Call) Run(run func(ctx context.Context, params *ssm.SendAutomationSignalInput, optFns ...func(*ssm.Options))) *SSM_SendAutomationSignal_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.SendAutomationSignalInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_SendAutomationSignal_Call) Return(_a0 *ssm.SendAutomationSignalOutput, _a1 error) *SSM_SendAutomationSignal_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_SendAutomationSignal_Call) RunAndReturn(run func(context.Context, *ssm.SendAutomationSignalInput, ...func(*ssm.Options)) (*ssm.SendAutomationSignalOutput, error)) *SSM_SendAutomationSignal_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // SendCommand provides a mock function with given fields: ctx, params, optFns
@@ -4398,6 +9058,43 @@ func (_m *SSM) SendCommand(ctx context.Context, params *ssm.SendCommandInput, op
 	return r0, r1
 }
 
+// SSM_SendCommand_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendCommand'
+type SSM_SendCommand_Call struct {
+	*mock.Call
+}
+
+// SendCommand is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.SendCommandInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) SendCommand(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_SendCommand_Call {
+	return &SSM_SendCommand_Call{Call: _e.mock.On("SendCommand",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_SendCommand_Call) Run(run func(ctx context.Context, params *ssm.SendCommandInput, optFns ...func(*ssm.Options))) *SSM_SendCommand_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.SendCommandInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_SendCommand_Call) Return(_a0 *ssm.SendCommandOutput, _a1 error) *SSM_SendCommand_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_SendCommand_Call) RunAndReturn(run func(context.Context, *ssm.SendCommandInput, ...func(*ssm.Options)) (*ssm.SendCommandOutput, error)) *SSM_SendCommand_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StartAssociationsOnce provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) StartAssociationsOnce(ctx context.Context, params *ssm.StartAssociationsOnceInput, optFns ...func(*ssm.Options)) (*ssm.StartAssociationsOnceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4433,6 +9130,43 @@ func (_m *SSM) StartAssociationsOnce(ctx context.Context, params *ssm.StartAssoc
 	}
 
 	return r0, r1
+}
+
+// SSM_StartAssociationsOnce_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartAssociationsOnce'
+type SSM_StartAssociationsOnce_Call struct {
+	*mock.Call
+}
+
+// StartAssociationsOnce is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.StartAssociationsOnceInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) StartAssociationsOnce(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_StartAssociationsOnce_Call {
+	return &SSM_StartAssociationsOnce_Call{Call: _e.mock.On("StartAssociationsOnce",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_StartAssociationsOnce_Call) Run(run func(ctx context.Context, params *ssm.StartAssociationsOnceInput, optFns ...func(*ssm.Options))) *SSM_StartAssociationsOnce_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.StartAssociationsOnceInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_StartAssociationsOnce_Call) Return(_a0 *ssm.StartAssociationsOnceOutput, _a1 error) *SSM_StartAssociationsOnce_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_StartAssociationsOnce_Call) RunAndReturn(run func(context.Context, *ssm.StartAssociationsOnceInput, ...func(*ssm.Options)) (*ssm.StartAssociationsOnceOutput, error)) *SSM_StartAssociationsOnce_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // StartAutomationExecution provides a mock function with given fields: ctx, params, optFns
@@ -4472,6 +9206,43 @@ func (_m *SSM) StartAutomationExecution(ctx context.Context, params *ssm.StartAu
 	return r0, r1
 }
 
+// SSM_StartAutomationExecution_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartAutomationExecution'
+type SSM_StartAutomationExecution_Call struct {
+	*mock.Call
+}
+
+// StartAutomationExecution is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.StartAutomationExecutionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) StartAutomationExecution(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_StartAutomationExecution_Call {
+	return &SSM_StartAutomationExecution_Call{Call: _e.mock.On("StartAutomationExecution",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_StartAutomationExecution_Call) Run(run func(ctx context.Context, params *ssm.StartAutomationExecutionInput, optFns ...func(*ssm.Options))) *SSM_StartAutomationExecution_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.StartAutomationExecutionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_StartAutomationExecution_Call) Return(_a0 *ssm.StartAutomationExecutionOutput, _a1 error) *SSM_StartAutomationExecution_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_StartAutomationExecution_Call) RunAndReturn(run func(context.Context, *ssm.StartAutomationExecutionInput, ...func(*ssm.Options)) (*ssm.StartAutomationExecutionOutput, error)) *SSM_StartAutomationExecution_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StartChangeRequestExecution provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) StartChangeRequestExecution(ctx context.Context, params *ssm.StartChangeRequestExecutionInput, optFns ...func(*ssm.Options)) (*ssm.StartChangeRequestExecutionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4507,6 +9278,117 @@ func (_m *SSM) StartChangeRequestExecution(ctx context.Context, params *ssm.Star
 	}
 
 	return r0, r1
+}
+
+// SSM_StartChangeRequestExecution_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartChangeRequestExecution'
+type SSM_StartChangeRequestExecution_Call struct {
+	*mock.Call
+}
+
+// StartChangeRequestExecution is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.StartChangeRequestExecutionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) StartChangeRequestExecution(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_StartChangeRequestExecution_Call {
+	return &SSM_StartChangeRequestExecution_Call{Call: _e.mock.On("StartChangeRequestExecution",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_StartChangeRequestExecution_Call) Run(run func(ctx context.Context, params *ssm.StartChangeRequestExecutionInput, optFns ...func(*ssm.Options))) *SSM_StartChangeRequestExecution_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.StartChangeRequestExecutionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_StartChangeRequestExecution_Call) Return(_a0 *ssm.StartChangeRequestExecutionOutput, _a1 error) *SSM_StartChangeRequestExecution_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_StartChangeRequestExecution_Call) RunAndReturn(run func(context.Context, *ssm.StartChangeRequestExecutionInput, ...func(*ssm.Options)) (*ssm.StartChangeRequestExecutionOutput, error)) *SSM_StartChangeRequestExecution_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// StartExecutionPreview provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) StartExecutionPreview(ctx context.Context, params *ssm.StartExecutionPreviewInput, optFns ...func(*ssm.Options)) (*ssm.StartExecutionPreviewOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartExecutionPreview")
+	}
+
+	var r0 *ssm.StartExecutionPreviewOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.StartExecutionPreviewInput, ...func(*ssm.Options)) (*ssm.StartExecutionPreviewOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.StartExecutionPreviewInput, ...func(*ssm.Options)) *ssm.StartExecutionPreviewOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.StartExecutionPreviewOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.StartExecutionPreviewInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SSM_StartExecutionPreview_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartExecutionPreview'
+type SSM_StartExecutionPreview_Call struct {
+	*mock.Call
+}
+
+// StartExecutionPreview is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.StartExecutionPreviewInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) StartExecutionPreview(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_StartExecutionPreview_Call {
+	return &SSM_StartExecutionPreview_Call{Call: _e.mock.On("StartExecutionPreview",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_StartExecutionPreview_Call) Run(run func(ctx context.Context, params *ssm.StartExecutionPreviewInput, optFns ...func(*ssm.Options))) *SSM_StartExecutionPreview_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.StartExecutionPreviewInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_StartExecutionPreview_Call) Return(_a0 *ssm.StartExecutionPreviewOutput, _a1 error) *SSM_StartExecutionPreview_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_StartExecutionPreview_Call) RunAndReturn(run func(context.Context, *ssm.StartExecutionPreviewInput, ...func(*ssm.Options)) (*ssm.StartExecutionPreviewOutput, error)) *SSM_StartExecutionPreview_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // StartSession provides a mock function with given fields: ctx, params, optFns
@@ -4546,6 +9428,43 @@ func (_m *SSM) StartSession(ctx context.Context, params *ssm.StartSessionInput, 
 	return r0, r1
 }
 
+// SSM_StartSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartSession'
+type SSM_StartSession_Call struct {
+	*mock.Call
+}
+
+// StartSession is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.StartSessionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) StartSession(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_StartSession_Call {
+	return &SSM_StartSession_Call{Call: _e.mock.On("StartSession",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_StartSession_Call) Run(run func(ctx context.Context, params *ssm.StartSessionInput, optFns ...func(*ssm.Options))) *SSM_StartSession_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.StartSessionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_StartSession_Call) Return(_a0 *ssm.StartSessionOutput, _a1 error) *SSM_StartSession_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_StartSession_Call) RunAndReturn(run func(context.Context, *ssm.StartSessionInput, ...func(*ssm.Options)) (*ssm.StartSessionOutput, error)) *SSM_StartSession_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StopAutomationExecution provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) StopAutomationExecution(ctx context.Context, params *ssm.StopAutomationExecutionInput, optFns ...func(*ssm.Options)) (*ssm.StopAutomationExecutionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4581,6 +9500,43 @@ func (_m *SSM) StopAutomationExecution(ctx context.Context, params *ssm.StopAuto
 	}
 
 	return r0, r1
+}
+
+// SSM_StopAutomationExecution_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StopAutomationExecution'
+type SSM_StopAutomationExecution_Call struct {
+	*mock.Call
+}
+
+// StopAutomationExecution is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.StopAutomationExecutionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) StopAutomationExecution(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_StopAutomationExecution_Call {
+	return &SSM_StopAutomationExecution_Call{Call: _e.mock.On("StopAutomationExecution",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_StopAutomationExecution_Call) Run(run func(ctx context.Context, params *ssm.StopAutomationExecutionInput, optFns ...func(*ssm.Options))) *SSM_StopAutomationExecution_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.StopAutomationExecutionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_StopAutomationExecution_Call) Return(_a0 *ssm.StopAutomationExecutionOutput, _a1 error) *SSM_StopAutomationExecution_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_StopAutomationExecution_Call) RunAndReturn(run func(context.Context, *ssm.StopAutomationExecutionInput, ...func(*ssm.Options)) (*ssm.StopAutomationExecutionOutput, error)) *SSM_StopAutomationExecution_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // TerminateSession provides a mock function with given fields: ctx, params, optFns
@@ -4620,6 +9576,43 @@ func (_m *SSM) TerminateSession(ctx context.Context, params *ssm.TerminateSessio
 	return r0, r1
 }
 
+// SSM_TerminateSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TerminateSession'
+type SSM_TerminateSession_Call struct {
+	*mock.Call
+}
+
+// TerminateSession is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.TerminateSessionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) TerminateSession(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_TerminateSession_Call {
+	return &SSM_TerminateSession_Call{Call: _e.mock.On("TerminateSession",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_TerminateSession_Call) Run(run func(ctx context.Context, params *ssm.TerminateSessionInput, optFns ...func(*ssm.Options))) *SSM_TerminateSession_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.TerminateSessionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_TerminateSession_Call) Return(_a0 *ssm.TerminateSessionOutput, _a1 error) *SSM_TerminateSession_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_TerminateSession_Call) RunAndReturn(run func(context.Context, *ssm.TerminateSessionInput, ...func(*ssm.Options)) (*ssm.TerminateSessionOutput, error)) *SSM_TerminateSession_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UnlabelParameterVersion provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) UnlabelParameterVersion(ctx context.Context, params *ssm.UnlabelParameterVersionInput, optFns ...func(*ssm.Options)) (*ssm.UnlabelParameterVersionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4655,6 +9648,43 @@ func (_m *SSM) UnlabelParameterVersion(ctx context.Context, params *ssm.UnlabelP
 	}
 
 	return r0, r1
+}
+
+// SSM_UnlabelParameterVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UnlabelParameterVersion'
+type SSM_UnlabelParameterVersion_Call struct {
+	*mock.Call
+}
+
+// UnlabelParameterVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UnlabelParameterVersionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UnlabelParameterVersion(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UnlabelParameterVersion_Call {
+	return &SSM_UnlabelParameterVersion_Call{Call: _e.mock.On("UnlabelParameterVersion",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UnlabelParameterVersion_Call) Run(run func(ctx context.Context, params *ssm.UnlabelParameterVersionInput, optFns ...func(*ssm.Options))) *SSM_UnlabelParameterVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UnlabelParameterVersionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UnlabelParameterVersion_Call) Return(_a0 *ssm.UnlabelParameterVersionOutput, _a1 error) *SSM_UnlabelParameterVersion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UnlabelParameterVersion_Call) RunAndReturn(run func(context.Context, *ssm.UnlabelParameterVersionInput, ...func(*ssm.Options)) (*ssm.UnlabelParameterVersionOutput, error)) *SSM_UnlabelParameterVersion_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateAssociation provides a mock function with given fields: ctx, params, optFns
@@ -4694,6 +9724,43 @@ func (_m *SSM) UpdateAssociation(ctx context.Context, params *ssm.UpdateAssociat
 	return r0, r1
 }
 
+// SSM_UpdateAssociation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAssociation'
+type SSM_UpdateAssociation_Call struct {
+	*mock.Call
+}
+
+// UpdateAssociation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdateAssociationInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdateAssociation(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdateAssociation_Call {
+	return &SSM_UpdateAssociation_Call{Call: _e.mock.On("UpdateAssociation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdateAssociation_Call) Run(run func(ctx context.Context, params *ssm.UpdateAssociationInput, optFns ...func(*ssm.Options))) *SSM_UpdateAssociation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdateAssociationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdateAssociation_Call) Return(_a0 *ssm.UpdateAssociationOutput, _a1 error) *SSM_UpdateAssociation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdateAssociation_Call) RunAndReturn(run func(context.Context, *ssm.UpdateAssociationInput, ...func(*ssm.Options)) (*ssm.UpdateAssociationOutput, error)) *SSM_UpdateAssociation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateAssociationStatus provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) UpdateAssociationStatus(ctx context.Context, params *ssm.UpdateAssociationStatusInput, optFns ...func(*ssm.Options)) (*ssm.UpdateAssociationStatusOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4729,6 +9796,43 @@ func (_m *SSM) UpdateAssociationStatus(ctx context.Context, params *ssm.UpdateAs
 	}
 
 	return r0, r1
+}
+
+// SSM_UpdateAssociationStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAssociationStatus'
+type SSM_UpdateAssociationStatus_Call struct {
+	*mock.Call
+}
+
+// UpdateAssociationStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdateAssociationStatusInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdateAssociationStatus(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdateAssociationStatus_Call {
+	return &SSM_UpdateAssociationStatus_Call{Call: _e.mock.On("UpdateAssociationStatus",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdateAssociationStatus_Call) Run(run func(ctx context.Context, params *ssm.UpdateAssociationStatusInput, optFns ...func(*ssm.Options))) *SSM_UpdateAssociationStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdateAssociationStatusInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdateAssociationStatus_Call) Return(_a0 *ssm.UpdateAssociationStatusOutput, _a1 error) *SSM_UpdateAssociationStatus_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdateAssociationStatus_Call) RunAndReturn(run func(context.Context, *ssm.UpdateAssociationStatusInput, ...func(*ssm.Options)) (*ssm.UpdateAssociationStatusOutput, error)) *SSM_UpdateAssociationStatus_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateDocument provides a mock function with given fields: ctx, params, optFns
@@ -4768,6 +9872,43 @@ func (_m *SSM) UpdateDocument(ctx context.Context, params *ssm.UpdateDocumentInp
 	return r0, r1
 }
 
+// SSM_UpdateDocument_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateDocument'
+type SSM_UpdateDocument_Call struct {
+	*mock.Call
+}
+
+// UpdateDocument is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdateDocumentInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdateDocument(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdateDocument_Call {
+	return &SSM_UpdateDocument_Call{Call: _e.mock.On("UpdateDocument",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdateDocument_Call) Run(run func(ctx context.Context, params *ssm.UpdateDocumentInput, optFns ...func(*ssm.Options))) *SSM_UpdateDocument_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdateDocumentInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdateDocument_Call) Return(_a0 *ssm.UpdateDocumentOutput, _a1 error) *SSM_UpdateDocument_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdateDocument_Call) RunAndReturn(run func(context.Context, *ssm.UpdateDocumentInput, ...func(*ssm.Options)) (*ssm.UpdateDocumentOutput, error)) *SSM_UpdateDocument_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateDocumentDefaultVersion provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) UpdateDocumentDefaultVersion(ctx context.Context, params *ssm.UpdateDocumentDefaultVersionInput, optFns ...func(*ssm.Options)) (*ssm.UpdateDocumentDefaultVersionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4803,6 +9944,43 @@ func (_m *SSM) UpdateDocumentDefaultVersion(ctx context.Context, params *ssm.Upd
 	}
 
 	return r0, r1
+}
+
+// SSM_UpdateDocumentDefaultVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateDocumentDefaultVersion'
+type SSM_UpdateDocumentDefaultVersion_Call struct {
+	*mock.Call
+}
+
+// UpdateDocumentDefaultVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdateDocumentDefaultVersionInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdateDocumentDefaultVersion(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdateDocumentDefaultVersion_Call {
+	return &SSM_UpdateDocumentDefaultVersion_Call{Call: _e.mock.On("UpdateDocumentDefaultVersion",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdateDocumentDefaultVersion_Call) Run(run func(ctx context.Context, params *ssm.UpdateDocumentDefaultVersionInput, optFns ...func(*ssm.Options))) *SSM_UpdateDocumentDefaultVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdateDocumentDefaultVersionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdateDocumentDefaultVersion_Call) Return(_a0 *ssm.UpdateDocumentDefaultVersionOutput, _a1 error) *SSM_UpdateDocumentDefaultVersion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdateDocumentDefaultVersion_Call) RunAndReturn(run func(context.Context, *ssm.UpdateDocumentDefaultVersionInput, ...func(*ssm.Options)) (*ssm.UpdateDocumentDefaultVersionOutput, error)) *SSM_UpdateDocumentDefaultVersion_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateDocumentMetadata provides a mock function with given fields: ctx, params, optFns
@@ -4842,6 +10020,43 @@ func (_m *SSM) UpdateDocumentMetadata(ctx context.Context, params *ssm.UpdateDoc
 	return r0, r1
 }
 
+// SSM_UpdateDocumentMetadata_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateDocumentMetadata'
+type SSM_UpdateDocumentMetadata_Call struct {
+	*mock.Call
+}
+
+// UpdateDocumentMetadata is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdateDocumentMetadataInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdateDocumentMetadata(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdateDocumentMetadata_Call {
+	return &SSM_UpdateDocumentMetadata_Call{Call: _e.mock.On("UpdateDocumentMetadata",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdateDocumentMetadata_Call) Run(run func(ctx context.Context, params *ssm.UpdateDocumentMetadataInput, optFns ...func(*ssm.Options))) *SSM_UpdateDocumentMetadata_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdateDocumentMetadataInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdateDocumentMetadata_Call) Return(_a0 *ssm.UpdateDocumentMetadataOutput, _a1 error) *SSM_UpdateDocumentMetadata_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdateDocumentMetadata_Call) RunAndReturn(run func(context.Context, *ssm.UpdateDocumentMetadataInput, ...func(*ssm.Options)) (*ssm.UpdateDocumentMetadataOutput, error)) *SSM_UpdateDocumentMetadata_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateMaintenanceWindow provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) UpdateMaintenanceWindow(ctx context.Context, params *ssm.UpdateMaintenanceWindowInput, optFns ...func(*ssm.Options)) (*ssm.UpdateMaintenanceWindowOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4877,6 +10092,43 @@ func (_m *SSM) UpdateMaintenanceWindow(ctx context.Context, params *ssm.UpdateMa
 	}
 
 	return r0, r1
+}
+
+// SSM_UpdateMaintenanceWindow_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateMaintenanceWindow'
+type SSM_UpdateMaintenanceWindow_Call struct {
+	*mock.Call
+}
+
+// UpdateMaintenanceWindow is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdateMaintenanceWindowInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdateMaintenanceWindow(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdateMaintenanceWindow_Call {
+	return &SSM_UpdateMaintenanceWindow_Call{Call: _e.mock.On("UpdateMaintenanceWindow",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdateMaintenanceWindow_Call) Run(run func(ctx context.Context, params *ssm.UpdateMaintenanceWindowInput, optFns ...func(*ssm.Options))) *SSM_UpdateMaintenanceWindow_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdateMaintenanceWindowInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdateMaintenanceWindow_Call) Return(_a0 *ssm.UpdateMaintenanceWindowOutput, _a1 error) *SSM_UpdateMaintenanceWindow_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdateMaintenanceWindow_Call) RunAndReturn(run func(context.Context, *ssm.UpdateMaintenanceWindowInput, ...func(*ssm.Options)) (*ssm.UpdateMaintenanceWindowOutput, error)) *SSM_UpdateMaintenanceWindow_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateMaintenanceWindowTarget provides a mock function with given fields: ctx, params, optFns
@@ -4916,6 +10168,43 @@ func (_m *SSM) UpdateMaintenanceWindowTarget(ctx context.Context, params *ssm.Up
 	return r0, r1
 }
 
+// SSM_UpdateMaintenanceWindowTarget_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateMaintenanceWindowTarget'
+type SSM_UpdateMaintenanceWindowTarget_Call struct {
+	*mock.Call
+}
+
+// UpdateMaintenanceWindowTarget is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdateMaintenanceWindowTargetInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdateMaintenanceWindowTarget(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdateMaintenanceWindowTarget_Call {
+	return &SSM_UpdateMaintenanceWindowTarget_Call{Call: _e.mock.On("UpdateMaintenanceWindowTarget",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdateMaintenanceWindowTarget_Call) Run(run func(ctx context.Context, params *ssm.UpdateMaintenanceWindowTargetInput, optFns ...func(*ssm.Options))) *SSM_UpdateMaintenanceWindowTarget_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdateMaintenanceWindowTargetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdateMaintenanceWindowTarget_Call) Return(_a0 *ssm.UpdateMaintenanceWindowTargetOutput, _a1 error) *SSM_UpdateMaintenanceWindowTarget_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdateMaintenanceWindowTarget_Call) RunAndReturn(run func(context.Context, *ssm.UpdateMaintenanceWindowTargetInput, ...func(*ssm.Options)) (*ssm.UpdateMaintenanceWindowTargetOutput, error)) *SSM_UpdateMaintenanceWindowTarget_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateMaintenanceWindowTask provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) UpdateMaintenanceWindowTask(ctx context.Context, params *ssm.UpdateMaintenanceWindowTaskInput, optFns ...func(*ssm.Options)) (*ssm.UpdateMaintenanceWindowTaskOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -4951,6 +10240,43 @@ func (_m *SSM) UpdateMaintenanceWindowTask(ctx context.Context, params *ssm.Upda
 	}
 
 	return r0, r1
+}
+
+// SSM_UpdateMaintenanceWindowTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateMaintenanceWindowTask'
+type SSM_UpdateMaintenanceWindowTask_Call struct {
+	*mock.Call
+}
+
+// UpdateMaintenanceWindowTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdateMaintenanceWindowTaskInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdateMaintenanceWindowTask(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdateMaintenanceWindowTask_Call {
+	return &SSM_UpdateMaintenanceWindowTask_Call{Call: _e.mock.On("UpdateMaintenanceWindowTask",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdateMaintenanceWindowTask_Call) Run(run func(ctx context.Context, params *ssm.UpdateMaintenanceWindowTaskInput, optFns ...func(*ssm.Options))) *SSM_UpdateMaintenanceWindowTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdateMaintenanceWindowTaskInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdateMaintenanceWindowTask_Call) Return(_a0 *ssm.UpdateMaintenanceWindowTaskOutput, _a1 error) *SSM_UpdateMaintenanceWindowTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdateMaintenanceWindowTask_Call) RunAndReturn(run func(context.Context, *ssm.UpdateMaintenanceWindowTaskInput, ...func(*ssm.Options)) (*ssm.UpdateMaintenanceWindowTaskOutput, error)) *SSM_UpdateMaintenanceWindowTask_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateManagedInstanceRole provides a mock function with given fields: ctx, params, optFns
@@ -4990,6 +10316,43 @@ func (_m *SSM) UpdateManagedInstanceRole(ctx context.Context, params *ssm.Update
 	return r0, r1
 }
 
+// SSM_UpdateManagedInstanceRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateManagedInstanceRole'
+type SSM_UpdateManagedInstanceRole_Call struct {
+	*mock.Call
+}
+
+// UpdateManagedInstanceRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdateManagedInstanceRoleInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdateManagedInstanceRole(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdateManagedInstanceRole_Call {
+	return &SSM_UpdateManagedInstanceRole_Call{Call: _e.mock.On("UpdateManagedInstanceRole",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdateManagedInstanceRole_Call) Run(run func(ctx context.Context, params *ssm.UpdateManagedInstanceRoleInput, optFns ...func(*ssm.Options))) *SSM_UpdateManagedInstanceRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdateManagedInstanceRoleInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdateManagedInstanceRole_Call) Return(_a0 *ssm.UpdateManagedInstanceRoleOutput, _a1 error) *SSM_UpdateManagedInstanceRole_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdateManagedInstanceRole_Call) RunAndReturn(run func(context.Context, *ssm.UpdateManagedInstanceRoleInput, ...func(*ssm.Options)) (*ssm.UpdateManagedInstanceRoleOutput, error)) *SSM_UpdateManagedInstanceRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateOpsItem provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) UpdateOpsItem(ctx context.Context, params *ssm.UpdateOpsItemInput, optFns ...func(*ssm.Options)) (*ssm.UpdateOpsItemOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5025,6 +10388,43 @@ func (_m *SSM) UpdateOpsItem(ctx context.Context, params *ssm.UpdateOpsItemInput
 	}
 
 	return r0, r1
+}
+
+// SSM_UpdateOpsItem_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateOpsItem'
+type SSM_UpdateOpsItem_Call struct {
+	*mock.Call
+}
+
+// UpdateOpsItem is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdateOpsItemInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdateOpsItem(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdateOpsItem_Call {
+	return &SSM_UpdateOpsItem_Call{Call: _e.mock.On("UpdateOpsItem",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdateOpsItem_Call) Run(run func(ctx context.Context, params *ssm.UpdateOpsItemInput, optFns ...func(*ssm.Options))) *SSM_UpdateOpsItem_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdateOpsItemInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdateOpsItem_Call) Return(_a0 *ssm.UpdateOpsItemOutput, _a1 error) *SSM_UpdateOpsItem_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdateOpsItem_Call) RunAndReturn(run func(context.Context, *ssm.UpdateOpsItemInput, ...func(*ssm.Options)) (*ssm.UpdateOpsItemOutput, error)) *SSM_UpdateOpsItem_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateOpsMetadata provides a mock function with given fields: ctx, params, optFns
@@ -5064,6 +10464,43 @@ func (_m *SSM) UpdateOpsMetadata(ctx context.Context, params *ssm.UpdateOpsMetad
 	return r0, r1
 }
 
+// SSM_UpdateOpsMetadata_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateOpsMetadata'
+type SSM_UpdateOpsMetadata_Call struct {
+	*mock.Call
+}
+
+// UpdateOpsMetadata is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdateOpsMetadataInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdateOpsMetadata(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdateOpsMetadata_Call {
+	return &SSM_UpdateOpsMetadata_Call{Call: _e.mock.On("UpdateOpsMetadata",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdateOpsMetadata_Call) Run(run func(ctx context.Context, params *ssm.UpdateOpsMetadataInput, optFns ...func(*ssm.Options))) *SSM_UpdateOpsMetadata_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdateOpsMetadataInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdateOpsMetadata_Call) Return(_a0 *ssm.UpdateOpsMetadataOutput, _a1 error) *SSM_UpdateOpsMetadata_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdateOpsMetadata_Call) RunAndReturn(run func(context.Context, *ssm.UpdateOpsMetadataInput, ...func(*ssm.Options)) (*ssm.UpdateOpsMetadataOutput, error)) *SSM_UpdateOpsMetadata_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdatePatchBaseline provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) UpdatePatchBaseline(ctx context.Context, params *ssm.UpdatePatchBaselineInput, optFns ...func(*ssm.Options)) (*ssm.UpdatePatchBaselineOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5099,6 +10536,43 @@ func (_m *SSM) UpdatePatchBaseline(ctx context.Context, params *ssm.UpdatePatchB
 	}
 
 	return r0, r1
+}
+
+// SSM_UpdatePatchBaseline_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdatePatchBaseline'
+type SSM_UpdatePatchBaseline_Call struct {
+	*mock.Call
+}
+
+// UpdatePatchBaseline is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdatePatchBaselineInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdatePatchBaseline(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdatePatchBaseline_Call {
+	return &SSM_UpdatePatchBaseline_Call{Call: _e.mock.On("UpdatePatchBaseline",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdatePatchBaseline_Call) Run(run func(ctx context.Context, params *ssm.UpdatePatchBaselineInput, optFns ...func(*ssm.Options))) *SSM_UpdatePatchBaseline_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdatePatchBaselineInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdatePatchBaseline_Call) Return(_a0 *ssm.UpdatePatchBaselineOutput, _a1 error) *SSM_UpdatePatchBaseline_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdatePatchBaseline_Call) RunAndReturn(run func(context.Context, *ssm.UpdatePatchBaselineInput, ...func(*ssm.Options)) (*ssm.UpdatePatchBaselineOutput, error)) *SSM_UpdatePatchBaseline_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpdateResourceDataSync provides a mock function with given fields: ctx, params, optFns
@@ -5138,6 +10612,43 @@ func (_m *SSM) UpdateResourceDataSync(ctx context.Context, params *ssm.UpdateRes
 	return r0, r1
 }
 
+// SSM_UpdateResourceDataSync_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateResourceDataSync'
+type SSM_UpdateResourceDataSync_Call struct {
+	*mock.Call
+}
+
+// UpdateResourceDataSync is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdateResourceDataSyncInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdateResourceDataSync(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdateResourceDataSync_Call {
+	return &SSM_UpdateResourceDataSync_Call{Call: _e.mock.On("UpdateResourceDataSync",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdateResourceDataSync_Call) Run(run func(ctx context.Context, params *ssm.UpdateResourceDataSyncInput, optFns ...func(*ssm.Options))) *SSM_UpdateResourceDataSync_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdateResourceDataSyncInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdateResourceDataSync_Call) Return(_a0 *ssm.UpdateResourceDataSyncOutput, _a1 error) *SSM_UpdateResourceDataSync_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdateResourceDataSync_Call) RunAndReturn(run func(context.Context, *ssm.UpdateResourceDataSyncInput, ...func(*ssm.Options)) (*ssm.UpdateResourceDataSyncOutput, error)) *SSM_UpdateResourceDataSync_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateServiceSetting provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) UpdateServiceSetting(ctx context.Context, params *ssm.UpdateServiceSettingInput, optFns ...func(*ssm.Options)) (*ssm.UpdateServiceSettingOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5173,6 +10684,43 @@ func (_m *SSM) UpdateServiceSetting(ctx context.Context, params *ssm.UpdateServi
 	}
 
 	return r0, r1
+}
+
+// SSM_UpdateServiceSetting_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateServiceSetting'
+type SSM_UpdateServiceSetting_Call struct {
+	*mock.Call
+}
+
+// UpdateServiceSetting is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.UpdateServiceSettingInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) UpdateServiceSetting(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_UpdateServiceSetting_Call {
+	return &SSM_UpdateServiceSetting_Call{Call: _e.mock.On("UpdateServiceSetting",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_UpdateServiceSetting_Call) Run(run func(ctx context.Context, params *ssm.UpdateServiceSettingInput, optFns ...func(*ssm.Options))) *SSM_UpdateServiceSetting_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.UpdateServiceSettingInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_UpdateServiceSetting_Call) Return(_a0 *ssm.UpdateServiceSettingOutput, _a1 error) *SSM_UpdateServiceSetting_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_UpdateServiceSetting_Call) RunAndReturn(run func(context.Context, *ssm.UpdateServiceSettingInput, ...func(*ssm.Options)) (*ssm.UpdateServiceSettingOutput, error)) *SSM_UpdateServiceSetting_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewSSM creates a new instance of SSM. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

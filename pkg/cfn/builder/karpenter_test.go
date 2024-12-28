@@ -75,7 +75,9 @@ var expectedTemplate = `{
       "aws": {
         "EC2": "ec2.amazonaws.com",
         "EKS": "eks.amazonaws.com",
-        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com",
+        "IRA": "rolesanywhere.amazonaws.com",
+        "SSM": "ssm.amazonaws.com"
       },
       "aws-cn": {
         "EC2": "ec2.amazonaws.com.cn",
@@ -95,7 +97,9 @@ var expectedTemplate = `{
       "aws-us-gov": {
         "EC2": "ec2.amazonaws.com",
         "EKS": "eks.amazonaws.com",
-        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com",
+        "IRA": "rolesanywhere.amazonaws.com",
+        "SSM": "ssm.amazonaws.com"
       }
     }
   },
@@ -217,7 +221,9 @@ var expectedTemplateWithPermissionBoundary = `{
       "aws": {
         "EC2": "ec2.amazonaws.com",
         "EKS": "eks.amazonaws.com",
-        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com",
+        "IRA": "rolesanywhere.amazonaws.com",
+        "SSM": "ssm.amazonaws.com"
       },
       "aws-cn": {
         "EC2": "ec2.amazonaws.com.cn",
@@ -237,7 +243,9 @@ var expectedTemplateWithPermissionBoundary = `{
       "aws-us-gov": {
         "EC2": "ec2.amazonaws.com",
         "EKS": "eks.amazonaws.com",
-        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com",
+        "IRA": "rolesanywhere.amazonaws.com",
+        "SSM": "ssm.amazonaws.com"
       }
     }
   },
@@ -360,7 +368,9 @@ var expectedTemplateWithSpotInterruptionQueue = `{
       "aws": {
         "EC2": "ec2.amazonaws.com",
         "EKS": "eks.amazonaws.com",
-        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com",
+        "IRA": "rolesanywhere.amazonaws.com",
+        "SSM": "ssm.amazonaws.com"
       },
       "aws-cn": {
         "EC2": "ec2.amazonaws.com.cn",
@@ -380,7 +390,9 @@ var expectedTemplateWithSpotInterruptionQueue = `{
       "aws-us-gov": {
         "EC2": "ec2.amazonaws.com",
         "EKS": "eks.amazonaws.com",
-        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com",
+        "IRA": "rolesanywhere.amazonaws.com",
+        "SSM": "ssm.amazonaws.com"
       }
     }
   },

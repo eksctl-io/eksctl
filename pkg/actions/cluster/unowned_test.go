@@ -2,22 +2,23 @@ package cluster_test
 
 import (
 	"context"
+	"errors"
 	"time"
-
-	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/weaveworks/eksctl/pkg/actions/cluster"
+	"github.com/weaveworks/eksctl/pkg/actions/cluster/mocks"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -46,6 +47,7 @@ var _ = Describe("Delete", func() {
 		p                        *mockprovider.MockProvider
 		cfg                      *api.ClusterConfig
 		fakeStackManager         *fakes.FakeStackManager
+		autoModeDeleter          *mocks.AutoModeDeleter
 		ranDeleteDeprecatedTasks bool
 		ctl                      *eks.ClusterProvider
 	)
@@ -56,6 +58,8 @@ var _ = Describe("Delete", func() {
 		cfg = api.NewClusterConfig()
 		cfg.Metadata.Name = clusterName
 		fakeStackManager = new(fakes.FakeStackManager)
+		autoModeDeleter = &mocks.AutoModeDeleter{}
+		autoModeDeleter.EXPECT().DeleteIfRequired(mock.Anything).Return(nil).Once()
 		ranDeleteDeprecatedTasks = false
 		ctl = &eks.ClusterProvider{AWSProvider: p, Status: &eks.ProviderStatus{}}
 	})
@@ -147,7 +151,7 @@ var _ = Describe("Delete", func() {
 			p.MockEKS().On("DeleteNodegroup", mock.Anything, &awseks.DeleteNodegroupInput{ClusterName: &clusterName, NodegroupName: aws.String("ng-2")}).Return(&awseks.DeleteNodegroupOutput{}, nil)
 
 			p.MockEKS().On("DeleteCluster", mock.Anything, mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
-			c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
+			c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager, autoModeDeleter)
 			fakeClientSet := fake.NewSimpleClientset()
 
 			c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -238,7 +242,7 @@ var _ = Describe("Delete", func() {
 						},
 					},
 				}
-				c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
+				c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager, autoModeDeleter)
 				fakeClientSet := fake.NewSimpleClientset()
 
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -333,7 +337,7 @@ var _ = Describe("Delete", func() {
 				p.MockEKS().On("DeleteNodegroup", mock.Anything, nil).Return(&awseks.DeleteNodegroupOutput{}, nil)
 
 				p.MockEKS().On("DeleteCluster", mock.Anything, mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
-				c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
+				c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager, autoModeDeleter)
 				fakeClientSet := fake.NewSimpleClientset()
 
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -423,7 +427,7 @@ var _ = Describe("Delete", func() {
 
 			p.MockEKS().On("DeleteCluster", mock.Anything, mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
 
-			c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
+			c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager, autoModeDeleter)
 			err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))

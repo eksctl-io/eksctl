@@ -16,7 +16,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -56,7 +55,7 @@ func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
 	if err := api.Register(); err != nil {
-		panic(errors.Wrap(err, "unexpected error registering API scheme"))
+		panic(fmt.Errorf("unexpected error registering API scheme: %w", err))
 	}
 	params = tests.NewParamsWithGivenClusterName("crud", "test")
 }
@@ -70,6 +69,8 @@ const (
 	deleteNg        = "ng-delete"
 	taintsNg1       = "ng-taints-1"
 	taintsNg2       = "ng-taints-2"
+	maxPodsMNG1     = "mng-max-pods-1"
+	maxPodsMNG2     = "mng-max-pods-2"
 	scaleSingleNg   = "ng-scale-single"
 	scaleMultipleNg = "ng-scale-multiple"
 
@@ -873,6 +874,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			clientset := makeClientset()
 			nodeListN1 := tests.ListNodes(clientset, taintsNg1)
 			nodeListN2 := tests.ListNodes(clientset, taintsNg2)
+			mngNodeListN1 := tests.ListNodes(clientset, maxPodsMNG1)
+			mngNodeListN2 := tests.ListNodes(clientset, maxPodsMNG2)
 
 			tests.AssertNodeTaints(nodeListN1, []corev1.Taint{
 				{
@@ -897,9 +900,19 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				},
 			})
 
-			By("asserting that maxPods is set correctly")
+			By("asserting that maxPods is set correctly for AL2 nodegroup")
 			expectedMaxPods := 123
 			for _, node := range nodeListN1.Items {
+				maxPods, _ := node.Status.Allocatable.Pods().AsInt64()
+				Expect(maxPods).To(Equal(int64(expectedMaxPods)))
+			}
+
+			By("asserting that maxPods is set correctly for AL2023 nodegroups")
+			for _, node := range mngNodeListN1.Items {
+				maxPods, _ := node.Status.Allocatable.Pods().AsInt64()
+				Expect(maxPods).To(Equal(int64(expectedMaxPods)))
+			}
+			for _, node := range mngNodeListN2.Items {
 				maxPods, _ := node.Status.Allocatable.Pods().AsInt64()
 				Expect(maxPods).To(Equal(int64(expectedMaxPods)))
 			}

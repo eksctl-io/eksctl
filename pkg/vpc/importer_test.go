@@ -1,11 +1,12 @@
 package vpc
 
 import (
+	gfnt "goformation/v4/cloudformation/types"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 var _ = Describe("SpecConfigImporter", func() {

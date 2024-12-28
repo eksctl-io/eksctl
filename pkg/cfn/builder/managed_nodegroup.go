@@ -2,14 +2,15 @@ package builder
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
+	gfnec2 "goformation/v4/cloudformation/ec2"
+	gfneks "goformation/v4/cloudformation/eks"
+	gfnt "goformation/v4/cloudformation/types"
 
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/pkg/errors"
-	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
-	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 	corev1 "k8s.io/api/core/v1"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -116,6 +117,14 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 		managedResource.UpdateConfig = updateConfig
 	}
 
+	if m.nodeGroup.NodeRepairConfig != nil {
+		nodeRepairConfig := &gfneks.Nodegroup_NodeRepairConfig{}
+		if m.nodeGroup.NodeRepairConfig.Enabled != nil {
+			nodeRepairConfig.Enabled = gfnt.NewBoolean(*m.nodeGroup.NodeRepairConfig.Enabled)
+		}
+		managedResource.NodeRepairConfig = nodeRepairConfig
+	}
+
 	if m.nodeGroup.Spot {
 		// TODO use constant from SDK
 		managedResource.CapacityType = gfnt.NewString("SPOT")
@@ -203,7 +212,7 @@ func mapTaints(taints []api.NodeGroupTaint) ([]gfneks.Nodegroup_Taint, error) {
 	for _, t := range taints {
 		effect := mapEffect(t.Effect)
 		if effect == "" {
-			return nil, errors.Errorf("unexpected taint effect: %v", t.Effect)
+			return nil, fmt.Errorf("unexpected taint effect: %v", t.Effect)
 		}
 		ret = append(ret, gfneks.Nodegroup_Taint{
 			Key:    gfnt.NewString(t.Key),
@@ -231,10 +240,10 @@ func validateLaunchTemplate(launchTemplateData *ec2types.ResponseLaunchTemplateD
 
 	if launchTemplateData.InstanceType == "" {
 		if len(ng.InstanceTypes) == 0 {
-			return errors.Errorf("instance type must be set in the launch template if %s.instanceTypes is not specified", mngFieldName)
+			return fmt.Errorf("instance type must be set in the launch template if %s.instanceTypes is not specified", mngFieldName)
 		}
 	} else if len(ng.InstanceTypes) > 0 {
-		return errors.Errorf("instance type must not be set in the launch template if %s.instanceTypes is specified", mngFieldName)
+		return fmt.Errorf("instance type must not be set in the launch template if %s.instanceTypes is specified", mngFieldName)
 	}
 
 	// Custom AMI
@@ -243,7 +252,7 @@ func validateLaunchTemplate(launchTemplateData *ec2types.ResponseLaunchTemplateD
 			return errors.New("node bootstrapping script (UserData) must be set when using a custom AMI")
 		}
 		notSupportedErr := func(fieldName string) error {
-			return errors.Errorf("cannot set %s.%s when launchTemplate.ImageId is set", mngFieldName, fieldName)
+			return fmt.Errorf("cannot set %s.%s when launchTemplate.ImageId is set", mngFieldName, fieldName)
 
 		}
 		if ng.AMI != "" {

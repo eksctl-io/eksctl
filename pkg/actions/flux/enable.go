@@ -2,13 +2,15 @@ package flux
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/flux"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/flux"
 )
 
 const allNamespaces = ""
@@ -51,7 +53,7 @@ func (ti *Installer) Run() error {
 	logger.Info("ensuring v1 repo components not installed")
 	v1Namespace, err := ti.checkV1()
 	if err != nil {
-		return errors.Wrap(err, "checking for flux v1 components")
+		return fmt.Errorf("checking for flux v1 components: %w", err)
 	}
 
 	if v1Namespace != "" {
@@ -61,13 +63,13 @@ func (ti *Installer) Run() error {
 
 	logger.Info("running pre-flight checks")
 	if err := ti.fluxClient.PreFlight(); err != nil {
-		return errors.Wrap(err, "running Flux pre-flight checks")
+		return fmt.Errorf("running Flux pre-flight checks: %w", err)
 	}
 
 	logger.Info("bootstrapping Flux v2 into cluster")
 	if err := ti.fluxClient.Bootstrap(); err != nil {
 		logger.Info("Flux v2 failed to install successfully. check configuration and re-run `eksctl enable flux`")
-		return errors.Wrap(err, "running Flux Bootstrap")
+		return fmt.Errorf("running Flux Bootstrap: %w", err)
 	}
 
 	logger.Success("Flux v2 installed successfully")

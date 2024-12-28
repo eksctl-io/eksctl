@@ -20,8 +20,8 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 
-	"github.com/weaveworks/goformation/v4"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+	"goformation/v4"
+	gfnt "goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
@@ -264,6 +264,19 @@ API_SERVER_URL=https://test.com
 				InstanceTypes: []string{"c3.large", "c4.large", "c5.large", "c5d.large", "c5n.large", "c5a.large"},
 			},
 			resourcesFilename: "spot.json",
+		}),
+
+		Entry("With node repair enabled", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "node-repair-enabled",
+					InstanceType: "m5.xlarge",
+				},
+				NodeRepairConfig: &api.NodeGroupNodeRepairConfig{
+					Enabled: aws.Bool(true),
+				},
+			},
+			resourcesFilename: "node-repair-enabled.json",
 		}),
 
 		Entry("Without instance type set in the launch template", &mngCase{

@@ -2,6 +2,7 @@ package vpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 
@@ -11,7 +12,6 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/pkg/errors"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -435,7 +435,7 @@ var _ = Describe("VPC", func() {
 			if clusterCase.mockEC2 != nil {
 				clusterCase.mockEC2(p.MockEC2())
 			}
-			err := UseFromClusterStack(context.Background(), p, clusterCase.stack, clusterCase.cfg)
+			err := UseFromClusterStack(context.Background(), p, clusterCase.stack, clusterCase.cfg, true)
 			if clusterCase.errorMatcher != nil {
 				Expect(err.Error()).To(clusterCase.errorMatcher)
 			} else {
@@ -1290,7 +1290,7 @@ var _ = Describe("VPC", func() {
 				},
 			}, nil)
 
-			err := ImportSubnetsFromSpec(context.Background(), p, &e.cfg)
+			err := ImportSubnetsFromSpec(context.Background(), p.EC2(), &e.cfg)
 			if e.expectedErr != "" {
 				Expect(err).To(MatchError(e.expectedErr))
 			} else {

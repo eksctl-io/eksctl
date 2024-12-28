@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/executor"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
@@ -141,7 +141,7 @@ func (git *Client) CloneRepoInTmpDir(tmpDirPrefix string, options CloneOptions) 
 // which creates if needed
 func (git *Client) CloneRepoInPath(clonePath string, options CloneOptions) error {
 	if err := os.MkdirAll(clonePath, 0700); err != nil {
-		return errors.Wrapf(err, "unable to create directory for cloning")
+		return fmt.Errorf("unable to create directory for cloning: %w", err)
 	}
 	return git.cloneRepoInPath(clonePath, options)
 }

@@ -21,6 +21,7 @@ type CreateClusterCmdParams struct {
 	WithoutNodeGroup      bool
 	Fargate               bool
 	DryRun                bool
+	EnableAutoMode        bool
 	CreateNGOptions
 	CreateManagedNGOptions
 
@@ -38,9 +39,10 @@ type NodeGroupOptions struct {
 
 // CreateManagedNGOptions holds options for creating a managed nodegroup
 type CreateManagedNGOptions struct {
-	Managed       bool
-	Spot          bool
-	InstanceTypes []string
+	Managed           bool
+	Spot              bool
+	NodeRepairEnabled bool
+	InstanceTypes     []string
 }
 
 // CreateNGOptions holds options for creating a nodegroup

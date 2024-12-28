@@ -144,6 +144,7 @@ nav:
   - User Guide:
     - Clusters:
       - usage/creating-and-managing-clusters.md
+      - usage/auto-mode.md
       - usage/access-entries.md
       - usage/outposts.md
       - usage/unowned-clusters.md
@@ -161,6 +162,7 @@ nav:
       - usage/nodegroups.md
       - usage/nodegroup-unmanaged.md
       - usage/nodegroup-managed.md
+      - usage/node-bootstrapping.md
       - usage/launch-template-support.md
       - usage/nodegroup-with-custom-subnet.md
       - usage/nodegroup-customize-dns.md
@@ -174,6 +176,8 @@ nav:
       - usage/container-runtime.md
       - usage/windows-worker-nodes.md
       - usage/nodegroup-additional-volume-mappings.md
+      - usage/hybrid-nodes.md
+      - usage/nodegroup-node-repair-config.md
     - usage/eksctl-karpenter.md
     - usage/eksctl-anywhere.md
     - GitOps:

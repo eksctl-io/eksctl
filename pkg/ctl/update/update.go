@@ -15,6 +15,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateIAMServiceAccountCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateNodeGroupCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updatePodIdentityAssociation)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateAutoModeConfigCmd)
 
 	return verbCmd
 }

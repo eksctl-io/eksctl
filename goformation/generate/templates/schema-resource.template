@@ -1,0 +1,76 @@
+"{{.Name}}": {
+    "type": "object",
+    {{if .IsCustomProperty}}
+    {{if .Resource.Required}}"required": [{{.Resource.Required}}],{{end}}
+    "properties": {
+        {{$length := len .Resource.Properties}}{{$pc := counter $length}}{{range $name, $property := .Resource.Properties}}
+        {{$property.Schema $name $.Name}}{{if call $pc}},{{end}}
+        {{end}}
+    },
+    {{else}}
+    "required": {{if .Resource.Required}}["Type", "Properties"]{{else}}["Type"]{{end}},
+    "properties": {
+        "Properties": {
+            "type": "object",
+            "properties": {
+                {{$length := len .Resource.Properties}}{{$pc := counter $length}}{{range $name, $property := .Resource.Properties}}
+                {{$property.Schema $name $.Name}}{{if call $pc}},{{end}}
+                {{end}}
+             },
+             {{if .Resource.Required}}"required": [{{.Resource.Required}}],{{end}}
+            "additionalProperties": false
+        },
+        "Type": {
+            "type": "string",
+            "enum": [
+                "{{.Name}}"
+            ]
+        },
+        {{if eq .Name "AWS::AutoScaling::AutoScalingGroup" "AWS::EC2::Instance" "AWS::CloudFormation::WaitCondition"}}
+        "CreationPolicy": {
+            "type": "object"
+        },
+        {{end}}
+        {{if eq .Name "AWS::AutoScaling::AutoScalingGroup"}}
+        "UpdatePolicy": {
+            "type": "object"
+        },
+        {{end}}
+        "DeletionPolicy": {
+            "type": "string",
+            "enum": [
+                "Delete",
+                "Retain",
+                "Snapshot"
+            ]
+        },
+        "UpdateReplacePolicy": {
+            "type": "string",
+            "enum": [
+                "Delete",
+                "Retain",
+                "Snapshot"
+            ]
+        },
+        "DependsOn": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9]+$"
+                },
+                {
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9]+$"
+                    },
+                    "type": "array"
+                }
+            ]
+        },
+        "Metadata": {
+            "type": "object"
+        }
+    },
+    {{end}}
+    "additionalProperties": false
+}

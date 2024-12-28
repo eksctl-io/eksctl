@@ -6,6 +6,7 @@
     "ClientRequestToken": null,
     "ConnectorConfig": null,
     "CreatedAt": "0001-01-01T00:00:00Z",
+    "ComputeConfig": null,
     "AccessConfig": {
       "AuthenticationMode": "API_AND_CONFIG_MAP",
       "BootstrapClusterCreatorAdminPermissions": true
@@ -20,6 +21,7 @@
     "Name": "test-cluster-1",
     "OutpostConfig": null,
     "PlatformVersion": null,
+    "RemoteNetworkConfig": null,
     "ResourcesVpcConfig": {
       "ClusterSecurityGroupId": null,
       "EndpointPrivateAccess": false,
@@ -34,6 +36,7 @@
     },
     "RoleArn": null,
     "Status": "ACTIVE",
+    "StorageConfig": null,
     "Tags": null,
     "Version": null,
     "UpgradePolicy": null,
@@ -46,6 +49,7 @@
     "ClientRequestToken": null,
     "ConnectorConfig": null,
     "CreatedAt": "0001-01-01T00:00:00Z",
+    "ComputeConfig": null,
     "AccessConfig": {
       "AuthenticationMode": "API_AND_CONFIG_MAP",
       "BootstrapClusterCreatorAdminPermissions": true
@@ -60,6 +64,7 @@
     "Name": "test-cluster-2",
     "OutpostConfig": null,
     "PlatformVersion": null,
+    "RemoteNetworkConfig": null,
     "ResourcesVpcConfig": {
       "ClusterSecurityGroupId": null,
       "EndpointPrivateAccess": false,
@@ -74,6 +79,7 @@
     },
     "RoleArn": null,
     "Status": "ACTIVE",
+    "StorageConfig": null,
     "Tags": null,
     "Version": null,
     "UpgradePolicy": null,

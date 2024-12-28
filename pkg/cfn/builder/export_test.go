@@ -1,7 +1,7 @@
 package builder
 
 import (
-	gfn "github.com/weaveworks/goformation/v4/cloudformation"
+	gfn "goformation/v4/cloudformation"
 )
 
 func NewRS() *resourceSet {

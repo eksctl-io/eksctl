@@ -2,12 +2,12 @@ package builder
 
 import (
 	"context"
+	"fmt"
 
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -42,7 +42,7 @@ func (l *LaunchTemplateFetcher) Fetch(ctx context.Context, launchTemplate *api.L
 		return nil, err
 	}
 	if len(output.LaunchTemplateVersions) != 1 {
-		return nil, errors.Errorf("failed to find launch template with ID %q", launchTemplate.ID)
+		return nil, fmt.Errorf("failed to find launch template with ID %q", launchTemplate.ID)
 	}
 
 	return output.LaunchTemplateVersions[0].LaunchTemplateData, nil

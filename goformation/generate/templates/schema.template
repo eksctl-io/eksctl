@@ -1,0 +1,205 @@
+{
+    "$id": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+
+        "AWSTemplateFormatVersion": {
+            "type": "string",
+            "enum": [
+                "2010-09-09"
+            ]
+        },
+
+        "Description": {
+            "description": "Template description",
+            "type": "string",
+            "maxLength": 1024
+        },
+
+        "Metadata": {
+            "type": "object"
+        },
+
+        "Transform": {
+        {{if .ResourceSpecificationTransform}}
+            "type": "string",
+            "enum": [
+                "{{.ResourceSpecificationTransform}}"
+            ]
+        {{else}}
+            "oneOf": [
+                {"type": ["string"]},
+                {"type": "array", "items": {"type": "string"}}
+            ]
+        {{end}}
+        },
+
+        "Parameters": {
+            "type": "object",
+            "patternProperties": {
+                "^[a-zA-Z0-9]+$": {
+                    "$ref": "#/definitions/Parameter"
+                }
+            },
+            "maxProperties": 50,
+            "additionalProperties": false
+        },
+
+        "Mappings": {
+            "type": "object",
+            "patternProperties": {
+                "^[a-zA-Z0-9]+$": {
+                    "type": "object"
+                }
+            },
+            "additionalProperties": false
+        },
+
+        "Conditions": {
+            "type": "object",
+            "patternProperties": {
+                "^[a-zA-Z0-9]+$": {
+                    "type": "object"
+                }
+            },
+            "additionalProperties": false
+        },
+
+        "Outputs": {
+            "type": "object",
+            "patternProperties": {
+                "^[a-zA-Z0-9]+$": {
+                    "type": "object"
+                }
+            },
+            "minProperties": 1,
+            "maxProperties": 60,
+            "additionalProperties": false
+        },
+
+        "Resources": {
+            "type": "object",
+            "patternProperties": {
+                "^[a-zA-Z0-9]+$": {
+                    "anyOf": [
+                        {{$length := len .Resources}}{{$c := counter $length}}{{range $name, $resources := .Resources}} { "$ref": "#/definitions/{{$name}}" }{{if call $c}}, {{end}}
+                        {{end}}
+                    ]
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        {{if .ResourceSpecificationTransform}}
+            "Transform",
+        {{end}}
+
+        "Resources"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "Parameter": {
+            "type": "object",
+            "properties": {
+                "Type": {
+                    "type": "string",
+                    "enum": [
+                        "String",
+                        "Number",
+                        "List<Number>",
+                        "CommaDelimitedList",
+                        "AWS::EC2::AvailabilityZone::Name",
+                        "AWS::EC2::Image::Id",
+                        "AWS::EC2::Instance::Id",
+                        "AWS::EC2::KeyPair::KeyName",
+                        "AWS::EC2::SecurityGroup::GroupName",
+                        "AWS::EC2::SecurityGroup::Id",
+                        "AWS::EC2::Subnet::Id",
+                        "AWS::EC2::Volume::Id",
+                        "AWS::EC2::VPC::Id",
+                        "AWS::Route53::HostedZone::Id",
+                        "List<AWS::EC2::AvailabilityZone::Name>",
+                        "List<AWS::EC2::Image::Id>",
+                        "List<AWS::EC2::Instance::Id>",
+                        "List<AWS::EC2::SecurityGroup::GroupName>",
+                        "List<AWS::EC2::SecurityGroup::Id>",
+                        "List<AWS::EC2::Subnet::Id>",
+                        "List<AWS::EC2::Volume::Id>",
+                        "List<AWS::EC2::VPC::Id>",
+                        "List<AWS::Route53::HostedZone::Id>",
+                        "List<String>",
+                        "AWS::SSM::Parameter::Name",
+                        "AWS::SSM::Parameter::Value<String>",
+                        "AWS::SSM::Parameter::Value<List<String>>",
+                        "AWS::SSM::Parameter::Value<CommaDelimitedList>",
+                        "AWS::SSM::Parameter::Value<AWS::EC2::AvailabilityZone::Name>",
+                        "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+                        "AWS::SSM::Parameter::Value<AWS::EC2::Instance::Id>",
+                        "AWS::SSM::Parameter::Value<AWS::EC2::SecurityGroup::GroupName>",
+                        "AWS::SSM::Parameter::Value<AWS::EC2::SecurityGroup::Id>",
+                        "AWS::SSM::Parameter::Value<AWS::EC2::Subnet::Id>",
+                        "AWS::SSM::Parameter::Value<AWS::EC2::Volume::Id>",
+                        "AWS::SSM::Parameter::Value<AWS::EC2::VPC::Id>",
+                        "AWS::SSM::Parameter::Value<AWS::Route53::HostedZone::Id>",
+                        "AWS::SSM::Parameter::Value<List<AWS::EC2::AvailabilityZone::Name>>",
+                        "AWS::SSM::Parameter::Value<List<AWS::EC2::Image::Id>>",
+                        "AWS::SSM::Parameter::Value<List<AWS::EC2::Instance::Id>>",
+                        "AWS::SSM::Parameter::Value<List<AWS::EC2::SecurityGroup::GroupName>>",
+                        "AWS::SSM::Parameter::Value<List<AWS::EC2::SecurityGroup::Id>>",
+                        "AWS::SSM::Parameter::Value<List<AWS::EC2::Subnet::Id>>",
+                        "AWS::SSM::Parameter::Value<List<AWS::EC2::Volume::Id>>",
+                        "AWS::SSM::Parameter::Value<List<AWS::EC2::VPC::Id>>",
+                        "AWS::SSM::Parameter::Value<List<AWS::Route53::HostedZone::Id>>"
+                    ]
+                },
+                "AllowedPattern": {
+                    "type": "string"
+                },
+                "AllowedValues": {
+                    "type": "array"
+                },
+                "ConstraintDescription": {
+                    "type": "string"
+                },
+                "Default": {
+                    "type": "string"
+                },
+                "Description": {
+                    "type": "string"
+                },
+                "MaxLength": {
+                    "type": "string"
+                },
+                "MaxValue": {
+                    "type": "string"
+                },
+                "MinLength": {
+                    "type": "string"
+                },
+                "MinValue": {
+                    "type": "string"
+                },
+                "NoEcho": {
+                    "type": [
+                        "string",
+                        "boolean"
+                    ]
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "Type"
+            ]
+        },
+
+        {{range $name, $resource := .Resources}}
+            {{$resource.Schema $name false}},
+        {{end}}
+
+        {{$length := len .Properties}}{{$rc := counter $length}}{{range $name, $resource := .Properties}}
+            {{$resource.Schema $name true}}{{if call $rc}},{{end}}
+        {{end}}
+
+    }
+}

@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	gfnt "goformation/v4/cloudformation/types"
+
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -82,7 +82,7 @@ func (c *StackCollection) FixClusterCompatibility(ctx context.Context) error {
 func (c *StackCollection) hasManagedToUnmanagedSG(ctx context.Context) (bool, error) {
 	stackTemplate, err := c.GetStackTemplate(ctx, c.MakeClusterStackName())
 	if err != nil {
-		return false, errors.Wrap(err, "error getting cluster stack template")
+		return false, fmt.Errorf("error getting cluster stack template: %w", err)
 	}
 	stackResources := gjson.Get(stackTemplate, resourcesRootPath)
 	return builder.HasManagedNodesSG(&stackResources), nil
@@ -104,7 +104,7 @@ func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled(ctx context.Context) 
 	stackName := c.MakeClusterStackName()
 	currentTemplate, err := c.GetStackTemplate(ctx, stackName)
 	if err != nil {
-		return errors.Wrapf(err, "unable to retrieve cluster stack %q", stackName)
+		return fmt.Errorf("unable to retrieve cluster stack %q: %w", stackName, err)
 	}
 
 	// Find subnets in stack
@@ -125,7 +125,7 @@ func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled(ctx context.Context) 
 		if !currentValue.Exists() || !currentValue.Bool() {
 			currentTemplate, err = sjson.Set(currentTemplate, path, gfnt.True())
 			if err != nil {
-				return errors.Wrapf(err, "unable to set MapPublicIpOnLaunch property on subnet %q", path)
+				return fmt.Errorf("unable to set MapPublicIpOnLaunch property on subnet %q: %w", path, err)
 			}
 		}
 	}
@@ -137,7 +137,7 @@ func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled(ctx context.Context) 
 		TemplateData:  TemplateBody(currentTemplate),
 		Wait:          true,
 	}); err != nil {
-		return errors.Wrap(err, "unable to update subnets")
+		return fmt.Errorf("unable to update subnets: %w", err)
 	}
 	return nil
 }

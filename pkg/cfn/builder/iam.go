@@ -4,17 +4,18 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
 
-	"github.com/weaveworks/eksctl/pkg/iam"
-
-	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+	gfniam "goformation/v4/cloudformation/iam"
+	gfnrolesanywhere "goformation/v4/cloudformation/rolesanywhere"
+	gfnt "goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
+	"github.com/weaveworks/eksctl/pkg/iam"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
 
@@ -38,9 +39,38 @@ const (
 	cfnIAMInstanceProfileName = "NodeInstanceProfile"
 )
 
+const (
+	TrustAnchor      = "TrustAnchor"
+	AnywhereProfile  = "AnywhereProfile"
+	IntermediateRole = "IntermediateRole"
+	IRARole          = "HybridNodesIRARole"
+	SSMRole          = "HybridNodesSSMRole"
+)
+
 var (
 	iamDefaultNodePolicies = []string{
 		iamPolicyAmazonEKSWorkerNodePolicy,
+	}
+	eksDescribeClusterPolicy = gfniam.Role_Policy{
+		PolicyName: gfnt.NewString("EKSDescribeCluster"),
+		PolicyDocument: cft.MakePolicyDocument(cft.MapOfInterfaces{
+			"Effect": "Allow",
+			"Action": []string{
+				"eks:DescribeCluster",
+			},
+			"Resource": "*",
+		}),
+	}
+	ssmRolePolicy = gfniam.Role_Policy{
+		PolicyName: gfnt.NewString("SSMRolePolicy"),
+		PolicyDocument: cft.MakePolicyDocument(cft.MapOfInterfaces{
+			"Effect": "Allow",
+			"Action": []string{
+				"ssm:DeregisterManagedInstance",
+				"ssm:DescribeInstanceInformation",
+			},
+			"Resource": "*",
+		}),
 	}
 )
 
@@ -70,15 +100,7 @@ func (c *ClusterResourceSet) WithNamedIAM() bool {
 	return c.rs.withNamedIAM
 }
 
-func (c *ClusterResourceSet) addResourcesForIAM() {
-	c.rs.withNamedIAM = false
-
-	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRoleARN) {
-		c.rs.withIAM = false
-		c.rs.defineOutputWithoutCollector(outputs.ClusterServiceRoleARN, c.spec.IAM.ServiceRoleARN, true)
-		return
-	}
-
+func (c *ClusterResourceSet) addResourcesForServiceRole() {
 	c.rs.withIAM = true
 
 	var role *gfniam.Role
@@ -94,8 +116,12 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 		if !api.IsDisabled(c.spec.IAM.VPCResourceControllerPolicy) {
 			managedPolicyARNs = append(managedPolicyARNs, iamPolicyAmazonEKSVPCResourceController)
 		}
+		if c.spec.IsAutoModeEnabled() {
+			managedPolicyARNs = append(managedPolicyARNs, AutoModeIAMPolicies...)
+		}
 		role = &gfniam.Role{
-			AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
+			AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentWithAction(
+				"sts:TagSession",
 				MakeServiceRef("EKS"),
 			),
 			ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyARNs...)...),
@@ -111,6 +137,117 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 		c.spec.IAM.ServiceRoleARN = &v
 		return nil
 	})
+}
+
+func (c *ClusterResourceSet) addIAMRolesAnywhere() {
+	trustAnchor := &gfnrolesanywhere.TrustAnchor{
+		Enabled: gfnt.NewBoolean(true),
+		Name:    makeName("CA"),
+		Source: &gfnrolesanywhere.TrustAnchor_Source{
+			SourceType: aws.String("CERTIFICATE_BUNDLE"),
+			SourceData: &gfnrolesanywhere.TrustAnchor_SourceData{
+				X509CertificateData: c.spec.RemoteNetworkConfig.IAM.CABundleCert,
+			},
+		},
+	}
+	anywhereProfile := &gfnrolesanywhere.Profile{
+		Enabled: gfnt.NewBoolean(true),
+		Name:    makeName("remote-nodes"),
+		RoleArns: gfnt.NewSlice(
+			gfnt.MakeFnGetAttString(IRARole, "Arn"),
+		),
+		AcceptRoleSessionName:      gfnt.NewBoolean(true),
+		AWSCloudFormationDependsOn: []string{IRARole},
+	}
+	iraRole := &gfniam.Role{
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServicesWithConditionsAndActions(
+			cft.MapOfInterfaces{
+				"ArnEquals": cft.MapOfInterfaces{
+					"aws:SourceArn": gfnt.MakeFnGetAttString(TrustAnchor, "TrustAnchorArn"),
+				},
+			},
+			[]string{
+				"sts:TagSession",
+				"sts:SetSourceIdentity",
+			},
+			MakeServiceRef("IRA"),
+		),
+		Policies: []gfniam.Role_Policy{
+			eksDescribeClusterPolicy,
+		},
+		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs([]string{
+			iamPolicyAmazonEC2ContainerRegistryReadOnly,
+			iamPolicyAmazonSSMManagedInstanceCore,
+		}...)...),
+		AWSCloudFormationDependsOn: []string{TrustAnchor},
+	}
+
+	c.newResource(TrustAnchor, trustAnchor)
+	c.newResource(AnywhereProfile, anywhereProfile)
+	c.newResource(IRARole, iraRole)
+
+	c.rs.defineOutputFromAtt(outputs.RemoteNodesTrustAnchorARN, TrustAnchor, "TrustAnchorArn", true, func(v string) error {
+		return nil
+	})
+	c.rs.defineOutputFromAtt(outputs.RemoteNodesAnywhereProfileARN, AnywhereProfile, "ProfileArn", true, func(v string) error {
+		return nil
+	})
+	c.rs.defineOutputFromAtt(outputs.RemoteNodesRoleARN, IRARole, "Arn", true, func(v string) error {
+		c.spec.RemoteNetworkConfig.IAM.RoleARN = &v
+		return nil
+	})
+}
+
+func (c *ClusterResourceSet) addSSM() {
+	role := &gfniam.Role{
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
+			MakeServiceRef("SSM"),
+		),
+		Policies: []gfniam.Role_Policy{
+			ssmRolePolicy,
+			eksDescribeClusterPolicy,
+		},
+		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs([]string{
+			iamPolicyAmazonSSMManagedInstanceCore,
+			iamPolicyAmazonEC2ContainerRegistryReadOnly,
+		}...)...),
+	}
+	c.newResource(SSMRole, role)
+	c.rs.defineOutputFromAtt(outputs.RemoteNodesRoleARN, SSMRole, "Arn", true, func(v string) error {
+		c.spec.RemoteNetworkConfig.IAM.RoleARN = &v
+		return nil
+	})
+}
+
+func (c *ClusterResourceSet) addResourcesForRemoteNodesRole() {
+	c.rs.withIAM = true
+	switch *c.spec.RemoteNetworkConfig.IAM.Provider {
+	case api.SSMProvider:
+		c.addSSM()
+	case api.IRAProvider:
+		c.addIAMRolesAnywhere()
+	default:
+		// Validations should ensure this is never reached
+	}
+}
+
+func (c *ClusterResourceSet) addResourcesForIAM() {
+	c.rs.withIAM = false
+	c.rs.withNamedIAM = false
+
+	if !api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRoleARN) {
+		c.addResourcesForServiceRole()
+	} else {
+		c.rs.defineOutputWithoutCollector(outputs.ClusterServiceRoleARN, c.spec.IAM.ServiceRoleARN, true)
+	}
+
+	if c.spec.HasRemoteNetworkingConfigured() {
+		if !api.IsSetAndNonEmptyString(c.spec.RemoteNetworkConfig.IAM.RoleARN) {
+			c.addResourcesForRemoteNodesRole()
+		} else {
+			c.rs.defineOutputWithoutCollector(outputs.RemoteNodesRoleARN, c.spec.RemoteNetworkConfig.IAM.RoleARN, true)
+		}
+	}
 }
 
 // WithIAM states, if IAM roles will be created or not
