@@ -63,7 +63,7 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/var/lib/cloud/scripts/eksctl/efa.al2.sh"))
+			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.al2.sh"))
 			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0755"))
 		})
 	})
