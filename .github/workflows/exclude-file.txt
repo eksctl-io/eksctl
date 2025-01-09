@@ -21,3 +21,4 @@ netlify.com
 slack.k8s.io
 docs.google.com
 groups.google.com
+gnu.org

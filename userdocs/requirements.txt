@@ -1,14 +1,14 @@
-mkdocs                  == 1.5.3
-mkdocs-material         == 9.5.17
+mkdocs                  == 1.6.1
+mkdocs-material         == 9.5.49
 mkdocs-redirects
 mkdocs-minify-plugin
 mkdocs-glightbox
 pymdown-extensions      >= 9.9.1
-jinja2                  == 3.1.4
-pillow 
+jinja2                  == 3.1.5
+pillow
 cairosvg
 
-# Dependencies from material theme 
+# Dependencies from material theme
 mkdocs-material-extensions>=1.1
 pygments>=2.12
 markdown>=3.2
