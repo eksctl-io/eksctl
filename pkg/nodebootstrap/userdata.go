@@ -89,7 +89,7 @@ func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNod
 // GetClusterDNS returns the DNS address to use
 func GetClusterDNS(clusterConfig *api.ClusterConfig) (string, error) {
 	networkConfig := clusterConfig.Status.KubernetesNetworkConfig
-	if networkConfig == nil {
+	if networkConfig == nil || networkConfig.ServiceIPv4CIDR == "" {
 		return "", nil
 	}
 
