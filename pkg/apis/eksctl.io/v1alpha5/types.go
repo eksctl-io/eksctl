@@ -732,8 +732,10 @@ type KubernetesNetworkConfig struct {
 	// Valid variants are `IPFamily` constants
 	// +optional
 	IPFamily string `json:"ipFamily,omitempty"`
-	// ServiceIPv4CIDR is the CIDR range from where `ClusterIP`s are assigned
+	// ServiceIPv4CIDR is the IPv4 CIDR range from where `ClusterIP`s are assigned
 	ServiceIPv4CIDR string `json:"serviceIPv4CIDR,omitempty"`
+	// ServiceIPv6CIDR is the IPv6 CIDR range from where `ClusterIP`s are assigned
+	ServiceIPv6CIDR string `json:"serviceIPv6CIDR,omitempty"`
 }
 
 func (k *KubernetesNetworkConfig) IPv6Enabled() bool {
@@ -1213,13 +1215,18 @@ func (c *ClusterConfig) IPv6Enabled() bool {
 
 // SetClusterState updates the cluster state and populates the ClusterStatus using *eks.Cluster.
 func (c *ClusterConfig) SetClusterState(cluster *ekstypes.Cluster) error {
-	if networkConfig := cluster.KubernetesNetworkConfig; networkConfig != nil && networkConfig.ServiceIpv4Cidr != nil {
-		c.Status.KubernetesNetworkConfig = &KubernetesNetworkConfig{
-			ServiceIPv4CIDR: *networkConfig.ServiceIpv4Cidr,
+	if networkConfig := cluster.KubernetesNetworkConfig; networkConfig != nil {
+		knc := &KubernetesNetworkConfig{}
+		if networkConfig.ServiceIpv4Cidr != nil {
+			knc.IPFamily = IPV4Family
+			knc.ServiceIPv4CIDR = aws.ToString(networkConfig.ServiceIpv4Cidr)
 		}
-		c.KubernetesNetworkConfig = &KubernetesNetworkConfig{
-			ServiceIPv4CIDR: aws.ToString(cluster.KubernetesNetworkConfig.ServiceIpv4Cidr),
+		if networkConfig.ServiceIpv6Cidr != nil {
+			knc.IPFamily = IPV6Family
+			knc.ServiceIPv6CIDR = aws.ToString(networkConfig.ServiceIpv6Cidr)
 		}
+		c.KubernetesNetworkConfig = knc
+		c.Status.KubernetesNetworkConfig = knc
 	}
 	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
 	if err != nil {

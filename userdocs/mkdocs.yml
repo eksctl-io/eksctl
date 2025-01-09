@@ -109,7 +109,7 @@ extra_css:
 
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/@glidejs/glide
-  - https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js
+  - https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.6/axios.min.js
   - javascripts/extra.js
 
 # Extensions

@@ -133,6 +133,13 @@ func (m *AL2023) createMinimalNodeConfig() (*nodeadm.NodeConfig, error) {
 	}
 
 	clusterStatus := m.cfg.Status
+	var serviceCIDR string
+	if clusterStatus.KubernetesNetworkConfig.ServiceIPv6CIDR != "" {
+		serviceCIDR = clusterStatus.KubernetesNetworkConfig.ServiceIPv6CIDR
+	} else {
+		serviceCIDR = clusterStatus.KubernetesNetworkConfig.ServiceIPv4CIDR
+	}
+
 	return &nodeadm.NodeConfig{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       nodeadmapi.KindNodeConfig,
@@ -143,7 +150,7 @@ func (m *AL2023) createMinimalNodeConfig() (*nodeadm.NodeConfig, error) {
 				Name:                 m.cfg.Metadata.Name,
 				APIServerEndpoint:    clusterStatus.Endpoint,
 				CertificateAuthority: clusterStatus.CertificateAuthorityData,
-				CIDR:                 clusterStatus.KubernetesNetworkConfig.ServiceIPv4CIDR,
+				CIDR:                 serviceCIDR,
 			},
 			Kubelet: kubeletOptions,
 		},

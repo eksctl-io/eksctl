@@ -17,8 +17,8 @@ Modifications:
   Copyright 2020 Weaveworks
 */
 
-import { html, render } from "https://unpkg.com/lit-html@1.2.1/lit-html.js";
-import { unsafeHTML } from "https://unpkg.com/lit-html@1.2.1/directives/unsafe-html.js";
+import { html, render } from "https://unpkg.com/lit-html@3.2.1/lit-html.js";
+import { unsafeHTML } from "https://unpkg.com/lit-html@3.2.1/directives/unsafe-html.js";
 
 (async function () {
     const table = document.getElementById("config");
