@@ -51,7 +51,7 @@ jobs:
     - name: Update ${{ matrix.resource }}
       run: make update-${{ matrix.resource }}
     - name: Upsert pull request
-      uses: peter-evans/create-pull-request@70a41aba780001da0a30141984ae2a0c95d8704e #v6.0.2
+      uses: peter-evans/create-pull-request@67ccf781d68cd99b580ae25a5c18a1cc84ffff1f #v7.0.6
       with:
         token: ${{ secrets.EKSCTLBOT_TOKEN }}
         commit-message: update ${{ matrix.resource }}${{ env.LATEST_RELEASE_TAG }}
