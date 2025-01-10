@@ -1,6 +1,5 @@
 include Makefile.common
 include Makefile.docs
-include Makefile.docker
 
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
@@ -33,11 +32,7 @@ endif
 
 ##@ Dependencies
 .PHONY: install-all-deps
-install-all-deps: install-build-deps install-site-deps ## Install all dependencies for building both binary and user docs)
-
-.PHONY: install-build-deps
-install-build-deps: ## Install dependencies (packages and tools)
-	build/scripts/install-build-deps.sh
+install-all-deps: install-site-deps ## Install all dependencies for building both binary and user docs)
 
 ##@ Build
 
@@ -139,7 +134,10 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 ##@ Code Generation
 
 .PHONY: generate-always
-generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (required for every build)
+generate-always: ## Generate code (required for every build)
+	go install github.com/maxbrunsfeld/counterfeiter/v6
+	go install github.com/vektra/mockery/v2
+	go install github.com/vburenin/ifacemaker
 	go generate ./pkg/apis/eksctl.io/v1alpha5/generate.go
 	go generate ./pkg/nodebootstrap
 	go generate ./pkg/addons
@@ -185,9 +183,6 @@ generate-kube-reserved: ## Update instance list with respective specs
 	@cd ./pkg/nodebootstrap/ && go run reserved_generate.go
 
 ##@ Release
-# .PHONY: eksctl-image
-# eksctl-image: ## Build the eksctl image that has release artefacts and no build dependencies
-# 	$(MAKE) -f Makefile.docker $@
 
 .PHONY: prepare-release
 prepare-release: ## Create release
