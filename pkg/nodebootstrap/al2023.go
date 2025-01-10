@@ -14,7 +14,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/utils"
 )
 
@@ -45,7 +44,7 @@ func newAL2023Bootstrapper(cfg *api.ClusterConfig, np api.NodePool, clusterDNS s
 		cfg:        cfg,
 		nodePool:   np,
 		clusterDNS: clusterDNS,
-		scripts:    []string{assets.AL2023XTablesLock},
+		scripts:    []string{},
 	}
 }
 

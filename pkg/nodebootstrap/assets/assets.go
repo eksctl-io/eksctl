@@ -20,11 +20,6 @@ var BootstrapHelperSh string
 //go:embed scripts/bootstrap.ubuntu.sh
 var BootstrapUbuntuSh string
 
-// AL2023XTablesLock holds the contents for creating a lock file for AL2023 AMIs.
-//
-//go:embed scripts/al2023-xtables.lock.sh
-var AL2023XTablesLock string
-
 // KubeletYaml holds the kubelet.yaml contents
 //
 //go:embed scripts/kubelet.yaml
