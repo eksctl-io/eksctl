@@ -22,7 +22,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.166.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.56.1
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.28.9
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.43.3
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.43.4
 	github.com/aws/aws-sdk-go-v2/service/iam v1.38.3
 	github.com/aws/aws-sdk-go-v2/service/kms v1.27.5
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.48.1
