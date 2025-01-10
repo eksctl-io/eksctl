@@ -25,11 +25,6 @@ var BootstrapUbuntuSh string
 //go:embed scripts/al2023-xtables.lock.sh
 var AL2023XTablesLock string
 
-// InstallSsmAl2Sh holds the install-ssm.al2.sh contents
-//
-//go:embed scripts/install-ssm.al2.sh
-var InstallSsmAl2Sh string
-
 // KubeletYaml holds the kubelet.yaml contents
 //
 //go:embed scripts/kubelet.yaml
