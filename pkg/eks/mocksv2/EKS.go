@@ -1724,6 +1724,80 @@ func (_c *EKS_DescribeCluster_Call) RunAndReturn(run func(context.Context, *eks.
 	return _c
 }
 
+// DescribeClusterVersions provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) DescribeClusterVersions(ctx context.Context, params *eks.DescribeClusterVersionsInput, optFns ...func(*eks.Options)) (*eks.DescribeClusterVersionsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeClusterVersions")
+	}
+
+	var r0 *eks.DescribeClusterVersionsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeClusterVersionsInput, ...func(*eks.Options)) (*eks.DescribeClusterVersionsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeClusterVersionsInput, ...func(*eks.Options)) *eks.DescribeClusterVersionsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeClusterVersionsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeClusterVersionsInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EKS_DescribeClusterVersions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeClusterVersions'
+type EKS_DescribeClusterVersions_Call struct {
+	*mock.Call
+}
+
+// DescribeClusterVersions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribeClusterVersionsInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribeClusterVersions(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribeClusterVersions_Call {
+	return &EKS_DescribeClusterVersions_Call{Call: _e.mock.On("DescribeClusterVersions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribeClusterVersions_Call) Run(run func(ctx context.Context, params *eks.DescribeClusterVersionsInput, optFns ...func(*eks.Options))) *EKS_DescribeClusterVersions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribeClusterVersionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribeClusterVersions_Call) Return(_a0 *eks.DescribeClusterVersionsOutput, _a1 error) *EKS_DescribeClusterVersions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribeClusterVersions_Call) RunAndReturn(run func(context.Context, *eks.DescribeClusterVersionsInput, ...func(*eks.Options)) (*eks.DescribeClusterVersionsOutput, error)) *EKS_DescribeClusterVersions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeEksAnywhereSubscription provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) DescribeEksAnywhereSubscription(ctx context.Context, params *eks.DescribeEksAnywhereSubscriptionInput, optFns ...func(*eks.Options)) (*eks.DescribeEksAnywhereSubscriptionOutput, error) {
 	_va := make([]interface{}, len(optFns))
