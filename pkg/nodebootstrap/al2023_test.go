@@ -68,7 +68,7 @@ var _ = DescribeTable("Unmanaged AL2023", func(e al2023Entry) {
 		overrideNodegroupSettings: func(np api.NodePool) {
 			np.BaseNodeGroup().EFAEnabled = aws.Bool(true)
 		},
-		expectedUserData: wrapMIMEParts(xTablesLock + efaScript + nodeConfig),
+		expectedUserData: wrapMIMEParts(xTablesLock + nodeConfig),
 	}),
 )
 
@@ -99,24 +99,11 @@ var _ = DescribeTable("Managed AL2023", func(e al2023Entry) {
 	Entry("native AMI", al2023Entry{
 		expectedUserData: wrapMIMEParts(xTablesLock),
 	}),
-	Entry("native AMI && EFA enabled", al2023Entry{
-		overrideNodegroupSettings: func(np api.NodePool) {
-			np.BaseNodeGroup().EFAEnabled = aws.Bool(true)
-		},
-		expectedUserData: wrapMIMEParts(xTablesLock + efaCloudhook),
-	}),
 	Entry("custom AMI", al2023Entry{
 		overrideNodegroupSettings: func(np api.NodePool) {
 			np.BaseNodeGroup().AMI = "ami-xxxx"
 		},
 		expectedUserData: wrapMIMEParts(xTablesLock + managedNodeConfig),
-	}),
-	Entry("custom AMI && EFA enabled", al2023Entry{
-		overrideNodegroupSettings: func(np api.NodePool) {
-			np.BaseNodeGroup().AMI = "ami-xxxx"
-			np.BaseNodeGroup().EFAEnabled = aws.Bool(true)
-		},
-		expectedUserData: wrapMIMEParts(xTablesLock + efaCloudhook + managedNodeConfig),
 	}),
 )
 
@@ -399,20 +386,6 @@ Content-Type: charset="us-ascii"
 
 %s
 `, assets.AL2023XTablesLock)
-
-	efaCloudhook = fmt.Sprintf(`--//
-Content-Type: text/cloud-boothook
-Content-Type: charset="us-ascii"
-
-%s
-`, assets.EfaManagedAL2023Boothook)
-
-	efaScript = fmt.Sprintf(`--//
-Content-Type: text/x-shellscript
-Content-Type: charset="us-ascii"
-
-%s
-`, assets.EfaAl2023Sh)
 
 	nodeConfig = `--//
 Content-Type: application/node.eks.aws

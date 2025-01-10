@@ -32,17 +32,11 @@ type AL2023 struct {
 
 func NewManagedAL2023Bootstrapper(cfg *api.ClusterConfig, mng *api.ManagedNodeGroup, clusterDNS string) *AL2023 {
 	al2023 := newAL2023Bootstrapper(cfg, mng, clusterDNS)
-	if api.IsEnabled(mng.EFAEnabled) {
-		al2023.cloudboot = append(al2023.cloudboot, assets.EfaManagedAL2023Boothook)
-	}
 	return al2023
 }
 
 func NewAL2023Bootstrapper(cfg *api.ClusterConfig, ng *api.NodeGroup, clusterDNS string) *AL2023 {
 	al2023 := newAL2023Bootstrapper(cfg, ng, clusterDNS)
-	if api.IsEnabled(ng.EFAEnabled) {
-		al2023.scripts = append(al2023.scripts, assets.EfaAl2023Sh)
-	}
 	return al2023
 }
 

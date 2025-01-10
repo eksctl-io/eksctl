@@ -40,7 +40,7 @@ The call to `UserData` will also dynamically add the following:
 The bootstrap wrapper scripts will use `jq` and `sed` to get user and our config into various files,
 and then call `/etc/eks/bootstrap.sh`.
 
-For AL2, enabling either SSM or EFA will add `assets/install-ssm.al2.sh` or `assets/efa.al2.sh`.
+For AL2, enabling SSM will add `assets/install-ssm.al2.sh`.
 
 ### AmazonLinux2023
 
@@ -73,7 +73,7 @@ spec:
 
 ```
 
-For EKS-managed nodes based on native AMIs, the userdata above is fulfilled automatically by the AWS SSM agent. 
+For EKS-managed nodes based on native AMIs, the userdata above is fulfilled automatically by the AWS SSM agent.
 
 ## Troubleshooting
 
@@ -111,6 +111,5 @@ Files:
 /var/lib/cloud/scripts/eksctl/bootstrap.al2.sh
 /etc/kubernetes/kubelet/kubelet-config.json
 /etc/docker/daemon.json
-/var/lib/cloud/scripts/eksctl/efa.al2.sh
 /var/lib/cloud/scripts/eksctl/install-ssm.sh
 ```

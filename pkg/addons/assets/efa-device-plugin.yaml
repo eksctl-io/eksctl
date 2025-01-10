@@ -40,10 +40,32 @@ spec:
                   - key: "node.kubernetes.io/instance-type"
                     operator: In
                     values:
-                      - c5n.18xlarge
+                      - m5dn.24xlarge
+                      - m5dn.metal
+                      - m5n.24xlarge
+                      - m5n.metal
+                      - m5zn.12xlarge
+                      - m5zn.metal
+                      - m6a.48xlarge
+                      - m6a.metal
+                      - m6i.32xlarge
+                      - m6i.metal
+                      - m6id.32xlarge
+                      - m6id.metal
+                      - m6idn.32xlarge
+                      - m6idn.metal
+                      - m6in.32xlarge
+                      - m6in.metal
+                      - m7a.48xlarge
+                      - m7a.metal-48xl
+                      - m7g.16xlarge
+                      - m7g.metal
+                      - m7gd.16xlarge
+                      - m7i.48xlarge
+                      - m7i.metal-48xl
                       - c5n.9xlarge
+                      - c5n.18xlarge
                       - c5n.metal
-                      - c6a.32xlarge
                       - c6a.48xlarge
                       - c6a.metal
                       - c6gn.16xlarge
@@ -51,64 +73,124 @@ spec:
                       - c6i.metal
                       - c6id.32xlarge
                       - c6id.metal
-                      - dl1.24xlarge
-                      - g4dn.12xlarge
-                      - g4dn.8xlarge
-                      - g4dn.metal
-                      - g5.48xlarge
-                      - g6.8xlarge
-                      - g6.12xlarge
-                      - g6.16xlarge
-                      - g6.24xlarge
-                      - g6.48xlarge
-                      - hpc6a.48xlarge
-                      - hpc7g.16xlarge
-                      - hpc7g.8xlarge
-                      - hpc7g.4xlarge
-                      - i3en.12xlarge
-                      - i3en.24xlarge
-                      - i3en.metal
-                      - i4i.32xlarge
-                      - i4i.metal
-                      - im4gn.16xlarge
-                      - inf1.24xlarge
-                      - m5dn.24xlarge
-                      - m5dn.metal
-                      - m5n.24xlarge
-                      - m5n.metal
-                      - m5zn.12xlarge
-                      - m5zn.metal
-                      - m6a.32xlarge
-                      - m6a.48xlarge
-                      - m6a.metal
-                      - m6i.32xlarge
-                      - m6i.metal
-                      - m6id.32xlarge
-                      - m6id.metal
-                      - p3dn.24xlarge
-                      - p4d.24xlarge
-                      - p4de.24xlarge
+                      - c6in.32xlarge
+                      - c6in.metal
+                      - c7a.48xlarge
+                      - c7a.metal-48xl
+                      - c7g.16xlarge
+                      - c7g.metal
+                      - c7gd.16xlarge
+                      - c7gn.16xlarge
+                      - c7i.48xlarge
+                      - c7i.metal-48xl
                       - r5dn.24xlarge
                       - r5dn.metal
                       - r5n.24xlarge
                       - r5n.metal
+                      - r6a.48xlarge
+                      - r6a.metal
                       - r6i.32xlarge
                       - r6i.metal
-                      - vt1.24xlarge
+                      - r6idn.32xlarge
+                      - r6idn.metal
+                      - r6in.32xlarge
+                      - r6in.metal
+                      - r6id.32xlarge
+                      - r6id.metal
+                      - r7a.48xlarge
+                      - r7a.metal-48xl
+                      - r7g.16xlarge
+                      - r7g.metal
+                      - r7gd.16xlarge
+                      - r7i.48xlarge
+                      - r7i.metal-48xl
+                      - r7iz.32xlarge
+                      - r7iz.metal-32xl
                       - x2idn.32xlarge
                       - x2idn.metal
                       - x2iedn.32xlarge
                       - x2iedn.metal
                       - x2iezn.12xlarge
                       - x2iezn.metal
+                      - i3en.12xlarge
+                      - i3en.24xlarge
+                      - i3en.metal
+                      - i4g.16xlarge
+                      - i4i.32xlarge
+                      - i4i.metal
+                      - im4gn.16xlarge
+                      - dl1.24xlarge
+                      - dl2q.24xlarge
+                      - g4dn.8xlarge
+                      - g4dn.12xlarge
+                      - g4dn.16xlarge
+                      - g4dn.metal
+                      - g5.8xlarge
+                      - g5.12xlarge
+                      - g5.16xlarge
+                      - g5.24xlarge
+                      - g5.48xlarge
+                      - g6.8xlarge
+                      - g6.12xlarge
+                      - g6.16xlarge
+                      - g6.24xlarge
+                      - g6.48xlarge
+                      - g6e.8xlarge
+                      - g6e.12xlarge
+                      - g6e.16xlarge
+                      - g6e.24xlarge
+                      - g6e.48xlarge
+                      - gr6.8xlarge
+                      - inf1.24xlarge
+                      - p3dn.24xlarge
+                      - p4d.24xlarge
+                      - p4de.24xlarge
+                      - p5.48xlarge
+                      - p5e.48xlarge
+                      - p5en.48xlarge
+                      - trn1.32xlarge
+                      - trn1n.32xlarge
+                      - trn2.48xlarge
+                      - vt1.24xlarge
+                      - hpc6a.48xlarge
+                      - hpc6id.32xlarge
+                      - hpc7a.12xlarge
+                      - hpc7a.24xlarge
+                      - hpc7a.48xlarge
+                      - hpc7a.96xlarge
+                      - hpc7g.4xlarge
+                      - hpc7g.8xlarge
+                      - hpc7g.16xlarge
               - matchExpressions:
                   - key: "node.kubernetes.io/instance-type"
                     operator: In
                     values:
-                      - c5n.18xlarge
+                      - m5dn.24xlarge
+                      - m5dn.metal
+                      - m5n.24xlarge
+                      - m5n.metal
+                      - m5zn.12xlarge
+                      - m5zn.metal
+                      - m6a.48xlarge
+                      - m6a.metal
+                      - m6i.32xlarge
+                      - m6i.metal
+                      - m6id.32xlarge
+                      - m6id.metal
+                      - m6idn.32xlarge
+                      - m6idn.metal
+                      - m6in.32xlarge
+                      - m6in.metal
+                      - m7a.48xlarge
+                      - m7a.metal-48xl
+                      - m7g.16xlarge
+                      - m7g.metal
+                      - m7gd.16xlarge
+                      - m7i.48xlarge
+                      - m7i.metal-48xl
                       - c5n.9xlarge
+                      - c5n.18xlarge
                       - c5n.metal
-                      - c6a.32xlarge
                       - c6a.48xlarge
                       - c6a.metal
                       - c6gn.16xlarge
@@ -116,59 +198,97 @@ spec:
                       - c6i.metal
                       - c6id.32xlarge
                       - c6id.metal
-                      - dl1.24xlarge
-                      - g4dn.12xlarge
-                      - g4dn.8xlarge
-                      - g4dn.metal
-                      - g5.48xlarge
-                      - g6.8xlarge
-                      - g6.12xlarge
-                      - g6.16xlarge
-                      - g6.24xlarge
-                      - g6.48xlarge
-                      - hpc6a.48xlarge
-                      - hpc7g.16xlarge
-                      - hpc7g.8xlarge
-                      - hpc7g.4xlarge
-                      - i3en.12xlarge
-                      - i3en.24xlarge
-                      - i3en.metal
-                      - i4i.32xlarge
-                      - i4i.metal
-                      - im4gn.16xlarge
-                      - inf1.24xlarge
-                      - m5dn.24xlarge
-                      - m5dn.metal
-                      - m5n.24xlarge
-                      - m5n.metal
-                      - m5zn.12xlarge
-                      - m5zn.metal
-                      - m6a.32xlarge
-                      - m6a.48xlarge
-                      - m6a.metal
-                      - m6i.32xlarge
-                      - m6i.metal
-                      - m6id.32xlarge
-                      - m6id.metal
-                      - p3dn.24xlarge
-                      - p4d.24xlarge
-                      - p4de.24xlarge
+                      - c6in.32xlarge
+                      - c6in.metal
+                      - c7a.48xlarge
+                      - c7a.metal-48xl
+                      - c7g.16xlarge
+                      - c7g.metal
+                      - c7gd.16xlarge
+                      - c7gn.16xlarge
+                      - c7i.48xlarge
+                      - c7i.metal-48xl
                       - r5dn.24xlarge
                       - r5dn.metal
                       - r5n.24xlarge
                       - r5n.metal
+                      - r6a.48xlarge
+                      - r6a.metal
                       - r6i.32xlarge
                       - r6i.metal
-                      - vt1.24xlarge
+                      - r6idn.32xlarge
+                      - r6idn.metal
+                      - r6in.32xlarge
+                      - r6in.metal
+                      - r6id.32xlarge
+                      - r6id.metal
+                      - r7a.48xlarge
+                      - r7a.metal-48xl
+                      - r7g.16xlarge
+                      - r7g.metal
+                      - r7gd.16xlarge
+                      - r7i.48xlarge
+                      - r7i.metal-48xl
+                      - r7iz.32xlarge
+                      - r7iz.metal-32xl
                       - x2idn.32xlarge
                       - x2idn.metal
                       - x2iedn.32xlarge
                       - x2iedn.metal
                       - x2iezn.12xlarge
                       - x2iezn.metal
+                      - i3en.12xlarge
+                      - i3en.24xlarge
+                      - i3en.metal
+                      - i4g.16xlarge
+                      - i4i.32xlarge
+                      - i4i.metal
+                      - im4gn.16xlarge
+                      - dl1.24xlarge
+                      - dl2q.24xlarge
+                      - g4dn.8xlarge
+                      - g4dn.12xlarge
+                      - g4dn.16xlarge
+                      - g4dn.metal
+                      - g5.8xlarge
+                      - g5.12xlarge
+                      - g5.16xlarge
+                      - g5.24xlarge
+                      - g5.48xlarge
+                      - g6.8xlarge
+                      - g6.12xlarge
+                      - g6.16xlarge
+                      - g6.24xlarge
+                      - g6.48xlarge
+                      - g6e.8xlarge
+                      - g6e.12xlarge
+                      - g6e.16xlarge
+                      - g6e.24xlarge
+                      - g6e.48xlarge
+                      - gr6.8xlarge
+                      - inf1.24xlarge
+                      - p3dn.24xlarge
+                      - p4d.24xlarge
+                      - p4de.24xlarge
+                      - p5.48xlarge
+                      - p5e.48xlarge
+                      - p5en.48xlarge
+                      - trn1.32xlarge
+                      - trn1n.32xlarge
+                      - trn2.48xlarge
+                      - vt1.24xlarge
+                      - hpc6a.48xlarge
+                      - hpc6id.32xlarge
+                      - hpc7a.12xlarge
+                      - hpc7a.24xlarge
+                      - hpc7a.48xlarge
+                      - hpc7a.96xlarge
+                      - hpc7g.4xlarge
+                      - hpc7g.8xlarge
+                      - hpc7g.16xlarge
       hostNetwork: true
       containers:
-        - image: "%s.dkr.ecr.%s.%s/eks/aws-efa-k8s-device-plugin:v0.3.3"
+        - image: "%s.dkr.ecr.%s.%s/eks/aws-efa-k8s-device-plugin:v0.5.4"
           name: aws-efa-k8s-device-plugin
           securityContext:
             allowPrivilegeEscalation: false
