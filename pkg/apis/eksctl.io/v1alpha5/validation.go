@@ -435,7 +435,7 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6")
 	}
 
-	if c.IPv6Enabled() {
+	if c.IPv6Enabled() && c.Status == nil {
 		if IsEnabled(c.VPC.AutoAllocateIPv6) {
 			return fmt.Errorf("auto allocate ipv6 is not supported with IPv6")
 		}
@@ -600,6 +600,10 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 
 // validateKubernetesNetworkConfig validates the k8s network config
 func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
+	// this check ensured the validation is only run on cluster creation
+	if c.Status != nil {
+		return nil
+	}
 	if c.KubernetesNetworkConfig == nil {
 		return nil
 	}
