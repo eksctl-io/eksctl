@@ -52,13 +52,13 @@ var _ = Describe("AMI Auto Resolution", func() {
 			})
 
 			It("should return the AWS Account ID for Ubuntu images in ap-east-1", func() {
-				ownerAccount, err := OwnerAccountID(api.NodeImageFamilyUbuntu1804, "ap-east-1")
+				ownerAccount, err := OwnerAccountID(api.NodeImageFamilyUbuntu2004, "ap-east-1")
 				Expect(ownerAccount).To(BeEquivalentTo("099720109477"))
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("should return the Ubuntu Account ID for Ubuntu images", func() {
-				ownerAccount, err := OwnerAccountID(api.NodeImageFamilyUbuntu1804, region)
+				ownerAccount, err := OwnerAccountID(api.NodeImageFamilyUbuntu2004, region)
 				Expect(ownerAccount).To(BeEquivalentTo("099720109477"))
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -130,10 +130,10 @@ var _ = Describe("AMI Auto Resolution", func() {
 				Context("and ami is available", func() {
 					BeforeEach(func() {
 						imageState = ec2types.ImageStateAvailable
-						imageFamily = "Ubuntu1804"
+						imageFamily = "Ubuntu2204"
 
 						p = mockprovider.NewMockProvider()
-						addMockDescribeImages(p, "ubuntu-eks/k8s_1.15/images/*18.04*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", api.NodeImageFamilyUbuntu1804)
+						addMockDescribeImages(p, "ubuntu-eks/k8s_1.29/images/*22.04*", expectedAmi, imageState, "2024-12-09T00:00:26.000Z", api.NodeImageFamilyUbuntu2204)
 
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
