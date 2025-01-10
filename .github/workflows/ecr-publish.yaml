@@ -41,7 +41,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_ALIAS }}/${{ env.REPOSITORY }}
 
       - name: Build and push container image to ECR
-        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 #5.3.0
+        uses: docker/build-push-action@b32b51a8eda65d6793cd0494a773d4f6bcef32dc #6.11.0
         with:
           context: .
           push: true
