@@ -1568,7 +1568,9 @@ func IsAmazonLinuxImage(imageFamily string) bool {
 
 func IsUbuntuImage(imageFamily string) bool {
 	switch imageFamily {
-	case NodeImageFamilyUbuntuPro2204,
+	case NodeImageFamilyUbuntuPro2404,
+		NodeImageFamilyUbuntu2404,
+		NodeImageFamilyUbuntuPro2204,
 		NodeImageFamilyUbuntu2204,
 		NodeImageFamilyUbuntu2004,
 		NodeImageFamilyUbuntu1804:
