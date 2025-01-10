@@ -133,7 +133,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						imageFamily = "Ubuntu2204"
 
 						p = mockprovider.NewMockProvider()
-						addMockDescribeImages(p, "ubuntu-eks/k8s_1.29/images/*22.04*", expectedAmi, imageState, "2024-12-09T00:00:26.000Z", api.NodeImageFamilyUbuntu2204)
+						addMockDescribeImages(p, "ubuntu-eks/k8s_1.15/images/*22.04*", expectedAmi, imageState, "2024-12-09T00:00:26.000Z", api.NodeImageFamilyUbuntu2204)
 
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
