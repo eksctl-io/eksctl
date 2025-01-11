@@ -171,7 +171,7 @@ func (a Addon) checkAtMostOnePolicyProviderIsSet() error {
 		setPolicyProviders++
 	}
 
-	if a.AttachPolicyARNs != nil && len(a.AttachPolicyARNs) > 0 {
+	if len(a.AttachPolicyARNs) > 0 {
 		setPolicyProviders++
 	}
 

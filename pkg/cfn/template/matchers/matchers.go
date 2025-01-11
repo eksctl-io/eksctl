@@ -366,7 +366,7 @@ func (m *commonMatcher) matchJSON(actual interface{}, js []byte) (bool, error) {
 		return false, nil
 	}
 	if !ok {
-		m.err = fmt.Errorf(jsMatcher.FailureMessage(js))
+		m.err = fmt.Errorf("%s", jsMatcher.FailureMessage(js))
 	}
 	return ok, nil
 }
