@@ -29,8 +29,14 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 			if addonInfo.IsDefault && !slices.ContainsFunc(cfg.Addons, func(a *api.Addon) bool {
 				return strings.EqualFold(a.Name, addonName)
 			}) {
-				addons = append(addons, &api.Addon{Name: addonName})
-				autoDefaultAddonNames = append(autoDefaultAddonNames, addonName)
+				if !cfg.IsAutoModeEnabled() {
+					addons = append(addons, &api.Addon{Name: addonName})
+					autoDefaultAddonNames = append(autoDefaultAddonNames, addonName)
+				} else if addonInfo.IsDefaultAutoMode {
+					addons = append(addons, &api.Addon{Name: addonName})
+					autoDefaultAddonNames = append(autoDefaultAddonNames, addonName)
+				}
+
 			}
 		}
 	} else {

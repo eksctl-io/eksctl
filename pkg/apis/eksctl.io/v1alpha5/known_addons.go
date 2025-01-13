@@ -5,6 +5,7 @@ import "slices"
 var KnownAddons = map[string]struct {
 	IsDefault             bool
 	CreateBeforeNodeGroup bool
+	IsDefaultAutoMode     bool
 }{
 	VPCCNIAddon: {
 		IsDefault:             true,
@@ -26,6 +27,7 @@ var KnownAddons = map[string]struct {
 	MetricsServerAddon: {
 		IsDefault:             true,
 		CreateBeforeNodeGroup: true,
+		IsDefaultAutoMode:     true,
 	},
 }
 
