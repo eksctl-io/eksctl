@@ -21,7 +21,9 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
+	versionsutils "github.com/weaveworks/eksctl/pkg/utils"
 )
 
 var params *tests.Params
@@ -47,6 +49,12 @@ var (
 var _ = BeforeSuite(func() {
 	cfg := NewConfig(params.Region)
 	ssm := awsssm.NewFromConfig(cfg)
+
+	givenVersionSupportsUbuntu2404, err := versionsutils.IsMinVersion(api.Version1_31, params.Version)
+	Expect(err).ToNot(HaveOccurred())
+	if !givenVersionSupportsUbuntu2404 {
+		params.Version = api.Version1_31
+	}
 
 	// retrieve AL2 AMI
 	input := &awsssm.GetParameterInput{

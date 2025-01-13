@@ -807,6 +807,10 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 					Status: "DEGRADED",
 				},
 				addonStatus{
+					Name:   "metrics-server",
+					Status: "DEGRADED",
+				},
+				addonStatus{
 					Name:   "kube-proxy",
 					Status: "ACTIVE",
 				},
