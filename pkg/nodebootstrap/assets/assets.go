@@ -25,26 +25,6 @@ var BootstrapUbuntuSh string
 //go:embed scripts/al2023-xtables.lock.sh
 var AL2023XTablesLock string
 
-// EfaAl2Sh holds the efa.al2.sh contents
-//
-//go:embed scripts/efa.al2.sh
-var EfaAl2Sh string
-
-// EfaAl2023Sh holds the efa.al2023.sh contents
-//
-//go:embed scripts/efa.al2023.sh
-var EfaAl2023Sh string
-
-// EfaManagedBoothook holds the efa.managed.boothook contents
-//
-//go:embed scripts/efa.managed.boothook
-var EfaManagedBoothook string
-
-// EfaManagedAL2023Boothook holds the efa.managed.al2023.boothook contents
-//
-//go:embed scripts/efa.managed.al2023.boothook
-var EfaManagedAL2023Boothook string
-
 // InstallSsmAl2Sh holds the install-ssm.al2.sh contents
 //
 //go:embed scripts/install-ssm.al2.sh

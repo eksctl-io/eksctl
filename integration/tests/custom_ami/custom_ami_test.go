@@ -21,7 +21,9 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
+	versionsutils "github.com/weaveworks/eksctl/pkg/utils"
 )
 
 var params *tests.Params
@@ -41,11 +43,18 @@ var (
 	customAMIAL2023        string
 	customAMIBottlerocket  string
 	customAMIUbuntuPro2204 string
+	customAMIUbuntuPro2404 string
 )
 
 var _ = BeforeSuite(func() {
 	cfg := NewConfig(params.Region)
 	ssm := awsssm.NewFromConfig(cfg)
+
+	givenVersionSupportsUbuntu2404, err := versionsutils.IsMinVersion(api.Version1_31, params.Version)
+	Expect(err).ToNot(HaveOccurred())
+	if !givenVersionSupportsUbuntu2404 {
+		params.Version = api.Version1_31
+	}
 
 	// retrieve AL2 AMI
 	input := &awsssm.GetParameterInput{
@@ -78,6 +87,14 @@ var _ = BeforeSuite(func() {
 	output, err = ssm.GetParameter(context.Background(), input)
 	Expect(err).NotTo(HaveOccurred())
 	customAMIUbuntuPro2204 = *output.Parameter.Value
+
+	// retrieve Ubuntu Pro 24.04 AMI
+	input = &awsssm.GetParameterInput{
+		Name: aws.String(fmt.Sprintf("/aws/service/canonical/ubuntu/eks-pro/24.04/%s/stable/current/amd64/hvm/ebs-gp3/ami-id", params.Version)),
+	}
+	output, err = ssm.GetParameter(context.Background(), input)
+	Expect(err).NotTo(HaveOccurred())
+	customAMIUbuntuPro2404 = *output.Parameter.Value
 
 	cmd := params.EksctlCreateCmd.WithArgs(
 		"cluster",
@@ -166,6 +183,28 @@ var _ = Describe("(Integration) [Test Custom AMI]", func() {
 			content = bytes.ReplaceAll(content, []byte("<generated>"), []byte(params.ClusterName))
 			content = bytes.ReplaceAll(content, []byte("<generated-region>"), []byte(params.Region))
 			content = bytes.ReplaceAll(content, []byte("<generated-ami>"), []byte(customAMIUbuntuPro2204))
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(content))
+			Expect(cmd).To(RunSuccessfully())
+		})
+
+	})
+
+	Context("ubuntu-pro-2404 un-managed nodegroups", func() {
+
+		It("can create a working nodegroup which can join the cluster", func() {
+			By(fmt.Sprintf("using the following EKS optimised AMI: %s", customAMIUbuntuPro2404))
+			content, err := os.ReadFile(filepath.Join("testdata/ubuntu-pro-2404.yaml"))
+			Expect(err).NotTo(HaveOccurred())
+			content = bytes.ReplaceAll(content, []byte("<generated>"), []byte(params.ClusterName))
+			content = bytes.ReplaceAll(content, []byte("<generated-region>"), []byte(params.Region))
+			content = bytes.ReplaceAll(content, []byte("<generated-ami>"), []byte(customAMIUbuntuPro2404))
 			cmd := params.EksctlCreateCmd.
 				WithArgs(
 					"nodegroup",

@@ -25,6 +25,7 @@ import (
 )
 
 type al2023Entry struct {
+	overrideClusterSettings   func(*api.ClusterConfig)
 	overrideNodegroupSettings func(api.NodePool)
 	expectedUserData          string
 }
@@ -33,6 +34,10 @@ var _ = DescribeTable("Unmanaged AL2023", func(e al2023Entry) {
 	cfg, dns := makeDefaultClusterSettings()
 	ng := api.NewNodeGroup()
 	makeDefaultNPSettings(ng)
+
+	if e.overrideClusterSettings != nil {
+		e.overrideClusterSettings(cfg)
+	}
 
 	if e.overrideNodegroupSettings != nil {
 		e.overrideNodegroupSettings(ng)
@@ -51,11 +56,19 @@ var _ = DescribeTable("Unmanaged AL2023", func(e al2023Entry) {
 	Entry("default", al2023Entry{
 		expectedUserData: wrapMIMEParts(xTablesLock + nodeConfig),
 	}),
+	Entry("ipv6", al2023Entry{
+		overrideClusterSettings: func(cc *api.ClusterConfig) {
+			cc.Status.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+			cc.Status.KubernetesNetworkConfig.ServiceIPv6CIDR = "fd00:facc:76a1::/108"
+			cc.Status.KubernetesNetworkConfig.ServiceIPv4CIDR = ""
+		},
+		expectedUserData: wrapMIMEParts(xTablesLock + nodeConfigIPv6),
+	}),
 	Entry("efa enabled", al2023Entry{
 		overrideNodegroupSettings: func(np api.NodePool) {
 			np.BaseNodeGroup().EFAEnabled = aws.Bool(true)
 		},
-		expectedUserData: wrapMIMEParts(xTablesLock + efaScript + nodeConfig),
+		expectedUserData: wrapMIMEParts(xTablesLock + nodeConfig),
 	}),
 )
 
@@ -86,24 +99,11 @@ var _ = DescribeTable("Managed AL2023", func(e al2023Entry) {
 	Entry("native AMI", al2023Entry{
 		expectedUserData: wrapMIMEParts(xTablesLock),
 	}),
-	Entry("native AMI && EFA enabled", al2023Entry{
-		overrideNodegroupSettings: func(np api.NodePool) {
-			np.BaseNodeGroup().EFAEnabled = aws.Bool(true)
-		},
-		expectedUserData: wrapMIMEParts(xTablesLock + efaCloudhook),
-	}),
 	Entry("custom AMI", al2023Entry{
 		overrideNodegroupSettings: func(np api.NodePool) {
 			np.BaseNodeGroup().AMI = "ami-xxxx"
 		},
 		expectedUserData: wrapMIMEParts(xTablesLock + managedNodeConfig),
-	}),
-	Entry("custom AMI && EFA enabled", al2023Entry{
-		overrideNodegroupSettings: func(np api.NodePool) {
-			np.BaseNodeGroup().AMI = "ami-xxxx"
-			np.BaseNodeGroup().EFAEnabled = aws.Bool(true)
-		},
-		expectedUserData: wrapMIMEParts(xTablesLock + efaCloudhook + managedNodeConfig),
 	}),
 )
 
@@ -387,20 +387,6 @@ Content-Type: charset="us-ascii"
 %s
 `, assets.AL2023XTablesLock)
 
-	efaCloudhook = fmt.Sprintf(`--//
-Content-Type: text/cloud-boothook
-Content-Type: charset="us-ascii"
-
-%s
-`, assets.EfaManagedAL2023Boothook)
-
-	efaScript = fmt.Sprintf(`--//
-Content-Type: text/x-shellscript
-Content-Type: charset="us-ascii"
-
-%s
-`, assets.EfaAl2023Sh)
-
 	nodeConfig = `--//
 Content-Type: application/node.eks.aws
 
@@ -413,6 +399,30 @@ spec:
     apiServerEndpoint: https://test.xxx.us-west-2.eks.amazonaws.com
     certificateAuthority: dGVzdCBDQQ==
     cidr: 10.100.0.0/16
+    name: al2023-test
+  containerd: {}
+  instance:
+    localStorage: {}
+  kubelet:
+    config:
+      clusterDNS:
+      - 10.100.0.10
+    flags:
+    - --node-labels=alpha.eksctl.io/nodegroup-name=al2023-mng-test
+
+`
+	nodeConfigIPv6 = `--//
+Content-Type: application/node.eks.aws
+
+apiVersion: node.eks.aws/v1alpha1
+kind: NodeConfig
+metadata:
+  creationTimestamp: null
+spec:
+  cluster:
+    apiServerEndpoint: https://test.xxx.us-west-2.eks.amazonaws.com
+    certificateAuthority: dGVzdCBDQQ==
+    cidr: fd00:facc:76a1::/108
     name: al2023-test
   containerd: {}
   instance:

@@ -109,8 +109,8 @@ type Outposts interface {
 	ListSites(ctx context.Context, params *ListSitesInput, optFns ...func(*Options)) (*ListSitesOutput, error)
 	// Lists the tags for the specified resource.
 	ListTagsForResource(ctx context.Context, params *ListTagsForResourceInput, optFns ...func(*Options)) (*ListTagsForResourceOutput, error)
-	// Starts the specified capacity task. You can have one active capacity task per
-	// order or Outpost.
+	// Starts the specified capacity task. You can have one active capacity task for
+	// each order and each Outpost.
 	StartCapacityTask(ctx context.Context, params *StartCapacityTaskInput, optFns ...func(*Options)) (*StartCapacityTaskOutput, error)
 	//	Amazon Web Services uses this action to install Outpost servers.
 	//

@@ -13,7 +13,6 @@ import (
 	"sigs.k8s.io/yaml"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
 )
 
 // ManagedAL2 is a bootstrapper for managed Amazon Linux 2 nodegroups
@@ -52,10 +51,6 @@ func (m *ManagedAL2) UserData() (string, error) {
 		scripts = append(scripts, *ng.OverrideBootstrapCommand)
 	} else if ng.MaxPodsPerNode != 0 {
 		scripts = append(scripts, makeMaxPodsScript(ng.MaxPodsPerNode))
-	}
-
-	if api.IsEnabled(ng.EFAEnabled) {
-		cloudboot = append(cloudboot, assets.EfaManagedBoothook)
 	}
 
 	if len(scripts) == 0 && len(cloudboot) == 0 {

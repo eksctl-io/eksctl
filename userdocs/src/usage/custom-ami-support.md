@@ -61,6 +61,8 @@ The `--node-ami-family` can take following keywords:
 | Ubuntu2004                     | Indicates that the EKS AMI image based on Ubuntu 20.04 LTS (Focal) should be used (supported for EKS <= 1.29).     |
 | Ubuntu2204                     | Indicates that the EKS AMI image based on Ubuntu 22.04 LTS (Jammy) should be used (available for EKS >= 1.29).     |
 | UbuntuPro2204                  | Indicates that the EKS AMI image based on Ubuntu Pro 22.04 LTS (Jammy) should be used (available for EKS >= 1.29). |
+| Ubuntu2404                     | Indicates that the EKS AMI image based on Ubuntu 24.04 LTS (Noble) should be used (available for EKS >= 1.31).     |
+| UbuntuPro2404                  | Indicates that the EKS AMI image based on Ubuntu Pro 24.04 LTS (Noble) should be used (available for EKS >= 1.31). |
 | Bottlerocket                   | Indicates that the EKS AMI image based on Bottlerocket should be used.                                             |
 | WindowsServer2019FullContainer | Indicates that the EKS AMI image based on Windows Server 2019 Full Container should be used.                       |
 | WindowsServer2019CoreContainer | Indicates that the EKS AMI image based on Windows Server 2019 Core Container should be used.                       |
@@ -87,7 +89,7 @@ managedNodeGroups:
 The `--node-ami-family` flag can also be used with `eksctl create nodegroup`. `eksctl` requires AMI Family to be explicitly set via config file or via `--node-ami-family` CLI flag, whenever working with a custom AMI.
 
 ???+ note
-    At the moment, EKS managed nodegroups only support the following AMI Families when working with custom AMIs: `AmazonLinux2023`, `AmazonLinux2`, `Ubuntu1804`, `Ubuntu2004` and `Ubuntu2204`
+    At the moment, EKS managed nodegroups only support the following AMI Families when working with custom AMIs: `AmazonLinux2023`, `AmazonLinux2`, `Ubuntu1804`, `Ubuntu2004`, `Ubuntu2204` and `Ubuntu2404`
 
 ## Windows custom AMI support
 Only self-managed Windows nodegroups can specify a custom AMI. `amiFamily` should be set to a valid Windows AMI family.

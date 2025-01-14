@@ -72,6 +72,16 @@ var _ = Describe("AMI Auto Resolution", func() {
 				Expect(ownerAccount).To(BeEquivalentTo("099720109477"))
 				Expect(err).NotTo(HaveOccurred())
 			})
+			It("should return the Ubuntu Account ID for Ubuntu images", func() {
+				ownerAccount, err := OwnerAccountID(api.NodeImageFamilyUbuntu2404, region)
+				Expect(ownerAccount).To(BeEquivalentTo("099720109477"))
+				Expect(err).NotTo(HaveOccurred())
+			})
+			It("should return the Ubuntu Account ID for Ubuntu images", func() {
+				ownerAccount, err := OwnerAccountID(api.NodeImageFamilyUbuntuPro2404, region)
+				Expect(ownerAccount).To(BeEquivalentTo("099720109477"))
+				Expect(err).NotTo(HaveOccurred())
+			})
 
 			It("should return the Windows Account ID for Windows Server images", func() {
 				ownerAccount, err := OwnerAccountID(api.NodeImageFamilyWindowsServer2022CoreContainer, region)

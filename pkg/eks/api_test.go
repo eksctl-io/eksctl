@@ -324,6 +324,35 @@ var _ = Describe("eksctl API", func() {
 			testEnsureAMI(Equal("ami-ubuntu"), "1.14")
 		})
 
+		It("should resolve AMI using SSM Parameter Store for Ubuntu2404 on 1.31", func() {
+			provider.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
+				Name: aws.String("/aws/service/canonical/ubuntu/eks/24.04/1.31/stable/current/amd64/hvm/ebs-gp3/ami-id"),
+			}).Return(&ssm.GetParameterOutput{
+				Parameter: &ssmtypes.Parameter{
+					Value: aws.String("ami-ubuntu"),
+				},
+			}, nil)
+			ng.AMIFamily = api.NodeImageFamilyUbuntu2404
+
+			testEnsureAMI(Equal("ami-ubuntu"), "1.31")
+		})
+
+		It("should fall back to auto resolution for Ubuntu2404", func() {
+			ng.AMIFamily = api.NodeImageFamilyUbuntu2404
+			mockDescribeImages(provider, "ami-ubuntu", func(input *ec2.DescribeImagesInput) bool {
+				return input.Owners[0] == "099720109477"
+			})
+			testEnsureAMI(Equal("ami-ubuntu"), "1.14")
+		})
+
+		It("should fall back to auto resolution for UbuntuPro2404", func() {
+			ng.AMIFamily = api.NodeImageFamilyUbuntuPro2404
+			mockDescribeImages(provider, "ami-ubuntu", func(input *ec2.DescribeImagesInput) bool {
+				return input.Owners[0] == "099720109477"
+			})
+			testEnsureAMI(Equal("ami-ubuntu"), "1.14")
+		})
+
 		It("should retrieve the AMI from EC2 when AMI is auto", func() {
 			ng.AMI = "auto"
 			ng.InstanceType = "p2.xlarge"

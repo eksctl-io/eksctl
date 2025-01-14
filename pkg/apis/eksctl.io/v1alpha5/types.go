@@ -223,6 +223,9 @@ const (
 	// RegionUSISOWest1 represents the region US ISOB West.
 	RegionUSISOWest1 = "us-iso-west-1"
 
+	// RegionMXCentral1 represents the region of central Mexico
+	RegionMXCentral1 = "mx-central-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 )
@@ -234,6 +237,8 @@ const (
 	DefaultNodeImageFamily         = NodeImageFamilyAmazonLinux2
 	NodeImageFamilyAmazonLinux2023 = "AmazonLinux2023"
 	NodeImageFamilyAmazonLinux2    = "AmazonLinux2"
+	NodeImageFamilyUbuntuPro2404   = "UbuntuPro2404"
+	NodeImageFamilyUbuntu2404      = "Ubuntu2404"
 	NodeImageFamilyUbuntuPro2204   = "UbuntuPro2204"
 	NodeImageFamilyUbuntu2204      = "Ubuntu2204"
 	NodeImageFamilyUbuntu2004      = "Ubuntu2004"
@@ -407,6 +412,9 @@ const (
 
 	// eksResourceAccountUSISOWest1 defines the AWS EKS account ID that provides node resources in us-iso-west-1
 	eksResourceAccountUSISOWest1 = "608367168043"
+
+	// eksResourceAccountMXCentral1 defines the AWS EKS account ID that provides node resources in mx-central-1
+	eksResourceAccountMXCentral1 = "730335286997"
 )
 
 // Values for `VolumeType`
@@ -547,6 +555,7 @@ func SupportedRegions() []string {
 		RegionUSISOEast1,
 		RegionUSISOBEast1,
 		RegionUSISOWest1,
+		RegionMXCentral1,
 	}
 }
 
@@ -622,6 +631,8 @@ func SupportedAMIFamilies() []string {
 	return []string{
 		NodeImageFamilyAmazonLinux2023,
 		NodeImageFamilyAmazonLinux2,
+		NodeImageFamilyUbuntuPro2404,
+		NodeImageFamilyUbuntu2404,
 		NodeImageFamilyUbuntuPro2204,
 		NodeImageFamilyUbuntu2204,
 		NodeImageFamilyUbuntu2004,
@@ -691,6 +702,8 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountUSISOBEast1
 	case RegionUSISOWest1:
 		return eksResourceAccountUSISOWest1
+	case RegionMXCentral1:
+		return eksResourceAccountMXCentral1
 	default:
 		return eksResourceAccountStandard
 	}
@@ -723,8 +736,10 @@ type KubernetesNetworkConfig struct {
 	// Valid variants are `IPFamily` constants
 	// +optional
 	IPFamily string `json:"ipFamily,omitempty"`
-	// ServiceIPv4CIDR is the CIDR range from where `ClusterIP`s are assigned
+	// ServiceIPv4CIDR is the IPv4 CIDR range from where `ClusterIP`s are assigned
 	ServiceIPv4CIDR string `json:"serviceIPv4CIDR,omitempty"`
+	// ServiceIPv6CIDR is the IPv6 CIDR range from where `ClusterIP`s are assigned
+	ServiceIPv6CIDR string `json:"serviceIPv6CIDR,omitempty"`
 }
 
 func (k *KubernetesNetworkConfig) IPv6Enabled() bool {
@@ -1204,13 +1219,18 @@ func (c *ClusterConfig) IPv6Enabled() bool {
 
 // SetClusterState updates the cluster state and populates the ClusterStatus using *eks.Cluster.
 func (c *ClusterConfig) SetClusterState(cluster *ekstypes.Cluster) error {
-	if networkConfig := cluster.KubernetesNetworkConfig; networkConfig != nil && networkConfig.ServiceIpv4Cidr != nil {
-		c.Status.KubernetesNetworkConfig = &KubernetesNetworkConfig{
-			ServiceIPv4CIDR: *networkConfig.ServiceIpv4Cidr,
+	if networkConfig := cluster.KubernetesNetworkConfig; networkConfig != nil {
+		knc := &KubernetesNetworkConfig{}
+		if networkConfig.ServiceIpv4Cidr != nil {
+			knc.IPFamily = IPV4Family
+			knc.ServiceIPv4CIDR = aws.ToString(networkConfig.ServiceIpv4Cidr)
 		}
-		c.KubernetesNetworkConfig = &KubernetesNetworkConfig{
-			ServiceIPv4CIDR: aws.ToString(cluster.KubernetesNetworkConfig.ServiceIpv4Cidr),
+		if networkConfig.ServiceIpv6Cidr != nil {
+			knc.IPFamily = IPV6Family
+			knc.ServiceIPv6CIDR = aws.ToString(networkConfig.ServiceIpv6Cidr)
 		}
+		c.KubernetesNetworkConfig = knc
+		c.Status.KubernetesNetworkConfig = knc
 	}
 	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
 	if err != nil {

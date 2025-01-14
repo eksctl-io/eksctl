@@ -17,6 +17,7 @@ const (
 	KubeProxyAddon        = "kube-proxy"
 	CoreDNSAddon          = "coredns"
 	PodIdentityAgentAddon = "eks-pod-identity-agent"
+	MetricsServerAddon    = "metrics-server"
 	AWSEBSCSIDriverAddon  = "aws-ebs-csi-driver"
 	AWSEFSCSIDriverAddon  = "aws-efs-csi-driver"
 )

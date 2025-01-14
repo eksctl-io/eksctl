@@ -23,6 +23,10 @@ var KnownAddons = map[string]struct {
 	},
 	AWSEBSCSIDriverAddon: {},
 	AWSEFSCSIDriverAddon: {},
+	MetricsServerAddon: {
+		IsDefault:             true,
+		CreateBeforeNodeGroup: true,
+	},
 }
 
 // HasDefaultAddons reports whether addons contains at least one default addon.

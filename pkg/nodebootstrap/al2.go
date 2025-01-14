@@ -29,10 +29,6 @@ func NewAL2Bootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup, clu
 func (b *AmazonLinux2) UserData() (string, error) {
 	var scripts []script
 
-	if api.IsEnabled(b.ng.EFAEnabled) {
-		scripts = append(scripts, script{name: "efa.al2.sh", contents: assets.EfaAl2Sh})
-	}
-
 	body, err := linuxConfig(b.clusterConfig, al2BootScript, assets.BootstrapAl2Sh, b.clusterDNS, b.ng, scripts...)
 	if err != nil {
 		return "", errors.Wrap(err, "encoding user data")
