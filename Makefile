@@ -34,6 +34,14 @@ endif
 .PHONY: install-all-deps
 install-all-deps: install-site-deps ## Install all dependencies for building both binary and user docs)
 
+.PHONY: install-tools
+install-tools: ## Install dependencies for code generation and test execution
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	go install github.com/cloudflare/cfssl/cmd/...@latest
+	go install github.com/maxbrunsfeld/counterfeiter/v6
+	go install github.com/vektra/mockery/v2
+	go install github.com/vburenin/ifacemaker
+
 ##@ Build
 
 godeps_cmd = go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $(1) | sed "s|$(git_toplevel)/||g"
@@ -72,13 +80,11 @@ $(info will launch integration tests for Kubernetes version $(INTEGRATION_TEST_V
 endif
 
 .PHONY: lint
-lint: ## Run linter over the codebase
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint
+lint: install-tools ## Run linter over the codebase
 	golangci-lint run --timeout=30m
 
 .PHONY: test
-test: ## Lint, generate and run unit tests. Also ensure that integration tests compile
-	go install github.com/cloudflare/cfssl/cmd/...@latest
+test: install-tools ## Lint, generate and run unit tests. Also ensure that integration tests compile
 	$(MAKE) lint
 	$(MAKE) unit-test
 	$(MAKE) build-integration-test
@@ -86,14 +92,12 @@ test: ## Lint, generate and run unit tests. Also ensure that integration tests c
 .PHONY: unit-test
 unit-test: check-all-generated-files-up-to-date unit-test-no-generate
 
-.PHONY: unit-test-no-generate ## Run unit test only
-unit-test-no-generate:
-	go install github.com/cloudflare/cfssl/cmd/...@latest
+.PHONY: unit-test-no-generate
+unit-test-no-generate: install-tools ## Run unit test only
 	CGO_ENABLED=0 go test  -tags=release ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: unit-test-race
-unit-test-race: ## Run unit test with race detection
-	go install github.com/cloudflare/cfssl/cmd/...@latest
+unit-test-race: install-tools ## Run unit test with race detection
 	CGO_ENABLED=1 go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: build-integration-test
@@ -138,10 +142,7 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 ##@ Code Generation
 
 .PHONY: generate-always
-generate-always: ## Generate code (required for every build)
-	go install github.com/maxbrunsfeld/counterfeiter/v6
-	go install github.com/vektra/mockery/v2
-	go install github.com/vburenin/ifacemaker
+generate-always: install-tools ## Generate code (required for every build)
 	go generate ./pkg/apis/eksctl.io/v1alpha5/generate.go
 	go generate ./pkg/nodebootstrap
 	go generate ./pkg/addons
