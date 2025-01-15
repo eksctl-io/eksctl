@@ -316,17 +316,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	return nil
 }
 
-// ValidateClusterVersion validates the cluster version.
-func ValidateClusterVersion(clusterConfig *ClusterConfig) error {
-	if clusterVersion := clusterConfig.Metadata.Version; clusterVersion != "" && clusterVersion != DefaultVersion && !IsSupportedVersion(clusterVersion) {
-		if IsDeprecatedVersion(clusterVersion) {
-			return fmt.Errorf("invalid version, %s is no longer supported, supported values: %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", clusterVersion, strings.Join(SupportedVersions(), ", "))
-		}
-		return fmt.Errorf("invalid version, supported values: %s", strings.Join(SupportedVersions(), ", "))
-	}
-	return nil
-}
-
 func validateKarpenterConfig(cfg *ClusterConfig) error {
 	if cfg.Karpenter == nil {
 		return nil
@@ -996,7 +985,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 				return err
 			}
 			if *ng.ContainerRuntime != ContainerRuntimeContainerD && isDockershimDeprecated {
-				return fmt.Errorf("only %s is supported for container runtime, starting with EKS version %s", ContainerRuntimeContainerD, Version1_24)
+				return fmt.Errorf("only %s is supported for container runtime, starting with EKS version %s", ContainerRuntimeContainerD, DockershimDeprecationVersion)
 			}
 		}
 		if ng.OverrideBootstrapCommand != nil {

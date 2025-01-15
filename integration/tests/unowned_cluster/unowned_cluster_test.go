@@ -59,7 +59,13 @@ var _ = BeforeSuite(func() {
 	mng2 = "mng-2"
 	stackName = fmt.Sprintf("eksctl-%s", params.ClusterName)
 
-	version, upgradeVersion = clusterutils.GetCurrentAndNextVersionsForUpgrade(params.Version)
+	clusterProvider, err := eks.New(context.Background(), &api.ProviderConfig{Region: params.Region}, cfg)
+	Expect(err).NotTo(HaveOccurred())
+
+	cvm, err := eks.NewClusterVersionsManager(clusterProvider.AWSProvider.EKS())
+	Expect(err).NotTo(HaveOccurred())
+
+	version, upgradeVersion = clusterutils.GetCurrentAndNextVersionsForUpgrade(cvm, params.Version)
 
 	cfg = &api.ClusterConfig{
 		TypeMeta: api.ClusterConfigTypeMeta(),
@@ -71,8 +77,6 @@ var _ = BeforeSuite(func() {
 	}
 
 	if !params.SkipCreate {
-		clusterProvider, err := eks.New(context.Background(), &api.ProviderConfig{Region: params.Region}, cfg)
-		Expect(err).NotTo(HaveOccurred())
 		ctl = clusterProvider.AWSProvider
 		ctx := context.Background()
 		cfg.VPC = createClusterWithNodeGroup(ctx, params.ClusterName, stackName, mng1, version, ctl)

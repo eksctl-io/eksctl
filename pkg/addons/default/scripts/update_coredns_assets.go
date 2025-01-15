@@ -26,7 +26,12 @@ func main() {
 		log.Fatalf("failed to create the AWS provider: %v", err)
 	}
 
-	for _, kubernetesVersion := range api.SupportedVersions() {
+	cvm, err := eks.NewClusterVersionsManager(clusterProvider.AWSProvider.EKS())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, kubernetesVersion := range cvm.SupportedVersions() {
 		latestVersion := getLatestVersion(ctx, clusterProvider, kubernetesVersion)
 		if latestVersion == "" {
 			continue

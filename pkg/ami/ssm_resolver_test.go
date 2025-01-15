@@ -718,7 +718,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 					amiType == ekstypes.AMITypesAl2023X8664Nvidia || amiType == ekstypes.AMITypesAl2023X8664Neuron {
 					continue
 				}
-				ssmParameterName := MakeManagedSSMParameterName(api.LatestVersion, amiType)
+				ssmParameterName := MakeManagedSSMParameterName(api.Version1_31, amiType)
 				Expect(ssmParameterName).NotTo(BeEmpty(), "expected to generate SSM parameter name for AMI type %s", amiType)
 			}
 		})

@@ -94,7 +94,20 @@ var _ = BeforeSuite(func() {
 
 	fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
 
-	eksVersion, nextEKSVersion = clusterutils.GetCurrentAndNextVersionsForUpgrade(params.Version)
+	cfg := &api.ClusterConfig{
+		Metadata: &api.ClusterMeta{
+			Name:   params.ClusterName,
+			Region: params.Region,
+		},
+	}
+	var err error
+	clusterProvider, err = eks.New(context.Background(), &api.ProviderConfig{Region: params.Region}, cfg)
+	Expect(err).NotTo(HaveOccurred())
+
+	cvm, err := eks.NewClusterVersionsManager(clusterProvider.AWSProvider.EKS())
+	Expect(err).NotTo(HaveOccurred())
+
+	eksVersion, nextEKSVersion = clusterutils.GetCurrentAndNextVersionsForUpgrade(cvm, params.Version)
 
 	clusterConfig := api.NewClusterConfig()
 	clusterConfig.Metadata.Name = defaultCluster
@@ -141,8 +154,7 @@ var _ = BeforeSuite(func() {
 		WithStdin(clusterutils.Reader(clusterConfig))
 	Expect(cmd).To(RunSuccessfully())
 
-	var err error
-	clusterProvider, err = newClusterProvider(context.Background())
+	err = clusterProvider.RefreshClusterStatus(context.Background(), cfg)
 	Expect(err).NotTo(HaveOccurred())
 })
 
@@ -326,23 +338,6 @@ var _ = AfterSuite(func() {
 	}
 	os.RemoveAll(params.TestDirectory)
 })
-
-func newClusterProvider(ctx context.Context) (*eks.ClusterProvider, error) {
-	cfg := &api.ClusterConfig{
-		Metadata: &api.ClusterMeta{
-			Name:   params.ClusterName,
-			Region: params.Region,
-		},
-	}
-	ctl, err := eks.New(ctx, &api.ProviderConfig{Region: params.Region}, cfg)
-	if err != nil {
-		return nil, err
-	}
-	if err := ctl.RefreshClusterStatus(ctx, cfg); err != nil {
-		return nil, err
-	}
-	return ctl, nil
-}
 
 func defaultClusterConfig() *api.ClusterConfig {
 	return &api.ClusterConfig{
