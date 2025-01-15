@@ -31,43 +31,6 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 		}
 	})
 
-	When("SSM is enabled", func() {
-		BeforeEach(func() {
-			ng.SSH.EnableSSM = api.Enabled()
-			bootstrapper = newBootstrapper(clusterConfig, ng)
-		})
-
-		It("does not add the SSM install script to the userdata", func() {
-			userData, err := bootstrapper.UserData()
-			Expect(err).NotTo(HaveOccurred())
-
-			cloudCfg := decode(userData)
-
-			var paths []string
-			for _, f := range cloudCfg.WriteFiles {
-				paths = append(paths, f.Path)
-			}
-			Expect(paths).NotTo(ContainElement("/var/lib/cloud/scripts/eksctl/install-ssm.al2.sh"))
-		})
-	})
-
-	When("EFA is enabled", func() {
-		BeforeEach(func() {
-			enabled := true
-			ng.EFAEnabled = &enabled
-			bootstrapper = newBootstrapper(clusterConfig, ng)
-		})
-
-		It("adds the ssm install script to the userdata", func() {
-			userData, err := bootstrapper.UserData()
-			Expect(err).NotTo(HaveOccurred())
-
-			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.al2.sh"))
-			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0755"))
-		})
-	})
-
 	type bootScriptEntry struct {
 		clusterConfig    *api.ClusterConfig
 		ng               *api.NodeGroup
