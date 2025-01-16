@@ -18,7 +18,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree, *tasks.GenericTask, []string) {
+func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration, region string) (*tasks.TaskTree, *tasks.TaskTree, *tasks.GenericTask, []string) {
 	var addons []*api.Addon
 	var autoDefaultAddonNames []string
 	if !cfg.AddonsConfig.DisableDefaultAddons {
@@ -26,7 +26,7 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 		copy(addons, cfg.Addons)
 
 		for addonName, addonInfo := range api.KnownAddons {
-			if addonInfo.IsDefault && !slices.ContainsFunc(cfg.Addons, func(a *api.Addon) bool {
+			if addonInfo.IsDefault && !slices.Contains(addonInfo.ExcludedRegions, region) && !slices.ContainsFunc(cfg.Addons, func(a *api.Addon) bool {
 				return strings.EqualFold(a.Name, addonName)
 			}) {
 				if !cfg.IsAutoModeEnabled() || addonInfo.IsDefaultAutoMode {

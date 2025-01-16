@@ -374,7 +374,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		ClusterName:  cfg.Metadata.Name,
 		StackCreator: stackManager,
 	}
-	preNodegroupAddons, postAddons, updateVPCCNITask, autoDefaultAddons := addon.CreateAddonTasks(ctx, cfg, ctl, iamRoleCreator, true, cmd.ProviderConfig.WaitTimeout)
+	preNodegroupAddons, postAddons, updateVPCCNITask, autoDefaultAddons := addon.CreateAddonTasks(ctx, cfg, ctl, iamRoleCreator, true, cmd.ProviderConfig.WaitTimeout, meta.Region)
 	if len(autoDefaultAddons) > 0 {
 		logger.Info("default addons %s were not specified, will install them as EKS addons", strings.Join(autoDefaultAddons, ", "))
 	}
