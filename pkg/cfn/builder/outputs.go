@@ -1,7 +1,7 @@
 package builder
 
 import (
-	gfnt "goformation/v4/cloudformation/types"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"

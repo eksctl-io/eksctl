@@ -1,7 +1,7 @@
 package quicksight
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // DataSet_TransformOperation AWS CloudFormation Resource (AWS::QuickSight::DataSet.TransformOperation)

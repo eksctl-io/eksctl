@@ -1,7 +1,7 @@
 package lakeformation
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Permissions_TableWildcard AWS CloudFormation Resource (AWS::LakeFormation::Permissions.TableWildcard)

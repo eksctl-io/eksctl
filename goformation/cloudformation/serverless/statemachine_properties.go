@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"sort"
 
-	"goformation/v4/cloudformation/utils"
+	"github.com/awslabs/goformation/v4/cloudformation/utils"
 )
 
 // StateMachine_Properties is a helper struct that can hold either a CloudWatchEventEvent, EventBridgeRuleEvent, ScheduleEvent, or ApiEvent value

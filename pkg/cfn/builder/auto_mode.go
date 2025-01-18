@@ -6,9 +6,9 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
-	"goformation/v4"
-	gfn "goformation/v4/cloudformation"
-	gfnt "goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4"
+	gfn "github.com/awslabs/goformation/v4/cloudformation"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 )

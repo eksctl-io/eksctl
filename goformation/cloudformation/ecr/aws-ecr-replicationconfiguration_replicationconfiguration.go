@@ -1,7 +1,7 @@
 package ecr
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // ReplicationConfiguration_ReplicationConfiguration AWS CloudFormation Resource (AWS::ECR::ReplicationConfiguration.ReplicationConfiguration)

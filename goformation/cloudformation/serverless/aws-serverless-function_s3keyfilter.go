@@ -1,7 +1,7 @@
 package serverless
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Function_S3KeyFilter AWS CloudFormation Resource (AWS::Serverless::Function.S3KeyFilter)

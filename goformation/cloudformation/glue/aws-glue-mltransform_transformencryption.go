@@ -1,9 +1,9 @@
 package glue
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // MLTransform_TransformEncryption AWS CloudFormation Resource (AWS::Glue::MLTransform.TransformEncryption)

@@ -1,7 +1,7 @@
 package databrew
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Job_S3TableOutputOptions AWS CloudFormation Resource (AWS::DataBrew::Job.S3TableOutputOptions)

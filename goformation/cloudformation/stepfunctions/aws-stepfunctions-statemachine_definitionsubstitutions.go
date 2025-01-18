@@ -1,7 +1,7 @@
 package stepfunctions
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // StateMachine_DefinitionSubstitutions AWS CloudFormation Resource (AWS::StepFunctions::StateMachine.DefinitionSubstitutions)

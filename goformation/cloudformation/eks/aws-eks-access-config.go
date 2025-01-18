@@ -1,7 +1,7 @@
 package eks
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 )
 
 // Cluster_AccessConfig describes the access configuration for the cluster.

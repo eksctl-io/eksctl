@@ -1,6 +1,6 @@
 package eks
 
-import "goformation/v4/cloudformation/types"
+import "github.com/awslabs/goformation/v4/cloudformation/types"
 
 // Nodegroup_Taints AWS CloudFormation Resource (AWS::EKS::Nodegroup.Taints)
 // See: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-eks-nodegroup-taint.html

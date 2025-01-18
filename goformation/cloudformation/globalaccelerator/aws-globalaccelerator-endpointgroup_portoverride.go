@@ -1,9 +1,9 @@
 package globalaccelerator
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // EndpointGroup_PortOverride AWS CloudFormation Resource (AWS::GlobalAccelerator::EndpointGroup.PortOverride)

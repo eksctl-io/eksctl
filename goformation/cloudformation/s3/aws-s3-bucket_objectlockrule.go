@@ -1,7 +1,7 @@
 package s3
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Bucket_ObjectLockRule AWS CloudFormation Resource (AWS::S3::Bucket.ObjectLockRule)

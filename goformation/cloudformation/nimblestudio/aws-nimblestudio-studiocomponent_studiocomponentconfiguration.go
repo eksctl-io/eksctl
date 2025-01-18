@@ -1,7 +1,7 @@
 package nimblestudio
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // StudioComponent_StudioComponentConfiguration AWS CloudFormation Resource (AWS::NimbleStudio::StudioComponent.StudioComponentConfiguration)

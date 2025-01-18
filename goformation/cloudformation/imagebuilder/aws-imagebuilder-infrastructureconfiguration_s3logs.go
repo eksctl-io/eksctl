@@ -1,9 +1,9 @@
 package imagebuilder
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // InfrastructureConfiguration_S3Logs AWS CloudFormation Resource (AWS::ImageBuilder::InfrastructureConfiguration.S3Logs)

@@ -1,7 +1,7 @@
 package sagemaker
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // MonitoringSchedule_MonitoringOutput AWS CloudFormation Resource (AWS::SageMaker::MonitoringSchedule.MonitoringOutput)

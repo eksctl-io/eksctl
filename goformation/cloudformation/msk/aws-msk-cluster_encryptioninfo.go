@@ -1,7 +1,7 @@
 package msk
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Cluster_EncryptionInfo AWS CloudFormation Resource (AWS::MSK::Cluster.EncryptionInfo)

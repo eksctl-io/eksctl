@@ -1,7 +1,7 @@
 package serverless
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // StateMachine_SAMPolicyTemplate AWS CloudFormation Resource (AWS::Serverless::StateMachine.SAMPolicyTemplate)

@@ -11,7 +11,7 @@ import (
 
 	"github.com/kris-nova/logger"
 
-	"goformation/v4"
+	"github.com/awslabs/goformation/v4"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"

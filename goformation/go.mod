@@ -1,7 +1,6 @@
-module goformation/v4
+module github.com/awslabs/goformation/v4
 
 require (
-	github.com/awslabs/goformation/v4 v4.15.5
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.3
 	github.com/sanathkr/go-yaml v0.0.0-20170819195128-ed9d249f429b
@@ -12,6 +11,7 @@ require (
 require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/nxadm/tail v1.4.4 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0 // indirect

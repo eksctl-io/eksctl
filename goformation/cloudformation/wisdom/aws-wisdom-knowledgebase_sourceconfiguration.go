@@ -1,7 +1,7 @@
 package wisdom
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // KnowledgeBase_SourceConfiguration AWS CloudFormation Resource (AWS::Wisdom::KnowledgeBase.SourceConfiguration)

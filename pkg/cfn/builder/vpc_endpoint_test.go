@@ -18,8 +18,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
-	gfnec2 "goformation/v4/cloudformation/ec2"
-	gfnt "goformation/v4/cloudformation/types"
+	gfnec2 "github.com/awslabs/goformation/v4/cloudformation/ec2"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 

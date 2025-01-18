@@ -1,7 +1,7 @@
 package glue
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Crawler_Targets AWS CloudFormation Resource (AWS::Glue::Crawler.Targets)

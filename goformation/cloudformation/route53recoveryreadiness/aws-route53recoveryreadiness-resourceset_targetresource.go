@@ -1,7 +1,7 @@
 package route53recoveryreadiness
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // ResourceSet_TargetResource AWS CloudFormation Resource (AWS::Route53RecoveryReadiness::ResourceSet.TargetResource)

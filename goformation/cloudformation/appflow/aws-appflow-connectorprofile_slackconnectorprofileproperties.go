@@ -1,9 +1,9 @@
 package appflow
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // ConnectorProfile_SlackConnectorProfileProperties AWS CloudFormation Resource (AWS::AppFlow::ConnectorProfile.SlackConnectorProfileProperties)

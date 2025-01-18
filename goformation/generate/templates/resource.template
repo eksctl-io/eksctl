@@ -6,17 +6,17 @@ import (
 	"fmt"
 	"bytes"
 	{{if .Resource.HasValueProperty}}
-	"goformation/v4/cloudformation/types"{{end}}
+	"github.com/awslabs/goformation/v4/cloudformation/types"{{end}}
 	{{if .HasTags}}
-	"goformation/v4/cloudformation/cloudformation"{{end}}
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/cloudformation"{{end}}
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 {{else}}
 import ({{if .Resource.HasValueProperty}}
-	"goformation/v4/cloudformation/types"{{end}}
+	"github.com/awslabs/goformation/v4/cloudformation/types"{{end}}
 	{{if .HasTags}}
-	"goformation/v4/cloudformation/cloudformation"{{end}}
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/cloudformation"{{end}}
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 {{end}}
 

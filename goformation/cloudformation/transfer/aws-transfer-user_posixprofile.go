@@ -1,9 +1,9 @@
 package transfer
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // User_PosixProfile AWS CloudFormation Resource (AWS::Transfer::User.PosixProfile)

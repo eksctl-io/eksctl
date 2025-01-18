@@ -1,7 +1,7 @@
 package appmesh
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Route_GrpcTimeout AWS CloudFormation Resource (AWS::AppMesh::Route.GrpcTimeout)

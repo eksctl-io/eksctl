@@ -1,7 +1,7 @@
 package lookoutmetrics
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // AnomalyDetector_MetricSource AWS CloudFormation Resource (AWS::LookoutMetrics::AnomalyDetector.MetricSource)

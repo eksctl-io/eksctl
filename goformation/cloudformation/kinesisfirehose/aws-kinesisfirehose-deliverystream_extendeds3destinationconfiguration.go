@@ -1,9 +1,9 @@
 package kinesisfirehose
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // DeliveryStream_ExtendedS3DestinationConfiguration AWS CloudFormation Resource (AWS::KinesisFirehose::DeliveryStream.ExtendedS3DestinationConfiguration)

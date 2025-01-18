@@ -1,9 +1,9 @@
 package customerprofiles
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // ObjectType_ObjectTypeKey AWS CloudFormation Resource (AWS::CustomerProfiles::ObjectType.ObjectTypeKey)

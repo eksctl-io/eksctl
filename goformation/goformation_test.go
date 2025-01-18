@@ -7,17 +7,17 @@ import (
 
 	"github.com/sanathkr/yaml"
 
-	"goformation/v4"
-	"goformation/v4/cloudformation"
+	"github.com/awslabs/goformation/v4"
+	"github.com/awslabs/goformation/v4/cloudformation"
 
-	"goformation/v4/cloudformation/lambda"
-	"goformation/v4/cloudformation/policies"
-	"goformation/v4/cloudformation/route53"
-	"goformation/v4/cloudformation/s3"
+	"github.com/awslabs/goformation/v4/cloudformation/lambda"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/route53"
+	"github.com/awslabs/goformation/v4/cloudformation/s3"
 
-	"goformation/v4/cloudformation/serverless"
-	"goformation/v4/cloudformation/sns"
-	. "goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/serverless"
+	"github.com/awslabs/goformation/v4/cloudformation/sns"
+	. "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

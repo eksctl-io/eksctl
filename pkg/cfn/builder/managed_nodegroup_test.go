@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"testing"
 
-	"goformation/v4"
-	gfneks "goformation/v4/cloudformation/eks"
-	gfnt "goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4"
+	gfneks "github.com/awslabs/goformation/v4/cloudformation/eks"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/stretchr/testify/require"

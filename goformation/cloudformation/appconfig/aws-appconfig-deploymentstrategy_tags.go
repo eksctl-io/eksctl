@@ -1,9 +1,9 @@
 package appconfig
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // DeploymentStrategy_Tags AWS CloudFormation Resource (AWS::AppConfig::DeploymentStrategy.Tags)

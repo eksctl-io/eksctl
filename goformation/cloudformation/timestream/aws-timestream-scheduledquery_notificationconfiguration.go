@@ -1,7 +1,7 @@
 package timestream
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // ScheduledQuery_NotificationConfiguration AWS CloudFormation Resource (AWS::Timestream::ScheduledQuery.NotificationConfiguration)

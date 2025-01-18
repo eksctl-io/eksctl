@@ -1,7 +1,7 @@
 package medialive
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Channel_H265ColorSpaceSettings AWS CloudFormation Resource (AWS::MediaLive::Channel.H265ColorSpaceSettings)

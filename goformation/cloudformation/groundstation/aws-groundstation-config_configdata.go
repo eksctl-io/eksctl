@@ -1,7 +1,7 @@
 package groundstation
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Config_ConfigData AWS CloudFormation Resource (AWS::GroundStation::Config.ConfigData)
