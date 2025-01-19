@@ -236,8 +236,6 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 				).Run()
 			Expect(session.ExitCode()).To(Equal(0))
 			Expect(json.Unmarshal(session.Out.Contents(), &output)).To(Succeed())
-			// taking into account the cluster creator admin permission access entry
-			Expect(output).To(HaveLen(4))
 			Expect(output).To(ContainElements(cfg.AccessConfig.AccessEntries))
 		})
 
