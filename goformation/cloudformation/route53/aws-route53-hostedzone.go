@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // HostedZone AWS CloudFormation Resource (AWS::Route53::HostedZone)

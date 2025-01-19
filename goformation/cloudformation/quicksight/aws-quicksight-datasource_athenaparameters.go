@@ -1,9 +1,9 @@
 package quicksight
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // DataSource_AthenaParameters AWS CloudFormation Resource (AWS::QuickSight::DataSource.AthenaParameters)

@@ -1,7 +1,7 @@
 package pinpoint
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Segment_SegmentDimensions AWS CloudFormation Resource (AWS::Pinpoint::Segment.SegmentDimensions)

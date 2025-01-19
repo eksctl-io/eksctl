@@ -1,9 +1,9 @@
 package opsworkscm
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Server_EngineAttribute AWS CloudFormation Resource (AWS::OpsWorksCM::Server.EngineAttribute)

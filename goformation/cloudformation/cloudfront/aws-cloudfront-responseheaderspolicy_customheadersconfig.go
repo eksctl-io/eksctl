@@ -1,7 +1,7 @@
 package cloudfront
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // ResponseHeadersPolicy_CustomHeadersConfig AWS CloudFormation Resource (AWS::CloudFront::ResponseHeadersPolicy.CustomHeadersConfig)

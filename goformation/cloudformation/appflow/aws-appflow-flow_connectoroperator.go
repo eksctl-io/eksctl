@@ -1,9 +1,9 @@
 package appflow
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Flow_ConnectorOperator AWS CloudFormation Resource (AWS::AppFlow::Flow.ConnectorOperator)

@@ -1,9 +1,9 @@
 package iotsitewise
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // AccessPolicy_User AWS CloudFormation Resource (AWS::IoTSiteWise::AccessPolicy.User)

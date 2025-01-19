@@ -1,7 +1,7 @@
 package kinesisfirehose
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // DeliveryStream_InputFormatConfiguration AWS CloudFormation Resource (AWS::KinesisFirehose::DeliveryStream.InputFormatConfiguration)

@@ -1,7 +1,7 @@
 package guardduty
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Detector_CFNDataSourceConfigurations AWS CloudFormation Resource (AWS::GuardDuty::Detector.CFNDataSourceConfigurations)

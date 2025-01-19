@@ -1,9 +1,9 @@
 package iam
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // User_LoginProfile AWS CloudFormation Resource (AWS::IAM::User.LoginProfile)

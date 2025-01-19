@@ -1,7 +1,7 @@
 package elasticache
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // ReplicationGroup_DestinationDetails AWS CloudFormation Resource (AWS::ElastiCache::ReplicationGroup.DestinationDetails)

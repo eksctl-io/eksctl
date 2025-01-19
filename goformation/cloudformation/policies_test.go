@@ -1,13 +1,13 @@
 package cloudformation_test
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
 	"github.com/sanathkr/yaml"
 
-	"goformation/v4/cloudformation"
-	"goformation/v4/cloudformation/autoscaling"
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation"
+	"github.com/awslabs/goformation/v4/cloudformation/autoscaling"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

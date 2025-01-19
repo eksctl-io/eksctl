@@ -1,9 +1,9 @@
 package cloudtrail
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Trail_InsightSelector AWS CloudFormation Resource (AWS::CloudTrail::Trail.InsightSelector)

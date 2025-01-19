@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"goformation/v4"
+	"github.com/awslabs/goformation/v4"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

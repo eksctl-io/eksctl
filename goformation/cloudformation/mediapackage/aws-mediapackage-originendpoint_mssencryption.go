@@ -1,7 +1,7 @@
 package mediapackage
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // OriginEndpoint_MssEncryption AWS CloudFormation Resource (AWS::MediaPackage::OriginEndpoint.MssEncryption)

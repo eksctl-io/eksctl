@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"sort"
 
-	"goformation/v4/cloudformation/utils"
+	"github.com/awslabs/goformation/v4/cloudformation/utils"
 )
 
 // Function_Properties is a helper struct that can hold either a S3Event, SNSEvent, SQSEvent, KinesisEvent, DynamoDBEvent, ApiEvent, ScheduleEvent, CloudWatchEventEvent, CloudWatchLogsEvent, IoTRuleEvent, AlexaSkillEvent, or EventBridgeRuleEvent value

@@ -1,7 +1,7 @@
 package ssmcontacts
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Contact_Targets AWS CloudFormation Resource (AWS::SSMContacts::Contact.Targets)

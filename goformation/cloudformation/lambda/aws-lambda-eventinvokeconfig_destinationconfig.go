@@ -1,7 +1,7 @@
 package lambda
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // EventInvokeConfig_DestinationConfig AWS CloudFormation Resource (AWS::Lambda::EventInvokeConfig.DestinationConfig)

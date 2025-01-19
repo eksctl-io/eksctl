@@ -1,7 +1,7 @@
 package s3outposts
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Bucket_LifecycleConfiguration AWS CloudFormation Resource (AWS::S3Outposts::Bucket.LifecycleConfiguration)

@@ -1,7 +1,7 @@
 package kendra
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // DataSource_DataSourceConfiguration AWS CloudFormation Resource (AWS::Kendra::DataSource.DataSourceConfiguration)

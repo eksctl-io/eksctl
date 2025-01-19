@@ -1,9 +1,9 @@
 package apigatewayv2
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // RouteResponse_ParameterConstraints AWS CloudFormation Resource (AWS::ApiGatewayV2::RouteResponse.ParameterConstraints)

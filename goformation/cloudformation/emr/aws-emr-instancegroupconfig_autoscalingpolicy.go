@@ -1,7 +1,7 @@
 package emr
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // InstanceGroupConfig_AutoScalingPolicy AWS CloudFormation Resource (AWS::EMR::InstanceGroupConfig.AutoScalingPolicy)

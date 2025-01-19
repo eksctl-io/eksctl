@@ -1,7 +1,7 @@
 package acmpca
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Certificate_Extensions AWS CloudFormation Resource (AWS::ACMPCA::Certificate.Extensions)

@@ -3,12 +3,12 @@ package main_test
 import (
 	"encoding/json"
 
-	"goformation/v4/cloudformation/rds"
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/rds"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/ec2"
-	"goformation/v4/cloudformation/s3"
-	"goformation/v4/cloudformation/serverless"
+	"github.com/awslabs/goformation/v4/cloudformation/ec2"
+	"github.com/awslabs/goformation/v4/cloudformation/s3"
+	"github.com/awslabs/goformation/v4/cloudformation/serverless"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

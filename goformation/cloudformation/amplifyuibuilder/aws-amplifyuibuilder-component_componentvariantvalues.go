@@ -1,7 +1,7 @@
 package amplifyuibuilder
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Component_ComponentVariantValues AWS CloudFormation Resource (AWS::AmplifyUIBuilder::Component.ComponentVariantValues)

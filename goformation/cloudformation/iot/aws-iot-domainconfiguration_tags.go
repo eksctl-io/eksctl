@@ -1,7 +1,7 @@
 package iot
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // DomainConfiguration_Tags AWS CloudFormation Resource (AWS::IoT::DomainConfiguration.Tags)

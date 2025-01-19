@@ -1,7 +1,7 @@
 package msk
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Cluster_Sasl AWS CloudFormation Resource (AWS::MSK::Cluster.Sasl)

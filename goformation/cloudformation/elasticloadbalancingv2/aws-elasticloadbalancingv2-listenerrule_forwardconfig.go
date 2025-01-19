@@ -1,7 +1,7 @@
 package elasticloadbalancingv2
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // ListenerRule_ForwardConfig AWS CloudFormation Resource (AWS::ElasticLoadBalancingV2::ListenerRule.ForwardConfig)

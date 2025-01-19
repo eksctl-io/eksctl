@@ -1,9 +1,9 @@
 package mwaa
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Environment_NetworkConfiguration AWS CloudFormation Resource (AWS::MWAA::Environment.NetworkConfiguration)

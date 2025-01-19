@@ -1,7 +1,7 @@
 package iot
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // TopicRule_Action AWS CloudFormation Resource (AWS::IoT::TopicRule.Action)

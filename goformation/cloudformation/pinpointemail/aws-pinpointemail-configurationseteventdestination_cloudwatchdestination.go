@@ -1,7 +1,7 @@
 package pinpointemail
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // ConfigurationSetEventDestination_CloudWatchDestination AWS CloudFormation Resource (AWS::PinpointEmail::ConfigurationSetEventDestination.CloudWatchDestination)

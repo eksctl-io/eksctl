@@ -1,9 +1,9 @@
 package ecs
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // TaskSet_ServiceRegistry AWS CloudFormation Resource (AWS::ECS::TaskSet.ServiceRegistry)

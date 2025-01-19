@@ -1,7 +1,7 @@
 package fsx
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // FileSystem_NfsExports AWS CloudFormation Resource (AWS::FSx::FileSystem.NfsExports)

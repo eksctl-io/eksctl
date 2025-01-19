@@ -1,7 +1,7 @@
 package lookoutmetrics
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // AnomalyDetector_FileFormatDescriptor AWS CloudFormation Resource (AWS::LookoutMetrics::AnomalyDetector.FileFormatDescriptor)

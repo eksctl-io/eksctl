@@ -1,7 +1,7 @@
 package greengrass
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // CoreDefinition_CoreDefinitionVersion AWS CloudFormation Resource (AWS::Greengrass::CoreDefinition.CoreDefinitionVersion)

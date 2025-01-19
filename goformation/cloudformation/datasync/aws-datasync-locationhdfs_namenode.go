@@ -1,9 +1,9 @@
 package datasync
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // LocationHDFS_NameNode AWS CloudFormation Resource (AWS::DataSync::LocationHDFS.NameNode)

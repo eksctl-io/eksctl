@@ -1,7 +1,7 @@
 package kinesisanalyticsv2
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Application_SqlApplicationConfiguration AWS CloudFormation Resource (AWS::KinesisAnalyticsV2::Application.SqlApplicationConfiguration)

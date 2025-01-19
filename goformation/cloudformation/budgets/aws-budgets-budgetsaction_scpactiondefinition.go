@@ -1,9 +1,9 @@
 package budgets
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // BudgetsAction_ScpActionDefinition AWS CloudFormation Resource (AWS::Budgets::BudgetsAction.ScpActionDefinition)

@@ -1,7 +1,7 @@
 package lightsail
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Instance_Networking AWS CloudFormation Resource (AWS::Lightsail::Instance.Networking)

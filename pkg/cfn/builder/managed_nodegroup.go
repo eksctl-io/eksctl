@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	gfnec2 "goformation/v4/cloudformation/ec2"
-	gfneks "goformation/v4/cloudformation/eks"
-	gfnt "goformation/v4/cloudformation/types"
+	gfnec2 "github.com/awslabs/goformation/v4/cloudformation/ec2"
+	gfneks "github.com/awslabs/goformation/v4/cloudformation/eks"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"

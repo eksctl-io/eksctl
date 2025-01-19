@@ -1,7 +1,7 @@
 package budgets
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // BudgetsAction_Definition AWS CloudFormation Resource (AWS::Budgets::BudgetsAction.Definition)

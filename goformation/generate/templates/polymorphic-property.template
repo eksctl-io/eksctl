@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 
 	{{if .Property.GoTypeIsValue}}
-	"goformation/v4/cloudformation/types"{{end}}
-	"goformation/v4/cloudformation/utils"
+	"github.com/awslabs/goformation/v4/cloudformation/types"{{end}}
+	"github.com/awslabs/goformation/v4/cloudformation/utils"
 )
 
 // {{.Name}} is a helper struct that can hold either a {{.TypesJoined}} value

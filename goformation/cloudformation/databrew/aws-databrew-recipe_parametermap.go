@@ -1,7 +1,7 @@
 package databrew
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Recipe_ParameterMap AWS CloudFormation Resource (AWS::DataBrew::Recipe.ParameterMap)

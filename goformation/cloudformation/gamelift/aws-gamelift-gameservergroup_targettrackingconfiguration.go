@@ -1,9 +1,9 @@
 package gamelift
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // GameServerGroup_TargetTrackingConfiguration AWS CloudFormation Resource (AWS::GameLift::GameServerGroup.TargetTrackingConfiguration)

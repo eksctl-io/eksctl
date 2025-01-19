@@ -1,6 +1,6 @@
 package policies
 
-import "goformation/v4/cloudformation/types"
+import "github.com/awslabs/goformation/v4/cloudformation/types"
 
 // CreationPolicy prevents a resource status from reaching create complete until AWS CloudFormation receives a specified number of success signals or the timeout period is exceeded. To signal a resource, you can use the cfn-signal helper script or SignalResource API. AWS CloudFormation publishes valid signals to the stack events so that you track the number of signals sent.
 type CreationPolicy struct {

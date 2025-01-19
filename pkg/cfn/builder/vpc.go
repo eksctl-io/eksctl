@@ -5,9 +5,9 @@ import (
 	"math"
 	"strings"
 
-	gfncfn "goformation/v4/cloudformation/cloudformation"
-	gfnec2 "goformation/v4/cloudformation/ec2"
-	gfnt "goformation/v4/cloudformation/types"
+	gfncfn "github.com/awslabs/goformation/v4/cloudformation/cloudformation"
+	gfnec2 "github.com/awslabs/goformation/v4/cloudformation/ec2"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 )
