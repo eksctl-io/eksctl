@@ -11,6 +11,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gstruct"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -97,16 +98,21 @@ var _ = Describe("Auto Mode", Ordered, func() {
 		deployment, err := test.GetDeployment(test.Namespace, "podinfo")
 		Expect(err).NotTo(HaveOccurred())
 		nodeList := test.ListNodes(metav1.ListOptions{})
-		Expect(nodeList.Items).To(HaveLen(1))
-		node := nodeList.Items[0]
-		const labelName = "eks.amazonaws.com/compute-type"
-		computeType, ok := node.Labels[labelName]
-		Expect(ok).To(BeTrue(), "expected to find label %s on node %s", labelName, node.Name)
-		Expect(computeType).To(Equal("auto"))
+		Expect(nodeList.Items).NotTo(BeEmpty())
+		for _, node := range nodeList.Items {
+			const labelName = "eks.amazonaws.com/compute-type"
+			computeType, ok := node.Labels[labelName]
+			Expect(ok).To(BeTrue(), "expected to find label %s on node %s", labelName, node.Name)
+			Expect(computeType).To(Equal("auto"))
+		}
 		podList := test.ListPodsFromDeployment(deployment)
 		Expect(podList.Items).To(HaveLen(2))
 		for _, pod := range podList.Items {
-			Expect(node.Name).To(Equal(pod.Spec.NodeName))
+			Expect(nodeList.Items).To(ContainElement(MatchFields(IgnoreExtras, Fields{
+				"ObjectMeta": MatchFields(IgnoreExtras, Fields{
+					"Name": Equal(pod.Spec.NodeName),
+				}),
+			})))
 		}
 	})
 
