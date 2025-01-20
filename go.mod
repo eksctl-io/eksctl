@@ -14,19 +14,19 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.32.8
 	github.com/aws/aws-sdk-go-v2/config v1.28.9
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.50
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.51.3
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.56.4
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.46.5
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.45.2
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.51.5
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.56.5
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.46.7
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.45.4
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.48.4
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.166.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.56.1
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.28.9
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.43.4
-	github.com/aws/aws-sdk-go-v2/service/iam v1.38.3
+	github.com/aws/aws-sdk-go-v2/service/eks v1.56.3
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.28.10
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.43.5
+	github.com/aws/aws-sdk-go-v2/service/iam v1.38.5
 	github.com/aws/aws-sdk-go-v2/service/kms v1.27.5
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.48.1
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.56.3
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.56.5
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.5
 	github.com/aws/smithy-go v1.22.1
 	github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20240508073157-fbfa1bc129f5

@@ -2,8 +2,6 @@ package cluster
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"github.com/weaveworks/eksctl/pkg/printers"
 
@@ -12,12 +10,17 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 func upgrade(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, dryRun bool) (bool, error) {
-	currentVersion := ctl.ControlPlaneVersion()
-	versionUpdateRequired, err := requiresVersionUpgrade(cfg.Metadata, currentVersion)
+	cvm, err := eks.NewClusterVersionsManager(ctl.AWSProvider.EKS())
+	if err != nil {
+		return false, err
+	}
+
+	upgradeVersion, err := cvm.ResolveUpgradeVersion(
+		/* desiredVersion */ cfg.Metadata.Version,
+		/* currentVersion */ ctl.ControlPlaneVersion())
 	if err != nil {
 		return false, err
 	}
@@ -27,10 +30,11 @@ func upgrade(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvid
 		return false, err
 	}
 
-	if versionUpdateRequired {
+	if upgradeVersion != "" {
 		msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
-		cmdutils.LogIntendedAction(dryRun, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
+		cmdutils.LogIntendedAction(dryRun, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, ctl.ControlPlaneVersion(), cfg.Metadata.Version)
 		if !dryRun {
+			cfg.Metadata.Version = upgradeVersion
 			if err := ctl.UpdateClusterVersionBlocking(ctx, cfg); err != nil {
 				return false, err
 			}
@@ -40,103 +44,5 @@ func upgrade(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvid
 	} else {
 		logger.Info("no cluster version update required")
 	}
-	return versionUpdateRequired, nil
-}
-
-func requiresVersionUpgrade(clusterMeta *api.ClusterMeta, currentEKSVersion string) (bool, error) {
-	nextVersion, err := getNextVersion(currentEKSVersion)
-	if err != nil {
-		return false, err
-	}
-
-	// If the version was not specified default to the next Kubernetes version and assume the user intended to upgrade if possible
-	// also support "auto" as version (see #2461)
-	if clusterMeta.Version == "" || clusterMeta.Version == "auto" {
-		if api.IsSupportedVersion(nextVersion) {
-			clusterMeta.Version = nextVersion
-			return true, nil
-		}
-
-		// There is no new version, stay in the current one
-		clusterMeta.Version = currentEKSVersion
-		return false, nil
-	}
-
-	if c, err := utils.CompareVersions(clusterMeta.Version, currentEKSVersion); err != nil {
-		return false, fmt.Errorf("couldn't compare versions for upgrade: %w", err)
-	} else if c < 0 {
-		return false, fmt.Errorf("cannot upgrade to a lower version. Found given target version %q, current cluster version %q", clusterMeta.Version, currentEKSVersion)
-	}
-
-	if api.IsDeprecatedVersion(clusterMeta.Version) {
-		return false, fmt.Errorf("control plane version %q has been deprecated", clusterMeta.Version)
-	}
-
-	if !api.IsSupportedVersion(clusterMeta.Version) {
-		return false, fmt.Errorf("control plane version %q is not known to this version of eksctl, try to upgrade eksctl first", clusterMeta.Version)
-	}
-
-	if clusterMeta.Version == currentEKSVersion {
-		return false, nil
-	}
-
-	if clusterMeta.Version == nextVersion {
-		return true, nil
-	}
-
-	return false, fmt.Errorf(
-		"upgrading more than one version at a time is not supported. Found upgrade from %q to %q. Please upgrade to %q first",
-		currentEKSVersion,
-		clusterMeta.Version,
-		nextVersion)
-}
-
-func getNextVersion(currentVersion string) (string, error) {
-	switch currentVersion {
-	case "":
-		return "", errors.New("unable to get control plane version")
-	case api.Version1_12:
-		return api.Version1_13, nil
-	case api.Version1_13:
-		return api.Version1_14, nil
-	case api.Version1_14:
-		return api.Version1_15, nil
-	case api.Version1_15:
-		return api.Version1_16, nil
-	case api.Version1_16:
-		return api.Version1_17, nil
-	case api.Version1_17:
-		return api.Version1_18, nil
-	case api.Version1_18:
-		return api.Version1_19, nil
-	case api.Version1_19:
-		return api.Version1_20, nil
-	case api.Version1_20:
-		return api.Version1_21, nil
-	case api.Version1_21:
-		return api.Version1_22, nil
-	case api.Version1_22:
-		return api.Version1_23, nil
-	case api.Version1_23:
-		return api.Version1_24, nil
-	case api.Version1_24:
-		return api.Version1_25, nil
-	case api.Version1_25:
-		return api.Version1_26, nil
-	case api.Version1_26:
-		return api.Version1_27, nil
-	case api.Version1_27:
-		return api.Version1_28, nil
-	case api.Version1_28:
-		return api.Version1_29, nil
-	case api.Version1_29:
-		return api.Version1_30, nil
-	case api.Version1_30:
-		return api.Version1_31, nil
-	case api.Version1_31:
-		return api.Version1_32, nil
-	default:
-		// version of control plane is not known to us, maybe we are just too old...
-		return "", fmt.Errorf("control plane version %q is not known to this version of eksctl, try to upgrade eksctl first", currentVersion)
-	}
+	return upgradeVersion != "", nil
 }

@@ -29,7 +29,7 @@ import (
 )
 
 var _ = Describe("Upgrade", func() {
-	supportedVersions := api.SupportedVersions()
+	supportedVersions := []string{api.Version1_30, api.Version1_31}
 	if len(supportedVersions) < 2 {
 		Fail("Upgrade test requires at least two supported EKS versions")
 	}

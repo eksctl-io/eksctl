@@ -302,7 +302,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				testNodeGroup := NodeGroup{
 					NodeGroupBase: &NodeGroupBase{},
 				}
-				SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{Version: Version1_24}, false)
+				SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{Version: DockershimDeprecationVersion}, false)
 				Expect(*testNodeGroup.ContainerRuntime).To(Equal(ContainerRuntimeContainerD))
 			})
 		})

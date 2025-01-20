@@ -1,9 +1,6 @@
 package create
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 	. "github.com/onsi/ginkgo/v2"
@@ -12,6 +9,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/eks/fakes"
 )
 
 var _ = Describe("create nodegroup", func() {
@@ -195,7 +193,12 @@ var _ = Describe("create nodegroup", func() {
 
 	DescribeTable("checkNodeGroupVersion",
 		func(input checkNodeGroupVersionInput) {
-			err := checkNodeGroupVersion(input.ctl, input.meta)
+			cvm := &fakes.FakeClusterVersionsManagerInterface{}
+			cvm.SupportedVersionsStub = func() []string {
+				return []string{"1.29", "1.30", "1.31"}
+			}
+			cvm.LatestVersionReturns("1.31")
+			err := checkNodeGroupVersion(cvm, input.ctl.ControlPlaneVersion(), input.meta)
 			if input.expectedErr != "" {
 				Expect(err).To(MatchError(ContainSubstring(input.expectedErr)))
 				return
@@ -220,19 +223,7 @@ var _ = Describe("create nodegroup", func() {
 			meta: &api.ClusterMeta{
 				Version: "latest",
 			},
-			expectedVersion: api.LatestVersion,
-		}),
-		Entry("version is set to deprecated version", checkNodeGroupVersionInput{
-			meta: &api.ClusterMeta{
-				Version: api.Version1_15,
-			},
-			expectedErr: fmt.Sprintf("invalid version, %s is no longer supported", api.Version1_15),
-		}),
-		Entry("version is set to unsupported version", checkNodeGroupVersionInput{
-			meta: &api.ClusterMeta{
-				Version: "100",
-			},
-			expectedErr: fmt.Sprintf("invalid version 100, supported values: auto, default, latest, %s", strings.Join(api.SupportedVersions(), ", ")),
+			expectedVersion: api.Version1_31,
 		}),
 		Entry("fails to retrieve control plane version", checkNodeGroupVersionInput{
 			ctl: &eks.ClusterProvider{

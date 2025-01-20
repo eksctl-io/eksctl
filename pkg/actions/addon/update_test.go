@@ -562,7 +562,7 @@ var _ = Describe("Update", func() {
 		}, nil).Once()
 		mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
 			AddonName:         aws.String("vpc-cni"),
-			KubernetesVersion: aws.String(api.LatestVersion),
+			KubernetesVersion: aws.String(api.DefaultVersion),
 		}).Return(&awseks.DescribeAddonVersionsOutput{
 			Addons: []ekstypes.AddonInfo{
 				{
@@ -636,7 +636,7 @@ var _ = Describe("Update", func() {
 
 		addonManager, err := addon.New(&api.ClusterConfig{
 			Metadata: &api.ClusterMeta{
-				Version: api.LatestVersion,
+				Version: api.Version1_30,
 				Name:    clusterName,
 			},
 			AddonsConfig: e.addonsConfig,

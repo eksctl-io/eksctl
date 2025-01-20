@@ -56,7 +56,7 @@ var _ = BeforeSuite(func() {
 
 	clusterConfig = api.NewClusterConfig()
 	clusterConfig.Metadata.Name = params.ClusterName
-	clusterConfig.Metadata.Version = api.LatestVersion
+	clusterConfig.Metadata.Version = api.DefaultVersion
 	clusterConfig.Metadata.Region = params.Region
 	clusterConfig.KubernetesNetworkConfig.IPFamily = "iPv6"
 	clusterConfig.VPC.NAT = nil
