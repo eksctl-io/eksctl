@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	gfn "github.com/awslabs/goformation/v4/cloudformation"
-	gfniam "github.com/awslabs/goformation/v4/cloudformation/iam"
-	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
+	gfn "github.com/weaveworks/eksctl/pkg/goformation/cloudformation"
+	gfniam "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/iam"
+	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
