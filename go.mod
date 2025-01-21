@@ -3,30 +3,30 @@
 // you may also need to run `make push-build-image` depending on what has changed
 module github.com/weaveworks/eksctl
 
-go 1.21
+go 1.22
 
-toolchain go1.21.5
+toolchain go1.22.10
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.4.2-0.20230601180523-74e721cb8c1e
 	github.com/aws/aws-sdk-go v1.51.16
-	github.com/aws/aws-sdk-go-v2 v1.32.8
+	github.com/aws/aws-sdk-go-v2 v1.33.0
 	github.com/aws/aws-sdk-go-v2/config v1.28.9
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.50
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.51.5
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.56.5
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.46.7
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.45.4
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.51.7
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.56.7
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.46.9
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.45.6
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.48.4
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.166.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.56.3
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.28.10
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.43.5
-	github.com/aws/aws-sdk-go-v2/service/iam v1.38.5
+	github.com/aws/aws-sdk-go-v2/service/eks v1.56.5
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.28.12
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.43.7
+	github.com/aws/aws-sdk-go-v2/service/iam v1.38.7
 	github.com/aws/aws-sdk-go-v2/service/kms v1.27.5
-	github.com/aws/aws-sdk-go-v2/service/outposts v1.48.1
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.56.5
+	github.com/aws/aws-sdk-go-v2/service/outposts v1.48.3
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.56.7
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.5
 	github.com/aws/smithy-go v1.22.1
 	github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20240508073157-fbfa1bc129f5
@@ -71,11 +71,11 @@ require (
 	github.com/vektra/mockery/v2 v2.38.0
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xgfone/netaddr v0.5.1
-	golang.org/x/crypto v0.22.0
+	golang.org/x/crypto v0.32.0
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
 	golang.org/x/oauth2 v0.18.0
-	golang.org/x/sync v0.7.0
-	golang.org/x/tools v0.20.0
+	golang.org/x/sync v0.10.0
+	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.14.3
 	k8s.io/api v0.29.1
@@ -127,8 +127,8 @@ require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.7 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.23 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.27 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.27 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.28 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.28 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.8 // indirect
@@ -395,10 +395,10 @@ require (
 	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20240314144324-c7f7c6466f7f // indirect
 	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/net v0.24.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
-	golang.org/x/term v0.19.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/net v0.34.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/term v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/api v0.152.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect

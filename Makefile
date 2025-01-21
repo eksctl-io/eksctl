@@ -1,6 +1,5 @@
 include Makefile.common
 include Makefile.docs
-include Makefile.docker
 
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
@@ -33,11 +32,15 @@ endif
 
 ##@ Dependencies
 .PHONY: install-all-deps
-install-all-deps: install-build-deps install-site-deps ## Install all dependencies for building both binary and user docs)
+install-all-deps: install-site-deps ## Install all dependencies for building both binary and user docs)
 
-.PHONY: install-build-deps
-install-build-deps: ## Install dependencies (packages and tools)
-	build/scripts/install-build-deps.sh
+.PHONY: install-tools
+install-tools: ## Install dependencies for code generation and test execution
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	go install github.com/cloudflare/cfssl/cmd/...@latest
+	go install github.com/maxbrunsfeld/counterfeiter/v6
+	go install github.com/vektra/mockery/v2
+	go install github.com/vburenin/ifacemaker
 
 ##@ Build
 
@@ -77,11 +80,11 @@ $(info will launch integration tests for Kubernetes version $(INTEGRATION_TEST_V
 endif
 
 .PHONY: lint
-lint: ## Run linter over the codebase
+lint: install-tools ## Run linter over the codebase
 	golangci-lint run --timeout=30m
 
 .PHONY: test
-test: ## Lint, generate and run unit tests. Also ensure that integration tests compile
+test: install-tools ## Lint, generate and run unit tests. Also ensure that integration tests compile
 	$(MAKE) lint
 	$(MAKE) unit-test
 	$(MAKE) build-integration-test
@@ -89,12 +92,12 @@ test: ## Lint, generate and run unit tests. Also ensure that integration tests c
 .PHONY: unit-test
 unit-test: check-all-generated-files-up-to-date unit-test-no-generate
 
-.PHONY: unit-test-no-generate ## Run unit test only
-unit-test-no-generate:
+.PHONY: unit-test-no-generate
+unit-test-no-generate: install-tools ## Run unit test only
 	CGO_ENABLED=0 go test  -tags=release ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: unit-test-race
-unit-test-race: ## Run unit test with race detection
+unit-test-race: install-tools ## Run unit test with race detection
 	CGO_ENABLED=1 go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: build-integration-test
@@ -102,7 +105,7 @@ build-integration-test: $(all_generated_code) ## Ensure integration tests compil
 	@# Compile integration test binary without running any.
 	@# Required as build failure aren't listed when running go build below. See also: https://github.com/golang/go/issues/15513
 	go test -tags integration -run=^$$ ./integration/...
-	@# Build integration test binary:
+	@# Build integration test binary:
 	go build -tags integration -o ./eksctl-integration-test ./integration/main.go
 
 .PHONY: integration-test
@@ -139,7 +142,7 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 ##@ Code Generation
 
 .PHONY: generate-always
-generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (required for every build)
+generate-always: install-tools ## Generate code (required for every build)
 	go generate ./pkg/apis/eksctl.io/v1alpha5/generate.go
 	go generate ./pkg/nodebootstrap
 	go generate ./pkg/addons
@@ -179,15 +182,11 @@ $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kuber
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go) ## Generate AWS SDK mocks
 	AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
 
-
 .PHONY: generate-kube-reserved
 generate-kube-reserved: ## Update instance list with respective specs
 	@cd ./pkg/nodebootstrap/ && go run reserved_generate.go
 
 ##@ Release
-# .PHONY: eksctl-image
-# eksctl-image: ## Build the eksctl image that has release artefacts and no build dependencies
-# 	$(MAKE) -f Makefile.docker $@
 
 .PHONY: prepare-release
 prepare-release: ## Create release
@@ -200,4 +199,3 @@ prepare-release-candidate: ## Create release candidate
 .PHONY: print-version
 print-version: ## Prints the upcoming release number
 	@go run pkg/version/generate/release_generate.go print-version
-
