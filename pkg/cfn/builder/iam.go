@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
 
-	gfniam "github.com/awslabs/goformation/v4/cloudformation/iam"
-	gfnrolesanywhere "github.com/awslabs/goformation/v4/cloudformation/rolesanywhere"
-	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
+	gfniam "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/iam"
+	gfnrolesanywhere "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/rolesanywhere"
+	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
