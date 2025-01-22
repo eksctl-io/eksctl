@@ -14,10 +14,12 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
         with:
           fetch-depth: 0
+
       - name: Setup identity as eksctl-bot
         uses: ./.github/actions/setup-identity
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
+
       - name: Merge release branch into ${{env.DEFAULT_BRANCH}}
         id: merge-changes
         run: |
@@ -32,6 +34,7 @@ jobs:
           ! git diff --exit-code $DEFAULT_BRANCH...HEAD || exit 1
           git push --set-upstream origin HEAD
           echo "changes=true" >> $GITHUB_OUTPUT
+
       - uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea #v7.0.1
         name: Open PR to ${{env.DEFAULT_BRANCH}}
         if: steps.merge-changes.outputs.changes == 'true'
