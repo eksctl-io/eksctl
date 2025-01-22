@@ -1,0 +1,87 @@
+include Makefile.common
+
+export PATH := ./build/scripts:$(PATH)
+
+image_manifest_file = build/docker/build_image_manifest
+
+# We use git object hashes for determining the input files used for any given build image
+# E.g. given `public.ecr.aws/eksctl/eksctl-build:d94225a6dbb6dfab6dd185442ae554432f9365dc` one can
+# run `git show d94225a6dbb6dfab6dd185442ae554432f9365dc` to get contents of `.build_image_manifest`,
+# and `git show <hash>` for each of the hashes in the manifest to determine contents of each of the
+# files used in `$(build_image_input)` at the time.
+build_image_tag_file = build/docker/image_tag
+build_image_tag = $(shell cat $(build_image_tag_file))
+
+build_image = public.ecr.aws/eksctl/eksctl-build
+build_image_name = $(build_image):$(build_image_tag)
+
+eksctl_image = public.ecr.aws/eksctl/eksctl
+eksctl_image_name = "$(eksctl_image):$${EKSCTL_IMAGE_VERSION}"
+
+docker_build := time docker build
+# We should eventually switch to buildkit, as it has a many feature and cleaner output with timing info,
+# but right now 'docker build' doesn't allow us to export build cache images, so we cannot use it yet
+# docker_build := env DOCKER_BUILDKIT=1 $(docker_build)
+
+sedi := -i
+ifeq ($(shell uname), Darwin)
+sedi = -i ''
+endif
+
+##@ Docker
+.PHONY: authenticate-ecr-for-docker
+authenticate-ecr-for-docker: ## Get ECR public registry credentials with AWS credentials
+	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+
+.PHONY: update-build-image-tag
+update-build-image-tag: ## Update the build image tag as referenced across the repo
+	build-image-manifest.sh > $(image_manifest_file)
+	git hash-object $(image_manifest_file) > $(build_image_tag_file)
+	sed $(sedi) -e "1s|\(BUILD_IMAGE=\).*|\1$(build_image):$$(cat $(build_image_tag_file))|" Dockerfile
+	find .github/workflows -type f | xargs sed $(sedi) -e "s|\($(build_image):\).*|\1$$(cat $(build_image_tag_file))|"
+
+.PHONY: check-build-image-manifest-up-to-date
+check-build-image-manifest-up-to-date: update-build-image-tag ## Update build image manifest and commits the changes
+	git diff --quiet -- $(image_manifest_file) \
+	  || (git --no-pager diff $(image_manifest_file); echo "HINT: to fix this, run 'make -f Makefile.docker update-build-image-tag' then 'commit-new-image-tag'"; exit 1)
+
+.PHONY: commit-new-image-tag
+commit-new-image-tag:  ## Update build image manifest and commits the changes
+	git add -u
+	git commit --message 'Update build image manifest, tag file and workflows'
+	@echo "Remember to run \"Publish ECR eksctl-build image\" GitHub workflow after merging these image tag changes"
+
+.PHONY: build-image
+build-image: check-build-image-manifest-up-to-date ## Build the build image that has all of external dependencies
+	-docker pull $(build_image_name)
+	cp .requirements build/scripts/install-build-deps.sh go.mod go.sum build/docker/
+	$(docker_build) \
+	  --cache-from=$(build_image_name) \
+	  --tag=$(build_image_name) \
+	  build/docker/
+
+.PHONY: push-build-image
+push-build-image: authenticate-ecr-for-docker build-image  ## Push the build image to the ECR public registry
+	docker push $(build_image_name)
+	@echo "Remember to commit the image_tag and build_image_manifest files"
+
+.PHONY: eksctl-image
+eksctl-image: ## Build the eksctl image that has release artefacts and no build dependencies
+	docker pull $(build_image_name)
+	$(docker_build) \
+	  --cache-from=$(build_image_name) \
+	  --tag=$(eksctl_image_name) \
+	  --build-arg=BUILD_IMAGE=$(build_image_name) \
+	  $(git_toplevel)
+
+.PHONY: eksctl-image
+push-eksctl-image: eksctl-image ## Push the eksctl image to the ECR public registry
+	docker push $(eksctl_image_name)
+
+.PHONY: build-test
+build-test: ## Run targets from Makefile using the build image
+	time docker run \
+	  --tty \
+	  --rm \
+	  --volume=$(git_toplevel):/src \
+	    $(build_image_name) make $@

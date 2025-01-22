@@ -10,11 +10,11 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
-	gfn "github.com/weaveworks/eksctl/pkg/goformation/cloudformation"
-	gfncfn "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/cloudformation"
-	gfnec2 "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/ec2"
-	gfneks "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/eks"
-	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
+	gfn "github.com/awslabs/goformation/v4/cloudformation"
+	gfncfn "github.com/awslabs/goformation/v4/cloudformation/cloudformation"
+	gfnec2 "github.com/awslabs/goformation/v4/cloudformation/ec2"
+	gfneks "github.com/awslabs/goformation/v4/cloudformation/eks"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	"github.com/kris-nova/logger"
 

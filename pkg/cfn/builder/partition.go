@@ -3,7 +3,7 @@ package builder
 import (
 	"fmt"
 
-	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 )
 
 const servicePrincipalPartitionMapName = "ServicePrincipalPartitionMap"
