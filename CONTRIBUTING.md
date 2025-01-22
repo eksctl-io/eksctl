@@ -284,7 +284,7 @@ then head to the [main docs](https://eksctl.io/) for more information.
 
 This project is written in Go. To be able to contribute you will need:
 
-1. A working Go installation of Go >= 1.22. You can check the
+1. A working Go installation of Go >= 1.12. You can check the
 [official installation guide](https://golang.org/doc/install).
 
 2. Make sure that `$(go env GOPATH)/bin` is in your shell's `PATH`. You can do so by
@@ -343,6 +343,19 @@ To run the tests simply run the following after `install-build-deps`:
 ```bash
 make test
 ```
+
+If you prefer to use Docker, the same way it is used in CI, you can use the
+following command:
+
+```bash
+make -f Makefile.docker test
+```
+
+> NOTE: It is not the most convenient way of working on the project, as
+> binaries are built inside the container and cannot be tested manually,
+> also majority of end-users consume binaries and not Docker images.
+> It is recommended to use `make build` etc, unless there is an issue in CI
+> that need troubleshooting.
 
 #### Running the integration tests
 
