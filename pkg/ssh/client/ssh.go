@@ -184,7 +184,7 @@ func findKeyInEC2(ctx context.Context, ec2API awsapi.EC2, name string) (*ec2type
 		if errors.As(err, &ae) && ae.ErrorCode() == "InvalidKeyPair.NotFound" {
 			return nil, nil
 		}
-		return nil, errors.Wrapf(err, fmt.Sprintf("searching for SSH public key %q in EC2", name))
+		return nil, errors.Wrapf(err, "%s", fmt.Sprintf("searching for SSH public key %q in EC2", name))
 	}
 
 	if len(output.KeyPairs) != 1 {

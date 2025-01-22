@@ -37,6 +37,9 @@ var KnownAddons = map[string]struct {
 			RegionUSISOBEast1,
 			RegionUSGovWest1,
 			RegionUSGovEast1,
+			RegionUSISOFEast1,
+			RegionUSISOFSouth1,
+			RegionEUISOEWest1,
 		},
 	},
 }

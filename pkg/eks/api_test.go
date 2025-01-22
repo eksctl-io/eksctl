@@ -100,7 +100,7 @@ var _ = Describe("eksctl API", func() {
 	},
 		Entry("fails to load default config", newAWSProviderEntry{
 			updateFakes: func(fal *fakes.FakeAWSConfigurationLoader) {
-				fal.LoadDefaultConfigReturns(*aws.NewConfig(), fmt.Errorf(genericError))
+				fal.LoadDefaultConfigReturns(*aws.NewConfig(), fmt.Errorf("%v", genericError))
 			},
 			err: genericError,
 		}),
@@ -170,7 +170,7 @@ var _ = Describe("eksctl API", func() {
 	},
 		Entry("fails to create the AWS provider", newClusterProviderEntry{
 			overwriteAWSProviderBuilderMock: func(pc *api.ProviderConfig, acl AWSConfigurationLoader) (api.ClusterProvider, error) {
-				return nil, fmt.Errorf(genericError)
+				return nil, fmt.Errorf("%v", genericError)
 			},
 			err: genericError,
 		}),
@@ -178,7 +178,7 @@ var _ = Describe("eksctl API", func() {
 			updateMocks: func(mp *mockprovider.MockProvider) {
 				_, _ = mp.STS().GetCallerIdentity(context.Background(), nil)
 				mp.MockSTS().On("GetCallerIdentity", mock.Anything, mock.Anything).Return(
-					nil, fmt.Errorf(genericError),
+					nil, fmt.Errorf("%v", genericError),
 				).Once()
 			},
 			err: fmt.Sprintf("checking AWS STS access – cannot get role ARN for current session: %s", genericError),
