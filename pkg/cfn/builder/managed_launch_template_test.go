@@ -20,8 +20,8 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 
-	"github.com/weaveworks/eksctl/pkg/goformation"
-	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
+	"github.com/awslabs/goformation/v4"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"

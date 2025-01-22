@@ -14,7 +14,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 
-	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

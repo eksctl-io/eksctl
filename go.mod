@@ -30,6 +30,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.5
 	github.com/aws/smithy-go v1.22.1
 	github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20240508073157-fbfa1bc129f5
+	github.com/awslabs/goformation/v4 v4.15.5
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
@@ -52,15 +53,12 @@ require (
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.8.1
-	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/ginkgo/v2 v2.17.1
 	github.com/onsi/gomega v1.31.1
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/otiai10/copy v1.14.0
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
-	github.com/sanathkr/go-yaml v0.0.0-20170819195128-ed9d249f429b
-	github.com/sanathkr/yaml v0.0.0-20170819201035-0056894fa522
 	github.com/sethvargo/go-password v0.2.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
@@ -72,7 +70,6 @@ require (
 	github.com/vburenin/ifacemaker v1.2.1
 	github.com/vektra/mockery/v2 v2.38.0
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
-	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xgfone/netaddr v0.5.1
 	golang.org/x/crypto v0.32.0
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
@@ -311,7 +308,6 @@ require (
 	github.com/nishanths/exhaustive v0.12.0 // indirect
 	github.com/nishanths/predeclared v0.2.2 // indirect
 	github.com/nunnatsa/ginkgolinter v0.16.2 // indirect
-	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
@@ -339,6 +335,8 @@ require (
 	github.com/sagikazarmark/locafero v0.3.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sahilm/fuzzy v0.1.0 // indirect
+	github.com/sanathkr/go-yaml v0.0.0-20170819195128-ed9d249f429b // indirect
+	github.com/sanathkr/yaml v0.0.0-20170819201035-0056894fa522 // indirect
 	github.com/sanposhiho/wastedassign/v2 v2.0.7 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
 	github.com/sashamelentyev/interfacebloat v1.1.0 // indirect
@@ -377,6 +375,7 @@ require (
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
+	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/xen0n/gosmopolitan v1.2.2 // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect
 	github.com/yagipy/maintidx v1.0.0 // indirect
@@ -409,7 +408,6 @@ require (
 	gopkg.in/gcfg.v1 v1.2.3 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.4.7 // indirect
@@ -466,3 +464,6 @@ replace (
 
 // Ensure k8s dependencies are also pinned accordingly
 replace github.com/acomagu/bufpipe => github.com/acomagu/bufpipe v1.0.4
+
+// Use a local fork of goformation
+replace github.com/awslabs/goformation/v4 => ./goformation
