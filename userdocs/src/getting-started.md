@@ -1,7 +1,7 @@
 # Getting started
 
 !!! tip "New for 2024"
-    `eksctl` now supports new region Kuala Lumpur (`ap-southeast-5`)
+    `eksctl` now supports new regions Kuala Lumpur (`ap-southeast-5`), `us-isof-south-1`, `us-isof-east-1` and `eu-isoe-west-1`
 
     EKS Add-ons now support receiving IAM permissions via [EKS Pod Identity Associations](/usage/pod-identity-associations/#eks-add-ons-support-for-pod-identity-associations)
 

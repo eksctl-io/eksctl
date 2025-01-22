@@ -246,7 +246,7 @@ func runAllTasks(taskTree *tasks.TaskTree) error {
 		for _, err := range errs {
 			allErrs = append(allErrs, err.Error())
 		}
-		return fmt.Errorf(strings.Join(allErrs, "\n"))
+		return fmt.Errorf("%s", strings.Join(allErrs, "\n"))
 	}
 	completedAction := func() string {
 		if taskTree.PlanMode {

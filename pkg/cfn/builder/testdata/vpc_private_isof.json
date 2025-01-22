@@ -1,0 +1,225 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Resources": {
+        "PrivateRouteTableUSISOFSOUTH1A": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/PrivateRouteTableUSISOFSOUTH1A"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "PrivateRouteTableUSISOFSOUTH1B": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/PrivateRouteTableUSISOFSOUTH1B"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "RouteTableAssociationPrivateUSISOFSOUTH1A": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "PrivateRouteTableUSISOFSOUTH1A"
+                },
+                "SubnetId": {
+                    "Ref": "SubnetPrivateUSISOFSOUTH1A"
+                }
+            }
+        },
+        "RouteTableAssociationPrivateUSISOFSOUTH1B": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "PrivateRouteTableUSISOFSOUTH1B"
+                },
+                "SubnetId": {
+                    "Ref": "SubnetPrivateUSISOFSOUTH1B"
+                }
+            }
+        },
+        "SubnetPrivateUSISOFSOUTH1A": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "us-isof-south-1a",
+                "CidrBlock": "192.168.64.0/19",
+                "Tags": [
+                    {
+                        "Key": "kubernetes.io/role/internal-elb",
+                        "Value": "1"
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/SubnetPrivateUSISOFSOUTH1A"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "SubnetPrivateUSISOFSOUTH1B": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "us-isof-south-1b",
+                "CidrBlock": "192.168.96.0/19",
+                "Tags": [
+                    {
+                        "Key": "kubernetes.io/role/internal-elb",
+                        "Value": "1"
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/SubnetPrivateUSISOFSOUTH1B"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "VPC": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": "192.168.0.0/16",
+                "EnableDnsHostnames": true,
+                "EnableDnsSupport": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPC"
+                        }
+                    }
+                ]
+            }
+        },
+        "VPCEndpointEC2": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "PrivateDnsEnabled": true,
+                "SecurityGroupIds": [
+                    "sg-test"
+                ],
+                "ServiceName": "com.amazonaws.us-isof-south-1.ec2",
+                "SubnetIds": [
+                    {
+                        "Ref": "SubnetPrivateUSISOFSOUTH1A"
+                    },
+                    {
+                        "Ref": "SubnetPrivateUSISOFSOUTH1B"
+                    }
+                ],
+                "VpcEndpointType": "Interface",
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "VPCEndpointECRAPI": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "PrivateDnsEnabled": true,
+                "SecurityGroupIds": [
+                    "sg-test"
+                ],
+                "ServiceName": "gov.ic.hci.csp.us-isof-south-1.ecr.api",
+                "SubnetIds": [
+                    {
+                        "Ref": "SubnetPrivateUSISOFSOUTH1A"
+                    },
+                    {
+                        "Ref": "SubnetPrivateUSISOFSOUTH1B"
+                    }
+                ],
+                "VpcEndpointType": "Interface",
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "VPCEndpointECRDKR": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "PrivateDnsEnabled": true,
+                "SecurityGroupIds": [
+                    "sg-test"
+                ],
+                "ServiceName": "gov.ic.hci.csp.us-isof-south-1.ecr.dkr",
+                "SubnetIds": [
+                    {
+                        "Ref": "SubnetPrivateUSISOFSOUTH1A"
+                    },
+                    {
+                        "Ref": "SubnetPrivateUSISOFSOUTH1B"
+                    }
+                ],
+                "VpcEndpointType": "Interface",
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "VPCEndpointS3": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "RouteTableIds": [
+                    {
+                        "Ref": "PrivateRouteTableUSISOFSOUTH1A"
+                    },
+                    {
+                        "Ref": "PrivateRouteTableUSISOFSOUTH1B"
+                    }
+                ],
+                "ServiceName": "com.amazonaws.us-isof-south-1.s3",
+                "VpcEndpointType": "Gateway",
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "VPCEndpointSTS": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "PrivateDnsEnabled": true,
+                "SecurityGroupIds": [
+                    "sg-test"
+                ],
+                "ServiceName": "com.amazonaws.us-isof-south-1.sts",
+                "SubnetIds": [
+                    {
+                        "Ref": "SubnetPrivateUSISOFSOUTH1A"
+                    },
+                    {
+                        "Ref": "SubnetPrivateUSISOFSOUTH1B"
+                    }
+                ],
+                "VpcEndpointType": "Interface",
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        }
+    }
+}
