@@ -1,7 +1,7 @@
 package ssm
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // PatchBaseline_PatchStringDate AWS CloudFormation Resource (AWS::SSM::PatchBaseline.PatchStringDate)

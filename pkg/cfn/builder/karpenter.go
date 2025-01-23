@@ -3,11 +3,11 @@ package builder
 import (
 	"fmt"
 
-	gfn "goformation/v4/cloudformation"
-	gfnevents "goformation/v4/cloudformation/events"
-	gfniam "goformation/v4/cloudformation/iam"
-	gfnsqs "goformation/v4/cloudformation/sqs"
-	gfnt "goformation/v4/cloudformation/types"
+	gfn "github.com/awslabs/goformation/v4/cloudformation"
+	gfnevents "github.com/awslabs/goformation/v4/cloudformation/events"
+	gfniam "github.com/awslabs/goformation/v4/cloudformation/iam"
+	gfnsqs "github.com/awslabs/goformation/v4/cloudformation/sqs"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"k8s.io/apimachinery/pkg/util/sets"

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"github.com/spf13/cobra"
-
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
@@ -26,6 +25,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, enableSecretsEncryptionCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, schemaCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, nodeGroupHealthCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, describeClusterVersionsCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, describeAddonVersionsCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, describeAddonConfigurationCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, migrateToPodIdentityCmd)

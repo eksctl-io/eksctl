@@ -1,7 +1,7 @@
 package sagemaker
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Domain_JupyterServerAppSettings AWS CloudFormation Resource (AWS::SageMaker::Domain.JupyterServerAppSettings)

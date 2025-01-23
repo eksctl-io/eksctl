@@ -1,7 +1,7 @@
 package redshift
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // ScheduledAction_ScheduledActionType AWS CloudFormation Resource (AWS::Redshift::ScheduledAction.ScheduledActionType)

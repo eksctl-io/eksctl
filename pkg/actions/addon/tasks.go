@@ -18,7 +18,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree, *tasks.GenericTask, []string) {
+func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration, region string) (*tasks.TaskTree, *tasks.TaskTree, *tasks.GenericTask, []string) {
 	var addons []*api.Addon
 	var autoDefaultAddonNames []string
 	if !cfg.AddonsConfig.DisableDefaultAddons {
@@ -26,11 +26,14 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 		copy(addons, cfg.Addons)
 
 		for addonName, addonInfo := range api.KnownAddons {
-			if addonInfo.IsDefault && !slices.ContainsFunc(cfg.Addons, func(a *api.Addon) bool {
+			if addonInfo.IsDefault && !slices.Contains(addonInfo.ExcludedRegions, region) && !slices.ContainsFunc(cfg.Addons, func(a *api.Addon) bool {
 				return strings.EqualFold(a.Name, addonName)
 			}) {
-				addons = append(addons, &api.Addon{Name: addonName})
-				autoDefaultAddonNames = append(autoDefaultAddonNames, addonName)
+				if !cfg.IsAutoModeEnabled() || addonInfo.IsDefaultAutoMode {
+					addons = append(addons, &api.Addon{Name: addonName})
+					autoDefaultAddonNames = append(autoDefaultAddonNames, addonName)
+				}
+
 			}
 		}
 	} else {
@@ -89,6 +92,10 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 				addonManager, err := createAddonManager(ctx, clusterProvider, cfg)
 				if err != nil {
 					return err
+				}
+				// VPC CNI is being created in a separate task, so we need to wait for it to be active before updating to use IRSA
+				if err := addonManager.waitForAddonToBeActive(ctx, &api.Addon{Name: api.VPCCNIAddon}, api.DefaultWaitTimeout); err != nil {
+					return fmt.Errorf("waiting for %q to become active: %w", api.VPCCNIAddon, err)
 				}
 				return addonManager.Update(ctx, vpcCNIAddon, nil, clusterProvider.AWSProvider.WaitTimeout())
 			},
@@ -221,7 +228,7 @@ func runAllTasks(taskTree *tasks.TaskTree) error {
 		for _, err := range errs {
 			allErrs = append(allErrs, err.Error())
 		}
-		return fmt.Errorf(strings.Join(allErrs, "\n"))
+		return fmt.Errorf("%s", strings.Join(allErrs, "\n"))
 	}
 	completedAction := func() string {
 		if taskTree.PlanMode {

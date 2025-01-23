@@ -1,7 +1,7 @@
 package ec2
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // SpotFleet_TargetGroupsConfig AWS CloudFormation Resource (AWS::EC2::SpotFleet.TargetGroupsConfig)

@@ -1,9 +1,9 @@
 package finspace
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Environment_SuperuserParameters AWS CloudFormation Resource (AWS::FinSpace::Environment.SuperuserParameters)

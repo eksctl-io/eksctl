@@ -1,7 +1,7 @@
 package synthetics
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Canary_ArtifactConfig AWS CloudFormation Resource (AWS::Synthetics::Canary.ArtifactConfig)

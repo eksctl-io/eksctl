@@ -1271,7 +1271,9 @@ func createAdditionalSubnet(cfg *api.ClusterConfig) string {
 	var (
 		i1, i2, i3, i4, ic int
 	)
-	fmt.Sscanf(cidr, "%d.%d.%d.%d/%d", &i1, &i2, &i3, &i4, &ic)
+	n, err := fmt.Sscanf(cidr, "%d.%d.%d.%d/%d", &i1, &i2, &i3, &i4, &ic)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(n > 4).To(BeTrue())
 	cidr = fmt.Sprintf("%d.%d.%s.%d/%d", i1, i2, "255", i4, ic)
 
 	var tags []ec2types.Tag

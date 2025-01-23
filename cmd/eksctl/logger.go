@@ -101,7 +101,7 @@ func dumpLogsToDisk(logBuffer *bytes.Buffer, errorString string) error {
 	if _, err := os.Stat("logs/"); os.IsNotExist(err) {
 
 		if err := os.Mkdir("logs/", 0755); err != nil {
-			return fmt.Errorf(err.Error())
+			return err
 		}
 	}
 

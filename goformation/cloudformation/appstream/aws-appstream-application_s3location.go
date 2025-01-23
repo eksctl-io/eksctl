@@ -1,9 +1,9 @@
 package appstream
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Application_S3Location AWS CloudFormation Resource (AWS::AppStream::Application.S3Location)

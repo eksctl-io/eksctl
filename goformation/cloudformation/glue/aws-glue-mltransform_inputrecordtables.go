@@ -1,7 +1,7 @@
 package glue
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // MLTransform_InputRecordTables AWS CloudFormation Resource (AWS::Glue::MLTransform.InputRecordTables)

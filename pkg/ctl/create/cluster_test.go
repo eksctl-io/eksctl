@@ -215,14 +215,6 @@ var _ = Describe("create cluster", func() {
 				args:  []string{"cluster", "--invalid", "dummy"},
 				error: "unknown flag: --invalid",
 			}),
-			Entry("with enableSsm disabled", invalidParamsCase{
-				args:  []string{"--name=test", "--enable-ssm=false"},
-				error: "SSM agent is now built into EKS AMIs and cannot be disabled",
-			}),
-			Entry("with node zones without zones", invalidParamsCase{
-				args:  []string{"--zones=zone1,zone2", "--node-zones=zone3"},
-				error: "validation for --zones and --node-zones failed: node-zones [zone3] must be a subset of zones [zone1 zone2]; \"zone3\" was not found in zones",
-			}),
 		)
 	})
 

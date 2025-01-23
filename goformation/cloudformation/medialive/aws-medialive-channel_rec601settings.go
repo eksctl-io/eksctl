@@ -1,7 +1,7 @@
 package medialive
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Channel_Rec601Settings AWS CloudFormation Resource (AWS::MediaLive::Channel.Rec601Settings)

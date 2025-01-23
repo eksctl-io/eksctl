@@ -1,9 +1,9 @@
 package quicksight
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Dashboard_ExportToCSVOption AWS CloudFormation Resource (AWS::QuickSight::Dashboard.ExportToCSVOption)

@@ -3,7 +3,6 @@ package version
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 var _ = Describe("release tests", func() {
@@ -20,10 +19,9 @@ var _ = Describe("release tests", func() {
 
 		Expect(v).To(Equal("0.5.0"))
 		Expect(info).To(Equal(Info{
-			Version:                    "0.5.0",
-			PreReleaseID:               "",
-			Metadata:                   BuildMetadata{},
-			EKSServerSupportedVersions: v1alpha5.SupportedVersions(),
+			Version:      "0.5.0",
+			PreReleaseID: "",
+			Metadata:     BuildMetadata{},
 		}))
 	})
 
@@ -44,7 +42,6 @@ var _ = Describe("release tests", func() {
 				GitCommit: "abc123",
 				BuildDate: "today",
 			},
-			EKSServerSupportedVersions: v1alpha5.SupportedVersions(),
 		}))
 	})
 
@@ -64,7 +61,6 @@ var _ = Describe("release tests", func() {
 				GitCommit: "abc123",
 				BuildDate: "today",
 			},
-			EKSServerSupportedVersions: v1alpha5.SupportedVersions(),
 		}))
 	})
 
@@ -84,7 +80,6 @@ var _ = Describe("release tests", func() {
 				GitCommit: "abc1234",
 				BuildDate: "2020-01-15T14:03:46Z",
 			},
-			EKSServerSupportedVersions: v1alpha5.SupportedVersions(),
 		}))
 	})
 
@@ -96,10 +91,9 @@ var _ = Describe("release tests", func() {
 
 		Expect(v).To(Equal("0.5.0-dev"))
 		Expect(info).To(Equal(Info{
-			Version:                    "0.5.0",
-			PreReleaseID:               "dev",
-			Metadata:                   BuildMetadata{},
-			EKSServerSupportedVersions: v1alpha5.SupportedVersions(),
+			Version:      "0.5.0",
+			PreReleaseID: "dev",
+			Metadata:     BuildMetadata{},
 		}))
 	})
 

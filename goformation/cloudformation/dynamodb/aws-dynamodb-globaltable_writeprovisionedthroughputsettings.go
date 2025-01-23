@@ -1,7 +1,7 @@
 package dynamodb
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // GlobalTable_WriteProvisionedThroughputSettings AWS CloudFormation Resource (AWS::DynamoDB::GlobalTable.WriteProvisionedThroughputSettings)

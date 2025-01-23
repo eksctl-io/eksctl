@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"strings"
@@ -21,7 +20,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
 )
 
 type al2023Entry struct {
@@ -54,7 +52,7 @@ var _ = DescribeTable("Unmanaged AL2023", func(e al2023Entry) {
 	Expect(actual).To(Equal(e.expectedUserData))
 },
 	Entry("default", al2023Entry{
-		expectedUserData: wrapMIMEParts(xTablesLock + nodeConfig),
+		expectedUserData: wrapMIMEParts(nodeConfig),
 	}),
 	Entry("ipv6", al2023Entry{
 		overrideClusterSettings: func(cc *api.ClusterConfig) {
@@ -62,13 +60,13 @@ var _ = DescribeTable("Unmanaged AL2023", func(e al2023Entry) {
 			cc.Status.KubernetesNetworkConfig.ServiceIPv6CIDR = "fd00:facc:76a1::/108"
 			cc.Status.KubernetesNetworkConfig.ServiceIPv4CIDR = ""
 		},
-		expectedUserData: wrapMIMEParts(xTablesLock + nodeConfigIPv6),
+		expectedUserData: wrapMIMEParts(nodeConfigIPv6),
 	}),
 	Entry("efa enabled", al2023Entry{
 		overrideNodegroupSettings: func(np api.NodePool) {
 			np.BaseNodeGroup().EFAEnabled = aws.Bool(true)
 		},
-		expectedUserData: wrapMIMEParts(xTablesLock + nodeConfig),
+		expectedUserData: wrapMIMEParts(nodeConfig),
 	}),
 )
 
@@ -96,14 +94,12 @@ var _ = DescribeTable("Managed AL2023", func(e al2023Entry) {
 	actual := strings.ReplaceAll(string(decoded), "\r\n", "\n")
 	Expect(actual).To(Equal(e.expectedUserData))
 },
-	Entry("native AMI", al2023Entry{
-		expectedUserData: wrapMIMEParts(xTablesLock),
-	}),
+	Entry("native AMI", al2023Entry{}),
 	Entry("custom AMI", al2023Entry{
 		overrideNodegroupSettings: func(np api.NodePool) {
 			np.BaseNodeGroup().AMI = "ami-xxxx"
 		},
-		expectedUserData: wrapMIMEParts(xTablesLock + managedNodeConfig),
+		expectedUserData: wrapMIMEParts(managedNodeConfig),
 	}),
 )
 
@@ -379,13 +375,6 @@ Content-Type: multipart/mixed; boundary=//
 ` + parts + `--//--
 `
 	}
-
-	xTablesLock = fmt.Sprintf(`--//
-Content-Type: text/x-shellscript
-Content-Type: charset="us-ascii"
-
-%s
-`, assets.AL2023XTablesLock)
 
 	nodeConfig = `--//
 Content-Type: application/node.eks.aws

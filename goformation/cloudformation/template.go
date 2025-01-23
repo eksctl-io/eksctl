@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
 	"github.com/sanathkr/yaml"
 )

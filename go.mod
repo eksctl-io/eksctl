@@ -14,22 +14,23 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.32.8
 	github.com/aws/aws-sdk-go-v2/config v1.28.9
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.50
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.51.3
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.56.4
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.46.5
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.45.2
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.51.5
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.56.5
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.46.7
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.45.4
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.48.4
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.166.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.56.1
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.28.9
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.43.4
-	github.com/aws/aws-sdk-go-v2/service/iam v1.38.3
+	github.com/aws/aws-sdk-go-v2/service/eks v1.56.3
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.28.10
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.43.5
+	github.com/aws/aws-sdk-go-v2/service/iam v1.38.5
 	github.com/aws/aws-sdk-go-v2/service/kms v1.27.5
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.48.1
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.56.3
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.56.5
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.5
 	github.com/aws/smithy-go v1.22.1
 	github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20240508073157-fbfa1bc129f5
+	github.com/awslabs/goformation/v4 v4.15.5
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
@@ -62,7 +63,7 @@ require (
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/tidwall/gjson v1.17.1
 	github.com/tidwall/sjson v1.2.5
 	github.com/tj/assert v0.0.3
@@ -70,7 +71,6 @@ require (
 	github.com/vektra/mockery/v2 v2.38.0
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xgfone/netaddr v0.5.1
-	goformation/v4 v4.0.0
 	golang.org/x/crypto v0.22.0
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
 	golang.org/x/oauth2 v0.18.0
@@ -135,7 +135,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.17.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.24.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.8 // indirect
-	github.com/awslabs/goformation/v4 v4.19.5 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.1 // indirect
@@ -467,4 +466,4 @@ replace (
 replace github.com/acomagu/bufpipe => github.com/acomagu/bufpipe v1.0.4
 
 // Use a local fork of goformation
-replace goformation/v4 => ./goformation
+replace github.com/awslabs/goformation/v4 => ./goformation

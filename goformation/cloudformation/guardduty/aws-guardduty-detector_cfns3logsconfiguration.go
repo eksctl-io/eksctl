@@ -1,9 +1,9 @@
 package guardduty
 
 import (
-	"goformation/v4/cloudformation/types"
+	"github.com/awslabs/goformation/v4/cloudformation/types"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Detector_CFNS3LogsConfiguration AWS CloudFormation Resource (AWS::GuardDuty::Detector.CFNS3LogsConfiguration)

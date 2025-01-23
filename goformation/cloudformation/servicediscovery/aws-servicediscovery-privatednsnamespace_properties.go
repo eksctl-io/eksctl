@@ -1,7 +1,7 @@
 package servicediscovery
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // PrivateDnsNamespace_Properties AWS CloudFormation Resource (AWS::ServiceDiscovery::PrivateDnsNamespace.Properties)

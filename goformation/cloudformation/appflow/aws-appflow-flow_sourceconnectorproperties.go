@@ -1,7 +1,7 @@
 package appflow
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Flow_SourceConnectorProperties AWS CloudFormation Resource (AWS::AppFlow::Flow.SourceConnectorProperties)

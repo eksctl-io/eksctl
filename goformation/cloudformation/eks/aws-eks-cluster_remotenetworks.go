@@ -1,6 +1,6 @@
 package eks
 
-import "goformation/v4/cloudformation/types"
+import "github.com/awslabs/goformation/v4/cloudformation/types"
 
 type Cluster_RemoteNetworkConfig struct {
 	RemotePodNetworks  []RemoteNetworks `json:"RemotePodNetworks,omitempty"`

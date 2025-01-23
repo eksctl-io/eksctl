@@ -1,7 +1,7 @@
 package sagemaker
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // ModelQualityJobDefinition_ModelQualityJobInput AWS CloudFormation Resource (AWS::SageMaker::ModelQualityJobDefinition.ModelQualityJobInput)

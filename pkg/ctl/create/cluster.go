@@ -21,7 +21,6 @@ import (
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
-
 	"github.com/weaveworks/eksctl/pkg/accessentry"
 	accessentryactions "github.com/weaveworks/eksctl/pkg/actions/accessentry"
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
@@ -72,23 +71,6 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 	})
 }
 
-func checkClusterVersion(cfg *api.ClusterConfig) error {
-	switch cfg.Metadata.Version {
-	case "auto":
-		cfg.Metadata.Version = api.DefaultVersion
-	case "latest":
-		cfg.Metadata.Version = api.LatestVersion
-	}
-
-	if err := api.ValidateClusterVersion(cfg); err != nil {
-		return err
-	}
-	if cfg.Metadata.Version == "" {
-		cfg.Metadata.Version = api.DefaultVersion
-	}
-	return nil
-}
-
 func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
@@ -102,10 +84,6 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 		cmd.NameArg = cmdutils.GetNameArg(args)
 		ngFilter := filter.NewNodeGroupFilter()
 		if err := cmdutils.NewCreateClusterLoader(cmd, ngFilter, ng, params).Load(); err != nil {
-			return err
-		}
-		err := checkClusterVersion(cmd.ClusterConfig)
-		if err != nil {
 			return err
 		}
 		return runFunc(cmd, ngFilter, params)
@@ -369,20 +347,17 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		postNodeGroupAddons      *tasks.TaskTree
 		postClusterCreationTasks *tasks.TaskTree
 	)
-	if cfg.IsAutoModeEnabled() {
-		postClusterCreationTasks = ctl.CreateExtraClusterConfigTasks(ctx, cfg, nil, nil)
-	} else {
-		iamRoleCreator := &podidentityassociation.IAMRoleCreator{
-			ClusterName:  cfg.Metadata.Name,
-			StackCreator: stackManager,
-		}
-		preNodegroupAddons, postAddons, updateVPCCNITask, autoDefaultAddons := addon.CreateAddonTasks(ctx, cfg, ctl, iamRoleCreator, true, cmd.ProviderConfig.WaitTimeout)
-		if len(autoDefaultAddons) > 0 {
-			logger.Info("default addons %s were not specified, will install them as EKS addons", strings.Join(autoDefaultAddons, ", "))
-		}
-		postNodeGroupAddons = postAddons
-		postClusterCreationTasks = ctl.CreateExtraClusterConfigTasks(ctx, cfg, preNodegroupAddons, updateVPCCNITask)
+
+	iamRoleCreator := &podidentityassociation.IAMRoleCreator{
+		ClusterName:  cfg.Metadata.Name,
+		StackCreator: stackManager,
 	}
+	preNodegroupAddons, postAddons, updateVPCCNITask, autoDefaultAddons := addon.CreateAddonTasks(ctx, cfg, ctl, iamRoleCreator, true, cmd.ProviderConfig.WaitTimeout, meta.Region)
+	if len(autoDefaultAddons) > 0 {
+		logger.Info("default addons %s were not specified, will install them as EKS addons", strings.Join(autoDefaultAddons, ", "))
+	}
+	postNodeGroupAddons = postAddons
+	postClusterCreationTasks = ctl.CreateExtraClusterConfigTasks(ctx, cfg, preNodegroupAddons, updateVPCCNITask)
 
 	taskTree := stackManager.NewTasksToCreateCluster(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, cfg.AccessConfig, makeAccessEntryCreator(cfg.Metadata.Name, stackManager), params.NodeGroupParallelism, postClusterCreationTasks)
 

@@ -1,7 +1,7 @@
 package builder
 
 import (
-	gfn "goformation/v4/cloudformation"
+	gfn "github.com/awslabs/goformation/v4/cloudformation"
 )
 
 func NewRS() *resourceSet {

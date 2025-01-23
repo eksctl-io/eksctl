@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	gfnec2 "goformation/v4/cloudformation/ec2"
-	gfnt "goformation/v4/cloudformation/types"
+	gfnec2 "github.com/awslabs/goformation/v4/cloudformation/ec2"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 )

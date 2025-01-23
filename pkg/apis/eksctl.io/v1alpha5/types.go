@@ -16,90 +16,40 @@ import (
 
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+	"github.com/weaveworks/eksctl/pkg/utils/taints"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-
-	"github.com/weaveworks/eksctl/pkg/awsapi"
-	"github.com/weaveworks/eksctl/pkg/utils/taints"
 )
 
-// Values for `KubernetesVersion`
-// All valid values should go in this block
 const (
-	Version1_23 = "1.23"
-
-	Version1_24 = "1.24"
-
-	Version1_25 = "1.25"
-
-	Version1_26 = "1.26"
-
-	Version1_27 = "1.27"
-
-	Version1_28 = "1.28"
-
-	Version1_29 = "1.29"
-
-	Version1_30 = "1.30"
-
-	Version1_31 = "1.31"
-
+	Version1_10                  = "1.10"
+	Version1_11                  = "1.11"
+	Version1_12                  = "1.12"
+	Version1_13                  = "1.13"
+	Version1_14                  = "1.14"
+	Version1_15                  = "1.15"
+	Version1_16                  = "1.16"
+	Version1_17                  = "1.17"
+	Version1_18                  = "1.18"
+	Version1_19                  = "1.19"
+	Version1_20                  = "1.20"
+	Version1_21                  = "1.21"
+	Version1_22                  = "1.22"
+	Version1_23                  = "1.23"
+	Version1_24                  = "1.24"
+	Version1_25                  = "1.25"
+	Version1_26                  = "1.26"
+	Version1_27                  = "1.27"
+	Version1_28                  = "1.28"
+	Version1_29                  = "1.29"
+	Version1_30                  = "1.30"
+	Version1_31                  = "1.31"
+	DockershimDeprecationVersion = Version1_24
+	//TODO: Remove this and replace with output from DescribeClusterVersions endpoint
 	// DefaultVersion (default)
 	DefaultVersion = Version1_30
-
-	LatestVersion = Version1_31
-
-	DockershimDeprecationVersion = Version1_24
-)
-
-// No longer supported versions
-const (
-	// Version1_10 represents Kubernetes version 1.10.x
-	Version1_10 = "1.10"
-
-	// Version1_11 represents Kubernetes version 1.11.x
-	Version1_11 = "1.11"
-
-	// Version1_12 represents Kubernetes version 1.12.x
-	Version1_12 = "1.12"
-
-	// Version1_13 represents Kubernetes version 1.13.x
-	Version1_13 = "1.13"
-
-	// Version1_14 represents Kubernetes version 1.14.x
-	Version1_14 = "1.14"
-
-	// Version1_15 represents Kubernetes version 1.15.x
-	Version1_15 = "1.15"
-
-	// Version1_16 represents Kubernetes version 1.16.x
-	Version1_16 = "1.16"
-
-	// Version1_17 represents Kubernetes version 1.17.x
-	Version1_17 = "1.17"
-
-	// Version1_18 represents Kubernetes version 1.18.x
-	Version1_18 = "1.18"
-
-	// Version1_19 represents Kubernetes version 1.19.x
-	Version1_19 = "1.19"
-
-	// Version1_20 represents Kubernetes version 1.20.x
-	Version1_20 = "1.20"
-
-	// Version1_21 represents Kubernetes version 1.21.x
-	Version1_21 = "1.21"
-
-	// Version1_22 represents Kubernetes version 1.22.x
-	Version1_22 = "1.22"
-)
-
-// Not yet supported versions
-const (
-	// Version1_32 represents Kubernetes version 1.32.x
-	Version1_32 = "1.32"
 )
 
 const (
@@ -220,11 +170,20 @@ const (
 	// RegionUSISOBEast1 represents the region US ISOB East (Ohio).
 	RegionUSISOBEast1 = "us-isob-east-1"
 
-	// RegionUSISOWest1 represents the region US ISOB West.
+	// RegionUSISOWest1 represents the region US ISO West.
 	RegionUSISOWest1 = "us-iso-west-1"
 
 	// RegionMXCentral1 represents the region of central Mexico
 	RegionMXCentral1 = "mx-central-1"
+
+	// RegionUSISOFSouth1 represents the region US ISOF South.
+	RegionUSISOFSouth1 = "us-isof-south-1"
+
+	// RegionUSISOFSouth1 represents the region US ISOF East.
+	RegionUSISOFEast1 = "us-isof-east-1"
+
+	// Region represents the region EU ISOE West.
+	RegionEUISOEWest1 = "eu-isoe-west-1"
 
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
@@ -415,6 +374,15 @@ const (
 
 	// eksResourceAccountMXCentral1 defines the AWS EKS account ID that provides node resources in mx-central-1
 	eksResourceAccountMXCentral1 = "730335286997"
+
+	// eksResourceAccountUSISOFSouth1 defines the AWS EKS account ID that provides node resources in us-isof-south-1
+	eksResourceAccountUSISOFSouth1 = "676585237158"
+
+	// eksResourceAccountUSISOFEast1 defines the AWS EKS account ID that provides node resources in us-isof-east-1
+	eksResourceAccountUSISOFEast1 = "171035529773"
+
+	// eksResourceAccountEUISOEWest1 defines the AWS EKS account ID that provides node resources in eu-isoe-west-1
+	eksResourceAccountEUISOEWest1 = "249663109785"
 )
 
 // Values for `VolumeType`
@@ -556,63 +524,10 @@ func SupportedRegions() []string {
 		RegionUSISOBEast1,
 		RegionUSISOWest1,
 		RegionMXCentral1,
+		RegionUSISOFSouth1,
+		RegionUSISOFEast1,
+		RegionEUISOEWest1,
 	}
-}
-
-// DeprecatedVersions are the versions of Kubernetes that EKS used to support
-// but no longer does. See also:
-// https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html
-func DeprecatedVersions() []string {
-	return []string{
-		Version1_10,
-		Version1_11,
-		Version1_12,
-		Version1_13,
-		Version1_14,
-		Version1_15,
-		Version1_16,
-		Version1_17,
-		Version1_18,
-		Version1_19,
-		Version1_20,
-		Version1_21,
-		Version1_22,
-	}
-}
-
-// IsDeprecatedVersion returns true if the given Kubernetes version has been deprecated in EKS
-func IsDeprecatedVersion(version string) bool {
-	for _, v := range DeprecatedVersions() {
-		if version == v {
-			return true
-		}
-	}
-	return false
-}
-
-// SupportedVersions are the versions of Kubernetes that EKS supports
-func SupportedVersions() []string {
-	return []string{
-		Version1_23,
-		Version1_24,
-		Version1_25,
-		Version1_26,
-		Version1_27,
-		Version1_28,
-		Version1_29,
-		Version1_30,
-		Version1_31,
-	}
-}
-
-// IsSupportedVersion returns true if the given Kubernetes version is supported by eksctl and EKS
-func IsSupportedVersion(version string) bool {
-	for _, v := range SupportedVersions() {
-		if version == v {
-			return true
-		}
-	}
-	return false
 }
 
 // SupportedNodeVolumeTypes are the volume types that can be used for a node root volume
@@ -704,6 +619,12 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountUSISOWest1
 	case RegionMXCentral1:
 		return eksResourceAccountMXCentral1
+	case RegionUSISOFSouth1:
+		return eksResourceAccountUSISOFSouth1
+	case RegionUSISOFEast1:
+		return eksResourceAccountUSISOFEast1
+	case RegionEUISOEWest1:
+		return eksResourceAccountEUISOEWest1
 	default:
 		return eksResourceAccountStandard
 	}
@@ -717,7 +638,7 @@ type ClusterMeta struct {
 	// the AWS region hosting this cluster
 	// +required
 	Region string `json:"region"`
-	// Valid variants are `KubernetesVersion` constants
+	// Version use `./eksctl utils describe-cluster-versions` to get the list of supported versions
 	// +optional
 	Version string `json:"version,omitempty"`
 	// Tags are used to tag AWS resources created by eksctl
@@ -816,7 +737,7 @@ func (r *RemoteNetworkConfig) ToRemoteNetworksPool() []string {
 }
 
 func (r *RemoteNetworkConfig) HasRemoteNodesEnabled() bool {
-	return r.RemoteNodeNetworks != nil && len(r.RemoteNodeNetworks) > 0
+	return len(r.RemoteNodeNetworks) > 0
 }
 
 func (c *ClusterConfig) HasRemoteNetworkingConfigured() bool {

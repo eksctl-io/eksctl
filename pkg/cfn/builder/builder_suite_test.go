@@ -6,7 +6,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	gfnt "goformation/v4/cloudformation/types"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"

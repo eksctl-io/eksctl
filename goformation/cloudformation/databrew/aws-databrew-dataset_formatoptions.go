@@ -1,7 +1,7 @@
 package databrew
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Dataset_FormatOptions AWS CloudFormation Resource (AWS::DataBrew::Dataset.FormatOptions)

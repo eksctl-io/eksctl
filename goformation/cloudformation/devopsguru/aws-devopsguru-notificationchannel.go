@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // NotificationChannel AWS CloudFormation Resource (AWS::DevOpsGuru::NotificationChannel)

@@ -1,7 +1,7 @@
 package events
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Rule_RunCommandParameters AWS CloudFormation Resource (AWS::Events::Rule.RunCommandParameters)

@@ -1,7 +1,7 @@
 package iotanalytics
 
 import (
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // Datastore_IotSiteWiseMultiLayerStorage AWS CloudFormation Resource (AWS::IoTAnalytics::Datastore.IotSiteWiseMultiLayerStorage)

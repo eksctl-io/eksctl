@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"goformation/v4/cloudformation/cloudformation"
-	"goformation/v4/cloudformation/policies"
+	"github.com/awslabs/goformation/v4/cloudformation/cloudformation"
+	"github.com/awslabs/goformation/v4/cloudformation/policies"
 )
 
 // StorageLens AWS CloudFormation Resource (AWS::S3::StorageLens)

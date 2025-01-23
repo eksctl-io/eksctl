@@ -21,7 +21,7 @@ var _ = Describe("Outposts validation", func() {
 
 	DescribeTable("unsupported ClusterConfig features", func(oe outpostsEntry) {
 		clusterConfig := api.NewClusterConfig()
-		clusterConfig.Metadata.Version = api.LatestVersion
+		clusterConfig.Metadata.Version = api.Version1_31
 		clusterConfig.Outpost = &api.Outpost{
 			ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 		}
@@ -188,7 +188,7 @@ var _ = Describe("Outposts validation", func() {
 
 	DescribeTable("support for node AMI families", func(amiFamily string, shouldFail bool) {
 		clusterConfig := api.NewClusterConfig()
-		clusterConfig.Metadata.Version = api.LatestVersion
+		clusterConfig.Metadata.Version = api.Version1_31
 		clusterConfig.Outpost = &api.Outpost{
 			ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
 		}

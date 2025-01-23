@@ -132,7 +132,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		It("should reject docker runtime if version is 1.24 or greater", func() {
 			cfg := api.NewClusterConfig()
-			cfg.Metadata.Version = api.Version1_24
+			cfg.Metadata.Version = api.DockershimDeprecationVersion
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "node-group"
 			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerD)
@@ -140,7 +140,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).NotTo(HaveOccurred())
 			err = api.ValidateNodeGroup(0, ng0, cfg)
 			Expect(err).To(HaveOccurred())
-			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("only %s is supported for container runtime, starting with EKS version %s", api.ContainerRuntimeContainerD, api.Version1_24))))
+			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("only %s is supported for container runtime, starting with EKS version %s", api.ContainerRuntimeContainerD, api.DockershimDeprecationVersion))))
 		})
 
 		It("containerd cannot be set together with overrideBootstrapCommand", func() {
@@ -1429,7 +1429,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		Context("extraIPv6CIDRs", func() {
 			It("validates cidrs", func() {
 				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
-				cfg.Metadata.Version = api.LatestVersion
+				cfg.Metadata.Version = api.Version1_31
 				cfg.Addons = append(cfg.Addons,
 					&api.Addon{Name: api.KubeProxyAddon},
 					&api.Addon{Name: api.CoreDNSAddon},
@@ -1447,7 +1447,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			When("extraIPv6CIDRs has an invalid cidr", func() {
 				It("returns an error", func() {
 					cfg.VPC.ExtraIPv6CIDRs = []string{"not-a-cidr"}
-					cfg.Metadata.Version = api.LatestVersion
+					cfg.Metadata.Version = api.Version1_31
 					cfg.Addons = append(cfg.Addons,
 						&api.Addon{Name: api.KubeProxyAddon},
 						&api.Addon{Name: api.CoreDNSAddon},
@@ -1469,7 +1469,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			When("when ipv4 is configured", func() {
 				It("returns an error", func() {
 					cfg.KubernetesNetworkConfig.IPFamily = api.IPV4Family
-					cfg.Metadata.Version = api.LatestVersion
+					cfg.Metadata.Version = api.Version1_31
 					cfg.Addons = append(cfg.Addons,
 						&api.Addon{Name: api.KubeProxyAddon},
 						&api.Addon{Name: api.CoreDNSAddon},

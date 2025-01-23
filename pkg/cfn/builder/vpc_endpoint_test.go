@@ -18,8 +18,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
-	gfnec2 "goformation/v4/cloudformation/ec2"
-	gfnt "goformation/v4/cloudformation/types"
+	gfnec2 "github.com/awslabs/goformation/v4/cloudformation/ec2"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 
@@ -49,6 +49,12 @@ var _ = Describe("VPC Endpoint Builder", func() {
 				vc.clusterConfig.AvailabilityZones = makeZones("cn-north-1", 2)
 			case api.PartitionISO:
 				vc.clusterConfig.AvailabilityZones = makeZones("us-iso-east-1", 2)
+			case api.PartitionISOB:
+				vc.clusterConfig.AvailabilityZones = makeZones("us-isob-east-1", 2)
+			case api.PartitionISOF:
+				vc.clusterConfig.AvailabilityZones = makeZones("us-isof-south-1", 2)
+			case api.PartitionISOE:
+				vc.clusterConfig.AvailabilityZones = makeZones("eu-isoe-west-1", 2)
 			default:
 				panic("not supported in tests")
 			}
@@ -354,6 +360,63 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			},
 			expectedFile: "vpc_private_iso.json",
 		}),
+
+		Entry("Private cluster in an ISOB region", vpcResourceSetCase{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Region: "us-isob-east-1",
+				},
+				VPC: api.NewClusterVPC(false),
+				PrivateCluster: &api.PrivateCluster{
+					Enabled: true,
+				},
+			},
+			createProvider: func() api.ClusterProvider {
+				provider := mockprovider.NewMockProvider()
+				mockDescribeVPCEndpoints(provider, serviceDetailsISOBJSON)
+				provider.SetRegion("us-isob-east-1")
+				return provider
+			},
+			expectedFile: "vpc_private_isob.json",
+		}),
+
+		Entry("Private cluster in an ISOF region", vpcResourceSetCase{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Region: "us-isof-south-1",
+				},
+				VPC: api.NewClusterVPC(false),
+				PrivateCluster: &api.PrivateCluster{
+					Enabled: true,
+				},
+			},
+			createProvider: func() api.ClusterProvider {
+				provider := mockprovider.NewMockProvider()
+				mockDescribeVPCEndpoints(provider, serviceDetailsISOFJSON)
+				provider.SetRegion("us-isof-south-1")
+				return provider
+			},
+			expectedFile: "vpc_private_isof.json",
+		}),
+
+		Entry("Private cluster in an ISOE region", vpcResourceSetCase{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Region: "eu-isoe-west-1",
+				},
+				VPC: api.NewClusterVPC(false),
+				PrivateCluster: &api.PrivateCluster{
+					Enabled: true,
+				},
+			},
+			createProvider: func() api.ClusterProvider {
+				provider := mockprovider.NewMockProvider()
+				mockDescribeVPCEndpoints(provider, serviceDetailsISOEJSON)
+				provider.SetRegion("eu-isoe-west-1")
+				return provider
+			},
+			expectedFile: "vpc_private_isoe.json",
+		}),
 	)
 })
 
@@ -371,6 +434,15 @@ var serviceDetailsOutpostsChinaJSON []byte
 
 //go:embed testdata/service_details_iso.json
 var serviceDetailsISOJSON []byte
+
+//go:embed testdata/service_details_isob.json
+var serviceDetailsISOBJSON []byte
+
+//go:embed testdata/service_details_isoe.json
+var serviceDetailsISOEJSON []byte
+
+//go:embed testdata/service_details_isof.json
+var serviceDetailsISOFJSON []byte
 
 func mockDescribeVPC(provider *mockprovider.MockProvider) {
 	provider.MockEC2().On("DescribeVpcs", mock.Anything, &ec2.DescribeVpcsInput{

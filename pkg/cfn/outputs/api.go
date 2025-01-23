@@ -3,8 +3,8 @@ package outputs
 import (
 	"fmt"
 
-	gfn "goformation/v4/cloudformation"
-	gfnt "goformation/v4/cloudformation/types"
+	gfn "github.com/awslabs/goformation/v4/cloudformation"
+	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
