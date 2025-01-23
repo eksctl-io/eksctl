@@ -405,8 +405,7 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      app.kubernetes.io/name: aws-node
-      app.kubernetes.io/instance: aws-vpc-cni
+      k8s-app: aws-node
   template:
     metadata:
       labels:
