@@ -73,8 +73,6 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2022-English-%s-EKS_Optimized-%s/%s", windowsAmiType(imageFamily), version, fieldName), nil
 	case api.NodeImageFamilyBottlerocket:
 		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/%s", imageType(imageFamily, instanceType, version), instanceEC2ArchName(instanceType), fieldName), nil
-	case api.NodeImageFamilyUbuntu1804:
-		return "", &UnsupportedQueryError{msg: fmt.Sprintf("SSM Parameter lookups for %s AMIs is not supported", imageFamily)}
 	case api.NodeImageFamilyUbuntu2004,
 		api.NodeImageFamilyUbuntu2204,
 		api.NodeImageFamilyUbuntuPro2204:
@@ -190,7 +188,7 @@ func ubuntuReleaseName(imageFamily string) string {
 	case api.NodeImageFamilyUbuntu2404, api.NodeImageFamilyUbuntuPro2404:
 		return "24.04"
 	default:
-		return "18.04"
+		return "20.04"
 	}
 }
 
