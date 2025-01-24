@@ -314,6 +314,7 @@ var _ = Describe("Outposts validation", func() {
 	},
 		Entry(api.NodeVolumeTypeGP3, api.NodeVolumeTypeGP3, true),
 		Entry(api.NodeVolumeTypeIO1, api.NodeVolumeTypeIO1, true),
+		Entry(api.NodeVolumeTypeIO2, api.NodeVolumeTypeIO2, true),
 		Entry(api.NodeVolumeTypeSC1, api.NodeVolumeTypeSC1, true),
 		Entry(api.NodeVolumeTypeST1, api.NodeVolumeTypeST1, true),
 		Entry(api.NodeVolumeTypeGP2, api.NodeVolumeTypeGP2, false),
