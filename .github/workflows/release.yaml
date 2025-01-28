@@ -7,7 +7,7 @@ jobs:
   rc:
     name: Push release tag
     runs-on: ubuntu-latest
-    container: public.ecr.aws/eksctl/eksctl-build:833f4464e865a6398788bf6cbc5447967b8974b7
+    container: public.ecr.aws/eksctl/eksctl-build:6c2690691bd3c017e727553eae863f2cf5c17e67
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2

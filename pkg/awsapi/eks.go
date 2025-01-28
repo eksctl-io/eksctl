@@ -116,7 +116,7 @@ type EKS interface {
 	//
 	// The Fargate profile allows an administrator to declare which pods run on
 	// Fargate and specify which pods run on which Fargate profile. This declaration is
-	// done through the profile’s selectors. Each profile can have up to five selectors
+	// done through the profile's selectors. Each profile can have up to five selectors
 	// that contain a namespace and labels. A namespace is required for every selector.
 	// The label field consists of multiple optional key-value pairs. Pods that match
 	// the selectors are scheduled on Fargate. If a to-be-scheduled pod matches any of
@@ -410,7 +410,7 @@ type EKS interface {
 	// Successful ), the cluster status moves to Active .
 	//
 	// If your cluster has managed node groups attached to it, all of your node
-	// groups’ Kubernetes versions must match the cluster’s Kubernetes version in order
+	// groups' Kubernetes versions must match the cluster's Kubernetes version in order
 	// to update the cluster to a new Kubernetes version.
 	UpdateClusterVersion(ctx context.Context, params *UpdateClusterVersionInput, optFns ...func(*Options)) (*UpdateClusterVersionOutput, error)
 	// Update an EKS Anywhere Subscription. Only auto renewal and tags can be updated
@@ -419,8 +419,8 @@ type EKS interface {
 	// Updates an Amazon EKS managed node group configuration. Your node group
 	// continues to function during the update. The response output includes an update
 	// ID that you can use to track the status of your node group update with the DescribeUpdateAPI
-	// operation. Currently you can update the Kubernetes labels for a node group or
-	// the scaling configuration.
+	// operation. You can update the Kubernetes labels and taints for a node group and
+	// the scaling and version update configuration.
 	UpdateNodegroupConfig(ctx context.Context, params *UpdateNodegroupConfigInput, optFns ...func(*Options)) (*UpdateNodegroupConfigOutput, error)
 	// Updates the Kubernetes version or AMI version of an Amazon EKS managed node
 	// group.

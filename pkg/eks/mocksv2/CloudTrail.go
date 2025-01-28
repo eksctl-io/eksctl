@@ -3324,6 +3324,80 @@ func (_c *CloudTrail_RestoreEventDataStore_Call) RunAndReturn(run func(context.C
 	return _c
 }
 
+// SearchSampleQueries provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) SearchSampleQueries(ctx context.Context, params *cloudtrail.SearchSampleQueriesInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.SearchSampleQueriesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SearchSampleQueries")
+	}
+
+	var r0 *cloudtrail.SearchSampleQueriesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.SearchSampleQueriesInput, ...func(*cloudtrail.Options)) (*cloudtrail.SearchSampleQueriesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.SearchSampleQueriesInput, ...func(*cloudtrail.Options)) *cloudtrail.SearchSampleQueriesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.SearchSampleQueriesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.SearchSampleQueriesInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_SearchSampleQueries_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SearchSampleQueries'
+type CloudTrail_SearchSampleQueries_Call struct {
+	*mock.Call
+}
+
+// SearchSampleQueries is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.SearchSampleQueriesInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) SearchSampleQueries(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_SearchSampleQueries_Call {
+	return &CloudTrail_SearchSampleQueries_Call{Call: _e.mock.On("SearchSampleQueries",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_SearchSampleQueries_Call) Run(run func(ctx context.Context, params *cloudtrail.SearchSampleQueriesInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_SearchSampleQueries_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.SearchSampleQueriesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_SearchSampleQueries_Call) Return(_a0 *cloudtrail.SearchSampleQueriesOutput, _a1 error) *CloudTrail_SearchSampleQueries_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_SearchSampleQueries_Call) RunAndReturn(run func(context.Context, *cloudtrail.SearchSampleQueriesInput, ...func(*cloudtrail.Options)) (*cloudtrail.SearchSampleQueriesOutput, error)) *CloudTrail_SearchSampleQueries_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StartDashboardRefresh provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) StartDashboardRefresh(ctx context.Context, params *cloudtrail.StartDashboardRefreshInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.StartDashboardRefreshOutput, error) {
 	_va := make([]interface{}, len(optFns))
