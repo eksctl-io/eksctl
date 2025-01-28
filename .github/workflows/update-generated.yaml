@@ -18,7 +18,7 @@ jobs:
         resource: ["coredns", "aws-node", "nvidia-device-plugin"]
     name: Update ${{ matrix.resource }} and open PR
     runs-on: ubuntu-latest
-    container: public.ecr.aws/eksctl/eksctl-build:833f4464e865a6398788bf6cbc5447967b8974b7
+    container: public.ecr.aws/eksctl/eksctl-build:6c2690691bd3c017e727553eae863f2cf5c17e67
     env:
       GOPRIVATE: ""
     steps:
