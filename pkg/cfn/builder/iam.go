@@ -3,6 +3,7 @@ package builder
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -221,7 +222,7 @@ func (c *ClusterResourceSet) addSSM() {
 
 func (c *ClusterResourceSet) addResourcesForRemoteNodesRole() {
 	c.rs.withIAM = true
-	switch *c.spec.RemoteNetworkConfig.IAM.Provider {
+	switch strings.ToLower(*c.spec.RemoteNetworkConfig.IAM.Provider) {
 	case api.SSMProvider:
 		c.addSSM()
 	case api.IRAProvider:
