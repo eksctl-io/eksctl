@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 
 	gfncfn "github.com/awslabs/goformation/v4/cloudformation/cloudformation"
@@ -396,6 +397,7 @@ func (v *IPv4VPCResourceSet) addHybridNodesNetworking() {
 			}
 		})
 	default:
+		logger.Warning("a TGW or VGW was not provided for hybrid nodes connectivity, hence eksctl won't configure any related routes and gateway attachments for your VPC")
 		return
 	}
 }
