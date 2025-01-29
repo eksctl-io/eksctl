@@ -1013,12 +1013,6 @@ var _ = Describe("ClusterConfig validation", func() {
 			},
 			expectedErr: "remoteNetworkConfig.vpcGatewayID is not supported when using pre-existing VPC",
 		}),
-		Entry("both vpcGatewayID and pre-existing VPC are missing", remoteNetworkConfigEntry{
-			overrideConfig: func(cc *api.ClusterConfig) {
-				cc.RemoteNetworkConfig.VPCGatewayID = nil
-			},
-			expectedErr: "remoteNetworkConfig.vpcGatewayID must be set and non-empty",
-		}),
 		Entry("unsupported vpcGateway type", remoteNetworkConfigEntry{
 			overrideConfig: func(cc *api.ClusterConfig) {
 				gatewayID := api.VPCGateway("igw-1234")

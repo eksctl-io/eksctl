@@ -29,7 +29,7 @@ remoteNetworkConfig:
     - cidrs: ["10.86.30.0/23"]
 ```
 
-If your connectivity method of choice does not involve using a TGW or VGW, you must not rely on eksctl to create the VPC for you, and instead provide a pre-existing one. On a related note, if you are using a pre-existing VPC, eksctl won't make any amendments to it, and ensuring all networking requirements are in place falls under your responsibility.
+If your connectivity method of choice does not involve using a TGW or VGW, you can omit setting `remoteNetworkConfig.vpcGatewayID` or provide a pre-existing VPC. On a related note, if you are using a pre-existing VPC, eksctl won't make any amendments to it, and ensuring all networking requirements are in place falls under your responsibility.
 
 ???+ note
     eksctl does not setup any networking infrastructure outside your AWS VPC (i.e. any infrastructure from VGW/TGW to the remote networks)

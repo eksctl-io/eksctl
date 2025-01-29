@@ -108,13 +108,9 @@ func (c *ClusterConfig) validateRemoteNetworkingConfig() error {
 		return setNonEmpty("remoteNetworkConfig.remoteNodeNetworks")
 	}
 
-	if c.VPC.ID != "" {
-		if rnc.VPCGatewayID.IsSet() {
+	if rnc.VPCGatewayID.IsSet() {
+		if c.VPC.ID != "" {
 			return fmt.Errorf("remoteNetworkConfig.vpcGatewayID is not supported when using pre-existing VPC")
-		}
-	} else {
-		if !rnc.VPCGatewayID.IsSet() {
-			return setNonEmpty("remoteNetworkConfig.vpcGatewayID")
 		}
 		// vpcGatewayId must be either a virtual private gateway or a transit gateway
 		if !rnc.VPCGatewayID.IsTransitGateway() && !rnc.VPCGatewayID.IsVirtualPrivateGateway() {
