@@ -445,7 +445,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 
 func (c *ClusterResourceSet) addAccessEntryForRemoteNodes() {
 	getRemoteNodesRoleName := func() string {
-		switch *c.spec.RemoteNetworkConfig.IAM.Provider {
+		switch strings.ToLower(*c.spec.RemoteNetworkConfig.IAM.Provider) {
 		case api.SSMProvider:
 			return SSMRole
 		case api.IRAProvider:
