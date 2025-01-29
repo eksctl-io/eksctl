@@ -117,7 +117,7 @@ func GetClusterDNS(clusterConfig *api.ClusterConfig) (string, error) {
 
 	parsedIP, _, err := net.ParseCIDR(serviceCIDR)
 	if err != nil {
-		return "", errors.Wrapf(err, "unexpected error parsing KubernetesNetworkConfig service CIDR: %q", networkConfig.ServiceIPv4CIDR)
+		return "", errors.Wrapf(err, "unexpected error parsing KubernetesNetworkConfig service CIDR: %q", serviceCIDR)
 	}
 	return toClusterDNS(parsedIP), nil
 }
