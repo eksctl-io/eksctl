@@ -485,9 +485,9 @@ func validateDryRunOptions(cmd *cobra.Command, incompatibleFlags []string) error
 	return nil
 }
 
-// validateBareCluster validates a cluster for unsupported fields if VPC CNI is disabled.
+// validateBareCluster validates a cluster for unsupported fields if VPC CNI and Auto Mode is disabled.
 func validateBareCluster(clusterConfig *api.ClusterConfig) error {
-	if !clusterConfig.AddonsConfig.DisableDefaultAddons || slices.ContainsFunc(clusterConfig.Addons, func(addon *api.Addon) bool {
+	if !clusterConfig.AddonsConfig.DisableDefaultAddons || clusterConfig.IsAutoModeEnabled() || slices.ContainsFunc(clusterConfig.Addons, func(addon *api.Addon) bool {
 		return addon.Name == api.VPCCNIAddon
 	}) {
 		return nil
@@ -495,8 +495,8 @@ func validateBareCluster(clusterConfig *api.ClusterConfig) error {
 	if clusterConfig.HasNodes() || clusterConfig.IsFargateEnabled() || clusterConfig.Karpenter != nil || clusterConfig.HasGitOpsFluxConfigured() ||
 		(clusterConfig.IAM != nil && ((len(clusterConfig.IAM.ServiceAccounts) > 0) || len(clusterConfig.IAM.PodIdentityAssociations) > 0)) {
 		return errors.New("fields nodeGroups, managedNodeGroups, fargateProfiles, karpenter, gitops, iam.serviceAccounts, " +
-			"and iam.podIdentityAssociations are not supported during cluster creation in a cluster without VPC CNI; please remove these fields " +
-			"and add them back after cluster creation is successful")
+			"and iam.podIdentityAssociations are not supported during cluster creation in a cluster without VPC CNI if Auto Mode is disabled; " +
+			"please remove these fields and add them back after cluster creation is successful")
 	}
 	return nil
 }
