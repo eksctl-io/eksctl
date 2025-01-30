@@ -738,12 +738,13 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 
 	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 &&
 		ng.AMIFamily != NodeImageFamilyAmazonLinux2023 &&
+		ng.AMIFamily != NodeImageFamilyBottlerocket &&
 		ng.AMIFamily != "" {
-		// Only AL2 and AL2023 support Inferentia hosts.
+		// Only AL2, AL2023 and Bottlerocket support Inferentia hosts.
 		if instanceutils.IsInferentiaInstanceType(instanceType) {
 			return ErrUnsupportedInstanceTypes("Inferentia", ng.AMIFamily, fmt.Sprintf("please use %s instead", NodeImageFamilyAmazonLinux2))
 		}
-		// Only AL2 and AL2023 support Trainium hosts.
+		// Only AL2, AL2023 and Bottlerocket support Trainium hosts.
 		if instanceutils.IsTrainiumInstanceType(instanceType) {
 			return ErrUnsupportedInstanceTypes("Trainium", ng.AMIFamily, fmt.Sprintf("please use %s instead", NodeImageFamilyAmazonLinux2))
 		}
