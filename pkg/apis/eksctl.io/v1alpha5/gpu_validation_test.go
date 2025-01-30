@@ -79,17 +79,19 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:       api.NodeImageFamilyUbuntu2004,
 			gpuInstanceType: "g4dn.xlarge",
 		}),
-		Entry("Bottlerocket", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyBottlerocket,
-			gpuInstanceType:      "inf1.xlarge",
-			expectUnsupportedErr: true,
-			instanceTypeName:     "Inferentia",
+		Entry("Bottlerocket INF", gpuInstanceEntry{
+			amiFamily:        api.NodeImageFamilyBottlerocket,
+			gpuInstanceType:  "inf1.xlarge",
+			instanceTypeName: "Inferentia",
 		}),
-		Entry("Bottlerocket", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyBottlerocket,
-			gpuInstanceType:      "trn1.2xlarge",
-			expectUnsupportedErr: true,
-			instanceTypeName:     "Trainium",
+		Entry("Bottlerocket TRN", gpuInstanceEntry{
+			amiFamily:        api.NodeImageFamilyBottlerocket,
+			gpuInstanceType:  "trn1.2xlarge",
+			instanceTypeName: "Trainium",
+		}),
+		Entry("Bottlerocket NVIDIA", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyBottlerocket,
+			gpuInstanceType: "g4dn.xlarge",
 		}),
 	)
 
@@ -140,14 +142,20 @@ var _ = Describe("GPU instance support", func() {
 			gpuInstanceType: "g4dn.xlarge",
 		}),
 		Entry("Bottlerocket infra", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyBottlerocket,
-			gpuInstanceType:      "inf1.xlarge",
-			expectUnsupportedErr: true,
+			amiFamily:       api.NodeImageFamilyBottlerocket,
+			gpuInstanceType: "inf1.xlarge",
 		}),
 		Entry("Bottlerocket infra", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyBottlerocket,
-			gpuInstanceType:      "trn1.2xlarge",
-			expectUnsupportedErr: true,
+			amiFamily:       api.NodeImageFamilyBottlerocket,
+			gpuInstanceType: "inf2.xlarge",
+		}),
+		Entry("Bottlerocket infra", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyBottlerocket,
+			gpuInstanceType: "trn1.2xlarge",
+		}),
+		Entry("Bottlerocket infra", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyBottlerocket,
+			gpuInstanceType: "trn2.48xlarge",
 		}),
 		Entry("Bottlerocket nvidia", gpuInstanceEntry{
 			amiFamily:       api.NodeImageFamilyBottlerocket,
