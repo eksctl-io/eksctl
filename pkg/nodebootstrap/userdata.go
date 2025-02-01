@@ -89,17 +89,37 @@ func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNod
 // GetClusterDNS returns the DNS address to use
 func GetClusterDNS(clusterConfig *api.ClusterConfig) (string, error) {
 	networkConfig := clusterConfig.Status.KubernetesNetworkConfig
-	if networkConfig == nil || networkConfig.ServiceIPv4CIDR == "" {
+	if networkConfig == nil {
 		return "", nil
 	}
 
-	ip, _, err := net.ParseCIDR(networkConfig.ServiceIPv4CIDR)
-	if err != nil {
-		return "", errors.Wrapf(err, "unexpected error parsing kubernetesNetworkConfig.serviceIPv4CIDR: %q", networkConfig.ServiceIPv4CIDR)
+	var (
+		serviceCIDR  string
+		toClusterDNS func(net.IP) string
+	)
+
+	if networkConfig.ServiceIPv4CIDR != "" {
+		serviceCIDR = networkConfig.ServiceIPv4CIDR
+		toClusterDNS = func(parsedIP net.IP) string {
+			ip := parsedIP.To4()
+			ip[net.IPv4len-1] = 10
+			return ip.String()
+		}
 	}
-	ip = ip.To4()
-	ip[net.IPv4len-1] = 10
-	return ip.String(), nil
+	if networkConfig.ServiceIPv6CIDR != "" {
+		serviceCIDR = networkConfig.ServiceIPv6CIDR
+		toClusterDNS = func(parsedIP net.IP) string {
+			ip := parsedIP.To16()
+			ip[net.IPv6len-1] = 10
+			return ip.String()
+		}
+	}
+
+	parsedIP, _, err := net.ParseCIDR(serviceCIDR)
+	if err != nil {
+		return "", errors.Wrapf(err, "unexpected error parsing KubernetesNetworkConfig service CIDR: %q", serviceCIDR)
+	}
+	return toClusterDNS(parsedIP), nil
 }
 
 func linuxConfig(clusterConfig *api.ClusterConfig, bootScriptName, bootScriptContent, clusterDNS string, np api.NodePool, scripts ...script) (string, error) {

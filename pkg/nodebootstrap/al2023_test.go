@@ -33,10 +33,6 @@ var _ = DescribeTable("Unmanaged AL2023", func(e al2023Entry) {
 	ng := api.NewNodeGroup()
 	makeDefaultNPSettings(ng)
 
-	if e.overrideClusterSettings != nil {
-		e.overrideClusterSettings(cfg)
-	}
-
 	if e.overrideNodegroupSettings != nil {
 		e.overrideNodegroupSettings(ng)
 	}
@@ -54,14 +50,6 @@ var _ = DescribeTable("Unmanaged AL2023", func(e al2023Entry) {
 	Entry("default", al2023Entry{
 		expectedUserData: wrapMIMEParts(nodeConfig),
 	}),
-	Entry("ipv6", al2023Entry{
-		overrideClusterSettings: func(cc *api.ClusterConfig) {
-			cc.Status.KubernetesNetworkConfig.IPFamily = api.IPV6Family
-			cc.Status.KubernetesNetworkConfig.ServiceIPv6CIDR = "fd00:facc:76a1::/108"
-			cc.Status.KubernetesNetworkConfig.ServiceIPv4CIDR = ""
-		},
-		expectedUserData: wrapMIMEParts(nodeConfigIPv6),
-	}),
 	Entry("efa enabled", al2023Entry{
 		overrideNodegroupSettings: func(np api.NodePool) {
 			np.BaseNodeGroup().EFAEnabled = aws.Bool(true)
@@ -71,7 +59,13 @@ var _ = DescribeTable("Unmanaged AL2023", func(e al2023Entry) {
 )
 
 var _ = DescribeTable("Managed AL2023", func(e al2023Entry) {
-	cfg, dns := makeDefaultClusterSettings()
+	cfg, _ := makeDefaultClusterSettings()
+	if e.overrideClusterSettings != nil {
+		e.overrideClusterSettings(cfg)
+	}
+	dns, err := nodebootstrap.GetClusterDNS(cfg)
+	Expect(err).NotTo(HaveOccurred())
+
 	mng := api.NewManagedNodeGroup()
 	makeDefaultNPSettings(mng)
 	mng.Taints = append(mng.Taints, api.NodeGroupTaint{
@@ -100,6 +94,17 @@ var _ = DescribeTable("Managed AL2023", func(e al2023Entry) {
 			np.BaseNodeGroup().AMI = "ami-xxxx"
 		},
 		expectedUserData: wrapMIMEParts(managedNodeConfig),
+	}),
+	Entry("custom AMI IPv6", al2023Entry{
+		overrideClusterSettings: func(cc *api.ClusterConfig) {
+			cc.Status.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+			cc.Status.KubernetesNetworkConfig.ServiceIPv6CIDR = "fd40:6404:f93b::/108"
+			cc.Status.KubernetesNetworkConfig.ServiceIPv4CIDR = ""
+		},
+		overrideNodegroupSettings: func(np api.NodePool) {
+			np.BaseNodeGroup().AMI = "ami-xxxx"
+		},
+		expectedUserData: wrapMIMEParts(managedNodeConfigIPv6),
 	}),
 )
 
@@ -400,7 +405,7 @@ spec:
     - --node-labels=alpha.eksctl.io/nodegroup-name=al2023-mng-test
 
 `
-	nodeConfigIPv6 = `--//
+	managedNodeConfigIPv6 = `--//
 Content-Type: application/node.eks.aws
 
 apiVersion: node.eks.aws/v1alpha1
@@ -411,7 +416,7 @@ spec:
   cluster:
     apiServerEndpoint: https://test.xxx.us-west-2.eks.amazonaws.com
     certificateAuthority: dGVzdCBDQQ==
-    cidr: fd00:facc:76a1::/108
+    cidr: fd40:6404:f93b::/108
     name: al2023-test
   containerd: {}
   instance:
@@ -419,9 +424,10 @@ spec:
   kubelet:
     config:
       clusterDNS:
-      - 10.100.0.10
+      - fd40:6404:f93b::a
     flags:
     - --node-labels=alpha.eksctl.io/nodegroup-name=al2023-mng-test
+    - --register-with-taints=special=true:NoSchedule
 
 `
 	managedNodeConfig = `--//

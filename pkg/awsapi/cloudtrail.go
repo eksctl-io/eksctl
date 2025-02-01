@@ -211,9 +211,9 @@ type CloudTrail interface {
 	// an event data store, or the TrailName parameter to the get Insights event
 	// selectors for a trail. You cannot specify these parameters together.
 	//
-	// For more information, see [Logging CloudTrail Insights events] in the CloudTrail User Guide.
+	// For more information, see [Working with CloudTrail Insights] in the CloudTrail User Guide.
 	//
-	// [Logging CloudTrail Insights events]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-insights-events-with-cloudtrail.html
+	// [Working with CloudTrail Insights]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-insights-events-with-cloudtrail.html
 	GetInsightSelectors(ctx context.Context, params *GetInsightSelectorsInput, optFns ...func(*Options)) (*GetInsightSelectorsOutput, error)
 	// Gets event data results of a query. You must specify the QueryID value returned
 	// by the StartQuery operation.
@@ -354,7 +354,7 @@ type CloudTrail interface {
 	// If you want your trail to log Insights events, be sure the event selector or
 	// advanced event selector enables logging of the Insights event types you want
 	// configured for your trail. For more information about logging Insights events,
-	// see [Logging Insights events]in the CloudTrail User Guide. By default, trails created without specific
+	// see [Working with CloudTrail Insights]in the CloudTrail User Guide. By default, trails created without specific
 	// event selectors are configured to log all read and write management events, and
 	// no data events or network activity events.
 	//
@@ -389,8 +389,8 @@ type CloudTrail interface {
 	// trail. For more information, see [Logging management events], [Logging data events], [Logging network activity events], and [Quotas in CloudTrail] in the CloudTrail User Guide.
 	//
 	// [Logging network activity events]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-network-events-with-cloudtrail.html
-	// [Logging Insights events]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-insights-events-with-cloudtrail.html
 	// [Logging management events]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-management-events-with-cloudtrail.html
+	// [Working with CloudTrail Insights]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-insights-events-with-cloudtrail.html
 	// [Quotas in CloudTrail]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/WhatIsCloudTrail-Limits.html
 	// [Logging data events]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html
 	PutEventSelectors(ctx context.Context, params *PutEventSelectorsInput, optFns ...func(*Options)) (*PutEventSelectorsOutput, error)
@@ -418,9 +418,9 @@ type CloudTrail interface {
 	// logs management events. You can call GetEventDataStore on an event data store
 	// to check whether the event data store logs management events.
 	//
-	// For more information, see [Logging CloudTrail Insights events] in the CloudTrail User Guide.
+	// For more information, see [Working with CloudTrail Insights] in the CloudTrail User Guide.
 	//
-	// [Logging CloudTrail Insights events]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-insights-events-with-cloudtrail.html
+	// [Working with CloudTrail Insights]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-insights-events-with-cloudtrail.html
 	PutInsightSelectors(ctx context.Context, params *PutInsightSelectorsInput, optFns ...func(*Options)) (*PutInsightSelectorsOutput, error)
 	//	Attaches a resource-based permission policy to a CloudTrail event data store,
 	//
@@ -441,6 +441,11 @@ type CloudTrail interface {
 	// the seven-day wait period after deletion. Restoring an event data store can take
 	// several minutes, depending on the size of the event data store.
 	RestoreEventDataStore(ctx context.Context, params *RestoreEventDataStoreInput, optFns ...func(*Options)) (*RestoreEventDataStoreOutput, error)
+	//	Searches sample queries and returns a list of sample queries that are sorted
+	//
+	// by relevance. To search for sample queries, provide a natural language
+	// SearchPhrase in English.
+	SearchSampleQueries(ctx context.Context, params *SearchSampleQueriesInput, optFns ...func(*Options)) (*SearchSampleQueriesOutput, error)
 	//	Starts a refresh of the specified dashboard.
 	//
 	// Each time a dashboard is refreshed, CloudTrail runs queries to populate the

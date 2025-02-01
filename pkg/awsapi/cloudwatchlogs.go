@@ -24,9 +24,9 @@ type CloudWatchLogs interface {
 	// the resourceIdentifier parameter. You can't specify both of those parameters in
 	// the same operation.
 	//
-	//   - Specify the logGroupName parameter to cause all log events stored in the log
-	//     group to be encrypted with that key. Only the log events ingested after the key
-	//     is associated are encrypted with that key.
+	//   - Specify the logGroupName parameter to cause log events ingested into that
+	//     log group to be encrypted with that key. Only the log events ingested after the
+	//     key is associated are encrypted with that key.
 	//
 	// Associating a KMS key with a log group overrides any existing associations
 	//
@@ -138,11 +138,16 @@ type CloudWatchLogs interface {
 	// same S3 bucket. To separate log data for each export task, specify a prefix to
 	// be used as the Amazon S3 key prefix for all exported objects.
 	//
+	// We recommend that you don't regularly export to Amazon S3 as a way to
+	// continuously archive your logs. For that use case, we instaed recommend that you
+	// use subscriptions. For more information about subscriptions, see [Real-time processing of log data with subscriptions].
+	//
 	// Time-based sorting on chunks of log data inside an exported file is not
 	// guaranteed. You can sort the exported log field data by using Linux utilities.
 	//
 	// [CancelExportTask]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CancelExportTask.html
 	// [DescribeExportTasks]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeExportTasks.html
+	// [Real-time processing of log data with subscriptions]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Subscriptions.html
 	CreateExportTask(ctx context.Context, params *CreateExportTaskInput, optFns ...func(*Options)) (*CreateExportTaskOutput, error)
 	// Creates an anomaly detector that regularly scans one or more log groups and
 	// look for patterns and anomalies in the logs.
@@ -259,7 +264,7 @@ type CloudWatchLogs interface {
 	//
 	// [PutDataProtectionPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDataProtectionPolicy.html
 	DeleteDataProtectionPolicy(ctx context.Context, params *DeleteDataProtectionPolicyInput, optFns ...func(*Options)) (*DeleteDataProtectionPolicyOutput, error)
-	// Deletes s delivery. A delivery is a connection between a logical delivery
+	// Deletes a delivery. A delivery is a connection between a logical delivery
 	// source and a logical delivery destination. Deleting a delivery only deletes the
 	// connection between the delivery source and delivery destination. It does not
 	// delete the delivery destination or the delivery source.
@@ -351,6 +356,21 @@ type CloudWatchLogs interface {
 	// subscription filters that relied on the transformed versions of the log events.
 	DeleteTransformer(ctx context.Context, params *DeleteTransformerInput, optFns ...func(*Options)) (*DeleteTransformerOutput, error)
 	// Returns a list of all CloudWatch Logs account policies in the account.
+	//
+	// To use this operation, you must be signed on with the correct permissions
+	// depending on the type of policy that you are retrieving information for.
+	//
+	//   - To see data protection policies, you must have the
+	//     logs:GetDataProtectionPolicy and logs:DescribeAccountPolicies permissions.
+	//
+	//   - To see subscription filter policies, you must have the
+	//     logs:DescrubeSubscriptionFilters and logs:DescribeAccountPolicies permissions.
+	//
+	//   - To see transformer policies, you must have the logs:GetTransformer and
+	//     logs:DescribeAccountPolicies permissions.
+	//
+	//   - To see field index policies, you must have the logs:DescribeIndexPolicies
+	//     and logs:DescribeAccountPolicies permissions.
 	DescribeAccountPolicies(ctx context.Context, params *DescribeAccountPoliciesInput, optFns ...func(*Options)) (*DescribeAccountPoliciesOutput, error)
 	// Use this operation to return the valid and default values that are used when
 	// creating delivery sources, delivery destinations, and deliveries. For more
@@ -425,7 +445,7 @@ type CloudWatchLogs interface {
 	// logGroupName . You must include one of these two parameters, but you can't
 	// include both.
 	//
-	// This operation has a limit of five transactions per second, after which
+	// This operation has a limit of 25 transactions per second, after which
 	// transactions are throttled.
 	//
 	// If you are using CloudWatch cross-account observability, you can use this
@@ -651,6 +671,21 @@ type CloudWatchLogs interface {
 	// field index policy that applies to all log groups or a subset of log groups in
 	// the account.
 	//
+	// To use this operation, you must be signed on with the correct permissions
+	// depending on the type of policy that you are creating.
+	//
+	//   - To create a data protection policy, you must have the
+	//     logs:PutDataProtectionPolicy and logs:PutAccountPolicy permissions.
+	//
+	//   - To create a subscription filter policy, you must have the
+	//     logs:PutSubscriptionFilter and logs:PutccountPolicy permissions.
+	//
+	//   - To create a transformer policy, you must have the logs:PutTransformer and
+	//     logs:PutAccountPolicy permissions.
+	//
+	//   - To create a field index policy, you must have the logs:PutIndexPolicy and
+	//     logs:PutAccountPolicy permissions.
+	//
 	// # Data protection policy
 	//
 	// A data protection policy can help safeguard sensitive data that's ingested by
@@ -855,8 +890,9 @@ type CloudWatchLogs interface {
 	//   - Create a delivery source, which is a logical object that represents the
 	//     resource that is actually sending the logs. For more information, see [PutDeliverySource].
 	//
-	//   - Use PutDeliveryDestination to create a delivery destination, which is a
-	//     logical object that represents the actual delivery destination.
+	//   - Use PutDeliveryDestination to create a delivery destination in the same
+	//     account of the actual delivery destination. The delivery destination that you
+	//     create is a logical object that represents the actual delivery destination.
 	//
 	//   - If you are delivering logs cross-account, you must use [PutDeliveryDestinationPolicy]in the destination
 	//     account to assign an IAM policy to the destination. This policy allows delivery
@@ -1077,11 +1113,11 @@ type CloudWatchLogs interface {
 	// The maximum number of metric filters that can be associated with a log group is
 	// 100.
 	//
-	// Using regular expressions to create metric filters is supported. For these
-	// filters, there is a quota of two regular expression patterns within a single
-	// filter pattern. There is also a quota of five regular expression patterns per
-	// log group. For more information about using regular expressions in metric
-	// filters, see [Filter pattern syntax for metric filters, subscription filters, filter log events, and Live Tail].
+	// Using regular expressions in filter patterns is supported. For these filters,
+	// there is a quota of two regular expression patterns within a single filter
+	// pattern. There is also a quota of five regular expression patterns per log
+	// group. For more information about using regular expressions in filter patterns,
+	// see [Filter pattern syntax for metric filters, subscription filters, filter log events, and Live Tail].
 	//
 	// When you create a metric filter, you can also optionally assign a unit and
 	// dimensions to the metric that is created.
@@ -1169,11 +1205,11 @@ type CloudWatchLogs interface {
 	// you are updating an existing filter, you must specify the correct name in
 	// filterName .
 	//
-	// Using regular expressions to create subscription filters is supported. For
-	// these filters, there is a quotas of quota of two regular expression patterns
-	// within a single filter pattern. There is also a quota of five regular expression
-	// patterns per log group. For more information about using regular expressions in
-	// subscription filters, see [Filter pattern syntax for metric filters, subscription filters, filter log events, and Live Tail].
+	// Using regular expressions in filter patterns is supported. For these filters,
+	// there is a quotas of quota of two regular expression patterns within a single
+	// filter pattern. There is also a quota of five regular expression patterns per
+	// log group. For more information about using regular expressions in filter
+	// patterns, see [Filter pattern syntax for metric filters, subscription filters, filter log events, and Live Tail].
 	//
 	// To perform a PutSubscriptionFilter operation for any destination except a
 	// Lambda function, you must also have the iam:PassRole permission.
