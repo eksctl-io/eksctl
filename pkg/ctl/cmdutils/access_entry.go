@@ -3,8 +3,8 @@ package cmdutils
 import (
 	"errors"
 	"fmt"
+	"slices"
 
-	"golang.org/x/exp/slices"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
