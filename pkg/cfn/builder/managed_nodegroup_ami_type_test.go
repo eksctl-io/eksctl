@@ -182,6 +182,50 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 		expectedAMIType: "BOTTLEROCKET_x86_64_NVIDIA",
 	}),
 
+	Entry("Bottlerocket x86 Neuron Inferentia 1 Accelerated instance type", amiTypeEntry{
+		nodeGroup: &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         "test",
+				AMIFamily:    api.NodeImageFamilyBottlerocket,
+				InstanceType: "inf1.xlarge",
+			},
+		},
+		expectedAMIType: "BOTTLEROCKET_x86_64",
+	}),
+
+	Entry("Bottlerocket x86 Neuron Inferentia 2 Accelerated instance type", amiTypeEntry{
+		nodeGroup: &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         "test",
+				AMIFamily:    api.NodeImageFamilyBottlerocket,
+				InstanceType: "inf2.xlarge",
+			},
+		},
+		expectedAMIType: "BOTTLEROCKET_x86_64",
+	}),
+
+	Entry("Bottlerocket x86 Neuron Trainium 1 Accelerated instance type", amiTypeEntry{
+		nodeGroup: &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         "test",
+				AMIFamily:    api.NodeImageFamilyBottlerocket,
+				InstanceType: "trn1.2xlarge",
+			},
+		},
+		expectedAMIType: "BOTTLEROCKET_x86_64",
+	}),
+
+	Entry("Bottlerocket x86 Neuron Trainium 2 Accelerated instance type", amiTypeEntry{
+		nodeGroup: &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         "test",
+				AMIFamily:    api.NodeImageFamilyBottlerocket,
+				InstanceType: "trn2.48xlarge",
+			},
+		},
+		expectedAMIType: "BOTTLEROCKET_x86_64",
+	}),
+
 	Entry("non-native Ubuntu", amiTypeEntry{
 		nodeGroup: &api.ManagedNodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
