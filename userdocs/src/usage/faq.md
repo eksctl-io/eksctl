@@ -13,20 +13,11 @@
     To change the instance type, create a new nodegroup with the desired instance type, then drain it so that the workloads move to the new one. After that step is complete you can delete the old nodegroup
 
 ???+ question "How can I see the generated userdata for a nodegroup?"
-    First you'll need the name of the Cloudformation stack that manages the
-    nodegroup:
-    ```console
-    $ eksctl utils describe-stacks --region=us-west-2 --cluster NAME
-    ```
-    You'll see a name similar to `eksctl-CLUSTER_NAME-nodegroup-NODEGROUP_NAME`.
 
     You can execute the following to get the userdata. Note the final line which
     decodes from base64 and decompresses the gzipped data.
     ```bash
-    NG_STACK=eksctl-scrumptious-monster-1595247364-nodegroup-ng-29b8862f # your stack here
-    LAUNCH_TEMPLATE_ID=$(aws cloudformation describe-stack-resources --stack-name $NG_STACK \
-    | jq -r '.StackResources | map(select(.LogicalResourceId == "NodeGroupLaunchTemplate")
-    | .PhysicalResourceId)[0]')
+    LAUNCH_TEMPLATE_ID=$(aws ec2 describe-launch-templates --filters "Name=tag:eks:cluster-name,Values=CLUSTER_NAME" --filters "Name=tag:eks:nodegroup-name,Values=NODEGROUP_NAME" | jq -r '.LaunchTemplates[0].LaunchTemplateId' )
     aws ec2 describe-launch-template-versions --launch-template-id $LAUNCH_TEMPLATE_ID \
     | jq -r '.LaunchTemplateVersions[0].LaunchTemplateData.UserData' \
     | base64 -d | gunzip
