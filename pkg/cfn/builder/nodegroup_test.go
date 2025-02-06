@@ -1204,6 +1204,18 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					})
 				})
 
+				Context("ng.VolumeType is IO2", func() {
+					BeforeEach(func() {
+						ng.VolumeType = aws.String(api.NodeVolumeTypeIO1)
+						ng.VolumeIOPS = aws.Int(500)
+					})
+
+					It("IOPS are set on the block device mapping", func() {
+						mapping := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.BlockDeviceMappings[0]
+						Expect(mapping.Ebs["Iops"]).To(Equal(float64(500)))
+					})
+				})
+
 				Context("ng.VolumeType is GP3", func() {
 					BeforeEach(func() {
 						ng.VolumeType = aws.String(api.NodeVolumeTypeGP3)
