@@ -252,7 +252,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 		}
 	}
 
-	logger.Info("creating addon")
+	logger.Info("creating addon: %s", addon.Name)
 	output, err := a.eksAPI.CreateAddon(ctx, createAddonInput)
 	if err != nil {
 		var resourceInUse *ekstypes.ResourceInUseException
@@ -283,7 +283,7 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 	if waitTimeout > 0 {
 		return a.waitForAddonToBeActive(ctx, addon, waitTimeout)
 	}
-	logger.Info("successfully created addon")
+	logger.Info("successfully created addon: %s", addon.Name)
 	return nil
 }
 
