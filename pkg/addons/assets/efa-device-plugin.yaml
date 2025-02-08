@@ -297,8 +297,13 @@ spec:
           volumeMounts:
             - name: device-plugin
               mountPath: /var/lib/kubelet/device-plugins
+            - name: infiniband-volume
+              mountPath: /dev/infiniband/
+
       volumes:
         - name: device-plugin
           hostPath:
             path: /var/lib/kubelet/device-plugins
-
+        - name: infiniband-volume
+          hostPath:
+            path: /dev/infiniband/
