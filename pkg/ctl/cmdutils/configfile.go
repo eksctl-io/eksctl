@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
-
-	"golang.org/x/exp/slices"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"

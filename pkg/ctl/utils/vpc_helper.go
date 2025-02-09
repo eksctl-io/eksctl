@@ -3,12 +3,11 @@ package utils
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
 	"k8s.io/apimachinery/pkg/util/sets"
-
-	"golang.org/x/exp/slices"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"

@@ -5,13 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"golang.org/x/exp/slices"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
