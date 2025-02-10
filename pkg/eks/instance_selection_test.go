@@ -53,15 +53,15 @@ var _ = DescribeTable("Instance type selection", func(t instanceTypeCase) {
 	}),
 
 	Entry("one GPU instance", instanceTypeCase{
-		instanceTypes: []string{"t2.medium", "t4.large", "g3.xlarge"},
+		instanceTypes: []string{"t2.medium", "t4.large", "g4dn.xlarge"},
 
-		expectedInstanceType: "g3.xlarge",
+		expectedInstanceType: "g4dn.xlarge",
 	}),
 
 	Entry("all GPU instances", instanceTypeCase{
-		instanceTypes: []string{"p2.large", "p3.large", "g3.large"},
+		instanceTypes: []string{"p2.8xlarge", "p3.8xlarge", "g4dn.xlarge"},
 
-		expectedInstanceType: "p2.large",
+		expectedInstanceType: "p2.8xlarge",
 	}),
 
 	Entry("single instance type", instanceTypeCase{

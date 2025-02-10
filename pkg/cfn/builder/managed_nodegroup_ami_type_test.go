@@ -81,7 +81,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 		nodeGroup: &api.ManagedNodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
 				Name:         "test",
-				InstanceType: "p2.xlarge",
+				InstanceType: "p2.8xlarge",
 			},
 		},
 		expectedAMIType: "AL2023_x86_64_NVIDIA",
@@ -112,7 +112,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 		nodeGroup: &api.ManagedNodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
 				Name:         "test",
-				InstanceType: "a1.2xlarge",
+				InstanceType: "c6g.12xlarge",
 			},
 		},
 		expectedAMIType: "AL2023_ARM_64_STANDARD",
@@ -123,7 +123,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 			NodeGroupBase: &api.NodeGroupBase{
 				Name:         "test",
 				AMIFamily:    api.NodeImageFamilyAmazonLinux2,
-				InstanceType: "a1.2xlarge",
+				InstanceType: "c6g.12xlarge",
 			},
 		},
 		expectedAMIType: "AL2_ARM_64",
@@ -144,7 +144,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 			NodeGroupBase: &api.NodeGroupBase{
 				Name:         "test",
 				AMIFamily:    api.NodeImageFamilyBottlerocket,
-				InstanceType: "a1.2xlarge",
+				InstanceType: "c6g.12xlarge",
 			},
 		},
 		expectedAMIType: "BOTTLEROCKET_ARM_64",
@@ -155,7 +155,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 			NodeGroupBase: &api.NodeGroupBase{
 				Name:         "test",
 				AMIFamily:    api.NodeImageFamilyBottlerocket,
-				InstanceType: "a1.2xlarge",
+				InstanceType: "c6g.12xlarge",
 			},
 		},
 		expectedAMIType: "BOTTLEROCKET_ARM_64",

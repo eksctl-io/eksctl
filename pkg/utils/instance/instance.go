@@ -1,72 +1,49 @@
 package instance
 
 import (
-	"strings"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
 // IsARMInstanceType returns true if the instance type is ARM architecture
 func IsARMInstanceType(instanceType string) bool {
-	return strings.HasPrefix(instanceType, "a1") ||
-		strings.HasPrefix(instanceType, "t4g") ||
-		strings.HasPrefix(instanceType, "m6g") ||
-		strings.HasPrefix(instanceType, "m7g") ||
-		strings.HasPrefix(instanceType, "m8g") ||
-		strings.HasPrefix(instanceType, "r8g") ||
-		strings.HasPrefix(instanceType, "c8g") ||
-		strings.HasPrefix(instanceType, "c6g") ||
-		strings.HasPrefix(instanceType, "c7g") ||
-		strings.HasPrefix(instanceType, "r6g") ||
-		strings.HasPrefix(instanceType, "r7g") ||
-		strings.HasPrefix(instanceType, "im4g") ||
-		strings.HasPrefix(instanceType, "is4g") ||
-		strings.HasPrefix(instanceType, "g5g") ||
-		strings.HasPrefix(instanceType, "hpc7g") ||
-		strings.HasPrefix(instanceType, "x2g")
+	return InstanceTypesMap[instanceType].CPUArch == "arm64"
 }
 
 // IsGPUInstanceType returns true if the instance type is GPU optimised
 func IsGPUInstanceType(instanceType string) bool {
-	return IsNvidiaInstanceType(instanceType) ||
-		IsInferentiaInstanceType(instanceType) ||
-		IsTrainiumInstanceType(instanceType)
+	itype := InstanceTypesMap[instanceType]
+	return itype.NvidiaGPUSupported || itype.NeuronSupported
 }
 
 // IsNeuronInstanceType returns true if the instance type requires AWS Neuron
 func IsNeuronInstanceType(instanceType string) bool {
-	return IsInferentiaInstanceType(instanceType) ||
-		IsTrainiumInstanceType(instanceType)
+	return InstanceTypesMap[instanceType].NeuronSupported
 }
 
 // IsARMGPUInstanceType returns true if the instance type is ARM-GPU architecture
 func IsARMGPUInstanceType(instanceType string) bool {
-	return strings.HasPrefix(instanceType, "g5g")
+	itype := InstanceTypesMap[instanceType]
+	return itype.CPUArch == "arm64" && itype.NvidiaGPUSupported
 }
 
 // IsNvidiaInstanceType returns true if the instance type has NVIDIA accelerated hardware
 func IsNvidiaInstanceType(instanceType string) bool {
-	return strings.HasPrefix(instanceType, "p2") ||
-		strings.HasPrefix(instanceType, "p3") ||
-		strings.HasPrefix(instanceType, "p4") ||
-		strings.HasPrefix(instanceType, "p5") ||
-		strings.HasPrefix(instanceType, "g3") ||
-		strings.HasPrefix(instanceType, "g4") ||
-		strings.HasPrefix(instanceType, "g5") ||
-		strings.HasPrefix(instanceType, "g6")
+	return InstanceTypesMap[instanceType].NvidiaGPUSupported
 }
 
-// IsInferentiaInstanceType returns true if the instance type requires AWS Neuron
+// IsInferentiaInstanceType returns true if the instance type requires AWS Neuron Inferentia/Inferentia2
 func IsInferentiaInstanceType(instanceType string) bool {
-	return strings.HasPrefix(instanceType, "inf1") ||
-		strings.HasPrefix(instanceType, "inf2")
+	itype := InstanceTypesMap[instanceType]
+	return itype.NeuronSupported &&
+		(itype.NeuronDeviceType == "Inferentia" || itype.NeuronDeviceType == "Inferentia2")
 }
 
-// IsTrainiumnstanceType returns true if the instance type requires AWS Neuron
+// IsTrainiumnstanceType returns true if the instance type requires AWS Neuron Trainium/Trainium2
 func IsTrainiumInstanceType(instanceType string) bool {
-	return strings.HasPrefix(instanceType, "trn1") ||
-		strings.HasPrefix(instanceType, "trn2")
+	itype := InstanceTypesMap[instanceType]
+	return itype.NeuronSupported &&
+		(itype.NeuronDeviceType == "Trainium" || itype.NeuronDeviceType == "Trainium2")
 }
 
 // GetSmallestInstanceType returns the smallest instance type in instanceTypes.
