@@ -251,7 +251,7 @@ var _ = Describe("GPU instance support", func() {
 
 	DescribeTable("ARM-based GPU instance type support", func(amiFamily string, expectErr bool) {
 		ng := api.NewNodeGroup()
-		ng.InstanceType = "g5g.medium"
+		ng.InstanceType = "g5g.2xlarge"
 		ng.AMIFamily = amiFamily
 		err := api.ValidateNodeGroup(0, ng, api.NewClusterConfig())
 		if expectErr {
