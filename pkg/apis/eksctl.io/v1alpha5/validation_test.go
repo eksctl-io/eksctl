@@ -2602,6 +2602,52 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("Instance Market Options validation", func() {
+		var (
+			cfg *api.ClusterConfig
+			ng  *api.NodeGroup
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			ng = cfg.NewNodeGroup()
+			ng.Name = "ng"
+		})
+
+		When("InstanceMarketOptions is set", func() {
+			When("it is set to 'capacity-block'", func() {
+				It("does not fail", func() {
+					ng.CapacityReservation = &api.CapacityReservation{
+						CapacityReservationTarget: &api.CapacityReservationTarget{
+							CapacityReservationID: aws.String("id"),
+						},
+					}
+					ng.InstanceMarketOptions = &api.InstanceMarketOptions{MarketType: aws.String("capacity-block")}
+					Expect(api.ValidateNodeGroup(0, ng, cfg)).To(Succeed())
+				})
+			})
+
+			When("it is set to 'capacity-block' but Capacity Reservation not set", func() {
+				It("does fail", func() {
+					ng.InstanceMarketOptions = &api.InstanceMarketOptions{MarketType: aws.String("capacity-block")}
+					Expect(api.ValidateNodeGroup(0, ng, cfg)).To(MatchError(ContainSubstring(`instanceMarketOptions cannot be set without capacityReservation`)))
+				})
+			})
+
+			When("it is set to 'foobar'", func() {
+				It("does fail", func() {
+					ng.CapacityReservation = &api.CapacityReservation{
+						CapacityReservationTarget: &api.CapacityReservationTarget{
+							CapacityReservationID: aws.String("id"),
+						},
+					}
+					ng.InstanceMarketOptions = &api.InstanceMarketOptions{MarketType: aws.String("foobar")}
+					Expect(api.ValidateNodeGroup(0, ng, cfg)).To(MatchError(ContainSubstring(`only accepted value is "capacity-block"; got "foobar"`)))
+				})
+			})
+		})
+	})
+
 	DescribeTable("ToPodIdentityAssociationID", func(piaARN, expectedID, expectedErr string) {
 		piaID, err := api.ToPodIdentityAssociationID(piaARN)
 		if expectedErr != "" {
