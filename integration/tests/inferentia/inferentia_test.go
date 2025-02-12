@@ -105,7 +105,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 
 			It("should have installed the neuron device plugin", func() {
 				clientSet := newClientSet(clusterWithNeuronPlugin)
-				_, err := clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
+				_, err := clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin", metav1.GetOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 			})
 
@@ -127,7 +127,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 			})
 
 			It("should not have installed the neuron device plugin", func() {
-				_, err := newClientSet(clusterWithoutPlugin).AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
+				_, err := newClientSet(clusterWithoutPlugin).AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin", metav1.GetOptions{})
 				Expect(err).Should(BeNotFoundError())
 			})
 
@@ -150,7 +150,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 					Expect(cmd).To(RunSuccessfully())
 				})
 				It("should install the neuron device plugin", func() {
-					_, err := newClientSet(clusterWithoutPlugin).AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
+					_, err := newClientSet(clusterWithoutPlugin).AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin", metav1.GetOptions{})
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})

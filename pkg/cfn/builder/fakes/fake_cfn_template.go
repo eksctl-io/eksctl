@@ -66,7 +66,7 @@ type Properties struct {
 
 	VpcID, SubnetID                                                            interface{}
 	EgressOnlyInternetGatewayID, RouteTableID, AllocationID                    interface{}
-	GatewayID, InternetGatewayID, NatGatewayID, VpnGatewayId, TransitGatewayId interface{}
+	GatewayID, InternetGatewayID, NatGatewayID, VpnGatewayId, TransitGatewayId interface{} //nolint:revive
 	DestinationCidrBlock, DestinationIpv6CidrBlock                             interface{}
 	MapPublicIPOnLaunch                                                        bool
 	AssignIpv6AddressOnCreation                                                *bool
