@@ -22,6 +22,7 @@
                 "InstanceMarketOptions": {
                     "MarketType": "capacity-block"
                 },
+                "InstanceType": "p5en.48xlarge",
                 "MetadataOptions": {
                     "HttpPutResponseHopLimit": 2,
                     "HttpTokens": "required"
@@ -96,9 +97,6 @@
             "AmiType": "AL2023_x86_64_NVIDIA",
             "CapacityType": "CAPACITY_BLOCK",
             "ClusterName": "lt",
-            "InstanceTypes": [
-                "p5en.48xlarge"
-            ],
             "Labels": {
                 "alpha.eksctl.io/cluster-name": "lt",
                 "alpha.eksctl.io/nodegroup-name": "cb-test"
