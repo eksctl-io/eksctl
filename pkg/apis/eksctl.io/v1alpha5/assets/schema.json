@@ -1194,6 +1194,21 @@
       "x-intellij-html-description": "holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies",
       "default": "{}"
     },
+    "InstanceMarketOptions": {
+      "properties": {
+        "marketType": {
+          "type": "string",
+          "description": "specifies the market type for the instances",
+          "x-intellij-html-description": "specifies the market type for the instances"
+        }
+      },
+      "preferredOrder": [
+        "marketType"
+      ],
+      "additionalProperties": false,
+      "description": "describes the market (purchasing) option for the instances",
+      "x-intellij-html-description": "describes the market (purchasing) option for the instances"
+    },
     "InstanceSelector": {
       "properties": {
         "cpuArchitecture": {
@@ -1419,6 +1434,11 @@
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
         },
+        "instanceMarketOptions": {
+          "$ref": "#/definitions/InstanceMarketOptions",
+          "description": "describes the market (purchasing) option for the instances",
+          "x-intellij-html-description": "describes the market (purchasing) option for the instances"
+        },
         "instanceName": {
           "type": "string"
         },
@@ -1629,6 +1649,7 @@
         "bottlerocket",
         "enableDetailedMonitoring",
         "capacityReservation",
+        "instanceMarketOptions",
         "outpostARN",
         "instanceTypes",
         "spot",
@@ -1791,6 +1812,11 @@
         },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
+        },
+        "instanceMarketOptions": {
+          "$ref": "#/definitions/InstanceMarketOptions",
+          "description": "describes the market (purchasing) option for the instances",
+          "x-intellij-html-description": "describes the market (purchasing) option for the instances"
         },
         "instanceName": {
           "type": "string"
@@ -1999,6 +2025,7 @@
         "bottlerocket",
         "enableDetailedMonitoring",
         "capacityReservation",
+        "instanceMarketOptions",
         "outpostARN",
         "instancesDistribution",
         "asgMetricsCollection",
