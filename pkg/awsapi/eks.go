@@ -282,7 +282,7 @@ type EKS interface {
 	DescribePodIdentityAssociation(ctx context.Context, params *DescribePodIdentityAssociationInput, optFns ...func(*Options)) (*DescribePodIdentityAssociationOutput, error)
 	// Describes an update to an Amazon EKS resource.
 	//
-	// When the status of the update is Succeeded , the update is complete. If an
+	// When the status of the update is Successful , the update is complete. If an
 	// update fails, the status is Failed , and an error detail explains the reason for
 	// the failure.
 	DescribeUpdate(ctx context.Context, params *DescribeUpdateInput, optFns ...func(*Options)) (*DescribeUpdateOutput, error)
@@ -334,8 +334,8 @@ type EKS interface {
 	// Any Kubernetes cluster can be connected to the Amazon EKS control plane to view
 	// current information about the cluster and its nodes.
 	//
-	// Cluster connection requires two steps. First, send a RegisterClusterRequest to add it to the Amazon
-	// EKS control plane.
+	// Cluster connection requires two steps. First, send a [RegisterClusterRequest]RegisterClusterRequest to
+	// add it to the Amazon EKS control plane.
 	//
 	// Second, a [Manifest] containing the activationID and activationCode must be applied to
 	// the Kubernetes cluster through it's native provider to provide visibility.
@@ -345,6 +345,7 @@ type EKS interface {
 	// the connected cluster will no longer be visible and must be deregistered using
 	// DeregisterCluster .
 	//
+	// [RegisterClusterRequest]: https://docs.aws.amazon.com/eks/latest/APIReference/API_RegisterClusterRequest.html
 	// [Manifest]: https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector/latest/eks-connector.yaml
 	RegisterCluster(ctx context.Context, params *RegisterClusterInput, optFns ...func(*Options)) (*RegisterClusterOutput, error)
 	// Associates the specified tags to an Amazon EKS resource with the specified
@@ -401,8 +402,8 @@ type EKS interface {
 	UpdateClusterConfig(ctx context.Context, params *UpdateClusterConfigInput, optFns ...func(*Options)) (*UpdateClusterConfigOutput, error)
 	// Updates an Amazon EKS cluster to the specified Kubernetes version. Your cluster
 	// continues to function during the update. The response output includes an update
-	// ID that you can use to track the status of your cluster update with the DescribeUpdateAPI
-	// operation.
+	// ID that you can use to track the status of your cluster update with the [DescribeUpdate]
+	// DescribeUpdate API operation.
 	//
 	// Cluster updates are asynchronous, and they should finish within a few minutes.
 	// During an update, the cluster status moves to UPDATING (this status transition
@@ -412,15 +413,19 @@ type EKS interface {
 	// If your cluster has managed node groups attached to it, all of your node
 	// groups' Kubernetes versions must match the cluster's Kubernetes version in order
 	// to update the cluster to a new Kubernetes version.
+	//
+	// [DescribeUpdate]: https://docs.aws.amazon.com/eks/latest/APIReference/API_DescribeUpdate.html
 	UpdateClusterVersion(ctx context.Context, params *UpdateClusterVersionInput, optFns ...func(*Options)) (*UpdateClusterVersionOutput, error)
 	// Update an EKS Anywhere Subscription. Only auto renewal and tags can be updated
 	// after subscription creation.
 	UpdateEksAnywhereSubscription(ctx context.Context, params *UpdateEksAnywhereSubscriptionInput, optFns ...func(*Options)) (*UpdateEksAnywhereSubscriptionOutput, error)
 	// Updates an Amazon EKS managed node group configuration. Your node group
 	// continues to function during the update. The response output includes an update
-	// ID that you can use to track the status of your node group update with the DescribeUpdateAPI
-	// operation. You can update the Kubernetes labels and taints for a node group and
-	// the scaling and version update configuration.
+	// ID that you can use to track the status of your node group update with the [DescribeUpdate]
+	// DescribeUpdate API operation. You can update the Kubernetes labels and taints
+	// for a node group and the scaling and version update configuration.
+	//
+	// [DescribeUpdate]: https://docs.aws.amazon.com/eks/latest/APIReference/API_DescribeUpdate.html
 	UpdateNodegroupConfig(ctx context.Context, params *UpdateNodegroupConfigInput, optFns ...func(*Options)) (*UpdateNodegroupConfigOutput, error)
 	// Updates the Kubernetes version or AMI version of an Amazon EKS managed node
 	// group.

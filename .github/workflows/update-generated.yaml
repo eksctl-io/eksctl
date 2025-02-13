@@ -18,7 +18,7 @@ jobs:
         resource: ["coredns", "aws-node", "nvidia-device-plugin"]
     name: Update ${{ matrix.resource }} and open PR
     runs-on: ubuntu-latest
-    container: public.ecr.aws/eksctl/eksctl-build:6c2690691bd3c017e727553eae863f2cf5c17e67
+    container: public.ecr.aws/eksctl/eksctl-build:9b9ac54ee74f36fa22be8c7ec24f695dbd4c0d72
     env:
       GOPRIVATE: ""
     steps:
@@ -29,7 +29,7 @@ jobs:
         fetch-depth: 0
     - name: Configure AWS credentials for coredns update
       if: ${{ matrix.resource == 'coredns' }}
-      uses: aws-actions/configure-aws-credentials@4fc4975a852c8cd99761e2de1f4ba73402e44dd9 # v4.0.3
+      uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
       with:
         aws-region: us-west-2
         role-duration-seconds: 900

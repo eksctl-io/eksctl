@@ -57,7 +57,7 @@ jobs:
 
       - name: GoReleaser Release
         if: ${{ !inputs.isReleaseCandidate }}
-        uses: goreleaser/goreleaser-action@9ed2f89a662bf1735a48bc8557fd212fa902bebf #v6.1.0
+        uses: goreleaser/goreleaser-action@90a3faa9d0182683851fbfa97ca1a2cb983bfca3 #v6.2.1
         with:
           version: v1.24.0
           args: release --clean --timeout 60m --skip=validate --config=.github/.goreleaser.brew.combined.yml  --release-notes="${{env.RELEASE_NOTES_FILE}}"
@@ -67,7 +67,7 @@ jobs:
 
       - name: GoReleaser Release Candidate
         if: ${{ inputs.isReleaseCandidate }}
-        uses: goreleaser/goreleaser-action@9ed2f89a662bf1735a48bc8557fd212fa902bebf #v6.1.0
+        uses: goreleaser/goreleaser-action@90a3faa9d0182683851fbfa97ca1a2cb983bfca3 #v6.2.1
         with:
           version: v1.24.0
           args: release --clean --timeout 60m --skip=validate --config=.github/.goreleaser.yml --release-notes="${{env.RELEASE_NOTES_FILE}}"

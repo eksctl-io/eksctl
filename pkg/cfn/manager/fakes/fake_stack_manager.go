@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	typesa "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	typesb "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 	typesc "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -65,25 +64,25 @@ type FakeStackManager struct {
 	createStackReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DeleteStackBySpecStub        func(context.Context, *types.Stack) (*types.Stack, error)
+	DeleteStackBySpecStub        func(context.Context, *manager.Stack) (*manager.Stack, error)
 	deleteStackBySpecMutex       sync.RWMutex
 	deleteStackBySpecArgsForCall []struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}
 	deleteStackBySpecReturns struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
 	deleteStackBySpecReturnsOnCall map[int]struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
-	DeleteStackBySpecSyncStub        func(context.Context, *types.Stack, chan error) error
+	DeleteStackBySpecSyncStub        func(context.Context, *manager.Stack, chan error) error
 	deleteStackBySpecSyncMutex       sync.RWMutex
 	deleteStackBySpecSyncArgsForCall []struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 		arg3 chan error
 	}
 	deleteStackBySpecSyncReturns struct {
@@ -92,11 +91,11 @@ type FakeStackManager struct {
 	deleteStackBySpecSyncReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DeleteStackSyncStub        func(context.Context, *types.Stack) error
+	DeleteStackSyncStub        func(context.Context, *manager.Stack) error
 	deleteStackSyncMutex       sync.RWMutex
 	deleteStackSyncArgsForCall []struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}
 	deleteStackSyncReturns struct {
 		result1 error
@@ -117,57 +116,57 @@ type FakeStackManager struct {
 		result1 *tasks.TaskTree
 		result2 error
 	}
-	DescribeClusterStackStub        func(context.Context) (*types.Stack, error)
+	DescribeClusterStackStub        func(context.Context) (*manager.Stack, error)
 	describeClusterStackMutex       sync.RWMutex
 	describeClusterStackArgsForCall []struct {
 		arg1 context.Context
 	}
 	describeClusterStackReturns struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
 	describeClusterStackReturnsOnCall map[int]struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
-	DescribeClusterStackIfExistsStub        func(context.Context) (*types.Stack, error)
+	DescribeClusterStackIfExistsStub        func(context.Context) (*manager.Stack, error)
 	describeClusterStackIfExistsMutex       sync.RWMutex
 	describeClusterStackIfExistsArgsForCall []struct {
 		arg1 context.Context
 	}
 	describeClusterStackIfExistsReturns struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
 	describeClusterStackIfExistsReturnsOnCall map[int]struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
-	DescribeIAMServiceAccountStacksStub        func(context.Context) ([]*types.Stack, error)
+	DescribeIAMServiceAccountStacksStub        func(context.Context) ([]*manager.Stack, error)
 	describeIAMServiceAccountStacksMutex       sync.RWMutex
 	describeIAMServiceAccountStacksArgsForCall []struct {
 		arg1 context.Context
 	}
 	describeIAMServiceAccountStacksReturns struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}
 	describeIAMServiceAccountStacksReturnsOnCall map[int]struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}
-	DescribeNodeGroupStackStub        func(context.Context, string) (*types.Stack, error)
+	DescribeNodeGroupStackStub        func(context.Context, string) (*manager.Stack, error)
 	describeNodeGroupStackMutex       sync.RWMutex
 	describeNodeGroupStackArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
 	}
 	describeNodeGroupStackReturns struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
 	describeNodeGroupStackReturnsOnCall map[int]struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
 	DescribeNodeGroupStacksAndResourcesStub        func(context.Context) (map[string]manager.StackInfo, error)
@@ -183,40 +182,40 @@ type FakeStackManager struct {
 		result1 map[string]manager.StackInfo
 		result2 error
 	}
-	DescribeStackStub        func(context.Context, *types.Stack) (*types.Stack, error)
+	DescribeStackStub        func(context.Context, *manager.Stack) (*manager.Stack, error)
 	describeStackMutex       sync.RWMutex
 	describeStackArgsForCall []struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}
 	describeStackReturns struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
 	describeStackReturnsOnCall map[int]struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
-	DescribeStackChangeSetStub        func(context.Context, *types.Stack, string) (*cloudformation.DescribeChangeSetOutput, error)
+	DescribeStackChangeSetStub        func(context.Context, *manager.Stack, string) (*manager.ChangeSet, error)
 	describeStackChangeSetMutex       sync.RWMutex
 	describeStackChangeSetArgsForCall []struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 		arg3 string
 	}
 	describeStackChangeSetReturns struct {
-		result1 *cloudformation.DescribeChangeSetOutput
+		result1 *manager.ChangeSet
 		result2 error
 	}
 	describeStackChangeSetReturnsOnCall map[int]struct {
-		result1 *cloudformation.DescribeChangeSetOutput
+		result1 *manager.ChangeSet
 		result2 error
 	}
-	DescribeStackEventsStub        func(context.Context, *types.Stack) ([]types.StackEvent, error)
+	DescribeStackEventsStub        func(context.Context, *manager.Stack) ([]types.StackEvent, error)
 	describeStackEventsMutex       sync.RWMutex
 	describeStackEventsArgsForCall []struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}
 	describeStackEventsReturns struct {
 		result1 []types.StackEvent
@@ -226,11 +225,11 @@ type FakeStackManager struct {
 		result1 []types.StackEvent
 		result2 error
 	}
-	DoCreateStackRequestStub        func(context.Context, *types.Stack, manager.TemplateData, map[string]string, map[string]string, bool, bool) error
+	DoCreateStackRequestStub        func(context.Context, *manager.Stack, manager.TemplateData, map[string]string, map[string]string, bool, bool) error
 	doCreateStackRequestMutex       sync.RWMutex
 	doCreateStackRequestArgsForCall []struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 		arg3 manager.TemplateData
 		arg4 map[string]string
 		arg5 map[string]string
@@ -243,11 +242,11 @@ type FakeStackManager struct {
 	doCreateStackRequestReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DoWaitUntilStackIsCreatedStub        func(context.Context, *types.Stack) error
+	DoWaitUntilStackIsCreatedStub        func(context.Context, *manager.Stack) error
 	doWaitUntilStackIsCreatedMutex       sync.RWMutex
 	doWaitUntilStackIsCreatedArgsForCall []struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}
 	doWaitUntilStackIsCreatedReturns struct {
 		result1 error
@@ -291,11 +290,11 @@ type FakeStackManager struct {
 		result1 typesa.AutoScalingGroup
 		result2 error
 	}
-	GetAutoScalingGroupNameStub        func(context.Context, *types.Stack) (string, error)
+	GetAutoScalingGroupNameStub        func(context.Context, *manager.Stack) (string, error)
 	getAutoScalingGroupNameMutex       sync.RWMutex
 	getAutoScalingGroupNameArgsForCall []struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}
 	getAutoScalingGroupNameReturns struct {
 		result1 string
@@ -305,43 +304,43 @@ type FakeStackManager struct {
 		result1 string
 		result2 error
 	}
-	GetClusterStackIfExistsStub        func(context.Context) (*types.Stack, error)
+	GetClusterStackIfExistsStub        func(context.Context) (*manager.Stack, error)
 	getClusterStackIfExistsMutex       sync.RWMutex
 	getClusterStackIfExistsArgsForCall []struct {
 		arg1 context.Context
 	}
 	getClusterStackIfExistsReturns struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
 	getClusterStackIfExistsReturnsOnCall map[int]struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
-	GetFargateStackStub        func(context.Context) (*types.Stack, error)
+	GetFargateStackStub        func(context.Context) (*manager.Stack, error)
 	getFargateStackMutex       sync.RWMutex
 	getFargateStackArgsForCall []struct {
 		arg1 context.Context
 	}
 	getFargateStackReturns struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
 	getFargateStackReturnsOnCall map[int]struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
-	GetIAMAddonsStacksStub        func(context.Context) ([]*types.Stack, error)
+	GetIAMAddonsStacksStub        func(context.Context) ([]*manager.Stack, error)
 	getIAMAddonsStacksMutex       sync.RWMutex
 	getIAMAddonsStacksArgsForCall []struct {
 		arg1 context.Context
 	}
 	getIAMAddonsStacksReturns struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}
 	getIAMAddonsStacksReturnsOnCall map[int]struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}
 	GetIAMServiceAccountsStub        func(context.Context) ([]*v1alpha5.ClusterIAMServiceAccount, error)
@@ -357,17 +356,17 @@ type FakeStackManager struct {
 		result1 []*v1alpha5.ClusterIAMServiceAccount
 		result2 error
 	}
-	GetKarpenterStackStub        func(context.Context) (*types.Stack, error)
+	GetKarpenterStackStub        func(context.Context) (*manager.Stack, error)
 	getKarpenterStackMutex       sync.RWMutex
 	getKarpenterStackArgsForCall []struct {
 		arg1 context.Context
 	}
 	getKarpenterStackReturns struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
 	getKarpenterStackReturnsOnCall map[int]struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}
 	GetManagedNodeGroupTemplateStub        func(context.Context, manager.GetNodegroupOption) (string, error)
@@ -384,10 +383,10 @@ type FakeStackManager struct {
 		result1 string
 		result2 error
 	}
-	GetNodeGroupNameStub        func(*types.Stack) string
+	GetNodeGroupNameStub        func(*manager.Stack) string
 	getNodeGroupNameMutex       sync.RWMutex
 	getNodeGroupNameArgsForCall []struct {
-		arg1 *types.Stack
+		arg1 *manager.Stack
 	}
 	getNodeGroupNameReturns struct {
 		result1 string
@@ -423,11 +422,11 @@ type FakeStackManager struct {
 		result1 string
 		result2 error
 	}
-	GetUnmanagedNodeGroupAutoScalingGroupNameStub        func(context.Context, *types.Stack) (string, error)
+	GetUnmanagedNodeGroupAutoScalingGroupNameStub        func(context.Context, *manager.Stack) (string, error)
 	getUnmanagedNodeGroupAutoScalingGroupNameMutex       sync.RWMutex
 	getUnmanagedNodeGroupAutoScalingGroupNameArgsForCall []struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}
 	getUnmanagedNodeGroupAutoScalingGroupNameReturns struct {
 		result1 string
@@ -492,17 +491,17 @@ type FakeStackManager struct {
 		result1 []string
 		result2 error
 	}
-	ListNodeGroupStacksStub        func(context.Context) ([]*types.Stack, error)
+	ListNodeGroupStacksStub        func(context.Context) ([]*manager.Stack, error)
 	listNodeGroupStacksMutex       sync.RWMutex
 	listNodeGroupStacksArgsForCall []struct {
 		arg1 context.Context
 	}
 	listNodeGroupStacksReturns struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}
 	listNodeGroupStacksReturnsOnCall map[int]struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}
 	ListNodeGroupStacksWithStatusesStub        func(context.Context) ([]manager.NodeGroupStack, error)
@@ -545,20 +544,20 @@ type FakeStackManager struct {
 		result1 []string
 		result2 error
 	}
-	ListStacksStub        func(context.Context) ([]*types.Stack, error)
+	ListStacksStub        func(context.Context) ([]*manager.Stack, error)
 	listStacksMutex       sync.RWMutex
 	listStacksArgsForCall []struct {
 		arg1 context.Context
 	}
 	listStacksReturns struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}
 	listStacksReturnsOnCall map[int]struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}
-	ListStacksMatchingStub        func(context.Context, string, ...types.StackStatus) ([]*types.Stack, error)
+	ListStacksMatchingStub        func(context.Context, string, ...types.StackStatus) ([]*manager.Stack, error)
 	listStacksMatchingMutex       sync.RWMutex
 	listStacksMatchingArgsForCall []struct {
 		arg1 context.Context
@@ -566,32 +565,32 @@ type FakeStackManager struct {
 		arg3 []types.StackStatus
 	}
 	listStacksMatchingReturns struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}
 	listStacksMatchingReturnsOnCall map[int]struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}
-	ListStacksWithStatusesStub        func(context.Context, ...types.StackStatus) ([]*types.Stack, error)
+	ListStacksWithStatusesStub        func(context.Context, ...types.StackStatus) ([]*manager.Stack, error)
 	listStacksWithStatusesMutex       sync.RWMutex
 	listStacksWithStatusesArgsForCall []struct {
 		arg1 context.Context
 		arg2 []types.StackStatus
 	}
 	listStacksWithStatusesReturns struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}
 	listStacksWithStatusesReturnsOnCall map[int]struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}
-	LookupCloudTrailEventsStub        func(context.Context, *types.Stack) ([]typesb.Event, error)
+	LookupCloudTrailEventsStub        func(context.Context, *manager.Stack) ([]typesb.Event, error)
 	lookupCloudTrailEventsMutex       sync.RWMutex
 	lookupCloudTrailEventsArgsForCall []struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}
 	lookupCloudTrailEventsReturns struct {
 		result1 []typesb.Event
@@ -694,11 +693,11 @@ type FakeStackManager struct {
 	newTasksToCreateIAMServiceAccountsReturnsOnCall map[int]struct {
 		result1 *tasks.TaskTree
 	}
-	NewTasksToDeleteClusterWithNodeGroupsStub        func(context.Context, *types.Stack, []manager.NodeGroupStack, bool, manager.NewOIDCManager, manager.NewTasksToDeleteAddonIAM, manager.NewTasksToDeletePodIdentityRole, *typesc.Cluster, kubernetes.ClientSetGetter, bool, bool, func(chan error, string) error) (*tasks.TaskTree, error)
+	NewTasksToDeleteClusterWithNodeGroupsStub        func(context.Context, *manager.Stack, []manager.NodeGroupStack, bool, manager.NewOIDCManager, manager.NewTasksToDeleteAddonIAM, manager.NewTasksToDeletePodIdentityRole, *typesc.Cluster, kubernetes.ClientSetGetter, bool, bool, func(chan error, string) error) (*tasks.TaskTree, error)
 	newTasksToDeleteClusterWithNodeGroupsMutex       sync.RWMutex
 	newTasksToDeleteClusterWithNodeGroupsArgsForCall []struct {
 		arg1  context.Context
-		arg2  *types.Stack
+		arg2  *manager.Stack
 		arg3  []manager.NodeGroupStack
 		arg4  bool
 		arg5  manager.NewOIDCManager
@@ -809,10 +808,10 @@ type FakeStackManager struct {
 	refreshFargatePodExecutionRoleARNReturnsOnCall map[int]struct {
 		result1 error
 	}
-	StackStatusIsNotTransitionalStub        func(*types.Stack) bool
+	StackStatusIsNotTransitionalStub        func(*manager.Stack) bool
 	stackStatusIsNotTransitionalMutex       sync.RWMutex
 	stackStatusIsNotTransitionalArgsForCall []struct {
-		arg1 *types.Stack
+		arg1 *manager.Stack
 	}
 	stackStatusIsNotTransitionalReturns struct {
 		result1 bool
@@ -1053,12 +1052,12 @@ func (fake *FakeStackManager) CreateStackReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStackManager) DeleteStackBySpec(arg1 context.Context, arg2 *types.Stack) (*types.Stack, error) {
+func (fake *FakeStackManager) DeleteStackBySpec(arg1 context.Context, arg2 *manager.Stack) (*manager.Stack, error) {
 	fake.deleteStackBySpecMutex.Lock()
 	ret, specificReturn := fake.deleteStackBySpecReturnsOnCall[len(fake.deleteStackBySpecArgsForCall)]
 	fake.deleteStackBySpecArgsForCall = append(fake.deleteStackBySpecArgsForCall, struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}{arg1, arg2})
 	stub := fake.DeleteStackBySpecStub
 	fakeReturns := fake.deleteStackBySpecReturns
@@ -1079,51 +1078,51 @@ func (fake *FakeStackManager) DeleteStackBySpecCallCount() int {
 	return len(fake.deleteStackBySpecArgsForCall)
 }
 
-func (fake *FakeStackManager) DeleteStackBySpecCalls(stub func(context.Context, *types.Stack) (*types.Stack, error)) {
+func (fake *FakeStackManager) DeleteStackBySpecCalls(stub func(context.Context, *manager.Stack) (*manager.Stack, error)) {
 	fake.deleteStackBySpecMutex.Lock()
 	defer fake.deleteStackBySpecMutex.Unlock()
 	fake.DeleteStackBySpecStub = stub
 }
 
-func (fake *FakeStackManager) DeleteStackBySpecArgsForCall(i int) (context.Context, *types.Stack) {
+func (fake *FakeStackManager) DeleteStackBySpecArgsForCall(i int) (context.Context, *manager.Stack) {
 	fake.deleteStackBySpecMutex.RLock()
 	defer fake.deleteStackBySpecMutex.RUnlock()
 	argsForCall := fake.deleteStackBySpecArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStackManager) DeleteStackBySpecReturns(result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) DeleteStackBySpecReturns(result1 *manager.Stack, result2 error) {
 	fake.deleteStackBySpecMutex.Lock()
 	defer fake.deleteStackBySpecMutex.Unlock()
 	fake.DeleteStackBySpecStub = nil
 	fake.deleteStackBySpecReturns = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DeleteStackBySpecReturnsOnCall(i int, result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) DeleteStackBySpecReturnsOnCall(i int, result1 *manager.Stack, result2 error) {
 	fake.deleteStackBySpecMutex.Lock()
 	defer fake.deleteStackBySpecMutex.Unlock()
 	fake.DeleteStackBySpecStub = nil
 	if fake.deleteStackBySpecReturnsOnCall == nil {
 		fake.deleteStackBySpecReturnsOnCall = make(map[int]struct {
-			result1 *types.Stack
+			result1 *manager.Stack
 			result2 error
 		})
 	}
 	fake.deleteStackBySpecReturnsOnCall[i] = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DeleteStackBySpecSync(arg1 context.Context, arg2 *types.Stack, arg3 chan error) error {
+func (fake *FakeStackManager) DeleteStackBySpecSync(arg1 context.Context, arg2 *manager.Stack, arg3 chan error) error {
 	fake.deleteStackBySpecSyncMutex.Lock()
 	ret, specificReturn := fake.deleteStackBySpecSyncReturnsOnCall[len(fake.deleteStackBySpecSyncArgsForCall)]
 	fake.deleteStackBySpecSyncArgsForCall = append(fake.deleteStackBySpecSyncArgsForCall, struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 		arg3 chan error
 	}{arg1, arg2, arg3})
 	stub := fake.DeleteStackBySpecSyncStub
@@ -1145,13 +1144,13 @@ func (fake *FakeStackManager) DeleteStackBySpecSyncCallCount() int {
 	return len(fake.deleteStackBySpecSyncArgsForCall)
 }
 
-func (fake *FakeStackManager) DeleteStackBySpecSyncCalls(stub func(context.Context, *types.Stack, chan error) error) {
+func (fake *FakeStackManager) DeleteStackBySpecSyncCalls(stub func(context.Context, *manager.Stack, chan error) error) {
 	fake.deleteStackBySpecSyncMutex.Lock()
 	defer fake.deleteStackBySpecSyncMutex.Unlock()
 	fake.DeleteStackBySpecSyncStub = stub
 }
 
-func (fake *FakeStackManager) DeleteStackBySpecSyncArgsForCall(i int) (context.Context, *types.Stack, chan error) {
+func (fake *FakeStackManager) DeleteStackBySpecSyncArgsForCall(i int) (context.Context, *manager.Stack, chan error) {
 	fake.deleteStackBySpecSyncMutex.RLock()
 	defer fake.deleteStackBySpecSyncMutex.RUnlock()
 	argsForCall := fake.deleteStackBySpecSyncArgsForCall[i]
@@ -1181,12 +1180,12 @@ func (fake *FakeStackManager) DeleteStackBySpecSyncReturnsOnCall(i int, result1 
 	}{result1}
 }
 
-func (fake *FakeStackManager) DeleteStackSync(arg1 context.Context, arg2 *types.Stack) error {
+func (fake *FakeStackManager) DeleteStackSync(arg1 context.Context, arg2 *manager.Stack) error {
 	fake.deleteStackSyncMutex.Lock()
 	ret, specificReturn := fake.deleteStackSyncReturnsOnCall[len(fake.deleteStackSyncArgsForCall)]
 	fake.deleteStackSyncArgsForCall = append(fake.deleteStackSyncArgsForCall, struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}{arg1, arg2})
 	stub := fake.DeleteStackSyncStub
 	fakeReturns := fake.deleteStackSyncReturns
@@ -1207,13 +1206,13 @@ func (fake *FakeStackManager) DeleteStackSyncCallCount() int {
 	return len(fake.deleteStackSyncArgsForCall)
 }
 
-func (fake *FakeStackManager) DeleteStackSyncCalls(stub func(context.Context, *types.Stack) error) {
+func (fake *FakeStackManager) DeleteStackSyncCalls(stub func(context.Context, *manager.Stack) error) {
 	fake.deleteStackSyncMutex.Lock()
 	defer fake.deleteStackSyncMutex.Unlock()
 	fake.DeleteStackSyncStub = stub
 }
 
-func (fake *FakeStackManager) DeleteStackSyncArgsForCall(i int) (context.Context, *types.Stack) {
+func (fake *FakeStackManager) DeleteStackSyncArgsForCall(i int) (context.Context, *manager.Stack) {
 	fake.deleteStackSyncMutex.RLock()
 	defer fake.deleteStackSyncMutex.RUnlock()
 	argsForCall := fake.deleteStackSyncArgsForCall[i]
@@ -1307,7 +1306,7 @@ func (fake *FakeStackManager) DeleteTasksForDeprecatedStacksReturnsOnCall(i int,
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeClusterStack(arg1 context.Context) (*types.Stack, error) {
+func (fake *FakeStackManager) DescribeClusterStack(arg1 context.Context) (*manager.Stack, error) {
 	fake.describeClusterStackMutex.Lock()
 	ret, specificReturn := fake.describeClusterStackReturnsOnCall[len(fake.describeClusterStackArgsForCall)]
 	fake.describeClusterStackArgsForCall = append(fake.describeClusterStackArgsForCall, struct {
@@ -1332,7 +1331,7 @@ func (fake *FakeStackManager) DescribeClusterStackCallCount() int {
 	return len(fake.describeClusterStackArgsForCall)
 }
 
-func (fake *FakeStackManager) DescribeClusterStackCalls(stub func(context.Context) (*types.Stack, error)) {
+func (fake *FakeStackManager) DescribeClusterStackCalls(stub func(context.Context) (*manager.Stack, error)) {
 	fake.describeClusterStackMutex.Lock()
 	defer fake.describeClusterStackMutex.Unlock()
 	fake.DescribeClusterStackStub = stub
@@ -1345,33 +1344,33 @@ func (fake *FakeStackManager) DescribeClusterStackArgsForCall(i int) context.Con
 	return argsForCall.arg1
 }
 
-func (fake *FakeStackManager) DescribeClusterStackReturns(result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) DescribeClusterStackReturns(result1 *manager.Stack, result2 error) {
 	fake.describeClusterStackMutex.Lock()
 	defer fake.describeClusterStackMutex.Unlock()
 	fake.DescribeClusterStackStub = nil
 	fake.describeClusterStackReturns = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeClusterStackReturnsOnCall(i int, result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) DescribeClusterStackReturnsOnCall(i int, result1 *manager.Stack, result2 error) {
 	fake.describeClusterStackMutex.Lock()
 	defer fake.describeClusterStackMutex.Unlock()
 	fake.DescribeClusterStackStub = nil
 	if fake.describeClusterStackReturnsOnCall == nil {
 		fake.describeClusterStackReturnsOnCall = make(map[int]struct {
-			result1 *types.Stack
+			result1 *manager.Stack
 			result2 error
 		})
 	}
 	fake.describeClusterStackReturnsOnCall[i] = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeClusterStackIfExists(arg1 context.Context) (*types.Stack, error) {
+func (fake *FakeStackManager) DescribeClusterStackIfExists(arg1 context.Context) (*manager.Stack, error) {
 	fake.describeClusterStackIfExistsMutex.Lock()
 	ret, specificReturn := fake.describeClusterStackIfExistsReturnsOnCall[len(fake.describeClusterStackIfExistsArgsForCall)]
 	fake.describeClusterStackIfExistsArgsForCall = append(fake.describeClusterStackIfExistsArgsForCall, struct {
@@ -1396,7 +1395,7 @@ func (fake *FakeStackManager) DescribeClusterStackIfExistsCallCount() int {
 	return len(fake.describeClusterStackIfExistsArgsForCall)
 }
 
-func (fake *FakeStackManager) DescribeClusterStackIfExistsCalls(stub func(context.Context) (*types.Stack, error)) {
+func (fake *FakeStackManager) DescribeClusterStackIfExistsCalls(stub func(context.Context) (*manager.Stack, error)) {
 	fake.describeClusterStackIfExistsMutex.Lock()
 	defer fake.describeClusterStackIfExistsMutex.Unlock()
 	fake.DescribeClusterStackIfExistsStub = stub
@@ -1409,33 +1408,33 @@ func (fake *FakeStackManager) DescribeClusterStackIfExistsArgsForCall(i int) con
 	return argsForCall.arg1
 }
 
-func (fake *FakeStackManager) DescribeClusterStackIfExistsReturns(result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) DescribeClusterStackIfExistsReturns(result1 *manager.Stack, result2 error) {
 	fake.describeClusterStackIfExistsMutex.Lock()
 	defer fake.describeClusterStackIfExistsMutex.Unlock()
 	fake.DescribeClusterStackIfExistsStub = nil
 	fake.describeClusterStackIfExistsReturns = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeClusterStackIfExistsReturnsOnCall(i int, result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) DescribeClusterStackIfExistsReturnsOnCall(i int, result1 *manager.Stack, result2 error) {
 	fake.describeClusterStackIfExistsMutex.Lock()
 	defer fake.describeClusterStackIfExistsMutex.Unlock()
 	fake.DescribeClusterStackIfExistsStub = nil
 	if fake.describeClusterStackIfExistsReturnsOnCall == nil {
 		fake.describeClusterStackIfExistsReturnsOnCall = make(map[int]struct {
-			result1 *types.Stack
+			result1 *manager.Stack
 			result2 error
 		})
 	}
 	fake.describeClusterStackIfExistsReturnsOnCall[i] = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeIAMServiceAccountStacks(arg1 context.Context) ([]*types.Stack, error) {
+func (fake *FakeStackManager) DescribeIAMServiceAccountStacks(arg1 context.Context) ([]*manager.Stack, error) {
 	fake.describeIAMServiceAccountStacksMutex.Lock()
 	ret, specificReturn := fake.describeIAMServiceAccountStacksReturnsOnCall[len(fake.describeIAMServiceAccountStacksArgsForCall)]
 	fake.describeIAMServiceAccountStacksArgsForCall = append(fake.describeIAMServiceAccountStacksArgsForCall, struct {
@@ -1460,7 +1459,7 @@ func (fake *FakeStackManager) DescribeIAMServiceAccountStacksCallCount() int {
 	return len(fake.describeIAMServiceAccountStacksArgsForCall)
 }
 
-func (fake *FakeStackManager) DescribeIAMServiceAccountStacksCalls(stub func(context.Context) ([]*types.Stack, error)) {
+func (fake *FakeStackManager) DescribeIAMServiceAccountStacksCalls(stub func(context.Context) ([]*manager.Stack, error)) {
 	fake.describeIAMServiceAccountStacksMutex.Lock()
 	defer fake.describeIAMServiceAccountStacksMutex.Unlock()
 	fake.DescribeIAMServiceAccountStacksStub = stub
@@ -1473,33 +1472,33 @@ func (fake *FakeStackManager) DescribeIAMServiceAccountStacksArgsForCall(i int) 
 	return argsForCall.arg1
 }
 
-func (fake *FakeStackManager) DescribeIAMServiceAccountStacksReturns(result1 []*types.Stack, result2 error) {
+func (fake *FakeStackManager) DescribeIAMServiceAccountStacksReturns(result1 []*manager.Stack, result2 error) {
 	fake.describeIAMServiceAccountStacksMutex.Lock()
 	defer fake.describeIAMServiceAccountStacksMutex.Unlock()
 	fake.DescribeIAMServiceAccountStacksStub = nil
 	fake.describeIAMServiceAccountStacksReturns = struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeIAMServiceAccountStacksReturnsOnCall(i int, result1 []*types.Stack, result2 error) {
+func (fake *FakeStackManager) DescribeIAMServiceAccountStacksReturnsOnCall(i int, result1 []*manager.Stack, result2 error) {
 	fake.describeIAMServiceAccountStacksMutex.Lock()
 	defer fake.describeIAMServiceAccountStacksMutex.Unlock()
 	fake.DescribeIAMServiceAccountStacksStub = nil
 	if fake.describeIAMServiceAccountStacksReturnsOnCall == nil {
 		fake.describeIAMServiceAccountStacksReturnsOnCall = make(map[int]struct {
-			result1 []*types.Stack
+			result1 []*manager.Stack
 			result2 error
 		})
 	}
 	fake.describeIAMServiceAccountStacksReturnsOnCall[i] = struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeNodeGroupStack(arg1 context.Context, arg2 string) (*types.Stack, error) {
+func (fake *FakeStackManager) DescribeNodeGroupStack(arg1 context.Context, arg2 string) (*manager.Stack, error) {
 	fake.describeNodeGroupStackMutex.Lock()
 	ret, specificReturn := fake.describeNodeGroupStackReturnsOnCall[len(fake.describeNodeGroupStackArgsForCall)]
 	fake.describeNodeGroupStackArgsForCall = append(fake.describeNodeGroupStackArgsForCall, struct {
@@ -1525,7 +1524,7 @@ func (fake *FakeStackManager) DescribeNodeGroupStackCallCount() int {
 	return len(fake.describeNodeGroupStackArgsForCall)
 }
 
-func (fake *FakeStackManager) DescribeNodeGroupStackCalls(stub func(context.Context, string) (*types.Stack, error)) {
+func (fake *FakeStackManager) DescribeNodeGroupStackCalls(stub func(context.Context, string) (*manager.Stack, error)) {
 	fake.describeNodeGroupStackMutex.Lock()
 	defer fake.describeNodeGroupStackMutex.Unlock()
 	fake.DescribeNodeGroupStackStub = stub
@@ -1538,28 +1537,28 @@ func (fake *FakeStackManager) DescribeNodeGroupStackArgsForCall(i int) (context.
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStackManager) DescribeNodeGroupStackReturns(result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) DescribeNodeGroupStackReturns(result1 *manager.Stack, result2 error) {
 	fake.describeNodeGroupStackMutex.Lock()
 	defer fake.describeNodeGroupStackMutex.Unlock()
 	fake.DescribeNodeGroupStackStub = nil
 	fake.describeNodeGroupStackReturns = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeNodeGroupStackReturnsOnCall(i int, result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) DescribeNodeGroupStackReturnsOnCall(i int, result1 *manager.Stack, result2 error) {
 	fake.describeNodeGroupStackMutex.Lock()
 	defer fake.describeNodeGroupStackMutex.Unlock()
 	fake.DescribeNodeGroupStackStub = nil
 	if fake.describeNodeGroupStackReturnsOnCall == nil {
 		fake.describeNodeGroupStackReturnsOnCall = make(map[int]struct {
-			result1 *types.Stack
+			result1 *manager.Stack
 			result2 error
 		})
 	}
 	fake.describeNodeGroupStackReturnsOnCall[i] = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
@@ -1628,12 +1627,12 @@ func (fake *FakeStackManager) DescribeNodeGroupStacksAndResourcesReturnsOnCall(i
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeStack(arg1 context.Context, arg2 *types.Stack) (*types.Stack, error) {
+func (fake *FakeStackManager) DescribeStack(arg1 context.Context, arg2 *manager.Stack) (*manager.Stack, error) {
 	fake.describeStackMutex.Lock()
 	ret, specificReturn := fake.describeStackReturnsOnCall[len(fake.describeStackArgsForCall)]
 	fake.describeStackArgsForCall = append(fake.describeStackArgsForCall, struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}{arg1, arg2})
 	stub := fake.DescribeStackStub
 	fakeReturns := fake.describeStackReturns
@@ -1654,51 +1653,51 @@ func (fake *FakeStackManager) DescribeStackCallCount() int {
 	return len(fake.describeStackArgsForCall)
 }
 
-func (fake *FakeStackManager) DescribeStackCalls(stub func(context.Context, *types.Stack) (*types.Stack, error)) {
+func (fake *FakeStackManager) DescribeStackCalls(stub func(context.Context, *manager.Stack) (*manager.Stack, error)) {
 	fake.describeStackMutex.Lock()
 	defer fake.describeStackMutex.Unlock()
 	fake.DescribeStackStub = stub
 }
 
-func (fake *FakeStackManager) DescribeStackArgsForCall(i int) (context.Context, *types.Stack) {
+func (fake *FakeStackManager) DescribeStackArgsForCall(i int) (context.Context, *manager.Stack) {
 	fake.describeStackMutex.RLock()
 	defer fake.describeStackMutex.RUnlock()
 	argsForCall := fake.describeStackArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStackManager) DescribeStackReturns(result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) DescribeStackReturns(result1 *manager.Stack, result2 error) {
 	fake.describeStackMutex.Lock()
 	defer fake.describeStackMutex.Unlock()
 	fake.DescribeStackStub = nil
 	fake.describeStackReturns = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeStackReturnsOnCall(i int, result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) DescribeStackReturnsOnCall(i int, result1 *manager.Stack, result2 error) {
 	fake.describeStackMutex.Lock()
 	defer fake.describeStackMutex.Unlock()
 	fake.DescribeStackStub = nil
 	if fake.describeStackReturnsOnCall == nil {
 		fake.describeStackReturnsOnCall = make(map[int]struct {
-			result1 *types.Stack
+			result1 *manager.Stack
 			result2 error
 		})
 	}
 	fake.describeStackReturnsOnCall[i] = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeStackChangeSet(arg1 context.Context, arg2 *types.Stack, arg3 string) (*cloudformation.DescribeChangeSetOutput, error) {
+func (fake *FakeStackManager) DescribeStackChangeSet(arg1 context.Context, arg2 *manager.Stack, arg3 string) (*manager.ChangeSet, error) {
 	fake.describeStackChangeSetMutex.Lock()
 	ret, specificReturn := fake.describeStackChangeSetReturnsOnCall[len(fake.describeStackChangeSetArgsForCall)]
 	fake.describeStackChangeSetArgsForCall = append(fake.describeStackChangeSetArgsForCall, struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 		arg3 string
 	}{arg1, arg2, arg3})
 	stub := fake.DescribeStackChangeSetStub
@@ -1720,51 +1719,51 @@ func (fake *FakeStackManager) DescribeStackChangeSetCallCount() int {
 	return len(fake.describeStackChangeSetArgsForCall)
 }
 
-func (fake *FakeStackManager) DescribeStackChangeSetCalls(stub func(context.Context, *types.Stack, string) (*cloudformation.DescribeChangeSetOutput, error)) {
+func (fake *FakeStackManager) DescribeStackChangeSetCalls(stub func(context.Context, *manager.Stack, string) (*manager.ChangeSet, error)) {
 	fake.describeStackChangeSetMutex.Lock()
 	defer fake.describeStackChangeSetMutex.Unlock()
 	fake.DescribeStackChangeSetStub = stub
 }
 
-func (fake *FakeStackManager) DescribeStackChangeSetArgsForCall(i int) (context.Context, *types.Stack, string) {
+func (fake *FakeStackManager) DescribeStackChangeSetArgsForCall(i int) (context.Context, *manager.Stack, string) {
 	fake.describeStackChangeSetMutex.RLock()
 	defer fake.describeStackChangeSetMutex.RUnlock()
 	argsForCall := fake.describeStackChangeSetArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeStackManager) DescribeStackChangeSetReturns(result1 *cloudformation.DescribeChangeSetOutput, result2 error) {
+func (fake *FakeStackManager) DescribeStackChangeSetReturns(result1 *manager.ChangeSet, result2 error) {
 	fake.describeStackChangeSetMutex.Lock()
 	defer fake.describeStackChangeSetMutex.Unlock()
 	fake.DescribeStackChangeSetStub = nil
 	fake.describeStackChangeSetReturns = struct {
-		result1 *cloudformation.DescribeChangeSetOutput
+		result1 *manager.ChangeSet
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeStackChangeSetReturnsOnCall(i int, result1 *cloudformation.DescribeChangeSetOutput, result2 error) {
+func (fake *FakeStackManager) DescribeStackChangeSetReturnsOnCall(i int, result1 *manager.ChangeSet, result2 error) {
 	fake.describeStackChangeSetMutex.Lock()
 	defer fake.describeStackChangeSetMutex.Unlock()
 	fake.DescribeStackChangeSetStub = nil
 	if fake.describeStackChangeSetReturnsOnCall == nil {
 		fake.describeStackChangeSetReturnsOnCall = make(map[int]struct {
-			result1 *cloudformation.DescribeChangeSetOutput
+			result1 *manager.ChangeSet
 			result2 error
 		})
 	}
 	fake.describeStackChangeSetReturnsOnCall[i] = struct {
-		result1 *cloudformation.DescribeChangeSetOutput
+		result1 *manager.ChangeSet
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DescribeStackEvents(arg1 context.Context, arg2 *types.Stack) ([]types.StackEvent, error) {
+func (fake *FakeStackManager) DescribeStackEvents(arg1 context.Context, arg2 *manager.Stack) ([]types.StackEvent, error) {
 	fake.describeStackEventsMutex.Lock()
 	ret, specificReturn := fake.describeStackEventsReturnsOnCall[len(fake.describeStackEventsArgsForCall)]
 	fake.describeStackEventsArgsForCall = append(fake.describeStackEventsArgsForCall, struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}{arg1, arg2})
 	stub := fake.DescribeStackEventsStub
 	fakeReturns := fake.describeStackEventsReturns
@@ -1785,13 +1784,13 @@ func (fake *FakeStackManager) DescribeStackEventsCallCount() int {
 	return len(fake.describeStackEventsArgsForCall)
 }
 
-func (fake *FakeStackManager) DescribeStackEventsCalls(stub func(context.Context, *types.Stack) ([]types.StackEvent, error)) {
+func (fake *FakeStackManager) DescribeStackEventsCalls(stub func(context.Context, *manager.Stack) ([]types.StackEvent, error)) {
 	fake.describeStackEventsMutex.Lock()
 	defer fake.describeStackEventsMutex.Unlock()
 	fake.DescribeStackEventsStub = stub
 }
 
-func (fake *FakeStackManager) DescribeStackEventsArgsForCall(i int) (context.Context, *types.Stack) {
+func (fake *FakeStackManager) DescribeStackEventsArgsForCall(i int) (context.Context, *manager.Stack) {
 	fake.describeStackEventsMutex.RLock()
 	defer fake.describeStackEventsMutex.RUnlock()
 	argsForCall := fake.describeStackEventsArgsForCall[i]
@@ -1824,12 +1823,12 @@ func (fake *FakeStackManager) DescribeStackEventsReturnsOnCall(i int, result1 []
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) DoCreateStackRequest(arg1 context.Context, arg2 *types.Stack, arg3 manager.TemplateData, arg4 map[string]string, arg5 map[string]string, arg6 bool, arg7 bool) error {
+func (fake *FakeStackManager) DoCreateStackRequest(arg1 context.Context, arg2 *manager.Stack, arg3 manager.TemplateData, arg4 map[string]string, arg5 map[string]string, arg6 bool, arg7 bool) error {
 	fake.doCreateStackRequestMutex.Lock()
 	ret, specificReturn := fake.doCreateStackRequestReturnsOnCall[len(fake.doCreateStackRequestArgsForCall)]
 	fake.doCreateStackRequestArgsForCall = append(fake.doCreateStackRequestArgsForCall, struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 		arg3 manager.TemplateData
 		arg4 map[string]string
 		arg5 map[string]string
@@ -1855,13 +1854,13 @@ func (fake *FakeStackManager) DoCreateStackRequestCallCount() int {
 	return len(fake.doCreateStackRequestArgsForCall)
 }
 
-func (fake *FakeStackManager) DoCreateStackRequestCalls(stub func(context.Context, *types.Stack, manager.TemplateData, map[string]string, map[string]string, bool, bool) error) {
+func (fake *FakeStackManager) DoCreateStackRequestCalls(stub func(context.Context, *manager.Stack, manager.TemplateData, map[string]string, map[string]string, bool, bool) error) {
 	fake.doCreateStackRequestMutex.Lock()
 	defer fake.doCreateStackRequestMutex.Unlock()
 	fake.DoCreateStackRequestStub = stub
 }
 
-func (fake *FakeStackManager) DoCreateStackRequestArgsForCall(i int) (context.Context, *types.Stack, manager.TemplateData, map[string]string, map[string]string, bool, bool) {
+func (fake *FakeStackManager) DoCreateStackRequestArgsForCall(i int) (context.Context, *manager.Stack, manager.TemplateData, map[string]string, map[string]string, bool, bool) {
 	fake.doCreateStackRequestMutex.RLock()
 	defer fake.doCreateStackRequestMutex.RUnlock()
 	argsForCall := fake.doCreateStackRequestArgsForCall[i]
@@ -1891,12 +1890,12 @@ func (fake *FakeStackManager) DoCreateStackRequestReturnsOnCall(i int, result1 e
 	}{result1}
 }
 
-func (fake *FakeStackManager) DoWaitUntilStackIsCreated(arg1 context.Context, arg2 *types.Stack) error {
+func (fake *FakeStackManager) DoWaitUntilStackIsCreated(arg1 context.Context, arg2 *manager.Stack) error {
 	fake.doWaitUntilStackIsCreatedMutex.Lock()
 	ret, specificReturn := fake.doWaitUntilStackIsCreatedReturnsOnCall[len(fake.doWaitUntilStackIsCreatedArgsForCall)]
 	fake.doWaitUntilStackIsCreatedArgsForCall = append(fake.doWaitUntilStackIsCreatedArgsForCall, struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}{arg1, arg2})
 	stub := fake.DoWaitUntilStackIsCreatedStub
 	fakeReturns := fake.doWaitUntilStackIsCreatedReturns
@@ -1917,13 +1916,13 @@ func (fake *FakeStackManager) DoWaitUntilStackIsCreatedCallCount() int {
 	return len(fake.doWaitUntilStackIsCreatedArgsForCall)
 }
 
-func (fake *FakeStackManager) DoWaitUntilStackIsCreatedCalls(stub func(context.Context, *types.Stack) error) {
+func (fake *FakeStackManager) DoWaitUntilStackIsCreatedCalls(stub func(context.Context, *manager.Stack) error) {
 	fake.doWaitUntilStackIsCreatedMutex.Lock()
 	defer fake.doWaitUntilStackIsCreatedMutex.Unlock()
 	fake.DoWaitUntilStackIsCreatedStub = stub
 }
 
-func (fake *FakeStackManager) DoWaitUntilStackIsCreatedArgsForCall(i int) (context.Context, *types.Stack) {
+func (fake *FakeStackManager) DoWaitUntilStackIsCreatedArgsForCall(i int) (context.Context, *manager.Stack) {
 	fake.doWaitUntilStackIsCreatedMutex.RLock()
 	defer fake.doWaitUntilStackIsCreatedMutex.RUnlock()
 	argsForCall := fake.doWaitUntilStackIsCreatedArgsForCall[i]
@@ -2140,12 +2139,12 @@ func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityReturnsOnCall(i 
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetAutoScalingGroupName(arg1 context.Context, arg2 *types.Stack) (string, error) {
+func (fake *FakeStackManager) GetAutoScalingGroupName(arg1 context.Context, arg2 *manager.Stack) (string, error) {
 	fake.getAutoScalingGroupNameMutex.Lock()
 	ret, specificReturn := fake.getAutoScalingGroupNameReturnsOnCall[len(fake.getAutoScalingGroupNameArgsForCall)]
 	fake.getAutoScalingGroupNameArgsForCall = append(fake.getAutoScalingGroupNameArgsForCall, struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}{arg1, arg2})
 	stub := fake.GetAutoScalingGroupNameStub
 	fakeReturns := fake.getAutoScalingGroupNameReturns
@@ -2166,13 +2165,13 @@ func (fake *FakeStackManager) GetAutoScalingGroupNameCallCount() int {
 	return len(fake.getAutoScalingGroupNameArgsForCall)
 }
 
-func (fake *FakeStackManager) GetAutoScalingGroupNameCalls(stub func(context.Context, *types.Stack) (string, error)) {
+func (fake *FakeStackManager) GetAutoScalingGroupNameCalls(stub func(context.Context, *manager.Stack) (string, error)) {
 	fake.getAutoScalingGroupNameMutex.Lock()
 	defer fake.getAutoScalingGroupNameMutex.Unlock()
 	fake.GetAutoScalingGroupNameStub = stub
 }
 
-func (fake *FakeStackManager) GetAutoScalingGroupNameArgsForCall(i int) (context.Context, *types.Stack) {
+func (fake *FakeStackManager) GetAutoScalingGroupNameArgsForCall(i int) (context.Context, *manager.Stack) {
 	fake.getAutoScalingGroupNameMutex.RLock()
 	defer fake.getAutoScalingGroupNameMutex.RUnlock()
 	argsForCall := fake.getAutoScalingGroupNameArgsForCall[i]
@@ -2205,7 +2204,7 @@ func (fake *FakeStackManager) GetAutoScalingGroupNameReturnsOnCall(i int, result
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetClusterStackIfExists(arg1 context.Context) (*types.Stack, error) {
+func (fake *FakeStackManager) GetClusterStackIfExists(arg1 context.Context) (*manager.Stack, error) {
 	fake.getClusterStackIfExistsMutex.Lock()
 	ret, specificReturn := fake.getClusterStackIfExistsReturnsOnCall[len(fake.getClusterStackIfExistsArgsForCall)]
 	fake.getClusterStackIfExistsArgsForCall = append(fake.getClusterStackIfExistsArgsForCall, struct {
@@ -2230,7 +2229,7 @@ func (fake *FakeStackManager) GetClusterStackIfExistsCallCount() int {
 	return len(fake.getClusterStackIfExistsArgsForCall)
 }
 
-func (fake *FakeStackManager) GetClusterStackIfExistsCalls(stub func(context.Context) (*types.Stack, error)) {
+func (fake *FakeStackManager) GetClusterStackIfExistsCalls(stub func(context.Context) (*manager.Stack, error)) {
 	fake.getClusterStackIfExistsMutex.Lock()
 	defer fake.getClusterStackIfExistsMutex.Unlock()
 	fake.GetClusterStackIfExistsStub = stub
@@ -2243,33 +2242,33 @@ func (fake *FakeStackManager) GetClusterStackIfExistsArgsForCall(i int) context.
 	return argsForCall.arg1
 }
 
-func (fake *FakeStackManager) GetClusterStackIfExistsReturns(result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) GetClusterStackIfExistsReturns(result1 *manager.Stack, result2 error) {
 	fake.getClusterStackIfExistsMutex.Lock()
 	defer fake.getClusterStackIfExistsMutex.Unlock()
 	fake.GetClusterStackIfExistsStub = nil
 	fake.getClusterStackIfExistsReturns = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetClusterStackIfExistsReturnsOnCall(i int, result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) GetClusterStackIfExistsReturnsOnCall(i int, result1 *manager.Stack, result2 error) {
 	fake.getClusterStackIfExistsMutex.Lock()
 	defer fake.getClusterStackIfExistsMutex.Unlock()
 	fake.GetClusterStackIfExistsStub = nil
 	if fake.getClusterStackIfExistsReturnsOnCall == nil {
 		fake.getClusterStackIfExistsReturnsOnCall = make(map[int]struct {
-			result1 *types.Stack
+			result1 *manager.Stack
 			result2 error
 		})
 	}
 	fake.getClusterStackIfExistsReturnsOnCall[i] = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetFargateStack(arg1 context.Context) (*types.Stack, error) {
+func (fake *FakeStackManager) GetFargateStack(arg1 context.Context) (*manager.Stack, error) {
 	fake.getFargateStackMutex.Lock()
 	ret, specificReturn := fake.getFargateStackReturnsOnCall[len(fake.getFargateStackArgsForCall)]
 	fake.getFargateStackArgsForCall = append(fake.getFargateStackArgsForCall, struct {
@@ -2294,7 +2293,7 @@ func (fake *FakeStackManager) GetFargateStackCallCount() int {
 	return len(fake.getFargateStackArgsForCall)
 }
 
-func (fake *FakeStackManager) GetFargateStackCalls(stub func(context.Context) (*types.Stack, error)) {
+func (fake *FakeStackManager) GetFargateStackCalls(stub func(context.Context) (*manager.Stack, error)) {
 	fake.getFargateStackMutex.Lock()
 	defer fake.getFargateStackMutex.Unlock()
 	fake.GetFargateStackStub = stub
@@ -2307,33 +2306,33 @@ func (fake *FakeStackManager) GetFargateStackArgsForCall(i int) context.Context 
 	return argsForCall.arg1
 }
 
-func (fake *FakeStackManager) GetFargateStackReturns(result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) GetFargateStackReturns(result1 *manager.Stack, result2 error) {
 	fake.getFargateStackMutex.Lock()
 	defer fake.getFargateStackMutex.Unlock()
 	fake.GetFargateStackStub = nil
 	fake.getFargateStackReturns = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetFargateStackReturnsOnCall(i int, result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) GetFargateStackReturnsOnCall(i int, result1 *manager.Stack, result2 error) {
 	fake.getFargateStackMutex.Lock()
 	defer fake.getFargateStackMutex.Unlock()
 	fake.GetFargateStackStub = nil
 	if fake.getFargateStackReturnsOnCall == nil {
 		fake.getFargateStackReturnsOnCall = make(map[int]struct {
-			result1 *types.Stack
+			result1 *manager.Stack
 			result2 error
 		})
 	}
 	fake.getFargateStackReturnsOnCall[i] = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetIAMAddonsStacks(arg1 context.Context) ([]*types.Stack, error) {
+func (fake *FakeStackManager) GetIAMAddonsStacks(arg1 context.Context) ([]*manager.Stack, error) {
 	fake.getIAMAddonsStacksMutex.Lock()
 	ret, specificReturn := fake.getIAMAddonsStacksReturnsOnCall[len(fake.getIAMAddonsStacksArgsForCall)]
 	fake.getIAMAddonsStacksArgsForCall = append(fake.getIAMAddonsStacksArgsForCall, struct {
@@ -2358,7 +2357,7 @@ func (fake *FakeStackManager) GetIAMAddonsStacksCallCount() int {
 	return len(fake.getIAMAddonsStacksArgsForCall)
 }
 
-func (fake *FakeStackManager) GetIAMAddonsStacksCalls(stub func(context.Context) ([]*types.Stack, error)) {
+func (fake *FakeStackManager) GetIAMAddonsStacksCalls(stub func(context.Context) ([]*manager.Stack, error)) {
 	fake.getIAMAddonsStacksMutex.Lock()
 	defer fake.getIAMAddonsStacksMutex.Unlock()
 	fake.GetIAMAddonsStacksStub = stub
@@ -2371,28 +2370,28 @@ func (fake *FakeStackManager) GetIAMAddonsStacksArgsForCall(i int) context.Conte
 	return argsForCall.arg1
 }
 
-func (fake *FakeStackManager) GetIAMAddonsStacksReturns(result1 []*types.Stack, result2 error) {
+func (fake *FakeStackManager) GetIAMAddonsStacksReturns(result1 []*manager.Stack, result2 error) {
 	fake.getIAMAddonsStacksMutex.Lock()
 	defer fake.getIAMAddonsStacksMutex.Unlock()
 	fake.GetIAMAddonsStacksStub = nil
 	fake.getIAMAddonsStacksReturns = struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetIAMAddonsStacksReturnsOnCall(i int, result1 []*types.Stack, result2 error) {
+func (fake *FakeStackManager) GetIAMAddonsStacksReturnsOnCall(i int, result1 []*manager.Stack, result2 error) {
 	fake.getIAMAddonsStacksMutex.Lock()
 	defer fake.getIAMAddonsStacksMutex.Unlock()
 	fake.GetIAMAddonsStacksStub = nil
 	if fake.getIAMAddonsStacksReturnsOnCall == nil {
 		fake.getIAMAddonsStacksReturnsOnCall = make(map[int]struct {
-			result1 []*types.Stack
+			result1 []*manager.Stack
 			result2 error
 		})
 	}
 	fake.getIAMAddonsStacksReturnsOnCall[i] = struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}{result1, result2}
 }
@@ -2461,7 +2460,7 @@ func (fake *FakeStackManager) GetIAMServiceAccountsReturnsOnCall(i int, result1 
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetKarpenterStack(arg1 context.Context) (*types.Stack, error) {
+func (fake *FakeStackManager) GetKarpenterStack(arg1 context.Context) (*manager.Stack, error) {
 	fake.getKarpenterStackMutex.Lock()
 	ret, specificReturn := fake.getKarpenterStackReturnsOnCall[len(fake.getKarpenterStackArgsForCall)]
 	fake.getKarpenterStackArgsForCall = append(fake.getKarpenterStackArgsForCall, struct {
@@ -2486,7 +2485,7 @@ func (fake *FakeStackManager) GetKarpenterStackCallCount() int {
 	return len(fake.getKarpenterStackArgsForCall)
 }
 
-func (fake *FakeStackManager) GetKarpenterStackCalls(stub func(context.Context) (*types.Stack, error)) {
+func (fake *FakeStackManager) GetKarpenterStackCalls(stub func(context.Context) (*manager.Stack, error)) {
 	fake.getKarpenterStackMutex.Lock()
 	defer fake.getKarpenterStackMutex.Unlock()
 	fake.GetKarpenterStackStub = stub
@@ -2499,28 +2498,28 @@ func (fake *FakeStackManager) GetKarpenterStackArgsForCall(i int) context.Contex
 	return argsForCall.arg1
 }
 
-func (fake *FakeStackManager) GetKarpenterStackReturns(result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) GetKarpenterStackReturns(result1 *manager.Stack, result2 error) {
 	fake.getKarpenterStackMutex.Lock()
 	defer fake.getKarpenterStackMutex.Unlock()
 	fake.GetKarpenterStackStub = nil
 	fake.getKarpenterStackReturns = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetKarpenterStackReturnsOnCall(i int, result1 *types.Stack, result2 error) {
+func (fake *FakeStackManager) GetKarpenterStackReturnsOnCall(i int, result1 *manager.Stack, result2 error) {
 	fake.getKarpenterStackMutex.Lock()
 	defer fake.getKarpenterStackMutex.Unlock()
 	fake.GetKarpenterStackStub = nil
 	if fake.getKarpenterStackReturnsOnCall == nil {
 		fake.getKarpenterStackReturnsOnCall = make(map[int]struct {
-			result1 *types.Stack
+			result1 *manager.Stack
 			result2 error
 		})
 	}
 	fake.getKarpenterStackReturnsOnCall[i] = struct {
-		result1 *types.Stack
+		result1 *manager.Stack
 		result2 error
 	}{result1, result2}
 }
@@ -2590,11 +2589,11 @@ func (fake *FakeStackManager) GetManagedNodeGroupTemplateReturnsOnCall(i int, re
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetNodeGroupName(arg1 *types.Stack) string {
+func (fake *FakeStackManager) GetNodeGroupName(arg1 *manager.Stack) string {
 	fake.getNodeGroupNameMutex.Lock()
 	ret, specificReturn := fake.getNodeGroupNameReturnsOnCall[len(fake.getNodeGroupNameArgsForCall)]
 	fake.getNodeGroupNameArgsForCall = append(fake.getNodeGroupNameArgsForCall, struct {
-		arg1 *types.Stack
+		arg1 *manager.Stack
 	}{arg1})
 	stub := fake.GetNodeGroupNameStub
 	fakeReturns := fake.getNodeGroupNameReturns
@@ -2615,13 +2614,13 @@ func (fake *FakeStackManager) GetNodeGroupNameCallCount() int {
 	return len(fake.getNodeGroupNameArgsForCall)
 }
 
-func (fake *FakeStackManager) GetNodeGroupNameCalls(stub func(*types.Stack) string) {
+func (fake *FakeStackManager) GetNodeGroupNameCalls(stub func(*manager.Stack) string) {
 	fake.getNodeGroupNameMutex.Lock()
 	defer fake.getNodeGroupNameMutex.Unlock()
 	fake.GetNodeGroupNameStub = stub
 }
 
-func (fake *FakeStackManager) GetNodeGroupNameArgsForCall(i int) *types.Stack {
+func (fake *FakeStackManager) GetNodeGroupNameArgsForCall(i int) *manager.Stack {
 	fake.getNodeGroupNameMutex.RLock()
 	defer fake.getNodeGroupNameMutex.RUnlock()
 	argsForCall := fake.getNodeGroupNameArgsForCall[i]
@@ -2781,12 +2780,12 @@ func (fake *FakeStackManager) GetStackTemplateReturnsOnCall(i int, result1 strin
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetUnmanagedNodeGroupAutoScalingGroupName(arg1 context.Context, arg2 *types.Stack) (string, error) {
+func (fake *FakeStackManager) GetUnmanagedNodeGroupAutoScalingGroupName(arg1 context.Context, arg2 *manager.Stack) (string, error) {
 	fake.getUnmanagedNodeGroupAutoScalingGroupNameMutex.Lock()
 	ret, specificReturn := fake.getUnmanagedNodeGroupAutoScalingGroupNameReturnsOnCall[len(fake.getUnmanagedNodeGroupAutoScalingGroupNameArgsForCall)]
 	fake.getUnmanagedNodeGroupAutoScalingGroupNameArgsForCall = append(fake.getUnmanagedNodeGroupAutoScalingGroupNameArgsForCall, struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}{arg1, arg2})
 	stub := fake.GetUnmanagedNodeGroupAutoScalingGroupNameStub
 	fakeReturns := fake.getUnmanagedNodeGroupAutoScalingGroupNameReturns
@@ -2807,13 +2806,13 @@ func (fake *FakeStackManager) GetUnmanagedNodeGroupAutoScalingGroupNameCallCount
 	return len(fake.getUnmanagedNodeGroupAutoScalingGroupNameArgsForCall)
 }
 
-func (fake *FakeStackManager) GetUnmanagedNodeGroupAutoScalingGroupNameCalls(stub func(context.Context, *types.Stack) (string, error)) {
+func (fake *FakeStackManager) GetUnmanagedNodeGroupAutoScalingGroupNameCalls(stub func(context.Context, *manager.Stack) (string, error)) {
 	fake.getUnmanagedNodeGroupAutoScalingGroupNameMutex.Lock()
 	defer fake.getUnmanagedNodeGroupAutoScalingGroupNameMutex.Unlock()
 	fake.GetUnmanagedNodeGroupAutoScalingGroupNameStub = stub
 }
 
-func (fake *FakeStackManager) GetUnmanagedNodeGroupAutoScalingGroupNameArgsForCall(i int) (context.Context, *types.Stack) {
+func (fake *FakeStackManager) GetUnmanagedNodeGroupAutoScalingGroupNameArgsForCall(i int) (context.Context, *manager.Stack) {
 	fake.getUnmanagedNodeGroupAutoScalingGroupNameMutex.RLock()
 	defer fake.getUnmanagedNodeGroupAutoScalingGroupNameMutex.RUnlock()
 	argsForCall := fake.getUnmanagedNodeGroupAutoScalingGroupNameArgsForCall[i]
@@ -3110,7 +3109,7 @@ func (fake *FakeStackManager) ListIAMServiceAccountStacksReturnsOnCall(i int, re
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) ListNodeGroupStacks(arg1 context.Context) ([]*types.Stack, error) {
+func (fake *FakeStackManager) ListNodeGroupStacks(arg1 context.Context) ([]*manager.Stack, error) {
 	fake.listNodeGroupStacksMutex.Lock()
 	ret, specificReturn := fake.listNodeGroupStacksReturnsOnCall[len(fake.listNodeGroupStacksArgsForCall)]
 	fake.listNodeGroupStacksArgsForCall = append(fake.listNodeGroupStacksArgsForCall, struct {
@@ -3135,7 +3134,7 @@ func (fake *FakeStackManager) ListNodeGroupStacksCallCount() int {
 	return len(fake.listNodeGroupStacksArgsForCall)
 }
 
-func (fake *FakeStackManager) ListNodeGroupStacksCalls(stub func(context.Context) ([]*types.Stack, error)) {
+func (fake *FakeStackManager) ListNodeGroupStacksCalls(stub func(context.Context) ([]*manager.Stack, error)) {
 	fake.listNodeGroupStacksMutex.Lock()
 	defer fake.listNodeGroupStacksMutex.Unlock()
 	fake.ListNodeGroupStacksStub = stub
@@ -3148,28 +3147,28 @@ func (fake *FakeStackManager) ListNodeGroupStacksArgsForCall(i int) context.Cont
 	return argsForCall.arg1
 }
 
-func (fake *FakeStackManager) ListNodeGroupStacksReturns(result1 []*types.Stack, result2 error) {
+func (fake *FakeStackManager) ListNodeGroupStacksReturns(result1 []*manager.Stack, result2 error) {
 	fake.listNodeGroupStacksMutex.Lock()
 	defer fake.listNodeGroupStacksMutex.Unlock()
 	fake.ListNodeGroupStacksStub = nil
 	fake.listNodeGroupStacksReturns = struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) ListNodeGroupStacksReturnsOnCall(i int, result1 []*types.Stack, result2 error) {
+func (fake *FakeStackManager) ListNodeGroupStacksReturnsOnCall(i int, result1 []*manager.Stack, result2 error) {
 	fake.listNodeGroupStacksMutex.Lock()
 	defer fake.listNodeGroupStacksMutex.Unlock()
 	fake.ListNodeGroupStacksStub = nil
 	if fake.listNodeGroupStacksReturnsOnCall == nil {
 		fake.listNodeGroupStacksReturnsOnCall = make(map[int]struct {
-			result1 []*types.Stack
+			result1 []*manager.Stack
 			result2 error
 		})
 	}
 	fake.listNodeGroupStacksReturnsOnCall[i] = struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}{result1, result2}
 }
@@ -3367,7 +3366,7 @@ func (fake *FakeStackManager) ListStackNamesReturnsOnCall(i int, result1 []strin
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) ListStacks(arg1 context.Context) ([]*types.Stack, error) {
+func (fake *FakeStackManager) ListStacks(arg1 context.Context) ([]*manager.Stack, error) {
 	fake.listStacksMutex.Lock()
 	ret, specificReturn := fake.listStacksReturnsOnCall[len(fake.listStacksArgsForCall)]
 	fake.listStacksArgsForCall = append(fake.listStacksArgsForCall, struct {
@@ -3392,7 +3391,7 @@ func (fake *FakeStackManager) ListStacksCallCount() int {
 	return len(fake.listStacksArgsForCall)
 }
 
-func (fake *FakeStackManager) ListStacksCalls(stub func(context.Context) ([]*types.Stack, error)) {
+func (fake *FakeStackManager) ListStacksCalls(stub func(context.Context) ([]*manager.Stack, error)) {
 	fake.listStacksMutex.Lock()
 	defer fake.listStacksMutex.Unlock()
 	fake.ListStacksStub = stub
@@ -3405,33 +3404,33 @@ func (fake *FakeStackManager) ListStacksArgsForCall(i int) context.Context {
 	return argsForCall.arg1
 }
 
-func (fake *FakeStackManager) ListStacksReturns(result1 []*types.Stack, result2 error) {
+func (fake *FakeStackManager) ListStacksReturns(result1 []*manager.Stack, result2 error) {
 	fake.listStacksMutex.Lock()
 	defer fake.listStacksMutex.Unlock()
 	fake.ListStacksStub = nil
 	fake.listStacksReturns = struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) ListStacksReturnsOnCall(i int, result1 []*types.Stack, result2 error) {
+func (fake *FakeStackManager) ListStacksReturnsOnCall(i int, result1 []*manager.Stack, result2 error) {
 	fake.listStacksMutex.Lock()
 	defer fake.listStacksMutex.Unlock()
 	fake.ListStacksStub = nil
 	if fake.listStacksReturnsOnCall == nil {
 		fake.listStacksReturnsOnCall = make(map[int]struct {
-			result1 []*types.Stack
+			result1 []*manager.Stack
 			result2 error
 		})
 	}
 	fake.listStacksReturnsOnCall[i] = struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) ListStacksMatching(arg1 context.Context, arg2 string, arg3 ...types.StackStatus) ([]*types.Stack, error) {
+func (fake *FakeStackManager) ListStacksMatching(arg1 context.Context, arg2 string, arg3 ...types.StackStatus) ([]*manager.Stack, error) {
 	fake.listStacksMatchingMutex.Lock()
 	ret, specificReturn := fake.listStacksMatchingReturnsOnCall[len(fake.listStacksMatchingArgsForCall)]
 	fake.listStacksMatchingArgsForCall = append(fake.listStacksMatchingArgsForCall, struct {
@@ -3458,7 +3457,7 @@ func (fake *FakeStackManager) ListStacksMatchingCallCount() int {
 	return len(fake.listStacksMatchingArgsForCall)
 }
 
-func (fake *FakeStackManager) ListStacksMatchingCalls(stub func(context.Context, string, ...types.StackStatus) ([]*types.Stack, error)) {
+func (fake *FakeStackManager) ListStacksMatchingCalls(stub func(context.Context, string, ...types.StackStatus) ([]*manager.Stack, error)) {
 	fake.listStacksMatchingMutex.Lock()
 	defer fake.listStacksMatchingMutex.Unlock()
 	fake.ListStacksMatchingStub = stub
@@ -3471,33 +3470,33 @@ func (fake *FakeStackManager) ListStacksMatchingArgsForCall(i int) (context.Cont
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeStackManager) ListStacksMatchingReturns(result1 []*types.Stack, result2 error) {
+func (fake *FakeStackManager) ListStacksMatchingReturns(result1 []*manager.Stack, result2 error) {
 	fake.listStacksMatchingMutex.Lock()
 	defer fake.listStacksMatchingMutex.Unlock()
 	fake.ListStacksMatchingStub = nil
 	fake.listStacksMatchingReturns = struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) ListStacksMatchingReturnsOnCall(i int, result1 []*types.Stack, result2 error) {
+func (fake *FakeStackManager) ListStacksMatchingReturnsOnCall(i int, result1 []*manager.Stack, result2 error) {
 	fake.listStacksMatchingMutex.Lock()
 	defer fake.listStacksMatchingMutex.Unlock()
 	fake.ListStacksMatchingStub = nil
 	if fake.listStacksMatchingReturnsOnCall == nil {
 		fake.listStacksMatchingReturnsOnCall = make(map[int]struct {
-			result1 []*types.Stack
+			result1 []*manager.Stack
 			result2 error
 		})
 	}
 	fake.listStacksMatchingReturnsOnCall[i] = struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) ListStacksWithStatuses(arg1 context.Context, arg2 ...types.StackStatus) ([]*types.Stack, error) {
+func (fake *FakeStackManager) ListStacksWithStatuses(arg1 context.Context, arg2 ...types.StackStatus) ([]*manager.Stack, error) {
 	fake.listStacksWithStatusesMutex.Lock()
 	ret, specificReturn := fake.listStacksWithStatusesReturnsOnCall[len(fake.listStacksWithStatusesArgsForCall)]
 	fake.listStacksWithStatusesArgsForCall = append(fake.listStacksWithStatusesArgsForCall, struct {
@@ -3523,7 +3522,7 @@ func (fake *FakeStackManager) ListStacksWithStatusesCallCount() int {
 	return len(fake.listStacksWithStatusesArgsForCall)
 }
 
-func (fake *FakeStackManager) ListStacksWithStatusesCalls(stub func(context.Context, ...types.StackStatus) ([]*types.Stack, error)) {
+func (fake *FakeStackManager) ListStacksWithStatusesCalls(stub func(context.Context, ...types.StackStatus) ([]*manager.Stack, error)) {
 	fake.listStacksWithStatusesMutex.Lock()
 	defer fake.listStacksWithStatusesMutex.Unlock()
 	fake.ListStacksWithStatusesStub = stub
@@ -3536,38 +3535,38 @@ func (fake *FakeStackManager) ListStacksWithStatusesArgsForCall(i int) (context.
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStackManager) ListStacksWithStatusesReturns(result1 []*types.Stack, result2 error) {
+func (fake *FakeStackManager) ListStacksWithStatusesReturns(result1 []*manager.Stack, result2 error) {
 	fake.listStacksWithStatusesMutex.Lock()
 	defer fake.listStacksWithStatusesMutex.Unlock()
 	fake.ListStacksWithStatusesStub = nil
 	fake.listStacksWithStatusesReturns = struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) ListStacksWithStatusesReturnsOnCall(i int, result1 []*types.Stack, result2 error) {
+func (fake *FakeStackManager) ListStacksWithStatusesReturnsOnCall(i int, result1 []*manager.Stack, result2 error) {
 	fake.listStacksWithStatusesMutex.Lock()
 	defer fake.listStacksWithStatusesMutex.Unlock()
 	fake.ListStacksWithStatusesStub = nil
 	if fake.listStacksWithStatusesReturnsOnCall == nil {
 		fake.listStacksWithStatusesReturnsOnCall = make(map[int]struct {
-			result1 []*types.Stack
+			result1 []*manager.Stack
 			result2 error
 		})
 	}
 	fake.listStacksWithStatusesReturnsOnCall[i] = struct {
-		result1 []*types.Stack
+		result1 []*manager.Stack
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) LookupCloudTrailEvents(arg1 context.Context, arg2 *types.Stack) ([]typesb.Event, error) {
+func (fake *FakeStackManager) LookupCloudTrailEvents(arg1 context.Context, arg2 *manager.Stack) ([]typesb.Event, error) {
 	fake.lookupCloudTrailEventsMutex.Lock()
 	ret, specificReturn := fake.lookupCloudTrailEventsReturnsOnCall[len(fake.lookupCloudTrailEventsArgsForCall)]
 	fake.lookupCloudTrailEventsArgsForCall = append(fake.lookupCloudTrailEventsArgsForCall, struct {
 		arg1 context.Context
-		arg2 *types.Stack
+		arg2 *manager.Stack
 	}{arg1, arg2})
 	stub := fake.LookupCloudTrailEventsStub
 	fakeReturns := fake.lookupCloudTrailEventsReturns
@@ -3588,13 +3587,13 @@ func (fake *FakeStackManager) LookupCloudTrailEventsCallCount() int {
 	return len(fake.lookupCloudTrailEventsArgsForCall)
 }
 
-func (fake *FakeStackManager) LookupCloudTrailEventsCalls(stub func(context.Context, *types.Stack) ([]typesb.Event, error)) {
+func (fake *FakeStackManager) LookupCloudTrailEventsCalls(stub func(context.Context, *manager.Stack) ([]typesb.Event, error)) {
 	fake.lookupCloudTrailEventsMutex.Lock()
 	defer fake.lookupCloudTrailEventsMutex.Unlock()
 	fake.LookupCloudTrailEventsStub = stub
 }
 
-func (fake *FakeStackManager) LookupCloudTrailEventsArgsForCall(i int) (context.Context, *types.Stack) {
+func (fake *FakeStackManager) LookupCloudTrailEventsArgsForCall(i int) (context.Context, *manager.Stack) {
 	fake.lookupCloudTrailEventsMutex.RLock()
 	defer fake.lookupCloudTrailEventsMutex.RUnlock()
 	argsForCall := fake.lookupCloudTrailEventsArgsForCall[i]
@@ -4083,7 +4082,7 @@ func (fake *FakeStackManager) NewTasksToCreateIAMServiceAccountsReturnsOnCall(i 
 	}{result1}
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroups(arg1 context.Context, arg2 *types.Stack, arg3 []manager.NodeGroupStack, arg4 bool, arg5 manager.NewOIDCManager, arg6 manager.NewTasksToDeleteAddonIAM, arg7 manager.NewTasksToDeletePodIdentityRole, arg8 *typesc.Cluster, arg9 kubernetes.ClientSetGetter, arg10 bool, arg11 bool, arg12 func(chan error, string) error) (*tasks.TaskTree, error) {
+func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroups(arg1 context.Context, arg2 *manager.Stack, arg3 []manager.NodeGroupStack, arg4 bool, arg5 manager.NewOIDCManager, arg6 manager.NewTasksToDeleteAddonIAM, arg7 manager.NewTasksToDeletePodIdentityRole, arg8 *typesc.Cluster, arg9 kubernetes.ClientSetGetter, arg10 bool, arg11 bool, arg12 func(chan error, string) error) (*tasks.TaskTree, error) {
 	var arg3Copy []manager.NodeGroupStack
 	if arg3 != nil {
 		arg3Copy = make([]manager.NodeGroupStack, len(arg3))
@@ -4093,7 +4092,7 @@ func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroups(arg1 context
 	ret, specificReturn := fake.newTasksToDeleteClusterWithNodeGroupsReturnsOnCall[len(fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall)]
 	fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall = append(fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall, struct {
 		arg1  context.Context
-		arg2  *types.Stack
+		arg2  *manager.Stack
 		arg3  []manager.NodeGroupStack
 		arg4  bool
 		arg5  manager.NewOIDCManager
@@ -4124,13 +4123,13 @@ func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsCallCount() i
 	return len(fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall)
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsCalls(stub func(context.Context, *types.Stack, []manager.NodeGroupStack, bool, manager.NewOIDCManager, manager.NewTasksToDeleteAddonIAM, manager.NewTasksToDeletePodIdentityRole, *typesc.Cluster, kubernetes.ClientSetGetter, bool, bool, func(chan error, string) error) (*tasks.TaskTree, error)) {
+func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsCalls(stub func(context.Context, *manager.Stack, []manager.NodeGroupStack, bool, manager.NewOIDCManager, manager.NewTasksToDeleteAddonIAM, manager.NewTasksToDeletePodIdentityRole, *typesc.Cluster, kubernetes.ClientSetGetter, bool, bool, func(chan error, string) error) (*tasks.TaskTree, error)) {
 	fake.newTasksToDeleteClusterWithNodeGroupsMutex.Lock()
 	defer fake.newTasksToDeleteClusterWithNodeGroupsMutex.Unlock()
 	fake.NewTasksToDeleteClusterWithNodeGroupsStub = stub
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsArgsForCall(i int) (context.Context, *types.Stack, []manager.NodeGroupStack, bool, manager.NewOIDCManager, manager.NewTasksToDeleteAddonIAM, manager.NewTasksToDeletePodIdentityRole, *typesc.Cluster, kubernetes.ClientSetGetter, bool, bool, func(chan error, string) error) {
+func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsArgsForCall(i int) (context.Context, *manager.Stack, []manager.NodeGroupStack, bool, manager.NewOIDCManager, manager.NewTasksToDeleteAddonIAM, manager.NewTasksToDeletePodIdentityRole, *typesc.Cluster, kubernetes.ClientSetGetter, bool, bool, func(chan error, string) error) {
 	fake.newTasksToDeleteClusterWithNodeGroupsMutex.RLock()
 	defer fake.newTasksToDeleteClusterWithNodeGroupsMutex.RUnlock()
 	argsForCall := fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall[i]
@@ -4577,11 +4576,11 @@ func (fake *FakeStackManager) RefreshFargatePodExecutionRoleARNReturnsOnCall(i i
 	}{result1}
 }
 
-func (fake *FakeStackManager) StackStatusIsNotTransitional(arg1 *types.Stack) bool {
+func (fake *FakeStackManager) StackStatusIsNotTransitional(arg1 *manager.Stack) bool {
 	fake.stackStatusIsNotTransitionalMutex.Lock()
 	ret, specificReturn := fake.stackStatusIsNotTransitionalReturnsOnCall[len(fake.stackStatusIsNotTransitionalArgsForCall)]
 	fake.stackStatusIsNotTransitionalArgsForCall = append(fake.stackStatusIsNotTransitionalArgsForCall, struct {
-		arg1 *types.Stack
+		arg1 *manager.Stack
 	}{arg1})
 	stub := fake.StackStatusIsNotTransitionalStub
 	fakeReturns := fake.stackStatusIsNotTransitionalReturns
@@ -4602,13 +4601,13 @@ func (fake *FakeStackManager) StackStatusIsNotTransitionalCallCount() int {
 	return len(fake.stackStatusIsNotTransitionalArgsForCall)
 }
 
-func (fake *FakeStackManager) StackStatusIsNotTransitionalCalls(stub func(*types.Stack) bool) {
+func (fake *FakeStackManager) StackStatusIsNotTransitionalCalls(stub func(*manager.Stack) bool) {
 	fake.stackStatusIsNotTransitionalMutex.Lock()
 	defer fake.stackStatusIsNotTransitionalMutex.Unlock()
 	fake.StackStatusIsNotTransitionalStub = stub
 }
 
-func (fake *FakeStackManager) StackStatusIsNotTransitionalArgsForCall(i int) *types.Stack {
+func (fake *FakeStackManager) StackStatusIsNotTransitionalArgsForCall(i int) *manager.Stack {
 	fake.stackStatusIsNotTransitionalMutex.RLock()
 	defer fake.stackStatusIsNotTransitionalMutex.RUnlock()
 	argsForCall := fake.stackStatusIsNotTransitionalArgsForCall[i]
