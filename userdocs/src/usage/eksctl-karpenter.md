@@ -5,8 +5,8 @@ prerequisites outlined in Karpenter's [Getting Started](https://karpenter.sh/doc
 Karpenter itself using Helm. We currently support installing versions starting `0.20.0` and above.
 
 ???+ info
-    With [v0.17.0](https://karpenter.sh/docs/upgrade-guide/#upgrading-to-v0170) Karpenter’s Helm chart package is now stored in Karpenter’s OCI (Open Container Initiative) registry.
-    Clusters created on previous versions shouldn't be affected by this change. If you wish to upgrade your current installation of Karpenter please refer to the [upgrade guide](https://karpenter.sh/docs/upgrade-guide/)
+    With [v0.17.0](https://karpenter.sh/docs/upgrading/upgrade-guide/#upgrading-to-0170) Karpenter’s Helm chart package is now stored in Karpenter’s OCI (Open Container Initiative) registry.
+    Clusters created on previous versions shouldn't be affected by this change. If you wish to upgrade your current installation of Karpenter please refer to the [upgrade guide](https://karpenter.sh/docs/upgrading/upgrade-guide/)
     You have to be logged out of ECR repositories to be able to pull the OCI artifact by running `helm registry logout public.ecr.aws` or `docker logout public.ecr.aws`, failure to do so will result in a 403 error when trying to pull the chart.
 
 To that end, a new configuration value has been introduced into `eksctl` cluster config called `karpenter`. The following
@@ -48,8 +48,7 @@ karpenter:
 
 OIDC must be defined in order to install Karpenter.
 
-Once Karpenter is successfully installed, add a [Provisioner](https://karpenter.sh/docs/concepts/provisioners/) so Karpenter
-can start adding the right nodes to the cluster.
+Once Karpenter is successfully installed, add a Provisioner so Karpenter can start adding the right nodes to the cluster.
 
 The provisioner's `instanceProfile` section must match the created `NodeInstanceProfile` role's name. For example:
 
@@ -77,3 +76,5 @@ spec:
 
 Note that unless `defaultInstanceProfile` is defined, the name used for `instanceProfile` is
 `eksctl-KarpenterNodeInstanceProfile-<cluster-name>`.
+
+Note with karpenter 0.32.0+, Provisioners have been deprecated and replaced by [NodePool](https://karpenter.sh/docs/concepts/nodepools/).
