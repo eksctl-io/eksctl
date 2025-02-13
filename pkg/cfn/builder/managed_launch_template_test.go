@@ -266,6 +266,24 @@ API_SERVER_URL=https://test.com
 			resourcesFilename: "spot.json",
 		}),
 
+		Entry("With Capacity Block instances", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "cb-test",
+					CapacityReservation: &api.CapacityReservation{
+						CapacityReservationTarget: &api.CapacityReservationTarget{
+							CapacityReservationID: aws.String("res-id"),
+						},
+					},
+					InstanceMarketOptions: &api.InstanceMarketOptions{
+						MarketType: aws.String("capacity-block"),
+					},
+				},
+				InstanceTypes: []string{"p5en.48xlarge"},
+			},
+			resourcesFilename: "capacity_block.json",
+		}),
+
 		Entry("With node repair enabled", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{

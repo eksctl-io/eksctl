@@ -130,6 +130,12 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 		managedResource.CapacityType = gfnt.NewString("SPOT")
 	}
 
+	if m.nodeGroup.InstanceMarketOptions != nil &&
+		m.nodeGroup.InstanceMarketOptions.MarketType != nil &&
+		*m.nodeGroup.InstanceMarketOptions.MarketType == "capacity-block" {
+		managedResource.CapacityType = gfnt.NewString("CAPACITY_BLOCK")
+	}
+
 	if m.nodeGroup.ReleaseVersion != "" {
 		managedResource.ReleaseVersion = gfnt.NewString(m.nodeGroup.ReleaseVersion)
 	}
