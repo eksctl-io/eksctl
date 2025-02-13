@@ -924,7 +924,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				"--timeout=45m",
 				"--cluster", params.ClusterName,
 				"--nodes", "1",
-				"--instance-types", "p3.2xlarge,p3.8xlarge,g3s.xlarge,g4ad.xlarge,g4ad.2xlarge",
+				"--instance-types", "g6.xlarge,g6.2xlarge",
 				"--node-private-networking",
 				"--node-zones", "us-west-2b,us-west-2c",
 				GPUMng,
