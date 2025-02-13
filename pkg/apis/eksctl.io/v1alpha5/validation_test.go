@@ -307,10 +307,34 @@ var _ = Describe("ClusterConfig validation", func() {
 				})
 			})
 
+			When("VolumeType is io2", func() {
+				BeforeEach(func() {
+					*ng0.VolumeType = api.NodeVolumeTypeIO2
+				})
+
+				It("does not fail", func() {
+					Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(Succeed())
+				})
+
+				When(fmt.Sprintf("the value of volumeIOPS is < %d", api.MinIO2Iops), func() {
+					It("returns an error", func() {
+						ng0.VolumeIOPS = aws.Int(api.MinIO2Iops - 1)
+						Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 100-256000"))
+					})
+				})
+
+				When(fmt.Sprintf("the value of volumeIOPS is > %d", api.MaxIO2Iops), func() {
+					It("returns an error", func() {
+						ng0.VolumeIOPS = aws.Int(api.MaxIO2Iops + 1)
+						Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 100-256000"))
+					})
+				})
+			})
+
 			When("VolumeType is one for which IOPS is not supported", func() {
 				It("returns an error", func() {
 					*ng0.VolumeType = api.NodeVolumeTypeGP2
-					Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(MatchError("nodeGroups[0].volumeIOPS is only supported for io1 and gp3 volume types"))
+					Expect(api.ValidateNodeGroup(0, ng0, cfg)).To(MatchError("nodeGroups[0].volumeIOPS is only supported for io1, io2 and gp3 volume types"))
 				})
 			})
 		})
@@ -1700,14 +1724,14 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			It("fails in case of arm-gpu distribution instance type", func() {
 				ng.InstanceType = "mixed"
-				ng.InstancesDistribution.InstanceTypes = []string{"g5g.medium"}
+				ng.InstancesDistribution.InstanceTypes = []string{"g5g.2xlarge"}
 				ng.AMIFamily = api.NodeImageFamilyAmazonLinux2
 				err := api.ValidateNodeGroup(0, ng, cfg)
 				Expect(err).To(MatchError("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily AmazonLinux2"))
 			})
 
 			It("ARM-based GPU instance type fails for AmazonLinux2", func() {
-				ng.InstanceType = "g5g.medium"
+				ng.InstanceType = "g5g.2xlarge"
 				ng.InstancesDistribution.InstanceTypes = nil
 				ng.AMIFamily = api.NodeImageFamilyAmazonLinux2
 				err := api.ValidateNodeGroup(0, ng, cfg)

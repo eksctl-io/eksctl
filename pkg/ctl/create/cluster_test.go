@@ -314,7 +314,7 @@ var _ = Describe("create cluster", func() {
 		Entry("[Cluster with NodeGroups] fails to install device plugins", createClusterEntry{
 			updateClusterConfig: func(c *api.ClusterConfig) {
 				nodeGroup := getDefaultNodeGroup()
-				nodeGroup.InstanceType = "g3.xlarge"
+				nodeGroup.InstanceType = "g4dn.xlarge"
 				c.NodeGroups = append(c.NodeGroups, nodeGroup)
 			},
 			updateClusterParams: func(params *cmdutils.CreateClusterCmdParams) {
@@ -873,12 +873,12 @@ var (
 			mp.MockEC2().On("DescribeInstanceTypeOfferings", mock.Anything, mock.Anything, mock.Anything).Return(&ec2.DescribeInstanceTypeOfferingsOutput{
 				InstanceTypeOfferings: []ec2types.InstanceTypeOffering{
 					{
-						InstanceType: "g3.xlarge",
+						InstanceType: "g4dn.xlarge",
 						Location:     aws.String("us-west-2-1b"),
 						LocationType: "availability-zone",
 					},
 					{
-						InstanceType: "g3.xlarge",
+						InstanceType: "g4dn.xlarge",
 						Location:     aws.String("us-west-2-1a"),
 						LocationType: "availability-zone",
 					},

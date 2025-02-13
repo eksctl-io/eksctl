@@ -281,8 +281,12 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 				).Run()
 			Expect(session.ExitCode()).To(Equal(0))
 			Expect(json.Unmarshal(session.Out.Contents(), &output)).To(Succeed())
-			// taking into account the cluster creator admin permission access entry
-			Expect(output).To(HaveLen(1))
+			// check that all remaining access entries do not contain what we deleted earlier
+			for _, accessEntry := range output {
+				Expect(accessEntry.PrincipalARN.String()).NotTo(Equal(defaultRoleARN))
+				Expect(accessEntry.PrincipalARN.String()).NotTo(Equal(clusterRoleARN))
+				Expect(accessEntry.PrincipalARN.String()).NotTo(Equal(namespaceRoleARN))
+			}
 		})
 	})
 

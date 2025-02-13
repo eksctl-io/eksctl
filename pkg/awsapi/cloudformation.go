@@ -99,6 +99,9 @@ type CloudFormation interface {
 	// and Region. You must specify at least one value for either Accounts or
 	// DeploymentTargets , and you must specify at least one value for Regions .
 	CreateStackInstances(ctx context.Context, params *CreateStackInstancesInput, optFns ...func(*Options)) (*CreateStackInstancesOutput, error)
+	// Creates a refactor across multiple stacks, with the list of stacks and
+	// resources that are affected.
+	CreateStackRefactor(ctx context.Context, params *CreateStackRefactorInput, optFns ...func(*Options)) (*CreateStackRefactorOutput, error)
 	// Creates a stack set.
 	CreateStackSet(ctx context.Context, params *CreateStackSetInput, optFns ...func(*Options)) (*CreateStackSetOutput, error)
 	// Deactivates trusted access with Organizations. If trusted access is
@@ -233,6 +236,8 @@ type CloudFormation interface {
 	// For a list of stack instances that are associated with a specific StackSet, use ListStackInstances
 	// .
 	DescribeStackInstance(ctx context.Context, params *DescribeStackInstanceInput, optFns ...func(*Options)) (*DescribeStackInstanceOutput, error)
+	// Describes the stack refactor status.
+	DescribeStackRefactor(ctx context.Context, params *DescribeStackRefactorInput, optFns ...func(*Options)) (*DescribeStackRefactorOutput, error)
 	// Returns a description of the specified resource in the specified stack.
 	//
 	// For deleted stacks, DescribeStackResource returns resource information for up
@@ -346,7 +351,7 @@ type CloudFormation interface {
 	DetectStackResourceDrift(ctx context.Context, params *DetectStackResourceDriftInput, optFns ...func(*Options)) (*DetectStackResourceDriftOutput, error)
 	// Detect drift on a stack set. When CloudFormation performs drift detection on a
 	// stack set, it performs drift detection on the stack associated with each stack
-	// instance in the stack set. For more information, see [How CloudFormation performs drift detection on a stack set].
+	// instance in the stack set. For more information, see [Performing drift detection on CloudFormation StackSets].
 	//
 	// DetectStackSetDrift returns the OperationId of the stack set drift detection
 	// operation. Use this operation id with DescribeStackSetOperationto monitor the progress of the drift
@@ -367,16 +372,12 @@ type CloudFormation interface {
 	//   - Use DescribeStackInstanceto return detailed information about a specific stack instance,
 	//     including its drift status and last drift time checked.
 	//
-	// For more information about performing a drift detection operation on a stack
-	// set, see [Detecting unmanaged changes in stack sets].
-	//
 	// You can only run a single drift detection operation on a given stack set at one
 	// time.
 	//
 	// To stop a drift detection stack set operation, use StopStackSetOperation.
 	//
-	// [Detecting unmanaged changes in stack sets]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-drift.html
-	// [How CloudFormation performs drift detection on a stack set]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-drift.html
+	// [Performing drift detection on CloudFormation StackSets]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-drift.html
 	DetectStackSetDrift(ctx context.Context, params *DetectStackSetDriftInput, optFns ...func(*Options)) (*DetectStackSetDriftOutput, error)
 	// Returns the estimated monthly cost of a template. The return value is an Amazon
 	// Web Services Simple Monthly Calculator URL with a query string that describes
@@ -397,6 +398,8 @@ type CloudFormation interface {
 	// To create a change set for the entire stack hierarchy, IncludeNestedStacks must
 	// have been set to True .
 	ExecuteChangeSet(ctx context.Context, params *ExecuteChangeSetInput, optFns ...func(*Options)) (*ExecuteChangeSetOutput, error)
+	// Executes the stack refactor operation.
+	ExecuteStackRefactor(ctx context.Context, params *ExecuteStackRefactorInput, optFns ...func(*Options)) (*ExecuteStackRefactorOutput, error)
 	// Retrieves a generated template. If the template is in an InProgress or Pending
 	// status then the template returned will be the template when the template was
 	// last in a Complete status. If the template has not yet been in a Complete
@@ -479,6 +482,10 @@ type CloudFormation interface {
 	// a specific Amazon Web Services account name or Region, or that have a specific
 	// status.
 	ListStackInstances(ctx context.Context, params *ListStackInstancesInput, optFns ...func(*Options)) (*ListStackInstancesOutput, error)
+	// Lists the stack refactor actions that will be taken after calling the ExecuteStackRefactor action.
+	ListStackRefactorActions(ctx context.Context, params *ListStackRefactorActionsInput, optFns ...func(*Options)) (*ListStackRefactorActionsOutput, error)
+	// Lists all account stack refactor operations and their statuses.
+	ListStackRefactors(ctx context.Context, params *ListStackRefactorsInput, optFns ...func(*Options)) (*ListStackRefactorsOutput, error)
 	// Returns descriptions of all resources of the specified stack.
 	//
 	// For deleted stacks, ListStackResources returns resource information for up to

@@ -293,6 +293,7 @@ func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes
 		api.NodeImageFamilyBottlerocket: {
 			X86x64:    ekstypes.AMITypesBottlerocketX8664,
 			X86Nvidia: ekstypes.AMITypesBottlerocketX8664Nvidia,
+			X86Neuron: ekstypes.AMITypesBottlerocketX8664,
 			ARM:       ekstypes.AMITypesBottlerocketArm64,
 			ARMGPU:    ekstypes.AMITypesBottlerocketArm64Nvidia,
 		},

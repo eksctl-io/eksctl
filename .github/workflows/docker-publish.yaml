@@ -17,12 +17,12 @@ jobs:
         with:
           images: weaveworks/eksctl
       - name: Log in to Docker Hub
-        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 #v3.1.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 #v3.3.0
         with:
           username: weaveworkseksctlci
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Build and push Docker image
-        uses: docker/build-push-action@b32b51a8eda65d6793cd0494a773d4f6bcef32dc #6.11.0
+        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 #6.13.0
         with:
           context: .
           push: true

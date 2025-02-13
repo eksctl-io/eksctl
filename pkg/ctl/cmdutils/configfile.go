@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
-
-	"golang.org/x/exp/slices"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -485,9 +484,9 @@ func validateDryRunOptions(cmd *cobra.Command, incompatibleFlags []string) error
 	return nil
 }
 
-// validateBareCluster validates a cluster for unsupported fields if VPC CNI is disabled.
+// validateBareCluster validates a cluster for unsupported fields if VPC CNI and Auto Mode is disabled.
 func validateBareCluster(clusterConfig *api.ClusterConfig) error {
-	if !clusterConfig.AddonsConfig.DisableDefaultAddons || slices.ContainsFunc(clusterConfig.Addons, func(addon *api.Addon) bool {
+	if !clusterConfig.AddonsConfig.DisableDefaultAddons || clusterConfig.IsAutoModeEnabled() || slices.ContainsFunc(clusterConfig.Addons, func(addon *api.Addon) bool {
 		return addon.Name == api.VPCCNIAddon
 	}) {
 		return nil
@@ -495,8 +494,8 @@ func validateBareCluster(clusterConfig *api.ClusterConfig) error {
 	if clusterConfig.HasNodes() || clusterConfig.IsFargateEnabled() || clusterConfig.Karpenter != nil || clusterConfig.HasGitOpsFluxConfigured() ||
 		(clusterConfig.IAM != nil && ((len(clusterConfig.IAM.ServiceAccounts) > 0) || len(clusterConfig.IAM.PodIdentityAssociations) > 0)) {
 		return errors.New("fields nodeGroups, managedNodeGroups, fargateProfiles, karpenter, gitops, iam.serviceAccounts, " +
-			"and iam.podIdentityAssociations are not supported during cluster creation in a cluster without VPC CNI; please remove these fields " +
-			"and add them back after cluster creation is successful")
+			"and iam.podIdentityAssociations are not supported during cluster creation in a cluster without VPC CNI if Auto Mode is disabled; " +
+			"please remove these fields and add them back after cluster creation is successful")
 	}
 	return nil
 }
@@ -659,6 +658,10 @@ func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 
 	if *ng.VolumeType == api.NodeVolumeTypeIO1 {
 		return fmt.Errorf("%s volume type is not supported via flag --node-volume-type, please use a config file", api.NodeVolumeTypeIO1)
+	}
+
+	if *ng.VolumeType == api.NodeVolumeTypeIO2 {
+		return fmt.Errorf("%s volume type is not supported via flag --node-volume-type, please use a config file", api.NodeVolumeTypeIO2)
 	}
 
 	normalizeBaseNodeGroup(ng, l.CobraCommand)

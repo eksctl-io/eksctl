@@ -227,6 +227,10 @@ func setVolumeDefaults(ng *NodeGroupBase, controlPlaneOnOutposts bool, template 
 		if ng.VolumeIOPS == nil {
 			ng.VolumeIOPS = aws.Int(DefaultNodeVolumeIO1IOPS)
 		}
+	case NodeVolumeTypeIO2:
+		if ng.VolumeIOPS == nil {
+			ng.VolumeIOPS = aws.Int(DefaultNodeVolumeIO2IOPS)
+		}
 	}
 
 	if ng.AMIFamily == NodeImageFamilyBottlerocket && !IsSetAndNonEmptyString(ng.VolumeName) {
@@ -253,6 +257,9 @@ func setDefaultsForAdditionalVolumes(ng *NodeGroupBase, controlPlaneOnOutposts b
 		}
 		if *av.VolumeType == NodeVolumeTypeIO1 && av.VolumeIOPS == nil {
 			ng.AdditionalVolumes[i].VolumeIOPS = aws.Int(DefaultNodeVolumeIO1IOPS)
+		}
+		if *av.VolumeType == NodeVolumeTypeIO2 && av.VolumeIOPS == nil {
+			ng.AdditionalVolumes[i].VolumeIOPS = aws.Int(DefaultNodeVolumeIO2IOPS)
 		}
 	}
 }

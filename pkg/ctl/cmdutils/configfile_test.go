@@ -501,8 +501,8 @@ var _ = Describe("cmdutils configfile", func() {
 			}).Load()
 			if e.expectErr {
 				Expect(err).To(MatchError("fields nodeGroups, managedNodeGroups, fargateProfiles, karpenter, gitops, iam.serviceAccounts, " +
-					"and iam.podIdentityAssociations are not supported during cluster creation in a cluster without VPC CNI; please remove these fields " +
-					"and add them back after cluster creation is successful"))
+					"and iam.podIdentityAssociations are not supported during cluster creation in a cluster without VPC CNI if Auto Mode is disabled; " +
+					"please remove these fields and add them back after cluster creation is successful"))
 			} else {
 				Expect(err).NotTo(HaveOccurred())
 			}

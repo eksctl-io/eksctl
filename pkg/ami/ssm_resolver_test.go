@@ -296,7 +296,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("for arm instance type", func() {
 					BeforeEach(func() {
-						instanceType = "a1.large"
+						instanceType = "c6g.12xlarge"
 					})
 					DescribeTable("should return a valid AMI for arm64",
 						func(version string) {
@@ -362,7 +362,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("for arm instance type", func() {
 					BeforeEach(func() {
-						instanceType = "a1.large"
+						instanceType = "g5g.2xlarge"
 					})
 					DescribeTable("should return a valid AMI for arm64",
 						func(version string) {
@@ -422,7 +422,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("for arm instance type", func() {
 					BeforeEach(func() {
-						instanceType = "a1.large"
+						instanceType = "g5g.2xlarge"
 					})
 					DescribeTable("should return a valid AMI for arm64",
 						func(version string) {
@@ -480,7 +480,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("for arm instance type", func() {
 					BeforeEach(func() {
-						instanceType = "a1.large"
+						instanceType = "g5g.2xlarge"
 					})
 					DescribeTable("should return a valid AMI for arm64",
 						func(version string) {
@@ -536,7 +536,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("for arm instance type", func() {
 					BeforeEach(func() {
-						instanceType = "a1.large"
+						instanceType = "g5g.2xlarge"
 					})
 					DescribeTable("should return a valid AMI for arm64",
 						func(version string) {
@@ -608,7 +608,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("for arm instance type", func() {
 					BeforeEach(func() {
-						instanceType = "a1.large"
+						instanceType = "c6g.2xlarge"
 					})
 
 					Context("and ami is available", func() {
