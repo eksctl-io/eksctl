@@ -7,6 +7,7 @@ import (
 	"github.com/awslabs/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/awslabs/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
+	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -82,11 +83,19 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(ctx context.Context
 			return nil, fmt.Errorf("couldn't build network interfaces for launch template data: %w", err)
 		}
 		if mng.Placement == nil {
-			groupName := m.newResource("NodeGroupPlacementGroup", &gfnec2.PlacementGroup{
-				Strategy: gfnt.NewString("cluster"),
-			})
-			launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
-				GroupName: groupName,
+
+			// Reservations are often explicitly created with placement in mind, and adding
+			// a group can lead to an error if it cannot reach all reserved instances.
+			// For this niche case, we leave it up to the user to create the group.
+			if mng.CapacityReservation != nil {
+				logger.Warning("EFA requested without placement group. If your reservation warrants one, please add it")
+			} else {
+				groupName := m.newResource("NodeGroupPlacementGroup", &gfnec2.PlacementGroup{
+					Strategy: gfnt.NewString("cluster"),
+				})
+				launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
+					GroupName: groupName,
+				}
 			}
 		}
 	} else {
