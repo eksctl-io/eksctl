@@ -2,7 +2,7 @@ package goformation
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation"
@@ -22,7 +22,7 @@ func Open(filename string) (*cloudformation.Template, error) {
 // Parsing can be tweaked via the specified options.
 func OpenWithOptions(filename string, options *intrinsics.ProcessorOptions) (*cloudformation.Template, error) {
 
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}

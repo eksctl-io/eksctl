@@ -72,7 +72,7 @@ func (r Resource) Required() string {
 		}
 	}
 
-	// As Go doesn't provide ordering guarentees for maps, we should
+	// As Go doesn't provide ordering guarantees for maps, we should
 	// sort the required property names by alphabetical order so that
 	// they don't shuffle on every generation, and cause annoying commit diffs
 	sort.Strings(required)

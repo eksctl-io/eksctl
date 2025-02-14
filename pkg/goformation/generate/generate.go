@@ -5,13 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"go/format"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"sort"
 	"strings"
 	"text/template"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // ResourceGenerator takes AWS CloudFormation Resource Specification
@@ -138,14 +141,14 @@ func (rg *ResourceGenerator) downloadSpec(location string) ([]byte, error) {
 			return nil, err
 		}
 
-		data, err := ioutil.ReadAll(response.Body)
+		data, err := io.ReadAll(response.Body)
 		if err != nil {
 			return nil, err
 		}
 
 		return data, nil
 	case "file":
-		data, err := ioutil.ReadFile(strings.Replace(location, "file://", "", -1))
+		data, err := os.ReadFile(strings.Replace(location, "file://", "", -1))
 		if err != nil {
 			return nil, err
 		}
@@ -242,7 +245,7 @@ func (rg *ResourceGenerator) generateAllResourcesMap(resources []GeneratedResour
 	}
 
 	// Write the file contents out
-	if err := ioutil.WriteFile("cloudformation/all.go", formatted, 0644); err != nil {
+	if err := os.WriteFile("cloudformation/all.go", formatted, 0644); err != nil {
 		return fmt.Errorf("failed to write Go file for iterable map of all resources: %s", err)
 	}
 
@@ -344,7 +347,7 @@ func (rg *ResourceGenerator) generateResources(name string, resource Resource, i
 	// Check if the file has changed since the last time generate ran
 	dir := "cloudformation/" + pname
 	fn := dir + "/" + filename(name)
-	current, err := ioutil.ReadFile(fn)
+	current, err := os.ReadFile(fn)
 
 	if err != nil || bytes.Compare(formatted, current) != 0 {
 
@@ -354,7 +357,7 @@ func (rg *ResourceGenerator) generateResources(name string, resource Resource, i
 		}
 
 		// Write the file contents out
-		if err := ioutil.WriteFile(fn, formatted, 0644); err != nil {
+		if err := os.WriteFile(fn, formatted, 0644); err != nil {
 			return fmt.Errorf("failed to write resource file %s: %s", fn, err)
 		}
 		// Log the updated resource name to the results
@@ -403,7 +406,7 @@ func (rg *ResourceGenerator) generateJSONSchema(specname string, spec *CloudForm
 	}
 
 	filename := fmt.Sprintf("schema/%s.schema.json", specname)
-	if err := ioutil.WriteFile(filename, formatted, 0644); err != nil {
+	if err := os.WriteFile(filename, formatted, 0644); err != nil {
 		return fmt.Errorf("failed to write JSON Schema: %s", err)
 	}
 
@@ -411,12 +414,12 @@ func (rg *ResourceGenerator) generateJSONSchema(specname string, spec *CloudForm
 	var gocode []byte
 	gocode = append(gocode, []byte("package schema\n")...)
 	gocode = append(gocode, []byte("\n")...)
-	gocode = append(gocode, []byte("// "+strings.Title(specname)+"Schema defined a JSON Schema that can be used to validate CloudFormation/SAM templates\n")...)
-	gocode = append(gocode, []byte("var "+strings.Title(specname)+"Schema = `")...)
+	gocode = append(gocode, []byte("// "+cases.Title(language.Und, cases.NoLower).String(specname)+"Schema defined a JSON Schema that can be used to validate CloudFormation/SAM templates\n")...)
+	gocode = append(gocode, []byte("var "+cases.Title(language.Und, cases.NoLower).String(specname)+"Schema = `")...)
 	gocode = append(gocode, formatted...)
 	gocode = append(gocode, []byte("`\n")...)
 	gofilename := fmt.Sprintf("schema/%s.go", specname)
-	if err := ioutil.WriteFile(gofilename, gocode, 0644); err != nil {
+	if err := os.WriteFile(gofilename, gocode, 0644); err != nil {
 		return fmt.Errorf("failed to write Go version of JSON Schema: %s", err)
 	}
 
@@ -430,7 +433,7 @@ func generatePolymorphicProperty(typename string, name string, property Property
 
 	// Open the polymorphic property template
 	tmpl, err := template.New("polymorphic-property.template").Funcs(template.FuncMap{
-		"convertToGoType": convertTypeToGo,
+		"convertToGoType":     convertTypeToGo,
 		"convertToPureGoType": convertTypeToPureGo,
 	}).ParseFiles("generate/templates/polymorphic-property.template")
 
@@ -485,7 +488,7 @@ func generatePolymorphicProperty(typename string, name string, property Property
 	}
 
 	// Write the file out
-	if err := ioutil.WriteFile(dir+"/"+filename(name), formatted, 0644); err != nil {
+	if err := os.WriteFile(dir+"/"+filename(name), formatted, 0644); err != nil {
 		fmt.Printf("Error: Failed to write JSON Schema\n%s\n", err)
 		os.Exit(1)
 	}
