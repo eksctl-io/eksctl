@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/awslabs/goformation/v4/cloudformation/types"
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 

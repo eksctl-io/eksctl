@@ -3,8 +3,8 @@ package builder
 import (
 	"fmt"
 
-	gfniam "github.com/awslabs/goformation/v4/cloudformation/iam"
-	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
+	gfniam "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/iam"
+	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"

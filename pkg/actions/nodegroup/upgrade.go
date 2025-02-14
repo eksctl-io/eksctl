@@ -18,11 +18,11 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
-	"github.com/awslabs/goformation/v4"
-	"github.com/awslabs/goformation/v4/cloudformation"
-	gfnec2 "github.com/awslabs/goformation/v4/cloudformation/ec2"
-	gfneks "github.com/awslabs/goformation/v4/cloudformation/eks"
-	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
+	"github.com/weaveworks/eksctl/pkg/goformation"
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation"
+	gfnec2 "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/ec2"
+	gfneks "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/eks"
+	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"

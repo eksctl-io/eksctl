@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
+	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
 	"github.com/kris-nova/logger"
 	"github.com/tidwall/gjson"

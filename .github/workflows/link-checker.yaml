@@ -33,4 +33,4 @@ jobs:
       - name: Link Checker
         uses: lycheeverse/lychee-action@f613c4a64e50d792e0b31ec34bbcbba12263c6a6 #v2.3.0
         with:
-          args: --exclude-all-private --exclude-mail --exclude-file .github/workflows/exclude-file.txt --exclude-path goformation --verbose --no-progress './**/*.md' './**/*.html'
+          args: --exclude-all-private --exclude-mail --exclude-file .github/workflows/exclude-file.txt --exclude-path pkg/goformation --verbose --no-progress './**/*.md' './**/*.html'
