@@ -768,6 +768,18 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 				return errors.New("only one of CapacityReservationID or CapacityReservationResourceGroupARN may be specified at a time")
 			}
 		}
+
+		if ng.InstanceMarketOptions != nil {
+			if ng.InstanceMarketOptions.MarketType != nil {
+				if *ng.InstanceMarketOptions.MarketType != "capacity-block" {
+					return fmt.Errorf(`only accepted value is "capacity-block"; got "%s"`, *ng.InstanceMarketOptions.MarketType)
+				}
+			}
+		}
+	} else {
+		if ng.InstanceMarketOptions != nil {
+			return errors.New("instanceMarketOptions cannot be set without capacityReservation")
+		}
 	}
 
 	return nil

@@ -1753,6 +1753,10 @@ type NodeGroupBase struct {
 	// CapacityReservation defines reservation policy for a nodegroup
 	CapacityReservation *CapacityReservation `json:"capacityReservation,omitempty"`
 
+	// InstanceMarketOptions describes the market (purchasing) option for the instances
+	// +optional
+	InstanceMarketOptions *InstanceMarketOptions `json:"instanceMarketOptions,omitempty"`
+
 	// OutpostARN specifies the Outpost ARN in which the nodegroup should be created.
 	// +optional
 	OutpostARN string `json:"outpostARN,omitempty"`
@@ -1771,6 +1775,12 @@ type CapacityReservation struct {
 type CapacityReservationTarget struct {
 	CapacityReservationID               *string `json:"capacityReservationID,omitempty"`
 	CapacityReservationResourceGroupARN *string `json:"capacityReservationResourceGroupARN,omitempty"`
+}
+
+// InstanceMarketOptions describes the market (purchasing) option for the instances
+type InstanceMarketOptions struct {
+	// MarketType specifies the market type for the instances
+	MarketType *string `json:"marketType,omitempty"`
 }
 
 // Placement specifies placement group information

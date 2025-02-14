@@ -130,6 +130,14 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 		managedResource.CapacityType = gfnt.NewString("SPOT")
 	}
 
+	isCapacityBlockEnabled := false
+	if m.nodeGroup.InstanceMarketOptions != nil &&
+		m.nodeGroup.InstanceMarketOptions.MarketType != nil &&
+		*m.nodeGroup.InstanceMarketOptions.MarketType == "capacity-block" {
+		isCapacityBlockEnabled = true
+		managedResource.CapacityType = gfnt.NewString("CAPACITY_BLOCK")
+	}
+
 	if m.nodeGroup.ReleaseVersion != "" {
 		managedResource.ReleaseVersion = gfnt.NewString(m.nodeGroup.ReleaseVersion)
 	}
@@ -167,7 +175,14 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 		}
 
 		if launchTemplateData.InstanceType == "" {
-			managedResource.InstanceTypes = gfnt.NewStringSlice(instanceTypes...)
+			if isCapacityBlockEnabled {
+				if len(instanceTypes) > 1 {
+					return errors.New("when using capacity type CAPACITY_BLOCK please specify only one instance type")
+				}
+				launchTemplateData.InstanceType = ec2types.InstanceType(instanceTypes[0])
+			} else {
+				managedResource.InstanceTypes = gfnt.NewStringSlice(instanceTypes...)
+			}
 		}
 	} else {
 		launchTemplateData, err := m.makeLaunchTemplateData(ctx)
@@ -177,7 +192,15 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 		if launchTemplateData.ImageId == nil {
 			managedResource.AmiType = makeAMIType()
 		}
-		managedResource.InstanceTypes = gfnt.NewStringSlice(instanceTypes...)
+
+		if isCapacityBlockEnabled {
+			if len(instanceTypes) > 1 {
+				return errors.New("cannot specify multiple instance types when using capacity block")
+			}
+			launchTemplateData.InstanceType = gfnt.NewString(instanceTypes[0])
+		} else {
+			managedResource.InstanceTypes = gfnt.NewStringSlice(instanceTypes...)
+		}
 
 		ltRef := m.newResource("LaunchTemplate", &gfnec2.LaunchTemplate{
 			LaunchTemplateName: gfnt.MakeFnSubString(fmt.Sprintf("${%s}", gfnt.StackName)),
