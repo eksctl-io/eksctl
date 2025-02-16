@@ -1,7 +1,7 @@
 package builder
 
 import (
-	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
+	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 )

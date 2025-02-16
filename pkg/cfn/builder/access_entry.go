@@ -1,8 +1,8 @@
 package builder
 
 import (
-	gfneks "github.com/awslabs/goformation/v4/cloudformation/eks"
-	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
+	gfneks "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/eks"
+	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
