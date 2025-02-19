@@ -30,7 +30,7 @@ Config file example:
 ```yaml
 nodeGroups:
   - name: ng1
-    instanceType: p2.xlarge
+    instanceType: g5.xlarge
     amiFamily: AmazonLinux2
     ami: auto
   - name: ng2

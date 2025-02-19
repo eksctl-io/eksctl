@@ -355,7 +355,7 @@ var _ = Describe("eksctl API", func() {
 
 		It("should retrieve the AMI from EC2 when AMI is auto", func() {
 			ng.AMI = "auto"
-			ng.InstanceType = "p2.xlarge"
+			ng.InstanceType = "g5.xlarge"
 			mockDescribeImages(provider, "ami-auto", func(input *ec2.DescribeImagesInput) bool {
 				return len(input.ImageIds) == 0
 			})
