@@ -1,12 +1,12 @@
 # Cost-Optimized EKS cluster for Kubeflow with spot GPU instances and node scale down to zero
 # Built in efforts to reducing training costs of ML workloads.
-# Supporting tutorial can be found at the following link: 
+# Supporting tutorial can be found at the following link:
 # https://blog.gofynd.com/how-we-reduced-our-ml-training-costs-by-78-a33805cb00cf
-# This spec creates a cluster on EKS with the following active nodes 
+# This spec creates a cluster on EKS with the following active nodes
 # - 2x m5a.2xlarge - Accomodates all pods of Kubeflow
 # It also creates the following nodegroups with 0 nodes running unless a pod comes along and requests for the node to get spun up
 # - m5a.2xlarge   -- Max Allowed 10 worker nodes
-# - p2.xlarge     -- Max Allowed 10 worker nodes
+# - g5.xlarge     -- Max Allowed 10 worker nodes
 # - p3.2xlarge    -- Max Allowed 10 worker nodes
 # - p3.8xlarge    -- Max Allowed 04 worker nodes
 # - p3dn.24xlarge -- Max Allowed 01 worker nodes
@@ -16,7 +16,7 @@ kind: ClusterConfig
 
 metadata:
   # Name of your cluster, change to whatever you find fit.
-  # If changed, make sure to change all nodegroup tags from 
+  # If changed, make sure to change all nodegroup tags from
   # 'k8s.io/cluster-autoscaler/cluster-23: "owned"' --> 'k8s.io/cluster-autoscaler/your-new-name: "owned"'
   name: cluster-23
   # choose your region wisely, this will significantly impact the cost incurred
@@ -27,7 +27,7 @@ metadata:
     # Add more cloud tags if needed for billing
     environment: staging
 
-# Add all possible AZs to ensure nodes can be spun up in any AZ later on. 
+# Add all possible AZs to ensure nodes can be spun up in any AZ later on.
 # THIS CAN'T BE CHANGED LATER. YOU WILL HAVE TO CREATE A NEW CLUSTER TO ADD NEW AZ SUPPORT.
 # This list applies to the whole cluster and isn't specific to nodegroups
 availabilityZones: ["us-east-1a", "us-east-1b",  "us-east-1d",  "us-east-1f"]
@@ -37,8 +37,8 @@ nodeGroups:
     desiredCapacity: 2
     minSize: 0
     maxSize: 3
-    # Set one nodegroup with 100GB volumes for Kubeflow to get deployed. 
-    # Kubeflow requirement states 1-2 Nodes with 100GB volume attached to the node. 
+    # Set one nodegroup with 100GB volumes for Kubeflow to get deployed.
+    # Kubeflow requirement states 1-2 Nodes with 100GB volume attached to the node.
     volumeSize: 100
     volumeType: gp2
     instanceType: m5a.2xlarge
@@ -78,14 +78,14 @@ nodeGroups:
         autoScaler: true
         cloudWatch: true
 
-  - name: 1-gpu-spot-p2-xlarge
+  - name: 1-gpu-spot-g5-xlarge
     minSize: 0
     maxSize: 10
     instancesDistribution:
-      # set your own max price. AWS spot instance prices no longer cross OnDemand price. 
-      # Comment out the field to default to OnDemand as max price. 
+      # set your own max price. AWS spot instance prices no longer cross OnDemand price.
+      # Comment out the field to default to OnDemand as max price.
       maxPrice: 1.2
-      instanceTypes: ["p2.xlarge"]
+      instanceTypes: ["g5.xlarge"]
       onDemandBaseCapacity: 0
       onDemandPercentageAboveBaseCapacity: 0
       spotAllocationStrategy: capacity-optimized
@@ -93,8 +93,8 @@ nodeGroups:
       lifecycle: Ec2Spot
       aws.amazon.com/spot: "true"
       gpu-count: "1"
-    # Stick to one AZ for all GPU nodes. 
-    # In case of termination, this will prevent volumes from being unavailable 
+    # Stick to one AZ for all GPU nodes.
+    # In case of termination, this will prevent volumes from being unavailable
     # if the new instance got spun up in another AZ.
     availabilityZones: ["us-east-1a"]
     taints:
@@ -118,8 +118,8 @@ nodeGroups:
     minSize: 0
     maxSize: 10
     instancesDistribution:
-      # set your own max price. AWS spot instance prices no longer cross OnDemand price. 
-      # Comment out the field to default to OnDemand as max price. 
+      # set your own max price. AWS spot instance prices no longer cross OnDemand price.
+      # Comment out the field to default to OnDemand as max price.
       maxPrice: 1.2
       instanceTypes: ["p3.2xlarge"]
       onDemandBaseCapacity: 0
@@ -129,8 +129,8 @@ nodeGroups:
       lifecycle: Ec2Spot
       aws.amazon.com/spot: "true"
       gpu-count: "1"
-    # Stick to one AZ for all GPU nodes. 
-    # In case of termination, this will prevent volumes from being unavailable 
+    # Stick to one AZ for all GPU nodes.
+    # In case of termination, this will prevent volumes from being unavailable
     # if the new instance got spun up in another AZ.
     availabilityZones: ["us-east-1a"]
     taints:
@@ -154,8 +154,8 @@ nodeGroups:
     minSize: 0
     maxSize: 4
     instancesDistribution:
-      # set your own max price. AWS spot instance prices no longer cross OnDemand price. 
-      # Comment out the field to default to OnDemand as max price. 
+      # set your own max price. AWS spot instance prices no longer cross OnDemand price.
+      # Comment out the field to default to OnDemand as max price.
       # maxPrice: 4.4
       instanceTypes: ["p3.8xlarge"]
       onDemandBaseCapacity: 0
@@ -165,8 +165,8 @@ nodeGroups:
       lifecycle: Ec2Spot
       aws.amazon.com/spot: "true"
       gpu-count: "4"
-    # Stick to one AZ for all GPU nodes. 
-    # In case of termination, this will prevent volumes from being unavailable 
+    # Stick to one AZ for all GPU nodes.
+    # In case of termination, this will prevent volumes from being unavailable
     # if the new instance got spun up in another AZ.
     availabilityZones: ["us-east-1a"]
     taints:
@@ -190,8 +190,8 @@ nodeGroups:
     minSize: 0
     maxSize: 1
     instancesDistribution:
-      # set your own max price. AWS spot instance prices no longer cross OnDemand price. 
-      # Comment out the field to default to OnDemand as max price. 
+      # set your own max price. AWS spot instance prices no longer cross OnDemand price.
+      # Comment out the field to default to OnDemand as max price.
       maxPrice: 11
       instanceTypes: ["p3dn.24xlarge"]
       onDemandBaseCapacity: 0

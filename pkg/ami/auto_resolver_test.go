@@ -217,7 +217,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 			Context("and gpu instance type", func() {
 				BeforeEach(func() {
-					instanceType = "p2.xlarge"
+					instanceType = "g5.xlarge"
 				})
 
 				Context("and ami is available", func() {

@@ -23,7 +23,7 @@ var _ = Describe("ClusterTasksForNodeGroups", func() {
 			nodeGroups: []*v1alpha5.NodeGroup{
 				{
 					NodeGroupBase: &v1alpha5.NodeGroupBase{
-						InstanceType: "p2.xlarge",
+						InstanceType: "g5.xlarge",
 						AMIFamily:    v1alpha5.NodeImageFamilyAmazonLinux2,
 					},
 				},
@@ -46,7 +46,7 @@ var _ = Describe("ClusterTasksForNodeGroups", func() {
 			nodeGroups: []*v1alpha5.NodeGroup{
 				{
 					NodeGroupBase: &v1alpha5.NodeGroupBase{
-						InstanceType: "p2.xlarge",
+						InstanceType: "g5.xlarge",
 						AMIFamily:    v1alpha5.NodeImageFamilyAmazonLinux2,
 					},
 				},
@@ -117,7 +117,7 @@ var _ = Describe("ClusterTasksForNodeGroups", func() {
 			nodeGroups: []*v1alpha5.NodeGroup{
 				{
 					NodeGroupBase: &v1alpha5.NodeGroupBase{
-						InstanceType: "p2.xlarge",
+						InstanceType: "g5.xlarge",
 						AMIFamily:    v1alpha5.NodeImageFamilyAmazonLinux2023,
 					},
 				},
@@ -140,7 +140,7 @@ var _ = Describe("ClusterTasksForNodeGroups", func() {
 			nodeGroups: []*v1alpha5.NodeGroup{
 				{
 					NodeGroupBase: &v1alpha5.NodeGroupBase{
-						InstanceType: "p2.xlarge",
+						InstanceType: "g5.xlarge",
 						AMIFamily:    v1alpha5.NodeImageFamilyAmazonLinux2023,
 					},
 				},

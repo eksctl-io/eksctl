@@ -4,7 +4,7 @@ Eksctl supports selecting GPU instance types for nodegroups. Simply supply a
 compatible instance type to the create command, or via the config file.
 
 ```
-eksctl create cluster --node-type=p2.xlarge
+eksctl create cluster --node-type=g5.xlarge
 ```
 
 ???+ note
@@ -23,7 +23,7 @@ To disable the automatic plugin installation, and manually install a specific ve
 use `--install-nvidia-plugin=false` with the create command. For example:
 
 ```
-eksctl create cluster --node-type=p2.xlarge --install-nvidia-plugin=false
+eksctl create cluster --node-type=g5.xlarge --install-nvidia-plugin=false
 ```
 
 and, for versions 0.15.0 and above,
