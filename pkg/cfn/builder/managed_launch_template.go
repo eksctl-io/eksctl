@@ -81,7 +81,9 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(ctx context.Context
 		if err := buildNetworkInterfaces(ctx, launchTemplateData, mng.InstanceTypeList(), true, securityGroupIDs, m.ec2API); err != nil {
 			return nil, fmt.Errorf("couldn't build network interfaces for launch template data: %w", err)
 		}
-		if mng.Placement == nil {
+		// A reservation should already be created with a placement group
+		// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/cr-cpg.html
+		if mng.Placement == nil && mng.CapacityReservation == nil {
 			groupName := m.newResource("NodeGroupPlacementGroup", &gfnec2.PlacementGroup{
 				Strategy: gfnt.NewString("cluster"),
 			})
