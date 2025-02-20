@@ -16,7 +16,7 @@ import (
 	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
 
-	"github.com/xgfone/netaddr"
+	netaddr "github.com/xgfone/go-netaddr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
