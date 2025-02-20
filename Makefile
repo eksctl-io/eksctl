@@ -1,6 +1,5 @@
 include Makefile.common
 include Makefile.docs
-include Makefile.docker
 
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
@@ -36,8 +35,12 @@ endif
 install-all-deps: install-build-deps install-site-deps ## Install all dependencies for building both binary and user docs)
 
 .PHONY: install-build-deps
-install-build-deps: ## Install dependencies (packages and tools)
-	build/scripts/install-build-deps.sh
+install-build-deps: ## Install dependencies for code generation and test execution
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	go install github.com/cloudflare/cfssl/cmd/...@latest
+	go install github.com/maxbrunsfeld/counterfeiter/v6
+	go install github.com/vektra/mockery/v2
+	go install github.com/vburenin/ifacemaker
 
 ##@ Build
 
@@ -102,7 +105,7 @@ build-integration-test: $(all_generated_code) ## Ensure integration tests compil
 	@# Compile integration test binary without running any.
 	@# Required as build failure aren't listed when running go build below. See also: https://github.com/golang/go/issues/15513
 	go test -tags integration -run=^$$ ./integration/...
-	@# Build integration test binary:
+	@# Build integration test binary:
 	go build -tags integration -o ./eksctl-integration-test ./integration/main.go
 
 .PHONY: integration-test
@@ -189,10 +192,6 @@ generate-kube-reserved: ## Update instance list with respective specs
 	@cd ./pkg/nodebootstrap/ && go run reserved_generate.go
 
 ##@ Release
-# .PHONY: eksctl-image
-# eksctl-image: ## Build the eksctl image that has release artefacts and no build dependencies
-# 	$(MAKE) -f Makefile.docker $@
-
 .PHONY: prepare-release
 prepare-release: ## Create release
 	build/scripts/tag-release.sh
