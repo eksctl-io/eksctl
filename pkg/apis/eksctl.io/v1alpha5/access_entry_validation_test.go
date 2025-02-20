@@ -329,6 +329,18 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 					},
 				},
 			},
+			{
+				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-7"),
+				Type:         "EC2",
+				AccessPolicies: []api.AccessPolicy{
+					{
+						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSAutoNodePolicy"),
+						AccessScope: api.AccessScope{
+							Type: ekstypes.AccessScopeTypeCluster,
+						},
+					},
+				},
+			},
 		},
 	}),
 )
