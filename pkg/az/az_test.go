@@ -389,15 +389,6 @@ var _ = Describe("AZ", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(zones).To(ConsistOf(e.expectedZones))
 	},
-		Entry(api.RegionCNNorth1, unsupportedZoneEntry{
-			region: api.RegionCNNorth1,
-			zoneNameToIDs: map[string]string{
-				"zone1": "cnn1-az1",
-				"zone2": "cnn1-az2",
-				"zone4": "cnn1-az4",
-			},
-			expectedZones: []string{"zone1", "zone2"},
-		}),
 		Entry(api.RegionUSEast1, unsupportedZoneEntry{
 			region: api.RegionUSEast1,
 			zoneNameToIDs: map[string]string{
@@ -428,7 +419,7 @@ var _ = Describe("AZ", func() {
 	)
 	When("the region contains zones that are denylisted", func() {
 		BeforeEach(func() {
-			region = api.RegionCNNorth1
+			region = api.RegionUSEast1
 
 			p.MockEC2().On("DescribeAvailabilityZones", mock.Anything, &ec2.DescribeAvailabilityZonesInput{
 				Filters: []ec2types.Filter{
@@ -449,7 +440,7 @@ var _ = Describe("AZ", func() {
 				AvailabilityZones: []ec2types.AvailabilityZone{
 					createAvailabilityZone(region, ec2types.AvailabilityZoneStateAvailable, "zone1"),
 					createAvailabilityZone(region, ec2types.AvailabilityZoneStateAvailable, "zone2"),
-					createAvailabilityZoneWithID(region, ec2types.AvailabilityZoneStateAvailable, "zone3", "cnn1-az4"),
+					createAvailabilityZoneWithID(region, ec2types.AvailabilityZoneStateAvailable, "zone3", "use1-az3"),
 				},
 			}, nil)
 		})
