@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        resource: ["coredns", "aws-node", "nvidia-device-plugin"]
+        resource: ["coredns", "aws-node", "nvidia-device-plugin", "ec2-info"]
     name: Update ${{ matrix.resource }} and open PR
     runs-on: ubuntu-latest
     container: public.ecr.aws/eksctl/eksctl-build:26e3c36557da8ae2db5d995cea673e05cc60cfce
@@ -35,6 +35,14 @@ jobs:
         role-duration-seconds: 900
         role-session-name: eksctl-update-coredns-assets
         role-to-assume: ${{ secrets.UPDATE_COREDNS_ROLE_ARN }}
+    - name: Configure AWS credentials for ec2 info update
+      if: ${{ matrix.resource == 'ec2-info' }}
+      uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+      with:
+        aws-region: us-west-2
+        role-duration-seconds: 900
+        role-session-name: eksctl-update-ec2-info-assets
+        role-to-assume: ${{ secrets.UPDATE_EC2_INFO_ROLE_ARN }}
     - name: Setup identity as eksctl-bot
       uses: ./.github/actions/setup-identity
       with:

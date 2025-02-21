@@ -91,7 +91,7 @@ func updateEC2Instances() error {
 		return err
 	}
 
-	file, err := os.Create("../../pkg/utils/instance/instance_types.go")
+	file, err := os.Create("pkg/utils/instance/instance_types.go")
 	if err != nil {
 		return err
 	}

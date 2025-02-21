@@ -172,6 +172,10 @@ update-aws-node: ## Re-download the aws-node manifests from AWS
 update-coredns: ## get latest coredns builds for each available eks version
 	@go run pkg/addons/default/scripts/update_coredns_assets.go
 
+.PHONY:
+update-ec2-info: ## get latest info on ec2 instance types
+	@go run cmd/ec2geninfo/main.go
+
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers
 	build/scripts/update-codegen.sh
