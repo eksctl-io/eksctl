@@ -5242,7 +5242,7 @@ var InstanceTypes = []InstanceInfo{
 		InstanceStorageSupported: true,
 		EFASupported:             true,
 		NvidiaGPUSupported:       true,
-		NvidiaGPUType:            "NVIDIA",
+		NvidiaGPUType:            "H200",
 		NeuronSupported:          false,
 		NeuronDeviceType:         "",
 		CBRSupported:             true,
