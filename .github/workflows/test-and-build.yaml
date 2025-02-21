@@ -1,7 +1,11 @@
 name: test-and-build
 
 on:
-  pull_request: {}
+  pull_request:
+    paths:
+      - '**/*.go'
+      - 'pkg/**'
+      - 'go.*'
   workflow_call: {}
 
 jobs:
