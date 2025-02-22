@@ -1999,6 +1999,9 @@ type InstanceSelector struct {
 	// GPUs specifies the number of GPUs.
 	// It can be set to 0 to select non-GPU instance types.
 	GPUs *int `json:"gpus,omitempty"`
+	// NeuronDevices specifies the number of Neuron device Accelerators.
+	// It can be set to 0 to select non-Accelerator instance types.
+	NeuronDevices *int32 `json:"neuron_devices,omitempty"`
 	// CPU Architecture of the EC2 instance type.
 	// Valid variants are:
 	// `"x86_64"`

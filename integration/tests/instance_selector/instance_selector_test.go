@@ -62,6 +62,7 @@ var _ = Describe("(Integration) [Instance Selector test]", func() {
 		}, "--instance-selector-vcpus=8",
 			"--instance-selector-memory=32",
 			"--instance-selector-gpus=0",
+			"--instance-selector-neuron-devices=0",
 		),
 		Entry("with vCPUs and memory", nil,
 			"--instance-selector-vcpus=8",
