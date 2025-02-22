@@ -17,8 +17,8 @@ jobs:
         uses: ./.github/actions/setup-build
       - name: Unit test
         run: |
-          PATH=$PATH:$(go env GOPATH)/bin make build
-          PATH=$PATH:$(go env GOPATH)/bin make unit-test-no-generate
+          make build
+          make unit-test-no-generate
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -30,8 +30,7 @@ jobs:
       - name: Setup build environment
         uses: ./.github/actions/setup-build
       - name: Lint
-        run: |
-          PATH=$PATH:$(go env GOPATH)/bin make lint
+        run: make lint
   image:
     name: Build and check image
     runs-on: ubuntu-latest
@@ -43,5 +42,4 @@ jobs:
       - name: Setup build environment
         uses: ./.github/actions/setup-build
       - name: build
-        run: |
-          PATH=$PATH:$(go env GOPATH)/bin make -f Makefile.docker check-build-image-manifest-up-to-date
+        run: make -f Makefile.docker check-build-image-manifest-up-to-date
