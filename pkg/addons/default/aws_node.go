@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/kris-nova/logger"
 
 	appsv1 "k8s.io/api/apps/v1"
