@@ -5,7 +5,6 @@
 "github.com/onsi/ginkgo/v2 v2.22.2"
 "github.com/vektra/mockery/v2 v2.52.2"
 "github.com/github-release/github-release v0.10.1"
-"golang.org/x/tools v0.30.0"
 "k8s.io/code-generator v0.32.1"
 "k8s.io/code-generator v0.32.1"
 "k8s.io/code-generator v0.32.1"
@@ -14,5 +13,5 @@
 "sigs.k8s.io/mdtoc v1.4.0"
 "github.com/vburenin/ifacemaker v1.2.1"
 100644 blob 4110115ebb2fc751cf9a4a04c9c710f5269337ab	build/docker/Dockerfile
-100644 blob 866aecdf2fd299e1c4355b2d7d8c9decaedbfe19	.requirements
+100644 blob 56fffcc9e1948995e7903f0de2d08332cbfdd423	.requirements
 100755 blob c1129ff1ff85ac2c53f908a577675ea59a9325a7	build/scripts/install-build-deps.sh
