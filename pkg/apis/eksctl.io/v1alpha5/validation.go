@@ -62,6 +62,10 @@ var (
 	GPUDriversWarning = func(amiFamily string) string {
 		return fmt.Sprintf("%s does not ship with NVIDIA GPU drivers installed, hence won't support running GPU-accelerated workloads out of the box", amiFamily)
 	}
+
+	AcceleratorDriversWarning = func(amiFamily string) string {
+		return fmt.Sprintf("%s does not ship with Inferentia Accelerators drivers installed, hence won't support running inference-accelerated workloads out of the box", amiFamily)
+	}
 )
 
 var (
@@ -735,6 +739,10 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 		if ng.InstanceSelector != nil && !ng.InstanceSelector.IsZero() &&
 			(ng.InstanceSelector.GPUs == nil || *ng.InstanceSelector.GPUs != 0) {
 			logger.Warning("instance selector may/will select GPU instance types, " + GPUDriversWarning(ng.AMIFamily))
+		}
+		if ng.InstanceSelector != nil && !ng.InstanceSelector.IsZero() &&
+			(ng.InstanceSelector.Accelerators == nil || *ng.InstanceSelector.Accelerators != 0) {
+			logger.Warning("instance selector may/will select Accelerator instance types, " + AcceleratorDriversWarning(ng.AMIFamily))
 		}
 	}
 
