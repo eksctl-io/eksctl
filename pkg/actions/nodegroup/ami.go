@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 )
 
 // ParseReleaseVersion parses an AMI release version string that's in the format `1.18.8-20201007`
