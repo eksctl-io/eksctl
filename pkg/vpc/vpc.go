@@ -14,7 +14,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
-	"github.com/bxcodec/faker/support/slice"
 	"github.com/kris-nova/logger"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -840,8 +839,8 @@ func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig 
 		}
 		// only validate instance support for availability zones
 		if zoneType == ZoneTypeAvailabilityZone &&
-			slice.Contains(clusterConfig.AvailabilityZones, zone) && // for now, we won't validate support for user specified new zones
-			!slice.Contains(*supportedZones, zone) {
+			slices.Contains(clusterConfig.AvailabilityZones, zone) && // for now, we won't validate support for user specified new zones
+			!slices.Contains(*supportedZones, zone) {
 			return fmt.Errorf("cannot create nodegroup %s in availability zone %s as it does not support all required instance types",
 				np.BaseNodeGroup().Name, zone)
 		}

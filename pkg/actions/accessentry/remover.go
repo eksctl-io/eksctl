@@ -3,8 +3,8 @@ package accessentry
 import (
 	"context"
 	"fmt"
+	"slices"
 
-	"github.com/bxcodec/faker/support/slice"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -65,7 +65,7 @@ func (aer Remover) DeleteTasks(ctx context.Context, accessEntries []api.AccessEn
 
 	for _, e := range accessEntries {
 		stackName := MakeStackName(aer.clusterName, e)
-		if !slice.Contains(stacks, stackName) {
+		if !slices.Contains(stacks, stackName) {
 			tasks.Append(&deleteUnownedAccessEntryTask{
 				info:         fmt.Sprintf("delete access entry for principal ARN %s", e.PrincipalARN.String()),
 				clusterName:  aer.clusterName,
