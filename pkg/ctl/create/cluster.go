@@ -20,7 +20,7 @@ import (
 	kubeclient "k8s.io/client-go/kubernetes"
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 
-	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+	"github.com/aws/amazon-ec2-instance-selector/v3/pkg/selector"
 	"github.com/weaveworks/eksctl/pkg/accessentry"
 	accessentryactions "github.com/weaveworks/eksctl/pkg/actions/accessentry"
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
