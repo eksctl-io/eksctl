@@ -12,6 +12,7 @@ env:
 
 jobs:
   update_generated_file:
+    if: github.event.repository.fork == false
     strategy:
       fail-fast: false
       matrix:

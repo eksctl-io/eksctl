@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   update_release_draft:
+    if: github.event.repository.fork == false
     permissions:
       # write permission is required to create a github release
       contents: write
@@ -49,7 +50,7 @@ jobs:
             <blockquote>
 
             ${{ steps.draft.outputs.body }}
-            
+
             </blockquote>
             </details>
             <br />
