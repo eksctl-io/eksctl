@@ -2005,6 +2005,11 @@ type InstanceSelector struct {
 	// `"amd64"`
 	// `"arm64"`
 	CPUArchitecture string `json:"cpuArchitecture,omitempty"`
+	// List of allowed instance types to select from w/ regex syntax (Example: m[3-5]\\.*)
+	Allow *string `json:"allow,omitempty"`
+
+	// List of instance types which should be excluded w/ regex syntax (Example: m[1-2]\\.*)
+	Deny *string `json:"deny,omitempty"`
 }
 
 // IsZero returns true if all fields hold a zero value

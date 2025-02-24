@@ -1211,6 +1211,11 @@
     },
     "InstanceSelector": {
       "properties": {
+        "allow": {
+          "type": "string",
+          "description": "List of allowed instance types to select from w/ regex syntax (Example: m[3-5]\\\\.*)",
+          "x-intellij-html-description": "List of allowed instance types to select from w/ regex syntax (Example: m[3-5]\\.*)"
+        },
         "cpuArchitecture": {
           "type": "string",
           "description": "CPU Architecture of the EC2 instance type. Valid variants are: `\"x86_64\"` `\"amd64\"` `\"arm64\"`",
@@ -1220,6 +1225,11 @@
             "amd64",
             "arm64"
           ]
+        },
+        "deny": {
+          "type": "string",
+          "description": "List of instance types which should be excluded w/ regex syntax (Example: m[1-2]\\\\.*)",
+          "x-intellij-html-description": "List of instance types which should be excluded w/ regex syntax (Example: m[1-2]\\.*)"
         },
         "gpus": {
           "type": "integer",
@@ -1241,7 +1251,9 @@
         "vCPUs",
         "memory",
         "gpus",
-        "cpuArchitecture"
+        "cpuArchitecture",
+        "allow",
+        "deny"
       ],
       "additionalProperties": false,
       "description": "holds EC2 instance selector options",

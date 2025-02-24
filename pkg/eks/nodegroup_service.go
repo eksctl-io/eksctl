@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/bytequantity"
@@ -208,6 +209,22 @@ func (n *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	}
 
 	filters.CPUArchitecture = (*ec2types.ArchitectureType)(aws.String(cpuArch))
+
+	if ins.Allow != nil {
+		regexVal, err := regexp.Compile(*ins.Allow)
+		if err != nil {
+			return nil, errors.Wrapf(err, "invalid value %q for instanceSelector.allow", *ins.Allow)
+		}
+		filters.AllowList = regexVal
+	}
+
+	if ins.Deny != nil {
+		regexVal, err := regexp.Compile(*ins.Deny)
+		if err != nil {
+			return nil, errors.Wrapf(err, "invalid value %q for instanceSelector.deny", *ins.Deny)
+		}
+		filters.DenyList = regexVal
+	}
 
 	instanceTypes, err := n.instanceSelector.Filter(context.TODO(), filters)
 	if err != nil {
