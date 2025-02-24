@@ -60,7 +60,7 @@ $ eksctl create cluster -f instance-selector-cluster.yaml
 
 The following instance selector CLI options are supported by `eksctl create cluster` and `eksctl create nodegroup`:
 
-`--instance-selector-vcpus`, `--instance-selector-memory`, `--instance-selector-gpus` and `instance-selector-cpu-architecture`
+`--instance-selector-vcpus`, `--instance-selector-memory`, `--instance-selector-gpus`, `--instance-selector-neuron-devices` and `instance-selector-cpu-architecture`
 
 ???+ note
   By default, GPU instance types are not filtered out. If you wish to do so (e.g. for cost effectiveness, when your applications don't particularly benefit from GPU-accelerated workloads), please explicitly set `gpus: 0` (via config file) or `--instance-selector-gpus=0` (via CLI flag).

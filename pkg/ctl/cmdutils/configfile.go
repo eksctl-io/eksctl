@@ -674,6 +674,9 @@ func normalizeBaseNodeGroup(np api.NodePool, cmd *cobra.Command) {
 	if !flags.Changed("instance-selector-gpus") {
 		ng.InstanceSelector.GPUs = nil
 	}
+	if !flags.Changed("instance-selector-neuron-devices") {
+		ng.InstanceSelector.NeuronDevices = nil
+	}
 	if !flags.Changed("enable-ssm") {
 		ng.SSH.EnableSSM = nil
 	}
