@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/dave/jennifer/jen"
 
 	"github.com/weaveworks/eksctl/pkg/version"
