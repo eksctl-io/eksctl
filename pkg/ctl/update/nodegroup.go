@@ -3,7 +3,7 @@ package update
 import (
 	"context"
 
-	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+	"github.com/aws/amazon-ec2-instance-selector/v3/pkg/selector"
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"

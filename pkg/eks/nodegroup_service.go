@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/bytequantity"
-	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+	"github.com/aws/amazon-ec2-instance-selector/v3/pkg/bytequantity"
+	"github.com/aws/amazon-ec2-instance-selector/v3/pkg/selector"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -202,6 +202,12 @@ func (n *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	}
 	if ins.GPUs != nil {
 		filters.GpusRange = makeRange(*ins.GPUs)
+	}
+	if ins.Accelerators != nil {
+		filters.InferenceAcceleratorsRange = &selector.IntRangeFilter{
+			LowerBound: *ins.Accelerators,
+			UpperBound: *ins.Accelerators,
+		}
 	}
 	cpuArch := ins.CPUArchitecture
 	if cpuArch == "" {
