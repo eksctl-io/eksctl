@@ -1,16 +1,10 @@
 # Karpenter Support
 
-`eksctl` provides adding [Karpenter](https://karpenter.sh/) to a newly created cluster. It will create all the necessary
+`eksctl` provides support for adding [Karpenter](https://karpenter.sh/) to a newly created cluster. It will create all the necessary
 prerequisites outlined in Karpenter's [Getting Started](https://karpenter.sh/docs/getting-started/) section including installing
-Karpenter itself using Helm. We currently support installing versions starting `0.20.0` and above.
+Karpenter itself using Helm. We currently support installing versions `0.28.0+`. See the [Karpenter compatibility](https://karpenter.sh/docs/upgrading/compatibility/) section for further details.
 
-???+ info
-    With [v0.17.0](https://karpenter.sh/docs/upgrading/upgrade-guide/#upgrading-to-0170) Karpenter’s Helm chart package is now stored in Karpenter’s OCI (Open Container Initiative) registry.
-    Clusters created on previous versions shouldn't be affected by this change. If you wish to upgrade your current installation of Karpenter please refer to the [upgrade guide](https://karpenter.sh/docs/upgrading/upgrade-guide/)
-    You have to be logged out of ECR repositories to be able to pull the OCI artifact by running `helm registry logout public.ecr.aws` or `docker logout public.ecr.aws`, failure to do so will result in a 403 error when trying to pull the chart.
-
-To that end, a new configuration value has been introduced into `eksctl` cluster config called `karpenter`. The following
-yaml outlines a typical installation configuration:
+The following cluster configuration outlines a typical Karpenter installation:
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
@@ -19,14 +13,14 @@ kind: ClusterConfig
 metadata:
   name: cluster-with-karpenter
   region: us-west-2
-  version: '1.24'
+  version: '1.32' # requires a version of Kubernetes compatible with Karpenter
   tags:
     karpenter.sh/discovery: cluster-with-karpenter # here, it is set to the cluster name
 iam:
   withOIDC: true # required
 
 karpenter:
-  version: 'v0.20.0' # Exact version must be specified
+  version: '1.2.1' # Exact version should be specified according to the Karpenter compatibility matrix
 
 managedNodeGroups:
   - name: managed-ng-1
@@ -40,7 +34,7 @@ to be set:
 
 ```yaml
 karpenter:
-  version: 'v0.20.0'
+  version: '1.2.1'
   createServiceAccount: true # default is false
   defaultInstanceProfile: 'KarpenterNodeInstanceProfile' # default is to use the IAM instance profile created by eksctl
   withSpotInterruptionQueue: true # adds all required policies and rules for supporting Spot Interruption Queue, default is false
@@ -48,33 +42,61 @@ karpenter:
 
 OIDC must be defined in order to install Karpenter.
 
-Once Karpenter is successfully installed, add a Provisioner so Karpenter can start adding the right nodes to the cluster.
+Once Karpenter is successfully installed, add [NodePool(s)](https://karpenter.sh/docs/concepts/nodepools/) and [NodeClass(es)](https://karpenter.sh/docs/concepts/nodeclasses/) to allow Karpenter
+to start adding nodes to the cluster.
 
-The provisioner's `instanceProfile` section must match the created `NodeInstanceProfile` role's name. For example:
+The NodePool's `nodeClassRef` section must match the name of an `EC2NodeClass`. For example:
 
 ```yaml
-apiVersion: karpenter.sh/v1alpha5
-kind: Provisioner
+apiVersion: karpenter.sh/v1
+kind: NodePool
 metadata:
-  name: default
+  name: example
+  annotations:
+    kubernetes.io/description: "Example NodePool"
 spec:
-  requirements:
-    - key: karpenter.sh/capacity-type
-      operator: In
-      values: ["on-demand"]
-  limits:
-    resources:
-      cpu: 1000
-  provider:
-    instanceProfile: eksctl-KarpenterNodeInstanceProfile-${CLUSTER_NAME}
-    subnetSelector:
-      karpenter.sh/discovery: cluster-with-karpenter # must match the tag set in the config file
-    securityGroupSelector:
-      karpenter.sh/discovery: cluster-with-karpenter # must match the tag set in the config file
-  ttlSecondsAfterEmpty: 30
+  template:
+    spec:
+      requirements:
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+        - key: kubernetes.io/os
+          operator: In
+          values: ["linux"]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["on-demand"]
+        - key: karpenter.k8s.aws/instance-category
+          operator: In
+          values: ["c", "m", "r"]
+        - key: karpenter.k8s.aws/instance-generation
+          operator: Gt
+          values: ["2"]
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: example # must match the name of an EC2NodeClass
 ```
 
-Note that unless `defaultInstanceProfile` is defined, the name used for `instanceProfile` is
-`eksctl-KarpenterNodeInstanceProfile-<cluster-name>`.
+```yaml
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: example
+  annotations:
+    kubernetes.io/description: "Example EC2NodeClass"
+spec:
+  role: "eksctl-KarpenterNodeRole-${CLUSTER_NAME}" # replace with your cluster name
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "${CLUSTER_NAME}" # replace with your cluster name
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "${CLUSTER_NAME}" # replace with your cluster name
+  amiSelectorTerms:
+    - alias: al2023@latest # Amazon Linux 2023
+```
 
-Note with karpenter 0.32.0+, Provisioners have been deprecated and replaced by [NodePool](https://karpenter.sh/docs/concepts/nodepools/).
+Note that you must specify one of `role` or `instanceProfile` for lauch nodes. If you choose to use `instanceProfile`
+the name of the profile created by `eksctl` follows the pattern: `eksctl-KarpenterNodeInstanceProfile-<cluster-name>`.
