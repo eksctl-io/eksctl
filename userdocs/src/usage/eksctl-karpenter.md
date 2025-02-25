@@ -1,12 +1,10 @@
 # Karpenter Support
 
-`eksctl` provides adding [Karpenter](https://karpenter.sh/) to a newly created cluster. It will create all the necessary
+`eksctl` provides support for adding [Karpenter](https://karpenter.sh/) to a newly created cluster. It will create all the necessary
 prerequisites outlined in Karpenter's [Getting Started](https://karpenter.sh/docs/getting-started/) section including installing
-Karpenter itself using Helm. We currently support installing versions starting `0.28.0` and above. See in The [Compatibility](https://karpenter.sh/docs/upgrading/compatibility/) section.
+Karpenter itself using Helm. We currently support installing versions `0.28.0+`. See the [Karpenter compatibility](https://karpenter.sh/docs/upgrading/compatibility/) section for further details.
 
 The following cluster configuration outlines a typical Karpenter installation:
-
-yaml outlines a typical installation configuration:
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
@@ -15,14 +13,14 @@ kind: ClusterConfig
 metadata:
   name: cluster-with-karpenter
   region: us-west-2
-  version: '1.32' # requires a version of kubernetes compatible with karpenter
+  version: '1.32' # requires a version of Kubernetes compatible with Karpenter
   tags:
     karpenter.sh/discovery: cluster-with-karpenter # here, it is set to the cluster name
 iam:
   withOIDC: true # required
 
 karpenter:
-  version: '1.2.1' # Exact version should be specified according to the karpenter compatibility matrix
+  version: '1.2.1' # Exact version should be specified according to the Karpenter compatibility matrix
 
 managedNodeGroups:
   - name: managed-ng-1
@@ -44,10 +42,10 @@ karpenter:
 
 OIDC must be defined in order to install Karpenter.
 
-Once Karpenter is successfully installed, add a [NodePool(s)](https://karpenter.sh/docs/concepts/nodepools/) and [NodeClass(es)](https://karpenter.sh/docs/concepts/nodeclasses/) so Karpenter
-can start adding the right nodes to the cluster.
+Once Karpenter is successfully installed, add [NodePool(s)](https://karpenter.sh/docs/concepts/nodepools/) and [NodeClass(es)](https://karpenter.sh/docs/concepts/nodeclasses/) to allow Karpenter
+to start adding nodes to the cluster.
 
-The NodePool's `nodeClassRef` section must match the created `EC2NodeClass` metadata name. For example:
+The NodePool's `nodeClassRef` section must match the name of an `EC2NodeClass`. For example:
 
 ```yaml
 apiVersion: karpenter.sh/v1
@@ -78,7 +76,7 @@ spec:
       nodeClassRef:
         group: karpenter.k8s.aws
         kind: EC2NodeClass
-        name: example
+        name: example # must match the name of an EC2NodeClass
 ```
 
 ```yaml
@@ -100,5 +98,5 @@ spec:
     - alias: al2023@latest # Amazon Linux 2023
 ```
 
-Note that you must specify one of `role` or `instanceProfile` for lauch nodes. If you choose to use `instanceProfile` the name is
-`eksctl-KarpenterNodeInstanceProfile-<cluster-name>`.
+Note that you must specify one of `role` or `instanceProfile` for lauch nodes. If you choose to use `instanceProfile`
+the name of the profile created by `eksctl` follows the pattern: `eksctl-KarpenterNodeInstanceProfile-<cluster-name>`.
