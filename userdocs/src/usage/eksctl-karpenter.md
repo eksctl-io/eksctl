@@ -4,12 +4,8 @@
 prerequisites outlined in Karpenter's [Getting Started](https://karpenter.sh/docs/getting-started/) section including installing
 Karpenter itself using Helm. We currently support installing versions starting `0.28.0` and above. See in The [Compatibility](https://karpenter.sh/docs/upgrading/compatibility/) section.
 
-???+ info
-    With [v0.17.0](https://karpenter.sh/docs/upgrading/upgrade-guide/) Karpenter’s Helm chart package is now stored in Karpenter’s OCI (Open Container Initiative) registry.
-    Clusters created on previous versions shouldn't be affected by this change. If you wish to upgrade your current installation of Karpenter please refer to the [upgrade guide](https://karpenter.sh/docs/upgrading/upgrade-guide/)
-    You have to be logged out of ECR repositories to be able to pull the OCI artifact by running `helm registry logout public.ecr.aws` or `docker logout public.ecr.aws`, failure to do so will result in a 403 error when trying to pull the chart.
+The following cluster configuration outlines a typical Karpenter installation:
 
-To that end, a new configuration value has been introduced into `eksctl` cluster config called `karpenter`. The following
 yaml outlines a typical installation configuration:
 
 ```yaml
@@ -48,7 +44,7 @@ karpenter:
 
 OIDC must be defined in order to install Karpenter.
 
-Once Karpenter is successfully installed, add a [NodePools](https://karpenter.sh/docs/concepts/nodepools/) and [NodeClasses](https://karpenter.sh/docs/concepts/nodeclasses/) so Karpenter
+Once Karpenter is successfully installed, add a [NodePool(s)](https://karpenter.sh/docs/concepts/nodepools/) and [NodeClass(es)](https://karpenter.sh/docs/concepts/nodeclasses/) so Karpenter
 can start adding the right nodes to the cluster.
 
 The NodePool's `nodeClassRef` section must match the created `EC2NodeClass` metadata name. For example:
@@ -57,9 +53,9 @@ The NodePool's `nodeClassRef` section must match the created `EC2NodeClass` meta
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
-  name: general-purpose
+  name: example
   annotations:
-    kubernetes.io/description: "General purpose NodePool for generic workloads"
+    kubernetes.io/description: "Example NodePool"
 spec:
   template:
     spec:
@@ -82,17 +78,16 @@ spec:
       nodeClassRef:
         group: karpenter.k8s.aws
         kind: EC2NodeClass
-        name: default
-
+        name: example
 ```
 
 ```yaml
 apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata:
-  name: default
+  name: example
   annotations:
-    kubernetes.io/description: "General purpose EC2NodeClass for running Amazon Linux 2 nodes"
+    kubernetes.io/description: "Example EC2NodeClass"
 spec:
   role: "eksctl-KarpenterNodeRole-${CLUSTER_NAME}" # replace with your cluster name
   subnetSelectorTerms:
@@ -103,7 +98,6 @@ spec:
         karpenter.sh/discovery: "${CLUSTER_NAME}" # replace with your cluster name
   amiSelectorTerms:
     - alias: al2023@latest # Amazon Linux 2023
-
 ```
 
 Note that you must specify one of `role` or `instanceProfile` for lauch nodes. If you choose to use `instanceProfile` the name is
