@@ -1241,6 +1241,11 @@
           "description": "specifies the memory The unit defaults to GiB",
           "x-intellij-html-description": "specifies the memory The unit defaults to GiB"
         },
+        "neuron_devices": {
+          "type": "integer",
+          "description": "specifies the number of Neuron device Accelerators. It can be set to 0 to select non-Accelerator instance types.",
+          "x-intellij-html-description": "specifies the number of Neuron device Accelerators. It can be set to 0 to select non-Accelerator instance types."
+        },
         "vCPUs": {
           "type": "integer",
           "description": "specifies the number of vCPUs",
@@ -1251,6 +1256,7 @@
         "vCPUs",
         "memory",
         "gpus",
+        "neuron_devices",
         "cpuArchitecture",
         "allow",
         "deny"

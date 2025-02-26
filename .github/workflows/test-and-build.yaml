@@ -31,6 +31,8 @@ jobs:
         uses: ./.github/actions/setup-build
       - name: Check go.mod and go.sum
         run: make check-gomod
+      - name: Check schema.json
+        run: make check-schema
       - name: Lint
         run: make lint
   image:
