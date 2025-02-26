@@ -393,7 +393,7 @@ var _ = Describe("Kubeconfig", func() {
 				return exec.Command(filepath.Join("testdata", "fake-version"), `{"Version":"0.5.1","Commit":"85e50980d9d916ae95882176c18f14ae145f916f"}`)
 			})
 			kubeconfig.AppendAuthenticator(config, clusterInfo, kubeconfig.AWSIAMAuthenticator, "", "")
-			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
 		})
 		It("writes the right api version if aws-iam-authenticator version is above 0.5.3", func() {
 			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
@@ -414,21 +414,21 @@ var _ = Describe("Kubeconfig", func() {
 				return exec.Command(filepath.Join("testdata", "fake-version"), "fail")
 			})
 			kubeconfig.AppendAuthenticator(config, clusterInfo, kubeconfig.AWSIAMAuthenticator, "", "")
-			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
 		})
 		It("defaults to alpha1 if we fail to parse the output", func() {
 			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
 				return exec.Command(filepath.Join("testdata", "fake-version"), "not-json-output")
 			})
 			kubeconfig.AppendAuthenticator(config, clusterInfo, kubeconfig.AWSIAMAuthenticator, "", "")
-			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
 		})
 		It("defaults to alpha1 if we can't parse the version because it's a dev version", func() {
 			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
 				return exec.Command(filepath.Join("testdata", "fake-version"), `{"Version":"git-85e50980","Commit":"85e50980d9d916ae95882176c18f14ae145f916f"}`)
 			})
 			kubeconfig.AppendAuthenticator(config, clusterInfo, kubeconfig.AWSIAMAuthenticator, "", "")
-			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
 		})
 		It("defaults to beta1 if we detect kubectl 1.24.0 or above", func() {
 			kubeconfig.SetNewVersionManager(func() kubectl.KubernetesVersionManager {
@@ -446,7 +446,7 @@ var _ = Describe("Kubeconfig", func() {
 				return fakeClient
 			})
 			kubeconfig.AppendAuthenticator(config, clusterInfo, kubeconfig.AWSIAMAuthenticator, "", "")
-			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
 		})
 		It("defaults to beta1 if we detect aws-cli v1 is at or above 1.23.9", func() {
 			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
@@ -460,7 +460,7 @@ var _ = Describe("Kubeconfig", func() {
 				return exec.Command(filepath.Join("testdata", "fake-version"), `aws-cli/1.21.9 Python/3.8.8 Linux/5.4.181-109.354.amzn2int.x86_64 exe/x86_64.amzn.2 prompt/off`)
 			})
 			kubeconfig.AppendAuthenticator(config, clusterInfo, kubeconfig.AWSEKSAuthenticator, "", "")
-			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
 		})
 		It("defaults to beta1 if we detect aws-cli v2 is at or above 2.6.3", func() {
 			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
@@ -474,7 +474,7 @@ var _ = Describe("Kubeconfig", func() {
 				return exec.Command(filepath.Join("testdata", "fake-version"), `aws-cli/2.4.3 Python/3.8.8 Linux/5.4.181-109.354.amzn2int.x86_64 exe/x86_64.amzn.2 prompt/off`)
 			})
 			kubeconfig.AppendAuthenticator(config, clusterInfo, kubeconfig.AWSEKSAuthenticator, "", "")
-			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
 		})
 	})
 
