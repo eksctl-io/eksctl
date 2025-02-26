@@ -7,6 +7,7 @@ package eksctl
 import (
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/maxbrunsfeld/counterfeiter/v6"
+	_ "github.com/onsi/ginkgo/v2/ginkgo"
 	_ "github.com/vburenin/ifacemaker"
 	_ "github.com/vektra/mockery/v2"
 )
