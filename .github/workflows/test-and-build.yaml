@@ -29,6 +29,8 @@ jobs:
           fetch-depth: 0
       - name: Setup build environment
         uses: ./.github/actions/setup-build
+      - name: Check go.mod and go.sum
+        run: make check-gomod
       - name: Lint
         run: make lint
   image:

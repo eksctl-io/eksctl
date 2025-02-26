@@ -80,6 +80,11 @@ endif
 lint: ## Run linter over the codebase
 	golangci-lint run --timeout=30m
 
+.PHONY: check-gomod ## Verify go.mod and go.sum are up to date
+check-gomod:
+	go mod tidy
+	git diff --quiet -- go.mod go.sum || (git --no-pager diff go.mod go.sum; echo "HINT: to fix this, run 'go mod tidy && git commit go.mod go.sum --message \"go mod tidy\"'"; exit 1)
+
 .PHONY: test
 test: ## Lint, generate and run unit tests. Also ensure that integration tests compile
 	$(MAKE) lint
@@ -204,4 +209,3 @@ prepare-release-candidate: ## Create release candidate
 .PHONY: print-version
 print-version: ## Prints the upcoming release number
 	@go run pkg/version/generate/release_generate.go print-version
-
