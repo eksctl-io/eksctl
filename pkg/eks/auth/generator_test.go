@@ -2,12 +2,12 @@ package auth_test
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/credentials/fakes"
 	"github.com/weaveworks/eksctl/pkg/eks/auth"
