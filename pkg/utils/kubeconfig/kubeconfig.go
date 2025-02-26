@@ -170,7 +170,7 @@ func AppendAuthenticator(config *clientcmdapi.Config, cluster ClusterInfo, authe
 	)
 
 	execConfig := &clientcmdapi.ExecConfig{
-		APIVersion: alphaAPIVersion,
+		APIVersion: betaAPIVersion,
 		Command:    authenticatorCMD,
 		Env: []clientcmdapi.ExecEnvVar{
 			{
