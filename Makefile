@@ -85,6 +85,14 @@ check-gomod:
 	go mod tidy
 	git diff --quiet -- go.mod go.sum || (git --no-pager diff go.mod go.sum; echo "HINT: to fix this, run 'go mod tidy && git commit go.mod go.sum --message \"go mod tidy\"'"; exit 1)
 
+.PHONY: check-schema ## Generate schema.json
+generate-schema:
+	cd pkg/apis/eksctl.io/v1alpha5 && go run ../../../../cmd/schema assets/schema.json
+
+.PHONY: check-schema ## Verify schema.json is up to date
+check-schema: generate-schema
+	git diff --quiet -- pkg/apis/eksctl.io/v1alpha5/assets/schema.json || (git --no-pager diff pkg/apis/eksctl.io/v1alpha5/assets/schema.json; echo "please run 'make generate-schema' to generate schema.json"; exit 1)
+
 .PHONY: test
 test: ## Lint, generate and run unit tests. Also ensure that integration tests compile
 	$(MAKE) lint
