@@ -2,10 +2,10 @@ package create
 
 import (
 	"bytes"
+	"errors"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"

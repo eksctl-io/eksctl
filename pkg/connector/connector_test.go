@@ -2,13 +2,13 @@ package connector_test
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path"
 	"strings"
 	"time"
 
 	"github.com/aws/smithy-go"
-	"github.com/pkg/errors"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
