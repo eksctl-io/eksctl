@@ -94,14 +94,6 @@ func (c *ClusterConfig) validateRemoteNetworkingConfig() error {
 		return nil
 	}
 
-	if !IsEnabled(c.VPC.ClusterEndpoints.PublicAccess) {
-		return fmt.Errorf("remoteNetworkConfig requires public cluster endpoint access")
-	}
-
-	if c.IsFullyPrivate() {
-		return fmt.Errorf("remoteNetworkConfig is not supported on fully private EKS cluster")
-	}
-
 	if c.IPv6Enabled() {
 		return fmt.Errorf("remoteNetworkConfig is not supported on EKS cluster configured with IPv6 address family")
 	}
