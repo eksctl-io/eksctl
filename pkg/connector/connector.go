@@ -15,7 +15,7 @@ import (
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/smithy-go"
-	"github.com/cenk/backoff"
+	"github.com/cenkalti/backoff/v5"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -144,16 +144,10 @@ func validateProvider(provider string) error {
 }
 
 func (c *EKSConnector) registerCluster(ctx context.Context, cluster ExternalCluster, connectorRoleARN string) (*eks.RegisterClusterOutput, error) {
-	bo := backoff.NewExponentialBackOff()
-	bo.MaxElapsedTime = 3 * time.Minute
-
-	var registerOutput *eks.RegisterClusterOutput
 	// IAM role takes some time to propagate,
 	// RegisterCluster returns `InvalidRequestException: Not existing role` for such cases.
-	err := backoff.RetryNotify(func() error {
-		var err error
-
-		registerOutput, err = c.Provider.EKS().RegisterCluster(ctx, &eks.RegisterClusterInput{
+	registerOutput, err := backoff.Retry(ctx, func() (*eks.RegisterClusterOutput, error) {
+		output, err := c.Provider.EKS().RegisterCluster(ctx, &eks.RegisterClusterInput{
 			Name: aws.String(cluster.Name),
 			ConnectorConfig: &ekstypes.ConnectorConfigRequest{
 				Provider: ekstypes.ConnectorConfigProvider(cluster.Provider),
@@ -166,15 +160,15 @@ func (c *EKSConnector) registerCluster(ctx context.Context, cluster ExternalClus
 			var oe *smithy.OperationError
 			if errors.As(err, &oe) && (strings.Contains(oe.Error(), "Nonexistent role") || strings.Contains(oe.Error(), "Not existing role")) {
 				logger.Debug("IAM role could not be found; retrying RegisterCluster")
-				return err
+				return nil, err
 			}
-			return backoff.Permanent(err)
+			return nil, backoff.Permanent(err)
 		}
 
-		return nil
-	}, bo, func(err error, duration time.Duration) {
+		return output, nil
+	}, backoff.WithMaxElapsedTime(3*time.Minute), backoff.WithNotify(func(err error, duration time.Duration) {
 		logger.Debug("error calling RegisterCluster; retrying in %v: %v", duration, err)
-	})
+	}))
 
 	if err != nil {
 		var oe *smithy.OperationError
