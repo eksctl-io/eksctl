@@ -9,7 +9,6 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"k8s.io/kops/upup/pkg/fi/cloudup/awsup"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -83,7 +82,7 @@ func (k *Wrapper) UseVPC(ctx context.Context, ec2API awsapi.EC2, spec *api.Clust
 
 	logger.Debug("subnets = %#v", spec.VPC.Subnets)
 	if err := spec.HasSufficientSubnets(); err != nil {
-		return errors.Wrapf(err, "using VPC from kops cluster %q", k.clusterName)
+		return fmt.Errorf("using VPC from kops cluster %q: %w", k.clusterName, err)
 	}
 	return nil
 }

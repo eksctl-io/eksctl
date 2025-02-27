@@ -8,7 +8,6 @@ import (
 	"github.com/aws/amazon-ec2-instance-selector/v3/pkg/selector"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -33,7 +32,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 		ngFilter := filter.NewNodeGroupFilter()
 		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, options).Load(); err != nil {
-			return errors.Wrap(err, "couldn't create node group filter from command line options")
+			return fmt.Errorf("couldn't create node group filter from command line options: %w", err)
 		}
 
 		if options.DryRun {

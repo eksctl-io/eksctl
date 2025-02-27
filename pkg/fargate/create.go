@@ -2,6 +2,7 @@ package fargate
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
@@ -64,7 +64,7 @@ func (c *Client) CreateProfile(ctx context.Context, profile *api.FargateProfile,
 		if errors.As(err, &ipe) && strings.HasPrefix(ipe.ErrorMessage(), "Fargate Profile creation for the Availability Zone") {
 			return fmt.Errorf("%s; please rerun the command by supplying subnets in the Fargate Profile that do not exist in the unsupported AZ, or recreate the cluster after specifying supported AZs in `availabilityZones`", ipe.ErrorMessage())
 		}
-		return errors.Wrapf(err, "failed to create Fargate profile %q", profile.Name)
+		return fmt.Errorf("failed to create Fargate profile %q: %w", profile.Name, err)
 	}
 	if waitForCreation {
 		return c.waitForCreation(ctx, profile.Name)
@@ -91,7 +91,7 @@ func (c *Client) waitForCreation(ctx context.Context, name string) error {
 	for !retryPolicy.Done() {
 		out, err := c.api.DescribeFargateProfile(ctx, describeRequest(c.clusterName, name))
 		if err != nil {
-			return errors.Wrapf(err, "failed while waiting for Fargate profile %q's creation", name)
+			return fmt.Errorf("failed while waiting for Fargate profile %q's creation: %w", name, err)
 		}
 		logger.Debug("Fargate profile: describe request: received: %#v", out)
 		if created(out) {

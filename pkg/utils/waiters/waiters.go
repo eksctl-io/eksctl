@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 )
 
 // Wait for something with a name to reach status that is expressed by acceptors using newRequest
@@ -30,7 +29,7 @@ func Wait(name, msg string, acceptors []request.WaiterAcceptor, newRequest func(
 				return wrappedErr
 			}
 		}
-		return errors.Wrap(waitErr, msg)
+		return fmt.Errorf("%s: %w", msg, waitErr)
 	}
 	logger.Debug("done after %s of %s", time.Since(startTime), msg)
 	return nil

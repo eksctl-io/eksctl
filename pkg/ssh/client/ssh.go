@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"k8s.io/kops/pkg/pki"
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -31,12 +31,12 @@ func LoadKeyFromFile(ctx context.Context, filePath, clusterName, ngName string, 
 	expandedPath := file.ExpandPath(filePath)
 	fileContent, err := readFileContents(expandedPath)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", filePath))
+		return "", fmt.Errorf("reading SSH public key file %q: %w", filePath, err)
 	}
 
 	fingerprint, err := fingerprint(fileContent)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("parsing SSH public key %q", filePath))
+		return "", fmt.Errorf("parsing SSH public key %q: %w", filePath, err)
 	}
 
 	key := string(fileContent)
@@ -62,7 +62,7 @@ func fingerprint(key []byte) (string, error) {
 
 	fingerprint, err := pki.ComputeAWSKeyFingerprint(string(key))
 	if err != nil {
-		return "", errors.Wrap(err, "computing fingerprint for key")
+		return "", fmt.Errorf("computing fingerprint for key: %w", err)
 	}
 
 	return fingerprint, nil
@@ -72,7 +72,7 @@ func fingerprint(key []byte) (string, error) {
 func LoadKeyByContent(ctx context.Context, key *string, clusterName, ngName string, ec2API awsapi.EC2) (string, error) {
 	fingerprint, err := fingerprint([]byte(*key))
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("parsing SSH public key \"%q\"", *key))
+		return "", fmt.Errorf("parsing SSH public key \"%q\": %w", *key, err)
 	}
 	keyName := getKeyName(clusterName, ngName, fingerprint)
 
@@ -120,7 +120,7 @@ func DeleteKeys(ctx context.Context, ec2API awsapi.EC2, clusterName string) {
 func CheckKeyExistsInEC2(ctx context.Context, ec2API awsapi.EC2, sshKeyName string) error {
 	existing, err := findKeyInEC2(ctx, ec2API, sshKeyName)
 	if err != nil {
-		return errors.Wrap(err, "checking existing key pair")
+		return fmt.Errorf("checking existing key pair: %w", err)
 	}
 	if existing == nil {
 		return fmt.Errorf("cannot find EC2 key pair %q", sshKeyName)
@@ -153,7 +153,7 @@ func importKey(ctx context.Context, keyName, fingerprint string, keyContent *str
 	logger.Debug("importing SSH public key %q", keyName)
 
 	if _, err := ec2API.ImportKeyPair(ctx, input); err != nil {
-		return errors.Wrap(err, "importing SSH public key")
+		return fmt.Errorf("importing SSH public key: %w", err)
 	}
 	return nil
 }
@@ -184,7 +184,7 @@ func findKeyInEC2(ctx context.Context, ec2API awsapi.EC2, name string) (*ec2type
 		if errors.As(err, &ae) && ae.ErrorCode() == "InvalidKeyPair.NotFound" {
 			return nil, nil
 		}
-		return nil, errors.Wrapf(err, "%s", fmt.Sprintf("searching for SSH public key %q in EC2", name))
+		return nil, fmt.Errorf("searching for SSH public key %q in EC2: %w", name, err)
 	}
 
 	if len(output.KeyPairs) != 1 {
@@ -197,7 +197,7 @@ func findKeyInEC2(ctx context.Context, ec2API awsapi.EC2, name string) (*ec2type
 func readFileContents(filePath string) ([]byte, error) {
 	fileContents, err := os.ReadFile(filePath)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", filePath))
+		return nil, fmt.Errorf("reading SSH public key file %q: %w", filePath, err)
 	}
 	return fileContents, nil
 }

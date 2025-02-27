@@ -2,6 +2,7 @@ package nodegroup
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -16,7 +17,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/blang/semver/v4"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/goformation"
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation"
@@ -59,7 +59,7 @@ func (m *Manager) Upgrade(ctx context.Context, options UpgradeOptions) error {
 
 	if options.KubernetesVersion != "" {
 		if _, err := semver.ParseTolerant(options.KubernetesVersion); err != nil {
-			return errors.Wrap(err, "invalid Kubernetes version")
+			return fmt.Errorf("invalid Kubernetes version: %w", err)
 		}
 	}
 
@@ -130,7 +130,7 @@ func (m *Manager) upgradeUsingAPI(ctx context.Context, options UpgradeOptions, n
 			// Use the current Kubernetes version
 			version, err := semver.ParseTolerant(*nodegroup.Version)
 			if err != nil {
-				return errors.Wrapf(err, "unexpected error parsing Kubernetes version %q", *nodegroup.Version)
+				return fmt.Errorf("unexpected error parsing Kubernetes version %q: %w", *nodegroup.Version, err)
 			}
 			input.Version = aws.String(fmt.Sprintf("%v.%v", version.Major, version.Minor))
 		}
@@ -183,12 +183,12 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 		NodeGroupName: options.NodegroupName,
 	})
 	if err != nil {
-		return errors.Wrap(err, "error fetching nodegroup template")
+		return fmt.Errorf("error fetching nodegroup template: %w", err)
 	}
 
 	stack, err := goformation.ParseJSON([]byte(template))
 	if err != nil {
-		return errors.Wrap(err, "unexpected error parsing nodegroup template")
+		return fmt.Errorf("unexpected error parsing nodegroup template: %w", err)
 	}
 
 	ngResources := stack.GetAllEKSNodegroupResources()
@@ -204,7 +204,7 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 		}
 
 		if err := m.stackManager.UpdateNodeGroupStack(ctx, options.NodegroupName, string(bytes), true); err != nil {
-			return errors.Wrap(err, "error updating nodegroup stack")
+			return fmt.Errorf("error updating nodegroup stack: %w", err)
 		}
 		return nil
 	}
@@ -258,7 +258,7 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 			// Use the current Kubernetes version
 			version, err := semver.ParseTolerant(*nodegroup.Version)
 			if err != nil {
-				return errors.Wrapf(err, "unexpected error parsing Kubernetes version %q", *nodegroup.Version)
+				return fmt.Errorf("unexpected error parsing Kubernetes version %q: %w", *nodegroup.Version, err)
 			}
 			kubernetesVersion = fmt.Sprintf("%v.%v", version.Major, version.Minor)
 		}
@@ -333,7 +333,7 @@ func (m *Manager) requiresStackUpdate(ctx context.Context, nodeGroupName string)
 
 	curVer, err := version.ParseEksctlVersion(version.GetVersion())
 	if err != nil {
-		return false, errors.Wrap(err, "unexpected error parsing current eksctl version")
+		return false, fmt.Errorf("unexpected error parsing current eksctl version: %w", err)
 	}
 	return !ver.EQ(curVer), nil
 }
@@ -385,7 +385,7 @@ func (m *Manager) usesCustomAMIEKSNodeGroup(ctx context.Context, ng *ekstypes.No
 func (m *Manager) usesCustomAMI(ctx context.Context, lt *api.LaunchTemplate) (bool, error) {
 	customLaunchTemplate, err := m.launchTemplateFetcher.Fetch(ctx, lt)
 	if err != nil {
-		return false, errors.Wrap(err, "error fetching launch template data")
+		return false, fmt.Errorf("error fetching launch template data: %w", err)
 	}
 	return customLaunchTemplate.ImageId != nil, nil
 }

@@ -6,7 +6,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -94,7 +93,7 @@ func AppendFlattened(components *metav1.List, component runtime.RawExtension) er
 	}
 	obj, err := runtime.Decode(scheme.Codecs.UniversalDeserializer(), component.Raw)
 	if err != nil {
-		return errors.Wrapf(err, "decoding object")
+		return fmt.Errorf("decoding object: %w", err)
 	}
 	return AppendFlattened(components, runtime.RawExtension{Object: obj})
 }

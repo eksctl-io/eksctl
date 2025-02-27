@@ -25,7 +25,7 @@ General conventions followed when developing in eksctl:
     - i.e. no dots, ellipsis or semicolons
   - do not write long log messages, try to break up into two if extra information is needed
 
-- use `errors.Wrapf` to wrap errors
+- use `fmt.Errorf` with `%w` to wrap errors
   - avoid wrapping errors that are already meaningful
 
 - we use Kris Nova's logger, this may change in the future and we should probably abstract it

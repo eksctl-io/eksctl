@@ -2,6 +2,7 @@ package eks
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -11,7 +12,6 @@ import (
 	"github.com/aws/amazon-ec2-instance-selector/v3/pkg/selector"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
@@ -124,7 +124,7 @@ func (n *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 	}
 
 	instanceTypesMismatchErr := func(ng *api.NodeGroupBase, path string) error {
-		return errors.Errorf("instance types matched by instance selector criteria do not match %s.instanceTypes for nodegroup %q; either remove instanceSelector or instanceTypes and retry the operation", path, ng.Name)
+		return fmt.Errorf("instance types matched by instance selector criteria do not match %s.instanceTypes for nodegroup %q; either remove instanceSelector or instanceTypes and retry the operation", path, ng.Name)
 	}
 
 	for _, np := range nodePools {
@@ -139,11 +139,11 @@ func (n *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 		}
 		instanceTypes, err := n.expandInstanceSelector(baseNG.InstanceSelector, azs)
 		if err != nil {
-			return errors.Wrapf(err, "error expanding instance selector options for nodegroup %q", baseNG.Name)
+			return fmt.Errorf("error expanding instance selector options for nodegroup %q: %w", baseNG.Name, err)
 		}
 
 		if len(instanceTypes) > maxInstanceTypes {
-			return errors.Errorf("instance selector filters resulted in %d instance types, which is greater than the maximum of %d, please set more selector options", len(instanceTypes), maxInstanceTypes)
+			return fmt.Errorf("instance selector filters resulted in %d instance types, which is greater than the maximum of %d, please set more selector options", len(instanceTypes), maxInstanceTypes)
 		}
 
 		switch ng := np.(type) {
@@ -169,7 +169,7 @@ func (n *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 			}
 
 		default:
-			return errors.Errorf("unhandled NodePool type %T", np)
+			return fmt.Errorf("unhandled NodePool type %T", np)
 		}
 	}
 	return nil
@@ -193,7 +193,7 @@ func (n *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	if ins.Memory != "" {
 		memory, err := bytequantity.ParseToByteQuantity(ins.Memory)
 		if err != nil {
-			return nil, errors.Wrapf(err, "invalid value %q for instanceSelector.memory", ins.Memory)
+			return nil, fmt.Errorf("invalid value %q for instanceSelector.memory: %w", ins.Memory, err)
 		}
 		filters.MemoryRange = &selector.ByteQuantityRangeFilter{
 			LowerBound: memory,
@@ -219,7 +219,7 @@ func (n *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	if ins.Allow != nil {
 		regexVal, err := regexp.Compile(*ins.Allow)
 		if err != nil {
-			return nil, errors.Wrapf(err, "invalid value %q for instanceSelector.allow", *ins.Allow)
+			return nil, fmt.Errorf("invalid value %q for instanceSelector.allow: %w", *ins.Allow, err)
 		}
 		filters.AllowList = regexVal
 	}
@@ -227,14 +227,14 @@ func (n *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	if ins.Deny != nil {
 		regexVal, err := regexp.Compile(*ins.Deny)
 		if err != nil {
-			return nil, errors.Wrapf(err, "invalid value %q for instanceSelector.deny", *ins.Deny)
+			return nil, fmt.Errorf("invalid value %q for instanceSelector.deny: %w", *ins.Deny, err)
 		}
 		filters.DenyList = regexVal
 	}
 
 	instanceTypes, err := n.instanceSelector.Filter(context.TODO(), filters)
 	if err != nil {
-		return nil, errors.Wrap(err, "error querying instance types for the specified instance selector criteria")
+		return nil, fmt.Errorf("error querying instance types for the specified instance selector criteria: %w", err)
 	}
 	if len(instanceTypes) == 0 {
 		return nil, errors.New("instance selector criteria matched no instances; consider broadening your criteria so that more instance types are returned")
@@ -265,7 +265,7 @@ func DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) err
 func ValidateExistingNodeGroupsForCompatibility(ctx context.Context, cfg *api.ClusterConfig, stackManager manager.StackManager) error {
 	infoByNodeGroup, err := stackManager.DescribeNodeGroupStacksAndResources(ctx)
 	if err != nil {
-		return errors.Wrap(err, "getting resources for all nodegroup stacks")
+		return fmt.Errorf("getting resources for all nodegroup stacks: %w", err)
 	}
 	if len(infoByNodeGroup) == 0 {
 		return nil

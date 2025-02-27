@@ -2,6 +2,7 @@ package elb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -16,8 +17,6 @@ import (
 	elbtypes "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing/types"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	elbv2types "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
-
-	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
@@ -291,7 +290,7 @@ func deleteOrphanLoadBalancerSecurityGroups(ctx context.Context, ec2API awsapi.E
 					logger.Debug("failed to delete security group, possibly because its load balancer is still being deleted")
 					failedSGs = append(failedSGs, sg)
 				} else {
-					return errors.Wrapf(err, "cannot delete security group %q", *sg.GroupName)
+					return fmt.Errorf("cannot delete security group %q: %w", *sg.GroupName, err)
 				}
 			}
 		}
@@ -316,7 +315,7 @@ func deleteFailedSecurityGroups(ctx context.Context, ec2API awsapi.EC2, elbAPI D
 			return err
 		}
 		if err := deleteSecurityGroup(ctx, ec2API, sg); err != nil {
-			return errors.Wrapf(err, "failed to delete security group (name: %q, id: %q)", *sg.GroupName, *sg.GroupId)
+			return fmt.Errorf("failed to delete security group (name: %q, id: %q): %w", *sg.GroupName, *sg.GroupId, err)
 		}
 	}
 	return nil
@@ -347,7 +346,7 @@ func ensureLoadBalancerDeleted(ctx context.Context, elbAPI DescribeLoadBalancers
 			case isELBNotFoundErr(err):
 				return nil
 			case err == context.DeadlineExceeded:
-				return errors.Wrap(err, "timed out looking up load balancer")
+				return fmt.Errorf("timed out looking up load balancer: %w", err)
 			case retry.IsErrorRetryables(retry.DefaultRetryables).IsErrorRetryable(err).Bool():
 				// This is not required when a retryer is configured. It exists to maintain the existing behaviour
 				// of manually retrying requests.
@@ -361,7 +360,7 @@ func ensureLoadBalancerDeleted(ctx context.Context, elbAPI DescribeLoadBalancers
 		select {
 		case <-timeoutCtx.Done():
 			timer.Stop()
-			return errors.Wrap(timeoutCtx.Err(), "timed out waiting for load balancer's deletion")
+			return fmt.Errorf("timed out waiting for load balancer's deletion: %w", timeoutCtx.Err())
 		case <-timer.C:
 		}
 

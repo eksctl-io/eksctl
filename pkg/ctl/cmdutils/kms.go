@@ -1,7 +1,8 @@
 package cmdutils
 
 import (
-	"github.com/pkg/errors"
+	"errors"
+	"fmt"
 )
 
 func NewUtilsKMSLoader(cmd *Cmd) ClusterConfigLoader {
@@ -13,7 +14,7 @@ func NewUtilsKMSLoader(cmd *Cmd) ClusterConfigLoader {
 
 	l.validateWithConfigFile = func() error {
 		if cmd.NameArg != "" {
-			return errors.Errorf("config file and key ARN %s", IncompatibleFlags)
+			return fmt.Errorf("config file and key ARN %s", IncompatibleFlags)
 		}
 		if l.ClusterConfig.SecretsEncryption == nil || l.ClusterConfig.SecretsEncryption.KeyARN == "" {
 			return errors.New("field secretsEncryption.keyARN is required")

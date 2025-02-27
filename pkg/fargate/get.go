@@ -2,12 +2,12 @@ package fargate
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
@@ -18,7 +18,7 @@ import (
 func (c *Client) ReadProfile(ctx context.Context, name string) (*api.FargateProfile, error) {
 	out, err := c.api.DescribeFargateProfile(ctx, describeRequest(c.clusterName, name))
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get Fargate profile %q", name)
+		return nil, fmt.Errorf("failed to get Fargate profile %q: %w", name, err)
 	}
 	logger.Debug("Fargate profile: describe request: received: %#v", out)
 	return toFargateProfile(out.FargateProfile), nil
@@ -65,7 +65,7 @@ func (c *Client) sendListRequestOnce(ctx context.Context, request *eks.ListFarga
 	logger.Debug("Fargate profile: list request: sending: %#v", request)
 	out, err := c.api.ListFargateProfiles(ctx, request)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get Fargate profile(s) for cluster %q", c.clusterName)
+		return nil, fmt.Errorf("failed to get Fargate profile(s) for cluster %q: %w", c.clusterName, err)
 	}
 	logger.Debug("Fargate profile: list request: received %v profile(s): %#v", len(out.FargateProfileNames), out)
 	return out, nil

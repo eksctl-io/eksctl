@@ -2,6 +2,7 @@ package cmdutils
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"reflect"
@@ -10,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -117,7 +117,7 @@ func (l *commonClusterConfigLoader) Load() error {
 
 	if l.ClusterConfigFile == "" {
 		if flagName, found := findChangedFlag(l.CobraCommand, sets.List(l.flagsIncompatibleWithoutConfigFile)); found {
-			return errors.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", flagName)
+			return fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", flagName)
 		}
 		return l.validateWithoutConfigFile()
 	}
@@ -628,7 +628,7 @@ func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
 	}
 	flagsValidOnlyWithMNG := []string{"spot", "enable-node-repair", "instance-types"}
 	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithMNG); found {
-		return errors.Errorf("--%s is only valid with managed nodegroups (--managed)", flagName)
+		return fmt.Errorf("--%s is only valid with managed nodegroups (--managed)", flagName)
 	}
 	return nil
 }

@@ -2,8 +2,8 @@ package create
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -38,7 +38,7 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd) error {
 	ctx := context.TODO()
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
-		return errors.Wrap(err, "couldn't create cluster provider from command line options")
+		return fmt.Errorf("couldn't create cluster provider from command line options: %w", err)
 	}
 
 	manager := actionsfargate.New(cmd.ClusterConfig, ctl, ctl.NewStackManager(cmd.ClusterConfig))

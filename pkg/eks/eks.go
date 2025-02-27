@@ -11,7 +11,6 @@ import (
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -27,7 +26,7 @@ func (c *ClusterProvider) DescribeControlPlane(ctx context.Context, meta *api.Cl
 	}
 	output, err := c.AWSProvider.EKS().DescribeCluster(ctx, input)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to describe cluster control plane")
+		return nil, fmt.Errorf("unable to describe cluster control plane: %w", err)
 	}
 	return output.Cluster, nil
 }
@@ -46,7 +45,7 @@ func (c *ClusterProvider) RefreshClusterStatus(ctx context.Context, spec *api.Cl
 	logger.Debug("cluster = %#v", cluster)
 
 	if isNonEKSCluster(cluster) {
-		return errors.Errorf("cannot perform this operation on a non-EKS cluster; please follow the documentation for "+
+		return fmt.Errorf("cannot perform this operation on a non-EKS cluster; please follow the documentation for "+
 			"cluster %s's Kubernetes provider", spec.Metadata.Name)
 	}
 
@@ -115,7 +114,7 @@ func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 // CanOperateWithRefresh returns true when a cluster can be operated, otherwise it returns false along with an error explaining the reason
 func (c *ClusterProvider) CanOperateWithRefresh(ctx context.Context, spec *api.ClusterConfig) (bool, error) {
 	if err := c.RefreshClusterStatusIfStale(ctx, spec); err != nil {
-		return false, errors.Wrapf(err, "unable to fetch cluster status to determine operability")
+		return false, fmt.Errorf("unable to fetch cluster status to determine operability: %w", err)
 	}
 
 	switch status := c.Status.ClusterInfo.Cluster.Status; status {
@@ -168,7 +167,7 @@ func (c *ClusterProvider) NewOpenIDConnectManager(ctx context.Context, spec *api
 
 	parsedARN, err := arn.Parse(spec.Status.ARN)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unexpected invalid ARN: %q", spec.Status.ARN)
+		return nil, fmt.Errorf("unexpected invalid ARN: %q: %w", spec.Status.ARN, err)
 	}
 	if !api.Partitions.IsSupported(parsedARN.Partition) {
 		return nil, fmt.Errorf("unknown EKS ARN: %q", spec.Status.ARN)
@@ -199,7 +198,7 @@ func (c *ClusterProvider) GetCluster(ctx context.Context, clusterName string) (*
 
 	output, err := c.AWSProvider.EKS().DescribeCluster(ctx, input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to describe control plane %q", clusterName)
+		return nil, fmt.Errorf("unable to describe control plane %q: %w", clusterName, err)
 	}
 	logger.Debug("cluster = %#v", output)
 
@@ -208,7 +207,7 @@ func (c *ClusterProvider) GetCluster(ctx context.Context, clusterName string) (*
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: clusterName}}
 			stacks, err := c.NewStackManager(spec).ListStacksWithStatuses(ctx)
 			if err != nil {
-				return nil, errors.Wrapf(err, "listing CloudFormation stack for %q", clusterName)
+				return nil, fmt.Errorf("listing CloudFormation stack for %q: %w", clusterName, err)
 			}
 			for _, s := range stacks {
 				logger.Debug("stack = %#v", *s)

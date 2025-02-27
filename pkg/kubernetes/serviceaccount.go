@@ -2,9 +2,9 @@ package kubernetes
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,7 +33,7 @@ func CheckServiceAccountExists(clientSet Interface, meta metav1.ObjectMeta) (boo
 	sa, err := clientSet.CoreV1().ServiceAccounts(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
-			return false, false, errors.Wrapf(err, "checking whether serviceaccount %q exists", name)
+			return false, false, fmt.Errorf("checking whether serviceaccount %q exists: %w", name, err)
 		}
 		return false, false, nil
 	}

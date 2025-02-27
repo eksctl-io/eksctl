@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/utils"
 
@@ -57,7 +55,7 @@ func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Boots
 	case api.NodeImageFamilyAmazonLinux2:
 		return NewAL2Bootstrapper(clusterConfig, ng, clusterDNS), nil
 	default:
-		return nil, errors.Errorf("unrecognized AMI family %q for creating bootstrapper", ng.AMIFamily)
+		return nil, fmt.Errorf("unrecognized AMI family %q for creating bootstrapper", ng.AMIFamily)
 
 	}
 }
@@ -117,7 +115,7 @@ func GetClusterDNS(clusterConfig *api.ClusterConfig) (string, error) {
 
 	parsedIP, _, err := net.ParseCIDR(serviceCIDR)
 	if err != nil {
-		return "", errors.Wrapf(err, "unexpected error parsing KubernetesNetworkConfig service CIDR: %q", serviceCIDR)
+		return "", fmt.Errorf("unexpected error parsing KubernetesNetworkConfig service CIDR: %q: %w", serviceCIDR, err)
 	}
 	return toClusterDNS(parsedIP), nil
 }
@@ -159,7 +157,7 @@ func linuxConfig(clusterConfig *api.ClusterConfig, bootScriptName, bootScriptCon
 
 	body, err := config.Encode()
 	if err != nil {
-		return "", errors.Wrap(err, "encoding user data")
+		return "", fmt.Errorf("encoding user data: %w", err)
 	}
 
 	return body, nil

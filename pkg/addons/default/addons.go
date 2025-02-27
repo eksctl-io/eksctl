@@ -11,7 +11,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
@@ -93,7 +92,7 @@ func makeGetError[T any](resource *T, err error, resourceName string) (*T, error
 func newList(data []byte) (*metav1.List, error) {
 	list, err := kubernetes.NewList(data)
 	if err != nil {
-		return nil, errors.Wrapf(err, "loading individual resources from manifest")
+		return nil, fmt.Errorf("loading individual resources from manifest: %w", err)
 	}
 	return list, nil
 }

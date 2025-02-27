@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,7 +48,7 @@ func CheckNamespaceExists(clientSet Interface, name string) (bool, error) {
 		return true, nil
 	}
 	if !apierrors.IsNotFound(err) {
-		return false, errors.Wrapf(err, "checking whether namespace %q exists", name)
+		return false, fmt.Errorf("checking whether namespace %q exists: %w", name, err)
 	}
 	return false, nil
 }

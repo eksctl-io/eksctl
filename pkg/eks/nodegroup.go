@@ -2,6 +2,7 @@ package eks
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -10,7 +11,6 @@ import (
 	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	addons "github.com/weaveworks/eksctl/pkg/addons/default"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -117,9 +117,9 @@ func (c *ClusterProvider) GetNodeGroupIAM(ctx context.Context, stackManager mana
 				err = errors.New("InstanceRoleARN empty")
 			}
 			if err != nil {
-				return errors.Wrapf(
-					err, "couldn't get iam configuration for nodegroup %q (perhaps state %q is transitional)",
-					ng.Name, s.StackStatus,
+				return fmt.Errorf(
+					"couldn't get iam configuration for nodegroup %q (perhaps state %q is transitional): %w",
+					ng.Name, s.StackStatus, err,
 				)
 			}
 			return nil
@@ -136,7 +136,7 @@ func getAWSNodeSAARNAnnotation(clientSet kubernetes.Interface) (string, error) {
 			logger.Warning("%q was not found", addons.AWSNode)
 			return "", nil
 		}
-		return "", errors.Wrapf(err, "getting %q", addons.AWSNode)
+		return "", fmt.Errorf("getting %q: %w", addons.AWSNode, err)
 	}
 
 	return clusterDaemonSet.Annotations[api.AnnotationEKSRoleARN], nil
@@ -146,21 +146,21 @@ func getAWSNodeSAARNAnnotation(clientSet kubernetes.Interface) (string, error) {
 func DoesAWSNodeUseIRSA(ctx context.Context, provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error) {
 	roleArn, err := getAWSNodeSAARNAnnotation(clientSet)
 	if err != nil {
-		return false, errors.Wrap(err, "error retrieving aws-node arn")
+		return false, fmt.Errorf("error retrieving aws-node arn: %w", err)
 	}
 	if roleArn == "" {
 		return false, nil
 	}
 	arnParts := strings.Split(roleArn, "/")
 	if len(arnParts) <= 1 {
-		return false, errors.Errorf("invalid ARN %s", roleArn)
+		return false, fmt.Errorf("invalid ARN %s", roleArn)
 	}
 	input := &awsiam.ListAttachedRolePoliciesInput{
 		RoleName: aws.String(arnParts[len(arnParts)-1]),
 	}
 	policies, err := provider.IAM().ListAttachedRolePolicies(ctx, input)
 	if err != nil {
-		return false, errors.Wrap(err, "error listing attached policies")
+		return false, fmt.Errorf("error listing attached policies: %w", err)
 	}
 	logger.Debug("found following policies attached to role annotated on aws-node service account: %s", policies.AttachedPolicies)
 	for _, p := range policies.AttachedPolicies {
@@ -185,11 +185,11 @@ func (t *suspendProcesses) Describe() string {
 func (t *suspendProcesses) Do() error {
 	ngStack, err := t.stackCollection.DescribeNodeGroupStack(context.TODO(), t.nodegroup.Name)
 	if err != nil {
-		return errors.Wrapf(err, "couldn't describe nodegroup stack for nodegroup %s", t.nodegroup.Name)
+		return fmt.Errorf("couldn't describe nodegroup stack for nodegroup %s: %w", t.nodegroup.Name, err)
 	}
 	asgName, err := t.stackCollection.GetAutoScalingGroupName(context.TODO(), ngStack)
 	if err != nil {
-		return errors.Wrapf(err, "couldn't get autoscalinggroup name nodegroup %s", t.nodegroup.Name)
+		return fmt.Errorf("couldn't get autoscalinggroup name nodegroup %s: %w", t.nodegroup.Name, err)
 	}
 	_, err = t.asg.SuspendProcesses(t.ctx, &autoscaling.SuspendProcessesInput{
 		AutoScalingGroupName: aws.String(asgName),

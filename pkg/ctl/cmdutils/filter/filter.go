@@ -6,7 +6,6 @@ import (
 
 	"github.com/gobwas/glob"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 )
@@ -42,7 +41,7 @@ func (f *Filter) AppendExcludeGlobs(globExprs ...string) error {
 	for _, expr := range globExprs {
 		compiledExpr, err := glob.Compile(expr)
 		if err != nil {
-			return errors.Wrapf(err, "parsing glob filter %q", expr)
+			return fmt.Errorf("parsing glob filter %q: %w", expr, err)
 		}
 		f.excludeGlobs = append(f.excludeGlobs, compiledExpr)
 		f.rawExcludeGlobs = append(f.rawExcludeGlobs, expr)
@@ -164,7 +163,7 @@ func (f *Filter) doAppendIncludeGlobs(names []string, resource string, globExprs
 	for _, expr := range globExprs {
 		compiledExpr, err := glob.Compile(expr)
 		if err != nil {
-			return errors.Wrapf(err, "parsing glob filter %q", expr)
+			return fmt.Errorf("parsing glob filter %q: %w", expr, err)
 		}
 		f.includeGlobs = append(f.includeGlobs, compiledExpr)
 		f.rawIncludeGlobs = append(f.rawIncludeGlobs, expr)

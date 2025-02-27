@@ -2,12 +2,12 @@ package coredns
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	v1 "k8s.io/api/core/v1"
@@ -107,7 +107,7 @@ func isRunningOnFargate(pod *v1.Pod) bool {
 // on Fargate.
 func ScheduleOnFargate(clientSet kubeclient.Interface) error {
 	if err := scheduleOnFargate(clientSet); err != nil {
-		return errors.Wrapf(err, "failed to make %q deployment schedulable on Fargate", Name)
+		return fmt.Errorf("failed to make %q deployment schedulable on Fargate: %w", Name, err)
 	}
 	logger.Info("%q is now schedulable onto Fargate", Name)
 	return nil
@@ -122,11 +122,11 @@ func scheduleOnFargate(clientSet kubeclient.Interface) error {
 	coredns.Spec.Template.Annotations = safeSetAnnotation(coredns.Spec.Template.Annotations, ComputeTypeAnnotationKey, computeTypeFargate)
 	bytes, err := runtime.Encode(unstructured.UnstructuredJSONScheme, coredns)
 	if err != nil {
-		return errors.Wrapf(err, "failed to marshal %q deployment", Name)
+		return fmt.Errorf("failed to marshal %q deployment: %w", Name, err)
 	}
 	patched, err := deployments.Patch(context.TODO(), Name, types.MergePatchType, bytes, metav1.PatchOptions{})
 	if err != nil {
-		return errors.Wrap(err, "failed to patch deployment")
+		return fmt.Errorf("failed to patch deployment: %w", err)
 	}
 
 	value, exists := safeGetAnnotationValue(patched.Spec.Template.Annotations, ComputeTypeAnnotationKey)

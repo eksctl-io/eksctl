@@ -2,9 +2,8 @@ package v1alpha5
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-
-	"github.com/pkg/errors"
 )
 
 type IdentityProviderType string

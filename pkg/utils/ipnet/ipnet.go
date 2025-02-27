@@ -8,10 +8,9 @@ package ipnet
 
 import (
 	"encoding/json"
+	"fmt"
 	"net"
 	"reflect"
-
-	"github.com/pkg/errors"
 )
 
 var nullString = "null"
@@ -72,12 +71,12 @@ func (ipnet *IPNet) UnmarshalJSON(b []byte) (err error) {
 	var cidr string
 	err = json.Unmarshal(b, &cidr)
 	if err != nil {
-		return errors.Wrap(err, "failed to Unmarshal string")
+		return fmt.Errorf("failed to Unmarshal string: %w", err)
 	}
 
 	ip, net, err := net.ParseCIDR(cidr)
 	if err != nil {
-		return errors.Wrap(err, "failed to Parse cidr string to net.IPNet")
+		return fmt.Errorf("failed to Parse cidr string to net.IPNet: %w", err)
 	}
 
 	// This check is needed in order to work around a strange quirk in the Go
