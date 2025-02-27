@@ -993,16 +993,20 @@ var _ = Describe("ClusterConfig validation", func() {
 				cc.VPC.ClusterEndpoints = &api.ClusterEndpoints{
 					PublicAccess: api.Disabled(),
 				}
+				cc.RemoteNetworkConfig.IAM = &api.RemoteNodesIAM{
+					Provider: aws.String("BLOB"),
+				}
 			},
-			expectedErr: "remoteNetworkConfig requires public cluster endpoint access",
 		}),
 		Entry("fully private EKS cluster", remoteNetworkConfigEntry{
 			overrideConfig: func(cc *api.ClusterConfig) {
 				cc.PrivateCluster = &api.PrivateCluster{
 					Enabled: true,
 				}
+				cc.RemoteNetworkConfig.IAM = &api.RemoteNodesIAM{
+					Provider: aws.String("BLOB"),
+				}
 			},
-			expectedErr: "remoteNetworkConfig is not supported on fully private EKS cluster",
 		}),
 		Entry("IPv6 family", remoteNetworkConfigEntry{
 			overrideConfig: func(cc *api.ClusterConfig) {
