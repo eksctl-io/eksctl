@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -16,7 +17,6 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -118,7 +118,7 @@ func (t *UnmanagedNodeGroupTask) createNodeGroup(ctx context.Context, ng *api.No
 	logger.Info("building nodegroup stack %q", name)
 	bootstrapper, err := t.NewBootstrapper(t.ClusterConfig, ng)
 	if err != nil {
-		return errors.Wrap(err, "error creating bootstrapper")
+		return fmt.Errorf("error creating bootstrapper: %w", err)
 	}
 
 	resourceSet := t.CreateNodeGroupResourceSet(builder.NodeGroupOptions{
@@ -207,7 +207,7 @@ func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Con
 	}
 	res, err := c.eksAPI.DescribeNodegroup(ctx, input)
 	if err != nil {
-		return errors.Wrapf(err, "couldn't get managed nodegroup details for nodegroup %q", ng.Name)
+		return fmt.Errorf("couldn't get managed nodegroup details for nodegroup %q: %w", ng.Name, err)
 	}
 
 	if res.Nodegroup.Resources == nil {
@@ -301,7 +301,7 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources(ctx context.Contex
 		}
 		resources, err := c.cloudformationAPI.DescribeStackResources(ctx, input)
 		if err != nil {
-			return nil, errors.Wrapf(err, "getting all resources for %q stack", *s.StackName)
+			return nil, fmt.Errorf("getting all resources for %q stack: %w", *s.StackName, err)
 		}
 		allResources[c.GetNodeGroupName(s)] = StackInfo{
 			Resources: resources.StackResources,
@@ -447,7 +447,7 @@ func GetEksctlVersionFromTags(tags []types.Tag) (semver.Version, bool, error) {
 		if *tag.Key == api.EksctlVersionTag {
 			v, err := version.ParseEksctlVersion(*tag.Value)
 			if err != nil {
-				return v, false, errors.Wrapf(err, "unexpected error parsing eksctl version %q", *tag.Value)
+				return v, false, fmt.Errorf("unexpected error parsing eksctl version %q: %w", *tag.Value, err)
 			}
 			return v, true, nil
 		}

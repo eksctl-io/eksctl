@@ -2,11 +2,11 @@ package nodebootstrap
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"strings"
 
 	toml "github.com/pelletier/go-toml"
-	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
@@ -37,7 +37,7 @@ func (b *Bottlerocket) UserData() (string, error) {
 		"settings": *ng.Bottlerocket.Settings,
 	})
 	if err != nil {
-		return "", errors.Wrap(err, "error loading user provided settings")
+		return "", fmt.Errorf("error loading user provided settings: %w", err)
 	}
 
 	// All input settings key names need to be checked & protected against
@@ -85,7 +85,7 @@ func extractKubernetesSettings(np api.NodePool) (map[string]interface{}, error) 
 	if val, ok := settings["kubernetes"]; ok {
 		kubernetesSettings, ok = val.(map[string]interface{})
 		if !ok {
-			return nil, errors.Errorf("expected settings.kubernetes to be of type %T; got %T", kubernetesSettings, val)
+			return nil, fmt.Errorf("expected settings.kubernetes to be of type %T; got %T", kubernetesSettings, val)
 		}
 	} else {
 		kubernetesSettings = make(map[string]interface{})

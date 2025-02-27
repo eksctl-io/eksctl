@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -14,7 +15,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/pkg/errors"
 
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 )
@@ -51,7 +51,7 @@ func (u *UnsupportedOIDCError) Error() string {
 func NewOpenIDConnectManager(iamapi awsapi.IAM, accountID, issuer, partition string, tags map[string]string) (*OpenIDConnectManager, error) {
 	issuerURL, err := url.Parse(issuer)
 	if err != nil {
-		return nil, errors.Wrapf(err, "parsing OIDC issuer URL")
+		return nil, fmt.Errorf("parsing OIDC issuer URL: %w", err)
 	}
 
 	if issuerURL.Scheme != "https" {
@@ -117,7 +117,7 @@ func (m *OpenIDConnectManager) CreateProvider(ctx context.Context) error {
 	}
 	output, err := m.iam.CreateOpenIDConnectProvider(ctx, input)
 	if err != nil {
-		return errors.Wrap(err, "creating OIDC provider")
+		return fmt.Errorf("creating OIDC provider: %w", err)
 	}
 	m.ProviderARN = *output.OpenIDConnectProviderArn
 	return nil
@@ -135,7 +135,7 @@ func (m *OpenIDConnectManager) DeleteProvider(ctx context.Context) error {
 		OpenIDConnectProviderArn: &m.ProviderARN,
 	}
 	if _, err := m.iam.DeleteOpenIDConnectProvider(ctx, input); err != nil {
-		return errors.Wrap(err, "deleting OIDC provider")
+		return fmt.Errorf("deleting OIDC provider: %w", err)
 	}
 	return nil
 }
@@ -155,7 +155,7 @@ func (m *OpenIDConnectManager) getIssuerCAThumbprint() error {
 
 	response, err := client.Get(m.issuerURL.String())
 	if err != nil {
-		return errors.Wrap(err, "connecting to issuer OIDC")
+		return fmt.Errorf("connecting to issuer OIDC: %w", err)
 	}
 	defer response.Body.Close()
 	if response.TLS != nil {

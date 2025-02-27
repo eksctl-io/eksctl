@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	nodeadm "github.com/awslabs/amazon-eks-ami/nodeadm/api/v1alpha1"
-	"github.com/pkg/errors"
 	"sigs.k8s.io/yaml"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -101,7 +100,7 @@ func createMimeMessage(writer io.Writer, scripts, cloudboots []string, nodeConfi
 	mw := multipart.NewWriter(writer)
 	if mimeBoundary != "" {
 		if err := mw.SetBoundary(mimeBoundary); err != nil {
-			return errors.Wrap(err, "unexpected error setting MIME boundary")
+			return fmt.Errorf("unexpected error setting MIME boundary: %w", err)
 		}
 	}
 	fmt.Fprint(writer, "MIME-Version: 1.0\r\n")

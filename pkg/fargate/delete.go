@@ -2,12 +2,12 @@ package fargate
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 )
 
 // DeleteProfile drains and delete the Fargate profile with the provided name.
@@ -18,7 +18,7 @@ func (c *Client) DeleteProfile(ctx context.Context, name string, waitForDeletion
 	out, err := c.api.DeleteFargateProfile(ctx, deleteRequest(c.clusterName, name))
 	logger.Debug("Fargate profile: delete request: received: %#v", out)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete Fargate profile %q", name)
+		return fmt.Errorf("failed to delete Fargate profile %q: %w", name, err)
 	}
 	if waitForDeletion {
 		return c.waitForDeletion(ctx, name)

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -17,7 +18,6 @@ import (
 	"github.com/aws/smithy-go"
 	"github.com/cenk/backoff"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -70,10 +70,10 @@ func (c *EKSConnector) RegisterCluster(ctx context.Context, cluster ExternalClus
 	if err != nil {
 		var notFoundError *ekstypes.ResourceNotFoundException
 		if !errors.As(err, &notFoundError) {
-			return nil, errors.Wrap(err, "unexpected error calling DescribeCluster")
+			return nil, fmt.Errorf("unexpected error calling DescribeCluster: %w", err)
 		}
 	} else {
-		return nil, errors.Errorf("cluster already exists; deregister the cluster first using `eksctl deregister cluster --name %s --region %s` and try again", cluster.Name, c.Provider.Region())
+		return nil, fmt.Errorf("cluster already exists; deregister the cluster first using `eksctl deregister cluster --name %s --region %s` and try again", cluster.Name, c.Provider.Region())
 	}
 
 	connectorRoleARN := cluster.ConnectorRoleARN
@@ -81,7 +81,7 @@ func (c *EKSConnector) RegisterCluster(ctx context.Context, cluster ExternalClus
 		var err error
 		connectorRoleARN, err = c.createConnectorRole(ctx, cluster)
 		if err != nil {
-			return nil, errors.Wrap(err, "error creating IAM role for EKS Connector")
+			return nil, fmt.Errorf("error creating IAM role for EKS Connector: %w", err)
 		}
 	}
 
@@ -89,10 +89,10 @@ func (c *EKSConnector) RegisterCluster(ctx context.Context, cluster ExternalClus
 	if err != nil {
 		if cluster.ConnectorRoleARN == "" {
 			if deleteErr := c.deleteRoleByARN(ctx, connectorRoleARN); deleteErr != nil {
-				err = errors.Wrap(err, deleteErr.Error())
+				err = errors.Join(err, deleteErr)
 			}
 		}
-		return nil, errors.Wrap(err, "error calling RegisterCluster")
+		return nil, fmt.Errorf("error calling RegisterCluster: %w", err)
 	}
 	return c.createManifests(ctx, registerOutput.Cluster)
 }
@@ -106,7 +106,7 @@ func (c *EKSConnector) createManifests(ctx context.Context, cluster *ekstypes.Cl
 	connectorResources := c.parseConnectorTemplate(cluster)
 	roleARN, err := Canonicalize(*stsOutput.Arn)
 	if err != nil {
-		return nil, errors.Wrap(err, "error canonicalizing IAM role ARN")
+		return nil, fmt.Errorf("error canonicalizing IAM role ARN: %w", err)
 	}
 
 	clusterRoleResources := c.applyRoleARN(c.ManifestTemplate.ClusterRole, roleARN)
@@ -114,7 +114,7 @@ func (c *EKSConnector) createManifests(ctx context.Context, cluster *ekstypes.Cl
 
 	for _, m := range []ManifestFile{connectorResources, clusterRoleResources, consoleAccessResources} {
 		if _, err := kubernetes.NewList(m.Data); err != nil {
-			return nil, errors.Wrapf(err, "unexpected error parsing manifests for EKS Connector: %s", m.Filename)
+			return nil, fmt.Errorf("unexpected error parsing manifests for EKS Connector: %s: %w", m.Filename, err)
 		}
 	}
 
@@ -140,7 +140,7 @@ func validateProvider(provider string) error {
 			return nil
 		}
 	}
-	return errors.Errorf("invalid provider %q; must be one of %s", provider, validProviders)
+	return fmt.Errorf("invalid provider %q; must be one of %s", provider, validProviders)
 }
 
 func (c *EKSConnector) registerCluster(ctx context.Context, cluster ExternalCluster, connectorRoleARN string) (*eks.RegisterClusterOutput, error) {
@@ -179,7 +179,7 @@ func (c *EKSConnector) registerCluster(ctx context.Context, cluster ExternalClus
 	if err != nil {
 		var oe *smithy.OperationError
 		if errors.As(err, &oe) && strings.Contains(oe.Error(), "AWSServiceRoleForAmazonEKSConnector is not available") {
-			return nil, errors.Wrap(err, "SLR for EKS Connector does not exist; please run `aws iam create-service-linked-role --aws-service-name eks-connector.amazonaws.com` first")
+			return nil, fmt.Errorf("SLR for EKS Connector does not exist; please run `aws iam create-service-linked-role --aws-service-name eks-connector.amazonaws.com` first: %w", err)
 		}
 		return nil, err
 	}
@@ -220,14 +220,14 @@ func (c *EKSConnector) DeregisterCluster(ctx context.Context, clusterName string
 	if err != nil {
 		var notFoundErr *ekstypes.ResourceNotFoundException
 		if errors.As(err, &notFoundErr) {
-			return errors.Errorf("cluster %q does not exist", clusterName)
+			return fmt.Errorf("cluster %q does not exist", clusterName)
 		}
-		return errors.Wrap(err, "unexpected error deregistering cluster")
+		return fmt.Errorf("unexpected error deregistering cluster: %w", err)
 	}
 
 	roleName, err := api.RoleNameFromARN(*clusterOutput.Cluster.ConnectorConfig.RoleArn)
 	if err != nil {
-		return errors.Wrapf(err, "error parsing role ARN %q", *clusterOutput.Cluster.ConnectorConfig.RoleArn)
+		return fmt.Errorf("error parsing role ARN %q: %w", *clusterOutput.Cluster.ConnectorConfig.RoleArn, err)
 	}
 
 	ownsIAMRole, err := c.ownsIAMRole(ctx, clusterName, roleName)
@@ -250,7 +250,7 @@ func (c *EKSConnector) deleteRole(ctx context.Context, roleName string) error {
 	}); err != nil {
 		var notFoundErr *iamtypes.NoSuchEntityException
 		if errors.As(err, &notFoundErr) {
-			return errors.Errorf("could not find policy %q on IAM role", connectorPolicyName)
+			return fmt.Errorf("could not find policy %q on IAM role", connectorPolicyName)
 		}
 		return err
 	}
@@ -258,7 +258,7 @@ func (c *EKSConnector) deleteRole(ctx context.Context, roleName string) error {
 	if _, err := c.Provider.IAM().DeleteRole(ctx, &iam.DeleteRoleInput{
 		RoleName: aws.String(roleName),
 	}); err != nil {
-		return errors.Wrap(err, "error deleting IAM role")
+		return fmt.Errorf("error deleting IAM role: %w", err)
 	}
 
 	return nil
@@ -267,7 +267,7 @@ func (c *EKSConnector) deleteRole(ctx context.Context, roleName string) error {
 func (c *EKSConnector) deleteRoleByARN(ctx context.Context, roleARN string) error {
 	connectorRoleName, err := api.RoleNameFromARN(roleARN)
 	if err != nil {
-		return errors.Wrap(err, "error parsing connector role ARN")
+		return fmt.Errorf("error parsing connector role ARN: %w", err)
 	}
 	return c.deleteRole(ctx, connectorRoleName)
 }
@@ -277,7 +277,7 @@ func (c *EKSConnector) ownsIAMRole(ctx context.Context, clusterName, roleName st
 		RoleName: aws.String(roleName),
 	})
 	if err != nil {
-		return false, errors.Wrapf(err, "error getting IAM role %q", roleName)
+		return false, fmt.Errorf("error getting IAM role %q: %w", roleName, err)
 	}
 
 	for _, tag := range roleOutput.Role.Tags {
@@ -317,7 +317,7 @@ func (c *EKSConnector) createConnectorRole(ctx context.Context, cluster External
 		},
 	})
 	if err != nil {
-		return "", errors.Wrap(err, "error creating IAM role")
+		return "", fmt.Errorf("error creating IAM role: %w", err)
 	}
 
 	waiter := iam.NewRoleExistsWaiter(c.Provider.IAM())

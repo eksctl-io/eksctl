@@ -4,12 +4,12 @@ import (
 	"context"
 	// For go:embed
 	_ "embed"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/cloudflare/cfssl/csr"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/assetutil"
@@ -130,7 +130,7 @@ func (v *VPCController) generateCert() error {
 
 	csrPEM, privateKey, err := generateCertReq(webhookServiceName, vpcControllerNamespace)
 	if err != nil {
-		return errors.Wrap(err, "generating CSR")
+		return fmt.Errorf("generating CSR: %w", err)
 	}
 
 	manifest := vpcAdmissionWebhookCsrYaml
@@ -148,7 +148,7 @@ func (v *VPCController) generateCert() error {
 	certificateSigningRequest.Name = csrName
 
 	if err := v.applyRawResource(certificateSigningRequest); err != nil {
-		return errors.Wrap(err, "creating CertificateSigningRequest")
+		return fmt.Errorf("creating CertificateSigningRequest: %w", err)
 	}
 
 	certificateSigningRequest.Status.Conditions = []certsv1beta1.CertificateSigningRequestCondition{
@@ -161,7 +161,7 @@ func (v *VPCController) generateCert() error {
 	}
 
 	if _, err := csrClientSet.UpdateApproval(context.TODO(), certificateSigningRequest, metav1.UpdateOptions{}); err != nil {
-		return errors.Wrap(err, "updating approval")
+		return fmt.Errorf("updating approval: %w", err)
 	}
 
 	logger.Info("waiting for certificate to be available")
@@ -227,7 +227,7 @@ func (v *VPCController) createCertSecrets(key, cert []byte) error {
 
 	err := v.applyRawResource(secret)
 	if err != nil {
-		return errors.Wrap(err, "error creating secret")
+		return fmt.Errorf("error creating secret: %w", err)
 	}
 	return err
 }
@@ -266,7 +266,7 @@ func (v *VPCController) deployVPCResourceController(ctx context.Context) error {
 			AttachPolicy: makePolicyDocument(),
 		}
 		if err := v.irsa.CreateOrUpdate(ctx, sa); err != nil {
-			return errors.Wrap(err, "error enabling IRSA")
+			return fmt.Errorf("error enabling IRSA: %w", err)
 		}
 	} else {
 		// If an OIDC provider isn't associated with the cluster, the VPC controller relies on the managed policy

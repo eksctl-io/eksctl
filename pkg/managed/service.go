@@ -2,12 +2,12 @@ package managed
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
-	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 
@@ -55,7 +55,7 @@ func (m *Service) GetHealth(ctx context.Context, nodeGroupName string) ([]Health
 	output, err := m.eksAPI.DescribeNodegroup(ctx, input)
 	if err != nil {
 		if IsNotFound(err) {
-			return nil, errors.Wrapf(err, "could not find a managed nodegroup with name %q", nodeGroupName)
+			return nil, fmt.Errorf("could not find a managed nodegroup with name %q: %w", nodeGroupName, err)
 		}
 		return nil, err
 	}

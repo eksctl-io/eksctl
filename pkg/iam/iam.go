@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -28,7 +27,7 @@ func ImportInstanceRoleFromProfileARN(ctx context.Context, iamAPI awsapi.IAM, ng
 	}
 	output, err := iamAPI.GetInstanceProfile(ctx, input)
 	if err != nil {
-		return errors.Wrap(err, "importing instance role ARN")
+		return fmt.Errorf("importing instance role ARN: %w", err)
 	}
 
 	roles := output.InstanceProfile.Roles

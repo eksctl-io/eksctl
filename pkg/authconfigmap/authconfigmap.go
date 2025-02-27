@@ -11,7 +11,6 @@ import (
 	"fmt"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -83,7 +82,7 @@ func NewFromClientSet(clientSet kubernetes.Interface) (*AuthConfigMap, error) {
 	cm, err := client.Get(context.TODO(), ObjectName, metav1.GetOptions{})
 	// It is fine for the configmap not to exist. Any other error is fatal.
 	if err != nil && !apierrors.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "getting auth ConfigMap")
+		return nil, fmt.Errorf("getting auth ConfigMap: %w", err)
 	}
 
 	if err := printers.NewJSONPrinter().LogObj(logger.Debug, "aws-auth = %s", cm); err != nil {
@@ -132,7 +131,7 @@ func (a *AuthConfigMap) RemoveAccount(account string) error {
 func (a *AuthConfigMap) accounts() ([]string, error) {
 	var accounts []string
 	if err := yaml.Unmarshal([]byte(a.cm.Data[accountsData]), &accounts); err != nil {
-		return nil, errors.Wrap(err, "unmarshalling mapAccounts")
+		return nil, fmt.Errorf("unmarshalling mapAccounts: %w", err)
 	}
 	return accounts, nil
 }
@@ -140,7 +139,7 @@ func (a *AuthConfigMap) accounts() ([]string, error) {
 func (a *AuthConfigMap) setAccounts(accounts []string) error {
 	bs, err := yaml.Marshal(accounts)
 	if err != nil {
-		return errors.Wrap(err, "marshalling mapAccounts")
+		return fmt.Errorf("marshalling mapAccounts: %w", err)
 	}
 	a.cm.Data[accountsData] = string(bs)
 	return nil
@@ -208,17 +207,17 @@ func (a *AuthConfigMap) RemoveIdentity(arnToDelete string, all bool) error {
 func (a *AuthConfigMap) GetIdentities() ([]iam.Identity, error) {
 	var roles []iam.RoleIdentity
 	if err := yaml.Unmarshal([]byte(a.cm.Data[rolesData]), &roles); err != nil {
-		return nil, errors.Wrapf(err, "unmarshalling %q", rolesData)
+		return nil, fmt.Errorf("unmarshalling %q: %w", rolesData, err)
 	}
 
 	var users []iam.UserIdentity
 	if err := yaml.Unmarshal([]byte(a.cm.Data[usersData]), &users); err != nil {
-		return nil, errors.Wrapf(err, "unmarshalling %q", usersData)
+		return nil, fmt.Errorf("unmarshalling %q: %w", usersData, err)
 	}
 
 	var accounts []string
 	if err := yaml.Unmarshal([]byte(a.cm.Data[accountsData]), &accounts); err != nil {
-		return nil, errors.Wrapf(err, "unmarshalling %q", accountsData)
+		return nil, fmt.Errorf("unmarshalling %q: %w", accountsData, err)
 	}
 
 	var all []iam.Identity
@@ -247,20 +246,20 @@ func (a *AuthConfigMap) setIdentities(identities []iam.Identity) error {
 			// skip, this is handled separately by AddAccount
 			continue
 		default:
-			return errors.Errorf("cannot determine if %q refers to a user or role during setIdentities preprocessing", identity.ARN())
+			return fmt.Errorf("cannot determine if %q refers to a user or role during setIdentities preprocessing", identity.ARN())
 		}
 	}
 
 	// Update the corresponding keys
 	_roles, err := yaml.Marshal(roles)
 	if err != nil {
-		return errors.Wrapf(err, "marshalling %q", rolesData)
+		return fmt.Errorf("marshalling %q: %w", rolesData, err)
 	}
 	a.cm.Data[rolesData] = string(_roles)
 
 	_users, err := yaml.Marshal(users)
 	if err != nil {
-		return errors.Wrapf(err, "marshalling %q", usersData)
+		return fmt.Errorf("marshalling %q: %w", usersData, err)
 	}
 	a.cm.Data[usersData] = string(_users)
 
@@ -306,10 +305,10 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 	}
 
 	if err := acm.AddIdentity(identity); err != nil {
-		return errors.Wrap(err, "adding nodegroup to auth ConfigMap")
+		return fmt.Errorf("adding nodegroup to auth ConfigMap: %w", err)
 	}
 	if err := acm.Save(); err != nil {
-		return errors.Wrap(err, "saving auth ConfigMap")
+		return fmt.Errorf("saving auth ConfigMap: %w", err)
 	}
 	logger.Debug("saved auth ConfigMap for %q", ng.Name)
 	return nil
@@ -323,10 +322,10 @@ func RemoveNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 		return err
 	}
 	if err := acm.RemoveIdentity(ng.IAM.InstanceRoleARN, false); err != nil {
-		return errors.Wrap(err, "removing nodegroup from auth ConfigMap")
+		return fmt.Errorf("removing nodegroup from auth ConfigMap: %w", err)
 	}
 	if err := acm.Save(); err != nil {
-		return errors.Wrap(err, "updating auth ConfigMap after removing role")
+		return fmt.Errorf("updating auth ConfigMap after removing role: %w", err)
 	}
 	logger.Debug("updated auth ConfigMap for %s", ng.Name)
 	return nil

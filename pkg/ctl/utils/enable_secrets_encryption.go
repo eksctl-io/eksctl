@@ -2,10 +2,10 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -82,7 +82,7 @@ func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encryptExistingSecrets bool) e
 			return err
 		}
 		if err := kubernetes.RefreshSecrets(ctx, clientSet.CoreV1()); err != nil {
-			return errors.Wrap(err, "error updating secrets")
+			return fmt.Errorf("error updating secrets: %w", err)
 		}
 		logger.Info("KMS encryption applied to all Secret resources")
 	}

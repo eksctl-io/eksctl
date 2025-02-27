@@ -4,11 +4,11 @@ import (
 	"context"
 	// For go:embed
 	_ "embed"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -87,14 +87,14 @@ type DevicePlugin interface {
 func applyDevicePlugin(dp DevicePlugin) error {
 	list, err := kubernetes.NewList(dp.Manifest())
 	if err != nil {
-		return errors.Wrap(err, "creating list from device plugin manifest")
+		return fmt.Errorf("creating list from device plugin manifest: %w", err)
 	}
 
 	rawClient := dp.RawClient()
 	for _, rawObj := range list.Items {
 		rawResource, err := rawClient.NewRawResource(rawObj.Object)
 		if err != nil {
-			return errors.Wrap(err, "creating raw resource from list item")
+			return fmt.Errorf("creating raw resource from list item: %w", err)
 		}
 		switch rawResource.GVK.Kind {
 		case "DaemonSet":
@@ -103,23 +103,23 @@ func applyDevicePlugin(dp DevicePlugin) error {
 				return &typeAssertionError{&appsv1.DaemonSet{}, rawResource}
 			}
 			if err := dp.SetImage(&daemonSet.Spec.Template); err != nil {
-				return errors.Wrap(err, "setting image of device plugin daemonset")
+				return fmt.Errorf("setting image of device plugin daemonset: %w", err)
 			}
 			if err := dp.SetTolerations(&daemonSet.Spec.Template); err != nil {
-				return errors.Wrap(err, "adding tolerations to device plugin daemonset")
+				return fmt.Errorf("adding tolerations to device plugin daemonset: %w", err)
 			}
 			msg, err := rawResource.CreateOrReplace(dp.PlanMode())
 			if err != nil {
-				return errors.Wrap(err, "calling create or replace on raw device plugin daemonset")
+				return fmt.Errorf("calling create or replace on raw device plugin daemonset: %w", err)
 			}
 			logger.Info(msg)
 			if err := watchDaemonSetReady(dp.RawClient().ClientSet().AppsV1().DaemonSets(daemonSet.Namespace), daemonSet.Name); err != nil {
-				return errors.Wrap(err, "waiting for device plugin daemonset to become ready")
+				return fmt.Errorf("waiting for device plugin daemonset to become ready: %w", err)
 			}
 		default:
 			status, err := rawResource.CreateOrReplace(dp.PlanMode())
 			if err != nil {
-				return errors.Wrap(err, "calling create or replace on raw device plugin rawResource")
+				return fmt.Errorf("calling create or replace on raw device plugin rawResource: %w", err)
 			}
 			logger.Info(status)
 		}

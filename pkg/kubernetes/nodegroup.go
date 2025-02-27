@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -16,7 +15,7 @@ func GetNodegroupKubernetesVersion(nodes v1.NodeInterface, ngName string) (strin
 		LabelSelector: fmt.Sprintf("%s=%s", api.NodeGroupNameLabel, ngName),
 	})
 	if err != nil {
-		return "", errors.Wrap(err, "failed to list nodes")
+		return "", fmt.Errorf("failed to list nodes: %w", err)
 	} else if len(n.Items) == 0 {
 		return "", nil
 	}
