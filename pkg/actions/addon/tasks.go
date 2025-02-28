@@ -15,6 +15,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
@@ -178,15 +179,28 @@ func createAddonManager(ctx context.Context, clusterProvider *eks.ClusterProvide
 		oidcProviderExists bool
 	)
 	if api.IsEnabled(cfg.IAM.WithOIDC) {
-		var err error
-		oidc, err = clusterProvider.NewOpenIDConnectManager(ctx, cfg)
+		retryPolicy := retry.TimingOutExponentialBackoff{
+			Timeout:  time.Minute * 5,
+			TimeUnit: time.Second,
+		}
+		oidcManager, err := clusterProvider.NewOpenIDConnectManager(ctx, cfg)
 		if err != nil {
 			return nil, err
 		}
-		oidcProviderExists, err = oidc.CheckProviderExists(ctx)
-		if err != nil {
-			return nil, err
+		for !retryPolicy.Done() {
+			oidcProviderExists, err = oidcManager.CheckProviderExists(ctx)
+			if err != nil {
+				return nil, err
+			}
+			if oidcProviderExists {
+				break
+			}
+			time.Sleep(retryPolicy.Duration())
 		}
+		if !oidcProviderExists {
+			return nil, fmt.Errorf("OIDC provider does not exist")
+		}
+		logger.Info("OIDC provider exists : %s", oidcManager.ProviderARN)
 	}
 
 	stackManager := clusterProvider.NewStackManager(cfg)
