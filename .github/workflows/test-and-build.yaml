@@ -18,7 +18,19 @@ jobs:
       - name: Unit test
         run: |
           make build
-          make unit-test
+          make unit-test-no-generate
+  codegen-diff:
+    name: Codgen diff
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        with:
+          fetch-depth: 0
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+      - name: Check for diff on generated files
+        run: make check-all-generated-files-up-to-date
   lint:
     name: Lint
     runs-on: ubuntu-latest
