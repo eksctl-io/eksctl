@@ -352,19 +352,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		ClusterName:  cfg.Metadata.Name,
 		StackCreator: stackManager,
 	}
-	piaUpdater := &addon.PodIdentityAssociationUpdater{
-		ClusterName: cmd.ClusterConfig.Metadata.Name,
-		IAMRoleCreator: &podidentityassociation.IAMRoleCreator{
-			ClusterName:  cmd.ClusterConfig.Metadata.Name,
-			StackCreator: stackManager,
-		},
-		IAMRoleUpdater: &podidentityassociation.IAMRoleUpdater{
-			StackUpdater: stackManager,
-		},
-		EKSPodIdentityDescriber: ctl.AWSProvider.EKS(),
-		StackDeleter:            stackManager,
-	}
-	preNodegroupAddons, postAddons, updateVPCCNITask, autoDefaultAddons := addon.CreateAddonTasks(ctx, cfg, ctl, iamRoleCreator, piaUpdater, true, cmd.ProviderConfig.WaitTimeout, meta.Region)
+	preNodegroupAddons, postAddons, updateVPCCNITask, autoDefaultAddons := addon.CreateAddonTasks(ctx, cfg, ctl, iamRoleCreator, true, cmd.ProviderConfig.WaitTimeout, meta.Region)
 	if len(autoDefaultAddons) > 0 {
 		logger.Info("default addons %s were not specified, will install them as EKS addons", strings.Join(autoDefaultAddons, ", "))
 	}
