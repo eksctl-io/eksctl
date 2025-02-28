@@ -80,6 +80,19 @@ endif
 lint: ## Run linter over the codebase
 	golangci-lint run --timeout=30m
 
+.PHONY: check-gomod ## Verify go.mod and go.sum are up to date
+check-gomod:
+	go mod tidy
+	git diff --quiet -- go.mod go.sum || (git --no-pager diff go.mod go.sum; echo "HINT: to fix this, run 'go mod tidy && git commit go.mod go.sum --message \"go mod tidy\"'"; exit 1)
+
+.PHONY: check-schema ## Generate schema.json
+generate-schema:
+	cd pkg/apis/eksctl.io/v1alpha5 && go run ../../../../cmd/schema assets/schema.json
+
+.PHONY: check-schema ## Verify schema.json is up to date
+check-schema: generate-schema
+	git diff --quiet -- pkg/apis/eksctl.io/v1alpha5/assets/schema.json || (git --no-pager diff pkg/apis/eksctl.io/v1alpha5/assets/schema.json; echo "please run 'make generate-schema' to generate schema.json"; exit 1)
+
 .PHONY: test
 test: ## Lint, generate and run unit tests. Also ensure that integration tests compile
 	$(MAKE) lint
@@ -172,6 +185,10 @@ update-aws-node: ## Re-download the aws-node manifests from AWS
 update-coredns: ## get latest coredns builds for each available eks version
 	@go run pkg/addons/default/scripts/update_coredns_assets.go
 
+.PHONY:
+update-ec2-info: ## get latest info on ec2 instance types
+	@go run cmd/ec2geninfo/main.go
+
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers
 	build/scripts/update-codegen.sh
@@ -200,4 +217,3 @@ prepare-release-candidate: ## Create release candidate
 .PHONY: print-version
 print-version: ## Prints the upcoming release number
 	@go run pkg/version/generate/release_generate.go print-version
-

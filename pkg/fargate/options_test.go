@@ -1,10 +1,10 @@
 package fargate_test
 
 import (
-	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/fargate"
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 var _ = Describe("fargate", func() {
@@ -26,10 +26,10 @@ var _ = Describe("fargate", func() {
 			})
 
 			It("passes on randomly generated input", func() {
-				options := fargate.Options{}
-				err := faker.FakeData(&options)
-				Expect(err).To(Not(HaveOccurred()))
-				err = options.Validate()
+				options := fargate.Options{
+					ProfileName: rand.String(25),
+				}
+				err := options.Validate()
 				Expect(err).To(Not(HaveOccurred()))
 			})
 		})
@@ -63,10 +63,17 @@ var _ = Describe("fargate", func() {
 			})
 
 			It("passes on randomly generated input", func() {
-				options := fargate.CreateOptions{}
-				err := faker.FakeData(&options)
-				Expect(err).To(Not(HaveOccurred()))
-				err = options.Validate()
+				options := fargate.CreateOptions{
+					ProfileName:              rand.String(25),
+					ProfileSelectorNamespace: rand.String(25),
+					ProfileSelectorLabels: map[string]string{
+						rand.String(25): rand.String(25),
+					},
+					Tags: map[string]string{
+						rand.String(25): rand.String(25),
+					},
+				}
+				err := options.Validate()
 				Expect(err).To(Not(HaveOccurred()))
 			})
 		})

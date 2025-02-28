@@ -7,8 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/blang/semver"
-	"github.com/pkg/errors"
+	"github.com/blang/semver/v4"
 )
 
 const Command = "kubectl"
@@ -95,7 +94,7 @@ func (vm *VersionManager) ServerVersion(env []string, args []string) (string, er
 func (vm *VersionManager) ValidateVersion(version string, vType VersionType) error {
 	parsedVersion, err := semver.Parse(strings.TrimLeft(version, "v"))
 	if err != nil {
-		return errors.Wrapf(err, "parsing kubernetes %s version string %s / %q", vType, version, parsedVersion)
+		return fmt.Errorf("parsing kubernetes %s version string %s / %q: %w", vType, version, parsedVersion, err)
 	}
 	minVersion := getMinVersionForType(vType)
 	if parsedVersion.Compare(getMinVersionForType(vType)) < 0 {

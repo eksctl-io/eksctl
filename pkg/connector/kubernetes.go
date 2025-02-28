@@ -1,6 +1,7 @@
 package connector
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -13,7 +14,6 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -69,7 +69,7 @@ func getResource(client *http.Client, url string) (ManifestFile, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return ManifestFile{}, errors.Errorf("expected status code %d; got %d", http.StatusOK, resp.StatusCode)
+		return ManifestFile{}, fmt.Errorf("expected status code %d; got %d", http.StatusOK, resp.StatusCode)
 	}
 
 	data, err := io.ReadAll(resp.Body)
@@ -101,7 +101,7 @@ func GetManifestFilenames() ([]string, error) {
 func filenameFromURL(u string) (string, error) {
 	parsed, err := url.Parse(u)
 	if err != nil {
-		return "", errors.Wrapf(err, "unexpected error getting filename for URL %q", u)
+		return "", fmt.Errorf("unexpected error getting filename for URL %q: %w", u, err)
 	}
 	_, filename := filepath.Split(parsed.Path)
 	return filename, nil
@@ -111,7 +111,7 @@ func filenameFromURL(u string) (string, error) {
 func WriteResources(fs afero.Fs, manifestList *ManifestList) error {
 	wd, err := os.Getwd()
 	if err != nil {
-		return errors.Wrap(err, "error getting current directory")
+		return fmt.Errorf("error getting current directory: %w", err)
 	}
 
 	writeFile := func(filename string, data []byte) error {
@@ -125,7 +125,7 @@ func WriteResources(fs afero.Fs, manifestList *ManifestList) error {
 	var filenames []string
 	for _, m := range []ManifestFile{manifestList.ConnectorResources, manifestList.ClusterRoleResources, manifestList.ConsoleAccessResources} {
 		if err := writeFile(m.Filename, m.Data); err != nil {
-			return errors.Wrapf(err, "error writing file %s", m.Filename)
+			return fmt.Errorf("error writing file %s: %w", m.Filename, err)
 		}
 		filenames = append(filenames, m.Filename)
 	}

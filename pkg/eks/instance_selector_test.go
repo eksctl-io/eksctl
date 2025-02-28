@@ -217,6 +217,52 @@ var _ = Describe("Instance Selector", func() {
 			createFakeInstanceSelector: makeInstanceSelector("c3.large", "c4.large", "c5.large"),
 			expectedInstanceTypes:      []string{"c3.large", "c4.large", "c5.large"},
 		}),
+
+		Entry("valid instance selector criteria with Allow field", instanceSelectorCase{
+			nodeGroups: []api.NodePool{
+				&api.NodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{},
+				},
+				&api.ManagedNodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{},
+				},
+			},
+			instanceSelectorValue: &api.InstanceSelector{
+				CPUArchitecture: "x86_64",
+				Allow:           aws.String(`c5[a-d]+\..*`),
+			},
+			createFakeInstanceSelector: makeInstanceSelector(
+				"c5a.2xlarge",
+				"c5d.2xlarge",
+			),
+			expectedInstanceTypes: []string{"c5a.2xlarge",
+				"c5d.2xlarge"},
+			clusterAZs:  []string{"az1", "az2"},
+			expectedAZs: []string{"az1", "az2"},
+		}),
+
+		Entry("valid instance selector criteria with Deny field", instanceSelectorCase{
+			nodeGroups: []api.NodePool{
+				&api.NodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{},
+				},
+				&api.ManagedNodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{},
+				},
+			},
+			instanceSelectorValue: &api.InstanceSelector{
+				CPUArchitecture: "x86_64",
+				Deny:            aws.String(`c4.*`),
+			},
+			createFakeInstanceSelector: makeInstanceSelector(
+				"c5a.2xlarge",
+				"c5d.2xlarge",
+			),
+			expectedInstanceTypes: []string{"c5a.2xlarge",
+				"c5d.2xlarge"},
+			clusterAZs:  []string{"az1", "az2"},
+			expectedAZs: []string{"az1", "az2"},
+		}),
 	)
 })
 

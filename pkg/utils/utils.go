@@ -6,8 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/blang/semver"
-	"github.com/pkg/errors"
+	"github.com/blang/semver/v4"
 )
 
 var matchFirstCap = regexp.MustCompile("([0-9]+|[A-Z])")
@@ -40,11 +39,11 @@ func IsMinVersion(minimumVersion, version string) (bool, error) {
 func CompareVersions(a, b string) (int, error) {
 	aVersion, err := semver.ParseTolerant(a)
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to parse first version %q", a)
+		return 0, fmt.Errorf("unable to parse first version %q: %w", a, err)
 	}
 	bVersion, err := semver.ParseTolerant(b)
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to parse second version %q", b)
+		return 0, fmt.Errorf("unable to parse second version %q: %w", b, err)
 	}
 	return aVersion.Compare(bVersion), nil
 }

@@ -14,8 +14,8 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 
-	"github.com/awslabs/goformation/v4"
-	gfneks "github.com/awslabs/goformation/v4/cloudformation/eks"
+	"github.com/weaveworks/eksctl/pkg/goformation"
+	gfneks "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/eks"
 )
 
 type amiTypeEntry struct {
@@ -39,7 +39,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 		[]string{}, // local zones
 		[]ec2types.InstanceType{
 			ec2types.InstanceTypeM5Large,
-			ec2types.InstanceTypeP2Xlarge,
+			ec2types.InstanceTypeG5Xlarge,
 			ec2types.InstanceTypeA12xlarge,
 			ec2types.InstanceTypeG5gXlarge,
 			ec2types.InstanceTypeG4dnXlarge,
@@ -81,7 +81,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 		nodeGroup: &api.ManagedNodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
 				Name:         "test",
-				InstanceType: "p2.8xlarge",
+				InstanceType: "g5.8xlarge",
 			},
 		},
 		expectedAMIType: "AL2023_x86_64_NVIDIA",
@@ -102,7 +102,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 			NodeGroupBase: &api.NodeGroupBase{
 				Name:         "test",
 				AMIFamily:    api.NodeImageFamilyAmazonLinux2,
-				InstanceType: "p2.xlarge",
+				InstanceType: "g5.xlarge",
 			},
 		},
 		expectedAMIType: "AL2_x86_64_GPU",

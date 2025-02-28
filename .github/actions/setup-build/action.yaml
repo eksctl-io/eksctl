@@ -21,5 +21,4 @@ runs:
           go-
     - name: Setup deps
       shell: bash
-      run: |
-        make install-build-deps
+      run: make install-build-deps

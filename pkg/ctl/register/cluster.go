@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -49,7 +48,7 @@ func registerCluster(cmd *cmdutils.Cmd, cluster connector.ExternalCluster) error
 
 	manifestTemplate, err := connector.GetManifestTemplate()
 	if err != nil {
-		return errors.Wrap(err, "error getting manifests for EKS Connector")
+		return fmt.Errorf("error getting manifests for EKS Connector: %w", err)
 	}
 
 	c := connector.EKSConnector{
@@ -58,7 +57,7 @@ func registerCluster(cmd *cmdutils.Cmd, cluster connector.ExternalCluster) error
 	}
 	resourceList, err := c.RegisterCluster(ctx, cluster)
 	if err != nil {
-		return errors.Wrap(err, "error registering cluster")
+		return fmt.Errorf("error registering cluster: %w", err)
 	}
 
 	logger.Info("registered cluster %q successfully", cluster.Name)

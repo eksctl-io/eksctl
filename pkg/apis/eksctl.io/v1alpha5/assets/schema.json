@@ -1194,8 +1194,28 @@
       "x-intellij-html-description": "holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies",
       "default": "{}"
     },
+    "InstanceMarketOptions": {
+      "properties": {
+        "marketType": {
+          "type": "string",
+          "description": "specifies the market type for the instances",
+          "x-intellij-html-description": "specifies the market type for the instances"
+        }
+      },
+      "preferredOrder": [
+        "marketType"
+      ],
+      "additionalProperties": false,
+      "description": "describes the market (purchasing) option for the instances",
+      "x-intellij-html-description": "describes the market (purchasing) option for the instances"
+    },
     "InstanceSelector": {
       "properties": {
+        "allow": {
+          "type": "string",
+          "description": "List of allowed instance types to select from w/ regex syntax (Example: m[3-5]\\\\.*)",
+          "x-intellij-html-description": "List of allowed instance types to select from w/ regex syntax (Example: m[3-5]\\.*)"
+        },
         "cpuArchitecture": {
           "type": "string",
           "description": "CPU Architecture of the EC2 instance type. Valid variants are: `\"x86_64\"` `\"amd64\"` `\"arm64\"`",
@@ -1205,6 +1225,11 @@
             "amd64",
             "arm64"
           ]
+        },
+        "deny": {
+          "type": "string",
+          "description": "List of instance types which should be excluded w/ regex syntax (Example: m[1-2]\\\\.*)",
+          "x-intellij-html-description": "List of instance types which should be excluded w/ regex syntax (Example: m[1-2]\\.*)"
         },
         "gpus": {
           "type": "integer",
@@ -1216,6 +1241,11 @@
           "description": "specifies the memory The unit defaults to GiB",
           "x-intellij-html-description": "specifies the memory The unit defaults to GiB"
         },
+        "neuron_devices": {
+          "type": "integer",
+          "description": "specifies the number of Neuron device Accelerators. It can be set to 0 to select non-Accelerator instance types.",
+          "x-intellij-html-description": "specifies the number of Neuron device Accelerators. It can be set to 0 to select non-Accelerator instance types."
+        },
         "vCPUs": {
           "type": "integer",
           "description": "specifies the number of vCPUs",
@@ -1226,7 +1256,10 @@
         "vCPUs",
         "memory",
         "gpus",
-        "cpuArchitecture"
+        "neuron_devices",
+        "cpuArchitecture",
+        "allow",
+        "deny"
       ],
       "additionalProperties": false,
       "description": "holds EC2 instance selector options",
@@ -1418,6 +1451,11 @@
         },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
+        },
+        "instanceMarketOptions": {
+          "$ref": "#/definitions/InstanceMarketOptions",
+          "description": "describes the market (purchasing) option for the instances",
+          "x-intellij-html-description": "describes the market (purchasing) option for the instances"
         },
         "instanceName": {
           "type": "string"
@@ -1629,6 +1667,7 @@
         "bottlerocket",
         "enableDetailedMonitoring",
         "capacityReservation",
+        "instanceMarketOptions",
         "outpostARN",
         "instanceTypes",
         "spot",
@@ -1791,6 +1830,11 @@
         },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
+        },
+        "instanceMarketOptions": {
+          "$ref": "#/definitions/InstanceMarketOptions",
+          "description": "describes the market (purchasing) option for the instances",
+          "x-intellij-html-description": "describes the market (purchasing) option for the instances"
         },
         "instanceName": {
           "type": "string"
@@ -1999,6 +2043,7 @@
         "bottlerocket",
         "enableDetailedMonitoring",
         "capacityReservation",
+        "instanceMarketOptions",
         "outpostARN",
         "instancesDistribution",
         "asgMetricsCollection",

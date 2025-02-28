@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -66,7 +65,7 @@ func doUpdateLegacySubnetSettings(cmd *cmdutils.Cmd) error {
 		return fmt.Errorf("error describing cluster stack: %w", err)
 	}
 	if err := ctl.LoadClusterVPC(ctx, cfg, stack, true); err != nil {
-		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
+		return fmt.Errorf("getting VPC configuration for cluster %q: %w", cfg.Metadata.Name, err)
 	}
 
 	logger.Info("updating settings { MapPublicIpOnLaunch: enabled } for public subnets %v", cfg.VPC.Subnets.Public)

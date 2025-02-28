@@ -3,6 +3,7 @@ package label_test
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
@@ -13,7 +14,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	perrors "github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/weaveworks/eksctl/pkg/actions/label"
@@ -79,7 +79,7 @@ var _ = Describe("Labels", func() {
 				err := &smithy.OperationError{
 					Err: errors.New("ValidationError"),
 				}
-				fakeManagedService.GetLabelsReturns(nil, perrors.Wrapf(err, "omg %s", "what"))
+				fakeManagedService.GetLabelsReturns(nil, fmt.Errorf("omg what: %w", err))
 			})
 
 			It("returns the labels from the EKS api", func() {
@@ -141,7 +141,7 @@ var _ = Describe("Labels", func() {
 				err := &smithy.OperationError{
 					Err: errors.New("ValidationError"),
 				}
-				fakeManagedService.UpdateLabelsReturns(perrors.Wrapf(err, "omg %s", "what"))
+				fakeManagedService.UpdateLabelsReturns(fmt.Errorf("omg what: %w", err))
 			})
 
 			It("updates the labels through the EKS api", func() {
@@ -203,7 +203,7 @@ var _ = Describe("Labels", func() {
 				err := &smithy.OperationError{
 					Err: errors.New("ValidationError"),
 				}
-				fakeManagedService.UpdateLabelsReturns(perrors.Wrapf(err, "omg %s", "what"))
+				fakeManagedService.UpdateLabelsReturns(fmt.Errorf("omg what: %w", err))
 			})
 
 			It("removes the labels through the EKS api", func() {

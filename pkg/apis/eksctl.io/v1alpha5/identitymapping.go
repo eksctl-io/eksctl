@@ -1,7 +1,7 @@
 package v1alpha5
 
 import (
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // IAMIdentityMapping contains IAM accounts, users, roles and services that will be added to the

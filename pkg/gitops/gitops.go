@@ -1,10 +1,10 @@
 package gitops
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -24,7 +24,7 @@ func Setup(kubeconfigPath string, k8sRestConfig *rest.Config, k8sClientSet kubec
 	installer, err := flux.New(k8sClientSet, cfg.GitOps)
 	logger.Info("gitops configuration detected, setting installer to Flux v2")
 	if err != nil {
-		return errors.Wrapf(err, "could not initialise Flux installer")
+		return fmt.Errorf("could not initialise Flux installer: %w", err)
 	}
 
 	return installer.Run()

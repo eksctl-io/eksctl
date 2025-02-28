@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -18,7 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	cttypes "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -157,7 +157,7 @@ func (c *StackCollection) DoCreateStackRequest(ctx context.Context, i *Stack, te
 	logger.Debug("CreateStackInput = %#v", input)
 	s, err := c.cloudformationAPI.CreateStack(ctx, input)
 	if err != nil {
-		return errors.Wrapf(err, "creating CloudFormation stack %q", *i.StackName)
+		return fmt.Errorf("creating CloudFormation stack %q: %w", *i.StackName, err)
 	}
 	i.StackId = s.StackId
 	return nil
@@ -213,7 +213,7 @@ func (c *StackCollection) createClusterStack(ctx context.Context, stackName stri
 		}
 
 		if err := resourceSet.GetAllOutputs(*stack); err != nil {
-			errCh <- errors.Wrapf(err, "getting stack %q outputs", *stack.StackName)
+			errCh <- fmt.Errorf("getting stack %q outputs: %w", *stack.StackName, err)
 			return
 		}
 
@@ -227,7 +227,7 @@ func (c *StackCollection) createStackRequest(ctx context.Context, stackName stri
 	stack := &Stack{StackName: &stackName}
 	templateBody, err := resourceSet.RenderJSON()
 	if err != nil {
-		return nil, errors.Wrapf(err, "rendering template for %q stack", *stack.StackName)
+		return nil, fmt.Errorf("rendering template for %q stack: %w", *stack.StackName, err)
 	}
 
 	if err := c.DoCreateStackRequest(ctx, stack, TemplateBody(templateBody), tags, parameters, resourceSet.WithIAM(), resourceSet.WithNamedIAM()); err != nil {
@@ -282,7 +282,7 @@ func (c *StackCollection) PropagateManagedNodeGroupTagsToASG(ngName string, ngTa
 		for _, asgTags := range chunkedASGTags {
 			input := &autoscaling.CreateOrUpdateTagsInput{Tags: asgTags}
 			if _, err := c.asgAPI.CreateOrUpdateTags(context.Background(), input); err != nil {
-				errCh <- errors.Wrapf(err, "creating or updating asg tags for managed nodegroup %q", ngName)
+				errCh <- fmt.Errorf("creating or updating asg tags for managed nodegroup %q: %w", ngName, err)
 				return
 			}
 		}
@@ -303,7 +303,7 @@ func (c *StackCollection) checkASGTagsNumber(ngName, asgName string, propagatedT
 	}
 	output, err := c.asgAPI.DescribeTags(context.Background(), tagsFilter)
 	if err != nil {
-		return errors.Wrapf(err, "describing asg %q tags for managed nodegroup %q", asgName, ngName)
+		return fmt.Errorf("describing asg %q tags for managed nodegroup %q: %w", asgName, ngName, err)
 	}
 	asgTags := output.Tags
 	// intersection of key tags to consider the number of tags going
@@ -447,7 +447,7 @@ func (c *StackCollection) ListStacksMatching(ctx context.Context, nameRegex stri
 
 	re, err := regexp.Compile(nameRegex)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot list stacks")
+		return nil, fmt.Errorf("cannot list stacks: %w", err)
 	}
 	input := &cloudformation.ListStacksInput{
 		StackStatusFilter: defaultStackStatusFilter(),
@@ -587,7 +587,7 @@ func (c *StackCollection) DeleteStackBySpec(ctx context.Context, s *Stack) (*Sta
 	}
 
 	if _, err := c.cloudformationAPI.DeleteStack(ctx, input); err != nil {
-		return nil, errors.Wrapf(err, "not able to delete stack %q", *s.StackName)
+		return nil, fmt.Errorf("not able to delete stack %q: %w", *s.StackName, err)
 	}
 	logger.Info("will delete stack %q", *s.StackName)
 	return s, nil
@@ -640,7 +640,7 @@ func fmtStacksRegexForCluster(name string) string {
 func (c *StackCollection) ListStacks(ctx context.Context) ([]*Stack, error) {
 	stacks, err := c.ListStacksWithStatuses(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "describing CloudFormation stacks for %q", c.spec.Metadata.Name)
+		return nil, fmt.Errorf("describing CloudFormation stacks for %q: %w", c.spec.Metadata.Name, err)
 	}
 	if len(stacks) == 0 {
 		logger.Debug("No stacks found for %s", c.spec.Metadata.Name)
@@ -693,7 +693,7 @@ func (c *StackCollection) DescribeStackEvents(ctx context.Context, i *Stack) ([]
 
 	stackEvents, err := c.cloudformationAPI.DescribeStackEvents(ctx, input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "describing CloudFormation stack %q events", *i.StackName)
+		return nil, fmt.Errorf("describing CloudFormation stack %q events: %w", *i.StackName, err)
 	}
 
 	return stackEvents.StackEvents, nil
@@ -712,7 +712,7 @@ func (c *StackCollection) LookupCloudTrailEvents(ctx context.Context, i *Stack) 
 	for paginator.HasMorePages() {
 		out, err := paginator.NextPage(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "looking up CloudTrail events for stack %q", *i.StackName)
+			return nil, fmt.Errorf("looking up CloudTrail events for stack %q: %w", *i.StackName, err)
 		}
 		events = append(events, out.Events...)
 	}
@@ -755,7 +755,7 @@ func (c *StackCollection) doCreateChangeSetRequest(ctx context.Context, stackNam
 	logger.Debug("creating changeSet, input = %#v", input)
 	s, err := c.cloudformationAPI.CreateChangeSet(ctx, input)
 	if err != nil {
-		return errors.Wrapf(err, "creating ChangeSet %q for stack %q", changeSetName, stackName)
+		return fmt.Errorf("creating ChangeSet %q for stack %q: %w", changeSetName, stackName, err)
 	}
 	logger.Debug("changeSet = %#v", s)
 	return nil
@@ -770,7 +770,7 @@ func (c *StackCollection) doExecuteChangeSet(ctx context.Context, stackName stri
 	logger.Debug("executing changeSet, input = %#v", input)
 
 	if _, err := c.cloudformationAPI.ExecuteChangeSet(ctx, input); err != nil {
-		return errors.Wrapf(err, "executing CloudFormation ChangeSet %q for stack %q", changeSetName, stackName)
+		return fmt.Errorf("executing CloudFormation ChangeSet %q for stack %q: %w", changeSetName, stackName, err)
 	}
 	return nil
 }
@@ -786,7 +786,7 @@ func (c *StackCollection) DescribeStackChangeSet(ctx context.Context, i *Stack, 
 	}
 	resp, err := c.cloudformationAPI.DescribeChangeSet(ctx, input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "describing CloudFormation ChangeSet %s for stack %s", changeSetName, *i.StackName)
+		return nil, fmt.Errorf("describing CloudFormation ChangeSet %s for stack %s: %w", changeSetName, *i.StackName, err)
 	}
 	return resp, nil
 }

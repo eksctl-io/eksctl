@@ -19,7 +19,6 @@ import (
 )
 
 var zoneIDsToAvoid = map[string][]string{
-	api.RegionCNNorth1:   {"cnn1-az4"}, // https://github.com/eksctl-io/eksctl/issues/3916
 	api.RegionUSEast1:    {"use1-az3"},
 	api.RegionUSWest1:    {"usw1-az2"},
 	api.RegionCACentral1: {"cac1-az3"},

@@ -10,11 +10,11 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
-	gfn "github.com/awslabs/goformation/v4/cloudformation"
-	gfncfn "github.com/awslabs/goformation/v4/cloudformation/cloudformation"
-	gfnec2 "github.com/awslabs/goformation/v4/cloudformation/ec2"
-	gfneks "github.com/awslabs/goformation/v4/cloudformation/eks"
-	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
+	gfn "github.com/weaveworks/eksctl/pkg/goformation/cloudformation"
+	gfncfn "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/cloudformation"
+	gfnec2 "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/ec2"
+	gfneks "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/eks"
+	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
 	"github.com/kris-nova/logger"
 
@@ -468,6 +468,11 @@ func newLaunchTemplateData(ctx context.Context, n *NodeGroupResourceSet) (*gfnec
 			launchTemplateData.CapacityReservationSpecification.CapacityReservationTarget = &gfnec2.LaunchTemplate_CapacityReservationTarget{
 				CapacityReservationId:               valueOrNil(ng.CapacityReservation.CapacityReservationTarget.CapacityReservationID),
 				CapacityReservationResourceGroupArn: valueOrNil(ng.CapacityReservation.CapacityReservationTarget.CapacityReservationResourceGroupARN),
+			}
+		}
+		if ng.InstanceMarketOptions != nil {
+			launchTemplateData.InstanceMarketOptions = &gfnec2.LaunchTemplate_InstanceMarketOptions{
+				MarketType: valueOrNil(ng.InstanceMarketOptions.MarketType),
 			}
 		}
 	}

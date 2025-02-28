@@ -20,8 +20,8 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 
-	"github.com/awslabs/goformation/v4"
-	gfnt "github.com/awslabs/goformation/v4/cloudformation/types"
+	"github.com/weaveworks/eksctl/pkg/goformation"
+	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
@@ -264,6 +264,24 @@ API_SERVER_URL=https://test.com
 				InstanceTypes: []string{"c3.large", "c4.large", "c5.large", "c5d.large", "c5n.large", "c5a.large"},
 			},
 			resourcesFilename: "spot.json",
+		}),
+
+		Entry("With Capacity Block instances", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "cb-test",
+					CapacityReservation: &api.CapacityReservation{
+						CapacityReservationTarget: &api.CapacityReservationTarget{
+							CapacityReservationID: aws.String("res-id"),
+						},
+					},
+					InstanceMarketOptions: &api.InstanceMarketOptions{
+						MarketType: aws.String("capacity-block"),
+					},
+				},
+				InstanceTypes: []string{"p5en.48xlarge"},
+			},
+			resourcesFilename: "capacity_block.json",
 		}),
 
 		Entry("With node repair enabled", &mngCase{

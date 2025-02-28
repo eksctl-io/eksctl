@@ -1753,6 +1753,10 @@ type NodeGroupBase struct {
 	// CapacityReservation defines reservation policy for a nodegroup
 	CapacityReservation *CapacityReservation `json:"capacityReservation,omitempty"`
 
+	// InstanceMarketOptions describes the market (purchasing) option for the instances
+	// +optional
+	InstanceMarketOptions *InstanceMarketOptions `json:"instanceMarketOptions,omitempty"`
+
 	// OutpostARN specifies the Outpost ARN in which the nodegroup should be created.
 	// +optional
 	OutpostARN string `json:"outpostARN,omitempty"`
@@ -1771,6 +1775,12 @@ type CapacityReservation struct {
 type CapacityReservationTarget struct {
 	CapacityReservationID               *string `json:"capacityReservationID,omitempty"`
 	CapacityReservationResourceGroupARN *string `json:"capacityReservationResourceGroupARN,omitempty"`
+}
+
+// InstanceMarketOptions describes the market (purchasing) option for the instances
+type InstanceMarketOptions struct {
+	// MarketType specifies the market type for the instances
+	MarketType *string `json:"marketType,omitempty"`
 }
 
 // Placement specifies placement group information
@@ -1989,12 +1999,20 @@ type InstanceSelector struct {
 	// GPUs specifies the number of GPUs.
 	// It can be set to 0 to select non-GPU instance types.
 	GPUs *int `json:"gpus,omitempty"`
+	// NeuronDevices specifies the number of Neuron device Accelerators.
+	// It can be set to 0 to select non-Accelerator instance types.
+	NeuronDevices *int32 `json:"neuron_devices,omitempty"`
 	// CPU Architecture of the EC2 instance type.
 	// Valid variants are:
 	// `"x86_64"`
 	// `"amd64"`
 	// `"arm64"`
 	CPUArchitecture string `json:"cpuArchitecture,omitempty"`
+	// List of allowed instance types to select from w/ regex syntax (Example: m[3-5]\\.*)
+	Allow *string `json:"allow,omitempty"`
+
+	// List of instance types which should be excluded w/ regex syntax (Example: m[1-2]\\.*)
+	Deny *string `json:"deny,omitempty"`
 }
 
 // IsZero returns true if all fields hold a zero value

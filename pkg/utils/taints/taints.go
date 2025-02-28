@@ -1,10 +1,9 @@
 package taints
 
 import (
+	"errors"
 	"fmt"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -17,12 +16,12 @@ func Validate(t corev1.Taint) error {
 	}
 
 	if errs := validation.IsQualifiedName(t.Key); len(errs) > 0 {
-		return errors.Errorf("invalid taint key: %v, %s", t.Key, strings.Join(errs, "; "))
+		return fmt.Errorf("invalid taint key: %v, %s", t.Key, strings.Join(errs, "; "))
 	}
 
 	if t.Value != "" {
 		if errs := validation.IsValidLabelValue(t.Value); len(errs) > 0 {
-			return errors.Errorf("invalid taint value: %v, %s", t.Value, strings.Join(errs, "; "))
+			return fmt.Errorf("invalid taint value: %v, %s", t.Value, strings.Join(errs, "; "))
 		}
 	}
 

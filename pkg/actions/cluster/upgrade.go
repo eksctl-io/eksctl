@@ -32,7 +32,7 @@ func upgrade(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvid
 
 	if upgradeVersion != "" {
 		msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
-		cmdutils.LogIntendedAction(dryRun, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, ctl.ControlPlaneVersion(), cfg.Metadata.Version)
+		cmdutils.LogIntendedAction(dryRun, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, ctl.ControlPlaneVersion(), upgradeVersion)
 		if !dryRun {
 			cfg.Metadata.Version = upgradeVersion
 			if err := ctl.UpdateClusterVersionBlocking(ctx, cfg); err != nil {

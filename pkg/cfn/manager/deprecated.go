@@ -8,7 +8,6 @@ import (
 	"github.com/kris-nova/logger"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks"
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
@@ -30,7 +29,7 @@ func fmtDeprecatedStacksRegexForCluster(name string) string {
 func (c *StackCollection) DeleteTasksForDeprecatedStacks(ctx context.Context) (*tasks.TaskTree, error) {
 	stacks, err := c.ListStacksMatching(ctx, fmtDeprecatedStacksRegexForCluster(c.spec.Metadata.Name))
 	if err != nil {
-		return nil, errors.Wrapf(err, "describing deprecated CloudFormation stacks for %q", c.spec.Metadata.Name)
+		return nil, fmt.Errorf("describing deprecated CloudFormation stacks for %q: %w", c.spec.Metadata.Name, err)
 	}
 	if len(stacks) == 0 {
 		return nil, nil

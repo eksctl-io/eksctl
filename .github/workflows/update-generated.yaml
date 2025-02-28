@@ -12,13 +12,13 @@ env:
 
 jobs:
   update_generated_file:
+    if: github.event.repository.fork == false
     strategy:
       fail-fast: false
       matrix:
-        resource: ["coredns", "aws-node", "nvidia-device-plugin"]
+        resource: ["coredns", "aws-node", "nvidia-device-plugin", "ec2-info"]
     name: Update ${{ matrix.resource }} and open PR
     runs-on: ubuntu-latest
-    container: public.ecr.aws/eksctl/eksctl-build:9b9ac54ee74f36fa22be8c7ec24f695dbd4c0d72
     env:
       GOPRIVATE: ""
     steps:
@@ -35,19 +35,20 @@ jobs:
         role-duration-seconds: 900
         role-session-name: eksctl-update-coredns-assets
         role-to-assume: ${{ secrets.UPDATE_COREDNS_ROLE_ARN }}
+    - name: Configure AWS credentials for ec2 info update
+      if: ${{ matrix.resource == 'ec2-info' }}
+      uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+      with:
+        aws-region: us-west-2
+        role-duration-seconds: 900
+        role-session-name: eksctl-update-ec2-info-assets
+        role-to-assume: ${{ secrets.UPDATE_EC2_INFO_ROLE_ARN }}
     - name: Setup identity as eksctl-bot
       uses: ./.github/actions/setup-identity
       with:
         token: "${{ secrets.EKSCTLBOT_TOKEN }}"
-    - name: Cache go-build and mod
-      uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 #v4.2.0
-      with:
-        path: |
-          ~/.cache/go-build/
-          ~/go/pkg/mod/
-        key: go-${{ hashFiles('go.sum') }}
-        restore-keys: |
-          go-
+    - name: Setup build environment
+      uses: ./.github/actions/setup-build
     - name: Update ${{ matrix.resource }}
       run: make update-${{ matrix.resource }}
     - name: Upsert pull request

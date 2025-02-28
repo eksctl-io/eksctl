@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"k8s.io/kops/util/pkg/tables"
 )
 
@@ -36,7 +35,7 @@ func (t *TablePrinter) PrintObj(obj interface{}, writer io.Writer) error {
 func (t *TablePrinter) PrintObjWithKind(kind string, obj interface{}, writer io.Writer) error {
 	itemsValue := reflect.ValueOf(obj)
 	if itemsValue.Kind() != reflect.Slice {
-		return errors.Errorf("table printer expects a slice but the kind was %v", itemsValue.Kind())
+		return fmt.Errorf("table printer expects a slice but the kind was %v", itemsValue.Kind())
 	}
 
 	if itemsValue.Len() == 0 {

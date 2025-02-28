@@ -993,16 +993,20 @@ var _ = Describe("ClusterConfig validation", func() {
 				cc.VPC.ClusterEndpoints = &api.ClusterEndpoints{
 					PublicAccess: api.Disabled(),
 				}
+				cc.RemoteNetworkConfig.IAM = &api.RemoteNodesIAM{
+					Provider: aws.String("BLOB"),
+				}
 			},
-			expectedErr: "remoteNetworkConfig requires public cluster endpoint access",
 		}),
 		Entry("fully private EKS cluster", remoteNetworkConfigEntry{
 			overrideConfig: func(cc *api.ClusterConfig) {
 				cc.PrivateCluster = &api.PrivateCluster{
 					Enabled: true,
 				}
+				cc.RemoteNetworkConfig.IAM = &api.RemoteNodesIAM{
+					Provider: aws.String("BLOB"),
+				}
 			},
-			expectedErr: "remoteNetworkConfig is not supported on fully private EKS cluster",
 		}),
 		Entry("IPv6 family", remoteNetworkConfigEntry{
 			overrideConfig: func(cc *api.ClusterConfig) {
@@ -2597,6 +2601,52 @@ var _ = Describe("ClusterConfig validation", func() {
 						},
 					}
 					Expect(api.ValidateNodeGroup(0, ng, cfg)).To(MatchError(ContainSubstring("only one of CapacityReservationID or CapacityReservationResourceGroupARN may be specified at a time")))
+				})
+			})
+		})
+	})
+
+	Describe("Instance Market Options validation", func() {
+		var (
+			cfg *api.ClusterConfig
+			ng  *api.NodeGroup
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			ng = cfg.NewNodeGroup()
+			ng.Name = "ng"
+		})
+
+		When("InstanceMarketOptions is set", func() {
+			When("it is set to 'capacity-block'", func() {
+				It("does not fail", func() {
+					ng.CapacityReservation = &api.CapacityReservation{
+						CapacityReservationTarget: &api.CapacityReservationTarget{
+							CapacityReservationID: aws.String("id"),
+						},
+					}
+					ng.InstanceMarketOptions = &api.InstanceMarketOptions{MarketType: aws.String("capacity-block")}
+					Expect(api.ValidateNodeGroup(0, ng, cfg)).To(Succeed())
+				})
+			})
+
+			When("it is set to 'capacity-block' but Capacity Reservation not set", func() {
+				It("does fail", func() {
+					ng.InstanceMarketOptions = &api.InstanceMarketOptions{MarketType: aws.String("capacity-block")}
+					Expect(api.ValidateNodeGroup(0, ng, cfg)).To(MatchError(ContainSubstring(`instanceMarketOptions cannot be set without capacityReservation`)))
+				})
+			})
+
+			When("it is set to 'foobar'", func() {
+				It("does fail", func() {
+					ng.CapacityReservation = &api.CapacityReservation{
+						CapacityReservationTarget: &api.CapacityReservationTarget{
+							CapacityReservationID: aws.String("id"),
+						},
+					}
+					ng.InstanceMarketOptions = &api.InstanceMarketOptions{MarketType: aws.String("foobar")}
+					Expect(api.ValidateNodeGroup(0, ng, cfg)).To(MatchError(ContainSubstring(`only accepted value is "capacity-block"; got "foobar"`)))
 				})
 			})
 		})

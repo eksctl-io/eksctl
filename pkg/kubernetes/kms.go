@@ -3,10 +3,10 @@ package kubernetes
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,11 +25,11 @@ func RefreshSecrets(ctx context.Context, c v1.CoreV1Interface) error {
 			Continue: cont,
 		})
 		if err != nil {
-			return errors.Wrap(err, "error listing resources")
+			return fmt.Errorf("error listing resources: %w", err)
 		}
 		for _, secret := range list.Items {
 			if err := refreshSecret(ctx, c, secret); err != nil {
-				return errors.Wrapf(err, "error updating secret %q", secret.Name)
+				return fmt.Errorf("error updating secret %q: %w", secret.Name, err)
 			}
 		}
 		if cont = list.Continue; cont == "" {
@@ -72,10 +72,10 @@ func createPatch(o runtime.Object, annotationName string) ([]byte, error) {
 func refreshSecret(ctx context.Context, c v1.CoreV1Interface, s corev1.Secret) error {
 	patch, err := createPatch(&s, kmsAnnotation)
 	if err != nil {
-		return errors.Wrap(err, "unexpected error creating JSON patch")
+		return fmt.Errorf("unexpected error creating JSON patch: %w", err)
 	}
 	if _, err := c.Secrets(s.Namespace).Patch(ctx, s.Name, types.StrategicMergePatchType, patch, metav1.PatchOptions{}); err != nil {
-		return errors.Wrap(err, "error updating secret")
+		return fmt.Errorf("error updating secret: %w", err)
 	}
 	return nil
 }

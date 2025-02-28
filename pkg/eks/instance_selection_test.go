@@ -59,9 +59,9 @@ var _ = DescribeTable("Instance type selection", func(t instanceTypeCase) {
 	}),
 
 	Entry("all GPU instances", instanceTypeCase{
-		instanceTypes: []string{"p2.8xlarge", "p3.8xlarge", "g4dn.xlarge"},
+		instanceTypes: []string{"g5.8xlarge", "p3.8xlarge", "g4dn.xlarge"},
 
-		expectedInstanceType: "p2.8xlarge",
+		expectedInstanceType: "g5.8xlarge",
 	}),
 
 	Entry("single instance type", instanceTypeCase{

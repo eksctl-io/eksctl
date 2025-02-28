@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -40,7 +38,7 @@ func NewIRSAHelper(oidc *iamoidc.OpenIDConnectManager, stackManager manager.Stac
 func (h *irsaHelper) IsSupported(ctx context.Context) (bool, error) {
 	exists, err := h.oidc.CheckProviderExists(ctx)
 	if err != nil {
-		return false, errors.Wrapf(err, "error checking OIDC provider")
+		return false, fmt.Errorf("error checking OIDC provider: %w", err)
 	}
 	return exists, nil
 }
@@ -52,7 +50,7 @@ func (h *irsaHelper) CreateOrUpdate(ctx context.Context, sa *api.ClusterIAMServi
 	stack, err := h.stackManager.DescribeStack(ctx, &manager.Stack{StackName: &name})
 	if err != nil {
 		if !manager.IsStackDoesNotExistError(err) {
-			return errors.Wrapf(err, "error checking if iamserviceaccount %s/%s exists", sa.Namespace, sa.Name)
+			return fmt.Errorf("error checking if iamserviceaccount %s/%s exists: %w", sa.Namespace, sa.Name, err)
 		}
 	}
 	if stack == nil {

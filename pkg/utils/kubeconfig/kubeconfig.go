@@ -13,7 +13,6 @@ import (
 	"github.com/gofrs/flock"
 	"github.com/kballard/go-shellquote"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
@@ -170,7 +169,7 @@ func AppendAuthenticator(config *clientcmdapi.Config, cluster ClusterInfo, authe
 	)
 
 	execConfig := &clientcmdapi.ExecConfig{
-		APIVersion: alphaAPIVersion,
+		APIVersion: betaAPIVersion,
 		Command:    authenticatorCMD,
 		Env: []clientcmdapi.ExecEnvVar{
 			{
@@ -334,7 +333,7 @@ func lockConfigFile(filePath string) (*flock.Flock, error) {
 	flock := flock.New(lockFileName)
 	err := flock.Lock()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to obtain exclusive lock on kubeconfig lockfile")
+		return nil, fmt.Errorf("failed to obtain exclusive lock on kubeconfig lockfile: %w", err)
 	}
 
 	return flock, nil
@@ -343,7 +342,7 @@ func lockConfigFile(filePath string) (*flock.Flock, error) {
 func unlockConfigFile(fl *flock.Flock) error {
 	err := fl.Unlock()
 	if err != nil {
-		return errors.Wrap(err, "failed to release exclusive lock on kubeconfig lockfile")
+		return fmt.Errorf("failed to release exclusive lock on kubeconfig lockfile: %w", err)
 	}
 
 	return nil
@@ -369,7 +368,7 @@ func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string,
 
 	config, err := configAccess.GetStartingConfig()
 	if err != nil {
-		return "", errors.Wrapf(err, "unable to read existing kubeconfig file %q", path)
+		return "", fmt.Errorf("unable to read existing kubeconfig file %q: %w", path, err)
 	}
 
 	logger.Debug("merging kubeconfig files")
@@ -381,7 +380,7 @@ func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string,
 	}
 
 	if err := clientcmd.ModifyConfig(configAccess, *merged, true); err != nil {
-		return "", errors.Wrapf(err, "unable to modify kubeconfig %s", path)
+		return "", fmt.Errorf("unable to modify kubeconfig %s: %w", path, err)
 	}
 
 	return configFileName, nil
@@ -417,11 +416,11 @@ func AutoPath(name string) string {
 func isValidConfig(p, name string) error {
 	clientConfig, err := clientcmd.LoadFromFile(p)
 	if err != nil {
-		return errors.Wrapf(err, "unable to load config %q", p)
+		return fmt.Errorf("unable to load config %q: %w", p, err)
 	}
 
 	if err := clientcmd.ConfirmUsable(*clientConfig, ""); err != nil {
-		return errors.Wrapf(err, "unable to parse config %q", p)
+		return fmt.Errorf("unable to parse config %q: %w", p, err)
 	}
 
 	// we want to make sure we only delete config files that haven't be modified by the user

@@ -20,7 +20,6 @@ import (
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	k8sclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -203,7 +202,11 @@ func newAWSProvider(spec *api.ProviderConfig, configurationLoader AWSConfigurati
 	provider.asg = autoscaling.NewFromConfig(cfg)
 	provider.cloudwatchlogs = cloudwatchlogs.NewFromConfig(cfg)
 	provider.cloudtrail = cloudtrail.NewFromConfig(cfg, func(o *cloudtrail.Options) {
-		o.BaseEndpoint = getBaseEndpoint(cloudtrail.ServiceID, "AWS_CLOUDTRAIL_ENDPOINT")
+		o.BaseEndpoint = getBaseEndpoint(cloudtrail.ServiceID, []string{
+			"AWS_CLOUDTRAIL_ENDPOINT",
+			"AWS_ENDPOINT_URL_CLOUDTRAIL",
+			"AWS_ENDPOINT_URL",
+		})
 	})
 
 	return provider, nil
@@ -241,11 +244,11 @@ func LoadConfigFromFile(configFile string) (*api.ClusterConfig, error) {
 func LoadConfigWithReader(configFile string, configReader io.Reader) (*api.ClusterConfig, error) {
 	data, err := readConfig(configFile, configReader)
 	if err != nil {
-		return nil, errors.Wrapf(err, "reading config file %q", configFile)
+		return nil, fmt.Errorf("reading config file %q: %w", configFile, err)
 	}
 	clusterConfig, err := ParseConfig(data)
 	if err != nil {
-		return nil, errors.Wrapf(err, "loading config file %q", configFile)
+		return nil, fmt.Errorf("loading config file %q: %w", configFile, err)
 	}
 	return clusterConfig, nil
 }
@@ -274,7 +277,7 @@ func (c *ClusterProvider) IsSupportedRegion() bool {
 func (c *ClusterProvider) GetCredentialsEnv(ctx context.Context) ([]string, error) {
 	creds, err := c.AWSProvider.CredentialsProvider().Retrieve(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting effective credentials")
+		return nil, fmt.Errorf("getting effective credentials: %w", err)
 	}
 	return []string{
 		fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", creds.AccessKeyID),
@@ -287,7 +290,7 @@ func (c *ClusterProvider) GetCredentialsEnv(ctx context.Context) ([]string, erro
 func (c *ClusterProvider) checkAuth(ctx context.Context) (*sts.GetCallerIdentityOutput, error) {
 	output, err := c.AWSProvider.STS().GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
-		return nil, errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
+		return nil, fmt.Errorf("checking AWS STS access – cannot get role ARN for current session: %w", err)
 	}
 	if output == nil || output.Arn == nil {
 		return nil, fmt.Errorf("unexpected response from AWS STS")
@@ -310,13 +313,13 @@ func ResolveAMI(ctx context.Context, provider api.ClusterProvider, version strin
 			ami.NewAutoResolver(provider.EC2()),
 		)
 	default:
-		return errors.Errorf("invalid AMI value: %q", ng.AMI)
+		return fmt.Errorf("invalid AMI value: %q", ng.AMI)
 	}
 
 	instanceType := api.SelectInstanceType(np)
 	id, err := resolver.Resolve(ctx, provider.Region(), version, instanceType, ng.AMIFamily)
 	if err != nil {
-		return errors.Wrap(err, "unable to determine AMI to use")
+		return fmt.Errorf("unable to determine AMI to use: %w", err)
 	}
 	if id == "" {
 		return ami.NewErrFailedResolution(provider.Region(), version, instanceType, ng.AMIFamily)
@@ -348,7 +351,7 @@ func SetAvailabilityZones(ctx context.Context, spec *api.ClusterConfig, given []
 	logger.Debug("determining availability zones")
 	zones, err := az.GetAvailabilityZones(ctx, ec2API, region, spec)
 	if err != nil {
-		return false, errors.Wrap(err, "getting availability zones")
+		return false, fmt.Errorf("getting availability zones: %w", err)
 	}
 
 	logger.Info("setting availability zones to %v", zones)

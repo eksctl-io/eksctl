@@ -2,6 +2,7 @@ package eks
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 	kubeclient "k8s.io/client-go/kubernetes"
 
@@ -32,7 +32,7 @@ func (c *ClusterProvider) GetCurrentClusterConfigForLogging(ctx context.Context,
 	disabled := sets.New[string]()
 
 	if ok, err := c.CanOperateWithRefresh(ctx, spec); !ok {
-		return nil, nil, errors.Wrap(err, "unable to retrieve current cluster logging configuration")
+		return nil, nil, fmt.Errorf("unable to retrieve current cluster logging configuration: %w", err)
 	}
 
 	for _, logTypeGroup := range c.Status.ClusterInfo.Cluster.Logging.ClusterLogging {
@@ -117,7 +117,7 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(ctx context.Context, cfg
 // GetCurrentClusterVPCConfig fetches current cluster endpoint configuration for public and private access types
 func (c *ClusterProvider) GetCurrentClusterVPCConfig(ctx context.Context, spec *api.ClusterConfig) (*ClusterVPCConfig, error) {
 	if ok, err := c.CanOperateWithRefresh(ctx, spec); !ok {
-		return nil, errors.Wrap(err, "unable to retrieve current cluster VPC configuration")
+		return nil, fmt.Errorf("unable to retrieve current cluster VPC configuration: %w", err)
 	}
 
 	vpcConfig := c.Status.ClusterInfo.Cluster.ResourcesVpcConfig
@@ -172,12 +172,12 @@ func (c *ClusterProvider) EnableKMSEncryption(ctx context.Context, clusterConfig
 		Name: clusterName,
 	})
 	if err != nil {
-		return errors.Wrap(err, "error describing cluster")
+		return fmt.Errorf("error describing cluster: %w", err)
 	}
 	for _, e := range clusterOutput.Cluster.EncryptionConfig {
 		if len(e.Resources) == 1 && e.Resources[0] == "secrets" {
 			if existingKey := *e.Provider.KeyArn; existingKey != clusterConfig.SecretsEncryption.KeyARN {
-				return errors.Errorf("KMS encryption is already enabled with key %q, changing the key is not supported", existingKey)
+				return fmt.Errorf("KMS encryption is already enabled with key %q, changing the key is not supported", existingKey)
 			}
 			logger.Info("KMS encryption is already enabled on the cluster")
 			return nil
@@ -197,7 +197,7 @@ func (c *ClusterProvider) EnableKMSEncryption(ctx context.Context, clusterConfig
 	})
 
 	if err != nil {
-		return errors.Wrap(err, "error enabling KMS encryption")
+		return fmt.Errorf("error enabling KMS encryption: %w", err)
 	}
 
 	logger.Info("initiated KMS encryption, this may take up to 45 minutes to complete")

@@ -62,6 +62,10 @@ var (
 	GPUDriversWarning = func(amiFamily string) string {
 		return fmt.Sprintf("%s does not ship with NVIDIA GPU drivers installed, hence won't support running GPU-accelerated workloads out of the box", amiFamily)
 	}
+
+	NeuronDeviceDriversWarning = func(amiFamily string) string {
+		return fmt.Sprintf("%s does not ship with Neuron Devices drivers installed, hence won't support running inference-accelerated workloads out of the box", amiFamily)
+	}
 )
 
 var (
@@ -88,14 +92,6 @@ func (c *ClusterConfig) validateRemoteNetworkingConfig() error {
 	rnc := c.RemoteNetworkConfig
 	if rnc == nil {
 		return nil
-	}
-
-	if !IsEnabled(c.VPC.ClusterEndpoints.PublicAccess) {
-		return fmt.Errorf("remoteNetworkConfig requires public cluster endpoint access")
-	}
-
-	if c.IsFullyPrivate() {
-		return fmt.Errorf("remoteNetworkConfig is not supported on fully private EKS cluster")
 	}
 
 	if c.IPv6Enabled() {
@@ -736,6 +732,10 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 			(ng.InstanceSelector.GPUs == nil || *ng.InstanceSelector.GPUs != 0) {
 			logger.Warning("instance selector may/will select GPU instance types, " + GPUDriversWarning(ng.AMIFamily))
 		}
+		if ng.InstanceSelector != nil && !ng.InstanceSelector.IsZero() &&
+			(ng.InstanceSelector.NeuronDevices == nil || *ng.InstanceSelector.NeuronDevices != 0) {
+			logger.Warning("instance selector may/will select Neuron Device instance types, " + NeuronDeviceDriversWarning(ng.AMIFamily))
+		}
 	}
 
 	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 &&
@@ -767,6 +767,18 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 			if ng.CapacityReservation.CapacityReservationTarget.CapacityReservationID != nil && ng.CapacityReservation.CapacityReservationTarget.CapacityReservationResourceGroupARN != nil {
 				return errors.New("only one of CapacityReservationID or CapacityReservationResourceGroupARN may be specified at a time")
 			}
+		}
+
+		if ng.InstanceMarketOptions != nil {
+			if ng.InstanceMarketOptions.MarketType != nil {
+				if *ng.InstanceMarketOptions.MarketType != "capacity-block" {
+					return fmt.Errorf(`only accepted value is "capacity-block"; got "%s"`, *ng.InstanceMarketOptions.MarketType)
+				}
+			}
+		}
+	} else {
+		if ng.InstanceMarketOptions != nil {
+			return errors.New("instanceMarketOptions cannot be set without capacityReservation")
 		}
 	}
 

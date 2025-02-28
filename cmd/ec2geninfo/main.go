@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"text/template"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -90,7 +91,7 @@ func updateEC2Instances() error {
 		return err
 	}
 
-	file, err := os.Create("../../pkg/utils/instance/instance_types.go")
+	file, err := os.Create("pkg/utils/instance/instance_types.go")
 	if err != nil {
 		return err
 	}
@@ -120,6 +121,7 @@ func getEC2Instances(region string, instances map[string]InstanceInfo) (map[stri
 	}
 
 	paginator := ec2.NewDescribeInstanceTypesPaginator(client, input)
+	unsupportedRegexp, _ := regexp.Compile("^(p2).*")
 
 	for paginator.HasMorePages() {
 		page, err := paginator.NextPage(context.TODO())
@@ -129,6 +131,10 @@ func getEC2Instances(region string, instances map[string]InstanceInfo) (map[stri
 
 		for _, inst := range page.InstanceTypes {
 			itype := string(inst.InstanceType)
+
+			if unsupportedRegexp.MatchString(itype) {
+				continue
+			}
 
 			efaSupported := inst.NetworkInfo != nil && inst.NetworkInfo.EfaSupported != nil && *inst.NetworkInfo.EfaSupported
 

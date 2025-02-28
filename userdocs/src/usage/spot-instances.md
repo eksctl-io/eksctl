@@ -96,9 +96,9 @@ nodeGroups:
     desiredCapacity: 1
     instancesDistribution:
       instanceTypes:
-        - p2.xlarge
-        - p2.8xlarge
-        - p2.16xlarge
+        - g5.xlarge
+        - g5.8xlarge
+        - g5.16xlarge
       maxPrice: 0.50
 ```
 

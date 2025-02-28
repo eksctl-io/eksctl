@@ -3,12 +3,12 @@ package defaultaddons
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -42,7 +42,7 @@ func UpdateCoreDNS(ctx context.Context, input AddonInput, plan bool) (bool, erro
 			logger.Warning("%q service was not found", KubeDNS)
 			return false, nil
 		}
-		return false, errors.Wrapf(err, "getting %q service", KubeDNS)
+		return false, fmt.Errorf("getting %q service: %w", KubeDNS, err)
 	}
 
 	kubeDNSDeployment, err := input.RawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(ctx, CoreDNS, metav1.GetOptions{})
@@ -51,7 +51,7 @@ func UpdateCoreDNS(ctx context.Context, input AddonInput, plan bool) (bool, erro
 			logger.Warning("%q was not found", CoreDNS)
 			return false, nil
 		}
-		return false, errors.Wrapf(err, "getting %q", CoreDNS)
+		return false, fmt.Errorf("getting %q: %w", CoreDNS, err)
 	}
 
 	// if Deployment is present, go through our list of assets

@@ -1,14 +1,14 @@
 package kubernetes
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"time"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -120,7 +120,7 @@ func (c *RawClient) new() (*RawClient, error) {
 				Err: err,
 			}
 		}
-		return nil, errors.Wrap(err, "getting list of API resources for raw REST client")
+		return nil, fmt.Errorf("getting list of API resources for raw REST client: %w", err)
 	}
 
 	c.mapper = restmapper.NewDiscoveryRESTMapper(apiGroupResources)
@@ -133,7 +133,7 @@ func (c *RawClient) new() (*RawClient, error) {
 	}
 
 	if err := restclient.SetKubernetesDefaults(c.config); err != nil {
-		return nil, errors.Wrap(err, "applying defaults for REST client")
+		return nil, fmt.Errorf("applying defaults for REST client: %w", err)
 	}
 	return c, nil
 }
@@ -141,12 +141,12 @@ func (c *RawClient) new() (*RawClient, error) {
 func getServerVersion(discoveryClient discovery.DiscoveryInterface) (string, error) {
 	v, err := discoveryClient.ServerVersion()
 	if err != nil {
-		return "", errors.Wrapf(err, "getting Kubernetes API version")
+		return "", fmt.Errorf("getting Kubernetes API version: %w", err)
 	}
 
 	sv, err := semver.ParseTolerant(v.GitVersion)
 	if err != nil {
-		return "", errors.Wrapf(err, "parsing Kubernetes API version")
+		return "", fmt.Errorf("parsing Kubernetes API version: %w", err)
 	}
 
 	sv.Pre = nil   // clear extra info
@@ -168,7 +168,7 @@ func (c *RawClient) ClientSet() Interface { return c.clientSet }
 func (c *RawClient) NewHelperFor(gvk schema.GroupVersionKind) (*resource.Helper, error) {
 	mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.Version, "")
 	if err != nil {
-		return nil, errors.Wrapf(err, "constructing REST client mapping for %s", gvk.String())
+		return nil, fmt.Errorf("constructing REST client mapping for %s: %w", gvk.String(), err)
 	}
 
 	switch gvk.Group {
@@ -182,7 +182,7 @@ func (c *RawClient) NewHelperFor(gvk schema.GroupVersionKind) (*resource.Helper,
 
 	client, err := restclient.RESTClientFor(c.config)
 	if err != nil {
-		return nil, errors.Wrapf(err, "constructing REST client for %s", gvk.String())
+		return nil, fmt.Errorf("constructing REST client for %s: %w", gvk.String(), err)
 	}
 
 	return resource.NewHelper(client, mapping), nil
@@ -327,7 +327,7 @@ func (r *RawResource) LogAction(plan bool, verb string) string {
 func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
 	_, exists, err := r.Get()
 	if err != nil {
-		return "", errors.Wrap(err, "unexpected non-404 error")
+		return "", fmt.Errorf("unexpected non-404 error: %w", err)
 	}
 	if !exists {
 		if !plan {
@@ -341,7 +341,7 @@ func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
 
 	convertedObj, err := scheme.Scheme.ConvertToVersion(r.Info.Object, r.GVK.GroupVersion())
 	if err != nil {
-		return "", errors.Wrapf(err, "converting object")
+		return "", fmt.Errorf("converting object: %w", err)
 	}
 	scheme.Scheme.Default(convertedObj)
 	if !plan {
@@ -392,7 +392,7 @@ func (r *RawResource) CreatePatchOrReplace() error {
 
 	convertedObj, err := scheme.Scheme.ConvertToVersion(r.Info.Object.DeepCopyObject(), r.GVK.GroupVersion())
 	if err != nil {
-		return errors.Wrapf(err, "converting object")
+		return fmt.Errorf("converting object: %w", err)
 	}
 	scheme.Scheme.Default(convertedObj)
 	newData, err := runtime.Encode(unstructured.UnstructuredJSONScheme, convertedObj)

@@ -2,12 +2,13 @@ package eks
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
@@ -52,10 +53,10 @@ func (t *fargateProfilesTask) Do(errCh chan error) error {
 
 	clientSet, err := t.clusterProvider.NewStdClientSet(t.spec)
 	if err != nil {
-		return errors.Wrap(err, "failed to get ClientSet")
+		return fmt.Errorf("failed to get ClientSet: %w", err)
 	}
 	if err := ScheduleCoreDNSOnFargateIfRelevant(t.spec, t.clusterProvider, clientSet); err != nil {
-		return errors.Wrap(err, "failed to schedule core-dns on fargate")
+		return fmt.Errorf("failed to schedule core-dns on fargate: %w", err)
 	}
 	return nil
 }
@@ -78,7 +79,7 @@ func DoCreateFargateProfiles(ctx context.Context, config *api.ClusterConfig, far
 	// Get existing Farget profiles list
 	existingProfiles, err := fargateClient.ListProfiles(ctx)
 	if err != nil {
-		return errors.Wrap(err, "failed to get Fargate Profile list")
+		return fmt.Errorf("failed to get Fargate Profile list: %w", err)
 	}
 
 	for _, profile := range config.FargateProfiles {
@@ -107,9 +108,9 @@ func DoCreateFargateProfiles(ctx context.Context, config *api.ClusterConfig, far
 		case errors.As(err, &inUseErr):
 			logger.Info("either Fargate profile %q already exists on EKS cluster %q or another profile is being created/deleted, no action taken", profile.Name, clusterName)
 		case apierrors.IsAccessDeniedError(err):
-			return errors.Wrapf(err, "either account is not authorized to use Fargate or region %s is not supported", config.Metadata.Region)
+			return fmt.Errorf("either account is not authorized to use Fargate or region %s is not supported: %w", config.Metadata.Region, err)
 		default:
-			return errors.Wrapf(err, "failed to create Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
+			return fmt.Errorf("failed to create Fargate profile %q on EKS cluster %q: %w", profile.Name, clusterName, err)
 		}
 	}
 	return nil

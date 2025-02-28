@@ -38,7 +38,7 @@ RUN apk add --no-cache --initdb --root /out \
 RUN curl --silent --location "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" --output /out/usr/local/bin/kubectl \
     && chmod +x /out/usr/local/bin/kubectl
 
-ENV GITHUB_CLI_VERSION 1.14.0
+ENV GITHUB_CLI_VERSION 2.67.0
 RUN curl --silent --location "https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz" \
     | tar xvz -C /out/usr/local/bin --strip-components=2 gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh && gh --version
 
@@ -47,7 +47,7 @@ WORKDIR /src
 ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org,direct
 
 # The authenticator is a runtime dependency, so it needs to be in /out
-ENV AWS_IAM_AUTH_VERSION 0.5.7
+ENV AWS_IAM_AUTH_VERSION 0.6.30
 RUN curl --silent --location "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_IAM_AUTH_VERSION}/aws-iam-authenticator_${AWS_IAM_AUTH_VERSION}_linux_amd64" --output /out/usr/local/bin/aws-iam-authenticator \
     && chmod +x /out/usr/local/bin/aws-iam-authenticator
 COPY .requirements install-build-deps.sh go.mod go.sum /src/

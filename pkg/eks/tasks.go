@@ -342,8 +342,8 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 		// Only AL2/AL2023 requires the NVIDIA device plugin
 		clusterRequiresNvidiaDevicePlugin = clusterRequiresNvidiaDevicePlugin ||
 			(api.HasInstanceType(ng, instanceutils.IsNvidiaInstanceType) &&
-				ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2 ||
-				ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2023)
+				(ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2 ||
+					ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2023))
 		efaEnabled = efaEnabled || api.IsEnabled(ng.EFAEnabled)
 	}
 	for _, ng := range cfg.ManagedNodeGroups {
@@ -352,8 +352,8 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 		// Only AL2/AL2023 requires the NVIDIA device plugin
 		clusterRequiresNvidiaDevicePlugin = clusterRequiresNvidiaDevicePlugin ||
 			(api.HasInstanceTypeManaged(ng, instanceutils.IsNvidiaInstanceType) &&
-				ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2 ||
-				ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2023)
+				(ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2 ||
+					ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2023))
 		efaEnabled = efaEnabled || api.IsEnabled(ng.EFAEnabled)
 	}
 	if clusterRequiresNeuronDevicePlugin {

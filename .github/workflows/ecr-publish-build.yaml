@@ -34,5 +34,4 @@ jobs:
           registry-type: public
 
       - name: Build and push image
-        run: |
-          PATH=$PATH:$(go env GOPATH)/bin make -f Makefile.docker push-build-image
+        run: make -f Makefile.docker push-build-image
