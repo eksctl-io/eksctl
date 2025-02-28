@@ -18,7 +18,7 @@ jobs:
       - name: Unit test
         run: |
           make build
-          make unit-test-no-generate
+          make unit-test
   lint:
     name: Lint
     runs-on: ubuntu-latest
