@@ -71,7 +71,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xgfone/go-netaddr v0.6.0
 	golang.org/x/crypto v0.33.0
-	golang.org/x/oauth2 v0.26.0
+	golang.org/x/oauth2 v0.27.0
 	golang.org/x/sync v0.11.0
 	golang.org/x/text v0.22.0
 	gopkg.in/yaml.v2 v2.4.0
