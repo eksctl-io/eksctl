@@ -523,6 +523,19 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			}
 		})
 
+		AfterAll(func() {
+			// When the disable public access test below fails, the re-enable public access test is skipped so the
+			// cluster is left in a state where the API server is unreachable. This causes some of the tests later
+			// to fail as well. To avoid this, we need to re-enable public access here so calls to the API
+			// server can be made in subsequent tests.
+			Expect(params.EksctlUtilsCmd.WithArgs(
+				"set-public-access-cidrs",
+				"--cluster", params.ClusterName,
+				"0.0.0.0/0",
+				"--approve",
+			)).To(RunSuccessfully())
+		})
+
 		It("should have public access by default", func() {
 			Expect(k8sAPICall()).ShouldNot(HaveOccurred())
 		})
