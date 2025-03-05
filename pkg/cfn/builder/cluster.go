@@ -390,7 +390,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 	}
 	cluster.KubernetesNetworkConfig = kubernetesNetworkConfig
 	if c.spec.ZonalShiftConfig != nil && api.IsEnabled(c.spec.ZonalShiftConfig.Enabled) {
-		cluster.ZonalShiftConfig = &gfneks.Cluster_ZonalShift{
+		cluster.ZonalShiftConfig = &gfneks.Cluster_ZonalShiftConfig{
 			Enabled: gfnt.NewBoolean(true),
 		}
 	}
@@ -398,13 +398,13 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 	if c.spec.HasRemoteNetworkingConfigured() {
 		cluster.RemoteNetworkConfig = &gfneks.Cluster_RemoteNetworkConfig{}
 		for _, remoteNetwork := range c.spec.RemoteNetworkConfig.RemotePodNetworks {
-			cluster.RemoteNetworkConfig.RemotePodNetworks = append(cluster.RemoteNetworkConfig.RemotePodNetworks, gfneks.RemoteNetworks{
-				CIDRs: gfnt.NewStringSlice(remoteNetwork.CIDRs...),
+			cluster.RemoteNetworkConfig.RemotePodNetworks = append(cluster.RemoteNetworkConfig.RemotePodNetworks, gfneks.Cluster_RemotePodNetwork{
+				Cidrs: gfnt.NewStringSlice(remoteNetwork.CIDRs...),
 			})
 		}
 		for _, remoteNetwork := range c.spec.RemoteNetworkConfig.RemoteNodeNetworks {
-			cluster.RemoteNetworkConfig.RemoteNodeNetworks = append(cluster.RemoteNetworkConfig.RemoteNodeNetworks, gfneks.RemoteNetworks{
-				CIDRs: gfnt.NewStringSlice(remoteNetwork.CIDRs...),
+			cluster.RemoteNetworkConfig.RemoteNodeNetworks = append(cluster.RemoteNetworkConfig.RemoteNodeNetworks, gfneks.Cluster_RemoteNodeNetwork{
+				Cidrs: gfnt.NewStringSlice(remoteNetwork.CIDRs...),
 			})
 		}
 	}
