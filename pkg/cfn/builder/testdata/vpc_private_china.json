@@ -119,7 +119,9 @@
             "Type": "AWS::EC2::VPCEndpoint",
             "Properties": {
                 "PrivateDnsEnabled": true,
-                "SecurityGroupIds": ["sg-test"],
+                "SecurityGroupIds": [
+                    "sg-test"
+                ],
                 "ServiceName": "cn.com.amazonaws.cn-north-1.ec2",
                 "SubnetIds": [
                     {
@@ -127,6 +129,14 @@
                     },
                     {
                         "Ref": "SubnetPrivateCNNORTH1B"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointEC2"
+                        }
                     }
                 ],
                 "VpcEndpointType": "Interface",
@@ -139,7 +149,9 @@
             "Type": "AWS::EC2::VPCEndpoint",
             "Properties": {
                 "PrivateDnsEnabled": true,
-                "SecurityGroupIds": ["sg-test"],
+                "SecurityGroupIds": [
+                    "sg-test"
+                ],
                 "ServiceName": "cn.com.amazonaws.cn-north-1.ecr.api",
                 "SubnetIds": [
                     {
@@ -147,6 +159,14 @@
                     },
                     {
                         "Ref": "SubnetPrivateCNNORTH1B"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointECRAPI"
+                        }
                     }
                 ],
                 "VpcEndpointType": "Interface",
@@ -159,7 +179,9 @@
             "Type": "AWS::EC2::VPCEndpoint",
             "Properties": {
                 "PrivateDnsEnabled": true,
-                "SecurityGroupIds": ["sg-test"],
+                "SecurityGroupIds": [
+                    "sg-test"
+                ],
                 "ServiceName": "cn.com.amazonaws.cn-north-1.ecr.dkr",
                 "SubnetIds": [
                     {
@@ -167,6 +189,14 @@
                     },
                     {
                         "Ref": "SubnetPrivateCNNORTH1B"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointECRDKR"
+                        }
                     }
                 ],
                 "VpcEndpointType": "Interface",
@@ -187,6 +217,14 @@
                     }
                 ],
                 "ServiceName": "com.amazonaws.cn-north-1.s3",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointS3"
+                        }
+                    }
+                ],
                 "VpcEndpointType": "Gateway",
                 "VpcId": {
                     "Ref": "VPC"
@@ -197,7 +235,9 @@
             "Type": "AWS::EC2::VPCEndpoint",
             "Properties": {
                 "PrivateDnsEnabled": true,
-                "SecurityGroupIds": ["sg-test"],
+                "SecurityGroupIds": [
+                    "sg-test"
+                ],
                 "ServiceName": "cn.com.amazonaws.cn-north-1.sts",
                 "SubnetIds": [
                     {
@@ -205,6 +245,14 @@
                     },
                     {
                         "Ref": "SubnetPrivateCNNORTH1B"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointSTS"
+                        }
                     }
                 ],
                 "VpcEndpointType": "Interface",

@@ -145,10 +145,11 @@ func (c *ClusterResourceSet) addIAMRolesAnywhere() {
 		Name:    makeName("CA"),
 		Source: &gfnrolesanywhere.TrustAnchor_Source{
 			SourceType: gfnt.NewString("CERTIFICATE_BUNDLE"),
-			SourceData: &gfnrolesanywhere.TrustAnchor_SourceData{
-				X509CertificateData: gfnt.NewString(*c.spec.RemoteNetworkConfig.IAM.CABundleCert),
-			},
+			SourceData: &gfnrolesanywhere.TrustAnchor_SourceData{},
 		},
+	}
+	if c.spec.RemoteNetworkConfig.IAM.CABundleCert != nil {
+		trustAnchor.Source.SourceData.X509CertificateData = gfnt.NewString(*c.spec.RemoteNetworkConfig.IAM.CABundleCert)
 	}
 	anywhereProfile := &gfnrolesanywhere.Profile{
 		Enabled: gfnt.NewBoolean(true),
