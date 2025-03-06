@@ -30,6 +30,11 @@ type Function_Code struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html#cfn-lambda-function-code-s3objectversion
 	S3ObjectVersion *types.Value `json:"S3ObjectVersion,omitempty"`
 
+	// SourceKMSKeyArn AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html#cfn-lambda-function-code-sourcekmskeyarn
+	SourceKMSKeyArn *types.Value `json:"SourceKMSKeyArn,omitempty"`
+
 	// ZipFile AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html#cfn-lambda-function-code-zipfile

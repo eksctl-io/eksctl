@@ -19,6 +19,11 @@ type WarmPool struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-autoscaling-warmpool.html#cfn-autoscaling-warmpool-autoscalinggroupname
 	AutoScalingGroupName *types.Value `json:"AutoScalingGroupName,omitempty"`
 
+	// InstanceReusePolicy AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-autoscaling-warmpool.html#cfn-autoscaling-warmpool-instancereusepolicy
+	InstanceReusePolicy *WarmPool_InstanceReusePolicy `json:"InstanceReusePolicy,omitempty"`
+
 	// MaxGroupPreparedCapacity AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-autoscaling-warmpool.html#cfn-autoscaling-warmpool-maxgrouppreparedcapacity

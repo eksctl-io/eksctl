@@ -15,7 +15,7 @@ import (
 type LaunchTemplate struct {
 
 	// LaunchTemplateData AWS CloudFormation Property
-	// Required: false
+	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-launchtemplate.html#cfn-ec2-launchtemplate-launchtemplatedata
 	LaunchTemplateData *LaunchTemplate_LaunchTemplateData `json:"LaunchTemplateData,omitempty"`
 
@@ -28,6 +28,11 @@ type LaunchTemplate struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-launchtemplate.html#cfn-ec2-launchtemplate-tagspecifications
 	TagSpecifications []LaunchTemplate_LaunchTemplateTagSpecification `json:"TagSpecifications,omitempty"`
+
+	// VersionDescription AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-launchtemplate.html#cfn-ec2-launchtemplate-versiondescription
+	VersionDescription *types.Value `json:"VersionDescription,omitempty"`
 
 	// AWSCloudFormationDeletionPolicy represents a CloudFormation DeletionPolicy
 	AWSCloudFormationDeletionPolicy policies.DeletionPolicy `json:"-"`

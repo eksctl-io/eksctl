@@ -26,7 +26,7 @@ type Listener_AuthenticateOidcConfig struct {
 	ClientId *types.Value `json:"ClientId,omitempty"`
 
 	// ClientSecret AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticloadbalancingv2-listener-authenticateoidcconfig.html#cfn-elasticloadbalancingv2-listener-authenticateoidcconfig-clientsecret
 	ClientSecret *types.Value `json:"ClientSecret,omitempty"`
 
@@ -59,6 +59,11 @@ type Listener_AuthenticateOidcConfig struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticloadbalancingv2-listener-authenticateoidcconfig.html#cfn-elasticloadbalancingv2-listener-authenticateoidcconfig-tokenendpoint
 	TokenEndpoint *types.Value `json:"TokenEndpoint,omitempty"`
+
+	// UseExistingClientSecret AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticloadbalancingv2-listener-authenticateoidcconfig.html#cfn-elasticloadbalancingv2-listener-authenticateoidcconfig-useexistingclientsecret
+	UseExistingClientSecret *types.Value `json:"UseExistingClientSecret,omitempty"`
 
 	// UserInfoEndpoint AWS CloudFormation Property
 	// Required: true

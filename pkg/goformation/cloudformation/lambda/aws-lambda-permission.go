@@ -29,10 +29,20 @@ type Permission struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-permission.html#cfn-lambda-permission-functionname
 	FunctionName *types.Value `json:"FunctionName,omitempty"`
 
+	// FunctionUrlAuthType AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-permission.html#cfn-lambda-permission-functionurlauthtype
+	FunctionUrlAuthType *types.Value `json:"FunctionUrlAuthType,omitempty"`
+
 	// Principal AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-permission.html#cfn-lambda-permission-principal
 	Principal *types.Value `json:"Principal,omitempty"`
+
+	// PrincipalOrgID AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-permission.html#cfn-lambda-permission-principalorgid
+	PrincipalOrgID *types.Value `json:"PrincipalOrgID,omitempty"`
 
 	// SourceAccount AWS CloudFormation Property
 	// Required: false

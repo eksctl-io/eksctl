@@ -26,14 +26,19 @@ type Stream struct {
 	RetentionPeriodHours *types.Value `json:"RetentionPeriodHours,omitempty"`
 
 	// ShardCount AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesis-stream.html#cfn-kinesis-stream-shardcount
-	ShardCount *types.Value `json:"ShardCount"`
+	ShardCount *types.Value `json:"ShardCount,omitempty"`
 
 	// StreamEncryption AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesis-stream.html#cfn-kinesis-stream-streamencryption
 	StreamEncryption *Stream_StreamEncryption `json:"StreamEncryption,omitempty"`
+
+	// StreamModeDetails AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesis-stream.html#cfn-kinesis-stream-streammodedetails
+	StreamModeDetails *Stream_StreamModeDetails `json:"StreamModeDetails,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false

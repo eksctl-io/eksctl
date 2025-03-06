@@ -55,6 +55,16 @@ type NetworkInsightsAnalysis_Explanation struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-explanation.html#cfn-ec2-networkinsightsanalysis-explanation-component
 	Component *NetworkInsightsAnalysis_AnalysisComponent `json:"Component,omitempty"`
 
+	// ComponentAccount AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-explanation.html#cfn-ec2-networkinsightsanalysis-explanation-componentaccount
+	ComponentAccount *types.Value `json:"ComponentAccount,omitempty"`
+
+	// ComponentRegion AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-explanation.html#cfn-ec2-networkinsightsanalysis-explanation-componentregion
+	ComponentRegion *types.Value `json:"ComponentRegion,omitempty"`
+
 	// CustomerGateway AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-explanation.html#cfn-ec2-networkinsightsanalysis-explanation-customergateway
@@ -209,6 +219,26 @@ type NetworkInsightsAnalysis_Explanation struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-explanation.html#cfn-ec2-networkinsightsanalysis-explanation-subnetroutetable
 	SubnetRouteTable *NetworkInsightsAnalysis_AnalysisComponent `json:"SubnetRouteTable,omitempty"`
+
+	// TransitGateway AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-explanation.html#cfn-ec2-networkinsightsanalysis-explanation-transitgateway
+	TransitGateway *NetworkInsightsAnalysis_AnalysisComponent `json:"TransitGateway,omitempty"`
+
+	// TransitGatewayAttachment AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-explanation.html#cfn-ec2-networkinsightsanalysis-explanation-transitgatewayattachment
+	TransitGatewayAttachment *NetworkInsightsAnalysis_AnalysisComponent `json:"TransitGatewayAttachment,omitempty"`
+
+	// TransitGatewayRouteTable AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-explanation.html#cfn-ec2-networkinsightsanalysis-explanation-transitgatewayroutetable
+	TransitGatewayRouteTable *NetworkInsightsAnalysis_AnalysisComponent `json:"TransitGatewayRouteTable,omitempty"`
+
+	// TransitGatewayRouteTableRoute AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-explanation.html#cfn-ec2-networkinsightsanalysis-explanation-transitgatewayroutetableroute
+	TransitGatewayRouteTableRoute *NetworkInsightsAnalysis_TransitGatewayRouteTableRoute `json:"TransitGatewayRouteTableRoute,omitempty"`
 
 	// Vpc AWS CloudFormation Property
 	// Required: false

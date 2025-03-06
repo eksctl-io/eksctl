@@ -40,15 +40,40 @@ type Subnet struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html#cfn-ec2-subnet-enabledns64
 	EnableDns64 *types.Value `json:"EnableDns64,omitempty"`
 
+	// EnableLniAtDeviceIndex AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html#cfn-ec2-subnet-enablelniatdeviceindex
+	EnableLniAtDeviceIndex *types.Value `json:"EnableLniAtDeviceIndex,omitempty"`
+
+	// Ipv4IpamPoolId AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html#cfn-ec2-subnet-ipv4ipampoolid
+	Ipv4IpamPoolId *types.Value `json:"Ipv4IpamPoolId,omitempty"`
+
+	// Ipv4NetmaskLength AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html#cfn-ec2-subnet-ipv4netmasklength
+	Ipv4NetmaskLength *types.Value `json:"Ipv4NetmaskLength,omitempty"`
+
 	// Ipv6CidrBlock AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html#cfn-ec2-subnet-ipv6cidrblock
 	Ipv6CidrBlock *types.Value `json:"Ipv6CidrBlock,omitempty"`
 
+	// Ipv6IpamPoolId AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html#cfn-ec2-subnet-ipv6ipampoolid
+	Ipv6IpamPoolId *types.Value `json:"Ipv6IpamPoolId,omitempty"`
+
 	// Ipv6Native AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html#cfn-ec2-subnet-ipv6native
 	Ipv6Native *types.Value `json:"Ipv6Native,omitempty"`
+
+	// Ipv6NetmaskLength AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html#cfn-ec2-subnet-ipv6netmasklength
+	Ipv6NetmaskLength *types.Value `json:"Ipv6NetmaskLength,omitempty"`
 
 	// MapPublicIpOnLaunch AWS CloudFormation Property
 	// Required: false

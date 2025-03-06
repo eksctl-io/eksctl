@@ -7,6 +7,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/cloudformation"
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/policies"
 )
 
@@ -14,15 +15,40 @@ import (
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-eventbus.html
 type EventBus struct {
 
+	// DeadLetterConfig AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-eventbus.html#cfn-events-eventbus-deadletterconfig
+	DeadLetterConfig *EventBus_DeadLetterConfig `json:"DeadLetterConfig,omitempty"`
+
+	// Description AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-eventbus.html#cfn-events-eventbus-description
+	Description *types.Value `json:"Description,omitempty"`
+
 	// EventSourceName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-eventbus.html#cfn-events-eventbus-eventsourcename
 	EventSourceName *types.Value `json:"EventSourceName,omitempty"`
 
+	// KmsKeyIdentifier AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-eventbus.html#cfn-events-eventbus-kmskeyidentifier
+	KmsKeyIdentifier *types.Value `json:"KmsKeyIdentifier,omitempty"`
+
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-eventbus.html#cfn-events-eventbus-name
 	Name *types.Value `json:"Name,omitempty"`
+
+	// Policy AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-eventbus.html#cfn-events-eventbus-policy
+	Policy interface{} `json:"Policy,omitempty"`
+
+	// Tags AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-eventbus.html#cfn-events-eventbus-tags
+	Tags []cloudformation.Tag `json:"Tags,omitempty"`
 
 	// AWSCloudFormationDeletionPolicy represents a CloudFormation DeletionPolicy
 	AWSCloudFormationDeletionPolicy policies.DeletionPolicy `json:"-"`

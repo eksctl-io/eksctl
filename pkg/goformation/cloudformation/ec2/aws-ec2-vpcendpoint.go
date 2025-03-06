@@ -7,12 +7,23 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/cloudformation"
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/policies"
 )
 
 // VPCEndpoint AWS CloudFormation Resource (AWS::EC2::VPCEndpoint)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html
 type VPCEndpoint struct {
+
+	// DnsOptions AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-dnsoptions
+	DnsOptions *VPCEndpoint_DnsOptionsSpecification `json:"DnsOptions,omitempty"`
+
+	// IpAddressType AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-ipaddresstype
+	IpAddressType *types.Value `json:"IpAddressType,omitempty"`
 
 	// PolicyDocument AWS CloudFormation Property
 	// Required: false
@@ -23,6 +34,11 @@ type VPCEndpoint struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-privatednsenabled
 	PrivateDnsEnabled *types.Value `json:"PrivateDnsEnabled,omitempty"`
+
+	// ResourceConfigurationArn AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-resourceconfigurationarn
+	ResourceConfigurationArn *types.Value `json:"ResourceConfigurationArn,omitempty"`
 
 	// RouteTableIds AWS CloudFormation Property
 	// Required: false
@@ -35,14 +51,24 @@ type VPCEndpoint struct {
 	SecurityGroupIds *types.Value `json:"SecurityGroupIds,omitempty"`
 
 	// ServiceName AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-servicename
 	ServiceName *types.Value `json:"ServiceName,omitempty"`
+
+	// ServiceNetworkArn AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-servicenetworkarn
+	ServiceNetworkArn *types.Value `json:"ServiceNetworkArn,omitempty"`
 
 	// SubnetIds AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-subnetids
 	SubnetIds *types.Value `json:"SubnetIds,omitempty"`
+
+	// Tags AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-tags
+	Tags []cloudformation.Tag `json:"Tags,omitempty"`
 
 	// VpcEndpointType AWS CloudFormation Property
 	// Required: false

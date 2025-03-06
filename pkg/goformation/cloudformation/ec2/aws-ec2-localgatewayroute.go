@@ -25,9 +25,14 @@ type LocalGatewayRoute struct {
 	LocalGatewayRouteTableId *types.Value `json:"LocalGatewayRouteTableId,omitempty"`
 
 	// LocalGatewayVirtualInterfaceGroupId AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-localgatewayroute.html#cfn-ec2-localgatewayroute-localgatewayvirtualinterfacegroupid
 	LocalGatewayVirtualInterfaceGroupId *types.Value `json:"LocalGatewayVirtualInterfaceGroupId,omitempty"`
+
+	// NetworkInterfaceId AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-localgatewayroute.html#cfn-ec2-localgatewayroute-networkinterfaceid
+	NetworkInterfaceId *types.Value `json:"NetworkInterfaceId,omitempty"`
 
 	// AWSCloudFormationDeletionPolicy represents a CloudFormation DeletionPolicy
 	AWSCloudFormationDeletionPolicy policies.DeletionPolicy `json:"-"`

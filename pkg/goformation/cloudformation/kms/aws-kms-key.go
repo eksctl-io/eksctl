@@ -15,6 +15,11 @@ import (
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html
 type Key struct {
 
+	// BypassPolicyLockoutSafetyCheck AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html#cfn-kms-key-bypasspolicylockoutsafetycheck
+	BypassPolicyLockoutSafetyCheck *types.Value `json:"BypassPolicyLockoutSafetyCheck,omitempty"`
+
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html#cfn-kms-key-description
@@ -31,7 +36,7 @@ type Key struct {
 	Enabled *types.Value `json:"Enabled,omitempty"`
 
 	// KeyPolicy AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html#cfn-kms-key-keypolicy
 	KeyPolicy interface{} `json:"KeyPolicy,omitempty"`
 
@@ -50,10 +55,20 @@ type Key struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html#cfn-kms-key-multiregion
 	MultiRegion *types.Value `json:"MultiRegion,omitempty"`
 
+	// Origin AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html#cfn-kms-key-origin
+	Origin *types.Value `json:"Origin,omitempty"`
+
 	// PendingWindowInDays AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html#cfn-kms-key-pendingwindowindays
 	PendingWindowInDays *types.Value `json:"PendingWindowInDays,omitempty"`
+
+	// RotationPeriodInDays AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html#cfn-kms-key-rotationperiodindays
+	RotationPeriodInDays *types.Value `json:"RotationPeriodInDays,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
