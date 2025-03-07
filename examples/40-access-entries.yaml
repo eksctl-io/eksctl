@@ -21,6 +21,7 @@ accessConfig:
       kubernetesGroups: # optional Kubernetes groups
         - group1 # groups can used to give permissions via RBAC
         - group2
+      kubernetesUsername: username # optional Kubernetes username
     - principalARN: arn:aws:iam::111122223333:role/role-name-1
       accessPolicies: # optional access polices
         - policyARN: arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy
