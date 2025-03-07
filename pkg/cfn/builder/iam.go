@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
 
@@ -145,11 +144,12 @@ func (c *ClusterResourceSet) addIAMRolesAnywhere() {
 		Enabled: gfnt.NewBoolean(true),
 		Name:    makeName("CA"),
 		Source: &gfnrolesanywhere.TrustAnchor_Source{
-			SourceType: aws.String("CERTIFICATE_BUNDLE"),
-			SourceData: &gfnrolesanywhere.TrustAnchor_SourceData{
-				X509CertificateData: c.spec.RemoteNetworkConfig.IAM.CABundleCert,
-			},
+			SourceType: gfnt.NewString("CERTIFICATE_BUNDLE"),
+			SourceData: &gfnrolesanywhere.TrustAnchor_SourceData{},
 		},
+	}
+	if c.spec.RemoteNetworkConfig.IAM.CABundleCert != nil {
+		trustAnchor.Source.SourceData.X509CertificateData = gfnt.NewString(*c.spec.RemoteNetworkConfig.IAM.CABundleCert)
 	}
 	anywhereProfile := &gfnrolesanywhere.Profile{
 		Enabled: gfnt.NewBoolean(true),

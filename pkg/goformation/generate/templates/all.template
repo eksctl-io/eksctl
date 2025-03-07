@@ -2,7 +2,7 @@ package cloudformation
 
 import (
 	"fmt"{{range $resource := .Resources}}
-	"github.com/awslabs/goformation/v4/cloudformation/{{$resource.PackageName}}"{{end}}
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/{{$resource.PackageName}}"{{end}}
 )
 
 // AllResources fetches an iterable map all CloudFormation and SAM resources

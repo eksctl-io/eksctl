@@ -232,6 +232,14 @@
                         "Ref": "SubnetPrivateUSWEST2C"
                     }
                 ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointEC2"
+                        }
+                    }
+                ],
                 "VpcEndpointType": "Interface",
                 "VpcId": {
                     "Ref": "VPC"
@@ -258,6 +266,14 @@
                     },
                     {
                         "Ref": "SubnetPrivateUSWEST2D"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointECRAPI"
+                        }
                     }
                 ],
                 "VpcEndpointType": "Interface",
@@ -288,6 +304,14 @@
                         "Ref": "SubnetPrivateUSWEST2D"
                     }
                 ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointECRDKR"
+                        }
+                    }
+                ],
                 "VpcEndpointType": "Interface",
                 "VpcId": {
                     "Ref": "VPC"
@@ -312,6 +336,14 @@
                     }
                 ],
                 "ServiceName": "com.amazonaws.us-west-2.s3",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointS3"
+                        }
+                    }
+                ],
                 "VpcEndpointType": "Gateway",
                 "VpcId": {
                     "Ref": "VPC"
@@ -335,6 +367,14 @@
                     },
                     {
                         "Ref": "SubnetPrivateUSWEST2C"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointSTS"
+                        }
                     }
                 ],
                 "VpcEndpointType": "Interface",

@@ -18,7 +18,7 @@ type TransitGatewayMulticastDomain struct {
 	// Options AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-transitgatewaymulticastdomain.html#cfn-ec2-transitgatewaymulticastdomain-options
-	Options interface{} `json:"Options,omitempty"`
+	Options *TransitGatewayMulticastDomain_Options `json:"Options,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false

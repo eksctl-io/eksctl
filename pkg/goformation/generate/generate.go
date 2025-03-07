@@ -57,6 +57,30 @@ var (
 		"AWS::EC2::Instance",
 		"AWS::CloudFormation::WaitCondition",
 	}
+
+	Allow = []string{
+		"AWS::AutoScaling",
+		"AWS::CloudFormation",
+		"AWS::CloudWatch",
+		"AWS::EC2",
+		"AWS::ECR",
+		"AWS::EKS",
+		"AWS::ElasticLoadBalancing",
+		"AWS::ElasticLoadBalancingV2",
+		"AWS::Events",
+		"AWS::IAM",
+		"AWS::KMS",
+		"AWS::Kinesis",
+		"AWS::Lambda",
+		"AWS::RDS",
+		"AWS::RolesAnywhere",
+		"AWS::Route53",
+		"AWS::S3",
+		"AWS::SNS",
+		"AWS::SQS",
+		"AWS::Serverless",
+		"Tag",
+	}
 )
 
 // NewResourceGenerator contains a primary AWS CloudFormation Resource Specification
@@ -167,6 +191,10 @@ func (rg *ResourceGenerator) processSpec(specname string, data []byte) (*CloudFo
 		return nil, err
 	}
 
+	// Filter things not in our Allow list
+	spec.Resources = filter(spec.Resources)
+	spec.Properties = filter(spec.Properties)
+
 	// Add the resources processed to the ResourceGenerator output
 	for name := range spec.Resources {
 
@@ -209,6 +237,26 @@ func (rg *ResourceGenerator) processSpec(specname string, data []byte) (*CloudFo
 
 	return spec, nil
 
+}
+
+func filter(old map[string]Resource) map[string]Resource {
+	new := make(map[string]Resource)
+	// Traverse the keys in spec.Resources
+	for key := range old {
+		found := false
+		// Check if the key is in the Allow array
+		for _, allowed := range Allow {
+			if key == allowed || strings.HasPrefix(key, allowed+"::") {
+				found = true
+				break
+			}
+		}
+		// If the key is not in the Allow array, delete it from the map
+		if found {
+			new[key] = old[key]
+		}
+	}
+	return new
 }
 
 func (rg *ResourceGenerator) generateAllResourcesMap(resources []GeneratedResource) error {

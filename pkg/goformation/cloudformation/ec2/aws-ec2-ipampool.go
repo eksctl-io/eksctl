@@ -45,6 +45,11 @@ type IPAMPool struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipampool.html#cfn-ec2-ipampool-autoimport
 	AutoImport *types.Value `json:"AutoImport,omitempty"`
 
+	// AwsService AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipampool.html#cfn-ec2-ipampool-awsservice
+	AwsService *types.Value `json:"AwsService,omitempty"`
+
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipampool.html#cfn-ec2-ipampool-description
@@ -65,6 +70,11 @@ type IPAMPool struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipampool.html#cfn-ec2-ipampool-provisionedcidrs
 	ProvisionedCidrs []IPAMPool_ProvisionedCidr `json:"ProvisionedCidrs,omitempty"`
 
+	// PublicIpSource AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipampool.html#cfn-ec2-ipampool-publicipsource
+	PublicIpSource *types.Value `json:"PublicIpSource,omitempty"`
+
 	// PubliclyAdvertisable AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipampool.html#cfn-ec2-ipampool-publiclyadvertisable
@@ -74,6 +84,11 @@ type IPAMPool struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipampool.html#cfn-ec2-ipampool-sourceipampoolid
 	SourceIpamPoolId *types.Value `json:"SourceIpamPoolId,omitempty"`
+
+	// SourceResource AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipampool.html#cfn-ec2-ipampool-sourceresource
+	SourceResource *IPAMPool_SourceResource `json:"SourceResource,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false

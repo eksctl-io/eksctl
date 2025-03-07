@@ -21,7 +21,7 @@ type EC2Fleet_FleetLaunchTemplateSpecificationRequest struct {
 	LaunchTemplateName *types.Value `json:"LaunchTemplateName,omitempty"`
 
 	// Version AWS CloudFormation Property
-	// Required: false
+	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-ec2fleet-fleetlaunchtemplatespecificationrequest.html#cfn-ec2-ec2fleet-fleetlaunchtemplatespecificationrequest-version
 	Version *types.Value `json:"Version,omitempty"`
 

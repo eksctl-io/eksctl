@@ -15,7 +15,7 @@ import (
 type ServiceLinkedRole struct {
 
 	// AWSServiceName AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-servicelinkedrole.html#cfn-iam-servicelinkedrole-awsservicename
 	AWSServiceName *types.Value `json:"AWSServiceName,omitempty"`
 

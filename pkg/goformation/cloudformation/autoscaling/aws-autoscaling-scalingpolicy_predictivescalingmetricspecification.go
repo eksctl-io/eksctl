@@ -10,6 +10,21 @@ import (
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-autoscaling-scalingpolicy-predictivescalingmetricspecification.html
 type ScalingPolicy_PredictiveScalingMetricSpecification struct {
 
+	// CustomizedCapacityMetricSpecification AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-autoscaling-scalingpolicy-predictivescalingmetricspecification.html#cfn-autoscaling-scalingpolicy-predictivescalingmetricspecification-customizedcapacitymetricspecification
+	CustomizedCapacityMetricSpecification *ScalingPolicy_PredictiveScalingCustomizedCapacityMetric `json:"CustomizedCapacityMetricSpecification,omitempty"`
+
+	// CustomizedLoadMetricSpecification AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-autoscaling-scalingpolicy-predictivescalingmetricspecification.html#cfn-autoscaling-scalingpolicy-predictivescalingmetricspecification-customizedloadmetricspecification
+	CustomizedLoadMetricSpecification *ScalingPolicy_PredictiveScalingCustomizedLoadMetric `json:"CustomizedLoadMetricSpecification,omitempty"`
+
+	// CustomizedScalingMetricSpecification AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-autoscaling-scalingpolicy-predictivescalingmetricspecification.html#cfn-autoscaling-scalingpolicy-predictivescalingmetricspecification-customizedscalingmetricspecification
+	CustomizedScalingMetricSpecification *ScalingPolicy_PredictiveScalingCustomizedScalingMetric `json:"CustomizedScalingMetricSpecification,omitempty"`
+
 	// PredefinedLoadMetricSpecification AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-autoscaling-scalingpolicy-predictivescalingmetricspecification.html#cfn-autoscaling-scalingpolicy-predictivescalingmetricspecification-predefinedloadmetricspecification

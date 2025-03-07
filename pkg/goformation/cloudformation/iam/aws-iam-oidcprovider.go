@@ -26,7 +26,7 @@ type OIDCProvider struct {
 	Tags []cloudformation.Tag `json:"Tags,omitempty"`
 
 	// ThumbprintList AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-oidcprovider.html#cfn-iam-oidcprovider-thumbprintlist
 	ThumbprintList *types.Value `json:"ThumbprintList,omitempty"`
 

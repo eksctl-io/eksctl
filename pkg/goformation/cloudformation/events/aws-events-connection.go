@@ -15,12 +15,12 @@ import (
 type Connection struct {
 
 	// AuthParameters AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-connection.html#cfn-events-connection-authparameters
-	AuthParameters interface{} `json:"AuthParameters,omitempty"`
+	AuthParameters *Connection_AuthParameters `json:"AuthParameters,omitempty"`
 
 	// AuthorizationType AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-connection.html#cfn-events-connection-authorizationtype
 	AuthorizationType *types.Value `json:"AuthorizationType,omitempty"`
 
@@ -28,6 +28,11 @@ type Connection struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-connection.html#cfn-events-connection-description
 	Description *types.Value `json:"Description,omitempty"`
+
+	// InvocationConnectivityParameters AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-connection.html#cfn-events-connection-invocationconnectivityparameters
+	InvocationConnectivityParameters *Connection_InvocationConnectivityParameters `json:"InvocationConnectivityParameters,omitempty"`
 
 	// Name AWS CloudFormation Property
 	// Required: false

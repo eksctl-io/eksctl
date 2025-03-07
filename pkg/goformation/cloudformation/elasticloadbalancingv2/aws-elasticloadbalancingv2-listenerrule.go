@@ -25,7 +25,7 @@ type ListenerRule struct {
 	Conditions []ListenerRule_RuleCondition `json:"Conditions,omitempty"`
 
 	// ListenerArn AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-listenerrule.html#cfn-elasticloadbalancingv2-listenerrule-listenerarn
 	ListenerArn *types.Value `json:"ListenerArn,omitempty"`
 

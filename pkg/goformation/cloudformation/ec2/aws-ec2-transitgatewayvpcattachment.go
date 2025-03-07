@@ -23,7 +23,7 @@ type TransitGatewayVpcAttachment struct {
 	// Options AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-transitgatewayvpcattachment.html#cfn-ec2-transitgatewayvpcattachment-options
-	Options interface{} `json:"Options,omitempty"`
+	Options *TransitGatewayVpcAttachment_Options `json:"Options,omitempty"`
 
 	// RemoveSubnetIds AWS CloudFormation Property
 	// Required: false
@@ -31,7 +31,7 @@ type TransitGatewayVpcAttachment struct {
 	RemoveSubnetIds *types.Value `json:"RemoveSubnetIds,omitempty"`
 
 	// SubnetIds AWS CloudFormation Property
-	// Required: false
+	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-transitgatewayvpcattachment.html#cfn-ec2-transitgatewayvpcattachment-subnetids
 	SubnetIds *types.Value `json:"SubnetIds,omitempty"`
 
@@ -41,12 +41,12 @@ type TransitGatewayVpcAttachment struct {
 	Tags []cloudformation.Tag `json:"Tags,omitempty"`
 
 	// TransitGatewayId AWS CloudFormation Property
-	// Required: false
+	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-transitgatewayvpcattachment.html#cfn-ec2-transitgatewayvpcattachment-transitgatewayid
 	TransitGatewayId *types.Value `json:"TransitGatewayId,omitempty"`
 
 	// VpcId AWS CloudFormation Property
-	// Required: false
+	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-transitgatewayvpcattachment.html#cfn-ec2-transitgatewayvpcattachment-vpcid
 	VpcId *types.Value `json:"VpcId,omitempty"`
 
