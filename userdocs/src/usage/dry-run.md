@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/dry-run.html
+---
 # Dry Run
 
 The dry-run feature allows you to inspect and change the instances matched by the instance selector before proceeding

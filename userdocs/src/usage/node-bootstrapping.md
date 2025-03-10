@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/node-bootstrapping.html
+---
 # Node bootstrapping
 
 ##  AmazonLinux2023

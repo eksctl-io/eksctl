@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/cluster-subnets-security-groups.html
+---
 # Updating control plane subnets and security groups
 
 ## Updating control plane subnets

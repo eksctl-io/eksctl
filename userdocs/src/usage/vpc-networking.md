@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/networking.html
+---
 # Networking
 
 By default `eksctl create cluster` will create a dedicated VPC for the cluster.

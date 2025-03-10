@@ -10,6 +10,9 @@ repo_url: 'https://github.com/eksctl-io/eksctl'
 docs_dir: src
 edit_uri: ""
 
+hooks:
+  - set-url.py
+
 # Configuration
 theme:
     name: 'material'

@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/access-entries.html
+---
 # EKS Access Entries
 
 ## Introduction

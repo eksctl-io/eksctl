@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/unowned-clusters.html
+---
 # Non eksctl-created clusters
 
 From `eksctl` version `0.40.0` users can run `eksctl` commands against clusters which were

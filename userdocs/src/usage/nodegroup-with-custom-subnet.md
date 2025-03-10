@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/nodegroup-with-custom-subnet.html
+---
 # Custom subnets
 
 It's possible to extend an existing VPC with a new subnet and add a Nodegroup to that subnet.

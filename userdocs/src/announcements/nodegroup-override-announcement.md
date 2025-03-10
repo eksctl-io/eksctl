@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/announcements.html
+---
 # Nodegroup Bootstrap Override For Custom AMIs
 
 This change was announced in the issue [Breaking: overrideBootstrapCommand soon...](https://github.com/eksctl-io/eksctl/issues/3563).

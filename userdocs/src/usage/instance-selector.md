@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/instance-selector.html
+---
 # Instance Selector
 
 eksctl supports specifying multiple instance types for managed and self-managed nodegroups, but with over 270 EC2 instance types,

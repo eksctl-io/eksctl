@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/vpc-subnet-settings.html
+---
 # Subnet Settings
 
 ## Use private subnets for initial nodegroup

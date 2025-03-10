@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/eksctl-karpenter.html
+---
 # Karpenter Support
 
 `eksctl` provides support for adding [Karpenter](https://karpenter.sh/) to a newly created cluster. It will create all the necessary

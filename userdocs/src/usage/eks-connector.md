@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/eks-connector.html
+---
 # Registering non-EKS clusters with EKS Connector
 The EKS Console provides a single pane of glass to manage all your Kubernetes clusters, including those hosted on
 other cloud providers, via [EKS Connector][eks-user-guide]. This process requires registering the cluster with EKS and running the
