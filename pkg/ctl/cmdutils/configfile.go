@@ -317,8 +317,9 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				return errors.New("creation of managed or self-managed nodegroups is not supported during cluster creation " +
 					"when Auto Mode is enabled; please create them post cluster creation using `eksctl create nodegroup`" +
 					" after creating core networking addons in the cluster")
-			}
-			if api.HasDefaultAddons(clusterConfig.Addons) {
+			} else if len(clusterConfig.FargateProfiles) == 0 && clusterConfig.RemoteNetworkConfig == nil &&
+				api.HasDefaultNonAutoAddon(clusterConfig.Addons) {
+				// Only an error if fargate profiles and hybrid nodes (remote network config) are not set/defined
 				return errors.New("core networking addons are not required on a cluster using Auto Mode; " +
 					"if you still wish to create them, use `eksctl create addon` post cluster creation")
 			}

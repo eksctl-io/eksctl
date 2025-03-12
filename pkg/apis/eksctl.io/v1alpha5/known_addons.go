@@ -44,11 +44,11 @@ var KnownAddons = map[string]struct {
 	},
 }
 
-// HasDefaultAddons reports whether addons contains at least one default addon.
-func HasDefaultAddons(addons []*Addon) bool {
+// HasDefaultNonAutoAddon reports whether addons contains at least one non-auto mode default addon
+func HasDefaultNonAutoAddon(addons []*Addon) bool {
 	for _, addon := range addons {
 		addonConfig, ok := KnownAddons[addon.Name]
-		if ok && addonConfig.IsDefault {
+		if ok && addonConfig.IsDefault && !addonConfig.IsDefaultAutoMode {
 			return true
 		}
 	}
