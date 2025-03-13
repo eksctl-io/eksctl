@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/cluster-upgrade.html
+---
 # Cluster upgrades
 
 An _`eksctl`-managed_ cluster can be upgraded in 3 easy steps:

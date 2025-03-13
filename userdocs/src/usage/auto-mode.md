@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/auto-mode.html
+---
 # EKS Auto Mode
 
 ## Introduction

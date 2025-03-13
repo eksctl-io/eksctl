@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/creating-and-managing-clusters.html
+---
 # Creating and managing clusters
 
 ## Creating a cluster

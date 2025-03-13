@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/eksctl-anywhere.html
+---
 # EKS Anywhere
 
 `eksctl` provides access to AWS' feature called `EKS Anywhere` with the sub command `eksctl anywhere`.

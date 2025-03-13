@@ -27,3 +27,11 @@
   {{ super() }}
 
 {% endblock %}
+
+{% block extrahead %}
+  {% if page.meta and page.meta.redirect %}
+    <meta http-equiv="refresh" content="0; URL='{{ page.meta.redirect }}'" />
+    <link rel="canonical" href="{{ page.meta.redirect }}" />
+  {% endif %}
+  {{ super() }}
+{% endblock %}

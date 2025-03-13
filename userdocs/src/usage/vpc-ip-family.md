@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/vpc-ip-family.html
+---
 # IPv6 Support
 
 ## Define IP Family

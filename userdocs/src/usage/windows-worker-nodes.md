@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/windows-worker-nodes.html
+---
 # Windows Worker Nodes
 
 From version 1.14, Amazon EKS supports [Windows Nodes][eks-user-guide] that allow running Windows containers.

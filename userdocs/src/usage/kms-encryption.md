@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/kms-encryption.html
+---
 # KMS Envelope Encryption for EKS clusters
 
 EKS supports using [AWS KMS](https://aws.amazon.com/about-aws/whats-new/2021/03/amazon-eks-supports-adding-kms-envelope-encryption-to-existing-clusters/) keys to provide envelope encryption of Kubernetes secrets stored in EKS. Envelope encryption adds an addition, customer-managed layer of encryption for application secrets or user data that is stored within a Kubernetes cluster.

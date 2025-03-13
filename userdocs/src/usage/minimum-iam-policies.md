@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/minimum-iam-policies.html
+---
 # Minimum IAM policies
 
 This document describes the minimum IAM policies needed to run the main use cases of eksctl. These are the ones used to

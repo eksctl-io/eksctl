@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/announcements.html
+---
 # Managed Nodegroups Default
 
 As of [eksctl v0.58.0](https://github.com/eksctl-io/eksctl/releases/tag/0.58.0), eksctl creates managed nodegroups by

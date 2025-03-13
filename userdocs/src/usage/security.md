@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/security.html
+---
 # Security
 
 `eksctl` provides some options that can improve the security of your EKS cluster.

@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/addon-upgrade.html
+---
 # Default add-on updates
 
 !!! warning "New for 2024"

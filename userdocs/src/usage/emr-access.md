@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/emr-access.html
+---
 # Enabling Access for Amazon EMR
 
 In order to allow [EMR](https://aws.amazon.com/emr) to perform operations on the Kubernetes API, its SLR needs to be granted the required RBAC permissions.

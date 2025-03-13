@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/iam-policies.html
+---
 # IAM policies
 
 ## Supported IAM add-on policies

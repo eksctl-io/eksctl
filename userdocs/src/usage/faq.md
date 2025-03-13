@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/faq.html
+---
 ## Eksctl
 
 ???+ question "Can I use `eksctl` to manage clusters which weren't created by `eksctl`?"

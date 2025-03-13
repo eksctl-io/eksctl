@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/custom-ami-support.html
+---
 # Custom AMI support
 
 ## Setting the node AMI ID
