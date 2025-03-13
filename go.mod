@@ -70,7 +70,7 @@ require (
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xgfone/go-netaddr v0.6.0
-	golang.org/x/crypto v0.33.0
+	golang.org/x/crypto v0.35.0
 	golang.org/x/oauth2 v0.26.0
 	golang.org/x/sync v0.11.0
 	golang.org/x/text v0.22.0
@@ -415,7 +415,7 @@ require (
 	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa // indirect
 	golang.org/x/exp/typeparams v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/term v0.29.0 // indirect
 	golang.org/x/time v0.10.0 // indirect
