@@ -185,7 +185,7 @@ func (s *ServicesV2) EKS() awsapi.EKS {
 		s.eks = eks.NewFromConfig(s.config, func(o *eks.Options) {
 			o.BaseEndpoint = getBaseEndpoint(eks.ServiceID, []string{
 				"AWS_EKS_ENDPOINT",
-				"AWS_ENDPOINT_URL_EC2",
+				"AWS_ENDPOINT_URL_EKS",
 				"AWS_ENDPOINT_URL",
 			})
 		})

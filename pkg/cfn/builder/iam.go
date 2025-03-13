@@ -126,6 +126,9 @@ func (c *ClusterResourceSet) addResourcesForServiceRole() {
 			),
 			ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyARNs...)...),
 		}
+		if c.spec.IsCustomEksEndpoint() {
+			role.AssumeRolePolicyDocument = createBetaAssumeRolePolicy()
+		}
 	}
 
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRolePermissionsBoundary) {

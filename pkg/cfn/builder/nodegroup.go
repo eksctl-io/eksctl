@@ -176,11 +176,17 @@ func (n *NodeGroupResourceSet) addAccessEntry() {
 		return
 	}
 
-	n.newResource("AccessEntry", &gfneks.AccessEntry{
-		PrincipalArn: gfnt.MakeFnGetAttString(cfnIAMInstanceRoleName, "Arn"),
-		ClusterName:  gfnt.NewString(n.options.ClusterConfig.Metadata.Name),
-		Type:         gfnt.NewString(string(api.GetAccessEntryType(n.options.NodeGroup))),
-	})
+	if n.options.ClusterConfig.IsCustomEksEndpoint() {
+		n.newResource("AccessEntry",
+			addBetaAccessEntry(n.options.ClusterConfig.Metadata.Name,
+				string(api.GetAccessEntryType(n.options.NodeGroup))))
+	} else {
+		n.newResource("AccessEntry", &gfneks.AccessEntry{
+			PrincipalArn: gfnt.MakeFnGetAttString(cfnIAMInstanceRoleName, "Arn"),
+			ClusterName:  gfnt.NewString(n.options.ClusterConfig.Metadata.Name),
+			Type:         gfnt.NewString(string(api.GetAccessEntryType(n.options.NodeGroup))),
+		})
+	}
 }
 
 func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {

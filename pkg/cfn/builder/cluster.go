@@ -29,10 +29,11 @@ type ClusterResourceSet struct {
 	region         string
 	vpcResourceSet VPCResourceSet
 	securityGroups *gfnt.Value
+	stsAPI         awsapi.STS
 }
 
 // NewClusterResourceSet returns a resource set for the new cluster.
-func NewClusterResourceSet(ec2API awsapi.EC2, region string, spec *api.ClusterConfig, existingStack *gjson.Result, extendForOutposts bool) *ClusterResourceSet {
+func NewClusterResourceSet(ec2API awsapi.EC2, stsAPI awsapi.STS, region string, spec *api.ClusterConfig, existingStack *gjson.Result, extendForOutposts bool) *ClusterResourceSet {
 	var usesExistingVPC bool
 	if existingStack != nil {
 		unsetExistingResources(existingStack, spec)
@@ -59,6 +60,7 @@ func NewClusterResourceSet(ec2API awsapi.EC2, region string, spec *api.ClusterCo
 		rs:             rs,
 		spec:           spec,
 		ec2API:         ec2API,
+		stsAPI:         stsAPI,
 		region:         region,
 		vpcResourceSet: vpcResourceSet,
 	}
@@ -409,7 +411,14 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		}
 	}
 
-	c.newResource("ControlPlane", &cluster)
+	if c.spec.IsCustomEksEndpoint() {
+		err := addBetaResources(c.stsAPI, c.spec.Metadata.Name, c.rs.template, &cluster)
+		if err != nil {
+			return fmt.Errorf("unable to add beta resources: %w", err)
+		}
+	} else {
+		c.newResource("ControlPlane", &cluster)
+	}
 
 	if c.spec.Status == nil {
 		c.spec.Status = &api.ClusterStatus{}
