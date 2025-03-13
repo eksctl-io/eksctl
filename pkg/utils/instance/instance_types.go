@@ -7583,7 +7583,7 @@ var InstanceTypes = []InstanceInfo{
 	{
 		InstanceType:             "u7i-6tb.112xlarge",
 		InstanceStorageSupported: false,
-		EFASupported:             false,
+		EFASupported:             true,
 		NvidiaGPUSupported:       false,
 		NvidiaGPUType:            "",
 		NeuronSupported:          false,
