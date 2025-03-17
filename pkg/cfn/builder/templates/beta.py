@@ -260,17 +260,18 @@ def wait_for_cluster_creation(eks_client, cluster_name):
     """
     Wait for the EKS cluster to become ACTIVE.
     """
-    while True:
-        response = eks_client.describe_cluster(name=cluster_name)
-        status = response['cluster']['status']
-        if status == 'ACTIVE':
-            logger.info(f"EKS cluster {cluster_name} is now ACTIVE.")
-            return response['cluster']
-        elif status == 'FAILED':
-            raise Exception(f"EKS cluster {cluster_name} creation failed.")
-        else:
-            logger.info(f"EKS cluster {cluster_name} status: {status}. Waiting...")
-            time.sleep(10)  # Wait 10 seconds before polling again
+    waiter = eks_client.get_waiter('cluster_active')
+    waiter.wait(name=cluster_name,
+        WaiterConfig={'Delay': 10, 'MaxAttempts': 100})
+    response = eks_client.describe_cluster(name=cluster_name)
+    status = response['cluster']['status']
+    if status == 'ACTIVE':
+        logger.info(f"EKS cluster {cluster_name} is now ACTIVE.")
+        return response['cluster']
+    elif status == 'FAILED':
+        raise Exception(f"EKS cluster {cluster_name} creation failed.")
+    else:
+        raise Exception(f"EKS cluster {cluster_name} in {status} bad state.")
 
 
 def delete_cluster(eks_client, cluster_name):
@@ -293,11 +294,11 @@ def nodegroup_handler(event, context):
         cluster_name = event['ResourceProperties']['ClusterName']
         logger.info(f"cluster name : {cluster_name}")
 
+        nodegroup_name = event['ResourceProperties']['NodegroupName']
+        logger.info(f"nodegroup name : {nodegroup_name}")
+
         # Handle Delete event
         if event['RequestType'] == 'Delete':
-            nodegroup_name = event['ResourceProperties']['NodegroupName']
-            logger.info(f"nodegroup name : {nodegroup_name}")
-
             response = eks_client.describe_nodegroup(
                 clusterName=cluster_name,
                 nodegroupName=nodegroup_name
@@ -337,6 +338,24 @@ def nodegroup_handler(event, context):
         logger.info("EKS nodegroup with payload: " + json.dumps(nodegroup_payload, default=str))
         response = eks_client.create_nodegroup(**nodegroup_payload)
         logger.info("EKS nodegroup created: " + json.dumps(response, default=str))
+
+        # Wait for the nodegroup to become ACTIVE
+        waiter = eks_client.get_waiter('nodegroup_active')
+        waiter.wait(
+            clusterName=cluster_name,
+            nodegroupName=nodegroup_name,
+            WaiterConfig={'Delay': 10, 'MaxAttempts': 100}
+        )
+
+        # Fetch the nodegroup details after it becomes ACTIVE
+        response = eks_client.describe_nodegroup(
+            clusterName=cluster_name,
+            nodegroupName=nodegroup_name
+        )
+
+        status = response['nodegroup']['status']
+        if status != 'ACTIVE':
+            raise Exception(f"EKS node group {nodegroup_name} is not ACTIVE, status is {status}.")
 
         eventData = {
             "Arn": response['nodegroup']['nodegroupArn'],

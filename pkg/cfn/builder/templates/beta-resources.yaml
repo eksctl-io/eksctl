@@ -18,7 +18,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-CustomEKSFunction'
       Handler: index.handler
-      Runtime: python3.9
+      Runtime: python3.13
       Timeout: 900
       Role: !GetAtt LambdaExecutionRole.Arn
       Environment:
