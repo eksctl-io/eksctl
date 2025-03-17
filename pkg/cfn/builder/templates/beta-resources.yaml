@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create an EKS cluster using a custom Lambda function with a unique name.
+
+Parameters:
+  EksEndpointUrl:
+    Type: String
+    Description: The endpoint URL for the EKS service
+
+Resources:
+  ControlPlane:
+    Type: Custom::EksCluster
+    Properties:
+      ServiceToken: !GetAtt CustomEKSFunction.Arn
+      RoleArn: !GetAtt ServiceRole.Arn
+
+  CustomEKSFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-CustomEKSFunction'
+      Handler: index.handler
+      Runtime: python3.13
+      Timeout: 900
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          AWS_ENDPOINT_URL_EKS: !Ref EksEndpointUrl
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSBlockStoragePolicy
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSComputePolicy
+        - arn:aws:iam::aws:policy/AmazonEKSLoadBalancingPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSNetworkingPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+        - arn:aws:iam::aws:policy/AmazonEKSVPCResourceController
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+                - "ec2.amazonaws.com"
+                - "eks.amazonaws.com"
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: EKSClusterCreationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - eks:*
+                  - ec2:*
+                  - cloudformation:*
+                  - iam:RemoveRoleFromInstanceProfile
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - iam:*
+                  - sts:*
+                Resource:
+                  - arn:aws:iam::*:role/*NodeInstanceRole*
+                  - arn:aws:iam::*:role/*MasterInstanceRole*
+                  - arn:aws:iam::*:role/*ServiceRole*
+                  - arn:aws:iam::*:role/aws-service-role/eks*
+                  - arn:aws:iam::*:oidc-provider/*
+        - PolicyName: CloudWatchLogsPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'  # Allow access to all log groups
+
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt CustomEKSFunction.Arn
+      Principal: 'cloudformation.amazonaws.com'
+    DependsOn:
+      - CustomEKSFunction  # Explicit dependency on CustomEKSFunction
+
+Outputs:
+  ClusterArn:
+    Description: ARN of the created EKS cluster
+    Value: !GetAtt ControlPlane.PhysicalResourceId
+  Arn:
+    Description: ARN of the created EKS cluster
+    Value: !GetAtt ControlPlane.PhysicalResourceId
+  ClusterName:
+    Description: Name of the created EKS cluster
+    Value: !GetAtt ControlPlane.ClusterName

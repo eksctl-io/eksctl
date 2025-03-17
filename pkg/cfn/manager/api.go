@@ -83,6 +83,7 @@ type StackCollection struct {
 	region          string
 	waitTimeout     time.Duration
 	sharedTags      []types.Tag
+	stsAPI          awsapi.STS
 }
 
 func newTag(key, value string) types.Tag {
@@ -112,6 +113,7 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) S
 		roleARN:           provider.CloudFormationRoleARN(),
 		region:            provider.Region(),
 		waitTimeout:       provider.WaitTimeout(),
+		stsAPI:            provider.STS(),
 	}
 }
 
