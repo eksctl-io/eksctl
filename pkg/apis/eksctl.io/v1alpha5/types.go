@@ -46,10 +46,11 @@ const (
 	Version1_29                  = "1.29"
 	Version1_30                  = "1.30"
 	Version1_31                  = "1.31"
+	Version1_32                  = "1.32"
 	DockershimDeprecationVersion = Version1_24
 	//TODO: Remove this and replace with output from DescribeClusterVersions endpoint
 	// DefaultVersion (default)
-	DefaultVersion = Version1_30
+	DefaultVersion = Version1_32
 )
 
 const (
