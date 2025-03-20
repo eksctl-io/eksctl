@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"strings"
 
 	nodeadm "github.com/awslabs/amazon-eks-ami/nodeadm/api/v1alpha1"
 	"sigs.k8s.io/yaml"
@@ -32,7 +31,7 @@ func NewManagedAL2Bootstrapper(ng *api.ManagedNodeGroup) *ManagedAL2 {
 func (m *ManagedAL2) UserData() (string, error) {
 	ng := m.ng
 
-	if strings.HasPrefix(ng.AMI, "ami-") {
+	if api.IsAMI(ng.AMI) {
 		return makeCustomAMIUserData(ng.NodeGroupBase, m.UserDataMimeBoundary)
 	}
 
