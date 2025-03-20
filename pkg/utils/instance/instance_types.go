@@ -3038,6 +3038,17 @@ var InstanceTypes = []InstanceInfo{
 		CPUArch:                  "arm64",
 	},
 	{
+		InstanceType:             "i8g.48xlarge",
+		InstanceStorageSupported: true,
+		EFASupported:             true,
+		NvidiaGPUSupported:       false,
+		NvidiaGPUType:            "",
+		NeuronSupported:          false,
+		NeuronDeviceType:         "",
+		CBRSupported:             false,
+		CPUArch:                  "arm64",
+	},
+	{
 		InstanceType:             "i8g.4xlarge",
 		InstanceStorageSupported: true,
 		EFASupported:             false,
