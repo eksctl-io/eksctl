@@ -20,6 +20,8 @@ type AutoModeConfig struct {
 	Enabled *bool `json:"enabled,omitempty"`
 	// NodeRoleARN is the node role to use for nodes launched by Auto Mode.
 	NodeRoleARN ARN `json:"nodeRoleARN,omitempty"`
+	// PermissionsBoundaryARN is the permissions boundary to use when creating the Auto Mode node role.
+	PermissionsBoundaryARN ARN `json:"permissionsBoundaryARN,omitempty"`
 	// NodePools is a list of node pools to create.
 	NodePools *[]string `json:"nodePools,omitempty"`
 }
@@ -43,6 +45,12 @@ func ValidateAutoModeConfig(clusterConfig *ClusterConfig) error {
 			if len(*autoModeConfig.NodePools) == 0 && !autoModeConfig.NodeRoleARN.IsZero() {
 				return errors.New("cannot specify autoModeConfig.nodeRoleARN when autoModeConfig.nodePools is empty")
 			}
+			if len(*autoModeConfig.NodePools) == 0 && !autoModeConfig.PermissionsBoundaryARN.IsZero() {
+				return errors.New("cannot specify autoModeConfig.permissionBoundaryARN when autoModeConfig.nodePools is empty")
+			}
+			if !autoModeConfig.NodeRoleARN.IsZero() && !autoModeConfig.PermissionsBoundaryARN.IsZero() {
+				return errors.New("cannot specify autoModeConfig.permissionBoundaryARN when nodeRoleARN is set")
+			}
 			seenNodePools := map[string]struct{}{}
 			for _, np := range *autoModeConfig.NodePools {
 				if _, ok := seenNodePools[np]; ok {
@@ -54,8 +62,8 @@ func ValidateAutoModeConfig(clusterConfig *ClusterConfig) error {
 				seenNodePools[np] = struct{}{}
 			}
 		}
-	} else if !autoModeConfig.NodeRoleARN.IsZero() || autoModeConfig.HasNodePools() {
-		return errors.New("cannot set autoModeConfig.nodeRoleARN or autoModeConfig.nodePools when Auto Mode is disabled")
+	} else if !autoModeConfig.PermissionsBoundaryARN.IsZero() || !autoModeConfig.NodeRoleARN.IsZero() || autoModeConfig.HasNodePools() {
+		return errors.New("cannot set autoModeConfig.nodeRoleARN, autoModeConfig.permissionBoundaryARN,  or autoModeConfig.nodePools when Auto Mode is disabled")
 	}
 	return nil
 }

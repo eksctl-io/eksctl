@@ -338,7 +338,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		cluster.ComputeConfig = computeConfig
 		if cc.NodeRoleARN.IsZero() {
 			if cc.HasNodePools() {
-				autoModeRefs, err := AddAutoModeResources(c.rs.template)
+				autoModeRefs, err := AddAutoModeResources(c.rs.template, cc.PermissionsBoundaryARN.String())
 				if err != nil {
 					return fmt.Errorf("error building cluster compute roles: %w", err)
 				}
