@@ -49,7 +49,7 @@ func ValidateAutoModeConfig(clusterConfig *ClusterConfig) error {
 				return errors.New("cannot specify autoModeConfig.permissionBoundaryARN when autoModeConfig.nodePools is empty")
 			}
 			if !autoModeConfig.NodeRoleARN.IsZero() && !autoModeConfig.PermissionsBoundaryARN.IsZero() {
-				return errors.New("cannot specify autoModeConfig.permissionBoundaryARN when nodeRoleARN is set")
+				return errors.New("cannot specify autoModeConfig.permissionBoundaryARN when autoModeConfig.nodeRoleARN is set")
 			}
 			seenNodePools := map[string]struct{}{}
 			for _, np := range *autoModeConfig.NodePools {
@@ -63,7 +63,7 @@ func ValidateAutoModeConfig(clusterConfig *ClusterConfig) error {
 			}
 		}
 	} else if !autoModeConfig.PermissionsBoundaryARN.IsZero() || !autoModeConfig.NodeRoleARN.IsZero() || autoModeConfig.HasNodePools() {
-		return errors.New("cannot set autoModeConfig.nodeRoleARN, autoModeConfig.permissionBoundaryARN,  or autoModeConfig.nodePools when Auto Mode is disabled")
+		return errors.New("cannot set autoModeConfig.nodeRoleARN, autoModeConfig.permissionBoundaryARN, or autoModeConfig.nodePools when Auto Mode is disabled")
 	}
 	return nil
 }
