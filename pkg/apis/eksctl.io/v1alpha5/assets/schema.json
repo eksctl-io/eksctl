@@ -304,11 +304,17 @@
           "$ref": "#/definitions/ARN",
           "description": "node role to use for nodes launched by Auto Mode.",
           "x-intellij-html-description": "node role to use for nodes launched by Auto Mode."
+        },
+        "permissionsBoundaryARN": {
+          "$ref": "#/definitions/ARN",
+          "description": "permissions boundary to use when creating the Auto Mode node role.",
+          "x-intellij-html-description": "permissions boundary to use when creating the Auto Mode node role."
         }
       },
       "preferredOrder": [
         "enabled",
         "nodeRoleARN",
+        "permissionsBoundaryARN",
         "nodePools"
       ],
       "additionalProperties": false
