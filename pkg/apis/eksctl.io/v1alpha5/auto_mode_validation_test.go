@@ -42,5 +42,20 @@ var _ = DescribeTable("Auto Mode Validation", func(c *api.ClusterConfig, expecte
 			NodeRoleARN: api.MustParseARN("arn:aws:iam::1234:role/CustomNodeRole"),
 			NodePools:   &[]string{api.AutoModeNodePoolGeneralPurpose},
 		},
-	}, "cannot set autoModeConfig.nodeRoleARN or autoModeConfig.nodePools when Auto Mode is disabled"),
+	}, "cannot set autoModeConfig.nodeRoleARN, autoModeConfig.permissionBoundaryARN, or autoModeConfig.nodePools when Auto Mode is disabled"),
+	Entry("permissionsBoundary and nodePools specified when Auto Mode is disabled", &api.ClusterConfig{
+		AutoModeConfig: &api.AutoModeConfig{
+			Enabled:                api.Disabled(),
+			PermissionsBoundaryARN: api.MustParseARN("arn:aws:iam::1234:policy/PermissionsBoundary"),
+			NodePools:              &[]string{api.AutoModeNodePoolGeneralPurpose},
+		},
+	}, "cannot set autoModeConfig.nodeRoleARN, autoModeConfig.permissionBoundaryARN, or autoModeConfig.nodePools when Auto Mode is disabled"),
+	Entry("permissionsBoundary, nodeRoleARN, and nodePools specified", &api.ClusterConfig{
+		AutoModeConfig: &api.AutoModeConfig{
+			Enabled:                api.Enabled(),
+			NodeRoleARN:            api.MustParseARN("arn:aws:iam::1234:role/CustomNodeRole"),
+			PermissionsBoundaryARN: api.MustParseARN("arn:aws:iam::1234:policy/PermissionsBoundary"),
+			NodePools:              &[]string{api.AutoModeNodePoolGeneralPurpose},
+		},
+	}, "cannot specify autoModeConfig.permissionBoundaryARN when autoModeConfig.nodeRoleARN is set"),
 )
