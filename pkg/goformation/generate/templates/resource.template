@@ -6,17 +6,17 @@ import (
 	"fmt"
 	"bytes"
 	{{if .Resource.HasValueProperty}}
-	"github.com/awslabs/goformation/v4/cloudformation/types"{{end}}
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"{{end}}
 	{{if .HasTags}}
-	"github.com/awslabs/goformation/v4/cloudformation/cloudformation"{{end}}
-	"github.com/awslabs/goformation/v4/cloudformation/policies"
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/cloudformation"{{end}}
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/policies"
 )
 {{else}}
 import ({{if .Resource.HasValueProperty}}
-	"github.com/awslabs/goformation/v4/cloudformation/types"{{end}}
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"{{end}}
 	{{if .HasTags}}
-	"github.com/awslabs/goformation/v4/cloudformation/cloudformation"{{end}}
-	"github.com/awslabs/goformation/v4/cloudformation/policies"
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/cloudformation"{{end}}
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/policies"
 )
 {{end}}
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/cloudformation"
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/policies"
 )
 
@@ -14,10 +15,25 @@ import (
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-placementgroup.html
 type PlacementGroup struct {
 
+	// PartitionCount AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-placementgroup.html#cfn-ec2-placementgroup-partitioncount
+	PartitionCount *types.Value `json:"PartitionCount,omitempty"`
+
+	// SpreadLevel AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-placementgroup.html#cfn-ec2-placementgroup-spreadlevel
+	SpreadLevel *types.Value `json:"SpreadLevel,omitempty"`
+
 	// Strategy AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-placementgroup.html#cfn-ec2-placementgroup-strategy
 	Strategy *types.Value `json:"Strategy,omitempty"`
+
+	// Tags AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-placementgroup.html#cfn-ec2-placementgroup-tags
+	Tags []cloudformation.Tag `json:"Tags,omitempty"`
 
 	// AWSCloudFormationDeletionPolicy represents a CloudFormation DeletionPolicy
 	AWSCloudFormationDeletionPolicy policies.DeletionPolicy `json:"-"`

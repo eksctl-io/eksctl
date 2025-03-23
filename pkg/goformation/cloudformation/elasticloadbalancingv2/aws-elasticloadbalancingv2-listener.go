@@ -29,10 +29,20 @@ type Listener struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-listener.html#cfn-elasticloadbalancingv2-listener-defaultactions
 	DefaultActions []Listener_Action `json:"DefaultActions,omitempty"`
 
+	// ListenerAttributes AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-listener.html#cfn-elasticloadbalancingv2-listener-listenerattributes
+	ListenerAttributes []Listener_ListenerAttribute `json:"ListenerAttributes,omitempty"`
+
 	// LoadBalancerArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-listener.html#cfn-elasticloadbalancingv2-listener-loadbalancerarn
 	LoadBalancerArn *types.Value `json:"LoadBalancerArn,omitempty"`
+
+	// MutualAuthentication AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-listener.html#cfn-elasticloadbalancingv2-listener-mutualauthentication
+	MutualAuthentication *Listener_MutualAuthentication `json:"MutualAuthentication,omitempty"`
 
 	// Port AWS CloudFormation Property
 	// Required: false

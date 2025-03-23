@@ -26,9 +26,14 @@ type Rule_RedshiftDataParameters struct {
 	SecretManagerArn *types.Value `json:"SecretManagerArn,omitempty"`
 
 	// Sql AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-events-rule-redshiftdataparameters.html#cfn-events-rule-redshiftdataparameters-sql
 	Sql *types.Value `json:"Sql,omitempty"`
+
+	// Sqls AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-events-rule-redshiftdataparameters.html#cfn-events-rule-redshiftdataparameters-sqls
+	Sqls *types.Value `json:"Sqls,omitempty"`
 
 	// StatementName AWS CloudFormation Property
 	// Required: false

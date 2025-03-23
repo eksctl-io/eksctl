@@ -250,9 +250,15 @@ type SSM interface {
 	//
 	// [Working with shared parameters]: https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-shared-parameters.html
 	DeleteResourcePolicy(ctx context.Context, params *DeleteResourcePolicyInput, optFns ...func(*Options)) (*DeleteResourcePolicyOutput, error)
-	// Removes the server or virtual machine from the list of registered servers. You
-	// can reregister the node again at any time. If you don't plan to use Run Command
-	// on the server, we suggest uninstalling SSM Agent first.
+	// Removes the server or virtual machine from the list of registered servers.
+	//
+	// If you want to reregister an on-premises server, edge device, or VM, you must
+	// use a different Activation Code and Activation ID than used to register the
+	// machine previously. The Activation Code and Activation ID must not have already
+	// been used on the maximum number of activations specified when they were created.
+	// For more information, see [Deregistering managed nodes in a hybrid and multicloud environment]in the Amazon Web Services Systems Manager User Guide.
+	//
+	// [Deregistering managed nodes in a hybrid and multicloud environment]: https://docs.aws.amazon.com/systems-manager/latest/userguide/fleet-manager-deregister-hybrid-nodes.html
 	DeregisterManagedInstance(ctx context.Context, params *DeregisterManagedInstanceInput, optFns ...func(*Options)) (*DeregisterManagedInstanceOutput, error)
 	// Removes a patch group from a patch baseline.
 	DeregisterPatchBaselineForPatchGroup(ctx context.Context, params *DeregisterPatchBaselineForPatchGroupInput, optFns ...func(*Options)) (*DeregisterPatchBaselineForPatchGroupOutput, error)
@@ -732,7 +738,7 @@ type SSM interface {
 	// adds an inventory item, if it doesn't already exist, or updates an inventory
 	// item, if it does exist.
 	PutInventory(ctx context.Context, params *PutInventoryInput, optFns ...func(*Options)) (*PutInventoryOutput, error)
-	// Add a parameter to the system.
+	// Create or update a parameter in Parameter Store.
 	PutParameter(ctx context.Context, params *PutParameterInput, optFns ...func(*Options)) (*PutParameterOutput, error)
 	// Creates or updates a Systems Manager resource policy. A resource policy helps
 	// you to define the IAM entity (for example, an Amazon Web Services account) that

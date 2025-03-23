@@ -9,7 +9,18 @@
                     "sg-test"
                 ],
                 "ServiceName": "com.amazonaws.us-west-2.ec2",
-                "SubnetIds": ["subnet-custom1", "subnet-custom2"],
+                "SubnetIds": [
+                    "subnet-custom1",
+                    "subnet-custom2"
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointEC2"
+                        }
+                    }
+                ],
                 "VpcEndpointType": "Interface",
                 "VpcId": "vpc-custom"
             }
@@ -22,7 +33,18 @@
                     "sg-test"
                 ],
                 "ServiceName": "com.amazonaws.us-west-2.ecr.api",
-                "SubnetIds": ["subnet-custom1", "subnet-custom2"],
+                "SubnetIds": [
+                    "subnet-custom1",
+                    "subnet-custom2"
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointECRAPI"
+                        }
+                    }
+                ],
                 "VpcEndpointType": "Interface",
                 "VpcId": "vpc-custom"
             }
@@ -35,7 +57,18 @@
                     "sg-test"
                 ],
                 "ServiceName": "com.amazonaws.us-west-2.ecr.dkr",
-                "SubnetIds": ["subnet-custom1", "subnet-custom2"],
+                "SubnetIds": [
+                    "subnet-custom1",
+                    "subnet-custom2"
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointECRDKR"
+                        }
+                    }
+                ],
                 "VpcEndpointType": "Interface",
                 "VpcId": "vpc-custom"
             }
@@ -43,8 +76,18 @@
         "VPCEndpointS3": {
             "Type": "AWS::EC2::VPCEndpoint",
             "Properties": {
-                "RouteTableIds": ["rtb-custom-1"],
+                "RouteTableIds": [
+                    "rtb-custom-1"
+                ],
                 "ServiceName": "com.amazonaws.us-west-2.s3",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointS3"
+                        }
+                    }
+                ],
                 "VpcEndpointType": "Gateway",
                 "VpcId": "vpc-custom"
             }
@@ -57,7 +100,18 @@
                     "sg-test"
                 ],
                 "ServiceName": "com.amazonaws.us-west-2.sts",
-                "SubnetIds": ["subnet-custom1", "subnet-custom2"],
+                "SubnetIds": [
+                    "subnet-custom1",
+                    "subnet-custom2"
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPCEndpointSTS"
+                        }
+                    }
+                ],
                 "VpcEndpointType": "Interface",
                 "VpcId": "vpc-custom"
             }

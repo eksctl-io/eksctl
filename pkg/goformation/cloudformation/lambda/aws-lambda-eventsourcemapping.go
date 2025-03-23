@@ -7,12 +7,18 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/cloudformation"
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/policies"
 )
 
 // EventSourceMapping AWS CloudFormation Resource (AWS::Lambda::EventSourceMapping)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html
 type EventSourceMapping struct {
+
+	// AmazonManagedKafkaEventSourceConfig AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-amazonmanagedkafkaeventsourceconfig
+	AmazonManagedKafkaEventSourceConfig *EventSourceMapping_AmazonManagedKafkaEventSourceConfig `json:"AmazonManagedKafkaEventSourceConfig,omitempty"`
 
 	// BatchSize AWS CloudFormation Property
 	// Required: false
@@ -29,6 +35,11 @@ type EventSourceMapping struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-destinationconfig
 	DestinationConfig *EventSourceMapping_DestinationConfig `json:"DestinationConfig,omitempty"`
 
+	// DocumentDBEventSourceConfig AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-documentdbeventsourceconfig
+	DocumentDBEventSourceConfig *EventSourceMapping_DocumentDBEventSourceConfig `json:"DocumentDBEventSourceConfig,omitempty"`
+
 	// Enabled AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-enabled
@@ -42,7 +53,7 @@ type EventSourceMapping struct {
 	// FilterCriteria AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-filtercriteria
-	FilterCriteria interface{} `json:"FilterCriteria,omitempty"`
+	FilterCriteria *EventSourceMapping_FilterCriteria `json:"FilterCriteria,omitempty"`
 
 	// FunctionName AWS CloudFormation Property
 	// Required: true
@@ -53,6 +64,11 @@ type EventSourceMapping struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-functionresponsetypes
 	FunctionResponseTypes *types.Value `json:"FunctionResponseTypes,omitempty"`
+
+	// KmsKeyArn AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-kmskeyarn
+	KmsKeyArn *types.Value `json:"KmsKeyArn,omitempty"`
 
 	// MaximumBatchingWindowInSeconds AWS CloudFormation Property
 	// Required: false
@@ -69,20 +85,40 @@ type EventSourceMapping struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-maximumretryattempts
 	MaximumRetryAttempts *types.Value `json:"MaximumRetryAttempts,omitempty"`
 
+	// MetricsConfig AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-metricsconfig
+	MetricsConfig *EventSourceMapping_MetricsConfig `json:"MetricsConfig,omitempty"`
+
 	// ParallelizationFactor AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-parallelizationfactor
 	ParallelizationFactor *types.Value `json:"ParallelizationFactor,omitempty"`
+
+	// ProvisionedPollerConfig AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-provisionedpollerconfig
+	ProvisionedPollerConfig *EventSourceMapping_ProvisionedPollerConfig `json:"ProvisionedPollerConfig,omitempty"`
 
 	// Queues AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-queues
 	Queues *types.Value `json:"Queues,omitempty"`
 
+	// ScalingConfig AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-scalingconfig
+	ScalingConfig *EventSourceMapping_ScalingConfig `json:"ScalingConfig,omitempty"`
+
 	// SelfManagedEventSource AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-selfmanagedeventsource
 	SelfManagedEventSource *EventSourceMapping_SelfManagedEventSource `json:"SelfManagedEventSource,omitempty"`
+
+	// SelfManagedKafkaEventSourceConfig AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-selfmanagedkafkaeventsourceconfig
+	SelfManagedKafkaEventSourceConfig *EventSourceMapping_SelfManagedKafkaEventSourceConfig `json:"SelfManagedKafkaEventSourceConfig,omitempty"`
 
 	// SourceAccessConfigurations AWS CloudFormation Property
 	// Required: false
@@ -98,6 +134,11 @@ type EventSourceMapping struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-startingpositiontimestamp
 	StartingPositionTimestamp *types.Value `json:"StartingPositionTimestamp,omitempty"`
+
+	// Tags AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-tags
+	Tags []cloudformation.Tag `json:"Tags,omitempty"`
 
 	// Topics AWS CloudFormation Property
 	// Required: false

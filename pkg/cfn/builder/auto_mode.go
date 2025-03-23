@@ -31,12 +31,15 @@ type AutoModeRefs struct {
 	NodeRole *gfnt.Value
 }
 
-func AddAutoModeResources(clusterTemplate *gfn.Template) (AutoModeRefs, error) {
+func AddAutoModeResources(clusterTemplate *gfn.Template, permissionsBoundary api.ARN) (AutoModeRefs, error) {
 	template, err := goformation.ParseYAML(autoModeNodeRoleTemplate)
 	if err != nil {
 		return AutoModeRefs{}, err
 	}
-	for resourceName, resource := range template.Resources {
+	for resourceName, resource := range template.GetAllIAMRoleResources() {
+		if !permissionsBoundary.IsZero() {
+			resource.PermissionsBoundary = gfnt.NewString(permissionsBoundary.String())
+		}
 		clusterTemplate.Resources[resourceName] = resource
 	}
 	for key, output := range template.Outputs {

@@ -973,8 +973,8 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		return err
 	}
 
-	if instanceutils.IsARMGPUInstanceType(SelectInstanceType(ng)) && ng.AMIFamily != NodeImageFamilyBottlerocket {
-		return fmt.Errorf("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily %s", ng.AMIFamily)
+	if err := validateInstanceTypeSupport(ng); err != nil {
+		return err
 	}
 
 	if err := validateInstancesDistribution(ng); err != nil {
@@ -1042,6 +1042,23 @@ func ValidateNodeGroup(i int, ng *NodeGroup, cfg *ClusterConfig) error {
 		}
 	}
 
+	return nil
+}
+
+// validateInstanceTypeSupport checks if the provided instance types are
+// supported by the AMIFamily. If a custom AMI is provided then it will skip the
+// validation, as it could be a derivative of a supported family type.
+func validateInstanceTypeSupport(ng *NodeGroup) error {
+	if IsAMI(ng.AMI) {
+		return nil
+	}
+	if instanceutils.IsARMGPUInstanceType(SelectInstanceType(ng)) {
+		switch ng.AMIFamily {
+		case NodeImageFamilyBottlerocket:
+		default:
+			return fmt.Errorf("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily %s", ng.AMIFamily)
+		}
+	}
 	return nil
 }
 

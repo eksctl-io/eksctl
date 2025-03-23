@@ -3038,6 +3038,17 @@ var InstanceTypes = []InstanceInfo{
 		CPUArch:                  "arm64",
 	},
 	{
+		InstanceType:             "i8g.48xlarge",
+		InstanceStorageSupported: true,
+		EFASupported:             true,
+		NvidiaGPUSupported:       false,
+		NvidiaGPUType:            "",
+		NeuronSupported:          false,
+		NeuronDeviceType:         "",
+		CBRSupported:             false,
+		CPUArch:                  "arm64",
+	},
+	{
 		InstanceType:             "i8g.4xlarge",
 		InstanceStorageSupported: true,
 		EFASupported:             false,
@@ -7583,7 +7594,7 @@ var InstanceTypes = []InstanceInfo{
 	{
 		InstanceType:             "u7i-6tb.112xlarge",
 		InstanceStorageSupported: false,
-		EFASupported:             false,
+		EFASupported:             true,
 		NvidiaGPUSupported:       false,
 		NvidiaGPUType:            "",
 		NeuronSupported:          false,
@@ -7594,7 +7605,7 @@ var InstanceTypes = []InstanceInfo{
 	{
 		InstanceType:             "u7i-8tb.112xlarge",
 		InstanceStorageSupported: false,
-		EFASupported:             false,
+		EFASupported:             true,
 		NvidiaGPUSupported:       false,
 		NvidiaGPUType:            "",
 		NeuronSupported:          false,

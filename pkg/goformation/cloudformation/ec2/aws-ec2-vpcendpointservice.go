@@ -7,6 +7,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
+	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/cloudformation"
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/policies"
 )
 
@@ -19,6 +20,11 @@ type VPCEndpointService struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpointservice.html#cfn-ec2-vpcendpointservice-acceptancerequired
 	AcceptanceRequired *types.Value `json:"AcceptanceRequired,omitempty"`
 
+	// ContributorInsightsEnabled AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpointservice.html#cfn-ec2-vpcendpointservice-contributorinsightsenabled
+	ContributorInsightsEnabled *types.Value `json:"ContributorInsightsEnabled,omitempty"`
+
 	// GatewayLoadBalancerArns AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpointservice.html#cfn-ec2-vpcendpointservice-gatewayloadbalancerarns
@@ -28,6 +34,16 @@ type VPCEndpointService struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpointservice.html#cfn-ec2-vpcendpointservice-networkloadbalancerarns
 	NetworkLoadBalancerArns *types.Value `json:"NetworkLoadBalancerArns,omitempty"`
+
+	// PayerResponsibility AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpointservice.html#cfn-ec2-vpcendpointservice-payerresponsibility
+	PayerResponsibility *types.Value `json:"PayerResponsibility,omitempty"`
+
+	// Tags AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpointservice.html#cfn-ec2-vpcendpointservice-tags
+	Tags []cloudformation.Tag `json:"Tags,omitempty"`
 
 	// AWSCloudFormationDeletionPolicy represents a CloudFormation DeletionPolicy
 	AWSCloudFormationDeletionPolicy policies.DeletionPolicy `json:"-"`

@@ -100,7 +100,11 @@ func unmarshallResource(name string, raw_json *json.RawMessage) (Resource, error
 	if strings.HasPrefix(rtype.Type, "Custom::") {
 		resourceStruct = &CustomResource{Type: rtype.Type}
 	} else {
-		resourceStruct = AllResources()[rtype.Type]
+		var exists bool
+		resourceStruct, exists = AllResources()[rtype.Type]
+		if !exists {
+			return nil, fmt.Errorf("resource type %v not found", rtype.Type)
+		}
 	}
 
 	err = json.Unmarshal(*raw_json, resourceStruct)

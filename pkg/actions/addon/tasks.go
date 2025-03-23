@@ -18,7 +18,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, forceAll bool, timeout time.Duration, region string) (*tasks.TaskTree, *tasks.TaskTree, *tasks.GenericTask, []string) {
+func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, iamRoleCreator IAMRoleCreator, podIdentityIAMUpdater PodIdentityIAMUpdater, forceAll bool, timeout time.Duration, region string) (*tasks.TaskTree, *tasks.TaskTree, *tasks.GenericTask, []string) {
 	var addons []*api.Addon
 	var autoDefaultAddonNames []string
 	if !cfg.AddonsConfig.DisableDefaultAddons {
@@ -97,7 +97,7 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 				if err := addonManager.waitForAddonToBeActive(ctx, &api.Addon{Name: api.VPCCNIAddon}, api.DefaultWaitTimeout); err != nil {
 					return fmt.Errorf("waiting for %q to become active: %w", api.VPCCNIAddon, err)
 				}
-				return addonManager.Update(ctx, vpcCNIAddon, nil, clusterProvider.AWSProvider.WaitTimeout())
+				return addonManager.Update(ctx, vpcCNIAddon, podIdentityIAMUpdater, clusterProvider.AWSProvider.WaitTimeout())
 			},
 		}
 	}

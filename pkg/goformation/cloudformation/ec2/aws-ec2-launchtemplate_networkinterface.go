@@ -20,6 +20,11 @@ type LaunchTemplate_NetworkInterface struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-associatepublicipaddress
 	AssociatePublicIpAddress *types.Value `json:"AssociatePublicIpAddress,omitempty"`
 
+	// ConnectionTrackingSpecification AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-connectiontrackingspecification
+	ConnectionTrackingSpecification *LaunchTemplate_ConnectionTrackingSpecification `json:"ConnectionTrackingSpecification,omitempty"`
+
 	// DeleteOnTermination AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-deleteontermination
@@ -35,6 +40,11 @@ type LaunchTemplate_NetworkInterface struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-deviceindex
 	DeviceIndex *types.Value `json:"DeviceIndex,omitempty"`
 
+	// EnaSrdSpecification AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-enasrdspecification
+	EnaSrdSpecification *LaunchTemplate_EnaSrdSpecification `json:"EnaSrdSpecification,omitempty"`
+
 	// Groups AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-groups
@@ -44,6 +54,16 @@ type LaunchTemplate_NetworkInterface struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-interfacetype
 	InterfaceType *types.Value `json:"InterfaceType,omitempty"`
+
+	// Ipv4PrefixCount AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-ipv4prefixcount
+	Ipv4PrefixCount *types.Value `json:"Ipv4PrefixCount,omitempty"`
+
+	// Ipv4Prefixes AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-ipv4prefixes
+	Ipv4Prefixes []LaunchTemplate_Ipv4PrefixSpecification `json:"Ipv4Prefixes,omitempty"`
 
 	// Ipv6AddressCount AWS CloudFormation Property
 	// Required: false
@@ -55,6 +75,16 @@ type LaunchTemplate_NetworkInterface struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-ipv6addresses
 	Ipv6Addresses []LaunchTemplate_Ipv6Add `json:"Ipv6Addresses,omitempty"`
 
+	// Ipv6PrefixCount AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-ipv6prefixcount
+	Ipv6PrefixCount *types.Value `json:"Ipv6PrefixCount,omitempty"`
+
+	// Ipv6Prefixes AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-ipv6prefixes
+	Ipv6Prefixes []LaunchTemplate_Ipv6PrefixSpecification `json:"Ipv6Prefixes,omitempty"`
+
 	// NetworkCardIndex AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-networkcardindex
@@ -64,6 +94,11 @@ type LaunchTemplate_NetworkInterface struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-networkinterfaceid
 	NetworkInterfaceId *types.Value `json:"NetworkInterfaceId,omitempty"`
+
+	// PrimaryIpv6 AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html#cfn-ec2-launchtemplate-networkinterface-primaryipv6
+	PrimaryIpv6 *types.Value `json:"PrimaryIpv6,omitempty"`
 
 	// PrivateIpAddress AWS CloudFormation Property
 	// Required: false

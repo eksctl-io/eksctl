@@ -15,6 +15,11 @@ type NetworkInsightsAnalysis_PathComponent struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-pathcomponent.html#cfn-ec2-networkinsightsanalysis-pathcomponent-aclrule
 	AclRule *NetworkInsightsAnalysis_AnalysisAclRule `json:"AclRule,omitempty"`
 
+	// AdditionalDetails AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-pathcomponent.html#cfn-ec2-networkinsightsanalysis-pathcomponent-additionaldetails
+	AdditionalDetails []NetworkInsightsAnalysis_AdditionalDetail `json:"AdditionalDetails,omitempty"`
+
 	// Component AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-pathcomponent.html#cfn-ec2-networkinsightsanalysis-pathcomponent-component
@@ -24,6 +29,16 @@ type NetworkInsightsAnalysis_PathComponent struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-pathcomponent.html#cfn-ec2-networkinsightsanalysis-pathcomponent-destinationvpc
 	DestinationVpc *NetworkInsightsAnalysis_AnalysisComponent `json:"DestinationVpc,omitempty"`
+
+	// ElasticLoadBalancerListener AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-pathcomponent.html#cfn-ec2-networkinsightsanalysis-pathcomponent-elasticloadbalancerlistener
+	ElasticLoadBalancerListener *NetworkInsightsAnalysis_AnalysisComponent `json:"ElasticLoadBalancerListener,omitempty"`
+
+	// Explanations AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-pathcomponent.html#cfn-ec2-networkinsightsanalysis-pathcomponent-explanations
+	Explanations []NetworkInsightsAnalysis_Explanation `json:"Explanations,omitempty"`
 
 	// InboundHeader AWS CloudFormation Property
 	// Required: false
@@ -50,6 +65,11 @@ type NetworkInsightsAnalysis_PathComponent struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-pathcomponent.html#cfn-ec2-networkinsightsanalysis-pathcomponent-sequencenumber
 	SequenceNumber *types.Value `json:"SequenceNumber,omitempty"`
 
+	// ServiceName AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-pathcomponent.html#cfn-ec2-networkinsightsanalysis-pathcomponent-servicename
+	ServiceName *types.Value `json:"ServiceName,omitempty"`
+
 	// SourceVpc AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-pathcomponent.html#cfn-ec2-networkinsightsanalysis-pathcomponent-sourcevpc
@@ -59,6 +79,16 @@ type NetworkInsightsAnalysis_PathComponent struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-pathcomponent.html#cfn-ec2-networkinsightsanalysis-pathcomponent-subnet
 	Subnet *NetworkInsightsAnalysis_AnalysisComponent `json:"Subnet,omitempty"`
+
+	// TransitGateway AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-pathcomponent.html#cfn-ec2-networkinsightsanalysis-pathcomponent-transitgateway
+	TransitGateway *NetworkInsightsAnalysis_AnalysisComponent `json:"TransitGateway,omitempty"`
+
+	// TransitGatewayRouteTableRoute AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinsightsanalysis-pathcomponent.html#cfn-ec2-networkinsightsanalysis-pathcomponent-transitgatewayroutetableroute
+	TransitGatewayRouteTableRoute *NetworkInsightsAnalysis_TransitGatewayRouteTableRoute `json:"TransitGatewayRouteTableRoute,omitempty"`
 
 	// Vpc AWS CloudFormation Property
 	// Required: false

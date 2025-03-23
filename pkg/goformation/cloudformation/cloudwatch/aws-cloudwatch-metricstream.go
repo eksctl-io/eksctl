@@ -30,6 +30,11 @@ type MetricStream struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudwatch-metricstream.html#cfn-cloudwatch-metricstream-includefilters
 	IncludeFilters []MetricStream_MetricStreamFilter `json:"IncludeFilters,omitempty"`
 
+	// IncludeLinkedAccountsMetrics AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudwatch-metricstream.html#cfn-cloudwatch-metricstream-includelinkedaccountsmetrics
+	IncludeLinkedAccountsMetrics *types.Value `json:"IncludeLinkedAccountsMetrics,omitempty"`
+
 	// Name AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudwatch-metricstream.html#cfn-cloudwatch-metricstream-name
@@ -44,6 +49,11 @@ type MetricStream struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudwatch-metricstream.html#cfn-cloudwatch-metricstream-rolearn
 	RoleArn *types.Value `json:"RoleArn,omitempty"`
+
+	// StatisticsConfigurations AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudwatch-metricstream.html#cfn-cloudwatch-metricstream-statisticsconfigurations
+	StatisticsConfigurations []MetricStream_MetricStreamStatisticsConfiguration `json:"StatisticsConfigurations,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false

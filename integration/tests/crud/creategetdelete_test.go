@@ -500,54 +500,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		})
 	})
 
-	Context("configuring K8s API", Serial, Ordered, func() {
-		var (
-			k8sAPICall func() error
-		)
-
-		BeforeAll(func() {
-			cfg := makeClusterConfig()
-
-			ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = ctl.RefreshClusterStatus(context.Background(), cfg)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			clientSet, err := ctl.NewStdClientSet(cfg)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			k8sAPICall = func() error {
-				_, err = clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).List(context.TODO(), metav1.ListOptions{})
-				return err
-			}
-		})
-
-		It("should have public access by default", func() {
-			Expect(k8sAPICall()).ShouldNot(HaveOccurred())
-		})
-
-		It("should disable public access", func() {
-			Expect(params.EksctlUtilsCmd.WithArgs(
-				"set-public-access-cidrs",
-				"--cluster", params.ClusterName,
-				"1.1.1.1/32,2.2.2.0/24",
-				"--approve",
-			)).To(RunSuccessfully())
-			Eventually(k8sAPICall, "5m", "20s").Should(HaveOccurred())
-		})
-
-		It("should re-enable public access", func() {
-			Expect(params.EksctlUtilsCmd.WithArgs(
-				"set-public-access-cidrs",
-				"--cluster", params.ClusterName,
-				"0.0.0.0/0",
-				"--approve",
-			)).To(RunSuccessfully())
-			Expect(k8sAPICall()).ShouldNot(HaveOccurred())
-		})
-	})
-
 	Context("configuring Cloudwatch logging", Serial, Ordered, func() {
 		var (
 			cfg *api.ClusterConfig

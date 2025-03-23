@@ -25,7 +25,7 @@ type HostedZone struct {
 	HostedZoneTags []HostedZone_HostedZoneTag `json:"HostedZoneTags,omitempty"`
 
 	// Name AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-route53-hostedzone.html#cfn-route53-hostedzone-name
 	Name *types.Value `json:"Name,omitempty"`
 

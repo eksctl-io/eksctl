@@ -20,7 +20,7 @@ type TransitGatewayRoute struct {
 	Blackhole *types.Value `json:"Blackhole,omitempty"`
 
 	// DestinationCidrBlock AWS CloudFormation Property
-	// Required: false
+	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-transitgatewayroute.html#cfn-ec2-transitgatewayroute-destinationcidrblock
 	DestinationCidrBlock *types.Value `json:"DestinationCidrBlock,omitempty"`
 

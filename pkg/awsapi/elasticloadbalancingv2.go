@@ -274,6 +274,8 @@ type ELBV2 interface {
 	// When modifying capacity reservation, you must include at least one
 	// MinimumLoadBalancerCapacity or ResetCapacityReservation .
 	ModifyCapacityReservation(ctx context.Context, params *ModifyCapacityReservationInput, optFns ...func(*Options)) (*ModifyCapacityReservationOutput, error)
+	// [Application Load Balancers] Modify the IP pool associated to a load balancer.
+	ModifyIpPools(ctx context.Context, params *ModifyIpPoolsInput, optFns ...func(*Options)) (*ModifyIpPoolsOutput, error)
 	// Replaces the specified properties of the specified listener. Any properties
 	// that you do not specify remain unchanged.
 	//

@@ -15,10 +15,20 @@ import (
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipam.html
 type IPAM struct {
 
+	// DefaultResourceDiscoveryOrganizationalUnitExclusions AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipam.html#cfn-ec2-ipam-defaultresourcediscoveryorganizationalunitexclusions
+	DefaultResourceDiscoveryOrganizationalUnitExclusions []IPAM_IpamOrganizationalUnitExclusion `json:"DefaultResourceDiscoveryOrganizationalUnitExclusions,omitempty"`
+
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipam.html#cfn-ec2-ipam-description
 	Description *types.Value `json:"Description,omitempty"`
+
+	// EnablePrivateGua AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipam.html#cfn-ec2-ipam-enableprivategua
+	EnablePrivateGua *types.Value `json:"EnablePrivateGua,omitempty"`
 
 	// OperatingRegions AWS CloudFormation Property
 	// Required: false
@@ -29,6 +39,11 @@ type IPAM struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipam.html#cfn-ec2-ipam-tags
 	Tags []cloudformation.Tag `json:"Tags,omitempty"`
+
+	// Tier AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-ipam.html#cfn-ec2-ipam-tier
+	Tier *types.Value `json:"Tier,omitempty"`
 
 	// AWSCloudFormationDeletionPolicy represents a CloudFormation DeletionPolicy
 	AWSCloudFormationDeletionPolicy policies.DeletionPolicy `json:"-"`

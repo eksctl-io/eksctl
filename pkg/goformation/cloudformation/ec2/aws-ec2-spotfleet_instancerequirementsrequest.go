@@ -35,6 +35,11 @@ type SpotFleet_InstanceRequirementsRequest struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-instancerequirementsrequest.html#cfn-ec2-spotfleet-instancerequirementsrequest-acceleratortypes
 	AcceleratorTypes *types.Value `json:"AcceleratorTypes,omitempty"`
 
+	// AllowedInstanceTypes AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-instancerequirementsrequest.html#cfn-ec2-spotfleet-instancerequirementsrequest-allowedinstancetypes
+	AllowedInstanceTypes *types.Value `json:"AllowedInstanceTypes,omitempty"`
+
 	// BareMetal AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-instancerequirementsrequest.html#cfn-ec2-spotfleet-instancerequirementsrequest-baremetal
@@ -44,6 +49,11 @@ type SpotFleet_InstanceRequirementsRequest struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-instancerequirementsrequest.html#cfn-ec2-spotfleet-instancerequirementsrequest-baselineebsbandwidthmbps
 	BaselineEbsBandwidthMbps *SpotFleet_BaselineEbsBandwidthMbpsRequest `json:"BaselineEbsBandwidthMbps,omitempty"`
+
+	// BaselinePerformanceFactors AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-instancerequirementsrequest.html#cfn-ec2-spotfleet-instancerequirementsrequest-baselineperformancefactors
+	BaselinePerformanceFactors *SpotFleet_BaselinePerformanceFactorsRequest `json:"BaselinePerformanceFactors,omitempty"`
 
 	// BurstablePerformance AWS CloudFormation Property
 	// Required: false
@@ -75,6 +85,11 @@ type SpotFleet_InstanceRequirementsRequest struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-instancerequirementsrequest.html#cfn-ec2-spotfleet-instancerequirementsrequest-localstoragetypes
 	LocalStorageTypes *types.Value `json:"LocalStorageTypes,omitempty"`
 
+	// MaxSpotPriceAsPercentageOfOptimalOnDemandPrice AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-instancerequirementsrequest.html#cfn-ec2-spotfleet-instancerequirementsrequest-maxspotpriceaspercentageofoptimalondemandprice
+	MaxSpotPriceAsPercentageOfOptimalOnDemandPrice *types.Value `json:"MaxSpotPriceAsPercentageOfOptimalOnDemandPrice,omitempty"`
+
 	// MemoryGiBPerVCpu AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-instancerequirementsrequest.html#cfn-ec2-spotfleet-instancerequirementsrequest-memorygibpervcpu
@@ -84,6 +99,11 @@ type SpotFleet_InstanceRequirementsRequest struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-instancerequirementsrequest.html#cfn-ec2-spotfleet-instancerequirementsrequest-memorymib
 	MemoryMiB *SpotFleet_MemoryMiBRequest `json:"MemoryMiB,omitempty"`
+
+	// NetworkBandwidthGbps AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-instancerequirementsrequest.html#cfn-ec2-spotfleet-instancerequirementsrequest-networkbandwidthgbps
+	NetworkBandwidthGbps *SpotFleet_NetworkBandwidthGbpsRequest `json:"NetworkBandwidthGbps,omitempty"`
 
 	// NetworkInterfaceCount AWS CloudFormation Property
 	// Required: false

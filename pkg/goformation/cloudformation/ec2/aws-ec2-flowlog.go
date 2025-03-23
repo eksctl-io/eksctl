@@ -15,10 +15,20 @@ import (
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-flowlog.html
 type FlowLog struct {
 
+	// DeliverCrossAccountRole AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-flowlog.html#cfn-ec2-flowlog-delivercrossaccountrole
+	DeliverCrossAccountRole *types.Value `json:"DeliverCrossAccountRole,omitempty"`
+
 	// DeliverLogsPermissionArn AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-flowlog.html#cfn-ec2-flowlog-deliverlogspermissionarn
 	DeliverLogsPermissionArn *types.Value `json:"DeliverLogsPermissionArn,omitempty"`
+
+	// DestinationOptions AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-flowlog.html#cfn-ec2-flowlog-destinationoptions
+	DestinationOptions *FlowLog_DestinationOptions `json:"DestinationOptions,omitempty"`
 
 	// LogDestination AWS CloudFormation Property
 	// Required: false
@@ -61,7 +71,7 @@ type FlowLog struct {
 	Tags []cloudformation.Tag `json:"Tags,omitempty"`
 
 	// TrafficType AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-flowlog.html#cfn-ec2-flowlog-traffictype
 	TrafficType *types.Value `json:"TrafficType,omitempty"`
 

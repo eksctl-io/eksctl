@@ -29,6 +29,11 @@ type ClientVpnEndpoint struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-clientvpnendpoint.html#cfn-ec2-clientvpnendpoint-clientconnectoptions
 	ClientConnectOptions *ClientVpnEndpoint_ClientConnectOptions `json:"ClientConnectOptions,omitempty"`
 
+	// ClientLoginBannerOptions AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-clientvpnendpoint.html#cfn-ec2-clientvpnendpoint-clientloginbanneroptions
+	ClientLoginBannerOptions *ClientVpnEndpoint_ClientLoginBannerOptions `json:"ClientLoginBannerOptions,omitempty"`
+
 	// ConnectionLogOptions AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-clientvpnendpoint.html#cfn-ec2-clientvpnendpoint-connectionlogoptions
@@ -38,6 +43,11 @@ type ClientVpnEndpoint struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-clientvpnendpoint.html#cfn-ec2-clientvpnendpoint-description
 	Description *types.Value `json:"Description,omitempty"`
+
+	// DisconnectOnSessionTimeout AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-clientvpnendpoint.html#cfn-ec2-clientvpnendpoint-disconnectonsessiontimeout
+	DisconnectOnSessionTimeout *types.Value `json:"DisconnectOnSessionTimeout,omitempty"`
 
 	// DnsServers AWS CloudFormation Property
 	// Required: false
@@ -58,6 +68,11 @@ type ClientVpnEndpoint struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-clientvpnendpoint.html#cfn-ec2-clientvpnendpoint-servercertificatearn
 	ServerCertificateArn *types.Value `json:"ServerCertificateArn,omitempty"`
+
+	// SessionTimeoutHours AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-clientvpnendpoint.html#cfn-ec2-clientvpnendpoint-sessiontimeouthours
+	SessionTimeoutHours *types.Value `json:"SessionTimeoutHours,omitempty"`
 
 	// SplitTunnel AWS CloudFormation Property
 	// Required: false

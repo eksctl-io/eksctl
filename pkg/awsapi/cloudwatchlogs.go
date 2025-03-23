@@ -501,8 +501,14 @@ type CloudWatchLogs interface {
 	// [StartQuery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartQuery.html
 	DisassociateKmsKey(ctx context.Context, params *DisassociateKmsKeyInput, optFns ...func(*Options)) (*DisassociateKmsKeyOutput, error)
 	// Lists log events from the specified log group. You can list all the log events
-	// or filter the results using a filter pattern, a time range, and the name of the
-	// log stream.
+	// or filter the results using one or more of the following:
+	//
+	//   - A filter pattern
+	//
+	//   - A time range
+	//
+	//   - The log stream name, or a log stream name prefix that matches mutltiple log
+	//     streams
 	//
 	// You must have the logs:FilterLogEvents permission to perform this operation.
 	//
@@ -510,12 +516,23 @@ type CloudWatchLogs interface {
 	// logGroupName . You must include one of these two parameters, but you can't
 	// include both.
 	//
-	// By default, this operation returns as many log events as can fit in 1 MB (up to
-	// 10,000 log events) or all the events found within the specified time range. If
-	// the results include a token, that means there are more log events available. You
-	// can get additional results by specifying the token in a subsequent call. This
-	// operation can return empty results while there are more log events available
-	// through the token.
+	// FilterLogEvents is a paginated operation. Each page returned can contain up to
+	// 1 MB of log events or up to 10,000 log events. A returned page might only be
+	// partially full, or even empty. For example, if the result of a query would
+	// return 15,000 log events, the first page isn't guaranteed to have 10,000 log
+	// events even if they all fit into 1 MB.
+	//
+	// Partially full or empty pages don't necessarily mean that pagination is
+	// finished. If the results include a nextToken , there might be more log events
+	// available. You can return these additional log events by providing the nextToken
+	// in a subsequent FilterLogEvents operation. If the results don't include a
+	// nextToken , then pagination is finished.
+	//
+	// If you set startFromHead to true and you don’t include endTime in your request,
+	// you can end up in a situation where the pagination doesn't terminate. This can
+	// happen when the new log events are being added to the target log streams faster
+	// than they are being read. This situation is a good use case for the CloudWatch
+	// Logs [Live Tail]feature.
 	//
 	// The returned log events are sorted by event timestamp, the timestamp when the
 	// event was ingested by CloudWatch Logs, and the ID of the PutLogEvents request.
@@ -524,7 +541,14 @@ type CloudWatchLogs interface {
 	// operation in a monitoring account and view data from the linked source accounts.
 	// For more information, see [CloudWatch cross-account observability].
 	//
+	// If you are using [log transformation], the FilterLogEvents operation returns only the original
+	// versions of log events, before they were transformed. To view the transformed
+	// versions, you must use a [CloudWatch Logs query.]
+	//
+	// [log transformation]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch-Logs-Transformation.html
 	// [CloudWatch cross-account observability]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html
+	// [CloudWatch Logs query.]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html
+	// [Live Tail]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs_LiveTail.html
 	FilterLogEvents(ctx context.Context, params *FilterLogEventsInput, optFns ...func(*Options)) (*FilterLogEventsOutput, error)
 	// Returns information about a log group data protection policy.
 	GetDataProtectionPolicy(ctx context.Context, params *GetDataProtectionPolicyInput, optFns ...func(*Options)) (*GetDataProtectionPolicyOutput, error)
@@ -557,15 +581,29 @@ type CloudWatchLogs interface {
 	// Returns information about one integration between CloudWatch Logs and
 	// OpenSearch Service.
 	GetIntegration(ctx context.Context, params *GetIntegrationInput, optFns ...func(*Options)) (*GetIntegrationOutput, error)
-	// Retrieves information about the log anomaly detector that you specify.
+	// Retrieves information about the log anomaly detector that you specify. The KMS
+	// key ARN detected is valid.
 	GetLogAnomalyDetector(ctx context.Context, params *GetLogAnomalyDetectorInput, optFns ...func(*Options)) (*GetLogAnomalyDetectorOutput, error)
 	// Lists log events from the specified log stream. You can list all of the log
 	// events or filter using a time range.
 	//
-	// By default, this operation returns as many log events as can fit in a response
-	// size of 1MB (up to 10,000 log events). You can get additional log events by
-	// specifying one of the tokens in a subsequent call. This operation can return
-	// empty results while there are more log events available through the token.
+	// GetLogEvents is a paginated operation. Each page returned can contain up to 1
+	// MB of log events or up to 10,000 log events. A returned page might only be
+	// partially full, or even empty. For example, if the result of a query would
+	// return 15,000 log events, the first page isn't guaranteed to have 10,000 log
+	// events even if they all fit into 1 MB.
+	//
+	// Partially full or empty pages don't necessarily mean that pagination is
+	// finished. As long as the nextBackwardToken or nextForwardToken returned is NOT
+	// equal to the nextToken that you passed into the API call, there might be more
+	// log events available. The token that you use depends on the direction you want
+	// to move in along the log stream. The returned tokens are never null.
+	//
+	// If you set startFromHead to true and you don’t include endTime in your request,
+	// you can end up in a situation where the pagination doesn't terminate. This can
+	// happen when the new log events are being added to the target log streams faster
+	// than they are being read. This situation is a good use case for the CloudWatch
+	// Logs [Live Tail]feature.
 	//
 	// If you are using CloudWatch cross-account observability, you can use this
 	// operation in a monitoring account and view data from the linked source accounts.
@@ -575,7 +613,14 @@ type CloudWatchLogs interface {
 	// logGroupName . You must include one of these two parameters, but you can't
 	// include both.
 	//
+	// If you are using [log transformation], the GetLogEvents operation returns only the original
+	// versions of log events, before they were transformed. To view the transformed
+	// versions, you must use a [CloudWatch Logs query.]
+	//
+	// [log transformation]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch-Logs-Transformation.html
 	// [CloudWatch cross-account observability]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html
+	// [CloudWatch Logs query.]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html
+	// [Live Tail]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs_LiveTail.html
 	GetLogEvents(ctx context.Context, params *GetLogEventsInput, optFns ...func(*Options)) (*GetLogEventsOutput, error)
 	// Returns a list of the fields that are included in log events in the specified
 	// log group. Includes the percentage of log events that contain each field. The

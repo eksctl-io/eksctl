@@ -15,6 +15,16 @@ import (
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-loadbalancer.html
 type LoadBalancer struct {
 
+	// EnablePrefixForIpv6SourceNat AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-loadbalancer.html#cfn-elasticloadbalancingv2-loadbalancer-enableprefixforipv6sourcenat
+	EnablePrefixForIpv6SourceNat *types.Value `json:"EnablePrefixForIpv6SourceNat,omitempty"`
+
+	// EnforceSecurityGroupInboundRulesOnPrivateLinkTraffic AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-loadbalancer.html#cfn-elasticloadbalancingv2-loadbalancer-enforcesecuritygroupinboundrulesonprivatelinktraffic
+	EnforceSecurityGroupInboundRulesOnPrivateLinkTraffic *types.Value `json:"EnforceSecurityGroupInboundRulesOnPrivateLinkTraffic,omitempty"`
+
 	// IpAddressType AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-loadbalancer.html#cfn-elasticloadbalancingv2-loadbalancer-ipaddresstype
@@ -24,6 +34,11 @@ type LoadBalancer struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-loadbalancer.html#cfn-elasticloadbalancingv2-loadbalancer-loadbalancerattributes
 	LoadBalancerAttributes []LoadBalancer_LoadBalancerAttribute `json:"LoadBalancerAttributes,omitempty"`
+
+	// MinimumLoadBalancerCapacity AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-loadbalancer.html#cfn-elasticloadbalancingv2-loadbalancer-minimumloadbalancercapacity
+	MinimumLoadBalancerCapacity *LoadBalancer_MinimumLoadBalancerCapacity `json:"MinimumLoadBalancerCapacity,omitempty"`
 
 	// Name AWS CloudFormation Property
 	// Required: false

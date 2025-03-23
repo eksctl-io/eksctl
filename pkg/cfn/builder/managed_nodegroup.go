@@ -48,6 +48,14 @@ func NewManagedNodeGroup(ec2API awsapi.EC2, cluster *api.ClusterConfig, nodeGrou
 	}
 }
 
+func convertToTypesValueMap(input map[string]string) map[string]*gfnt.Value {
+	output := make(map[string]*gfnt.Value)
+	for k, v := range input {
+		output[k] = gfnt.NewString(v)
+	}
+	return output
+}
+
 // AddAllResources adds all required CloudFormation resources
 func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error {
 	m.resourceSet.template.Description = fmt.Sprintf(
@@ -101,8 +109,8 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 		ScalingConfig: &scalingConfig,
 		Subnets:       subnets,
 		NodeRole:      nodeRole,
-		Labels:        m.nodeGroup.Labels,
-		Tags:          m.nodeGroup.Tags,
+		Labels:        convertToTypesValueMap(m.nodeGroup.Labels),
+		Tags:          convertToTypesValueMap(m.nodeGroup.Tags),
 		Taints:        taints,
 	}
 
@@ -212,7 +220,11 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 	}
 
 	managedResource.LaunchTemplate = launchTemplate
-	m.newResource(ManagedNodeGroupResourceName, managedResource)
+	if m.clusterConfig.IsCustomEksEndpoint() {
+		m.newResource(ManagedNodeGroupResourceName, addBetaManagedNodeGroupResources(managedResource, m.clusterConfig.Metadata.Name))
+	} else {
+		m.newResource(ManagedNodeGroupResourceName, managedResource)
+	}
 	return nil
 }
 

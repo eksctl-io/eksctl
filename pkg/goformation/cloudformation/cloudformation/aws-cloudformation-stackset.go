@@ -47,7 +47,7 @@ type StackSet struct {
 	// ManagedExecution AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudformation-stackset.html#cfn-cloudformation-stackset-managedexecution
-	ManagedExecution interface{} `json:"ManagedExecution,omitempty"`
+	ManagedExecution *StackSet_ManagedExecution `json:"ManagedExecution,omitempty"`
 
 	// OperationPreferences AWS CloudFormation Property
 	// Required: false

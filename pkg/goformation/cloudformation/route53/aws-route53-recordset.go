@@ -19,6 +19,11 @@ type RecordSet struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-aliastarget
 	AliasTarget *RecordSet_AliasTarget `json:"AliasTarget,omitempty"`
 
+	// CidrRoutingConfig AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-cidrroutingconfig
+	CidrRoutingConfig *RecordSet_CidrRoutingConfig `json:"CidrRoutingConfig,omitempty"`
+
 	// Comment AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-comment
@@ -33,6 +38,11 @@ type RecordSet struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-geolocation
 	GeoLocation *RecordSet_GeoLocation `json:"GeoLocation,omitempty"`
+
+	// GeoProximityLocation AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-geoproximitylocation
+	GeoProximityLocation *RecordSet_GeoProximityLocation `json:"GeoProximityLocation,omitempty"`
 
 	// HealthCheckId AWS CloudFormation Property
 	// Required: false

@@ -26,7 +26,7 @@ type ListenerRule_AuthenticateOidcConfig struct {
 	ClientId *types.Value `json:"ClientId,omitempty"`
 
 	// ClientSecret AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticloadbalancingv2-listenerrule-authenticateoidcconfig.html#cfn-elasticloadbalancingv2-listenerrule-authenticateoidcconfig-clientsecret
 	ClientSecret *types.Value `json:"ClientSecret,omitempty"`
 

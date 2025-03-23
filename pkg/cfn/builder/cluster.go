@@ -29,10 +29,11 @@ type ClusterResourceSet struct {
 	region         string
 	vpcResourceSet VPCResourceSet
 	securityGroups *gfnt.Value
+	stsAPI         awsapi.STS
 }
 
 // NewClusterResourceSet returns a resource set for the new cluster.
-func NewClusterResourceSet(ec2API awsapi.EC2, region string, spec *api.ClusterConfig, existingStack *gjson.Result, extendForOutposts bool) *ClusterResourceSet {
+func NewClusterResourceSet(ec2API awsapi.EC2, stsAPI awsapi.STS, region string, spec *api.ClusterConfig, existingStack *gjson.Result, extendForOutposts bool) *ClusterResourceSet {
 	var usesExistingVPC bool
 	if existingStack != nil {
 		unsetExistingResources(existingStack, spec)
@@ -59,6 +60,7 @@ func NewClusterResourceSet(ec2API awsapi.EC2, region string, spec *api.ClusterCo
 		rs:             rs,
 		spec:           spec,
 		ec2API:         ec2API,
+		stsAPI:         stsAPI,
 		region:         region,
 		vpcResourceSet: vpcResourceSet,
 	}
@@ -336,7 +338,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		cluster.ComputeConfig = computeConfig
 		if cc.NodeRoleARN.IsZero() {
 			if cc.HasNodePools() {
-				autoModeRefs, err := AddAutoModeResources(c.rs.template)
+				autoModeRefs, err := AddAutoModeResources(c.rs.template, cc.PermissionsBoundaryARN)
 				if err != nil {
 					return fmt.Errorf("error building cluster compute roles: %w", err)
 				}
@@ -390,7 +392,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 	}
 	cluster.KubernetesNetworkConfig = kubernetesNetworkConfig
 	if c.spec.ZonalShiftConfig != nil && api.IsEnabled(c.spec.ZonalShiftConfig.Enabled) {
-		cluster.ZonalShiftConfig = &gfneks.Cluster_ZonalShift{
+		cluster.ZonalShiftConfig = &gfneks.Cluster_ZonalShiftConfig{
 			Enabled: gfnt.NewBoolean(true),
 		}
 	}
@@ -398,18 +400,25 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 	if c.spec.HasRemoteNetworkingConfigured() {
 		cluster.RemoteNetworkConfig = &gfneks.Cluster_RemoteNetworkConfig{}
 		for _, remoteNetwork := range c.spec.RemoteNetworkConfig.RemotePodNetworks {
-			cluster.RemoteNetworkConfig.RemotePodNetworks = append(cluster.RemoteNetworkConfig.RemotePodNetworks, gfneks.RemoteNetworks{
-				CIDRs: gfnt.NewStringSlice(remoteNetwork.CIDRs...),
+			cluster.RemoteNetworkConfig.RemotePodNetworks = append(cluster.RemoteNetworkConfig.RemotePodNetworks, gfneks.Cluster_RemotePodNetwork{
+				Cidrs: gfnt.NewStringSlice(remoteNetwork.CIDRs...),
 			})
 		}
 		for _, remoteNetwork := range c.spec.RemoteNetworkConfig.RemoteNodeNetworks {
-			cluster.RemoteNetworkConfig.RemoteNodeNetworks = append(cluster.RemoteNetworkConfig.RemoteNodeNetworks, gfneks.RemoteNetworks{
-				CIDRs: gfnt.NewStringSlice(remoteNetwork.CIDRs...),
+			cluster.RemoteNetworkConfig.RemoteNodeNetworks = append(cluster.RemoteNetworkConfig.RemoteNodeNetworks, gfneks.Cluster_RemoteNodeNetwork{
+				Cidrs: gfnt.NewStringSlice(remoteNetwork.CIDRs...),
 			})
 		}
 	}
 
-	c.newResource("ControlPlane", &cluster)
+	if c.spec.IsCustomEksEndpoint() {
+		err := addBetaResources(c.stsAPI, c.spec.Metadata.Name, c.rs.template, &cluster)
+		if err != nil {
+			return fmt.Errorf("unable to add beta resources: %w", err)
+		}
+	} else {
+		c.newResource("ControlPlane", &cluster)
+	}
 
 	if c.spec.Status == nil {
 		c.spec.Status = &api.ClusterStatus{}

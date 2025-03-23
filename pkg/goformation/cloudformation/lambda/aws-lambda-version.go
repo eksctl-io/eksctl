@@ -34,6 +34,11 @@ type Version struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-version.html#cfn-lambda-version-provisionedconcurrencyconfig
 	ProvisionedConcurrencyConfig *Version_ProvisionedConcurrencyConfiguration `json:"ProvisionedConcurrencyConfig,omitempty"`
 
+	// RuntimePolicy AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-version.html#cfn-lambda-version-runtimepolicy
+	RuntimePolicy *Version_RuntimePolicy `json:"RuntimePolicy,omitempty"`
+
 	// AWSCloudFormationDeletionPolicy represents a CloudFormation DeletionPolicy
 	AWSCloudFormationDeletionPolicy policies.DeletionPolicy `json:"-"`
 

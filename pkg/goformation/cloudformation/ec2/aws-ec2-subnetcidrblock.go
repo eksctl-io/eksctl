@@ -15,9 +15,19 @@ import (
 type SubnetCidrBlock struct {
 
 	// Ipv6CidrBlock AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnetcidrblock.html#cfn-ec2-subnetcidrblock-ipv6cidrblock
 	Ipv6CidrBlock *types.Value `json:"Ipv6CidrBlock,omitempty"`
+
+	// Ipv6IpamPoolId AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnetcidrblock.html#cfn-ec2-subnetcidrblock-ipv6ipampoolid
+	Ipv6IpamPoolId *types.Value `json:"Ipv6IpamPoolId,omitempty"`
+
+	// Ipv6NetmaskLength AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnetcidrblock.html#cfn-ec2-subnetcidrblock-ipv6netmasklength
+	Ipv6NetmaskLength *types.Value `json:"Ipv6NetmaskLength,omitempty"`
 
 	// SubnetId AWS CloudFormation Property
 	// Required: true

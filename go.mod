@@ -9,23 +9,23 @@ require (
 	github.com/Masterminds/semver/v3 v3.3.1
 	github.com/aws/amazon-ec2-instance-selector/v3 v3.1.1-0.20250224180552-36eea73b44c2
 	github.com/aws/aws-sdk-go v1.55.6
-	github.com/aws/aws-sdk-go-v2 v1.36.2
-	github.com/aws/aws-sdk-go-v2/config v1.29.7
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.60
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.51.13
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.57.1
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.47.5
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.45.14
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.49.4
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.203.1
-	github.com/aws/aws-sdk-go-v2/service/eks v1.58.1
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.28.18
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.43.13
-	github.com/aws/aws-sdk-go-v2/service/iam v1.39.2
-	github.com/aws/aws-sdk-go-v2/service/kms v1.36.2
-	github.com/aws/aws-sdk-go-v2/service/outposts v1.48.8
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.56.13
-	github.com/aws/aws-sdk-go-v2/service/sts v1.33.15
+	github.com/aws/aws-sdk-go-v2 v1.36.3
+	github.com/aws/aws-sdk-go-v2/config v1.29.9
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.62
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.52.1
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.58.1
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.48.2
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.47.1
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.51.3
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.210.1
+	github.com/aws/aws-sdk-go-v2/service/eks v1.60.1
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.29.1
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.45.0
+	github.com/aws/aws-sdk-go-v2/service/iam v1.40.2
+	github.com/aws/aws-sdk-go-v2/service/kms v1.38.1
+	github.com/aws/aws-sdk-go-v2/service/outposts v1.49.1
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.57.2
+	github.com/aws/aws-sdk-go-v2/service/sts v1.33.17
 	github.com/aws/smithy-go v1.22.3
 	github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20250219002025-c3b5cd3d2fd9
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
@@ -70,8 +70,8 @@ require (
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xgfone/go-netaddr v0.6.0
-	golang.org/x/crypto v0.33.0
-	golang.org/x/oauth2 v0.26.0
+	golang.org/x/crypto v0.35.0
+	golang.org/x/oauth2 v0.27.0
 	golang.org/x/sync v0.11.0
 	golang.org/x/text v0.22.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -80,9 +80,9 @@ require (
 	k8s.io/apiextensions-apiserver v0.32.2
 	k8s.io/apimachinery v0.32.2
 	k8s.io/cli-runtime v0.32.2
-	k8s.io/client-go v1.5.2
+	k8s.io/client-go v0.32.2
 	k8s.io/cloud-provider v0.32.2
-	k8s.io/code-generator v0.32.1
+	k8s.io/code-generator v0.32.2
 	k8s.io/kops v1.31.0
 	k8s.io/kubelet v0.32.2
 	k8s.io/utils v0.0.0-20241210054802-24370beab758
@@ -129,22 +129,22 @@ require (
 	github.com/ashanbrown/makezero v1.2.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.10 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.29 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.33 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.33 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.30 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.34 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.34 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.33 // indirect
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.36.12 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.6.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.14 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.15 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.18.14 // indirect
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.32.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.48.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.77.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.37.15 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.24.16 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.15 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.25.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.29.1 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.3 // indirect
@@ -168,7 +168,7 @@ require (
 	github.com/chigopher/pathlib v0.19.1 // indirect
 	github.com/ckaznocha/intrange v0.3.0 // indirect
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be // indirect
-	github.com/containerd/containerd v1.7.25 // indirect
+	github.com/containerd/containerd v1.7.27 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect
@@ -219,7 +219,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/go-xmlfmt/xmlfmt v1.1.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golangci/dupl v0.0.0-20180902072040-3e9179ac440a // indirect
 	github.com/golangci/go-printf-func-name v0.1.0 // indirect
@@ -415,7 +415,7 @@ require (
 	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa // indirect
 	golang.org/x/exp/typeparams v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/term v0.29.0 // indirect
 	golang.org/x/time v0.10.0 // indirect
@@ -449,32 +449,32 @@ require (
 
 replace (
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
-	k8s.io/api => k8s.io/api v0.32.1
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.32.1
-	k8s.io/apimachinery => k8s.io/apimachinery v0.32.1
-	k8s.io/apiserver => k8s.io/apiserver v0.32.1
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.32.1
-	k8s.io/client-go => k8s.io/client-go v0.32.1
-	k8s.io/cloud-provider => k8s.io/cloud-provider v0.32.1
-	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.32.1
-	k8s.io/code-generator => k8s.io/code-generator v0.32.1
-	k8s.io/component-base => k8s.io/component-base v0.32.1
-	k8s.io/component-helpers => k8s.io/component-helpers v0.32.1
-	k8s.io/controller-manager => k8s.io/controller-manager v0.32.1
-	k8s.io/cri-api => k8s.io/cri-api v0.32.1
-	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.32.1
-	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.32.1
-	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.32.1
-	k8s.io/kube-proxy => k8s.io/kube-proxy v0.32.1
-	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.32.1
-	k8s.io/kubectl => k8s.io/kubectl v0.32.1
-	k8s.io/kubelet => k8s.io/kubelet v0.32.1
-	k8s.io/kubernetes => k8s.io/kubernetes v1.32.1
-	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.32.1
-	k8s.io/metrics => k8s.io/metrics v0.32.1
-	k8s.io/mount-utils => k8s.io/mount-utils v0.32.1
-	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.32.1
-	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.32.1
-	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.32.1
-	k8s.io/sample-controller => k8s.io/sample-controller v0.32.1
+	k8s.io/api => k8s.io/api v0.32.2
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.32.2
+	k8s.io/apimachinery => k8s.io/apimachinery v0.32.2
+	k8s.io/apiserver => k8s.io/apiserver v0.32.2
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.32.2
+	k8s.io/client-go => k8s.io/client-go v0.32.2
+	k8s.io/cloud-provider => k8s.io/cloud-provider v0.32.2
+	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrapv v0.32.2
+	k8s.io/code-generator => k8s.io/code-generator v0.32.2
+	k8s.io/component-base => k8s.io/component-base v0.32.2
+	k8s.io/component-helpers => k8s.io/component-helpers v0.32.2
+	k8s.io/controller-manager => k8s.io/controller-manager v0.32.2
+	k8s.io/cri-api => k8s.io/cri-api v0.32.2
+	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.32.2
+	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.32.2
+	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.32.2
+	k8s.io/kube-proxy => k8s.io/kube-proxy v0.32.2
+	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.32.2
+	k8s.io/kubectl => k8s.io/kubectl v0.32.2
+	k8s.io/kubelet => k8s.io/kubelet v0.32.2
+	k8s.io/kubernetes => k8s.io/kubernetes v1.32.2
+	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.32.2
+	k8s.io/metrics => k8s.io/metrics v0.32.2
+	k8s.io/mount-utils => k8s.io/mount-utils v0.32.2
+	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.32.2
+	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.32.2
+	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.32.2
+	k8s.io/sample-controller => k8s.io/sample-controller v0.32.2
 )

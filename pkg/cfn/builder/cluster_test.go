@@ -45,7 +45,7 @@ var _ = Describe("Cluster Template Builder", func() {
 	})
 
 	JustBeforeEach(func() {
-		crs = builder.NewClusterResourceSet(provider.EC2(), provider.Region(), cfg, existingStack, false)
+		crs = builder.NewClusterResourceSet(provider.EC2(), provider.STS(), provider.Region(), cfg, existingStack, false)
 	})
 
 	Describe("AddAllResources", func() {
