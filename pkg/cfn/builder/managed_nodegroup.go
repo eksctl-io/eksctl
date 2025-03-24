@@ -307,17 +307,19 @@ func validateLaunchTemplate(launchTemplateData *ec2types.ResponseLaunchTemplateD
 
 func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes {
 	amiTypeMapping := map[string]struct {
-		X86x64    ekstypes.AMITypes
-		X86Nvidia ekstypes.AMITypes
-		X86Neuron ekstypes.AMITypes
-		ARM       ekstypes.AMITypes
-		ARMGPU    ekstypes.AMITypes
+		X86x64      ekstypes.AMITypes
+		X86Nvidia   ekstypes.AMITypes
+		X86Neuron   ekstypes.AMITypes
+		ARM         ekstypes.AMITypes
+		ARM64Nvidia ekstypes.AMITypes
+		ARM64Neuron ekstypes.AMITypes
 	}{
 		api.NodeImageFamilyAmazonLinux2023: {
-			X86x64:    ekstypes.AMITypesAl2023X8664Standard,
-			X86Nvidia: ekstypes.AMITypesAl2023X8664Nvidia,
-			X86Neuron: ekstypes.AMITypesAl2023X8664Neuron,
-			ARM:       ekstypes.AMITypesAl2023Arm64Standard,
+			X86x64:      ekstypes.AMITypesAl2023X8664Standard,
+			X86Nvidia:   ekstypes.AMITypesAl2023X8664Nvidia,
+			X86Neuron:   ekstypes.AMITypesAl2023X8664Neuron,
+			ARM:         ekstypes.AMITypesAl2023Arm64Standard,
+			ARM64Nvidia: ekstypes.AMITypesAl2023Arm64Nvidia,
 		},
 		api.NodeImageFamilyAmazonLinux2: {
 			X86x64:    ekstypes.AMITypesAl2X8664,
@@ -326,11 +328,10 @@ func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes
 			ARM:       ekstypes.AMITypesAl2Arm64,
 		},
 		api.NodeImageFamilyBottlerocket: {
-			X86x64:    ekstypes.AMITypesBottlerocketX8664,
-			X86Nvidia: ekstypes.AMITypesBottlerocketX8664Nvidia,
-			X86Neuron: ekstypes.AMITypesBottlerocketX8664,
-			ARM:       ekstypes.AMITypesBottlerocketArm64,
-			ARMGPU:    ekstypes.AMITypesBottlerocketArm64Nvidia,
+			X86x64:      ekstypes.AMITypesBottlerocketX8664,
+			X86Nvidia:   ekstypes.AMITypesBottlerocketX8664Nvidia,
+			ARM:         ekstypes.AMITypesBottlerocketArm64,
+			ARM64Nvidia: ekstypes.AMITypesBottlerocketArm64Nvidia,
 		},
 		api.NodeImageFamilyWindowsServer2019FullContainer: {
 			X86x64:    ekstypes.AMITypesWindowsFull2019X8664,
@@ -355,17 +356,29 @@ func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes
 		return ekstypes.AMITypesCustom
 	}
 
-	switch {
-	case instanceutils.IsARMGPUInstanceType(instanceType):
-		return amiType.ARMGPU
-	case instanceutils.IsARMInstanceType(instanceType):
-		return amiType.ARM
-	case instanceutils.IsNvidiaInstanceType(instanceType):
-		return amiType.X86Nvidia
-	case instanceutils.IsNeuronInstanceType(instanceType):
-		return amiType.X86Neuron
-	default:
-		return amiType.X86x64
+	// NOTE: currently this logic is designed to return the most appropriate
+	// amiType given it will run on the instance. this means the architecture
+	// must match, but is flexible when deciding the optimal amiType based on
+	// specific accelerators. In the case that an instance has no specialized
+	// amiType matching its accelerator, it will fall back to general variant.
+	if instanceutils.IsARMInstanceType(instanceType) {
+		switch {
+		case instanceutils.IsNvidiaInstanceType(instanceType) && amiType.ARM64Nvidia != "":
+			return amiType.ARM64Nvidia
+		case instanceutils.IsNeuronInstanceType(instanceType) && amiType.ARM64Neuron != "":
+			return amiType.ARM64Neuron
+		default:
+			return amiType.ARM
+		}
+	} else {
+		switch {
+		case instanceutils.IsNvidiaInstanceType(instanceType) && amiType.X86Nvidia != "":
+			return amiType.X86Nvidia
+		case instanceutils.IsNeuronInstanceType(instanceType) && amiType.X86Neuron != "":
+			return amiType.X86Neuron
+		default:
+			return amiType.X86x64
+		}
 	}
 }
 

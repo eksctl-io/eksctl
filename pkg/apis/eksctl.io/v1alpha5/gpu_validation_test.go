@@ -244,16 +244,11 @@ var _ = Describe("GPU instance support", func() {
 		amiFamily := api.NodeImageFamilyAmazonLinux2023
 		instanceType := "g5g.2xlarge"
 
-		ngFail := api.NewNodeGroup()
-		ngFail.AMIFamily = amiFamily
-		ngFail.InstanceType = instanceType
-
 		ngPass := api.NewNodeGroup()
 		ngPass.AMIFamily = amiFamily
 		ngPass.InstanceType = instanceType
 		ngPass.AMI = "ami-xxxx"
 
-		Expect(api.ValidateNodeGroup(0, ngFail, api.NewClusterConfig())).To(HaveOccurred())
 		Expect(api.ValidateNodeGroup(0, ngPass, api.NewClusterConfig())).NotTo(HaveOccurred())
 	})
 
@@ -269,7 +264,7 @@ var _ = Describe("GPU instance support", func() {
 		}
 	},
 		Entry("AmazonLinux2", api.NodeImageFamilyAmazonLinux2, true),
-		Entry("AmazonLinux2023", api.NodeImageFamilyAmazonLinux2023, true),
+		Entry("AmazonLinux2023", api.NodeImageFamilyAmazonLinux2023, false),
 		Entry("Ubuntu2004", api.NodeImageFamilyUbuntu2004, true),
 		Entry("Windows2019Full", api.NodeImageFamilyWindowsServer2019FullContainer, true),
 		Entry("Windows2019Core", api.NodeImageFamilyWindowsServer2019CoreContainer, true),

@@ -115,6 +115,8 @@ func MakeManagedSSMParameterName(version string, amiType ekstypes.AMITypes) stri
 		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/x86_64/neuron/recommended/release_version", version, utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2023))
 	case ekstypes.AMITypesAl2023Arm64Standard:
 		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/arm64/standard/recommended/release_version", version, utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2023))
+	case ekstypes.AMITypesAl2023Arm64Nvidia:
+		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/arm64/nvidia/recommended/release_version", version, utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2023))
 	case ekstypes.AMITypesAl2X8664:
 		return makeAL2ParameterName("")
 	case ekstypes.AMITypesAl2X8664Gpu:
