@@ -146,7 +146,6 @@ linters:
         - ineffassign
         - misspell
         - staticcheck
-        - typecheck
         - unused
         # TODO: enable the below linter in the future
 #    - maligned
