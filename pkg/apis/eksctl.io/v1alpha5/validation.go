@@ -1080,12 +1080,9 @@ func validateInstanceTypeSupport(ng *NodeGroup) error {
 		return nil
 	}
 	instanceType := SelectInstanceType(ng)
-	if instanceutils.IsARMInstanceType(instanceType) && instanceutils.IsNvidiaInstanceType(instanceType) {
-		switch ng.AMIFamily {
-		case NodeImageFamilyBottlerocket, NodeImageFamilyAmazonLinux2023:
-		default:
-			return fmt.Errorf("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily %s", ng.AMIFamily)
-		}
+	amiType := GetAMIType(ng.AMIFamily, instanceType, true /* strict, don't allows fallbacks */)
+	if amiType == "" {
+		return fmt.Errorf("%s instance types are not supported for unmanaged nodegroups with AMIFamily %s", instanceType, ng.AMIFamily)
 	}
 	return nil
 }

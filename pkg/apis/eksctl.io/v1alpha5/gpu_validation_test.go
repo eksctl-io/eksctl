@@ -51,6 +51,10 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
 			gpuInstanceType: "g4dn.xlarge",
 		}),
+		Entry("AL2023 ARM NVIDIA", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType: "g5g.2xlarge",
+		}),
 		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "asdf",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
@@ -96,7 +100,6 @@ var _ = Describe("GPU instance support", func() {
 		ng.InstanceType = e.gpuInstanceType
 		ng.AMIFamily = e.amiFamily
 		assertValidationError(e, api.ValidateNodeGroup(0, ng, api.NewClusterConfig()))
-
 	},
 		Entry("AL2023 INF", gpuInstanceEntry{
 			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
@@ -109,6 +112,10 @@ var _ = Describe("GPU instance support", func() {
 		Entry("AL2023 NVIDIA", gpuInstanceEntry{
 			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
 			gpuInstanceType: "g4dn.xlarge",
+		}),
+		Entry("AL2023 ARM NVIDIA", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType: "g5g.2xlarge",
 		}),
 		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "g4dn.xlarge",
@@ -258,14 +265,14 @@ var _ = Describe("GPU instance support", func() {
 		ng.AMIFamily = amiFamily
 		err := api.ValidateNodeGroup(0, ng, api.NewClusterConfig())
 		if expectErr {
-			Expect(err).To(MatchError(fmt.Sprintf("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily %s", amiFamily)))
+			Expect(err).To(MatchError(fmt.Sprintf("%s instance types are not supported for unmanaged nodegroups with AMIFamily %s", ng.InstanceType, amiFamily)))
 		} else {
 			Expect(err).NotTo(HaveOccurred())
 		}
 	},
 		Entry("AmazonLinux2", api.NodeImageFamilyAmazonLinux2, true),
 		Entry("AmazonLinux2023", api.NodeImageFamilyAmazonLinux2023, false),
-		Entry("Ubuntu2004", api.NodeImageFamilyUbuntu2004, true),
+		Entry("Ubuntu2004", api.NodeImageFamilyUbuntu2004, false),
 		Entry("Windows2019Full", api.NodeImageFamilyWindowsServer2019FullContainer, true),
 		Entry("Windows2019Core", api.NodeImageFamilyWindowsServer2019CoreContainer, true),
 		Entry("Bottlerocket", api.NodeImageFamilyBottlerocket, false),
