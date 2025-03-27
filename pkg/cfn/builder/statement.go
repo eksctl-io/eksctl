@@ -39,6 +39,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				"ec2:DescribeTags",
 				"ec2:GetCoipPoolUsage",
 				"ec2:DescribeCoipPools",
+				"ec2:GetSecurityGroupsForVpc",
 				"ec2:DescribeIpamPools",
 				"elasticloadbalancing:DescribeLoadBalancers",
 				"elasticloadbalancing:DescribeLoadBalancerAttributes",
@@ -51,6 +52,8 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				"elasticloadbalancing:DescribeTargetGroupAttributes",
 				"elasticloadbalancing:DescribeTargetHealth",
 				"elasticloadbalancing:DescribeTags",
+				"elasticloadbalancing:DescribeTrustStores",
+				"elasticloadbalancing:DescribeListenerAttributes",
 				"elasticloadbalancing:DescribeCapacityReservation",
 			},
 			"Resource": resourceAll,
@@ -193,7 +196,6 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 		{
 			"Effect": effectAllow,
 			"Action": []string{
-				"elasticloadbalancing:ModifyListenerAttributes",
 				"elasticloadbalancing:ModifyLoadBalancerAttributes",
 				"elasticloadbalancing:SetIpAddressType",
 				"elasticloadbalancing:SetSecurityGroups",
@@ -202,6 +204,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				"elasticloadbalancing:ModifyTargetGroup",
 				"elasticloadbalancing:ModifyTargetGroupAttributes",
 				"elasticloadbalancing:DeleteTargetGroup",
+				"elasticloadbalancing:ModifyListenerAttributes",
 				"elasticloadbalancing:ModifyCapacityReservation",
 				"elasticloadbalancing:ModifyIpPools",
 			},
