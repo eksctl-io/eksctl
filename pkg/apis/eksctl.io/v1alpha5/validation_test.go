@@ -2197,6 +2197,10 @@ var _ = Describe("ClusterConfig validation", func() {
 			err = api.ValidateManagedNodeGroup(0, mng)
 			Expect(err).NotTo(HaveOccurred())
 
+			mng.AMIFamily = api.NodeImageFamilyUbuntuPro2004
+			err = api.ValidateManagedNodeGroup(0, mng)
+			Expect(err).NotTo(HaveOccurred())
+
 			mng.AMIFamily = api.NodeImageFamilyUbuntu2204
 			err = api.ValidateManagedNodeGroup(0, mng)
 			Expect(err).NotTo(HaveOccurred())
