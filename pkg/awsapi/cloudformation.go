@@ -512,10 +512,10 @@ type CloudFormation interface {
 	//     all stack sets with service-managed permissions in the management account.
 	ListStackSets(ctx context.Context, params *ListStackSetsInput, optFns ...func(*Options)) (*ListStackSetsOutput, error)
 	// Returns the summary information for stacks whose status matches the specified
-	// StackStatusFilter. Summary information for stacks that have been deleted is kept
-	// for 90 days after the stack is deleted. If no StackStatusFilter is specified,
-	// summary information for all stacks is returned (including existing stacks and
-	// stacks that have been deleted).
+	// StackStatusFilter . Summary information for stacks that have been deleted is
+	// kept for 90 days after the stack is deleted. If no StackStatusFilter is
+	// specified, summary information for all stacks is returned (including existing
+	// stacks and stacks that have been deleted).
 	ListStacks(ctx context.Context, params *ListStacksInput, optFns ...func(*Options)) (*ListStacksOutput, error)
 	// Returns a list of registration tokens for the specified extension(s).
 	ListTypeRegistrations(ctx context.Context, params *ListTypeRegistrationsInput, optFns ...func(*Options)) (*ListTypeRegistrationsOutput, error)
@@ -703,7 +703,7 @@ type CloudFormation interface {
 	// [CreateStackInstances]: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStackInstances.html
 	// [UpdateStackSet]: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_UpdateStackSet.html
 	UpdateStackInstances(ctx context.Context, params *UpdateStackInstancesInput, optFns ...func(*Options)) (*UpdateStackInstancesOutput, error)
-	// Updates the stack set, and associated stack instances in the specified accounts
+	// Updates the stack set and associated stack instances in the specified accounts
 	// and Amazon Web Services Regions.
 	//
 	// Even if the stack set operation created by updating the stack set fails

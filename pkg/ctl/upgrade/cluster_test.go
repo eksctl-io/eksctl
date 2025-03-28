@@ -42,6 +42,12 @@ var _ = Describe("upgrade cluster", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
+		It("should accept the --force flag", func() {
+			cmd := newMockUpgradeClusterCmd("cluster", "--name", "clus-1", "--region", "eu-north-1", "--version", "1.16", "--force")
+			_, err := cmd.Execute()
+			Expect(err).NotTo(HaveOccurred())
+		})
+
 		It("accepts --approve flag", func() {
 			cmd := newMockUpgradeClusterCmd("cluster", "--name", "clus-1", "--approve")
 			_, err := cmd.Execute()
@@ -98,6 +104,13 @@ var _ = Describe("upgrade cluster", func() {
 			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockUpgradeClusterCmd("cluster", "-f", configFile)
+			_, err := cmd.Execute()
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("accepts --force flag with the config file", func() {
+			configFile = ctltest.CreateConfigFile(cfg)
+			cmd := newMockUpgradeClusterCmd("cluster", "--config-file", configFile, "--force")
 			_, err := cmd.Execute()
 			Expect(err).NotTo(HaveOccurred())
 		})
