@@ -715,7 +715,9 @@ var _ = Describe("AMI Auto Resolution", func() {
 			for _, amiType := range eksAMIType.Values() {
 				if amiType == ekstypes.AMITypesCustom || strings.HasPrefix(string(amiType), "WINDOWS_") ||
 					// TODO: remove this condition after adding support for AL2023 Nvidia and Neuron AMI types.
-					amiType == ekstypes.AMITypesAl2023X8664Nvidia || amiType == ekstypes.AMITypesAl2023X8664Neuron {
+					amiType == ekstypes.AMITypesAl2023X8664Nvidia || amiType == ekstypes.AMITypesAl2023X8664Neuron ||
+					// TODO: remove this condition after support for Bottlerocket FIPS AMI types.
+					amiType == ekstypes.AMITypesBottlerocketArm64Fips || amiType == ekstypes.AMITypesBottlerocketX8664Fips {
 					continue
 				}
 				ssmParameterName := MakeManagedSSMParameterName(api.Version1_31, amiType)
