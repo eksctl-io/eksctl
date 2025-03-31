@@ -65,6 +65,7 @@ Resources:
                   - sts:*
                 Resource:
                   - arn:aws:iam::*:role/*NodeInstanceRole*
+                  - arn:aws:iam::*:role/*AutoModeNodeRole*
                   - arn:aws:iam::*:role/*MasterInstanceRole*
                   - arn:aws:iam::*:role/*ServiceRole*
                   - arn:aws:iam::*:role/aws-service-role/eks*
