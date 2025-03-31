@@ -1181,6 +1181,72 @@ var _ = Describe("ClusterConfig validation", func() {
 					})
 				})
 
+				When("ipFamily is set to IPV6, OIDC is disabled", func() {
+					JustBeforeEach(func() {
+						cfg.VPC.NAT = nil
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Disabled(),
+						}
+						cfg.Addons = append(cfg.Addons, &api.Addon{Name: api.KubeProxyAddon}, &api.Addon{Name: api.CoreDNSAddon})
+					})
+					When("Pod identity addon is missing", func() {
+						It("returns an error", func() {
+							cfg.Addons = append(cfg.Addons, &api.Addon{Name: api.VPCCNIAddon})
+							err = api.ValidateClusterConfig(cfg)
+							Expect(err).To(MatchError(ContainSubstring("either pod identity or oidc needs to be enabled if IPv6 is set; set either one or use EKS Auto Mode")))
+
+						})
+					})
+
+					When("Pod identity addon is present", func() {
+						JustBeforeEach(func() {
+							cfg.Addons = append(cfg.Addons,
+								&api.Addon{Name: api.PodIdentityAgentAddon})
+						})
+
+						When("Use default pod identity associations is set", func() {
+							It("accepts the setting", func() {
+								cfg.Addons = append(cfg.Addons, &api.Addon{Name: api.VPCCNIAddon})
+								cfg.AddonsConfig.AutoApplyPodIdentityAssociations = true
+
+								err = api.ValidateClusterConfig(cfg)
+								Expect(err).ToNot(HaveOccurred())
+							})
+						})
+
+						When("Use default pod identity association is set on the vpc-cni addon", func() {
+							It("accepts the setting", func() {
+								cfg.Addons = append(cfg.Addons, &api.Addon{Name: api.VPCCNIAddon, UseDefaultPodIdentityAssociations: true})
+
+								err = api.ValidateClusterConfig(cfg)
+								Expect(err).ToNot(HaveOccurred())
+							})
+						})
+
+						When("The vpc-cni addon has a pod identity association configured", func() {
+							It("accepts the setting", func() {
+								cfg.Addons = append(cfg.Addons, &api.Addon{Name: api.VPCCNIAddon,
+									PodIdentityAssociations: &[]api.PodIdentityAssociation{{
+										Namespace:          "test-namespace",
+										ServiceAccountName: "fakeserviceaccount",
+										RoleARN:            "fakerolearn",
+									}}})
+
+								err = api.ValidateClusterConfig(cfg)
+								Expect(err).ToNot(HaveOccurred())
+							})
+						})
+
+						When("The vpc-cni addon is missing a pod identity configuration", func() {
+							It("returns an error", func() {
+								cfg.Addons = append(cfg.Addons, &api.Addon{Name: api.VPCCNIAddon})
+								err = api.ValidateClusterConfig(cfg)
+								Expect(err).To(MatchError(ContainSubstring("Set one of: addonsConfig.autoApplyPodIdentityAssociations, useDefaultPodIdentityAssociations on the vpc-cni addon, apply a custom pod identity on the vpc-cni addon")))
+							})
+						})
+					})
+				})
+
 				When("ipFamily is set to IPv6, no managed addons are provided, but auto-mode is used", func() {
 					It("accepts the setting", func() {
 						cfg.VPC.NAT = nil
