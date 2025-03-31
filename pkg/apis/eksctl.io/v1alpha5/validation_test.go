@@ -1194,7 +1194,6 @@ var _ = Describe("ClusterConfig validation", func() {
 							cfg.Addons = append(cfg.Addons, &api.Addon{Name: api.VPCCNIAddon})
 							err = api.ValidateClusterConfig(cfg)
 							Expect(err).To(MatchError(ContainSubstring("either pod identity or oidc needs to be enabled if IPv6 is set; set either one or use EKS Auto Mode")))
-
 						})
 					})
 

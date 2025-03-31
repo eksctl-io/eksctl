@@ -609,7 +609,6 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 				return fmt.Errorf("the default core addons must be defined for IPv6; missing addon(s): %s; either define them or use EKS Auto Mode", strings.Join(missing, ", "))
 			}
 			if len(c.addonContainsManagedAddons([]string{PodIdentityAgentAddon})) != 0 && (c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC)) {
-
 				return fmt.Errorf("either pod identity or oidc needs to be enabled if IPv6 is set; set either one or use EKS Auto Mode")
 			}
 
