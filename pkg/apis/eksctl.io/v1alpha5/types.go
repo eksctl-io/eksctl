@@ -647,6 +647,9 @@ type ClusterMeta struct {
 	// Version use `./eksctl utils describe-cluster-versions` to get the list of supported versions
 	// +optional
 	Version string `json:"version,omitempty"`
+	// When updating cluster version, provide the force flag to override upgrade-blocking insights
+	// +optional
+	ForceUpdateVersion *bool `json:"forceUpdateVersion,omitempty"`
 	// Tags are used to tag AWS resources created by eksctl
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`

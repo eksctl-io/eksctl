@@ -805,6 +805,11 @@
           "x-intellij-html-description": "arbitrary metadata ignored by <code>eksctl</code>.",
           "default": "{}"
         },
+        "forceUpdateVersion": {
+          "type": "boolean",
+          "description": "When updating cluster version, provide the force flag to override upgrade-blocking insights",
+          "x-intellij-html-description": "When updating cluster version, provide the force flag to override upgrade-blocking insights"
+        },
         "name": {
           "type": "string",
           "description": "of the cluster",
@@ -834,6 +839,7 @@
         "name",
         "region",
         "version",
+        "forceUpdateVersion",
         "tags",
         "annotations"
       ],

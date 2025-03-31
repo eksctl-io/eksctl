@@ -233,6 +233,9 @@ func (c *ClusterProvider) UpdateClusterVersion(ctx context.Context, cfg *api.Clu
 		Name:    &cfg.Metadata.Name,
 		Version: &cfg.Metadata.Version,
 	}
+	if cfg.Metadata.ForceUpdateVersion != nil {
+		input.Force = *cfg.Metadata.ForceUpdateVersion
+	}
 	output, err := c.AWSProvider.EKS().UpdateClusterVersion(ctx, input)
 	if err != nil {
 		return nil, err
