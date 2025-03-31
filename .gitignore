@@ -47,3 +47,6 @@ logs/*
 
 # Ignore social cards cache
 userdocs/.cache/*
+
+# Visual Studio Code
+.vscode/
