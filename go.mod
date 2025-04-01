@@ -4,7 +4,6 @@
 module github.com/weaveworks/eksctl
 
 go 1.24.0
-
 require (
 	github.com/Masterminds/semver/v3 v3.3.1
 	github.com/aws/amazon-ec2-instance-selector/v3 v3.1.1-0.20250224180552-36eea73b44c2
@@ -72,8 +71,8 @@ require (
 	github.com/xgfone/go-netaddr v0.6.0
 	golang.org/x/crypto v0.35.0
 	golang.org/x/oauth2 v0.27.0
-	golang.org/x/sync v0.11.0
-	golang.org/x/text v0.22.0
+	golang.org/x/sync v0.12.0
+	golang.org/x/text v0.23.0
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.17.1
 	k8s.io/api v0.32.2
