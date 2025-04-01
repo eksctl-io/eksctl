@@ -4,7 +4,6 @@
 module github.com/weaveworks/eksctl
 
 go 1.24.0
-
 require (
 	github.com/Masterminds/semver/v3 v3.3.1
 	github.com/aws/amazon-ec2-instance-selector/v3 v3.1.1-0.20250224180552-36eea73b44c2
@@ -66,7 +65,7 @@ require (
 	github.com/tidwall/sjson v1.2.5
 	github.com/tj/assert v0.0.3
 	github.com/vburenin/ifacemaker v1.2.1
-	github.com/vektra/mockery/v2 v2.52.2
+	github.com/vektra/mockery/v2 v2.53.3
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xgfone/go-netaddr v0.6.0
@@ -254,7 +253,6 @@ require (
 	github.com/hashicorp/go-immutable-radix/v2 v2.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
-	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
 	github.com/hexops/gotextdiff v1.0.3 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
@@ -291,7 +289,6 @@ require (
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/macabu/inamedparam v0.1.3 // indirect
-	github.com/magiconair/properties v1.8.9 // indirect
 	github.com/mailru/easyjson v0.9.0 // indirect
 	github.com/maratori/testableexamples v1.0.0 // indirect
 	github.com/maratori/testpackage v1.1.1 // indirect
@@ -356,7 +353,6 @@ require (
 	github.com/ryancurrah/gomodguard v1.3.5 // indirect
 	github.com/ryanrolds/sqlclosecheck v0.5.1 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
-	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sahilm/fuzzy v0.1.1 // indirect
 	github.com/sanposhiho/wastedassign/v2 v2.1.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.1 // indirect
@@ -372,7 +368,7 @@ require (
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/sourcegraph/go-diff v0.7.1-0.20230316160316-1b4d09c1adcb // indirect
 	github.com/spf13/cast v1.7.1 // indirect
-	github.com/spf13/viper v1.19.0 // indirect
+	github.com/spf13/viper v1.20.0 // indirect
 	github.com/spotinst/spotinst-sdk-go v1.385.0 // indirect
 	github.com/ssgreg/nlreturn/v2 v2.2.1 // indirect
 	github.com/stbenjam/no-sprintf-host-port v0.2.0 // indirect
