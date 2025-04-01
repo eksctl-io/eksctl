@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"regexp"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -536,6 +535,15 @@ func (c *ClusterConfig) addonContainsManagedAddons(addons []string) []string {
 	return missing
 }
 
+func (c *ClusterConfig) getAddon(name string) *Addon {
+	for _, addon := range c.Addons {
+		if addon.Name == name {
+			return addon
+		}
+	}
+	return nil
+}
+
 // ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
 func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	if c.VPC.ClusterEndpoints != nil {
@@ -614,7 +622,7 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 
 			if len(c.addonContainsManagedAddons([]string{PodIdentityAgentAddon})) == 0 && !c.AddonsConfig.AutoApplyPodIdentityAssociations {
 				// Assuming user intends to use pod identities if the pod identity agent addon is added.
-				vpcCNIAddonEntry := c.Addons[slices.IndexFunc(c.Addons, func(a *Addon) bool { return a.Name == VPCCNIAddon })]
+				vpcCNIAddonEntry := c.getAddon(VPCCNIAddon)
 
 				if !vpcCNIAddonEntry.UseDefaultPodIdentityAssociations &&
 					(vpcCNIAddonEntry.PodIdentityAssociations == nil || (vpcCNIAddonEntry.PodIdentityAssociations != nil && len(*vpcCNIAddonEntry.PodIdentityAssociations) == 0)) {
