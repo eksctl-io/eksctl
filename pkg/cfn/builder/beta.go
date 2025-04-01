@@ -218,7 +218,7 @@ func createBetaAssumeRolePolicy() interface{} {
 		{
 			"Effect": "Allow",
 			"Principal": cft.MapOfInterfaces{
-				"Service": "eks-beta.aws.internal",
+				"Service": "eks-beta-pdx.aws.internal",
 			},
 			"Action": []string{
 				"sts:AssumeRole",
