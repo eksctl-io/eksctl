@@ -617,12 +617,16 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 				return fmt.Errorf("the default core addons must be defined for IPv6; missing addon(s): %s; either define them or use EKS Auto Mode", strings.Join(missing, ", "))
 			}
 			if len(c.addonContainsManagedAddons([]string{PodIdentityAgentAddon})) != 0 && (c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC)) {
-				return fmt.Errorf("either pod identity or oidc needs to be enabled if IPv6 is set; set either one or use EKS Auto Mode")
+				return errors.New("either pod identity or oidc needs to be enabled if IPv6 is set; set either one or use EKS Auto Mode")
 			}
 
 			if len(c.addonContainsManagedAddons([]string{PodIdentityAgentAddon})) == 0 && !c.AddonsConfig.AutoApplyPodIdentityAssociations {
 				// Assuming user intends to use pod identities if the pod identity agent addon is added.
 				vpcCNIAddonEntry := c.getAddon(VPCCNIAddon)
+
+				if vpcCNIAddonEntry == nil {
+					return errors.New("the vpc-cni addon must be defined for IPv6; either define it or use EKS Auto Mode")
+				}
 
 				if !vpcCNIAddonEntry.UseDefaultPodIdentityAssociations &&
 					(vpcCNIAddonEntry.PodIdentityAssociations == nil || (vpcCNIAddonEntry.PodIdentityAssociations != nil && len(*vpcCNIAddonEntry.PodIdentityAssociations) == 0)) {
