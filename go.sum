@@ -102,8 +102,8 @@ github.com/ashanbrown/makezero v1.2.0 h1:/2Lp1bypdmK9wDIq7uWBlDF1iMUpIIS4A+pF6C9
 github.com/ashanbrown/makezero v1.2.0/go.mod h1:dxlPhHbDMC6N6xICzFBSK+4njQDdK8euNO0qjQMtGY4=
 github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=
 github.com/atotto/clipboard v0.1.4/go.mod h1:ZY9tmq7sm5xIbd9bOK4onWV4S6X0u6GY7Vn0Yu86PYI=
-github.com/aws/amazon-ec2-instance-selector/v3 v3.1.1-0.20250224180552-36eea73b44c2 h1:vy7b8q6Cwn3j3HgzRBT7N99POtT1g6SuXlID9CI1yp8=
-github.com/aws/amazon-ec2-instance-selector/v3 v3.1.1-0.20250224180552-36eea73b44c2/go.mod h1:RU/lVVsYHNN7Bwr2UmCw5z2aWPcNIHADY49bj082oYM=
+github.com/aws/amazon-ec2-instance-selector/v3 v3.1.1 h1:8pw8T4Ae8tiXbxTxXhVStJSUJpEv29+YOQaDxIv3EaI=
+github.com/aws/amazon-ec2-instance-selector/v3 v3.1.1/go.mod h1:RU/lVVsYHNN7Bwr2UmCw5z2aWPcNIHADY49bj082oYM=
 github.com/aws/aws-sdk-go v1.55.6 h1:cSg4pvZ3m8dgYcgqB97MrcdjUmZ1BeMYKUxMMB89IPk=
 github.com/aws/aws-sdk-go v1.55.6/go.mod h1:eRwEWoyTWFMVYVQzKMNHWP5/RV4xIUGMQfXQHfHkpNU=
 github.com/aws/aws-sdk-go-v2 v1.36.3 h1:mJoei2CxPutQVxaATCzDUjcZEjVRdpsiiXi2o38yqWM=
