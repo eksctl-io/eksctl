@@ -3,6 +3,7 @@
 !.goreleaser*
 !.golangci*
 !.mockery.yaml
+!.requirements
 !build/scripts
 !cmd
 !examples
