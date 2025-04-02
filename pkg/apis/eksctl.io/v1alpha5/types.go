@@ -201,6 +201,7 @@ const (
 	NodeImageFamilyUbuntu2404      = "Ubuntu2404"
 	NodeImageFamilyUbuntuPro2204   = "UbuntuPro2204"
 	NodeImageFamilyUbuntu2204      = "Ubuntu2204"
+	NodeImageFamilyUbuntuPro2004   = "UbuntuPro2004"
 	NodeImageFamilyUbuntu2004      = "Ubuntu2004"
 	NodeImageFamilyUbuntu1804      = "Ubuntu1804"
 	NodeImageFamilyBottlerocket    = "Bottlerocket"
@@ -556,6 +557,7 @@ func SupportedAMIFamilies() []string {
 		NodeImageFamilyUbuntu2404,
 		NodeImageFamilyUbuntuPro2204,
 		NodeImageFamilyUbuntu2204,
+		NodeImageFamilyUbuntuPro2004,
 		NodeImageFamilyUbuntu2004,
 		NodeImageFamilyUbuntu1804,
 		NodeImageFamilyBottlerocket,
