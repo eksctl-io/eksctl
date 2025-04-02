@@ -115,7 +115,7 @@ func (a Addon) Validate() error {
 
 	if a.HasPodIDsSet() {
 		if a.CanonicalName() == PodIdentityAgentAddon {
-			return invalidAddonConfigErr(fmt.Sprintf("cannot set pod identity associtations for %q addon", PodIdentityAgentAddon))
+			return invalidAddonConfigErr(fmt.Sprintf("cannot set pod identity associations for %q addon", PodIdentityAgentAddon))
 		}
 
 		for i, pia := range *a.PodIdentityAssociations {

@@ -497,17 +497,21 @@ const expectedAWSLoadBalancerControllerPolicyDocument = `{
         "ec2:DescribeTags",
         "ec2:GetCoipPoolUsage",
         "ec2:DescribeCoipPools",
+        "ec2:GetSecurityGroupsForVpc",
+        "ec2:DescribeIpamPools",
         "elasticloadbalancing:DescribeLoadBalancers",
         "elasticloadbalancing:DescribeLoadBalancerAttributes",
         "elasticloadbalancing:DescribeListeners",
-        "elasticloadbalancing:DescribeListenerAttributes",
         "elasticloadbalancing:DescribeListenerCertificates",
         "elasticloadbalancing:DescribeSSLPolicies",
         "elasticloadbalancing:DescribeRules",
         "elasticloadbalancing:DescribeTargetGroups",
         "elasticloadbalancing:DescribeTargetGroupAttributes",
         "elasticloadbalancing:DescribeTargetHealth",
-        "elasticloadbalancing:DescribeTags"
+        "elasticloadbalancing:DescribeTags",
+        "elasticloadbalancing:DescribeTrustStores",
+        "elasticloadbalancing:DescribeListenerAttributes",
+        "elasticloadbalancing:DescribeCapacityReservation"
       ],
       "Effect": "Allow",
       "Resource": "*"
@@ -667,7 +671,6 @@ const expectedAWSLoadBalancerControllerPolicyDocument = `{
     },
     {
       "Action": [
-        "elasticloadbalancing:ModifyListenerAttributes",
         "elasticloadbalancing:ModifyLoadBalancerAttributes",
         "elasticloadbalancing:SetIpAddressType",
         "elasticloadbalancing:SetSecurityGroups",
@@ -675,7 +678,10 @@ const expectedAWSLoadBalancerControllerPolicyDocument = `{
         "elasticloadbalancing:DeleteLoadBalancer",
         "elasticloadbalancing:ModifyTargetGroup",
         "elasticloadbalancing:ModifyTargetGroupAttributes",
-        "elasticloadbalancing:DeleteTargetGroup"
+        "elasticloadbalancing:DeleteTargetGroup",
+        "elasticloadbalancing:ModifyListenerAttributes",
+        "elasticloadbalancing:ModifyCapacityReservation",
+        "elasticloadbalancing:ModifyIpPools"
       ],
       "Condition": {
         "Null": {
@@ -729,7 +735,8 @@ const expectedAWSLoadBalancerControllerPolicyDocument = `{
         "elasticloadbalancing:ModifyListener",
         "elasticloadbalancing:AddListenerCertificates",
         "elasticloadbalancing:RemoveListenerCertificates",
-        "elasticloadbalancing:ModifyRule"
+        "elasticloadbalancing:ModifyRule",
+        "elasticloadbalancing:SetRulePriorities"
       ],
       "Effect": "Allow",
       "Resource": "*"

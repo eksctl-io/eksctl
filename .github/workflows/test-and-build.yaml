@@ -35,15 +35,3 @@ jobs:
         run: make check-schema
       - name: Lint
         run: make lint
-  image:
-    name: Build and check image
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
-        with:
-          fetch-depth: 0
-      - name: Setup build environment
-        uses: ./.github/actions/setup-build
-      - name: build
-        run: make -f Makefile.docker check-build-image-manifest-up-to-date

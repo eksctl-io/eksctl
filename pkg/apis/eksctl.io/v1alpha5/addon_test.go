@@ -107,7 +107,7 @@ var _ = Describe("Addon", func() {
 					Name:                    api.PodIdentityAgentAddon,
 					PodIdentityAssociations: &[]api.PodIdentityAssociation{{}},
 				},
-				expectedErr: "cannot set pod identity associtations for \"eks-pod-identity-agent\" addon",
+				expectedErr: "cannot set pod identity associations for \"eks-pod-identity-agent\" addon",
 			}),
 			Entry("namespace is not set", addonWithPodIDEntry{
 				addon: api.Addon{

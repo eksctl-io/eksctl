@@ -535,6 +535,15 @@ func (c *ClusterConfig) addonContainsManagedAddons(addons []string) []string {
 	return missing
 }
 
+func (c *ClusterConfig) getAddon(name string) *Addon {
+	for _, addon := range c.Addons {
+		if addon.Name == name {
+			return addon
+		}
+	}
+	return nil
+}
+
 // ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
 func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	if c.VPC.ClusterEndpoints != nil {
@@ -607,8 +616,26 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 			if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
 				return fmt.Errorf("the default core addons must be defined for IPv6; missing addon(s): %s; either define them or use EKS Auto Mode", strings.Join(missing, ", "))
 			}
-			if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
-				return fmt.Errorf("oidc needs to be enabled if IPv6 is set; either set it or use EKS Auto Mode")
+
+			// Check if at least one credential provider (Pod identity or IRSA) is configured
+			if len(c.addonContainsManagedAddons([]string{PodIdentityAgentAddon})) != 0 && (c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC)) {
+				return errors.New("either pod identity or oidc needs to be enabled if IPv6 is set; set either one or use EKS Auto Mode")
+			}
+
+			// If the pod identity addon is present, verify it is correctly configured for use by the VPC CNI addon
+			// Assuming user intends to use pod identities if the pod identity agent addon is added.
+			if len(c.addonContainsManagedAddons([]string{PodIdentityAgentAddon})) == 0 && !c.AddonsConfig.AutoApplyPodIdentityAssociations {
+				vpcCNIAddonEntry := c.getAddon(VPCCNIAddon)
+
+				if vpcCNIAddonEntry == nil {
+					// should be unreachable
+					return errors.New("the vpc-cni addon must be defined for IPv6; either define it or use EKS Auto Mode")
+				}
+
+				if !vpcCNIAddonEntry.UseDefaultPodIdentityAssociations &&
+					(vpcCNIAddonEntry.PodIdentityAssociations == nil || len(*vpcCNIAddonEntry.PodIdentityAssociations) == 0) {
+					return fmt.Errorf("Set one of: addonsConfig.autoApplyPodIdentityAssociations, useDefaultPodIdentityAssociations on the vpc-cni addon, apply a custom pod identity on the vpc-cni addon")
+				}
 			}
 		}
 

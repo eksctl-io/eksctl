@@ -2,7 +2,7 @@ github.com/maxbrunsfeld/counterfeiter/v6
 github.com/cloudflare/cfssl/cmd/cfssl@v1.6.5
 github.com/cloudflare/cfssl/cmd/cfssljson@v1.6.5
 github.com/golangci/golangci-lint/cmd/golangci-lint
-github.com/onsi/ginkgo/v2/ginkgo@v2.22.2
+github.com/onsi/ginkgo/v2/ginkgo
 github.com/vektra/mockery/v2
 github.com/github-release/github-release
 k8s.io/code-generator/cmd/client-gen

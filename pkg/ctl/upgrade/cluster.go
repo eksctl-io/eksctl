@@ -33,10 +33,12 @@ func upgradeClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
 
+	var force bool
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
+		fs.BoolVar(&force, "force", false, "Override upgrade-blocking readiness checks")
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 
 		// cmdutils.AddVersionFlag(fs, cfg.Metadata, `"next" and "latest" can be used to automatically increment version by one, or force latest`)
@@ -52,6 +54,11 @@ func upgradeClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 		if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 			return err
 		}
+		// Override force from provided config file if cli flag is provided
+		if force {
+			cmd.ClusterConfig.Metadata.ForceUpdateVersion = &force
+		}
+
 		return runFunc(cmd)
 	}
 }
