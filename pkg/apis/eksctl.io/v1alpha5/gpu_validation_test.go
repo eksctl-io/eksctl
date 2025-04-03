@@ -63,10 +63,6 @@ var _ = Describe("GPU instance support", func() {
 			gpuInstanceType: "g5.12xlarge",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
-		Entry("Ubuntu1804", gpuInstanceEntry{
-			amiFamily:       api.NodeImageFamilyUbuntu2004,
-			gpuInstanceType: "g4dn.xlarge",
-		}),
 		Entry("Ubuntu2004", gpuInstanceEntry{
 			amiFamily:       api.NodeImageFamilyUbuntu2004,
 			gpuInstanceType: "g4dn.xlarge",
@@ -234,11 +230,6 @@ var _ = Describe("GPU instance support", func() {
 			},
 			expectWarning: true,
 		}),
-		Entry("Ubuntu with explicit GPU instance", gpuInstanceEntry{
-			amiFamily:       api.NodeImageFamilyUbuntu1804,
-			gpuInstanceType: "g4dn.xlarge",
-			expectWarning:   true,
-		}),
 		Entry("Ubuntu with implicit GPU instance", gpuInstanceEntry{
 			amiFamily: api.NodeImageFamilyUbuntu2004,
 			instanceSelector: &api.InstanceSelector{
@@ -280,7 +271,6 @@ var _ = Describe("GPU instance support", func() {
 		Entry("AmazonLinux2", api.NodeImageFamilyAmazonLinux2, true),
 		Entry("AmazonLinux2023", api.NodeImageFamilyAmazonLinux2023, true),
 		Entry("Ubuntu2004", api.NodeImageFamilyUbuntu2004, true),
-		Entry("Ubuntu1804", api.NodeImageFamilyUbuntu1804, true),
 		Entry("Windows2019Full", api.NodeImageFamilyWindowsServer2019FullContainer, true),
 		Entry("Windows2019Core", api.NodeImageFamilyWindowsServer2019CoreContainer, true),
 		Entry("Bottlerocket", api.NodeImageFamilyBottlerocket, false),

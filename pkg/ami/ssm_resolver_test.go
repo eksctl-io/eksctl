@@ -234,23 +234,6 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 			})
 
-			Context("and Ubuntu1804 family", func() {
-				BeforeEach(func() {
-					p = mockprovider.NewMockProvider()
-					instanceType = "t2.medium"
-					imageFamily = "Ubuntu1804"
-				})
-
-				It("should return an error", func() {
-					resolver := NewSSMResolver(p.MockSSM())
-					resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
-
-					Expect(err).To(HaveOccurred())
-					Expect(err).To(MatchError("SSM Parameter lookups for Ubuntu1804 AMIs is not supported"))
-				})
-
-			})
-
 			Context("and Ubuntu2004 family", func() {
 				BeforeEach(func() {
 					p = mockprovider.NewMockProvider()

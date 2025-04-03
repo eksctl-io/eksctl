@@ -50,18 +50,6 @@ var _ = Describe("AMI Auto Resolution", func() {
 				Expect(ownerAccount).To(BeEquivalentTo("800184023465"))
 				Expect(err).NotTo(HaveOccurred())
 			})
-
-			It("should return the AWS Account ID for Ubuntu images in ap-east-1", func() {
-				ownerAccount, err := OwnerAccountID(api.NodeImageFamilyUbuntu1804, "ap-east-1")
-				Expect(ownerAccount).To(BeEquivalentTo("099720109477"))
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			It("should return the Ubuntu Account ID for Ubuntu images", func() {
-				ownerAccount, err := OwnerAccountID(api.NodeImageFamilyUbuntu1804, region)
-				Expect(ownerAccount).To(BeEquivalentTo("099720109477"))
-				Expect(err).NotTo(HaveOccurred())
-			})
 			It("should return the Ubuntu Account ID for Ubuntu images", func() {
 				ownerAccount, err := OwnerAccountID(api.NodeImageFamilyUbuntuPro2004, region)
 				Expect(ownerAccount).To(BeEquivalentTo("099720109477"))
@@ -115,31 +103,6 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 						p = mockprovider.NewMockProvider()
 						addMockDescribeImages(p, "amazon-eks-node-1.15-v*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", api.NodeImageFamilyAmazonLinux2)
-						resolver := NewAutoResolver(p.MockEC2())
-						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
-					})
-
-					It("should not error", func() {
-						Expect(err).NotTo(HaveOccurred())
-					})
-
-					It("should have called AWS EC2 DescribeImages", func() {
-						Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeImages", 1)).To(BeTrue())
-					})
-
-					It("should have returned an ami id", func() {
-						Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
-					})
-				})
-
-				Context("and ami is available", func() {
-					BeforeEach(func() {
-						imageState = ec2types.ImageStateAvailable
-						imageFamily = "Ubuntu1804"
-
-						p = mockprovider.NewMockProvider()
-						addMockDescribeImages(p, "ubuntu-eks/k8s_1.15/images/*18.04*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", api.NodeImageFamilyUbuntu1804)
-
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 					})
