@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/zonal-shift.html
+---
 # Support for Zonal Shift in EKS clusters
 
 EKS now supports Amazon Application Recovery Controller (ARC) zonal shift and zonal autoshift that enhances the

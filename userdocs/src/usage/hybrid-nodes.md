@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/hybrid-nodes.html
+---
 # EKS Hybrid Nodes
 
 ## Introduction

@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/eks-private-cluster.html
+---
 # EKS Fully-Private Cluster
 
 eksctl supports creation of fully-private clusters that have no outbound internet access and have only private subnets.

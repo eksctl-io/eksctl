@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/pod-identity-associations.html
+---
 # EKS Pod Identity Associations
 
 ## Introduction

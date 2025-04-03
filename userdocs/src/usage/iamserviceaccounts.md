@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/iamserviceaccounts.html
+---
 # IAM Roles for Service Accounts
 
 !!! tip "check out newer, improved feature"

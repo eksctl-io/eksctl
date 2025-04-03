@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/vpc-cluster-access.html
+---
 # Cluster Access
 
 ## Managing Access to the Kubernetes API Server Endpoints

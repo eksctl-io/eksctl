@@ -1,6 +1,7 @@
 ---
 hide:
   - navigation
+redirect: https://docs.aws.amazon.com/eks/latest/best-practices/windows-security.html
 ---
 # eksctl Community :fontawesome-solid-people-group:
 

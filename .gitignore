@@ -1,6 +1,9 @@
 # Test binary, build with `go test -c`
 *.test
 
+# userdocs venv
+userdocs/venv
+
 # Release config file backups
 .goreleaser.brew.combined.yml
 

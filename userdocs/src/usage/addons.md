@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/addons.html
+---
 # Addons
 
 EKS Add-Ons is a new feature that lets you enable and manage Kubernetes operational

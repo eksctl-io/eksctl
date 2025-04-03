@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/nodegroup-node-repair-config.html
+---
 # Support for Node Repair Config in EKS Managed Nodegroups
 
 EKS Managed Nodegroups now supports Node Repair, where the health of managed nodes are monitored,

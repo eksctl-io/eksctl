@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/nodegroup-additional-volume-mappings.html
+---
 # Additional Volume Mappings
 
 As an additional configuration option, when dealing with volume mappings, it's possible to configure extra mappings

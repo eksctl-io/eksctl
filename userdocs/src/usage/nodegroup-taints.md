@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/nodegroup-taints.html
+---
 # Taints
 
 To apply [taints](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) to a specific nodegroup use the `taints` config section like this:

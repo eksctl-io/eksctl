@@ -22,7 +22,7 @@ import { unsafeHTML } from "https://unpkg.com/lit-html@3.2.1/directives/unsafe-h
 
 (async function () {
     const table = document.getElementById("config");
-    const response = await fetch(`../schema.json`);
+    const response = await fetch(`https://raw.githubusercontent.com/eksctl-io/eksctl/refs/heads/main/pkg/apis/eksctl.io/v1alpha5/assets/schema.json`);
     const json = await response.json();
 
     render(

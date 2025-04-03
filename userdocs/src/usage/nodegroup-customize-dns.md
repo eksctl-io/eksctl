@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/nodegroup-customize-dns.html
+---
 # Custom DNS
 
 There are two ways of overwriting the DNS server IP address used for all the internal and external DNS lookups. This

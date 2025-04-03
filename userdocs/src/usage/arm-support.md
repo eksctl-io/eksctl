@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/arm-support.html
+---
 # ARM Support
 
 EKS supports 64-bit ARM architecture with its [Graviton processors](https://aws.amazon.com/ec2/graviton/). To create a cluster,

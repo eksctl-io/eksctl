@@ -1,3 +1,6 @@
+---
+redirect: https://alpha.www.docs.aws.a2z.com/eks/latest/eksctl/launch-template-support.html
+---
 # Launch Template support for Managed Nodegroups
 
 eksctl supports launching managed nodegroups using a provided [EC2 Launch Template](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html).
