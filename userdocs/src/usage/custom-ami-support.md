@@ -57,7 +57,6 @@ The `--node-ami-family` can take following keywords:
 |--------------------------------|:---------------------------------------------------------------------------------------------------------------------------:|
 | AmazonLinux2                   | Indicates that the EKS AMI image based on Amazon Linux 2 should be used (default).                                          |
 | AmazonLinux2023                | Indicates that the EKS AMI image based on Amazon Linux 2023 should be used.                                                 |
-| Ubuntu1804                     | Indicates that the EKS AMI image based on Ubuntu 18.04 LTS (Bionic) should be used.                                         |
 | Ubuntu2004                     | Indicates that the EKS AMI image based on Ubuntu 20.04 LTS (Focal) should be used (supported for EKS <= 1.29).              |
 | UbuntuPro2004                  | Indicates that the EKS AMI image based on Ubuntu Pro 20.04 LTS (Focal) should be used (available for EKS >= 1.27, <= 1.29). |
 | Ubuntu2204                     | Indicates that the EKS AMI image based on Ubuntu 22.04 LTS (Jammy) should be used (available for EKS >= 1.29).              |
@@ -90,7 +89,7 @@ managedNodeGroups:
 The `--node-ami-family` flag can also be used with `eksctl create nodegroup`. `eksctl` requires AMI Family to be explicitly set via config file or via `--node-ami-family` CLI flag, whenever working with a custom AMI.
 
 ???+ note
-    At the moment, EKS managed nodegroups only support the following AMI Families when working with custom AMIs: `AmazonLinux2023`, `AmazonLinux2`, `Ubuntu1804`, `Ubuntu2004`, `Ubuntu2204` and `Ubuntu2404`
+    At the moment, EKS managed nodegroups only support the following AMI Families when working with custom AMIs: `AmazonLinux2023`, `AmazonLinux2`, `Ubuntu2004`, `Ubuntu2204` and `Ubuntu2404`
 
 ## Windows custom AMI support
 Only self-managed Windows nodegroups can specify a custom AMI. `amiFamily` should be set to a valid Windows AMI family.
