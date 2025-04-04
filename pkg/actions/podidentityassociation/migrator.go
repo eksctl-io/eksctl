@@ -215,6 +215,16 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 }
 
 func IsPodIdentityAgentInstalled(ctx context.Context, eksAPI awsapi.EKS, clusterName string) (bool, error) {
+	// If the cluster is using "auto mode", don't check for the podIdentity agent addon
+	clusterOutput, err := eksAPI.DescribeCluster(ctx, &awseks.DescribeClusterInput{
+		Name: aws.String(clusterName),
+	})
+	if err == nil && clusterOutput.Cluster != nil {
+		if *clusterOutput.Cluster.ComputeConfig.Enabled {
+			return true, nil
+		}
+	}
+
 	if _, err := eksAPI.DescribeAddon(ctx, &awseks.DescribeAddonInput{
 		AddonName:   aws.String(api.PodIdentityAgentAddon),
 		ClusterName: &clusterName,
