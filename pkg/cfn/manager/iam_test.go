@@ -16,13 +16,32 @@ import (
 
 // mockStackCollection is a wrapper around StackCollection that allows us to override methods for testing
 type mockStackCollection struct {
-	*manager.StackCollection
+	manager.StackManager
 	stacks []*manager.Stack
 }
 
 // ListStacks overrides the ListStacks method to return our predefined stacks
 func (m *mockStackCollection) ListStacks(ctx context.Context) ([]*manager.Stack, error) {
 	return m.stacks, nil
+}
+
+// DescribeIAMServiceAccountStacks overrides the method to use our ListStacks implementation
+func (m *mockStackCollection) DescribeIAMServiceAccountStacks(ctx context.Context) ([]*manager.Stack, error) {
+	stacks, err := m.ListStacks(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	iamServiceAccountStacks := []*manager.Stack{}
+	for _, s := range stacks {
+		if s.StackStatus == types.StackStatusDeleteComplete {
+			continue
+		}
+		if manager.GetIAMServiceAccountName(s) != "" {
+			iamServiceAccountStacks = append(iamServiceAccountStacks, s)
+		}
+	}
+	return iamServiceAccountStacks, nil
 }
 
 func TestGetIAMServiceAccounts(t *testing.T) {
@@ -94,13 +113,10 @@ func TestGetIAMServiceAccounts(t *testing.T) {
 			cfg.Metadata.Name = "test-cluster"
 			cfg.Metadata.Region = "us-west-2"
 
-			// Create a stack collection with the mock provider
-			realStackCollection := manager.NewStackCollection(p, cfg)
-
 			// Create our mock stacks
 			stacks := []*manager.Stack{
 				{
-					StackName:   "eksctl-test-cluster-addon-iamserviceaccount-default-test-sa1",
+					StackName:   aws.String("eksctl-test-cluster-addon-iamserviceaccount-default-test-sa1"),
 					StackStatus: types.StackStatusCreateComplete,
 					Tags: []types.Tag{
 						{
@@ -116,7 +132,7 @@ func TestGetIAMServiceAccounts(t *testing.T) {
 					},
 				},
 				{
-					StackName:   "eksctl-test-cluster-addon-iamserviceaccount-kube-system-test-sa2",
+					StackName:   aws.String("eksctl-test-cluster-addon-iamserviceaccount-kube-system-test-sa2"),
 					StackStatus: types.StackStatusCreateComplete,
 					Tags: []types.Tag{
 						{
@@ -132,7 +148,7 @@ func TestGetIAMServiceAccounts(t *testing.T) {
 					},
 				},
 				{
-					StackName:   "eksctl-test-cluster-addon-iamserviceaccount-default-test-sa3",
+					StackName:   aws.String("eksctl-test-cluster-addon-iamserviceaccount-default-test-sa3"),
 					StackStatus: types.StackStatusCreateComplete,
 					Tags: []types.Tag{
 						{
@@ -148,15 +164,15 @@ func TestGetIAMServiceAccounts(t *testing.T) {
 					},
 				},
 				{
-					StackName:   "eksctl-test-cluster-nodegroup-ng-1",
+					StackName:   aws.String("eksctl-test-cluster-nodegroup-ng-1"),
 					StackStatus: types.StackStatusCreateComplete,
 				},
 			}
 
 			// Create our mock stack collection
 			mockSC := &mockStackCollection{
-				StackCollection: realStackCollection,
-				stacks:          stacks,
+				StackManager: manager.NewStackCollection(p, cfg),
+				stacks:       stacks,
 			}
 
 			// Call the function being tested
