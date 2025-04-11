@@ -459,6 +459,9 @@ func newLaunchTemplateData(ctx context.Context, n *NodeGroupResourceSet) (*gfnec
 		UserData:          gfnt.NewString(userData),
 		MetadataOptions:   makeMetadataOptions(ng.NodeGroupBase),
 		TagSpecifications: makeTags(ng.NodeGroupBase, n.options.ClusterConfig.Metadata),
+		EnclaveOptions: &gfnec2.LaunchTemplate_EnclaveOptions{
+			Enabled: gfnt.NewBoolean(ng.EnclaveEnabled),
+		},
 	}
 
 	if ng.CapacityReservation != nil {
