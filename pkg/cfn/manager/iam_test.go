@@ -1,197 +1,409 @@
-package manager_test
+package manager
 
 import (
 	"context"
-	"testing"
+	"errors"
+	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/stretchr/testify/assert"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/mock"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
-// mockStackCollection is a wrapper around StackCollection that allows us to override methods for testing
-type mockStackCollection struct {
-	manager.StackManager
-	stacks []*manager.Stack
-}
+var _ = Describe("IAM Service Accounts", func() {
+	var (
+		p            *mockprovider.MockProvider
+		cfg          *api.ClusterConfig
+		stackManager *StackCollection
+		ctx          context.Context
+	)
 
-// ListStacks overrides the ListStacks method to return our predefined stacks
-func (m *mockStackCollection) ListStacks(ctx context.Context) ([]*manager.Stack, error) {
-	return m.stacks, nil
-}
-
-// DescribeIAMServiceAccountStacks overrides the method to use our ListStacks implementation
-func (m *mockStackCollection) DescribeIAMServiceAccountStacks(ctx context.Context) ([]*manager.Stack, error) {
-	stacks, err := m.ListStacks(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	iamServiceAccountStacks := []*manager.Stack{}
-	for _, s := range stacks {
-		if s.StackStatus == types.StackStatusDeleteComplete {
-			continue
+	BeforeEach(func() {
+		ctx = context.Background()
+		p = mockprovider.NewMockProvider()
+		cfg = &api.ClusterConfig{
+			Metadata: &api.ClusterMeta{
+				Name: "test-cluster",
+			},
 		}
-		if manager.GetIAMServiceAccountName(s) != "" {
-			iamServiceAccountStacks = append(iamServiceAccountStacks, s)
-		}
-	}
-	return iamServiceAccountStacks, nil
-}
+		stackManager = NewStackCollection(p, cfg).(*StackCollection)
+	})
 
-func TestGetIAMServiceAccounts(t *testing.T) {
-	testCases := []struct {
-		name            string
-		nameFilter      string
-		namespaceFilter string
-		expectedCount   int
-		expectedNames   []string
-	}{
-		{
-			name:            "No filters - should return all service accounts",
-			nameFilter:      "",
-			namespaceFilter: "",
-			expectedCount:   3,
-			expectedNames:   []string{"test-sa1", "test-sa2", "test-sa3"},
-		},
-		{
-			name:            "Filter by name only",
-			nameFilter:      "test-sa1",
-			namespaceFilter: "",
-			expectedCount:   1,
-			expectedNames:   []string{"test-sa1"},
-		},
-		{
-			name:            "Filter by namespace only",
-			nameFilter:      "",
-			namespaceFilter: "kube-system",
-			expectedCount:   1,
-			expectedNames:   []string{"test-sa2"},
-		},
-		{
-			name:            "Filter by both name and namespace",
-			nameFilter:      "test-sa3",
-			namespaceFilter: "default",
-			expectedCount:   1,
-			expectedNames:   []string{"test-sa3"},
-		},
-		{
-			name:            "Filter by name that doesn't exist",
-			nameFilter:      "non-existent",
-			namespaceFilter: "",
-			expectedCount:   0,
-			expectedNames:   []string{},
-		},
-		{
-			name:            "Filter by namespace that doesn't exist",
-			nameFilter:      "",
-			namespaceFilter: "non-existent",
-			expectedCount:   0,
-			expectedNames:   []string{},
-		},
-		{
-			name:            "Filter by name and namespace that don't match",
-			nameFilter:      "test-sa1",
-			namespaceFilter: "kube-system",
-			expectedCount:   0,
-			expectedNames:   []string{},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// Create a new mock provider
-			p := mockprovider.NewMockProvider()
-
-			// Create a test cluster config
-			cfg := api.NewClusterConfig()
-			cfg.Metadata.Name = "test-cluster"
-			cfg.Metadata.Region = "us-west-2"
-
-			// Create our mock stacks
-			stacks := []*manager.Stack{
+	Describe("GetIAMServiceAccounts", func() {
+		It("returns service accounts when found", func() {
+			// Setup mock response for DescribeIAMServiceAccountStacks
+			testCases := []iamServiceAccountTestCase{
 				{
-					StackName:   aws.String("eksctl-test-cluster-addon-iamserviceaccount-default-test-sa1"),
-					StackStatus: types.StackStatusCreateComplete,
-					Tags: []types.Tag{
-						{
-							Key:   aws.String(api.IAMServiceAccountNameTag),
-							Value: aws.String("default/test-sa1"),
-						},
-					},
-					Outputs: []types.Output{
-						{
-							OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
-							OutputValue: aws.String("arn:aws:iam::123456789012:role/test-sa1-role"),
-						},
-					},
+					Name:      "app-service-account",
+					Namespace: "default",
 				},
 				{
-					StackName:   aws.String("eksctl-test-cluster-addon-iamserviceaccount-kube-system-test-sa2"),
-					StackStatus: types.StackStatusCreateComplete,
-					Tags: []types.Tag{
-						{
-							Key:   aws.String(api.IAMServiceAccountNameTag),
-							Value: aws.String("kube-system/test-sa2"),
-						},
-					},
-					Outputs: []types.Output{
-						{
-							OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
-							OutputValue: aws.String("arn:aws:iam::123456789012:role/test-sa2-role"),
-						},
-					},
-				},
-				{
-					StackName:   aws.String("eksctl-test-cluster-addon-iamserviceaccount-default-test-sa3"),
-					StackStatus: types.StackStatusCreateComplete,
-					Tags: []types.Tag{
-						{
-							Key:   aws.String(api.IAMServiceAccountNameTag),
-							Value: aws.String("default/test-sa3"),
-						},
-					},
-					Outputs: []types.Output{
-						{
-							OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
-							OutputValue: aws.String("arn:aws:iam::123456789012:role/test-sa3-role"),
-						},
-					},
-				},
-				{
-					StackName:   aws.String("eksctl-test-cluster-nodegroup-ng-1"),
-					StackStatus: types.StackStatusCreateComplete,
+					Name:      "monitoring-service-account",
+					Namespace: "monitoring",
 				},
 			}
 
-			// Create our mock stack collection
-			mockSC := &mockStackCollection{
-				StackManager: manager.NewStackCollection(p, cfg),
-				stacks:       stacks,
+			// Mock the ListStacks call that DescribeIAMServiceAccountStacks uses
+			stacks := getStacks(testCases)
+			p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(
+				&cfn.ListStacksOutput{
+					StackSummaries: getStackSummaries(stacks),
+				}, nil)
+
+			// Mock the DescribeStacks call that outputs.Collect uses
+			for _, stack := range stacks {
+				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input interface{}) bool {
+					if describeInput, ok := input.(*cfn.DescribeStacksInput); ok {
+						return describeInput.StackName != nil && *describeInput.StackName == *stack.StackName
+					}
+					return false
+				})).Return(&cfn.DescribeStacksOutput{
+					Stacks: []types.Stack{
+						{
+							StackName:    stack.StackName,
+							CreationTime: stack.CreationTime,
+							StackStatus:  stack.StackStatus,
+							Tags:         stack.Tags,
+							Outputs: []types.Output{
+								{
+									OutputKey: aws.String(outputs.IAMServiceAccountRoleName),
+									OutputValue: aws.String(fmt.Sprintf("arn:aws:iam::123456789012:role/eksctl-%s-%s-%s",
+										cfg.Metadata.Name, *stack.Tags[0].Value, *stack.Tags[1].Value)),
+								},
+							},
+						},
+					},
+				}, nil)
 			}
 
-			// Call the function being tested
-			serviceAccounts, err := mockSC.GetIAMServiceAccounts(context.Background(), tc.nameFilter, tc.namespaceFilter)
+			// Call the function with no filters - this should use the real implementation
+			serviceAccounts, err := stackManager.GetIAMServiceAccounts(ctx, "", "")
 
 			// Verify results
-			assert.NoError(t, err)
-			assert.Equal(t, tc.expectedCount, len(serviceAccounts))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(serviceAccounts).To(HaveLen(2))
 
-			// Verify the names of the returned service accounts
-			actualNames := make([]string, 0, len(serviceAccounts))
+			// Verify the service accounts have the expected values
 			for _, sa := range serviceAccounts {
-				actualNames = append(actualNames, sa.Name)
-			}
-
-			// Check that all expected names are in the actual names
-			for _, expectedName := range tc.expectedNames {
-				assert.Contains(t, actualNames, expectedName)
+				Expect(sa.Status.RoleARN).NotTo(BeNil())
+				if sa.Name == "app-service-account" {
+					Expect(sa.Namespace).To(Equal("default"))
+				} else if sa.Name == "monitoring-service-account" {
+					Expect(sa.Namespace).To(Equal("monitoring"))
+				} else {
+					Fail(fmt.Sprintf("Unexpected service account name: %s", sa.Name))
+				}
 			}
 		})
+
+		It("filters service accounts by name", func() {
+			// Setup mock response
+			testCases := []iamServiceAccountTestCase{
+				{
+					Name:      "monitoring-service-account",
+					Namespace: "monitoring",
+				},
+				{
+					Name:      "app-service-account",
+					Namespace: "default",
+				},
+				{
+					Name:      "another-app-service-account",
+					Namespace: "default",
+				},
+			}
+
+			// Mock the ListStacks call
+			stacks := getStacks(testCases)
+			p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(
+				&cfn.ListStacksOutput{
+					StackSummaries: getStackSummaries(stacks),
+				}, nil)
+
+			// Mock the DescribeStacks call for each stack
+			for _, stack := range stacks {
+				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input interface{}) bool {
+					if describeInput, ok := input.(*cfn.DescribeStacksInput); ok {
+						return describeInput.StackName != nil && *describeInput.StackName == *stack.StackName
+					}
+					return false
+				})).Return(&cfn.DescribeStacksOutput{
+					Stacks: []types.Stack{
+						{
+							StackName:    stack.StackName,
+							CreationTime: stack.CreationTime,
+							StackStatus:  stack.StackStatus,
+							Tags:         stack.Tags,
+							Outputs: []types.Output{
+								{
+									OutputKey: aws.String(outputs.IAMServiceAccountRoleName),
+									OutputValue: aws.String(fmt.Sprintf("arn:aws:iam::123456789012:role/eksctl-%s-%s-%s",
+										cfg.Metadata.Name, *stack.Tags[0].Value, *stack.Tags[1].Value)),
+								},
+							},
+						},
+					},
+				}, nil)
+			}
+
+			// Call the function with name filter
+			serviceAccounts, err := stackManager.GetIAMServiceAccounts(ctx, "app-service-account", "")
+
+			// Verify results
+			Expect(err).NotTo(HaveOccurred())
+			Expect(serviceAccounts).To(HaveLen(1))
+			Expect(serviceAccounts[0].Name).To(Equal("app-service-account"))
+			Expect(serviceAccounts[0].Namespace).To(Equal("default"))
+		})
+
+		It("filters service accounts by namespace", func() {
+			// Setup mock response
+			testCases := []iamServiceAccountTestCase{
+				{
+					Name:      "app-service-account",
+					Namespace: "default",
+				},
+				{
+					Name:      "monitoring-service-account",
+					Namespace: "monitoring",
+				},
+				{
+					Name:      "observability-account",
+					Namespace: "monitoring",
+				},
+				{
+					Name:      "another-app-service-account",
+					Namespace: "default",
+				},
+			}
+
+			// Mock the ListStacks call
+			stacks := getStacks(testCases)
+			p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(
+				&cfn.ListStacksOutput{
+					StackSummaries: getStackSummaries(stacks),
+				}, nil)
+
+			// Mock the DescribeStacks call for each stack
+			for _, stack := range stacks {
+				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input interface{}) bool {
+					if describeInput, ok := input.(*cfn.DescribeStacksInput); ok {
+						return describeInput.StackName != nil && *describeInput.StackName == *stack.StackName
+					}
+					return false
+				})).Return(&cfn.DescribeStacksOutput{
+					Stacks: []types.Stack{
+						{
+							StackName:    stack.StackName,
+							CreationTime: stack.CreationTime,
+							StackStatus:  stack.StackStatus,
+							Tags:         stack.Tags,
+							Outputs: []types.Output{
+								{
+									OutputKey: aws.String(outputs.IAMServiceAccountRoleName),
+									OutputValue: aws.String(fmt.Sprintf("arn:aws:iam::123456789012:role/eksctl-%s-%s-%s",
+										cfg.Metadata.Name, *stack.Tags[0].Value, *stack.Tags[1].Value)),
+								},
+							},
+						},
+					},
+				}, nil)
+			}
+
+			// Call the function with namespace filter
+			serviceAccounts, err := stackManager.GetIAMServiceAccounts(ctx, "", "monitoring")
+
+			// Verify results
+			Expect(err).NotTo(HaveOccurred())
+			Expect(serviceAccounts).To(HaveLen(2))
+			for _, sa := range serviceAccounts {
+				Expect(sa.Namespace).To(Equal("monitoring"))
+			}
+		})
+
+		It("filters service accounts by both name and namespace", func() {
+			// Setup mock response
+			testCases := []iamServiceAccountTestCase{
+				{
+					Name:      "app-service-account",
+					Namespace: "default",
+				},
+				{
+					Name:      "app-service-account",
+					Namespace: "monitoring",
+				},
+				{
+					Name:      "another-app-service-account",
+					Namespace: "monitoring",
+				},
+				{
+					Name:      "another-app-service-account",
+					Namespace: "default",
+				},
+			}
+
+			// Mock the ListStacks call
+			stacks := getStacks(testCases)
+			p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(
+				&cfn.ListStacksOutput{
+					StackSummaries: getStackSummaries(stacks),
+				}, nil)
+
+			// Mock the DescribeStacks call for each stack
+			for _, stack := range stacks {
+				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input interface{}) bool {
+					if describeInput, ok := input.(*cfn.DescribeStacksInput); ok {
+						return describeInput.StackName != nil && *describeInput.StackName == *stack.StackName
+					}
+					return false
+				})).Return(&cfn.DescribeStacksOutput{
+					Stacks: []types.Stack{
+						{
+							StackName:    stack.StackName,
+							CreationTime: stack.CreationTime,
+							StackStatus:  stack.StackStatus,
+							Tags:         stack.Tags,
+							Outputs: []types.Output{
+								{
+									OutputKey: aws.String(outputs.IAMServiceAccountRoleName),
+									OutputValue: aws.String(fmt.Sprintf("arn:aws:iam::123456789012:role/eksctl-%s-%s-%s",
+										cfg.Metadata.Name, *stack.Tags[0].Value, *stack.Tags[1].Value)),
+								},
+							},
+						},
+					},
+				}, nil)
+			}
+
+			serviceAccounts, err := stackManager.GetIAMServiceAccounts(ctx, "app-service-account", "default")
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(serviceAccounts).To(HaveLen(1))
+			Expect(serviceAccounts[0].Name).To(Equal("app-service-account"))
+			Expect(serviceAccounts[0].Namespace).To(Equal("default"))
+		})
+
+		It("handles errors from the CloudFormation API", func() {
+			// Setup mock error response
+			expectedError := errors.New("failed to describe IAM service account stacks")
+			p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(nil, expectedError)
+
+			// Call the function
+			serviceAccounts, err := stackManager.GetIAMServiceAccounts(ctx, "", "")
+
+			// Verify results
+			Expect(err).To(MatchError(expectedError))
+			Expect(serviceAccounts).To(BeNil())
+		})
+
+		It("returns empty slice when no service accounts match filters", func() {
+			// Setup mock response with stacks that won't match our filter
+			testCases := []iamServiceAccountTestCase{
+				{
+					Name:      "app-service-account",
+					Namespace: "default",
+				},
+				{
+					Name:      "monitoring-service-account",
+					Namespace: "monitoring",
+				},
+			}
+
+			// Mock the ListStacks call
+			stacks := getStacks(testCases)
+			p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything, mock.Anything).Return(
+				&cfn.ListStacksOutput{
+					StackSummaries: getStackSummaries(stacks),
+				}, nil)
+
+			// Mock the DescribeStacks call for each stack
+			for _, stack := range stacks {
+				p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input interface{}) bool {
+					if describeInput, ok := input.(*cfn.DescribeStacksInput); ok {
+						return describeInput.StackName != nil && *describeInput.StackName == *stack.StackName
+					}
+					return false
+				})).Return(&cfn.DescribeStacksOutput{
+					Stacks: []types.Stack{
+						{
+							StackName:    stack.StackName,
+							CreationTime: stack.CreationTime,
+							StackStatus:  stack.StackStatus,
+							Tags:         stack.Tags,
+							Outputs: []types.Output{
+								{
+									OutputKey: aws.String(outputs.IAMServiceAccountRoleName),
+									OutputValue: aws.String(fmt.Sprintf("arn:aws:iam::123456789012:role/eksctl-%s-%s-%s",
+										cfg.Metadata.Name, *stack.Tags[0].Value, *stack.Tags[1].Value)),
+								},
+							},
+						},
+					},
+				}, nil)
+			}
+
+			serviceAccounts, err := stackManager.GetIAMServiceAccounts(ctx, "non-existent", "non-existent")
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(serviceAccounts).To(BeEmpty())
+		})
+	})
+})
+
+type iamServiceAccountTestCase struct {
+	Name      string
+	Namespace string
+}
+
+func getStacks(testCases []iamServiceAccountTestCase) []types.Stack {
+	stacks := make([]types.Stack, 0)
+
+	for _, testCase := range testCases {
+		stackName := fmt.Sprintf("eksctl-test-cluster-addon-iamserviceaccount-%s-%s", testCase.Namespace, testCase.Name)
+		stack := types.Stack{
+			StackName:    aws.String(stackName),
+			CreationTime: aws.Time(time.Now()),
+			StackStatus:  types.StackStatusCreateComplete,
+			Tags: []types.Tag{
+				{
+					Key:   aws.String(api.IAMServiceAccountNameTag),
+					Value: aws.String(fmt.Sprintf("%s/%s", testCase.Namespace, testCase.Name)),
+				},
+				{
+					Key:   aws.String("Namespace"),
+					Value: aws.String(testCase.Namespace),
+				},
+				{
+					Key:   aws.String("ServiceAccount"),
+					Value: aws.String(testCase.Name),
+				},
+			},
+		}
+		stacks = append(stacks, stack)
 	}
+
+	return stacks
+}
+
+func getStackSummaries(stacks []types.Stack) []types.StackSummary {
+	summaries := make([]types.StackSummary, 0, len(stacks))
+
+	for _, stack := range stacks {
+		summary := types.StackSummary{
+			StackName:    stack.StackName,
+			CreationTime: stack.CreationTime,
+			StackStatus:  stack.StackStatus,
+		}
+		summaries = append(summaries, summary)
+	}
+
+	return summaries
 }
