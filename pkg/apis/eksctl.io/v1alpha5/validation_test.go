@@ -1796,7 +1796,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.InstancesDistribution.InstanceTypes = []string{"g5g.2xlarge"}
 				ng.AMIFamily = api.NodeImageFamilyAmazonLinux2
 				err := api.ValidateNodeGroup(0, ng, cfg)
-				Expect(err).To(MatchError("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily AmazonLinux2"))
+				Expect(err).To(MatchError("g5g.2xlarge instance types are not supported for unmanaged nodegroups with AMIFamily AmazonLinux2"))
 			})
 
 			It("ARM-based GPU instance type fails for AmazonLinux2", func() {
@@ -1804,7 +1804,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.InstancesDistribution.InstanceTypes = nil
 				ng.AMIFamily = api.NodeImageFamilyAmazonLinux2
 				err := api.ValidateNodeGroup(0, ng, cfg)
-				Expect(err).To(MatchError("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily AmazonLinux2"))
+				Expect(err).To(MatchError("g5g.2xlarge instance types are not supported for unmanaged nodegroups with AMIFamily AmazonLinux2"))
 			})
 
 			It("fails when instance distribution is enabled and instanceType set", func() {

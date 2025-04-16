@@ -153,7 +153,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 	instanceTypes := m.nodeGroup.InstanceTypeList()
 
 	makeAMIType := func() *gfnt.Value {
-		return gfnt.NewString(string(getAMIType(m.nodeGroup, selectManagedInstanceType(m.nodeGroup))))
+		return gfnt.NewString(string(api.GetAMIType(m.nodeGroup.AMIFamily, selectManagedInstanceType(m.nodeGroup), false /* not strict, allow fallback */)))
 	}
 
 	var launchTemplate *gfneks.Nodegroup_LaunchTemplateSpecification
@@ -178,7 +178,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 			if launchTemplateData.InstanceType == "" {
 				managedResource.AmiType = makeAMIType()
 			} else {
-				managedResource.AmiType = gfnt.NewString(string(getAMIType(m.nodeGroup, string(launchTemplateData.InstanceType))))
+				managedResource.AmiType = gfnt.NewString(string(api.GetAMIType(m.nodeGroup.AMIFamily, string(launchTemplateData.InstanceType), false /* not strict, allow fallback */)))
 			}
 		}
 
@@ -303,70 +303,6 @@ func validateLaunchTemplate(launchTemplateData *ec2types.ResponseLaunchTemplateD
 	}
 
 	return nil
-}
-
-func getAMIType(ng *api.ManagedNodeGroup, instanceType string) ekstypes.AMITypes {
-	amiTypeMapping := map[string]struct {
-		X86x64    ekstypes.AMITypes
-		X86Nvidia ekstypes.AMITypes
-		X86Neuron ekstypes.AMITypes
-		ARM       ekstypes.AMITypes
-		ARMGPU    ekstypes.AMITypes
-	}{
-		api.NodeImageFamilyAmazonLinux2023: {
-			X86x64:    ekstypes.AMITypesAl2023X8664Standard,
-			X86Nvidia: ekstypes.AMITypesAl2023X8664Nvidia,
-			X86Neuron: ekstypes.AMITypesAl2023X8664Neuron,
-			ARM:       ekstypes.AMITypesAl2023Arm64Standard,
-		},
-		api.NodeImageFamilyAmazonLinux2: {
-			X86x64:    ekstypes.AMITypesAl2X8664,
-			X86Nvidia: ekstypes.AMITypesAl2X8664Gpu,
-			X86Neuron: ekstypes.AMITypesAl2X8664Gpu,
-			ARM:       ekstypes.AMITypesAl2Arm64,
-		},
-		api.NodeImageFamilyBottlerocket: {
-			X86x64:    ekstypes.AMITypesBottlerocketX8664,
-			X86Nvidia: ekstypes.AMITypesBottlerocketX8664Nvidia,
-			X86Neuron: ekstypes.AMITypesBottlerocketX8664,
-			ARM:       ekstypes.AMITypesBottlerocketArm64,
-			ARMGPU:    ekstypes.AMITypesBottlerocketArm64Nvidia,
-		},
-		api.NodeImageFamilyWindowsServer2019FullContainer: {
-			X86x64:    ekstypes.AMITypesWindowsFull2019X8664,
-			X86Nvidia: ekstypes.AMITypesWindowsFull2019X8664,
-		},
-		api.NodeImageFamilyWindowsServer2019CoreContainer: {
-			X86x64:    ekstypes.AMITypesWindowsCore2019X8664,
-			X86Nvidia: ekstypes.AMITypesWindowsCore2019X8664,
-		},
-		api.NodeImageFamilyWindowsServer2022FullContainer: {
-			X86x64:    ekstypes.AMITypesWindowsFull2022X8664,
-			X86Nvidia: ekstypes.AMITypesWindowsFull2022X8664,
-		},
-		api.NodeImageFamilyWindowsServer2022CoreContainer: {
-			X86x64:    ekstypes.AMITypesWindowsCore2022X8664,
-			X86Nvidia: ekstypes.AMITypesWindowsCore2022X8664,
-		},
-	}
-
-	amiType, ok := amiTypeMapping[ng.AMIFamily]
-	if !ok {
-		return ekstypes.AMITypesCustom
-	}
-
-	switch {
-	case instanceutils.IsARMGPUInstanceType(instanceType):
-		return amiType.ARMGPU
-	case instanceutils.IsARMInstanceType(instanceType):
-		return amiType.ARM
-	case instanceutils.IsNvidiaInstanceType(instanceType):
-		return amiType.X86Nvidia
-	case instanceutils.IsNeuronInstanceType(instanceType):
-		return amiType.X86Neuron
-	default:
-		return amiType.X86x64
-	}
 }
 
 // RenderJSON implements the ResourceSet interface
