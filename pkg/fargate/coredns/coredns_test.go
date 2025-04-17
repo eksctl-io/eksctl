@@ -73,6 +73,21 @@ var (
 		},
 	}
 
+	profileWithCoreDNSLabelAndAdditionalLabels = []*api.FargateProfile{
+		{
+			Name: "not-selecting-coredns-because-of-multiple-labels",
+			Selectors: []api.FargateProfileSelector{
+				{
+					Namespace: "kube-system",
+					Labels: map[string]string{
+						"eks.amazonaws.com/component": "coredns",
+						"environment": "prod",
+					},
+				},
+			},
+		},
+	}
+
 	profileNotSelectingCoreDNSBecauseOfNamespace = []*api.FargateProfile{
 		{
 			Name: "not-selecting-coredns-because-of-namespace",
@@ -122,6 +137,10 @@ var _ = Describe("coredns", func() {
 
 		It("should return false when a Fargate profile matches kube-system but has labels", func() {
 			Expect(coredns.IsSchedulableOnFargate(profileNotSelectingCoreDNSBecauseOfLabels)).To(BeFalse())
+		})
+
+		It("should return false when a Fargate profile has the CoreDNS component label but also additional labels", func() {
+			Expect(coredns.IsSchedulableOnFargate(profileWithCoreDNSLabelAndAdditionalLabels)).To(BeFalse())
 		})
 
 		It("should return false when a Fargate profile doesn't match kube-system", func() {
