@@ -1843,8 +1843,7 @@
         "enclaveEnabled": {
           "type": "boolean",
           "description": "determines if the EC2 instance will be Nitro enclave enabled",
-          "x-intellij-html-description": "determines if the EC2 instance will be Nitro enclave enabled",
-          "default": "false"
+          "x-intellij-html-description": "determines if the EC2 instance will be Nitro enclave enabled"
         },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"

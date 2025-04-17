@@ -1354,6 +1354,17 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					Expect(ngTemplate.Resources).NotTo(HaveKey("EgressInterClusterAPI"))
 				})
 			})
+
+			Context("ng.EnclaveEnabled is set", func() {
+				BeforeEach(func() {
+					ng.EnclaveEnabled = aws.Bool(true)
+				})
+
+				It("enables the value on the launch template", func() {
+					properties := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties
+					Expect(properties.LaunchTemplateData.EnclaveOptions.Enabled).To(Equal(aws.Bool(true)))
+				})
+			})
 		})
 	})
 

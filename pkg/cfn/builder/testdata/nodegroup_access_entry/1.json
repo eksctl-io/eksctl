@@ -151,9 +151,6 @@
               }
             }
           ],
-          "EnclaveOptions": {
-            "Enabled": false
-          },
           "IamInstanceProfile": {
             "Arn": {
               "Fn::GetAtt": [

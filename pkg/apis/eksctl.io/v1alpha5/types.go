@@ -1335,7 +1335,7 @@ type NodeGroup struct {
 
 	// EnclaveEnabled determines if the EC2 instance will be Nitro enclave enabled
 	// +optional
-	EnclaveEnabled bool `json:"enclaveEnabled,omitempty"`
+	EnclaveEnabled *bool `json:"enclaveEnabled,omitempty"`
 }
 
 // GetContainerRuntime returns the container runtime.
