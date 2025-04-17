@@ -115,7 +115,6 @@ func getEC2Instances(region string, instances map[string]InstanceInfo) (map[stri
 
 	input := &ec2.DescribeInstanceTypesInput{
 		Filters: []types.Filter{
-			{Name: aws.String("current-generation"), Values: []string{"true"}},
 			{Name: aws.String("bare-metal"), Values: []string{"false"}},
 		},
 	}
