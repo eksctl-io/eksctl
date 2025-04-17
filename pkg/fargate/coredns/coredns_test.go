@@ -97,6 +97,23 @@ var _ = Describe("coredns", func() {
 			Expect(coredns.IsSchedulableOnFargate(multipleProfilesWithOneSelectingCoreDNS)).To(BeTrue())
 		})
 
+		It("should return true when a Fargate profile matches kube-system and has the CoreDNS component label", func() {
+			profileWithCoreDNSLabel := []*api.FargateProfile{
+				{
+					Name: "selecting-coredns-with-label",
+					Selectors: []api.FargateProfileSelector{
+						{
+							Namespace: "kube-system",
+							Labels: map[string]string{
+								"eks.amazonaws.com/component": "coredns",
+							},
+						},
+					},
+				},
+			}
+			Expect(coredns.IsSchedulableOnFargate(profileWithCoreDNSLabel)).To(BeTrue())
+		})
+
 		It("should return true when provided the default Fargate profile", func() {
 			cfg := api.NewClusterConfig()
 			cfg.SetDefaultFargateProfile()
