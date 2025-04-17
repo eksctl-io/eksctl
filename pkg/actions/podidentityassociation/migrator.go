@@ -86,7 +86,7 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 	*/
 	resolver := IRSAv1StackNameResolver{}
 	if err := resolver.Populate(func() ([]*api.ClusterIAMServiceAccount, error) {
-		return m.stackUpdater.GetIAMServiceAccounts(ctx)
+		return m.stackUpdater.GetIAMServiceAccounts(ctx, "", "")
 	}); err != nil {
 		return err
 	}

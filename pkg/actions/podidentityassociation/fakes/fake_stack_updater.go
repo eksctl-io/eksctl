@@ -25,10 +25,12 @@ type FakeStackUpdater struct {
 		result1 *manager.Stack
 		result2 error
 	}
-	GetIAMServiceAccountsStub        func(context.Context) ([]*v1alpha5.ClusterIAMServiceAccount, error)
+	GetIAMServiceAccountsStub        func(context.Context, string, string) ([]*v1alpha5.ClusterIAMServiceAccount, error)
 	getIAMServiceAccountsMutex       sync.RWMutex
 	getIAMServiceAccountsArgsForCall []struct {
 		arg1 context.Context
+		arg2 string
+		arg3 string
 	}
 	getIAMServiceAccountsReturns struct {
 		result1 []*v1alpha5.ClusterIAMServiceAccount
@@ -146,18 +148,20 @@ func (fake *FakeStackUpdater) DescribeStackReturnsOnCall(i int, result1 *manager
 	}{result1, result2}
 }
 
-func (fake *FakeStackUpdater) GetIAMServiceAccounts(arg1 context.Context) ([]*v1alpha5.ClusterIAMServiceAccount, error) {
+func (fake *FakeStackUpdater) GetIAMServiceAccounts(arg1 context.Context, arg2 string, arg3 string) ([]*v1alpha5.ClusterIAMServiceAccount, error) {
 	fake.getIAMServiceAccountsMutex.Lock()
 	ret, specificReturn := fake.getIAMServiceAccountsReturnsOnCall[len(fake.getIAMServiceAccountsArgsForCall)]
 	fake.getIAMServiceAccountsArgsForCall = append(fake.getIAMServiceAccountsArgsForCall, struct {
 		arg1 context.Context
-	}{arg1})
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
 	stub := fake.GetIAMServiceAccountsStub
 	fakeReturns := fake.getIAMServiceAccountsReturns
-	fake.recordInvocation("GetIAMServiceAccounts", []interface{}{arg1})
+	fake.recordInvocation("GetIAMServiceAccounts", []interface{}{arg1, arg2, arg3})
 	fake.getIAMServiceAccountsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -171,17 +175,17 @@ func (fake *FakeStackUpdater) GetIAMServiceAccountsCallCount() int {
 	return len(fake.getIAMServiceAccountsArgsForCall)
 }
 
-func (fake *FakeStackUpdater) GetIAMServiceAccountsCalls(stub func(context.Context) ([]*v1alpha5.ClusterIAMServiceAccount, error)) {
+func (fake *FakeStackUpdater) GetIAMServiceAccountsCalls(stub func(context.Context, string, string) ([]*v1alpha5.ClusterIAMServiceAccount, error)) {
 	fake.getIAMServiceAccountsMutex.Lock()
 	defer fake.getIAMServiceAccountsMutex.Unlock()
 	fake.GetIAMServiceAccountsStub = stub
 }
 
-func (fake *FakeStackUpdater) GetIAMServiceAccountsArgsForCall(i int) context.Context {
+func (fake *FakeStackUpdater) GetIAMServiceAccountsArgsForCall(i int) (context.Context, string, string) {
 	fake.getIAMServiceAccountsMutex.RLock()
 	defer fake.getIAMServiceAccountsMutex.RUnlock()
 	argsForCall := fake.getIAMServiceAccountsArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeStackUpdater) GetIAMServiceAccountsReturns(result1 []*v1alpha5.ClusterIAMServiceAccount, result2 error) {

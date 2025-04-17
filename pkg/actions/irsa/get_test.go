@@ -24,8 +24,8 @@ var _ = Describe("Get", func() {
 		irsaManager = irsa.New("my-cluster", fakeStackManager, nil, nil)
 	})
 
-	When("no options are specified", func() {
-		It("returns all service accounts", func() {
+	When("no error occurs", func() {
+		It("returns service accounts from GetIAMServiceAccounts", func() {
 			fakeStackManager.GetIAMServiceAccountsReturns([]*api.ClusterIAMServiceAccount{
 				{
 					ClusterIAMMeta: api.ClusterIAMMeta{
@@ -59,111 +59,6 @@ var _ = Describe("Get", func() {
 					ClusterIAMMeta: api.ClusterIAMMeta{
 						Name:      "test-sa-2",
 						Namespace: "not-default",
-					},
-					AttachPolicyARNs: []string{"arn-123"},
-				},
-			}))
-		})
-	})
-
-	When("name option is specified", func() {
-		It("returns only the service account matching the name", func() {
-			fakeStackManager.GetIAMServiceAccountsReturns([]*api.ClusterIAMServiceAccount{
-				{
-					ClusterIAMMeta: api.ClusterIAMMeta{
-						Name:      "test-sa",
-						Namespace: "default",
-					},
-					AttachPolicyARNs: []string{"arn-123"},
-				},
-				{
-					ClusterIAMMeta: api.ClusterIAMMeta{
-						Name:      "test-sa-2",
-						Namespace: "not-default",
-					},
-					AttachPolicyARNs: []string{"arn-123"},
-				},
-			}, nil)
-
-			serviceAccounts, err := irsaManager.Get(context.Background(), irsa.GetOptions{Name: "test-sa"})
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeStackManager.GetIAMServiceAccountsCallCount()).To(Equal(1))
-			Expect(serviceAccounts).To(Equal([]*api.ClusterIAMServiceAccount{
-				{
-					ClusterIAMMeta: api.ClusterIAMMeta{
-						Name:      "test-sa",
-						Namespace: "default",
-					},
-					AttachPolicyARNs: []string{"arn-123"},
-				},
-			}))
-		})
-	})
-
-	When("namespace option is specified", func() {
-		It("returns only the service account matching the name", func() {
-			fakeStackManager.GetIAMServiceAccountsReturns([]*api.ClusterIAMServiceAccount{
-				{
-					ClusterIAMMeta: api.ClusterIAMMeta{
-						Name:      "test-sa",
-						Namespace: "default",
-					},
-					AttachPolicyARNs: []string{"arn-123"},
-				},
-				{
-					ClusterIAMMeta: api.ClusterIAMMeta{
-						Name:      "test-sa-2",
-						Namespace: "not-default",
-					},
-					AttachPolicyARNs: []string{"arn-123"},
-				},
-			}, nil)
-
-			serviceAccounts, err := irsaManager.Get(context.Background(), irsa.GetOptions{Namespace: "not-default"})
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeStackManager.GetIAMServiceAccountsCallCount()).To(Equal(1))
-			Expect(serviceAccounts).To(Equal([]*api.ClusterIAMServiceAccount{
-				{
-					ClusterIAMMeta: api.ClusterIAMMeta{
-						Name:      "test-sa-2",
-						Namespace: "not-default",
-					},
-					AttachPolicyARNs: []string{"arn-123"},
-				},
-			}))
-		})
-	})
-
-	When("name and namespace option is specified", func() {
-		It("returns only the service account matching the name", func() {
-			fakeStackManager.GetIAMServiceAccountsReturns([]*api.ClusterIAMServiceAccount{
-				{
-					ClusterIAMMeta: api.ClusterIAMMeta{
-						Name:      "test-sa",
-						Namespace: "default",
-					},
-					AttachPolicyARNs: []string{"arn-123"},
-				},
-				{
-					ClusterIAMMeta: api.ClusterIAMMeta{
-						Name:      "some-other-sa",
-						Namespace: "default",
-					},
-					AttachPolicyARNs: []string{"arn-123"},
-				},
-			}, nil)
-
-			serviceAccounts, err := irsaManager.Get(context.Background(), irsa.GetOptions{Namespace: "default", Name: "test-sa"})
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeStackManager.GetIAMServiceAccountsCallCount()).To(Equal(1))
-			Expect(serviceAccounts).To(Equal([]*api.ClusterIAMServiceAccount{
-				{
-					ClusterIAMMeta: api.ClusterIAMMeta{
-						Name:      "test-sa",
-						Namespace: "default",
 					},
 					AttachPolicyARNs: []string{"arn-123"},
 				},

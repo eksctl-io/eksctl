@@ -63,7 +63,7 @@ type StackManager interface {
 	GetClusterStackIfExists(ctx context.Context) (*Stack, error)
 	GetFargateStack(ctx context.Context) (*Stack, error)
 	GetIAMAddonsStacks(ctx context.Context) ([]*Stack, error)
-	GetIAMServiceAccounts(ctx context.Context) ([]*api.ClusterIAMServiceAccount, error)
+	GetIAMServiceAccounts(ctx context.Context, name string, namespace string) ([]*api.ClusterIAMServiceAccount, error)
 	GetKarpenterStack(ctx context.Context) (*Stack, error)
 	GetManagedNodeGroupTemplate(ctx context.Context, options GetNodegroupOption) (string, error)
 	GetNodeGroupName(s *Stack) string
