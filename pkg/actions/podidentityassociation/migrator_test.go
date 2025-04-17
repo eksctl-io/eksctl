@@ -68,6 +68,16 @@ var _ = Describe("Create", func() {
 
 	mockDescribeAddon := func(provider *mockprovider.MockProvider, err error) {
 		mockProvider.MockEKS().
+			On("DescribeCluster", mock.Anything, mock.Anything).
+			Return(&awseks.DescribeClusterOutput{
+				Cluster: &ekstypes.Cluster{
+					ComputeConfig: &ekstypes.ComputeConfigResponse{
+						Enabled: aws.Bool(false),
+					},
+				},
+			}, nil).
+			Once()
+		mockProvider.MockEKS().
 			On("DescribeAddon", mock.Anything, mock.Anything).
 			Return(nil, err).
 			Once()
