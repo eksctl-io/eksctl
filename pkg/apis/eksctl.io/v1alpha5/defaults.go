@@ -11,7 +11,6 @@ import (
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/weaveworks/eksctl/pkg/utils"
-	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 )
 
 const (
@@ -149,8 +148,8 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta, contro
 	// When using custom AMIs, we want the user to explicitly specify AMI family.
 	// Thus, we only set up default AMI family when no custom AMI is being used.
 	if ng.AMIFamily == "" && ng.AMI == "" {
-		if isMinVer, _ := utils.IsMinVersion(Version1_30, meta.Version); isMinVer &&
-			!instanceutils.IsARMGPUInstanceType(ng.InstanceType) {
+		// AL2023 is the default ami type on EKS managed nodegroups after 1.30.
+		if isMinVer, _ := utils.IsMinVersion(Version1_30, meta.Version); isMinVer {
 			ng.AMIFamily = NodeImageFamilyAmazonLinux2023
 		} else {
 			ng.AMIFamily = NodeImageFamilyAmazonLinux2

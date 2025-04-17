@@ -21,12 +21,6 @@ func IsNeuronInstanceType(instanceType string) bool {
 	return InstanceTypesMap[instanceType].NeuronSupported
 }
 
-// IsARMGPUInstanceType returns true if the instance type is ARM-GPU architecture
-func IsARMGPUInstanceType(instanceType string) bool {
-	itype := InstanceTypesMap[instanceType]
-	return itype.CPUArch == "arm64" && itype.NvidiaGPUSupported
-}
-
 // IsNvidiaInstanceType returns true if the instance type has NVIDIA accelerated hardware
 func IsNvidiaInstanceType(instanceType string) bool {
 	return InstanceTypesMap[instanceType].NvidiaGPUSupported
