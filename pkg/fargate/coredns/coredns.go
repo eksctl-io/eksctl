@@ -43,7 +43,7 @@ func IsSchedulableOnFargate(profiles []*api.FargateProfile) bool {
 }
 
 func selectsCoreDNS(selector api.FargateProfileSelector) bool {
-	return selector.Namespace == Namespace && len(selector.Labels) == 0
+	return selector.Namespace == Namespace && (len(selector.Labels) == 0 || selector.Labels["eks.amazonaws.com/component"] == Name)
 }
 
 // IsScheduledOnFargate checks if EKS' coredns is scheduled onto Fargate.
