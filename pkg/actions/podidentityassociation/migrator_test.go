@@ -66,11 +66,24 @@ var _ = Describe("Create", func() {
 		genericErr = fmt.Errorf("ERR")
 	)
 
-	mockDescribeAddon := func(provider *mockprovider.MockProvider, err error) {
+	mockDescribeAddon := func(provider *mockprovider.MockProvider, err error, autoMode bool) {
 		mockProvider.MockEKS().
-			On("DescribeAddon", mock.Anything, mock.Anything).
-			Return(nil, err).
+			On("DescribeCluster", mock.Anything, mock.Anything).
+			Return(&awseks.DescribeClusterOutput{
+				Cluster: &ekstypes.Cluster{
+					ComputeConfig: &ekstypes.ComputeConfigResponse{
+						Enabled: aws.Bool(autoMode),
+					},
+				},
+			}, nil).
 			Once()
+		if !autoMode {
+			mockProvider.MockEKS().
+				On("DescribeAddon", mock.Anything, mock.Anything).
+				Return(nil, err).
+				Once()
+
+		}
 	}
 
 	createFakeServiceAccount := func(clientSet *fake.Clientset, namespace, serviceAccountName, roleARN string) {
@@ -139,14 +152,14 @@ var _ = Describe("Create", func() {
 	},
 		Entry("[API errors] describing pod identity agent addon fails", migrateToPodIdentityAssociationEntry{
 			mockEKS: func(provider *mockprovider.MockProvider) {
-				mockDescribeAddon(provider, genericErr)
+				mockDescribeAddon(provider, genericErr, false)
 			},
 			expectedErr: fmt.Sprintf("calling %q", fmt.Sprintf("EKS::DescribeAddon::%s", api.PodIdentityAgentAddon)),
 		}),
 
 		Entry("[API errors] fetching iamserviceaccounts fails", migrateToPodIdentityAssociationEntry{
 			mockEKS: func(provider *mockprovider.MockProvider) {
-				mockDescribeAddon(provider, nil)
+				mockDescribeAddon(provider, nil, false)
 			},
 			mockCFN: func(stackUpdater *fakes.FakeStackUpdater) {
 				stackUpdater.GetIAMServiceAccountsReturns(nil, genericErr)
@@ -158,7 +171,7 @@ var _ = Describe("Create", func() {
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				mockDescribeAddon(provider, &ekstypes.ResourceNotFoundException{
 					Message: aws.String(genericErr.Error()),
-				})
+				}, false)
 			},
 			mockCFN: func(stackUpdater *fakes.FakeStackUpdater) {
 				stackUpdater.GetIAMServiceAccountsReturns([]*api.ClusterIAMServiceAccount{}, nil)
@@ -173,7 +186,7 @@ var _ = Describe("Create", func() {
 
 		Entry("[taskTree] contains tasks to remove IRSAv1 EKS Role annotation if remove trust option is specified", migrateToPodIdentityAssociationEntry{
 			mockEKS: func(provider *mockprovider.MockProvider) {
-				mockDescribeAddon(provider, nil)
+				mockDescribeAddon(provider, nil, false)
 			},
 			mockCFN: func(stackUpdater *fakes.FakeStackUpdater) {
 				stackUpdater.GetIAMServiceAccountsReturns([]*api.ClusterIAMServiceAccount{}, nil)
@@ -191,7 +204,7 @@ var _ = Describe("Create", func() {
 
 		Entry("[taskTree] contains all other expected tasks", migrateToPodIdentityAssociationEntry{
 			mockEKS: func(provider *mockprovider.MockProvider) {
-				mockDescribeAddon(provider, nil)
+				mockDescribeAddon(provider, nil, false)
 			},
 			mockCFN: func(stackUpdater *fakes.FakeStackUpdater) {
 				stackUpdater.GetIAMServiceAccountsReturns([]*api.ClusterIAMServiceAccount{
@@ -220,7 +233,88 @@ var _ = Describe("Create", func() {
 
 		Entry("completes all tasks successfully", migrateToPodIdentityAssociationEntry{
 			mockEKS: func(provider *mockprovider.MockProvider) {
-				mockDescribeAddon(provider, nil)
+				mockDescribeAddon(provider, nil, false)
+
+				mockProvider.MockEKS().
+					On("CreatePodIdentityAssociation", mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.CreatePodIdentityAssociationInput{}))
+					}).
+					Return(nil, nil).
+					Twice()
+
+				mockProvider.MockIAM().
+					On("GetRole", mock.Anything, mock.Anything).
+					Return(&awsiam.GetRoleOutput{
+						Role: &iamtypes.Role{
+							AssumeRolePolicyDocument: policyDocument,
+						},
+					}, nil).
+					Twice()
+
+				mockProvider.MockIAM().
+					On("UpdateAssumeRolePolicy", mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awsiam.UpdateAssumeRolePolicyInput{}))
+						input := args[1].(*awsiam.UpdateAssumeRolePolicyInput)
+
+						var trustPolicy api.IAMPolicyDocument
+						Expect(json.Unmarshal([]byte(*input.PolicyDocument), &trustPolicy)).NotTo(HaveOccurred())
+						Expect(trustPolicy.Statements).To(HaveLen(1))
+						value, exists := trustPolicy.Statements[0].Principal["Service"]
+						Expect(exists).To(BeTrue())
+						Expect(value).To(ConsistOf([]string{api.EKSServicePrincipal}))
+					}).
+					Return(nil, nil).
+					Once()
+			},
+			mockCFN: func(stackUpdater *fakes.FakeStackUpdater) {
+				stackUpdater.GetIAMServiceAccountsReturns([]*api.ClusterIAMServiceAccount{
+					{
+						Status: &api.ClusterIAMServiceAccountStatus{
+							RoleARN: aws.String(roleARN1),
+							StackName: aws.String(makeIRSAv1StackName(podidentityassociation.Identifier{
+								Namespace:          nsDefault,
+								ServiceAccountName: sa1,
+							})),
+							Capabilities: []string{"CAPABILITY_IAM"},
+						},
+					},
+				}, nil)
+
+				stackUpdater.GetStackTemplateReturnsOnCall(0, iamRoleStackTemplate(nsDefault, sa1), nil)
+				stackUpdater.GetStackTemplateReturnsOnCall(1, iamRoleStackTemplate(nsDefault, sa2), nil)
+
+				stackUpdater.MustUpdateStackStub = func(ctx context.Context, options manager.UpdateStackOptions) error {
+					Expect(options.Stack).NotTo(BeNil())
+					Expect(options.Stack.Tags).To(ConsistOf([]cfntypes.Tag{
+						{
+							Key:   aws.String(api.PodIdentityAssociationNameTag),
+							Value: aws.String(nsDefault + "/" + sa1),
+						},
+					}))
+					Expect(options.Stack.Capabilities).To(ConsistOf([]cfntypes.Capability{"CAPABILITY_IAM"}))
+					template := string(options.TemplateData.(manager.TemplateBody))
+					Expect(template).To(ContainSubstring(api.EKSServicePrincipal))
+					Expect(template).NotTo(ContainSubstring("oidc"))
+					return nil
+				}
+			},
+			mockK8s: func(clientSet *fake.Clientset) {
+				createFakeServiceAccount(clientSet, nsDefault, sa1, roleARN1)
+				createFakeServiceAccount(clientSet, nsDefault, sa2, roleARN2)
+			},
+			options: podidentityassociation.PodIdentityMigrationOptions{
+				RemoveOIDCProviderTrustRelationship: true,
+				Approve:                             true,
+			},
+		}),
+
+		Entry("completes all tasks successfully for auto-mode", migrateToPodIdentityAssociationEntry{
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider, nil, true)
 
 				mockProvider.MockEKS().
 					On("CreatePodIdentityAssociation", mock.Anything, mock.Anything).
