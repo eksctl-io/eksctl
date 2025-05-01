@@ -70,7 +70,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xgfone/go-netaddr v0.6.0
 	golang.org/x/crypto v0.36.0
-	golang.org/x/oauth2 v0.27.0
+	golang.org/x/oauth2 v0.29.0
 	golang.org/x/sync v0.12.0
 	golang.org/x/text v0.23.0
 	gopkg.in/yaml.v2 v2.4.0
