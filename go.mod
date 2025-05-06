@@ -9,8 +9,8 @@ require (
 	github.com/aws/amazon-ec2-instance-selector/v3 v3.1.1-0.20250224180552-36eea73b44c2
 	github.com/aws/aws-sdk-go v1.55.7
 	github.com/aws/aws-sdk-go-v2 v1.36.3
-	github.com/aws/aws-sdk-go-v2/config v1.29.12
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.65
+	github.com/aws/aws-sdk-go-v2/config v1.29.14
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.67
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.52.4
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.59.2
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.48.4
@@ -24,7 +24,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.38.1
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.50.1
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.58.2
-	github.com/aws/aws-sdk-go-v2/service/sts v1.33.17
+	github.com/aws/aws-sdk-go-v2/service/sts v1.33.19
 	github.com/aws/smithy-go v1.22.3
 	github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20250219002025-c3b5cd3d2fd9
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
@@ -142,8 +142,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.48.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.77.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.37.15 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.25.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.30.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.25.3 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.30.1 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.3 // indirect
