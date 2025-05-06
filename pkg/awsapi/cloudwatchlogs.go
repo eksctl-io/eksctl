@@ -59,7 +59,7 @@ type CloudWatchLogs interface {
 	// results, then all the associated stored log events or query results that were
 	// encrypted with that key will be unencryptable and unusable.
 	//
-	// CloudWatch Logs supports only symmetric KMS keys. Do not use an associate an
+	// CloudWatch Logs supports only symmetric KMS keys. Do not associate an
 	// asymmetric KMS key with your log group or query results. For more information,
 	// see [Using Symmetric and Asymmetric Keys].
 	//
@@ -139,7 +139,7 @@ type CloudWatchLogs interface {
 	// be used as the Amazon S3 key prefix for all exported objects.
 	//
 	// We recommend that you don't regularly export to Amazon S3 as a way to
-	// continuously archive your logs. For that use case, we instaed recommend that you
+	// continuously archive your logs. For that use case, we instead recommend that you
 	// use subscriptions. For more information about subscriptions, see [Real-time processing of log data with subscriptions].
 	//
 	// Time-based sorting on chunks of log data inside an exported file is not
@@ -364,7 +364,7 @@ type CloudWatchLogs interface {
 	//     logs:GetDataProtectionPolicy and logs:DescribeAccountPolicies permissions.
 	//
 	//   - To see subscription filter policies, you must have the
-	//     logs:DescrubeSubscriptionFilters and logs:DescribeAccountPolicies permissions.
+	//     logs:DescribeSubscriptionFilters and logs:DescribeAccountPolicies permissions.
 	//
 	//   - To see transformer policies, you must have the logs:GetTransformer and
 	//     logs:DescribeAccountPolicies permissions.
@@ -1139,7 +1139,7 @@ type CloudWatchLogs interface {
 	//   - A batch of log events in a single request cannot span more than 24 hours.
 	//     Otherwise, the operation fails.
 	//
-	//   - Each log event can be no larger than 256 KB.
+	//   - Each log event can be no larger than 1 MB.
 	//
 	//   - The maximum number of log events in a batch is 10,000.
 	//
@@ -1335,6 +1335,10 @@ type CloudWatchLogs interface {
 	//
 	//	- A [SessionTimeoutException]object is returned when the session times out, after it has been kept
 	//	open for three hours.
+	//
+	// The StartLiveTail API routes requests to streaming-logs.Region.amazonaws.com
+	// using SDK host prefix injection. VPC endpoint support is not available for this
+	// API.
 	//
 	// You can end a session before it times out by closing the session stream or by
 	// closing the client that is receiving the stream. The session also ends if the
