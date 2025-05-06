@@ -194,7 +194,7 @@ const (
 // All valid values of supported families should go in this block
 const (
 	// DefaultNodeImageFamily (default)
-	DefaultNodeImageFamily         = NodeImageFamilyAmazonLinux2023
+	DefaultNodeImageFamily         = NodeImageFamilyAmazonLinux2
 	NodeImageFamilyAmazonLinux2023 = "AmazonLinux2023"
 	NodeImageFamilyAmazonLinux2    = "AmazonLinux2"
 	NodeImageFamilyUbuntuPro2404   = "UbuntuPro2404"
