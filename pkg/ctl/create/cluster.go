@@ -697,7 +697,6 @@ func checkSubnetsGivenAsFlags(params *cmdutils.CreateClusterCmdParams) bool {
 }
 
 func logAmazonLinux2EndOfSupportWarningIfNeeded(cfg *api.ClusterConfig) {
-	// Warning about AL2 AMI end of support
 	isUsingAL2 := false
 	for _, ng := range cfg.NodeGroups {
 		if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
@@ -715,7 +714,6 @@ func logAmazonLinux2EndOfSupportWarningIfNeeded(cfg *api.ClusterConfig) {
 		}
 	}
 
-	// If using AL2, show warning
 	if isUsingAL2 {
 		logger.Warning(amazonLinux2EndOfSupportWarning)
 	}
