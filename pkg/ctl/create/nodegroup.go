@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	amazonLinux2EndOfSupportWarning = "Amazon EKS will no longer publish EKS-optimized Amazon Linux 2 (AL2) AMIs after November 26th, 2025. Additionally, Kubernetes version 1.32 is the last version for which Amazon EKS will release AL2 AMIs. From version 1.33 onwards, Amazon EKS will continue to release AL2023 and Bottlerocket based AMIs. The default AMI when creating clusters and nodegroups in Eksctl will be changed to AL2023 in the future."
+	amazonLinux2EndOfSupportWarning = "Amazon EKS will no longer publish EKS-optimized Amazon Linux 2 (AL2) AMIs after November 26th, 2025. Additionally, Kubernetes version 1.32 is the last version for which Amazon EKS will release AL2 AMIs. From version 1.33 onwards, Amazon EKS will continue to release AL2023 and Bottlerocket based AMIs. The default AMI family when creating clusters and nodegroups in Eksctl will be changed to AL2023 in the future."
 )
 
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
