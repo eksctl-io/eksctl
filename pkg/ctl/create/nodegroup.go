@@ -20,6 +20,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 )
 
+const (
+	amazonLinux2EndOfSupportWarning = "Amazon EKS will no longer publish EKS-optimized Amazon Linux 2 (AL2) AMIs after November 26th, 2025. Additionally, Kubernetes version 1.32 is the last version for which Amazon EKS will release AL2 AMIs. From version 1.33 onwards, Amazon EKS will continue to release AL2023 and Bottlerocket based AMIs."
+)
+
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options *cmdutils.NodeGroupOptions) error {
 		if ng.Name != "" && api.IsInvalidNameArg(ng.Name) {
@@ -43,9 +47,8 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 			}()
 		}
 
-		// Check if using AL2 AMI and warn about end of support
 		if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
-			logger.Warning("createNodeGroupCmd: Amazon EKS will no longer publish EKS-optimized Amazon Linux 2 (AL2) AMIs after November 26th, 2025. Additionally, Kubernetes version 1.32 is the last version for which Amazon EKS will release AL2 AMIs. From version 1.33 onwards, Amazon EKS will continue to release AL2023 and Bottlerocket based AMIs.")
+			logger.Warning(amazonLinux2EndOfSupportWarning)
 		}
 
 		ctx := context.Background()

@@ -165,7 +165,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	//prevent logging multiple times
 	once.Do(func() {
 		cmdutils.LogRegionAndVersionInfo(meta)
-		logAmazonLinux2EndOfLifeWarningIfNeeded(cfg)
+		logAmazonLinux2EndOfSupportWarningIfNeeded(cfg)
 	})
 
 	if err := cfg.ValidatePrivateCluster(); err != nil {
@@ -696,7 +696,7 @@ func checkSubnetsGivenAsFlags(params *cmdutils.CreateClusterCmdParams) bool {
 	return len(*params.Subnets[api.SubnetTopologyPrivate])+len(*params.Subnets[api.SubnetTopologyPublic]) != 0
 }
 
-func logAmazonLinux2EndOfLifeWarningIfNeeded(cfg *api.ClusterConfig) {
+func logAmazonLinux2EndOfSupportWarningIfNeeded(cfg *api.ClusterConfig) {
 	// Warning about AL2 AMI end of support
 	isUsingAL2 := false
 	for _, ng := range cfg.NodeGroups {
@@ -717,6 +717,6 @@ func logAmazonLinux2EndOfLifeWarningIfNeeded(cfg *api.ClusterConfig) {
 
 	// If using AL2, show warning
 	if isUsingAL2 {
-		logger.Warning("Amazon EKS will no longer publish EKS-optimized Amazon Linux 2 (AL2) AMIs after November 26th, 2025. Additionally, Kubernetes version 1.32 is the last version for which Amazon EKS will release AL2 AMIs. From version 1.33 onwards, Amazon EKS will continue to release AL2023 and Bottlerocket based AMIs.")
+		logger.Warning(amazonLinux2EndOfSupportWarning)
 	}
 }
