@@ -43,6 +43,11 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 			}()
 		}
 
+		// Check if using AL2 AMI and warn about end of support
+		if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
+			logger.Warning("createNodeGroupCmd: Amazon EKS will no longer publish EKS-optimized Amazon Linux 2 (AL2) AMIs after November 26th, 2025. Additionally, Kubernetes version 1.32 is the last version for which Amazon EKS will release AL2 AMIs. From version 1.33 onwards, Amazon EKS will continue to release AL2023 and Bottlerocket based AMIs.")
+		}
+
 		ctx := context.Background()
 		ctl, err := cmd.NewProviderForExistingClusterHelper(ctx, checkNodeGroupVersion)
 		if err != nil {

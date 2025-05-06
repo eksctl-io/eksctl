@@ -14,7 +14,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.52.4
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.59.2
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.48.4
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.47.3
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.48.0
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.51.3
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.210.1
 	github.com/aws/aws-sdk-go-v2/service/eks v1.64.0
@@ -23,7 +23,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/iam v1.41.1
 	github.com/aws/aws-sdk-go-v2/service/kms v1.38.1
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.50.1
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.58.2
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.59.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.17
 	github.com/aws/smithy-go v1.22.3
 	github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20250219002025-c3b5cd3d2fd9
