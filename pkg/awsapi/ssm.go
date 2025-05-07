@@ -431,8 +431,6 @@ type SSM interface {
 	// this API operation can delete an Incident Manager incident from an OpsItem.
 	// Incident Manager is a tool in Amazon Web Services Systems Manager.
 	DisassociateOpsItemRelatedItem(ctx context.Context, params *DisassociateOpsItemRelatedItemInput, optFns ...func(*Options)) (*DisassociateOpsItemRelatedItemOutput, error)
-	// Returns a credentials set to be used with just-in-time node access.
-	GetAccessToken(ctx context.Context, params *GetAccessTokenInput, optFns ...func(*Options)) (*GetAccessTokenOutput, error)
 	// Get detailed information about a particular Automation execution.
 	GetAutomationExecution(ctx context.Context, params *GetAutomationExecutionInput, optFns ...func(*Options)) (*GetAutomationExecutionOutput, error)
 	// Gets the state of a Amazon Web Services Systems Manager change calendar at the
@@ -830,8 +828,6 @@ type SSM interface {
 	SendAutomationSignal(ctx context.Context, params *SendAutomationSignalInput, optFns ...func(*Options)) (*SendAutomationSignalOutput, error)
 	// Runs commands on one or more managed nodes.
 	SendCommand(ctx context.Context, params *SendCommandInput, optFns ...func(*Options)) (*SendCommandOutput, error)
-	// Starts the workflow for just-in-time node access sessions.
-	StartAccessRequest(ctx context.Context, params *StartAccessRequestInput, optFns ...func(*Options)) (*StartAccessRequestOutput, error)
 	// Runs an association immediately and only one time. This operation can be
 	// helpful when troubleshooting associations.
 	StartAssociationsOnce(ctx context.Context, params *StartAssociationsOnceInput, optFns ...func(*Options)) (*StartAssociationsOnceOutput, error)
