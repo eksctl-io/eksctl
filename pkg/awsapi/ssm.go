@@ -51,19 +51,19 @@ type SSM interface {
 	// EC2) instances, see [Tag your Amazon EC2 resources]in the Amazon EC2 User Guide.
 	//
 	// [Tag your Amazon EC2 resources]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html
-	AddTagsToResource(ctx context.Context, params *AddTagsToResourceInput, optFns ...func(*Options)) (*AddTagsToResourceOutput, error)
+	AddTagsToResource(ctx context.Context, params *ssm.AddTagsToResourceInput, optFns ...func(*Options)) (*ssm.AddTagsToResourceOutput, error)
 	// Associates a related item to a Systems Manager OpsCenter OpsItem. For example,
 	// you can associate an Incident Manager incident or analysis with an OpsItem.
 	// Incident Manager and OpsCenter are tools in Amazon Web Services Systems Manager.
-	AssociateOpsItemRelatedItem(ctx context.Context, params *AssociateOpsItemRelatedItemInput, optFns ...func(*Options)) (*AssociateOpsItemRelatedItemOutput, error)
+	AssociateOpsItemRelatedItem(ctx context.Context, params *ssm.AssociateOpsItemRelatedItemInput, optFns ...func(*Options)) (*ssm.AssociateOpsItemRelatedItemOutput, error)
 	// Attempts to cancel the command specified by the Command ID. There is no
 	// guarantee that the command will be terminated and the underlying process
 	// stopped.
-	CancelCommand(ctx context.Context, params *CancelCommandInput, optFns ...func(*Options)) (*CancelCommandOutput, error)
+	CancelCommand(ctx context.Context, params *ssm.CancelCommandInput, optFns ...func(*Options)) (*ssm.CancelCommandOutput, error)
 	// Stops a maintenance window execution that is already in progress and cancels
 	// any tasks in the window that haven't already starting running. Tasks already in
 	// progress will continue to completion.
-	CancelMaintenanceWindowExecution(ctx context.Context, params *CancelMaintenanceWindowExecutionInput, optFns ...func(*Options)) (*CancelMaintenanceWindowExecutionOutput, error)
+	CancelMaintenanceWindowExecution(ctx context.Context, params *ssm.CancelMaintenanceWindowExecutionInput, optFns ...func(*Options)) (*ssm.CancelMaintenanceWindowExecutionOutput, error)
 	// Generates an activation code and activation ID you can use to register your
 	// on-premises servers, edge devices, or virtual machine (VM) with Amazon Web
 	// Services Systems Manager. Registering these machines with Systems Manager makes
@@ -77,7 +77,7 @@ type SSM interface {
 	// called managed nodes.
 	//
 	// [Using Amazon Web Services Systems Manager in hybrid and multicloud environments]: https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-hybrid-multicloud.html
-	CreateActivation(ctx context.Context, params *CreateActivationInput, optFns ...func(*Options)) (*CreateActivationOutput, error)
+	CreateActivation(ctx context.Context, params *ssm.CreateActivationInput, optFns ...func(*Options)) (*ssm.CreateActivationOutput, error)
 	// A State Manager association defines the state that you want to maintain on your
 	// managed nodes. For example, an association can specify that anti-virus software
 	// must be installed and running on your managed nodes, or that certain ports must
@@ -90,7 +90,7 @@ type SSM interface {
 	// software might run once a day. If the software isn't installed, then State
 	// Manager installs it. If the software is installed, but the service isn't
 	// running, then the association might instruct State Manager to start the service.
-	CreateAssociation(ctx context.Context, params *CreateAssociationInput, optFns ...func(*Options)) (*CreateAssociationOutput, error)
+	CreateAssociation(ctx context.Context, params *ssm.CreateAssociationInput, optFns ...func(*Options)) (*ssm.CreateAssociationOutput, error)
 	// Associates the specified Amazon Web Services Systems Manager document (SSM
 	// document) with the specified managed nodes or targets.
 	//
@@ -100,7 +100,7 @@ type SSM interface {
 	//
 	// If you associate a document with a managed node that already has an associated
 	// document, the system returns the AssociationAlreadyExists exception.
-	CreateAssociationBatch(ctx context.Context, params *CreateAssociationBatchInput, optFns ...func(*Options)) (*CreateAssociationBatchOutput, error)
+	CreateAssociationBatch(ctx context.Context, params *ssm.CreateAssociationBatchInput, optFns ...func(*Options)) (*ssm.CreateAssociationBatchOutput, error)
 	// Creates a Amazon Web Services Systems Manager (SSM document). An SSM document
 	// defines the actions that Systems Manager performs on your managed nodes. For
 	// more information about SSM documents, including information about supported
@@ -108,7 +108,7 @@ type SSM interface {
 	// User Guide.
 	//
 	// [Amazon Web Services Systems Manager Documents]: https://docs.aws.amazon.com/systems-manager/latest/userguide/documents.html
-	CreateDocument(ctx context.Context, params *CreateDocumentInput, optFns ...func(*Options)) (*CreateDocumentOutput, error)
+	CreateDocument(ctx context.Context, params *ssm.CreateDocumentInput, optFns ...func(*Options)) (*ssm.CreateDocumentOutput, error)
 	// Creates a new maintenance window.
 	//
 	// The value you specify for Duration determines the specific end time for the
@@ -117,7 +117,7 @@ type SSM interface {
 	// specify for Cutoff . For example, if the maintenance window starts at 3 PM, the
 	// duration is three hours, and the value you specify for Cutoff is one hour, no
 	// maintenance window tasks can start after 5 PM.
-	CreateMaintenanceWindow(ctx context.Context, params *CreateMaintenanceWindowInput, optFns ...func(*Options)) (*CreateMaintenanceWindowOutput, error)
+	CreateMaintenanceWindow(ctx context.Context, params *ssm.CreateMaintenanceWindowInput, optFns ...func(*Options)) (*ssm.CreateMaintenanceWindowOutput, error)
 	// Creates a new OpsItem. You must have permission in Identity and Access
 	// Management (IAM) to create a new OpsItem. For more information, see [Set up OpsCenter]in the
 	// Amazon Web Services Systems Manager User Guide.
@@ -129,16 +129,16 @@ type SSM interface {
 	//
 	// [Amazon Web Services Systems Manager OpsCenter]: https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter.html
 	// [Set up OpsCenter]: https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-setup.html
-	CreateOpsItem(ctx context.Context, params *CreateOpsItemInput, optFns ...func(*Options)) (*CreateOpsItemOutput, error)
+	CreateOpsItem(ctx context.Context, params *ssm.CreateOpsItemInput, optFns ...func(*Options)) (*ssm.CreateOpsItemOutput, error)
 	// If you create a new application in Application Manager, Amazon Web Services
 	// Systems Manager calls this API operation to specify information about the new
 	// application, including the application type.
-	CreateOpsMetadata(ctx context.Context, params *CreateOpsMetadataInput, optFns ...func(*Options)) (*CreateOpsMetadataOutput, error)
+	CreateOpsMetadata(ctx context.Context, params *ssm.CreateOpsMetadataInput, optFns ...func(*Options)) (*ssm.CreateOpsMetadataOutput, error)
 	// Creates a patch baseline.
 	//
 	// For information about valid key-value pairs in PatchFilters for each supported
 	// operating system type, see PatchFilter.
-	CreatePatchBaseline(ctx context.Context, params *CreatePatchBaselineInput, optFns ...func(*Options)) (*CreatePatchBaselineOutput, error)
+	CreatePatchBaseline(ctx context.Context, params *ssm.CreatePatchBaselineInput, optFns ...func(*Options)) (*ssm.CreatePatchBaselineOutput, error)
 	// A resource data sync helps you view data from multiple sources in a single
 	// location. Amazon Web Services Systems Manager offers two types of resource data
 	// sync: SyncToDestination and SyncFromSource .
@@ -167,12 +167,12 @@ type SSM interface {
 	//
 	// [Setting up Systems Manager Explorer to display data from multiple accounts and Regions]: https://docs.aws.amazon.com/systems-manager/latest/userguide/Explorer-resource-data-sync.html
 	// [Creating a resource data sync for Inventory]: https://docs.aws.amazon.com/systems-manager/latest/userguide/inventory-create-resource-data-sync.html
-	CreateResourceDataSync(ctx context.Context, params *CreateResourceDataSyncInput, optFns ...func(*Options)) (*CreateResourceDataSyncOutput, error)
+	CreateResourceDataSync(ctx context.Context, params *ssm.CreateResourceDataSyncInput, optFns ...func(*Options)) (*ssm.CreateResourceDataSyncOutput, error)
 	// Deletes an activation. You aren't required to delete an activation. If you
 	// delete an activation, you can no longer use it to register additional managed
 	// nodes. Deleting an activation doesn't de-register managed nodes. You must
 	// manually de-register managed nodes.
-	DeleteActivation(ctx context.Context, params *DeleteActivationInput, optFns ...func(*Options)) (*DeleteActivationOutput, error)
+	DeleteActivation(ctx context.Context, params *ssm.DeleteActivationInput, optFns ...func(*Options)) (*ssm.DeleteActivationOutput, error)
 	// Disassociates the specified Amazon Web Services Systems Manager document (SSM
 	// document) from the specified managed node. If you created the association by
 	// using the Targets parameter, then you must delete the association by using the
@@ -182,19 +182,19 @@ type SSM interface {
 	// configuration of the node. To change the configuration state of a managed node
 	// after you disassociate a document, you must create a new document with the
 	// desired configuration and associate it with the node.
-	DeleteAssociation(ctx context.Context, params *DeleteAssociationInput, optFns ...func(*Options)) (*DeleteAssociationOutput, error)
+	DeleteAssociation(ctx context.Context, params *ssm.DeleteAssociationInput, optFns ...func(*Options)) (*ssm.DeleteAssociationOutput, error)
 	// Deletes the Amazon Web Services Systems Manager document (SSM document) and all
 	// managed node associations to the document.
 	//
 	// Before you delete the document, we recommend that you use DeleteAssociation to disassociate all
 	// managed nodes that are associated with the document.
-	DeleteDocument(ctx context.Context, params *DeleteDocumentInput, optFns ...func(*Options)) (*DeleteDocumentOutput, error)
+	DeleteDocument(ctx context.Context, params *ssm.DeleteDocumentInput, optFns ...func(*Options)) (*ssm.DeleteDocumentOutput, error)
 	// Delete a custom inventory type or the data associated with a custom Inventory
 	// type. Deleting a custom inventory type is also referred to as deleting a custom
 	// inventory schema.
-	DeleteInventory(ctx context.Context, params *DeleteInventoryInput, optFns ...func(*Options)) (*DeleteInventoryOutput, error)
+	DeleteInventory(ctx context.Context, params *ssm.DeleteInventoryInput, optFns ...func(*Options)) (*ssm.DeleteInventoryOutput, error)
 	// Deletes a maintenance window.
-	DeleteMaintenanceWindow(ctx context.Context, params *DeleteMaintenanceWindowInput, optFns ...func(*Options)) (*DeleteMaintenanceWindowOutput, error)
+	DeleteMaintenanceWindow(ctx context.Context, params *ssm.DeleteMaintenanceWindowInput, optFns ...func(*Options)) (*ssm.DeleteMaintenanceWindowOutput, error)
 	// Delete an OpsItem. You must have permission in Identity and Access Management
 	// (IAM) to delete an OpsItem.
 	//
@@ -219,21 +219,21 @@ type SSM interface {
 	//     User Guide.
 	//
 	// [Setting up OpsCenter to centrally manage OpsItems across accounts]: https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-setting-up-cross-account.html
-	DeleteOpsItem(ctx context.Context, params *DeleteOpsItemInput, optFns ...func(*Options)) (*DeleteOpsItemOutput, error)
+	DeleteOpsItem(ctx context.Context, params *ssm.DeleteOpsItemInput, optFns ...func(*Options)) (*ssm.DeleteOpsItemOutput, error)
 	// Delete OpsMetadata related to an application.
-	DeleteOpsMetadata(ctx context.Context, params *DeleteOpsMetadataInput, optFns ...func(*Options)) (*DeleteOpsMetadataOutput, error)
+	DeleteOpsMetadata(ctx context.Context, params *ssm.DeleteOpsMetadataInput, optFns ...func(*Options)) (*ssm.DeleteOpsMetadataOutput, error)
 	// Delete a parameter from the system. After deleting a parameter, wait for at
 	// least 30 seconds to create a parameter with the same name.
-	DeleteParameter(ctx context.Context, params *DeleteParameterInput, optFns ...func(*Options)) (*DeleteParameterOutput, error)
+	DeleteParameter(ctx context.Context, params *ssm.DeleteParameterInput, optFns ...func(*Options)) (*ssm.DeleteParameterOutput, error)
 	// Delete a list of parameters. After deleting a parameter, wait for at least 30
 	// seconds to create a parameter with the same name.
-	DeleteParameters(ctx context.Context, params *DeleteParametersInput, optFns ...func(*Options)) (*DeleteParametersOutput, error)
+	DeleteParameters(ctx context.Context, params *ssm.DeleteParametersInput, optFns ...func(*Options)) (*ssm.DeleteParametersOutput, error)
 	// Deletes a patch baseline.
-	DeletePatchBaseline(ctx context.Context, params *DeletePatchBaselineInput, optFns ...func(*Options)) (*DeletePatchBaselineOutput, error)
+	DeletePatchBaseline(ctx context.Context, params *ssm.DeletePatchBaselineInput, optFns ...func(*Options)) (*ssm.DeletePatchBaselineOutput, error)
 	// Deletes a resource data sync configuration. After the configuration is deleted,
 	// changes to data on managed nodes are no longer synced to or from the target.
 	// Deleting a sync configuration doesn't delete data.
-	DeleteResourceDataSync(ctx context.Context, params *DeleteResourceDataSyncInput, optFns ...func(*Options)) (*DeleteResourceDataSyncOutput, error)
+	DeleteResourceDataSync(ctx context.Context, params *ssm.DeleteResourceDataSyncInput, optFns ...func(*Options)) (*ssm.DeleteResourceDataSyncOutput, error)
 	// Deletes a Systems Manager resource policy. A resource policy helps you to
 	// define the IAM entity (for example, an Amazon Web Services account) that can
 	// manage your Systems Manager resources. The following resources support Systems
@@ -249,7 +249,7 @@ type SSM interface {
 	//     Manager User Guide.
 	//
 	// [Working with shared parameters]: https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-shared-parameters.html
-	DeleteResourcePolicy(ctx context.Context, params *DeleteResourcePolicyInput, optFns ...func(*Options)) (*DeleteResourcePolicyOutput, error)
+	DeleteResourcePolicy(ctx context.Context, params *ssm.DeleteResourcePolicyInput, optFns ...func(*Options)) (*ssm.DeleteResourcePolicyOutput, error)
 	// Removes the server or virtual machine from the list of registered servers.
 	//
 	// If you want to reregister an on-premises server, edge device, or VM, you must
@@ -259,51 +259,51 @@ type SSM interface {
 	// For more information, see [Deregistering managed nodes in a hybrid and multicloud environment]in the Amazon Web Services Systems Manager User Guide.
 	//
 	// [Deregistering managed nodes in a hybrid and multicloud environment]: https://docs.aws.amazon.com/systems-manager/latest/userguide/fleet-manager-deregister-hybrid-nodes.html
-	DeregisterManagedInstance(ctx context.Context, params *DeregisterManagedInstanceInput, optFns ...func(*Options)) (*DeregisterManagedInstanceOutput, error)
+	DeregisterManagedInstance(ctx context.Context, params *ssm.DeregisterManagedInstanceInput, optFns ...func(*Options)) (*ssm.DeregisterManagedInstanceOutput, error)
 	// Removes a patch group from a patch baseline.
-	DeregisterPatchBaselineForPatchGroup(ctx context.Context, params *DeregisterPatchBaselineForPatchGroupInput, optFns ...func(*Options)) (*DeregisterPatchBaselineForPatchGroupOutput, error)
+	DeregisterPatchBaselineForPatchGroup(ctx context.Context, params *ssm.DeregisterPatchBaselineForPatchGroupInput, optFns ...func(*Options)) (*ssm.DeregisterPatchBaselineForPatchGroupOutput, error)
 	// Removes a target from a maintenance window.
-	DeregisterTargetFromMaintenanceWindow(ctx context.Context, params *DeregisterTargetFromMaintenanceWindowInput, optFns ...func(*Options)) (*DeregisterTargetFromMaintenanceWindowOutput, error)
+	DeregisterTargetFromMaintenanceWindow(ctx context.Context, params *ssm.DeregisterTargetFromMaintenanceWindowInput, optFns ...func(*Options)) (*ssm.DeregisterTargetFromMaintenanceWindowOutput, error)
 	// Removes a task from a maintenance window.
-	DeregisterTaskFromMaintenanceWindow(ctx context.Context, params *DeregisterTaskFromMaintenanceWindowInput, optFns ...func(*Options)) (*DeregisterTaskFromMaintenanceWindowOutput, error)
+	DeregisterTaskFromMaintenanceWindow(ctx context.Context, params *ssm.DeregisterTaskFromMaintenanceWindowInput, optFns ...func(*Options)) (*ssm.DeregisterTaskFromMaintenanceWindowOutput, error)
 	// Describes details about the activation, such as the date and time the
 	// activation was created, its expiration date, the Identity and Access Management
 	// (IAM) role assigned to the managed nodes in the activation, and the number of
 	// nodes registered by using this activation.
-	DescribeActivations(ctx context.Context, params *DescribeActivationsInput, optFns ...func(*Options)) (*DescribeActivationsOutput, error)
+	DescribeActivations(ctx context.Context, params *ssm.DescribeActivationsInput, optFns ...func(*Options)) (*ssm.DescribeActivationsOutput, error)
 	// Describes the association for the specified target or managed node. If you
 	// created the association by using the Targets parameter, then you must retrieve
 	// the association by using the association ID.
-	DescribeAssociation(ctx context.Context, params *DescribeAssociationInput, optFns ...func(*Options)) (*DescribeAssociationOutput, error)
+	DescribeAssociation(ctx context.Context, params *ssm.DescribeAssociationInput, optFns ...func(*Options)) (*ssm.DescribeAssociationOutput, error)
 	// Views information about a specific execution of a specific association.
-	DescribeAssociationExecutionTargets(ctx context.Context, params *DescribeAssociationExecutionTargetsInput, optFns ...func(*Options)) (*DescribeAssociationExecutionTargetsOutput, error)
+	DescribeAssociationExecutionTargets(ctx context.Context, params *ssm.DescribeAssociationExecutionTargetsInput, optFns ...func(*Options)) (*ssm.DescribeAssociationExecutionTargetsOutput, error)
 	// Views all executions for a specific association ID.
-	DescribeAssociationExecutions(ctx context.Context, params *DescribeAssociationExecutionsInput, optFns ...func(*Options)) (*DescribeAssociationExecutionsOutput, error)
+	DescribeAssociationExecutions(ctx context.Context, params *ssm.DescribeAssociationExecutionsInput, optFns ...func(*Options)) (*ssm.DescribeAssociationExecutionsOutput, error)
 	// Provides details about all active and terminated Automation executions.
-	DescribeAutomationExecutions(ctx context.Context, params *DescribeAutomationExecutionsInput, optFns ...func(*Options)) (*DescribeAutomationExecutionsOutput, error)
+	DescribeAutomationExecutions(ctx context.Context, params *ssm.DescribeAutomationExecutionsInput, optFns ...func(*Options)) (*ssm.DescribeAutomationExecutionsOutput, error)
 	// Information about all active and terminated step executions in an Automation
 	// workflow.
-	DescribeAutomationStepExecutions(ctx context.Context, params *DescribeAutomationStepExecutionsInput, optFns ...func(*Options)) (*DescribeAutomationStepExecutionsOutput, error)
+	DescribeAutomationStepExecutions(ctx context.Context, params *ssm.DescribeAutomationStepExecutionsInput, optFns ...func(*Options)) (*ssm.DescribeAutomationStepExecutionsOutput, error)
 	// Lists all patches eligible to be included in a patch baseline.
 	//
 	// Currently, DescribeAvailablePatches supports only the Amazon Linux 1, Amazon
 	// Linux 2, and Windows Server operating systems.
-	DescribeAvailablePatches(ctx context.Context, params *DescribeAvailablePatchesInput, optFns ...func(*Options)) (*DescribeAvailablePatchesOutput, error)
+	DescribeAvailablePatches(ctx context.Context, params *ssm.DescribeAvailablePatchesInput, optFns ...func(*Options)) (*ssm.DescribeAvailablePatchesOutput, error)
 	// Describes the specified Amazon Web Services Systems Manager document (SSM
 	// document).
-	DescribeDocument(ctx context.Context, params *DescribeDocumentInput, optFns ...func(*Options)) (*DescribeDocumentOutput, error)
+	DescribeDocument(ctx context.Context, params *ssm.DescribeDocumentInput, optFns ...func(*Options)) (*ssm.DescribeDocumentOutput, error)
 	// Describes the permissions for a Amazon Web Services Systems Manager document
 	// (SSM document). If you created the document, you are the owner. If a document is
 	// shared, it can either be shared privately (by specifying a user's Amazon Web
 	// Services account ID) or publicly (All).
-	DescribeDocumentPermission(ctx context.Context, params *DescribeDocumentPermissionInput, optFns ...func(*Options)) (*DescribeDocumentPermissionOutput, error)
+	DescribeDocumentPermission(ctx context.Context, params *ssm.DescribeDocumentPermissionInput, optFns ...func(*Options)) (*ssm.DescribeDocumentPermissionOutput, error)
 	// All associations for the managed nodes.
-	DescribeEffectiveInstanceAssociations(ctx context.Context, params *DescribeEffectiveInstanceAssociationsInput, optFns ...func(*Options)) (*DescribeEffectiveInstanceAssociationsOutput, error)
+	DescribeEffectiveInstanceAssociations(ctx context.Context, params *ssm.DescribeEffectiveInstanceAssociationsInput, optFns ...func(*Options)) (*ssm.DescribeEffectiveInstanceAssociationsOutput, error)
 	// Retrieves the current effective patches (the patch and the approval state) for
 	// the specified patch baseline. Applies to patch baselines for Windows only.
-	DescribeEffectivePatchesForPatchBaseline(ctx context.Context, params *DescribeEffectivePatchesForPatchBaselineInput, optFns ...func(*Options)) (*DescribeEffectivePatchesForPatchBaselineOutput, error)
+	DescribeEffectivePatchesForPatchBaseline(ctx context.Context, params *ssm.DescribeEffectivePatchesForPatchBaselineInput, optFns ...func(*Options)) (*ssm.DescribeEffectivePatchesForPatchBaselineOutput, error)
 	// The status of the associations for the managed nodes.
-	DescribeInstanceAssociationsStatus(ctx context.Context, params *DescribeInstanceAssociationsStatusInput, optFns ...func(*Options)) (*DescribeInstanceAssociationsStatusOutput, error)
+	DescribeInstanceAssociationsStatus(ctx context.Context, params *ssm.DescribeInstanceAssociationsStatusInput, optFns ...func(*Options)) (*ssm.DescribeInstanceAssociationsStatusOutput, error)
 	// Provides information about one or more of your managed nodes, including the
 	// operating system platform, SSM Agent version, association status, and IP
 	// address. This operation does not return information for nodes that are either
@@ -317,45 +317,45 @@ type SSM interface {
 	// The IamRole field returned for this API operation is the role assigned to an
 	// Amazon EC2 instance configured with a Systems Manager Quick Setup host
 	// management configuration or the role assigned to an on-premises managed node.
-	DescribeInstanceInformation(ctx context.Context, params *DescribeInstanceInformationInput, optFns ...func(*Options)) (*DescribeInstanceInformationOutput, error)
+	DescribeInstanceInformation(ctx context.Context, params *ssm.DescribeInstanceInformationInput, optFns ...func(*Options)) (*ssm.DescribeInstanceInformationOutput, error)
 	// Retrieves the high-level patch state of one or more managed nodes.
-	DescribeInstancePatchStates(ctx context.Context, params *DescribeInstancePatchStatesInput, optFns ...func(*Options)) (*DescribeInstancePatchStatesOutput, error)
+	DescribeInstancePatchStates(ctx context.Context, params *ssm.DescribeInstancePatchStatesInput, optFns ...func(*Options)) (*ssm.DescribeInstancePatchStatesOutput, error)
 	// Retrieves the high-level patch state for the managed nodes in the specified
 	// patch group.
-	DescribeInstancePatchStatesForPatchGroup(ctx context.Context, params *DescribeInstancePatchStatesForPatchGroupInput, optFns ...func(*Options)) (*DescribeInstancePatchStatesForPatchGroupOutput, error)
+	DescribeInstancePatchStatesForPatchGroup(ctx context.Context, params *ssm.DescribeInstancePatchStatesForPatchGroupInput, optFns ...func(*Options)) (*ssm.DescribeInstancePatchStatesForPatchGroupOutput, error)
 	// Retrieves information about the patches on the specified managed node and their
 	// state relative to the patch baseline being used for the node.
-	DescribeInstancePatches(ctx context.Context, params *DescribeInstancePatchesInput, optFns ...func(*Options)) (*DescribeInstancePatchesOutput, error)
+	DescribeInstancePatches(ctx context.Context, params *ssm.DescribeInstancePatchesInput, optFns ...func(*Options)) (*ssm.DescribeInstancePatchesOutput, error)
 	// An API operation used by the Systems Manager console to display information
 	// about Systems Manager managed nodes.
-	DescribeInstanceProperties(ctx context.Context, params *DescribeInstancePropertiesInput, optFns ...func(*Options)) (*DescribeInstancePropertiesOutput, error)
+	DescribeInstanceProperties(ctx context.Context, params *ssm.DescribeInstancePropertiesInput, optFns ...func(*Options)) (*ssm.DescribeInstancePropertiesOutput, error)
 	// Describes a specific delete inventory operation.
-	DescribeInventoryDeletions(ctx context.Context, params *DescribeInventoryDeletionsInput, optFns ...func(*Options)) (*DescribeInventoryDeletionsOutput, error)
+	DescribeInventoryDeletions(ctx context.Context, params *ssm.DescribeInventoryDeletionsInput, optFns ...func(*Options)) (*ssm.DescribeInventoryDeletionsOutput, error)
 	// Retrieves the individual task executions (one per target) for a particular task
 	// run as part of a maintenance window execution.
-	DescribeMaintenanceWindowExecutionTaskInvocations(ctx context.Context, params *DescribeMaintenanceWindowExecutionTaskInvocationsInput, optFns ...func(*Options)) (*DescribeMaintenanceWindowExecutionTaskInvocationsOutput, error)
+	DescribeMaintenanceWindowExecutionTaskInvocations(ctx context.Context, params *ssm.DescribeMaintenanceWindowExecutionTaskInvocationsInput, optFns ...func(*Options)) (*ssm.DescribeMaintenanceWindowExecutionTaskInvocationsOutput, error)
 	// For a given maintenance window execution, lists the tasks that were run.
-	DescribeMaintenanceWindowExecutionTasks(ctx context.Context, params *DescribeMaintenanceWindowExecutionTasksInput, optFns ...func(*Options)) (*DescribeMaintenanceWindowExecutionTasksOutput, error)
+	DescribeMaintenanceWindowExecutionTasks(ctx context.Context, params *ssm.DescribeMaintenanceWindowExecutionTasksInput, optFns ...func(*Options)) (*ssm.DescribeMaintenanceWindowExecutionTasksOutput, error)
 	// Lists the executions of a maintenance window. This includes information about
 	// when the maintenance window was scheduled to be active, and information about
 	// tasks registered and run with the maintenance window.
-	DescribeMaintenanceWindowExecutions(ctx context.Context, params *DescribeMaintenanceWindowExecutionsInput, optFns ...func(*Options)) (*DescribeMaintenanceWindowExecutionsOutput, error)
+	DescribeMaintenanceWindowExecutions(ctx context.Context, params *ssm.DescribeMaintenanceWindowExecutionsInput, optFns ...func(*Options)) (*ssm.DescribeMaintenanceWindowExecutionsOutput, error)
 	// Retrieves information about upcoming executions of a maintenance window.
-	DescribeMaintenanceWindowSchedule(ctx context.Context, params *DescribeMaintenanceWindowScheduleInput, optFns ...func(*Options)) (*DescribeMaintenanceWindowScheduleOutput, error)
+	DescribeMaintenanceWindowSchedule(ctx context.Context, params *ssm.DescribeMaintenanceWindowScheduleInput, optFns ...func(*Options)) (*ssm.DescribeMaintenanceWindowScheduleOutput, error)
 	// Lists the targets registered with the maintenance window.
-	DescribeMaintenanceWindowTargets(ctx context.Context, params *DescribeMaintenanceWindowTargetsInput, optFns ...func(*Options)) (*DescribeMaintenanceWindowTargetsOutput, error)
+	DescribeMaintenanceWindowTargets(ctx context.Context, params *ssm.DescribeMaintenanceWindowTargetsInput, optFns ...func(*Options)) (*ssm.DescribeMaintenanceWindowTargetsOutput, error)
 	// Lists the tasks in a maintenance window.
 	//
 	// For maintenance window tasks without a specified target, you can't supply
 	// values for --max-errors and --max-concurrency . Instead, the system inserts a
 	// placeholder value of 1 , which may be reported in the response to this command.
 	// These values don't affect the running of your task and can be ignored.
-	DescribeMaintenanceWindowTasks(ctx context.Context, params *DescribeMaintenanceWindowTasksInput, optFns ...func(*Options)) (*DescribeMaintenanceWindowTasksOutput, error)
+	DescribeMaintenanceWindowTasks(ctx context.Context, params *ssm.DescribeMaintenanceWindowTasksInput, optFns ...func(*Options)) (*ssm.DescribeMaintenanceWindowTasksOutput, error)
 	// Retrieves the maintenance windows in an Amazon Web Services account.
-	DescribeMaintenanceWindows(ctx context.Context, params *DescribeMaintenanceWindowsInput, optFns ...func(*Options)) (*DescribeMaintenanceWindowsOutput, error)
+	DescribeMaintenanceWindows(ctx context.Context, params *ssm.DescribeMaintenanceWindowsInput, optFns ...func(*Options)) (*ssm.DescribeMaintenanceWindowsOutput, error)
 	// Retrieves information about the maintenance window targets or tasks that a
 	// managed node is associated with.
-	DescribeMaintenanceWindowsForTarget(ctx context.Context, params *DescribeMaintenanceWindowsForTargetInput, optFns ...func(*Options)) (*DescribeMaintenanceWindowsForTargetOutput, error)
+	DescribeMaintenanceWindowsForTarget(ctx context.Context, params *ssm.DescribeMaintenanceWindowsForTargetInput, optFns ...func(*Options)) (*ssm.DescribeMaintenanceWindowsForTargetOutput, error)
 	// Query a set of OpsItems. You must have permission in Identity and Access
 	// Management (IAM) to query a list of OpsItems. For more information, see [Set up OpsCenter]in the
 	// Amazon Web Services Systems Manager User Guide.
@@ -367,7 +367,7 @@ type SSM interface {
 	//
 	// [Amazon Web Services Systems Manager OpsCenter]: https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter.html
 	// [Set up OpsCenter]: https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-setup.html
-	DescribeOpsItems(ctx context.Context, params *DescribeOpsItemsInput, optFns ...func(*Options)) (*DescribeOpsItemsOutput, error)
+	DescribeOpsItems(ctx context.Context, params *ssm.DescribeOpsItemsInput, optFns ...func(*Options)) (*ssm.DescribeOpsItemsOutput, error)
 	// Lists the parameters in your Amazon Web Services account or the parameters
 	// shared with you when you enable the [Shared]option.
 	//
@@ -385,14 +385,14 @@ type SSM interface {
 	// referencing.
 	//
 	// [Shared]: https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_DescribeParameters.html#systemsmanager-DescribeParameters-request-Shared
-	DescribeParameters(ctx context.Context, params *DescribeParametersInput, optFns ...func(*Options)) (*DescribeParametersOutput, error)
+	DescribeParameters(ctx context.Context, params *ssm.DescribeParametersInput, optFns ...func(*Options)) (*ssm.DescribeParametersOutput, error)
 	// Lists the patch baselines in your Amazon Web Services account.
-	DescribePatchBaselines(ctx context.Context, params *DescribePatchBaselinesInput, optFns ...func(*Options)) (*DescribePatchBaselinesOutput, error)
+	DescribePatchBaselines(ctx context.Context, params *ssm.DescribePatchBaselinesInput, optFns ...func(*Options)) (*ssm.DescribePatchBaselinesOutput, error)
 	// Returns high-level aggregated patch compliance state information for a patch
 	// group.
-	DescribePatchGroupState(ctx context.Context, params *DescribePatchGroupStateInput, optFns ...func(*Options)) (*DescribePatchGroupStateOutput, error)
+	DescribePatchGroupState(ctx context.Context, params *ssm.DescribePatchGroupStateInput, optFns ...func(*Options)) (*ssm.DescribePatchGroupStateOutput, error)
 	// Lists all patch groups that have been registered with patch baselines.
-	DescribePatchGroups(ctx context.Context, params *DescribePatchGroupsInput, optFns ...func(*Options)) (*DescribePatchGroupsOutput, error)
+	DescribePatchGroups(ctx context.Context, params *ssm.DescribePatchGroupsInput, optFns ...func(*Options)) (*ssm.DescribePatchGroupsOutput, error)
 	// Lists the properties of available patches organized by product, product family,
 	// classification, severity, and other properties of available patches. You can use
 	// the reported properties in the filters you specify in requests for operations
@@ -423,16 +423,18 @@ type SSM interface {
 	//
 	// WINDOWS Valid properties: PRODUCT | PRODUCT_FAMILY | CLASSIFICATION |
 	// MSRC_SEVERITY
-	DescribePatchProperties(ctx context.Context, params *DescribePatchPropertiesInput, optFns ...func(*Options)) (*DescribePatchPropertiesOutput, error)
+	DescribePatchProperties(ctx context.Context, params *ssm.DescribePatchPropertiesInput, optFns ...func(*Options)) (*ssm.DescribePatchPropertiesOutput, error)
 	// Retrieves a list of all active sessions (both connected and disconnected) or
 	// terminated sessions from the past 30 days.
-	DescribeSessions(ctx context.Context, params *DescribeSessionsInput, optFns ...func(*Options)) (*DescribeSessionsOutput, error)
+	DescribeSessions(ctx context.Context, params *ssm.DescribeSessionsInput, optFns ...func(*Options)) (*ssm.DescribeSessionsOutput, error)
 	// Deletes the association between an OpsItem and a related item. For example,
 	// this API operation can delete an Incident Manager incident from an OpsItem.
 	// Incident Manager is a tool in Amazon Web Services Systems Manager.
-	DisassociateOpsItemRelatedItem(ctx context.Context, params *DisassociateOpsItemRelatedItemInput, optFns ...func(*Options)) (*DisassociateOpsItemRelatedItemOutput, error)
+	DisassociateOpsItemRelatedItem(ctx context.Context, params *ssm.DisassociateOpsItemRelatedItemInput, optFns ...func(*Options)) (*ssm.DisassociateOpsItemRelatedItemOutput, error)
+	// Returns a credentials set to be used with just-in-time node access.
+	GetAccessToken(ctx context.Context, params *ssm.GetAccessTokenInput, optFns ...func(*Options)) (*ssm.GetAccessTokenOutput, error)
 	// Get detailed information about a particular Automation execution.
-	GetAutomationExecution(ctx context.Context, params *GetAutomationExecutionInput, optFns ...func(*Options)) (*GetAutomationExecutionOutput, error)
+	GetAutomationExecution(ctx context.Context, params *ssm.GetAutomationExecutionInput, optFns ...func(*Options)) (*ssm.GetAutomationExecutionOutput, error)
 	// Gets the state of a Amazon Web Services Systems Manager change calendar at the
 	// current time or a specified time. If you specify a time, GetCalendarState
 	// returns the state of the calendar at that specific time, and returns the next
@@ -448,7 +450,7 @@ type SSM interface {
 	// Systems Manager, see [Amazon Web Services Systems Manager Change Calendar]in the Amazon Web Services Systems Manager User Guide.
 	//
 	// [Amazon Web Services Systems Manager Change Calendar]: https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-change-calendar.html
-	GetCalendarState(ctx context.Context, params *GetCalendarStateInput, optFns ...func(*Options)) (*GetCalendarStateOutput, error)
+	GetCalendarState(ctx context.Context, params *ssm.GetCalendarStateInput, optFns ...func(*Options)) (*ssm.GetCalendarStateOutput, error)
 	// Returns detailed information about command execution for an invocation or
 	// plugin. The Run Command API follows an eventual consistency model, due to the
 	// distributed nature of the system supporting the API. This means that the result
@@ -459,17 +461,17 @@ type SSM interface {
 	// GetCommandInvocation only gives the execution status of a plugin in a document.
 	// To get the command execution status on a specific managed node, use ListCommandInvocations. To get
 	// the command execution status across managed nodes, use ListCommands.
-	GetCommandInvocation(ctx context.Context, params *GetCommandInvocationInput, optFns ...func(*Options)) (*GetCommandInvocationOutput, error)
+	GetCommandInvocation(ctx context.Context, params *ssm.GetCommandInvocationInput, optFns ...func(*Options)) (*ssm.GetCommandInvocationOutput, error)
 	// Retrieves the Session Manager connection status for a managed node to determine
 	// whether it is running and ready to receive Session Manager connections.
-	GetConnectionStatus(ctx context.Context, params *GetConnectionStatusInput, optFns ...func(*Options)) (*GetConnectionStatusOutput, error)
+	GetConnectionStatus(ctx context.Context, params *ssm.GetConnectionStatusInput, optFns ...func(*Options)) (*ssm.GetConnectionStatusOutput, error)
 	// Retrieves the default patch baseline. Amazon Web Services Systems Manager
 	// supports creating multiple default patch baselines. For example, you can create
 	// a default patch baseline for each operating system.
 	//
 	// If you don't specify an operating system value, the default patch baseline for
 	// Windows is returned.
-	GetDefaultPatchBaseline(ctx context.Context, params *GetDefaultPatchBaselineInput, optFns ...func(*Options)) (*GetDefaultPatchBaselineOutput, error)
+	GetDefaultPatchBaseline(ctx context.Context, params *ssm.GetDefaultPatchBaselineInput, optFns ...func(*Options)) (*ssm.GetDefaultPatchBaselineOutput, error)
 	// Retrieves the current snapshot for the patch baseline the managed node uses.
 	// This API is primarily used by the AWS-RunPatchBaseline Systems Manager document
 	// (SSM document).
@@ -481,29 +483,29 @@ type SSM interface {
 	// Systems Manager, with an SSM document that enables you to target a managed node
 	// with a script or command. For example, run the command using the
 	// AWS-RunShellScript document or the AWS-RunPowerShellScript document.
-	GetDeployablePatchSnapshotForInstance(ctx context.Context, params *GetDeployablePatchSnapshotForInstanceInput, optFns ...func(*Options)) (*GetDeployablePatchSnapshotForInstanceOutput, error)
+	GetDeployablePatchSnapshotForInstance(ctx context.Context, params *ssm.GetDeployablePatchSnapshotForInstanceInput, optFns ...func(*Options)) (*ssm.GetDeployablePatchSnapshotForInstanceOutput, error)
 	// Gets the contents of the specified Amazon Web Services Systems Manager document
 	// (SSM document).
-	GetDocument(ctx context.Context, params *GetDocumentInput, optFns ...func(*Options)) (*GetDocumentOutput, error)
+	GetDocument(ctx context.Context, params *ssm.GetDocumentInput, optFns ...func(*Options)) (*ssm.GetDocumentOutput, error)
 	// Initiates the process of retrieving an existing preview that shows the effects
 	// that running a specified Automation runbook would have on the targeted
 	// resources.
-	GetExecutionPreview(ctx context.Context, params *GetExecutionPreviewInput, optFns ...func(*Options)) (*GetExecutionPreviewOutput, error)
+	GetExecutionPreview(ctx context.Context, params *ssm.GetExecutionPreviewInput, optFns ...func(*Options)) (*ssm.GetExecutionPreviewOutput, error)
 	// Query inventory information. This includes managed node status, such as Stopped
 	// or Terminated .
-	GetInventory(ctx context.Context, params *GetInventoryInput, optFns ...func(*Options)) (*GetInventoryOutput, error)
+	GetInventory(ctx context.Context, params *ssm.GetInventoryInput, optFns ...func(*Options)) (*ssm.GetInventoryOutput, error)
 	// Return a list of inventory type names for the account, or return a list of
 	// attribute names for a specific Inventory item type.
-	GetInventorySchema(ctx context.Context, params *GetInventorySchemaInput, optFns ...func(*Options)) (*GetInventorySchemaOutput, error)
+	GetInventorySchema(ctx context.Context, params *ssm.GetInventorySchemaInput, optFns ...func(*Options)) (*ssm.GetInventorySchemaOutput, error)
 	// Retrieves a maintenance window.
-	GetMaintenanceWindow(ctx context.Context, params *GetMaintenanceWindowInput, optFns ...func(*Options)) (*GetMaintenanceWindowOutput, error)
+	GetMaintenanceWindow(ctx context.Context, params *ssm.GetMaintenanceWindowInput, optFns ...func(*Options)) (*ssm.GetMaintenanceWindowOutput, error)
 	// Retrieves details about a specific a maintenance window execution.
-	GetMaintenanceWindowExecution(ctx context.Context, params *GetMaintenanceWindowExecutionInput, optFns ...func(*Options)) (*GetMaintenanceWindowExecutionOutput, error)
+	GetMaintenanceWindowExecution(ctx context.Context, params *ssm.GetMaintenanceWindowExecutionInput, optFns ...func(*Options)) (*ssm.GetMaintenanceWindowExecutionOutput, error)
 	// Retrieves the details about a specific task run as part of a maintenance window
 	// execution.
-	GetMaintenanceWindowExecutionTask(ctx context.Context, params *GetMaintenanceWindowExecutionTaskInput, optFns ...func(*Options)) (*GetMaintenanceWindowExecutionTaskOutput, error)
+	GetMaintenanceWindowExecutionTask(ctx context.Context, params *ssm.GetMaintenanceWindowExecutionTaskInput, optFns ...func(*Options)) (*ssm.GetMaintenanceWindowExecutionTaskOutput, error)
 	// Retrieves information about a specific task running on a specific target.
-	GetMaintenanceWindowExecutionTaskInvocation(ctx context.Context, params *GetMaintenanceWindowExecutionTaskInvocationInput, optFns ...func(*Options)) (*GetMaintenanceWindowExecutionTaskInvocationOutput, error)
+	GetMaintenanceWindowExecutionTaskInvocation(ctx context.Context, params *ssm.GetMaintenanceWindowExecutionTaskInvocationInput, optFns ...func(*Options)) (*ssm.GetMaintenanceWindowExecutionTaskInvocationOutput, error)
 	// Retrieves the details of a maintenance window task.
 	//
 	// For maintenance window tasks without a specified target, you can't supply
@@ -512,7 +514,7 @@ type SSM interface {
 	// These values don't affect the running of your task and can be ignored.
 	//
 	// To retrieve a list of tasks in a maintenance window, instead use the DescribeMaintenanceWindowTasks command.
-	GetMaintenanceWindowTask(ctx context.Context, params *GetMaintenanceWindowTaskInput, optFns ...func(*Options)) (*GetMaintenanceWindowTaskOutput, error)
+	GetMaintenanceWindowTask(ctx context.Context, params *ssm.GetMaintenanceWindowTaskInput, optFns ...func(*Options)) (*ssm.GetMaintenanceWindowTaskOutput, error)
 	// Get information about an OpsItem by using the ID. You must have permission in
 	// Identity and Access Management (IAM) to view information about an OpsItem. For
 	// more information, see [Set up OpsCenter]in the Amazon Web Services Systems Manager User Guide.
@@ -524,31 +526,31 @@ type SSM interface {
 	//
 	// [Amazon Web Services Systems Manager OpsCenter]: https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter.html
 	// [Set up OpsCenter]: https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-setup.html
-	GetOpsItem(ctx context.Context, params *GetOpsItemInput, optFns ...func(*Options)) (*GetOpsItemOutput, error)
+	GetOpsItem(ctx context.Context, params *ssm.GetOpsItemInput, optFns ...func(*Options)) (*ssm.GetOpsItemOutput, error)
 	// View operational metadata related to an application in Application Manager.
-	GetOpsMetadata(ctx context.Context, params *GetOpsMetadataInput, optFns ...func(*Options)) (*GetOpsMetadataOutput, error)
+	GetOpsMetadata(ctx context.Context, params *ssm.GetOpsMetadataInput, optFns ...func(*Options)) (*ssm.GetOpsMetadataOutput, error)
 	// View a summary of operations metadata (OpsData) based on specified filters and
 	// aggregators. OpsData can include information about Amazon Web Services Systems
 	// Manager OpsCenter operational workitems (OpsItems) as well as information about
 	// any Amazon Web Services resource or service configured to report OpsData to
 	// Amazon Web Services Systems Manager Explorer.
-	GetOpsSummary(ctx context.Context, params *GetOpsSummaryInput, optFns ...func(*Options)) (*GetOpsSummaryOutput, error)
+	GetOpsSummary(ctx context.Context, params *ssm.GetOpsSummaryInput, optFns ...func(*Options)) (*ssm.GetOpsSummaryOutput, error)
 	// Get information about a single parameter by specifying the parameter name.
 	//
 	// To get information about more than one parameter at a time, use the GetParameters operation.
-	GetParameter(ctx context.Context, params *GetParameterInput, optFns ...func(*Options)) (*GetParameterOutput, error)
+	GetParameter(ctx context.Context, params *ssm.GetParameterInput, optFns ...func(*Options)) (*ssm.GetParameterOutput, error)
 	// Retrieves the history of all changes to a parameter.
 	//
 	// If you change the KMS key alias for the KMS key used to encrypt a parameter,
 	// then you must also update the key alias the parameter uses to reference KMS.
 	// Otherwise, GetParameterHistory retrieves whatever the original key alias was
 	// referencing.
-	GetParameterHistory(ctx context.Context, params *GetParameterHistoryInput, optFns ...func(*Options)) (*GetParameterHistoryOutput, error)
+	GetParameterHistory(ctx context.Context, params *ssm.GetParameterHistoryInput, optFns ...func(*Options)) (*ssm.GetParameterHistoryOutput, error)
 	// Get information about one or more parameters by specifying multiple parameter
 	// names.
 	//
 	// To get information about a single parameter, you can use the GetParameter operation instead.
-	GetParameters(ctx context.Context, params *GetParametersInput, optFns ...func(*Options)) (*GetParametersOutput, error)
+	GetParameters(ctx context.Context, params *ssm.GetParametersInput, optFns ...func(*Options)) (*ssm.GetParametersOutput, error)
 	// Retrieve information about one or more parameters under a specified level in a
 	// hierarchy.
 	//
@@ -559,13 +561,13 @@ type SSM interface {
 	// results, it stops the operation and returns the matching values up to that point
 	// and a NextToken . You can specify the NextToken in a subsequent call to get the
 	// next set of results.
-	GetParametersByPath(ctx context.Context, params *GetParametersByPathInput, optFns ...func(*Options)) (*GetParametersByPathOutput, error)
+	GetParametersByPath(ctx context.Context, params *ssm.GetParametersByPathInput, optFns ...func(*Options)) (*ssm.GetParametersByPathOutput, error)
 	// Retrieves information about a patch baseline.
-	GetPatchBaseline(ctx context.Context, params *GetPatchBaselineInput, optFns ...func(*Options)) (*GetPatchBaselineOutput, error)
+	GetPatchBaseline(ctx context.Context, params *ssm.GetPatchBaselineInput, optFns ...func(*Options)) (*ssm.GetPatchBaselineOutput, error)
 	// Retrieves the patch baseline that should be used for the specified patch group.
-	GetPatchBaselineForPatchGroup(ctx context.Context, params *GetPatchBaselineForPatchGroupInput, optFns ...func(*Options)) (*GetPatchBaselineForPatchGroupOutput, error)
+	GetPatchBaselineForPatchGroup(ctx context.Context, params *ssm.GetPatchBaselineForPatchGroupInput, optFns ...func(*Options)) (*ssm.GetPatchBaselineForPatchGroupOutput, error)
 	// Returns an array of the Policy object.
-	GetResourcePolicies(ctx context.Context, params *GetResourcePoliciesInput, optFns ...func(*Options)) (*GetResourcePoliciesOutput, error)
+	GetResourcePolicies(ctx context.Context, params *ssm.GetResourcePoliciesInput, optFns ...func(*Options)) (*ssm.GetResourcePoliciesOutput, error)
 	// ServiceSetting is an account-level setting for an Amazon Web Services service.
 	// This setting defines how a user interacts with or uses a service or a feature of
 	// a service. For example, if an Amazon Web Services service charges money to the
@@ -582,7 +584,7 @@ type SSM interface {
 	// value defined by the Amazon Web Services service team.
 	//
 	// Query the current service setting for the Amazon Web Services account.
-	GetServiceSetting(ctx context.Context, params *GetServiceSettingInput, optFns ...func(*Options)) (*GetServiceSettingOutput, error)
+	GetServiceSetting(ctx context.Context, params *ssm.GetServiceSettingInput, optFns ...func(*Options)) (*ssm.GetServiceSettingOutput, error)
 	// A parameter label is a user-defined alias to help you manage different versions
 	// of a parameter. When you modify a parameter, Amazon Web Services Systems Manager
 	// automatically saves a new version and increments the version number by one. A
@@ -613,64 +615,64 @@ type SSM interface {
 	//   - Labels can't begin with a number, " aws " or " ssm " (not case sensitive).
 	//     If a label fails to meet these requirements, then the label isn't associated
 	//     with a parameter and the system displays it in the list of InvalidLabels.
-	LabelParameterVersion(ctx context.Context, params *LabelParameterVersionInput, optFns ...func(*Options)) (*LabelParameterVersionOutput, error)
+	LabelParameterVersion(ctx context.Context, params *ssm.LabelParameterVersionInput, optFns ...func(*Options)) (*ssm.LabelParameterVersionOutput, error)
 	// Retrieves all versions of an association for a specific association ID.
-	ListAssociationVersions(ctx context.Context, params *ListAssociationVersionsInput, optFns ...func(*Options)) (*ListAssociationVersionsOutput, error)
+	ListAssociationVersions(ctx context.Context, params *ssm.ListAssociationVersionsInput, optFns ...func(*Options)) (*ssm.ListAssociationVersionsOutput, error)
 	// Returns all State Manager associations in the current Amazon Web Services
 	// account and Amazon Web Services Region. You can limit the results to a specific
 	// State Manager association document or managed node by specifying a filter. State
 	// Manager is a tool in Amazon Web Services Systems Manager.
-	ListAssociations(ctx context.Context, params *ListAssociationsInput, optFns ...func(*Options)) (*ListAssociationsOutput, error)
+	ListAssociations(ctx context.Context, params *ssm.ListAssociationsInput, optFns ...func(*Options)) (*ssm.ListAssociationsOutput, error)
 	// An invocation is copy of a command sent to a specific managed node. A command
 	// can apply to one or more managed nodes. A command invocation applies to one
 	// managed node. For example, if a user runs SendCommand against three managed
 	// nodes, then a command invocation is created for each requested managed node ID.
 	// ListCommandInvocations provide status about command execution.
-	ListCommandInvocations(ctx context.Context, params *ListCommandInvocationsInput, optFns ...func(*Options)) (*ListCommandInvocationsOutput, error)
+	ListCommandInvocations(ctx context.Context, params *ssm.ListCommandInvocationsInput, optFns ...func(*Options)) (*ssm.ListCommandInvocationsOutput, error)
 	// Lists the commands requested by users of the Amazon Web Services account.
-	ListCommands(ctx context.Context, params *ListCommandsInput, optFns ...func(*Options)) (*ListCommandsOutput, error)
+	ListCommands(ctx context.Context, params *ssm.ListCommandsInput, optFns ...func(*Options)) (*ssm.ListCommandsOutput, error)
 	// For a specified resource ID, this API operation returns a list of compliance
 	// statuses for different resource types. Currently, you can only specify one
 	// resource ID per call. List results depend on the criteria specified in the
 	// filter.
-	ListComplianceItems(ctx context.Context, params *ListComplianceItemsInput, optFns ...func(*Options)) (*ListComplianceItemsOutput, error)
+	ListComplianceItems(ctx context.Context, params *ssm.ListComplianceItemsInput, optFns ...func(*Options)) (*ssm.ListComplianceItemsOutput, error)
 	// Returns a summary count of compliant and non-compliant resources for a
 	// compliance type. For example, this call can return State Manager associations,
 	// patches, or custom compliance types according to the filter criteria that you
 	// specify.
-	ListComplianceSummaries(ctx context.Context, params *ListComplianceSummariesInput, optFns ...func(*Options)) (*ListComplianceSummariesOutput, error)
+	ListComplianceSummaries(ctx context.Context, params *ssm.ListComplianceSummariesInput, optFns ...func(*Options)) (*ssm.ListComplianceSummariesOutput, error)
 	// Information about approval reviews for a version of a change template in Change
 	// Manager.
-	ListDocumentMetadataHistory(ctx context.Context, params *ListDocumentMetadataHistoryInput, optFns ...func(*Options)) (*ListDocumentMetadataHistoryOutput, error)
+	ListDocumentMetadataHistory(ctx context.Context, params *ssm.ListDocumentMetadataHistoryInput, optFns ...func(*Options)) (*ssm.ListDocumentMetadataHistoryOutput, error)
 	// List all versions for a document.
-	ListDocumentVersions(ctx context.Context, params *ListDocumentVersionsInput, optFns ...func(*Options)) (*ListDocumentVersionsOutput, error)
+	ListDocumentVersions(ctx context.Context, params *ssm.ListDocumentVersionsInput, optFns ...func(*Options)) (*ssm.ListDocumentVersionsOutput, error)
 	// Returns all Systems Manager (SSM) documents in the current Amazon Web Services
 	// account and Amazon Web Services Region. You can limit the results of this
 	// request by using a filter.
-	ListDocuments(ctx context.Context, params *ListDocumentsInput, optFns ...func(*Options)) (*ListDocumentsOutput, error)
+	ListDocuments(ctx context.Context, params *ssm.ListDocumentsInput, optFns ...func(*Options)) (*ssm.ListDocumentsOutput, error)
 	// A list of inventory items returned by the request.
-	ListInventoryEntries(ctx context.Context, params *ListInventoryEntriesInput, optFns ...func(*Options)) (*ListInventoryEntriesOutput, error)
+	ListInventoryEntries(ctx context.Context, params *ssm.ListInventoryEntriesInput, optFns ...func(*Options)) (*ssm.ListInventoryEntriesOutput, error)
 	// Takes in filters and returns a list of managed nodes matching the filter
 	// criteria.
-	ListNodes(ctx context.Context, params *ListNodesInput, optFns ...func(*Options)) (*ListNodesOutput, error)
+	ListNodes(ctx context.Context, params *ssm.ListNodesInput, optFns ...func(*Options)) (*ssm.ListNodesOutput, error)
 	// Generates a summary of managed instance/node metadata based on the filters and
 	// aggregators you specify. Results are grouped by the input aggregator you
 	// specify.
-	ListNodesSummary(ctx context.Context, params *ListNodesSummaryInput, optFns ...func(*Options)) (*ListNodesSummaryOutput, error)
+	ListNodesSummary(ctx context.Context, params *ssm.ListNodesSummaryInput, optFns ...func(*Options)) (*ssm.ListNodesSummaryOutput, error)
 	// Returns a list of all OpsItem events in the current Amazon Web Services Region
 	// and Amazon Web Services account. You can limit the results to events associated
 	// with specific OpsItems by specifying a filter.
-	ListOpsItemEvents(ctx context.Context, params *ListOpsItemEventsInput, optFns ...func(*Options)) (*ListOpsItemEventsOutput, error)
+	ListOpsItemEvents(ctx context.Context, params *ssm.ListOpsItemEventsInput, optFns ...func(*Options)) (*ssm.ListOpsItemEventsOutput, error)
 	// Lists all related-item resources associated with a Systems Manager OpsCenter
 	// OpsItem. OpsCenter is a tool in Amazon Web Services Systems Manager.
-	ListOpsItemRelatedItems(ctx context.Context, params *ListOpsItemRelatedItemsInput, optFns ...func(*Options)) (*ListOpsItemRelatedItemsOutput, error)
+	ListOpsItemRelatedItems(ctx context.Context, params *ssm.ListOpsItemRelatedItemsInput, optFns ...func(*Options)) (*ssm.ListOpsItemRelatedItemsOutput, error)
 	// Amazon Web Services Systems Manager calls this API operation when displaying
 	// all Application Manager OpsMetadata objects or blobs.
-	ListOpsMetadata(ctx context.Context, params *ListOpsMetadataInput, optFns ...func(*Options)) (*ListOpsMetadataOutput, error)
+	ListOpsMetadata(ctx context.Context, params *ssm.ListOpsMetadataInput, optFns ...func(*Options)) (*ssm.ListOpsMetadataOutput, error)
 	// Returns a resource-level summary count. The summary includes information about
 	// compliant and non-compliant statuses and detailed compliance-item severity
 	// counts, according to the filter criteria you specify.
-	ListResourceComplianceSummaries(ctx context.Context, params *ListResourceComplianceSummariesInput, optFns ...func(*Options)) (*ListResourceComplianceSummariesOutput, error)
+	ListResourceComplianceSummaries(ctx context.Context, params *ssm.ListResourceComplianceSummariesInput, optFns ...func(*Options)) (*ssm.ListResourceComplianceSummariesOutput, error)
 	// Lists your resource data sync configurations. Includes information about the
 	// last time a sync attempted to start, the last sync status, and the last time a
 	// sync successfully completed.
@@ -681,16 +683,16 @@ type SSM interface {
 	// sync configurations to list, check the value of NextToken in the output. If
 	// there are more sync configurations to list, you can request them by specifying
 	// the NextToken returned in the call to the parameter of a subsequent call.
-	ListResourceDataSync(ctx context.Context, params *ListResourceDataSyncInput, optFns ...func(*Options)) (*ListResourceDataSyncOutput, error)
+	ListResourceDataSync(ctx context.Context, params *ssm.ListResourceDataSyncInput, optFns ...func(*Options)) (*ssm.ListResourceDataSyncOutput, error)
 	// Returns a list of the tags assigned to the specified resource.
 	//
 	// For information about the ID format for each supported resource type, see AddTagsToResource.
-	ListTagsForResource(ctx context.Context, params *ListTagsForResourceInput, optFns ...func(*Options)) (*ListTagsForResourceOutput, error)
+	ListTagsForResource(ctx context.Context, params *ssm.ListTagsForResourceInput, optFns ...func(*Options)) (*ssm.ListTagsForResourceOutput, error)
 	// Shares a Amazon Web Services Systems Manager document (SSM document)publicly or
 	// privately. If you share a document privately, you must specify the Amazon Web
 	// Services user IDs for those people who can use the document. If you share a
 	// document publicly, you must specify All as the account ID.
-	ModifyDocumentPermission(ctx context.Context, params *ModifyDocumentPermissionInput, optFns ...func(*Options)) (*ModifyDocumentPermissionOutput, error)
+	ModifyDocumentPermission(ctx context.Context, params *ssm.ModifyDocumentPermissionInput, optFns ...func(*Options)) (*ssm.ModifyDocumentPermissionOutput, error)
 	// Registers a compliance type and other compliance details on a designated
 	// resource. This operation lets you register custom compliance details with a
 	// resource. This call overwrites existing compliance information on the resource,
@@ -733,13 +735,13 @@ type SSM interface {
 	//   - InstalledTime: The time the association, patch, or custom compliance item
 	//     was applied to the resource. Specify the time by using the following format:
 	//     yyyy-MM-dd'T'HH:mm:ss'Z'
-	PutComplianceItems(ctx context.Context, params *PutComplianceItemsInput, optFns ...func(*Options)) (*PutComplianceItemsOutput, error)
+	PutComplianceItems(ctx context.Context, params *ssm.PutComplianceItemsInput, optFns ...func(*Options)) (*ssm.PutComplianceItemsOutput, error)
 	// Bulk update custom inventory items on one or more managed nodes. The request
 	// adds an inventory item, if it doesn't already exist, or updates an inventory
 	// item, if it does exist.
-	PutInventory(ctx context.Context, params *PutInventoryInput, optFns ...func(*Options)) (*PutInventoryOutput, error)
+	PutInventory(ctx context.Context, params *ssm.PutInventoryInput, optFns ...func(*Options)) (*ssm.PutInventoryOutput, error)
 	// Create or update a parameter in Parameter Store.
-	PutParameter(ctx context.Context, params *PutParameterInput, optFns ...func(*Options)) (*PutParameterOutput, error)
+	PutParameter(ctx context.Context, params *ssm.PutParameterInput, optFns ...func(*Options)) (*ssm.PutParameterOutput, error)
 	// Creates or updates a Systems Manager resource policy. A resource policy helps
 	// you to define the IAM entity (for example, an Amazon Web Services account) that
 	// can manage your Systems Manager resources. The following resources support
@@ -782,7 +784,7 @@ type SSM interface {
 	// [PromoteResourceShareCreatedFromPolicy]: https://docs.aws.amazon.com/ram/latest/APIReference/API_PromoteResourceShareCreatedFromPolicy.html
 	// [KMS concepts]: https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html
 	// [DescribeParameters]: https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_DescribeParameters.html
-	PutResourcePolicy(ctx context.Context, params *PutResourcePolicyInput, optFns ...func(*Options)) (*PutResourcePolicyOutput, error)
+	PutResourcePolicy(ctx context.Context, params *ssm.PutResourcePolicyInput, optFns ...func(*Options)) (*ssm.PutResourcePolicyOutput, error)
 	// Defines the default patch baseline for the relevant operating system.
 	//
 	// To reset the Amazon Web Services-predefined patch baseline as the default,
@@ -790,15 +792,15 @@ type SSM interface {
 	// value. For example, for CentOS, specify
 	// arn:aws:ssm:us-east-2:733109147000:patchbaseline/pb-0574b43a65ea646ed instead of
 	// pb-0574b43a65ea646ed .
-	RegisterDefaultPatchBaseline(ctx context.Context, params *RegisterDefaultPatchBaselineInput, optFns ...func(*Options)) (*RegisterDefaultPatchBaselineOutput, error)
+	RegisterDefaultPatchBaseline(ctx context.Context, params *ssm.RegisterDefaultPatchBaselineInput, optFns ...func(*Options)) (*ssm.RegisterDefaultPatchBaselineOutput, error)
 	// Registers a patch baseline for a patch group.
-	RegisterPatchBaselineForPatchGroup(ctx context.Context, params *RegisterPatchBaselineForPatchGroupInput, optFns ...func(*Options)) (*RegisterPatchBaselineForPatchGroupOutput, error)
+	RegisterPatchBaselineForPatchGroup(ctx context.Context, params *ssm.RegisterPatchBaselineForPatchGroupInput, optFns ...func(*Options)) (*ssm.RegisterPatchBaselineForPatchGroupOutput, error)
 	// Registers a target with a maintenance window.
-	RegisterTargetWithMaintenanceWindow(ctx context.Context, params *RegisterTargetWithMaintenanceWindowInput, optFns ...func(*Options)) (*RegisterTargetWithMaintenanceWindowOutput, error)
+	RegisterTargetWithMaintenanceWindow(ctx context.Context, params *ssm.RegisterTargetWithMaintenanceWindowInput, optFns ...func(*Options)) (*ssm.RegisterTargetWithMaintenanceWindowOutput, error)
 	// Adds a new task to a maintenance window.
-	RegisterTaskWithMaintenanceWindow(ctx context.Context, params *RegisterTaskWithMaintenanceWindowInput, optFns ...func(*Options)) (*RegisterTaskWithMaintenanceWindowOutput, error)
+	RegisterTaskWithMaintenanceWindow(ctx context.Context, params *ssm.RegisterTaskWithMaintenanceWindowInput, optFns ...func(*Options)) (*ssm.RegisterTaskWithMaintenanceWindowOutput, error)
 	// Removes tag keys from the specified resource.
-	RemoveTagsFromResource(ctx context.Context, params *RemoveTagsFromResourceInput, optFns ...func(*Options)) (*RemoveTagsFromResourceOutput, error)
+	RemoveTagsFromResource(ctx context.Context, params *ssm.RemoveTagsFromResourceInput, optFns ...func(*Options)) (*ssm.RemoveTagsFromResourceOutput, error)
 	// ServiceSetting is an account-level setting for an Amazon Web Services service.
 	// This setting defines how a user interacts with or uses a service or a feature of
 	// a service. For example, if an Amazon Web Services service charges money to the
@@ -815,31 +817,33 @@ type SSM interface {
 	//
 	// Reset the service setting for the account to the default value as provisioned
 	// by the Amazon Web Services service team.
-	ResetServiceSetting(ctx context.Context, params *ResetServiceSettingInput, optFns ...func(*Options)) (*ResetServiceSettingOutput, error)
+	ResetServiceSetting(ctx context.Context, params *ssm.ResetServiceSettingInput, optFns ...func(*Options)) (*ssm.ResetServiceSettingOutput, error)
 	// Reconnects a session to a managed node after it has been disconnected.
 	// Connections can be resumed for disconnected sessions, but not terminated
 	// sessions.
 	//
 	// This command is primarily for use by client machines to automatically reconnect
 	// during intermittent network issues. It isn't intended for any other use.
-	ResumeSession(ctx context.Context, params *ResumeSessionInput, optFns ...func(*Options)) (*ResumeSessionOutput, error)
+	ResumeSession(ctx context.Context, params *ssm.ResumeSessionInput, optFns ...func(*Options)) (*ssm.ResumeSessionOutput, error)
 	// Sends a signal to an Automation execution to change the current behavior or
 	// status of the execution.
-	SendAutomationSignal(ctx context.Context, params *SendAutomationSignalInput, optFns ...func(*Options)) (*SendAutomationSignalOutput, error)
+	SendAutomationSignal(ctx context.Context, params *ssm.SendAutomationSignalInput, optFns ...func(*Options)) (*ssm.SendAutomationSignalOutput, error)
 	// Runs commands on one or more managed nodes.
-	SendCommand(ctx context.Context, params *SendCommandInput, optFns ...func(*Options)) (*SendCommandOutput, error)
+	SendCommand(ctx context.Context, params *ssm.SendCommandInput, optFns ...func(*Options)) (*ssm.SendCommandOutput, error)
+	// Starts the workflow for just-in-time node access sessions.
+	StartAccessRequest(ctx context.Context, params *ssm.StartAccessRequestInput, optFns ...func(*Options)) (*ssm.StartAccessRequestOutput, error)
 	// Runs an association immediately and only one time. This operation can be
 	// helpful when troubleshooting associations.
-	StartAssociationsOnce(ctx context.Context, params *StartAssociationsOnceInput, optFns ...func(*Options)) (*StartAssociationsOnceOutput, error)
+	StartAssociationsOnce(ctx context.Context, params *ssm.StartAssociationsOnceInput, optFns ...func(*Options)) (*ssm.StartAssociationsOnceOutput, error)
 	// Initiates execution of an Automation runbook.
-	StartAutomationExecution(ctx context.Context, params *StartAutomationExecutionInput, optFns ...func(*Options)) (*StartAutomationExecutionOutput, error)
+	StartAutomationExecution(ctx context.Context, params *ssm.StartAutomationExecutionInput, optFns ...func(*Options)) (*ssm.StartAutomationExecutionOutput, error)
 	// Creates a change request for Change Manager. The Automation runbooks specified
 	// in the change request run only after all required approvals for the change
 	// request have been received.
-	StartChangeRequestExecution(ctx context.Context, params *StartChangeRequestExecutionInput, optFns ...func(*Options)) (*StartChangeRequestExecutionOutput, error)
+	StartChangeRequestExecution(ctx context.Context, params *ssm.StartChangeRequestExecutionInput, optFns ...func(*Options)) (*ssm.StartChangeRequestExecutionOutput, error)
 	// Initiates the process of creating a preview showing the effects that running a
 	// specified Automation runbook would have on the targeted resources.
-	StartExecutionPreview(ctx context.Context, params *StartExecutionPreviewInput, optFns ...func(*Options)) (*StartExecutionPreviewOutput, error)
+	StartExecutionPreview(ctx context.Context, params *ssm.StartExecutionPreviewInput, optFns ...func(*Options)) (*ssm.StartExecutionPreviewOutput, error)
 	// Initiates a connection to a target (for example, a managed node) for a Session
 	// Manager session. Returns a URL and token that can be used to open a WebSocket
 	// connection for sending input and receiving outputs.
@@ -854,15 +858,15 @@ type SSM interface {
 	// machines.
 	//
 	// [Install the Session Manager plugin for the Amazon Web Services CLI]: https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html
-	StartSession(ctx context.Context, params *StartSessionInput, optFns ...func(*Options)) (*StartSessionOutput, error)
+	StartSession(ctx context.Context, params *ssm.StartSessionInput, optFns ...func(*Options)) (*ssm.StartSessionOutput, error)
 	// Stop an Automation that is currently running.
-	StopAutomationExecution(ctx context.Context, params *StopAutomationExecutionInput, optFns ...func(*Options)) (*StopAutomationExecutionOutput, error)
+	StopAutomationExecution(ctx context.Context, params *ssm.StopAutomationExecutionInput, optFns ...func(*Options)) (*ssm.StopAutomationExecutionOutput, error)
 	// Permanently ends a session and closes the data connection between the Session
 	// Manager client and SSM Agent on the managed node. A terminated session can't be
 	// resumed.
-	TerminateSession(ctx context.Context, params *TerminateSessionInput, optFns ...func(*Options)) (*TerminateSessionOutput, error)
+	TerminateSession(ctx context.Context, params *ssm.TerminateSessionInput, optFns ...func(*Options)) (*ssm.TerminateSessionOutput, error)
 	// Remove a label or labels from a parameter.
-	UnlabelParameterVersion(ctx context.Context, params *UnlabelParameterVersionInput, optFns ...func(*Options)) (*UnlabelParameterVersionOutput, error)
+	UnlabelParameterVersion(ctx context.Context, params *ssm.UnlabelParameterVersionInput, optFns ...func(*Options)) (*ssm.UnlabelParameterVersionOutput, error)
 	// Updates an association. You can update the association name and version, the
 	// document version, schedule, parameters, and Amazon Simple Storage Service
 	// (Amazon S3) output. When you call UpdateAssociation , the system removes all
@@ -882,25 +886,25 @@ type SSM interface {
 	// When you update an association, the association immediately runs against the
 	// specified targets. You can add the ApplyOnlyAtCronInterval parameter to run the
 	// association during the next schedule run.
-	UpdateAssociation(ctx context.Context, params *UpdateAssociationInput, optFns ...func(*Options)) (*UpdateAssociationOutput, error)
+	UpdateAssociation(ctx context.Context, params *ssm.UpdateAssociationInput, optFns ...func(*Options)) (*ssm.UpdateAssociationOutput, error)
 	// Updates the status of the Amazon Web Services Systems Manager document (SSM
 	// document) associated with the specified managed node.
 	//
 	// UpdateAssociationStatus is primarily used by the Amazon Web Services Systems
 	// Manager Agent (SSM Agent) to report status updates about your associations and
 	// is only used for associations created with the InstanceId legacy parameter.
-	UpdateAssociationStatus(ctx context.Context, params *UpdateAssociationStatusInput, optFns ...func(*Options)) (*UpdateAssociationStatusOutput, error)
+	UpdateAssociationStatus(ctx context.Context, params *ssm.UpdateAssociationStatusInput, optFns ...func(*Options)) (*ssm.UpdateAssociationStatusOutput, error)
 	// Updates one or more values for an SSM document.
-	UpdateDocument(ctx context.Context, params *UpdateDocumentInput, optFns ...func(*Options)) (*UpdateDocumentOutput, error)
+	UpdateDocument(ctx context.Context, params *ssm.UpdateDocumentInput, optFns ...func(*Options)) (*ssm.UpdateDocumentOutput, error)
 	// Set the default version of a document.
 	//
 	// If you change a document version for a State Manager association, Systems
 	// Manager immediately runs the association unless you previously specifed the
 	// apply-only-at-cron-interval parameter.
-	UpdateDocumentDefaultVersion(ctx context.Context, params *UpdateDocumentDefaultVersionInput, optFns ...func(*Options)) (*UpdateDocumentDefaultVersionOutput, error)
+	UpdateDocumentDefaultVersion(ctx context.Context, params *ssm.UpdateDocumentDefaultVersionInput, optFns ...func(*Options)) (*ssm.UpdateDocumentDefaultVersionOutput, error)
 	// Updates information related to approval reviews for a specific version of a
 	// change template in Change Manager.
-	UpdateDocumentMetadata(ctx context.Context, params *UpdateDocumentMetadataInput, optFns ...func(*Options)) (*UpdateDocumentMetadataOutput, error)
+	UpdateDocumentMetadata(ctx context.Context, params *ssm.UpdateDocumentMetadataInput, optFns ...func(*Options)) (*ssm.UpdateDocumentMetadataOutput, error)
 	// Updates an existing maintenance window. Only specified parameters are modified.
 	//
 	// The value you specify for Duration determines the specific end time for the
@@ -909,7 +913,7 @@ type SSM interface {
 	// specify for Cutoff . For example, if the maintenance window starts at 3 PM, the
 	// duration is three hours, and the value you specify for Cutoff is one hour, no
 	// maintenance window tasks can start after 5 PM.
-	UpdateMaintenanceWindow(ctx context.Context, params *UpdateMaintenanceWindowInput, optFns ...func(*Options)) (*UpdateMaintenanceWindowOutput, error)
+	UpdateMaintenanceWindow(ctx context.Context, params *ssm.UpdateMaintenanceWindowInput, optFns ...func(*Options)) (*ssm.UpdateMaintenanceWindowOutput, error)
 	// Modifies the target of an existing maintenance window. You can change the
 	// following:
 	//
@@ -927,7 +931,7 @@ type SSM interface {
 	//     ID target, Tag target, and resource group. For more information, see Target.
 	//
 	// If a parameter is null, then the corresponding field isn't modified.
-	UpdateMaintenanceWindowTarget(ctx context.Context, params *UpdateMaintenanceWindowTargetInput, optFns ...func(*Options)) (*UpdateMaintenanceWindowTargetOutput, error)
+	UpdateMaintenanceWindowTarget(ctx context.Context, params *ssm.UpdateMaintenanceWindowTargetInput, optFns ...func(*Options)) (*ssm.UpdateMaintenanceWindowTargetOutput, error)
 	// Modifies a task assigned to a maintenance window. You can't change the task
 	// type, but you can change the following values:
 	//
@@ -965,12 +969,12 @@ type SSM interface {
 	// for Comment and NotificationConfig are removed.
 	//
 	// [Registering maintenance window tasks without targets]: https://docs.aws.amazon.com/systems-manager/latest/userguide/maintenance-windows-targetless-tasks.html
-	UpdateMaintenanceWindowTask(ctx context.Context, params *UpdateMaintenanceWindowTaskInput, optFns ...func(*Options)) (*UpdateMaintenanceWindowTaskOutput, error)
+	UpdateMaintenanceWindowTask(ctx context.Context, params *ssm.UpdateMaintenanceWindowTaskInput, optFns ...func(*Options)) (*ssm.UpdateMaintenanceWindowTaskOutput, error)
 	// Changes the Identity and Access Management (IAM) role that is assigned to the
 	// on-premises server, edge device, or virtual machines (VM). IAM roles are first
 	// assigned to these hybrid nodes during the activation process. For more
 	// information, see CreateActivation.
-	UpdateManagedInstanceRole(ctx context.Context, params *UpdateManagedInstanceRoleInput, optFns ...func(*Options)) (*UpdateManagedInstanceRoleOutput, error)
+	UpdateManagedInstanceRole(ctx context.Context, params *ssm.UpdateManagedInstanceRoleInput, optFns ...func(*Options)) (*ssm.UpdateManagedInstanceRoleOutput, error)
 	// Edit or change an OpsItem. You must have permission in Identity and Access
 	// Management (IAM) to update an OpsItem. For more information, see [Set up OpsCenter]in the Amazon
 	// Web Services Systems Manager User Guide.
@@ -982,16 +986,16 @@ type SSM interface {
 	//
 	// [Amazon Web Services Systems Manager OpsCenter]: https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter.html
 	// [Set up OpsCenter]: https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-setup.html
-	UpdateOpsItem(ctx context.Context, params *UpdateOpsItemInput, optFns ...func(*Options)) (*UpdateOpsItemOutput, error)
+	UpdateOpsItem(ctx context.Context, params *ssm.UpdateOpsItemInput, optFns ...func(*Options)) (*ssm.UpdateOpsItemOutput, error)
 	// Amazon Web Services Systems Manager calls this API operation when you edit
 	// OpsMetadata in Application Manager.
-	UpdateOpsMetadata(ctx context.Context, params *UpdateOpsMetadataInput, optFns ...func(*Options)) (*UpdateOpsMetadataOutput, error)
+	UpdateOpsMetadata(ctx context.Context, params *ssm.UpdateOpsMetadataInput, optFns ...func(*Options)) (*ssm.UpdateOpsMetadataOutput, error)
 	// Modifies an existing patch baseline. Fields not specified in the request are
 	// left unchanged.
 	//
 	// For information about valid key-value pairs in PatchFilters for each supported
 	// operating system type, see PatchFilter.
-	UpdatePatchBaseline(ctx context.Context, params *UpdatePatchBaselineInput, optFns ...func(*Options)) (*UpdatePatchBaselineOutput, error)
+	UpdatePatchBaseline(ctx context.Context, params *ssm.UpdatePatchBaselineInput, optFns ...func(*Options)) (*ssm.UpdatePatchBaselineOutput, error)
 	// Update a resource data sync. After you create a resource data sync for a
 	// Region, you can't change the account options for that sync. For example, if you
 	// create a sync in the us-east-2 (Ohio) Region and you choose the Include only
@@ -1001,7 +1005,7 @@ type SSM interface {
 	//
 	// This API operation only supports a resource data sync that was created with a
 	// SyncFromSource SyncType .
-	UpdateResourceDataSync(ctx context.Context, params *UpdateResourceDataSyncInput, optFns ...func(*Options)) (*UpdateResourceDataSyncOutput, error)
+	UpdateResourceDataSync(ctx context.Context, params *ssm.UpdateResourceDataSyncInput, optFns ...func(*Options)) (*ssm.UpdateResourceDataSyncOutput, error)
 	// ServiceSetting is an account-level setting for an Amazon Web Services service.
 	// This setting defines how a user interacts with or uses a service or a feature of
 	// a service. For example, if an Amazon Web Services service charges money to the
@@ -1018,6 +1022,6 @@ type SSM interface {
 	// value defined by the Amazon Web Services service team.
 	//
 	// Update the service setting for the account.
-	UpdateServiceSetting(ctx context.Context, params *UpdateServiceSettingInput, optFns ...func(*Options)) (*UpdateServiceSettingOutput, error)
+	UpdateServiceSetting(ctx context.Context, params *ssm.UpdateServiceSettingInput, optFns ...func(*Options)) (*ssm.UpdateServiceSettingOutput, error)
 }
 

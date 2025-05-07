@@ -4684,6 +4684,80 @@ func (_c *SSM_DisassociateOpsItemRelatedItem_Call) RunAndReturn(run func(context
 	return _c
 }
 
+// GetAccessToken provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) GetAccessToken(ctx context.Context, params *ssm.GetAccessTokenInput, optFns ...func(*ssm.Options)) (*ssm.GetAccessTokenOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccessToken")
+	}
+
+	var r0 *ssm.GetAccessTokenOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.GetAccessTokenInput, ...func(*ssm.Options)) (*ssm.GetAccessTokenOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.GetAccessTokenInput, ...func(*ssm.Options)) *ssm.GetAccessTokenOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.GetAccessTokenOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.GetAccessTokenInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SSM_GetAccessToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccessToken'
+type SSM_GetAccessToken_Call struct {
+	*mock.Call
+}
+
+// GetAccessToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.GetAccessTokenInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) GetAccessToken(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_GetAccessToken_Call {
+	return &SSM_GetAccessToken_Call{Call: _e.mock.On("GetAccessToken",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_GetAccessToken_Call) Run(run func(ctx context.Context, params *ssm.GetAccessTokenInput, optFns ...func(*ssm.Options))) *SSM_GetAccessToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.GetAccessTokenInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_GetAccessToken_Call) Return(_a0 *ssm.GetAccessTokenOutput, _a1 error) *SSM_GetAccessToken_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_GetAccessToken_Call) RunAndReturn(run func(context.Context, *ssm.GetAccessTokenInput, ...func(*ssm.Options)) (*ssm.GetAccessTokenOutput, error)) *SSM_GetAccessToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAutomationExecution provides a mock function with given fields: ctx, params, optFns
 func (_m *SSM) GetAutomationExecution(ctx context.Context, params *ssm.GetAutomationExecutionInput, optFns ...func(*ssm.Options)) (*ssm.GetAutomationExecutionOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -9091,6 +9165,80 @@ func (_c *SSM_SendCommand_Call) Return(_a0 *ssm.SendCommandOutput, _a1 error) *S
 }
 
 func (_c *SSM_SendCommand_Call) RunAndReturn(run func(context.Context, *ssm.SendCommandInput, ...func(*ssm.Options)) (*ssm.SendCommandOutput, error)) *SSM_SendCommand_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// StartAccessRequest provides a mock function with given fields: ctx, params, optFns
+func (_m *SSM) StartAccessRequest(ctx context.Context, params *ssm.StartAccessRequestInput, optFns ...func(*ssm.Options)) (*ssm.StartAccessRequestOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartAccessRequest")
+	}
+
+	var r0 *ssm.StartAccessRequestOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.StartAccessRequestInput, ...func(*ssm.Options)) (*ssm.StartAccessRequestOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.StartAccessRequestInput, ...func(*ssm.Options)) *ssm.StartAccessRequestOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.StartAccessRequestOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.StartAccessRequestInput, ...func(*ssm.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SSM_StartAccessRequest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartAccessRequest'
+type SSM_StartAccessRequest_Call struct {
+	*mock.Call
+}
+
+// StartAccessRequest is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ssm.StartAccessRequestInput
+//   - optFns ...func(*ssm.Options)
+func (_e *SSM_Expecter) StartAccessRequest(ctx interface{}, params interface{}, optFns ...interface{}) *SSM_StartAccessRequest_Call {
+	return &SSM_StartAccessRequest_Call{Call: _e.mock.On("StartAccessRequest",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *SSM_StartAccessRequest_Call) Run(run func(ctx context.Context, params *ssm.StartAccessRequestInput, optFns ...func(*ssm.Options))) *SSM_StartAccessRequest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ssm.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ssm.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ssm.StartAccessRequestInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *SSM_StartAccessRequest_Call) Return(_a0 *ssm.StartAccessRequestOutput, _a1 error) *SSM_StartAccessRequest_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SSM_StartAccessRequest_Call) RunAndReturn(run func(context.Context, *ssm.StartAccessRequestInput, ...func(*ssm.Options)) (*ssm.StartAccessRequestOutput, error)) *SSM_StartAccessRequest_Call {
 	_c.Call.Return(run)
 	return _c
 }

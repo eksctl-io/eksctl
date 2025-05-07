@@ -21,13 +21,13 @@ type EKS interface {
 	// information about associating access policies, see [Associating and disassociating access policies to and from access entries]in the Amazon EKS User Guide.
 	//
 	// [Associating and disassociating access policies to and from access entries]: https://docs.aws.amazon.com/eks/latest/userguide/access-policies.html
-	AssociateAccessPolicy(ctx context.Context, params *AssociateAccessPolicyInput, optFns ...func(*Options)) (*AssociateAccessPolicyOutput, error)
+	AssociateAccessPolicy(ctx context.Context, params *eks.AssociateAccessPolicyInput, optFns ...func(*Options)) (*eks.AssociateAccessPolicyOutput, error)
 	// Associates an encryption configuration to an existing cluster.
 	//
 	// Use this API to enable encryption on existing clusters that don't already have
 	// encryption enabled. This allows you to implement a defense-in-depth security
 	// strategy without migrating applications to new Amazon EKS clusters.
-	AssociateEncryptionConfig(ctx context.Context, params *AssociateEncryptionConfigInput, optFns ...func(*Options)) (*AssociateEncryptionConfigOutput, error)
+	AssociateEncryptionConfig(ctx context.Context, params *eks.AssociateEncryptionConfigInput, optFns ...func(*Options)) (*eks.AssociateEncryptionConfigOutput, error)
 	// Associates an identity provider configuration to a cluster.
 	//
 	// If you want to authenticate identities using an identity provider, you can
@@ -38,7 +38,7 @@ type EKS interface {
 	// more information see [Using RBAC Authorization]in the Kubernetes documentation.
 	//
 	// [Using RBAC Authorization]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
-	AssociateIdentityProviderConfig(ctx context.Context, params *AssociateIdentityProviderConfigInput, optFns ...func(*Options)) (*AssociateIdentityProviderConfigOutput, error)
+	AssociateIdentityProviderConfig(ctx context.Context, params *eks.AssociateIdentityProviderConfigInput, optFns ...func(*Options)) (*eks.AssociateIdentityProviderConfigOutput, error)
 	// Creates an access entry.
 	//
 	// An access entry allows an IAM principal to access your cluster. Access entries
@@ -54,7 +54,7 @@ type EKS interface {
 	// For more information about access entries, see [Access entries] in the Amazon EKS User Guide.
 	//
 	// [Access entries]: https://docs.aws.amazon.com/eks/latest/userguide/access-entries.html
-	CreateAccessEntry(ctx context.Context, params *CreateAccessEntryInput, optFns ...func(*Options)) (*CreateAccessEntryOutput, error)
+	CreateAccessEntry(ctx context.Context, params *eks.CreateAccessEntryInput, optFns ...func(*Options)) (*eks.CreateAccessEntryOutput, error)
 	// Creates an Amazon EKS add-on.
 	//
 	// Amazon EKS add-ons help to automate the provisioning and lifecycle management
@@ -62,7 +62,7 @@ type EKS interface {
 	// see [Amazon EKS add-ons]in the Amazon EKS User Guide.
 	//
 	// [Amazon EKS add-ons]: https://docs.aws.amazon.com/eks/latest/userguide/eks-add-ons.html
-	CreateAddon(ctx context.Context, params *CreateAddonInput, optFns ...func(*Options)) (*CreateAddonOutput, error)
+	CreateAddon(ctx context.Context, params *eks.CreateAddonInput, optFns ...func(*Options)) (*eks.CreateAddonOutput, error)
 	// Creates an Amazon EKS control plane.
 	//
 	// The Amazon EKS control plane consists of control plane instances that run the
@@ -104,13 +104,13 @@ type EKS interface {
 	// [Amazon EKS Cluster Control Plane Logs]: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html
 	// [Amazon EKS Cluster Endpoint Access Control]: https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html
 	// [Launching Amazon EKS nodes]: https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html
-	CreateCluster(ctx context.Context, params *CreateClusterInput, optFns ...func(*Options)) (*CreateClusterOutput, error)
+	CreateCluster(ctx context.Context, params *eks.CreateClusterInput, optFns ...func(*Options)) (*eks.CreateClusterOutput, error)
 	// Creates an EKS Anywhere subscription. When a subscription is created, it is a
 	// contract agreement for the length of the term specified in the request. Licenses
 	// that are used to validate support are provisioned in Amazon Web Services License
 	// Manager and the caller account is granted access to EKS Anywhere Curated
 	// Packages.
-	CreateEksAnywhereSubscription(ctx context.Context, params *CreateEksAnywhereSubscriptionInput, optFns ...func(*Options)) (*CreateEksAnywhereSubscriptionOutput, error)
+	CreateEksAnywhereSubscription(ctx context.Context, params *eks.CreateEksAnywhereSubscriptionInput, optFns ...func(*Options)) (*eks.CreateEksAnywhereSubscriptionOutput, error)
 	// Creates an Fargate profile for your Amazon EKS cluster. You must have at least
 	// one Fargate profile in a cluster to be able to run pods on Fargate.
 	//
@@ -144,7 +144,7 @@ type EKS interface {
 	// [Role Based Access Control]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 	// [Fargate profile]: https://docs.aws.amazon.com/eks/latest/userguide/fargate-profile.html
 	// [Pod Execution Role]: https://docs.aws.amazon.com/eks/latest/userguide/pod-execution-role.html
-	CreateFargateProfile(ctx context.Context, params *CreateFargateProfileInput, optFns ...func(*Options)) (*CreateFargateProfileOutput, error)
+	CreateFargateProfile(ctx context.Context, params *eks.CreateFargateProfileInput, optFns ...func(*Options)) (*eks.CreateFargateProfileOutput, error)
 	// Creates a managed node group for an Amazon EKS cluster.
 	//
 	// You can only create a node group for your cluster that is equal to the current
@@ -167,7 +167,7 @@ type EKS interface {
 	//
 	// [Customizing managed nodes with launch templates]: https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html
 	// [Managed node groups]: https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html
-	CreateNodegroup(ctx context.Context, params *CreateNodegroupInput, optFns ...func(*Options)) (*CreateNodegroupOutput, error)
+	CreateNodegroup(ctx context.Context, params *eks.CreateNodegroupInput, optFns ...func(*Options)) (*eks.CreateNodegroupOutput, error)
 	// Creates an EKS Pod Identity association between a service account in an Amazon
 	// EKS cluster and an IAM role with EKS Pod Identity. Use EKS Pod Identity to give
 	// temporary IAM credentials to pods and the credentials are rotated automatically.
@@ -184,18 +184,18 @@ type EKS interface {
 	// Pod Identity is a simpler method than IAM roles for service accounts, as this
 	// method doesn't use OIDC identity providers. Additionally, you can configure a
 	// role for Pod Identity once, and reuse it across clusters.
-	CreatePodIdentityAssociation(ctx context.Context, params *CreatePodIdentityAssociationInput, optFns ...func(*Options)) (*CreatePodIdentityAssociationOutput, error)
+	CreatePodIdentityAssociation(ctx context.Context, params *eks.CreatePodIdentityAssociationInput, optFns ...func(*Options)) (*eks.CreatePodIdentityAssociationOutput, error)
 	// Deletes an access entry.
 	//
 	// Deleting an access entry of a type other than Standard can cause your cluster
 	// to function improperly. If you delete an access entry in error, you can recreate
 	// it.
-	DeleteAccessEntry(ctx context.Context, params *DeleteAccessEntryInput, optFns ...func(*Options)) (*DeleteAccessEntryOutput, error)
+	DeleteAccessEntry(ctx context.Context, params *eks.DeleteAccessEntryInput, optFns ...func(*Options)) (*eks.DeleteAccessEntryOutput, error)
 	// Deletes an Amazon EKS add-on.
 	//
 	// When you remove an add-on, it's deleted from the cluster. You can always
 	// manually start an add-on on the cluster using the Kubernetes API.
-	DeleteAddon(ctx context.Context, params *DeleteAddonInput, optFns ...func(*Options)) (*DeleteAddonOutput, error)
+	DeleteAddon(ctx context.Context, params *eks.DeleteAddonInput, optFns ...func(*Options)) (*eks.DeleteAddonOutput, error)
 	// Deletes an Amazon EKS cluster control plane.
 	//
 	// If you have active services in your cluster that are associated with a load
@@ -209,13 +209,13 @@ type EKS interface {
 	// DeleteFargateProfile .
 	//
 	// [Deleting a cluster]: https://docs.aws.amazon.com/eks/latest/userguide/delete-cluster.html
-	DeleteCluster(ctx context.Context, params *DeleteClusterInput, optFns ...func(*Options)) (*DeleteClusterOutput, error)
+	DeleteCluster(ctx context.Context, params *eks.DeleteClusterInput, optFns ...func(*Options)) (*eks.DeleteClusterOutput, error)
 	// Deletes an expired or inactive subscription. Deleting inactive subscriptions
 	// removes them from the Amazon Web Services Management Console view and from
 	// list/describe API responses. Subscriptions can only be cancelled within 7 days
 	// of creation and are cancelled by creating a ticket in the Amazon Web Services
 	// Support Center.
-	DeleteEksAnywhereSubscription(ctx context.Context, params *DeleteEksAnywhereSubscriptionInput, optFns ...func(*Options)) (*DeleteEksAnywhereSubscriptionOutput, error)
+	DeleteEksAnywhereSubscription(ctx context.Context, params *eks.DeleteEksAnywhereSubscriptionInput, optFns ...func(*Options)) (*eks.DeleteEksAnywhereSubscriptionOutput, error)
 	// Deletes an Fargate profile.
 	//
 	// When you delete a Fargate profile, any Pod running on Fargate that was created
@@ -227,34 +227,34 @@ type EKS interface {
 	// Only one Fargate profile in a cluster can be in the DELETING status at a time.
 	// You must wait for a Fargate profile to finish deleting before you can delete any
 	// other profiles in that cluster.
-	DeleteFargateProfile(ctx context.Context, params *DeleteFargateProfileInput, optFns ...func(*Options)) (*DeleteFargateProfileOutput, error)
+	DeleteFargateProfile(ctx context.Context, params *eks.DeleteFargateProfileInput, optFns ...func(*Options)) (*eks.DeleteFargateProfileOutput, error)
 	// Deletes a managed node group.
-	DeleteNodegroup(ctx context.Context, params *DeleteNodegroupInput, optFns ...func(*Options)) (*DeleteNodegroupOutput, error)
+	DeleteNodegroup(ctx context.Context, params *eks.DeleteNodegroupInput, optFns ...func(*Options)) (*eks.DeleteNodegroupOutput, error)
 	// Deletes a EKS Pod Identity association.
 	//
 	// The temporary Amazon Web Services credentials from the previous IAM role
 	// session might still be valid until the session expiry. If you need to
 	// immediately revoke the temporary session credentials, then go to the role in the
 	// IAM console.
-	DeletePodIdentityAssociation(ctx context.Context, params *DeletePodIdentityAssociationInput, optFns ...func(*Options)) (*DeletePodIdentityAssociationOutput, error)
+	DeletePodIdentityAssociation(ctx context.Context, params *eks.DeletePodIdentityAssociationInput, optFns ...func(*Options)) (*eks.DeletePodIdentityAssociationOutput, error)
 	// Deregisters a connected cluster to remove it from the Amazon EKS control plane.
 	//
 	// A connected cluster is a Kubernetes cluster that you've connected to your
 	// control plane using the [Amazon EKS Connector].
 	//
 	// [Amazon EKS Connector]: https://docs.aws.amazon.com/eks/latest/userguide/eks-connector.html
-	DeregisterCluster(ctx context.Context, params *DeregisterClusterInput, optFns ...func(*Options)) (*DeregisterClusterOutput, error)
+	DeregisterCluster(ctx context.Context, params *eks.DeregisterClusterInput, optFns ...func(*Options)) (*eks.DeregisterClusterOutput, error)
 	// Describes an access entry.
-	DescribeAccessEntry(ctx context.Context, params *DescribeAccessEntryInput, optFns ...func(*Options)) (*DescribeAccessEntryOutput, error)
+	DescribeAccessEntry(ctx context.Context, params *eks.DescribeAccessEntryInput, optFns ...func(*Options)) (*eks.DescribeAccessEntryOutput, error)
 	// Describes an Amazon EKS add-on.
-	DescribeAddon(ctx context.Context, params *DescribeAddonInput, optFns ...func(*Options)) (*DescribeAddonOutput, error)
+	DescribeAddon(ctx context.Context, params *eks.DescribeAddonInput, optFns ...func(*Options)) (*eks.DescribeAddonOutput, error)
 	// Returns configuration options.
-	DescribeAddonConfiguration(ctx context.Context, params *DescribeAddonConfigurationInput, optFns ...func(*Options)) (*DescribeAddonConfigurationOutput, error)
+	DescribeAddonConfiguration(ctx context.Context, params *eks.DescribeAddonConfigurationInput, optFns ...func(*Options)) (*eks.DescribeAddonConfigurationOutput, error)
 	// Describes the versions for an add-on.
 	//
 	// Information such as the Kubernetes versions that you can use the add-on with,
 	// the owner , publisher , and the type of the add-on are returned.
-	DescribeAddonVersions(ctx context.Context, params *DescribeAddonVersionsInput, optFns ...func(*Options)) (*DescribeAddonVersionsOutput, error)
+	DescribeAddonVersions(ctx context.Context, params *eks.DescribeAddonVersionsInput, optFns ...func(*Options)) (*eks.DescribeAddonVersionsOutput, error)
 	// Describes an Amazon EKS cluster.
 	//
 	// The API server endpoint and certificate authority data returned by this
@@ -265,75 +265,75 @@ type EKS interface {
 	// the cluster reaches the ACTIVE state.
 	//
 	// [Creating or updating a kubeconfig file for an Amazon EKS cluster]: https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
-	DescribeCluster(ctx context.Context, params *DescribeClusterInput, optFns ...func(*Options)) (*DescribeClusterOutput, error)
+	DescribeCluster(ctx context.Context, params *eks.DescribeClusterInput, optFns ...func(*Options)) (*eks.DescribeClusterOutput, error)
 	// Lists available Kubernetes versions for Amazon EKS clusters.
-	DescribeClusterVersions(ctx context.Context, params *DescribeClusterVersionsInput, optFns ...func(*Options)) (*DescribeClusterVersionsOutput, error)
+	DescribeClusterVersions(ctx context.Context, params *eks.DescribeClusterVersionsInput, optFns ...func(*Options)) (*eks.DescribeClusterVersionsOutput, error)
 	// Returns descriptive information about a subscription.
-	DescribeEksAnywhereSubscription(ctx context.Context, params *DescribeEksAnywhereSubscriptionInput, optFns ...func(*Options)) (*DescribeEksAnywhereSubscriptionOutput, error)
+	DescribeEksAnywhereSubscription(ctx context.Context, params *eks.DescribeEksAnywhereSubscriptionInput, optFns ...func(*Options)) (*eks.DescribeEksAnywhereSubscriptionOutput, error)
 	// Describes an Fargate profile.
-	DescribeFargateProfile(ctx context.Context, params *DescribeFargateProfileInput, optFns ...func(*Options)) (*DescribeFargateProfileOutput, error)
+	DescribeFargateProfile(ctx context.Context, params *eks.DescribeFargateProfileInput, optFns ...func(*Options)) (*eks.DescribeFargateProfileOutput, error)
 	// Describes an identity provider configuration.
-	DescribeIdentityProviderConfig(ctx context.Context, params *DescribeIdentityProviderConfigInput, optFns ...func(*Options)) (*DescribeIdentityProviderConfigOutput, error)
+	DescribeIdentityProviderConfig(ctx context.Context, params *eks.DescribeIdentityProviderConfigInput, optFns ...func(*Options)) (*eks.DescribeIdentityProviderConfigOutput, error)
 	// Returns details about an insight that you specify using its ID.
-	DescribeInsight(ctx context.Context, params *DescribeInsightInput, optFns ...func(*Options)) (*DescribeInsightOutput, error)
+	DescribeInsight(ctx context.Context, params *eks.DescribeInsightInput, optFns ...func(*Options)) (*eks.DescribeInsightOutput, error)
 	// Describes a managed node group.
-	DescribeNodegroup(ctx context.Context, params *DescribeNodegroupInput, optFns ...func(*Options)) (*DescribeNodegroupOutput, error)
+	DescribeNodegroup(ctx context.Context, params *eks.DescribeNodegroupInput, optFns ...func(*Options)) (*eks.DescribeNodegroupOutput, error)
 	// Returns descriptive information about an EKS Pod Identity association.
 	//
 	// This action requires the ID of the association. You can get the ID from the
 	// response to the CreatePodIdentityAssocation for newly created associations. Or,
 	// you can list the IDs for associations with ListPodIdentityAssociations and
 	// filter the list by namespace or service account.
-	DescribePodIdentityAssociation(ctx context.Context, params *DescribePodIdentityAssociationInput, optFns ...func(*Options)) (*DescribePodIdentityAssociationOutput, error)
+	DescribePodIdentityAssociation(ctx context.Context, params *eks.DescribePodIdentityAssociationInput, optFns ...func(*Options)) (*eks.DescribePodIdentityAssociationOutput, error)
 	// Describes an update to an Amazon EKS resource.
 	//
 	// When the status of the update is Successful , the update is complete. If an
 	// update fails, the status is Failed , and an error detail explains the reason for
 	// the failure.
-	DescribeUpdate(ctx context.Context, params *DescribeUpdateInput, optFns ...func(*Options)) (*DescribeUpdateOutput, error)
+	DescribeUpdate(ctx context.Context, params *eks.DescribeUpdateInput, optFns ...func(*Options)) (*eks.DescribeUpdateOutput, error)
 	// Disassociates an access policy from an access entry.
-	DisassociateAccessPolicy(ctx context.Context, params *DisassociateAccessPolicyInput, optFns ...func(*Options)) (*DisassociateAccessPolicyOutput, error)
+	DisassociateAccessPolicy(ctx context.Context, params *eks.DisassociateAccessPolicyInput, optFns ...func(*Options)) (*eks.DisassociateAccessPolicyOutput, error)
 	// Disassociates an identity provider configuration from a cluster.
 	//
 	// If you disassociate an identity provider from your cluster, users included in
 	// the provider can no longer access the cluster. However, you can still access the
 	// cluster with IAM principals.
-	DisassociateIdentityProviderConfig(ctx context.Context, params *DisassociateIdentityProviderConfigInput, optFns ...func(*Options)) (*DisassociateIdentityProviderConfigOutput, error)
+	DisassociateIdentityProviderConfig(ctx context.Context, params *eks.DisassociateIdentityProviderConfigInput, optFns ...func(*Options)) (*eks.DisassociateIdentityProviderConfigOutput, error)
 	// Lists the access entries for your cluster.
-	ListAccessEntries(ctx context.Context, params *ListAccessEntriesInput, optFns ...func(*Options)) (*ListAccessEntriesOutput, error)
+	ListAccessEntries(ctx context.Context, params *eks.ListAccessEntriesInput, optFns ...func(*Options)) (*eks.ListAccessEntriesOutput, error)
 	// Lists the available access policies.
-	ListAccessPolicies(ctx context.Context, params *ListAccessPoliciesInput, optFns ...func(*Options)) (*ListAccessPoliciesOutput, error)
+	ListAccessPolicies(ctx context.Context, params *eks.ListAccessPoliciesInput, optFns ...func(*Options)) (*eks.ListAccessPoliciesOutput, error)
 	// Lists the installed add-ons.
-	ListAddons(ctx context.Context, params *ListAddonsInput, optFns ...func(*Options)) (*ListAddonsOutput, error)
+	ListAddons(ctx context.Context, params *eks.ListAddonsInput, optFns ...func(*Options)) (*eks.ListAddonsOutput, error)
 	// Lists the access policies associated with an access entry.
-	ListAssociatedAccessPolicies(ctx context.Context, params *ListAssociatedAccessPoliciesInput, optFns ...func(*Options)) (*ListAssociatedAccessPoliciesOutput, error)
+	ListAssociatedAccessPolicies(ctx context.Context, params *eks.ListAssociatedAccessPoliciesInput, optFns ...func(*Options)) (*eks.ListAssociatedAccessPoliciesOutput, error)
 	// Lists the Amazon EKS clusters in your Amazon Web Services account in the
 	// specified Amazon Web Services Region.
-	ListClusters(ctx context.Context, params *ListClustersInput, optFns ...func(*Options)) (*ListClustersOutput, error)
+	ListClusters(ctx context.Context, params *eks.ListClustersInput, optFns ...func(*Options)) (*eks.ListClustersOutput, error)
 	// Displays the full description of the subscription.
-	ListEksAnywhereSubscriptions(ctx context.Context, params *ListEksAnywhereSubscriptionsInput, optFns ...func(*Options)) (*ListEksAnywhereSubscriptionsOutput, error)
+	ListEksAnywhereSubscriptions(ctx context.Context, params *eks.ListEksAnywhereSubscriptionsInput, optFns ...func(*Options)) (*eks.ListEksAnywhereSubscriptionsOutput, error)
 	// Lists the Fargate profiles associated with the specified cluster in your Amazon
 	// Web Services account in the specified Amazon Web Services Region.
-	ListFargateProfiles(ctx context.Context, params *ListFargateProfilesInput, optFns ...func(*Options)) (*ListFargateProfilesOutput, error)
+	ListFargateProfiles(ctx context.Context, params *eks.ListFargateProfilesInput, optFns ...func(*Options)) (*eks.ListFargateProfilesOutput, error)
 	// Lists the identity provider configurations for your cluster.
-	ListIdentityProviderConfigs(ctx context.Context, params *ListIdentityProviderConfigsInput, optFns ...func(*Options)) (*ListIdentityProviderConfigsOutput, error)
+	ListIdentityProviderConfigs(ctx context.Context, params *eks.ListIdentityProviderConfigsInput, optFns ...func(*Options)) (*eks.ListIdentityProviderConfigsOutput, error)
 	// Returns a list of all insights checked for against the specified cluster. You
 	// can filter which insights are returned by category, associated Kubernetes
 	// version, and status.
-	ListInsights(ctx context.Context, params *ListInsightsInput, optFns ...func(*Options)) (*ListInsightsOutput, error)
+	ListInsights(ctx context.Context, params *eks.ListInsightsInput, optFns ...func(*Options)) (*eks.ListInsightsOutput, error)
 	// Lists the managed node groups associated with the specified cluster in your
 	// Amazon Web Services account in the specified Amazon Web Services Region.
 	// Self-managed node groups aren't listed.
-	ListNodegroups(ctx context.Context, params *ListNodegroupsInput, optFns ...func(*Options)) (*ListNodegroupsOutput, error)
+	ListNodegroups(ctx context.Context, params *eks.ListNodegroupsInput, optFns ...func(*Options)) (*eks.ListNodegroupsOutput, error)
 	// List the EKS Pod Identity associations in a cluster. You can filter the list by
 	// the namespace that the association is in or the service account that the
 	// association uses.
-	ListPodIdentityAssociations(ctx context.Context, params *ListPodIdentityAssociationsInput, optFns ...func(*Options)) (*ListPodIdentityAssociationsOutput, error)
+	ListPodIdentityAssociations(ctx context.Context, params *eks.ListPodIdentityAssociationsInput, optFns ...func(*Options)) (*eks.ListPodIdentityAssociationsOutput, error)
 	// List the tags for an Amazon EKS resource.
-	ListTagsForResource(ctx context.Context, params *ListTagsForResourceInput, optFns ...func(*Options)) (*ListTagsForResourceOutput, error)
+	ListTagsForResource(ctx context.Context, params *eks.ListTagsForResourceInput, optFns ...func(*Options)) (*eks.ListTagsForResourceOutput, error)
 	// Lists the updates associated with an Amazon EKS resource in your Amazon Web
 	// Services account, in the specified Amazon Web Services Region.
-	ListUpdates(ctx context.Context, params *ListUpdatesInput, optFns ...func(*Options)) (*ListUpdatesOutput, error)
+	ListUpdates(ctx context.Context, params *eks.ListUpdatesInput, optFns ...func(*Options)) (*eks.ListUpdatesOutput, error)
 	// Connects a Kubernetes cluster to the Amazon EKS control plane.
 	//
 	// Any Kubernetes cluster can be connected to the Amazon EKS control plane to view
@@ -352,7 +352,7 @@ type EKS interface {
 	//
 	// [RegisterClusterRequest]: https://docs.aws.amazon.com/eks/latest/APIReference/API_RegisterClusterRequest.html
 	// [Manifest]: https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector/latest/eks-connector.yaml
-	RegisterCluster(ctx context.Context, params *RegisterClusterInput, optFns ...func(*Options)) (*RegisterClusterOutput, error)
+	RegisterCluster(ctx context.Context, params *eks.RegisterClusterInput, optFns ...func(*Options)) (*eks.RegisterClusterOutput, error)
 	// Associates the specified tags to an Amazon EKS resource with the specified
 	// resourceArn . If existing tags on a resource are not specified in the request
 	// parameters, they aren't changed. When a resource is deleted, the tags associated
@@ -360,13 +360,13 @@ type EKS interface {
 	// resources don't propagate to any other resources associated with the cluster.
 	// For example, if you tag a cluster with this operation, that tag doesn't
 	// automatically propagate to the subnets and nodes associated with the cluster.
-	TagResource(ctx context.Context, params *TagResourceInput, optFns ...func(*Options)) (*TagResourceOutput, error)
+	TagResource(ctx context.Context, params *eks.TagResourceInput, optFns ...func(*Options)) (*eks.TagResourceOutput, error)
 	// Deletes specified tags from an Amazon EKS resource.
-	UntagResource(ctx context.Context, params *UntagResourceInput, optFns ...func(*Options)) (*UntagResourceOutput, error)
+	UntagResource(ctx context.Context, params *eks.UntagResourceInput, optFns ...func(*Options)) (*eks.UntagResourceOutput, error)
 	// Updates an access entry.
-	UpdateAccessEntry(ctx context.Context, params *UpdateAccessEntryInput, optFns ...func(*Options)) (*UpdateAccessEntryOutput, error)
+	UpdateAccessEntry(ctx context.Context, params *eks.UpdateAccessEntryInput, optFns ...func(*Options)) (*eks.UpdateAccessEntryOutput, error)
 	// Updates an Amazon EKS add-on.
-	UpdateAddon(ctx context.Context, params *UpdateAddonInput, optFns ...func(*Options)) (*UpdateAddonOutput, error)
+	UpdateAddon(ctx context.Context, params *eks.UpdateAddonInput, optFns ...func(*Options)) (*eks.UpdateAddonOutput, error)
 	// Updates an Amazon EKS cluster configuration. Your cluster continues to function
 	// during the update. The response output includes an update ID that you can use to
 	// track the status of your cluster update with DescribeUpdate .
@@ -414,7 +414,7 @@ type EKS interface {
 	// [CloudWatch Pricing]: http://aws.amazon.com/cloudwatch/pricing/
 	// [https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html]: https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html
 	// [Amazon EKS cluster endpoint access control]: https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html
-	UpdateClusterConfig(ctx context.Context, params *UpdateClusterConfigInput, optFns ...func(*Options)) (*UpdateClusterConfigOutput, error)
+	UpdateClusterConfig(ctx context.Context, params *eks.UpdateClusterConfigInput, optFns ...func(*Options)) (*eks.UpdateClusterConfigOutput, error)
 	// Updates an Amazon EKS cluster to the specified Kubernetes version. Your cluster
 	// continues to function during the update. The response output includes an update
 	// ID that you can use to track the status of your cluster update with the [DescribeUpdate]
@@ -430,10 +430,10 @@ type EKS interface {
 	// to update the cluster to a new Kubernetes version.
 	//
 	// [DescribeUpdate]: https://docs.aws.amazon.com/eks/latest/APIReference/API_DescribeUpdate.html
-	UpdateClusterVersion(ctx context.Context, params *UpdateClusterVersionInput, optFns ...func(*Options)) (*UpdateClusterVersionOutput, error)
+	UpdateClusterVersion(ctx context.Context, params *eks.UpdateClusterVersionInput, optFns ...func(*Options)) (*eks.UpdateClusterVersionOutput, error)
 	// Update an EKS Anywhere Subscription. Only auto renewal and tags can be updated
 	// after subscription creation.
-	UpdateEksAnywhereSubscription(ctx context.Context, params *UpdateEksAnywhereSubscriptionInput, optFns ...func(*Options)) (*UpdateEksAnywhereSubscriptionOutput, error)
+	UpdateEksAnywhereSubscription(ctx context.Context, params *eks.UpdateEksAnywhereSubscriptionInput, optFns ...func(*Options)) (*eks.UpdateEksAnywhereSubscriptionOutput, error)
 	// Updates an Amazon EKS managed node group configuration. Your node group
 	// continues to function during the update. The response output includes an update
 	// ID that you can use to track the status of your node group update with the [DescribeUpdate]
@@ -441,7 +441,7 @@ type EKS interface {
 	// for a node group and the scaling and version update configuration.
 	//
 	// [DescribeUpdate]: https://docs.aws.amazon.com/eks/latest/APIReference/API_DescribeUpdate.html
-	UpdateNodegroupConfig(ctx context.Context, params *UpdateNodegroupConfigInput, optFns ...func(*Options)) (*UpdateNodegroupConfigOutput, error)
+	UpdateNodegroupConfig(ctx context.Context, params *eks.UpdateNodegroupConfigInput, optFns ...func(*Options)) (*eks.UpdateNodegroupConfigOutput, error)
 	// Updates the Kubernetes version or AMI version of an Amazon EKS managed node
 	// group.
 	//
@@ -474,11 +474,11 @@ type EKS interface {
 	//
 	// [Amazon EKS optimized Amazon Linux AMI versions]: https://docs.aws.amazon.com/eks/latest/userguide/eks-linux-ami-versions.html
 	// [Amazon EKS optimized Windows AMI versions]: https://docs.aws.amazon.com/eks/latest/userguide/eks-ami-versions-windows.html
-	UpdateNodegroupVersion(ctx context.Context, params *UpdateNodegroupVersionInput, optFns ...func(*Options)) (*UpdateNodegroupVersionOutput, error)
+	UpdateNodegroupVersion(ctx context.Context, params *eks.UpdateNodegroupVersionInput, optFns ...func(*Options)) (*eks.UpdateNodegroupVersionOutput, error)
 	// Updates a EKS Pod Identity association. Only the IAM role can be changed; an
 	// association can't be moved between clusters, namespaces, or service accounts. If
 	// you need to edit the namespace or service account, you need to delete the
 	// association and then create a new association with your desired settings.
-	UpdatePodIdentityAssociation(ctx context.Context, params *UpdatePodIdentityAssociationInput, optFns ...func(*Options)) (*UpdatePodIdentityAssociationOutput, error)
+	UpdatePodIdentityAssociation(ctx context.Context, params *eks.UpdatePodIdentityAssociationInput, optFns ...func(*Options)) (*eks.UpdatePodIdentityAssociationOutput, error)
 }
 
