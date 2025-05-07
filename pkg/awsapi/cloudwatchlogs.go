@@ -59,7 +59,7 @@ type CloudWatchLogs interface {
 	// results, then all the associated stored log events or query results that were
 	// encrypted with that key will be unencryptable and unusable.
 	//
-	// CloudWatch Logs supports only symmetric KMS keys. Do not use an associate an
+	// CloudWatch Logs supports only symmetric KMS keys. Do not associate an
 	// asymmetric KMS key with your log group or query results. For more information,
 	// see [Using Symmetric and Asymmetric Keys].
 	//
@@ -73,11 +73,11 @@ type CloudWatchLogs interface {
 	//
 	// [StartQuery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartQuery.html
 	// [GetQueryResults]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetQueryResults.html
-	AssociateKmsKey(ctx context.Context, params *AssociateKmsKeyInput, optFns ...func(*Options)) (*AssociateKmsKeyOutput, error)
+	AssociateKmsKey(ctx context.Context, params *cloudwatchlogs.AssociateKmsKeyInput, optFns ...func(*Options)) (*cloudwatchlogs.AssociateKmsKeyOutput, error)
 	// Cancels the specified export task.
 	//
 	// The task must be in the PENDING or RUNNING state.
-	CancelExportTask(ctx context.Context, params *CancelExportTaskInput, optFns ...func(*Options)) (*CancelExportTaskOutput, error)
+	CancelExportTask(ctx context.Context, params *cloudwatchlogs.CancelExportTaskInput, optFns ...func(*Options)) (*cloudwatchlogs.CancelExportTaskOutput, error)
 	// Creates a delivery. A delivery is a connection between a logical delivery
 	// source and a logical delivery destination that you have already created.
 	//
@@ -116,7 +116,7 @@ type CloudWatchLogs interface {
 	// [Enabling logging from Amazon Web Services services.]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html
 	// [PutDeliveryDestinationPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestinationPolicy.html
 	// [UpdateDeliveryConfiguration]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_UpdateDeliveryConfiguration.html
-	CreateDelivery(ctx context.Context, params *CreateDeliveryInput, optFns ...func(*Options)) (*CreateDeliveryOutput, error)
+	CreateDelivery(ctx context.Context, params *cloudwatchlogs.CreateDeliveryInput, optFns ...func(*Options)) (*cloudwatchlogs.CreateDeliveryOutput, error)
 	// Creates an export task so that you can efficiently export data from a log group
 	// to an Amazon S3 bucket. When you perform a CreateExportTask operation, you must
 	// use credentials that have permission to write to the S3 bucket that you specify
@@ -139,7 +139,7 @@ type CloudWatchLogs interface {
 	// be used as the Amazon S3 key prefix for all exported objects.
 	//
 	// We recommend that you don't regularly export to Amazon S3 as a way to
-	// continuously archive your logs. For that use case, we instaed recommend that you
+	// continuously archive your logs. For that use case, we instead recommend that you
 	// use subscriptions. For more information about subscriptions, see [Real-time processing of log data with subscriptions].
 	//
 	// Time-based sorting on chunks of log data inside an exported file is not
@@ -148,7 +148,7 @@ type CloudWatchLogs interface {
 	// [CancelExportTask]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CancelExportTask.html
 	// [DescribeExportTasks]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeExportTasks.html
 	// [Real-time processing of log data with subscriptions]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Subscriptions.html
-	CreateExportTask(ctx context.Context, params *CreateExportTaskInput, optFns ...func(*Options)) (*CreateExportTaskOutput, error)
+	CreateExportTask(ctx context.Context, params *cloudwatchlogs.CreateExportTaskInput, optFns ...func(*Options)) (*cloudwatchlogs.CreateExportTaskOutput, error)
 	// Creates an anomaly detector that regularly scans one or more log groups and
 	// look for patterns and anomalies in the logs.
 	//
@@ -182,7 +182,7 @@ type CloudWatchLogs interface {
 	// anomalies. For more information about masking sensitive data, see [Help protect sensitive log data with masking].
 	//
 	// [Help protect sensitive log data with masking]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data.html
-	CreateLogAnomalyDetector(ctx context.Context, params *CreateLogAnomalyDetectorInput, optFns ...func(*Options)) (*CreateLogAnomalyDetectorOutput, error)
+	CreateLogAnomalyDetector(ctx context.Context, params *cloudwatchlogs.CreateLogAnomalyDetectorInput, optFns ...func(*Options)) (*cloudwatchlogs.CreateLogAnomalyDetectorOutput, error)
 	// Creates a log group with the specified name. You can create up to 1,000,000 log
 	// groups per Region per account.
 	//
@@ -217,7 +217,7 @@ type CloudWatchLogs interface {
 	//
 	// [Using Symmetric and Asymmetric Keys]: https://docs.aws.amazon.com/kms/latest/developerguide/symmetric-asymmetric.html
 	// [PutRetentionPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html
-	CreateLogGroup(ctx context.Context, params *CreateLogGroupInput, optFns ...func(*Options)) (*CreateLogGroupOutput, error)
+	CreateLogGroup(ctx context.Context, params *cloudwatchlogs.CreateLogGroupInput, optFns ...func(*Options)) (*cloudwatchlogs.CreateLogGroupOutput, error)
 	// Creates a log stream for the specified log group. A log stream is a sequence of
 	// log events that originate from a single source, such as an application instance
 	// or a resource that is being monitored.
@@ -233,7 +233,7 @@ type CloudWatchLogs interface {
 	//   - Log stream names can be between 1 and 512 characters long.
 	//
 	//   - Don't use ':' (colon) or '*' (asterisk) characters.
-	CreateLogStream(ctx context.Context, params *CreateLogStreamInput, optFns ...func(*Options)) (*CreateLogStreamOutput, error)
+	CreateLogStream(ctx context.Context, params *cloudwatchlogs.CreateLogStreamInput, optFns ...func(*Options)) (*cloudwatchlogs.CreateLogStreamOutput, error)
 	// Deletes a CloudWatch Logs account policy. This stops the account-wide policy
 	// from applying to log groups in the account. If you delete a data protection
 	// policy or subscription filter policy, any log-group level policies of those
@@ -257,18 +257,18 @@ type CloudWatchLogs interface {
 	// If you delete a field index policy, the indexing of the log events that
 	// happened before you deleted the policy will still be used for up to 30 days to
 	// improve CloudWatch Logs Insights queries.
-	DeleteAccountPolicy(ctx context.Context, params *DeleteAccountPolicyInput, optFns ...func(*Options)) (*DeleteAccountPolicyOutput, error)
+	DeleteAccountPolicy(ctx context.Context, params *cloudwatchlogs.DeleteAccountPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteAccountPolicyOutput, error)
 	// Deletes the data protection policy from the specified log group.
 	//
 	// For more information about data protection policies, see [PutDataProtectionPolicy].
 	//
 	// [PutDataProtectionPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDataProtectionPolicy.html
-	DeleteDataProtectionPolicy(ctx context.Context, params *DeleteDataProtectionPolicyInput, optFns ...func(*Options)) (*DeleteDataProtectionPolicyOutput, error)
+	DeleteDataProtectionPolicy(ctx context.Context, params *cloudwatchlogs.DeleteDataProtectionPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteDataProtectionPolicyOutput, error)
 	// Deletes a delivery. A delivery is a connection between a logical delivery
 	// source and a logical delivery destination. Deleting a delivery only deletes the
 	// connection between the delivery source and delivery destination. It does not
 	// delete the delivery destination or the delivery source.
-	DeleteDelivery(ctx context.Context, params *DeleteDeliveryInput, optFns ...func(*Options)) (*DeleteDeliveryOutput, error)
+	DeleteDelivery(ctx context.Context, params *cloudwatchlogs.DeleteDeliveryInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteDeliveryOutput, error)
 	// Deletes a delivery destination. A delivery is a connection between a logical
 	// delivery source and a logical delivery destination.
 	//
@@ -278,12 +278,12 @@ type CloudWatchLogs interface {
 	// field in the results.
 	//
 	// [DescribeDeliveries]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeDeliveries.html
-	DeleteDeliveryDestination(ctx context.Context, params *DeleteDeliveryDestinationInput, optFns ...func(*Options)) (*DeleteDeliveryDestinationOutput, error)
+	DeleteDeliveryDestination(ctx context.Context, params *cloudwatchlogs.DeleteDeliveryDestinationInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteDeliveryDestinationOutput, error)
 	// Deletes a delivery destination policy. For more information about these
 	// policies, see [PutDeliveryDestinationPolicy].
 	//
 	// [PutDeliveryDestinationPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestinationPolicy.html
-	DeleteDeliveryDestinationPolicy(ctx context.Context, params *DeleteDeliveryDestinationPolicyInput, optFns ...func(*Options)) (*DeleteDeliveryDestinationPolicyOutput, error)
+	DeleteDeliveryDestinationPolicy(ctx context.Context, params *cloudwatchlogs.DeleteDeliveryDestinationPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteDeliveryDestinationPolicyOutput, error)
 	// Deletes a delivery source. A delivery is a connection between a logical
 	// delivery source and a logical delivery destination.
 	//
@@ -292,11 +292,11 @@ type CloudWatchLogs interface {
 	// source, use the [DescribeDeliveries]operation and check the deliverySourceName field in the results.
 	//
 	// [DescribeDeliveries]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeDeliveries.html
-	DeleteDeliverySource(ctx context.Context, params *DeleteDeliverySourceInput, optFns ...func(*Options)) (*DeleteDeliverySourceOutput, error)
+	DeleteDeliverySource(ctx context.Context, params *cloudwatchlogs.DeleteDeliverySourceInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteDeliverySourceOutput, error)
 	// Deletes the specified destination, and eventually disables all the subscription
 	// filters that publish to it. This operation does not delete the physical resource
 	// encapsulated by the destination.
-	DeleteDestination(ctx context.Context, params *DeleteDestinationInput, optFns ...func(*Options)) (*DeleteDestinationOutput, error)
+	DeleteDestination(ctx context.Context, params *cloudwatchlogs.DeleteDestinationInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteDestinationOutput, error)
 	// Deletes a log-group level field index policy that was applied to a single log
 	// group. The indexing of the log events that happened before you delete the policy
 	// will still be used for as many as 30 days to improve CloudWatch Logs Insights
@@ -310,24 +310,24 @@ type CloudWatchLogs interface {
 	// that account-wide policy to index new incoming log events.
 	//
 	// [DeletAccountPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DeleteAccountPolicy.html
-	DeleteIndexPolicy(ctx context.Context, params *DeleteIndexPolicyInput, optFns ...func(*Options)) (*DeleteIndexPolicyOutput, error)
+	DeleteIndexPolicy(ctx context.Context, params *cloudwatchlogs.DeleteIndexPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteIndexPolicyOutput, error)
 	// Deletes the integration between CloudWatch Logs and OpenSearch Service. If your
 	// integration has active vended logs dashboards, you must specify true for the
 	// force parameter, otherwise the operation will fail. If you delete the
 	// integration by setting force to true , all your vended logs dashboards powered
 	// by OpenSearch Service will be deleted and the data that was on them will no
 	// longer be accessible.
-	DeleteIntegration(ctx context.Context, params *DeleteIntegrationInput, optFns ...func(*Options)) (*DeleteIntegrationOutput, error)
+	DeleteIntegration(ctx context.Context, params *cloudwatchlogs.DeleteIntegrationInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteIntegrationOutput, error)
 	// Deletes the specified CloudWatch Logs anomaly detector.
-	DeleteLogAnomalyDetector(ctx context.Context, params *DeleteLogAnomalyDetectorInput, optFns ...func(*Options)) (*DeleteLogAnomalyDetectorOutput, error)
+	DeleteLogAnomalyDetector(ctx context.Context, params *cloudwatchlogs.DeleteLogAnomalyDetectorInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteLogAnomalyDetectorOutput, error)
 	// Deletes the specified log group and permanently deletes all the archived log
 	// events associated with the log group.
-	DeleteLogGroup(ctx context.Context, params *DeleteLogGroupInput, optFns ...func(*Options)) (*DeleteLogGroupOutput, error)
+	DeleteLogGroup(ctx context.Context, params *cloudwatchlogs.DeleteLogGroupInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteLogGroupOutput, error)
 	// Deletes the specified log stream and permanently deletes all the archived log
 	// events associated with the log stream.
-	DeleteLogStream(ctx context.Context, params *DeleteLogStreamInput, optFns ...func(*Options)) (*DeleteLogStreamOutput, error)
+	DeleteLogStream(ctx context.Context, params *cloudwatchlogs.DeleteLogStreamInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteLogStreamOutput, error)
 	// Deletes the specified metric filter.
-	DeleteMetricFilter(ctx context.Context, params *DeleteMetricFilterInput, optFns ...func(*Options)) (*DeleteMetricFilterOutput, error)
+	DeleteMetricFilter(ctx context.Context, params *cloudwatchlogs.DeleteMetricFilterInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteMetricFilterOutput, error)
 	// Deletes a saved CloudWatch Logs Insights query definition. A query definition
 	// contains details about a saved CloudWatch Logs Insights query.
 	//
@@ -335,17 +335,17 @@ type CloudWatchLogs interface {
 	//
 	// You must have the logs:DeleteQueryDefinition permission to be able to perform
 	// this operation.
-	DeleteQueryDefinition(ctx context.Context, params *DeleteQueryDefinitionInput, optFns ...func(*Options)) (*DeleteQueryDefinitionOutput, error)
+	DeleteQueryDefinition(ctx context.Context, params *cloudwatchlogs.DeleteQueryDefinitionInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteQueryDefinitionOutput, error)
 	// Deletes a resource policy from this account. This revokes the access of the
 	// identities in that policy to put log events to this account.
-	DeleteResourcePolicy(ctx context.Context, params *DeleteResourcePolicyInput, optFns ...func(*Options)) (*DeleteResourcePolicyOutput, error)
+	DeleteResourcePolicy(ctx context.Context, params *cloudwatchlogs.DeleteResourcePolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteResourcePolicyOutput, error)
 	// Deletes the specified retention policy.
 	//
 	// Log events do not expire if they belong to log groups without a retention
 	// policy.
-	DeleteRetentionPolicy(ctx context.Context, params *DeleteRetentionPolicyInput, optFns ...func(*Options)) (*DeleteRetentionPolicyOutput, error)
+	DeleteRetentionPolicy(ctx context.Context, params *cloudwatchlogs.DeleteRetentionPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteRetentionPolicyOutput, error)
 	// Deletes the specified subscription filter.
-	DeleteSubscriptionFilter(ctx context.Context, params *DeleteSubscriptionFilterInput, optFns ...func(*Options)) (*DeleteSubscriptionFilterOutput, error)
+	DeleteSubscriptionFilter(ctx context.Context, params *cloudwatchlogs.DeleteSubscriptionFilterInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteSubscriptionFilterOutput, error)
 	// Deletes the log transformer for the specified log group. As soon as you do
 	// this, the transformation of incoming log events according to that transformer
 	// stops. If this account has an account-level transformer that applies to this log
@@ -354,7 +354,7 @@ type CloudWatchLogs interface {
 	//
 	// After you delete a transformer, be sure to edit any metric filters or
 	// subscription filters that relied on the transformed versions of the log events.
-	DeleteTransformer(ctx context.Context, params *DeleteTransformerInput, optFns ...func(*Options)) (*DeleteTransformerOutput, error)
+	DeleteTransformer(ctx context.Context, params *cloudwatchlogs.DeleteTransformerInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteTransformerOutput, error)
 	// Returns a list of all CloudWatch Logs account policies in the account.
 	//
 	// To use this operation, you must be signed on with the correct permissions
@@ -364,20 +364,20 @@ type CloudWatchLogs interface {
 	//     logs:GetDataProtectionPolicy and logs:DescribeAccountPolicies permissions.
 	//
 	//   - To see subscription filter policies, you must have the
-	//     logs:DescrubeSubscriptionFilters and logs:DescribeAccountPolicies permissions.
+	//     logs:DescribeSubscriptionFilters and logs:DescribeAccountPolicies permissions.
 	//
 	//   - To see transformer policies, you must have the logs:GetTransformer and
 	//     logs:DescribeAccountPolicies permissions.
 	//
 	//   - To see field index policies, you must have the logs:DescribeIndexPolicies
 	//     and logs:DescribeAccountPolicies permissions.
-	DescribeAccountPolicies(ctx context.Context, params *DescribeAccountPoliciesInput, optFns ...func(*Options)) (*DescribeAccountPoliciesOutput, error)
+	DescribeAccountPolicies(ctx context.Context, params *cloudwatchlogs.DescribeAccountPoliciesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeAccountPoliciesOutput, error)
 	// Use this operation to return the valid and default values that are used when
 	// creating delivery sources, delivery destinations, and deliveries. For more
 	// information about deliveries, see [CreateDelivery].
 	//
 	// [CreateDelivery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateDelivery.html
-	DescribeConfigurationTemplates(ctx context.Context, params *DescribeConfigurationTemplatesInput, optFns ...func(*Options)) (*DescribeConfigurationTemplatesOutput, error)
+	DescribeConfigurationTemplates(ctx context.Context, params *cloudwatchlogs.DescribeConfigurationTemplatesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeConfigurationTemplatesOutput, error)
 	// Retrieves a list of the deliveries that have been created in the account.
 	//
 	// A delivery is a connection between a [delivery source] and a [delivery destination].
@@ -390,22 +390,22 @@ type CloudWatchLogs interface {
 	// [delivery destination]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestination.html
 	// [delivery source]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliverySource.html
 	// [Enable logging from Amazon Web Services services.]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html
-	DescribeDeliveries(ctx context.Context, params *DescribeDeliveriesInput, optFns ...func(*Options)) (*DescribeDeliveriesOutput, error)
+	DescribeDeliveries(ctx context.Context, params *cloudwatchlogs.DescribeDeliveriesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeDeliveriesOutput, error)
 	// Retrieves a list of the delivery destinations that have been created in the
 	// account.
-	DescribeDeliveryDestinations(ctx context.Context, params *DescribeDeliveryDestinationsInput, optFns ...func(*Options)) (*DescribeDeliveryDestinationsOutput, error)
+	DescribeDeliveryDestinations(ctx context.Context, params *cloudwatchlogs.DescribeDeliveryDestinationsInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeDeliveryDestinationsOutput, error)
 	// Retrieves a list of the delivery sources that have been created in the account.
-	DescribeDeliverySources(ctx context.Context, params *DescribeDeliverySourcesInput, optFns ...func(*Options)) (*DescribeDeliverySourcesOutput, error)
+	DescribeDeliverySources(ctx context.Context, params *cloudwatchlogs.DescribeDeliverySourcesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeDeliverySourcesOutput, error)
 	// Lists all your destinations. The results are ASCII-sorted by destination name.
-	DescribeDestinations(ctx context.Context, params *DescribeDestinationsInput, optFns ...func(*Options)) (*DescribeDestinationsOutput, error)
+	DescribeDestinations(ctx context.Context, params *cloudwatchlogs.DescribeDestinationsInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeDestinationsOutput, error)
 	// Lists the specified export tasks. You can list all your export tasks or filter
 	// the results based on task ID or task status.
-	DescribeExportTasks(ctx context.Context, params *DescribeExportTasksInput, optFns ...func(*Options)) (*DescribeExportTasksOutput, error)
+	DescribeExportTasks(ctx context.Context, params *cloudwatchlogs.DescribeExportTasksInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeExportTasksOutput, error)
 	// Returns a list of field indexes listed in the field index policies of one or
 	// more log groups. For more information about field index policies, see [PutIndexPolicy].
 	//
 	// [PutIndexPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutIndexPolicy.html
-	DescribeFieldIndexes(ctx context.Context, params *DescribeFieldIndexesInput, optFns ...func(*Options)) (*DescribeFieldIndexesOutput, error)
+	DescribeFieldIndexes(ctx context.Context, params *cloudwatchlogs.DescribeFieldIndexesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeFieldIndexesOutput, error)
 	// Returns the field index policies of one or more log groups. For more
 	// information about field index policies, see [PutIndexPolicy].
 	//
@@ -420,7 +420,7 @@ type CloudWatchLogs interface {
 	//
 	// [PutIndexPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutIndexPolicy.html
 	// [DescribeAccountPolicies]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeAccountPolicies.html
-	DescribeIndexPolicies(ctx context.Context, params *DescribeIndexPoliciesInput, optFns ...func(*Options)) (*DescribeIndexPoliciesOutput, error)
+	DescribeIndexPolicies(ctx context.Context, params *cloudwatchlogs.DescribeIndexPoliciesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeIndexPoliciesOutput, error)
 	// Lists the specified log groups. You can list all your log groups or filter the
 	// results by prefix. The results are ASCII-sorted by log group name.
 	//
@@ -436,7 +436,7 @@ type CloudWatchLogs interface {
 	//
 	// [CloudWatch cross-account observability]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html
 	// [Controlling access to Amazon Web Services resources using tags]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_tags.html
-	DescribeLogGroups(ctx context.Context, params *DescribeLogGroupsInput, optFns ...func(*Options)) (*DescribeLogGroupsOutput, error)
+	DescribeLogGroups(ctx context.Context, params *cloudwatchlogs.DescribeLogGroupsInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeLogGroupsOutput, error)
 	// Lists the log streams for the specified log group. You can list all the log
 	// streams or filter the results by prefix. You can also control how the results
 	// are ordered.
@@ -453,28 +453,28 @@ type CloudWatchLogs interface {
 	// For more information, see [CloudWatch cross-account observability].
 	//
 	// [CloudWatch cross-account observability]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html
-	DescribeLogStreams(ctx context.Context, params *DescribeLogStreamsInput, optFns ...func(*Options)) (*DescribeLogStreamsOutput, error)
+	DescribeLogStreams(ctx context.Context, params *cloudwatchlogs.DescribeLogStreamsInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeLogStreamsOutput, error)
 	// Lists the specified metric filters. You can list all of the metric filters or
 	// filter the results by log name, prefix, metric name, or metric namespace. The
 	// results are ASCII-sorted by filter name.
-	DescribeMetricFilters(ctx context.Context, params *DescribeMetricFiltersInput, optFns ...func(*Options)) (*DescribeMetricFiltersOutput, error)
+	DescribeMetricFilters(ctx context.Context, params *cloudwatchlogs.DescribeMetricFiltersInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeMetricFiltersOutput, error)
 	// Returns a list of CloudWatch Logs Insights queries that are scheduled, running,
 	// or have been run recently in this account. You can request all queries or limit
 	// it to queries of a specific log group or queries with a certain status.
-	DescribeQueries(ctx context.Context, params *DescribeQueriesInput, optFns ...func(*Options)) (*DescribeQueriesOutput, error)
+	DescribeQueries(ctx context.Context, params *cloudwatchlogs.DescribeQueriesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeQueriesOutput, error)
 	// This operation returns a paginated list of your saved CloudWatch Logs Insights
 	// query definitions. You can retrieve query definitions from the current account
 	// or from a source account that is linked to the current account.
 	//
 	// You can use the queryDefinitionNamePrefix parameter to limit the results to
 	// only the query definitions that have names that start with a certain string.
-	DescribeQueryDefinitions(ctx context.Context, params *DescribeQueryDefinitionsInput, optFns ...func(*Options)) (*DescribeQueryDefinitionsOutput, error)
+	DescribeQueryDefinitions(ctx context.Context, params *cloudwatchlogs.DescribeQueryDefinitionsInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeQueryDefinitionsOutput, error)
 	// Lists the resource policies in this account.
-	DescribeResourcePolicies(ctx context.Context, params *DescribeResourcePoliciesInput, optFns ...func(*Options)) (*DescribeResourcePoliciesOutput, error)
+	DescribeResourcePolicies(ctx context.Context, params *cloudwatchlogs.DescribeResourcePoliciesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeResourcePoliciesOutput, error)
 	// Lists the subscription filters for the specified log group. You can list all
 	// the subscription filters or filter the results by prefix. The results are
 	// ASCII-sorted by filter name.
-	DescribeSubscriptionFilters(ctx context.Context, params *DescribeSubscriptionFiltersInput, optFns ...func(*Options)) (*DescribeSubscriptionFiltersOutput, error)
+	DescribeSubscriptionFilters(ctx context.Context, params *cloudwatchlogs.DescribeSubscriptionFiltersInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeSubscriptionFiltersOutput, error)
 	// Disassociates the specified KMS key from the specified log group or from all
 	// CloudWatch Logs Insights query results in the account.
 	//
@@ -499,7 +499,7 @@ type CloudWatchLogs interface {
 	// It can take up to 5 minutes for this operation to take effect.
 	//
 	// [StartQuery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartQuery.html
-	DisassociateKmsKey(ctx context.Context, params *DisassociateKmsKeyInput, optFns ...func(*Options)) (*DisassociateKmsKeyOutput, error)
+	DisassociateKmsKey(ctx context.Context, params *cloudwatchlogs.DisassociateKmsKeyInput, optFns ...func(*Options)) (*cloudwatchlogs.DisassociateKmsKeyOutput, error)
 	// Lists log events from the specified log group. You can list all the log events
 	// or filter the results using one or more of the following:
 	//
@@ -549,9 +549,9 @@ type CloudWatchLogs interface {
 	// [CloudWatch cross-account observability]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html
 	// [CloudWatch Logs query.]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html
 	// [Live Tail]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs_LiveTail.html
-	FilterLogEvents(ctx context.Context, params *FilterLogEventsInput, optFns ...func(*Options)) (*FilterLogEventsOutput, error)
+	FilterLogEvents(ctx context.Context, params *cloudwatchlogs.FilterLogEventsInput, optFns ...func(*Options)) (*cloudwatchlogs.FilterLogEventsOutput, error)
 	// Returns information about a log group data protection policy.
-	GetDataProtectionPolicy(ctx context.Context, params *GetDataProtectionPolicyInput, optFns ...func(*Options)) (*GetDataProtectionPolicyOutput, error)
+	GetDataProtectionPolicy(ctx context.Context, params *cloudwatchlogs.GetDataProtectionPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.GetDataProtectionPolicyOutput, error)
 	// Returns complete information about one logical delivery. A delivery is a
 	// connection between a [delivery source]and a [delivery destination].
 	//
@@ -567,23 +567,23 @@ type CloudWatchLogs interface {
 	// [delivery source]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliverySource.html
 	// [Enable logging from Amazon Web Services services.]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html
 	// [DescribeDeliveries]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeDeliveries.html
-	GetDelivery(ctx context.Context, params *GetDeliveryInput, optFns ...func(*Options)) (*GetDeliveryOutput, error)
+	GetDelivery(ctx context.Context, params *cloudwatchlogs.GetDeliveryInput, optFns ...func(*Options)) (*cloudwatchlogs.GetDeliveryOutput, error)
 	// Retrieves complete information about one delivery destination.
-	GetDeliveryDestination(ctx context.Context, params *GetDeliveryDestinationInput, optFns ...func(*Options)) (*GetDeliveryDestinationOutput, error)
+	GetDeliveryDestination(ctx context.Context, params *cloudwatchlogs.GetDeliveryDestinationInput, optFns ...func(*Options)) (*cloudwatchlogs.GetDeliveryDestinationOutput, error)
 	// Retrieves the delivery destination policy assigned to the delivery destination
 	// that you specify. For more information about delivery destinations and their
 	// policies, see [PutDeliveryDestinationPolicy].
 	//
 	// [PutDeliveryDestinationPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestinationPolicy.html
-	GetDeliveryDestinationPolicy(ctx context.Context, params *GetDeliveryDestinationPolicyInput, optFns ...func(*Options)) (*GetDeliveryDestinationPolicyOutput, error)
+	GetDeliveryDestinationPolicy(ctx context.Context, params *cloudwatchlogs.GetDeliveryDestinationPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.GetDeliveryDestinationPolicyOutput, error)
 	// Retrieves complete information about one delivery source.
-	GetDeliverySource(ctx context.Context, params *GetDeliverySourceInput, optFns ...func(*Options)) (*GetDeliverySourceOutput, error)
+	GetDeliverySource(ctx context.Context, params *cloudwatchlogs.GetDeliverySourceInput, optFns ...func(*Options)) (*cloudwatchlogs.GetDeliverySourceOutput, error)
 	// Returns information about one integration between CloudWatch Logs and
 	// OpenSearch Service.
-	GetIntegration(ctx context.Context, params *GetIntegrationInput, optFns ...func(*Options)) (*GetIntegrationOutput, error)
+	GetIntegration(ctx context.Context, params *cloudwatchlogs.GetIntegrationInput, optFns ...func(*Options)) (*cloudwatchlogs.GetIntegrationOutput, error)
 	// Retrieves information about the log anomaly detector that you specify. The KMS
 	// key ARN detected is valid.
-	GetLogAnomalyDetector(ctx context.Context, params *GetLogAnomalyDetectorInput, optFns ...func(*Options)) (*GetLogAnomalyDetectorOutput, error)
+	GetLogAnomalyDetector(ctx context.Context, params *cloudwatchlogs.GetLogAnomalyDetectorInput, optFns ...func(*Options)) (*cloudwatchlogs.GetLogAnomalyDetectorOutput, error)
 	// Lists log events from the specified log stream. You can list all of the log
 	// events or filter using a time range.
 	//
@@ -621,7 +621,7 @@ type CloudWatchLogs interface {
 	// [CloudWatch cross-account observability]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html
 	// [CloudWatch Logs query.]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html
 	// [Live Tail]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs_LiveTail.html
-	GetLogEvents(ctx context.Context, params *GetLogEventsInput, optFns ...func(*Options)) (*GetLogEventsOutput, error)
+	GetLogEvents(ctx context.Context, params *cloudwatchlogs.GetLogEventsInput, optFns ...func(*Options)) (*cloudwatchlogs.GetLogEventsOutput, error)
 	// Returns a list of the fields that are included in log events in the specified
 	// log group. Includes the percentage of log events that contain each field. The
 	// search is limited to a time period that you specify.
@@ -643,14 +643,14 @@ type CloudWatchLogs interface {
 	//
 	// [CloudWatch cross-account observability]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html
 	// [Supported Logs and Discovered Fields]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_AnalyzeLogData-discoverable-fields.html
-	GetLogGroupFields(ctx context.Context, params *GetLogGroupFieldsInput, optFns ...func(*Options)) (*GetLogGroupFieldsOutput, error)
+	GetLogGroupFields(ctx context.Context, params *cloudwatchlogs.GetLogGroupFieldsInput, optFns ...func(*Options)) (*cloudwatchlogs.GetLogGroupFieldsOutput, error)
 	// Retrieves all of the fields and values of a single log event. All fields are
 	// retrieved, even if the original query that produced the logRecordPointer
 	// retrieved only a subset of fields. Fields are returned as field name/field value
 	// pairs.
 	//
 	// The full unparsed log event is returned within @message .
-	GetLogRecord(ctx context.Context, params *GetLogRecordInput, optFns ...func(*Options)) (*GetLogRecordOutput, error)
+	GetLogRecord(ctx context.Context, params *cloudwatchlogs.GetLogRecordInput, optFns ...func(*Options)) (*cloudwatchlogs.GetLogRecordOutput, error)
 	// Returns the results from the specified query.
 	//
 	// Only the fields requested in the query are returned, along with a @ptr field,
@@ -672,7 +672,7 @@ type CloudWatchLogs interface {
 	// [GetLogRecord]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogRecord.html
 	// [CloudWatch Logs quotas]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html
 	// [StartQuery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartQuery.html
-	GetQueryResults(ctx context.Context, params *GetQueryResultsInput, optFns ...func(*Options)) (*GetQueryResultsOutput, error)
+	GetQueryResults(ctx context.Context, params *cloudwatchlogs.GetQueryResultsInput, optFns ...func(*Options)) (*cloudwatchlogs.GetQueryResultsOutput, error)
 	// Returns the information about the log transformer associated with this log
 	// group.
 	//
@@ -680,17 +680,17 @@ type CloudWatchLogs interface {
 	// level. To get information for an account-level transformer, use [DescribeAccountPolicies].
 	//
 	// [DescribeAccountPolicies]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeAccountPolicies.html
-	GetTransformer(ctx context.Context, params *GetTransformerInput, optFns ...func(*Options)) (*GetTransformerOutput, error)
+	GetTransformer(ctx context.Context, params *cloudwatchlogs.GetTransformerInput, optFns ...func(*Options)) (*cloudwatchlogs.GetTransformerOutput, error)
 	// Returns a list of anomalies that log anomaly detectors have found. For details
 	// about the structure format of each anomaly object that is returned, see the
 	// example in this section.
-	ListAnomalies(ctx context.Context, params *ListAnomaliesInput, optFns ...func(*Options)) (*ListAnomaliesOutput, error)
+	ListAnomalies(ctx context.Context, params *cloudwatchlogs.ListAnomaliesInput, optFns ...func(*Options)) (*cloudwatchlogs.ListAnomaliesOutput, error)
 	// Returns a list of integrations between CloudWatch Logs and other services in
 	// this account. Currently, only one integration can be created in an account, and
 	// this integration must be with OpenSearch Service.
-	ListIntegrations(ctx context.Context, params *ListIntegrationsInput, optFns ...func(*Options)) (*ListIntegrationsOutput, error)
+	ListIntegrations(ctx context.Context, params *cloudwatchlogs.ListIntegrationsInput, optFns ...func(*Options)) (*cloudwatchlogs.ListIntegrationsOutput, error)
 	// Retrieves a list of the log anomaly detectors in the account.
-	ListLogAnomalyDetectors(ctx context.Context, params *ListLogAnomalyDetectorsInput, optFns ...func(*Options)) (*ListLogAnomalyDetectorsOutput, error)
+	ListLogAnomalyDetectors(ctx context.Context, params *cloudwatchlogs.ListLogAnomalyDetectorsInput, optFns ...func(*Options)) (*cloudwatchlogs.ListLogAnomalyDetectorsOutput, error)
 	// Returns a list of the log groups that were analyzed during a single CloudWatch
 	// Logs Insights query. This can be useful for queries that use log group name
 	// prefixes or the filterIndex command, because the log groups are dynamically
@@ -699,10 +699,10 @@ type CloudWatchLogs interface {
 	// For more information about field indexes, see [Create field indexes to improve query performance and reduce costs].
 	//
 	// [Create field indexes to improve query performance and reduce costs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Field-Indexing.html
-	ListLogGroupsForQuery(ctx context.Context, params *ListLogGroupsForQueryInput, optFns ...func(*Options)) (*ListLogGroupsForQueryOutput, error)
+	ListLogGroupsForQuery(ctx context.Context, params *cloudwatchlogs.ListLogGroupsForQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.ListLogGroupsForQueryOutput, error)
 	// Displays the tags associated with a CloudWatch Logs resource. Currently, log
 	// groups and destinations support tagging.
-	ListTagsForResource(ctx context.Context, params *ListTagsForResourceInput, optFns ...func(*Options)) (*ListTagsForResourceOutput, error)
+	ListTagsForResource(ctx context.Context, params *cloudwatchlogs.ListTagsForResourceInput, optFns ...func(*Options)) (*cloudwatchlogs.ListTagsForResourceOutput, error)
 	// The ListTagsLogGroup operation is on the path to deprecation. We recommend that
 	// you use [ListTagsForResource]instead.
 	//
@@ -711,7 +711,7 @@ type CloudWatchLogs interface {
 	// Deprecated: Please use the generic tagging API ListTagsForResource
 	//
 	// [ListTagsForResource]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_ListTagsForResource.html
-	ListTagsLogGroup(ctx context.Context, params *ListTagsLogGroupInput, optFns ...func(*Options)) (*ListTagsLogGroupOutput, error)
+	ListTagsLogGroup(ctx context.Context, params *cloudwatchlogs.ListTagsLogGroupInput, optFns ...func(*Options)) (*cloudwatchlogs.ListTagsLogGroupOutput, error)
 	// Creates an account-level data protection policy, subscription filter policy, or
 	// field index policy that applies to all log groups or a subset of log groups in
 	// the account.
@@ -892,7 +892,7 @@ type CloudWatchLogs interface {
 	// [PutAccountPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutAccountPolicy.html
 	// [Create field indexes to improve query performance and reduce costs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Field-Indexing.html
 	// [GetLogEvents]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogEvents.html
-	PutAccountPolicy(ctx context.Context, params *PutAccountPolicyInput, optFns ...func(*Options)) (*PutAccountPolicyOutput, error)
+	PutAccountPolicy(ctx context.Context, params *cloudwatchlogs.PutAccountPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.PutAccountPolicyOutput, error)
 	// Creates a data protection policy for the specified log group. A data protection
 	// policy can help safeguard sensitive data that's ingested by the log group by
 	// auditing and masking the sensitive log data.
@@ -923,7 +923,7 @@ type CloudWatchLogs interface {
 	// [FilterLogEvents]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_FilterLogEvents.html
 	// [PutAccountPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutAccountPolicy.html
 	// [GetLogEvents]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogEvents.html
-	PutDataProtectionPolicy(ctx context.Context, params *PutDataProtectionPolicyInput, optFns ...func(*Options)) (*PutDataProtectionPolicyOutput, error)
+	PutDataProtectionPolicy(ctx context.Context, params *cloudwatchlogs.PutDataProtectionPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.PutDataProtectionPolicyOutput, error)
 	// Creates or updates a logical delivery destination. A delivery destination is an
 	// Amazon Web Services resource that represents an Amazon Web Services service that
 	// logs can be sent to. CloudWatch Logs, Amazon S3, and Firehose are supported as
@@ -962,7 +962,7 @@ type CloudWatchLogs interface {
 	// [Enabling logging from Amazon Web Services services.]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html
 	// [CreateDelivery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateDelivery.html
 	// [PutDeliveryDestinationPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestinationPolicy.html
-	PutDeliveryDestination(ctx context.Context, params *PutDeliveryDestinationInput, optFns ...func(*Options)) (*PutDeliveryDestinationOutput, error)
+	PutDeliveryDestination(ctx context.Context, params *cloudwatchlogs.PutDeliveryDestinationInput, optFns ...func(*Options)) (*cloudwatchlogs.PutDeliveryDestinationOutput, error)
 	// Creates and assigns an IAM policy that grants permissions to CloudWatch Logs to
 	// deliver logs cross-account to a specified destination in this account. To
 	// configure the delivery of logs from an Amazon Web Services service in another
@@ -992,7 +992,7 @@ type CloudWatchLogs interface {
 	// [PutDeliverySource]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliverySource.html
 	// [Enabling logging from Amazon Web Services services.]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html
 	// [CreateDelivery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateDelivery.html
-	PutDeliveryDestinationPolicy(ctx context.Context, params *PutDeliveryDestinationPolicyInput, optFns ...func(*Options)) (*PutDeliveryDestinationPolicyOutput, error)
+	PutDeliveryDestinationPolicy(ctx context.Context, params *cloudwatchlogs.PutDeliveryDestinationPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.PutDeliveryDestinationPolicyOutput, error)
 	// Creates or updates a logical delivery source. A delivery source represents an
 	// Amazon Web Services resource that sends logs to an logs delivery destination.
 	// The destination can be CloudWatch Logs, Amazon S3, or Firehose.
@@ -1031,7 +1031,7 @@ type CloudWatchLogs interface {
 	// [Enabling logging from Amazon Web Services services.]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html
 	// [CreateDelivery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateDelivery.html
 	// [PutDeliveryDestinationPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestinationPolicy.html
-	PutDeliverySource(ctx context.Context, params *PutDeliverySourceInput, optFns ...func(*Options)) (*PutDeliverySourceOutput, error)
+	PutDeliverySource(ctx context.Context, params *cloudwatchlogs.PutDeliverySourceInput, optFns ...func(*Options)) (*cloudwatchlogs.PutDeliverySourceOutput, error)
 	// Creates or updates a destination. This operation is used only to create
 	// destinations for cross-account subscriptions.
 	//
@@ -1050,13 +1050,13 @@ type CloudWatchLogs interface {
 	// [PutSubscriptionFilter]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutSubscriptionFilter.html
 	// [PutLogEvents]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html
 	// [PutDestinationPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDestinationPolicy.html
-	PutDestination(ctx context.Context, params *PutDestinationInput, optFns ...func(*Options)) (*PutDestinationOutput, error)
+	PutDestination(ctx context.Context, params *cloudwatchlogs.PutDestinationInput, optFns ...func(*Options)) (*cloudwatchlogs.PutDestinationOutput, error)
 	// Creates or updates an access policy associated with an existing destination. An
 	// access policy is an [IAM policy document]that is used to authorize claims to register a subscription
 	// filter against a given destination.
 	//
 	// [IAM policy document]: https://docs.aws.amazon.com/IAM/latest/UserGuide/policies_overview.html
-	PutDestinationPolicy(ctx context.Context, params *PutDestinationPolicyInput, optFns ...func(*Options)) (*PutDestinationPolicyOutput, error)
+	PutDestinationPolicy(ctx context.Context, params *cloudwatchlogs.PutDestinationPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.PutDestinationPolicyOutput, error)
 	// Creates or updates a field index policy for the specified log group. Only log
 	// groups in the Standard log class support field index policies. For more
 	// information about log classes, see [Log classes].
@@ -1097,7 +1097,7 @@ type CloudWatchLogs interface {
 	// [GetLogGroupFields]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogGroupFields.html
 	// [PutAccountPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutAccountPolicy.html
 	// [Create field indexes to improve query performance and reduce costs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Field-Indexing.html
-	PutIndexPolicy(ctx context.Context, params *PutIndexPolicyInput, optFns ...func(*Options)) (*PutIndexPolicyOutput, error)
+	PutIndexPolicy(ctx context.Context, params *cloudwatchlogs.PutIndexPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.PutIndexPolicyOutput, error)
 	// Creates an integration between CloudWatch Logs and another service in this
 	// account. Currently, only integrations with OpenSearch Service are supported, and
 	// currently you can have only one integration in your account.
@@ -1110,7 +1110,7 @@ type CloudWatchLogs interface {
 	// an existing integration.
 	//
 	// [Vended log dashboards powered by Amazon OpenSearch Service]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-OpenSearch-Dashboards.html
-	PutIntegration(ctx context.Context, params *PutIntegrationInput, optFns ...func(*Options)) (*PutIntegrationOutput, error)
+	PutIntegration(ctx context.Context, params *cloudwatchlogs.PutIntegrationInput, optFns ...func(*Options)) (*cloudwatchlogs.PutIntegrationOutput, error)
 	// Uploads a batch of log events to the specified log stream.
 	//
 	// The sequence token is now ignored in PutLogEvents actions. PutLogEvents actions
@@ -1139,7 +1139,7 @@ type CloudWatchLogs interface {
 	//   - A batch of log events in a single request cannot span more than 24 hours.
 	//     Otherwise, the operation fails.
 	//
-	//   - Each log event can be no larger than 256 KB.
+	//   - Each log event can be no larger than 1 MB.
 	//
 	//   - The maximum number of log events in a batch is 10,000.
 	//
@@ -1150,7 +1150,7 @@ type CloudWatchLogs interface {
 	//
 	// If a call to PutLogEvents returns "UnrecognizedClientException" the most likely
 	// cause is a non-valid Amazon Web Services access key ID or secret key.
-	PutLogEvents(ctx context.Context, params *PutLogEventsInput, optFns ...func(*Options)) (*PutLogEventsOutput, error)
+	PutLogEvents(ctx context.Context, params *cloudwatchlogs.PutLogEventsInput, optFns ...func(*Options)) (*cloudwatchlogs.PutLogEventsOutput, error)
 	// Creates or updates a metric filter and associates it with the specified log
 	// group. With metric filters, you can configure rules to extract metric data from
 	// log events ingested through [PutLogEvents].
@@ -1182,7 +1182,7 @@ type CloudWatchLogs interface {
 	// [Creating a Billing Alarm to Monitor Your Estimated Amazon Web Services Charges]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/monitor_estimated_charges_with_cloudwatch.html
 	// [PutLogEvents]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html
 	// [Filter pattern syntax for metric filters, subscription filters, filter log events, and Live Tail]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html
-	PutMetricFilter(ctx context.Context, params *PutMetricFilterInput, optFns ...func(*Options)) (*PutMetricFilterOutput, error)
+	PutMetricFilter(ctx context.Context, params *cloudwatchlogs.PutMetricFilterInput, optFns ...func(*Options)) (*cloudwatchlogs.PutMetricFilterOutput, error)
 	// Creates or updates a query definition for CloudWatch Logs Insights. For more
 	// information, see [Analyzing Log Data with CloudWatch Logs Insights].
 	//
@@ -1198,11 +1198,11 @@ type CloudWatchLogs interface {
 	// operation.
 	//
 	// [Analyzing Log Data with CloudWatch Logs Insights]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html
-	PutQueryDefinition(ctx context.Context, params *PutQueryDefinitionInput, optFns ...func(*Options)) (*PutQueryDefinitionOutput, error)
+	PutQueryDefinition(ctx context.Context, params *cloudwatchlogs.PutQueryDefinitionInput, optFns ...func(*Options)) (*cloudwatchlogs.PutQueryDefinitionOutput, error)
 	// Creates or updates a resource policy allowing other Amazon Web Services
 	// services to put log events to this account, such as Amazon Route 53. An account
 	// can have up to 10 resource policies per Amazon Web Services Region.
-	PutResourcePolicy(ctx context.Context, params *PutResourcePolicyInput, optFns ...func(*Options)) (*PutResourcePolicyOutput, error)
+	PutResourcePolicy(ctx context.Context, params *cloudwatchlogs.PutResourcePolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.PutResourcePolicyOutput, error)
 	// Sets the retention of the specified log group. With a retention policy, you can
 	// configure the number of days for which to retain log events in the specified log
 	// group.
@@ -1224,7 +1224,7 @@ type CloudWatchLogs interface {
 	// costs anymore, even if they are not actually deleted until later. These log
 	// events marked for deletion are also not included when you use an API to retrieve
 	// the storedBytes value to see how many bytes a log group is storing.
-	PutRetentionPolicy(ctx context.Context, params *PutRetentionPolicyInput, optFns ...func(*Options)) (*PutRetentionPolicyOutput, error)
+	PutRetentionPolicy(ctx context.Context, params *cloudwatchlogs.PutRetentionPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.PutRetentionPolicyOutput, error)
 	// Creates or updates a subscription filter and associates it with the specified
 	// log group. With subscription filters, you can subscribe to a real-time stream of
 	// log events ingested through [PutLogEvents]and have them delivered to a specific destination.
@@ -1262,7 +1262,7 @@ type CloudWatchLogs interface {
 	// [PutDestination]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDestination.html
 	// [PutLogEvents]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html
 	// [Filter pattern syntax for metric filters, subscription filters, filter log events, and Live Tail]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html
-	PutSubscriptionFilter(ctx context.Context, params *PutSubscriptionFilterInput, optFns ...func(*Options)) (*PutSubscriptionFilterOutput, error)
+	PutSubscriptionFilter(ctx context.Context, params *cloudwatchlogs.PutSubscriptionFilterInput, optFns ...func(*Options)) (*cloudwatchlogs.PutSubscriptionFilterOutput, error)
 	// Creates or updates a log transformer for a single log group. You use log
 	// transformers to transform log events into a different format, making them easier
 	// for you to process and analyze. You can also transform logs from different
@@ -1301,7 +1301,7 @@ type CloudWatchLogs interface {
 	//
 	// [Processors that you can use]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch-Logs-Transformation.html#CloudWatch-Logs-Transformation-Processors
 	// [PutAccountPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutAccountPolicy.html
-	PutTransformer(ctx context.Context, params *PutTransformerInput, optFns ...func(*Options)) (*PutTransformerOutput, error)
+	PutTransformer(ctx context.Context, params *cloudwatchlogs.PutTransformerInput, optFns ...func(*Options)) (*cloudwatchlogs.PutTransformerOutput, error)
 	// Starts a Live Tail streaming session for one or more log groups. A Live Tail
 	// session returns a stream of log events that have been recently ingested in the
 	// log groups. For more information, see [Use Live Tail to view logs in near real time].
@@ -1336,6 +1336,10 @@ type CloudWatchLogs interface {
 	//	- A [SessionTimeoutException]object is returned when the session times out, after it has been kept
 	//	open for three hours.
 	//
+	// The StartLiveTail API routes requests to streaming-logs.Region.amazonaws.com
+	// using SDK host prefix injection. VPC endpoint support is not available for this
+	// API.
+	//
 	// You can end a session before it times out by closing the session stream or by
 	// closing the client that is receiving the stream. The session also ends if the
 	// established connection between the client and the server breaks.
@@ -1349,7 +1353,7 @@ type CloudWatchLogs interface {
 	//
 	// [SessionTimeoutException]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartLiveTailResponseStream.html#CWL-Type-StartLiveTailResponseStream-SessionTimeoutException
 	// [SessionStreamingException]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartLiveTailResponseStream.html#CWL-Type-StartLiveTailResponseStream-SessionStreamingException
-	StartLiveTail(ctx context.Context, params *StartLiveTailInput, optFns ...func(*Options)) (*StartLiveTailOutput, error)
+	StartLiveTail(ctx context.Context, params *cloudwatchlogs.StartLiveTailInput, optFns ...func(*Options)) (*cloudwatchlogs.StartLiveTailOutput, error)
 	// Starts a query of one or more log groups using CloudWatch Logs Insights. You
 	// specify the log groups and time range to query and the query string to use.
 	//
@@ -1393,11 +1397,11 @@ type CloudWatchLogs interface {
 	// [SOURCE]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax-Source.html
 	// [GetQueryResults]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetQueryResults.html
 	// [StartQuery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartQuery.html
-	StartQuery(ctx context.Context, params *StartQueryInput, optFns ...func(*Options)) (*StartQueryOutput, error)
+	StartQuery(ctx context.Context, params *cloudwatchlogs.StartQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.StartQueryOutput, error)
 	// Stops a CloudWatch Logs Insights query that is in progress. If the query has
 	// already ended, the operation returns an error indicating that the specified
 	// query is not running.
-	StopQuery(ctx context.Context, params *StopQueryInput, optFns ...func(*Options)) (*StopQueryOutput, error)
+	StopQuery(ctx context.Context, params *cloudwatchlogs.StopQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.StopQueryOutput, error)
 	// The TagLogGroup operation is on the path to deprecation. We recommend that you
 	// use [TagResource]instead.
 	//
@@ -1418,7 +1422,7 @@ type CloudWatchLogs interface {
 	// [Tag Log Groups in Amazon CloudWatch Logs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#log-group-tagging
 	// [Controlling access to Amazon Web Services resources using tags]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_tags.html
 	// [ListTagsForResource]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_ListTagsForResource.html
-	TagLogGroup(ctx context.Context, params *TagLogGroupInput, optFns ...func(*Options)) (*TagLogGroupOutput, error)
+	TagLogGroup(ctx context.Context, params *cloudwatchlogs.TagLogGroupInput, optFns ...func(*Options)) (*cloudwatchlogs.TagLogGroupOutput, error)
 	// Assigns one or more tags (key-value pairs) to the specified CloudWatch Logs
 	// resource. Currently, the only CloudWatch Logs resources that can be tagged are
 	// log groups and destinations.
@@ -1437,15 +1441,15 @@ type CloudWatchLogs interface {
 	// previous value for that tag.
 	//
 	// You can associate as many as 50 tags with a CloudWatch Logs resource.
-	TagResource(ctx context.Context, params *TagResourceInput, optFns ...func(*Options)) (*TagResourceOutput, error)
+	TagResource(ctx context.Context, params *cloudwatchlogs.TagResourceInput, optFns ...func(*Options)) (*cloudwatchlogs.TagResourceOutput, error)
 	// Tests the filter pattern of a metric filter against a sample of log event
 	// messages. You can use this operation to validate the correctness of a metric
 	// filter pattern.
-	TestMetricFilter(ctx context.Context, params *TestMetricFilterInput, optFns ...func(*Options)) (*TestMetricFilterOutput, error)
+	TestMetricFilter(ctx context.Context, params *cloudwatchlogs.TestMetricFilterInput, optFns ...func(*Options)) (*cloudwatchlogs.TestMetricFilterOutput, error)
 	// Use this operation to test a log transformer. You enter the transformer
 	// configuration and a set of log events to test with. The operation responds with
 	// an array that includes the original log events and the transformed versions.
-	TestTransformer(ctx context.Context, params *TestTransformerInput, optFns ...func(*Options)) (*TestTransformerOutput, error)
+	TestTransformer(ctx context.Context, params *cloudwatchlogs.TestTransformerInput, optFns ...func(*Options)) (*cloudwatchlogs.TestTransformerOutput, error)
 	// The UntagLogGroup operation is on the path to deprecation. We recommend that
 	// you use [UntagResource]instead.
 	//
@@ -1462,9 +1466,9 @@ type CloudWatchLogs interface {
 	// [TagResource]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_TagResource.html
 	// [UntagResource]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_UntagResource.html
 	// [ListTagsForResource]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_ListTagsForResource.html
-	UntagLogGroup(ctx context.Context, params *UntagLogGroupInput, optFns ...func(*Options)) (*UntagLogGroupOutput, error)
+	UntagLogGroup(ctx context.Context, params *cloudwatchlogs.UntagLogGroupInput, optFns ...func(*Options)) (*cloudwatchlogs.UntagLogGroupOutput, error)
 	// Removes one or more tags from the specified resource.
-	UntagResource(ctx context.Context, params *UntagResourceInput, optFns ...func(*Options)) (*UntagResourceOutput, error)
+	UntagResource(ctx context.Context, params *cloudwatchlogs.UntagResourceInput, optFns ...func(*Options)) (*cloudwatchlogs.UntagResourceOutput, error)
 	// Use this operation to suppress anomaly detection for a specified anomaly or
 	// pattern. If you suppress an anomaly, CloudWatch Logs won't report new
 	// occurrences of that anomaly and won't update that anomaly with new data. If you
@@ -1479,14 +1483,14 @@ type CloudWatchLogs interface {
 	// suppression. To do this, use this operation and specify the anomaly or pattern
 	// to stop suppressing, and omit the suppressionType and suppressionPeriod
 	// parameters.
-	UpdateAnomaly(ctx context.Context, params *UpdateAnomalyInput, optFns ...func(*Options)) (*UpdateAnomalyOutput, error)
+	UpdateAnomaly(ctx context.Context, params *cloudwatchlogs.UpdateAnomalyInput, optFns ...func(*Options)) (*cloudwatchlogs.UpdateAnomalyOutput, error)
 	// Use this operation to update the configuration of a [delivery] to change either the S3
 	// path pattern or the format of the delivered logs. You can't use this operation
 	// to change the source or destination of the delivery.
 	//
 	// [delivery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_Delivery.html
-	UpdateDeliveryConfiguration(ctx context.Context, params *UpdateDeliveryConfigurationInput, optFns ...func(*Options)) (*UpdateDeliveryConfigurationOutput, error)
+	UpdateDeliveryConfiguration(ctx context.Context, params *cloudwatchlogs.UpdateDeliveryConfigurationInput, optFns ...func(*Options)) (*cloudwatchlogs.UpdateDeliveryConfigurationOutput, error)
 	// Updates an existing log anomaly detector.
-	UpdateLogAnomalyDetector(ctx context.Context, params *UpdateLogAnomalyDetectorInput, optFns ...func(*Options)) (*UpdateLogAnomalyDetectorOutput, error)
+	UpdateLogAnomalyDetector(ctx context.Context, params *cloudwatchlogs.UpdateLogAnomalyDetectorInput, optFns ...func(*Options)) (*cloudwatchlogs.UpdateLogAnomalyDetectorOutput, error)
 }
 
