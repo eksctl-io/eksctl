@@ -242,7 +242,8 @@ func IsAutoModeEnabled(ctx context.Context, eksAPI awsapi.EKS, clusterName strin
 		return false, fmt.Errorf("calling EKS::DescribeCluster: %w", err)
 	}
 
-	if cluster.Cluster.ComputeConfig == nil ||
+	if cluster.Cluster == nil ||
+		cluster.Cluster.ComputeConfig == nil ||
 		cluster.Cluster.ComputeConfig.Enabled == nil {
 		return false, nil
 	}

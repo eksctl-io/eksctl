@@ -66,16 +66,18 @@ var _ = Describe("Create", func() {
 		genericErr = fmt.Errorf("ERR")
 	)
 
-	mockDescribeAddon := func(provider *mockprovider.MockProvider, err error, autoMode bool) {
+	mockDescribeAddon := func(provider *mockprovider.MockProvider, err error, autoMode bool, nilComputeConfig bool) {
+		describeClusterOutput := &awseks.DescribeClusterOutput{
+			Cluster: &ekstypes.Cluster{},
+		}
+		if !nilComputeConfig {
+			describeClusterOutput.Cluster.ComputeConfig = &ekstypes.ComputeConfigResponse{
+				Enabled: aws.Bool(autoMode),
+			}
+		}
 		mockProvider.MockEKS().
 			On("DescribeCluster", mock.Anything, mock.Anything).
-			Return(&awseks.DescribeClusterOutput{
-				Cluster: &ekstypes.Cluster{
-					ComputeConfig: &ekstypes.ComputeConfigResponse{
-						Enabled: aws.Bool(autoMode),
-					},
-				},
-			}, nil).
+			Return(describeClusterOutput, nil).
 			Once()
 		if !autoMode {
 			mockProvider.MockEKS().
@@ -152,14 +154,14 @@ var _ = Describe("Create", func() {
 	},
 		Entry("[API errors] describing pod identity agent addon fails", migrateToPodIdentityAssociationEntry{
 			mockEKS: func(provider *mockprovider.MockProvider) {
-				mockDescribeAddon(provider, genericErr, false)
+				mockDescribeAddon(provider, genericErr, false, false)
 			},
 			expectedErr: fmt.Sprintf("calling %q", fmt.Sprintf("EKS::DescribeAddon::%s", api.PodIdentityAgentAddon)),
 		}),
 
 		Entry("[API errors] fetching iamserviceaccounts fails", migrateToPodIdentityAssociationEntry{
 			mockEKS: func(provider *mockprovider.MockProvider) {
-				mockDescribeAddon(provider, nil, false)
+				mockDescribeAddon(provider, nil, false, false)
 			},
 			mockCFN: func(stackUpdater *fakes.FakeStackUpdater) {
 				stackUpdater.GetIAMServiceAccountsReturns(nil, genericErr)
@@ -171,7 +173,24 @@ var _ = Describe("Create", func() {
 			mockEKS: func(provider *mockprovider.MockProvider) {
 				mockDescribeAddon(provider, &ekstypes.ResourceNotFoundException{
 					Message: aws.String(genericErr.Error()),
-				}, false)
+				}, false, false)
+			},
+			mockCFN: func(stackUpdater *fakes.FakeStackUpdater) {
+				stackUpdater.GetIAMServiceAccountsReturns([]*api.ClusterIAMServiceAccount{}, nil)
+			},
+			mockK8s: func(clientSet *fake.Clientset) {
+				createFakeServiceAccount(clientSet, nsDefault, sa1, roleARN1)
+			},
+			validateCustomLoggerOutput: func(output string) {
+				Expect(output).To(ContainSubstring(fmt.Sprintf("install %s addon", api.PodIdentityAgentAddon)))
+			},
+		}),
+
+		Entry("[taskTree] assumes auto mode is disabled and contains a task to create pod identity agent addon if DescribeCluster returns nil computeConfig field", migrateToPodIdentityAssociationEntry{
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider, &ekstypes.ResourceNotFoundException{
+					Message: aws.String(genericErr.Error()),
+				}, false, true)
 			},
 			mockCFN: func(stackUpdater *fakes.FakeStackUpdater) {
 				stackUpdater.GetIAMServiceAccountsReturns([]*api.ClusterIAMServiceAccount{}, nil)
@@ -186,7 +205,7 @@ var _ = Describe("Create", func() {
 
 		Entry("[taskTree] contains tasks to remove IRSAv1 EKS Role annotation if remove trust option is specified", migrateToPodIdentityAssociationEntry{
 			mockEKS: func(provider *mockprovider.MockProvider) {
-				mockDescribeAddon(provider, nil, false)
+				mockDescribeAddon(provider, nil, false, false)
 			},
 			mockCFN: func(stackUpdater *fakes.FakeStackUpdater) {
 				stackUpdater.GetIAMServiceAccountsReturns([]*api.ClusterIAMServiceAccount{}, nil)
@@ -204,7 +223,7 @@ var _ = Describe("Create", func() {
 
 		Entry("[taskTree] contains all other expected tasks", migrateToPodIdentityAssociationEntry{
 			mockEKS: func(provider *mockprovider.MockProvider) {
-				mockDescribeAddon(provider, nil, false)
+				mockDescribeAddon(provider, nil, false, false)
 			},
 			mockCFN: func(stackUpdater *fakes.FakeStackUpdater) {
 				stackUpdater.GetIAMServiceAccountsReturns([]*api.ClusterIAMServiceAccount{
@@ -233,7 +252,7 @@ var _ = Describe("Create", func() {
 
 		Entry("completes all tasks successfully", migrateToPodIdentityAssociationEntry{
 			mockEKS: func(provider *mockprovider.MockProvider) {
-				mockDescribeAddon(provider, nil, false)
+				mockDescribeAddon(provider, nil, false, false)
 
 				mockProvider.MockEKS().
 					On("CreatePodIdentityAssociation", mock.Anything, mock.Anything).
@@ -314,7 +333,7 @@ var _ = Describe("Create", func() {
 
 		Entry("completes all tasks successfully for auto-mode", migrateToPodIdentityAssociationEntry{
 			mockEKS: func(provider *mockprovider.MockProvider) {
-				mockDescribeAddon(provider, nil, true)
+				mockDescribeAddon(provider, nil, true, false)
 
 				mockProvider.MockEKS().
 					On("CreatePodIdentityAssociation", mock.Anything, mock.Anything).
