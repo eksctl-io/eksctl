@@ -234,7 +234,7 @@ func IsPodIdentityAgentInstalled(ctx context.Context, eksAPI awsapi.EKS, cluster
 }
 
 func IsAutoModeEnabled(ctx context.Context, eksAPI awsapi.EKS, clusterName string) (bool, error) {
-	clstrDescribeResponse, err := eksAPI.DescribeCluster(ctx, &awseks.DescribeClusterInput{
+	cluster, err := eksAPI.DescribeCluster(ctx, &awseks.DescribeClusterInput{
 		Name: aws.String(clusterName),
 	})
 
@@ -242,11 +242,13 @@ func IsAutoModeEnabled(ctx context.Context, eksAPI awsapi.EKS, clusterName strin
 		return false, fmt.Errorf("calling EKS::DescribeCluster: %w", err)
 	}
 
-	if *clstrDescribeResponse.Cluster.ComputeConfig.Enabled {
-		return true, nil
+	if cluster.Cluster == nil ||
+		cluster.Cluster.ComputeConfig == nil ||
+		cluster.Cluster.ComputeConfig.Enabled == nil {
+		return false, nil
 	}
 
-	return false, nil
+	return *cluster.Cluster.ComputeConfig.Enabled, nil
 }
 
 type IRSAv1StackNameResolver map[string]IRSAv1StackSummary
