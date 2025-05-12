@@ -165,6 +165,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	//prevent logging multiple times
 	once.Do(func() {
 		cmdutils.LogRegionAndVersionInfo(meta)
+		logAmazonLinux2EndOfSupportWarningIfNeeded(cfg)
 	})
 
 	if err := cfg.ValidatePrivateCluster(); err != nil {
@@ -693,4 +694,27 @@ func clientSetCreator(ctl *eks.ClusterProvider, cfg *api.ClusterConfig) func() (
 
 func checkSubnetsGivenAsFlags(params *cmdutils.CreateClusterCmdParams) bool {
 	return len(*params.Subnets[api.SubnetTopologyPrivate])+len(*params.Subnets[api.SubnetTopologyPublic]) != 0
+}
+
+func logAmazonLinux2EndOfSupportWarningIfNeeded(cfg *api.ClusterConfig) {
+	isUsingAL2 := false
+	for _, ng := range cfg.NodeGroups {
+		if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
+			isUsingAL2 = true
+			break
+		}
+	}
+
+	if !isUsingAL2 {
+		for _, mng := range cfg.ManagedNodeGroups {
+			if mng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
+				isUsingAL2 = true
+				break
+			}
+		}
+	}
+
+	if isUsingAL2 {
+		logger.Warning(amazonLinux2EndOfSupportWarning)
+	}
 }

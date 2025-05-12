@@ -25,7 +25,7 @@ type StackLister interface {
 	ListPodIdentityStackNames(ctx context.Context) ([]string, error)
 	DescribeStack(ctx context.Context, stack *manager.Stack) (*manager.Stack, error)
 	GetStackTemplate(ctx context.Context, stackName string) (string, error)
-	GetIAMServiceAccounts(ctx context.Context) ([]*api.ClusterIAMServiceAccount, error)
+	GetIAMServiceAccounts(ctx context.Context, name string, namespace string) ([]*api.ClusterIAMServiceAccount, error)
 }
 
 // A StackDeleter lists and deletes CloudFormation stacks.

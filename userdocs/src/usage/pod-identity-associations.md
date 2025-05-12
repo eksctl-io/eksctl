@@ -10,6 +10,9 @@ As a result, IAM roles no longer need to reference an [OIDC provider](/usage/iam
 
 Behind the scenes, the implementation of pod identity associations is running an agent as a daemonset on the worker nodes. To run the pre-requisite agent on the cluster, EKS provides a new add-on called EKS Pod Identity Agent. Therefore, creating pod identity associations (in general, and with `eksctl`) requires the `eks-pod-identity-agent` addon pre-installed on the cluster. This addon can be [created using `eksctl`](/usage/addons/#creating-addons) in the same fashion any other supported addon is, e.g.
 
+???+ note
+    If you are using [EKS Auto Mode](https://eksctl.io/usage/auto-mode/) cluster the `eks-pod-identity-agent` comes pre-installed and you can skip creating the addon.
+
 ```
 eksctl create addon --cluster my-cluster --name eks-pod-identity-agent
 ```

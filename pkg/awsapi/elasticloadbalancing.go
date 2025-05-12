@@ -26,7 +26,7 @@ type ELB interface {
 	// For more information, see [Tag Your Classic Load Balancer] in the Classic Load Balancers Guide.
 	//
 	// [Tag Your Classic Load Balancer]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/add-remove-tags.html
-	AddTags(ctx context.Context, params *AddTagsInput, optFns ...func(*Options)) (*AddTagsOutput, error)
+	AddTags(ctx context.Context, params *elasticloadbalancing.AddTagsInput, optFns ...func(*Options)) (*elasticloadbalancing.AddTagsOutput, error)
 	// Associates one or more security groups with your load balancer in a virtual
 	// private cloud (VPC). The specified security groups override the previously
 	// associated security groups.
@@ -34,7 +34,7 @@ type ELB interface {
 	// For more information, see [Security Groups for Load Balancers in a VPC] in the Classic Load Balancers Guide.
 	//
 	// [Security Groups for Load Balancers in a VPC]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-groups.html#elb-vpc-security-groups
-	ApplySecurityGroupsToLoadBalancer(ctx context.Context, params *ApplySecurityGroupsToLoadBalancerInput, optFns ...func(*Options)) (*ApplySecurityGroupsToLoadBalancerOutput, error)
+	ApplySecurityGroupsToLoadBalancer(ctx context.Context, params *elasticloadbalancing.ApplySecurityGroupsToLoadBalancerInput, optFns ...func(*Options)) (*elasticloadbalancing.ApplySecurityGroupsToLoadBalancerOutput, error)
 	// Adds one or more subnets to the set of configured subnets for the specified
 	// load balancer.
 	//
@@ -42,14 +42,14 @@ type ELB interface {
 	// For more information, see [Add or Remove Subnets for Your Load Balancer in a VPC]in the Classic Load Balancers Guide.
 	//
 	// [Add or Remove Subnets for Your Load Balancer in a VPC]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-manage-subnets.html
-	AttachLoadBalancerToSubnets(ctx context.Context, params *AttachLoadBalancerToSubnetsInput, optFns ...func(*Options)) (*AttachLoadBalancerToSubnetsOutput, error)
+	AttachLoadBalancerToSubnets(ctx context.Context, params *elasticloadbalancing.AttachLoadBalancerToSubnetsInput, optFns ...func(*Options)) (*elasticloadbalancing.AttachLoadBalancerToSubnetsOutput, error)
 	// Specifies the health check settings to use when evaluating the health state of
 	// your EC2 instances.
 	//
 	// For more information, see [Configure Health Checks for Your Load Balancer] in the Classic Load Balancers Guide.
 	//
 	// [Configure Health Checks for Your Load Balancer]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-healthchecks.html
-	ConfigureHealthCheck(ctx context.Context, params *ConfigureHealthCheckInput, optFns ...func(*Options)) (*ConfigureHealthCheckOutput, error)
+	ConfigureHealthCheck(ctx context.Context, params *elasticloadbalancing.ConfigureHealthCheckInput, optFns ...func(*Options)) (*elasticloadbalancing.ConfigureHealthCheckOutput, error)
 	// Generates a stickiness policy with sticky session lifetimes that follow that of
 	// an application-generated cookie. This policy can be associated only with
 	// HTTP/HTTPS listeners.
@@ -66,7 +66,7 @@ type ELB interface {
 	// For more information, see [Application-Controlled Session Stickiness] in the Classic Load Balancers Guide.
 	//
 	// [Application-Controlled Session Stickiness]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-sticky-sessions.html#enable-sticky-sessions-application
-	CreateAppCookieStickinessPolicy(ctx context.Context, params *CreateAppCookieStickinessPolicyInput, optFns ...func(*Options)) (*CreateAppCookieStickinessPolicyOutput, error)
+	CreateAppCookieStickinessPolicy(ctx context.Context, params *elasticloadbalancing.CreateAppCookieStickinessPolicyInput, optFns ...func(*Options)) (*elasticloadbalancing.CreateAppCookieStickinessPolicyOutput, error)
 	// Generates a stickiness policy with sticky session lifetimes controlled by the
 	// lifetime of the browser (user-agent) or a specified expiration period. This
 	// policy can be associated only with HTTP/HTTPS listeners.
@@ -85,7 +85,7 @@ type ELB interface {
 	// For more information, see [Duration-Based Session Stickiness] in the Classic Load Balancers Guide.
 	//
 	// [Duration-Based Session Stickiness]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-sticky-sessions.html#enable-sticky-sessions-duration
-	CreateLBCookieStickinessPolicy(ctx context.Context, params *CreateLBCookieStickinessPolicyInput, optFns ...func(*Options)) (*CreateLBCookieStickinessPolicyOutput, error)
+	CreateLBCookieStickinessPolicy(ctx context.Context, params *elasticloadbalancing.CreateLBCookieStickinessPolicyInput, optFns ...func(*Options)) (*elasticloadbalancing.CreateLBCookieStickinessPolicyOutput, error)
 	// Creates a Classic Load Balancer.
 	//
 	// You can add listeners, security groups, subnets, and tags when you create your
@@ -99,7 +99,7 @@ type ELB interface {
 	// information, see [Limits for Your Classic Load Balancer]in the Classic Load Balancers Guide.
 	//
 	// [Limits for Your Classic Load Balancer]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-limits.html
-	CreateLoadBalancer(ctx context.Context, params *CreateLoadBalancerInput, optFns ...func(*Options)) (*CreateLoadBalancerOutput, error)
+	CreateLoadBalancer(ctx context.Context, params *elasticloadbalancing.CreateLoadBalancerInput, optFns ...func(*Options)) (*elasticloadbalancing.CreateLoadBalancerOutput, error)
 	// Creates one or more listeners for the specified load balancer. If a listener
 	// with the specified port does not already exist, it is created; otherwise, the
 	// properties of the new listener must match the properties of the existing
@@ -108,12 +108,12 @@ type ELB interface {
 	// For more information, see [Listeners for Your Classic Load Balancer] in the Classic Load Balancers Guide.
 	//
 	// [Listeners for Your Classic Load Balancer]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-listener-config.html
-	CreateLoadBalancerListeners(ctx context.Context, params *CreateLoadBalancerListenersInput, optFns ...func(*Options)) (*CreateLoadBalancerListenersOutput, error)
+	CreateLoadBalancerListeners(ctx context.Context, params *elasticloadbalancing.CreateLoadBalancerListenersInput, optFns ...func(*Options)) (*elasticloadbalancing.CreateLoadBalancerListenersOutput, error)
 	// Creates a policy with the specified attributes for the specified load balancer.
 	//
 	// Policies are settings that are saved for your load balancer and that can be
 	// applied to the listener or the application server, depending on the policy type.
-	CreateLoadBalancerPolicy(ctx context.Context, params *CreateLoadBalancerPolicyInput, optFns ...func(*Options)) (*CreateLoadBalancerPolicyOutput, error)
+	CreateLoadBalancerPolicy(ctx context.Context, params *elasticloadbalancing.CreateLoadBalancerPolicyInput, optFns ...func(*Options)) (*elasticloadbalancing.CreateLoadBalancerPolicyOutput, error)
 	// Deletes the specified load balancer.
 	//
 	// If you are attempting to recreate a load balancer, you must reconfigure all
@@ -124,12 +124,12 @@ type ELB interface {
 	//
 	// If the load balancer does not exist or has already been deleted, the call to
 	// DeleteLoadBalancer still succeeds.
-	DeleteLoadBalancer(ctx context.Context, params *DeleteLoadBalancerInput, optFns ...func(*Options)) (*DeleteLoadBalancerOutput, error)
+	DeleteLoadBalancer(ctx context.Context, params *elasticloadbalancing.DeleteLoadBalancerInput, optFns ...func(*Options)) (*elasticloadbalancing.DeleteLoadBalancerOutput, error)
 	// Deletes the specified listeners from the specified load balancer.
-	DeleteLoadBalancerListeners(ctx context.Context, params *DeleteLoadBalancerListenersInput, optFns ...func(*Options)) (*DeleteLoadBalancerListenersOutput, error)
+	DeleteLoadBalancerListeners(ctx context.Context, params *elasticloadbalancing.DeleteLoadBalancerListenersInput, optFns ...func(*Options)) (*elasticloadbalancing.DeleteLoadBalancerListenersOutput, error)
 	// Deletes the specified policy from the specified load balancer. This policy must
 	// not be enabled for any listeners.
-	DeleteLoadBalancerPolicy(ctx context.Context, params *DeleteLoadBalancerPolicyInput, optFns ...func(*Options)) (*DeleteLoadBalancerPolicyOutput, error)
+	DeleteLoadBalancerPolicy(ctx context.Context, params *elasticloadbalancing.DeleteLoadBalancerPolicyInput, optFns ...func(*Options)) (*elasticloadbalancing.DeleteLoadBalancerPolicyOutput, error)
 	// Deregisters the specified instances from the specified load balancer. After the
 	// instance is deregistered, it no longer receives traffic from the load balancer.
 	//
@@ -138,22 +138,22 @@ type ELB interface {
 	// For more information, see [Register or De-Register EC2 Instances] in the Classic Load Balancers Guide.
 	//
 	// [Register or De-Register EC2 Instances]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-deregister-register-instances.html
-	DeregisterInstancesFromLoadBalancer(ctx context.Context, params *DeregisterInstancesFromLoadBalancerInput, optFns ...func(*Options)) (*DeregisterInstancesFromLoadBalancerOutput, error)
+	DeregisterInstancesFromLoadBalancer(ctx context.Context, params *elasticloadbalancing.DeregisterInstancesFromLoadBalancerInput, optFns ...func(*Options)) (*elasticloadbalancing.DeregisterInstancesFromLoadBalancerOutput, error)
 	// Describes the current Elastic Load Balancing resource limits for your AWS
 	// account.
 	//
 	// For more information, see [Limits for Your Classic Load Balancer] in the Classic Load Balancers Guide.
 	//
 	// [Limits for Your Classic Load Balancer]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-limits.html
-	DescribeAccountLimits(ctx context.Context, params *DescribeAccountLimitsInput, optFns ...func(*Options)) (*DescribeAccountLimitsOutput, error)
+	DescribeAccountLimits(ctx context.Context, params *elasticloadbalancing.DescribeAccountLimitsInput, optFns ...func(*Options)) (*elasticloadbalancing.DescribeAccountLimitsOutput, error)
 	// Describes the state of the specified instances with respect to the specified
 	// load balancer. If no instances are specified, the call describes the state of
 	// all instances that are currently registered with the load balancer. If instances
 	// are specified, their state is returned even if they are no longer registered
 	// with the load balancer. The state of terminated instances is not returned.
-	DescribeInstanceHealth(ctx context.Context, params *DescribeInstanceHealthInput, optFns ...func(*Options)) (*DescribeInstanceHealthOutput, error)
+	DescribeInstanceHealth(ctx context.Context, params *elasticloadbalancing.DescribeInstanceHealthInput, optFns ...func(*Options)) (*elasticloadbalancing.DescribeInstanceHealthOutput, error)
 	// Describes the attributes for the specified load balancer.
-	DescribeLoadBalancerAttributes(ctx context.Context, params *DescribeLoadBalancerAttributesInput, optFns ...func(*Options)) (*DescribeLoadBalancerAttributesOutput, error)
+	DescribeLoadBalancerAttributes(ctx context.Context, params *elasticloadbalancing.DescribeLoadBalancerAttributesInput, optFns ...func(*Options)) (*elasticloadbalancing.DescribeLoadBalancerAttributesOutput, error)
 	// Describes the specified policies.
 	//
 	// If you specify a load balancer name, the action returns the descriptions of all
@@ -162,7 +162,7 @@ type ELB interface {
 	// you don't specify a load balancer name, the action returns descriptions of the
 	// specified sample policies, or descriptions of all sample policies. The names of
 	// the sample policies have the ELBSample- prefix.
-	DescribeLoadBalancerPolicies(ctx context.Context, params *DescribeLoadBalancerPoliciesInput, optFns ...func(*Options)) (*DescribeLoadBalancerPoliciesOutput, error)
+	DescribeLoadBalancerPolicies(ctx context.Context, params *elasticloadbalancing.DescribeLoadBalancerPoliciesInput, optFns ...func(*Options)) (*elasticloadbalancing.DescribeLoadBalancerPoliciesOutput, error)
 	// Describes the specified load balancer policy types or all load balancer policy
 	// types.
 	//
@@ -173,19 +173,19 @@ type ELB interface {
 	//
 	// You can use CreateLoadBalancerPolicy to create a policy configuration for any of these policy types.
 	// Then, depending on the policy type, use either SetLoadBalancerPoliciesOfListeneror SetLoadBalancerPoliciesForBackendServer to set the policy.
-	DescribeLoadBalancerPolicyTypes(ctx context.Context, params *DescribeLoadBalancerPolicyTypesInput, optFns ...func(*Options)) (*DescribeLoadBalancerPolicyTypesOutput, error)
+	DescribeLoadBalancerPolicyTypes(ctx context.Context, params *elasticloadbalancing.DescribeLoadBalancerPolicyTypesInput, optFns ...func(*Options)) (*elasticloadbalancing.DescribeLoadBalancerPolicyTypesOutput, error)
 	// Describes the specified the load balancers. If no load balancers are specified,
 	// the call describes all of your load balancers.
-	DescribeLoadBalancers(ctx context.Context, params *DescribeLoadBalancersInput, optFns ...func(*Options)) (*DescribeLoadBalancersOutput, error)
+	DescribeLoadBalancers(ctx context.Context, params *elasticloadbalancing.DescribeLoadBalancersInput, optFns ...func(*Options)) (*elasticloadbalancing.DescribeLoadBalancersOutput, error)
 	// Describes the tags associated with the specified load balancers.
-	DescribeTags(ctx context.Context, params *DescribeTagsInput, optFns ...func(*Options)) (*DescribeTagsOutput, error)
+	DescribeTags(ctx context.Context, params *elasticloadbalancing.DescribeTagsInput, optFns ...func(*Options)) (*elasticloadbalancing.DescribeTagsOutput, error)
 	// Removes the specified subnets from the set of configured subnets for the load
 	// balancer.
 	//
 	// After a subnet is removed, all EC2 instances registered with the load balancer
 	// in the removed subnet go into the OutOfService state. Then, the load balancer
 	// balances the traffic among the remaining routable subnets.
-	DetachLoadBalancerFromSubnets(ctx context.Context, params *DetachLoadBalancerFromSubnetsInput, optFns ...func(*Options)) (*DetachLoadBalancerFromSubnetsOutput, error)
+	DetachLoadBalancerFromSubnets(ctx context.Context, params *elasticloadbalancing.DetachLoadBalancerFromSubnetsInput, optFns ...func(*Options)) (*elasticloadbalancing.DetachLoadBalancerFromSubnetsOutput, error)
 	// Removes the specified Availability Zones from the set of Availability Zones for
 	// the specified load balancer in EC2-Classic or a default VPC.
 	//
@@ -200,7 +200,7 @@ type ELB interface {
 	// For more information, see [Add or Remove Availability Zones] in the Classic Load Balancers Guide.
 	//
 	// [Add or Remove Availability Zones]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-disable-az.html
-	DisableAvailabilityZonesForLoadBalancer(ctx context.Context, params *DisableAvailabilityZonesForLoadBalancerInput, optFns ...func(*Options)) (*DisableAvailabilityZonesForLoadBalancerOutput, error)
+	DisableAvailabilityZonesForLoadBalancer(ctx context.Context, params *elasticloadbalancing.DisableAvailabilityZonesForLoadBalancerInput, optFns ...func(*Options)) (*elasticloadbalancing.DisableAvailabilityZonesForLoadBalancerOutput, error)
 	// Adds the specified Availability Zones to the set of Availability Zones for the
 	// specified load balancer in EC2-Classic or a default VPC.
 	//
@@ -211,7 +211,7 @@ type ELB interface {
 	// Classic Load Balancers Guide.
 	//
 	// [Add or Remove Availability Zones]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-disable-az.html
-	EnableAvailabilityZonesForLoadBalancer(ctx context.Context, params *EnableAvailabilityZonesForLoadBalancerInput, optFns ...func(*Options)) (*EnableAvailabilityZonesForLoadBalancerOutput, error)
+	EnableAvailabilityZonesForLoadBalancer(ctx context.Context, params *elasticloadbalancing.EnableAvailabilityZonesForLoadBalancerInput, optFns ...func(*Options)) (*elasticloadbalancing.EnableAvailabilityZonesForLoadBalancerOutput, error)
 	// Modifies the attributes of the specified load balancer.
 	//
 	// You can modify the load balancer attributes, such as AccessLogs ,
@@ -233,7 +233,7 @@ type ELB interface {
 	// [Idle Connection Timeout]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/config-idle-timeout.html
 	// [Access Logs]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/access-log-collection.html
 	// [Connection Draining]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/config-conn-drain.html
-	ModifyLoadBalancerAttributes(ctx context.Context, params *ModifyLoadBalancerAttributesInput, optFns ...func(*Options)) (*ModifyLoadBalancerAttributesOutput, error)
+	ModifyLoadBalancerAttributes(ctx context.Context, params *elasticloadbalancing.ModifyLoadBalancerAttributesInput, optFns ...func(*Options)) (*elasticloadbalancing.ModifyLoadBalancerAttributesOutput, error)
 	// Adds the specified instances to the specified load balancer.
 	//
 	// The instance must be a running instance in the same network as the load
@@ -257,9 +257,9 @@ type ELB interface {
 	// For more information, see [Register or De-Register EC2 Instances] in the Classic Load Balancers Guide.
 	//
 	// [Register or De-Register EC2 Instances]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-deregister-register-instances.html
-	RegisterInstancesWithLoadBalancer(ctx context.Context, params *RegisterInstancesWithLoadBalancerInput, optFns ...func(*Options)) (*RegisterInstancesWithLoadBalancerOutput, error)
+	RegisterInstancesWithLoadBalancer(ctx context.Context, params *elasticloadbalancing.RegisterInstancesWithLoadBalancerInput, optFns ...func(*Options)) (*elasticloadbalancing.RegisterInstancesWithLoadBalancerOutput, error)
 	// Removes one or more tags from the specified load balancer.
-	RemoveTags(ctx context.Context, params *RemoveTagsInput, optFns ...func(*Options)) (*RemoveTagsOutput, error)
+	RemoveTags(ctx context.Context, params *elasticloadbalancing.RemoveTagsInput, optFns ...func(*Options)) (*elasticloadbalancing.RemoveTagsOutput, error)
 	// Sets the certificate that terminates the specified listener's SSL connections.
 	// The specified certificate replaces any prior certificate that was used on the
 	// same load balancer and port.
@@ -268,7 +268,7 @@ type ELB interface {
 	// Load Balancers Guide.
 	//
 	// [Replace the SSL Certificate for Your Load Balancer]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-update-ssl-cert.html
-	SetLoadBalancerListenerSSLCertificate(ctx context.Context, params *SetLoadBalancerListenerSSLCertificateInput, optFns ...func(*Options)) (*SetLoadBalancerListenerSSLCertificateOutput, error)
+	SetLoadBalancerListenerSSLCertificate(ctx context.Context, params *elasticloadbalancing.SetLoadBalancerListenerSSLCertificateInput, optFns ...func(*Options)) (*elasticloadbalancing.SetLoadBalancerListenerSSLCertificateOutput, error)
 	// Replaces the set of policies associated with the specified port on which the
 	// EC2 instance is listening with a new set of policies. At this time, only the
 	// back-end server authentication policy type can be applied to the instance ports;
@@ -286,7 +286,7 @@ type ELB interface {
 	//
 	// [Configure Back-end Instance Authentication]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-create-https-ssl-load-balancer.html#configure_backendauth_clt
 	// [Configure Proxy Protocol Support]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-proxy-protocol.html
-	SetLoadBalancerPoliciesForBackendServer(ctx context.Context, params *SetLoadBalancerPoliciesForBackendServerInput, optFns ...func(*Options)) (*SetLoadBalancerPoliciesForBackendServerOutput, error)
+	SetLoadBalancerPoliciesForBackendServer(ctx context.Context, params *elasticloadbalancing.SetLoadBalancerPoliciesForBackendServerInput, optFns ...func(*Options)) (*elasticloadbalancing.SetLoadBalancerPoliciesForBackendServerOutput, error)
 	// Replaces the current set of policies for the specified load balancer port with
 	// the specified set of policies.
 	//
@@ -298,6 +298,6 @@ type ELB interface {
 	// [Update the SSL Negotiation Configuration]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/ssl-config-update.html
 	// [Duration-Based Session Stickiness]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-sticky-sessions.html#enable-sticky-sessions-duration
 	// [Application-Controlled Session Stickiness]: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-sticky-sessions.html#enable-sticky-sessions-application
-	SetLoadBalancerPoliciesOfListener(ctx context.Context, params *SetLoadBalancerPoliciesOfListenerInput, optFns ...func(*Options)) (*SetLoadBalancerPoliciesOfListenerOutput, error)
+	SetLoadBalancerPoliciesOfListener(ctx context.Context, params *elasticloadbalancing.SetLoadBalancerPoliciesOfListenerInput, optFns ...func(*Options)) (*elasticloadbalancing.SetLoadBalancerPoliciesOfListenerOutput, error)
 }
 

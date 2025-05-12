@@ -168,6 +168,9 @@ type LaunchTemplateData struct {
 	CreditSpecification *struct {
 		CPUCredits string
 	}
+	EnclaveOptions *struct {
+		Enabled *bool
+	}
 	MetadataOptions                  MetadataOptions
 	TagSpecifications                []TagSpecification
 	Placement                        Placement

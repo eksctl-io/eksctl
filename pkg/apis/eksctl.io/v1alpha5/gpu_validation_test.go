@@ -51,6 +51,10 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
 			gpuInstanceType: "g4dn.xlarge",
 		}),
+		Entry("AL2023 ARM NVIDIA", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType: "g5g.2xlarge",
+		}),
 		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "asdf",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
@@ -62,10 +66,6 @@ var _ = Describe("GPU instance support", func() {
 		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "g5.12xlarge",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
-		}),
-		Entry("Ubuntu1804", gpuInstanceEntry{
-			amiFamily:       api.NodeImageFamilyUbuntu2004,
-			gpuInstanceType: "g4dn.xlarge",
 		}),
 		Entry("Ubuntu2004", gpuInstanceEntry{
 			amiFamily:       api.NodeImageFamilyUbuntu2004,
@@ -100,7 +100,6 @@ var _ = Describe("GPU instance support", func() {
 		ng.InstanceType = e.gpuInstanceType
 		ng.AMIFamily = e.amiFamily
 		assertValidationError(e, api.ValidateNodeGroup(0, ng, api.NewClusterConfig()))
-
 	},
 		Entry("AL2023 INF", gpuInstanceEntry{
 			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
@@ -113,6 +112,10 @@ var _ = Describe("GPU instance support", func() {
 		Entry("AL2023 NVIDIA", gpuInstanceEntry{
 			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
 			gpuInstanceType: "g4dn.xlarge",
+		}),
+		Entry("AL2023 ARM NVIDIA", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyAmazonLinux2023,
+			gpuInstanceType: "g5g.2xlarge",
 		}),
 		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "g4dn.xlarge",
@@ -234,11 +237,6 @@ var _ = Describe("GPU instance support", func() {
 			},
 			expectWarning: true,
 		}),
-		Entry("Ubuntu with explicit GPU instance", gpuInstanceEntry{
-			amiFamily:       api.NodeImageFamilyUbuntu1804,
-			gpuInstanceType: "g4dn.xlarge",
-			expectWarning:   true,
-		}),
 		Entry("Ubuntu with implicit GPU instance", gpuInstanceEntry{
 			amiFamily: api.NodeImageFamilyUbuntu2004,
 			instanceSelector: &api.InstanceSelector{
@@ -253,16 +251,11 @@ var _ = Describe("GPU instance support", func() {
 		amiFamily := api.NodeImageFamilyAmazonLinux2023
 		instanceType := "g5g.2xlarge"
 
-		ngFail := api.NewNodeGroup()
-		ngFail.AMIFamily = amiFamily
-		ngFail.InstanceType = instanceType
-
 		ngPass := api.NewNodeGroup()
 		ngPass.AMIFamily = amiFamily
 		ngPass.InstanceType = instanceType
 		ngPass.AMI = "ami-xxxx"
 
-		Expect(api.ValidateNodeGroup(0, ngFail, api.NewClusterConfig())).To(HaveOccurred())
 		Expect(api.ValidateNodeGroup(0, ngPass, api.NewClusterConfig())).NotTo(HaveOccurred())
 	})
 
@@ -272,15 +265,14 @@ var _ = Describe("GPU instance support", func() {
 		ng.AMIFamily = amiFamily
 		err := api.ValidateNodeGroup(0, ng, api.NewClusterConfig())
 		if expectErr {
-			Expect(err).To(MatchError(fmt.Sprintf("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily %s", amiFamily)))
+			Expect(err).To(MatchError(fmt.Sprintf("%s instance types are not supported for unmanaged nodegroups with AMIFamily %s", ng.InstanceType, amiFamily)))
 		} else {
 			Expect(err).NotTo(HaveOccurred())
 		}
 	},
 		Entry("AmazonLinux2", api.NodeImageFamilyAmazonLinux2, true),
-		Entry("AmazonLinux2023", api.NodeImageFamilyAmazonLinux2023, true),
-		Entry("Ubuntu2004", api.NodeImageFamilyUbuntu2004, true),
-		Entry("Ubuntu1804", api.NodeImageFamilyUbuntu1804, true),
+		Entry("AmazonLinux2023", api.NodeImageFamilyAmazonLinux2023, false),
+		Entry("Ubuntu2004", api.NodeImageFamilyUbuntu2004, false),
 		Entry("Windows2019Full", api.NodeImageFamilyWindowsServer2019FullContainer, true),
 		Entry("Windows2019Core", api.NodeImageFamilyWindowsServer2019CoreContainer, true),
 		Entry("Bottlerocket", api.NodeImageFamilyBottlerocket, false),

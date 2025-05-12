@@ -28,16 +28,16 @@ type ELBV2 interface {
 	//
 	// [TLS listeners]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html
 	// [HTTPS listeners]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html
-	AddListenerCertificates(ctx context.Context, params *AddListenerCertificatesInput, optFns ...func(*Options)) (*AddListenerCertificatesOutput, error)
+	AddListenerCertificates(ctx context.Context, params *elasticloadbalancingv2.AddListenerCertificatesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.AddListenerCertificatesOutput, error)
 	// Adds the specified tags to the specified Elastic Load Balancing resource. You
 	// can tag your Application Load Balancers, Network Load Balancers, Gateway Load
 	// Balancers, target groups, trust stores, listeners, and rules.
 	//
 	// Each tag consists of a key and an optional value. If a resource already has a
 	// tag with the same key, AddTags updates its value.
-	AddTags(ctx context.Context, params *AddTagsInput, optFns ...func(*Options)) (*AddTagsOutput, error)
+	AddTags(ctx context.Context, params *elasticloadbalancingv2.AddTagsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.AddTagsOutput, error)
 	// Adds the specified revocation file to the specified trust store.
-	AddTrustStoreRevocations(ctx context.Context, params *AddTrustStoreRevocationsInput, optFns ...func(*Options)) (*AddTrustStoreRevocationsOutput, error)
+	AddTrustStoreRevocations(ctx context.Context, params *elasticloadbalancingv2.AddTrustStoreRevocationsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.AddTrustStoreRevocationsOutput, error)
 	// Creates a listener for the specified Application Load Balancer, Network Load
 	// Balancer, or Gateway Load Balancer.
 	//
@@ -56,7 +56,7 @@ type ELBV2 interface {
 	// [Listeners for your Gateway Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/gateway-listeners.html
 	// [Listeners for your Application Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html
 	// [Listeners for your Network Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-listeners.html
-	CreateListener(ctx context.Context, params *CreateListenerInput, optFns ...func(*Options)) (*CreateListenerOutput, error)
+	CreateListener(ctx context.Context, params *elasticloadbalancingv2.CreateListenerInput, optFns ...func(*Options)) (*elasticloadbalancingv2.CreateListenerOutput, error)
 	// Creates an Application Load Balancer, Network Load Balancer, or Gateway Load
 	// Balancer.
 	//
@@ -75,7 +75,7 @@ type ELBV2 interface {
 	// [Gateway Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/gateway-load-balancers.html
 	// [Network Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/network-load-balancers.html
 	// [Application Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html
-	CreateLoadBalancer(ctx context.Context, params *CreateLoadBalancerInput, optFns ...func(*Options)) (*CreateLoadBalancerOutput, error)
+	CreateLoadBalancer(ctx context.Context, params *elasticloadbalancingv2.CreateLoadBalancerInput, optFns ...func(*Options)) (*elasticloadbalancingv2.CreateLoadBalancerOutput, error)
 	// Creates a rule for the specified listener. The listener must be associated with
 	// an Application Load Balancer.
 	//
@@ -87,7 +87,7 @@ type ELBV2 interface {
 	// Guide.
 	//
 	// [Listener rules]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#listener-rules
-	CreateRule(ctx context.Context, params *CreateRuleInput, optFns ...func(*Options)) (*CreateRuleOutput, error)
+	CreateRule(ctx context.Context, params *elasticloadbalancingv2.CreateRuleInput, optFns ...func(*Options)) (*elasticloadbalancingv2.CreateRuleOutput, error)
 	// Creates a target group.
 	//
 	// For more information, see the following:
@@ -105,14 +105,14 @@ type ELBV2 interface {
 	// [Target groups for your Gateway Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/target-groups.html
 	// [Target groups for your Application Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html
 	// [Target groups for your Network Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html
-	CreateTargetGroup(ctx context.Context, params *CreateTargetGroupInput, optFns ...func(*Options)) (*CreateTargetGroupOutput, error)
+	CreateTargetGroup(ctx context.Context, params *elasticloadbalancingv2.CreateTargetGroupInput, optFns ...func(*Options)) (*elasticloadbalancingv2.CreateTargetGroupOutput, error)
 	// Creates a trust store.
-	CreateTrustStore(ctx context.Context, params *CreateTrustStoreInput, optFns ...func(*Options)) (*CreateTrustStoreOutput, error)
+	CreateTrustStore(ctx context.Context, params *elasticloadbalancingv2.CreateTrustStoreInput, optFns ...func(*Options)) (*elasticloadbalancingv2.CreateTrustStoreOutput, error)
 	// Deletes the specified listener.
 	//
 	// Alternatively, your listener is deleted when you delete the load balancer to
 	// which it is attached.
-	DeleteListener(ctx context.Context, params *DeleteListenerInput, optFns ...func(*Options)) (*DeleteListenerOutput, error)
+	DeleteListener(ctx context.Context, params *elasticloadbalancingv2.DeleteListenerInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DeleteListenerOutput, error)
 	// Deletes the specified Application Load Balancer, Network Load Balancer, or
 	// Gateway Load Balancer. Deleting a load balancer also deletes its listeners.
 	//
@@ -123,22 +123,22 @@ type ELBV2 interface {
 	// your EC2 instances continue to run and are still registered to their target
 	// groups. If you no longer need these EC2 instances, you can stop or terminate
 	// them.
-	DeleteLoadBalancer(ctx context.Context, params *DeleteLoadBalancerInput, optFns ...func(*Options)) (*DeleteLoadBalancerOutput, error)
+	DeleteLoadBalancer(ctx context.Context, params *elasticloadbalancingv2.DeleteLoadBalancerInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DeleteLoadBalancerOutput, error)
 	// Deletes the specified rule.
 	//
 	// You can't delete the default rule.
-	DeleteRule(ctx context.Context, params *DeleteRuleInput, optFns ...func(*Options)) (*DeleteRuleOutput, error)
+	DeleteRule(ctx context.Context, params *elasticloadbalancingv2.DeleteRuleInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DeleteRuleOutput, error)
 	// Deletes a shared trust store association.
-	DeleteSharedTrustStoreAssociation(ctx context.Context, params *DeleteSharedTrustStoreAssociationInput, optFns ...func(*Options)) (*DeleteSharedTrustStoreAssociationOutput, error)
+	DeleteSharedTrustStoreAssociation(ctx context.Context, params *elasticloadbalancingv2.DeleteSharedTrustStoreAssociationInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DeleteSharedTrustStoreAssociationOutput, error)
 	// Deletes the specified target group.
 	//
 	// You can delete a target group if it is not referenced by any actions. Deleting
 	// a target group also deletes any associated health checks. Deleting a target
 	// group does not affect its registered targets. For example, any EC2 instances
 	// continue to run until you stop or terminate them.
-	DeleteTargetGroup(ctx context.Context, params *DeleteTargetGroupInput, optFns ...func(*Options)) (*DeleteTargetGroupOutput, error)
+	DeleteTargetGroup(ctx context.Context, params *elasticloadbalancingv2.DeleteTargetGroupInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DeleteTargetGroupOutput, error)
 	// Deletes a trust store.
-	DeleteTrustStore(ctx context.Context, params *DeleteTrustStoreInput, optFns ...func(*Options)) (*DeleteTrustStoreOutput, error)
+	DeleteTrustStore(ctx context.Context, params *elasticloadbalancingv2.DeleteTrustStoreInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DeleteTrustStoreOutput, error)
 	// Deregisters the specified targets from the specified target group. After the
 	// targets are deregistered, they no longer receive traffic from the load balancer.
 	//
@@ -161,7 +161,7 @@ type ELBV2 interface {
 	// Note: If the specified target does not exist, the action returns successfully.
 	//
 	// [Deregistration delay]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/target-groups.html#deregistration-delay
-	DeregisterTargets(ctx context.Context, params *DeregisterTargetsInput, optFns ...func(*Options)) (*DeregisterTargetsOutput, error)
+	DeregisterTargets(ctx context.Context, params *elasticloadbalancingv2.DeregisterTargetsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DeregisterTargetsOutput, error)
 	// Describes the current Elastic Load Balancing resource limits for your Amazon
 	// Web Services account.
 	//
@@ -176,11 +176,11 @@ type ELBV2 interface {
 	// [Quotas for your Gateway Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/quotas-limits.html
 	// [Quotas for your Application Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-limits.html
 	// [Quotas for your Network Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-limits.html
-	DescribeAccountLimits(ctx context.Context, params *DescribeAccountLimitsInput, optFns ...func(*Options)) (*DescribeAccountLimitsOutput, error)
+	DescribeAccountLimits(ctx context.Context, params *elasticloadbalancingv2.DescribeAccountLimitsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeAccountLimitsOutput, error)
 	// Describes the capacity reservation status for the specified load balancer.
-	DescribeCapacityReservation(ctx context.Context, params *DescribeCapacityReservationInput, optFns ...func(*Options)) (*DescribeCapacityReservationOutput, error)
+	DescribeCapacityReservation(ctx context.Context, params *elasticloadbalancingv2.DescribeCapacityReservationInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeCapacityReservationOutput, error)
 	// Describes the attributes for the specified listener.
-	DescribeListenerAttributes(ctx context.Context, params *DescribeListenerAttributesInput, optFns ...func(*Options)) (*DescribeListenerAttributesOutput, error)
+	DescribeListenerAttributes(ctx context.Context, params *elasticloadbalancingv2.DescribeListenerAttributesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeListenerAttributesOutput, error)
 	// Describes the default certificate and the certificate list for the specified
 	// HTTPS or TLS listener.
 	//
@@ -193,11 +193,11 @@ type ELBV2 interface {
 	//
 	// [Server certificates]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#tls-listener-certificate
 	// [SSL certificates]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#https-listener-certificates
-	DescribeListenerCertificates(ctx context.Context, params *DescribeListenerCertificatesInput, optFns ...func(*Options)) (*DescribeListenerCertificatesOutput, error)
+	DescribeListenerCertificates(ctx context.Context, params *elasticloadbalancingv2.DescribeListenerCertificatesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeListenerCertificatesOutput, error)
 	// Describes the specified listeners or the listeners for the specified
 	// Application Load Balancer, Network Load Balancer, or Gateway Load Balancer. You
 	// must specify either a load balancer or one or more listeners.
-	DescribeListeners(ctx context.Context, params *DescribeListenersInput, optFns ...func(*Options)) (*DescribeListenersOutput, error)
+	DescribeListeners(ctx context.Context, params *elasticloadbalancingv2.DescribeListenersInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeListenersOutput, error)
 	// Describes the attributes for the specified Application Load Balancer, Network
 	// Load Balancer, or Gateway Load Balancer.
 	//
@@ -213,23 +213,23 @@ type ELBV2 interface {
 	//   - in the Gateway Load Balancers Guide
 	//
 	// [Load balancer attributes]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/gateway-load-balancers.html#load-balancer-attributes
-	DescribeLoadBalancerAttributes(ctx context.Context, params *DescribeLoadBalancerAttributesInput, optFns ...func(*Options)) (*DescribeLoadBalancerAttributesOutput, error)
+	DescribeLoadBalancerAttributes(ctx context.Context, params *elasticloadbalancingv2.DescribeLoadBalancerAttributesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeLoadBalancerAttributesOutput, error)
 	// Describes the specified load balancers or all of your load balancers.
-	DescribeLoadBalancers(ctx context.Context, params *DescribeLoadBalancersInput, optFns ...func(*Options)) (*DescribeLoadBalancersOutput, error)
+	DescribeLoadBalancers(ctx context.Context, params *elasticloadbalancingv2.DescribeLoadBalancersInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeLoadBalancersOutput, error)
 	// Describes the specified rules or the rules for the specified listener. You must
 	// specify either a listener or one or more rules.
-	DescribeRules(ctx context.Context, params *DescribeRulesInput, optFns ...func(*Options)) (*DescribeRulesOutput, error)
+	DescribeRules(ctx context.Context, params *elasticloadbalancingv2.DescribeRulesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeRulesOutput, error)
 	// Describes the specified policies or all policies used for SSL negotiation.
 	//
 	// For more information, see [Security policies] in the Application Load Balancers Guide or [Security policies] in the
 	// Network Load Balancers Guide.
 	//
 	// [Security policies]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#describe-ssl-policies
-	DescribeSSLPolicies(ctx context.Context, params *DescribeSSLPoliciesInput, optFns ...func(*Options)) (*DescribeSSLPoliciesOutput, error)
+	DescribeSSLPolicies(ctx context.Context, params *elasticloadbalancingv2.DescribeSSLPoliciesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeSSLPoliciesOutput, error)
 	// Describes the tags for the specified Elastic Load Balancing resources. You can
 	// describe the tags for one or more Application Load Balancers, Network Load
 	// Balancers, Gateway Load Balancers, target groups, listeners, or rules.
-	DescribeTags(ctx context.Context, params *DescribeTagsInput, optFns ...func(*Options)) (*DescribeTagsOutput, error)
+	DescribeTags(ctx context.Context, params *elasticloadbalancingv2.DescribeTagsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeTagsOutput, error)
 	// Describes the attributes for the specified target group.
 	//
 	// For more information, see the following:
@@ -244,38 +244,38 @@ type ELBV2 interface {
 	//   - in the Gateway Load Balancers Guide
 	//
 	// [Target group attributes]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/target-groups.html#target-group-attributes
-	DescribeTargetGroupAttributes(ctx context.Context, params *DescribeTargetGroupAttributesInput, optFns ...func(*Options)) (*DescribeTargetGroupAttributesOutput, error)
+	DescribeTargetGroupAttributes(ctx context.Context, params *elasticloadbalancingv2.DescribeTargetGroupAttributesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeTargetGroupAttributesOutput, error)
 	// Describes the specified target groups or all of your target groups. By default,
 	// all target groups are described. Alternatively, you can specify one of the
 	// following to filter the results: the ARN of the load balancer, the names of one
 	// or more target groups, or the ARNs of one or more target groups.
-	DescribeTargetGroups(ctx context.Context, params *DescribeTargetGroupsInput, optFns ...func(*Options)) (*DescribeTargetGroupsOutput, error)
+	DescribeTargetGroups(ctx context.Context, params *elasticloadbalancingv2.DescribeTargetGroupsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeTargetGroupsOutput, error)
 	// Describes the health of the specified targets or all of your targets.
-	DescribeTargetHealth(ctx context.Context, params *DescribeTargetHealthInput, optFns ...func(*Options)) (*DescribeTargetHealthOutput, error)
+	DescribeTargetHealth(ctx context.Context, params *elasticloadbalancingv2.DescribeTargetHealthInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeTargetHealthOutput, error)
 	// Describes all resources associated with the specified trust store.
-	DescribeTrustStoreAssociations(ctx context.Context, params *DescribeTrustStoreAssociationsInput, optFns ...func(*Options)) (*DescribeTrustStoreAssociationsOutput, error)
+	DescribeTrustStoreAssociations(ctx context.Context, params *elasticloadbalancingv2.DescribeTrustStoreAssociationsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeTrustStoreAssociationsOutput, error)
 	// Describes the revocation files in use by the specified trust store or
 	// revocation files.
-	DescribeTrustStoreRevocations(ctx context.Context, params *DescribeTrustStoreRevocationsInput, optFns ...func(*Options)) (*DescribeTrustStoreRevocationsOutput, error)
+	DescribeTrustStoreRevocations(ctx context.Context, params *elasticloadbalancingv2.DescribeTrustStoreRevocationsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeTrustStoreRevocationsOutput, error)
 	// Describes all trust stores for the specified account.
-	DescribeTrustStores(ctx context.Context, params *DescribeTrustStoresInput, optFns ...func(*Options)) (*DescribeTrustStoresOutput, error)
+	DescribeTrustStores(ctx context.Context, params *elasticloadbalancingv2.DescribeTrustStoresInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeTrustStoresOutput, error)
 	// Retrieves the resource policy for a specified resource.
-	GetResourcePolicy(ctx context.Context, params *GetResourcePolicyInput, optFns ...func(*Options)) (*GetResourcePolicyOutput, error)
+	GetResourcePolicy(ctx context.Context, params *elasticloadbalancingv2.GetResourcePolicyInput, optFns ...func(*Options)) (*elasticloadbalancingv2.GetResourcePolicyOutput, error)
 	// Retrieves the ca certificate bundle.
 	//
 	// This action returns a pre-signed S3 URI which is active for ten minutes.
-	GetTrustStoreCaCertificatesBundle(ctx context.Context, params *GetTrustStoreCaCertificatesBundleInput, optFns ...func(*Options)) (*GetTrustStoreCaCertificatesBundleOutput, error)
+	GetTrustStoreCaCertificatesBundle(ctx context.Context, params *elasticloadbalancingv2.GetTrustStoreCaCertificatesBundleInput, optFns ...func(*Options)) (*elasticloadbalancingv2.GetTrustStoreCaCertificatesBundleOutput, error)
 	// Retrieves the specified revocation file.
 	//
 	// This action returns a pre-signed S3 URI which is active for ten minutes.
-	GetTrustStoreRevocationContent(ctx context.Context, params *GetTrustStoreRevocationContentInput, optFns ...func(*Options)) (*GetTrustStoreRevocationContentOutput, error)
+	GetTrustStoreRevocationContent(ctx context.Context, params *elasticloadbalancingv2.GetTrustStoreRevocationContentInput, optFns ...func(*Options)) (*elasticloadbalancingv2.GetTrustStoreRevocationContentOutput, error)
 	// Modifies the capacity reservation of the specified load balancer.
 	//
 	// When modifying capacity reservation, you must include at least one
 	// MinimumLoadBalancerCapacity or ResetCapacityReservation .
-	ModifyCapacityReservation(ctx context.Context, params *ModifyCapacityReservationInput, optFns ...func(*Options)) (*ModifyCapacityReservationOutput, error)
+	ModifyCapacityReservation(ctx context.Context, params *elasticloadbalancingv2.ModifyCapacityReservationInput, optFns ...func(*Options)) (*elasticloadbalancingv2.ModifyCapacityReservationOutput, error)
 	// [Application Load Balancers] Modify the IP pool associated to a load balancer.
-	ModifyIpPools(ctx context.Context, params *ModifyIpPoolsInput, optFns ...func(*Options)) (*ModifyIpPoolsOutput, error)
+	ModifyIpPools(ctx context.Context, params *elasticloadbalancingv2.ModifyIpPoolsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.ModifyIpPoolsOutput, error)
 	// Replaces the specified properties of the specified listener. Any properties
 	// that you do not specify remain unchanged.
 	//
@@ -287,30 +287,30 @@ type ELBV2 interface {
 	// To add an item to a list, remove an item from a list, or update an item in a
 	// list, you must provide the entire list. For example, to add an action, specify a
 	// list with the current actions plus the new action.
-	ModifyListener(ctx context.Context, params *ModifyListenerInput, optFns ...func(*Options)) (*ModifyListenerOutput, error)
+	ModifyListener(ctx context.Context, params *elasticloadbalancingv2.ModifyListenerInput, optFns ...func(*Options)) (*elasticloadbalancingv2.ModifyListenerOutput, error)
 	// Modifies the specified attributes of the specified listener.
-	ModifyListenerAttributes(ctx context.Context, params *ModifyListenerAttributesInput, optFns ...func(*Options)) (*ModifyListenerAttributesOutput, error)
+	ModifyListenerAttributes(ctx context.Context, params *elasticloadbalancingv2.ModifyListenerAttributesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.ModifyListenerAttributesOutput, error)
 	// Modifies the specified attributes of the specified Application Load Balancer,
 	// Network Load Balancer, or Gateway Load Balancer.
 	//
 	// If any of the specified attributes can't be modified as requested, the call
 	// fails. Any existing attributes that you do not modify retain their current
 	// values.
-	ModifyLoadBalancerAttributes(ctx context.Context, params *ModifyLoadBalancerAttributesInput, optFns ...func(*Options)) (*ModifyLoadBalancerAttributesOutput, error)
+	ModifyLoadBalancerAttributes(ctx context.Context, params *elasticloadbalancingv2.ModifyLoadBalancerAttributesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.ModifyLoadBalancerAttributesOutput, error)
 	// Replaces the specified properties of the specified rule. Any properties that
 	// you do not specify are unchanged.
 	//
 	// To add an item to a list, remove an item from a list, or update an item in a
 	// list, you must provide the entire list. For example, to add an action, specify a
 	// list with the current actions plus the new action.
-	ModifyRule(ctx context.Context, params *ModifyRuleInput, optFns ...func(*Options)) (*ModifyRuleOutput, error)
+	ModifyRule(ctx context.Context, params *elasticloadbalancingv2.ModifyRuleInput, optFns ...func(*Options)) (*elasticloadbalancingv2.ModifyRuleOutput, error)
 	// Modifies the health checks used when evaluating the health state of the targets
 	// in the specified target group.
-	ModifyTargetGroup(ctx context.Context, params *ModifyTargetGroupInput, optFns ...func(*Options)) (*ModifyTargetGroupOutput, error)
+	ModifyTargetGroup(ctx context.Context, params *elasticloadbalancingv2.ModifyTargetGroupInput, optFns ...func(*Options)) (*elasticloadbalancingv2.ModifyTargetGroupOutput, error)
 	// Modifies the specified attributes of the specified target group.
-	ModifyTargetGroupAttributes(ctx context.Context, params *ModifyTargetGroupAttributesInput, optFns ...func(*Options)) (*ModifyTargetGroupAttributesOutput, error)
+	ModifyTargetGroupAttributes(ctx context.Context, params *elasticloadbalancingv2.ModifyTargetGroupAttributesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.ModifyTargetGroupAttributesOutput, error)
 	// Update the ca certificate bundle for the specified trust store.
-	ModifyTrustStore(ctx context.Context, params *ModifyTrustStoreInput, optFns ...func(*Options)) (*ModifyTrustStoreOutput, error)
+	ModifyTrustStore(ctx context.Context, params *elasticloadbalancingv2.ModifyTrustStoreInput, optFns ...func(*Options)) (*elasticloadbalancingv2.ModifyTrustStoreOutput, error)
 	// Registers the specified targets with the specified target group.
 	//
 	// If the target is an EC2 instance, it must be in the running state when you
@@ -325,24 +325,24 @@ type ELBV2 interface {
 	// they have the following instance types: C1, CC1, CC2, CG1, CG2, CR1, CS1, G1,
 	// G2, HI1, HS1, M1, M2, M3, and T1. You can register instances of these types by
 	// IP address.
-	RegisterTargets(ctx context.Context, params *RegisterTargetsInput, optFns ...func(*Options)) (*RegisterTargetsOutput, error)
+	RegisterTargets(ctx context.Context, params *elasticloadbalancingv2.RegisterTargetsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.RegisterTargetsOutput, error)
 	// Removes the specified certificate from the certificate list for the specified
 	// HTTPS or TLS listener.
-	RemoveListenerCertificates(ctx context.Context, params *RemoveListenerCertificatesInput, optFns ...func(*Options)) (*RemoveListenerCertificatesOutput, error)
+	RemoveListenerCertificates(ctx context.Context, params *elasticloadbalancingv2.RemoveListenerCertificatesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.RemoveListenerCertificatesOutput, error)
 	// Removes the specified tags from the specified Elastic Load Balancing resources.
 	// You can remove the tags for one or more Application Load Balancers, Network Load
 	// Balancers, Gateway Load Balancers, target groups, listeners, or rules.
-	RemoveTags(ctx context.Context, params *RemoveTagsInput, optFns ...func(*Options)) (*RemoveTagsOutput, error)
+	RemoveTags(ctx context.Context, params *elasticloadbalancingv2.RemoveTagsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.RemoveTagsOutput, error)
 	// Removes the specified revocation file from the specified trust store.
-	RemoveTrustStoreRevocations(ctx context.Context, params *RemoveTrustStoreRevocationsInput, optFns ...func(*Options)) (*RemoveTrustStoreRevocationsOutput, error)
+	RemoveTrustStoreRevocations(ctx context.Context, params *elasticloadbalancingv2.RemoveTrustStoreRevocationsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.RemoveTrustStoreRevocationsOutput, error)
 	// Sets the type of IP addresses used by the subnets of the specified load
 	// balancer.
-	SetIpAddressType(ctx context.Context, params *SetIpAddressTypeInput, optFns ...func(*Options)) (*SetIpAddressTypeOutput, error)
+	SetIpAddressType(ctx context.Context, params *elasticloadbalancingv2.SetIpAddressTypeInput, optFns ...func(*Options)) (*elasticloadbalancingv2.SetIpAddressTypeOutput, error)
 	// Sets the priorities of the specified rules.
 	//
 	// You can reorder the rules as long as there are no priority conflicts in the new
 	// order. Any existing rules that you do not specify retain their current priority.
-	SetRulePriorities(ctx context.Context, params *SetRulePrioritiesInput, optFns ...func(*Options)) (*SetRulePrioritiesOutput, error)
+	SetRulePriorities(ctx context.Context, params *elasticloadbalancingv2.SetRulePrioritiesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.SetRulePrioritiesOutput, error)
 	// Associates the specified security groups with the specified Application Load
 	// Balancer or Network Load Balancer. The specified security groups override the
 	// previously associated security groups.
@@ -351,7 +351,7 @@ type ELBV2 interface {
 	// specified a security group for the load balancer when you created it.
 	//
 	// You can't associate a security group with a Gateway Load Balancer.
-	SetSecurityGroups(ctx context.Context, params *SetSecurityGroupsInput, optFns ...func(*Options)) (*SetSecurityGroupsOutput, error)
+	SetSecurityGroups(ctx context.Context, params *elasticloadbalancingv2.SetSecurityGroupsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.SetSecurityGroupsOutput, error)
 	// Enables the Availability Zones for the specified public subnets for the
 	// specified Application Load Balancer, Network Load Balancer or Gateway Load
 	// Balancer. The specified subnets replace the previously enabled subnets.
@@ -359,6 +359,6 @@ type ELBV2 interface {
 	// When you specify subnets for a Network Load Balancer, or Gateway Load Balancer
 	// you must include all subnets that were enabled previously, with their existing
 	// configurations, plus any additional subnets.
-	SetSubnets(ctx context.Context, params *SetSubnetsInput, optFns ...func(*Options)) (*SetSubnetsOutput, error)
+	SetSubnets(ctx context.Context, params *elasticloadbalancingv2.SetSubnetsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.SetSubnetsOutput, error)
 }
 

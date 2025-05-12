@@ -86,7 +86,7 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 	*/
 	resolver := IRSAv1StackNameResolver{}
 	if err := resolver.Populate(func() ([]*api.ClusterIAMServiceAccount, error) {
-		return m.stackUpdater.GetIAMServiceAccounts(ctx)
+		return m.stackUpdater.GetIAMServiceAccounts(ctx, "", "")
 	}); err != nil {
 		return err
 	}
@@ -215,6 +215,11 @@ func (m *Migrator) MigrateToPodIdentity(ctx context.Context, options PodIdentity
 }
 
 func IsPodIdentityAgentInstalled(ctx context.Context, eksAPI awsapi.EKS, clusterName string) (bool, error) {
+
+	if autoMode, _ := IsAutoModeEnabled(ctx, eksAPI, clusterName); autoMode {
+		return true, nil
+	}
+
 	if _, err := eksAPI.DescribeAddon(ctx, &awseks.DescribeAddonInput{
 		AddonName:   aws.String(api.PodIdentityAgentAddon),
 		ClusterName: &clusterName,
@@ -226,6 +231,24 @@ func IsPodIdentityAgentInstalled(ctx context.Context, eksAPI awsapi.EKS, cluster
 		return false, fmt.Errorf("calling %q: %w", fmt.Sprintf("EKS::DescribeAddon::%s", api.PodIdentityAgentAddon), err)
 	}
 	return true, nil
+}
+
+func IsAutoModeEnabled(ctx context.Context, eksAPI awsapi.EKS, clusterName string) (bool, error) {
+	cluster, err := eksAPI.DescribeCluster(ctx, &awseks.DescribeClusterInput{
+		Name: aws.String(clusterName),
+	})
+
+	if err != nil {
+		return false, fmt.Errorf("calling EKS::DescribeCluster: %w", err)
+	}
+
+	if cluster.Cluster == nil ||
+		cluster.Cluster.ComputeConfig == nil ||
+		cluster.Cluster.ComputeConfig.Enabled == nil {
+		return false, nil
+	}
+
+	return *cluster.Cluster.ComputeConfig.Enabled, nil
 }
 
 type IRSAv1StackNameResolver map[string]IRSAv1StackSummary

@@ -279,14 +279,6 @@ var _ = Describe("eksctl API", func() {
 			testEnsureAMI(Equal("ami-ssm"), "1.14")
 		})
 
-		It("should fall back to auto resolution for Ubuntu1804", func() {
-			ng.AMIFamily = api.NodeImageFamilyUbuntu1804
-			mockDescribeImages(provider, "ami-ubuntu", func(input *ec2.DescribeImagesInput) bool {
-				return input.Owners[0] == "099720109477"
-			})
-			testEnsureAMI(Equal("ami-ubuntu"), "1.14")
-		})
-
 		It("should fall back to auto resolution for Ubuntu2004 on 1.14", func() {
 			ng.AMIFamily = api.NodeImageFamilyUbuntu2004
 			mockDescribeImages(provider, "ami-ubuntu", func(input *ec2.DescribeImagesInput) bool {
@@ -306,6 +298,14 @@ var _ = Describe("eksctl API", func() {
 			ng.AMIFamily = api.NodeImageFamilyUbuntu2004
 
 			testEnsureAMI(Equal("ami-ubuntu"), "1.29")
+		})
+
+		It("should fall back to auto resolution for UbuntuPro2004", func() {
+			ng.AMIFamily = api.NodeImageFamilyUbuntuPro2004
+			mockDescribeImages(provider, "ami-ubuntu", func(input *ec2.DescribeImagesInput) bool {
+				return input.Owners[0] == "099720109477"
+			})
+			testEnsureAMI(Equal("ami-ubuntu"), "1.14")
 		})
 
 		It("should fall back to auto resolution for Ubuntu2204", func() {

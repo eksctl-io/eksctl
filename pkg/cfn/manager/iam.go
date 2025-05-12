@@ -73,8 +73,9 @@ func (c *StackCollection) ListIAMServiceAccountStacks(ctx context.Context) ([]st
 	return names, nil
 }
 
-// GetIAMServiceAccounts calls DescribeIAMServiceAccountStacks and return native iamserviceaccounts
-func (c *StackCollection) GetIAMServiceAccounts(ctx context.Context) ([]*api.ClusterIAMServiceAccount, error) {
+// GetIAMServiceAccounts calls DescribeIAMServiceAccountStacks and return native iamserviceaccounts.
+// If name or namespace are provided, only service accounts matching those fields will be returned.
+func (c *StackCollection) GetIAMServiceAccounts(ctx context.Context, name string, namespace string) ([]*api.ClusterIAMServiceAccount, error) {
 	stacks, err := c.DescribeIAMServiceAccountStacks(ctx)
 	if err != nil {
 		return nil, err
@@ -86,6 +87,14 @@ func (c *StackCollection) GetIAMServiceAccounts(ctx context.Context) ([]*api.Clu
 		if err != nil {
 			return nil, err
 		}
+
+		if name != "" && name != meta.Name {
+			continue
+		}
+		if namespace != "" && namespace != meta.Namespace {
+			continue
+		}
+
 		serviceAccount := &api.ClusterIAMServiceAccount{
 			ClusterIAMMeta: *meta,
 			Status: &api.ClusterIAMServiceAccountStatus{

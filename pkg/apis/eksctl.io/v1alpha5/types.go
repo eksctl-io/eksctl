@@ -201,8 +201,8 @@ const (
 	NodeImageFamilyUbuntu2404      = "Ubuntu2404"
 	NodeImageFamilyUbuntuPro2204   = "UbuntuPro2204"
 	NodeImageFamilyUbuntu2204      = "Ubuntu2204"
+	NodeImageFamilyUbuntuPro2004   = "UbuntuPro2004"
 	NodeImageFamilyUbuntu2004      = "Ubuntu2004"
-	NodeImageFamilyUbuntu1804      = "Ubuntu1804"
 	NodeImageFamilyBottlerocket    = "Bottlerocket"
 
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
@@ -556,8 +556,8 @@ func SupportedAMIFamilies() []string {
 		NodeImageFamilyUbuntu2404,
 		NodeImageFamilyUbuntuPro2204,
 		NodeImageFamilyUbuntu2204,
+		NodeImageFamilyUbuntuPro2004,
 		NodeImageFamilyUbuntu2004,
-		NodeImageFamilyUbuntu1804,
 		NodeImageFamilyBottlerocket,
 		NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
@@ -1332,6 +1332,10 @@ type NodeGroup struct {
 	// The cluster should have been created with all of the local zones specified in this field.
 	// +optional
 	LocalZones []string `json:"localZones,omitempty"`
+
+	// EnclaveEnabled determines if the EC2 instance will be Nitro enclave enabled
+	// +optional
+	EnclaveEnabled *bool `json:"enclaveEnabled,omitempty"`
 }
 
 // GetContainerRuntime returns the container runtime.

@@ -32,7 +32,7 @@ func NewValueFromPrimitive(raw interface{}) (*Value, error) {
 	case json.Number:
 		i, err := p.Int64()
 		if err == nil {
-			if i <= int64(^uint(0) >> 1) {
+			if i <= int64(^uint(0)>>1) {
 				return NewInteger(int(i)), nil
 			}
 			return NewLong(i), nil

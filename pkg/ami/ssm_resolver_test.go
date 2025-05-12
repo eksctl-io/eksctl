@@ -234,23 +234,6 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 			})
 
-			Context("and Ubuntu1804 family", func() {
-				BeforeEach(func() {
-					p = mockprovider.NewMockProvider()
-					instanceType = "t2.medium"
-					imageFamily = "Ubuntu1804"
-				})
-
-				It("should return an error", func() {
-					resolver := NewSSMResolver(p.MockSSM())
-					resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
-
-					Expect(err).To(HaveOccurred())
-					Expect(err).To(MatchError("SSM Parameter lookups for Ubuntu1804 AMIs is not supported"))
-				})
-
-			})
-
 			Context("and Ubuntu2004 family", func() {
 				BeforeEach(func() {
 					p = mockprovider.NewMockProvider()
@@ -316,6 +299,66 @@ var _ = Describe("AMI Auto Resolution", func() {
 						Entry(nil, "1.24"),
 						Entry(nil, "1.25"),
 						Entry(nil, "1.26"),
+						Entry(nil, "1.27"),
+						Entry(nil, "1.28"),
+						Entry(nil, "1.29"),
+					)
+				})
+			})
+
+			Context("and UbuntuPro2004 family", func() {
+				BeforeEach(func() {
+					p = mockprovider.NewMockProvider()
+					instanceType = "t2.medium"
+					imageFamily = "UbuntuPro2004"
+				})
+
+				DescribeTable("should return an error",
+					func(version string) {
+						resolver := NewSSMResolver(p.MockSSM())
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
+
+						Expect(err).To(HaveOccurred())
+						Expect(err).To(MatchError("UbuntuPro2004 requires EKS version greater or equal than 1.27 and lower than 1.29"))
+					},
+					EntryDescription("When EKS version is %s"),
+					Entry(nil, "1.26"),
+					Entry(nil, "1.30"),
+				)
+
+				DescribeTable("should return a valid AMI",
+					func(version string) {
+						addMockGetParameter(p, fmt.Sprintf("/aws/service/canonical/ubuntu/eks-pro/20.04/%s/stable/current/amd64/hvm/ebs-gp2/ami-id", version), expectedAmi)
+
+						resolver := NewSSMResolver(p.MockSSM())
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
+
+						Expect(err).NotTo(HaveOccurred())
+						Expect(p.MockSSM().AssertNumberOfCalls(GinkgoT(), "GetParameter", 1)).To(BeTrue())
+						Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
+					},
+					EntryDescription("When EKS version is %s"),
+					Entry(nil, "1.27"),
+					Entry(nil, "1.28"),
+					Entry(nil, "1.29"),
+				)
+
+				Context("for arm instance type", func() {
+					BeforeEach(func() {
+						instanceType = "c6g.12xlarge"
+					})
+					DescribeTable("should return a valid AMI for arm64",
+						func(version string) {
+							addMockGetParameter(p, fmt.Sprintf("/aws/service/canonical/ubuntu/eks-pro/20.04/%s/stable/current/arm64/hvm/ebs-gp2/ami-id", version), expectedAmi)
+
+							resolver := NewSSMResolver(p.MockSSM())
+							resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
+
+							Expect(err).NotTo(HaveOccurred())
+							Expect(p.MockSSM().AssertNumberOfCalls(GinkgoT(), "GetParameter", 1)).To(BeTrue())
+							Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
+						},
+						EntryDescription("When EKS version is %s"),
 						Entry(nil, "1.27"),
 						Entry(nil, "1.28"),
 						Entry(nil, "1.29"),
@@ -714,8 +757,6 @@ var _ = Describe("AMI Auto Resolution", func() {
 			var eksAMIType ekstypes.AMITypes
 			for _, amiType := range eksAMIType.Values() {
 				if amiType == ekstypes.AMITypesCustom || strings.HasPrefix(string(amiType), "WINDOWS_") ||
-					// TODO: remove this condition after adding support for AL2023 Nvidia and Neuron AMI types.
-					amiType == ekstypes.AMITypesAl2023X8664Nvidia || amiType == ekstypes.AMITypesAl2023X8664Neuron ||
 					// TODO: remove this condition after support for Bottlerocket FIPS AMI types.
 					amiType == ekstypes.AMITypesBottlerocketArm64Fips || amiType == ekstypes.AMITypesBottlerocketX8664Fips {
 					continue
