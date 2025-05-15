@@ -6015,7 +6015,7 @@ var InstanceTypes = []InstanceInfo{
 		NvidiaGPUType:            "A100",
 		NeuronSupported:          false,
 		NeuronDeviceType:         "",
-		CBRSupported:             false,
+		CBRSupported:             true,
 		CPUArch:                  "x86-64",
 	},
 	{
