@@ -301,9 +301,9 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					ng.IAM.AttachPolicyARNs = []string{"arn:aws:iam::1234567890:role/foo"}
 				})
 
-				It("adds the provided policy and the AmazonEC2ContainerRegistryReadOnly policy", func() {
+				It("adds the provided policy and the AmazonEC2ContainerRegistryPullOnly policy", func() {
 					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(2))
-					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonEC2ContainerRegistryReadOnly")))
+					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonEC2ContainerRegistryPullOnly")))
 					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement("arn:aws:iam::1234567890:role/foo"))
 				})
 
@@ -312,7 +312,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 						ng.IAM.AttachPolicyARNs = []string{"foo"}
 					})
 
-					It("adds the provided policy and the AmazonEC2ContainerRegistryReadOnly policy", func() {
+					It("adds the provided policy and the AmazonEC2ContainerRegistryPullOnly policy", func() {
 						Expect(addErr).To(MatchError("arn: invalid prefix"))
 					})
 				})
@@ -326,7 +326,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				It("adds the default policies to the role", func() {
 					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(4))
 
-					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonEC2ContainerRegistryReadOnly")))
+					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonEC2ContainerRegistryPullOnly")))
 					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonEKSWorkerNodePolicy")))
 					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonEKS_CNI_Policy")))
 					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonEKS_CNI_Policy")))

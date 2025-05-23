@@ -31,7 +31,7 @@ func TestManagedPolicyResources(t *testing.T) {
 		description             string
 	}{
 		{
-			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly", "AmazonSSMManagedInstanceCore"),
+			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryPullOnly", "AmazonSSMManagedInstanceCore"),
 			description:             "Default policies",
 		},
 		{
@@ -39,7 +39,7 @@ func TestManagedPolicyResources(t *testing.T) {
 				ImageBuilder: api.Enabled(),
 			},
 			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy",
-				"AmazonEC2ContainerRegistryReadOnly", "AmazonEC2ContainerRegistryPowerUser", "AmazonSSMManagedInstanceCore"),
+				"AmazonEC2ContainerRegistryPullOnly", "AmazonEC2ContainerRegistryPowerUser", "AmazonSSMManagedInstanceCore"),
 			description: "ImageBuilder enabled",
 		},
 		{
@@ -47,7 +47,7 @@ func TestManagedPolicyResources(t *testing.T) {
 				CloudWatch: api.Enabled(),
 			},
 			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy",
-				"AmazonEC2ContainerRegistryReadOnly", "AmazonSSMManagedInstanceCore", "CloudWatchAgentServerPolicy"),
+				"AmazonEC2ContainerRegistryPullOnly", "AmazonSSMManagedInstanceCore", "CloudWatchAgentServerPolicy"),
 			description: "CloudWatch enabled",
 		},
 		{
@@ -55,7 +55,7 @@ func TestManagedPolicyResources(t *testing.T) {
 				AutoScaler: api.Enabled(),
 			},
 			expectedNewPolicies:     []string{"PolicyAutoScaling"},
-			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly", "AmazonSSMManagedInstanceCore"),
+			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryPullOnly", "AmazonSSMManagedInstanceCore"),
 			description:             "AutoScaler enabled",
 		},
 		{
@@ -67,7 +67,7 @@ func TestManagedPolicyResources(t *testing.T) {
 				"Resource": "*",
 			}),
 			expectedNewPolicies:     []string{"Policy1"},
-			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly", "AmazonSSMManagedInstanceCore"),
+			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryPullOnly", "AmazonSSMManagedInstanceCore"),
 			description:             "Custom inline policies",
 		},
 		{

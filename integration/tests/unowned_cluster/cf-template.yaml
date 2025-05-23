@@ -103,7 +103,7 @@ Resources:
                     - EC2
         Version: "2012-10-17"
       ManagedPolicyArns:
-        - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly
         - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/AmazonEKS_CNI_Policy
       Path: "/"

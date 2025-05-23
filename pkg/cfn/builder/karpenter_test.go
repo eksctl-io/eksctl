@@ -196,7 +196,7 @@ var expectedTemplate = `{
         },
         "ManagedPolicyArns": [
           {
-            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
           },
           {
             "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy"
@@ -352,7 +352,7 @@ var expectedTemplateWithPermissionBoundary = `{
         },
         "ManagedPolicyArns": [
           {
-            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
           },
           {
             "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy"
@@ -596,7 +596,7 @@ var expectedTemplateWithSpotInterruptionQueue = `{
         },
         "ManagedPolicyArns": [
           {
-            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
           },
           {
             "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy"

@@ -161,7 +161,7 @@ func makeManagedPolicies(iamCluster *api.ClusterIAM, iamConfig *api.NodeGroupIAM
 			// The Managed Nodegroup API requires this managed policy to be present, even though
 			// AmazonEC2ContainerRegistryPowerUser (attached if imageBuilder is enabled) contains a superset of the
 			// actions allowed by this managed policy
-			managedPolicyNames.Insert(iamPolicyAmazonEC2ContainerRegistryReadOnly)
+			managedPolicyNames.Insert(iamPolicyAmazonEC2ContainerRegistryPullOnly)
 		}
 		managedPolicyNames.Insert(iamPolicyAmazonSSMManagedInstanceCore)
 	}
@@ -171,7 +171,7 @@ func makeManagedPolicies(iamCluster *api.ClusterIAM, iamConfig *api.NodeGroupIAM
 	} else if !managed {
 		// attach this policy even if `AttachPolicyARNs` is specified to preserve existing behaviour for unmanaged
 		// nodegroups
-		managedPolicyNames.Insert(iamPolicyAmazonEC2ContainerRegistryReadOnly)
+		managedPolicyNames.Insert(iamPolicyAmazonEC2ContainerRegistryPullOnly)
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.CloudWatch) {

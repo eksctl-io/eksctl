@@ -124,7 +124,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 	managedPolicyNames := sets.New[string]()
 	managedPolicyNames.Insert(iamPolicyAmazonEKSWorkerNodePolicy,
 		iamPolicyAmazonEKSCNIPolicy,
-		iamPolicyAmazonEC2ContainerRegistryReadOnly,
+		iamPolicyAmazonEC2ContainerRegistryPullOnly,
 		iamPolicyAmazonSSMManagedInstanceCore,
 	)
 	k.Template().Mappings[servicePrincipalPartitionMapName] = api.Partitions.ServicePrincipalPartitionMappings()
