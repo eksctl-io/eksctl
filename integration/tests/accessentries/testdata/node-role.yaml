@@ -21,7 +21,7 @@
         },
         "ManagedPolicyArns": [
           {
-            "Fn::Sub": "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+            "Fn::Sub": "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
           },
           {
             "Fn::Sub": "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"

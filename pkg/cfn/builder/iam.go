@@ -27,7 +27,7 @@ const (
 	iamPolicyAmazonEKSWorkerNodePolicy           = "AmazonEKSWorkerNodePolicy"
 	iamPolicyAmazonEKSCNIPolicy                  = "AmazonEKS_CNI_Policy"
 	iamPolicyAmazonEC2ContainerRegistryPowerUser = "AmazonEC2ContainerRegistryPowerUser"
-	iamPolicyAmazonEC2ContainerRegistryReadOnly  = "AmazonEC2ContainerRegistryReadOnly"
+	iamPolicyAmazonEC2ContainerRegistryPullOnly  = "AmazonEC2ContainerRegistryPullOnly"
 	iamPolicyCloudWatchAgentServerPolicy         = "CloudWatchAgentServerPolicy"
 	iamPolicyAmazonSSMManagedInstanceCore        = "AmazonSSMManagedInstanceCore"
 
@@ -180,7 +180,7 @@ func (c *ClusterResourceSet) addIAMRolesAnywhere() {
 			eksDescribeClusterPolicy,
 		},
 		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs([]string{
-			iamPolicyAmazonEC2ContainerRegistryReadOnly,
+			iamPolicyAmazonEC2ContainerRegistryPullOnly,
 			iamPolicyAmazonSSMManagedInstanceCore,
 		}...)...),
 		AWSCloudFormationDependsOn: []string{TrustAnchor},
@@ -213,7 +213,7 @@ func (c *ClusterResourceSet) addSSM() {
 		},
 		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs([]string{
 			iamPolicyAmazonSSMManagedInstanceCore,
-			iamPolicyAmazonEC2ContainerRegistryReadOnly,
+			iamPolicyAmazonEC2ContainerRegistryPullOnly,
 		}...)...),
 	}
 	c.newResource(SSMRole, role)
