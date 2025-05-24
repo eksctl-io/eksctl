@@ -14,6 +14,23 @@ kubernetesNetworkConfig:
 addons:
   - name: vpc-cni
     version: latest
+    # "ec2:AssignIpv6Addresses" would be required for IPv6 cluster
+    # - https://github.com/aws/amazon-vpc-cni-k8s/blob/master/docs/iam-policy.md#ipv6-mode
+    attachPolicy:
+      Version: "2012-10-17"
+      Statement:
+      - Effect: Allow
+        Action:
+        - "ec2:AssignIpv6Addresses"
+        - "ec2:DescribeInstances"
+        - "ec2:DescribeTags"
+        - "ec2:DescribeNetworkInterfaces"
+        - "ec2:DescribeInstanceTypes"
+        Resource: '*'
+      - Effect: Allow
+        Action:
+        - "ec2:CreateTags"
+        Resource: 'arn:aws:ec2:*:*:network-interface/*'
   - name: coredns
     version: latest
   - name: kube-proxy
