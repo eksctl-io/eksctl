@@ -55,7 +55,7 @@ require (
 	github.com/otiai10/copy v1.14.1
 	github.com/pelletier/go-toml v1.9.5
 	github.com/sanathkr/go-yaml v0.0.0-20170819195128-ed9d249f429b
-	github.com/sanathkr/yaml v0.0.0-20170819201035-0056894fa522
+	github.com/sanathkr/yaml v1.0.0
 	github.com/sethvargo/go-password v0.3.1
 	github.com/spf13/afero v1.14.0
 	github.com/spf13/cobra v1.9.1
