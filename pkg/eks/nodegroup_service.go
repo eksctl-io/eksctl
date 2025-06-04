@@ -20,6 +20,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/outposts"
 	"github.com/weaveworks/eksctl/pkg/ssh"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
@@ -58,6 +59,11 @@ func (n *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 	for _, np := range nodePools {
 		switch ng := np.(type) {
 		case *api.ManagedNodeGroup:
+			isAL2EOLVersion, _ := utils.IsMinVersion(api.AmazonLinux2EOLVersion, clusterConfig.Metadata.Version)
+			if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 && isAL2EOLVersion {
+				logger.Warning("Using AmazonLinux2023 image family, as AmazonLinux2 is not supported on Kubernetes version %s", clusterConfig.Metadata.Version)
+				ng.AMIFamily = api.NodeImageFamilyAmazonLinux2023
+			}
 			if ng.LaunchTemplate == nil && ng.InstanceType == "" && len(ng.InstanceTypes) == 0 && ng.InstanceSelector.IsZero() {
 				ng.InstanceType = api.DefaultNodeType
 			}
@@ -74,6 +80,11 @@ func (n *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 			}
 
 		case *api.NodeGroup:
+			isAL2EOLVersion, _ := utils.IsMinVersion(api.AmazonLinux2EOLVersion, clusterConfig.Metadata.Version)
+			if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 && isAL2EOLVersion {
+				logger.Warning("Using AmazonLinux2023 image family, as AmazonLinux2 is not supported on Kubernetes version %s", clusterConfig.Metadata.Version)
+				ng.AMIFamily = api.NodeImageFamilyAmazonLinux2023
+			}
 			if !api.IsAMI(ng.AMI) {
 				if err := ResolveAMI(ctx, n.provider, clusterConfig.Metadata.Version, ng); err != nil {
 					return err

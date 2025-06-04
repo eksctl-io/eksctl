@@ -4315,6 +4315,80 @@ func (_c *CloudWatchLogs_ListLogAnomalyDetectors_Call) RunAndReturn(run func(con
 	return _c
 }
 
+// ListLogGroups provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudWatchLogs) ListLogGroups(ctx context.Context, params *cloudwatchlogs.ListLogGroupsInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListLogGroupsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListLogGroups")
+	}
+
+	var r0 *cloudwatchlogs.ListLogGroupsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.ListLogGroupsInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListLogGroupsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudwatchlogs.ListLogGroupsInput, ...func(*cloudwatchlogs.Options)) *cloudwatchlogs.ListLogGroupsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudwatchlogs.ListLogGroupsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudwatchlogs.ListLogGroupsInput, ...func(*cloudwatchlogs.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudWatchLogs_ListLogGroups_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListLogGroups'
+type CloudWatchLogs_ListLogGroups_Call struct {
+	*mock.Call
+}
+
+// ListLogGroups is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudwatchlogs.ListLogGroupsInput
+//   - optFns ...func(*cloudwatchlogs.Options)
+func (_e *CloudWatchLogs_Expecter) ListLogGroups(ctx interface{}, params interface{}, optFns ...interface{}) *CloudWatchLogs_ListLogGroups_Call {
+	return &CloudWatchLogs_ListLogGroups_Call{Call: _e.mock.On("ListLogGroups",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudWatchLogs_ListLogGroups_Call) Run(run func(ctx context.Context, params *cloudwatchlogs.ListLogGroupsInput, optFns ...func(*cloudwatchlogs.Options))) *CloudWatchLogs_ListLogGroups_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudwatchlogs.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudwatchlogs.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudwatchlogs.ListLogGroupsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudWatchLogs_ListLogGroups_Call) Return(_a0 *cloudwatchlogs.ListLogGroupsOutput, _a1 error) *CloudWatchLogs_ListLogGroups_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudWatchLogs_ListLogGroups_Call) RunAndReturn(run func(context.Context, *cloudwatchlogs.ListLogGroupsInput, ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListLogGroupsOutput, error)) *CloudWatchLogs_ListLogGroups_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListLogGroupsForQuery provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudWatchLogs) ListLogGroupsForQuery(ctx context.Context, params *cloudwatchlogs.ListLogGroupsForQueryInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListLogGroupsForQueryOutput, error) {
 	_va := make([]interface{}, len(optFns))

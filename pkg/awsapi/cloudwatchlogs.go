@@ -421,8 +421,8 @@ type CloudWatchLogs interface {
 	// [PutIndexPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutIndexPolicy.html
 	// [DescribeAccountPolicies]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeAccountPolicies.html
 	DescribeIndexPolicies(ctx context.Context, params *cloudwatchlogs.DescribeIndexPoliciesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeIndexPoliciesOutput, error)
-	// Lists the specified log groups. You can list all your log groups or filter the
-	// results by prefix. The results are ASCII-sorted by log group name.
+	// Returns information about log groups. You can return all your log groups or
+	// filter the results by prefix. The results are ASCII-sorted by log group name.
 	//
 	// CloudWatch Logs doesn't support IAM policies that control access to the
 	// DescribeLogGroups action by using the aws:ResourceTag/key-name  condition key.
@@ -528,11 +528,9 @@ type CloudWatchLogs interface {
 	// in a subsequent FilterLogEvents operation. If the results don't include a
 	// nextToken , then pagination is finished.
 	//
-	// If you set startFromHead to true and you don’t include endTime in your request,
-	// you can end up in a situation where the pagination doesn't terminate. This can
-	// happen when the new log events are being added to the target log streams faster
-	// than they are being read. This situation is a good use case for the CloudWatch
-	// Logs [Live Tail]feature.
+	// Specifying the limit parameter only guarantees that a single page doesn't
+	// return more log events than the specified limit, but it might return fewer
+	// events than the limit. This is the expected API behavior.
 	//
 	// The returned log events are sorted by event timestamp, the timestamp when the
 	// event was ingested by CloudWatch Logs, and the ID of the PutLogEvents request.
@@ -548,7 +546,6 @@ type CloudWatchLogs interface {
 	// [log transformation]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch-Logs-Transformation.html
 	// [CloudWatch cross-account observability]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html
 	// [CloudWatch Logs query.]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html
-	// [Live Tail]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs_LiveTail.html
 	FilterLogEvents(ctx context.Context, params *cloudwatchlogs.FilterLogEventsInput, optFns ...func(*Options)) (*cloudwatchlogs.FilterLogEventsOutput, error)
 	// Returns information about a log group data protection policy.
 	GetDataProtectionPolicy(ctx context.Context, params *cloudwatchlogs.GetDataProtectionPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.GetDataProtectionPolicyOutput, error)
@@ -691,6 +688,21 @@ type CloudWatchLogs interface {
 	ListIntegrations(ctx context.Context, params *cloudwatchlogs.ListIntegrationsInput, optFns ...func(*Options)) (*cloudwatchlogs.ListIntegrationsOutput, error)
 	// Retrieves a list of the log anomaly detectors in the account.
 	ListLogAnomalyDetectors(ctx context.Context, params *cloudwatchlogs.ListLogAnomalyDetectorsInput, optFns ...func(*Options)) (*cloudwatchlogs.ListLogAnomalyDetectorsOutput, error)
+	// Returns a list of log groups in the Region in your account. If you are
+	// performing this action in a monitoring account, you can choose to also return
+	// log groups from source accounts that are linked to the monitoring account. For
+	// more information about using cross-account observability to set up monitoring
+	// accounts and source accounts, see [CloudWatch cross-account observability].
+	//
+	// You can optionally filter the list by log group class and by using regular
+	// expressions in your request to match strings in the log group names.
+	//
+	// This operation is paginated. By default, your first use of this operation
+	// returns 50 results, and includes a token to use in a subsequent operation to
+	// return more results.
+	//
+	// [CloudWatch cross-account observability]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html
+	ListLogGroups(ctx context.Context, params *cloudwatchlogs.ListLogGroupsInput, optFns ...func(*Options)) (*cloudwatchlogs.ListLogGroupsOutput, error)
 	// Returns a list of the log groups that were analyzed during a single CloudWatch
 	// Logs Insights query. This can be useful for queries that use log group name
 	// prefixes or the filterIndex command, because the log groups are dynamically
