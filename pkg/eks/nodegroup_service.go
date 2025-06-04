@@ -61,7 +61,7 @@ func (n *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 		case *api.ManagedNodeGroup:
 			isAL2EOLVersion, _ := utils.IsMinVersion(api.AmazonLinux2EOLVersion, clusterConfig.Metadata.Version)
 			if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 && isAL2EOLVersion {
-				logger.Warning("Using AmazonLinux2023 image family, as AmazonLinux2 is not supported on Kubernetes version %s", clusterConfig.Metadata.Version)
+				logger.Warning("Using AmazonLinux2023 image family, as AmazonLinux2 is not supported for Kubernetes version %s", clusterConfig.Metadata.Version)
 				ng.AMIFamily = api.NodeImageFamilyAmazonLinux2023
 			}
 			if ng.LaunchTemplate == nil && ng.InstanceType == "" && len(ng.InstanceTypes) == 0 && ng.InstanceSelector.IsZero() {
@@ -82,7 +82,7 @@ func (n *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 		case *api.NodeGroup:
 			isAL2EOLVersion, _ := utils.IsMinVersion(api.AmazonLinux2EOLVersion, clusterConfig.Metadata.Version)
 			if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 && isAL2EOLVersion {
-				logger.Warning("Using AmazonLinux2023 image family, as AmazonLinux2 is not supported on Kubernetes version %s", clusterConfig.Metadata.Version)
+				logger.Warning("Using AmazonLinux2023 image family, as AmazonLinux2 is not supported for Kubernetes version %s", clusterConfig.Metadata.Version)
 				ng.AMIFamily = api.NodeImageFamilyAmazonLinux2023
 			}
 			if !api.IsAMI(ng.AMI) {

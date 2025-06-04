@@ -24,6 +24,7 @@ import (
 type normalizeEntry struct {
 	clusterConfig         *api.ClusterConfig
 	expectedInstanceTypes []string
+	expectedAMIFamily     map[string]string
 
 	expectedCallsCount callsCount
 	expectedErr        string
@@ -73,6 +74,16 @@ var _ = Describe("NodeGroupService", func() {
 		}
 
 		Expect(actualInstanceTypes).To(Equal(ne.expectedInstanceTypes))
+
+		// Check AMI family if expected values are provided
+		if ne.expectedAMIFamily != nil {
+			for _, ng := range nodePools {
+				baseNG := ng.BaseNodeGroup()
+				if expectedAMI, ok := ne.expectedAMIFamily[baseNG.Name]; ok {
+					Expect(baseNG.AMIFamily).To(Equal(expectedAMI))
+				}
+			}
+		}
 	},
 
 		Entry("[Outposts] nodeGroup.instanceType should be set to the smallest available instance type", normalizeEntry{
@@ -265,6 +276,123 @@ var _ = Describe("NodeGroupService", func() {
 				},
 			},
 			expectedInstanceTypes: []string{"", ""},
+		}),
+
+		Entry("AL2 AMI family should be changed to AL2023 for K8s version 1.33", normalizeEntry{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Version: api.Version1_33,
+				},
+				NodeGroups: []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:      "ng-1",
+							AMI:       "ami-test",
+							AMIFamily: api.NodeImageFamilyAmazonLinux2,
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+							InstanceSelector: &api.InstanceSelector{},
+						},
+					},
+				},
+				ManagedNodeGroups: []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:      "mng-1",
+							AMI:       "ami-test",
+							AMIFamily: api.NodeImageFamilyAmazonLinux2,
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+							InstanceSelector: &api.InstanceSelector{},
+						},
+					},
+				},
+			},
+			expectedInstanceTypes: []string{api.DefaultNodeType, api.DefaultNodeType},
+			expectedAMIFamily: map[string]string{
+				"ng-1":  api.NodeImageFamilyAmazonLinux2023,
+				"mng-1": api.NodeImageFamilyAmazonLinux2023,
+			},
+		}),
+
+		Entry("AL2 AMI family should remain unchanged for K8s version 1.32", normalizeEntry{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Version: api.Version1_32,
+				},
+				NodeGroups: []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:      "ng-1",
+							AMI:       "ami-test",
+							AMIFamily: api.NodeImageFamilyAmazonLinux2,
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+							InstanceSelector: &api.InstanceSelector{},
+						},
+					},
+				},
+				ManagedNodeGroups: []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:      "mng-1",
+							AMI:       "ami-test",
+							AMIFamily: api.NodeImageFamilyAmazonLinux2,
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+							InstanceSelector: &api.InstanceSelector{},
+						},
+					},
+				},
+			},
+			expectedInstanceTypes: []string{api.DefaultNodeType, api.DefaultNodeType},
+			expectedAMIFamily: map[string]string{
+				"ng-1":  api.NodeImageFamilyAmazonLinux2,
+				"mng-1": api.NodeImageFamilyAmazonLinux2,
+			},
+		}),
+
+		Entry("Non-AL2 AMI families should remain unchanged for K8s version 1.33", normalizeEntry{
+			clusterConfig: &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Version: api.Version1_33,
+				},
+				NodeGroups: []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:      "ng-1",
+							AMI:       "ami-test",
+							AMIFamily: api.NodeImageFamilyBottlerocket,
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+							InstanceSelector: &api.InstanceSelector{},
+						},
+					},
+				},
+				ManagedNodeGroups: []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:      "mng-1",
+							AMI:       "ami-test",
+							AMIFamily: api.NodeImageFamilyAmazonLinux2023,
+							SSH: &api.NodeGroupSSH{
+								Allow: api.Disabled(),
+							},
+							InstanceSelector: &api.InstanceSelector{},
+						},
+					},
+				},
+			},
+			expectedInstanceTypes: []string{api.DefaultNodeType, api.DefaultNodeType},
+			expectedAMIFamily: map[string]string{
+				"ng-1":  api.NodeImageFamilyBottlerocket,
+				"mng-1": api.NodeImageFamilyAmazonLinux2023,
+			},
 		}),
 	)
 })
