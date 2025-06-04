@@ -42,7 +42,8 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 	DescribeTable("Add resources", func(m *mngCase) {
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = "lt"
-		api.SetManagedNodeGroupDefaults(m.ng, clusterConfig.Metadata, false)
+		err := api.SetManagedNodeGroupDefaults(m.ng, clusterConfig.Metadata, false)
+		Expect(err).NotTo(HaveOccurred())
 		Expect(api.ValidateManagedNodeGroup(0, m.ng)).To(Succeed())
 
 		provider := mockprovider.NewMockProvider()
@@ -79,7 +80,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 			})
 
 		stack := builder.NewManagedNodeGroup(provider.MockEC2(), clusterConfig, m.ng, builder.NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, fakeVPCImporter)
-		err := stack.AddAllResources(context.Background())
+		err = stack.AddAllResources(context.Background())
 		if m.errMsg != "" {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(m.errMsg))
