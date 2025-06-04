@@ -87,7 +87,9 @@ func (c *Cmd) InitializeClusterConfig() error {
 	}
 
 	for i, ng := range c.ClusterConfig.ManagedNodeGroups {
-		api.SetManagedNodeGroupDefaults(ng, c.ClusterConfig.Metadata, c.ClusterConfig.IsControlPlaneOnOutposts())
+		if err := api.SetManagedNodeGroupDefaults(ng, c.ClusterConfig.Metadata, c.ClusterConfig.IsControlPlaneOnOutposts()); err != nil {
+			return err
+		}
 		if err := api.ValidateManagedNodeGroup(i, ng); err != nil {
 			return err
 		}
