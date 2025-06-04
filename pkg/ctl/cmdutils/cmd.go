@@ -81,7 +81,9 @@ func (c *Cmd) InitializeClusterConfig() error {
 		}
 		// defaulting of nodegroup currently depends on validation;
 		// that may change, but at present that's how it's meant to work
-		api.SetNodeGroupDefaults(ng, c.ClusterConfig.Metadata, c.ClusterConfig.IsControlPlaneOnOutposts())
+		if err := api.SetNodeGroupDefaults(ng, c.ClusterConfig.Metadata, c.ClusterConfig.IsControlPlaneOnOutposts()); err != nil {
+			return err
+		}
 	}
 
 	for i, ng := range c.ClusterConfig.ManagedNodeGroups {

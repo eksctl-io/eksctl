@@ -400,10 +400,65 @@ var _ = Describe("ClusterConfig validation", func() {
 			}, false)
 			Expect(mng.AMIFamily).To(Equal(expectedAMIFamily))
 		},
+			Entry("EKS 1.33 uses AL2023", "1.33", NodeImageFamilyAmazonLinux2023),
+			Entry("EKS 1.32 uses AL2023", "1.32", NodeImageFamilyAmazonLinux2023),
 			Entry("EKS 1.31 uses AL2023", "1.31", NodeImageFamilyAmazonLinux2023),
 			Entry("EKS 1.30 uses AL2023", "1.30", NodeImageFamilyAmazonLinux2023),
 			Entry("EKS 1.29 uses AL2", "1.29", NodeImageFamilyAmazonLinux2),
 			Entry("EKS 1.28 uses AL2", "1.28", NodeImageFamilyAmazonLinux2),
 		)
+	})
+
+	Context("AMI family changes for K8s version 1.33", func() {
+		It("Should return an error when AL2 AMI family was explicitly selected for K8s version 1.33", func() {
+			ng := &NodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMIFamily: NodeImageFamilyAmazonLinux2,
+				},
+			}
+			err := SetNodeGroupDefaults(ng, &ClusterMeta{Version: "1.33"}, false)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("AmazonLinux2 is not supported for Kubernetes version 1.33"))
+		})
+
+		It("AL2 AMI family should remain unchanged for K8s version 1.32", func() {
+			ng := &NodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMIFamily: NodeImageFamilyAmazonLinux2,
+				},
+			}
+			err := SetNodeGroupDefaults(ng, &ClusterMeta{Version: "1.32"}, false)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(ng.AMIFamily).To(Equal(NodeImageFamilyAmazonLinux2))
+		})
+
+		It("Non-AL2 AMI families should remain unchanged for K8s version 1.33", func() {
+			ng := &NodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMIFamily: NodeImageFamilyBottlerocket,
+				},
+			}
+			err := SetNodeGroupDefaults(ng, &ClusterMeta{Version: "1.33"}, false)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(ng.AMIFamily).To(Equal(NodeImageFamilyBottlerocket))
+		})
+
+		It("Default AMI family should be AL2023 for K8s version 1.33", func() {
+			ng := &NodeGroup{
+				NodeGroupBase: &NodeGroupBase{},
+			}
+			err := SetNodeGroupDefaults(ng, &ClusterMeta{Version: "1.33"}, false)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(ng.AMIFamily).To(Equal(NodeImageFamilyAmazonLinux2023))
+		})
+
+		It("Default AMI family should be AL2 for K8s version 1.32", func() {
+			ng := &NodeGroup{
+				NodeGroupBase: &NodeGroupBase{},
+			}
+			err := SetNodeGroupDefaults(ng, &ClusterMeta{Version: "1.32"}, false)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(ng.AMIFamily).To(Equal(NodeImageFamilyAmazonLinux2))
+		})
 	})
 })

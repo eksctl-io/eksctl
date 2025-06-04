@@ -1,6 +1,7 @@
 package v1alpha5
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
@@ -121,9 +123,23 @@ func vpcCNIAddonSpecified(cfg *ClusterConfig) bool {
 }
 
 // SetNodeGroupDefaults will set defaults for a given nodegroup
-func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta, controlPlaneOnOutposts bool) {
+func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta, controlPlaneOnOutposts bool) error {
 	setNodeGroupBaseDefaults(ng.NodeGroupBase, meta)
 
+	// Set default AMI family depending on Kubernetes version
+	isAL2EOLVersion, _ := utils.IsMinVersion(AmazonLinux2EOLVersion, meta.Version)
+	if isAL2EOLVersion {
+		// For newer Kubernetes versions, default to AL2023
+		if ng.AMIFamily == "" {
+			ng.AMIFamily = NodeImageFamilyAmazonLinux2023
+		}
+		// Since AL2 isn't supported, throw an error if the user explicitly requested AL2
+		if ng.AMIFamily == NodeImageFamilyAmazonLinux2 {
+			logger.Warning("AmazonLinux2 is not supported for Kubernetes version %s", meta.Version)
+			return errors.New(fmt.Sprintf("AmazonLinux2 is not supported for Kubernetes version %s", meta.Version))
+		}
+	}
+	// Default to AL2 for Kubernetes versions prior to AmazonLinux2EOLVersion
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = DefaultNodeImageFamily
 	}
@@ -139,6 +155,7 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta, controlPlaneOnOutpos
 	}
 
 	setContainerRuntimeDefault(ng, meta.Version)
+	return nil
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
