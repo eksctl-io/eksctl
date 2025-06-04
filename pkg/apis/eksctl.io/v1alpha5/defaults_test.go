@@ -90,7 +90,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(*testNodeGroup.SSH.Allow).To(BeTrue())
 			Expect(*testNodeGroup.SSH.PublicKeyPath).To(BeIdenticalTo(testKeyPath))
@@ -106,7 +107,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(*testNodeGroup.SSH.PublicKeyPath).To(BeIdenticalTo("~/.ssh/id_rsa.pub"))
 		})
@@ -124,7 +126,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(*testNodeGroup.SSH.Allow).To(BeFalse())
 			Expect(*testNodeGroup.SSH.PublicKeyPath).To(BeIdenticalTo(testKeyPath))
@@ -137,7 +140,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				NodeGroupBase: &NodeGroupBase{},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			Expect(err).NotTo(HaveOccurred())
 			Expect(*testNodeGroup.VolumeType).To(Equal(DefaultNodeVolumeType))
 			Expect(*testNodeGroup.VolumeSize).To(Equal(DefaultNodeVolumeSize))
 		})
@@ -152,7 +156,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			Expect(err).NotTo(HaveOccurred())
 			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeType).To(Equal(DefaultNodeVolumeType))
 			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeSize).To(Equal(DefaultNodeVolumeSize))
 		})
@@ -163,7 +168,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			Expect(err).NotTo(HaveOccurred())
 			Expect(*testNodeGroup.VolumeType).To(Equal(NodeVolumeTypeGP3))
 			Expect(*testNodeGroup.VolumeIOPS).To(Equal(DefaultNodeVolumeGP3IOPS))
 			Expect(*testNodeGroup.VolumeThroughput).To(Equal(DefaultNodeVolumeThroughput))
@@ -174,7 +180,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				NodeGroupBase: &NodeGroupBase{},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, true)
+			err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, true)
+			Expect(err).NotTo(HaveOccurred())
 			Expect(*testNodeGroup.VolumeType).To(Equal(NodeVolumeTypeGP2))
 			Expect(*testNodeGroup.VolumeSize).To(Equal(DefaultNodeVolumeSize))
 		})
@@ -190,7 +197,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, true)
+			err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, true)
+			Expect(err).NotTo(HaveOccurred())
 			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeType).To(Equal(NodeVolumeTypeGP2))
 			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeSize).To(Equal(DefaultNodeVolumeSize))
 		})
@@ -207,7 +215,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(*testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeTrue())
 		})
@@ -222,7 +231,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			Expect(err).NotTo(HaveOccurred())
 			Expect(testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeNil())
 		})
 
@@ -233,7 +243,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(testNodeGroup.Bottlerocket).NotTo(BeNil())
 			Expect(testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeNil())
@@ -246,7 +257,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(testNodeGroup.NodeGroupBase.AMIFamily).To(Equal(NodeImageFamilyBottlerocket))
 		})
@@ -270,7 +282,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				testNodeGroup := NodeGroup{
 					NodeGroupBase: &NodeGroupBase{},
 				}
-				SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{Version: Version1_23}, false)
+				err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{Version: Version1_23}, false)
+				Expect(err).NotTo(HaveOccurred())
 				Expect(*testNodeGroup.ContainerRuntime).To(Equal(ContainerRuntimeDockerD))
 			})
 			When("ami family is windows", func() {
@@ -280,7 +293,8 @@ var _ = Describe("ClusterConfig validation", func() {
 							AMIFamily: NodeImageFamilyWindowsServer2019CoreContainer,
 						},
 					}
-					SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+					err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{}, false)
+					Expect(err).NotTo(HaveOccurred())
 					Expect(*testNodeGroup.ContainerRuntime).To(Equal(ContainerRuntimeDockerForWindows))
 				})
 			})
@@ -291,7 +305,8 @@ var _ = Describe("ClusterConfig validation", func() {
 							AMIFamily: NodeImageFamilyAmazonLinux2023,
 						},
 					}
-					SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{Version: Version1_23}, false)
+					err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{Version: Version1_23}, false)
+					Expect(err).NotTo(HaveOccurred())
 					Expect(*testNodeGroup.ContainerRuntime).To(Equal(ContainerRuntimeContainerD))
 				})
 			})
@@ -302,7 +317,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				testNodeGroup := NodeGroup{
 					NodeGroupBase: &NodeGroupBase{},
 				}
-				SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{Version: DockershimDeprecationVersion}, false)
+				err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{Version: DockershimDeprecationVersion}, false)
+				Expect(err).NotTo(HaveOccurred())
 				Expect(*testNodeGroup.ContainerRuntime).To(Equal(ContainerRuntimeContainerD))
 			})
 		})
@@ -395,9 +411,10 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		DescribeTable("default AMI family", func(kubernetesVersion, expectedAMIFamily string) {
 			mng := NewManagedNodeGroup()
-			SetManagedNodeGroupDefaults(mng, &ClusterMeta{
+			err := SetManagedNodeGroupDefaults(mng, &ClusterMeta{
 				Version: kubernetesVersion,
 			}, false)
+			Expect(err).NotTo(HaveOccurred())
 			Expect(mng.AMIFamily).To(Equal(expectedAMIFamily))
 		},
 			Entry("EKS 1.33 uses AL2023", "1.33", NodeImageFamilyAmazonLinux2023),

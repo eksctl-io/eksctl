@@ -151,8 +151,9 @@ var _ = Describe("nodegroup filter", func() {
 			var names []string
 
 			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
-				api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata, cfg.IsControlPlaneOnOutposts())
-				err := api.ValidateNodeGroup(i, nodeGroup, cfg)
+				err := api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata, cfg.IsControlPlaneOnOutposts())
+				Expect(err).NotTo(HaveOccurred())
+				err = api.ValidateNodeGroup(i, nodeGroup, cfg)
 				Expect(err).NotTo(HaveOccurred())
 				return nil
 			})
@@ -182,8 +183,9 @@ var _ = Describe("nodegroup filter", func() {
 			filter.delegate.ExcludeAll = true
 
 			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
-				api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata, cfg.IsControlPlaneOnOutposts())
-				err := api.ValidateNodeGroup(i, nodeGroup, cfg)
+				err := api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata, cfg.IsControlPlaneOnOutposts())
+				Expect(err).NotTo(HaveOccurred())
+				err = api.ValidateNodeGroup(i, nodeGroup, cfg)
 				Expect(err).NotTo(HaveOccurred())
 				return nil
 			})

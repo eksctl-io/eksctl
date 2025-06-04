@@ -107,7 +107,8 @@ func TestManagedPolicyResources(t *testing.T) {
 			clusterConfig := api.NewClusterConfig()
 
 			ng := api.NewManagedNodeGroup()
-			api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
+			err := api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
+			require.NoError(err)
 			ng.IAM.WithAddonPolicies = tt.addons
 			ng.IAM.AttachPolicy = tt.attachPolicy
 			ng.IAM.AttachPolicyARNs = prefixPolicies(tt.attachPolicyARNs...)
@@ -123,7 +124,7 @@ func TestManagedPolicyResources(t *testing.T) {
 				[]string{}, // local zones
 				[]ec2types.InstanceType{api.DefaultNodeType})
 			stack := builder.NewManagedNodeGroup(p.EC2(), clusterConfig, ng, nil, bootstrapper, false, fakeVPCImporter)
-			err := stack.AddAllResources(context.Background())
+			err = stack.AddAllResources(context.Background())
 			require.Nil(err)
 
 			bytes, err := stack.RenderJSON()
@@ -206,7 +207,8 @@ func TestManagedNodeRole(t *testing.T) {
 			require := require.New(t)
 			clusterConfig := api.NewClusterConfig()
 			clusterConfig.Status = &api.ClusterStatus{}
-			api.SetManagedNodeGroupDefaults(tt.nodeGroup, clusterConfig.Metadata, false)
+			err := api.SetManagedNodeGroupDefaults(tt.nodeGroup, clusterConfig.Metadata, false)
+			require.NoError(err)
 			p := mockprovider.NewMockProvider()
 			fakeVPCImporter := new(vpcfakes.FakeImporter)
 			bootstrapper, err := nodebootstrap.NewManagedBootstrapper(clusterConfig, tt.nodeGroup)

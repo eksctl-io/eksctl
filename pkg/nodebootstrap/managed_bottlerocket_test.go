@@ -29,7 +29,8 @@ var _ = Describe("Managed Bottlerocket", func() {
 
 		ng := api.NewManagedNodeGroup()
 		ng.AMIFamily = api.NodeImageFamilyBottlerocket
-		api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
+		err := api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
+		Expect(err).NotTo(HaveOccurred())
 		if e.setFields != nil {
 			e.setFields(ng)
 		}
