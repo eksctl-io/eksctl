@@ -47,7 +47,9 @@ const (
 	Version1_30                  = "1.30"
 	Version1_31                  = "1.31"
 	Version1_32                  = "1.32"
+	Version1_33                  = "1.33"
 	DockershimDeprecationVersion = Version1_24
+	AmazonLinux2EOLVersion       = Version1_33
 	//TODO: Remove this and replace with output from DescribeClusterVersions endpoint
 	// DefaultVersion (default)
 	DefaultVersion = Version1_32
@@ -137,6 +139,9 @@ const (
 
 	// RegionAPEast1 represents the Asia Pacific Region Hong Kong
 	RegionAPEast1 = "ap-east-1"
+
+	// RegionAPEast2 represents the Asia Pacific Region Taipei
+	RegionAPEast2 = "ap-east-2"
 
 	// RegionMECentral1 represents the Middle East Region Dubai
 	RegionMECentral1 = "me-central-1"
@@ -312,6 +317,9 @@ const (
 
 	// eksResourceAccountAPEast1 defines the AWS EKS account ID that provides node resources in ap-east-1 region
 	eksResourceAccountAPEast1 = "800184023465"
+
+	// eksResourceAccountAPEast2 defines the AWS EKS account ID that provides node resources in ap-east-2 region
+	eksResourceAccountAPEast2 = "533267051163"
 
 	// eksResourceAccountCAWest1 defines the AWS EKS account ID that provides node resources in ca-west-1 region
 	eksResourceAccountCAWest1 = "761377655185"
@@ -516,6 +524,7 @@ func SupportedRegions() []string {
 		RegionAPSouth1,
 		RegionAPSouth2,
 		RegionAPEast1,
+		RegionAPEast2,
 		RegionMECentral1,
 		RegionMESouth1,
 		RegionSAEast1,
@@ -583,6 +592,8 @@ func EKSResourceAccountID(region string) string {
 	switch region {
 	case RegionAPEast1:
 		return eksResourceAccountAPEast1
+	case RegionAPEast2:
+		return eksResourceAccountAPEast2
 	case RegionCAWest1:
 		return eksResourceAccountCAWest1
 	case RegionMECentral1:

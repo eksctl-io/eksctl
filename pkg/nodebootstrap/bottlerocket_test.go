@@ -33,7 +33,8 @@ var _ = Describe("Bottlerocket", func() {
 
 		ng = api.NewNodeGroup()
 		ng.AMIFamily = "Bottlerocket"
-		api.SetNodeGroupDefaults(ng, clusterConfig.Metadata, false)
+		err := api.SetNodeGroupDefaults(ng, clusterConfig.Metadata, false)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Describe("with no user settings", func() {

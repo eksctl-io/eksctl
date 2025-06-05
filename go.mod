@@ -11,17 +11,17 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.36.3
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.67
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.52.4
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.53.0
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.59.2
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.48.4
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.48.0
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.49.0
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.50.0
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.51.3
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.210.1
-	github.com/aws/aws-sdk-go-v2/service/eks v1.64.0
+	github.com/aws/aws-sdk-go-v2/service/eks v1.65.0
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.29.3
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.45.2
-	github.com/aws/aws-sdk-go-v2/service/iam v1.41.1
-	github.com/aws/aws-sdk-go-v2/service/kms v1.38.1
+	github.com/aws/aws-sdk-go-v2/service/iam v1.42.0
+	github.com/aws/aws-sdk-go-v2/service/kms v1.38.3
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.50.1
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.59.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.19
@@ -49,7 +49,7 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.2
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/ginkgo/v2 v2.23.3
+	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.37.0
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/otiai10/copy v1.14.1
@@ -65,12 +65,12 @@ require (
 	github.com/tidwall/sjson v1.2.5
 	github.com/tj/assert v0.0.3
 	github.com/vburenin/ifacemaker v1.3.0
-	github.com/vektra/mockery/v2 v2.53.3
+	github.com/vektra/mockery/v2 v2.53.4
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xgfone/go-netaddr v0.6.0
 	golang.org/x/crypto v0.38.0
-	golang.org/x/oauth2 v0.29.0
+	golang.org/x/oauth2 v0.30.0
 	golang.org/x/sync v0.14.0
 	golang.org/x/text v0.25.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -234,7 +234,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-containerregistry v0.20.3 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/pprof v0.0.0-20250208200701-d0013a598941 // indirect
+	github.com/google/pprof v0.0.0-20250403155104-27863c87afa6 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect

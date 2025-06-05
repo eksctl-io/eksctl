@@ -40,6 +40,7 @@ This is an in config file setting only. When IPv6 is set, the following restrict
 - managed nodegroup creation is not supported with un-owned IPv6 clusters
 - `vpc.NAT` and `serviceIPv4CIDR` fields are created by eksctl for ipv6 clusters and thus, are not supported configuration options
 - AutoAllocateIPv6 is not supported together with IPv6
+- For IPv6 cluster, the IAM role for vpc-cni must have [required IAM policies for IPv6 mode](https://github.com/aws/amazon-vpc-cni-k8s/blob/master/docs/iam-policy.md#ipv6-mode) associated
 
 The default value is `IPv4`.
 

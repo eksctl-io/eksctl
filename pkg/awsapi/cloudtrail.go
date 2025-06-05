@@ -167,6 +167,10 @@ type CloudTrail interface {
 	GetChannel(ctx context.Context, params *cloudtrail.GetChannelInput, optFns ...func(*Options)) (*cloudtrail.GetChannelOutput, error)
 	// Returns the specified dashboard.
 	GetDashboard(ctx context.Context, params *cloudtrail.GetDashboardInput, optFns ...func(*Options)) (*cloudtrail.GetDashboardOutput, error)
+	// Retrieves the current event configuration settings for the specified event data
+	// store, including details about maximum event size and context key selectors
+	// configured for the event data store.
+	GetEventConfiguration(ctx context.Context, params *cloudtrail.GetEventConfigurationInput, optFns ...func(*Options)) (*cloudtrail.GetEventConfigurationOutput, error)
 	// Returns information about an event data store specified as either an ARN or the
 	// ID portion of the ARN.
 	GetEventDataStore(ctx context.Context, params *cloudtrail.GetEventDataStoreInput, optFns ...func(*Options)) (*cloudtrail.GetEventDataStoreOutput, error)
@@ -332,6 +336,9 @@ type CloudTrail interface {
 	// [CloudTrail Insights events]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html#cloudtrail-concepts-insights-events
 	// [management events]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html#cloudtrail-concepts-management-events
 	LookupEvents(ctx context.Context, params *cloudtrail.LookupEventsInput, optFns ...func(*Options)) (*cloudtrail.LookupEventsOutput, error)
+	// Updates the event configuration settings for the specified event data store.
+	// You can update the maximum event size and context key selectors.
+	PutEventConfiguration(ctx context.Context, params *cloudtrail.PutEventConfigurationInput, optFns ...func(*Options)) (*cloudtrail.PutEventConfigurationOutput, error)
 	// Configures event selectors (also referred to as basic event selectors) or
 	// advanced event selectors for your trail. You can use either
 	// AdvancedEventSelectors or EventSelectors , but not both. If you apply

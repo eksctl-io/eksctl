@@ -105,7 +105,7 @@ nodeGroups:
   volumeType: gp3
 
 managedNodeGroups:
-- amiFamily: AmazonLinux2
+- amiFamily: AmazonLinux2023
   desiredCapacity: 2
   disableIMDSv1: true
   disablePodIMDS: false

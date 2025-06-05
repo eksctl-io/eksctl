@@ -1429,6 +1429,80 @@ func (_c *CloudTrail_GetDashboard_Call) RunAndReturn(run func(context.Context, *
 	return _c
 }
 
+// GetEventConfiguration provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) GetEventConfiguration(ctx context.Context, params *cloudtrail.GetEventConfigurationInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.GetEventConfigurationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetEventConfiguration")
+	}
+
+	var r0 *cloudtrail.GetEventConfigurationOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetEventConfigurationInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetEventConfigurationOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetEventConfigurationInput, ...func(*cloudtrail.Options)) *cloudtrail.GetEventConfigurationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GetEventConfigurationOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.GetEventConfigurationInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_GetEventConfiguration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetEventConfiguration'
+type CloudTrail_GetEventConfiguration_Call struct {
+	*mock.Call
+}
+
+// GetEventConfiguration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.GetEventConfigurationInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) GetEventConfiguration(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_GetEventConfiguration_Call {
+	return &CloudTrail_GetEventConfiguration_Call{Call: _e.mock.On("GetEventConfiguration",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_GetEventConfiguration_Call) Run(run func(ctx context.Context, params *cloudtrail.GetEventConfigurationInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_GetEventConfiguration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.GetEventConfigurationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_GetEventConfiguration_Call) Return(_a0 *cloudtrail.GetEventConfigurationOutput, _a1 error) *CloudTrail_GetEventConfiguration_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_GetEventConfiguration_Call) RunAndReturn(run func(context.Context, *cloudtrail.GetEventConfigurationInput, ...func(*cloudtrail.Options)) (*cloudtrail.GetEventConfigurationOutput, error)) *CloudTrail_GetEventConfiguration_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetEventDataStore provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) GetEventDataStore(ctx context.Context, params *cloudtrail.GetEventDataStoreInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.GetEventDataStoreOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -2876,6 +2950,80 @@ func (_c *CloudTrail_Options_Call) Return(_a0 cloudtrail.Options) *CloudTrail_Op
 }
 
 func (_c *CloudTrail_Options_Call) RunAndReturn(run func() cloudtrail.Options) *CloudTrail_Options_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PutEventConfiguration provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) PutEventConfiguration(ctx context.Context, params *cloudtrail.PutEventConfigurationInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.PutEventConfigurationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutEventConfiguration")
+	}
+
+	var r0 *cloudtrail.PutEventConfigurationOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.PutEventConfigurationInput, ...func(*cloudtrail.Options)) (*cloudtrail.PutEventConfigurationOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.PutEventConfigurationInput, ...func(*cloudtrail.Options)) *cloudtrail.PutEventConfigurationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.PutEventConfigurationOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.PutEventConfigurationInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_PutEventConfiguration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutEventConfiguration'
+type CloudTrail_PutEventConfiguration_Call struct {
+	*mock.Call
+}
+
+// PutEventConfiguration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.PutEventConfigurationInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) PutEventConfiguration(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_PutEventConfiguration_Call {
+	return &CloudTrail_PutEventConfiguration_Call{Call: _e.mock.On("PutEventConfiguration",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_PutEventConfiguration_Call) Run(run func(ctx context.Context, params *cloudtrail.PutEventConfigurationInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_PutEventConfiguration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.PutEventConfigurationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_PutEventConfiguration_Call) Return(_a0 *cloudtrail.PutEventConfigurationOutput, _a1 error) *CloudTrail_PutEventConfiguration_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_PutEventConfiguration_Call) RunAndReturn(run func(context.Context, *cloudtrail.PutEventConfigurationInput, ...func(*cloudtrail.Options)) (*cloudtrail.PutEventConfigurationOutput, error)) *CloudTrail_PutEventConfiguration_Call {
 	_c.Call.Return(run)
 	return _c
 }

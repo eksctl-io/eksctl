@@ -16,8 +16,9 @@ type nodeGroupCase struct {
 
 var _ = Describe("Managed Nodegroup Validation", func() {
 	DescribeTable("Supported and unsupported field combinations", func(n *nodeGroupCase) {
-		SetManagedNodeGroupDefaults(n.ng, &ClusterMeta{Name: "managed-cluster"}, false)
-		err := ValidateManagedNodeGroup(0, n.ng)
+		err := SetManagedNodeGroupDefaults(n.ng, &ClusterMeta{Name: "managed-cluster"}, false)
+		Expect(err).NotTo(HaveOccurred())
+		err = ValidateManagedNodeGroup(0, n.ng)
 		if n.errMsg == "" {
 			Expect(err).NotTo(HaveOccurred())
 			return
@@ -169,8 +170,9 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				ID: "lt-custom",
 			},
 		}
-		SetManagedNodeGroupDefaults(mng, &ClusterMeta{Name: "managed-cluster"}, false)
-		err := ValidateManagedNodeGroup(0, mng)
+		err := SetManagedNodeGroupDefaults(mng, &ClusterMeta{Name: "managed-cluster"}, false)
+		Expect(err).NotTo(HaveOccurred())
+		err = ValidateManagedNodeGroup(0, mng)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("cannot set instanceType, ami, ssh.allow, ssh.enableSSM, ssh.sourceSecurityGroupIds, securityGroups, " +
 			"volumeSize, instanceName, instancePrefix, maxPodsPerNode, disableIMDSv1, disablePodIMDS, preBootstrapCommands, overrideBootstrapCommand, placement in managedNodeGroup when a launch template is supplied"))
@@ -222,8 +224,9 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				MaxUnavailablePercentage: e.unavailablePercentage,
 			},
 		}
-		SetManagedNodeGroupDefaults(mng, &ClusterMeta{Name: "managed-cluster"}, false)
-		err := ValidateManagedNodeGroup(0, mng)
+		err := SetManagedNodeGroupDefaults(mng, &ClusterMeta{Name: "managed-cluster"}, false)
+		Expect(err).NotTo(HaveOccurred())
+		err = ValidateManagedNodeGroup(0, mng)
 		if e.valid {
 			Expect(err).NotTo(HaveOccurred())
 		} else {
