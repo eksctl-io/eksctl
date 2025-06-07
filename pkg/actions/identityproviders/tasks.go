@@ -32,5 +32,5 @@ func (t *AssociateProvidersTask) Describe() string {
 
 func (t *AssociateProvidersTask) Do() error {
 	m := NewManager(t.metadata, t.eks)
-	return m.Associate(t.ctx, AssociateIdentityProvidersOptions{Providers: t.providers})
+	return m.Associate(t.ctx, AssociateIdentityProvidersOptions{Providers: t.providers, WaitTimeout: api.DefaultWaitTimeout})
 }

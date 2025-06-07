@@ -83,7 +83,7 @@ nodeGroups:
       attachPolicyARNs:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly
         - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
         - arn:aws:iam::1111111111:policy/kube2iam
       withAddonPolicies:
@@ -92,6 +92,6 @@ nodeGroups:
 ```
 
 !!! warning
-    If a nodegroup includes the `attachPolicyARNs` it **must** also include the default node policies, like `AmazonEKSWorkerNodePolicy`, `AmazonEKS_CNI_Policy` and `AmazonEC2ContainerRegistryReadOnly` in this example.
+    If a nodegroup includes the `attachPolicyARNs` it **must** also include the default node policies, like `AmazonEKSWorkerNodePolicy`, `AmazonEKS_CNI_Policy` and `AmazonEC2ContainerRegistryPullOnly` in this example.
 
 [comment]: <> (TODO find better example and explain more)
