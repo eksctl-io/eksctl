@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `pkg/ctl/mcp` package implements a [Model Context Protocol (MCP)](https://github.com/mark3labs/mcp) server for eksctl. This server enables AI assistants like Amazon Q to interact with eksctl functionality directly through a standardized protocol, allowing for seamless integration of eksctl commands into AI-powered workflows.
+The `pkg/ctl/mcp` package implements a [Model Context Protocol (MCP)](https://github.com/modelcontextprotocol) server for eksctl. This server enables AI assistants like Amazon Q to interact with eksctl functionality directly through a standardized protocol, allowing for seamless integration of eksctl commands into AI-powered workflows.
 
 ## What is MCP?
 
