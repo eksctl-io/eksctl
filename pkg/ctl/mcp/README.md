@@ -98,3 +98,6 @@ To quickly test the MCP server, you can run the following command in your termin
 ```bash
 echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | eksctl mcp | jq
 ```
+
+## Recommendations
+- Monitor background operations for long-running commands. Commands such as cluster creations have a 45-second timeout for command responses but the processes continue in background.

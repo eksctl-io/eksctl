@@ -19,6 +19,11 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
+const (
+	CommandExecutionTimeout = 45 * time.Second
+	HandlerTimeout          = 5 * time.Minute
+)
+
 // registerTools registers all eksctl commands as MCP tools
 // This is the entry point for tool registration that processes the entire command tree
 func registerTools(s *server.MCPServer, rootCmd *cobra.Command) error {
@@ -178,7 +183,7 @@ func buildToolOptions(cmd *cobra.Command) (string, []mcp.ToolOption, error) {
 func createToolHandler(cmd *cobra.Command) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Add timeout to context
-		ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		ctx, cancel := context.WithTimeout(ctx, HandlerTimeout)
 		defer cancel()
 
 		// Build the command path
@@ -224,7 +229,7 @@ func createToolHandler(cmd *cobra.Command) server.ToolHandlerFunc {
 
 func executeEksctlCommand(ctx context.Context, args []string) (*mcp.CallToolResult, error) {
 	// Create a context for output collection with a 45-second timeout
-	timeoutCtx, cancel := context.WithTimeout(ctx, 45*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(ctx, CommandExecutionTimeout)
 	defer cancel()
 
 	cmd := exec.Command("eksctl", args...)
@@ -271,7 +276,9 @@ func executeEksctlCommand(ctx context.Context, args []string) (*mcp.CallToolResu
 		case stdout = <-stdoutCh:
 		default:
 		}
-		return mcp.NewToolResultText(stdout + "\n\n[Command is still running in the background]"), nil
+		return mcp.NewToolResultText(
+			fmt.Sprintf("%s\n\n[Command is still running in the background, PID: %d]", stdout, cmd.Process.Pid),
+		), nil
 	case err := <-done:
 		// Command finished: collect output
 		stdout := <-stdoutCh
