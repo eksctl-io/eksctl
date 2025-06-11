@@ -3,6 +3,7 @@ package podidentityassociation
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -28,6 +29,28 @@ func (r *IAMRoleCreator) Create(ctx context.Context, podIdentityAssociation *api
 		Namespace:          podIdentityAssociation.Namespace,
 		ServiceAccountName: podIdentityAssociation.ServiceAccountName,
 	}.IDString()
+
+	// If a target role ARN is specified for cross-account access, we need to:
+	// 1. Add permission to assume the target role
+	// 2. Configure the external ID for the target role trust relationship
+	if podIdentityAssociation.TargetRoleARN != "" {
+		// Extract account ID and role name from the target role ARN
+		// ARN format: arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME
+		targetRoleARNParts := strings.Split(podIdentityAssociation.TargetRoleARN, ":")
+		if len(targetRoleARNParts) >= 5 {
+			targetAccountID := targetRoleARNParts[4]
+			targetRoleName := strings.TrimPrefix(targetRoleARNParts[5], "role/")
+			
+			// Add permission to assume the target role
+			// This will be added to the role's permission policy
+			rs.AddAssumeRolePermission(podIdentityAssociation.TargetRoleARN)
+			
+			// Add a tag to indicate this role is configured for cross-account access
+			podIdentityAssociation.Tags["eksctl.io/cross-account-role"] = "true"
+			podIdentityAssociation.Tags["eksctl.io/target-account-id"] = targetAccountID
+			podIdentityAssociation.Tags["eksctl.io/target-role-name"] = targetRoleName
+		}
+	}
 
 	var stackName string
 	if addonName != "" {

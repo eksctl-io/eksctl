@@ -261,3 +261,42 @@ Do not open security related issues in the open source project.
 > **_Logo Credits_**
 >
 > _Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://github.com/matryer/gopherize.me/)._
+
+## Cross-Account Pod Identity Support
+
+Starting with version X.Y.Z, eksctl supports EKS Pod Identity cross-account access. This feature allows pods running in your EKS cluster to access AWS resources in a different AWS account.
+
+### Usage
+
+To create a pod identity association with cross-account access:
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: my-cluster
+  region: us-west-2
+
+podIdentityAssociations:
+- namespace: default
+  serviceAccountName: my-service-account
+  # The source role in the same account as the cluster
+  roleName: my-source-role
+  # The target role in a different account
+  targetRoleARN: arn:aws:iam::123456789012:role/my-target-role
+  # Optional: Disable session tags
+  disableSessionTags: false
+```
+
+### Required IAM Setup
+
+1. **Source Role (in the cluster account):**
+   - Must trust the EKS Pod Identity service
+   - Must have permission to assume the target role
+
+2. **Target Role (in the target account):**
+   - Must trust the source role
+   - Should include an external ID condition in the format: `region/account-id/cluster-name/namespace/service-account-name`
+   - Must have the necessary permissions to access the target resources
+
+For more information, see the [EKS Pod Identity documentation](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html).

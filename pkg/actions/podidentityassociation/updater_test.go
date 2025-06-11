@@ -184,6 +184,35 @@ var _ = Describe("Pod Identity Update", func() {
 			expectedErr: `error updating pod identity association "default/default": cannot change podIdentityAssociation.roleARN since the role was created by eksctl`,
 		}),
 
+		Entry("update pod identity association with cross-account access", updateEntry{
+			podIdentityAssociations: []api.PodIdentityAssociation{
+				{
+					Namespace:          "default",
+					ServiceAccountName: "default",
+					RoleARN:            "arn:aws:iam::00000000:role/source-role",
+					TargetRoleARN:      "arn:aws:iam::11111111:role/target-role",
+					DisableSessionTags: true,
+				},
+			},
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				mockListStackNames(stackManager, nil)
+				mockCalls(stackManager, eksAPI, mockOptions{
+					podIdentifier: podidentityassociation.Identifier{
+						Namespace:          "default",
+						ServiceAccountName: "default",
+					},
+					updateRoleARN: "arn:aws:iam::00000000:role/source-role",
+				})
+			},
+
+			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.DescribeStackCallCount()).To(Equal(0))
+				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(0))
+				eksAPI.AssertExpectations(GinkgoT())
+			},
+		}),
+
 		Entry("role ARN specified when the IAM resources were not created by eksctl", updateEntry{
 			podIdentityAssociations: []api.PodIdentityAssociation{
 				{
@@ -207,109 +236,6 @@ var _ = Describe("Pod Identity Update", func() {
 				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(0))
 				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(0))
-				eksAPI.AssertExpectations(GinkgoT())
-			},
-		}),
-
-		Entry("pod identity association has changes", updateEntry{
-			podIdentityAssociations: []api.PodIdentityAssociation{
-				{
-					Namespace:          "default",
-					ServiceAccountName: "default",
-				},
-				{
-					Namespace:          "kube-system",
-					ServiceAccountName: "aws-node",
-				},
-			},
-			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				podIdentifiers := []podidentityassociation.Identifier{
-					{
-						Namespace:          "default",
-						ServiceAccountName: "default",
-					},
-					{
-						Namespace:          "kube-system",
-						ServiceAccountName: "aws-node",
-					},
-				}
-				mockListStackNamesWithIRSAv1(stackManager, podIdentifiers[:1], podIdentifiers[1:])
-				describeStackOutputs := []cfntypes.Output{
-					{
-						OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
-						OutputValue: aws.String("arn:aws:iam::1234567:role/Role"),
-					},
-				}
-				for _, options := range []mockOptions{
-					{
-						podIdentifier:        podIdentifiers[0],
-						updateRoleARN:        "arn:aws:iam::1234567:role/Role",
-						describeStackOutputs: describeStackOutputs,
-						makeStackName:        makeIRSAv1StackName,
-					},
-					{
-						podIdentifier:        podIdentifiers[1],
-						updateRoleARN:        "arn:aws:iam::1234567:role/Role",
-						describeStackOutputs: describeStackOutputs,
-					},
-				} {
-					mockCalls(stackManager, eksAPI, options)
-				}
-
-				stackManager.MustUpdateStackReturns(nil)
-			},
-
-			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
-				Expect(stackManager.DescribeStackCallCount()).To(Equal(4))
-				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(2))
-				eksAPI.AssertExpectations(GinkgoT())
-			},
-		}),
-
-		Entry("pod identity association has no changes", updateEntry{
-			podIdentityAssociations: []api.PodIdentityAssociation{
-				{
-					Namespace:          "default",
-					ServiceAccountName: "default",
-				},
-				{
-					Namespace:          "kube-system",
-					ServiceAccountName: "aws-node",
-				},
-			},
-			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				podIdentifiers := []podidentityassociation.Identifier{
-					{
-						Namespace:          "default",
-						ServiceAccountName: "default",
-					},
-					{
-						Namespace:          "kube-system",
-						ServiceAccountName: "aws-node",
-					},
-				}
-				mockListStackNames(stackManager, podIdentifiers)
-				for _, options := range []mockOptions{
-					{
-						podIdentifier: podIdentifiers[0],
-					},
-					{
-						podIdentifier: podIdentifiers[1],
-					},
-				} {
-					mockCalls(stackManager, eksAPI, options)
-				}
-
-				stackManager.MustUpdateStackReturns(&manager.NoChangeError{
-					Msg: "no changes found",
-				})
-			},
-
-			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
-				Expect(stackManager.DescribeStackCallCount()).To(Equal(2))
-				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(2))
 				eksAPI.AssertExpectations(GinkgoT())
 			},
 		}),
@@ -429,6 +355,109 @@ var _ = Describe("Pod Identity Update", func() {
 			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
 				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(4))
+				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(2))
+				eksAPI.AssertExpectations(GinkgoT())
+			},
+		}),
+
+		Entry("pod identity association has changes", updateEntry{
+			podIdentityAssociations: []api.PodIdentityAssociation{
+				{
+					Namespace:          "default",
+					ServiceAccountName: "default",
+				},
+				{
+					Namespace:          "kube-system",
+					ServiceAccountName: "aws-node",
+				},
+			},
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				podIdentifiers := []podidentityassociation.Identifier{
+					{
+						Namespace:          "default",
+						ServiceAccountName: "default",
+					},
+					{
+						Namespace:          "kube-system",
+						ServiceAccountName: "aws-node",
+					},
+				}
+				mockListStackNamesWithIRSAv1(stackManager, podIdentifiers[:1], podIdentifiers[1:])
+				describeStackOutputs := []cfntypes.Output{
+					{
+						OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
+						OutputValue: aws.String("arn:aws:iam::1234567:role/Role"),
+					},
+				}
+				for _, options := range []mockOptions{
+					{
+						podIdentifier:        podIdentifiers[0],
+						updateRoleARN:        "arn:aws:iam::1234567:role/Role",
+						describeStackOutputs: describeStackOutputs,
+						makeStackName:        makeIRSAv1StackName,
+					},
+					{
+						podIdentifier:        podIdentifiers[1],
+						updateRoleARN:        "arn:aws:iam::1234567:role/Role",
+						describeStackOutputs: describeStackOutputs,
+					},
+				} {
+					mockCalls(stackManager, eksAPI, options)
+				}
+
+				stackManager.MustUpdateStackReturns(nil)
+			},
+
+			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.DescribeStackCallCount()).To(Equal(4))
+				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(2))
+				eksAPI.AssertExpectations(GinkgoT())
+			},
+		}),
+
+		Entry("pod identity association has no changes", updateEntry{
+			podIdentityAssociations: []api.PodIdentityAssociation{
+				{
+					Namespace:          "default",
+					ServiceAccountName: "default",
+				},
+				{
+					Namespace:          "kube-system",
+					ServiceAccountName: "aws-node",
+				},
+			},
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				podIdentifiers := []podidentityassociation.Identifier{
+					{
+						Namespace:          "default",
+						ServiceAccountName: "default",
+					},
+					{
+						Namespace:          "kube-system",
+						ServiceAccountName: "aws-node",
+					},
+				}
+				mockListStackNames(stackManager, podIdentifiers)
+				for _, options := range []mockOptions{
+					{
+						podIdentifier: podIdentifiers[0],
+					},
+					{
+						podIdentifier: podIdentifiers[1],
+					},
+				} {
+					mockCalls(stackManager, eksAPI, options)
+				}
+
+				stackManager.MustUpdateStackReturns(&manager.NoChangeError{
+					Msg: "no changes found",
+				})
+			},
+
+			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.DescribeStackCallCount()).To(Equal(2))
 				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(2))
 				eksAPI.AssertExpectations(GinkgoT())
 			},

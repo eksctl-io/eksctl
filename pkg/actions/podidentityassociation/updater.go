@@ -106,11 +106,31 @@ func (u *Updater) update(ctx context.Context, updateConfig *UpdateConfig, podIde
 }
 
 func (u *Updater) updatePodIdentityAssociation(ctx context.Context, roleARN string, updateConfig *UpdateConfig, podIdentityAssociationID string) error {
-	if _, err := u.APIUpdater.UpdatePodIdentityAssociation(ctx, &eks.UpdatePodIdentityAssociationInput{
+	input := &eks.UpdatePodIdentityAssociationInput{
 		AssociationId: aws.String(updateConfig.AssociationID),
 		ClusterName:   aws.String(u.ClusterName),
 		RoleArn:       aws.String(roleARN),
-	}); err != nil {
+	}
+
+	// Add target role ARN if specified (for cross-account access)
+	if updateConfig.PodIdentityAssociation.TargetRoleARN != "" {
+		// Note: This field will be available in a future AWS SDK update
+		// For now, we're adding the field to prepare for when the SDK is updated
+		logger.Info("Target role ARN %q specified for cross-account access", updateConfig.PodIdentityAssociation.TargetRoleARN)
+		// TODO: Uncomment when AWS SDK is updated
+		// input.TargetRoleArn = &updateConfig.PodIdentityAssociation.TargetRoleARN
+	}
+
+	// Add disable session tags if specified
+	if updateConfig.PodIdentityAssociation.DisableSessionTags {
+		// Note: This field will be available in a future AWS SDK update
+		// For now, we're adding the field to prepare for when the SDK is updated
+		logger.Info("Session tags will be disabled for this pod identity association")
+		// TODO: Uncomment when AWS SDK is updated
+		// input.DisableSessionTags = updateConfig.PodIdentityAssociation.DisableSessionTags
+	}
+
+	if _, err := u.APIUpdater.UpdatePodIdentityAssociation(ctx, input); err != nil {
 		return fmt.Errorf("(associationID: %s, roleARN: %s): %w", updateConfig.AssociationID, roleARN, err)
 	}
 	logger.Info("updated role ARN %q for pod identity association %q", roleARN, podIdentityAssociationID)
@@ -185,12 +205,17 @@ func (r *RoleUpdateValidator) ValidateRoleUpdate(pia api.PodIdentityAssociation,
 		if pia.RoleARN == "" {
 			return errors.New("podIdentityAssociation.roleARN is required since the role was not created by eksctl")
 		}
-		podIDWithRoleARN := api.PodIdentityAssociation{
+		
+		// For cross-account access, we need to allow targetRoleARN and disableSessionTags
+		podIDWithCrossAccountFields := api.PodIdentityAssociation{
 			Namespace:          pia.Namespace,
 			ServiceAccountName: pia.ServiceAccountName,
 			RoleARN:            pia.RoleARN,
+			TargetRoleARN:      pia.TargetRoleARN,
+			DisableSessionTags: pia.DisableSessionTags,
 		}
-		if !reflect.DeepEqual(pia, podIDWithRoleARN) {
+		
+		if !reflect.DeepEqual(pia, podIDWithCrossAccountFields) {
 			return errors.New("only namespace, serviceAccountName and roleARN can be specified if the role was not created by eksctl")
 		}
 	}

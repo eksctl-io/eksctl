@@ -140,6 +140,34 @@ var _ = Describe("Create", func() {
 			expectedErr: "creating pod identity association",
 		}),
 
+		Entry("creates a pod identity association with cross-account access", createPodIdentityAssociationEntry{
+			toBeCreated: []api.PodIdentityAssociation{
+				{
+					Namespace:          namespace,
+					ServiceAccountName: serviceAccountName1,
+					RoleARN:            roleARN,
+					TargetRoleARN:      "arn:aws:iam::444455556666:role/TargetRole",
+					DisableSessionTags: true,
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockProvider.MockEKS().
+					On("CreatePodIdentityAssociation", mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						input := args[1].(*awseks.CreatePodIdentityAssociationInput)
+						Expect(*input.ClusterName).To(Equal(clusterName))
+						Expect(*input.Namespace).To(Equal(namespace))
+						Expect(*input.ServiceAccount).To(Equal(serviceAccountName1))
+						Expect(*input.RoleArn).To(Equal(roleARN))
+						// Note: TargetRoleArn and DisableSessionTags will be added when AWS SDK is updated
+					}).
+					Return(&awseks.CreatePodIdentityAssociationOutput{}, nil).
+					Once()
+			},
+			expectedCreateStackCalls: 0,
+		}),
+
 		Entry("creates all expected roles and associations successfully", createPodIdentityAssociationEntry{
 			toBeCreated: []api.PodIdentityAssociation{
 				{

@@ -1822,3 +1822,51 @@ func validateAddonPodIdentityAssociations(addons []*Addon) error {
 	}
 	return nil
 }
+// ValidatePodIdentityAssociation validates a pod identity association configuration.
+func ValidatePodIdentityAssociation(pia *PodIdentityAssociation) error {
+	if pia.Namespace == "" {
+		return errors.New("namespace cannot be empty")
+	}
+
+	if pia.ServiceAccountName == "" {
+		return errors.New("serviceAccountName cannot be empty")
+	}
+
+	// If targetRoleARN is specified, validate it
+	if pia.TargetRoleARN != "" {
+		if !arn.IsARN(pia.TargetRoleARN) {
+			return fmt.Errorf("targetRoleARN %q is not a valid ARN", pia.TargetRoleARN)
+		}
+
+		parsedARN, err := arn.Parse(pia.TargetRoleARN)
+		if err != nil {
+			return fmt.Errorf("failed to parse targetRoleARN: %w", err)
+		}
+
+		if parsedARN.Service != "iam" {
+			return fmt.Errorf("targetRoleARN must be an IAM role ARN")
+		}
+
+		if !strings.HasPrefix(parsedARN.Resource, "role/") {
+			return fmt.Errorf("targetRoleARN must be an IAM role ARN (resource must start with 'role/')")
+		}
+
+		// If roleARN is specified, validate that the source and target roles are in different accounts
+		if pia.RoleARN != "" {
+			if !arn.IsARN(pia.RoleARN) {
+				return fmt.Errorf("roleARN %q is not a valid ARN", pia.RoleARN)
+			}
+
+			sourceARN, err := arn.Parse(pia.RoleARN)
+			if err != nil {
+				return fmt.Errorf("failed to parse roleARN: %w", err)
+			}
+
+			if sourceARN.AccountID == parsedARN.AccountID {
+				return fmt.Errorf("targetRoleARN must be in a different account than roleARN for cross-account access")
+			}
+		}
+	}
+
+	return nil
+}
