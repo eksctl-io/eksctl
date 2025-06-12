@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -69,8 +70,9 @@ var (
 )
 
 var (
-	SupportedAmazonLinuxImages = supportedAMIFamiliesForOS(IsAmazonLinuxImage)
-	SupportedUbuntuImages      = supportedAMIFamiliesForOS(IsUbuntuImage)
+	SupportedAmazonLinuxImages  = supportedAMIFamiliesForOS(IsAmazonLinuxImage)
+	SupportedBottlerocketImages = supportedAMIFamiliesForOS(IsBottlerocketImage)
+	SupportedUbuntuImages       = supportedAMIFamiliesForOS(IsUbuntuImage)
 )
 
 // NOTE: we don't use k8s.io/apimachinery/pkg/util/sets here to keep API package free of dependencies
@@ -1391,11 +1393,11 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		if ng.AMIFamily == "" {
 			return errors.New("when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag")
 		}
-		if !IsAmazonLinuxImage(ng.AMIFamily) && !IsUbuntuImage(ng.AMIFamily) {
+		if !IsAmazonLinuxImage(ng.AMIFamily) && !IsBottlerocketImage(ng.AMIFamily) && !IsUbuntuImage(ng.AMIFamily) {
 			return fmt.Errorf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s are supported", ng.AMIFamily,
-				strings.Join(append(SupportedAmazonLinuxImages, SupportedUbuntuImages...), ", "))
+				strings.Join(slices.Concat(SupportedAmazonLinuxImages, SupportedBottlerocketImages, SupportedUbuntuImages), ", "))
 		}
-		if ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023 {
+		if ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyAmazonLinux2023 && ng.AMIFamily != NodeImageFamilyBottlerocket {
 			return fmt.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI based on %s (%[1]s.ami)", path, ng.AMIFamily)
 		}
 		notSupportedWithCustomAMIErr := func(field string) error {
@@ -1611,6 +1613,16 @@ func IsAmazonLinuxImage(imageFamily string) bool {
 	switch imageFamily {
 	case NodeImageFamilyAmazonLinux2023,
 		NodeImageFamilyAmazonLinux2:
+		return true
+
+	default:
+		return false
+	}
+}
+
+func IsBottlerocketImage(imageFamily string) bool {
+	switch imageFamily {
+	case NodeImageFamilyBottlerocket:
 		return true
 
 	default:
