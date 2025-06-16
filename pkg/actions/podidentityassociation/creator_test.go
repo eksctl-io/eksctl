@@ -155,6 +155,7 @@ var _ = Describe("Create", func() {
 					On("CreatePodIdentityAssociation", mock.Anything, mock.Anything).
 					Run(func(args mock.Arguments) {
 						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.CreatePodIdentityAssociationInput{}))
 						input := args[1].(*awseks.CreatePodIdentityAssociationInput)
 						Expect(*input.ClusterName).To(Equal(clusterName))
 						Expect(*input.Namespace).To(Equal(namespace))
