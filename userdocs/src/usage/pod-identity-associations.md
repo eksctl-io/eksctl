@@ -2,7 +2,7 @@
 
 ## Introduction
 
-AWS EKS has introduced a new enhanced mechanism called Pod Identity Association for cluster administrators to configure Kubernetes applications to receive IAM permissions required to connect with AWS services outside of the cluster. Pod Identity Association leverages IRSA, however, it makes it configurable directly through EKS API, eliminating the need for using IAM API altogether.
+AWS EKS has introduced a new enhanced mechanism called Pod Identity Association for cluster administrators to configure Kubernetes applications to receive IAM permissions required to connect with AWS services outside of the cluster. Pod Identity Association leverages IRSA, however, it makes it configurable directly through the EKS API, eliminating the need for using IAM API altogether.
 
 As a result, IAM roles no longer need to reference an [OIDC provider](/usage/iamserviceaccounts/#how-it-works) and hence won't be tied to a single cluster anymore. This means, IAM roles can now be used across multiple EKS clusters without the need to update the role trust policy each time a new cluster is created. This in turn, eliminates the need for role duplication and simplifies the process of automating IRSA altogether.
 
@@ -411,6 +411,40 @@ The existing OIDC provider trust relationship is always being removed from IAM R
 ```
 eksctl utils migrate-to-pod-identity --cluster my-cluster --approve --remove-oidc-provider-trust-relationship
 ```
+
+
+## Cross Account Pod Identity Support
+
+eksctl supports [EKS Pod Identity cross-account access](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-cross-account-resource-access.html). This feature allows pods running in your EKS cluster to access AWS resources in a different AWS account.
+
+### Usage
+
+To create a pod identity association with cross-account access:
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: my-cluster
+  region: us-west-2
+
+podIdentityAssociations:
+- namespace: default
+  serviceAccountName: my-service-account
+  # The source role in the same account as the cluster
+  roleName: my-source-role
+  # The target role in a different account
+  targetRoleARN: arn:aws:iam::123456789012:role/my-target-role
+  # Optional: Disable session tags
+  disableSessionTags: false
+```
+
+### Permissions
+
+Cross account access requires permissions to be configured on both the source and target accounts, either via roles or resource-based policies.
+
+For more information, see the [AWS Identity and Access Management documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-cross-account-resource-access.html).
+
 
 ## Further references
 

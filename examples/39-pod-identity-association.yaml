@@ -23,15 +23,6 @@ iam:
     createServiceAccount: true # default is false
     roleARN: arn:aws:iam::111122223333:role/role-1
 
-  # Cross-account access example: roleARN is in the same account as the cluster,
-  # targetRoleARN is in a different account. The pod will get credentials for the target role.
-  - namespace: default
-    serviceAccountName: cross-account-s3-reader
-    createServiceAccount: true
-    roleARN: arn:aws:iam::111122223333:role/role-a # Role in the same account as the cluster
-    targetRoleARN: arn:aws:iam::444455556666:role/role-b # Role in a different account
-    disableSessionTags: true # Optional: disable session tags added by EKS Pod Identity
-
   # roleARN is not given, eksctl will first create an IAM role with given roleName using:
   # permissionPolicyARNs, wellKnownPolicies and permissionsBoundaryARN
   - namespace: dev
@@ -60,3 +51,12 @@ iam:
         - "autoscaling:TerminateInstanceInAutoScalingGroup"
         - "ec2:DescribeLaunchTemplateVersions"
         Resource: '*'
+
+  # Cross-account access example: roleARN is in the same account as the cluster,
+  # targetRoleARN is in a different account. The pod will get credentials for the target role.
+  - namespace: default
+    serviceAccountName: cross-account-s3-reader
+    createServiceAccount: true
+    roleARN: arn:aws:iam::111122223333:role/role-a # Role in the same account as the cluster
+    targetRoleARN: arn:aws:iam::444455556666:role/role-b # Role in a different account
+    disableSessionTags: true # Optional: disable session tags added by EKS Pod Identity
