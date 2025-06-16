@@ -70,11 +70,33 @@ var _ = Describe("Pod Identity Update", func() {
 			},
 		}, nil)
 		if o.updateRoleARN != "" {
-			eksAPI.On("UpdatePodIdentityAssociation", mock.Anything, &eks.UpdatePodIdentityAssociationInput{
+			input := &eks.UpdatePodIdentityAssociationInput{
 				AssociationId: aws.String(associationID),
 				ClusterName:   aws.String(clusterName),
 				RoleArn:       aws.String(o.updateRoleARN),
-			}).Return(&eks.UpdatePodIdentityAssociationOutput{}, nil)
+			}
+
+			// For the cross-account access test case
+			if o.podIdentifier.Namespace == "default" && o.podIdentifier.ServiceAccountName == "default" && o.updateRoleARN == "arn:aws:iam::00000000:role/source-role" {
+				for _, pia := range []api.PodIdentityAssociation{
+					{
+						Namespace:          "default",
+						ServiceAccountName: "default",
+						RoleARN:            "arn:aws:iam::00000000:role/source-role",
+						TargetRoleARN:      "arn:aws:iam::11111111:role/target-role",
+						DisableSessionTags: true,
+					},
+				} {
+					if pia.TargetRoleARN != "" {
+						input.TargetRoleArn = &pia.TargetRoleARN
+					}
+					if pia.DisableSessionTags {
+						input.DisableSessionTags = &pia.DisableSessionTags
+					}
+				}
+			}
+
+			eksAPI.On("UpdatePodIdentityAssociation", mock.Anything, input).Return(&eks.UpdatePodIdentityAssociationOutput{}, nil)
 		}
 		mockStackManager(stackManager, stackName, o.describeStackOutputs, o.describeStackCapabilities)
 	}

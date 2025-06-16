@@ -160,7 +160,8 @@ var _ = Describe("Create", func() {
 						Expect(*input.Namespace).To(Equal(namespace))
 						Expect(*input.ServiceAccount).To(Equal(serviceAccountName1))
 						Expect(*input.RoleArn).To(Equal(roleARN))
-						// Note: TargetRoleArn and DisableSessionTags will be added when AWS SDK is updated
+						Expect(*input.TargetRoleArn).To(Equal("arn:aws:iam::444455556666:role/TargetRole"))
+						Expect(*input.DisableSessionTags).To(BeTrue())
 					}).
 					Return(&awseks.CreatePodIdentityAssociationOutput{}, nil).
 					Once()
