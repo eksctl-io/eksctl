@@ -2,7 +2,6 @@ package nodebootstrap
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 
 	toml "github.com/pelletier/go-toml"
@@ -47,12 +46,13 @@ func (b *ManagedBottlerocket) UserData() (string, error) {
 		settings.Set(adminContainerEnabledKey, *enableAdminContainer)
 	}
 
-	userData := settings.String()
-	if userData == "" {
-		return "", errors.New("generated unexpected empty TOML user-data from input")
+	// Generate TOML for launch in this NodeGroup.
+	data, err := bottlerocketSettingsTOML(b.clusterConfig, b.ng.NodeGroupBase, settings)
+	if err != nil {
+		return "", err
 	}
 
-	return base64.StdEncoding.EncodeToString([]byte(userData)), nil
+	return base64.StdEncoding.EncodeToString([]byte(data)), nil
 }
 
 // setDerivedSettings configures settings that are derived from top-level nodegroup config
