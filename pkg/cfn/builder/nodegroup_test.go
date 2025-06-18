@@ -467,11 +467,9 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					ng.IAM.WithAddonPolicies.EBS = aws.Bool(true)
 				})
 
-				It("adds PolicyEBS to the role", func() {
-					Expect(ngTemplate.Resources).To(HaveKey("PolicyEBS"))
-
-					Expect(ngTemplate.Resources["PolicyEBS"].Properties.Roles).To(HaveLen(1))
-					Expect(isRefTo(ngTemplate.Resources["PolicyEBS"].Properties.Roles[0], "NodeInstanceRole")).To(BeTrue())
+				It("adds the AmazonEBSCSIDriverPolicy managed policy to the role", func() {
+					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(5))
+					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("service-role/AmazonEBSCSIDriverPolicy")))
 				})
 			})
 

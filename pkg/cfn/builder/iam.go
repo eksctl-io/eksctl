@@ -30,6 +30,7 @@ const (
 	iamPolicyAmazonEC2ContainerRegistryPullOnly  = "AmazonEC2ContainerRegistryPullOnly"
 	iamPolicyCloudWatchAgentServerPolicy         = "CloudWatchAgentServerPolicy"
 	iamPolicyAmazonSSMManagedInstanceCore        = "AmazonSSMManagedInstanceCore"
+	iamPolicyAmazonEBSCSIDriverPolicy            = "service-role/AmazonEBSCSIDriverPolicy"
 
 	iamPolicyAmazonEKSFargatePodExecutionRolePolicy = "AmazonEKSFargatePodExecutionRolePolicy"
 )
