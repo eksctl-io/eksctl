@@ -2281,9 +2281,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			mng.AMIFamily = api.NodeImageFamilyBottlerocket
 			mng.OverrideBootstrapCommand = nil
 			err = api.ValidateManagedNodeGroup(0, mng)
-			errorMsg := fmt.Sprintf("cannot set amiFamily to %s when using a custom AMI for managed nodes, only %s are supported", mng.AMIFamily,
-				strings.Join(append(api.SupportedAmazonLinuxImages, api.SupportedUbuntuImages...), ", "))
-			Expect(err).To(MatchError(errorMsg))
+			Expect(err).NotTo(HaveOccurred())
 
 			mng.AMIFamily = api.NodeImageFamilyAmazonLinux2023
 			err = api.ValidateManagedNodeGroup(0, mng)

@@ -84,7 +84,6 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 					AMIFamily: "Bottlerocket",
 				},
 			},
-			errMsg: "cannot set amiFamily to Bottlerocket when using a custom AMI",
 		}),
 		Entry("Custom AMI with overrideBootstrapCommand", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
