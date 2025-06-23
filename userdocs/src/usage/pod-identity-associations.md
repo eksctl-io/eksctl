@@ -442,9 +442,9 @@ iam:
     serviceAccountName: demo-app-sa
     createServiceAccount: true
     # The source role in the same account as the cluster
-    roleARN: arn:aws:iam::111122223333:role/account-a-role
+    roleARN: arn:aws:iam::1111111111:role/account-a-role
     # The target role in a different account
-    targetRoleARN: arn:aws:iam::999988887777:role/account-b-role
+    targetRoleARN: arn:aws:iam::2222222222:role/account-b-role
     # Optional: Disable session tags
     disableSessionTags: false
 
