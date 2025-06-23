@@ -443,7 +443,7 @@ podIdentityAssociations:
 
 Cross account access requires permissions to be configured on both the source and target accounts, either via roles or resource-based policies.
 
-For more information, see the [AWS Identity and Access Management documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-cross-account-resource-access.html).
+For a walkthrough of setting this up, see ["Amazon EKS Pod Identity streamlines cross account access"](https://aws.amazon.com/blogs/containers/amazon-eks-pod-identity-streamlines-cross-account-access/).
 
 
 ## Further references
