@@ -206,35 +206,6 @@ var _ = Describe("Pod Identity Update", func() {
 			expectedErr: `error updating pod identity association "default/default": cannot change podIdentityAssociation.roleARN since the role was created by eksctl`,
 		}),
 
-		Entry("update pod identity association with cross-account access", updateEntry{
-			podIdentityAssociations: []api.PodIdentityAssociation{
-				{
-					Namespace:          "default",
-					ServiceAccountName: "default",
-					RoleARN:            "arn:aws:iam::00000000:role/source-role",
-					TargetRoleARN:      "arn:aws:iam::11111111:role/target-role",
-					DisableSessionTags: true,
-				},
-			},
-			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				mockListStackNames(stackManager, nil)
-				mockCalls(stackManager, eksAPI, mockOptions{
-					podIdentifier: podidentityassociation.Identifier{
-						Namespace:          "default",
-						ServiceAccountName: "default",
-					},
-					updateRoleARN: "arn:aws:iam::00000000:role/source-role",
-				})
-			},
-
-			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
-				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
-				Expect(stackManager.DescribeStackCallCount()).To(Equal(0))
-				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(0))
-				eksAPI.AssertExpectations(GinkgoT())
-			},
-		}),
-
 		Entry("role ARN specified when the IAM resources were not created by eksctl", updateEntry{
 			podIdentityAssociations: []api.PodIdentityAssociation{
 				{
@@ -481,6 +452,35 @@ var _ = Describe("Pod Identity Update", func() {
 				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
 				Expect(stackManager.DescribeStackCallCount()).To(Equal(2))
 				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(2))
+				eksAPI.AssertExpectations(GinkgoT())
+			},
+		}),
+
+		Entry("update pod identity association with cross-account access", updateEntry{
+			podIdentityAssociations: []api.PodIdentityAssociation{
+				{
+					Namespace:          "default",
+					ServiceAccountName: "default",
+					RoleARN:            "arn:aws:iam::00000000:role/source-role",
+					TargetRoleARN:      "arn:aws:iam::11111111:role/target-role",
+					DisableSessionTags: true,
+				},
+			},
+			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				mockListStackNames(stackManager, nil)
+				mockCalls(stackManager, eksAPI, mockOptions{
+					podIdentifier: podidentityassociation.Identifier{
+						Namespace:          "default",
+						ServiceAccountName: "default",
+					},
+					updateRoleARN: "arn:aws:iam::00000000:role/source-role",
+				})
+			},
+
+			expectedCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {
+				Expect(stackManager.ListPodIdentityStackNamesCallCount()).To(Equal(1))
+				Expect(stackManager.DescribeStackCallCount()).To(Equal(0))
+				Expect(stackManager.MustUpdateStackCallCount()).To(Equal(0))
 				eksAPI.AssertExpectations(GinkgoT())
 			},
 		}),

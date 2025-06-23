@@ -412,14 +412,15 @@ The existing OIDC provider trust relationship is always being removed from IAM R
 eksctl utils migrate-to-pod-identity --cluster my-cluster --approve --remove-oidc-provider-trust-relationship
 ```
 
-
 ## Cross Account Pod Identity Support
 
 eksctl supports [EKS Pod Identity cross-account access](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-cross-account-resource-access.html). This feature allows pods running in your EKS cluster to access AWS resources in a different AWS account.
 
 ### Usage
 
-To create a pod identity association with cross-account access:
+To create a pod identity association with cross-account access, first set up IAM Roles and Policies allowing access from a source AWS account (with the cluster) to a target AWS account (with the resources the cluster can access). For an example of this, see ["Amazon EKS Pod Identity streamlines cross account access."](https://aws.amazon.com/blogs/containers/amazon-eks-pod-identity-streamlines-cross-account-access/)
+
+Once an IAM Role is configured in each account, use eksctl to create the pod identity associations:
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
@@ -427,24 +428,36 @@ kind: ClusterConfig
 metadata:
   name: my-cluster
   region: us-west-2
+  version: "1.32"
 
-podIdentityAssociations:
-- namespace: default
-  serviceAccountName: my-service-account
-  # The source role in the same account as the cluster
-  roleName: my-source-role
-  # The target role in a different account
-  targetRoleARN: arn:aws:iam::123456789012:role/my-target-role
-  # Optional: Disable session tags
-  disableSessionTags: false
+addons:
+  - name: vpc-cni
+  - name: coredns
+  - name: kube-proxy
+  - name: eks-pod-identity-agent
+
+iam:
+  podIdentityAssociations:
+  - namespace: default
+    serviceAccountName: demo-app-sa
+    createServiceAccount: true
+    # The source role in the same account as the cluster
+    roleARN: arn:aws:iam::111122223333:role/account-a-role
+    # The target role in a different account
+    targetRoleARN: arn:aws:iam::999988887777:role/account-b-role
+    # Optional: Disable session tags
+    disableSessionTags: false
+
+managedNodeGroups:
+  - name: my-cluster
+    instanceType: m6a.large
+    privateNetworking: true
+    minSize: 2
+    desiredCapacity: 2
+    maxSize: 3
 ```
 
-### Permissions
-
-Cross account access requires permissions to be configured on both the source and target accounts, either via roles or resource-based policies.
-
-For a walkthrough of setting this up, see ["Amazon EKS Pod Identity streamlines cross account access"](https://aws.amazon.com/blogs/containers/amazon-eks-pod-identity-streamlines-cross-account-access/).
-
+Update the target role's trust relationship to accept an `sts.ExternalId` matching the service account.
 
 ## Further references
 
