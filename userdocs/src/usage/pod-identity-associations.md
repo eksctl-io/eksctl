@@ -426,6 +426,8 @@ Once an IAM Role is configured in each account, use eksctl to create the pod ide
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 metadata:
+  # The cluster name and service account name should match the target
+  # account policy's trust relationship.
   name: my-cluster
   region: us-west-2
   version: "1.32"
@@ -456,8 +458,6 @@ managedNodeGroups:
     desiredCapacity: 2
     maxSize: 3
 ```
-
-Update the target role's trust relationship to accept an `sts.ExternalId` matching the service account.
 
 ## Further references
 
