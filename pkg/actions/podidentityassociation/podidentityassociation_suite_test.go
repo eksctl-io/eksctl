@@ -9,5 +9,5 @@ import (
 
 func TestPodIdentityAssociation(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "PodIdentityAssociation Suite")
+	RunSpecs(t, "Pod Identity Association Suite")
 }
