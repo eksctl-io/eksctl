@@ -47,18 +47,6 @@ func (c *Creator) CreateTasks(ctx context.Context, podIdentityAssociations []api
 	}
 	for _, pia := range podIdentityAssociations {
 		pia := pia
-		
-		// Validate the pod identity association configuration
-		if err := api.ValidatePodIdentityAssociation(&pia); err != nil {
-			taskTree.Append(&tasks.GenericTask{
-				Description: fmt.Sprintf("validate pod identity association for service account %q", pia.NameString()),
-				Doer: func() error {
-					return fmt.Errorf("invalid pod identity association configuration: %w", err)
-				},
-			})
-			continue
-		}
-		
 		piaCreationTasks := &tasks.TaskTree{
 			Parallel:  false,
 			IsSubTask: true,
