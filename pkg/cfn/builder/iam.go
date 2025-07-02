@@ -536,15 +536,15 @@ func (rs *IAMRoleResourceSet) AddAssumeRolePermission(targetRoleARN string) {
 					// Skip if this is already an AssumeRole statement for the same resource
 					if action, hasAction := stmtMap["Action"]; hasAction {
 						if resource, hasResource := stmtMap["Resource"]; hasResource {
-							if strings.Contains(fmt.Sprintf("%v", action), "AssumeRole") && 
-							   strings.Contains(fmt.Sprintf("%v", resource), targetRoleARN) {
+							if strings.Contains(fmt.Sprintf("%v", action), "AssumeRole") &&
+								strings.Contains(fmt.Sprintf("%v", resource), targetRoleARN) {
 								return // Statement already exists
 							}
 						}
 					}
 				}
 			}
-			
+
 			// Add the new statement
 			rs.attachPolicy["Statement"] = append(statements, newStatements[0])
 		}
@@ -553,6 +553,7 @@ func (rs *IAMRoleResourceSet) AddAssumeRolePermission(targetRoleARN string) {
 		rs.attachPolicy = assumeRolePolicy
 	}
 }
+
 // RenderJSON will render iamserviceaccount stack as JSON
 func (rs *IAMRoleResourceSet) RenderJSON() ([]byte, error) {
 	return rs.template.RenderJSON()
