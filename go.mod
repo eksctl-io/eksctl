@@ -12,18 +12,18 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.67
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.54.0
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.60.3
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.61.0
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.49.3
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.51.0
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.51.3
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.210.1
 	github.com/aws/aws-sdk-go-v2/service/eks v1.66.1
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.29.6
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.45.5
-	github.com/aws/aws-sdk-go-v2/service/iam v1.42.2
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.46.0
+	github.com/aws/aws-sdk-go-v2/service/iam v1.43.0
 	github.com/aws/aws-sdk-go-v2/service/kms v1.38.3
-	github.com/aws/aws-sdk-go-v2/service/outposts v1.50.3
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.59.3
+	github.com/aws/aws-sdk-go-v2/service/outposts v1.51.0
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.60.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.19
 	github.com/aws/smithy-go v1.22.4
 	github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20250219002025-c3b5cd3d2fd9

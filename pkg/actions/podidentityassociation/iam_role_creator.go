@@ -3,7 +3,6 @@ package podidentityassociation
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -29,21 +28,6 @@ func (r *IAMRoleCreator) Create(ctx context.Context, podIdentityAssociation *api
 		Namespace:          podIdentityAssociation.Namespace,
 		ServiceAccountName: podIdentityAssociation.ServiceAccountName,
 	}.IDString()
-
-	// If a target role ARN is specified for cross-account access, we need to add permission to assume the target role
-	if podIdentityAssociation.TargetRoleARN != "" {
-		targetRoleARNParts := strings.Split(podIdentityAssociation.TargetRoleARN, ":")
-		if len(targetRoleARNParts) >= 5 {
-			targetAccountID := targetRoleARNParts[4]
-			targetRoleName := strings.TrimPrefix(targetRoleARNParts[5], "role/")
-
-			rs.AddAssumeRolePermission(podIdentityAssociation.TargetRoleARN)
-
-			podIdentityAssociation.Tags["eksctl.io/cross-account-role"] = "true"
-			podIdentityAssociation.Tags["eksctl.io/target-account-id"] = targetAccountID
-			podIdentityAssociation.Tags["eksctl.io/target-role-name"] = targetRoleName
-		}
-	}
 
 	var stackName string
 	if addonName != "" {

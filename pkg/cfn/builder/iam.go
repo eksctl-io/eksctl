@@ -506,54 +506,6 @@ func toMapOfInterfaces(old []api.IAMStatement) []cft.MapOfInterfaces {
 	return new
 }
 
-// AddAssumeRolePermission adds permission to assume a target role
-func (rs *IAMRoleResourceSet) AddAssumeRolePermission(targetRoleARN string) {
-	if rs.attachPolicy == nil {
-		rs.attachPolicy = api.InlineDocument{}
-	}
-
-	// Create or update the policy to include permission to assume the target role
-	assumeRolePolicy := api.InlineDocument{
-		"Version": "2012-10-17",
-		"Statement": []api.IAMStatement{
-			{
-				Effect: "Allow",
-				Action: []string{
-					"sts:AssumeRole",
-					"sts:TagSession",
-				},
-				Resource: []string{targetRoleARN},
-			},
-		},
-	}
-
-	// If there's an existing policy, merge the statements
-	if existingPolicy, ok := rs.attachPolicy["Statement"]; ok {
-		if statements, ok := existingPolicy.([]interface{}); ok {
-			newStatements := assumeRolePolicy["Statement"].([]api.IAMStatement)
-			for _, stmt := range statements {
-				if stmtMap, ok := stmt.(map[string]interface{}); ok {
-					// Skip if this is already an AssumeRole statement for the same resource
-					if action, hasAction := stmtMap["Action"]; hasAction {
-						if resource, hasResource := stmtMap["Resource"]; hasResource {
-							if strings.Contains(fmt.Sprintf("%v", action), "AssumeRole") &&
-								strings.Contains(fmt.Sprintf("%v", resource), targetRoleARN) {
-								return // Statement already exists
-							}
-						}
-					}
-				}
-			}
-
-			// Add the new statement
-			rs.attachPolicy["Statement"] = append(statements, newStatements[0])
-		}
-	} else {
-		// No existing statements, use the new policy
-		rs.attachPolicy = assumeRolePolicy
-	}
-}
-
 // RenderJSON will render iamserviceaccount stack as JSON
 func (rs *IAMRoleResourceSet) RenderJSON() ([]byte, error) {
 	return rs.template.RenderJSON()

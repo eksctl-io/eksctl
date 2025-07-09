@@ -60,3 +60,16 @@ iam:
     roleARN: arn:aws:iam::111122223333:role/role-a # Role in the same account as the cluster
     targetRoleARN: arn:aws:iam::444455556666:role/role-b # Role in a different account
     disableSessionTags: true # Optional: disable session tags added by EKS Pod Identity
+
+  # Cross-account access example: roleARN is not defined, but instead the customer provides
+  # the permissionPolicyARNs for the role that will be created.
+  - namespace: default
+    serviceAccountName: cross-account-s3-reader-b
+    createServiceAccount: true
+    roleName: pod-identity-role-cross-account
+    targetRoleARN: arn:aws:iam::444455556666:role/role-b
+    # This permission policy must allow assumption of the targetRoleARN
+    permissionPolicyARNs: ["arn:aws:iam::111122223333:policy/my-cross-account-permission-policy"]
+    wellKnownPolicies:
+      autoScaler: true
+      externalDNS: true
