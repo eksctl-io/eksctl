@@ -35,7 +35,8 @@ func updatePodIdentityAssociation(cmd *cmdutils.Cmd) {
 		fs.StringVar(&options.Namespace, "namespace", "", "Namespace of the pod identity association")
 		fs.StringVar(&options.ServiceAccountName, "service-account-name", "", "Service account name of the pod identity association")
 		fs.StringVar(&options.RoleARN, "role-arn", "", "ARN of the IAM role to be associated with the service account")
-
+		fs.StringVar(&options.TargetRoleARN, "target-role-arn", "", "ARN of the target IAM role for cross-account access")
+		fs.BoolVar(&options.DisableSessionTags, "disable-session-tags", false, "Disable session tags added by EKS Pod Identity")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)
@@ -67,6 +68,8 @@ func doUpdatePodIdentityAssociation(cmd *cmdutils.Cmd, options cmdutils.UpdatePo
 				Namespace:          options.Namespace,
 				ServiceAccountName: options.ServiceAccountName,
 				RoleARN:            options.RoleARN,
+				TargetRoleARN:      options.TargetRoleARN,
+				DisableSessionTags: options.DisableSessionTags,
 			},
 		}
 	}

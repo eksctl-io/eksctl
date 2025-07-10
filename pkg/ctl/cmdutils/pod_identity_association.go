@@ -173,12 +173,18 @@ type UpdatePodIdentityAssociationOptions struct {
 	PodIdentityAssociationOptions
 	// RoleARN is the IAM role ARN to be associated with the pod.
 	RoleARN string
+	// TargetRoleARN is the new target IAM role to associate with the service account.
+	// This is used for cross-account pod identity access.
+	TargetRoleARN string
+	// DisableSessionTags is a boolean flag to enable or disable session tags.
+	// This is used for cross-account pod identity access.
+	DisableSessionTags bool
 }
 
 // NewUpdatePodIdentityAssociationLoader will load config or use flags for `eksctl update podidentityassociation`.
 func NewUpdatePodIdentityAssociationLoader(cmd *Cmd, options UpdatePodIdentityAssociationOptions) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
-	l.flagsIncompatibleWithConfigFile.Insert("namespace", "service-account-name", "role-arn")
+	l.flagsIncompatibleWithConfigFile.Insert("namespace", "service-account-name", "role-arn", "target-role-arn", "disable-session-tags")
 
 	l.validateWithoutConfigFile = func() error {
 		if err := validatePodIdentityAssociation(l, options.PodIdentityAssociationOptions); err != nil {
