@@ -20,6 +20,8 @@ var (
 		"permission-policy-arn",
 		"well-known-policies",
 		"create-service-account",
+		"target-role-arn",
+		"disable-session-tags",
 	}
 )
 
