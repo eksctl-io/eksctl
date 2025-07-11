@@ -979,7 +979,7 @@ var _ = Describe("Create", func() {
 					Expect(rsr).To(BeAssignableToTypeOf(&builder.IAMRoleResourceSet{}))
 					output, err := rsr.(*builder.IAMRoleResourceSet).RenderJSON()
 					Expect(err).NotTo(HaveOccurred())
-					Expect(string(output)).To(ContainSubstring("PolicyEBSCSIController"))
+					Expect(string(output)).To(ContainSubstring("service-role/AmazonEBSCSIDriverPolicy"))
 					rsr.(*builder.IAMRoleResourceSet).OutputRole = "arn:aws:iam::111122223333:role/role-name-1"
 					return nil
 				}
