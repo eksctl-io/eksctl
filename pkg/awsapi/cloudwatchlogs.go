@@ -1135,11 +1135,11 @@ type CloudWatchLogs interface {
 	//   - The maximum batch size is 1,048,576 bytes. This size is calculated as the
 	//     sum of all event messages in UTF-8, plus 26 bytes for each log event.
 	//
-	//   - None of the log events in the batch can be more than 2 hours in the future.
+	//   - Events more than 2 hours in the future are rejected while processing
+	//     remaining valid events.
 	//
-	//   - None of the log events in the batch can be more than 14 days in the past.
-	//     Also, none of the log events can be from earlier than the retention period of
-	//     the log group.
+	//   - Events older than 14 days or preceding the log group's retention period are
+	//     rejected while processing remaining valid events.
 	//
 	//   - The log events in the batch must be in chronological order by their
 	//     timestamp. The timestamp is the time that the event occurred, expressed as the
@@ -1148,17 +1148,21 @@ type CloudWatchLogs interface {
 	//     timestamp is specified in .NET format: yyyy-mm-ddThh:mm:ss . For example,
 	//     2017-09-15T13:45:30 .)
 	//
-	//   - A batch of log events in a single request cannot span more than 24 hours.
+	//   - A batch of log events in a single request must be in a chronological order.
 	//     Otherwise, the operation fails.
 	//
 	//   - Each log event can be no larger than 1 MB.
 	//
 	//   - The maximum number of log events in a batch is 10,000.
 	//
-	//   - The quota of five requests per second per log stream has been removed.
-	//     Instead, PutLogEvents actions are throttled based on a per-second per-account
-	//     quota. You can request an increase to the per-second throttling quota by using
-	//     the Service Quotas service.
+	//   - For valid events (within 14 days in the past to 2 hours in future), the
+	//     time span in a single batch cannot exceed 24 hours. Otherwise, the operation
+	//     fails.
+	//
+	// The quota of five requests per second per log stream has been removed. Instead,
+	// PutLogEvents actions are throttled based on a per-second per-account quota. You
+	// can request an increase to the per-second throttling quota by using the Service
+	// Quotas service.
 	//
 	// If a call to PutLogEvents returns "UnrecognizedClientException" the most likely
 	// cause is a non-valid Amazon Web Services access key ID or secret key.

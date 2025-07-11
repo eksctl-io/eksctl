@@ -2513,6 +2513,12 @@
           "type": "boolean",
           "default": "false"
         },
+        "disableSessionTags": {
+          "type": "boolean",
+          "description": "disables the tags that are automatically added to role session by Amazon EKS.",
+          "x-intellij-html-description": "disables the tags that are automatically added to role session by Amazon EKS.",
+          "default": "false"
+        },
         "namespace": {
           "type": "string"
         },
@@ -2544,6 +2550,11 @@
           "type": "object",
           "default": "{}"
         },
+        "targetRoleARN": {
+          "type": "string",
+          "description": "Amazon Resource Name (ARN) of the IAM role to be chained to the IAM role specified as RoleARN. This enables cross-account access where the RoleARN is in the same account as the cluster and TargetRoleARN is in a different account.",
+          "x-intellij-html-description": "Amazon Resource Name (ARN) of the IAM role to be chained to the IAM role specified as RoleARN. This enables cross-account access where the RoleARN is in the same account as the cluster and TargetRoleARN is in a different account."
+        },
         "wellKnownPolicies": {
           "$ref": "#/definitions/WellKnownPolicies"
         }
@@ -2558,7 +2569,9 @@
         "permissionPolicyARNs",
         "permissionPolicy",
         "wellKnownPolicies",
-        "tags"
+        "tags",
+        "targetRoleARN",
+        "disableSessionTags"
       ],
       "additionalProperties": false
     },

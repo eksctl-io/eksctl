@@ -71,6 +71,8 @@ func configureCreatePodIdentityAssociationCmd(cmd *cmdutils.Cmd, pia *api.PodIde
 		fs.StringVar(&pia.RoleARN, "role-arn", "", "ARN of the IAM role to be associated with the service account")
 		fs.StringVar(&pia.RoleName, "role-name", "", "Set a custom name for the created role")
 		fs.StringVar(&pia.PermissionsBoundaryARN, "permission-boundary-arn", "", "ARN of the policy that is used to set the permission boundary for the role")
+		fs.StringVar(&pia.TargetRoleARN, "target-role-arn", "", "ARN of the target IAM role for cross-account access")
+		fs.BoolVar(&pia.DisableSessionTags, "disable-session-tags", false, "Disable session tags added by EKS Pod Identity")
 
 		fs.BoolVar(&pia.CreateServiceAccount, "create-service-account", false, "instructs eksctl to create the K8s service account")
 
