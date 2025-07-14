@@ -83,15 +83,15 @@ var _ = Describe("Pod Identity Update", func() {
 						Namespace:          "default",
 						ServiceAccountName: "default",
 						RoleARN:            "arn:aws:iam::00000000:role/source-role",
-						TargetRoleARN:      "arn:aws:iam::11111111:role/target-role",
-						DisableSessionTags: true,
+						TargetRoleARN:      aws.String("arn:aws:iam::11111111:role/target-role"),
+						DisableSessionTags: aws.Bool(true),
 					},
 				} {
-					if pia.TargetRoleARN != "" {
-						input.TargetRoleArn = &pia.TargetRoleARN
+					if pia.TargetRoleARN != nil {
+						input.TargetRoleArn = pia.TargetRoleARN
 					}
-					if pia.DisableSessionTags {
-						input.DisableSessionTags = &pia.DisableSessionTags
+					if pia.DisableSessionTags != nil {
+						input.DisableSessionTags = pia.DisableSessionTags
 					}
 				}
 			}
@@ -462,8 +462,8 @@ var _ = Describe("Pod Identity Update", func() {
 					Namespace:          "default",
 					ServiceAccountName: "default",
 					RoleARN:            "arn:aws:iam::00000000:role/source-role",
-					TargetRoleARN:      "arn:aws:iam::11111111:role/target-role",
-					DisableSessionTags: true,
+					TargetRoleARN:      aws.String("arn:aws:iam::11111111:role/target-role"),
+					DisableSessionTags: aws.Bool(true),
 				},
 			},
 			mockCalls: func(stackManager *managerfakes.FakeStackManager, eksAPI *mocksv2.EKS) {

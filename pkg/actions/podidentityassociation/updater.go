@@ -97,7 +97,11 @@ func (u *Updater) update(ctx context.Context, updateConfig *UpdateConfig, podIde
 		if err != nil {
 			return err
 		}
-		if !hasChanged {
+
+		// If there's no change to the IAM role or pod identity association properties, return early
+		if !hasChanged &&
+			updateConfig.PodIdentityAssociation.TargetRoleARN == nil &&
+			updateConfig.PodIdentityAssociation.DisableSessionTags == nil {
 			return nil
 		}
 		roleARN = newRoleARN
@@ -112,21 +116,18 @@ func (u *Updater) updatePodIdentityAssociation(ctx context.Context, roleARN stri
 		RoleArn:       aws.String(roleARN),
 	}
 
-	// Add target role ARN if specified (for cross-account access)
-	if updateConfig.PodIdentityAssociation.TargetRoleARN != "" {
-		logger.Info("Target role ARN %q specified for cross-account access", updateConfig.PodIdentityAssociation.TargetRoleARN)
-		input.TargetRoleArn = &updateConfig.PodIdentityAssociation.TargetRoleARN
+	if updateConfig.PodIdentityAssociation.TargetRoleARN != nil {
+		input.TargetRoleArn = updateConfig.PodIdentityAssociation.TargetRoleARN
 	}
-
-	// Add disable session tags if specified
-	if updateConfig.PodIdentityAssociation.DisableSessionTags {
-		logger.Info("Session tags will be disabled for this pod identity association")
-		input.DisableSessionTags = &updateConfig.PodIdentityAssociation.DisableSessionTags
+	if updateConfig.PodIdentityAssociation.DisableSessionTags != nil {
+		input.DisableSessionTags = updateConfig.PodIdentityAssociation.DisableSessionTags
 	}
 
 	if _, err := u.APIUpdater.UpdatePodIdentityAssociation(ctx, input); err != nil {
-		return fmt.Errorf("(associationID: %s, roleARN: %s): %w", updateConfig.AssociationID, roleARN, err)
+		return fmt.Errorf("updating pod identity association (associationID: %s, roleARN: %s): %w",
+			updateConfig.AssociationID, roleARN, err)
 	}
+
 	logger.Info("updated role ARN %q for pod identity association %q", roleARN, podIdentityAssociationID)
 	return nil
 }

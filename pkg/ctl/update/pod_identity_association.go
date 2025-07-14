@@ -35,8 +35,18 @@ func updatePodIdentityAssociation(cmd *cmdutils.Cmd) {
 		fs.StringVar(&options.Namespace, "namespace", "", "Namespace of the pod identity association")
 		fs.StringVar(&options.ServiceAccountName, "service-account-name", "", "Service account name of the pod identity association")
 		fs.StringVar(&options.RoleARN, "role-arn", "", "ARN of the IAM role to be associated with the service account")
-		fs.StringVar(&options.TargetRoleARN, "target-role-arn", "", "ARN of the target IAM role for cross-account access")
-		fs.BoolVar(&options.DisableSessionTags, "disable-session-tags", false, "Disable session tags added by EKS Pod Identity")
+		var targetRoleArn string
+		var disableSessionTags bool
+		fs.StringVar(&targetRoleArn, "target-role-arn", "", "ARN of the target IAM role for cross-account access")
+		fs.BoolVar(&disableSessionTags, "disable-session-tags", false, "Disable session tags added by EKS Pod Identity")
+		cmdutils.AddPreRun(cmd.CobraCommand, func(cobraCmd *cobra.Command, args []string) {
+			if fs.Changed("target-role-arn") {
+				options.TargetRoleARN = &targetRoleArn
+			}
+			if fs.Changed("disable-session-tags") {
+				options.DisableSessionTags = &disableSessionTags
+			}
+		})
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, false)

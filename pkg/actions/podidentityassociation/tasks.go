@@ -52,15 +52,15 @@ func (t *createPodIdentityAssociationTask) Do(errorCh chan error) error {
 	}
 
 	// Add target role ARN if specified (for cross-account access)
-	if t.podIdentityAssociation.TargetRoleARN != "" {
+	if t.podIdentityAssociation.TargetRoleARN != nil && *t.podIdentityAssociation.TargetRoleARN != "" {
 		logger.Info("Target role ARN %q specified for cross-account access", t.podIdentityAssociation.TargetRoleARN)
-		input.TargetRoleArn = &t.podIdentityAssociation.TargetRoleARN
+		input.TargetRoleArn = t.podIdentityAssociation.TargetRoleARN
 	}
 
 	// Add disable session tags if specified
-	if t.podIdentityAssociation.DisableSessionTags {
+	if t.podIdentityAssociation.DisableSessionTags != nil {
 		logger.Info("Session tags will be disabled for this pod identity association")
-		input.DisableSessionTags = &t.podIdentityAssociation.DisableSessionTags
+		input.DisableSessionTags = t.podIdentityAssociation.DisableSessionTags
 	}
 
 	if _, err := t.eksAPI.CreatePodIdentityAssociation(t.ctx, input); err != nil {

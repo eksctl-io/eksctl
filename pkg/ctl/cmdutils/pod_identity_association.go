@@ -177,10 +177,10 @@ type UpdatePodIdentityAssociationOptions struct {
 	RoleARN string
 	// TargetRoleARN is the new target IAM role to associate with the service account.
 	// This is used for cross-account pod identity access.
-	TargetRoleARN string
+	TargetRoleARN *string
 	// DisableSessionTags is a boolean flag to enable or disable session tags.
 	// This is used for cross-account pod identity access.
-	DisableSessionTags bool
+	DisableSessionTags *bool
 }
 
 // NewUpdatePodIdentityAssociationLoader will load config or use flags for `eksctl update podidentityassociation`.

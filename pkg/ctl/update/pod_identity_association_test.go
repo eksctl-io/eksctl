@@ -95,8 +95,8 @@ func TestUpdatePodIdentityAssociationWithCrossAccountAccess(t *testing.T) {
 			ServiceAccountName: "test-sa",
 		},
 		RoleARN:            "arn:aws:iam::111122223333:role/source-role",
-		TargetRoleARN:      "arn:aws:iam::444455556666:role/target-role",
-		DisableSessionTags: true,
+		TargetRoleARN:      aws.String("arn:aws:iam::444455556666:role/target-role"),
+		DisableSessionTags: aws.Bool(true),
 	}
 
 	// Create the pod identity association in the cluster config

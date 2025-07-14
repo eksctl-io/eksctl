@@ -71,8 +71,20 @@ func configureCreatePodIdentityAssociationCmd(cmd *cmdutils.Cmd, pia *api.PodIde
 		fs.StringVar(&pia.RoleARN, "role-arn", "", "ARN of the IAM role to be associated with the service account")
 		fs.StringVar(&pia.RoleName, "role-name", "", "Set a custom name for the created role")
 		fs.StringVar(&pia.PermissionsBoundaryARN, "permission-boundary-arn", "", "ARN of the policy that is used to set the permission boundary for the role")
-		fs.StringVar(&pia.TargetRoleARN, "target-role-arn", "", "ARN of the target IAM role for cross-account access")
-		fs.BoolVar(&pia.DisableSessionTags, "disable-session-tags", false, "Disable session tags added by EKS Pod Identity")
+		var targetRoleARN string
+		var disableSessionTags bool
+		fs.StringVar(&targetRoleARN, "target-role-arn", "", "ARN of the target IAM role for cross-account access (default to empty string for no cross-account access)")
+		fs.BoolVar(&disableSessionTags, "disable-session-tags", false, "Disable session tags added by EKS Pod Identity (default false)")
+
+		// Store the flag values in the struct
+		cmdutils.AddPreRun(cmd.CobraCommand, func(cobraCmd *cobra.Command, args []string) {
+			if fs.Changed("target-role-arn") {
+				pia.TargetRoleARN = &targetRoleARN
+			}
+			if fs.Changed("disable-session-tags") {
+				pia.DisableSessionTags = &disableSessionTags
+			}
+		})
 
 		fs.BoolVar(&pia.CreateServiceAccount, "create-service-account", false, "instructs eksctl to create the K8s service account")
 

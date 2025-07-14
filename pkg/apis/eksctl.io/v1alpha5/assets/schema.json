@@ -2516,8 +2516,7 @@
         "disableSessionTags": {
           "type": "boolean",
           "description": "disables the tags that are automatically added to role session by Amazon EKS.",
-          "x-intellij-html-description": "disables the tags that are automatically added to role session by Amazon EKS.",
-          "default": "false"
+          "x-intellij-html-description": "disables the tags that are automatically added to role session by Amazon EKS."
         },
         "namespace": {
           "type": "string"

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -146,8 +147,8 @@ var _ = Describe("Create", func() {
 					Namespace:          namespace,
 					ServiceAccountName: serviceAccountName1,
 					RoleARN:            roleARN,
-					TargetRoleARN:      "arn:aws:iam::444455556666:role/TargetRole",
-					DisableSessionTags: true,
+					TargetRoleARN:      aws.String("arn:aws:iam::444455556666:role/TargetRole"),
+					DisableSessionTags: aws.Bool(true),
 				},
 			},
 			mockEKS: func(provider *mockprovider.MockProvider) {
