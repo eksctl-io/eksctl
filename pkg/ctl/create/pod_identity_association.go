@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -74,7 +75,7 @@ func configureCreatePodIdentityAssociationCmd(cmd *cmdutils.Cmd, pia *api.PodIde
 		var targetRoleARN string
 		var disableSessionTags bool
 		fs.StringVar(&targetRoleARN, "target-role-arn", "", "ARN of the target IAM role for cross-account access (default to empty string for no cross-account access)")
-		fs.BoolVar(&disableSessionTags, "disable-session-tags", false, "Disable session tags added by EKS Pod Identity (default false)")
+		fs.BoolVar(&disableSessionTags, "disable-session-tags", false, "Disable session tags added by EKS Pod Identity (if not provided, session tags are enabled by default)")
 
 		// Store the flag values in the struct
 		cmdutils.AddPreRun(cmd.CobraCommand, func(cobraCmd *cobra.Command, args []string) {
@@ -82,7 +83,7 @@ func configureCreatePodIdentityAssociationCmd(cmd *cmdutils.Cmd, pia *api.PodIde
 				pia.TargetRoleARN = &targetRoleARN
 			}
 			if fs.Changed("disable-session-tags") {
-				pia.DisableSessionTags = &disableSessionTags
+				pia.DisableSessionTags = aws.Bool(true)
 			}
 		})
 
