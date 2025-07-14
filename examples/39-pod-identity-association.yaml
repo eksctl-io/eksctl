@@ -70,6 +70,3 @@ iam:
     targetRoleARN: arn:aws:iam::444455556666:role/role-b
     # This permission policy must allow assumption of the targetRoleARN
     permissionPolicyARNs: ["arn:aws:iam::111122223333:policy/my-cross-account-permission-policy"]
-    wellKnownPolicies:
-      autoScaler: true
-      externalDNS: true
