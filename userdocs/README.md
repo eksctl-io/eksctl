@@ -1,3 +1,15 @@
+# Important - Content Migration to AWS Docs
+
+The eksctl docs are live on the AWS Docs platform
+
+* New site: https://docs.aws.amazon.com/eks/latest/eksctl/what-is-eksctl.html
+* New GitHub source: https://github.com/eksctl-io/eksctl-docs
+
+
+This directory is for the `eksctl.io` site. 
+
+The `eksctl.io` site is still live, but in the future it will redirect to the AWS Docs.
+
 
 # Writing and publishing user docs
 
