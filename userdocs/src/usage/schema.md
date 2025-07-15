@@ -1,6 +1,7 @@
 # Config File Schema
 
-Use `eksctl utils schema` to get the raw JSON schema.
-<script type="module" src="../schema.js"></script>
+[View the eksctl schema](https://schema.eksctl.io) on `schema.eksctl.io`. 
 
-<table id="config"></table>
+The schema moved to a new location, as part of the migration to the AWS Docs. 
+
+Use `eksctl utils schema` to get the raw JSON schema.
