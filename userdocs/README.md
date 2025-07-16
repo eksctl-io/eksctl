@@ -1,5 +1,20 @@
+# Important - Content Migration to AWS Docs
 
-# Writing and publishing user docs
+The eksctl docs are live on the AWS Docs platform
+
+* New site: https://docs.aws.amazon.com/eks/latest/eksctl/what-is-eksctl.html
+* New GitHub source: https://github.com/eksctl-io/eksctl-docs
+* For information about editing the new repo in AsciiDoc format, see https://docs.aws.amazon.com/eks/latest/userguide/contribute.html
+
+
+This directory is for the `eksctl.io` site. 
+
+The `eksctl.io` site is still live, but in the future it will redirect to the AWS Docs.
+
+
+# Writing and publishing docs on eksctl.io 
+
+As of July 2025, the `eksctl.io` domain is owned by AWS Legal. The DNS has been migrated to Route53. The site hosting has been migrated to AWS Amplify. 
 
 The user docs are written in [MkDocs](https://www.mkdocs.org/) using [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/). Install `mkdocs` and then you can do the following:
 
