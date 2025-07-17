@@ -44,23 +44,17 @@ func (t *createPodIdentityAssociationTask) Do(errorCh chan error) error {
 	defer close(errorCh)
 
 	input := &awseks.CreatePodIdentityAssociationInput{
-		ClusterName:    &t.clusterName,
-		Namespace:      &t.podIdentityAssociation.Namespace,
-		RoleArn:        &t.podIdentityAssociation.RoleARN,
-		ServiceAccount: &t.podIdentityAssociation.ServiceAccountName,
-		Tags:           t.podIdentityAssociation.Tags,
+		ClusterName:        &t.clusterName,
+		Namespace:          &t.podIdentityAssociation.Namespace,
+		RoleArn:            &t.podIdentityAssociation.RoleARN,
+		ServiceAccount:     &t.podIdentityAssociation.ServiceAccountName,
+		Tags:               t.podIdentityAssociation.Tags,
+		DisableSessionTags: t.podIdentityAssociation.DisableSessionTags,
 	}
 
 	// Add target role ARN if specified (for cross-account access)
 	if t.podIdentityAssociation.TargetRoleARN != nil && *t.podIdentityAssociation.TargetRoleARN != "" {
-		logger.Info("Target role ARN %q specified for cross-account access", t.podIdentityAssociation.TargetRoleARN)
 		input.TargetRoleArn = t.podIdentityAssociation.TargetRoleARN
-	}
-
-	// Add disable session tags if specified
-	if t.podIdentityAssociation.DisableSessionTags != nil {
-		logger.Info("Session tags will be disabled for this pod identity association")
-		input.DisableSessionTags = t.podIdentityAssociation.DisableSessionTags
 	}
 
 	if _, err := t.eksAPI.CreatePodIdentityAssociation(t.ctx, input); err != nil {

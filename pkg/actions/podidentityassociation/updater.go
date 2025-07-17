@@ -110,22 +110,14 @@ func (u *Updater) update(ctx context.Context, updateConfig *UpdateConfig, podIde
 }
 
 func (u *Updater) updatePodIdentityAssociation(ctx context.Context, roleARN string, updateConfig *UpdateConfig, podIdentityAssociationID string) error {
-	input := &eks.UpdatePodIdentityAssociationInput{
-		AssociationId: aws.String(updateConfig.AssociationID),
-		ClusterName:   aws.String(u.ClusterName),
-		RoleArn:       aws.String(roleARN),
-	}
-
-	if updateConfig.PodIdentityAssociation.TargetRoleARN != nil {
-		input.TargetRoleArn = updateConfig.PodIdentityAssociation.TargetRoleARN
-	}
-	if updateConfig.PodIdentityAssociation.DisableSessionTags != nil {
-		input.DisableSessionTags = updateConfig.PodIdentityAssociation.DisableSessionTags
-	}
-
-	if _, err := u.APIUpdater.UpdatePodIdentityAssociation(ctx, input); err != nil {
-		return fmt.Errorf("updating pod identity association (associationID: %s, roleARN: %s): %w",
-			updateConfig.AssociationID, roleARN, err)
+	if _, err := u.APIUpdater.UpdatePodIdentityAssociation(ctx, &eks.UpdatePodIdentityAssociationInput{
+		AssociationId:      aws.String(updateConfig.AssociationID),
+		ClusterName:        aws.String(u.ClusterName),
+		RoleArn:            aws.String(roleARN),
+		TargetRoleArn:      updateConfig.PodIdentityAssociation.TargetRoleARN,
+		DisableSessionTags: updateConfig.PodIdentityAssociation.DisableSessionTags,
+	}); err != nil {
+		return fmt.Errorf("(associationID: %s, roleARN: %s): %w", updateConfig.AssociationID, roleARN, err)
 	}
 
 	logger.Info("updated role ARN %q for pod identity association %q", roleARN, podIdentityAssociationID)
