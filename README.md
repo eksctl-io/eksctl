@@ -12,7 +12,7 @@ _Need help? Join [Eksctl Slack][slackjoin]._
 
 ## New: EKS Auto Mode Support
 
-`eksctl` now supports EKS Auto Mode! EKS Auto Mode automates routine tasks for cluster compute, storage, and networking. 
+`eksctl` now supports EKS Auto Mode! EKS Auto Mode automates routine tasks for cluster compute, storage, and networking.
 
 * Learn how to [create an EKS Auto Mode Cluster with eksctl](https://docs.aws.amazon.com/eks/latest/userguide/automode-get-started-eksctl.html).
 * Review the [eksctl docs](https://github.com/eksctl-io/eksctl/blob/main/userdocs/src/usage/auto-mode.md) for EKS Auto Mode.
@@ -196,12 +196,12 @@ Example output:
 [ℹ]  Kubernetes API endpoint access will use default of {publicAccess=true, privateAccess=false} for cluster "attractive-sculpture-1685534556" in "eu-west-2"
 [ℹ]  CloudWatch logging will not be enabled for cluster "attractive-sculpture-1685534556" in "eu-west-2"
 [ℹ]  you can enable it with 'eksctl utils update-cluster-logging --enable-types={SPECIFY-YOUR-LOG-TYPES-HERE (e.g. all)} --region=eu-west-2 --cluster=attractive-sculpture-1685534556'
-[ℹ]  
-2 sequential tasks: { create cluster control plane "attractive-sculpture-1685534556", 
-    2 sequential sub-tasks: { 
+[ℹ]
+2 sequential tasks: { create cluster control plane "attractive-sculpture-1685534556",
+    2 sequential sub-tasks: {
         wait for control plane to become ready,
         create managed nodegroup "ng-ac4c787c",
-    } 
+    }
 }
 [ℹ]  building cluster stack "eksctl-attractive-sculpture-1685534556-cluster"
 [ℹ]  deploying stack "eksctl-attractive-sculpture-1685534556-cluster"

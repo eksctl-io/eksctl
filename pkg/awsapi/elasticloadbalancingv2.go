@@ -23,11 +23,11 @@ type ELBV2 interface {
 	// If the certificate in already in the certificate list, the call is successful
 	// but the certificate is not added again.
 	//
-	// For more information, see [HTTPS listeners] in the Application Load Balancers Guide or [TLS listeners] in the
+	// For more information, see [SSL certificates] in the Application Load Balancers Guide or [Server certificates] in the
 	// Network Load Balancers Guide.
 	//
-	// [TLS listeners]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html
-	// [HTTPS listeners]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html
+	// [Server certificates]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/tls-listener-certificates.html
+	// [SSL certificates]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/https-listener-certificates.html
 	AddListenerCertificates(ctx context.Context, params *elasticloadbalancingv2.AddListenerCertificatesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.AddListenerCertificatesOutput, error)
 	// Adds the specified tags to the specified Elastic Load Balancing resource. You
 	// can tag your Application Load Balancers, Network Load Balancers, Gateway Load
@@ -107,6 +107,10 @@ type ELBV2 interface {
 	// [Target groups for your Network Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html
 	CreateTargetGroup(ctx context.Context, params *elasticloadbalancingv2.CreateTargetGroupInput, optFns ...func(*Options)) (*elasticloadbalancingv2.CreateTargetGroupOutput, error)
 	// Creates a trust store.
+	//
+	// For more information, see [Mutual TLS for Application Load Balancers].
+	//
+	// [Mutual TLS for Application Load Balancers]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/mutual-authentication.html
 	CreateTrustStore(ctx context.Context, params *elasticloadbalancingv2.CreateTrustStoreInput, optFns ...func(*Options)) (*elasticloadbalancingv2.CreateTrustStoreOutput, error)
 	// Deletes the specified listener.
 	//
@@ -160,7 +164,7 @@ type ELBV2 interface {
 	//
 	// Note: If the specified target does not exist, the action returns successfully.
 	//
-	// [Deregistration delay]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/target-groups.html#deregistration-delay
+	// [Deregistration delay]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/edit-target-group-attributes.html#deregistration-delay
 	DeregisterTargets(ctx context.Context, params *elasticloadbalancingv2.DeregisterTargetsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DeregisterTargetsOutput, error)
 	// Describes the current Elastic Load Balancing resource limits for your Amazon
 	// Web Services account.
@@ -191,8 +195,8 @@ type ELBV2 interface {
 	// For more information, see [SSL certificates] in the Application Load Balancers Guide or [Server certificates] in the
 	// Network Load Balancers Guide.
 	//
-	// [Server certificates]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#tls-listener-certificate
-	// [SSL certificates]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#https-listener-certificates
+	// [Server certificates]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/tls-listener-certificates.html
+	// [SSL certificates]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/https-listener-certificates.html
 	DescribeListenerCertificates(ctx context.Context, params *elasticloadbalancingv2.DescribeListenerCertificatesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeListenerCertificatesOutput, error)
 	// Describes the specified listeners or the listeners for the specified
 	// Application Load Balancer, Network Load Balancer, or Gateway Load Balancer. You
@@ -221,10 +225,10 @@ type ELBV2 interface {
 	DescribeRules(ctx context.Context, params *elasticloadbalancingv2.DescribeRulesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeRulesOutput, error)
 	// Describes the specified policies or all policies used for SSL negotiation.
 	//
-	// For more information, see [Security policies] in the Application Load Balancers Guide or [Security policies] in the
+	// For more information, see [Security policies] in the Application Load Balancers Guide and [Security policies] in the
 	// Network Load Balancers Guide.
 	//
-	// [Security policies]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#describe-ssl-policies
+	// [Security policies]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/describe-ssl-policies.html
 	DescribeSSLPolicies(ctx context.Context, params *elasticloadbalancingv2.DescribeSSLPoliciesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeSSLPoliciesOutput, error)
 	// Describes the tags for the specified Elastic Load Balancing resources. You can
 	// describe the tags for one or more Application Load Balancers, Network Load
@@ -321,10 +325,17 @@ type ELBV2 interface {
 	// for a target when you register it. You can register each EC2 instance or IP
 	// address with the same target group multiple times using different ports.
 	//
-	// With a Network Load Balancer, you can't register instances by instance ID if
-	// they have the following instance types: C1, CC1, CC2, CG1, CG2, CR1, CS1, G1,
-	// G2, HI1, HS1, M1, M2, M3, and T1. You can register instances of these types by
-	// IP address.
+	// For more information, see the following:
+	//
+	// [Register targets for your Application Load Balancer]
+	//
+	// [Register targets for your Network Load Balancer]
+	//
+	// [Register targets for your Gateway Load Balancer]
+	//
+	// [Register targets for your Network Load Balancer]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/target-group-register-targets.html
+	// [Register targets for your Gateway Load Balancer]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/target-group-register-targets.html
+	// [Register targets for your Application Load Balancer]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-register-targets.html
 	RegisterTargets(ctx context.Context, params *elasticloadbalancingv2.RegisterTargetsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.RegisterTargetsOutput, error)
 	// Removes the specified certificate from the certificate list for the specified
 	// HTTPS or TLS listener.

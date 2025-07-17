@@ -43,13 +43,21 @@ func (t *createPodIdentityAssociationTask) Describe() string {
 func (t *createPodIdentityAssociationTask) Do(errorCh chan error) error {
 	defer close(errorCh)
 
-	if _, err := t.eksAPI.CreatePodIdentityAssociation(t.ctx, &awseks.CreatePodIdentityAssociationInput{
-		ClusterName:    &t.clusterName,
-		Namespace:      &t.podIdentityAssociation.Namespace,
-		RoleArn:        &t.podIdentityAssociation.RoleARN,
-		ServiceAccount: &t.podIdentityAssociation.ServiceAccountName,
-		Tags:           t.podIdentityAssociation.Tags,
-	}); err != nil {
+	input := &awseks.CreatePodIdentityAssociationInput{
+		ClusterName:        &t.clusterName,
+		Namespace:          &t.podIdentityAssociation.Namespace,
+		RoleArn:            &t.podIdentityAssociation.RoleARN,
+		ServiceAccount:     &t.podIdentityAssociation.ServiceAccountName,
+		Tags:               t.podIdentityAssociation.Tags,
+		DisableSessionTags: t.podIdentityAssociation.DisableSessionTags,
+	}
+
+	// Add target role ARN if specified (for cross-account access)
+	if t.podIdentityAssociation.TargetRoleARN != nil && *t.podIdentityAssociation.TargetRoleARN != "" {
+		input.TargetRoleArn = t.podIdentityAssociation.TargetRoleARN
+	}
+
+	if _, err := t.eksAPI.CreatePodIdentityAssociation(t.ctx, input); err != nil {
 		if t.ignorePodIdentityExistsErr {
 			var inUseErr *ekstypes.ResourceInUseException
 			if errors.As(err, &inUseErr) {

@@ -97,7 +97,11 @@ func (u *Updater) update(ctx context.Context, updateConfig *UpdateConfig, podIde
 		if err != nil {
 			return err
 		}
-		if !hasChanged {
+
+		// If there's no change to the IAM role or pod identity association properties, return early
+		if !hasChanged &&
+			updateConfig.PodIdentityAssociation.TargetRoleARN == nil &&
+			updateConfig.PodIdentityAssociation.DisableSessionTags == nil {
 			return nil
 		}
 		roleARN = newRoleARN
@@ -107,12 +111,15 @@ func (u *Updater) update(ctx context.Context, updateConfig *UpdateConfig, podIde
 
 func (u *Updater) updatePodIdentityAssociation(ctx context.Context, roleARN string, updateConfig *UpdateConfig, podIdentityAssociationID string) error {
 	if _, err := u.APIUpdater.UpdatePodIdentityAssociation(ctx, &eks.UpdatePodIdentityAssociationInput{
-		AssociationId: aws.String(updateConfig.AssociationID),
-		ClusterName:   aws.String(u.ClusterName),
-		RoleArn:       aws.String(roleARN),
+		AssociationId:      aws.String(updateConfig.AssociationID),
+		ClusterName:        aws.String(u.ClusterName),
+		RoleArn:            aws.String(roleARN),
+		TargetRoleArn:      updateConfig.PodIdentityAssociation.TargetRoleARN,
+		DisableSessionTags: updateConfig.PodIdentityAssociation.DisableSessionTags,
 	}); err != nil {
 		return fmt.Errorf("(associationID: %s, roleARN: %s): %w", updateConfig.AssociationID, roleARN, err)
 	}
+
 	logger.Info("updated role ARN %q for pod identity association %q", roleARN, podIdentityAssociationID)
 	return nil
 }
@@ -185,12 +192,17 @@ func (r *RoleUpdateValidator) ValidateRoleUpdate(pia api.PodIdentityAssociation,
 		if pia.RoleARN == "" {
 			return errors.New("podIdentityAssociation.roleARN is required since the role was not created by eksctl")
 		}
-		podIDWithRoleARN := api.PodIdentityAssociation{
+
+		// For cross-account access, we need to allow targetRoleARN and disableSessionTags
+		podIDWithCrossAccountFields := api.PodIdentityAssociation{
 			Namespace:          pia.Namespace,
 			ServiceAccountName: pia.ServiceAccountName,
 			RoleARN:            pia.RoleARN,
+			TargetRoleARN:      pia.TargetRoleARN,
+			DisableSessionTags: pia.DisableSessionTags,
 		}
-		if !reflect.DeepEqual(pia, podIDWithRoleARN) {
+
+		if !reflect.DeepEqual(pia, podIDWithCrossAccountFields) {
 			return errors.New("only namespace, serviceAccountName and roleARN can be specified if the role was not created by eksctl")
 		}
 	}

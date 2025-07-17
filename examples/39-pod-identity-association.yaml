@@ -15,16 +15,16 @@ addons:
     tags:
       team: eks
 
-iam:  
-  podIdentityAssociations: 
-  # roleARN is given, eksctl will only create the pod identity association 
+iam:
+  podIdentityAssociations:
+  # roleARN is given, eksctl will only create the pod identity association
   - namespace: default
     serviceAccountName: s3-reader
     createServiceAccount: true # default is false
-    roleARN: arn:aws:iam::111122223333:role/role-1 
+    roleARN: arn:aws:iam::111122223333:role/role-1
 
   # roleARN is not given, eksctl will first create an IAM role with given roleName using:
-  # permissionPolicyARNs, wellKnownPolicies and permissionsBoundaryARN 
+  # permissionPolicyARNs, wellKnownPolicies and permissionsBoundaryARN
   - namespace: dev
     serviceAccountName: app-cache-access
     roleName: pod-identity-role-app-cache
@@ -51,3 +51,22 @@ iam:
         - "autoscaling:TerminateInstanceInAutoScalingGroup"
         - "ec2:DescribeLaunchTemplateVersions"
         Resource: '*'
+
+  # Cross-account access example: roleARN is in the same account as the cluster,
+  # targetRoleARN is in a different account. The pod will get credentials for the target role.
+  - namespace: default
+    serviceAccountName: cross-account-s3-reader
+    createServiceAccount: true
+    roleARN: arn:aws:iam::111122223333:role/role-a # Role in the same account as the cluster
+    targetRoleARN: arn:aws:iam::444455556666:role/role-b # Role in a different account
+    disableSessionTags: true # Optional: disable session tags added by EKS Pod Identity
+
+  # Cross-account access example: roleARN is not defined, but instead the customer provides
+  # the permissionPolicyARNs for the role that will be created.
+  - namespace: default
+    serviceAccountName: cross-account-s3-reader-b
+    createServiceAccount: true
+    roleName: pod-identity-role-cross-account
+    targetRoleARN: arn:aws:iam::444455556666:role/role-b
+    # This permission policy must allow assumption of the targetRoleARN
+    permissionPolicyARNs: ["arn:aws:iam::111122223333:policy/my-cross-account-permission-policy"]

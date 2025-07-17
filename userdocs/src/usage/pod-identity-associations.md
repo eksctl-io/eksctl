@@ -2,7 +2,7 @@
 
 ## Introduction
 
-AWS EKS has introduced a new enhanced mechanism called Pod Identity Association for cluster administrators to configure Kubernetes applications to receive IAM permissions required to connect with AWS services outside of the cluster. Pod Identity Association leverages IRSA, however, it makes it configurable directly through EKS API, eliminating the need for using IAM API altogether.
+AWS EKS has introduced a new enhanced mechanism called Pod Identity Association for cluster administrators to configure Kubernetes applications to receive IAM permissions required to connect with AWS services outside of the cluster. Pod Identity Association leverages IRSA, however, it makes it configurable directly through the EKS API, eliminating the need for using IAM API altogether.
 
 As a result, IAM roles no longer need to reference an [OIDC provider](/usage/iamserviceaccounts/#how-it-works) and hence won't be tied to a single cluster anymore. This means, IAM roles can now be used across multiple EKS clusters without the need to update the role trust policy each time a new cluster is created. This in turn, eliminates the need for role duplication and simplifies the process of automating IRSA altogether.
 
@@ -410,6 +410,53 @@ The existing OIDC provider trust relationship is always being removed from IAM R
 
 ```
 eksctl utils migrate-to-pod-identity --cluster my-cluster --approve --remove-oidc-provider-trust-relationship
+```
+
+## Cross Account Pod Identity Support
+
+eksctl supports [EKS Pod Identity cross-account access](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-cross-account-resource-access.html). This feature allows pods running in your EKS cluster to access AWS resources in a different AWS account.
+
+### Usage
+
+To create a pod identity association with cross-account access, first set up IAM Roles and Policies allowing access from a source AWS account (with the cluster) to a target AWS account (with the resources the cluster can access). For an example of this, see ["Amazon EKS Pod Identity streamlines cross account access."](https://aws.amazon.com/blogs/containers/amazon-eks-pod-identity-streamlines-cross-account-access/)
+
+Once an IAM Role is configured in each account, use eksctl to create the pod identity associations:
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  # The cluster name and service account name should match the target
+  # account policy's trust relationship.
+  name: my-cluster
+  region: us-west-2
+  version: "1.32"
+
+addons:
+  - name: vpc-cni
+  - name: coredns
+  - name: kube-proxy
+  - name: eks-pod-identity-agent
+
+iam:
+  podIdentityAssociations:
+  - namespace: default
+    serviceAccountName: demo-app-sa
+    createServiceAccount: true
+    # The source role in the same account as the cluster
+    roleARN: arn:aws:iam::1111111111:role/account-a-role
+    # The target role in a different account
+    targetRoleARN: arn:aws:iam::2222222222:role/account-b-role
+    # Optional: Disable session tags
+    disableSessionTags: false
+
+managedNodeGroups:
+  - name: my-cluster
+    instanceType: m6a.large
+    privateNetworking: true
+    minSize: 2
+    desiredCapacity: 2
+    maxSize: 3
 ```
 
 ## Further references

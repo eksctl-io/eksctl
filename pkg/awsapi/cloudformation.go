@@ -98,6 +98,17 @@ type CloudFormation interface {
 	// Web Services Regions. A stack instance refers to a stack in a specific account
 	// and Region. You must specify at least one value for either Accounts or
 	// DeploymentTargets , and you must specify at least one value for Regions .
+	//
+	// The maximum number of organizational unit (OUs) supported by a
+	// CreateStackInstances operation is 50.
+	//
+	// If you need more than 50, consider the following options:
+	//
+	//   - Batch processing: If you don't want to expose your OU hierarchy, split up
+	//     the operations into multiple calls with less than 50 OUs each.
+	//
+	//   - Parent OU strategy: If you don't mind exposing the OU hierarchy, target a
+	//     parent OU that contains all desired child OUs.
 	CreateStackInstances(ctx context.Context, params *cloudformation.CreateStackInstancesInput, optFns ...func(*Options)) (*cloudformation.CreateStackInstancesOutput, error)
 	// Creates a refactor across multiple stacks, with the list of stacks and
 	// resources that are affected.
@@ -141,6 +152,17 @@ type CloudFormation interface {
 	DeleteStack(ctx context.Context, params *cloudformation.DeleteStackInput, optFns ...func(*Options)) (*cloudformation.DeleteStackOutput, error)
 	// Deletes stack instances for the specified accounts, in the specified Amazon Web
 	// Services Regions.
+	//
+	// The maximum number of organizational unit (OUs) supported by a
+	// DeleteStackInstances operation is 50.
+	//
+	// If you need more than 50, consider the following options:
+	//
+	//   - Batch processing: If you don't want to expose your OU hierarchy, split up
+	//     the operations into multiple calls with less than 50 OUs each.
+	//
+	//   - Parent OU strategy: If you don't mind exposing the OU hierarchy, target a
+	//     parent OU that contains all desired child OUs.
 	DeleteStackInstances(ctx context.Context, params *cloudformation.DeleteStackInstancesInput, optFns ...func(*Options)) (*cloudformation.DeleteStackInstancesOutput, error)
 	// Deletes a stack set. Before you can delete a stack set, all its member stack
 	// instances must be deleted. For more information about how to complete this, see DeleteStackInstances
@@ -280,8 +302,14 @@ type CloudFormation interface {
 	// [CloudFormation User Guide]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/
 	DescribeStackResources(ctx context.Context, params *cloudformation.DescribeStackResourcesInput, optFns ...func(*Options)) (*cloudformation.DescribeStackResourcesOutput, error)
 	// Returns the description of the specified StackSet.
+	//
+	// This API provides strongly consistent reads meaning it will always return the
+	// most up-to-date data.
 	DescribeStackSet(ctx context.Context, params *cloudformation.DescribeStackSetInput, optFns ...func(*Options)) (*cloudformation.DescribeStackSetOutput, error)
 	// Returns the description of the specified StackSet operation.
+	//
+	// This API provides strongly consistent reads meaning it will always return the
+	// most up-to-date data.
 	DescribeStackSetOperation(ctx context.Context, params *cloudformation.DescribeStackSetOperationInput, optFns ...func(*Options)) (*cloudformation.DescribeStackSetOperationOutput, error)
 	// Returns the description for the specified stack; if no stack name was
 	// specified, then it returns the description for all the stacks created. For more
@@ -494,10 +522,19 @@ type CloudFormation interface {
 	// Returns summary information about deployment targets for a stack set.
 	ListStackSetAutoDeploymentTargets(ctx context.Context, params *cloudformation.ListStackSetAutoDeploymentTargetsInput, optFns ...func(*Options)) (*cloudformation.ListStackSetAutoDeploymentTargetsOutput, error)
 	// Returns summary information about the results of a stack set operation.
+	//
+	// This API provides eventually consistent reads meaning it may take some time but
+	// will eventually return the most up-to-date data.
 	ListStackSetOperationResults(ctx context.Context, params *cloudformation.ListStackSetOperationResultsInput, optFns ...func(*Options)) (*cloudformation.ListStackSetOperationResultsOutput, error)
 	// Returns summary information about operations performed on a stack set.
+	//
+	// This API provides eventually consistent reads meaning it may take some time but
+	// will eventually return the most up-to-date data.
 	ListStackSetOperations(ctx context.Context, params *cloudformation.ListStackSetOperationsInput, optFns ...func(*Options)) (*cloudformation.ListStackSetOperationsOutput, error)
 	// Returns summary information about stack sets that are associated with the user.
+	//
+	// This API provides strongly consistent reads meaning it will always return the
+	// most up-to-date data.
 	//
 	//   - [Self-managed permissions] If you set the CallAs parameter to SELF while
 	//     signed in to your Amazon Web Services account, ListStackSets returns all
@@ -700,6 +737,17 @@ type CloudFormation interface {
 	// stack instance has been updated with the new parameter, you can then override
 	// the parameter value using UpdateStackInstances .
 	//
+	// The maximum number of organizational unit (OUs) supported by a
+	// UpdateStackInstances operation is 50.
+	//
+	// If you need more than 50, consider the following options:
+	//
+	//   - Batch processing: If you don't want to expose your OU hierarchy, split up
+	//     the operations into multiple calls with less than 50 OUs each.
+	//
+	//   - Parent OU strategy: If you don't mind exposing the OU hierarchy, target a
+	//     parent OU that contains all desired child OUs.
+	//
 	// [CreateStackInstances]: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStackInstances.html
 	// [UpdateStackSet]: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_UpdateStackSet.html
 	UpdateStackInstances(ctx context.Context, params *cloudformation.UpdateStackInstancesInput, optFns ...func(*Options)) (*cloudformation.UpdateStackInstancesOutput, error)
@@ -710,6 +758,17 @@ type CloudFormation interface {
 	// (completely or partially, below or above a specified failure tolerance), the
 	// stack set is updated with your changes. Subsequent CreateStackInstancescalls on the specified stack
 	// set use the updated stack set.
+	//
+	// The maximum number of organizational unit (OUs) supported by a UpdateStackSet
+	// operation is 50.
+	//
+	// If you need more than 50, consider the following options:
+	//
+	//   - Batch processing: If you don't want to expose your OU hierarchy, split up
+	//     the operations into multiple calls with less than 50 OUs each.
+	//
+	//   - Parent OU strategy: If you don't mind exposing the OU hierarchy, target a
+	//     parent OU that contains all desired child OUs.
 	UpdateStackSet(ctx context.Context, params *cloudformation.UpdateStackSetInput, optFns ...func(*Options)) (*cloudformation.UpdateStackSetOutput, error)
 	// Updates termination protection for the specified stack. If a user attempts to
 	// delete a stack with termination protection enabled, the operation fails and the

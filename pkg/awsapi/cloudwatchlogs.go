@@ -86,7 +86,7 @@ type CloudWatchLogs interface {
 	// Permissions] in the table at [Enabling logging from Amazon Web Services services.]
 	//
 	// A delivery destination can represent a log group in CloudWatch Logs, an Amazon
-	// S3 bucket, or a delivery stream in Firehose.
+	// S3 bucket, a delivery stream in Firehose, or X-Ray.
 	//
 	// To configure logs delivery between a supported Amazon Web Services service and
 	// a destination, you must do the following:
@@ -154,11 +154,10 @@ type CloudWatchLogs interface {
 	//
 	// An anomaly detector can help surface issues by automatically discovering
 	// anomalies in your log event traffic. An anomaly detector uses machine learning
-	// algorithms to scan log events and find patterns.
-	//
-	// A pattern is a shared text structure that recurs among your log fields.
-	// Patterns provide a useful tool for analyzing large sets of logs because a large
-	// number of log events can often be compressed into a few patterns.
+	// algorithms to scan log events and find patterns. A pattern is a shared text
+	// structure that recurs among your log fields. Patterns provide a useful tool for
+	// analyzing large sets of logs because a large number of log events can often be
+	// compressed into a few patterns.
 	//
 	// The anomaly detector uses pattern recognition to find anomalies , which are
 	// unusual log events. It uses the evaluationFrequency to compare current log
@@ -166,13 +165,11 @@ type CloudWatchLogs interface {
 	//
 	// Fields within a pattern are called tokens. Fields that vary within a pattern,
 	// such as a request ID or timestamp, are referred to as dynamic tokens and
-	// represented by <> .
+	// represented by <*> .
 	//
 	// The following is an example of a pattern:
 	//
-	//	[INFO] Request time: <
-	//
-	//	> ms
+	//	[INFO] Request time: <*> ms
 	//
 	// This pattern represents log events like [INFO] Request time: 327 ms and other
 	// similar log events that differ only by the number, in this csse 327. When the
@@ -384,8 +381,8 @@ type CloudWatchLogs interface {
 	//
 	// A delivery source represents an Amazon Web Services resource that sends logs to
 	// an logs delivery destination. The destination can be CloudWatch Logs, Amazon S3,
-	// or Firehose. Only some Amazon Web Services services support being configured as
-	// a delivery source. These services are listed in [Enable logging from Amazon Web Services services.]
+	// Firehose or X-Ray. Only some Amazon Web Services services support being
+	// configured as a delivery source. These services are listed in [Enable logging from Amazon Web Services services.]
 	//
 	// [delivery destination]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliveryDestination.html
 	// [delivery source]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliverySource.html
@@ -735,7 +732,7 @@ type CloudWatchLogs interface {
 	//     logs:PutDataProtectionPolicy and logs:PutAccountPolicy permissions.
 	//
 	//   - To create a subscription filter policy, you must have the
-	//     logs:PutSubscriptionFilter and logs:PutccountPolicy permissions.
+	//     logs:PutSubscriptionFilter and logs:PutAccountPolicy permissions.
 	//
 	//   - To create a transformer policy, you must have the logs:PutTransformer and
 	//     logs:PutAccountPolicy permissions.
@@ -939,7 +936,7 @@ type CloudWatchLogs interface {
 	// Creates or updates a logical delivery destination. A delivery destination is an
 	// Amazon Web Services resource that represents an Amazon Web Services service that
 	// logs can be sent to. CloudWatch Logs, Amazon S3, and Firehose are supported as
-	// logs delivery destinations.
+	// logs delivery destinations and X-Ray as the trace delivery destination.
 	//
 	// To configure logs delivery between a supported Amazon Web Services service and
 	// a destination, you must do the following:
@@ -1007,7 +1004,8 @@ type CloudWatchLogs interface {
 	PutDeliveryDestinationPolicy(ctx context.Context, params *cloudwatchlogs.PutDeliveryDestinationPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.PutDeliveryDestinationPolicyOutput, error)
 	// Creates or updates a logical delivery source. A delivery source represents an
 	// Amazon Web Services resource that sends logs to an logs delivery destination.
-	// The destination can be CloudWatch Logs, Amazon S3, or Firehose.
+	// The destination can be CloudWatch Logs, Amazon S3, Firehose or X-Ray for sending
+	// traces.
 	//
 	// To configure logs delivery between a delivery destination and an Amazon Web
 	// Services service that is supported as a delivery source, you must do the
@@ -1135,11 +1133,11 @@ type CloudWatchLogs interface {
 	//   - The maximum batch size is 1,048,576 bytes. This size is calculated as the
 	//     sum of all event messages in UTF-8, plus 26 bytes for each log event.
 	//
-	//   - None of the log events in the batch can be more than 2 hours in the future.
+	//   - Events more than 2 hours in the future are rejected while processing
+	//     remaining valid events.
 	//
-	//   - None of the log events in the batch can be more than 14 days in the past.
-	//     Also, none of the log events can be from earlier than the retention period of
-	//     the log group.
+	//   - Events older than 14 days or preceding the log group's retention period are
+	//     rejected while processing remaining valid events.
 	//
 	//   - The log events in the batch must be in chronological order by their
 	//     timestamp. The timestamp is the time that the event occurred, expressed as the
@@ -1148,17 +1146,21 @@ type CloudWatchLogs interface {
 	//     timestamp is specified in .NET format: yyyy-mm-ddThh:mm:ss . For example,
 	//     2017-09-15T13:45:30 .)
 	//
-	//   - A batch of log events in a single request cannot span more than 24 hours.
+	//   - A batch of log events in a single request must be in a chronological order.
 	//     Otherwise, the operation fails.
 	//
 	//   - Each log event can be no larger than 1 MB.
 	//
 	//   - The maximum number of log events in a batch is 10,000.
 	//
-	//   - The quota of five requests per second per log stream has been removed.
-	//     Instead, PutLogEvents actions are throttled based on a per-second per-account
-	//     quota. You can request an increase to the per-second throttling quota by using
-	//     the Service Quotas service.
+	//   - For valid events (within 14 days in the past to 2 hours in future), the
+	//     time span in a single batch cannot exceed 24 hours. Otherwise, the operation
+	//     fails.
+	//
+	// The quota of five requests per second per log stream has been removed. Instead,
+	// PutLogEvents actions are throttled based on a per-second per-account quota. You
+	// can request an increase to the per-second throttling quota by using the Service
+	// Quotas service.
 	//
 	// If a call to PutLogEvents returns "UnrecognizedClientException" the most likely
 	// cause is a non-valid Amazon Web Services access key ID or secret key.
