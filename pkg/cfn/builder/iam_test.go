@@ -283,20 +283,22 @@ var _ = Describe("template builder for IAM", func() {
 
 			Expect(t.Description).To(Equal("IAM role for serviceaccount \"default/sa-1\" [created and managed by eksctl]"))
 
-			Expect(t.Resources).To(HaveLen(10))
+			Expect(t.Resources).To(HaveLen(9))
 			Expect(t.Outputs).To(HaveLen(1))
 
 			Expect(t).To(HaveResource(outputs.IAMServiceAccountRoleName, "AWS::IAM::Role"))
 
 			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
 			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "ManagedPolicyArns", `[
-              {
+							{
                 "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
-		      }
+							},
+							{
+								"Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+		      		}
             ]`))
 			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
 			Expect(t).To(HaveResourceWithPropertyValue("PolicyAWSLoadBalancerController", "PolicyDocument", expectedAWSLoadBalancerControllerPolicyDocument))
-			Expect(t).To(HaveResourceWithPropertyValue("PolicyEBSCSIController", "PolicyDocument", expectedEbsPolicyDocument))
 		})
 
 		It("can parse an iamserviceaccount addon template", func() {
@@ -499,6 +501,7 @@ const expectedAWSLoadBalancerControllerPolicyDocument = `{
         "ec2:DescribeCoipPools",
         "ec2:GetSecurityGroupsForVpc",
         "ec2:DescribeIpamPools",
+        "ec2:DescribeRouteTables",
         "elasticloadbalancing:DescribeLoadBalancers",
         "elasticloadbalancing:DescribeLoadBalancerAttributes",
         "elasticloadbalancing:DescribeListeners",
@@ -741,148 +744,6 @@ const expectedAWSLoadBalancerControllerPolicyDocument = `{
       "Effect": "Allow",
       "Resource": "*"
     }
-  ],
-  "Version": "2012-10-17"
-}`
-
-const expectedEbsPolicyDocument = `{
-  "Statement": [
-	{
-	  "Action": [
-		"ec2:CreateSnapshot",
-		"ec2:AttachVolume",
-		"ec2:DetachVolume",
-		"ec2:ModifyVolume",
-		"ec2:DescribeAvailabilityZones",
-		"ec2:DescribeInstances",
-		"ec2:DescribeSnapshots",
-		"ec2:DescribeTags",
-		"ec2:DescribeVolumes",
-		"ec2:DescribeVolumesModifications"
-	  ],
-	  "Effect": "Allow",
-	  "Resource": "*"
-	},
-	{
-	  "Action": [
-		"ec2:CreateTags"
-	  ],
-	  "Condition": {
-		"StringEquals": {
-		  "ec2:CreateAction": [
-			"CreateVolume",
-			"CreateSnapshot"
-		  ]
-		}
-	  },
-	  "Effect": "Allow",
-	  "Resource": [
-		{
-		  "Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:volume/*"
-		},
-		{
-		  "Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:snapshot/*"
-		}
-	  ]
-	},
-	{
-	  "Action": [
-		"ec2:DeleteTags"
-	  ],
-	  "Effect": "Allow",
-	  "Resource": [
-		{
-		  "Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:volume/*"
-		},
-		{
-		  "Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:snapshot/*"
-		}
-	  ]
-	},
-	{
-	  "Action": [
-		"ec2:CreateVolume"
-	  ],
-	  "Condition": {
-		"StringLike": {
-		  "aws:RequestTag/ebs.csi.aws.com/cluster": "true"
-		}
-	  },
-	  "Effect": "Allow",
-	  "Resource": "*"
-	},
-	{
-	  "Action": [
-		"ec2:CreateVolume"
-	  ],
-	  "Condition": {
-		"StringLike": {
-		  "aws:RequestTag/CSIVolumeName": "*"
-		}
-	  },
-	  "Effect": "Allow",
-	  "Resource": "*"
-	},
-	{
-	  "Action": [
-		"ec2:DeleteVolume"
-	  ],
-	  "Condition": {
-		"StringLike": {
-		  "ec2:ResourceTag/ebs.csi.aws.com/cluster": "true"
-		}
-	  },
-	  "Effect": "Allow",
-	  "Resource": "*"
-	},
-	{
-	  "Action": [
-		"ec2:DeleteVolume"
-	  ],
-	  "Condition": {
-		"StringLike": {
-		  "ec2:ResourceTag/CSIVolumeName": "*"
-		}
-	  },
-	  "Effect": "Allow",
-	  "Resource": "*"
-	},
-	{
-	  "Action": [
-		"ec2:DeleteVolume"
-	  ],
-	  "Condition": {
-		"StringLike": {
-		  "ec2:ResourceTag/kubernetes.io/created-for/pvc/name": "*"
-		}
-	  },
-	  "Effect": "Allow",
-	  "Resource": "*"
-	},
-	{
-	  "Action": [
-		"ec2:DeleteSnapshot"
-	  ],
-	  "Condition": {
-		"StringLike": {
-		  "ec2:ResourceTag/CSIVolumeSnapshotName": "*"
-		}
-	  },
-	  "Effect": "Allow",
-	  "Resource": "*"
-	},
-	{
-	  "Action": [
-		"ec2:DeleteSnapshot"
-	  ],
-	  "Condition": {
-		"StringLike": {
-		  "ec2:ResourceTag/ebs.csi.aws.com/cluster": "true"
-		}
-	  },
-	  "Effect": "Allow",
-	  "Resource": "*"
-	}
   ],
   "Version": "2012-10-17"
 }`

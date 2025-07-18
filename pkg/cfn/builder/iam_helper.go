@@ -65,8 +65,8 @@ func createWellKnownPolicies(wellKnownPolicies api.WellKnownPolicies) ([]managed
 		)
 	}
 	if wellKnownPolicies.EBSCSIController {
-		customPolicies = append(customPolicies,
-			customPolicyForRole{Name: "PolicyEBSCSIController", Statements: ebsStatements()},
+		managedPolicies = append(managedPolicies,
+			managedPolicyForRole{name: iamPolicyAmazonEBSCSIDriverPolicy},
 		)
 	}
 	if wellKnownPolicies.EFSCSIController {
@@ -125,10 +125,6 @@ func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamCo
 		cfnTemplate.attachAllowPolicy("PolicyAppMeshPreview", refIR, appMeshStatements("appmesh-preview:*"))
 	}
 
-	if api.IsEnabled(iamConfig.WithAddonPolicies.EBS) {
-		cfnTemplate.attachAllowPolicy("PolicyEBS", refIR, ebsStatements())
-	}
-
 	if api.IsEnabled(iamConfig.WithAddonPolicies.FSX) {
 		cfnTemplate.attachAllowPolicy("PolicyFSX", refIR, fsxStatements())
 		cfnTemplate.attachAllowPolicy("PolicyServiceLinkRole", refIR, serviceLinkRoleStatements())
@@ -176,6 +172,10 @@ func makeManagedPolicies(iamCluster *api.ClusterIAM, iamConfig *api.NodeGroupIAM
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.CloudWatch) {
 		managedPolicyNames.Insert(iamPolicyCloudWatchAgentServerPolicy)
+	}
+
+	if api.IsEnabled(iamConfig.WithAddonPolicies.EBS) {
+		managedPolicyNames.Insert(iamPolicyAmazonEBSCSIDriverPolicy)
 	}
 
 	for _, policyARN := range iamConfig.AttachPolicyARNs {

@@ -1672,7 +1672,7 @@ type NodeGroupBase struct {
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
 	// Enable [private
-	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
+	// networking](/usage/vpc-subnet-settings/#use-private-subnets-for-initial-nodegroup)
 	// for nodegroup
 	// +optional
 	PrivateNetworking bool `json:"privateNetworking"`

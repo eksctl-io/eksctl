@@ -5,6 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	toml "github.com/pelletier/go-toml"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
@@ -15,8 +16,8 @@ var _ = Describe("Managed Bottlerocket", func() {
 	type bottlerocketEntry struct {
 		setFields func(group *api.ManagedNodeGroup)
 
-		expectedErr      string
-		expectedUserData string
+		expectedErr    string
+		verifyUserData func(tree *toml.Tree)
 	}
 
 	DescribeTable("User data", func(e bottlerocketEntry) {
@@ -47,41 +48,37 @@ var _ = Describe("Managed Bottlerocket", func() {
 		Expect(err).NotTo(HaveOccurred())
 		actual, err := base64.StdEncoding.DecodeString(userData)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(string(actual)).To(Equal(e.expectedUserData))
+
+		tree, err := toml.LoadBytes(actual)
+		Expect(err).NotTo(HaveOccurred())
+		if e.verifyUserData != nil {
+			e.verifyUserData(tree)
+		}
 	},
 		Entry("no settings", bottlerocketEntry{
-			expectedUserData: `
-[settings]
-
-  [settings.kubernetes]
-`,
+			verifyUserData: func(tree *toml.Tree) {
+				// Default kubernetes settings include api-server, cluster-certificate, and cluster-name
+				Expect(tree.HasPath([]string{"settings", "kubernetes", "api-server"})).To(BeTrue())
+				Expect(tree.HasPath([]string{"settings", "kubernetes", "cluster-certificate"})).To(BeTrue())
+				Expect(tree.HasPath([]string{"settings", "kubernetes", "cluster-name"})).To(BeTrue())
+			},
 		}),
 		Entry("maxPods set", bottlerocketEntry{
 			setFields: func(ng *api.ManagedNodeGroup) {
 				ng.MaxPodsPerNode = 44
 			},
-			expectedUserData: `
-[settings]
-
-  [settings.kubernetes]
-    max-pods = 44
-`,
+			verifyUserData: func(tree *toml.Tree) {
+				Expect(tree.GetPath([]string{"settings", "kubernetes", "max-pods"})).To(Equal(int64(44)))
+			},
 		}),
 
 		Entry("enableAdminContainer set", bottlerocketEntry{
 			setFields: func(ng *api.ManagedNodeGroup) {
 				ng.Bottlerocket.EnableAdminContainer = api.Enabled()
 			},
-			expectedUserData: `
-[settings]
-
-  [settings.host-containers]
-
-    [settings.host-containers.admin]
-      enabled = true
-
-  [settings.kubernetes]
-`,
+			verifyUserData: func(tree *toml.Tree) {
+				Expect(tree.GetPath([]string{"settings", "host-containers", "admin", "enabled"})).To(BeTrue())
+			},
 		}),
 
 		Entry("host containers enabled", bottlerocketEntry{
@@ -94,16 +91,9 @@ var _ = Describe("Managed Bottlerocket", func() {
 					},
 				}
 			},
-			expectedUserData: `
-[settings]
-
-  [settings.host-containers]
-
-    [settings.host-containers.example]
-      enabled = true
-
-  [settings.kubernetes]
-`,
+			verifyUserData: func(tree *toml.Tree) {
+				Expect(tree.GetPath([]string{"settings", "host-containers", "example", "enabled"})).To(BeTrue())
+			},
 		}),
 
 		Entry("retain user-specified admin container setting", bottlerocketEntry{
@@ -116,16 +106,9 @@ var _ = Describe("Managed Bottlerocket", func() {
 					},
 				}
 			},
-			expectedUserData: `
-[settings]
-
-  [settings.host-containers]
-
-    [settings.host-containers.admin]
-      enabled = true
-
-  [settings.kubernetes]
-`,
+			verifyUserData: func(tree *toml.Tree) {
+				Expect(tree.GetPath([]string{"settings", "host-containers", "admin", "enabled"})).To(BeTrue())
+			},
 		}),
 
 		Entry("labels and taints set", bottlerocketEntry{
@@ -141,12 +124,10 @@ var _ = Describe("Managed Bottlerocket", func() {
 					},
 				}
 			},
-
-			expectedUserData: `
-[settings]
-
-  [settings.kubernetes]
-`,
+			verifyUserData: func(tree *toml.Tree) {
+				Expect(tree.HasPath([]string{"settings", "kubernetes", "node-labels"})).To(BeFalse())
+				Expect(tree.HasPath([]string{"settings", "kubernetes", "node-taints"})).To(BeFalse())
+			},
 		}),
 
 		Entry("preserve dotted keys", bottlerocketEntry{
@@ -155,13 +136,9 @@ var _ = Describe("Managed Bottlerocket", func() {
 					"a.b.c": "value",
 				}
 			},
-
-			expectedUserData: `
-[settings]
-  "a.b.c" = "value"
-
-  [settings.kubernetes]
-`,
+			verifyUserData: func(tree *toml.Tree) {
+				Expect(tree.GetPath([]string{"settings", "a.b.c"})).To(Equal("value"))
+			},
 		}),
 
 		Entry("cluster bootstrap settings set", bottlerocketEntry{
