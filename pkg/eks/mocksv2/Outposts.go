@@ -910,6 +910,80 @@ func (_c *Outposts_GetOutpost_Call) RunAndReturn(run func(context.Context, *outp
 	return _c
 }
 
+// GetOutpostBillingInformation provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) GetOutpostBillingInformation(ctx context.Context, params *outposts.GetOutpostBillingInformationInput, optFns ...func(*outposts.Options)) (*outposts.GetOutpostBillingInformationOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOutpostBillingInformation")
+	}
+
+	var r0 *outposts.GetOutpostBillingInformationOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.GetOutpostBillingInformationInput, ...func(*outposts.Options)) (*outposts.GetOutpostBillingInformationOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.GetOutpostBillingInformationInput, ...func(*outposts.Options)) *outposts.GetOutpostBillingInformationOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.GetOutpostBillingInformationOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.GetOutpostBillingInformationInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_GetOutpostBillingInformation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOutpostBillingInformation'
+type Outposts_GetOutpostBillingInformation_Call struct {
+	*mock.Call
+}
+
+// GetOutpostBillingInformation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.GetOutpostBillingInformationInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) GetOutpostBillingInformation(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_GetOutpostBillingInformation_Call {
+	return &Outposts_GetOutpostBillingInformation_Call{Call: _e.mock.On("GetOutpostBillingInformation",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_GetOutpostBillingInformation_Call) Run(run func(ctx context.Context, params *outposts.GetOutpostBillingInformationInput, optFns ...func(*outposts.Options))) *Outposts_GetOutpostBillingInformation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.GetOutpostBillingInformationInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_GetOutpostBillingInformation_Call) Return(_a0 *outposts.GetOutpostBillingInformationOutput, _a1 error) *Outposts_GetOutpostBillingInformation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_GetOutpostBillingInformation_Call) RunAndReturn(run func(context.Context, *outposts.GetOutpostBillingInformationInput, ...func(*outposts.Options)) (*outposts.GetOutpostBillingInformationOutput, error)) *Outposts_GetOutpostBillingInformation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetOutpostInstanceTypes provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) GetOutpostInstanceTypes(ctx context.Context, params *outposts.GetOutpostInstanceTypesInput, optFns ...func(*outposts.Options)) (*outposts.GetOutpostInstanceTypesOutput, error) {
 	_va := make([]interface{}, len(optFns))
