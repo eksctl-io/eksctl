@@ -52,6 +52,8 @@ type Outposts interface {
 	GetOrder(ctx context.Context, params *outposts.GetOrderInput, optFns ...func(*Options)) (*outposts.GetOrderOutput, error)
 	// Gets information about the specified Outpost.
 	GetOutpost(ctx context.Context, params *outposts.GetOutpostInput, optFns ...func(*Options)) (*outposts.GetOutpostOutput, error)
+	// Gets current and historical billing information about the specified Outpost.
+	GetOutpostBillingInformation(ctx context.Context, params *outposts.GetOutpostBillingInformationInput, optFns ...func(*Options)) (*outposts.GetOutpostBillingInformationOutput, error)
 	// Gets the instance types for the specified Outpost.
 	GetOutpostInstanceTypes(ctx context.Context, params *outposts.GetOutpostInstanceTypesInput, optFns ...func(*Options)) (*outposts.GetOutpostInstanceTypesOutput, error)
 	// Gets the instance types that an Outpost can support in InstanceTypeCapacity .
