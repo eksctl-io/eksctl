@@ -61,7 +61,7 @@ var _ = Describe("AWS Node", func() {
 
 	Describe("UpdateAWSNode", func() {
 		var preUpdateAwsNode *v1.DaemonSet
-		const expectedVersion = "v1.19.5"
+		const expectedVersion = "v1.20.0"
 		BeforeEach(func() {
 			loadSamples(rawClient, "testdata/sample-1.15.json")
 
