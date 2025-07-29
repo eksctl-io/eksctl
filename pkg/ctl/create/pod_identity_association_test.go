@@ -69,5 +69,13 @@ var _ = Describe("create pod identity association", func() {
 			args:        append(defaultArgs, "--well-known-policies=invalid"),
 			expectedErr: "invalid wellKnownPolicy",
 		}),
+		Entry("setting --target-role-arn and --config-file at the same time", createPodIdentityAssociationEntry{
+			args:        []string{"--target-role-arn", "arn:aws:iam::444455556666:role/target-role", "--config-file", configFile},
+			expectedErr: "cannot use --target-role-arn when --config-file/-f is set",
+		}),
+		Entry("setting --disable-session-tags and --config-file at the same time", createPodIdentityAssociationEntry{
+			args:        []string{"--disable-session-tags", "--config-file", configFile},
+			expectedErr: "cannot use --disable-session-tags when --config-file/-f is set",
+		}),
 	)
 })

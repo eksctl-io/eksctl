@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -138,6 +139,36 @@ var _ = Describe("Create", func() {
 					Once()
 			},
 			expectedErr: "creating pod identity association",
+		}),
+
+		Entry("creates a pod identity association with cross-account access", createPodIdentityAssociationEntry{
+			toBeCreated: []api.PodIdentityAssociation{
+				{
+					Namespace:          namespace,
+					ServiceAccountName: serviceAccountName1,
+					RoleARN:            roleARN,
+					TargetRoleARN:      aws.String("arn:aws:iam::444455556666:role/TargetRole"),
+					DisableSessionTags: aws.Bool(true),
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockProvider.MockEKS().
+					On("CreatePodIdentityAssociation", mock.Anything, mock.Anything).
+					Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(2))
+						Expect(args[1]).To(BeAssignableToTypeOf(&awseks.CreatePodIdentityAssociationInput{}))
+						input := args[1].(*awseks.CreatePodIdentityAssociationInput)
+						Expect(*input.ClusterName).To(Equal(clusterName))
+						Expect(*input.Namespace).To(Equal(namespace))
+						Expect(*input.ServiceAccount).To(Equal(serviceAccountName1))
+						Expect(*input.RoleArn).To(Equal(roleARN))
+						Expect(*input.TargetRoleArn).To(Equal("arn:aws:iam::444455556666:role/TargetRole"))
+						Expect(*input.DisableSessionTags).To(BeTrue())
+					}).
+					Return(&awseks.CreatePodIdentityAssociationOutput{}, nil).
+					Once()
+			},
+			expectedCreateStackCalls: 0,
 		}),
 
 		Entry("creates all expected roles and associations successfully", createPodIdentityAssociationEntry{
