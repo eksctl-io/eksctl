@@ -68,11 +68,11 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
 		Entry("Ubuntu2204", gpuInstanceEntry{
-			amiFamily:       api.NodeImageFamilyUbuntu2004,
+			amiFamily:       api.NodeImageFamilyUbuntu2204,
 			gpuInstanceType: "g4dn.xlarge",
 		}),
 		Entry("UbuntuPro2204", gpuInstanceEntry{
-			amiFamily:       api.NodeImageFamilyUbuntu2004,
+			amiFamily:       api.NodeImageFamilyUbuntuPro2204,
 			gpuInstanceType: "g4dn.xlarge",
 		}),
 		Entry("Bottlerocket INF", gpuInstanceEntry{
