@@ -28,6 +28,7 @@ type Summary struct {
 	IAMRole                 string
 	Status                  string
 	ConfigurationValues     string
+	NamespaceConfig         *api.AddonNamespaceConfig
 	Issues                  []Issue
 	PodIdentityAssociations []PodIdentityAssociationSummary
 }
@@ -82,6 +83,15 @@ func (a *Manager) Get(ctx context.Context, addon *api.Addon) (Summary, error) {
 	if output.Addon.ConfigurationValues != nil {
 		configurationValues = *output.Addon.ConfigurationValues
 	}
+
+	// Convert AWS SDK namespace config to internal type
+	var namespaceConfig *api.AddonNamespaceConfig
+	if output.Addon.NamespaceConfig != nil && output.Addon.NamespaceConfig.Namespace != nil {
+		namespaceConfig = &api.AddonNamespaceConfig{
+			Namespace: *output.Addon.NamespaceConfig.Namespace,
+		}
+	}
+
 	var podIdentityAssociations []PodIdentityAssociationSummary
 	podIdentityAssociationIDs, err := toPodIdentityAssociationIDs(output.Addon.PodIdentityAssociations)
 	if err != nil {
@@ -111,6 +121,7 @@ func (a *Manager) Get(ctx context.Context, addon *api.Addon) (Summary, error) {
 		Status:                  string(output.Addon.Status),
 		NewerVersion:            newerVersion,
 		ConfigurationValues:     configurationValues,
+		NamespaceConfig:         namespaceConfig,
 		PodIdentityAssociations: podIdentityAssociations,
 		Issues:                  issues,
 	}, nil

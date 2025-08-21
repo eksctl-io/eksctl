@@ -178,6 +178,11 @@
         "name": {
           "type": "string"
         },
+        "namespaceConfig": {
+          "$ref": "#/definitions/AddonNamespaceConfig",
+          "description": "defines the namespace configuration for addon deployment. This configuration is immutable after addon creation.",
+          "x-intellij-html-description": "defines the namespace configuration for addon deployment. This configuration is immutable after addon creation."
+        },
         "owners": {
           "items": {
             "type": "string"
@@ -254,6 +259,7 @@
         "podIdentityAssociations",
         "useDefaultPodIdentityAssociations",
         "configurationValues",
+        "namespaceConfig",
         "publishers",
         "types",
         "owners"
@@ -261,6 +267,21 @@
       "additionalProperties": false,
       "description": "holds the EKS addon configuration",
       "x-intellij-html-description": "holds the EKS addon configuration"
+    },
+    "AddonNamespaceConfig": {
+      "properties": {
+        "namespace": {
+          "type": "string",
+          "description": "specifies the target namespace for addon deployment",
+          "x-intellij-html-description": "specifies the target namespace for addon deployment"
+        }
+      },
+      "preferredOrder": [
+        "namespace"
+      ],
+      "additionalProperties": false,
+      "description": "holds namespace configuration for addon deployment",
+      "x-intellij-html-description": "holds namespace configuration for addon deployment"
     },
     "AddonsConfig": {
       "properties": {
