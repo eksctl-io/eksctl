@@ -187,6 +187,30 @@ eksctl get addon --cluster my-cluster --output yaml
   Version: v1.8.7-eksbuild.3
 ```
 
+## Using custom namespace
+A custom namespace can be provided in the configuration file during the creation of addons. Namespace can't be updated once an addon is created.
+```yaml
+addons:
+  - name: aws-ebs-csi-driver
+    version: latest
+    namespaceConfig:
+      namespace: custom-namespace
+```
+
+The get command will also retrieve the namespace value for the addon
+```yaml
+- ConfigurationValues: ""
+  IAMRole: ""
+  Issues: null
+  Name: aws-ebs-csi-driver
+  NamespaceConfig:
+    namespace: custom-namespace
+  NewerVersion: ""
+  PodIdentityAssociations: null
+  Status: ACTIVE
+  Version: v1.47.0-eksbuild.1
+```
+
 ## Updating addons
 You can update your addons to newer versions and change what policies are attached by running:
 ```console
