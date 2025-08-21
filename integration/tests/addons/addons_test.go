@@ -781,7 +781,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			session := cmd.Run()
 			Expect(session.ExitCode()).To(Equal(0))
-			
+
 			var addonOutput map[string]interface{}
 			Expect(json.Unmarshal(session.Buffer().Contents(), &addonOutput)).To(Succeed())
 			Expect(addonOutput).To(HaveKeyWithValue("NamespaceConfig", HaveKeyWithValue("Namespace", "custom-namespace")))
@@ -874,10 +874,9 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				).
 				WithoutArg("--region", params.Region).
 				WithStdin(bytes.NewReader(data))
-			Expect(cmd).NotTo(RunSuccessfully())
-			Expect(cmd).To(RunWithOutputStringLines(
-				ContainElement(ContainSubstring("namespace configuration cannot be modified after addon creation")),
-			))
+			session := cmd.Run()
+			Expect(session.ExitCode()).NotTo(Equal(0))
+			Expect(string(session.Err.Contents())).To(ContainSubstring("namespace configuration cannot be modified after addon creation"))
 		})
 
 		It("should work with addons that have no namespace config", func() {
@@ -926,7 +925,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			session := cmd.Run()
 			Expect(session.ExitCode()).To(Equal(0))
-			
+
 			var addonOutput map[string]interface{}
 			Expect(json.Unmarshal(session.Buffer().Contents(), &addonOutput)).To(Succeed())
 			Expect(addonOutput).NotTo(HaveKey("NamespaceConfig"))
@@ -979,17 +978,17 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 
 			for _, tc := range testCases {
 				By(fmt.Sprintf("testing %s: %s", tc.name, tc.description))
-				
+
 				testClusterConfig := getInitialClusterConfig()
 				testClusterConfig.Metadata.Name = params.NewClusterName(fmt.Sprintf("ns-test-%s", strings.ReplaceAll(tc.name, " ", "-")))
-				
+
 				var namespaceConfig *api.AddonNamespaceConfig
 				if tc.namespace != "" || tc.name == "empty namespace" {
 					namespaceConfig = &api.AddonNamespaceConfig{
 						Namespace: tc.namespace,
 					}
 				}
-				
+
 				testClusterConfig.Addons = []*api.Addon{
 					{
 						Name:            api.CoreDNSAddon,

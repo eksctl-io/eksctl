@@ -685,7 +685,6 @@ var _ = Describe("Update", func() {
 		}),
 	)
 
-
 })
 
 var _ = Describe("Update - Namespace Config Immutability", func() {

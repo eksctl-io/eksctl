@@ -745,7 +745,7 @@ var _ = Describe("Create", func() {
 				Expect(input.NamespaceConfig).NotTo(BeNil())
 				Expect(input.NamespaceConfig.Namespace).NotTo(BeNil())
 				Expect(*input.NamespaceConfig.Namespace).To(Equal("conversion-test"))
-				
+
 				// Verify the type is correct (AddonNamespaceConfigRequest)
 				Expect(input.NamespaceConfig).To(BeAssignableToTypeOf(&ekstypes.AddonNamespaceConfigRequest{}))
 			},

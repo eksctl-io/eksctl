@@ -113,17 +113,17 @@ func validateKubernetesNamespaceName(namespace string) error {
 	if namespace == "" {
 		return nil // empty namespace is valid (uses default behavior)
 	}
-	
+
 	// Check length constraint (max 63 characters for DNS-1123 label)
 	if len(namespace) > 63 {
 		return fmt.Errorf("namespace name %q is too long (max 63 characters)", namespace)
 	}
-	
+
 	// Check regex pattern for DNS-1123 label
 	if !kubernetesNamespaceNameRegex.MatchString(namespace) {
 		return fmt.Errorf("namespace %q is not a valid Kubernetes namespace name (must be a valid DNS-1123 label)", namespace)
 	}
-	
+
 	return nil
 }
 
