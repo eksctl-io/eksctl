@@ -379,6 +379,11 @@ type SSM interface {
 	// and a NextToken . You can specify the NextToken in a subsequent call to get the
 	// next set of results.
 	//
+	// Parameter names can't contain spaces. The service removes any spaces specified
+	// for the beginning or end of a parameter name. If the specified name for a
+	// parameter contains spaces between characters, the request fails with a
+	// ValidationException error.
+	//
 	// If you change the KMS key alias for the KMS key used to encrypt a parameter,
 	// then you must also update the key alias the parameter uses to reference KMS.
 	// Otherwise, DescribeParameters retrieves whatever the original key alias was
@@ -537,9 +542,19 @@ type SSM interface {
 	GetOpsSummary(ctx context.Context, params *ssm.GetOpsSummaryInput, optFns ...func(*Options)) (*ssm.GetOpsSummaryOutput, error)
 	// Get information about a single parameter by specifying the parameter name.
 	//
+	// Parameter names can't contain spaces. The service removes any spaces specified
+	// for the beginning or end of a parameter name. If the specified name for a
+	// parameter contains spaces between characters, the request fails with a
+	// ValidationException error.
+	//
 	// To get information about more than one parameter at a time, use the GetParameters operation.
 	GetParameter(ctx context.Context, params *ssm.GetParameterInput, optFns ...func(*Options)) (*ssm.GetParameterOutput, error)
 	// Retrieves the history of all changes to a parameter.
+	//
+	// Parameter names can't contain spaces. The service removes any spaces specified
+	// for the beginning or end of a parameter name. If the specified name for a
+	// parameter contains spaces between characters, the request fails with a
+	// ValidationException error.
 	//
 	// If you change the KMS key alias for the KMS key used to encrypt a parameter,
 	// then you must also update the key alias the parameter uses to reference KMS.
@@ -550,6 +565,11 @@ type SSM interface {
 	// names.
 	//
 	// To get information about a single parameter, you can use the GetParameter operation instead.
+	//
+	// Parameter names can't contain spaces. The service removes any spaces specified
+	// for the beginning or end of a parameter name. If the specified name for a
+	// parameter contains spaces between characters, the request fails with a
+	// ValidationException error.
 	GetParameters(ctx context.Context, params *ssm.GetParametersInput, optFns ...func(*Options)) (*ssm.GetParametersOutput, error)
 	// Retrieve information about one or more parameters under a specified level in a
 	// hierarchy.
@@ -561,6 +581,11 @@ type SSM interface {
 	// results, it stops the operation and returns the matching values up to that point
 	// and a NextToken . You can specify the NextToken in a subsequent call to get the
 	// next set of results.
+	//
+	// Parameter names can't contain spaces. The service removes any spaces specified
+	// for the beginning or end of a parameter name. If the specified name for a
+	// parameter contains spaces between characters, the request fails with a
+	// ValidationException error.
 	GetParametersByPath(ctx context.Context, params *ssm.GetParametersByPathInput, optFns ...func(*Options)) (*ssm.GetParametersByPathOutput, error)
 	// Retrieves information about a patch baseline.
 	GetPatchBaseline(ctx context.Context, params *ssm.GetPatchBaselineInput, optFns ...func(*Options)) (*ssm.GetPatchBaselineOutput, error)
@@ -615,6 +640,11 @@ type SSM interface {
 	//   - Labels can't begin with a number, " aws " or " ssm " (not case sensitive).
 	//     If a label fails to meet these requirements, then the label isn't associated
 	//     with a parameter and the system displays it in the list of InvalidLabels.
+	//
+	//   - Parameter names can't contain spaces. The service removes any spaces
+	//     specified for the beginning or end of a parameter name. If the specified name
+	//     for a parameter contains spaces between characters, the request fails with a
+	//     ValidationException error.
 	LabelParameterVersion(ctx context.Context, params *ssm.LabelParameterVersionInput, optFns ...func(*Options)) (*ssm.LabelParameterVersionOutput, error)
 	// Retrieves all versions of an association for a specific association ID.
 	ListAssociationVersions(ctx context.Context, params *ssm.ListAssociationVersionsInput, optFns ...func(*Options)) (*ssm.ListAssociationVersionsOutput, error)
@@ -709,32 +739,40 @@ type SSM interface {
 	//   - ExecutionTime. The time the patch, association, or custom compliance item
 	//     was applied to the managed node.
 	//
-	//   - Id: The patch, association, or custom compliance ID.
+	// For State Manager associations, this represents the time when compliance status
 	//
-	//   - Title: A title.
+	//	was captured by the Systems Manager service during its internal compliance
+	//	aggregation workflow, not necessarily when the association was executed on the
+	//	managed node. State Manager updates compliance information for all associations
+	//	on an instance whenever any association executes, which may result in multiple
+	//	associations showing the same execution time.
 	//
-	//   - Status: The status of the compliance item. For example, approved for
-	//     patches, or Failed for associations.
+	//	- Id: The patch, association, or custom compliance ID.
 	//
-	//   - Severity: A patch severity. For example, Critical .
+	//	- Title: A title.
 	//
-	//   - DocumentName: An SSM document name. For example, AWS-RunPatchBaseline .
+	//	- Status: The status of the compliance item. For example, approved for
+	//	patches, or Failed for associations.
 	//
-	//   - DocumentVersion: An SSM document version number. For example, 4.
+	//	- Severity: A patch severity. For example, Critical .
 	//
-	//   - Classification: A patch classification. For example, security updates .
+	//	- DocumentName: An SSM document name. For example, AWS-RunPatchBaseline .
 	//
-	//   - PatchBaselineId: A patch baseline ID.
+	//	- DocumentVersion: An SSM document version number. For example, 4.
 	//
-	//   - PatchSeverity: A patch severity. For example, Critical .
+	//	- Classification: A patch classification. For example, security updates .
 	//
-	//   - PatchState: A patch state. For example, InstancesWithFailedPatches .
+	//	- PatchBaselineId: A patch baseline ID.
 	//
-	//   - PatchGroup: The name of a patch group.
+	//	- PatchSeverity: A patch severity. For example, Critical .
 	//
-	//   - InstalledTime: The time the association, patch, or custom compliance item
-	//     was applied to the resource. Specify the time by using the following format:
-	//     yyyy-MM-dd'T'HH:mm:ss'Z'
+	//	- PatchState: A patch state. For example, InstancesWithFailedPatches .
+	//
+	//	- PatchGroup: The name of a patch group.
+	//
+	//	- InstalledTime: The time the association, patch, or custom compliance item
+	//	was applied to the resource. Specify the time by using the following format:
+	//	yyyy-MM-dd'T'HH:mm:ss'Z'
 	PutComplianceItems(ctx context.Context, params *ssm.PutComplianceItemsInput, optFns ...func(*Options)) (*ssm.PutComplianceItemsOutput, error)
 	// Bulk update custom inventory items on one or more managed nodes. The request
 	// adds an inventory item, if it doesn't already exist, or updates an inventory
@@ -866,6 +904,11 @@ type SSM interface {
 	// resumed.
 	TerminateSession(ctx context.Context, params *ssm.TerminateSessionInput, optFns ...func(*Options)) (*ssm.TerminateSessionOutput, error)
 	// Remove a label or labels from a parameter.
+	//
+	// Parameter names can't contain spaces. The service removes any spaces specified
+	// for the beginning or end of a parameter name. If the specified name for a
+	// parameter contains spaces between characters, the request fails with a
+	// ValidationException error.
 	UnlabelParameterVersion(ctx context.Context, params *ssm.UnlabelParameterVersionInput, optFns ...func(*Options)) (*ssm.UnlabelParameterVersionOutput, error)
 	// Updates an association. You can update the association name and version, the
 	// document version, schedule, parameters, and Amazon Simple Storage Service
