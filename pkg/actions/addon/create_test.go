@@ -526,6 +526,231 @@ var _ = Describe("Create", func() {
 			},
 		}),
 
+		Entry("[NamespaceConfig] is set with valid namespace", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "custom-namespace",
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.NamespaceConfig).NotTo(BeNil())
+				Expect(*input.NamespaceConfig.Namespace).To(Equal("custom-namespace"))
+			},
+		}),
+
+		Entry("[NamespaceConfig] is not set when namespace is empty", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "",
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.NamespaceConfig).To(BeNil())
+			},
+		}),
+
+		Entry("[NamespaceConfig] is not set when NamespaceConfig is nil", createAddonEntry{
+			addon: api.Addon{
+				Version:         "1.0.0",
+				NamespaceConfig: nil,
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.NamespaceConfig).To(BeNil())
+			},
+		}),
+
+		Entry("[NamespaceConfig] is set with DNS-1123 compliant namespace", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "my-custom-namespace-123",
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.NamespaceConfig).NotTo(BeNil())
+				Expect(*input.NamespaceConfig.Namespace).To(Equal("my-custom-namespace-123"))
+			},
+		}),
+
+		Entry("[NamespaceConfig] is set with single character namespace", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "a",
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.NamespaceConfig).NotTo(BeNil())
+				Expect(*input.NamespaceConfig.Namespace).To(Equal("a"))
+			},
+		}),
+
+		Entry("[NamespaceConfig] is set with maximum length namespace", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "a123456789012345678901234567890123456789012345678901234567890123", // 63 chars
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.NamespaceConfig).NotTo(BeNil())
+				Expect(*input.NamespaceConfig.Namespace).To(Equal("a123456789012345678901234567890123456789012345678901234567890123"))
+			},
+		}),
+
+		Entry("[NamespaceConfig] is set with namespace containing hyphens", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "my-addon-namespace",
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.NamespaceConfig).NotTo(BeNil())
+				Expect(*input.NamespaceConfig.Namespace).To(Equal("my-addon-namespace"))
+			},
+		}),
+
+		Entry("[NamespaceConfig] is set with namespace containing numbers", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "namespace123",
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.NamespaceConfig).NotTo(BeNil())
+				Expect(*input.NamespaceConfig.Namespace).To(Equal("namespace123"))
+			},
+		}),
+
+		Entry("[NamespaceConfig] works with other addon configurations", createAddonEntry{
+			addon: api.Addon{
+				Version:             "1.0.0",
+				ConfigurationValues: "{\"replicaCount\":3}",
+				Tags:                map[string]string{"env": "test"},
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "test-namespace",
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.NamespaceConfig).NotTo(BeNil())
+				Expect(*input.NamespaceConfig.Namespace).To(Equal("test-namespace"))
+				Expect(*input.ConfigurationValues).To(Equal("{\"replicaCount\":3}"))
+				Expect(input.Tags["env"]).To(Equal("test"))
+			},
+		}),
+
+		Entry("[NamespaceConfig] works with ResolveConflicts setting", createAddonEntry{
+			addon: api.Addon{
+				Version:          "1.0.0",
+				ResolveConflicts: ekstypes.ResolveConflictsOverwrite,
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "conflict-namespace",
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.NamespaceConfig).NotTo(BeNil())
+				Expect(*input.NamespaceConfig.Namespace).To(Equal("conflict-namespace"))
+				Expect(input.ResolveConflicts).To(Equal(ekstypes.ResolveConflictsOverwrite))
+			},
+		}),
+
+		Entry("[NamespaceConfig] works with Force flag", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+				Force:   true,
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "force-namespace",
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				Expect(input.NamespaceConfig).NotTo(BeNil())
+				Expect(*input.NamespaceConfig.Namespace).To(Equal("force-namespace"))
+				Expect(input.ResolveConflicts).To(Equal(ekstypes.ResolveConflictsOverwrite))
+			},
+		}),
+
+		Entry("[NamespaceConfig] AddonNamespaceConfigRequest conversion is correct", createAddonEntry{
+			addon: api.Addon{
+				Version: "1.0.0",
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "conversion-test",
+				},
+			},
+			mockEKS: func(provider *mockprovider.MockProvider) {
+				mockDescribeAddon(provider.MockEKS(), nil)
+				mockDescribeAddonVersions(provider.MockEKS(), nil)
+				mockCreateAddon(provider.MockEKS(), nil)
+			},
+			validateCreateAddonInput: func(input *awseks.CreateAddonInput) {
+				// Verify the conversion from AddonNamespaceConfig to AddonNamespaceConfigRequest
+				Expect(input.NamespaceConfig).NotTo(BeNil())
+				Expect(input.NamespaceConfig.Namespace).NotTo(BeNil())
+				Expect(*input.NamespaceConfig.Namespace).To(Equal("conversion-test"))
+
+				// Verify the type is correct (AddonNamespaceConfigRequest)
+				Expect(input.NamespaceConfig).To(BeAssignableToTypeOf(&ekstypes.AddonNamespaceConfigRequest{}))
+			},
+		}),
+
 		Entry("[Wait is true] addon creation succeeds", createAddonEntry{
 			addon: api.Addon{
 				Version: "1.0.0",

@@ -1,15 +1,16 @@
 [
         {
-          "Arn": "arn-12345678",
-          "CertificateAuthority": null,
-          "ClientRequestToken": null,
-          "ConnectorConfig": null,
-          "CreatedAt": "0001-01-01T00:00:00Z",
           "AccessConfig": {
             "AuthenticationMode": "API_AND_CONFIG_MAP",
             "BootstrapClusterCreatorAdminPermissions": true
           },
+          "Arn": "arn-12345678",
+          "CertificateAuthority": null,
+          "ClientRequestToken": null,
           "ComputeConfig": null,
+          "ConnectorConfig": null,
+          "CreatedAt": "0001-01-01T00:00:00Z",
+          "DeletionProtection": null,
           "EncryptionConfig": null,
           "Endpoint": null,
           "Health": null,

@@ -3,6 +3,7 @@ package v1alpha5
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -21,6 +22,20 @@ const (
 	AWSEBSCSIDriverAddon  = "aws-ebs-csi-driver"
 	AWSEFSCSIDriverAddon  = "aws-efs-csi-driver"
 )
+
+var (
+	// kubernetesNamespaceNameRegex defines the regex pattern for valid Kubernetes namespace names
+	// Based on DNS-1123 label standard: must start with letter, can contain letters, numbers, and hyphens,
+	// must end with alphanumeric character, max 63 characters
+	kubernetesNamespaceNameRegex = regexp.MustCompile(`^[a-z]([a-z0-9-]*[a-z0-9])?$`)
+)
+
+// AddonNamespaceConfig holds namespace configuration for addon deployment
+type AddonNamespaceConfig struct {
+	// Namespace specifies the target namespace for addon deployment
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
+}
 
 // Addon holds the EKS addon configuration
 type Addon struct {
@@ -60,6 +75,10 @@ type Addon struct {
 	// and have to respect the schema from DescribeAddonConfiguration.
 	// +optional
 	ConfigurationValues string `json:"configurationValues,omitempty"`
+	// NamespaceConfig defines the namespace configuration for addon deployment.
+	// This configuration is immutable after addon creation.
+	// +optional
+	NamespaceConfig *AddonNamespaceConfig `json:"namespaceConfig,omitempty"`
 	// Force overwrites an existing self-managed add-on with an EKS managed add-on.
 	// Force is intended to be used when migrating an existing self-managed add-on to an EKS managed add-on.
 	Force bool `json:"-"`
@@ -89,6 +108,25 @@ func (a Addon) CanonicalName() string {
 	return strings.ToLower(a.Name)
 }
 
+// validateKubernetesNamespaceName validates that a namespace name follows Kubernetes naming conventions
+func validateKubernetesNamespaceName(namespace string) error {
+	if namespace == "" {
+		return nil // empty namespace is valid (uses default behavior)
+	}
+
+	// Check length constraint (max 63 characters for DNS-1123 label)
+	if len(namespace) > 63 {
+		return fmt.Errorf("namespace name %q is too long (max 63 characters)", namespace)
+	}
+
+	// Check regex pattern for DNS-1123 label
+	if !kubernetesNamespaceNameRegex.MatchString(namespace) {
+		return fmt.Errorf("namespace %q is not a valid Kubernetes namespace name (must be a valid DNS-1123 label)", namespace)
+	}
+
+	return nil
+}
+
 func (a Addon) Validate() error {
 	invalidAddonConfigErr := func(errorMsg string) error {
 		return fmt.Errorf("invalid configuration for %q addon: %s", a.Name, errorMsg)
@@ -101,6 +139,13 @@ func (a Addon) Validate() error {
 	if !json.Valid([]byte(a.ConfigurationValues)) {
 		if err := a.convertConfigurationValuesToJSON(); err != nil {
 			return invalidAddonConfigErr(fmt.Sprintf("configurationValues: %q is not valid, supported format(s) are: JSON and YAML", a.ConfigurationValues))
+		}
+	}
+
+	// Validate namespace config if present
+	if a.NamespaceConfig != nil {
+		if err := validateKubernetesNamespaceName(a.NamespaceConfig.Namespace); err != nil {
+			return invalidAddonConfigErr(err.Error())
 		}
 	}
 
