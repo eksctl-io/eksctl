@@ -188,7 +188,7 @@ eksctl get addon --cluster my-cluster --output yaml
 ```
 
 ## Using custom namespace
-A custom namespace can be provided in the configuration file during the creation of addons. Namespace can't be updated once an addon is created.
+A custom namespace can be provided in the configuration file during the creation of addons. A namespace can't be updated once an addon is created.
 ```yaml
 addons:
   - name: aws-ebs-csi-driver

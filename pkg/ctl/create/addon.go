@@ -3,6 +3,7 @@ package create
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"k8s.io/client-go/kubernetes"
 
@@ -29,6 +30,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 	)
 
 	var force, wait bool
+	var namespaceConfig string
 	cmd.ClusterConfig.Addons = []*api.Addon{{}}
 	cmd.FlagSetGroup.InFlagSet("Addon", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].Name, "name", "", "Add-on name")
@@ -37,6 +39,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 		fs.BoolVar(&cmd.ClusterConfig.AddonsConfig.AutoApplyPodIdentityAssociations, "auto-apply-pod-identity-associations", false, "apply recommended pod identity associations for the addon(s), if supported")
 		fs.BoolVar(&force, "force", false, "Force migrates an existing self-managed add-on to an EKS managed add-on")
 		fs.BoolVar(&wait, "wait", false, "Wait for the addon creation to complete")
+		fs.StringVar(&namespaceConfig, "namespace-config", "", "Namespace configuration for addon deployment in the format 'namespace=<namespace-name>'")
 
 		fs.StringSliceVar(&cmd.ClusterConfig.Addons[0].AttachPolicyARNs, "attach-policy-arn", []string{}, "ARN of the policies to attach")
 	})
@@ -51,6 +54,14 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
+		
+		// Parse namespace config if provided
+		if namespaceConfig != "" {
+			if err := parseNamespaceConfig(namespaceConfig, cmd.ClusterConfig.Addons[0]); err != nil {
+				return fmt.Errorf("invalid namespace-config: %w", err)
+			}
+		}
+		
 		if err := cmdutils.NewCreateOrUpgradeAddonLoader(cmd).Load(); err != nil {
 			return err
 		}
@@ -154,5 +165,33 @@ func validatePodIdentityAgentAddon(ctx context.Context, eksAPI awsapi.EKS, cfg *
 		return api.ErrPodIdentityAgentNotInstalled(suggestion)
 	}
 
+	return nil
+}
+
+// parseNamespaceConfig parses the namespace configuration string and sets it on the addon
+func parseNamespaceConfig(namespaceConfig string, addon *api.Addon) error {
+	// Parse the namespace config in the format "namespace=<namespace-name>"
+	parts := strings.SplitN(namespaceConfig, "=", 2)
+	if len(parts) != 2 {
+		return fmt.Errorf("expected format 'namespace=<namespace-name>', got %q", namespaceConfig)
+	}
+	
+	key := strings.TrimSpace(parts[0])
+	value := strings.TrimSpace(parts[1])
+	
+	if key != "namespace" {
+		return fmt.Errorf("unsupported key %q, only 'namespace' is supported", key)
+	}
+	
+	if value == "" {
+		return fmt.Errorf("namespace value cannot be empty")
+	}
+	
+	// Initialize NamespaceConfig if it doesn't exist
+	if addon.NamespaceConfig == nil {
+		addon.NamespaceConfig = &api.AddonNamespaceConfig{}
+	}
+	
+	addon.NamespaceConfig.Namespace = value
 	return nil
 }
