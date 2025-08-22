@@ -81,6 +81,13 @@ eksctl create addon -f config.yaml
 eksctl create addon --name vpc-cni --version 1.7.5 --service-account-role-arn <role-arn>
 ```
 
+```console
+eksctl create addon --name aws-ebs-csi-driver --namespace-config 'namespace=custom-namespace'
+```
+
+???+ tip
+    Use the `--namespace-config` flag to deploy addons to a custom namespace instead of the default namespace.
+
 During addon creation, if a self-managed version of the addon already exists on the cluster, you can choose how potential `configMap` conflicts shall be resolved by setting `resolveConflicts` option via the config file, e.g.
 
 ```yaml
@@ -189,12 +196,20 @@ eksctl get addon --cluster my-cluster --output yaml
 
 ## Using custom namespace
 A custom namespace can be provided in the configuration file during the creation of addons. A namespace can't be updated once an addon is created.
+
+### Using config file
 ```yaml
 addons:
   - name: aws-ebs-csi-driver
     version: latest
     namespaceConfig:
       namespace: custom-namespace
+```
+
+### Using CLI flag
+Alternatively, you can specify a custom namespace using the `--namespace-config` flag:
+```console
+eksctl create addon --cluster my-cluster --name aws-ebs-csi-driver --namespace-config 'namespace=custom-namespace'
 ```
 
 The get command will also retrieve the namespace value for the addon
@@ -220,6 +235,9 @@ eksctl update addon -f config.yaml
 ```console
 eksctl update addon --name vpc-cni --version 1.8.0 --service-account-role-arn <new-role>
 ```
+
+???+ note
+    The namespace configuration cannot be updated once an addon is created. The `--namespace-config` flag is only available during addon creation.
 
 Similarly to addon creation, When updating an addon, you have full control over the config changes that you may have previously applied on that add-on's `configMap`. Specifically, you can preserve, or overwrite them. This optional functionality is available via the same config file field `resolveConflicts`. e.g.,
 

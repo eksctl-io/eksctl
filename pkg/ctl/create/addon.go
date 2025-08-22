@@ -54,14 +54,14 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		
+
 		// Parse namespace config if provided
 		if namespaceConfig != "" {
 			if err := parseNamespaceConfig(namespaceConfig, cmd.ClusterConfig.Addons[0]); err != nil {
 				return fmt.Errorf("invalid namespace-config: %w", err)
 			}
 		}
-		
+
 		if err := cmdutils.NewCreateOrUpgradeAddonLoader(cmd).Load(); err != nil {
 			return err
 		}
@@ -175,23 +175,23 @@ func parseNamespaceConfig(namespaceConfig string, addon *api.Addon) error {
 	if len(parts) != 2 {
 		return fmt.Errorf("expected format 'namespace=<namespace-name>', got %q", namespaceConfig)
 	}
-	
+
 	key := strings.TrimSpace(parts[0])
 	value := strings.TrimSpace(parts[1])
-	
+
 	if key != "namespace" {
 		return fmt.Errorf("unsupported key %q, only 'namespace' is supported", key)
 	}
-	
+
 	if value == "" {
 		return fmt.Errorf("namespace value cannot be empty")
 	}
-	
+
 	// Initialize NamespaceConfig if it doesn't exist
 	if addon.NamespaceConfig == nil {
 		addon.NamespaceConfig = &api.AddonNamespaceConfig{}
 	}
-	
+
 	addon.NamespaceConfig.Namespace = value
 	return nil
 }

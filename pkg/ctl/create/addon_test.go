@@ -3,25 +3,25 @@ package create
 import (
 	"testing"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/stretchr/testify/assert"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 func TestParseNamespaceConfig(t *testing.T) {
 	tests := []struct {
-		name           string
-		namespaceConfig string
-		expectedError  string
+		name              string
+		namespaceConfig   string
+		expectedError     string
 		expectedNamespace string
 	}{
 		{
-			name:            "valid namespace config",
-			namespaceConfig: "namespace=custom-namespace",
+			name:              "valid namespace config",
+			namespaceConfig:   "namespace=custom-namespace",
 			expectedNamespace: "custom-namespace",
 		},
 		{
-			name:            "valid namespace config with spaces",
-			namespaceConfig: " namespace = my-namespace ",
+			name:              "valid namespace config with spaces",
+			namespaceConfig:   " namespace = my-namespace ",
 			expectedNamespace: "my-namespace",
 		},
 		{
