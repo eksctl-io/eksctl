@@ -1,16 +1,17 @@
-- Id: null
+- AccessConfig:
+    AuthenticationMode: API_AND_CONFIG_MAP
+    BootstrapClusterCreatorAdminPermissions: true
   Arn: arn-12345678
   CertificateAuthority: null
   ClientRequestToken: null
+  ComputeConfig: null
   ConnectorConfig: null
   CreatedAt: "0001-01-01T00:00:00Z"
-  ComputeConfig: null
-  AccessConfig:
-    AuthenticationMode: API_AND_CONFIG_MAP
-    BootstrapClusterCreatorAdminPermissions: true
+  DeletionProtection: null
   EncryptionConfig: null
   Endpoint: null
   Health: null
+  Id: null
   Identity: null
   KubernetesNetworkConfig: null
   Logging: null
