@@ -687,7 +687,7 @@ var _ = Describe("Update", func() {
 
 })
 
-var _ = Describe("Update - Namespace Config Immutability", func() {
+var _ = Describe("Update - Namespace Config Updates", func() {
 	var (
 		addonManager     *addon.Manager
 		mockProvider     *mockprovider.MockProvider
@@ -707,21 +707,9 @@ var _ = Describe("Update - Namespace Config Immutability", func() {
 		mockProvider = mockprovider.NewMockProvider()
 		fakeStackManager = new(fakes.FakeStackManager)
 
-		fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSetReader, _ map[string]string, _ map[string]string, errs chan error) error {
-			go func() {
-				errs <- nil
-			}()
-			Expect(rs).To(BeAssignableToTypeOf(&builder.IAMRoleResourceSet{}))
-			rs.(*builder.IAMRoleResourceSet).OutputRole = "new-service-account-role-arn"
-			return nil
-		}
-
 		oidc := makeOIDCManager()
 
-		mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-			Expect(args).To(HaveLen(2))
-			Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
-		}).Return(&awseks.DescribeAddonVersionsOutput{
+		mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Return(&awseks.DescribeAddonVersionsOutput{
 			Addons: []ekstypes.AddonInfo{
 				{
 					AddonName: aws.String("my-addon"),
@@ -742,25 +730,29 @@ var _ = Describe("Update - Namespace Config Immutability", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	Context("namespace config immutability", func() {
+	Context("namespace config updates", func() {
 		var podIdentityIAMUpdater mocks.PodIdentityIAMUpdater
 
-		When("attempting to modify namespace config", func() {
-			It("returns an error when trying to change namespace config", func() {
+		When("updating addon with different namespace config", func() {
+			It("succeeds without validation error", func() {
 				// Mock DescribeAddon to return an addon with existing namespace config
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(2))
-					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
-				}).Return(&awseks.DescribeAddonOutput{
+				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Return(&awseks.DescribeAddonOutput{
 					Addon: &ekstypes.Addon{
-						AddonName:    aws.String("my-addon"),
-						AddonVersion: aws.String("v1.0.0-eksbuild.2"),
-						Status:       "created",
+						AddonName:             aws.String("my-addon"),
+						AddonVersion:          aws.String("v1.0.0-eksbuild.2"),
+						ServiceAccountRoleArn: aws.String("original-arn"),
+						Status:                "created",
 						NamespaceConfig: &ekstypes.AddonNamespaceConfigResponse{
 							Namespace: aws.String("existing-namespace"),
 						},
 					},
 				}, nil).Once()
+
+				mockProvider.MockEKS().On("UpdateAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.UpdateAddonInput{}))
+					updateAddonInput = args[1].(*awseks.UpdateAddonInput)
+				}).Return(&awseks.UpdateAddonOutput{}, nil).Once()
 
 				err := addonManager.Update(context.Background(), &api.Addon{
 					Name:    "my-addon",
@@ -770,168 +762,7 @@ var _ = Describe("Update - Namespace Config Immutability", func() {
 					},
 				}, &podIdentityIAMUpdater, 0)
 
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring("namespace configuration cannot be modified after addon creation")))
-				Expect(err).To(MatchError(ContainSubstring("existing: \"existing-namespace\", requested: \"new-namespace\"")))
-			})
-
-			It("returns an error when trying to add namespace config to addon without one", func() {
-				// Mock DescribeAddon to return an addon without namespace config
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(2))
-					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
-				}).Return(&awseks.DescribeAddonOutput{
-					Addon: &ekstypes.Addon{
-						AddonName:       aws.String("my-addon"),
-						AddonVersion:    aws.String("v1.0.0-eksbuild.2"),
-						Status:          "created",
-						NamespaceConfig: nil, // No existing namespace config
-					},
-				}, nil).Once()
-
-				err := addonManager.Update(context.Background(), &api.Addon{
-					Name:    "my-addon",
-					Version: "v1.0.0-eksbuild.2",
-					NamespaceConfig: &api.AddonNamespaceConfig{
-						Namespace: "new-namespace",
-					},
-				}, &podIdentityIAMUpdater, 0)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring("namespace configuration cannot be modified after addon creation")))
-				Expect(err).To(MatchError(ContainSubstring("existing: <none>, requested: \"new-namespace\"")))
-			})
-
-			It("returns an error when trying to remove namespace config from addon with one", func() {
-				// Mock DescribeAddon to return an addon with existing namespace config
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(2))
-					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
-				}).Return(&awseks.DescribeAddonOutput{
-					Addon: &ekstypes.Addon{
-						AddonName:    aws.String("my-addon"),
-						AddonVersion: aws.String("v1.0.0-eksbuild.2"),
-						Status:       "created",
-						NamespaceConfig: &ekstypes.AddonNamespaceConfigResponse{
-							Namespace: aws.String("existing-namespace"),
-						},
-					},
-				}, nil).Once()
-
-				err := addonManager.Update(context.Background(), &api.Addon{
-					Name:            "my-addon",
-					Version:         "v1.0.0-eksbuild.2",
-					NamespaceConfig: nil, // Trying to remove namespace config
-				}, &podIdentityIAMUpdater, 0)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring("namespace configuration cannot be modified after addon creation")))
-				Expect(err).To(MatchError(ContainSubstring("existing: \"existing-namespace\", requested: <none>")))
-			})
-		})
-
-		When("namespace config is unchanged", func() {
-			It("succeeds when namespace config is identical", func() {
-				// Mock DescribeAddon to return an addon with existing namespace config
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(2))
-					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
-				}).Return(&awseks.DescribeAddonOutput{
-					Addon: &ekstypes.Addon{
-						AddonName:             aws.String("my-addon"),
-						AddonVersion:          aws.String("v1.0.0-eksbuild.2"),
-						ServiceAccountRoleArn: aws.String("original-arn"),
-						Status:                "created",
-						NamespaceConfig: &ekstypes.AddonNamespaceConfigResponse{
-							Namespace: aws.String("same-namespace"),
-						},
-					},
-				}, nil).Once()
-
-				mockProvider.MockEKS().On("UpdateAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(2))
-					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.UpdateAddonInput{}))
-					updateAddonInput = args[1].(*awseks.UpdateAddonInput)
-				}).Return(&awseks.UpdateAddonOutput{}, nil).Once()
-
-				err := addonManager.Update(context.Background(), &api.Addon{
-					Name:    "my-addon",
-					Version: "v1.0.0-eksbuild.2",
-					NamespaceConfig: &api.AddonNamespaceConfig{
-						Namespace: "same-namespace",
-					},
-				}, &podIdentityIAMUpdater, 0)
-
-				Expect(err).NotTo(HaveOccurred())
-				Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
-				Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
-				Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
-			})
-
-			It("succeeds when both namespace configs are nil", func() {
-				// Mock DescribeAddon to return an addon without namespace config
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(2))
-					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
-				}).Return(&awseks.DescribeAddonOutput{
-					Addon: &ekstypes.Addon{
-						AddonName:             aws.String("my-addon"),
-						AddonVersion:          aws.String("v1.0.0-eksbuild.2"),
-						ServiceAccountRoleArn: aws.String("original-arn"),
-						Status:                "created",
-						NamespaceConfig:       nil, // No existing namespace config
-					},
-				}, nil).Once()
-
-				mockProvider.MockEKS().On("UpdateAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(2))
-					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.UpdateAddonInput{}))
-					updateAddonInput = args[1].(*awseks.UpdateAddonInput)
-				}).Return(&awseks.UpdateAddonOutput{}, nil).Once()
-
-				err := addonManager.Update(context.Background(), &api.Addon{
-					Name:            "my-addon",
-					Version:         "v1.0.0-eksbuild.2",
-					NamespaceConfig: nil, // No new namespace config either
-				}, &podIdentityIAMUpdater, 0)
-
-				Expect(err).NotTo(HaveOccurred())
-				Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
-				Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
-				Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
-			})
-
-			It("succeeds when both namespace configs have empty namespace", func() {
-				// Mock DescribeAddon to return an addon with empty namespace config
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(2))
-					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
-				}).Return(&awseks.DescribeAddonOutput{
-					Addon: &ekstypes.Addon{
-						AddonName:             aws.String("my-addon"),
-						AddonVersion:          aws.String("v1.0.0-eksbuild.2"),
-						ServiceAccountRoleArn: aws.String("original-arn"),
-						Status:                "created",
-						NamespaceConfig: &ekstypes.AddonNamespaceConfigResponse{
-							Namespace: aws.String(""), // Empty namespace
-						},
-					},
-				}, nil).Once()
-
-				mockProvider.MockEKS().On("UpdateAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(2))
-					Expect(args[1]).To(BeAssignableToTypeOf(&awseks.UpdateAddonInput{}))
-					updateAddonInput = args[1].(*awseks.UpdateAddonInput)
-				}).Return(&awseks.UpdateAddonOutput{}, nil).Once()
-
-				err := addonManager.Update(context.Background(), &api.Addon{
-					Name:    "my-addon",
-					Version: "v1.0.0-eksbuild.2",
-					NamespaceConfig: &api.AddonNamespaceConfig{
-						Namespace: "", // Empty namespace
-					},
-				}, &podIdentityIAMUpdater, 0)
-
+				// Should succeed without namespace config immutability error
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 				Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))

@@ -50,11 +50,6 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 		return err
 	}
 
-	// Validate namespace config immutability
-	if err := a.validateNamespaceConfigImmutability(addon, &summary); err != nil {
-		return err
-	}
-
 	var requiresIAMPermissions bool
 	if addon.Version == "" {
 		// preserve existing version
@@ -224,35 +219,4 @@ func (a *Manager) createNewTemplate(addon *api.Addon, namespace, serviceAccount 
 		return nil, err
 	}
 	return resourceSet.RenderJSON()
-}
-
-// validateNamespaceConfigImmutability validates that namespace configuration is not being modified during update
-func (a *Manager) validateNamespaceConfigImmutability(addon *api.Addon, summary *Summary) error {
-	existingNamespace := ""
-	if summary.NamespaceConfig != nil {
-		existingNamespace = summary.NamespaceConfig.Namespace
-	}
-
-	requestedNamespace := ""
-	if addon.NamespaceConfig != nil {
-		requestedNamespace = addon.NamespaceConfig.Namespace
-	}
-
-	// Compare existing and requested namespace configurations
-	if existingNamespace != requestedNamespace {
-		existingDisplay := "<none>"
-		if existingNamespace != "" {
-			existingDisplay = fmt.Sprintf("%q", existingNamespace)
-		}
-
-		requestedDisplay := "<none>"
-		if requestedNamespace != "" {
-			requestedDisplay = fmt.Sprintf("%q", requestedNamespace)
-		}
-
-		return fmt.Errorf("invalid configuration for %q addon: namespace configuration cannot be modified after addon creation (existing: %s, requested: %s)",
-			addon.Name, existingDisplay, requestedDisplay)
-	}
-
-	return nil
 }
