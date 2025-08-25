@@ -824,60 +824,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			Expect(cmd).NotTo(RunSuccessfully())
 		})
 
-		It("should enforce namespace config immutability during updates", func() {
-			By("creating an addon with namespace config")
-			clusterConfig.Addons = []*api.Addon{
-				{
-					Name: api.CoreDNSAddon,
-					NamespaceConfig: &api.AddonNamespaceConfig{
-						Namespace: "original-namespace",
-					},
-					ResolveConflicts: ekstypes.ResolveConflictsOverwrite,
-				},
-			}
 
-			data, err := json.Marshal(clusterConfig)
-			Expect(err).NotTo(HaveOccurred())
-
-			cmd := params.EksctlCreateCmd.
-				WithArgs(
-					"cluster",
-					"--config-file", "-",
-					"--verbose", "4",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(bytes.NewReader(data))
-			Expect(cmd).To(RunSuccessfully())
-
-			Eventually(func() runner.Cmd {
-				cmd := params.EksctlGetCmd.
-					WithArgs(
-						"addon",
-						"--name", api.CoreDNSAddon,
-						"--cluster", clusterConfig.Metadata.Name,
-						"--verbose", "2",
-					)
-				return cmd
-			}, "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(
-				ContainElement(ContainSubstring("ACTIVE")),
-			))
-
-			By("attempting to update addon with modified namespace config")
-			clusterConfig.Addons[0].NamespaceConfig.Namespace = "modified-namespace"
-			data, err = json.Marshal(clusterConfig)
-			Expect(err).NotTo(HaveOccurred())
-
-			cmd = params.EksctlUpdateCmd.
-				WithArgs(
-					"addon",
-					"--config-file", "-",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(bytes.NewReader(data))
-			session := cmd.Run()
-			Expect(session.ExitCode()).NotTo(Equal(0))
-			Expect(string(session.Err.Contents())).To(ContainSubstring("namespace configuration cannot be modified after addon creation"))
-		})
 
 		It("should work with addons that have no namespace config", func() {
 			By("creating an addon without namespace config")

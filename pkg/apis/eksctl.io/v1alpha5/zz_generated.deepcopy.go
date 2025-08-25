@@ -2164,6 +2164,16 @@ func (in *PodIdentityAssociation) DeepCopyInto(out *PodIdentityAssociation) {
 			(*out)[key] = val
 		}
 	}
+	if in.TargetRoleARN != nil {
+		in, out := &in.TargetRoleARN, &out.TargetRoleARN
+		*out = new(string)
+		**out = **in
+	}
+	if in.DisableSessionTags != nil {
+		in, out := &in.DisableSessionTags, &out.DisableSessionTags
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
