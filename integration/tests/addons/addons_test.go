@@ -824,8 +824,6 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			Expect(cmd).NotTo(RunSuccessfully())
 		})
 
-
-
 		It("should work with addons that have no namespace config", func() {
 			By("creating an addon without namespace config")
 			clusterConfig.Addons = []*api.Addon{

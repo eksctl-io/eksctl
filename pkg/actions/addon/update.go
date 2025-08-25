@@ -50,8 +50,6 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, podIdentityIAMUp
 		return err
 	}
 
-
-
 	var requiresIAMPermissions bool
 	if addon.Version == "" {
 		// preserve existing version
@@ -222,5 +220,3 @@ func (a *Manager) createNewTemplate(addon *api.Addon, namespace, serviceAccount 
 	}
 	return resourceSet.RenderJSON()
 }
-
-

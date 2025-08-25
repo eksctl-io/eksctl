@@ -687,7 +687,6 @@ var _ = Describe("Update", func() {
 
 })
 
-
 var _ = Describe("Update - Namespace Config Updates", func() {
 	var (
 		addonManager     *addon.Manager
