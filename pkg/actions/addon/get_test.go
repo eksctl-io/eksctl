@@ -161,6 +161,261 @@ var _ = Describe("Get", func() {
 			}))
 		})
 
+		It("returns an addon with namespace config", func() {
+			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+			}).Return(&awseks.DescribeAddonVersionsOutput{
+				Addons: []ekstypes.AddonInfo{
+					{
+						AddonName: aws.String("my-addon"),
+						Type:      aws.String("type"),
+						AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion: aws.String("v1.0.0-eksbuild.1"),
+							},
+							{
+								AddonVersion: aws.String("v1.1.0-eksbuild.1"),
+							},
+						},
+					},
+				},
+			}, nil)
+
+			mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
+				describeAddonInput = args[1].(*awseks.DescribeAddonInput)
+			}).Return(&awseks.DescribeAddonOutput{
+				Addon: &ekstypes.Addon{
+					AddonName:    aws.String("my-addon"),
+					AddonVersion: aws.String("v1.1.0-eksbuild.1"),
+					Status:       "created",
+					NamespaceConfig: &ekstypes.AddonNamespaceConfigResponse{
+						Namespace: aws.String("custom-namespace"),
+					},
+				},
+			}, nil)
+
+			summary, err := manager.Get(context.Background(), &api.Addon{
+				Name: "my-addon",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(summary).To(Equal(addon.Summary{
+				Name:         "my-addon",
+				Version:      "v1.1.0-eksbuild.1",
+				NewerVersion: "",
+				Status:       "created",
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "custom-namespace",
+				},
+			}))
+
+			Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
+			Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+		})
+
+		It("returns an addon with nil namespace config when not set", func() {
+			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+			}).Return(&awseks.DescribeAddonVersionsOutput{
+				Addons: []ekstypes.AddonInfo{
+					{
+						AddonName: aws.String("my-addon"),
+						Type:      aws.String("type"),
+						AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion: aws.String("v1.0.0-eksbuild.1"),
+							},
+							{
+								AddonVersion: aws.String("v1.1.0-eksbuild.1"),
+							},
+						},
+					},
+				},
+			}, nil)
+
+			mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
+				describeAddonInput = args[1].(*awseks.DescribeAddonInput)
+			}).Return(&awseks.DescribeAddonOutput{
+				Addon: &ekstypes.Addon{
+					AddonName:       aws.String("my-addon"),
+					AddonVersion:    aws.String("v1.1.0-eksbuild.1"),
+					Status:          "created",
+					NamespaceConfig: nil, // No namespace config
+				},
+			}, nil)
+
+			summary, err := manager.Get(context.Background(), &api.Addon{
+				Name: "my-addon",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(summary).To(Equal(addon.Summary{
+				Name:            "my-addon",
+				Version:         "v1.1.0-eksbuild.1",
+				NewerVersion:    "",
+				Status:          "created",
+				NamespaceConfig: nil, // Should be nil when not set
+			}))
+
+			Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
+			Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+		})
+
+		It("returns an addon with namespace config containing empty namespace", func() {
+			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+			}).Return(&awseks.DescribeAddonVersionsOutput{
+				Addons: []ekstypes.AddonInfo{
+					{
+						AddonName: aws.String("my-addon"),
+						Type:      aws.String("type"),
+						AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion: aws.String("v1.0.0-eksbuild.1"),
+							},
+						},
+					},
+				},
+			}, nil)
+
+			mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
+				describeAddonInput = args[1].(*awseks.DescribeAddonInput)
+			}).Return(&awseks.DescribeAddonOutput{
+				Addon: &ekstypes.Addon{
+					AddonName:    aws.String("my-addon"),
+					AddonVersion: aws.String("v1.0.0-eksbuild.1"),
+					Status:       "created",
+					NamespaceConfig: &ekstypes.AddonNamespaceConfigResponse{
+						Namespace: aws.String(""), // Empty namespace
+					},
+				},
+			}, nil)
+
+			summary, err := manager.Get(context.Background(), &api.Addon{
+				Name: "my-addon",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(summary).To(Equal(addon.Summary{
+				Name:         "my-addon",
+				Version:      "v1.0.0-eksbuild.1",
+				NewerVersion: "",
+				Status:       "created",
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "", // Should preserve empty namespace
+				},
+			}))
+
+			Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
+			Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+		})
+
+		It("returns an addon with namespace config when AWS response has nil namespace", func() {
+			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+			}).Return(&awseks.DescribeAddonVersionsOutput{
+				Addons: []ekstypes.AddonInfo{
+					{
+						AddonName: aws.String("my-addon"),
+						Type:      aws.String("type"),
+						AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion: aws.String("v1.0.0-eksbuild.1"),
+							},
+						},
+					},
+				},
+			}, nil)
+
+			mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
+				describeAddonInput = args[1].(*awseks.DescribeAddonInput)
+			}).Return(&awseks.DescribeAddonOutput{
+				Addon: &ekstypes.Addon{
+					AddonName:    aws.String("my-addon"),
+					AddonVersion: aws.String("v1.0.0-eksbuild.1"),
+					Status:       "created",
+					NamespaceConfig: &ekstypes.AddonNamespaceConfigResponse{
+						Namespace: nil, // Nil namespace pointer
+					},
+				},
+			}, nil)
+
+			summary, err := manager.Get(context.Background(), &api.Addon{
+				Name: "my-addon",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(summary).To(Equal(addon.Summary{
+				Name:            "my-addon",
+				Version:         "v1.0.0-eksbuild.1",
+				NewerVersion:    "",
+				Status:          "created",
+				NamespaceConfig: nil, // Should be nil when AWS namespace is nil
+			}))
+
+			Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
+			Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+		})
+
+		It("returns an addon with namespace config containing valid DNS-1123 namespace", func() {
+			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+			}).Return(&awseks.DescribeAddonVersionsOutput{
+				Addons: []ekstypes.AddonInfo{
+					{
+						AddonName: aws.String("my-addon"),
+						Type:      aws.String("type"),
+						AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion: aws.String("v1.0.0-eksbuild.1"),
+							},
+						},
+					},
+				},
+			}, nil)
+
+			mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
+				describeAddonInput = args[1].(*awseks.DescribeAddonInput)
+			}).Return(&awseks.DescribeAddonOutput{
+				Addon: &ekstypes.Addon{
+					AddonName:    aws.String("my-addon"),
+					AddonVersion: aws.String("v1.0.0-eksbuild.1"),
+					Status:       "created",
+					NamespaceConfig: &ekstypes.AddonNamespaceConfigResponse{
+						Namespace: aws.String("kube-system-addon-ns"), // Valid DNS-1123 name with hyphens
+					},
+				},
+			}, nil)
+
+			summary, err := manager.Get(context.Background(), &api.Addon{
+				Name: "my-addon",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(summary).To(Equal(addon.Summary{
+				Name:         "my-addon",
+				Version:      "v1.0.0-eksbuild.1",
+				NewerVersion: "",
+				Status:       "created",
+				NamespaceConfig: &api.AddonNamespaceConfig{
+					Namespace: "kube-system-addon-ns",
+				},
+			}))
+
+			Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
+			Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+		})
+
 		When("it fails to get the addon", func() {
 			It("returns an error", func() {
 				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
@@ -245,6 +500,93 @@ var _ = Describe("Get", func() {
 
 			Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
 			Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+			Expect(*listAddonsInput.ClusterName).To(Equal("my-cluster"))
+		})
+
+		It("returns addons with namespace config", func() {
+			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+			}).Return(&awseks.DescribeAddonVersionsOutput{
+				Addons: []ekstypes.AddonInfo{
+					{
+						AddonName: aws.String("addon-with-namespace"),
+						Type:      aws.String("type"),
+						AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion: aws.String("v1.0.0-eksbuild.1"),
+							},
+						},
+					},
+					{
+						AddonName: aws.String("addon-without-namespace"),
+						Type:      aws.String("type"),
+						AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion: aws.String("v1.0.0-eksbuild.1"),
+							},
+						},
+					},
+				},
+			}, nil)
+
+			mockProvider.MockEKS().On("ListAddons", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.ListAddonsInput{}))
+				listAddonsInput = args[1].(*awseks.ListAddonsInput)
+			}).Return(&awseks.ListAddonsOutput{
+				Addons: []string{"addon-with-namespace", "addon-without-namespace"},
+			}, nil)
+
+			// Mock first addon with namespace config
+			mockProvider.MockEKS().On("DescribeAddon", mock.Anything, &awseks.DescribeAddonInput{
+				ClusterName: aws.String("my-cluster"),
+				AddonName:   aws.String("addon-with-namespace"),
+			}).Return(&awseks.DescribeAddonOutput{
+				Addon: &ekstypes.Addon{
+					AddonName:    aws.String("addon-with-namespace"),
+					AddonVersion: aws.String("v1.0.0-eksbuild.1"),
+					Status:       "created",
+					NamespaceConfig: &ekstypes.AddonNamespaceConfigResponse{
+						Namespace: aws.String("monitoring"),
+					},
+				},
+			}, nil)
+
+			// Mock second addon without namespace config
+			mockProvider.MockEKS().On("DescribeAddon", mock.Anything, &awseks.DescribeAddonInput{
+				ClusterName: aws.String("my-cluster"),
+				AddonName:   aws.String("addon-without-namespace"),
+			}).Return(&awseks.DescribeAddonOutput{
+				Addon: &ekstypes.Addon{
+					AddonName:       aws.String("addon-without-namespace"),
+					AddonVersion:    aws.String("v1.0.0-eksbuild.1"),
+					Status:          "created",
+					NamespaceConfig: nil,
+				},
+			}, nil)
+
+			summary, err := manager.GetAll(context.Background())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(summary).To(Equal([]addon.Summary{
+				{
+					Name:         "addon-with-namespace",
+					Version:      "v1.0.0-eksbuild.1",
+					NewerVersion: "",
+					Status:       "created",
+					NamespaceConfig: &api.AddonNamespaceConfig{
+						Namespace: "monitoring",
+					},
+				},
+				{
+					Name:            "addon-without-namespace",
+					Version:         "v1.0.0-eksbuild.1",
+					NewerVersion:    "",
+					Status:          "created",
+					NamespaceConfig: nil,
+				},
+			}))
+
 			Expect(*listAddonsInput.ClusterName).To(Equal("my-cluster"))
 		})
 

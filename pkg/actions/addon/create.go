@@ -113,6 +113,13 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, iamRoleCreator I
 		ConfigurationValues: configurationValues,
 	}
 
+	// Add namespace config if specified
+	if addon.NamespaceConfig != nil && addon.NamespaceConfig.Namespace != "" {
+		createAddonInput.NamespaceConfig = &ekstypes.AddonNamespaceConfigRequest{
+			Namespace: &addon.NamespaceConfig.Namespace,
+		}
+	}
+
 	if addon.Force {
 		createAddonInput.ResolveConflicts = ekstypes.ResolveConflictsOverwrite
 	} else {

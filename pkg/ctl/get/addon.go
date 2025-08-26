@@ -152,6 +152,12 @@ func addAddonSummaryTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("CONFIGURATION VALUES", func(s addon.Summary) string {
 		return s.ConfigurationValues
 	})
+	printer.AddColumn("NAMESPACE", func(s addon.Summary) string {
+		if s.NamespaceConfig != nil && s.NamespaceConfig.Namespace != "" {
+			return s.NamespaceConfig.Namespace
+		}
+		return "-"
+	})
 	printer.AddColumn("POD IDENTITY ASSOCIATION ROLES", func(s addon.Summary) string {
 		var roleARNs []string
 		for _, pia := range s.PodIdentityAssociations {
