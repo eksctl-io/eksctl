@@ -1,0 +1,21 @@
+name: Notify Homebrew Update
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  notify-homebrew:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create update issue
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/aws/homebrew-tap/issues \
+            -d '{
+              "title": "Update eksctl to ${{ github.event.release.tag_name }}",
+              "body": "New eksctl release ${{ github.event.release.tag_name }} is available.\n\nRelease URL: ${{ github.event.release.html_url }}",
+              "labels": ["eksctl-update"]
+            }'
