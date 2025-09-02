@@ -1034,8 +1034,8 @@ github.com/vbatts/tar-split v0.12.1 h1:CqKoORW7BUWBe7UL/iqTVvkTBOF8UvOMKOIZykxnn
 github.com/vbatts/tar-split v0.12.1/go.mod h1:eF6B6i6ftWQcDqEn3/iGFRFRo8cBIMSJVOpnNdfTMFA=
 github.com/vburenin/ifacemaker v1.3.0 h1:X5//v/1tyORf5157wLATgP1wgquW3FUW91/OGHLRqGo=
 github.com/vburenin/ifacemaker v1.3.0/go.mod h1:SxTD9m+6uBQyhd0aohV7R4iirO+l9mEoTn4nSe67vMs=
-github.com/vektra/mockery/v2 v2.53.4 h1:abBWJLUQppM7T/VsLasBwgl7XXQRWH6lC3bnbJpOCLk=
-github.com/vektra/mockery/v2 v2.53.4/go.mod h1:hIFFb3CvzPdDJJiU7J4zLRblUMv7OuezWsHPmswriwo=
+github.com/vektra/mockery/v2 v2.53.5 h1:iktAY68pNiMvLoHxKqlSNSv/1py0QF/17UGrrAMYDI8=
+github.com/vektra/mockery/v2 v2.53.5/go.mod h1:hIFFb3CvzPdDJJiU7J4zLRblUMv7OuezWsHPmswriwo=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b/hrE0s/Ixfpp2cuwH9IO9oZBAN9iYa4A=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
 github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848 h1:I7S+IHZIU49skVgTNArf9bIdy07mCn1Z0zv1r07ROws=
