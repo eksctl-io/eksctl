@@ -1,6 +1,6 @@
 //go:build integration
 
-package security_group_tagging
+package securitygrouptagging
 
 import (
 	"bytes"
@@ -63,7 +63,7 @@ var _ = Describe("(Integration) Security Group Tagging", func() {
 
 		It("should automatically tag the node security group with karpenter.sh/discovery", func() {
 			By("creating a cluster with both Karpenter enabled and karpenter.sh/discovery in metadata.tags")
-			
+
 			clusterConfig := &api.ClusterConfig{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       api.ClusterConfigKind,
@@ -142,7 +142,7 @@ var _ = Describe("(Integration) Security Group Tagging", func() {
 			securityGroup := sgOutput.SecurityGroups[0]
 			var foundKarpenterTag bool
 			var karpenterTagValue string
-			
+
 			for _, tag := range securityGroup.Tags {
 				if *tag.Key == "karpenter.sh/discovery" {
 					foundKarpenterTag = true
@@ -169,7 +169,7 @@ var _ = Describe("(Integration) Security Group Tagging", func() {
 			// and security groups are working correctly
 			for _, pod := range pods.Items {
 				Expect(pod.Namespace).To(Equal(kubeTest.Namespace))
-				
+
 				// Test that we can make requests to the pod
 				var js interface{}
 				kubeTest.PodProxyGetJSON(&pod, "", "/version", &js)
@@ -180,11 +180,11 @@ var _ = Describe("(Integration) Security Group Tagging", func() {
 			// The presence of the karpenter.sh/discovery tag on the node security group
 			// ensures that when AWS Load Balancer Controller is deployed, it will be able
 			// to discover this security group for load balancer creation.
-			// 
+			//
 			// This test verifies the core requirement: the security group is properly tagged
 			// during cluster creation, which is the prerequisite for Load Balancer Controller
 			// functionality.
-			
+
 			GinkgoWriter.Printf("Successfully verified cluster with tagged node security group: %s\n", nodeSecurityGroupID)
 			GinkgoWriter.Printf("Security group has karpenter.sh/discovery tag with value: %s\n", karpenterTagValue)
 			GinkgoWriter.Printf("This enables AWS Load Balancer Controller to discover and use this security group\n")
@@ -196,7 +196,7 @@ var _ = Describe("(Integration) Security Group Tagging", func() {
 
 		It("should NOT tag the node security group with karpenter.sh/discovery", func() {
 			By("creating a cluster with only Karpenter enabled but no karpenter.sh/discovery in metadata.tags")
-			
+
 			clusterConfig := &api.ClusterConfig{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       api.ClusterConfigKind,
@@ -273,7 +273,7 @@ var _ = Describe("(Integration) Security Group Tagging", func() {
 
 			securityGroup := sgOutput.SecurityGroups[0]
 			var foundKarpenterTag bool
-			
+
 			for _, tag := range securityGroup.Tags {
 				if *tag.Key == "karpenter.sh/discovery" {
 					foundKarpenterTag = true
@@ -304,7 +304,7 @@ var _ = Describe("(Integration) Security Group Tagging", func() {
 
 		It("should NOT tag the node security group with karpenter.sh/discovery", func() {
 			By("creating a cluster with karpenter.sh/discovery in metadata.tags but no Karpenter enabled")
-			
+
 			clusterConfig := &api.ClusterConfig{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       api.ClusterConfigKind,
@@ -380,7 +380,7 @@ var _ = Describe("(Integration) Security Group Tagging", func() {
 
 			securityGroup := sgOutput.SecurityGroups[0]
 			var foundKarpenterTag bool
-			
+
 			for _, tag := range securityGroup.Tags {
 				if *tag.Key == "karpenter.sh/discovery" {
 					foundKarpenterTag = true
@@ -393,11 +393,11 @@ var _ = Describe("(Integration) Security Group Tagging", func() {
 			By("verifying the cluster uses the same existing security groups but without the discovery tags")
 			// Verify that the cluster still has the standard security groups created by eksctl
 			// but without the karpenter.sh/discovery tags
-			
+
 			// Check that the security group has the standard eksctl tags but not the discovery tag
 			var hasEksctlClusterTag bool
 			var hasEnvironmentTag bool
-			
+
 			for _, tag := range securityGroup.Tags {
 				if *tag.Key == fmt.Sprintf("kubernetes.io/cluster/%s", clusterName) {
 					hasEksctlClusterTag = true
@@ -425,7 +425,7 @@ var _ = Describe("(Integration) Security Group Tagging", func() {
 			// and security groups are working correctly even without discovery tags
 			for _, pod := range pods.Items {
 				Expect(pod.Namespace).To(Equal(kubeTest.Namespace))
-				
+
 				// Test that we can make requests to the pod
 				var js interface{}
 				kubeTest.PodProxyGetJSON(&pod, "", "/version", &js)
@@ -442,7 +442,7 @@ var _ = Describe("(Integration) Security Group Tagging", func() {
 
 		It("should NOT tag the node security group with karpenter.sh/discovery", func() {
 			By("creating a cluster with neither Karpenter enabled nor karpenter.sh/discovery in metadata.tags")
-			
+
 			clusterConfig := &api.ClusterConfig{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       api.ClusterConfigKind,
@@ -517,7 +517,7 @@ var _ = Describe("(Integration) Security Group Tagging", func() {
 
 			securityGroup := sgOutput.SecurityGroups[0]
 			var foundKarpenterTag bool
-			
+
 			for _, tag := range securityGroup.Tags {
 				if *tag.Key == "karpenter.sh/discovery" {
 					foundKarpenterTag = true
@@ -542,7 +542,7 @@ var _ = Describe("(Integration) Security Group Tagging", func() {
 			// and security groups are working correctly in the default scenario
 			for _, pod := range pods.Items {
 				Expect(pod.Namespace).To(Equal(kubeTest.Namespace))
-				
+
 				// Test that we can make requests to the pod
 				var js interface{}
 				kubeTest.PodProxyGetJSON(&pod, "", "/version", &js)

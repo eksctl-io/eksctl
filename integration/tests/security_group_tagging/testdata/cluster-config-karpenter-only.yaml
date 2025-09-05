@@ -8,7 +8,7 @@ metadata:
 
 # Only Karpenter configuration - no karpenter.sh/discovery in metadata tags
 karpenter:
-  version: 'v0.20.0'
+  version: 'v1.6.2'
 
 iam:
   withOIDC: true
