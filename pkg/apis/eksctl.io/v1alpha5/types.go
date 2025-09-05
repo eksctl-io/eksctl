@@ -1048,6 +1048,8 @@ type ZonalShiftConfig struct {
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
+
+
 // OutpostInfo describes the Outpost info.
 type OutpostInfo interface {
 	// IsControlPlaneOnOutposts returns true if the control plane is on Outposts.

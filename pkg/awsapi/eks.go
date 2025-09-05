@@ -294,6 +294,8 @@ type EKS interface {
 	DescribeIdentityProviderConfig(ctx context.Context, params *eks.DescribeIdentityProviderConfigInput, optFns ...func(*Options)) (*eks.DescribeIdentityProviderConfigOutput, error)
 	// Returns details about an insight that you specify using its ID.
 	DescribeInsight(ctx context.Context, params *eks.DescribeInsightInput, optFns ...func(*Options)) (*eks.DescribeInsightOutput, error)
+	// Returns the status of the latest on-demand cluster insights refresh operation.
+	DescribeInsightsRefresh(ctx context.Context, params *eks.DescribeInsightsRefreshInput, optFns ...func(*Options)) (*eks.DescribeInsightsRefreshOutput, error)
 	// Describes a managed node group.
 	DescribeNodegroup(ctx context.Context, params *eks.DescribeNodegroupInput, optFns ...func(*Options)) (*eks.DescribeNodegroupOutput, error)
 	// Returns descriptive information about an EKS Pod Identity association.
@@ -381,6 +383,9 @@ type EKS interface {
 	// [RegisterClusterRequest]: https://docs.aws.amazon.com/eks/latest/APIReference/API_RegisterClusterRequest.html
 	// [Manifest]: https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector/latest/eks-connector.yaml
 	RegisterCluster(ctx context.Context, params *eks.RegisterClusterInput, optFns ...func(*Options)) (*eks.RegisterClusterOutput, error)
+	// Initiates an on-demand refresh operation for cluster insights, getting the
+	// latest analysis outside of the standard refresh schedule.
+	StartInsightsRefresh(ctx context.Context, params *eks.StartInsightsRefreshInput, optFns ...func(*Options)) (*eks.StartInsightsRefreshOutput, error)
 	// Associates the specified tags to an Amazon EKS resource with the specified
 	// resourceArn . If existing tags on a resource are not specified in the request
 	// parameters, they aren't changed. When a resource is deleted, the tags associated
