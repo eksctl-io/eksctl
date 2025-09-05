@@ -100,3 +100,7 @@ spec:
 
 Note that you must specify one of `role` or `instanceProfile` for lauch nodes. If you choose to use `instanceProfile`
 the name of the profile created by `eksctl` follows the pattern: `eksctl-KarpenterNodeInstanceProfile-<cluster-name>`.
+
+## Automatic Security Group Tagging
+
+`eksctl` automatically tags the cluster's shared node security group with `karpenter.sh/discovery` when both Karpenter is enabled (`karpenter.version` specified) and the `karpenter.sh/discovery` tag exists in `metadata.tags`. This enables AWS Load Balancer Controller compatibility.
