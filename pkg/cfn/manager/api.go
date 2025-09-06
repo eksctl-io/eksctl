@@ -227,13 +227,47 @@ func (c *StackCollection) createClusterStack(ctx context.Context, stackName stri
 
 func (c *StackCollection) createStackRequest(ctx context.Context, stackName string, resourceSet builder.ResourceSetReader, tags, parameters map[string]string) (*Stack, error) {
 	stack := &Stack{StackName: &stackName}
+	
+	// Render template with enhanced error handling
 	templateBody, err := resourceSet.RenderJSON()
 	if err != nil {
-		return nil, fmt.Errorf("rendering template for %q stack: %w", *stack.StackName, err)
+		// Check for specific template rendering errors and provide actionable guidance
+		if strings.Contains(err.Error(), "security group") {
+			return nil, fmt.Errorf("failed to render CloudFormation template for stack %q: security group configuration error - %w. "+
+				"Please check your security group configuration and ensure all required parameters are valid", *stack.StackName, err)
+		}
+		if strings.Contains(err.Error(), "karpenter.sh/discovery") {
+			return nil, fmt.Errorf("failed to render CloudFormation template for stack %q: Karpenter discovery tag configuration error - %w. "+
+				"To enable automatic security group tagging, ensure both conditions are met: "+
+				"1) Karpenter is enabled (karpenter.version is specified), "+
+				"2) karpenter.sh/discovery tag is present in metadata.tags", *stack.StackName, err)
+		}
+		return nil, fmt.Errorf("failed to render CloudFormation template for stack %q: %w. "+
+			"This error typically indicates a problem with your cluster configuration. "+
+			"Please review your cluster configuration file for any invalid or missing parameters", *stack.StackName, err)
 	}
 
+	logger.Debug("successfully rendered CloudFormation template for stack %q", stackName)
+
+	// Create stack request with enhanced error handling
 	if err := c.DoCreateStackRequest(ctx, stack, TemplateBody(templateBody), tags, parameters, resourceSet.WithIAM(), resourceSet.WithNamedIAM()); err != nil {
-		return nil, err
+		// Provide specific guidance for CloudFormation API errors
+		if strings.Contains(err.Error(), "UnauthorizedOperation") || strings.Contains(err.Error(), "AccessDenied") {
+			return nil, fmt.Errorf("failed to create CloudFormation stack %q: insufficient permissions - %w. "+
+				"Please ensure your IAM role has the following permissions: "+
+				"cloudformation:CreateStack, cloudformation:DescribeStacks, cloudformation:GetTemplate, "+
+				"ec2:CreateSecurityGroup, ec2:CreateTags, ec2:DescribeSecurityGroups, "+
+				"eks:CreateCluster, eks:DescribeCluster", *stack.StackName, err)
+		}
+		if strings.Contains(err.Error(), "AlreadyExistsException") {
+			return nil, fmt.Errorf("failed to create CloudFormation stack %q: stack already exists - %w. "+
+				"Please use a different cluster name or delete the existing stack first", *stack.StackName, err)
+		}
+		if strings.Contains(err.Error(), "ValidationError") {
+			return nil, fmt.Errorf("failed to create CloudFormation stack %q: template validation error - %w. "+
+				"Please check your cluster configuration for any invalid parameters or resource definitions", *stack.StackName, err)
+		}
+		return nil, fmt.Errorf("failed to create CloudFormation stack %q: %w", *stack.StackName, err)
 	}
 
 	logger.Info("deploying stack %q", stackName)

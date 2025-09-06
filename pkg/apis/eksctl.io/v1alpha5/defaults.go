@@ -87,6 +87,8 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 			cfg.RemoteNetworkConfig.IAM.Provider = &SSMProvider
 		}
 	}
+
+
 }
 
 // IAMServiceAccountsWithImplicitServiceAccounts adds implicitly created
