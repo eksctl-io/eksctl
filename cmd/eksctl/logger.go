@@ -16,6 +16,15 @@ import (
 func initLogger(level int, colorValue string, logBuffer *bytes.Buffer, dumpLogsValue bool) {
 	logger.Layout = "2006-01-02 15:04:05"
 
+	// Disable colors globally if not explicitly enabled or if NO_COLOR is set
+	if colorValue != "true" && colorValue != "fabulous" {
+		color.NoColor = true
+	}
+	// Respect NO_COLOR environment variable (https://no-color.org/)
+	if os.Getenv("NO_COLOR") != "" {
+		color.NoColor = true
+	}
+
 	var bitwiseLevel int
 	switch level {
 	case 4:
