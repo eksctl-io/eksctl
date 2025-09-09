@@ -828,6 +828,30 @@ var (
 			OutputKey:   aws.String("Endpoint"),
 			OutputValue: aws.String("https://endpoint.com"),
 		},
+		{
+			OutputKey:   aws.String("FeaturePrivateNetworking"),
+			OutputValue: aws.String("false"),
+		},
+		{
+			OutputKey:   aws.String("FeatureSharedSecurityGroup"),
+			OutputValue: aws.String("true"),
+		},
+		{
+			OutputKey:   aws.String("FeatureLocalSecurityGroup"),
+			OutputValue: aws.String("false"),
+		},
+		{
+			OutputKey:   aws.String("InstanceProfileARN"),
+			OutputValue: aws.String("arn:aws:iam::123456:instance-profile/eksctl-my-cluster-nodegroup-my-nodegroup-NodeInstanceProfile"),
+		},
+		{
+			OutputKey:   aws.String("NodeGroupUsesAccessEntry"),
+			OutputValue: aws.String("false"),
+		},
+		{
+			OutputKey:   aws.String("InstanceRoleARN"),
+			OutputValue: aws.String("arn:aws:iam::123456:role/eksctl-my-cluster-nodegroup-my-nodegroup-NodeInstanceRole"),
+		},
 	}
 
 	getDefaultNode = func() *corev1.Node {
@@ -892,14 +916,16 @@ var (
 				Stacks: []cftypes.Stack{
 					{
 						StackName:   aws.String(nodeGroupStackName),
+						StackId:     aws.String(nodeGroupStackName),
 						StackStatus: status,
 					},
 				},
 			}, nil).Once()
-			mp.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.Anything).Return(&cloudformation.DescribeStacksOutput{
+			mp.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.Anything, mock.Anything).Return(&cloudformation.DescribeStacksOutput{
 				Stacks: []cftypes.Stack{
 					{
 						StackName:   aws.String(nodeGroupStackName),
+						StackId:     aws.String(nodeGroupStackName),
 						StackStatus: status,
 						Tags: []cftypes.Tag{
 							{
@@ -960,7 +986,9 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 		})
 	}
 
-	p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.Anything).Return(&cloudformation.DescribeStacksOutput{
+	p.MockCloudFormation().On("DescribeStacks", mock.Anything, mock.MatchedBy(func(input *cloudformation.DescribeStacksInput) bool {
+		return input.StackName != nil && *input.StackName == clusterStackName
+	}), mock.Anything).Return(&cloudformation.DescribeStacksOutput{
 		Stacks: []cftypes.Stack{
 			{
 				StackName:   aws.String(clusterStackName),
@@ -974,7 +1002,7 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output,
 				Outputs: output,
 			},
 		},
-	}, nil).Once()
+	}, nil).Maybe()
 
 	var outpostConfig *ekstypes.OutpostConfigResponse
 	if controlPlaneOnOutposts {
