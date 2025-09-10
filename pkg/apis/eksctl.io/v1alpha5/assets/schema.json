@@ -2301,10 +2301,43 @@
           "type": "boolean",
           "description": "Enables the auto repair feature for the nodegroup",
           "x-intellij-html-description": "Enables the auto repair feature for the nodegroup"
+        },
+        "maxParallelNodesRepairedCount": {
+          "type": "integer",
+          "description": "specifies the maximum count of nodes that can be repaired in parallel",
+          "x-intellij-html-description": "specifies the maximum count of nodes that can be repaired in parallel"
+        },
+        "maxParallelNodesRepairedPercentage": {
+          "type": "integer",
+          "description": "specifies the maximum percentage of nodes that can be repaired in parallel",
+          "x-intellij-html-description": "specifies the maximum percentage of nodes that can be repaired in parallel"
+        },
+        "maxUnhealthyNodeThresholdCount": {
+          "type": "integer",
+          "description": "specifies the maximum count of unhealthy nodes",
+          "x-intellij-html-description": "specifies the maximum count of unhealthy nodes"
+        },
+        "maxUnhealthyNodeThresholdPercentage": {
+          "type": "integer",
+          "description": "specifies the maximum percentage of unhealthy nodes",
+          "x-intellij-html-description": "specifies the maximum percentage of unhealthy nodes"
+        },
+        "nodeRepairConfigOverrides": {
+          "items": {
+            "$ref": "#/definitions/NodeRepairConfigOverride"
+          },
+          "type": "array",
+          "description": "specifies custom repair behavior for specific conditions",
+          "x-intellij-html-description": "specifies custom repair behavior for specific conditions"
         }
       },
       "preferredOrder": [
-        "enabled"
+        "enabled",
+        "maxUnhealthyNodeThresholdPercentage",
+        "maxUnhealthyNodeThresholdCount",
+        "maxParallelNodesRepairedPercentage",
+        "maxParallelNodesRepairedCount",
+        "nodeRepairConfigOverrides"
       ],
       "additionalProperties": false,
       "description": "contains the auto repair configuration for the nodegroup",
@@ -2429,6 +2462,39 @@
       "additionalProperties": false,
       "description": "contains the configuration for updating NodeGroups.",
       "x-intellij-html-description": "contains the configuration for updating NodeGroups."
+    },
+    "NodeRepairConfigOverride": {
+      "properties": {
+        "minRepairWaitTimeMins": {
+          "type": "integer",
+          "description": "specifies the minimum wait time before repair in minutes",
+          "x-intellij-html-description": "specifies the minimum wait time before repair in minutes"
+        },
+        "nodeMonitoringCondition": {
+          "type": "string",
+          "description": "specifies the monitoring condition",
+          "x-intellij-html-description": "specifies the monitoring condition"
+        },
+        "nodeUnhealthyReason": {
+          "type": "string",
+          "description": "specifies the reason for node being unhealthy",
+          "x-intellij-html-description": "specifies the reason for node being unhealthy"
+        },
+        "repairAction": {
+          "type": "string",
+          "description": "specifies the action to take for repair",
+          "x-intellij-html-description": "specifies the action to take for repair"
+        }
+      },
+      "preferredOrder": [
+        "nodeMonitoringCondition",
+        "nodeUnhealthyReason",
+        "minRepairWaitTimeMins",
+        "repairAction"
+      ],
+      "additionalProperties": false,
+      "description": "defines custom repair behavior for specific node conditions",
+      "x-intellij-html-description": "defines custom repair behavior for specific node conditions"
     },
     "OIDCIdentityProvider": {
       "required": [

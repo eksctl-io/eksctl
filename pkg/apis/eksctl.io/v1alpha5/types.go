@@ -1576,6 +1576,41 @@ type (
 		// Enables the auto repair feature for the nodegroup
 		// +optional
 		Enabled *bool `json:"enabled,omitempty"`
+		
+		// MaxUnhealthyNodeThresholdPercentage specifies the maximum percentage of unhealthy nodes
+		// +optional
+		MaxUnhealthyNodeThresholdPercentage *int `json:"maxUnhealthyNodeThresholdPercentage,omitempty"`
+		
+		// MaxUnhealthyNodeThresholdCount specifies the maximum count of unhealthy nodes
+		// +optional
+		MaxUnhealthyNodeThresholdCount *int `json:"maxUnhealthyNodeThresholdCount,omitempty"`
+		
+		// MaxParallelNodesRepairedPercentage specifies the maximum percentage of nodes that can be repaired in parallel
+		// +optional
+		MaxParallelNodesRepairedPercentage *int `json:"maxParallelNodesRepairedPercentage,omitempty"`
+		
+		// MaxParallelNodesRepairedCount specifies the maximum count of nodes that can be repaired in parallel
+		// +optional
+		MaxParallelNodesRepairedCount *int `json:"maxParallelNodesRepairedCount,omitempty"`
+		
+		// NodeRepairConfigOverrides specifies custom repair behavior for specific conditions
+		// +optional
+		NodeRepairConfigOverrides []NodeRepairConfigOverride `json:"nodeRepairConfigOverrides,omitempty"`
+	}
+
+	// NodeRepairConfigOverride defines custom repair behavior for specific node conditions
+	NodeRepairConfigOverride struct {
+		// NodeMonitoringCondition specifies the monitoring condition
+		NodeMonitoringCondition string `json:"nodeMonitoringCondition"`
+		
+		// NodeUnhealthyReason specifies the reason for node being unhealthy
+		NodeUnhealthyReason string `json:"nodeUnhealthyReason"`
+		
+		// MinRepairWaitTimeMins specifies the minimum wait time before repair in minutes
+		MinRepairWaitTimeMins int `json:"minRepairWaitTimeMins"`
+		
+		// RepairAction specifies the action to take for repair
+		RepairAction string `json:"repairAction"`
 	}
 )
 
