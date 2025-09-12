@@ -115,39 +115,13 @@ func addArm64NodeSelector(daemonSet *v1.DaemonSet) error {
 }
 
 func getLatestKubeProxyImage(ctx context.Context, input AddonInput) (string, error) {
-	defaultClusterVersion := generateImageVersionFromClusterVersion(input.ControlPlaneVersion)
+	// Always use the latest version from managed addon versions
 	latestEKSReportedVersion, err := getLatestImageVersionFromEKS(ctx, input.AddonVersionDescriber, input.ControlPlaneVersion)
 	if err != nil {
 		return "", err
 	}
 
-	// Sometimes the EKS API is ahead, sometimes behind. Pick whichever is latest
-	eksVersionIsGreaterThanDefaultVersion, err := versionGreaterThan(latestEKSReportedVersion, defaultClusterVersion)
-	if err != nil {
-		return "", err
-	}
-
-	if eksVersionIsGreaterThanDefaultVersion {
-		return latestEKSReportedVersion, nil
-	}
-
-	return defaultClusterVersion, nil
-}
-
-func versionGreaterThan(v1, v2 string) (bool, error) {
-	v1Version, err := parseVersion(v1)
-	if err != nil {
-		return false, err
-	}
-	v2Version, err := parseVersion(v2)
-	if err != nil {
-		return false, err
-	}
-	return v1Version.GreaterThan(v2Version), nil
-}
-
-func generateImageVersionFromClusterVersion(controlPlaneVersion string) string {
-	return fmt.Sprintf("v%s-eksbuild.1", controlPlaneVersion)
+	return latestEKSReportedVersion, nil
 }
 
 func getLatestImageVersionFromEKS(ctx context.Context, addonDescriber AddonVersionDescriber, controlPlaneVersion string) (string, error) {
