@@ -86,11 +86,11 @@ var _ = Describe("(Integration) Karpenter", func() {
 						"karpenter.sh/discovery": clusterName,
 					},
 				},
-				Karpenter: &api.Karpenter{
-					Version: "1.6.2",
-				},
 				IAM: &api.ClusterIAM{
 					WithOIDC: api.Enabled(),
+				},
+				Karpenter: &api.Karpenter{
+					Version: "1.7.0",
 				},
 				ManagedNodeGroups: []*api.ManagedNodeGroup{
 					{
@@ -98,8 +98,8 @@ var _ = Describe("(Integration) Karpenter", func() {
 							Name: "managed-ng-1",
 							ScalingConfig: &api.ScalingConfig{
 								MinSize:         aws.Int(1),
-								MaxSize:         aws.Int(2),
-								DesiredCapacity: aws.Int(1),
+								MaxSize:         aws.Int(3),
+								DesiredCapacity: aws.Int(2),
 							},
 						},
 					},
