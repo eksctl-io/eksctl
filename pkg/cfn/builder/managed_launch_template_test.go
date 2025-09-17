@@ -457,6 +457,255 @@ API_SERVER_URL=https://test.com
 			resourcesFilename: "launch_template_with_capacity_reservation_preference.json",
 		}),
 	)
+
+	Context("version-aware EFA security group creation", func() {
+		var (
+			clusterConfig *api.ClusterConfig
+			provider      *mockprovider.MockProvider
+			vpcImporter   *vpcfakes.FakeImporter
+			bootstrapper  *fakes.FakeBootstrapper
+		)
+
+		BeforeEach(func() {
+			clusterConfig = api.NewClusterConfig()
+			clusterConfig.Metadata.Name = "efa-test"
+			clusterConfig.Metadata.Region = "us-west-2"
+			provider = mockprovider.NewMockProvider()
+			vpcImporter = new(vpcfakes.FakeImporter)
+			bootstrapper = new(fakes.FakeBootstrapper)
+
+			vpcImporter.VPCReturns(gfnt.NewString("vpc-12345"))
+			vpcImporter.SecurityGroupsReturns(gfnt.Slice{gfnt.NewString("sg-cluster")})
+			bootstrapper.UserDataReturns("", nil)
+
+			mockSubnetsAndAZInstanceSupport(clusterConfig, provider,
+				[]string{"us-west-2a"},
+				[]string{}, // local zones
+				[]ec2types.InstanceType{
+					ec2types.InstanceTypeC5n18xlarge,
+				})
+
+			provider.MockEC2().On("DescribeInstanceTypes",
+				mock.Anything,
+				&ec2.DescribeInstanceTypesInput{
+					InstanceTypes: []ec2types.InstanceType{ec2types.InstanceTypeC5n18xlarge},
+				},
+			).Return(
+				&ec2.DescribeInstanceTypesOutput{
+					InstanceTypes: []ec2types.InstanceTypeInfo{
+						{
+							InstanceType: ec2types.InstanceTypeC5n18xlarge,
+							NetworkInfo: &ec2types.NetworkInfo{
+								EfaSupported:        aws.Bool(true),
+								MaximumNetworkCards: aws.Int32(4),
+							},
+						},
+					},
+				}, nil,
+			)
+		})
+
+		Context("Kubernetes 1.33+ with built-in EFA support", func() {
+			BeforeEach(func() {
+				clusterConfig.Metadata.Version = "1.33"
+			})
+
+			It("does not create custom EFA security groups", func() {
+				ng := &api.ManagedNodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:         "efa-ng-1.33",
+						InstanceType: "c5n.18xlarge",
+						EFAEnabled:   aws.Bool(true),
+					},
+				}
+
+				err := api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
+				Expect(err).NotTo(HaveOccurred())
+
+				stack := builder.NewManagedNodeGroup(provider.MockEC2(), clusterConfig, ng, builder.NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, vpcImporter)
+				err = stack.AddAllResources(context.Background())
+				Expect(err).NotTo(HaveOccurred())
+
+				bytes, err := stack.RenderJSON()
+				Expect(err).NotTo(HaveOccurred())
+
+				template, err := goformation.ParseJSON(bytes)
+				Expect(err).NotTo(HaveOccurred())
+
+				// Should not have custom EFA security group resources
+				Expect(template.Resources).NotTo(HaveKey("EFASG"))
+				Expect(template.Resources).NotTo(HaveKey("EFAEgressSelf"))
+				Expect(template.Resources).NotTo(HaveKey("EFAIngressSelf"))
+			})
+		})
+
+		Context("Kubernetes 1.34 with built-in EFA support", func() {
+			BeforeEach(func() {
+				clusterConfig.Metadata.Version = "1.34"
+			})
+
+			It("does not create custom EFA security groups", func() {
+				ng := &api.ManagedNodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:         "efa-ng-1.34",
+						InstanceType: "c5n.18xlarge",
+						EFAEnabled:   aws.Bool(true),
+					},
+				}
+
+				err := api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
+				Expect(err).NotTo(HaveOccurred())
+
+				stack := builder.NewManagedNodeGroup(provider.MockEC2(), clusterConfig, ng, builder.NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, vpcImporter)
+				err = stack.AddAllResources(context.Background())
+				Expect(err).NotTo(HaveOccurred())
+
+				bytes, err := stack.RenderJSON()
+				Expect(err).NotTo(HaveOccurred())
+
+				template, err := goformation.ParseJSON(bytes)
+				Expect(err).NotTo(HaveOccurred())
+
+				// Should not have custom EFA security group resources
+				Expect(template.Resources).NotTo(HaveKey("EFASG"))
+				Expect(template.Resources).NotTo(HaveKey("EFAEgressSelf"))
+				Expect(template.Resources).NotTo(HaveKey("EFAIngressSelf"))
+			})
+		})
+
+		Context("Kubernetes 1.32 without built-in EFA support", func() {
+			BeforeEach(func() {
+				clusterConfig.Metadata.Version = "1.32"
+			})
+
+			It("creates custom EFA security groups", func() {
+				ng := &api.ManagedNodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:         "efa-ng-1.32",
+						InstanceType: "c5n.18xlarge",
+						EFAEnabled:   aws.Bool(true),
+					},
+				}
+
+				err := api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
+				Expect(err).NotTo(HaveOccurred())
+
+				stack := builder.NewManagedNodeGroup(provider.MockEC2(), clusterConfig, ng, builder.NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, vpcImporter)
+				err = stack.AddAllResources(context.Background())
+				Expect(err).NotTo(HaveOccurred())
+
+				bytes, err := stack.RenderJSON()
+				Expect(err).NotTo(HaveOccurred())
+
+				template, err := goformation.ParseJSON(bytes)
+				Expect(err).NotTo(HaveOccurred())
+
+				// Should have custom EFA security group resources
+				Expect(template.Resources).To(HaveKey("EFASG"))
+				Expect(template.Resources).To(HaveKey("EFAEgressSelf"))
+				Expect(template.Resources).To(HaveKey("EFAIngressSelf"))
+			})
+		})
+
+		Context("Kubernetes 1.31 without built-in EFA support", func() {
+			BeforeEach(func() {
+				clusterConfig.Metadata.Version = "1.31"
+			})
+
+			It("creates custom EFA security groups", func() {
+				ng := &api.ManagedNodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:         "efa-ng-1.31",
+						InstanceType: "c5n.18xlarge",
+						EFAEnabled:   aws.Bool(true),
+					},
+				}
+
+				err := api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
+				Expect(err).NotTo(HaveOccurred())
+
+				stack := builder.NewManagedNodeGroup(provider.MockEC2(), clusterConfig, ng, builder.NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, vpcImporter)
+				err = stack.AddAllResources(context.Background())
+				Expect(err).NotTo(HaveOccurred())
+
+				bytes, err := stack.RenderJSON()
+				Expect(err).NotTo(HaveOccurred())
+
+				template, err := goformation.ParseJSON(bytes)
+				Expect(err).NotTo(HaveOccurred())
+
+				// Should have custom EFA security group resources
+				Expect(template.Resources).To(HaveKey("EFASG"))
+				Expect(template.Resources).To(HaveKey("EFAEgressSelf"))
+				Expect(template.Resources).To(HaveKey("EFAIngressSelf"))
+			})
+		})
+
+		Context("invalid Kubernetes version", func() {
+			BeforeEach(func() {
+				clusterConfig.Metadata.Version = "invalid.version"
+			})
+
+			It("falls back to creating custom EFA security groups", func() {
+				ng := &api.ManagedNodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:         "efa-ng-invalid",
+						InstanceType: "c5n.18xlarge",
+						EFAEnabled:   aws.Bool(true),
+					},
+				}
+
+				err := api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
+				Expect(err).NotTo(HaveOccurred())
+
+				stack := builder.NewManagedNodeGroup(provider.MockEC2(), clusterConfig, ng, builder.NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, vpcImporter)
+				err = stack.AddAllResources(context.Background())
+				Expect(err).NotTo(HaveOccurred())
+
+				bytes, err := stack.RenderJSON()
+				Expect(err).NotTo(HaveOccurred())
+
+				template, err := goformation.ParseJSON(bytes)
+				Expect(err).NotTo(HaveOccurred())
+
+				// Should fall back to creating custom EFA security group resources
+				Expect(template.Resources).To(HaveKey("EFASG"))
+				Expect(template.Resources).To(HaveKey("EFAEgressSelf"))
+				Expect(template.Resources).To(HaveKey("EFAIngressSelf"))
+			})
+		})
+
+		Context("EFA disabled", func() {
+			It("does not create EFA security groups regardless of version", func() {
+				clusterConfig.Metadata.Version = "1.33"
+				ng := &api.ManagedNodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:         "no-efa-ng",
+						InstanceType: "c5n.18xlarge",
+						EFAEnabled:   aws.Bool(false),
+					},
+				}
+
+				err := api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
+				Expect(err).NotTo(HaveOccurred())
+
+				stack := builder.NewManagedNodeGroup(provider.MockEC2(), clusterConfig, ng, builder.NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, vpcImporter)
+				err = stack.AddAllResources(context.Background())
+				Expect(err).NotTo(HaveOccurred())
+
+				bytes, err := stack.RenderJSON()
+				Expect(err).NotTo(HaveOccurred())
+
+				template, err := goformation.ParseJSON(bytes)
+				Expect(err).NotTo(HaveOccurred())
+
+				// Should not have EFA security group resources
+				Expect(template.Resources).NotTo(HaveKey("EFASG"))
+				Expect(template.Resources).NotTo(HaveKey("EFAEgressSelf"))
+				Expect(template.Resources).NotTo(HaveKey("EFAIngressSelf"))
+			})
+		})
+	})
 })
 
 func mockLaunchTemplate(matcher func(*ec2.DescribeLaunchTemplateVersionsInput) bool, lt *ec2types.ResponseLaunchTemplateData) func(provider *mockprovider.MockProvider) {
