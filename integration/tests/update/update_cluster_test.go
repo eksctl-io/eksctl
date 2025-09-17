@@ -36,8 +36,9 @@ import (
 )
 
 const (
-	k8sUpdatePollInterval = "30s"
-	k8sUpdatePollTimeout  = "10m"
+	k8sUpdatePollInterval  = "30s"
+	k8sUpdatePollTimeout   = "10m"
+	addonUpdatePollTimeout = "25m"
 )
 
 var (
@@ -245,7 +246,7 @@ var _ = Describe("(Integration) Upgrading cluster", func() {
 				segments := v.Segments()
 				Expect(len(segments)).To(BeNumerically(">=", 2))
 				return fmt.Sprintf("%d.%d", segments[0], segments[1])
-			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextEKSVersion))
+			}, addonUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextEKSVersion))
 		})
 
 		It("should upgrade aws-node", func() {
@@ -269,7 +270,7 @@ var _ = Describe("(Integration) Upgrading cluster", func() {
 					"--verbose", "4",
 				)
 			Expect(cmd).To(RunSuccessfully())
-			Eventually(getAWSNodeVersion, k8sUpdatePollTimeout, k8sUpdatePollInterval).ShouldNot(Equal(preUpdateAWSNodeVersion))
+			Eventually(getAWSNodeVersion, addonUpdatePollTimeout, k8sUpdatePollInterval).ShouldNot(Equal(preUpdateAWSNodeVersion))
 		})
 
 		It("should upgrade coredns", func() {

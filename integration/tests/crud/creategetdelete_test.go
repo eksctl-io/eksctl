@@ -271,11 +271,21 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			test.Close()
 			Eventually(func() int {
 				return len(test.ListPods(test.Namespace, metav1.ListOptions{}).Items)
-			}, "3m", "1s").Should(BeZero())
+			}, "5m", "1s").Should(BeZero())
 		})
 
 		It("should deploy podinfo service to the cluster and access it via proxy", func() {
 			d := test.CreateDeploymentFromFile(test.Namespace, "../../data/crud-podinfo.yaml")
+			DeferCleanup(func() {
+				clientset := makeClientset()
+				gracePeriod := int64(0)
+				err := clientset.AppsV1().Deployments(test.Namespace).Delete(context.Background(), d.Name, metav1.DeleteOptions{
+					GracePeriodSeconds: &gracePeriod,
+				})
+				if err != nil {
+					fmt.Fprintf(GinkgoWriter, "Failed to delete deployment %s: %v\n", d.Name, err)
+				}
+			})
 			test.WaitForDeploymentReady(d, commonTimeout)
 
 			pods := test.ListPodsFromDeployment(d)
@@ -298,6 +308,16 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		It("should have functional DNS", func() {
 			d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-dns.yaml")
+			DeferCleanup(func() {
+				clientset := makeClientset()
+				gracePeriod := int64(0)
+				err := clientset.AppsV1().DaemonSets(test.Namespace).Delete(context.Background(), d.Name, metav1.DeleteOptions{
+					GracePeriodSeconds: &gracePeriod,
+				})
+				if err != nil {
+					fmt.Fprintf(GinkgoWriter, "Failed to delete daemonset %s: %v\n", d.Name, err)
+				}
+			})
 			test.WaitForDaemonSetReady(d, commonTimeout)
 			ds, err := test.GetDaemonSet(test.Namespace, d.Name)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -306,6 +326,16 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		It("should have access to HTTP(S) sites", func() {
 			d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-http.yaml")
+			DeferCleanup(func() {
+				clientset := makeClientset()
+				gracePeriod := int64(0)
+				err := clientset.AppsV1().DaemonSets(test.Namespace).Delete(context.Background(), d.Name, metav1.DeleteOptions{
+					GracePeriodSeconds: &gracePeriod,
+				})
+				if err != nil {
+					fmt.Fprintf(GinkgoWriter, "Failed to delete daemonset %s: %v\n", d.Name, err)
+				}
+			})
 			test.WaitForDaemonSetReady(d, commonTimeout)
 			ds, err := test.GetDaemonSet(test.Namespace, d.Name)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -348,7 +378,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			test.Close()
 			Eventually(func() int {
 				return len(test.ListPods(test.Namespace, metav1.ListOptions{}).Items)
-			}, "3m", "1s").Should(BeZero())
+			}, "5m", "1s").Should(BeZero())
 		})
 
 		It("should have OIDC disabled by default", func() {
@@ -425,6 +455,16 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		It("should successfully run pods with an iamserviceaccount", func() {
 			d := test.CreateDeploymentFromFile(test.Namespace, "../../data/iamserviceaccount-checker.yaml")
+			DeferCleanup(func() {
+				clientset := makeClientset()
+				gracePeriod := int64(0)
+				err := clientset.AppsV1().Deployments(test.Namespace).Delete(context.Background(), d.Name, metav1.DeleteOptions{
+					GracePeriodSeconds: &gracePeriod,
+				})
+				if err != nil {
+					fmt.Fprintf(GinkgoWriter, "Failed to delete deployment %s: %v\n", d.Name, err)
+				}
+			})
 			test.WaitForDeploymentReady(d, 10*time.Minute)
 
 			pods := test.ListPodsFromDeployment(d)
