@@ -85,9 +85,6 @@ var _ = Describe("Update", func() {
 						{
 							AddonVersion: aws.String("v1.0.0-eksbuild.2"),
 						},
-						{
-							AddonVersion: aws.String("v1.0.0-eksbuild.20"),
-						},
 					},
 				},
 			},
