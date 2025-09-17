@@ -660,6 +660,132 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					Expect(properties.Description).To(Equal("Allow worker nodes in group ng-abcd1234 to communicate to itself (EFA-enabled)"))
 				})
 			})
+
+			Context("version-aware EFA security group creation", func() {
+				BeforeEach(func() {
+					ng.EFAEnabled = aws.Bool(true)
+					p.MockEC2().On("DescribeInstanceTypes",
+						mock.Anything,
+						&ec2.DescribeInstanceTypesInput{
+							InstanceTypes: []ec2types.InstanceType{ec2types.InstanceTypeM5Large},
+						},
+					).Return(
+						&ec2.DescribeInstanceTypesOutput{
+							InstanceTypes: []ec2types.InstanceTypeInfo{
+								{
+									InstanceType: ec2types.InstanceTypeM5Large,
+									NetworkInfo: &ec2types.NetworkInfo{
+										EfaSupported:        aws.Bool(true),
+										MaximumNetworkCards: aws.Int32(4),
+									},
+								},
+							},
+						}, nil,
+					)
+				})
+
+				Context("Kubernetes 1.33+ with built-in EFA support", func() {
+					BeforeEach(func() {
+						cfg.Metadata.Version = "1.33"
+					})
+
+					It("does not create custom EFA security groups", func() {
+						Expect(ngTemplate.Resources).NotTo(HaveKey("EFASG"))
+						Expect(ngTemplate.Resources).NotTo(HaveKey("EFAEgressSelf"))
+						Expect(ngTemplate.Resources).NotTo(HaveKey("EFAIngressSelf"))
+					})
+				})
+
+				Context("Kubernetes 1.34 with built-in EFA support", func() {
+					BeforeEach(func() {
+						cfg.Metadata.Version = "1.34"
+					})
+
+					It("does not create custom EFA security groups", func() {
+						Expect(ngTemplate.Resources).NotTo(HaveKey("EFASG"))
+						Expect(ngTemplate.Resources).NotTo(HaveKey("EFAEgressSelf"))
+						Expect(ngTemplate.Resources).NotTo(HaveKey("EFAIngressSelf"))
+					})
+				})
+
+				Context("Kubernetes 1.32 without built-in EFA support", func() {
+					BeforeEach(func() {
+						cfg.Metadata.Version = "1.32"
+					})
+
+					It("creates custom EFA security groups", func() {
+						Expect(ngTemplate.Resources).To(HaveKey("EFASG"))
+						Expect(ngTemplate.Resources).To(HaveKey("EFAEgressSelf"))
+						Expect(ngTemplate.Resources).To(HaveKey("EFAIngressSelf"))
+					})
+				})
+
+				Context("Kubernetes 1.31 without built-in EFA support", func() {
+					BeforeEach(func() {
+						cfg.Metadata.Version = "1.31"
+					})
+
+					It("creates custom EFA security groups", func() {
+						Expect(ngTemplate.Resources).To(HaveKey("EFASG"))
+						Expect(ngTemplate.Resources).To(HaveKey("EFAEgressSelf"))
+						Expect(ngTemplate.Resources).To(HaveKey("EFAIngressSelf"))
+					})
+				})
+
+				Context("invalid Kubernetes version", func() {
+					BeforeEach(func() {
+						cfg.Metadata.Version = "invalid.version"
+					})
+
+					It("falls back to creating custom EFA security groups", func() {
+						Expect(ngTemplate.Resources).To(HaveKey("EFASG"))
+						Expect(ngTemplate.Resources).To(HaveKey("EFAEgressSelf"))
+						Expect(ngTemplate.Resources).To(HaveKey("EFAIngressSelf"))
+					})
+				})
+
+				Context("empty Kubernetes version", func() {
+					BeforeEach(func() {
+						cfg.Metadata.Version = ""
+					})
+
+					It("falls back to creating custom EFA security groups", func() {
+						Expect(ngTemplate.Resources).To(HaveKey("EFASG"))
+						Expect(ngTemplate.Resources).To(HaveKey("EFAEgressSelf"))
+						Expect(ngTemplate.Resources).To(HaveKey("EFAIngressSelf"))
+					})
+				})
+			})
+
+			Context("EFA disabled", func() {
+				BeforeEach(func() {
+					ng.EFAEnabled = aws.Bool(false)
+				})
+
+				Context("Kubernetes 1.33+", func() {
+					BeforeEach(func() {
+						cfg.Metadata.Version = "1.33"
+					})
+
+					It("does not create EFA security groups regardless of version", func() {
+						Expect(ngTemplate.Resources).NotTo(HaveKey("EFASG"))
+						Expect(ngTemplate.Resources).NotTo(HaveKey("EFAEgressSelf"))
+						Expect(ngTemplate.Resources).NotTo(HaveKey("EFAIngressSelf"))
+					})
+				})
+
+				Context("Kubernetes 1.32", func() {
+					BeforeEach(func() {
+						cfg.Metadata.Version = "1.32"
+					})
+
+					It("does not create EFA security groups regardless of version", func() {
+						Expect(ngTemplate.Resources).NotTo(HaveKey("EFASG"))
+						Expect(ngTemplate.Resources).NotTo(HaveKey("EFAEgressSelf"))
+						Expect(ngTemplate.Resources).NotTo(HaveKey("EFAIngressSelf"))
+					})
+				})
+			})
 		})
 
 		Context("adding resources for nodegroup", func() {
