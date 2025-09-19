@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/kris-nova/logger"
+
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/ec2"
 	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/utils/version/efa"
 )
 
 func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(ctx context.Context) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
@@ -75,9 +78,27 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(ctx context.Context
 	if api.IsEnabled(mng.EFAEnabled) {
 		// we don't want to touch the network interfaces at all if we have a
 		// managed nodegroup, unless EFA is enabled
-		desc := "worker nodes in group " + m.nodeGroup.Name
-		efaSG := m.addEFASecurityGroup(m.vpcImporter.VPC(), m.clusterConfig.Metadata.Name, desc)
-		securityGroupIDs = append(securityGroupIDs, efaSG)
+		clusterVersion := m.clusterConfig.Metadata.Version
+		supported, err := efa.IsBuiltInSupported(clusterVersion)
+		if err != nil {
+			logger.Warning("failed to parse Kubernetes version %s for EFA configuration: %v; falling back to custom EFA security group creation", clusterVersion, err)
+			// Fall back to creating custom EFA security group when version parsing fails
+			supported = false
+		}
+
+		if !supported {
+			logger.Info("creating custom EFA security group for managed nodegroup %s with Kubernetes %s (EFA built-in support requires version 1.33+)", m.nodeGroup.Name, clusterVersion)
+			desc := "worker nodes in group " + m.nodeGroup.Name
+			efaSG := m.addEFASecurityGroup(m.vpcImporter.VPC(), m.clusterConfig.Metadata.Name, desc)
+			if efaSG == nil {
+				return nil, fmt.Errorf("failed to create EFA security group for managed nodegroup %s with Kubernetes %s: invalid VPC ID or cluster configuration", m.nodeGroup.Name, clusterVersion)
+			}
+			securityGroupIDs = append(securityGroupIDs, efaSG)
+			logger.Info("successfully created custom EFA security group for managed nodegroup %s", m.nodeGroup.Name)
+		} else {
+			logger.Info("using built-in EFA support in default security group for managed nodegroup %s with Kubernetes %s (no custom EFA security group needed)", m.nodeGroup.Name, clusterVersion)
+		}
+
 		if err := buildNetworkInterfaces(ctx, launchTemplateData, mng.InstanceTypeList(), true, securityGroupIDs, m.ec2API); err != nil {
 			return nil, fmt.Errorf("couldn't build network interfaces for launch template data: %w", err)
 		}

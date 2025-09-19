@@ -23,6 +23,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
+	"github.com/weaveworks/eksctl/pkg/utils/version/efa"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -220,8 +221,28 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	n.securityGroups = append(n.securityGroups, refNodeGroupLocalSG)
 
 	if api.IsEnabled(ng.EFAEnabled) {
-		efaSG := n.rs.addEFASecurityGroup(vpcID, n.options.ClusterConfig.Metadata.Name, desc)
-		n.securityGroups = append(n.securityGroups, efaSG)
+		clusterVersion := n.options.ClusterConfig.Metadata.Version
+		supported, err := efa.IsBuiltInSupported(clusterVersion)
+		if err != nil {
+			logger.Warning("failed to parse Kubernetes version %s for EFA configuration: %v; falling back to custom EFA security group creation", clusterVersion, err)
+			// Fall back to creating custom EFA security group when version parsing fails
+			supported = false
+		}
+
+		if !supported {
+			logger.Info("creating custom EFA security group for Kubernetes %s (EFA built-in support requires version 1.33+)", clusterVersion)
+			efaSG := n.rs.addEFASecurityGroup(vpcID, n.options.ClusterConfig.Metadata.Name, desc)
+			if efaSG == nil {
+				logger.Critical("failed to create EFA security group for nodegroup %s with Kubernetes %s: invalid VPC ID or cluster configuration", ng.Name, clusterVersion)
+				// Continue without EFA security group - this will likely cause EFA functionality to fail
+				// but allows the nodegroup creation to proceed
+			} else {
+				n.securityGroups = append(n.securityGroups, efaSG)
+				logger.Info("successfully created custom EFA security group for nodegroup %s", ng.Name)
+			}
+		} else {
+			logger.Info("using built-in EFA support in default security group for Kubernetes %s (no custom EFA security group needed)", clusterVersion)
+		}
 	}
 
 	if !n.options.SkipEgressRules {
