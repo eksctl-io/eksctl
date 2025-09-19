@@ -85,6 +85,10 @@ var _ = Describe("Update", func() {
 						{
 							AddonVersion: aws.String("v1.0.0-eksbuild.2"),
 						},
+						{
+							// This version would be incorrectly selected by old logic when user requests v1.0.0-eksbuild.2
+							AddonVersion: aws.String("v1.0.0-eksbuild.20"),
+						},
 					},
 				},
 			},
@@ -202,6 +206,61 @@ var _ = Describe("Update", func() {
 					}, &podIdentityIAMUpdater, 0)
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(MatchError(ContainSubstring("no version(s) found matching \"1.7.8\" for \"my-addon\"")))
+				})
+			})
+
+			When("the version selection prioritizes exact matches", func() {
+				It("should select exact match v1.0.0-eksbuild.2 over partial match v1.0.0-eksbuild.20", func() {
+					// This test demonstrates the fix for the version selection bug
+					// where strings.Contains("v1.0.0-eksbuild.20", "v1.0.0-eksbuild.2") returns true
+					// causing the wrong version to be selected
+					err := addonManager.Update(context.Background(), &api.Addon{
+						Name:    "my-addon",
+						Version: "v1.0.0-eksbuild.2", // User requests exact version
+					}, &podIdentityIAMUpdater, 0)
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
+					Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+					Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
+					Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
+					// The key assertion: should select exact match, not v1.0.0-eksbuild.20
+					Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
+					Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
+				})
+
+				It("should select exact match v1.0.0-eksbuild.20 when specifically requested", func() {
+					// This test ensures that v1.0.0-eksbuild.20 can still be selected when explicitly requested
+					err := addonManager.Update(context.Background(), &api.Addon{
+						Name:    "my-addon",
+						Version: "v1.0.0-eksbuild.20", // User requests this specific version
+					}, &podIdentityIAMUpdater, 0)
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
+					Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+					Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
+					Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
+					// Should select the exact version requested
+					Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.20"))
+					Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
+				})
+
+				It("should still support partial matching when no exact match exists", func() {
+					// This test ensures partial matching still works for legitimate use cases
+					err := addonManager.Update(context.Background(), &api.Addon{
+						Name:    "my-addon",
+						Version: "v1.0.0-eksbuild", // Partial match - should find highest matching version
+					}, &podIdentityIAMUpdater, 0)
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
+					Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+					Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
+					Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
+					// Should select the highest version among partial matches (v1.0.0-eksbuild.20)
+					Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.20"))
+					Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
 				})
 			})
 		})
