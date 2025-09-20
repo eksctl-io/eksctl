@@ -229,9 +229,21 @@ func ToIdentifiers(podIdentityAssociations []api.PodIdentityAssociation) []Ident
 }
 
 func getIAMResourcesStack(stackNames []string, p Identifier) (string, bool) {
+	// Stack names follow two patterns:
+	// IRSAv2: eksctl-{cluster}-podidentityrole-{namespace}-{serviceAccount}
+	// IRSAv1: eksctl-{cluster}-addon-iamserviceaccount-{namespace}-{serviceAccount}
+	// We need to match exactly to avoid substring matches like "service" matching "other-service"
+	nameString := p.NameString()
+	targetSuffixes := []string{
+		"-podidentityrole-" + nameString,         // IRSAv2 pattern
+		"-addon-iamserviceaccount-" + nameString, // IRSAv1 pattern
+	}
+
 	for _, name := range stackNames {
-		if strings.Contains(name, p.NameString()) {
-			return name, true
+		for _, suffix := range targetSuffixes {
+			if strings.HasSuffix(name, suffix) {
+				return name, true
+			}
 		}
 	}
 	return "", false
