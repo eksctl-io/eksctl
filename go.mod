@@ -17,7 +17,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.57.3
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.51.3
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.210.1
-	github.com/aws/aws-sdk-go-v2/service/eks v1.73.2
+	github.com/aws/aws-sdk-go-v2/service/eks v1.74.0
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.33.3
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.50.3
 	github.com/aws/aws-sdk-go-v2/service/iam v1.47.4
@@ -478,71 +478,3 @@ replace (
 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.32.3
 	k8s.io/sample-controller => k8s.io/sample-controller v0.32.3
 )
-
-replace github.com/aws/aws-sdk-go-v2 => /Users/rhaowang/github/eksctl/aws-sdk-go-v2
-
-replace github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/aws/protocol/eventstream
-
-replace github.com/aws/aws-sdk-go-v2/config => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/config
-
-replace github.com/aws/aws-sdk-go-v2/credentials => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/credentials
-
-replace github.com/aws/aws-sdk-go-v2/feature/ec2/imds => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/feature/ec2/imds
-
-replace github.com/aws/aws-sdk-go-v2/internal/configsources => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/internal/configsources
-
-replace github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/internal/endpoints/v2
-
-replace github.com/aws/aws-sdk-go-v2/internal/ini => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/internal/ini
-
-replace github.com/aws/aws-sdk-go-v2/internal/v4a => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/internal/v4a
-
-replace github.com/aws/aws-sdk-go-v2/service/autoscaling => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/autoscaling
-
-replace github.com/aws/aws-sdk-go-v2/service/cloudformation => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/cloudformation
-
-replace github.com/aws/aws-sdk-go-v2/service/cloudtrail => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/cloudtrail
-
-replace github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/cloudwatchlogs
-
-replace github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/cognitoidentityprovider
-
-replace github.com/aws/aws-sdk-go-v2/service/ec2 => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/ec2
-
-replace github.com/aws/aws-sdk-go-v2/service/eks => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/eks
-
-replace github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/elasticloadbalancing
-
-replace github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/elasticloadbalancingv2
-
-replace github.com/aws/aws-sdk-go-v2/service/eventbridge => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/eventbridge
-
-replace github.com/aws/aws-sdk-go-v2/service/iam => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/iam
-
-replace github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/internal/accept-encoding
-
-replace github.com/aws/aws-sdk-go-v2/service/internal/checksum => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/internal/checksum
-
-replace github.com/aws/aws-sdk-go-v2/service/internal/presigned-url => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/internal/presigned-url
-
-replace github.com/aws/aws-sdk-go-v2/service/internal/s3shared => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/internal/s3shared
-
-replace github.com/aws/aws-sdk-go-v2/service/kms => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/kms
-
-replace github.com/aws/aws-sdk-go-v2/service/outposts => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/outposts
-
-replace github.com/aws/aws-sdk-go-v2/service/pricing => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/pricing
-
-replace github.com/aws/aws-sdk-go-v2/service/route53 => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/route53
-
-replace github.com/aws/aws-sdk-go-v2/service/s3 => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/s3
-
-replace github.com/aws/aws-sdk-go-v2/service/sqs => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/sqs
-
-replace github.com/aws/aws-sdk-go-v2/service/ssm => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/ssm
-
-replace github.com/aws/aws-sdk-go-v2/service/sso => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/sso
-
-replace github.com/aws/aws-sdk-go-v2/service/ssooidc => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/ssooidc
-
-replace github.com/aws/aws-sdk-go-v2/service/sts => /Users/rhaowang/github/eksctl/aws-sdk-go-v2/service/sts
