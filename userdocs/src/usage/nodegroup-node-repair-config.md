@@ -1,4 +1,4 @@
-# Enhanced Node Repair Configuration for EKS Managed Nodegroups
+# Support Node Repair Configuration for EKS Managed Nodegroups
 
 EKS Managed Nodegroups supports Node Repair, where the health of managed nodes are monitored,
 and unhealthy worker nodes are replaced or rebooted in response. eksctl now provides comprehensive
@@ -45,16 +45,16 @@ $ eksctl create cluster -f basic-node-repair.yaml
 
 ### Threshold Configuration
 
-You can configure when node repair is triggered using either percentage or count-based thresholds:
+You can configure when node repair actions will stop using either percentage or count-based thresholds. **Note: You cannot use both percentage and count thresholds at the same time.**
 
 #### CLI flags for thresholds
 
 ```shell
-# Percentage-based thresholds
+# Percentage-based threshold - repair stops when 20% of nodes are unhealthy
 $ eksctl create cluster --enable-node-repair \
   --node-repair-max-unhealthy-percentage=20
 
-# Count-based thresholds  
+# Count-based threshold - repair stops when 5 nodes are unhealthy
 $ eksctl create cluster --enable-node-repair \
   --node-repair-max-unhealthy-count=5
 ```
@@ -66,24 +66,25 @@ managedNodeGroups:
 - name: threshold-ng
   nodeRepairConfig:
     enabled: true
-    # Trigger repair when 20% of nodes are unhealthy
+    # Stop repair actions when 20% of nodes are unhealthy
     maxUnhealthyNodeThresholdPercentage: 20
-    # Alternative: trigger repair when 3 nodes are unhealthy
+    # Alternative: stop repair actions when 3 nodes are unhealthy
     # maxUnhealthyNodeThresholdCount: 3
+    # Note: Cannot use both percentage and count thresholds simultaneously
 ```
 
 ### Parallel Repair Limits
 
-Control how many nodes can be repaired simultaneously:
+Control the maximum number of nodes that can be repaired concurrently or in parallel. This gives you finer-grained control over the pace of node replacements. **Note: You cannot use both percentage and count limits at the same time.**
 
 #### CLI flags for parallel limits
 
 ```shell
-# Percentage-based parallel limits
+# Percentage-based parallel limits - repair at most 15% of unhealthy nodes in parallel
 $ eksctl create cluster --enable-node-repair \
   --node-repair-max-parallel-percentage=15
 
-# Count-based parallel limits
+# Count-based parallel limits - repair at most 2 unhealthy nodes in parallel
 $ eksctl create cluster --enable-node-repair \
   --node-repair-max-parallel-count=2
 ```
@@ -95,15 +96,16 @@ managedNodeGroups:
 - name: parallel-ng
   nodeRepairConfig:
     enabled: true
-    # Repair at most 15% of nodes in parallel
+    # Repair at most 15% of unhealthy nodes in parallel
     maxParallelNodesRepairedPercentage: 15
-    # Alternative: repair at most 2 nodes in parallel
+    # Alternative: repair at most 2 unhealthy nodes in parallel
     # maxParallelNodesRepairedCount: 2
+    # Note: Cannot use both percentage and count limits simultaneously
 ```
 
 ### Custom Repair Overrides
 
-Define specialized repair behavior for specific failure scenarios:
+Specify granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. **If you use this, you must specify all the values for each override.**
 
 ```yaml
 managedNodeGroups:
@@ -114,12 +116,12 @@ managedNodeGroups:
     maxUnhealthyNodeThresholdPercentage: 25
     maxParallelNodesRepairedCount: 1
     nodeRepairConfigOverrides:
-      # Handle GPU-related failures
+      # Handle GPU-related failures with immediate termination
       - nodeMonitoringCondition: "AcceleratedInstanceNotReady"
         nodeUnhealthyReason: "NvidiaXID13Error"
         minRepairWaitTimeMins: 10
         repairAction: "Terminate"
-      # Handle network issues
+      # Handle network issues with restart after waiting
       - nodeMonitoringCondition: "NetworkNotReady"
         nodeUnhealthyReason: "InterfaceNotUp"
         minRepairWaitTimeMins: 20
@@ -219,69 +221,26 @@ managedNodeGroups:
 
 ### nodeRepairConfig
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `enabled` | boolean | Enable/disable node repair | `true` |
-| `maxUnhealthyNodeThresholdPercentage` | integer | Percentage threshold for unhealthy nodes | `20` |
-| `maxUnhealthyNodeThresholdCount` | integer | Count threshold for unhealthy nodes | `5` |
-| `maxParallelNodesRepairedPercentage` | integer | Percentage limit for parallel repairs | `15` |
-| `maxParallelNodesRepairedCount` | integer | Count limit for parallel repairs | `2` |
-| `nodeRepairConfigOverrides` | array | Custom repair behavior overrides | See examples above |
+| Field | Type | Description | Constraints | Example |
+|-------|------|-------------|-------------|---------|
+| `enabled` | boolean | Enable/disable node repair | - | `true` |
+| `maxUnhealthyNodeThresholdPercentage` | integer | Percentage threshold of unhealthy nodes, above which node auto repair actions will stop | Cannot be used with `maxUnhealthyNodeThresholdCount` | `20` |
+| `maxUnhealthyNodeThresholdCount` | integer | Count threshold of unhealthy nodes, above which node auto repair actions will stop | Cannot be used with `maxUnhealthyNodeThresholdPercentage` | `5` |
+| `maxParallelNodesRepairedPercentage` | integer | Maximum percentage of unhealthy nodes that can be repaired concurrently or in parallel | Cannot be used with `maxParallelNodesRepairedCount` | `15` |
+| `maxParallelNodesRepairedCount` | integer | Maximum count of unhealthy nodes that can be repaired concurrently or in parallel | Cannot be used with `maxParallelNodesRepairedPercentage` | `2` |
+| `nodeRepairConfigOverrides` | array | Granular overrides for specific repair actions controlling repair action and delay time | All values must be specified for each override | See examples above |
 
 ### nodeRepairConfigOverrides
 
 | Field | Type | Description | Valid Values |
 |-------|------|-------------|--------------|
-| `nodeMonitoringCondition` | string | Monitoring condition | `"AcceleratedInstanceNotReady"`, `"NetworkNotReady"` |
-| `nodeUnhealthyReason` | string | Reason for node being unhealthy | `"NvidiaXID13Error"`, `"InterfaceNotUp"` |
-| `minRepairWaitTimeMins` | integer | Minimum wait time before repair (minutes) | Any positive integer |
-| `repairAction` | string | Action to take for repair | `"Terminate"`, `"Restart"`, `"NoAction"` |
-
-## Best Practices
-
-### Choosing Thresholds
-
-- **Small nodegroups (< 10 nodes)**: Use count-based thresholds for precise control
-- **Large nodegroups (≥ 10 nodes)**: Use percentage-based thresholds for scalability
-- **Critical workloads**: Use conservative thresholds (10-15%)
-- **Development environments**: Use higher thresholds (20-30%)
-
-### Parallel Repair Limits
-
-- **High availability requirements**: Limit to 1-2 nodes or 10-15%
-- **Batch workloads**: Allow higher parallel repairs (20-25%)
-- **GPU workloads**: Limit to 1 node at a time due to cost and setup time
-
-### Custom Overrides
-
-- **GPU instances**: Use immediate termination for hardware failures
-- **Network issues**: Try restart first, then terminate
-- **Critical workloads**: Increase wait times to avoid unnecessary disruptions
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Configuration validation errors**: Ensure parameter values are within valid ranges
-2. **Conflicting thresholds**: Don't specify both percentage and count for the same parameter
-3. **Invalid override values**: Check that monitoring conditions, reasons, and actions are valid
-
-### Monitoring Node Repair
-
-Enable CloudWatch logging to monitor node repair activities:
-
-```yaml
-cloudWatch:
-  clusterLogging:
-    enableTypes: ["api", "audit", "authenticator", "controllerManager", "scheduler"]
-```
+| `nodeMonitoringCondition` | string | Unhealthy condition reported by the node monitoring agent that this override applies to | `"AcceleratedInstanceNotReady"`, `"NetworkNotReady"` |
+| `nodeUnhealthyReason` | string | Reason reported by the node monitoring agent that this override applies to | `"NvidiaXID13Error"`, `"InterfaceNotUp"` |
+| `minRepairWaitTimeMins` | integer | Minimum time in minutes to wait before attempting to repair a node with the specified condition and reason | Any positive integer |
+| `repairAction` | string | Repair action to take for nodes when all of the specified conditions are met | `"Terminate"`, `"Restart"`, `"NoAction"` |
 
 ## Further Information
 
 - [EKS Managed Nodegroup Node Health][eks-user-guide]
-- [EKS Node Repair Configuration][eks-node-repair]
-- [eksctl Managed Nodegroups][eksctl-managed-nodegroups]
 
 [eks-user-guide]: https://docs.aws.amazon.com/eks/latest/userguide/node-health.html
-[eks-node-repair]: https://docs.aws.amazon.com/eks/latest/userguide/node-repair.html
-[eksctl-managed-nodegroups]: https://eksctl.io/usage/managing-nodegroups/

@@ -59,10 +59,10 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 	fs.BoolVar(&mngOptions.NodeRepairEnabled, "enable-node-repair", false, "Enable automatic node repair (managed nodegroups only)")
 	
 	// Node repair configuration flags
-	mngOptions.NodeRepairMaxUnhealthyPercentage = fs.Int("node-repair-max-unhealthy-percentage", 0, "Maximum percentage of unhealthy nodes before repair (managed nodegroups only)")
-	mngOptions.NodeRepairMaxUnhealthyCount = fs.Int("node-repair-max-unhealthy-count", 0, "Maximum count of unhealthy nodes before repair (managed nodegroups only)")
-	mngOptions.NodeRepairMaxParallelPercentage = fs.Int("node-repair-max-parallel-percentage", 0, "Maximum percentage of nodes to repair in parallel (managed nodegroups only)")
-	mngOptions.NodeRepairMaxParallelCount = fs.Int("node-repair-max-parallel-count", 0, "Maximum count of nodes to repair in parallel (managed nodegroups only)")
+	mngOptions.NodeRepairMaxUnhealthyPercentage = fs.Int("node-repair-max-unhealthy-percentage", 0, "Percentage threshold of unhealthy nodes, above which node auto repair actions will stop (managed nodegroups only)")
+	mngOptions.NodeRepairMaxUnhealthyCount = fs.Int("node-repair-max-unhealthy-count", 0, "Count threshold of unhealthy nodes, above which node auto repair actions will stop (managed nodegroups only)")
+	mngOptions.NodeRepairMaxParallelPercentage = fs.Int("node-repair-max-parallel-percentage", 0, "Maximum percentage of unhealthy nodes that can be repaired concurrently or in parallel (managed nodegroups only)")
+	mngOptions.NodeRepairMaxParallelCount = fs.Int("node-repair-max-parallel-count", 0, "Maximum count of unhealthy nodes that can be repaired concurrently or in parallel (managed nodegroups only)")
 	
 	fs.StringSliceVar(&mngOptions.InstanceTypes, "instance-types", nil, "Comma-separated list of instance types (e.g., --instance-types=c3.large,c4.large,c5.large")
 }

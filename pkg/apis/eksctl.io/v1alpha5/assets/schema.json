@@ -2304,31 +2304,31 @@
         },
         "maxParallelNodesRepairedCount": {
           "type": "integer",
-          "description": "specifies the maximum count of nodes that can be repaired in parallel",
-          "x-intellij-html-description": "specifies the maximum count of nodes that can be repaired in parallel"
+          "description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a count of unhealthy nodes. When using this, you cannot also set maxParallelNodesRepairedPercentage at the same time",
+          "x-intellij-html-description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a count of unhealthy nodes. When using this, you cannot also set maxParallelNodesRepairedPercentage at the same time"
         },
         "maxParallelNodesRepairedPercentage": {
           "type": "integer",
-          "description": "specifies the maximum percentage of nodes that can be repaired in parallel",
-          "x-intellij-html-description": "specifies the maximum percentage of nodes that can be repaired in parallel"
+          "description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a percentage of unhealthy nodes. When using this, you cannot also set maxParallelNodesRepairedCount at the same time",
+          "x-intellij-html-description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a percentage of unhealthy nodes. When using this, you cannot also set maxParallelNodesRepairedCount at the same time"
         },
         "maxUnhealthyNodeThresholdCount": {
           "type": "integer",
-          "description": "specifies the maximum count of unhealthy nodes",
-          "x-intellij-html-description": "specifies the maximum count of unhealthy nodes"
+          "description": "specifies a count threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set maxUnhealthyNodeThresholdPercentage at the same time",
+          "x-intellij-html-description": "specifies a count threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set maxUnhealthyNodeThresholdPercentage at the same time"
         },
         "maxUnhealthyNodeThresholdPercentage": {
           "type": "integer",
-          "description": "specifies the maximum percentage of unhealthy nodes",
-          "x-intellij-html-description": "specifies the maximum percentage of unhealthy nodes"
+          "description": "specifies a percentage threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set maxUnhealthyNodeThresholdCount at the same time",
+          "x-intellij-html-description": "specifies a percentage threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set maxUnhealthyNodeThresholdCount at the same time"
         },
         "nodeRepairConfigOverrides": {
           "items": {
             "$ref": "#/definitions/NodeRepairConfigOverride"
           },
           "type": "array",
-          "description": "specifies custom repair behavior for specific conditions",
-          "x-intellij-html-description": "specifies custom repair behavior for specific conditions"
+          "description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values",
+          "x-intellij-html-description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values"
         }
       },
       "preferredOrder": [
@@ -2467,23 +2467,23 @@
       "properties": {
         "minRepairWaitTimeMins": {
           "type": "integer",
-          "description": "specifies the minimum wait time before repair in minutes",
-          "x-intellij-html-description": "specifies the minimum wait time before repair in minutes"
+          "description": "specifies the minimum time in minutes to wait before attempting to repair a node with this specific nodeMonitoringCondition and nodeUnhealthyReason",
+          "x-intellij-html-description": "specifies the minimum time in minutes to wait before attempting to repair a node with this specific nodeMonitoringCondition and nodeUnhealthyReason"
         },
         "nodeMonitoringCondition": {
           "type": "string",
-          "description": "specifies the monitoring condition",
-          "x-intellij-html-description": "specifies the monitoring condition"
+          "description": "specifies an unhealthy condition reported by the node monitoring agent that this override would apply to",
+          "x-intellij-html-description": "specifies an unhealthy condition reported by the node monitoring agent that this override would apply to"
         },
         "nodeUnhealthyReason": {
           "type": "string",
-          "description": "specifies the reason for node being unhealthy",
-          "x-intellij-html-description": "specifies the reason for node being unhealthy"
+          "description": "specifies a reason reported by the node monitoring agent that this override would apply to",
+          "x-intellij-html-description": "specifies a reason reported by the node monitoring agent that this override would apply to"
         },
         "repairAction": {
           "type": "string",
-          "description": "specifies the action to take for repair",
-          "x-intellij-html-description": "specifies the action to take for repair"
+          "description": "specifies the repair action to take for nodes when all of the specified conditions are met",
+          "x-intellij-html-description": "specifies the repair action to take for nodes when all of the specified conditions are met"
         }
       },
       "preferredOrder": [
@@ -2493,8 +2493,8 @@
         "repairAction"
       ],
       "additionalProperties": false,
-      "description": "defines custom repair behavior for specific node conditions",
-      "x-intellij-html-description": "defines custom repair behavior for specific node conditions"
+      "description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values",
+      "x-intellij-html-description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values"
     },
     "OIDCIdentityProvider": {
       "required": [

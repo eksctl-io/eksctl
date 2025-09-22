@@ -1577,39 +1577,46 @@ type (
 		// +optional
 		Enabled *bool `json:"enabled,omitempty"`
 		
-		// MaxUnhealthyNodeThresholdPercentage specifies the maximum percentage of unhealthy nodes
+		// MaxUnhealthyNodeThresholdPercentage specifies a percentage threshold of unhealthy nodes, above which node auto
+		// repair actions will stop. When using this, you cannot also set MaxUnhealthyNodeThresholdCount at the same time.
 		// +optional
 		MaxUnhealthyNodeThresholdPercentage *int `json:"maxUnhealthyNodeThresholdPercentage,omitempty"`
 		
-		// MaxUnhealthyNodeThresholdCount specifies the maximum count of unhealthy nodes
+		// MaxUnhealthyNodeThresholdCount specifies a count threshold of unhealthy nodes, above which node auto
+		// repair actions will stop. When using this, you cannot also set MaxUnhealthyNodeThresholdPercentage at the same time.
 		// +optional
 		MaxUnhealthyNodeThresholdCount *int `json:"maxUnhealthyNodeThresholdCount,omitempty"`
 		
-		// MaxParallelNodesRepairedPercentage specifies the maximum percentage of nodes that can be repaired in parallel
+		// MaxParallelNodesRepairedPercentage specifies the maximum number of nodes that can be repaired concurrently or in parallel,
+		// expressed as a percentage of unhealthy nodes. When using this, you cannot also set MaxParallelNodesRepairedCount at the same time.
 		// +optional
 		MaxParallelNodesRepairedPercentage *int `json:"maxParallelNodesRepairedPercentage,omitempty"`
 		
-		// MaxParallelNodesRepairedCount specifies the maximum count of nodes that can be repaired in parallel
+		// MaxParallelNodesRepairedCount specifies the maximum number of nodes that can be repaired concurrently or in parallel,
+		// expressed as a count of unhealthy nodes. When using this, you cannot also set MaxParallelNodesRepairedPercentage at the same time.
 		// +optional
 		MaxParallelNodesRepairedCount *int `json:"maxParallelNodesRepairedCount,omitempty"`
 		
-		// NodeRepairConfigOverrides specifies custom repair behavior for specific conditions
+		// NodeRepairConfigOverrides specifies granular overrides for specific repair actions. These overrides control the
+		// repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values.
 		// +optional
 		NodeRepairConfigOverrides []NodeRepairConfigOverride `json:"nodeRepairConfigOverrides,omitempty"`
 	}
 
-	// NodeRepairConfigOverride defines custom repair behavior for specific node conditions
+	// NodeRepairConfigOverride specifies granular overrides for specific repair actions. These overrides control the
+	// repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values.
 	NodeRepairConfigOverride struct {
-		// NodeMonitoringCondition specifies the monitoring condition
+		// NodeMonitoringCondition specifies an unhealthy condition reported by the node monitoring agent that this override would apply to
 		NodeMonitoringCondition string `json:"nodeMonitoringCondition"`
 		
-		// NodeUnhealthyReason specifies the reason for node being unhealthy
+		// NodeUnhealthyReason specifies a reason reported by the node monitoring agent that this override would apply to
 		NodeUnhealthyReason string `json:"nodeUnhealthyReason"`
 		
-		// MinRepairWaitTimeMins specifies the minimum wait time before repair in minutes
+		// MinRepairWaitTimeMins specifies the minimum time in minutes to wait before attempting to repair a node
+		// with this specific NodeMonitoringCondition and NodeUnhealthyReason
 		MinRepairWaitTimeMins int `json:"minRepairWaitTimeMins"`
 		
-		// RepairAction specifies the action to take for repair
+		// RepairAction specifies the repair action to take for nodes when all of the specified conditions are met
 		RepairAction string `json:"repairAction"`
 	}
 )
