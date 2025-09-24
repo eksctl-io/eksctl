@@ -1,5 +1,15 @@
 # EKS Auto Mode
 
+> **⚠️ UPCOMING BEHAVIOR CHANGE**
+> 
+> Auto Mode will be enabled by default in an upcoming release of eksctl. 
+> This means managed node groups will no longer be created by default when creating clusters.
+> 
+> **If you want to maintain the current behavior** (creating managed node groups and networking add-ons - VPC-CNI, CoreDNS, kube-proxy by default), 
+> you must explicitly set `autoModeConfig.enabled: false` in your cluster configuration.
+> 
+> This change affects clusters created without an explicit `autoModeConfig` section.
+
 ## Introduction
 
 eksctl supports [EKS Auto Mode][eks-user-guide], a feature that extends AWS management of Kubernetes clusters beyond the cluster itself,
