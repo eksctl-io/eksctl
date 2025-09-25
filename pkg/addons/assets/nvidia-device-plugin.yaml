@@ -38,7 +38,7 @@ spec:
       # See https://kubernetes.io/docs/tasks/administer-cluster/guaranteed-scheduling-critical-addon-pods/
       priorityClassName: "system-node-critical"
       containers:
-      - image: nvcr.io/nvidia/k8s-device-plugin:v0.17.2
+      - image: nvcr.io/nvidia/k8s-device-plugin:v0.17.4
         name: nvidia-device-plugin-ctr
         env:
           - name: FAIL_ON_INIT_ERROR
@@ -48,9 +48,10 @@ spec:
           capabilities:
             drop: ["ALL"]
         volumeMounts:
-        - name: device-plugin
+        - name: kubelet-device-plugins-dir
           mountPath: /var/lib/kubelet/device-plugins
       volumes:
-      - name: device-plugin
+      - name: kubelet-device-plugins-dir
         hostPath:
           path: /var/lib/kubelet/device-plugins
+          type: Directory
