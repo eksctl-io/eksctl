@@ -66,7 +66,7 @@ require (
 	github.com/tidwall/sjson v1.2.5
 	github.com/tj/assert v0.0.3
 	github.com/vburenin/ifacemaker v1.3.0
-	github.com/vektra/mockery/v2 v2.53.4
+	github.com/vektra/mockery/v2 v2.53.5
 	github.com/weaveworks/schemer v0.0.0-20230525114451-47139fe25848
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xgfone/go-netaddr v0.6.0
