@@ -251,12 +251,6 @@ func (fake *FakeStackRemover) ListAccessEntryStackNamesReturnsOnCall(i int, resu
 func (fake *FakeStackRemover) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.deleteStackBySpecSyncMutex.RLock()
-	defer fake.deleteStackBySpecSyncMutex.RUnlock()
-	fake.describeStackMutex.RLock()
-	defer fake.describeStackMutex.RUnlock()
-	fake.listAccessEntryStackNamesMutex.RLock()
-	defer fake.listAccessEntryStackNamesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

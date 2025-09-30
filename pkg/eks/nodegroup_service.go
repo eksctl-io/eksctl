@@ -205,7 +205,7 @@ func (n *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 		filters.GpusRange = makeRange(*ins.GPUs)
 	}
 	if ins.NeuronDevices != nil {
-		filters.InferenceAcceleratorsRange = &selector.Int32RangeFilter{
+		filters.InferenceAcceleratorsRange = &selector.IntRangeFilter{
 			LowerBound: *ins.NeuronDevices,
 			UpperBound: *ins.NeuronDevices,
 		}

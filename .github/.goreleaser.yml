@@ -1,3 +1,4 @@
+version: 2
 release:
   name_template: "{{ .ProjectName }} {{ .Env.RELEASE_DESCRIPTION }}"
   prerelease: auto # this should detect a release candidate and mark it as pre-release in GitHub
@@ -22,20 +23,18 @@ builds:
     goarch:
       - amd64
       - arm64
-      - arm
-    goarm:
-      - 6
-      - 7
 
 archives:
   - id: default
-    builds:
+    ids:
       - default
     name_template: "eksctl_{{ title .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-    format: tar.gz
+    formats:
+      - tar.gz
     format_overrides:
       - goos: windows
-        format: zip
+        formats:
+          - zip
     files:
       - none*
 

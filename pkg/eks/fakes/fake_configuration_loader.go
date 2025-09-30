@@ -97,8 +97,6 @@ func (fake *FakeAWSConfigurationLoader) LoadDefaultConfigReturnsOnCall(i int, re
 func (fake *FakeAWSConfigurationLoader) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.loadDefaultConfigMutex.RLock()
-	defer fake.loadDefaultConfigMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

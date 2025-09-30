@@ -1,5 +1,6 @@
 package generate
 
+//go:generate ../../../build/scripts/generate-aws-interfaces.sh ec2 EC2
 //go:generate ../../../build/scripts/generate-aws-interfaces.sh autoscaling ASG
 //go:generate ../../../build/scripts/generate-aws-interfaces.sh cloudwatchlogs CloudWatchLogs
 //go:generate ../../../build/scripts/generate-aws-interfaces.sh cloudformation CloudFormation

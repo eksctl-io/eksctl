@@ -37,3 +37,15 @@ func FnvHash(s string) []byte {
 	fnvHash.Write([]byte(s))
 	return fnvHash.Sum(nil)
 }
+
+func StringPtr(s string) *string {
+	return &s
+}
+
+func BoolPtr(b bool) *bool {
+	return &b
+}
+
+func IntPtr(i int) *int {
+	return &i
+}

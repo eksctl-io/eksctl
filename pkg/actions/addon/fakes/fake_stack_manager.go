@@ -486,18 +486,6 @@ func (fake *FakeStackManager) UpdateStackReturnsOnCall(i int, result1 error) {
 func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.createStackMutex.RLock()
-	defer fake.createStackMutex.RUnlock()
-	fake.deleteStackBySpecMutex.RLock()
-	defer fake.deleteStackBySpecMutex.RUnlock()
-	fake.deleteStackBySpecSyncMutex.RLock()
-	defer fake.deleteStackBySpecSyncMutex.RUnlock()
-	fake.describeStackMutex.RLock()
-	defer fake.describeStackMutex.RUnlock()
-	fake.getIAMAddonsStacksMutex.RLock()
-	defer fake.getIAMAddonsStacksMutex.RUnlock()
-	fake.updateStackMutex.RLock()
-	defer fake.updateStackMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

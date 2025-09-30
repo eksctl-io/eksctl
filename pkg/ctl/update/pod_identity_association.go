@@ -3,7 +3,6 @@ package update
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/weaveworks/eksctl/pkg/actions/podidentityassociation"
 
 	"github.com/spf13/cobra"
@@ -11,6 +10,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 func updatePodIdentityAssociation(cmd *cmdutils.Cmd) {
@@ -46,9 +46,9 @@ func updatePodIdentityAssociation(cmd *cmdutils.Cmd) {
 				options.TargetRoleARN = &targetRoleArn
 			}
 			if fs.Changed("no-disable-session-tags") {
-				options.DisableSessionTags = aws.Bool(false)
+				options.DisableSessionTags = utils.BoolPtr(false)
 			} else if fs.Changed("disable-session-tags") {
-				options.DisableSessionTags = aws.Bool(true)
+				options.DisableSessionTags = utils.BoolPtr(true)
 			}
 		})
 	})
