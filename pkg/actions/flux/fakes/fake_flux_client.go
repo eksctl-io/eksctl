@@ -141,10 +141,6 @@ func (fake *FakeInstallerClient) PreFlightReturnsOnCall(i int, result1 error) {
 func (fake *FakeInstallerClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.bootstrapMutex.RLock()
-	defer fake.bootstrapMutex.RUnlock()
-	fake.preFlightMutex.RLock()
-	defer fake.preFlightMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

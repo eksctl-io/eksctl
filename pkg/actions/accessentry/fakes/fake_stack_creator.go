@@ -141,10 +141,6 @@ func (fake *FakeStackCreator) TroubleshootStackFailureCauseArgsForCall(i int) (c
 func (fake *FakeStackCreator) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.createStackMutex.RLock()
-	defer fake.createStackMutex.RUnlock()
-	fake.troubleshootStackFailureCauseMutex.RLock()
-	defer fake.troubleshootStackFailureCauseMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -5,1511 +5,2269 @@ package awsapi
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	. "github.com/aws/aws-sdk-go-v2/service/ec2"
 )
 
 // EC2 provides an interface to the AWS EC2 service.
 type EC2 interface {
-	// Accepts the Convertible Reserved Instance exchange quote described in the
-	// GetReservedInstancesExchangeQuote call.
-	AcceptReservedInstancesExchangeQuote(ctx context.Context, params *AcceptReservedInstancesExchangeQuoteInput, optFns ...func(*Options)) (*AcceptReservedInstancesExchangeQuoteOutput, error)
+	// Options returns a copy of the client configuration.
+	//
+	// Callers SHOULD NOT perform mutations on any inner structures within client
+	// config. Config overrides should instead be made on a per-operation basis through
+	// functional options.
+	Options() ec2.Options
+	// Accepts an Elastic IP address transfer. For more information, see [Accept a transferred Elastic IP address] in the
+	// Amazon VPC User Guide.
+	//
+	// [Accept a transferred Elastic IP address]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#using-instance-addressing-eips-transfer-accept
+	AcceptAddressTransfer(ctx context.Context, params *ec2.AcceptAddressTransferInput, optFns ...func(*Options)) (*ec2.AcceptAddressTransferOutput, error)
+	// Accepts a request to assign billing of the available capacity of a shared
+	// Capacity Reservation to your account. For more information, see [Billing assignment for shared Amazon EC2 Capacity Reservations].
+	//
+	// [Billing assignment for shared Amazon EC2 Capacity Reservations]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/assign-billing.html
+	AcceptCapacityReservationBillingOwnership(ctx context.Context, params *ec2.AcceptCapacityReservationBillingOwnershipInput, optFns ...func(*Options)) (*ec2.AcceptCapacityReservationBillingOwnershipOutput, error)
+	// Accepts the Convertible Reserved Instance exchange quote described in the GetReservedInstancesExchangeQuote call.
+	AcceptReservedInstancesExchangeQuote(ctx context.Context, params *ec2.AcceptReservedInstancesExchangeQuoteInput, optFns ...func(*Options)) (*ec2.AcceptReservedInstancesExchangeQuoteOutput, error)
 	// Accepts a request to associate subnets with a transit gateway multicast domain.
-	AcceptTransitGatewayMulticastDomainAssociations(ctx context.Context, params *AcceptTransitGatewayMulticastDomainAssociationsInput, optFns ...func(*Options)) (*AcceptTransitGatewayMulticastDomainAssociationsOutput, error)
+	AcceptTransitGatewayMulticastDomainAssociations(ctx context.Context, params *ec2.AcceptTransitGatewayMulticastDomainAssociationsInput, optFns ...func(*Options)) (*ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput, error)
 	// Accepts a transit gateway peering attachment request. The peering attachment
 	// must be in the pendingAcceptance state.
-	AcceptTransitGatewayPeeringAttachment(ctx context.Context, params *AcceptTransitGatewayPeeringAttachmentInput, optFns ...func(*Options)) (*AcceptTransitGatewayPeeringAttachmentOutput, error)
-	// Accepts a request to attach a VPC to a transit gateway. The VPC attachment must
-	// be in the pendingAcceptance state. Use DescribeTransitGatewayVpcAttachments to
-	// view your pending VPC attachment requests. Use RejectTransitGatewayVpcAttachment
-	// to reject a VPC attachment request.
-	AcceptTransitGatewayVpcAttachment(ctx context.Context, params *AcceptTransitGatewayVpcAttachmentInput, optFns ...func(*Options)) (*AcceptTransitGatewayVpcAttachmentOutput, error)
-	// Accepts one or more interface VPC endpoint connection requests to your VPC
-	// endpoint service.
-	AcceptVpcEndpointConnections(ctx context.Context, params *AcceptVpcEndpointConnectionsInput, optFns ...func(*Options)) (*AcceptVpcEndpointConnectionsOutput, error)
+	AcceptTransitGatewayPeeringAttachment(ctx context.Context, params *ec2.AcceptTransitGatewayPeeringAttachmentInput, optFns ...func(*Options)) (*ec2.AcceptTransitGatewayPeeringAttachmentOutput, error)
+	// Accepts a request to attach a VPC to a transit gateway.
+	//
+	// The VPC attachment must be in the pendingAcceptance state. Use DescribeTransitGatewayVpcAttachments to view your
+	// pending VPC attachment requests. Use RejectTransitGatewayVpcAttachmentto reject a VPC attachment request.
+	AcceptTransitGatewayVpcAttachment(ctx context.Context, params *ec2.AcceptTransitGatewayVpcAttachmentInput, optFns ...func(*Options)) (*ec2.AcceptTransitGatewayVpcAttachmentOutput, error)
+	// Accepts connection requests to your VPC endpoint service.
+	AcceptVpcEndpointConnections(ctx context.Context, params *ec2.AcceptVpcEndpointConnectionsInput, optFns ...func(*Options)) (*ec2.AcceptVpcEndpointConnectionsOutput, error)
 	// Accept a VPC peering connection request. To accept a request, the VPC peering
-	// connection must be in the pending-acceptance state, and you must be the owner of
-	// the peer VPC. Use DescribeVpcPeeringConnections to view your outstanding VPC
-	// peering connection requests. For an inter-Region VPC peering connection request,
-	// you must accept the VPC peering connection in the Region of the accepter VPC.
-	AcceptVpcPeeringConnection(ctx context.Context, params *AcceptVpcPeeringConnectionInput, optFns ...func(*Options)) (*AcceptVpcPeeringConnectionOutput, error)
+	// connection must be in the pending-acceptance state, and you must be the owner
+	// of the peer VPC. Use DescribeVpcPeeringConnectionsto view your outstanding VPC peering connection requests.
+	//
+	// For an inter-Region VPC peering connection request, you must accept the VPC
+	// peering connection in the Region of the accepter VPC.
+	AcceptVpcPeeringConnection(ctx context.Context, params *ec2.AcceptVpcPeeringConnectionInput, optFns ...func(*Options)) (*ec2.AcceptVpcPeeringConnectionOutput, error)
 	// Advertises an IPv4 or IPv6 address range that is provisioned for use with your
-	// Amazon Web Services resources through bring your own IP addresses (BYOIP). You
-	// can perform this operation at most once every 10 seconds, even if you specify
-	// different address ranges each time. We recommend that you stop advertising the
-	// BYOIP CIDR from other locations when you advertise it from Amazon Web Services.
-	// To minimize down time, you can configure your Amazon Web Services resources to
-	// use an address from a BYOIP CIDR before it is advertised, and then
-	// simultaneously stop advertising it from the current location and start
-	// advertising it through Amazon Web Services. It can take a few minutes before
-	// traffic to the specified addresses starts routing to Amazon Web Services because
-	// of BGP propagation delays. To stop advertising the BYOIP CIDR, use
-	// WithdrawByoipCidr.
-	AdvertiseByoipCidr(ctx context.Context, params *AdvertiseByoipCidrInput, optFns ...func(*Options)) (*AdvertiseByoipCidrOutput, error)
+	// Amazon Web Services resources through bring your own IP addresses (BYOIP).
+	//
+	// You can perform this operation at most once every 10 seconds, even if you
+	// specify different address ranges each time.
+	//
+	// We recommend that you stop advertising the BYOIP CIDR from other locations when
+	// you advertise it from Amazon Web Services. To minimize down time, you can
+	// configure your Amazon Web Services resources to use an address from a BYOIP CIDR
+	// before it is advertised, and then simultaneously stop advertising it from the
+	// current location and start advertising it through Amazon Web Services.
+	//
+	// It can take a few minutes before traffic to the specified addresses starts
+	// routing to Amazon Web Services because of BGP propagation delays.
+	AdvertiseByoipCidr(ctx context.Context, params *ec2.AdvertiseByoipCidrInput, optFns ...func(*Options)) (*ec2.AdvertiseByoipCidrOutput, error)
 	// Allocates an Elastic IP address to your Amazon Web Services account. After you
 	// allocate the Elastic IP address you can associate it with an instance or network
 	// interface. After you release an Elastic IP address, it is released to the IP
 	// address pool and can be allocated to a different Amazon Web Services account.
+	//
 	// You can allocate an Elastic IP address from an address pool owned by Amazon Web
 	// Services or from an address pool created from a public IPv4 address range that
 	// you have brought to Amazon Web Services for use with your Amazon Web Services
-	// resources using bring your own IP addresses (BYOIP). For more information, see
-	// Bring Your Own IP Addresses (BYOIP)
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html) in the
-	// Amazon Elastic Compute Cloud User Guide. [EC2-VPC] If you release an Elastic IP
-	// address, you might be able to recover it. You cannot recover an Elastic IP
-	// address that you released after it is allocated to another Amazon Web Services
-	// account. You cannot recover an Elastic IP address for EC2-Classic. To attempt to
-	// recover an Elastic IP address that you released, specify it in this operation.
-	// An Elastic IP address is for use either in the EC2-Classic platform or in a VPC.
-	// By default, you can allocate 5 Elastic IP addresses for EC2-Classic per Region
-	// and 5 Elastic IP addresses for EC2-VPC per Region. For more information, see
-	// Elastic IP Addresses
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html)
-	// in the Amazon Elastic Compute Cloud User Guide. You can allocate a carrier IP
-	// address which is a public IP address from a telecommunication carrier, to a
-	// network interface which resides in a subnet in a Wavelength Zone (for example an
-	// EC2 instance).
-	AllocateAddress(ctx context.Context, params *AllocateAddressInput, optFns ...func(*Options)) (*AllocateAddressOutput, error)
+	// resources using bring your own IP addresses (BYOIP). For more information, see [Bring Your Own IP Addresses (BYOIP)]
+	// in the Amazon EC2 User Guide.
+	//
+	// If you release an Elastic IP address, you might be able to recover it. You
+	// cannot recover an Elastic IP address that you released after it is allocated to
+	// another Amazon Web Services account. To attempt to recover an Elastic IP address
+	// that you released, specify it in this operation.
+	//
+	// For more information, see [Elastic IP Addresses] in the Amazon EC2 User Guide.
+	//
+	// You can allocate a carrier IP address which is a public IP address from a
+	// telecommunication carrier, to a network interface which resides in a subnet in a
+	// Wavelength Zone (for example an EC2 instance).
+	//
+	// [Bring Your Own IP Addresses (BYOIP)]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html
+	// [Elastic IP Addresses]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html
+	AllocateAddress(ctx context.Context, params *ec2.AllocateAddressInput, optFns ...func(*Options)) (*ec2.AllocateAddressOutput, error)
 	// Allocates a Dedicated Host to your account. At a minimum, specify the supported
 	// instance type or instance family, the Availability Zone in which to allocate the
 	// host, and the number of hosts to allocate.
-	AllocateHosts(ctx context.Context, params *AllocateHostsInput, optFns ...func(*Options)) (*AllocateHostsOutput, error)
-	// Allocate a CIDR from an IPAM pool. In IPAM, an allocation is a CIDR assignment
-	// from an IPAM pool to another resource or IPAM pool. For more information, see
-	// Allocate CIDRs in the Amazon VPC IPAM User Guide.
-	AllocateIpamPoolCidr(ctx context.Context, params *AllocateIpamPoolCidrInput, optFns ...func(*Options)) (*AllocateIpamPoolCidrOutput, error)
+	AllocateHosts(ctx context.Context, params *ec2.AllocateHostsInput, optFns ...func(*Options)) (*ec2.AllocateHostsOutput, error)
+	// Allocate a CIDR from an IPAM pool. The Region you use should be the IPAM pool
+	// locale. The locale is the Amazon Web Services Region where this IPAM pool is
+	// available for allocations.
+	//
+	// In IPAM, an allocation is a CIDR assignment from an IPAM pool to another IPAM
+	// pool or to a resource. For more information, see [Allocate CIDRs]in the Amazon VPC IPAM User
+	// Guide.
+	//
+	// This action creates an allocation with strong consistency. The returned CIDR
+	// will not overlap with any other allocations from the same pool.
+	//
+	// [Allocate CIDRs]: https://docs.aws.amazon.com/vpc/latest/ipam/allocate-cidrs-ipam.html
+	AllocateIpamPoolCidr(ctx context.Context, params *ec2.AllocateIpamPoolCidrInput, optFns ...func(*Options)) (*ec2.AllocateIpamPoolCidrOutput, error)
 	// Applies a security group to the association between the target network and the
 	// Client VPN endpoint. This action replaces the existing security groups with the
 	// specified security groups.
-	ApplySecurityGroupsToClientVpnTargetNetwork(ctx context.Context, params *ApplySecurityGroupsToClientVpnTargetNetworkInput, optFns ...func(*Options)) (*ApplySecurityGroupsToClientVpnTargetNetworkOutput, error)
-	// Assigns one or more IPv6 addresses to the specified network interface. You can
-	// specify one or more specific IPv6 addresses, or you can specify the number of
-	// IPv6 addresses to be automatically assigned from within the subnet's IPv6 CIDR
-	// block range. You can assign as many IPv6 addresses to a network interface as you
-	// can assign private IPv4 addresses, and the limit varies per instance type. For
-	// information, see IP Addresses Per Network Interface Per Instance Type
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html#AvailableIpPerENI)
-	// in the Amazon Elastic Compute Cloud User Guide. You must specify either the IPv6
-	// addresses or the IPv6 address count in the request. You can optionally use
-	// Prefix Delegation on the network interface. You must specify either the IPV6
-	// Prefix Delegation prefixes, or the IPv6 Prefix Delegation count. For
-	// information, see  Assigning prefixes to Amazon EC2 network interfaces
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-prefix-eni.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	AssignIpv6Addresses(ctx context.Context, params *AssignIpv6AddressesInput, optFns ...func(*Options)) (*AssignIpv6AddressesOutput, error)
-	// Assigns one or more secondary private IP addresses to the specified network
-	// interface. You can specify one or more specific secondary IP addresses, or you
-	// can specify the number of secondary IP addresses to be automatically assigned
-	// within the subnet's CIDR block range. The number of secondary IP addresses that
-	// you can assign to an instance varies by instance type. For information about
-	// instance types, see Instance Types
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html) in the
-	// Amazon Elastic Compute Cloud User Guide. For more information about Elastic IP
-	// addresses, see Elastic IP Addresses
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html)
-	// in the Amazon Elastic Compute Cloud User Guide. When you move a secondary
-	// private IP address to another network interface, any Elastic IP address that is
-	// associated with the IP address is also moved. Remapping an IP address is an
-	// asynchronous operation. When you move an IP address from one network interface
-	// to another, check network/interfaces/macs/mac/local-ipv4s in the instance
-	// metadata to confirm that the remapping is complete. You must specify either the
-	// IP addresses or the IP address count in the request. You can optionally use
-	// Prefix Delegation on the network interface. You must specify either the IPv4
-	// Prefix Delegation prefixes, or the IPv4 Prefix Delegation count. For
-	// information, see  Assigning prefixes to Amazon EC2 network interfaces
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-prefix-eni.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	AssignPrivateIpAddresses(ctx context.Context, params *AssignPrivateIpAddressesInput, optFns ...func(*Options)) (*AssignPrivateIpAddressesOutput, error)
+	ApplySecurityGroupsToClientVpnTargetNetwork(ctx context.Context, params *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput, optFns ...func(*Options)) (*ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput, error)
+	// Assigns the specified IPv6 addresses to the specified network interface. You
+	// can specify specific IPv6 addresses, or you can specify the number of IPv6
+	// addresses to be automatically assigned from the subnet's IPv6 CIDR block range.
+	// You can assign as many IPv6 addresses to a network interface as you can assign
+	// private IPv4 addresses, and the limit varies by instance type.
+	//
+	// You must specify either the IPv6 addresses or the IPv6 address count in the
+	// request.
+	//
+	// You can optionally use Prefix Delegation on the network interface. You must
+	// specify either the IPV6 Prefix Delegation prefixes, or the IPv6 Prefix
+	// Delegation count. For information, see [Assigning prefixes to network interfaces]in the Amazon EC2 User Guide.
+	//
+	// [Assigning prefixes to network interfaces]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-prefix-eni.html
+	AssignIpv6Addresses(ctx context.Context, params *ec2.AssignIpv6AddressesInput, optFns ...func(*Options)) (*ec2.AssignIpv6AddressesOutput, error)
+	// Assigns the specified secondary private IP addresses to the specified network
+	// interface.
+	//
+	// You can specify specific secondary IP addresses, or you can specify the number
+	// of secondary IP addresses to be automatically assigned from the subnet's CIDR
+	// block range. The number of secondary IP addresses that you can assign to an
+	// instance varies by instance type. For more information about Elastic IP
+	// addresses, see [Elastic IP Addresses]in the Amazon EC2 User Guide.
+	//
+	// When you move a secondary private IP address to another network interface, any
+	// Elastic IP address that is associated with the IP address is also moved.
+	//
+	// Remapping an IP address is an asynchronous operation. When you move an IP
+	// address from one network interface to another, check
+	// network/interfaces/macs/mac/local-ipv4s in the instance metadata to confirm that
+	// the remapping is complete.
+	//
+	// You must specify either the IP addresses or the IP address count in the request.
+	//
+	// You can optionally use Prefix Delegation on the network interface. You must
+	// specify either the IPv4 Prefix Delegation prefixes, or the IPv4 Prefix
+	// Delegation count. For information, see [Assigning prefixes to network interfaces]in the Amazon EC2 User Guide.
+	//
+	// [Elastic IP Addresses]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html
+	// [Assigning prefixes to network interfaces]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-prefix-eni.html
+	AssignPrivateIpAddresses(ctx context.Context, params *ec2.AssignPrivateIpAddressesInput, optFns ...func(*Options)) (*ec2.AssignPrivateIpAddressesOutput, error)
+	// Assigns private IPv4 addresses to a private NAT gateway. For more information,
+	// see [Work with NAT gateways]in the Amazon VPC User Guide.
+	//
+	// [Work with NAT gateways]: https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-working-with.html
+	AssignPrivateNatGatewayAddress(ctx context.Context, params *ec2.AssignPrivateNatGatewayAddressInput, optFns ...func(*Options)) (*ec2.AssignPrivateNatGatewayAddressOutput, error)
 	// Associates an Elastic IP address, or carrier IP address (for instances that are
 	// in subnets in Wavelength Zones) with an instance or a network interface. Before
-	// you can use an Elastic IP address, you must allocate it to your account. An
-	// Elastic IP address is for use in either the EC2-Classic platform or in a VPC.
-	// For more information, see Elastic IP Addresses
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html)
-	// in the Amazon Elastic Compute Cloud User Guide. [EC2-Classic, VPC in an
-	// EC2-VPC-only account] If the Elastic IP address is already associated with a
-	// different instance, it is disassociated from that instance and associated with
-	// the specified instance. If you associate an Elastic IP address with an instance
-	// that has an existing Elastic IP address, the existing address is disassociated
-	// from the instance, but remains allocated to your account. [VPC in an EC2-Classic
-	// account] If you don't specify a private IP address, the Elastic IP address is
-	// associated with the primary IP address. If the Elastic IP address is already
-	// associated with a different instance or a network interface, you get an error
-	// unless you allow reassociation. You cannot associate an Elastic IP address with
-	// an instance or network interface that has an existing Elastic IP address.
+	// you can use an Elastic IP address, you must allocate it to your account.
+	//
+	// If the Elastic IP address is already associated with a different instance, it
+	// is disassociated from that instance and associated with the specified instance.
+	// If you associate an Elastic IP address with an instance that has an existing
+	// Elastic IP address, the existing address is disassociated from the instance, but
+	// remains allocated to your account.
+	//
 	// [Subnets in Wavelength Zones] You can associate an IP address from the
-	// telecommunication carrier to the instance or network interface. You cannot
-	// associate an Elastic IP address with an interface in a different network border
-	// group. This is an idempotent operation. If you perform the operation more than
-	// once, Amazon EC2 doesn't return an error, and you may be charged for each time
-	// the Elastic IP address is remapped to the same instance. For more information,
-	// see the Elastic IP Addresses section of Amazon EC2 Pricing
-	// (http://aws.amazon.com/ec2/pricing/).
-	AssociateAddress(ctx context.Context, params *AssociateAddressInput, optFns ...func(*Options)) (*AssociateAddressOutput, error)
+	// telecommunication carrier to the instance or network interface.
+	//
+	// You cannot associate an Elastic IP address with an interface in a different
+	// network border group.
+	//
+	// This is an idempotent operation. If you perform the operation more than once,
+	// Amazon EC2 doesn't return an error, and you may be charged for each time the
+	// Elastic IP address is remapped to the same instance. For more information, see
+	// the Elastic IP Addresses section of [Amazon EC2 Pricing].
+	//
+	// [Amazon EC2 Pricing]: http://aws.amazon.com/ec2/pricing/
+	AssociateAddress(ctx context.Context, params *ec2.AssociateAddressInput, optFns ...func(*Options)) (*ec2.AssociateAddressOutput, error)
+	// Initiates a request to assign billing of the unused capacity of a shared
+	// Capacity Reservation to a consumer account that is consolidated under the same
+	// Amazon Web Services organizations payer account. For more information, see [Billing assignment for shared Amazon EC2 Capacity Reservations].
+	//
+	// [Billing assignment for shared Amazon EC2 Capacity Reservations]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/assign-billing.html
+	AssociateCapacityReservationBillingOwner(ctx context.Context, params *ec2.AssociateCapacityReservationBillingOwnerInput, optFns ...func(*Options)) (*ec2.AssociateCapacityReservationBillingOwnerOutput, error)
 	// Associates a target network with a Client VPN endpoint. A target network is a
 	// subnet in a VPC. You can associate multiple subnets from the same VPC with a
 	// Client VPN endpoint. You can associate only one subnet in each Availability
 	// Zone. We recommend that you associate at least two subnets to provide
-	// Availability Zone redundancy. If you specified a VPC when you created the Client
-	// VPN endpoint or if you have previous subnet associations, the specified subnet
-	// must be in the same VPC. To specify a subnet that's in a different VPC, you must
-	// first modify the Client VPN endpoint (ModifyClientVpnEndpoint) and change the
-	// VPC that's associated with it.
-	AssociateClientVpnTargetNetwork(ctx context.Context, params *AssociateClientVpnTargetNetworkInput, optFns ...func(*Options)) (*AssociateClientVpnTargetNetworkOutput, error)
+	// Availability Zone redundancy.
+	//
+	// If you specified a VPC when you created the Client VPN endpoint or if you have
+	// previous subnet associations, the specified subnet must be in the same VPC. To
+	// specify a subnet that's in a different VPC, you must first modify the Client VPN
+	// endpoint (ModifyClientVpnEndpoint ) and change the VPC that's associated with it.
+	AssociateClientVpnTargetNetwork(ctx context.Context, params *ec2.AssociateClientVpnTargetNetworkInput, optFns ...func(*Options)) (*ec2.AssociateClientVpnTargetNetworkOutput, error)
 	// Associates a set of DHCP options (that you've previously created) with the
-	// specified VPC, or associates no DHCP options with the VPC. After you associate
-	// the options with the VPC, any existing instances and all new instances that you
-	// launch in that VPC use the options. You don't need to restart or relaunch the
-	// instances. They automatically pick up the changes within a few hours, depending
-	// on how frequently the instance renews its DHCP lease. You can explicitly renew
-	// the lease using the operating system on the instance. For more information, see
-	// DHCP options sets
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	AssociateDhcpOptions(ctx context.Context, params *AssociateDhcpOptionsInput, optFns ...func(*Options)) (*AssociateDhcpOptionsOutput, error)
+	// specified VPC, or associates no DHCP options with the VPC.
+	//
+	// After you associate the options with the VPC, any existing instances and all
+	// new instances that you launch in that VPC use the options. You don't need to
+	// restart or relaunch the instances. They automatically pick up the changes within
+	// a few hours, depending on how frequently the instance renews its DHCP lease. You
+	// can explicitly renew the lease using the operating system on the instance.
+	//
+	// For more information, see [DHCP option sets] in the Amazon VPC User Guide.
+	//
+	// [DHCP option sets]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html
+	AssociateDhcpOptions(ctx context.Context, params *ec2.AssociateDhcpOptionsInput, optFns ...func(*Options)) (*ec2.AssociateDhcpOptionsOutput, error)
 	// Associates an Identity and Access Management (IAM) role with an Certificate
 	// Manager (ACM) certificate. This enables the certificate to be used by the ACM
-	// for Nitro Enclaves application inside an enclave. For more information, see
-	// Certificate Manager for Nitro Enclaves
-	// (https://docs.aws.amazon.com/enclaves/latest/user/nitro-enclave-refapp.html) in
-	// the Amazon Web Services Nitro Enclaves User Guide. When the IAM role is
-	// associated with the ACM certificate, the certificate, certificate chain, and
-	// encrypted private key are placed in an Amazon S3 bucket that only the associated
-	// IAM role can access. The private key of the certificate is encrypted with an
-	// Amazon Web Services managed key that has an attached attestation-based key
-	// policy. To enable the IAM role to access the Amazon S3 object, you must grant it
-	// permission to call s3:GetObject on the Amazon S3 bucket returned by the command.
-	// To enable the IAM role to access the KMS key, you must grant it permission to
-	// call kms:Decrypt on the KMS key returned by the command. For more information,
-	// see  Grant the role permission to access the certificate and encryption key
-	// (https://docs.aws.amazon.com/enclaves/latest/user/nitro-enclave-refapp.html#add-policy)
-	// in the Amazon Web Services Nitro Enclaves User Guide.
-	AssociateEnclaveCertificateIamRole(ctx context.Context, params *AssociateEnclaveCertificateIamRoleInput, optFns ...func(*Options)) (*AssociateEnclaveCertificateIamRoleOutput, error)
+	// for Nitro Enclaves application inside an enclave. For more information, see [Certificate Manager for Nitro Enclaves]in
+	// the Amazon Web Services Nitro Enclaves User Guide.
+	//
+	// When the IAM role is associated with the ACM certificate, the certificate,
+	// certificate chain, and encrypted private key are placed in an Amazon S3 location
+	// that only the associated IAM role can access. The private key of the certificate
+	// is encrypted with an Amazon Web Services managed key that has an attached
+	// attestation-based key policy.
+	//
+	// To enable the IAM role to access the Amazon S3 object, you must grant it
+	// permission to call s3:GetObject on the Amazon S3 bucket returned by the
+	// command. To enable the IAM role to access the KMS key, you must grant it
+	// permission to call kms:Decrypt on the KMS key returned by the command. For more
+	// information, see [Grant the role permission to access the certificate and encryption key]in the Amazon Web Services Nitro Enclaves User Guide.
+	//
+	// [Certificate Manager for Nitro Enclaves]: https://docs.aws.amazon.com/enclaves/latest/user/nitro-enclave-refapp.html
+	// [Grant the role permission to access the certificate and encryption key]: https://docs.aws.amazon.com/enclaves/latest/user/nitro-enclave-refapp.html#add-policy
+	AssociateEnclaveCertificateIamRole(ctx context.Context, params *ec2.AssociateEnclaveCertificateIamRoleInput, optFns ...func(*Options)) (*ec2.AssociateEnclaveCertificateIamRoleOutput, error)
 	// Associates an IAM instance profile with a running or stopped instance. You
 	// cannot associate more than one IAM instance profile with an instance.
-	AssociateIamInstanceProfile(ctx context.Context, params *AssociateIamInstanceProfileInput, optFns ...func(*Options)) (*AssociateIamInstanceProfileOutput, error)
+	AssociateIamInstanceProfile(ctx context.Context, params *ec2.AssociateIamInstanceProfileInput, optFns ...func(*Options)) (*ec2.AssociateIamInstanceProfileOutput, error)
 	// Associates one or more targets with an event window. Only one type of target
 	// (instance IDs, Dedicated Host IDs, or tags) can be specified with an event
-	// window. For more information, see Define event windows for scheduled events
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/event-windows.html) in the
-	// Amazon EC2 User Guide.
-	AssociateInstanceEventWindow(ctx context.Context, params *AssociateInstanceEventWindowInput, optFns ...func(*Options)) (*AssociateInstanceEventWindowOutput, error)
+	// window.
+	//
+	// For more information, see [Define event windows for scheduled events] in the Amazon EC2 User Guide.
+	//
+	// [Define event windows for scheduled events]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/event-windows.html
+	AssociateInstanceEventWindow(ctx context.Context, params *ec2.AssociateInstanceEventWindowInput, optFns ...func(*Options)) (*ec2.AssociateInstanceEventWindowOutput, error)
+	// Associates your Autonomous System Number (ASN) with a BYOIP CIDR that you own
+	// in the same Amazon Web Services Region. For more information, see [Tutorial: Bring your ASN to IPAM]in the Amazon
+	// VPC IPAM guide.
+	//
+	// After the association succeeds, the ASN is eligible for advertisement. You can
+	// view the association with [DescribeByoipCidrs]. You can advertise the CIDR with [AdvertiseByoipCidr].
+	//
+	// [DescribeByoipCidrs]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeByoipCidrs.html
+	// [AdvertiseByoipCidr]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AdvertiseByoipCidr.html
+	// [Tutorial: Bring your ASN to IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/tutorials-byoasn.html
+	AssociateIpamByoasn(ctx context.Context, params *ec2.AssociateIpamByoasnInput, optFns ...func(*Options)) (*ec2.AssociateIpamByoasnOutput, error)
+	// Associates an IPAM resource discovery with an Amazon VPC IPAM. A resource
+	// discovery is an IPAM component that enables IPAM to manage and monitor resources
+	// that belong to the owning account.
+	AssociateIpamResourceDiscovery(ctx context.Context, params *ec2.AssociateIpamResourceDiscoveryInput, optFns ...func(*Options)) (*ec2.AssociateIpamResourceDiscoveryOutput, error)
+	// Associates Elastic IP addresses (EIPs) and private IPv4 addresses with a public
+	// NAT gateway. For more information, see [Work with NAT gateways]in the Amazon VPC User Guide.
+	//
+	// By default, you can associate up to 2 Elastic IP addresses per public NAT
+	// gateway. You can increase the limit by requesting a quota adjustment. For more
+	// information, see [Elastic IP address quotas]in the Amazon VPC User Guide.
+	//
+	// When you associate an EIP or secondary EIPs with a public NAT gateway, the
+	// network border group of the EIPs must match the network border group of the
+	// Availability Zone (AZ) that the public NAT gateway is in. If it's not the same,
+	// the EIP will fail to associate. You can see the network border group for the
+	// subnet's AZ by viewing the details of the subnet. Similarly, you can view the
+	// network border group of an EIP by viewing the details of the EIP address. For
+	// more information about network border groups and EIPs, see [Allocate an Elastic IP address]in the Amazon VPC
+	// User Guide.
+	//
+	// [Elastic IP address quotas]: https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html#vpc-limits-eips
+	// [Work with NAT gateways]: https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-working-with.html
+	// [Allocate an Elastic IP address]: https://docs.aws.amazon.com/vpc/latest/userguide/WorkWithEIPs.html
+	AssociateNatGatewayAddress(ctx context.Context, params *ec2.AssociateNatGatewayAddressInput, optFns ...func(*Options)) (*ec2.AssociateNatGatewayAddressOutput, error)
+	// Associates a route server with a VPC to enable dynamic route updates.
+	//
+	// A route server association is the connection established between a route server
+	// and a VPC.
+	//
+	// For more information see [Dynamic routing in your VPC with VPC Route Server] in the Amazon VPC User Guide.
+	//
+	// [Dynamic routing in your VPC with VPC Route Server]: https://docs.aws.amazon.com/vpc/latest/userguide/dynamic-routing-route-server.html
+	AssociateRouteServer(ctx context.Context, params *ec2.AssociateRouteServerInput, optFns ...func(*Options)) (*ec2.AssociateRouteServerOutput, error)
 	// Associates a subnet in your VPC or an internet gateway or virtual private
 	// gateway attached to your VPC with a route table in your VPC. This association
 	// causes traffic from the subnet or gateway to be routed according to the routes
 	// in the route table. The action returns an association ID, which you need in
 	// order to disassociate the route table later. A route table can be associated
-	// with multiple subnets. For more information, see Route tables
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	AssociateRouteTable(ctx context.Context, params *AssociateRouteTableInput, optFns ...func(*Options)) (*AssociateRouteTableOutput, error)
+	// with multiple subnets.
+	//
+	// For more information, see [Route tables] in the Amazon VPC User Guide.
+	//
+	// [Route tables]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
+	AssociateRouteTable(ctx context.Context, params *ec2.AssociateRouteTableInput, optFns ...func(*Options)) (*ec2.AssociateRouteTableOutput, error)
+	// Associates a security group with another VPC in the same Region. This enables
+	// you to use the same security group with network interfaces and instances in the
+	// specified VPC.
+	//
+	//   - The VPC you want to associate the security group with must be in the same
+	//     Region.
+	//
+	//   - You can associate the security group with another VPC if your account owns
+	//     the VPC or if the VPC was shared with you.
+	//
+	//   - You must own the security group.
+	//
+	//   - You cannot use this feature with default security groups.
+	//
+	//   - You cannot use this feature with the default VPC.
+	AssociateSecurityGroupVpc(ctx context.Context, params *ec2.AssociateSecurityGroupVpcInput, optFns ...func(*Options)) (*ec2.AssociateSecurityGroupVpcOutput, error)
 	// Associates a CIDR block with your subnet. You can only associate a single IPv6
-	// CIDR block with your subnet. An IPv6 CIDR block must have a prefix length of
-	// /64.
-	AssociateSubnetCidrBlock(ctx context.Context, params *AssociateSubnetCidrBlockInput, optFns ...func(*Options)) (*AssociateSubnetCidrBlockOutput, error)
+	// CIDR block with your subnet.
+	AssociateSubnetCidrBlock(ctx context.Context, params *ec2.AssociateSubnetCidrBlockInput, optFns ...func(*Options)) (*ec2.AssociateSubnetCidrBlockOutput, error)
 	// Associates the specified subnets and transit gateway attachments with the
-	// specified transit gateway multicast domain. The transit gateway attachment must
-	// be in the available state before you can add a resource. Use
-	// DescribeTransitGatewayAttachments
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeTransitGatewayAttachments.html)
-	// to see the state of the attachment.
-	AssociateTransitGatewayMulticastDomain(ctx context.Context, params *AssociateTransitGatewayMulticastDomainInput, optFns ...func(*Options)) (*AssociateTransitGatewayMulticastDomainOutput, error)
+	// specified transit gateway multicast domain.
+	//
+	// The transit gateway attachment must be in the available state before you can
+	// add a resource. Use [DescribeTransitGatewayAttachments]to see the state of the attachment.
+	//
+	// [DescribeTransitGatewayAttachments]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeTransitGatewayAttachments.html
+	AssociateTransitGatewayMulticastDomain(ctx context.Context, params *ec2.AssociateTransitGatewayMulticastDomainInput, optFns ...func(*Options)) (*ec2.AssociateTransitGatewayMulticastDomainOutput, error)
+	// Associates the specified transit gateway attachment with a transit gateway
+	// policy table.
+	AssociateTransitGatewayPolicyTable(ctx context.Context, params *ec2.AssociateTransitGatewayPolicyTableInput, optFns ...func(*Options)) (*ec2.AssociateTransitGatewayPolicyTableOutput, error)
 	// Associates the specified attachment with the specified transit gateway route
 	// table. You can associate only one route table with an attachment.
-	AssociateTransitGatewayRouteTable(ctx context.Context, params *AssociateTransitGatewayRouteTableInput, optFns ...func(*Options)) (*AssociateTransitGatewayRouteTableOutput, error)
-	// This API action is currently in limited preview only. If you are interested in
-	// using this feature, contact your account manager. Associates a branch network
-	// interface with a trunk network interface. Before you create the association, run
-	// the create-network-interface
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateNetworkInterface.html)
-	// command and set --interface-type to trunk. You must also create a network
-	// interface for each branch network interface that you want to associate with the
-	// trunk network interface.
-	AssociateTrunkInterface(ctx context.Context, params *AssociateTrunkInterfaceInput, optFns ...func(*Options)) (*AssociateTrunkInterfaceOutput, error)
+	AssociateTransitGatewayRouteTable(ctx context.Context, params *ec2.AssociateTransitGatewayRouteTableInput, optFns ...func(*Options)) (*ec2.AssociateTransitGatewayRouteTableOutput, error)
+	// Associates a branch network interface with a trunk network interface.
+	//
+	// Before you create the association, use [CreateNetworkInterface] command and set the interface type to
+	// trunk . You must also create a network interface for each branch network
+	// interface that you want to associate with the trunk network interface.
+	//
+	// [CreateNetworkInterface]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateNetworkInterface.html
+	AssociateTrunkInterface(ctx context.Context, params *ec2.AssociateTrunkInterfaceInput, optFns ...func(*Options)) (*ec2.AssociateTrunkInterfaceOutput, error)
 	// Associates a CIDR block with your VPC. You can associate a secondary IPv4 CIDR
 	// block, an Amazon-provided IPv6 CIDR block, or an IPv6 CIDR block from an IPv6
-	// address pool that you provisioned through bring your own IP addresses (BYOIP
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html)). The IPv6
-	// CIDR block size is fixed at /56. You must specify one of the following in the
-	// request: an IPv4 CIDR block, an IPv6 pool, or an Amazon-provided IPv6 CIDR
-	// block. For more information about associating CIDR blocks with your VPC and
-	// applicable restrictions, see VPC and subnet sizing
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#VPC_Sizing)
-	// in the Amazon Virtual Private Cloud User Guide.
-	AssociateVpcCidrBlock(ctx context.Context, params *AssociateVpcCidrBlockInput, optFns ...func(*Options)) (*AssociateVpcCidrBlockOutput, error)
+	// address pool that you provisioned through bring your own IP addresses ([BYOIP] ).
+	//
+	// You must specify one of the following in the request: an IPv4 CIDR block, an
+	// IPv6 pool, or an Amazon-provided IPv6 CIDR block.
+	//
+	// For more information about associating CIDR blocks with your VPC and applicable
+	// restrictions, see [IP addressing for your VPCs and subnets]in the Amazon VPC User Guide.
+	//
+	// [BYOIP]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html
+	// [IP addressing for your VPCs and subnets]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-ip-addressing.html
+	AssociateVpcCidrBlock(ctx context.Context, params *ec2.AssociateVpcCidrBlockInput, optFns ...func(*Options)) (*ec2.AssociateVpcCidrBlockOutput, error)
+	// This action is deprecated.
+	//
 	// Links an EC2-Classic instance to a ClassicLink-enabled VPC through one or more
-	// of the VPC's security groups. You cannot link an EC2-Classic instance to more
-	// than one VPC at a time. You can only link an instance that's in the running
-	// state. An instance is automatically unlinked from a VPC when it's stopped - you
-	// can link it to the VPC again when you restart it. After you've linked an
-	// instance, you cannot change the VPC security groups that are associated with it.
-	// To change the security groups, you must first unlink the instance, and then link
-	// it again. Linking your instance to a VPC is sometimes referred to as attaching
-	// your instance.
-	AttachClassicLinkVpc(ctx context.Context, params *AttachClassicLinkVpcInput, optFns ...func(*Options)) (*AttachClassicLinkVpcOutput, error)
+	// of the VPC security groups. You cannot link an EC2-Classic instance to more than
+	// one VPC at a time. You can only link an instance that's in the running state.
+	// An instance is automatically unlinked from a VPC when it's stopped - you can
+	// link it to the VPC again when you restart it.
+	//
+	// After you've linked an instance, you cannot change the VPC security groups that
+	// are associated with it. To change the security groups, you must first unlink the
+	// instance, and then link it again.
+	//
+	// Linking your instance to a VPC is sometimes referred to as attaching your
+	// instance.
+	AttachClassicLinkVpc(ctx context.Context, params *ec2.AttachClassicLinkVpcInput, optFns ...func(*Options)) (*ec2.AttachClassicLinkVpcOutput, error)
 	// Attaches an internet gateway or a virtual private gateway to a VPC, enabling
-	// connectivity between the internet and the VPC. For more information about your
-	// VPC and internet gateway, see the Amazon Virtual Private Cloud User Guide
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/).
-	AttachInternetGateway(ctx context.Context, params *AttachInternetGatewayInput, optFns ...func(*Options)) (*AttachInternetGatewayOutput, error)
+	// connectivity between the internet and the VPC. For more information, see [Internet gateways]in the
+	// Amazon VPC User Guide.
+	//
+	// [Internet gateways]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html
+	AttachInternetGateway(ctx context.Context, params *ec2.AttachInternetGatewayInput, optFns ...func(*Options)) (*ec2.AttachInternetGatewayOutput, error)
 	// Attaches a network interface to an instance.
-	AttachNetworkInterface(ctx context.Context, params *AttachNetworkInterfaceInput, optFns ...func(*Options)) (*AttachNetworkInterfaceOutput, error)
-	// Attaches an EBS volume to a running or stopped instance and exposes it to the
-	// instance with the specified device name. Encrypted EBS volumes must be attached
-	// to instances that support Amazon EBS encryption. For more information, see
-	// Amazon EBS encryption
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html) in the
-	// Amazon Elastic Compute Cloud User Guide. After you attach an EBS volume, you
-	// must make it available. For more information, see Make an EBS volume available
-	// for use
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html). If
-	// a volume has an Amazon Web Services Marketplace product code:
+	AttachNetworkInterface(ctx context.Context, params *ec2.AttachNetworkInterfaceInput, optFns ...func(*Options)) (*ec2.AttachNetworkInterfaceOutput, error)
+	// Attaches the specified Amazon Web Services Verified Access trust provider to
+	// the specified Amazon Web Services Verified Access instance.
+	AttachVerifiedAccessTrustProvider(ctx context.Context, params *ec2.AttachVerifiedAccessTrustProviderInput, optFns ...func(*Options)) (*ec2.AttachVerifiedAccessTrustProviderOutput, error)
+	// Attaches an Amazon EBS volume to a running or stopped instance, and exposes it
+	// to the instance with the specified device name.
 	//
-	// * The volume can
-	// be attached only to a stopped instance.
+	// The maximum number of Amazon EBS volumes that you can attach to an instance
+	// depends on the instance type. If you exceed the volume attachment limit for an
+	// instance type, the attachment request fails with the AttachmentLimitExceeded
+	// error. For more information, see [Instance volume limits].
 	//
-	// * Amazon Web Services Marketplace
-	// product codes are copied from the volume to the instance.
+	// After you attach an EBS volume, you must make it available for use. For more
+	// information, see [Make an EBS volume available for use].
 	//
-	// * You must be
-	// subscribed to the product.
+	// If a volume has an Amazon Web Services Marketplace product code:
 	//
-	// * The instance type and operating system of the
-	// instance must support the product. For example, you can't detach a volume from a
-	// Windows instance and attach it to a Linux instance.
+	//   - The volume can be attached only to a stopped instance.
 	//
-	// For more information, see
-	// Attach an Amazon EBS volume to an instance
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-attaching-volume.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	AttachVolume(ctx context.Context, params *AttachVolumeInput, optFns ...func(*Options)) (*AttachVolumeOutput, error)
-	// Attaches a virtual private gateway to a VPC. You can attach one virtual private
-	// gateway to one VPC at a time. For more information, see Amazon Web Services
-	// Site-to-Site VPN (https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html) in
-	// the Amazon Web Services Site-to-Site VPN User Guide.
-	AttachVpnGateway(ctx context.Context, params *AttachVpnGatewayInput, optFns ...func(*Options)) (*AttachVpnGatewayOutput, error)
+	//   - Amazon Web Services Marketplace product codes are copied from the volume to
+	//     the instance.
+	//
+	//   - You must be subscribed to the product.
+	//
+	//   - The instance type and operating system of the instance must support the
+	//     product. For example, you can't detach a volume from a Windows instance and
+	//     attach it to a Linux instance.
+	//
+	// For more information, see [Attach an Amazon EBS volume to an instance] in the Amazon EBS User Guide.
+	//
+	// [Make an EBS volume available for use]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-using-volumes.html
+	// [Attach an Amazon EBS volume to an instance]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-attaching-volume.html
+	// [Instance volume limits]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/volume_limits.html
+	AttachVolume(ctx context.Context, params *ec2.AttachVolumeInput, optFns ...func(*Options)) (*ec2.AttachVolumeOutput, error)
+	// Attaches an available virtual private gateway to a VPC. You can attach one
+	// virtual private gateway to one VPC at a time.
+	//
+	// For more information, see [Amazon Web Services Site-to-Site VPN] in the Amazon Web Services Site-to-Site VPN User
+	// Guide.
+	//
+	// [Amazon Web Services Site-to-Site VPN]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html
+	AttachVpnGateway(ctx context.Context, params *ec2.AttachVpnGatewayInput, optFns ...func(*Options)) (*ec2.AttachVpnGatewayOutput, error)
 	// Adds an ingress authorization rule to a Client VPN endpoint. Ingress
 	// authorization rules act as firewall rules that grant access to networks. You
 	// must configure ingress authorization rules to enable clients to access resources
 	// in Amazon Web Services or on-premises networks.
-	AuthorizeClientVpnIngress(ctx context.Context, params *AuthorizeClientVpnIngressInput, optFns ...func(*Options)) (*AuthorizeClientVpnIngressOutput, error)
-	// [VPC only] Adds the specified outbound (egress) rules to a security group for
-	// use with a VPC. An outbound rule permits instances to send traffic to the
-	// specified IPv4 or IPv6 CIDR address ranges, or to the instances that are
-	// associated with the specified source security groups. You specify a protocol for
-	// each rule (for example, TCP). For the TCP and UDP protocols, you must also
-	// specify the destination port or port range. For the ICMP protocol, you must also
-	// specify the ICMP type and code. You can use -1 for the type or code to mean all
-	// types or all codes. Rule changes are propagated to affected instances as quickly
-	// as possible. However, a small delay might occur. For information about VPC
-	// security group quotas, see Amazon VPC quotas
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html).
-	AuthorizeSecurityGroupEgress(ctx context.Context, params *AuthorizeSecurityGroupEgressInput, optFns ...func(*Options)) (*AuthorizeSecurityGroupEgressOutput, error)
-	// Adds the specified inbound (ingress) rules to a security group. An inbound rule
-	// permits instances to receive traffic from the specified IPv4 or IPv6 CIDR
-	// address range, or from the instances that are associated with the specified
-	// destination security groups. You specify a protocol for each rule (for example,
-	// TCP). For TCP and UDP, you must also specify the destination port or port range.
-	// For ICMP/ICMPv6, you must also specify the ICMP/ICMPv6 type and code. You can
-	// use -1 to mean all types or all codes. Rule changes are propagated to instances
-	// within the security group as quickly as possible. However, a small delay might
-	// occur. For more information about VPC security group quotas, see Amazon VPC
-	// quotas
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html).
-	AuthorizeSecurityGroupIngress(ctx context.Context, params *AuthorizeSecurityGroupIngressInput, optFns ...func(*Options)) (*AuthorizeSecurityGroupIngressOutput, error)
-	// Bundles an Amazon instance store-backed Windows instance. During bundling, only
-	// the root device volume (C:\) is bundled. Data on other instance store volumes is
-	// not preserved. This action is not applicable for Linux/Unix instances or Windows
-	// instances that are backed by Amazon EBS.
-	BundleInstance(ctx context.Context, params *BundleInstanceInput, optFns ...func(*Options)) (*BundleInstanceOutput, error)
+	AuthorizeClientVpnIngress(ctx context.Context, params *ec2.AuthorizeClientVpnIngressInput, optFns ...func(*Options)) (*ec2.AuthorizeClientVpnIngressOutput, error)
+	// Adds the specified outbound (egress) rules to a security group.
+	//
+	// An outbound rule permits instances to send traffic to the specified IPv4 or
+	// IPv6 address ranges, the IP address ranges specified by a prefix list, or the
+	// instances that are associated with a source security group. For more
+	// information, see [Security group rules].
+	//
+	// You must specify exactly one of the following destinations: an IPv4 or IPv6
+	// address range, a prefix list, or a security group. You must specify a protocol
+	// for each rule (for example, TCP). If the protocol is TCP or UDP, you must also
+	// specify a port or port range. If the protocol is ICMP or ICMPv6, you must also
+	// specify the ICMP type and code.
+	//
+	// Rule changes are propagated to instances associated with the security group as
+	// quickly as possible. However, a small delay might occur.
+	//
+	// For examples of rules that you can add to security groups for specific access
+	// scenarios, see [Security group rules for different use cases]in the Amazon EC2 User Guide.
+	//
+	// For information about security group quotas, see [Amazon VPC quotas] in the Amazon VPC User Guide.
+	//
+	// [Amazon VPC quotas]: https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html
+	// [Security group rules]: https://docs.aws.amazon.com/vpc/latest/userguide/security-group-rules.html
+	// [Security group rules for different use cases]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html
+	AuthorizeSecurityGroupEgress(ctx context.Context, params *ec2.AuthorizeSecurityGroupEgressInput, optFns ...func(*Options)) (*ec2.AuthorizeSecurityGroupEgressOutput, error)
+	// Adds the specified inbound (ingress) rules to a security group.
+	//
+	// An inbound rule permits instances to receive traffic from the specified IPv4 or
+	// IPv6 address range, the IP address ranges that are specified by a prefix list,
+	// or the instances that are associated with a destination security group. For more
+	// information, see [Security group rules].
+	//
+	// You must specify exactly one of the following sources: an IPv4 or IPv6 address
+	// range, a prefix list, or a security group. You must specify a protocol for each
+	// rule (for example, TCP). If the protocol is TCP or UDP, you must also specify a
+	// port or port range. If the protocol is ICMP or ICMPv6, you must also specify the
+	// ICMP/ICMPv6 type and code.
+	//
+	// Rule changes are propagated to instances associated with the security group as
+	// quickly as possible. However, a small delay might occur.
+	//
+	// For examples of rules that you can add to security groups for specific access
+	// scenarios, see [Security group rules for different use cases]in the Amazon EC2 User Guide.
+	//
+	// For more information about security group quotas, see [Amazon VPC quotas] in the Amazon VPC User
+	// Guide.
+	//
+	// [Amazon VPC quotas]: https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html
+	// [Security group rules]: https://docs.aws.amazon.com/vpc/latest/userguide/security-group-rules.html
+	// [Security group rules for different use cases]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html
+	AuthorizeSecurityGroupIngress(ctx context.Context, params *ec2.AuthorizeSecurityGroupIngressInput, optFns ...func(*Options)) (*ec2.AuthorizeSecurityGroupIngressOutput, error)
+	// Bundles an Amazon instance store-backed Windows instance.
+	//
+	// During bundling, only the root device volume (C:\) is bundled. Data on other
+	// instance store volumes is not preserved.
+	//
+	// This action is not applicable for Linux/Unix instances or Windows instances
+	// that are backed by Amazon EBS.
+	BundleInstance(ctx context.Context, params *ec2.BundleInstanceInput, optFns ...func(*Options)) (*ec2.BundleInstanceOutput, error)
 	// Cancels a bundling operation for an instance store-backed Windows instance.
-	CancelBundleTask(ctx context.Context, params *CancelBundleTaskInput, optFns ...func(*Options)) (*CancelBundleTaskOutput, error)
+	CancelBundleTask(ctx context.Context, params *ec2.CancelBundleTaskInput, optFns ...func(*Options)) (*ec2.CancelBundleTaskOutput, error)
 	// Cancels the specified Capacity Reservation, releases the reserved capacity, and
-	// changes the Capacity Reservation's state to cancelled. Instances running in the
-	// reserved capacity continue running until you stop them. Stopped instances that
-	// target the Capacity Reservation can no longer launch. Modify these instances to
-	// either target a different Capacity Reservation, launch On-Demand Instance
-	// capacity, or run in any open Capacity Reservation that has matching attributes
-	// and sufficient capacity.
-	CancelCapacityReservation(ctx context.Context, params *CancelCapacityReservationInput, optFns ...func(*Options)) (*CancelCapacityReservationOutput, error)
+	// changes the Capacity Reservation's state to cancelled .
+	//
+	// You can cancel a Capacity Reservation that is in the following states:
+	//
+	//   - assessing
+	//
+	//   - active and there is no commitment duration or the commitment duration has
+	//     elapsed. You can't cancel a future-dated Capacity Reservation during the
+	//     commitment duration.
+	//
+	// You can't modify or cancel a Capacity Block. For more information, see [Capacity Blocks for ML].
+	//
+	// If a future-dated Capacity Reservation enters the delayed state, the commitment
+	// duration is waived, and you can cancel it as soon as it enters the active state.
+	//
+	// Instances running in the reserved capacity continue running until you stop
+	// them. Stopped instances that target the Capacity Reservation can no longer
+	// launch. Modify these instances to either target a different Capacity
+	// Reservation, launch On-Demand Instance capacity, or run in any open Capacity
+	// Reservation that has matching attributes and sufficient capacity.
+	//
+	// [Capacity Blocks for ML]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-blocks.html
+	CancelCapacityReservation(ctx context.Context, params *ec2.CancelCapacityReservationInput, optFns ...func(*Options)) (*ec2.CancelCapacityReservationOutput, error)
 	// Cancels one or more Capacity Reservation Fleets. When you cancel a Capacity
 	// Reservation Fleet, the following happens:
 	//
-	// * The Capacity Reservation Fleet's
-	// status changes to cancelled.
+	//   - The Capacity Reservation Fleet's status changes to cancelled .
 	//
-	// * The individual Capacity Reservations in the
-	// Fleet are cancelled. Instances running in the Capacity Reservations at the time
-	// of cancelling the Fleet continue to run in shared capacity.
+	//   - The individual Capacity Reservations in the Fleet are cancelled. Instances
+	//     running in the Capacity Reservations at the time of cancelling the Fleet
+	//     continue to run in shared capacity.
 	//
-	// * The Fleet stops
-	// creating new Capacity Reservations.
-	CancelCapacityReservationFleets(ctx context.Context, params *CancelCapacityReservationFleetsInput, optFns ...func(*Options)) (*CancelCapacityReservationFleetsOutput, error)
+	//   - The Fleet stops creating new Capacity Reservations.
+	CancelCapacityReservationFleets(ctx context.Context, params *ec2.CancelCapacityReservationFleetsInput, optFns ...func(*Options)) (*ec2.CancelCapacityReservationFleetsOutput, error)
 	// Cancels an active conversion task. The task can be the import of an instance or
 	// volume. The action removes all artifacts of the conversion, including a
 	// partially uploaded volume or instance. If the conversion is complete or is in
 	// the process of transferring the final disk image, the command fails and returns
-	// an exception. For more information, see Importing a Virtual Machine Using the
-	// Amazon EC2 CLI
-	// (https://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/ec2-cli-vmimport-export.html).
-	CancelConversionTask(ctx context.Context, params *CancelConversionTaskInput, optFns ...func(*Options)) (*CancelConversionTaskOutput, error)
+	// an exception.
+	CancelConversionTask(ctx context.Context, params *ec2.CancelConversionTaskInput, optFns ...func(*Options)) (*ec2.CancelConversionTaskOutput, error)
+	// Cancels the generation of an account status report.
+	//
+	// You can only cancel a report while it has the running status. Reports with
+	// other statuses ( complete , cancelled , or error ) can't be canceled.
+	//
+	// For more information, see [Generating the account status report for declarative policies] in the Amazon Web Services Organizations User Guide.
+	//
+	// [Generating the account status report for declarative policies]: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_declarative_status-report.html
+	CancelDeclarativePoliciesReport(ctx context.Context, params *ec2.CancelDeclarativePoliciesReportInput, optFns ...func(*Options)) (*ec2.CancelDeclarativePoliciesReportOutput, error)
 	// Cancels an active export task. The request removes all artifacts of the export,
 	// including any partially-created Amazon S3 objects. If the export task is
 	// complete or is in the process of transferring the final disk image, the command
 	// fails and returns an error.
-	CancelExportTask(ctx context.Context, params *CancelExportTaskInput, optFns ...func(*Options)) (*CancelExportTaskOutput, error)
+	CancelExportTask(ctx context.Context, params *ec2.CancelExportTaskInput, optFns ...func(*Options)) (*ec2.CancelExportTaskOutput, error)
+	// Removes your Amazon Web Services account from the launch permissions for the
+	// specified AMI. For more information, see [Cancel having an AMI shared with your Amazon Web Services account]in the Amazon EC2 User Guide.
+	//
+	// [Cancel having an AMI shared with your Amazon Web Services account]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/cancel-sharing-an-AMI.html
+	CancelImageLaunchPermission(ctx context.Context, params *ec2.CancelImageLaunchPermissionInput, optFns ...func(*Options)) (*ec2.CancelImageLaunchPermissionOutput, error)
 	// Cancels an in-process import virtual machine or import snapshot task.
-	CancelImportTask(ctx context.Context, params *CancelImportTaskInput, optFns ...func(*Options)) (*CancelImportTaskOutput, error)
+	CancelImportTask(ctx context.Context, params *ec2.CancelImportTaskInput, optFns ...func(*Options)) (*ec2.CancelImportTaskOutput, error)
 	// Cancels the specified Reserved Instance listing in the Reserved Instance
-	// Marketplace. For more information, see Reserved Instance Marketplace
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html) in
-	// the Amazon EC2 User Guide.
-	CancelReservedInstancesListing(ctx context.Context, params *CancelReservedInstancesListingInput, optFns ...func(*Options)) (*CancelReservedInstancesListingOutput, error)
-	// Cancels the specified Spot Fleet requests. After you cancel a Spot Fleet
-	// request, the Spot Fleet launches no new Spot Instances. You must specify whether
-	// the Spot Fleet should also terminate its Spot Instances. If you terminate the
-	// instances, the Spot Fleet request enters the cancelled_terminating state.
-	// Otherwise, the Spot Fleet request enters the cancelled_running state and the
-	// instances continue to run until they are interrupted or you terminate them
-	// manually.
-	CancelSpotFleetRequests(ctx context.Context, params *CancelSpotFleetRequestsInput, optFns ...func(*Options)) (*CancelSpotFleetRequestsOutput, error)
-	// Cancels one or more Spot Instance requests. Canceling a Spot Instance request
-	// does not terminate running Spot Instances associated with the request.
-	CancelSpotInstanceRequests(ctx context.Context, params *CancelSpotInstanceRequestsInput, optFns ...func(*Options)) (*CancelSpotInstanceRequestsOutput, error)
+	// Marketplace.
+	//
+	// For more information, see [Sell in the Reserved Instance Marketplace] in the Amazon EC2 User Guide.
+	//
+	// [Sell in the Reserved Instance Marketplace]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html
+	CancelReservedInstancesListing(ctx context.Context, params *ec2.CancelReservedInstancesListingInput, optFns ...func(*Options)) (*ec2.CancelReservedInstancesListingOutput, error)
+	// Cancels the specified Spot Fleet requests.
+	//
+	// After you cancel a Spot Fleet request, the Spot Fleet launches no new instances.
+	//
+	// You must also specify whether a canceled Spot Fleet request should terminate
+	// its instances. If you choose to terminate the instances, the Spot Fleet request
+	// enters the cancelled_terminating state. Otherwise, the Spot Fleet request
+	// enters the cancelled_running state and the instances continue to run until they
+	// are interrupted or you terminate them manually.
+	//
+	// Restrictions
+	//
+	//   - You can delete up to 100 fleets in a single request. If you exceed the
+	//     specified number, no fleets are deleted.
+	CancelSpotFleetRequests(ctx context.Context, params *ec2.CancelSpotFleetRequestsInput, optFns ...func(*Options)) (*ec2.CancelSpotFleetRequestsOutput, error)
+	// Cancels one or more Spot Instance requests.
+	//
+	// Canceling a Spot Instance request does not terminate running Spot Instances
+	// associated with the request.
+	CancelSpotInstanceRequests(ctx context.Context, params *ec2.CancelSpotInstanceRequestsInput, optFns ...func(*Options)) (*ec2.CancelSpotInstanceRequestsOutput, error)
 	// Determines whether a product code is associated with an instance. This action
 	// can only be used by the owner of the product code. It is useful when a product
 	// code owner must verify whether another user's instance is eligible for support.
-	ConfirmProductInstance(ctx context.Context, params *ConfirmProductInstanceInput, optFns ...func(*Options)) (*ConfirmProductInstanceOutput, error)
+	ConfirmProductInstance(ctx context.Context, params *ec2.ConfirmProductInstanceInput, optFns ...func(*Options)) (*ec2.ConfirmProductInstanceOutput, error)
 	// Copies the specified Amazon FPGA Image (AFI) to the current Region.
-	CopyFpgaImage(ctx context.Context, params *CopyFpgaImageInput, optFns ...func(*Options)) (*CopyFpgaImageOutput, error)
-	// Initiates the copy of an AMI. You can copy an AMI from one Region to another, or
-	// from a Region to an Outpost. You can't copy an AMI from an Outpost to a Region,
-	// from one Outpost to another, or within the same Outpost. To copy an AMI to
-	// another partition, see CreateStoreImageTask
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateStoreImageTask.html).
-	// To copy an AMI from one Region to another, specify the source Region using
-	// the
+	CopyFpgaImage(ctx context.Context, params *ec2.CopyFpgaImageInput, optFns ...func(*Options)) (*ec2.CopyFpgaImageOutput, error)
+	// Initiates an AMI copy operation. You must specify the source AMI ID and both
+	// the source and destination locations. The copy operation must be initiated in
+	// the destination Region.
 	//
-	// SourceRegion parameter, and specify the destination Region using its
-	// endpoint. Copies of encrypted backing snapshots for the AMI are encrypted.
-	// Copies of unencrypted backing snapshots remain unencrypted, unless you set
-	// Encrypted during the copy operation. You cannot create an unencrypted copy of an
-	// encrypted backing snapshot. To copy an AMI from a Region to an Outpost, specify
-	// the source Region using the
+	// CopyImage supports the following source to destination copies:
 	//
-	// SourceRegion parameter, and specify the ARN of the
-	// destination Outpost using DestinationOutpostArn. Backing snapshots copied to an
-	// Outpost are encrypted by default using the default encryption key for the
-	// Region, or a different key that you specify in the request using KmsKeyId.
-	// Outposts do not support unencrypted snapshots. For more information,  Amazon EBS
-	// local snapshots on Outposts
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/snapshots-outposts.html#ami)
-	// in the Amazon Elastic Compute Cloud User Guide. For more information about the
-	// prerequisites and limits when copying an AMI, see Copying an AMI
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/CopyingAMIs.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	CopyImage(ctx context.Context, params *CopyImageInput, optFns ...func(*Options)) (*CopyImageOutput, error)
-	// Copies a point-in-time snapshot of an EBS volume and stores it in Amazon S3. You
-	// can copy a snapshot within the same Region, from one Region to another, or from
-	// a Region to an Outpost. You can't copy a snapshot from an Outpost to a Region,
-	// from one Outpost to another, or within the same Outpost. You can use the
-	// snapshot to create EBS volumes or Amazon Machine Images (AMIs). When copying
-	// snapshots to a Region, copies of encrypted EBS snapshots remain encrypted.
-	// Copies of unencrypted snapshots remain unencrypted, unless you enable encryption
-	// for the snapshot copy operation. By default, encrypted snapshot copies use the
-	// default Key Management Service (KMS) KMS key; however, you can specify a
-	// different KMS key. To copy an encrypted snapshot that has been shared from
-	// another account, you must have permissions for the KMS key used to encrypt the
-	// snapshot. Snapshots copied to an Outpost are encrypted by default using the
-	// default encryption key for the Region, or a different key that you specify in
-	// the request using KmsKeyId. Outposts do not support unencrypted snapshots. For
-	// more information,  Amazon EBS local snapshots on Outposts
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/snapshots-outposts.html#ami)
-	// in the Amazon Elastic Compute Cloud User Guide. Snapshots created by copying
-	// another snapshot have an arbitrary volume ID that should not be used for any
-	// purpose. For more information, see Copy an Amazon EBS snapshot
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-copy-snapshot.html) in
-	// the Amazon Elastic Compute Cloud User Guide.
-	CopySnapshot(ctx context.Context, params *CopySnapshotInput, optFns ...func(*Options)) (*CopySnapshotOutput, error)
+	//   - Region to Region
+	//
+	//   - Region to Outpost
+	//
+	//   - Parent Region to Local Zone
+	//
+	//   - Local Zone to parent Region
+	//
+	//   - Between Local Zones with the same parent Region (only supported for certain
+	//     Local Zones)
+	//
+	// CopyImage does not support the following source to destination copies:
+	//
+	//   - Local Zone to non-parent Regions
+	//
+	//   - Between Local Zones with different parent Regions
+	//
+	//   - Local Zone to Outpost
+	//
+	//   - Outpost to Local Zone
+	//
+	//   - Outpost to Region
+	//
+	//   - Between Outposts
+	//
+	//   - Within same Outpost
+	//
+	//   - Cross-partition copies (use [CreateStoreImageTask]instead)
+	//
+	// Destination specification
+	//
+	//   - Region to Region: The destination Region is the Region in which you
+	//     initiate the copy operation.
+	//
+	//   - Region to Outpost: Specify the destination using the DestinationOutpostArn
+	//     parameter (the ARN of the Outpost)
+	//
+	//   - Region to Local Zone, and Local Zone to Local Zone copies: Specify the
+	//     destination using the DestinationAvailabilityZone parameter (the name of the
+	//     destination Local Zone) or DestinationAvailabilityZoneId parameter (the ID of
+	//     the destination Local Zone).
+	//
+	// Snapshot encryption
+	//
+	//   - Region to Outpost: Backing snapshots copied to an Outpost are encrypted by
+	//     default using the default encryption key for the Region or the key that you
+	//     specify. Outposts do not support unencrypted snapshots.
+	//
+	//   - Region to Local Zone, and Local Zone to Local Zone: Not all Local Zones
+	//     require encrypted snapshots. In Local Zones that require encrypted snapshots,
+	//     backing snapshots are automatically encrypted during copy. In Local Zones where
+	//     encryption is not required, snapshots retain their original encryption state
+	//     (encrypted or unencrypted) by default.
+	//
+	// For more information, including the required permissions for copying an AMI,
+	// see [Copy an Amazon EC2 AMI]in the Amazon EC2 User Guide.
+	//
+	// [CreateStoreImageTask]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateStoreImageTask.html
+	// [Copy an Amazon EC2 AMI]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/CopyingAMIs.html
+	CopyImage(ctx context.Context, params *ec2.CopyImageInput, optFns ...func(*Options)) (*ec2.CopyImageOutput, error)
+	// Creates an exact copy of an Amazon EBS snapshot.
+	//
+	// The location of the source snapshot determines whether you can copy it or not,
+	// and the allowed destinations for the snapshot copy.
+	//
+	//   - If the source snapshot is in a Region, you can copy it within that Region,
+	//     to another Region, to an Outpost associated with that Region, or to a Local Zone
+	//     in that Region.
+	//
+	//   - If the source snapshot is in a Local Zone, you can copy it within that
+	//     Local Zone, to another Local Zone in the same zone group, or to the parent
+	//     Region of the Local Zone.
+	//
+	//   - If the source snapshot is on an Outpost, you can't copy it.
+	//
+	// When copying snapshots to a Region, the encryption outcome for the snapshot
+	// copy depends on the Amazon EBS encryption by default setting for the destination
+	// Region, the encryption status of the source snapshot, and the encryption
+	// parameters you specify in the request. For more information, see [Encryption and snapshot copying].
+	//
+	// Snapshots copied to an Outpost must be encrypted. Unencrypted snapshots are not
+	// supported on Outposts. For more information, [Amazon EBS local snapshots on Outposts].
+	//
+	// Snapshots copies have an arbitrary source volume ID. Do not use this volume ID
+	// for any purpose.
+	//
+	// For more information, see [Copy an Amazon EBS snapshot] in the Amazon EBS User Guide.
+	//
+	// [Encryption and snapshot copying]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-copy-snapshot.html#creating-encrypted-snapshots
+	// [Copy an Amazon EBS snapshot]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-copy-snapshot.html
+	// [Amazon EBS local snapshots on Outposts]: https://docs.aws.amazon.com/ebs/latest/userguide/snapshots-outposts.html#considerations
+	CopySnapshot(ctx context.Context, params *ec2.CopySnapshotInput, optFns ...func(*Options)) (*ec2.CopySnapshotOutput, error)
 	// Creates a new Capacity Reservation with the specified attributes. Capacity
 	// Reservations enable you to reserve capacity for your Amazon EC2 instances in a
-	// specific Availability Zone for any duration. This gives you the flexibility to
-	// selectively add capacity reservations and still get the Regional RI discounts
-	// for that usage. By creating Capacity Reservations, you ensure that you always
-	// have access to Amazon EC2 capacity when you need it, for as long as you need it.
-	// For more information, see Capacity Reservations
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-reservations.html)
-	// in the Amazon EC2 User Guide. Your request to create a Capacity Reservation
-	// could fail if Amazon EC2 does not have sufficient capacity to fulfill the
-	// request. If your request fails due to Amazon EC2 capacity constraints, either
-	// try again at a later time, try in a different Availability Zone, or request a
-	// smaller capacity reservation. If your application is flexible across instance
-	// types and sizes, try to create a Capacity Reservation with different instance
-	// attributes. Your request could also fail if the requested quantity exceeds your
-	// On-Demand Instance limit for the selected instance type. If your request fails
-	// due to limit constraints, increase your On-Demand Instance limit for the
-	// required instance type and try again. For more information about increasing your
-	// instance limits, see Amazon EC2 Service Quotas
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-resource-limits.html)
-	// in the Amazon EC2 User Guide.
-	CreateCapacityReservation(ctx context.Context, params *CreateCapacityReservationInput, optFns ...func(*Options)) (*CreateCapacityReservationOutput, error)
-	// Creates a Capacity Reservation Fleet. For more information, see Create a
-	// Capacity Reservation Fleet
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/work-with-cr-fleets.html#create-crfleet)
-	// in the Amazon EC2 User Guide.
-	CreateCapacityReservationFleet(ctx context.Context, params *CreateCapacityReservationFleetInput, optFns ...func(*Options)) (*CreateCapacityReservationFleetOutput, error)
-	// Creates a carrier gateway. For more information about carrier gateways, see
-	// Carrier gateways
-	// (https://docs.aws.amazon.com/wavelength/latest/developerguide/how-wavelengths-work.html#wavelength-carrier-gateway)
-	// in the Amazon Web Services Wavelength Developer Guide.
-	CreateCarrierGateway(ctx context.Context, params *CreateCarrierGatewayInput, optFns ...func(*Options)) (*CreateCarrierGatewayOutput, error)
+	// specific Availability Zone for any duration.
+	//
+	// You can create a Capacity Reservation at any time, and you can choose when it
+	// starts. You can create a Capacity Reservation for immediate use or you can
+	// request a Capacity Reservation for a future date.
+	//
+	// For more information, see [Reserve compute capacity with On-Demand Capacity Reservations] in the Amazon EC2 User Guide.
+	//
+	// Your request to create a Capacity Reservation could fail if:
+	//
+	//   - Amazon EC2 does not have sufficient capacity. In this case, try again at a
+	//     later time, try in a different Availability Zone, or request a smaller Capacity
+	//     Reservation. If your workload is flexible across instance types and sizes, try
+	//     with different instance attributes.
+	//
+	//   - The requested quantity exceeds your On-Demand Instance quota. In this case,
+	//     increase your On-Demand Instance quota for the requested instance type and try
+	//     again. For more information, see [Amazon EC2 Service Quotas]in the Amazon EC2 User Guide.
+	//
+	// [Amazon EC2 Service Quotas]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-resource-limits.html
+	// [Reserve compute capacity with On-Demand Capacity Reservations]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-reservations.html
+	CreateCapacityReservation(ctx context.Context, params *ec2.CreateCapacityReservationInput, optFns ...func(*Options)) (*ec2.CreateCapacityReservationOutput, error)
+	//	Create a new Capacity Reservation by splitting the capacity of the source
+	//
+	// Capacity Reservation. The new Capacity Reservation will have the same attributes
+	// as the source Capacity Reservation except for tags. The source Capacity
+	// Reservation must be active and owned by your Amazon Web Services account.
+	CreateCapacityReservationBySplitting(ctx context.Context, params *ec2.CreateCapacityReservationBySplittingInput, optFns ...func(*Options)) (*ec2.CreateCapacityReservationBySplittingOutput, error)
+	// Creates a Capacity Reservation Fleet. For more information, see [Create a Capacity Reservation Fleet] in the Amazon
+	// EC2 User Guide.
+	//
+	// [Create a Capacity Reservation Fleet]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/work-with-cr-fleets.html#create-crfleet
+	CreateCapacityReservationFleet(ctx context.Context, params *ec2.CreateCapacityReservationFleetInput, optFns ...func(*Options)) (*ec2.CreateCapacityReservationFleetOutput, error)
+	// Creates a carrier gateway. For more information about carrier gateways, see [Carrier gateways] in
+	// the Amazon Web Services Wavelength Developer Guide.
+	//
+	// [Carrier gateways]: https://docs.aws.amazon.com/wavelength/latest/developerguide/how-wavelengths-work.html#wavelength-carrier-gateway
+	CreateCarrierGateway(ctx context.Context, params *ec2.CreateCarrierGatewayInput, optFns ...func(*Options)) (*ec2.CreateCarrierGatewayOutput, error)
 	// Creates a Client VPN endpoint. A Client VPN endpoint is the resource you create
 	// and configure to enable and manage client VPN sessions. It is the destination
 	// endpoint at which all client VPN sessions are terminated.
-	CreateClientVpnEndpoint(ctx context.Context, params *CreateClientVpnEndpointInput, optFns ...func(*Options)) (*CreateClientVpnEndpointOutput, error)
-	// Adds a route to a network to a Client VPN endpoint. Each Client VPN endpoint has
-	// a route table that describes the available destination network routes. Each
+	CreateClientVpnEndpoint(ctx context.Context, params *ec2.CreateClientVpnEndpointInput, optFns ...func(*Options)) (*ec2.CreateClientVpnEndpointOutput, error)
+	// Adds a route to a network to a Client VPN endpoint. Each Client VPN endpoint
+	// has a route table that describes the available destination network routes. Each
 	// route in the route table specifies the path for traﬃc to speciﬁc resources or
 	// networks.
-	CreateClientVpnRoute(ctx context.Context, params *CreateClientVpnRouteInput, optFns ...func(*Options)) (*CreateClientVpnRouteOutput, error)
-	// Provides information to Amazon Web Services about your VPN customer gateway
-	// device. The customer gateway is the appliance at your end of the VPN connection.
-	// (The device on the Amazon Web Services side of the VPN connection is the virtual
-	// private gateway.) You must provide the internet-routable IP address of the
-	// customer gateway's external interface. The IP address must be static and can be
-	// behind a device performing network address translation (NAT). For devices that
-	// use Border Gateway Protocol (BGP), you can also provide the device's BGP
-	// Autonomous System Number (ASN). You can use an existing ASN assigned to your
-	// network. If you don't have an ASN already, you can use a private ASN (in the
-	// 64512 - 65534 range). Amazon EC2 supports all 4-byte ASN numbers in the range of
-	// 1 - 2147483647, with the exception of the following:
+	CreateClientVpnRoute(ctx context.Context, params *ec2.CreateClientVpnRouteInput, optFns ...func(*Options)) (*ec2.CreateClientVpnRouteOutput, error)
+	// Creates a range of customer-owned IP addresses.
+	CreateCoipCidr(ctx context.Context, params *ec2.CreateCoipCidrInput, optFns ...func(*Options)) (*ec2.CreateCoipCidrOutput, error)
+	// Creates a pool of customer-owned IP (CoIP) addresses.
+	CreateCoipPool(ctx context.Context, params *ec2.CreateCoipPoolInput, optFns ...func(*Options)) (*ec2.CreateCoipPoolOutput, error)
+	// Provides information to Amazon Web Services about your customer gateway device.
+	// The customer gateway device is the appliance at your end of the VPN connection.
+	// You must provide the IP address of the customer gateway device’s external
+	// interface. The IP address must be static and can be behind a device performing
+	// network address translation (NAT).
 	//
-	// * 7224 - reserved in the
-	// us-east-1 Region
+	// For devices that use Border Gateway Protocol (BGP), you can also provide the
+	// device's BGP Autonomous System Number (ASN). You can use an existing ASN
+	// assigned to your network. If you don't have an ASN already, you can use a
+	// private ASN. For more information, see [Customer gateway options for your Site-to-Site VPN connection]in the Amazon Web Services Site-to-Site
+	// VPN User Guide.
 	//
-	// * 9059 - reserved in the eu-west-1 Region
+	// To create more than one customer gateway with the same VPN type, IP address,
+	// and BGP ASN, specify a unique device name for each customer gateway. An
+	// identical request returns information about the existing customer gateway; it
+	// doesn't create a new customer gateway.
 	//
-	// * 17943 - reserved
-	// in the ap-southeast-1 Region
-	//
-	// * 10124 - reserved in the ap-northeast-1
-	// Region
-	//
-	// For more information, see Amazon Web Services Site-to-Site VPN
-	// (https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html) in the Amazon Web
-	// Services Site-to-Site VPN User Guide. To create more than one customer gateway
-	// with the same VPN type, IP address, and BGP ASN, specify a unique device name
-	// for each customer gateway. Identical requests return information about the
-	// existing customer gateway and do not create new customer gateways.
-	CreateCustomerGateway(ctx context.Context, params *CreateCustomerGatewayInput, optFns ...func(*Options)) (*CreateCustomerGatewayOutput, error)
+	// [Customer gateway options for your Site-to-Site VPN connection]: https://docs.aws.amazon.com/vpn/latest/s2svpn/cgw-options.html
+	CreateCustomerGateway(ctx context.Context, params *ec2.CreateCustomerGatewayInput, optFns ...func(*Options)) (*ec2.CreateCustomerGatewayOutput, error)
 	// Creates a default subnet with a size /20 IPv4 CIDR block in the specified
 	// Availability Zone in your default VPC. You can have only one default subnet per
-	// Availability Zone. For more information, see Creating a default subnet
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/default-vpc.html#create-default-subnet)
-	// in the Amazon Virtual Private Cloud User Guide.
-	CreateDefaultSubnet(ctx context.Context, params *CreateDefaultSubnetInput, optFns ...func(*Options)) (*CreateDefaultSubnetOutput, error)
+	// Availability Zone. For more information, see [Create a default subnet]in the Amazon VPC User Guide.
+	//
+	// [Create a default subnet]: https://docs.aws.amazon.com/vpc/latest/userguide/work-with-default-vpc.html#create-default-subnet
+	CreateDefaultSubnet(ctx context.Context, params *ec2.CreateDefaultSubnetInput, optFns ...func(*Options)) (*ec2.CreateDefaultSubnetOutput, error)
 	// Creates a default VPC with a size /16 IPv4 CIDR block and a default subnet in
 	// each Availability Zone. For more information about the components of a default
-	// VPC, see Default VPC and default subnets
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/default-vpc.html) in the
-	// Amazon Virtual Private Cloud User Guide. You cannot specify the components of
-	// the default VPC yourself. If you deleted your previous default VPC, you can
-	// create a default VPC. You cannot have more than one default VPC per Region. If
-	// your account supports EC2-Classic, you cannot use this action to create a
-	// default VPC in a Region that supports EC2-Classic. If you want a default VPC in
-	// a Region that supports EC2-Classic, see "I really want a default VPC for my
-	// existing EC2 account. Is that possible?" in the Default VPCs FAQ
-	// (http://aws.amazon.com/vpc/faqs/#Default_VPCs).
-	CreateDefaultVpc(ctx context.Context, params *CreateDefaultVpcInput, optFns ...func(*Options)) (*CreateDefaultVpcOutput, error)
-	// Creates a set of DHCP options for your VPC. After creating the set, you must
-	// associate it with the VPC, causing all existing and new instances that you
-	// launch in the VPC to use this set of DHCP options. The following are the
-	// individual DHCP options you can specify. For more information about the options,
-	// see RFC 2132 (http://www.ietf.org/rfc/rfc2132.txt).
+	// VPC, see [Default VPCs]in the Amazon VPC User Guide. You cannot specify the components of the
+	// default VPC yourself.
 	//
-	// * domain-name-servers - The
-	// IP addresses of up to four domain name servers, or AmazonProvidedDNS. The
-	// default DHCP option set specifies AmazonProvidedDNS. If specifying more than one
-	// domain name server, specify the IP addresses in a single parameter, separated by
-	// commas. To have your instance receive a custom DNS hostname as specified in
-	// domain-name, you must set domain-name-servers to a custom DNS server.
+	// If you deleted your previous default VPC, you can create a default VPC. You
+	// cannot have more than one default VPC per Region.
 	//
-	// *
-	// domain-name - If you're using AmazonProvidedDNS in us-east-1, specify
-	// ec2.internal. If you're using AmazonProvidedDNS in another Region, specify
-	// region.compute.internal (for example, ap-northeast-1.compute.internal).
-	// Otherwise, specify a domain name (for example, ExampleCompany.com). This value
-	// is used to complete unqualified DNS hostnames. Important: Some Linux operating
-	// systems accept multiple domain names separated by spaces. However, Windows and
-	// other Linux operating systems treat the value as a single domain, which results
-	// in unexpected behavior. If your DHCP options set is associated with a VPC that
-	// has instances with multiple operating systems, specify only one domain name.
+	// [Default VPCs]: https://docs.aws.amazon.com/vpc/latest/userguide/default-vpc.html
+	CreateDefaultVpc(ctx context.Context, params *ec2.CreateDefaultVpcInput, optFns ...func(*Options)) (*ec2.CreateDefaultVpcOutput, error)
+	// Delegates ownership of the Amazon EBS root volume for an Apple silicon Mac
+	// instance to an administrative user.
+	CreateDelegateMacVolumeOwnershipTask(ctx context.Context, params *ec2.CreateDelegateMacVolumeOwnershipTaskInput, optFns ...func(*Options)) (*ec2.CreateDelegateMacVolumeOwnershipTaskOutput, error)
+	// Creates a custom set of DHCP options. After you create a DHCP option set, you
+	// associate it with a VPC. After you associate a DHCP option set with a VPC, all
+	// existing and newly launched instances in the VPC use this set of DHCP options.
 	//
-	// *
-	// ntp-servers - The IP addresses of up to four Network Time Protocol (NTP)
-	// servers.
+	// The following are the individual DHCP options you can specify. For more
+	// information, see [DHCP option sets]in the Amazon VPC User Guide.
 	//
-	// * netbios-name-servers - The IP addresses of up to four NetBIOS name
-	// servers.
+	//   - domain-name - If you're using AmazonProvidedDNS in us-east-1 , specify
+	//     ec2.internal . If you're using AmazonProvidedDNS in any other Region, specify
+	//     region.compute.internal . Otherwise, specify a custom domain name. This value
+	//     is used to complete unqualified DNS hostnames.
 	//
-	// * netbios-node-type - The NetBIOS node type (1, 2, 4, or 8). We
-	// recommend that you specify 2 (broadcast and multicast are not currently
-	// supported). For more information about these node types, see RFC 2132
-	// (http://www.ietf.org/rfc/rfc2132.txt).
+	// Some Linux operating systems accept multiple domain names separated by spaces.
 	//
-	// Your VPC automatically starts out with a
-	// set of DHCP options that includes only a DNS server that we provide
-	// (AmazonProvidedDNS). If you create a set of options, and if your VPC has an
-	// internet gateway, make sure to set the domain-name-servers option either to
-	// AmazonProvidedDNS or to a domain name server of your choice. For more
-	// information, see DHCP options sets
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	CreateDhcpOptions(ctx context.Context, params *CreateDhcpOptionsInput, optFns ...func(*Options)) (*CreateDhcpOptionsOutput, error)
-	// [IPv6 only] Creates an egress-only internet gateway for your VPC. An egress-only
-	// internet gateway is used to enable outbound communication over IPv6 from
-	// instances in your VPC to the internet, and prevents hosts outside of your VPC
-	// from initiating an IPv6 connection with your instance.
-	CreateEgressOnlyInternetGateway(ctx context.Context, params *CreateEgressOnlyInternetGatewayInput, optFns ...func(*Options)) (*CreateEgressOnlyInternetGatewayOutput, error)
-	// Launches an EC2 Fleet. You can create a single EC2 Fleet that includes multiple
-	// launch specifications that vary by instance type, AMI, Availability Zone, or
-	// subnet. For more information, see EC2 Fleet
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet.html) in the
-	// Amazon EC2 User Guide.
-	CreateFleet(ctx context.Context, params *CreateFleetInput, optFns ...func(*Options)) (*CreateFleetOutput, error)
+	//	However, Windows and other Linux operating systems treat the value as a single
+	//	domain, which results in unexpected behavior. If your DHCP option set is
+	//	associated with a VPC that has instances running operating systems that treat
+	//	the value as a single domain, specify only one domain name.
+	//
+	//	- domain-name-servers - The IP addresses of up to four DNS servers, or
+	//	AmazonProvidedDNS. To specify multiple domain name servers in a single
+	//	parameter, separate the IP addresses using commas. To have your instances
+	//	receive custom DNS hostnames as specified in domain-name , you must specify a
+	//	custom DNS server.
+	//
+	//	- ntp-servers - The IP addresses of up to eight Network Time Protocol (NTP)
+	//	servers (four IPv4 addresses and four IPv6 addresses).
+	//
+	//	- netbios-name-servers - The IP addresses of up to four NetBIOS name servers.
+	//
+	//	- netbios-node-type - The NetBIOS node type (1, 2, 4, or 8). We recommend that
+	//	you specify 2. Broadcast and multicast are not supported. For more information
+	//	about NetBIOS node types, see [RFC 2132].
+	//
+	//	- ipv6-address-preferred-lease-time - A value (in seconds, minutes, hours, or
+	//	years) for how frequently a running instance with an IPv6 assigned to it goes
+	//	through DHCPv6 lease renewal. Acceptable values are between 140 and 2147483647
+	//	seconds (approximately 68 years). If no value is entered, the default lease time
+	//	is 140 seconds. If you use long-term addressing for EC2 instances, you can
+	//	increase the lease time and avoid frequent lease renewal requests. Lease renewal
+	//	typically occurs when half of the lease time has elapsed.
+	//
+	// [DHCP option sets]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html
+	//
+	// [RFC 2132]: https://www.ietf.org/rfc/rfc2132.txt
+	CreateDhcpOptions(ctx context.Context, params *ec2.CreateDhcpOptionsInput, optFns ...func(*Options)) (*ec2.CreateDhcpOptionsOutput, error)
+	// [IPv6 only] Creates an egress-only internet gateway for your VPC. An
+	// egress-only internet gateway is used to enable outbound communication over IPv6
+	// from instances in your VPC to the internet, and prevents hosts outside of your
+	// VPC from initiating an IPv6 connection with your instance.
+	CreateEgressOnlyInternetGateway(ctx context.Context, params *ec2.CreateEgressOnlyInternetGatewayInput, optFns ...func(*Options)) (*ec2.CreateEgressOnlyInternetGatewayOutput, error)
+	// Creates an EC2 Fleet that contains the configuration information for On-Demand
+	// Instances and Spot Instances. Instances are launched immediately if there is
+	// available capacity.
+	//
+	// A single EC2 Fleet can include multiple launch specifications that vary by
+	// instance type, AMI, Availability Zone, or subnet.
+	//
+	// For more information, see [EC2 Fleet] in the Amazon EC2 User Guide.
+	//
+	// [EC2 Fleet]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet.html
+	CreateFleet(ctx context.Context, params *ec2.CreateFleetInput, optFns ...func(*Options)) (*ec2.CreateFleetOutput, error)
 	// Creates one or more flow logs to capture information about IP traffic for a
-	// specific network interface, subnet, or VPC. Flow log data for a monitored
-	// network interface is recorded as flow log records, which are log events
-	// consisting of fields that describe the traffic flow. For more information, see
-	// Flow log records
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html#flow-log-records)
-	// in the Amazon Virtual Private Cloud User Guide. When publishing to CloudWatch
-	// Logs, flow log records are published to a log group, and each network interface
-	// has a unique log stream in the log group. When publishing to Amazon S3, flow log
-	// records for all of the monitored network interfaces are published to a single
-	// log file object that is stored in the specified bucket. For more information,
-	// see VPC Flow Logs
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html) in the Amazon
-	// Virtual Private Cloud User Guide.
-	CreateFlowLogs(ctx context.Context, params *CreateFlowLogsInput, optFns ...func(*Options)) (*CreateFlowLogsOutput, error)
+	// specific network interface, subnet, or VPC.
+	//
+	// Flow log data for a monitored network interface is recorded as flow log
+	// records, which are log events consisting of fields that describe the traffic
+	// flow. For more information, see [Flow log records]in the Amazon VPC User Guide.
+	//
+	// When publishing to CloudWatch Logs, flow log records are published to a log
+	// group, and each network interface has a unique log stream in the log group. When
+	// publishing to Amazon S3, flow log records for all of the monitored network
+	// interfaces are published to a single log file object that is stored in the
+	// specified bucket.
+	//
+	// For more information, see [VPC Flow Logs] in the Amazon VPC User Guide.
+	//
+	// [Flow log records]: https://docs.aws.amazon.com/vpc/latest/userguide/flow-log-records.html
+	// [VPC Flow Logs]: https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html
+	CreateFlowLogs(ctx context.Context, params *ec2.CreateFlowLogsInput, optFns ...func(*Options)) (*ec2.CreateFlowLogsOutput, error)
 	// Creates an Amazon FPGA Image (AFI) from the specified design checkpoint (DCP).
-	// The create operation is asynchronous. To verify that the AFI is ready for use,
-	// check the output logs. An AFI contains the FPGA bitstream that is ready to
-	// download to an FPGA. You can securely deploy an AFI on multiple FPGA-accelerated
-	// instances. For more information, see the Amazon Web Services FPGA Hardware
-	// Development Kit (https://github.com/aws/aws-fpga/).
-	CreateFpgaImage(ctx context.Context, params *CreateFpgaImageInput, optFns ...func(*Options)) (*CreateFpgaImageOutput, error)
+	//
+	// The create operation is asynchronous. To verify that the AFI was successfully
+	// created and is ready for use, check the output logs.
+	//
+	// An AFI contains the FPGA bitstream that is ready to download to an FPGA. You
+	// can securely deploy an AFI on multiple FPGA-accelerated instances. For more
+	// information, see the [Amazon Web Services FPGA Hardware Development Kit].
+	//
+	// [Amazon Web Services FPGA Hardware Development Kit]: https://github.com/aws/aws-fpga/
+	CreateFpgaImage(ctx context.Context, params *ec2.CreateFpgaImageInput, optFns ...func(*Options)) (*ec2.CreateFpgaImageOutput, error)
 	// Creates an Amazon EBS-backed AMI from an Amazon EBS-backed instance that is
-	// either running or stopped. By default, Amazon EC2 shuts down and reboots the
-	// instance before creating the AMI to ensure that everything on the instance is
-	// stopped and in a consistent state during the creation process. If you're
-	// confident that your instance is in a consistent state appropriate for AMI
-	// creation, use the NoReboot parameter to prevent Amazon EC2 from shutting down
-	// and rebooting the instance. If you customized your instance with instance store
-	// volumes or Amazon EBS volumes in addition to the root device volume, the new AMI
-	// contains block device mapping information for those volumes. When you launch an
-	// instance from this new AMI, the instance automatically launches with those
-	// additional volumes. For more information, see Creating Amazon EBS-Backed Linux
-	// AMIs
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	CreateImage(ctx context.Context, params *CreateImageInput, optFns ...func(*Options)) (*CreateImageOutput, error)
+	// either running or stopped.
+	//
+	// If you customized your instance with instance store volumes or Amazon EBS
+	// volumes in addition to the root device volume, the new AMI contains block device
+	// mapping information for those volumes. When you launch an instance from this new
+	// AMI, the instance automatically launches with those additional volumes.
+	//
+	// The location of the source instance determines where you can create the
+	// snapshots of the AMI:
+	//
+	//   - If the source instance is in a Region, you must create the snapshots in the
+	//     same Region as the instance.
+	//
+	//   - If the source instance is in a Local Zone, you can create the snapshots in
+	//     the same Local Zone or in its parent Region.
+	//
+	// For more information, see [Create an Amazon EBS-backed AMI] in the Amazon Elastic Compute Cloud User Guide.
+	//
+	// [Create an Amazon EBS-backed AMI]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html
+	CreateImage(ctx context.Context, params *ec2.CreateImageInput, optFns ...func(*Options)) (*ec2.CreateImageOutput, error)
+	// Creates a report that shows how your image is used across other Amazon Web
+	// Services accounts. The report provides visibility into which accounts are using
+	// the specified image, and how many resources (EC2 instances or launch templates)
+	// are referencing it.
+	//
+	// For more information, see [View your AMI usage] in the Amazon EC2 User Guide.
+	//
+	// [View your AMI usage]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/your-ec2-ami-usage.html
+	CreateImageUsageReport(ctx context.Context, params *ec2.CreateImageUsageReportInput, optFns ...func(*Options)) (*ec2.CreateImageUsageReportOutput, error)
+	// Creates an EC2 Instance Connect Endpoint.
+	//
+	// An EC2 Instance Connect Endpoint allows you to connect to an instance, without
+	// requiring the instance to have a public IPv4 or public IPv6 address. For more
+	// information, see [Connect to your instances using EC2 Instance Connect Endpoint]in the Amazon EC2 User Guide.
+	//
+	// [Connect to your instances using EC2 Instance Connect Endpoint]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Connect-using-EC2-Instance-Connect-Endpoint.html
+	CreateInstanceConnectEndpoint(ctx context.Context, params *ec2.CreateInstanceConnectEndpointInput, optFns ...func(*Options)) (*ec2.CreateInstanceConnectEndpointOutput, error)
 	// Creates an event window in which scheduled events for the associated Amazon EC2
-	// instances can run. You can define either a set of time ranges or a cron
-	// expression when creating the event window, but not both. All event window times
-	// are in UTC. You can create up to 200 event windows per Amazon Web Services
-	// Region. When you create the event window, targets (instance IDs, Dedicated Host
-	// IDs, or tags) are not yet associated with it. To ensure that the event window
-	// can be used, you must associate one or more targets with it by using the
-	// AssociateInstanceEventWindow API. Event windows are applicable only for
-	// scheduled events that stop, reboot, or terminate instances. Event windows are
-	// not applicable for:
+	// instances can run.
 	//
-	// * Expedited scheduled events and network maintenance
-	// events.
+	// You can define either a set of time ranges or a cron expression when creating
+	// the event window, but not both. All event window times are in UTC.
 	//
-	// * Unscheduled maintenance such as AutoRecovery and unplanned
-	// reboots.
+	// You can create up to 200 event windows per Amazon Web Services Region.
 	//
-	// For more information, see Define event windows for scheduled events
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/event-windows.html) in the
-	// Amazon EC2 User Guide.
-	CreateInstanceEventWindow(ctx context.Context, params *CreateInstanceEventWindowInput, optFns ...func(*Options)) (*CreateInstanceEventWindowOutput, error)
-	// Exports a running or stopped instance to an Amazon S3 bucket. For information
-	// about the supported operating systems, image formats, and known limitations for
-	// the types of instances you can export, see Exporting an instance as a VM Using
-	// VM Import/Export
-	// (https://docs.aws.amazon.com/vm-import/latest/userguide/vmexport.html) in the VM
-	// Import/Export User Guide.
-	CreateInstanceExportTask(ctx context.Context, params *CreateInstanceExportTaskInput, optFns ...func(*Options)) (*CreateInstanceExportTaskOutput, error)
+	// When you create the event window, targets (instance IDs, Dedicated Host IDs, or
+	// tags) are not yet associated with it. To ensure that the event window can be
+	// used, you must associate one or more targets with it by using the AssociateInstanceEventWindowAPI.
+	//
+	// Event windows are applicable only for scheduled events that stop, reboot, or
+	// terminate instances.
+	//
+	// Event windows are not applicable for:
+	//
+	//   - Expedited scheduled events and network maintenance events.
+	//
+	//   - Unscheduled maintenance such as AutoRecovery and unplanned reboots.
+	//
+	// For more information, see [Define event windows for scheduled events] in the Amazon EC2 User Guide.
+	//
+	// [Define event windows for scheduled events]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/event-windows.html
+	CreateInstanceEventWindow(ctx context.Context, params *ec2.CreateInstanceEventWindowInput, optFns ...func(*Options)) (*ec2.CreateInstanceEventWindowOutput, error)
+	// Exports a running or stopped instance to an Amazon S3 bucket.
+	//
+	// For information about the prerequisites for your Amazon S3 bucket, supported
+	// operating systems, image formats, and known limitations for the types of
+	// instances you can export, see [Exporting an instance as a VM Using VM Import/Export]in the VM Import/Export User Guide.
+	//
+	// [Exporting an instance as a VM Using VM Import/Export]: https://docs.aws.amazon.com/vm-import/latest/userguide/vmexport.html
+	CreateInstanceExportTask(ctx context.Context, params *ec2.CreateInstanceExportTaskInput, optFns ...func(*Options)) (*ec2.CreateInstanceExportTaskOutput, error)
 	// Creates an internet gateway for use with a VPC. After creating the internet
-	// gateway, you attach it to a VPC using AttachInternetGateway. For more
-	// information about your VPC and internet gateway, see the Amazon Virtual Private
-	// Cloud User Guide (https://docs.aws.amazon.com/vpc/latest/userguide/).
-	CreateInternetGateway(ctx context.Context, params *CreateInternetGatewayInput, optFns ...func(*Options)) (*CreateInternetGatewayOutput, error)
-	// Create an IPAM. Amazon VCP IP Address Manager (IPAM) is a VPC feature that you
+	// gateway, you attach it to a VPC using AttachInternetGateway.
+	//
+	// For more information, see [Internet gateways] in the Amazon VPC User Guide.
+	//
+	// [Internet gateways]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html
+	CreateInternetGateway(ctx context.Context, params *ec2.CreateInternetGatewayInput, optFns ...func(*Options)) (*ec2.CreateInternetGatewayOutput, error)
+	// Create an IPAM. Amazon VPC IP Address Manager (IPAM) is a VPC feature that you
 	// can use to automate your IP address management workflows including assigning,
 	// tracking, troubleshooting, and auditing IP addresses across Amazon Web Services
-	// Regions and accounts throughout your Amazon Web Services Organization. For more
-	// information, see Create an IPAM in the Amazon VPC IPAM User Guide.
-	CreateIpam(ctx context.Context, params *CreateIpamInput, optFns ...func(*Options)) (*CreateIpamOutput, error)
+	// Regions and accounts throughout your Amazon Web Services Organization.
+	//
+	// For more information, see [Create an IPAM] in the Amazon VPC IPAM User Guide.
+	//
+	// [Create an IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/create-ipam.html
+	CreateIpam(ctx context.Context, params *ec2.CreateIpamInput, optFns ...func(*Options)) (*ec2.CreateIpamOutput, error)
+	// Create a verification token. A verification token is an Amazon Web
+	// Services-generated random value that you can use to prove ownership of an
+	// external resource. For example, you can use a verification token to validate
+	// that you control a public IP address range when you bring an IP address range to
+	// Amazon Web Services (BYOIP).
+	CreateIpamExternalResourceVerificationToken(ctx context.Context, params *ec2.CreateIpamExternalResourceVerificationTokenInput, optFns ...func(*Options)) (*ec2.CreateIpamExternalResourceVerificationTokenOutput, error)
 	// Create an IP address pool for Amazon VPC IP Address Manager (IPAM). In IPAM, a
 	// pool is a collection of contiguous IP addresses CIDRs. Pools enable you to
 	// organize your IP addresses according to your routing and security needs. For
 	// example, if you have separate routing and security needs for development and
-	// production applications, you can create a pool for each. For more information,
-	// see Create a top-level pool in the Amazon VPC IPAM User Guide.
-	CreateIpamPool(ctx context.Context, params *CreateIpamPoolInput, optFns ...func(*Options)) (*CreateIpamPoolOutput, error)
+	// production applications, you can create a pool for each.
+	//
+	// For more information, see [Create a top-level pool] in the Amazon VPC IPAM User Guide.
+	//
+	// [Create a top-level pool]: https://docs.aws.amazon.com/vpc/latest/ipam/create-top-ipam.html
+	CreateIpamPool(ctx context.Context, params *ec2.CreateIpamPoolInput, optFns ...func(*Options)) (*ec2.CreateIpamPoolOutput, error)
+	// Creates an IPAM resource discovery. A resource discovery is an IPAM component
+	// that enables IPAM to manage and monitor resources that belong to the owning
+	// account.
+	CreateIpamResourceDiscovery(ctx context.Context, params *ec2.CreateIpamResourceDiscoveryInput, optFns ...func(*Options)) (*ec2.CreateIpamResourceDiscoveryOutput, error)
 	// Create an IPAM scope. In IPAM, a scope is the highest-level container within
 	// IPAM. An IPAM contains two default scopes. Each scope represents the IP space
 	// for a single network. The private scope is intended for all private IP address
 	// space. The public scope is intended for all public IP address space. Scopes
 	// enable you to reuse IP addresses across multiple unconnected networks without
-	// causing IP address overlap or conflict. For more information, see Add a scope in
-	// the Amazon VPC IPAM User Guide.
-	CreateIpamScope(ctx context.Context, params *CreateIpamScopeInput, optFns ...func(*Options)) (*CreateIpamScopeOutput, error)
-	// Creates an ED25519 or 2048-bit RSA key pair with the specified name. Amazon EC2
-	// stores the public key and displays the private key for you to save to a file.
-	// The private key is returned as an unencrypted PEM encoded PKCS#1 private key. If
-	// a key with the specified name already exists, Amazon EC2 returns an error. The
-	// key pair returned to you is available only in the Amazon Web Services Region in
-	// which you create it. If you prefer, you can create your own key pair using a
-	// third-party tool and upload it to any Region using ImportKeyPair. You can have
-	// up to 5,000 key pairs per Amazon Web Services Region. For more information, see
-	// Amazon EC2 key pairs
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	CreateKeyPair(ctx context.Context, params *CreateKeyPairInput, optFns ...func(*Options)) (*CreateKeyPairOutput, error)
-	// Creates a launch template. A launch template contains the parameters to launch
-	// an instance. When you launch an instance using RunInstances, you can specify a
-	// launch template instead of providing the launch parameters in the request. For
-	// more information, see Launching an instance from a launch template
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	CreateLaunchTemplate(ctx context.Context, params *CreateLaunchTemplateInput, optFns ...func(*Options)) (*CreateLaunchTemplateOutput, error)
-	// Creates a new version for a launch template. You can specify an existing version
-	// of launch template from which to base the new version. Launch template versions
-	// are numbered in the order in which they are created. You cannot specify, change,
-	// or replace the numbering of launch template versions. For more information, see
-	// Managing launch template versions
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html#manage-launch-template-versions)in
-	// the Amazon Elastic Compute Cloud User Guide.
-	CreateLaunchTemplateVersion(ctx context.Context, params *CreateLaunchTemplateVersionInput, optFns ...func(*Options)) (*CreateLaunchTemplateVersionOutput, error)
-	// Creates a static route for the specified local gateway route table.
-	CreateLocalGatewayRoute(ctx context.Context, params *CreateLocalGatewayRouteInput, optFns ...func(*Options)) (*CreateLocalGatewayRouteOutput, error)
+	// causing IP address overlap or conflict.
+	//
+	// For more information, see [Add a scope] in the Amazon VPC IPAM User Guide.
+	//
+	// [Add a scope]: https://docs.aws.amazon.com/vpc/latest/ipam/add-scope-ipam.html
+	CreateIpamScope(ctx context.Context, params *ec2.CreateIpamScopeInput, optFns ...func(*Options)) (*ec2.CreateIpamScopeOutput, error)
+	// Creates an ED25519 or 2048-bit RSA key pair with the specified name and in the
+	// specified format. Amazon EC2 stores the public key and displays the private key
+	// for you to save to a file. The private key is returned as an unencrypted PEM
+	// encoded PKCS#1 private key or an unencrypted PPK formatted private key for use
+	// with PuTTY. If a key with the specified name already exists, Amazon EC2 returns
+	// an error.
+	//
+	// The key pair returned to you is available only in the Amazon Web Services
+	// Region in which you create it. If you prefer, you can create your own key pair
+	// using a third-party tool and upload it to any Region using ImportKeyPair.
+	//
+	// You can have up to 5,000 key pairs per Amazon Web Services Region.
+	//
+	// For more information, see [Amazon EC2 key pairs] in the Amazon EC2 User Guide.
+	//
+	// [Amazon EC2 key pairs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html
+	CreateKeyPair(ctx context.Context, params *ec2.CreateKeyPairInput, optFns ...func(*Options)) (*ec2.CreateKeyPairOutput, error)
+	// Creates a launch template.
+	//
+	// A launch template contains the parameters to launch an instance. When you
+	// launch an instance using RunInstances, you can specify a launch template instead of
+	// providing the launch parameters in the request. For more information, see [Store instance launch parameters in Amazon EC2 launch templates]in
+	// the Amazon EC2 User Guide.
+	//
+	// To clone an existing launch template as the basis for a new launch template,
+	// use the Amazon EC2 console. The API, SDKs, and CLI do not support cloning a
+	// template. For more information, see [Create a launch template from an existing launch template]in the Amazon EC2 User Guide.
+	//
+	// [Create a launch template from an existing launch template]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-launch-template.html#create-launch-template-from-existing-launch-template
+	// [Store instance launch parameters in Amazon EC2 launch templates]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html
+	CreateLaunchTemplate(ctx context.Context, params *ec2.CreateLaunchTemplateInput, optFns ...func(*Options)) (*ec2.CreateLaunchTemplateOutput, error)
+	// Creates a new version of a launch template. You must specify an existing launch
+	// template, either by name or ID. You can determine whether the new version
+	// inherits parameters from a source version, and add or overwrite parameters as
+	// needed.
+	//
+	// Launch template versions are numbered in the order in which they are created.
+	// You can't specify, change, or replace the numbering of launch template versions.
+	//
+	// Launch templates are immutable; after you create a launch template, you can't
+	// modify it. Instead, you can create a new version of the launch template that
+	// includes the changes that you require.
+	//
+	// For more information, see [Modify a launch template (manage launch template versions)] in the Amazon EC2 User Guide.
+	//
+	// [Modify a launch template (manage launch template versions)]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/manage-launch-template-versions.html
+	CreateLaunchTemplateVersion(ctx context.Context, params *ec2.CreateLaunchTemplateVersionInput, optFns ...func(*Options)) (*ec2.CreateLaunchTemplateVersionOutput, error)
+	// Creates a static route for the specified local gateway route table. You must
+	// specify one of the following targets:
+	//
+	//   - LocalGatewayVirtualInterfaceGroupId
+	//
+	//   - NetworkInterfaceId
+	CreateLocalGatewayRoute(ctx context.Context, params *ec2.CreateLocalGatewayRouteInput, optFns ...func(*Options)) (*ec2.CreateLocalGatewayRouteOutput, error)
+	// Creates a local gateway route table.
+	CreateLocalGatewayRouteTable(ctx context.Context, params *ec2.CreateLocalGatewayRouteTableInput, optFns ...func(*Options)) (*ec2.CreateLocalGatewayRouteTableOutput, error)
+	// Creates a local gateway route table virtual interface group association.
+	CreateLocalGatewayRouteTableVirtualInterfaceGroupAssociation(ctx context.Context, params *ec2.CreateLocalGatewayRouteTableVirtualInterfaceGroupAssociationInput, optFns ...func(*Options)) (*ec2.CreateLocalGatewayRouteTableVirtualInterfaceGroupAssociationOutput, error)
 	// Associates the specified VPC with the specified local gateway route table.
-	CreateLocalGatewayRouteTableVpcAssociation(ctx context.Context, params *CreateLocalGatewayRouteTableVpcAssociationInput, optFns ...func(*Options)) (*CreateLocalGatewayRouteTableVpcAssociationOutput, error)
-	// Creates a managed prefix list. You can specify one or more entries for the
-	// prefix list. Each entry consists of a CIDR block and an optional description.
-	CreateManagedPrefixList(ctx context.Context, params *CreateManagedPrefixListInput, optFns ...func(*Options)) (*CreateManagedPrefixListOutput, error)
+	CreateLocalGatewayRouteTableVpcAssociation(ctx context.Context, params *ec2.CreateLocalGatewayRouteTableVpcAssociationInput, optFns ...func(*Options)) (*ec2.CreateLocalGatewayRouteTableVpcAssociationOutput, error)
+	// Create a virtual interface for a local gateway.
+	CreateLocalGatewayVirtualInterface(ctx context.Context, params *ec2.CreateLocalGatewayVirtualInterfaceInput, optFns ...func(*Options)) (*ec2.CreateLocalGatewayVirtualInterfaceOutput, error)
+	// Create a local gateway virtual interface group.
+	CreateLocalGatewayVirtualInterfaceGroup(ctx context.Context, params *ec2.CreateLocalGatewayVirtualInterfaceGroupInput, optFns ...func(*Options)) (*ec2.CreateLocalGatewayVirtualInterfaceGroupOutput, error)
+	// Creates a System Integrity Protection (SIP) modification task to configure the
+	// SIP settings for an x86 Mac instance or Apple silicon Mac instance. For more
+	// information, see [Configure SIP for Amazon EC2 instances]in the Amazon EC2 User Guide.
+	//
+	// When you configure the SIP settings for your instance, you can either enable or
+	// disable all SIP settings, or you can specify a custom SIP configuration that
+	// selectively enables or disables specific SIP settings.
+	//
+	// If you implement a custom configuration, [connect to the instance and verify the settings] to ensure that your requirements are
+	// properly implemented and functioning as intended.
+	//
+	// SIP configurations might change with macOS updates. We recommend that you
+	// review custom SIP settings after any macOS version upgrade to ensure continued
+	// compatibility and proper functionality of your security configurations.
+	//
+	// To enable or disable all SIP settings, use the
+	// MacSystemIntegrityProtectionStatus parameter only. For example, to enable all
+	// SIP settings, specify the following:
+	//
+	//   - MacSystemIntegrityProtectionStatus=enabled
+	//
+	// To specify a custom configuration that selectively enables or disables specific
+	// SIP settings, use the MacSystemIntegrityProtectionStatus parameter to enable or
+	// disable all SIP settings, and then use the
+	// MacSystemIntegrityProtectionConfiguration parameter to specify exceptions. In
+	// this case, the exceptions you specify for
+	// MacSystemIntegrityProtectionConfiguration override the value you specify for
+	// MacSystemIntegrityProtectionStatus. For example, to enable all SIP settings,
+	// except NvramProtections , specify the following:
+	//
+	//   - MacSystemIntegrityProtectionStatus=enabled
+	//
+	//   - MacSystemIntegrityProtectionConfigurationRequest "NvramProtections=disabled"
+	//
+	// [Configure SIP for Amazon EC2 instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/mac-sip-settings.html#mac-sip-configure
+	// [connect to the instance and verify the settings]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/mac-sip-settings.html#mac-sip-check-settings
+	CreateMacSystemIntegrityProtectionModificationTask(ctx context.Context, params *ec2.CreateMacSystemIntegrityProtectionModificationTaskInput, optFns ...func(*Options)) (*ec2.CreateMacSystemIntegrityProtectionModificationTaskOutput, error)
+	// Creates a managed prefix list. You can specify entries for the prefix list.
+	// Each entry consists of a CIDR block and an optional description.
+	CreateManagedPrefixList(ctx context.Context, params *ec2.CreateManagedPrefixListInput, optFns ...func(*Options)) (*ec2.CreateManagedPrefixListOutput, error)
 	// Creates a NAT gateway in the specified subnet. This action creates a network
 	// interface in the specified subnet with a private IP address from the IP address
 	// range of the subnet. You can create either a public NAT gateway or a private NAT
-	// gateway. With a public NAT gateway, internet-bound traffic from a private subnet
-	// can be routed to the NAT gateway, so that instances in a private subnet can
-	// connect to the internet. With a private NAT gateway, private communication is
-	// routed across VPCs and on-premises networks through a transit gateway or virtual
-	// private gateway. Common use cases include running large workloads behind a small
-	// pool of allowlisted IPv4 addresses, preserving private IPv4 addresses, and
-	// communicating between overlapping networks. For more information, see NAT
-	// gateways (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html)
-	// in the Amazon Virtual Private Cloud User Guide.
-	CreateNatGateway(ctx context.Context, params *CreateNatGatewayInput, optFns ...func(*Options)) (*CreateNatGatewayOutput, error)
+	// gateway.
+	//
+	// With a public NAT gateway, internet-bound traffic from a private subnet can be
+	// routed to the NAT gateway, so that instances in a private subnet can connect to
+	// the internet.
+	//
+	// With a private NAT gateway, private communication is routed across VPCs and
+	// on-premises networks through a transit gateway or virtual private gateway.
+	// Common use cases include running large workloads behind a small pool of
+	// allowlisted IPv4 addresses, preserving private IPv4 addresses, and communicating
+	// between overlapping networks.
+	//
+	// For more information, see [NAT gateways] in the Amazon VPC User Guide.
+	//
+	// When you create a public NAT gateway and assign it an EIP or secondary EIPs,
+	// the network border group of the EIPs must match the network border group of the
+	// Availability Zone (AZ) that the public NAT gateway is in. If it's not the same,
+	// the NAT gateway will fail to launch. You can see the network border group for
+	// the subnet's AZ by viewing the details of the subnet. Similarly, you can view
+	// the network border group of an EIP by viewing the details of the EIP address.
+	// For more information about network border groups and EIPs, see [Allocate an Elastic IP address]in the Amazon
+	// VPC User Guide.
+	//
+	// [NAT gateways]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html
+	// [Allocate an Elastic IP address]: https://docs.aws.amazon.com/vpc/latest/userguide/WorkWithEIPs.html
+	CreateNatGateway(ctx context.Context, params *ec2.CreateNatGatewayInput, optFns ...func(*Options)) (*ec2.CreateNatGatewayOutput, error)
 	// Creates a network ACL in a VPC. Network ACLs provide an optional layer of
-	// security (in addition to security groups) for the instances in your VPC. For
-	// more information, see Network ACLs
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_ACLs.html) in the Amazon
-	// Virtual Private Cloud User Guide.
-	CreateNetworkAcl(ctx context.Context, params *CreateNetworkAclInput, optFns ...func(*Options)) (*CreateNetworkAclOutput, error)
+	// security (in addition to security groups) for the instances in your VPC.
+	//
+	// For more information, see [Network ACLs] in the Amazon VPC User Guide.
+	//
+	// [Network ACLs]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html
+	CreateNetworkAcl(ctx context.Context, params *ec2.CreateNetworkAclInput, optFns ...func(*Options)) (*ec2.CreateNetworkAclOutput, error)
 	// Creates an entry (a rule) in a network ACL with the specified rule number. Each
 	// network ACL has a set of numbered ingress rules and a separate set of numbered
 	// egress rules. When determining whether a packet should be allowed in or out of a
 	// subnet associated with the ACL, we process the entries in the ACL according to
 	// the rule numbers, in ascending order. Each network ACL has a set of ingress
-	// rules and a separate set of egress rules. We recommend that you leave room
-	// between the rule numbers (for example, 100, 110, 120, ...), and not number them
-	// one right after the other (for example, 101, 102, 103, ...). This makes it
-	// easier to add a rule between existing ones without having to renumber the rules.
+	// rules and a separate set of egress rules.
+	//
+	// We recommend that you leave room between the rule numbers (for example, 100,
+	// 110, 120, ...), and not number them one right after the other (for example, 101,
+	// 102, 103, ...). This makes it easier to add a rule between existing ones without
+	// having to renumber the rules.
+	//
 	// After you add an entry, you can't modify it; you must either replace it, or
-	// create an entry and delete the old one. For more information about network ACLs,
-	// see Network ACLs
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_ACLs.html) in the Amazon
-	// Virtual Private Cloud User Guide.
-	CreateNetworkAclEntry(ctx context.Context, params *CreateNetworkAclEntryInput, optFns ...func(*Options)) (*CreateNetworkAclEntryOutput, error)
-	// Creates a Network Access Scope. Amazon Web Services Network Access Analyzer
-	// enables cloud networking and cloud operations teams to verify that their
-	// networks on Amazon Web Services conform to their network security and governance
-	// objectives. For more information, see the Amazon Web Services Network Access
-	// Analyzer Guide
-	// (https://docs.aws.amazon.com/vpc/latest/network-access-analyzer/).
-	CreateNetworkInsightsAccessScope(ctx context.Context, params *CreateNetworkInsightsAccessScopeInput, optFns ...func(*Options)) (*CreateNetworkInsightsAccessScopeOutput, error)
-	// Creates a path to analyze for reachability. Reachability Analyzer enables you to
-	// analyze and debug network reachability between two resources in your virtual
-	// private cloud (VPC). For more information, see What is Reachability Analyzer
-	// (https://docs.aws.amazon.com/vpc/latest/reachability/).
-	CreateNetworkInsightsPath(ctx context.Context, params *CreateNetworkInsightsPathInput, optFns ...func(*Options)) (*CreateNetworkInsightsPathOutput, error)
-	// Creates a network interface in the specified subnet. For more information about
-	// network interfaces, see Elastic Network Interfaces
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	CreateNetworkInterface(ctx context.Context, params *CreateNetworkInterfaceInput, optFns ...func(*Options)) (*CreateNetworkInterfaceOutput, error)
+	// create an entry and delete the old one.
+	//
+	// For more information about network ACLs, see [Network ACLs] in the Amazon VPC User Guide.
+	//
+	// [Network ACLs]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html
+	CreateNetworkAclEntry(ctx context.Context, params *ec2.CreateNetworkAclEntryInput, optFns ...func(*Options)) (*ec2.CreateNetworkAclEntryOutput, error)
+	// Creates a Network Access Scope.
+	//
+	// Amazon Web Services Network Access Analyzer enables cloud networking and cloud
+	// operations teams to verify that their networks on Amazon Web Services conform to
+	// their network security and governance objectives. For more information, see the [Amazon Web Services Network Access Analyzer Guide]
+	// .
+	//
+	// [Amazon Web Services Network Access Analyzer Guide]: https://docs.aws.amazon.com/vpc/latest/network-access-analyzer/
+	CreateNetworkInsightsAccessScope(ctx context.Context, params *ec2.CreateNetworkInsightsAccessScopeInput, optFns ...func(*Options)) (*ec2.CreateNetworkInsightsAccessScopeOutput, error)
+	// Creates a path to analyze for reachability.
+	//
+	// Reachability Analyzer enables you to analyze and debug network reachability
+	// between two resources in your virtual private cloud (VPC). For more information,
+	// see the [Reachability Analyzer Guide].
+	//
+	// [Reachability Analyzer Guide]: https://docs.aws.amazon.com/vpc/latest/reachability/
+	CreateNetworkInsightsPath(ctx context.Context, params *ec2.CreateNetworkInsightsPathInput, optFns ...func(*Options)) (*ec2.CreateNetworkInsightsPathOutput, error)
+	// Creates a network interface in the specified subnet.
+	//
+	// The number of IP addresses you can assign to a network interface varies by
+	// instance type.
+	//
+	// For more information about network interfaces, see [Elastic network interfaces] in the Amazon EC2 User
+	// Guide.
+	//
+	// [Elastic network interfaces]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
+	CreateNetworkInterface(ctx context.Context, params *ec2.CreateNetworkInterfaceInput, optFns ...func(*Options)) (*ec2.CreateNetworkInterfaceOutput, error)
 	// Grants an Amazon Web Services-authorized account permission to attach the
-	// specified network interface to an instance in their account. You can grant
-	// permission to a single Amazon Web Services account only, and only one account at
-	// a time.
-	CreateNetworkInterfacePermission(ctx context.Context, params *CreateNetworkInterfacePermissionInput, optFns ...func(*Options)) (*CreateNetworkInterfacePermissionOutput, error)
+	// specified network interface to an instance in their account.
+	//
+	// You can grant permission to a single Amazon Web Services account only, and only
+	// one account at a time.
+	CreateNetworkInterfacePermission(ctx context.Context, params *ec2.CreateNetworkInterfacePermissionInput, optFns ...func(*Options)) (*ec2.CreateNetworkInterfacePermissionOutput, error)
 	// Creates a placement group in which to launch instances. The strategy of the
-	// placement group determines how the instances are organized within the group. A
-	// cluster placement group is a logical grouping of instances within a single
+	// placement group determines how the instances are organized within the group.
+	//
+	// A cluster placement group is a logical grouping of instances within a single
 	// Availability Zone that benefit from low network latency, high network
 	// throughput. A spread placement group places instances on distinct hardware. A
 	// partition placement group places groups of instances in different partitions,
 	// where instances in one partition do not share the same hardware with instances
-	// in another partition. For more information, see Placement groups
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html) in
-	// the Amazon EC2 User Guide.
-	CreatePlacementGroup(ctx context.Context, params *CreatePlacementGroupInput, optFns ...func(*Options)) (*CreatePlacementGroupOutput, error)
-	// Creates a public IPv4 address pool. A public IPv4 pool is an EC2 IP address pool
-	// required for the public IPv4 CIDRs that you own and bring to Amazon Web Services
-	// to manage with IPAM. IPv6 addresses you bring to Amazon Web Services, however,
-	// use IPAM pools only. To monitor the status of pool creation, use
-	// DescribePublicIpv4Pools
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribePublicIpv4Pools.html).
-	CreatePublicIpv4Pool(ctx context.Context, params *CreatePublicIpv4PoolInput, optFns ...func(*Options)) (*CreatePublicIpv4PoolOutput, error)
-	// Creates a root volume replacement task for an Amazon EC2 instance. The root
-	// volume can either be restored to its initial launch state, or it can be restored
-	// using a specific snapshot. For more information, see Replace a root volume
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-restoring-volume.html#replace-root)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	CreateReplaceRootVolumeTask(ctx context.Context, params *CreateReplaceRootVolumeTaskInput, optFns ...func(*Options)) (*CreateReplaceRootVolumeTaskOutput, error)
+	// in another partition.
+	//
+	// For more information, see [Placement groups] in the Amazon EC2 User Guide.
+	//
+	// [Placement groups]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html
+	CreatePlacementGroup(ctx context.Context, params *ec2.CreatePlacementGroupInput, optFns ...func(*Options)) (*ec2.CreatePlacementGroupOutput, error)
+	// Creates a public IPv4 address pool. A public IPv4 pool is an EC2 IP address
+	// pool required for the public IPv4 CIDRs that you own and bring to Amazon Web
+	// Services to manage with IPAM. IPv6 addresses you bring to Amazon Web Services,
+	// however, use IPAM pools only. To monitor the status of pool creation, use [DescribePublicIpv4Pools].
+	//
+	// [DescribePublicIpv4Pools]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribePublicIpv4Pools.html
+	CreatePublicIpv4Pool(ctx context.Context, params *ec2.CreatePublicIpv4PoolInput, optFns ...func(*Options)) (*ec2.CreatePublicIpv4PoolOutput, error)
+	// Replaces the EBS-backed root volume for a running instance with a new volume
+	// that is restored to the original root volume's launch state, that is restored to
+	// a specific snapshot taken from the original root volume, or that is restored
+	// from an AMI that has the same key characteristics as that of the instance.
+	//
+	// For more information, see [Replace a root volume] in the Amazon EC2 User Guide.
+	//
+	// [Replace a root volume]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/replace-root.html
+	CreateReplaceRootVolumeTask(ctx context.Context, params *ec2.CreateReplaceRootVolumeTaskInput, optFns ...func(*Options)) (*ec2.CreateReplaceRootVolumeTaskOutput, error)
 	// Creates a listing for Amazon EC2 Standard Reserved Instances to be sold in the
 	// Reserved Instance Marketplace. You can submit one Standard Reserved Instance
 	// listing at a time. To get a list of your Standard Reserved Instances, you can
-	// use the DescribeReservedInstances operation. Only Standard Reserved Instances
-	// can be sold in the Reserved Instance Marketplace. Convertible Reserved Instances
-	// cannot be sold. The Reserved Instance Marketplace matches sellers who want to
-	// resell Standard Reserved Instance capacity that they no longer need with buyers
-	// who want to purchase additional capacity. Reserved Instances bought and sold
-	// through the Reserved Instance Marketplace work like any other Reserved
-	// Instances. To sell your Standard Reserved Instances, you must first register as
-	// a seller in the Reserved Instance Marketplace. After completing the registration
-	// process, you can create a Reserved Instance Marketplace listing of some or all
-	// of your Standard Reserved Instances, and specify the upfront price to receive
-	// for them. Your Standard Reserved Instance listings then become available for
-	// purchase. To view the details of your Standard Reserved Instance listing, you
-	// can use the DescribeReservedInstancesListings operation. For more information,
-	// see Reserved Instance Marketplace
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html) in
-	// the Amazon EC2 User Guide.
-	CreateReservedInstancesListing(ctx context.Context, params *CreateReservedInstancesListingInput, optFns ...func(*Options)) (*CreateReservedInstancesListingOutput, error)
+	// use the DescribeReservedInstancesoperation.
+	//
+	// Only Standard Reserved Instances can be sold in the Reserved Instance
+	// Marketplace. Convertible Reserved Instances cannot be sold.
+	//
+	// The Reserved Instance Marketplace matches sellers who want to resell Standard
+	// Reserved Instance capacity that they no longer need with buyers who want to
+	// purchase additional capacity. Reserved Instances bought and sold through the
+	// Reserved Instance Marketplace work like any other Reserved Instances.
+	//
+	// To sell your Standard Reserved Instances, you must first register as a seller
+	// in the Reserved Instance Marketplace. After completing the registration process,
+	// you can create a Reserved Instance Marketplace listing of some or all of your
+	// Standard Reserved Instances, and specify the upfront price to receive for them.
+	// Your Standard Reserved Instance listings then become available for purchase. To
+	// view the details of your Standard Reserved Instance listing, you can use the DescribeReservedInstancesListings
+	// operation.
+	//
+	// For more information, see [Sell in the Reserved Instance Marketplace] in the Amazon EC2 User Guide.
+	//
+	// [Sell in the Reserved Instance Marketplace]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html
+	CreateReservedInstancesListing(ctx context.Context, params *ec2.CreateReservedInstancesListingInput, optFns ...func(*Options)) (*ec2.CreateReservedInstancesListingOutput, error)
 	// Starts a task that restores an AMI from an Amazon S3 object that was previously
-	// created by using CreateStoreImageTask
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateStoreImageTask.html).
+	// created by using [CreateStoreImageTask].
+	//
 	// To use this API, you must have the required permissions. For more information,
-	// see Permissions for storing and restoring AMIs using Amazon S3
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-store-restore.html#ami-s3-permissions)
-	// in the Amazon Elastic Compute Cloud User Guide. For more information, see Store
-	// and restore an AMI using Amazon S3
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-store-restore.html) in
-	// the Amazon Elastic Compute Cloud User Guide.
-	CreateRestoreImageTask(ctx context.Context, params *CreateRestoreImageTaskInput, optFns ...func(*Options)) (*CreateRestoreImageTaskOutput, error)
-	// Creates a route in a route table within a VPC. You must specify one of the
-	// following targets: internet gateway or virtual private gateway, NAT instance,
-	// NAT gateway, VPC peering connection, network interface, egress-only internet
-	// gateway, or transit gateway. When determining how to route traffic, we use the
-	// route with the most specific match. For example, traffic is destined for the
-	// IPv4 address 192.0.2.3, and the route table includes the following two IPv4
-	// routes:
+	// see [Permissions for storing and restoring AMIs using S3]in the Amazon EC2 User Guide.
 	//
-	// * 192.0.2.0/24 (goes to some target A)
+	// For more information, see [Store and restore an AMI using S3] in the Amazon EC2 User Guide.
 	//
-	// * 192.0.2.0/28 (goes to some
-	// target B)
+	// [CreateStoreImageTask]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateStoreImageTask.html
+	// [Store and restore an AMI using S3]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-store-restore.html
+	// [Permissions for storing and restoring AMIs using S3]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/work-with-ami-store-restore.html#ami-s3-permissions
+	CreateRestoreImageTask(ctx context.Context, params *ec2.CreateRestoreImageTaskInput, optFns ...func(*Options)) (*ec2.CreateRestoreImageTaskOutput, error)
+	// Creates a route in a route table within a VPC.
 	//
-	// Both routes apply to the traffic destined for 192.0.2.3. However, the
-	// second route in the list covers a smaller number of IP addresses and is
-	// therefore more specific, so we use that route to determine where to target the
-	// traffic. For more information about route tables, see Route tables
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	CreateRoute(ctx context.Context, params *CreateRouteInput, optFns ...func(*Options)) (*CreateRouteOutput, error)
-	// Creates a route table for the specified VPC. After you create a route table, you
-	// can add routes and associate the table with a subnet. For more information, see
-	// Route tables
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	CreateRouteTable(ctx context.Context, params *CreateRouteTableInput, optFns ...func(*Options)) (*CreateRouteTableOutput, error)
-	// Creates a security group. A security group acts as a virtual firewall for your
-	// instance to control inbound and outbound traffic. For more information, see
-	// Amazon EC2 security groups
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
-	// in the Amazon Elastic Compute Cloud User Guide and Security groups for your VPC
-	// (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html)
-	// in the Amazon Virtual Private Cloud User Guide. When you create a security
-	// group, you specify a friendly name of your choice. You can have a security group
-	// for use in EC2-Classic with the same name as a security group for use in a VPC.
-	// However, you can't have two security groups for use in EC2-Classic with the same
-	// name or two security groups for use in a VPC with the same name. You have a
-	// default security group for use in EC2-Classic and a default security group for
-	// use in your VPC. If you don't specify a security group when you launch an
-	// instance, the instance is launched into the appropriate default security group.
-	// A default security group includes a default rule that grants instances
-	// unrestricted network access to each other. You can add or remove rules from your
-	// security groups using AuthorizeSecurityGroupIngress,
-	// AuthorizeSecurityGroupEgress, RevokeSecurityGroupIngress, and
-	// RevokeSecurityGroupEgress. For more information about VPC security group limits,
-	// see Amazon VPC Limits
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html).
-	CreateSecurityGroup(ctx context.Context, params *CreateSecurityGroupInput, optFns ...func(*Options)) (*CreateSecurityGroupOutput, error)
+	// You must specify either a destination CIDR block or a prefix list ID. You must
+	// also specify exactly one of the resources from the parameter list.
+	//
+	// When determining how to route traffic, we use the route with the most specific
+	// match. For example, traffic is destined for the IPv4 address 192.0.2.3 , and the
+	// route table includes the following two IPv4 routes:
+	//
+	//   - 192.0.2.0/24 (goes to some target A)
+	//
+	//   - 192.0.2.0/28 (goes to some target B)
+	//
+	// Both routes apply to the traffic destined for 192.0.2.3 . However, the second
+	// route in the list covers a smaller number of IP addresses and is therefore more
+	// specific, so we use that route to determine where to target the traffic.
+	//
+	// For more information about route tables, see [Route tables] in the Amazon VPC User Guide.
+	//
+	// [Route tables]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
+	CreateRoute(ctx context.Context, params *ec2.CreateRouteInput, optFns ...func(*Options)) (*ec2.CreateRouteOutput, error)
+	// Creates a new route server to manage dynamic routing in a VPC.
+	//
+	// Amazon VPC Route Server simplifies routing for traffic between workloads that
+	// are deployed within a VPC and its internet gateways. With this feature, VPC
+	// Route Server dynamically updates VPC and internet gateway route tables with your
+	// preferred IPv4 or IPv6 routes to achieve routing fault tolerance for those
+	// workloads. This enables you to automatically reroute traffic within a VPC, which
+	// increases the manageability of VPC routing and interoperability with third-party
+	// workloads.
+	//
+	// Route server supports the follow route table types:
+	//
+	//   - VPC route tables not associated with subnets
+	//
+	//   - Subnet route tables
+	//
+	//   - Internet gateway route tables
+	//
+	// Route server does not support route tables associated with virtual private
+	// gateways. To propagate routes into a transit gateway route table, use [Transit Gateway Connect].
+	//
+	// For more information see [Dynamic routing in your VPC with VPC Route Server] in the Amazon VPC User Guide.
+	//
+	// [Dynamic routing in your VPC with VPC Route Server]: https://docs.aws.amazon.com/vpc/latest/userguide/dynamic-routing-route-server.html
+	// [Transit Gateway Connect]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-connect.html
+	CreateRouteServer(ctx context.Context, params *ec2.CreateRouteServerInput, optFns ...func(*Options)) (*ec2.CreateRouteServerOutput, error)
+	// Creates a new endpoint for a route server in a specified subnet.
+	//
+	// A route server endpoint is an Amazon Web Services-managed component inside a
+	// subnet that facilitates [BGP (Border Gateway Protocol)]connections between your route server and your BGP
+	// peers.
+	//
+	// For more information see [Dynamic routing in your VPC with VPC Route Server] in the Amazon VPC User Guide.
+	//
+	// [Dynamic routing in your VPC with VPC Route Server]: https://docs.aws.amazon.com/vpc/latest/userguide/dynamic-routing-route-server.html
+	// [BGP (Border Gateway Protocol)]: https://en.wikipedia.org/wiki/Border_Gateway_Protocol
+	CreateRouteServerEndpoint(ctx context.Context, params *ec2.CreateRouteServerEndpointInput, optFns ...func(*Options)) (*ec2.CreateRouteServerEndpointOutput, error)
+	// Creates a new BGP peer for a specified route server endpoint.
+	//
+	// A route server peer is a session between a route server endpoint and the device
+	// deployed in Amazon Web Services (such as a firewall appliance or other network
+	// security function running on an EC2 instance). The device must meet these
+	// requirements:
+	//
+	//   - Have an elastic network interface in the VPC
+	//
+	//   - Support BGP (Border Gateway Protocol)
+	//
+	//   - Can initiate BGP sessions
+	//
+	// For more information see [Dynamic routing in your VPC with VPC Route Server] in the Amazon VPC User Guide.
+	//
+	// [Dynamic routing in your VPC with VPC Route Server]: https://docs.aws.amazon.com/vpc/latest/userguide/dynamic-routing-route-server.html
+	CreateRouteServerPeer(ctx context.Context, params *ec2.CreateRouteServerPeerInput, optFns ...func(*Options)) (*ec2.CreateRouteServerPeerOutput, error)
+	// Creates a route table for the specified VPC. After you create a route table,
+	// you can add routes and associate the table with a subnet.
+	//
+	// For more information, see [Route tables] in the Amazon VPC User Guide.
+	//
+	// [Route tables]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
+	CreateRouteTable(ctx context.Context, params *ec2.CreateRouteTableInput, optFns ...func(*Options)) (*ec2.CreateRouteTableOutput, error)
+	// Creates a security group.
+	//
+	// A security group acts as a virtual firewall for your instance to control
+	// inbound and outbound traffic. For more information, see [Amazon EC2 security groups]in the Amazon EC2 User
+	// Guide and [Security groups for your VPC]in the Amazon VPC User Guide.
+	//
+	// When you create a security group, you specify a friendly name of your choice.
+	// You can't have two security groups for the same VPC with the same name.
+	//
+	// You have a default security group for use in your VPC. If you don't specify a
+	// security group when you launch an instance, the instance is launched into the
+	// appropriate default security group. A default security group includes a default
+	// rule that grants instances unrestricted network access to each other.
+	//
+	// You can add or remove rules from your security groups using AuthorizeSecurityGroupIngress, AuthorizeSecurityGroupEgress, RevokeSecurityGroupIngress, and RevokeSecurityGroupEgress.
+	//
+	// For more information about VPC security group limits, see [Amazon VPC Limits].
+	//
+	// [Amazon VPC Limits]: https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html
+	// [Amazon EC2 security groups]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html
+	// [Security groups for your VPC]: https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html
+	CreateSecurityGroup(ctx context.Context, params *ec2.CreateSecurityGroupInput, optFns ...func(*Options)) (*ec2.CreateSecurityGroupOutput, error)
 	// Creates a snapshot of an EBS volume and stores it in Amazon S3. You can use
 	// snapshots for backups, to make copies of EBS volumes, and to save data before
-	// shutting down an instance. You can create snapshots of volumes in a Region and
-	// volumes on an Outpost. If you create a snapshot of a volume in a Region, the
-	// snapshot must be stored in the same Region as the volume. If you create a
-	// snapshot of a volume on an Outpost, the snapshot can be stored on the same
-	// Outpost as the volume, or in the Region for that Outpost. When a snapshot is
-	// created, any Amazon Web Services Marketplace product codes that are associated
-	// with the source volume are propagated to the snapshot. You can take a snapshot
-	// of an attached volume that is in use. However, snapshots only capture data that
-	// has been written to your Amazon EBS volume at the time the snapshot command is
-	// issued; this might exclude any data that has been cached by any applications or
-	// the operating system. If you can pause any file systems on the volume long
-	// enough to take a snapshot, your snapshot should be complete. However, if you
-	// cannot pause all file writes to the volume, you should unmount the volume from
-	// within the instance, issue the snapshot command, and then remount the volume to
-	// ensure a consistent and complete snapshot. You may remount and use your volume
-	// while the snapshot status is pending. To create a snapshot for Amazon EBS
-	// volumes that serve as root devices, you should stop the instance before taking
-	// the snapshot. Snapshots that are taken from encrypted volumes are automatically
-	// encrypted. Volumes that are created from encrypted snapshots are also
-	// automatically encrypted. Your encrypted volumes and any associated snapshots
-	// always remain protected. You can tag your snapshots during creation. For more
-	// information, see Tag your Amazon EC2 resources
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html) in the
-	// Amazon Elastic Compute Cloud User Guide. For more information, see Amazon
-	// Elastic Block Store
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AmazonEBS.html) and Amazon
-	// EBS encryption
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	CreateSnapshot(ctx context.Context, params *CreateSnapshotInput, optFns ...func(*Options)) (*CreateSnapshotOutput, error)
-	// Creates crash-consistent snapshots of multiple EBS volumes and stores the data
-	// in S3. Volumes are chosen by specifying an instance. Any attached volumes will
-	// produce one snapshot each that is crash-consistent across the instance. Boot
-	// volumes can be excluded by changing the parameters. You can create multi-volume
-	// snapshots of instances in a Region and instances on an Outpost. If you create
-	// snapshots from an instance in a Region, the snapshots must be stored in the same
-	// Region as the instance. If you create snapshots from an instance on an Outpost,
-	// the snapshots can be stored on the same Outpost as the instance, or in the
-	// Region for that Outpost.
-	CreateSnapshots(ctx context.Context, params *CreateSnapshotsInput, optFns ...func(*Options)) (*CreateSnapshotsOutput, error)
-	// Creates a data feed for Spot Instances, enabling you to view Spot Instance usage
-	// logs. You can create one data feed per Amazon Web Services account. For more
-	// information, see Spot Instance data feed
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-data-feeds.html) in
-	// the Amazon EC2 User Guide for Linux Instances.
-	CreateSpotDatafeedSubscription(ctx context.Context, params *CreateSpotDatafeedSubscriptionInput, optFns ...func(*Options)) (*CreateSpotDatafeedSubscriptionOutput, error)
-	// Stores an AMI as a single object in an Amazon S3 bucket. To use this API, you
-	// must have the required permissions. For more information, see Permissions for
-	// storing and restoring AMIs using Amazon S3
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-store-restore.html#ami-s3-permissions)
-	// in the Amazon Elastic Compute Cloud User Guide. For more information, see Store
-	// and restore an AMI using Amazon S3
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-store-restore.html) in
-	// the Amazon Elastic Compute Cloud User Guide.
-	CreateStoreImageTask(ctx context.Context, params *CreateStoreImageTaskInput, optFns ...func(*Options)) (*CreateStoreImageTaskOutput, error)
-	// Creates a subnet in a specified VPC. You must specify an IPv4 CIDR block for the
-	// subnet. After you create a subnet, you can't change its CIDR block. The allowed
-	// block size is between a /16 netmask (65,536 IP addresses) and /28 netmask (16 IP
-	// addresses). The CIDR block must not overlap with the CIDR block of an existing
-	// subnet in the VPC. If you've associated an IPv6 CIDR block with your VPC, you
-	// can create a subnet with an IPv6 CIDR block that uses a /64 prefix length.
-	// Amazon Web Services reserves both the first four and the last IPv4 address in
-	// each subnet's CIDR block. They're not available for use. If you add more than
-	// one subnet to a VPC, they're set up in a star topology with a logical router in
-	// the middle. When you stop an instance in a subnet, it retains its private IPv4
-	// address. It's therefore possible to have a subnet with no running instances
-	// (they're all stopped), but no remaining IP addresses available. For more
-	// information about subnets, see Your VPC and subnets
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	CreateSubnet(ctx context.Context, params *CreateSubnetInput, optFns ...func(*Options)) (*CreateSubnetOutput, error)
-	// Creates a subnet CIDR reservation. For information about subnet CIDR
-	// reservations, see Subnet CIDR reservations
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/subnet-cidr-reservation.html)
-	// in the Amazon Virtual Private Cloud User Guide.
-	CreateSubnetCidrReservation(ctx context.Context, params *CreateSubnetCidrReservationInput, optFns ...func(*Options)) (*CreateSubnetCidrReservationOutput, error)
-	// Adds or overwrites only the specified tags for the specified Amazon EC2 resource
-	// or resources. When you specify an existing tag key, the value is overwritten
-	// with the new value. Each resource can have a maximum of 50 tags. Each tag
-	// consists of a key and optional value. Tag keys must be unique per resource. For
-	// more information about tags, see Tagging Your Resources
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html) in the
-	// Amazon Elastic Compute Cloud User Guide. For more information about creating IAM
-	// policies that control users' access to resources based on tags, see Supported
-	// Resource-Level Permissions for Amazon EC2 API Actions
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-supported-iam-actions-resources.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	CreateTags(ctx context.Context, params *CreateTagsInput, optFns ...func(*Options)) (*CreateTagsOutput, error)
-	// Creates a Traffic Mirror filter. A Traffic Mirror filter is a set of rules that
-	// defines the traffic to mirror. By default, no traffic is mirrored. To mirror
-	// traffic, use CreateTrafficMirrorFilterRule
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateTrafficMirrorFilterRule.htm)
-	// to add Traffic Mirror rules to the filter. The rules you add define what traffic
-	// gets mirrored. You can also use ModifyTrafficMirrorFilterNetworkServices
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyTrafficMirrorFilterNetworkServices.html)
-	// to mirror supported network services.
-	CreateTrafficMirrorFilter(ctx context.Context, params *CreateTrafficMirrorFilterInput, optFns ...func(*Options)) (*CreateTrafficMirrorFilterOutput, error)
-	// Creates a Traffic Mirror filter rule. A Traffic Mirror rule defines the Traffic
-	// Mirror source traffic to mirror. You need the Traffic Mirror filter ID when you
-	// create the rule.
-	CreateTrafficMirrorFilterRule(ctx context.Context, params *CreateTrafficMirrorFilterRuleInput, optFns ...func(*Options)) (*CreateTrafficMirrorFilterRuleOutput, error)
-	// Creates a Traffic Mirror session. A Traffic Mirror session actively copies
-	// packets from a Traffic Mirror source to a Traffic Mirror target. Create a
-	// filter, and then assign it to the session to define a subset of the traffic to
-	// mirror, for example all TCP traffic. The Traffic Mirror source and the Traffic
-	// Mirror target (monitoring appliances) can be in the same VPC, or in a different
-	// VPC connected via VPC peering or a transit gateway. By default, no traffic is
-	// mirrored. Use CreateTrafficMirrorFilter
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateTrafficMirrorFilter.htm)
-	// to create filter rules that specify the traffic to mirror.
-	CreateTrafficMirrorSession(ctx context.Context, params *CreateTrafficMirrorSessionInput, optFns ...func(*Options)) (*CreateTrafficMirrorSessionOutput, error)
-	// Creates a target for your Traffic Mirror session. A Traffic Mirror target is the
-	// destination for mirrored traffic. The Traffic Mirror source and the Traffic
-	// Mirror target (monitoring appliances) can be in the same VPC, or in different
-	// VPCs connected via VPC peering or a transit gateway. A Traffic Mirror target can
-	// be a network interface, or a Network Load Balancer. To use the target in a
-	// Traffic Mirror session, use CreateTrafficMirrorSession
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateTrafficMirrorSession.htm).
-	CreateTrafficMirrorTarget(ctx context.Context, params *CreateTrafficMirrorTargetInput, optFns ...func(*Options)) (*CreateTrafficMirrorTargetOutput, error)
-	// Creates a transit gateway. You can use a transit gateway to interconnect your
-	// virtual private clouds (VPC) and on-premises networks. After the transit gateway
-	// enters the available state, you can attach your VPCs and VPN connections to the
-	// transit gateway. To attach your VPCs, use CreateTransitGatewayVpcAttachment. To
-	// attach a VPN connection, use CreateCustomerGateway to create a customer gateway
-	// and specify the ID of the customer gateway and the ID of the transit gateway in
-	// a call to CreateVpnConnection. When you create a transit gateway, we create a
-	// default transit gateway route table and use it as the default association route
-	// table and the default propagation route table. You can use
-	// CreateTransitGatewayRouteTable to create additional transit gateway route
+	// shutting down an instance.
+	//
+	// The location of the source EBS volume determines where you can create the
+	// snapshot.
+	//
+	//   - If the source volume is in a Region, you must create the snapshot in the
+	//     same Region as the volume.
+	//
+	//   - If the source volume is in a Local Zone, you can create the snapshot in the
+	//     same Local Zone or in its parent Amazon Web Services Region.
+	//
+	//   - If the source volume is on an Outpost, you can create the snapshot on the
+	//     same Outpost or in its parent Amazon Web Services Region.
+	//
+	// When a snapshot is created, any Amazon Web Services Marketplace product codes
+	// that are associated with the source volume are propagated to the snapshot.
+	//
+	// You can take a snapshot of an attached volume that is in use. However,
+	// snapshots only capture data that has been written to your Amazon EBS volume at
+	// the time the snapshot command is issued; this might exclude any data that has
+	// been cached by any applications or the operating system. If you can pause any
+	// file systems on the volume long enough to take a snapshot, your snapshot should
+	// be complete. However, if you cannot pause all file writes to the volume, you
+	// should unmount the volume from within the instance, issue the snapshot command,
+	// and then remount the volume to ensure a consistent and complete snapshot. You
+	// may remount and use your volume while the snapshot status is pending .
+	//
+	// When you create a snapshot for an EBS volume that serves as a root device, we
+	// recommend that you stop the instance before taking the snapshot.
+	//
+	// Snapshots that are taken from encrypted volumes are automatically encrypted.
+	// Volumes that are created from encrypted snapshots are also automatically
+	// encrypted. Your encrypted volumes and any associated snapshots always remain
+	// protected. For more information, see [Amazon EBS encryption]in the Amazon EBS User Guide.
+	//
+	// [Amazon EBS encryption]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-encryption.html
+	CreateSnapshot(ctx context.Context, params *ec2.CreateSnapshotInput, optFns ...func(*Options)) (*ec2.CreateSnapshotOutput, error)
+	// Creates crash-consistent snapshots of multiple EBS volumes attached to an
+	// Amazon EC2 instance. Volumes are chosen by specifying an instance. Each volume
+	// attached to the specified instance will produce one snapshot that is
+	// crash-consistent across the instance. You can include all of the volumes
+	// currently attached to the instance, or you can exclude the root volume or
+	// specific data (non-root) volumes from the multi-volume snapshot set.
+	//
+	// The location of the source instance determines where you can create the
+	// snapshots.
+	//
+	//   - If the source instance is in a Region, you must create the snapshots in the
+	//     same Region as the instance.
+	//
+	//   - If the source instance is in a Local Zone, you can create the snapshots in
+	//     the same Local Zone or in its parent Amazon Web Services Region.
+	//
+	//   - If the source instance is on an Outpost, you can create the snapshots on
+	//     the same Outpost or in its parent Amazon Web Services Region.
+	CreateSnapshots(ctx context.Context, params *ec2.CreateSnapshotsInput, optFns ...func(*Options)) (*ec2.CreateSnapshotsOutput, error)
+	// Creates a data feed for Spot Instances, enabling you to view Spot Instance
+	// usage logs. You can create one data feed per Amazon Web Services account. For
+	// more information, see [Spot Instance data feed]in the Amazon EC2 User Guide.
+	//
+	// [Spot Instance data feed]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-data-feeds.html
+	CreateSpotDatafeedSubscription(ctx context.Context, params *ec2.CreateSpotDatafeedSubscriptionInput, optFns ...func(*Options)) (*ec2.CreateSpotDatafeedSubscriptionOutput, error)
+	// Stores an AMI as a single object in an Amazon S3 bucket.
+	//
+	// To use this API, you must have the required permissions. For more information,
+	// see [Permissions for storing and restoring AMIs using S3]in the Amazon EC2 User Guide.
+	//
+	// For more information, see [Store and restore an AMI using S3] in the Amazon EC2 User Guide.
+	//
+	// [Store and restore an AMI using S3]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-store-restore.html
+	// [Permissions for storing and restoring AMIs using S3]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/work-with-ami-store-restore.html#ami-s3-permissions
+	CreateStoreImageTask(ctx context.Context, params *ec2.CreateStoreImageTaskInput, optFns ...func(*Options)) (*ec2.CreateStoreImageTaskOutput, error)
+	// Creates a subnet in the specified VPC. For an IPv4 only subnet, specify an IPv4
+	// CIDR block. If the VPC has an IPv6 CIDR block, you can create an IPv6 only
+	// subnet or a dual stack subnet instead. For an IPv6 only subnet, specify an IPv6
+	// CIDR block. For a dual stack subnet, specify both an IPv4 CIDR block and an IPv6
+	// CIDR block.
+	//
+	// A subnet CIDR block must not overlap the CIDR block of an existing subnet in
+	// the VPC. After you create a subnet, you can't change its CIDR block.
+	//
+	// The allowed size for an IPv4 subnet is between a /28 netmask (16 IP addresses)
+	// and a /16 netmask (65,536 IP addresses). Amazon Web Services reserves both the
+	// first four and the last IPv4 address in each subnet's CIDR block. They're not
+	// available for your use.
+	//
+	// If you've associated an IPv6 CIDR block with your VPC, you can associate an
+	// IPv6 CIDR block with a subnet when you create it.
+	//
+	// If you add more than one subnet to a VPC, they're set up in a star topology
+	// with a logical router in the middle.
+	//
+	// When you stop an instance in a subnet, it retains its private IPv4 address.
+	// It's therefore possible to have a subnet with no running instances (they're all
+	// stopped), but no remaining IP addresses available.
+	//
+	// For more information, see [Subnets] in the Amazon VPC User Guide.
+	//
+	// [Subnets]: https://docs.aws.amazon.com/vpc/latest/userguide/configure-subnets.html
+	CreateSubnet(ctx context.Context, params *ec2.CreateSubnetInput, optFns ...func(*Options)) (*ec2.CreateSubnetOutput, error)
+	// Creates a subnet CIDR reservation. For more information, see [Subnet CIDR reservations] in the Amazon VPC
+	// User Guide and [Manage prefixes for your network interfaces]in the Amazon EC2 User Guide.
+	//
+	// [Subnet CIDR reservations]: https://docs.aws.amazon.com/vpc/latest/userguide/subnet-cidr-reservation.html
+	// [Manage prefixes for your network interfaces]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/work-with-prefixes.html
+	CreateSubnetCidrReservation(ctx context.Context, params *ec2.CreateSubnetCidrReservationInput, optFns ...func(*Options)) (*ec2.CreateSubnetCidrReservationOutput, error)
+	// Adds or overwrites only the specified tags for the specified Amazon EC2
+	// resource or resources. When you specify an existing tag key, the value is
+	// overwritten with the new value. Each resource can have a maximum of 50 tags.
+	// Each tag consists of a key and optional value. Tag keys must be unique per
+	// resource.
+	//
+	// For more information about tags, see [Tag your Amazon EC2 resources] in the Amazon Elastic Compute Cloud User
+	// Guide. For more information about creating IAM policies that control users'
+	// access to resources based on tags, see [Supported resource-level permissions for Amazon EC2 API actions]in the Amazon Elastic Compute Cloud User
+	// Guide.
+	//
+	// [Supported resource-level permissions for Amazon EC2 API actions]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-supported-iam-actions-resources.html
+	// [Tag your Amazon EC2 resources]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html
+	CreateTags(ctx context.Context, params *ec2.CreateTagsInput, optFns ...func(*Options)) (*ec2.CreateTagsOutput, error)
+	// Creates a Traffic Mirror filter.
+	//
+	// A Traffic Mirror filter is a set of rules that defines the traffic to mirror.
+	//
+	// By default, no traffic is mirrored. To mirror traffic, use [CreateTrafficMirrorFilterRule] to add Traffic
+	// Mirror rules to the filter. The rules you add define what traffic gets mirrored.
+	// You can also use [ModifyTrafficMirrorFilterNetworkServices]to mirror supported network services.
+	//
+	// [CreateTrafficMirrorFilterRule]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateTrafficMirrorFilterRule.htm
+	// [ModifyTrafficMirrorFilterNetworkServices]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyTrafficMirrorFilterNetworkServices.html
+	CreateTrafficMirrorFilter(ctx context.Context, params *ec2.CreateTrafficMirrorFilterInput, optFns ...func(*Options)) (*ec2.CreateTrafficMirrorFilterOutput, error)
+	// Creates a Traffic Mirror filter rule.
+	//
+	// A Traffic Mirror rule defines the Traffic Mirror source traffic to mirror.
+	//
+	// You need the Traffic Mirror filter ID when you create the rule.
+	CreateTrafficMirrorFilterRule(ctx context.Context, params *ec2.CreateTrafficMirrorFilterRuleInput, optFns ...func(*Options)) (*ec2.CreateTrafficMirrorFilterRuleOutput, error)
+	// Creates a Traffic Mirror session.
+	//
+	// A Traffic Mirror session actively copies packets from a Traffic Mirror source
+	// to a Traffic Mirror target. Create a filter, and then assign it to the session
+	// to define a subset of the traffic to mirror, for example all TCP traffic.
+	//
+	// The Traffic Mirror source and the Traffic Mirror target (monitoring appliances)
+	// can be in the same VPC, or in a different VPC connected via VPC peering or a
+	// transit gateway.
+	//
+	// By default, no traffic is mirrored. Use [CreateTrafficMirrorFilter] to create filter rules that specify
+	// the traffic to mirror.
+	//
+	// [CreateTrafficMirrorFilter]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateTrafficMirrorFilter.html
+	CreateTrafficMirrorSession(ctx context.Context, params *ec2.CreateTrafficMirrorSessionInput, optFns ...func(*Options)) (*ec2.CreateTrafficMirrorSessionOutput, error)
+	// Creates a target for your Traffic Mirror session.
+	//
+	// A Traffic Mirror target is the destination for mirrored traffic. The Traffic
+	// Mirror source and the Traffic Mirror target (monitoring appliances) can be in
+	// the same VPC, or in different VPCs connected via VPC peering or a transit
+	// gateway.
+	//
+	// A Traffic Mirror target can be a network interface, a Network Load Balancer, or
+	// a Gateway Load Balancer endpoint.
+	//
+	// To use the target in a Traffic Mirror session, use [CreateTrafficMirrorSession].
+	//
+	// [CreateTrafficMirrorSession]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateTrafficMirrorSession.htm
+	CreateTrafficMirrorTarget(ctx context.Context, params *ec2.CreateTrafficMirrorTargetInput, optFns ...func(*Options)) (*ec2.CreateTrafficMirrorTargetOutput, error)
+	// Creates a transit gateway.
+	//
+	// You can use a transit gateway to interconnect your virtual private clouds (VPC)
+	// and on-premises networks. After the transit gateway enters the available state,
+	// you can attach your VPCs and VPN connections to the transit gateway.
+	//
+	// To attach your VPCs, use CreateTransitGatewayVpcAttachment.
+	//
+	// To attach a VPN connection, use CreateCustomerGateway to create a customer gateway and specify the
+	// ID of the customer gateway and the ID of the transit gateway in a call to CreateVpnConnection.
+	//
+	// When you create a transit gateway, we create a default transit gateway route
+	// table and use it as the default association route table and the default
+	// propagation route table. You can use CreateTransitGatewayRouteTableto create additional transit gateway route
 	// tables. If you disable automatic route propagation, we do not create a default
-	// transit gateway route table. You can use
-	// EnableTransitGatewayRouteTablePropagation to propagate routes from a resource
+	// transit gateway route table. You can use EnableTransitGatewayRouteTablePropagationto propagate routes from a resource
 	// attachment to a transit gateway route table. If you disable automatic
-	// associations, you can use AssociateTransitGatewayRouteTable to associate a
-	// resource attachment with a transit gateway route table.
-	CreateTransitGateway(ctx context.Context, params *CreateTransitGatewayInput, optFns ...func(*Options)) (*CreateTransitGatewayOutput, error)
+	// associations, you can use AssociateTransitGatewayRouteTableto associate a resource attachment with a transit
+	// gateway route table.
+	CreateTransitGateway(ctx context.Context, params *ec2.CreateTransitGatewayInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayOutput, error)
 	// Creates a Connect attachment from a specified transit gateway attachment. A
 	// Connect attachment is a GRE-based tunnel attachment that you can use to
-	// establish a connection between a transit gateway and an appliance. A Connect
-	// attachment uses an existing VPC or Amazon Web Services Direct Connect attachment
-	// as the underlying transport mechanism.
-	CreateTransitGatewayConnect(ctx context.Context, params *CreateTransitGatewayConnectInput, optFns ...func(*Options)) (*CreateTransitGatewayConnectOutput, error)
+	// establish a connection between a transit gateway and an appliance.
+	//
+	// A Connect attachment uses an existing VPC or Amazon Web Services Direct Connect
+	// attachment as the underlying transport mechanism.
+	CreateTransitGatewayConnect(ctx context.Context, params *ec2.CreateTransitGatewayConnectInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayConnectOutput, error)
 	// Creates a Connect peer for a specified transit gateway Connect attachment
-	// between a transit gateway and an appliance. The peer address and transit gateway
-	// address must be the same IP address family (IPv4 or IPv6). For more information,
-	// see Connect peers
-	// (https://docs.aws.amazon.com/vpc/latest/tgw/tgw-connect.html#tgw-connect-peer)
-	// in the Transit Gateways Guide.
-	CreateTransitGatewayConnectPeer(ctx context.Context, params *CreateTransitGatewayConnectPeerInput, optFns ...func(*Options)) (*CreateTransitGatewayConnectPeerOutput, error)
-	// Creates a multicast domain using the specified transit gateway. The transit
-	// gateway must be in the available state before you create a domain. Use
-	// DescribeTransitGateways
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeTransitGateways.html)
-	// to see the state of transit gateway.
-	CreateTransitGatewayMulticastDomain(ctx context.Context, params *CreateTransitGatewayMulticastDomainInput, optFns ...func(*Options)) (*CreateTransitGatewayMulticastDomainOutput, error)
+	// between a transit gateway and an appliance.
+	//
+	// The peer address and transit gateway address must be the same IP address family
+	// (IPv4 or IPv6).
+	//
+	// For more information, see [Connect peers] in the Amazon Web Services Transit Gateways Guide.
+	//
+	// [Connect peers]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-connect.html#tgw-connect-peer
+	CreateTransitGatewayConnectPeer(ctx context.Context, params *ec2.CreateTransitGatewayConnectPeerInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayConnectPeerOutput, error)
+	// Creates a multicast domain using the specified transit gateway.
+	//
+	// The transit gateway must be in the available state before you create a domain.
+	// Use [DescribeTransitGateways]to see the state of transit gateway.
+	//
+	// [DescribeTransitGateways]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeTransitGateways.html
+	CreateTransitGatewayMulticastDomain(ctx context.Context, params *ec2.CreateTransitGatewayMulticastDomainInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayMulticastDomainOutput, error)
 	// Requests a transit gateway peering attachment between the specified transit
-	// gateway (requester) and a peer transit gateway (accepter). The transit gateways
-	// must be in different Regions. The peer transit gateway can be in your account or
-	// a different Amazon Web Services account. After you create the peering
-	// attachment, the owner of the accepter transit gateway must accept the attachment
-	// request.
-	CreateTransitGatewayPeeringAttachment(ctx context.Context, params *CreateTransitGatewayPeeringAttachmentInput, optFns ...func(*Options)) (*CreateTransitGatewayPeeringAttachmentOutput, error)
+	// gateway (requester) and a peer transit gateway (accepter). The peer transit
+	// gateway can be in your account or a different Amazon Web Services account.
+	//
+	// After you create the peering attachment, the owner of the accepter transit
+	// gateway must accept the attachment request.
+	CreateTransitGatewayPeeringAttachment(ctx context.Context, params *ec2.CreateTransitGatewayPeeringAttachmentInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayPeeringAttachmentOutput, error)
+	// Creates a transit gateway policy table.
+	CreateTransitGatewayPolicyTable(ctx context.Context, params *ec2.CreateTransitGatewayPolicyTableInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayPolicyTableOutput, error)
 	// Creates a reference (route) to a prefix list in a specified transit gateway
 	// route table.
-	CreateTransitGatewayPrefixListReference(ctx context.Context, params *CreateTransitGatewayPrefixListReferenceInput, optFns ...func(*Options)) (*CreateTransitGatewayPrefixListReferenceOutput, error)
+	CreateTransitGatewayPrefixListReference(ctx context.Context, params *ec2.CreateTransitGatewayPrefixListReferenceInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayPrefixListReferenceOutput, error)
 	// Creates a static route for the specified transit gateway route table.
-	CreateTransitGatewayRoute(ctx context.Context, params *CreateTransitGatewayRouteInput, optFns ...func(*Options)) (*CreateTransitGatewayRouteOutput, error)
+	CreateTransitGatewayRoute(ctx context.Context, params *ec2.CreateTransitGatewayRouteInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayRouteOutput, error)
 	// Creates a route table for the specified transit gateway.
-	CreateTransitGatewayRouteTable(ctx context.Context, params *CreateTransitGatewayRouteTableInput, optFns ...func(*Options)) (*CreateTransitGatewayRouteTableOutput, error)
-	// Attaches the specified VPC to the specified transit gateway. If you attach a VPC
-	// with a CIDR range that overlaps the CIDR range of a VPC that is already
-	// attached, the new VPC CIDR range is not propagated to the default propagation
-	// route table. To send VPC traffic to an attached transit gateway, add a route to
-	// the VPC route table using CreateRoute.
-	CreateTransitGatewayVpcAttachment(ctx context.Context, params *CreateTransitGatewayVpcAttachmentInput, optFns ...func(*Options)) (*CreateTransitGatewayVpcAttachmentOutput, error)
+	CreateTransitGatewayRouteTable(ctx context.Context, params *ec2.CreateTransitGatewayRouteTableInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayRouteTableOutput, error)
+	// Advertises a new transit gateway route table.
+	CreateTransitGatewayRouteTableAnnouncement(ctx context.Context, params *ec2.CreateTransitGatewayRouteTableAnnouncementInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayRouteTableAnnouncementOutput, error)
+	// Attaches the specified VPC to the specified transit gateway.
+	//
+	// If you attach a VPC with a CIDR range that overlaps the CIDR range of a VPC
+	// that is already attached, the new VPC CIDR range is not propagated to the
+	// default propagation route table.
+	//
+	// To send VPC traffic to an attached transit gateway, add a route to the VPC
+	// route table using CreateRoute.
+	CreateTransitGatewayVpcAttachment(ctx context.Context, params *ec2.CreateTransitGatewayVpcAttachmentInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayVpcAttachmentOutput, error)
+	// An Amazon Web Services Verified Access endpoint is where you define your
+	// application along with an optional endpoint-level access policy.
+	CreateVerifiedAccessEndpoint(ctx context.Context, params *ec2.CreateVerifiedAccessEndpointInput, optFns ...func(*Options)) (*ec2.CreateVerifiedAccessEndpointOutput, error)
+	// An Amazon Web Services Verified Access group is a collection of Amazon Web
+	// Services Verified Access endpoints who's associated applications have similar
+	// security requirements. Each instance within a Verified Access group shares an
+	// Verified Access policy. For example, you can group all Verified Access instances
+	// associated with "sales" applications together and use one common Verified Access
+	// policy.
+	CreateVerifiedAccessGroup(ctx context.Context, params *ec2.CreateVerifiedAccessGroupInput, optFns ...func(*Options)) (*ec2.CreateVerifiedAccessGroupOutput, error)
+	// An Amazon Web Services Verified Access instance is a regional entity that
+	// evaluates application requests and grants access only when your security
+	// requirements are met.
+	CreateVerifiedAccessInstance(ctx context.Context, params *ec2.CreateVerifiedAccessInstanceInput, optFns ...func(*Options)) (*ec2.CreateVerifiedAccessInstanceOutput, error)
+	// A trust provider is a third-party entity that creates, maintains, and manages
+	// identity information for users and devices. When an application request is made,
+	// the identity information sent by the trust provider is evaluated by Verified
+	// Access before allowing or denying the application request.
+	CreateVerifiedAccessTrustProvider(ctx context.Context, params *ec2.CreateVerifiedAccessTrustProviderInput, optFns ...func(*Options)) (*ec2.CreateVerifiedAccessTrustProviderOutput, error)
 	// Creates an EBS volume that can be attached to an instance in the same
-	// Availability Zone. You can create a new empty volume or restore a volume from an
-	// EBS snapshot. Any Amazon Web Services Marketplace product codes from the
-	// snapshot are propagated to the volume. You can create encrypted volumes.
-	// Encrypted volumes must be attached to instances that support Amazon EBS
-	// encryption. Volumes that are created from encrypted snapshots are also
-	// automatically encrypted. For more information, see Amazon EBS encryption
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html) in the
-	// Amazon Elastic Compute Cloud User Guide. You can tag your volumes during
-	// creation. For more information, see Tag your Amazon EC2 resources
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html) in the
-	// Amazon Elastic Compute Cloud User Guide. For more information, see Create an
-	// Amazon EBS volume
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-creating-volume.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	CreateVolume(ctx context.Context, params *CreateVolumeInput, optFns ...func(*Options)) (*CreateVolumeOutput, error)
-	// Creates a VPC with the specified IPv4 CIDR block. The smallest VPC you can
-	// create uses a /28 netmask (16 IPv4 addresses), and the largest uses a /16
-	// netmask (65,536 IPv4 addresses). For more information about how large to make
-	// your VPC, see Your VPC and subnets
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html) in the
-	// Amazon Virtual Private Cloud User Guide. You can optionally request an IPv6 CIDR
-	// block for the VPC. You can request an Amazon-provided IPv6 CIDR block from
-	// Amazon's pool of IPv6 addresses, or an IPv6 CIDR block from an IPv6 address pool
-	// that you provisioned through bring your own IP addresses (BYOIP
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html)). By
-	// default, each instance you launch in the VPC has the default DHCP options, which
-	// include only a default DNS server that we provide (AmazonProvidedDNS). For more
-	// information, see DHCP options sets
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html) in the
-	// Amazon Virtual Private Cloud User Guide. You can specify the instance tenancy
-	// value for the VPC when you create it. You can't change this value for the VPC
-	// after you create it. For more information, see Dedicated Instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-instance.html) in
-	// the Amazon Elastic Compute Cloud User Guide.
-	CreateVpc(ctx context.Context, params *CreateVpcInput, optFns ...func(*Options)) (*CreateVpcOutput, error)
-	// Creates a VPC endpoint for a specified service. An endpoint enables you to
-	// create a private connection between your VPC and the service. The service may be
-	// provided by Amazon Web Services, an Amazon Web Services Marketplace Partner, or
-	// another Amazon Web Services account. For more information, see VPC Endpoints
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html) in the
-	// Amazon Virtual Private Cloud User Guide. A gateway endpoint serves as a target
-	// for a route in your route table for traffic destined for the Amazon Web Service.
-	// You can specify an endpoint policy to attach to the endpoint, which will control
-	// access to the service from your VPC. You can also specify the VPC route tables
-	// that use the endpoint. An interface endpoint is a network interface in your
-	// subnet that serves as an endpoint for communicating with the specified service.
-	// You can specify the subnets in which to create an endpoint, and the security
-	// groups to associate with the endpoint network interface. A GatewayLoadBalancer
-	// endpoint is a network interface in your subnet that serves an endpoint for
-	// communicating with a Gateway Load Balancer that you've configured as a VPC
-	// endpoint service. Use DescribeVpcEndpointServices to get a list of supported
-	// services.
-	CreateVpcEndpoint(ctx context.Context, params *CreateVpcEndpointInput, optFns ...func(*Options)) (*CreateVpcEndpointOutput, error)
+	// Availability Zone.
+	//
+	// You can create a new empty volume or restore a volume from an EBS snapshot. Any
+	// Amazon Web Services Marketplace product codes from the snapshot are propagated
+	// to the volume.
+	//
+	// You can create encrypted volumes. Encrypted volumes must be attached to
+	// instances that support Amazon EBS encryption. Volumes that are created from
+	// encrypted snapshots are also automatically encrypted. For more information, see [Amazon EBS encryption]
+	// in the Amazon EBS User Guide.
+	//
+	// You can tag your volumes during creation. For more information, see [Tag your Amazon EC2 resources] in the
+	// Amazon EC2 User Guide.
+	//
+	// For more information, see [Create an Amazon EBS volume] in the Amazon EBS User Guide.
+	//
+	// [Amazon EBS encryption]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-encryption.html
+	// [Create an Amazon EBS volume]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-creating-volume.html
+	// [Tag your Amazon EC2 resources]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html
+	CreateVolume(ctx context.Context, params *ec2.CreateVolumeInput, optFns ...func(*Options)) (*ec2.CreateVolumeOutput, error)
+	// Creates a VPC with the specified CIDR blocks. For more information, see [IP addressing for your VPCs and subnets] in the
+	// Amazon VPC User Guide.
+	//
+	// You can optionally request an IPv6 CIDR block for the VPC. You can request an
+	// Amazon-provided IPv6 CIDR block from Amazon's pool of IPv6 addresses or an IPv6
+	// CIDR block from an IPv6 address pool that you provisioned through bring your own
+	// IP addresses ([BYOIP] ).
+	//
+	// By default, each instance that you launch in the VPC has the default DHCP
+	// options, which include only a default DNS server that we provide
+	// (AmazonProvidedDNS). For more information, see [DHCP option sets]in the Amazon VPC User Guide.
+	//
+	// You can specify the instance tenancy value for the VPC when you create it. You
+	// can't change this value for the VPC after you create it. For more information,
+	// see [Dedicated Instances]in the Amazon EC2 User Guide.
+	//
+	// [BYOIP]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html
+	// [Dedicated Instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-instance.html
+	// [DHCP option sets]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html
+	// [IP addressing for your VPCs and subnets]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-ip-addressing.html
+	CreateVpc(ctx context.Context, params *ec2.CreateVpcInput, optFns ...func(*Options)) (*ec2.CreateVpcOutput, error)
+	// Create a VPC Block Public Access (BPA) exclusion. A VPC BPA exclusion is a mode
+	// that can be applied to a single VPC or subnet that exempts it from the account’s
+	// BPA mode and will allow bidirectional or egress-only access. You can create BPA
+	// exclusions for VPCs and subnets even when BPA is not enabled on the account to
+	// ensure that there is no traffic disruption to the exclusions when VPC BPA is
+	// turned on. To learn more about VPC BPA, see [Block public access to VPCs and subnets]in the Amazon VPC User Guide.
+	//
+	// [Block public access to VPCs and subnets]: https://docs.aws.amazon.com/vpc/latest/userguide/security-vpc-bpa.html
+	CreateVpcBlockPublicAccessExclusion(ctx context.Context, params *ec2.CreateVpcBlockPublicAccessExclusionInput, optFns ...func(*Options)) (*ec2.CreateVpcBlockPublicAccessExclusionOutput, error)
+	// Creates a VPC endpoint. A VPC endpoint provides a private connection between
+	// the specified VPC and the specified endpoint service. You can use an endpoint
+	// service provided by Amazon Web Services, an Amazon Web Services Marketplace
+	// Partner, or another Amazon Web Services account. For more information, see the [Amazon Web Services PrivateLink User Guide].
+	//
+	// [Amazon Web Services PrivateLink User Guide]: https://docs.aws.amazon.com/vpc/latest/privatelink/
+	CreateVpcEndpoint(ctx context.Context, params *ec2.CreateVpcEndpointInput, optFns ...func(*Options)) (*ec2.CreateVpcEndpointOutput, error)
 	// Creates a connection notification for a specified VPC endpoint or VPC endpoint
 	// service. A connection notification notifies you of specific endpoint events. You
-	// must create an SNS topic to receive notifications. For more information, see
-	// Create a Topic (https://docs.aws.amazon.com/sns/latest/dg/CreateTopic.html) in
-	// the Amazon Simple Notification Service Developer Guide. You can create a
-	// connection notification for interface endpoints only.
-	CreateVpcEndpointConnectionNotification(ctx context.Context, params *CreateVpcEndpointConnectionNotificationInput, optFns ...func(*Options)) (*CreateVpcEndpointConnectionNotificationOutput, error)
-	// Creates a VPC endpoint service configuration to which service consumers (Amazon
-	// Web Services accounts, IAM users, and IAM roles) can connect. To create an
-	// endpoint service configuration, you must first create one of the following for
+	// must create an SNS topic to receive notifications. For more information, see [Creating an Amazon SNS topic]in
+	// the Amazon SNS Developer Guide.
+	//
+	// You can create a connection notification for interface endpoints only.
+	//
+	// [Creating an Amazon SNS topic]: https://docs.aws.amazon.com/sns/latest/dg/CreateTopic.html
+	CreateVpcEndpointConnectionNotification(ctx context.Context, params *ec2.CreateVpcEndpointConnectionNotificationInput, optFns ...func(*Options)) (*ec2.CreateVpcEndpointConnectionNotificationOutput, error)
+	// Creates a VPC endpoint service to which service consumers (Amazon Web Services
+	// accounts, users, and IAM roles) can connect.
+	//
+	// Before you create an endpoint service, you must create one of the following for
 	// your service:
 	//
-	// * A Network Load Balancer
-	// (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html).
-	// Service consumers connect to your service using an interface endpoint.
+	//   - A [Network Load Balancer]. Service consumers connect to your service using an interface endpoint.
 	//
-	// * A
-	// Gateway Load Balancer
-	// (https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/introduction.html).
-	// Service consumers connect to your service using a Gateway Load Balancer
-	// endpoint.
+	//   - A [Gateway Load Balancer]. Service consumers connect to your service using a Gateway Load Balancer
+	//     endpoint.
 	//
-	// For more information, see VPC Endpoint Services
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-service.html) in the
-	// Amazon Virtual Private Cloud User Guide. If you set the private DNS name, you
-	// must prove that you own the private DNS domain name. For more information, see
-	// VPC Endpoint Service Private DNS Name Verification
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-services-dns-validation.html)
-	// in the Amazon Virtual Private Cloud User Guide.
-	CreateVpcEndpointServiceConfiguration(ctx context.Context, params *CreateVpcEndpointServiceConfigurationInput, optFns ...func(*Options)) (*CreateVpcEndpointServiceConfigurationOutput, error)
-	// Requests a VPC peering connection between two VPCs: a requester VPC that you own
-	// and an accepter VPC with which to create the connection. The accepter VPC can
-	// belong to another Amazon Web Services account and can be in a different Region
-	// to the requester VPC. The requester VPC and accepter VPC cannot have overlapping
-	// CIDR blocks. Limitations and rules apply to a VPC peering connection. For more
-	// information, see the limitations
-	// (https://docs.aws.amazon.com/vpc/latest/peering/vpc-peering-basics.html#vpc-peering-limitations)
-	// section in the VPC Peering Guide. The owner of the accepter VPC must accept the
-	// peering request to activate the peering connection. The VPC peering connection
-	// request expires after 7 days, after which it cannot be accepted or rejected. If
-	// you create a VPC peering connection request between VPCs with overlapping CIDR
-	// blocks, the VPC peering connection has a status of failed.
-	CreateVpcPeeringConnection(ctx context.Context, params *CreateVpcPeeringConnectionInput, optFns ...func(*Options)) (*CreateVpcPeeringConnectionOutput, error)
+	// If you set the private DNS name, you must prove that you own the private DNS
+	// domain name.
+	//
+	// For more information, see the [Amazon Web Services PrivateLink Guide].
+	//
+	// [Gateway Load Balancer]: https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/
+	// [Network Load Balancer]: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/
+	// [Amazon Web Services PrivateLink Guide]: https://docs.aws.amazon.com/vpc/latest/privatelink/
+	CreateVpcEndpointServiceConfiguration(ctx context.Context, params *ec2.CreateVpcEndpointServiceConfigurationInput, optFns ...func(*Options)) (*ec2.CreateVpcEndpointServiceConfigurationOutput, error)
+	// Requests a VPC peering connection between two VPCs: a requester VPC that you
+	// own and an accepter VPC with which to create the connection. The accepter VPC
+	// can belong to another Amazon Web Services account and can be in a different
+	// Region to the requester VPC. The requester VPC and accepter VPC cannot have
+	// overlapping CIDR blocks.
+	//
+	// Limitations and rules apply to a VPC peering connection. For more information,
+	// see the [VPC peering limitations]in the VPC Peering Guide.
+	//
+	// The owner of the accepter VPC must accept the peering request to activate the
+	// peering connection. The VPC peering connection request expires after 7 days,
+	// after which it cannot be accepted or rejected.
+	//
+	// If you create a VPC peering connection request between VPCs with overlapping
+	// CIDR blocks, the VPC peering connection has a status of failed .
+	//
+	// [VPC peering limitations]: https://docs.aws.amazon.com/vpc/latest/peering/vpc-peering-basics.html#vpc-peering-limitations
+	CreateVpcPeeringConnection(ctx context.Context, params *ec2.CreateVpcPeeringConnectionInput, optFns ...func(*Options)) (*ec2.CreateVpcPeeringConnectionOutput, error)
 	// Creates a VPN connection between an existing virtual private gateway or transit
-	// gateway and a customer gateway. The supported connection type is ipsec.1. The
-	// response includes information that you need to give to your network
-	// administrator to configure your customer gateway. We strongly recommend that you
-	// use HTTPS when calling this operation because the response contains sensitive
-	// cryptographic information for configuring your customer gateway device. If you
-	// decide to shut down your VPN connection for any reason and later create a new
-	// VPN connection, you must reconfigure your customer gateway with the new
-	// information returned from this call. This is an idempotent operation. If you
-	// perform the operation more than once, Amazon EC2 doesn't return an error. For
-	// more information, see Amazon Web Services Site-to-Site VPN
-	// (https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html) in the Amazon Web
-	// Services Site-to-Site VPN User Guide.
-	CreateVpnConnection(ctx context.Context, params *CreateVpnConnectionInput, optFns ...func(*Options)) (*CreateVpnConnectionOutput, error)
+	// gateway and a customer gateway. The supported connection type is ipsec.1 .
+	//
+	// The response includes information that you need to give to your network
+	// administrator to configure your customer gateway.
+	//
+	// We strongly recommend that you use HTTPS when calling this operation because
+	// the response contains sensitive cryptographic information for configuring your
+	// customer gateway device.
+	//
+	// If you decide to shut down your VPN connection for any reason and later create
+	// a new VPN connection, you must reconfigure your customer gateway with the new
+	// information returned from this call.
+	//
+	// This is an idempotent operation. If you perform the operation more than once,
+	// Amazon EC2 doesn't return an error.
+	//
+	// For more information, see [Amazon Web Services Site-to-Site VPN] in the Amazon Web Services Site-to-Site VPN User
+	// Guide.
+	//
+	// [Amazon Web Services Site-to-Site VPN]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html
+	CreateVpnConnection(ctx context.Context, params *ec2.CreateVpnConnectionInput, optFns ...func(*Options)) (*ec2.CreateVpnConnectionOutput, error)
 	// Creates a static route associated with a VPN connection between an existing
 	// virtual private gateway and a VPN customer gateway. The static route allows
 	// traffic to be routed from the virtual private gateway to the VPN customer
-	// gateway. For more information, see Amazon Web Services Site-to-Site VPN
-	// (https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html) in the Amazon Web
-	// Services Site-to-Site VPN User Guide.
-	CreateVpnConnectionRoute(ctx context.Context, params *CreateVpnConnectionRouteInput, optFns ...func(*Options)) (*CreateVpnConnectionRouteOutput, error)
+	// gateway.
+	//
+	// For more information, see [Amazon Web Services Site-to-Site VPN] in the Amazon Web Services Site-to-Site VPN User
+	// Guide.
+	//
+	// [Amazon Web Services Site-to-Site VPN]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html
+	CreateVpnConnectionRoute(ctx context.Context, params *ec2.CreateVpnConnectionRouteInput, optFns ...func(*Options)) (*ec2.CreateVpnConnectionRouteOutput, error)
 	// Creates a virtual private gateway. A virtual private gateway is the endpoint on
 	// the VPC side of your VPN connection. You can create a virtual private gateway
-	// before creating the VPC itself. For more information, see Amazon Web Services
-	// Site-to-Site VPN (https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html) in
-	// the Amazon Web Services Site-to-Site VPN User Guide.
-	CreateVpnGateway(ctx context.Context, params *CreateVpnGatewayInput, optFns ...func(*Options)) (*CreateVpnGatewayOutput, error)
-	// Deletes a carrier gateway. If you do not delete the route that contains the
-	// carrier gateway as the Target, the route is a blackhole route. For information
-	// about how to delete a route, see DeleteRoute
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteRoute.html).
-	DeleteCarrierGateway(ctx context.Context, params *DeleteCarrierGatewayInput, optFns ...func(*Options)) (*DeleteCarrierGatewayOutput, error)
+	// before creating the VPC itself.
+	//
+	// For more information, see [Amazon Web Services Site-to-Site VPN] in the Amazon Web Services Site-to-Site VPN User
+	// Guide.
+	//
+	// [Amazon Web Services Site-to-Site VPN]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html
+	CreateVpnGateway(ctx context.Context, params *ec2.CreateVpnGatewayInput, optFns ...func(*Options)) (*ec2.CreateVpnGatewayOutput, error)
+	// Deletes a carrier gateway.
+	//
+	// If you do not delete the route that contains the carrier gateway as the Target,
+	// the route is a blackhole route. For information about how to delete a route, see
+	// [DeleteRoute].
+	//
+	// [DeleteRoute]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteRoute.html
+	DeleteCarrierGateway(ctx context.Context, params *ec2.DeleteCarrierGatewayInput, optFns ...func(*Options)) (*ec2.DeleteCarrierGatewayOutput, error)
 	// Deletes the specified Client VPN endpoint. You must disassociate all target
 	// networks before you can delete a Client VPN endpoint.
-	DeleteClientVpnEndpoint(ctx context.Context, params *DeleteClientVpnEndpointInput, optFns ...func(*Options)) (*DeleteClientVpnEndpointOutput, error)
+	DeleteClientVpnEndpoint(ctx context.Context, params *ec2.DeleteClientVpnEndpointInput, optFns ...func(*Options)) (*ec2.DeleteClientVpnEndpointOutput, error)
 	// Deletes a route from a Client VPN endpoint. You can only delete routes that you
 	// manually added using the CreateClientVpnRoute action. You cannot delete routes
 	// that were automatically added when associating a subnet. To remove routes that
 	// have been automatically added, disassociate the target subnet from the Client
 	// VPN endpoint.
-	DeleteClientVpnRoute(ctx context.Context, params *DeleteClientVpnRouteInput, optFns ...func(*Options)) (*DeleteClientVpnRouteOutput, error)
+	DeleteClientVpnRoute(ctx context.Context, params *ec2.DeleteClientVpnRouteInput, optFns ...func(*Options)) (*ec2.DeleteClientVpnRouteOutput, error)
+	// Deletes a range of customer-owned IP addresses.
+	DeleteCoipCidr(ctx context.Context, params *ec2.DeleteCoipCidrInput, optFns ...func(*Options)) (*ec2.DeleteCoipCidrOutput, error)
+	// Deletes a pool of customer-owned IP (CoIP) addresses.
+	DeleteCoipPool(ctx context.Context, params *ec2.DeleteCoipPoolInput, optFns ...func(*Options)) (*ec2.DeleteCoipPoolOutput, error)
 	// Deletes the specified customer gateway. You must delete the VPN connection
 	// before you can delete the customer gateway.
-	DeleteCustomerGateway(ctx context.Context, params *DeleteCustomerGatewayInput, optFns ...func(*Options)) (*DeleteCustomerGatewayOutput, error)
-	// Deletes the specified set of DHCP options. You must disassociate the set of DHCP
-	// options before you can delete it. You can disassociate the set of DHCP options
-	// by associating either a new set of options or the default set of options with
-	// the VPC.
-	DeleteDhcpOptions(ctx context.Context, params *DeleteDhcpOptionsInput, optFns ...func(*Options)) (*DeleteDhcpOptionsOutput, error)
+	DeleteCustomerGateway(ctx context.Context, params *ec2.DeleteCustomerGatewayInput, optFns ...func(*Options)) (*ec2.DeleteCustomerGatewayOutput, error)
+	// Deletes the specified set of DHCP options. You must disassociate the set of
+	// DHCP options before you can delete it. You can disassociate the set of DHCP
+	// options by associating either a new set of options or the default set of options
+	// with the VPC.
+	DeleteDhcpOptions(ctx context.Context, params *ec2.DeleteDhcpOptionsInput, optFns ...func(*Options)) (*ec2.DeleteDhcpOptionsOutput, error)
 	// Deletes an egress-only internet gateway.
-	DeleteEgressOnlyInternetGateway(ctx context.Context, params *DeleteEgressOnlyInternetGatewayInput, optFns ...func(*Options)) (*DeleteEgressOnlyInternetGatewayOutput, error)
-	// Deletes the specified EC2 Fleet. After you delete an EC2 Fleet, it launches no
-	// new instances. You must specify whether a deleted EC2 Fleet should also
-	// terminate its instances. If you choose to terminate the instances, the EC2 Fleet
-	// enters the deleted_terminating state. Otherwise, the EC2 Fleet enters the
-	// deleted_running state, and the instances continue to run until they are
-	// interrupted or you terminate them manually. For instant fleets, EC2 Fleet must
-	// terminate the instances when the fleet is deleted. A deleted instant fleet with
-	// running instances is not supported. Restrictions
+	DeleteEgressOnlyInternetGateway(ctx context.Context, params *ec2.DeleteEgressOnlyInternetGatewayInput, optFns ...func(*Options)) (*ec2.DeleteEgressOnlyInternetGatewayOutput, error)
+	// Deletes the specified EC2 Fleet request.
 	//
-	// * You can delete up to 25
-	// instant fleets in a single request. If you exceed this number, no instant fleets
-	// are deleted and an error is returned. There is no restriction on the number of
-	// fleets of type maintain or request that can be deleted in a single request.
+	// After you delete an EC2 Fleet request, it launches no new instances.
 	//
-	// *
-	// Up to 1000 instances can be terminated in a single request to delete instant
-	// fleets.
+	// You must also specify whether a deleted EC2 Fleet request should terminate its
+	// instances. If you choose to terminate the instances, the EC2 Fleet request
+	// enters the deleted_terminating state. Otherwise, it enters the deleted_running
+	// state, and the instances continue to run until they are interrupted or you
+	// terminate them manually.
 	//
-	// For more information, see Delete an EC2 Fleet
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/manage-ec2-fleet.html#delete-fleet)
-	// in the Amazon EC2 User Guide.
-	DeleteFleets(ctx context.Context, params *DeleteFleetsInput, optFns ...func(*Options)) (*DeleteFleetsOutput, error)
+	// A deleted instant fleet with running instances is not supported. When you
+	// delete an instant fleet, Amazon EC2 automatically terminates all its instances.
+	// For fleets with more than 1000 instances, the deletion request might fail. If
+	// your fleet has more than 1000 instances, first terminate most of the instances
+	// manually, leaving 1000 or fewer. Then delete the fleet, and the remaining
+	// instances will be terminated automatically.
+	//
+	// Restrictions
+	//
+	//   - You can delete up to 25 fleets of type instant in a single request.
+	//
+	//   - You can delete up to 100 fleets of type maintain or request in a single
+	//     request.
+	//
+	//   - You can delete up to 125 fleets in a single request, provided you do not
+	//     exceed the quota for each fleet type, as specified above.
+	//
+	//   - If you exceed the specified number of fleets to delete, no fleets are
+	//     deleted.
+	//
+	// For more information, see [Delete an EC2 Fleet request and the instances in the fleet] in the Amazon EC2 User Guide.
+	//
+	// [Delete an EC2 Fleet request and the instances in the fleet]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/delete-fleet.html
+	DeleteFleets(ctx context.Context, params *ec2.DeleteFleetsInput, optFns ...func(*Options)) (*ec2.DeleteFleetsOutput, error)
 	// Deletes one or more flow logs.
-	DeleteFlowLogs(ctx context.Context, params *DeleteFlowLogsInput, optFns ...func(*Options)) (*DeleteFlowLogsOutput, error)
+	DeleteFlowLogs(ctx context.Context, params *ec2.DeleteFlowLogsInput, optFns ...func(*Options)) (*ec2.DeleteFlowLogsOutput, error)
 	// Deletes the specified Amazon FPGA Image (AFI).
-	DeleteFpgaImage(ctx context.Context, params *DeleteFpgaImageInput, optFns ...func(*Options)) (*DeleteFpgaImageOutput, error)
-	// Deletes the specified event window. For more information, see Define event
-	// windows for scheduled events
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/event-windows.html) in the
-	// Amazon EC2 User Guide.
-	DeleteInstanceEventWindow(ctx context.Context, params *DeleteInstanceEventWindowInput, optFns ...func(*Options)) (*DeleteInstanceEventWindowOutput, error)
+	DeleteFpgaImage(ctx context.Context, params *ec2.DeleteFpgaImageInput, optFns ...func(*Options)) (*ec2.DeleteFpgaImageOutput, error)
+	// Deletes the specified image usage report.
+	//
+	// For more information, see [View your AMI usage] in the Amazon EC2 User Guide.
+	//
+	// [View your AMI usage]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/your-ec2-ami-usage.html
+	DeleteImageUsageReport(ctx context.Context, params *ec2.DeleteImageUsageReportInput, optFns ...func(*Options)) (*ec2.DeleteImageUsageReportOutput, error)
+	// Deletes the specified EC2 Instance Connect Endpoint.
+	DeleteInstanceConnectEndpoint(ctx context.Context, params *ec2.DeleteInstanceConnectEndpointInput, optFns ...func(*Options)) (*ec2.DeleteInstanceConnectEndpointOutput, error)
+	// Deletes the specified event window.
+	//
+	// For more information, see [Define event windows for scheduled events] in the Amazon EC2 User Guide.
+	//
+	// [Define event windows for scheduled events]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/event-windows.html
+	DeleteInstanceEventWindow(ctx context.Context, params *ec2.DeleteInstanceEventWindowInput, optFns ...func(*Options)) (*ec2.DeleteInstanceEventWindowOutput, error)
 	// Deletes the specified internet gateway. You must detach the internet gateway
 	// from the VPC before you can delete it.
-	DeleteInternetGateway(ctx context.Context, params *DeleteInternetGatewayInput, optFns ...func(*Options)) (*DeleteInternetGatewayOutput, error)
+	DeleteInternetGateway(ctx context.Context, params *ec2.DeleteInternetGatewayInput, optFns ...func(*Options)) (*ec2.DeleteInternetGatewayOutput, error)
 	// Delete an IPAM. Deleting an IPAM removes all monitored data associated with the
-	// IPAM including the historical data for CIDRs. You cannot delete an IPAM if there
-	// are CIDRs provisioned to pools or if there are allocations in the pools within
-	// the IPAM. To deprovision pool CIDRs, see DeprovisionIpamPoolCidr
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeprovisionIpamPoolCidr.html).
-	// To release allocations, see ReleaseIpamPoolAllocation
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ReleaseIpamPoolAllocation.html).
-	// For more information, see Delete an IPAM in the Amazon VPC IPAM User Guide.
-	DeleteIpam(ctx context.Context, params *DeleteIpamInput, optFns ...func(*Options)) (*DeleteIpamOutput, error)
-	// Delete an IPAM pool. You cannot delete an IPAM pool if there are allocations in
-	// it or CIDRs provisioned to it. To release allocations, see
-	// ReleaseIpamPoolAllocation
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ReleaseIpamPoolAllocation.html).
-	// To deprovision pool CIDRs, see DeprovisionIpamPoolCidr
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeprovisionIpamPoolCidr.html).
-	// For more information, see Delete a pool in the Amazon VPC IPAM User Guide.
-	DeleteIpamPool(ctx context.Context, params *DeleteIpamPoolInput, optFns ...func(*Options)) (*DeleteIpamPoolOutput, error)
-	// Delete the scope for an IPAM. You cannot delete the default scopes. For more
-	// information, see Delete a scope in the Amazon VPC IPAM User Guide.
-	DeleteIpamScope(ctx context.Context, params *DeleteIpamScopeInput, optFns ...func(*Options)) (*DeleteIpamScopeOutput, error)
+	// IPAM including the historical data for CIDRs.
+	//
+	// For more information, see [Delete an IPAM] in the Amazon VPC IPAM User Guide.
+	//
+	// [Delete an IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/delete-ipam.html
+	DeleteIpam(ctx context.Context, params *ec2.DeleteIpamInput, optFns ...func(*Options)) (*ec2.DeleteIpamOutput, error)
+	// Delete a verification token. A verification token is an Amazon Web
+	// Services-generated random value that you can use to prove ownership of an
+	// external resource. For example, you can use a verification token to validate
+	// that you control a public IP address range when you bring an IP address range to
+	// Amazon Web Services (BYOIP).
+	DeleteIpamExternalResourceVerificationToken(ctx context.Context, params *ec2.DeleteIpamExternalResourceVerificationTokenInput, optFns ...func(*Options)) (*ec2.DeleteIpamExternalResourceVerificationTokenOutput, error)
+	// Delete an IPAM pool.
+	//
+	// You cannot delete an IPAM pool if there are allocations in it or CIDRs
+	// provisioned to it. To release allocations, see [ReleaseIpamPoolAllocation]. To deprovision pool CIDRs, see [DeprovisionIpamPoolCidr]
+	// .
+	//
+	// For more information, see [Delete a pool] in the Amazon VPC IPAM User Guide.
+	//
+	// [ReleaseIpamPoolAllocation]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ReleaseIpamPoolAllocation.html
+	// [Delete a pool]: https://docs.aws.amazon.com/vpc/latest/ipam/delete-pool-ipam.html
+	// [DeprovisionIpamPoolCidr]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeprovisionIpamPoolCidr.html
+	DeleteIpamPool(ctx context.Context, params *ec2.DeleteIpamPoolInput, optFns ...func(*Options)) (*ec2.DeleteIpamPoolOutput, error)
+	// Deletes an IPAM resource discovery. A resource discovery is an IPAM component
+	// that enables IPAM to manage and monitor resources that belong to the owning
+	// account.
+	DeleteIpamResourceDiscovery(ctx context.Context, params *ec2.DeleteIpamResourceDiscoveryInput, optFns ...func(*Options)) (*ec2.DeleteIpamResourceDiscoveryOutput, error)
+	// Delete the scope for an IPAM. You cannot delete the default scopes.
+	//
+	// For more information, see [Delete a scope] in the Amazon VPC IPAM User Guide.
+	//
+	// [Delete a scope]: https://docs.aws.amazon.com/vpc/latest/ipam/delete-scope-ipam.html
+	DeleteIpamScope(ctx context.Context, params *ec2.DeleteIpamScopeInput, optFns ...func(*Options)) (*ec2.DeleteIpamScopeOutput, error)
 	// Deletes the specified key pair, by removing the public key from Amazon EC2.
-	DeleteKeyPair(ctx context.Context, params *DeleteKeyPairInput, optFns ...func(*Options)) (*DeleteKeyPairOutput, error)
+	DeleteKeyPair(ctx context.Context, params *ec2.DeleteKeyPairInput, optFns ...func(*Options)) (*ec2.DeleteKeyPairOutput, error)
 	// Deletes a launch template. Deleting a launch template deletes all of its
 	// versions.
-	DeleteLaunchTemplate(ctx context.Context, params *DeleteLaunchTemplateInput, optFns ...func(*Options)) (*DeleteLaunchTemplateOutput, error)
-	// Deletes one or more versions of a launch template. You cannot delete the default
-	// version of a launch template; you must first assign a different version as the
-	// default. If the default version is the only version for the launch template, you
-	// must delete the entire launch template using DeleteLaunchTemplate.
-	DeleteLaunchTemplateVersions(ctx context.Context, params *DeleteLaunchTemplateVersionsInput, optFns ...func(*Options)) (*DeleteLaunchTemplateVersionsOutput, error)
+	DeleteLaunchTemplate(ctx context.Context, params *ec2.DeleteLaunchTemplateInput, optFns ...func(*Options)) (*ec2.DeleteLaunchTemplateOutput, error)
+	// Deletes one or more versions of a launch template.
+	//
+	// You can't delete the default version of a launch template; you must first
+	// assign a different version as the default. If the default version is the only
+	// version for the launch template, you must delete the entire launch template
+	// using DeleteLaunchTemplate.
+	//
+	// You can delete up to 200 launch template versions in a single request. To
+	// delete more than 200 versions in a single request, use DeleteLaunchTemplate, which deletes the
+	// launch template and all of its versions.
+	//
+	// For more information, see [Delete a launch template version] in the Amazon EC2 User Guide.
+	//
+	// [Delete a launch template version]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/delete-launch-template.html#delete-launch-template-version
+	DeleteLaunchTemplateVersions(ctx context.Context, params *ec2.DeleteLaunchTemplateVersionsInput, optFns ...func(*Options)) (*ec2.DeleteLaunchTemplateVersionsOutput, error)
 	// Deletes the specified route from the specified local gateway route table.
-	DeleteLocalGatewayRoute(ctx context.Context, params *DeleteLocalGatewayRouteInput, optFns ...func(*Options)) (*DeleteLocalGatewayRouteOutput, error)
+	DeleteLocalGatewayRoute(ctx context.Context, params *ec2.DeleteLocalGatewayRouteInput, optFns ...func(*Options)) (*ec2.DeleteLocalGatewayRouteOutput, error)
+	// Deletes a local gateway route table.
+	DeleteLocalGatewayRouteTable(ctx context.Context, params *ec2.DeleteLocalGatewayRouteTableInput, optFns ...func(*Options)) (*ec2.DeleteLocalGatewayRouteTableOutput, error)
+	// Deletes a local gateway route table virtual interface group association.
+	DeleteLocalGatewayRouteTableVirtualInterfaceGroupAssociation(ctx context.Context, params *ec2.DeleteLocalGatewayRouteTableVirtualInterfaceGroupAssociationInput, optFns ...func(*Options)) (*ec2.DeleteLocalGatewayRouteTableVirtualInterfaceGroupAssociationOutput, error)
 	// Deletes the specified association between a VPC and local gateway route table.
-	DeleteLocalGatewayRouteTableVpcAssociation(ctx context.Context, params *DeleteLocalGatewayRouteTableVpcAssociationInput, optFns ...func(*Options)) (*DeleteLocalGatewayRouteTableVpcAssociationOutput, error)
+	DeleteLocalGatewayRouteTableVpcAssociation(ctx context.Context, params *ec2.DeleteLocalGatewayRouteTableVpcAssociationInput, optFns ...func(*Options)) (*ec2.DeleteLocalGatewayRouteTableVpcAssociationOutput, error)
+	// Deletes the specified local gateway virtual interface.
+	DeleteLocalGatewayVirtualInterface(ctx context.Context, params *ec2.DeleteLocalGatewayVirtualInterfaceInput, optFns ...func(*Options)) (*ec2.DeleteLocalGatewayVirtualInterfaceOutput, error)
+	// Delete the specified local gateway interface group.
+	DeleteLocalGatewayVirtualInterfaceGroup(ctx context.Context, params *ec2.DeleteLocalGatewayVirtualInterfaceGroupInput, optFns ...func(*Options)) (*ec2.DeleteLocalGatewayVirtualInterfaceGroupOutput, error)
 	// Deletes the specified managed prefix list. You must first remove all references
 	// to the prefix list in your resources.
-	DeleteManagedPrefixList(ctx context.Context, params *DeleteManagedPrefixListInput, optFns ...func(*Options)) (*DeleteManagedPrefixListOutput, error)
+	DeleteManagedPrefixList(ctx context.Context, params *ec2.DeleteManagedPrefixListInput, optFns ...func(*Options)) (*ec2.DeleteManagedPrefixListOutput, error)
 	// Deletes the specified NAT gateway. Deleting a public NAT gateway disassociates
 	// its Elastic IP address, but does not release the address from your account.
 	// Deleting a NAT gateway does not delete any NAT gateway routes in your route
 	// tables.
-	DeleteNatGateway(ctx context.Context, params *DeleteNatGatewayInput, optFns ...func(*Options)) (*DeleteNatGatewayOutput, error)
+	DeleteNatGateway(ctx context.Context, params *ec2.DeleteNatGatewayInput, optFns ...func(*Options)) (*ec2.DeleteNatGatewayOutput, error)
 	// Deletes the specified network ACL. You can't delete the ACL if it's associated
 	// with any subnets. You can't delete the default network ACL.
-	DeleteNetworkAcl(ctx context.Context, params *DeleteNetworkAclInput, optFns ...func(*Options)) (*DeleteNetworkAclOutput, error)
+	DeleteNetworkAcl(ctx context.Context, params *ec2.DeleteNetworkAclInput, optFns ...func(*Options)) (*ec2.DeleteNetworkAclOutput, error)
 	// Deletes the specified ingress or egress entry (rule) from the specified network
 	// ACL.
-	DeleteNetworkAclEntry(ctx context.Context, params *DeleteNetworkAclEntryInput, optFns ...func(*Options)) (*DeleteNetworkAclEntryOutput, error)
+	DeleteNetworkAclEntry(ctx context.Context, params *ec2.DeleteNetworkAclEntryInput, optFns ...func(*Options)) (*ec2.DeleteNetworkAclEntryOutput, error)
 	// Deletes the specified Network Access Scope.
-	DeleteNetworkInsightsAccessScope(ctx context.Context, params *DeleteNetworkInsightsAccessScopeInput, optFns ...func(*Options)) (*DeleteNetworkInsightsAccessScopeOutput, error)
+	DeleteNetworkInsightsAccessScope(ctx context.Context, params *ec2.DeleteNetworkInsightsAccessScopeInput, optFns ...func(*Options)) (*ec2.DeleteNetworkInsightsAccessScopeOutput, error)
 	// Deletes the specified Network Access Scope analysis.
-	DeleteNetworkInsightsAccessScopeAnalysis(ctx context.Context, params *DeleteNetworkInsightsAccessScopeAnalysisInput, optFns ...func(*Options)) (*DeleteNetworkInsightsAccessScopeAnalysisOutput, error)
+	DeleteNetworkInsightsAccessScopeAnalysis(ctx context.Context, params *ec2.DeleteNetworkInsightsAccessScopeAnalysisInput, optFns ...func(*Options)) (*ec2.DeleteNetworkInsightsAccessScopeAnalysisOutput, error)
 	// Deletes the specified network insights analysis.
-	DeleteNetworkInsightsAnalysis(ctx context.Context, params *DeleteNetworkInsightsAnalysisInput, optFns ...func(*Options)) (*DeleteNetworkInsightsAnalysisOutput, error)
+	DeleteNetworkInsightsAnalysis(ctx context.Context, params *ec2.DeleteNetworkInsightsAnalysisInput, optFns ...func(*Options)) (*ec2.DeleteNetworkInsightsAnalysisOutput, error)
 	// Deletes the specified path.
-	DeleteNetworkInsightsPath(ctx context.Context, params *DeleteNetworkInsightsPathInput, optFns ...func(*Options)) (*DeleteNetworkInsightsPathOutput, error)
+	DeleteNetworkInsightsPath(ctx context.Context, params *ec2.DeleteNetworkInsightsPathInput, optFns ...func(*Options)) (*ec2.DeleteNetworkInsightsPathOutput, error)
 	// Deletes the specified network interface. You must detach the network interface
 	// before you can delete it.
-	DeleteNetworkInterface(ctx context.Context, params *DeleteNetworkInterfaceInput, optFns ...func(*Options)) (*DeleteNetworkInterfaceOutput, error)
+	DeleteNetworkInterface(ctx context.Context, params *ec2.DeleteNetworkInterfaceInput, optFns ...func(*Options)) (*ec2.DeleteNetworkInterfaceOutput, error)
 	// Deletes a permission for a network interface. By default, you cannot delete the
 	// permission if the account for which you're removing the permission has attached
 	// the network interface to an instance. However, you can force delete the
 	// permission, regardless of any attachment.
-	DeleteNetworkInterfacePermission(ctx context.Context, params *DeleteNetworkInterfacePermissionInput, optFns ...func(*Options)) (*DeleteNetworkInterfacePermissionOutput, error)
+	DeleteNetworkInterfacePermission(ctx context.Context, params *ec2.DeleteNetworkInterfacePermissionInput, optFns ...func(*Options)) (*ec2.DeleteNetworkInterfacePermissionOutput, error)
 	// Deletes the specified placement group. You must terminate all instances in the
 	// placement group before you can delete the placement group. For more information,
-	// see Placement groups
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html) in
-	// the Amazon EC2 User Guide.
-	DeletePlacementGroup(ctx context.Context, params *DeletePlacementGroupInput, optFns ...func(*Options)) (*DeletePlacementGroupOutput, error)
-	// Delete a public IPv4 pool. A public IPv4 pool is an EC2 IP address pool required
-	// for the public IPv4 CIDRs that you own and bring to Amazon Web Services to
-	// manage with IPAM. IPv6 addresses you bring to Amazon Web Services, however, use
-	// IPAM pools only.
-	DeletePublicIpv4Pool(ctx context.Context, params *DeletePublicIpv4PoolInput, optFns ...func(*Options)) (*DeletePublicIpv4PoolOutput, error)
+	// see [Placement groups]in the Amazon EC2 User Guide.
+	//
+	// [Placement groups]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html
+	DeletePlacementGroup(ctx context.Context, params *ec2.DeletePlacementGroupInput, optFns ...func(*Options)) (*ec2.DeletePlacementGroupOutput, error)
+	// Delete a public IPv4 pool. A public IPv4 pool is an EC2 IP address pool
+	// required for the public IPv4 CIDRs that you own and bring to Amazon Web Services
+	// to manage with IPAM. IPv6 addresses you bring to Amazon Web Services, however,
+	// use IPAM pools only.
+	DeletePublicIpv4Pool(ctx context.Context, params *ec2.DeletePublicIpv4PoolInput, optFns ...func(*Options)) (*ec2.DeletePublicIpv4PoolOutput, error)
 	// Deletes the queued purchases for the specified Reserved Instances.
-	DeleteQueuedReservedInstances(ctx context.Context, params *DeleteQueuedReservedInstancesInput, optFns ...func(*Options)) (*DeleteQueuedReservedInstancesOutput, error)
+	DeleteQueuedReservedInstances(ctx context.Context, params *ec2.DeleteQueuedReservedInstancesInput, optFns ...func(*Options)) (*ec2.DeleteQueuedReservedInstancesOutput, error)
 	// Deletes the specified route from the specified route table.
-	DeleteRoute(ctx context.Context, params *DeleteRouteInput, optFns ...func(*Options)) (*DeleteRouteOutput, error)
+	DeleteRoute(ctx context.Context, params *ec2.DeleteRouteInput, optFns ...func(*Options)) (*ec2.DeleteRouteOutput, error)
+	// Deletes the specified route server.
+	//
+	// Amazon VPC Route Server simplifies routing for traffic between workloads that
+	// are deployed within a VPC and its internet gateways. With this feature, VPC
+	// Route Server dynamically updates VPC and internet gateway route tables with your
+	// preferred IPv4 or IPv6 routes to achieve routing fault tolerance for those
+	// workloads. This enables you to automatically reroute traffic within a VPC, which
+	// increases the manageability of VPC routing and interoperability with third-party
+	// workloads.
+	//
+	// Route server supports the follow route table types:
+	//
+	//   - VPC route tables not associated with subnets
+	//
+	//   - Subnet route tables
+	//
+	//   - Internet gateway route tables
+	//
+	// Route server does not support route tables associated with virtual private
+	// gateways. To propagate routes into a transit gateway route table, use [Transit Gateway Connect].
+	//
+	// For more information see [Dynamic routing in your VPC with VPC Route Server] in the Amazon VPC User Guide.
+	//
+	// [Dynamic routing in your VPC with VPC Route Server]: https://docs.aws.amazon.com/vpc/latest/userguide/dynamic-routing-route-server.html
+	// [Transit Gateway Connect]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-connect.html
+	DeleteRouteServer(ctx context.Context, params *ec2.DeleteRouteServerInput, optFns ...func(*Options)) (*ec2.DeleteRouteServerOutput, error)
+	// Deletes the specified route server endpoint.
+	//
+	// A route server endpoint is an Amazon Web Services-managed component inside a
+	// subnet that facilitates [BGP (Border Gateway Protocol)]connections between your route server and your BGP
+	// peers.
+	//
+	// [BGP (Border Gateway Protocol)]: https://en.wikipedia.org/wiki/Border_Gateway_Protocol
+	DeleteRouteServerEndpoint(ctx context.Context, params *ec2.DeleteRouteServerEndpointInput, optFns ...func(*Options)) (*ec2.DeleteRouteServerEndpointOutput, error)
+	// Deletes the specified BGP peer from a route server.
+	//
+	// A route server peer is a session between a route server endpoint and the device
+	// deployed in Amazon Web Services (such as a firewall appliance or other network
+	// security function running on an EC2 instance). The device must meet these
+	// requirements:
+	//
+	//   - Have an elastic network interface in the VPC
+	//
+	//   - Support BGP (Border Gateway Protocol)
+	//
+	//   - Can initiate BGP sessions
+	DeleteRouteServerPeer(ctx context.Context, params *ec2.DeleteRouteServerPeerInput, optFns ...func(*Options)) (*ec2.DeleteRouteServerPeerOutput, error)
 	// Deletes the specified route table. You must disassociate the route table from
 	// any subnets before you can delete it. You can't delete the main route table.
-	DeleteRouteTable(ctx context.Context, params *DeleteRouteTableInput, optFns ...func(*Options)) (*DeleteRouteTableOutput, error)
-	// Deletes a security group. If you attempt to delete a security group that is
-	// associated with an instance, or is referenced by another security group, the
-	// operation fails with InvalidGroup.InUse in EC2-Classic or DependencyViolation in
-	// EC2-VPC.
-	DeleteSecurityGroup(ctx context.Context, params *DeleteSecurityGroupInput, optFns ...func(*Options)) (*DeleteSecurityGroupOutput, error)
-	// Deletes the specified snapshot. When you make periodic snapshots of a volume,
-	// the snapshots are incremental, and only the blocks on the device that have
-	// changed since your last snapshot are saved in the new snapshot. When you delete
-	// a snapshot, only the data not needed for any other snapshot is removed. So
-	// regardless of which prior snapshots have been deleted, all active snapshots will
-	// have access to all the information needed to restore the volume. You cannot
-	// delete a snapshot of the root device of an EBS volume used by a registered AMI.
-	// You must first de-register the AMI before you can delete the snapshot. For more
-	// information, see Delete an Amazon EBS snapshot
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-deleting-snapshot.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	DeleteSnapshot(ctx context.Context, params *DeleteSnapshotInput, optFns ...func(*Options)) (*DeleteSnapshotOutput, error)
+	DeleteRouteTable(ctx context.Context, params *ec2.DeleteRouteTableInput, optFns ...func(*Options)) (*ec2.DeleteRouteTableOutput, error)
+	// Deletes a security group.
+	//
+	// If you attempt to delete a security group that is associated with an instance
+	// or network interface, is referenced by another security group in the same VPC,
+	// or has a VPC association, the operation fails with DependencyViolation .
+	DeleteSecurityGroup(ctx context.Context, params *ec2.DeleteSecurityGroupInput, optFns ...func(*Options)) (*ec2.DeleteSecurityGroupOutput, error)
+	// Deletes the specified snapshot.
+	//
+	// When you make periodic snapshots of a volume, the snapshots are incremental,
+	// and only the blocks on the device that have changed since your last snapshot are
+	// saved in the new snapshot. When you delete a snapshot, only the data not needed
+	// for any other snapshot is removed. So regardless of which prior snapshots have
+	// been deleted, all active snapshots will have access to all the information
+	// needed to restore the volume.
+	//
+	// You cannot delete a snapshot of the root device of an EBS volume used by a
+	// registered AMI. You must first deregister the AMI before you can delete the
+	// snapshot.
+	//
+	// For more information, see [Delete an Amazon EBS snapshot] in the Amazon EBS User Guide.
+	//
+	// [Delete an Amazon EBS snapshot]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-deleting-snapshot.html
+	DeleteSnapshot(ctx context.Context, params *ec2.DeleteSnapshotInput, optFns ...func(*Options)) (*ec2.DeleteSnapshotOutput, error)
 	// Deletes the data feed for Spot Instances.
-	DeleteSpotDatafeedSubscription(ctx context.Context, params *DeleteSpotDatafeedSubscriptionInput, optFns ...func(*Options)) (*DeleteSpotDatafeedSubscriptionOutput, error)
+	DeleteSpotDatafeedSubscription(ctx context.Context, params *ec2.DeleteSpotDatafeedSubscriptionInput, optFns ...func(*Options)) (*ec2.DeleteSpotDatafeedSubscriptionOutput, error)
 	// Deletes the specified subnet. You must terminate all running instances in the
 	// subnet before you can delete the subnet.
-	DeleteSubnet(ctx context.Context, params *DeleteSubnetInput, optFns ...func(*Options)) (*DeleteSubnetOutput, error)
+	DeleteSubnet(ctx context.Context, params *ec2.DeleteSubnetInput, optFns ...func(*Options)) (*ec2.DeleteSubnetOutput, error)
 	// Deletes a subnet CIDR reservation.
-	DeleteSubnetCidrReservation(ctx context.Context, params *DeleteSubnetCidrReservationInput, optFns ...func(*Options)) (*DeleteSubnetCidrReservationOutput, error)
-	// Deletes the specified set of tags from the specified set of resources. To list
-	// the current tags, use DescribeTags. For more information about tags, see Tagging
-	// Your Resources
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html) in the
+	DeleteSubnetCidrReservation(ctx context.Context, params *ec2.DeleteSubnetCidrReservationInput, optFns ...func(*Options)) (*ec2.DeleteSubnetCidrReservationOutput, error)
+	// Deletes the specified set of tags from the specified set of resources.
+	//
+	// To list the current tags, use DescribeTags. For more information about tags, see [Tag your Amazon EC2 resources] in the
 	// Amazon Elastic Compute Cloud User Guide.
-	DeleteTags(ctx context.Context, params *DeleteTagsInput, optFns ...func(*Options)) (*DeleteTagsOutput, error)
-	// Deletes the specified Traffic Mirror filter. You cannot delete a Traffic Mirror
-	// filter that is in use by a Traffic Mirror session.
-	DeleteTrafficMirrorFilter(ctx context.Context, params *DeleteTrafficMirrorFilterInput, optFns ...func(*Options)) (*DeleteTrafficMirrorFilterOutput, error)
+	//
+	// [Tag your Amazon EC2 resources]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html
+	DeleteTags(ctx context.Context, params *ec2.DeleteTagsInput, optFns ...func(*Options)) (*ec2.DeleteTagsOutput, error)
+	// Deletes the specified Traffic Mirror filter.
+	//
+	// You cannot delete a Traffic Mirror filter that is in use by a Traffic Mirror
+	// session.
+	DeleteTrafficMirrorFilter(ctx context.Context, params *ec2.DeleteTrafficMirrorFilterInput, optFns ...func(*Options)) (*ec2.DeleteTrafficMirrorFilterOutput, error)
 	// Deletes the specified Traffic Mirror rule.
-	DeleteTrafficMirrorFilterRule(ctx context.Context, params *DeleteTrafficMirrorFilterRuleInput, optFns ...func(*Options)) (*DeleteTrafficMirrorFilterRuleOutput, error)
+	DeleteTrafficMirrorFilterRule(ctx context.Context, params *ec2.DeleteTrafficMirrorFilterRuleInput, optFns ...func(*Options)) (*ec2.DeleteTrafficMirrorFilterRuleOutput, error)
 	// Deletes the specified Traffic Mirror session.
-	DeleteTrafficMirrorSession(ctx context.Context, params *DeleteTrafficMirrorSessionInput, optFns ...func(*Options)) (*DeleteTrafficMirrorSessionOutput, error)
-	// Deletes the specified Traffic Mirror target. You cannot delete a Traffic Mirror
-	// target that is in use by a Traffic Mirror session.
-	DeleteTrafficMirrorTarget(ctx context.Context, params *DeleteTrafficMirrorTargetInput, optFns ...func(*Options)) (*DeleteTrafficMirrorTargetOutput, error)
+	DeleteTrafficMirrorSession(ctx context.Context, params *ec2.DeleteTrafficMirrorSessionInput, optFns ...func(*Options)) (*ec2.DeleteTrafficMirrorSessionOutput, error)
+	// Deletes the specified Traffic Mirror target.
+	//
+	// You cannot delete a Traffic Mirror target that is in use by a Traffic Mirror
+	// session.
+	DeleteTrafficMirrorTarget(ctx context.Context, params *ec2.DeleteTrafficMirrorTargetInput, optFns ...func(*Options)) (*ec2.DeleteTrafficMirrorTargetOutput, error)
 	// Deletes the specified transit gateway.
-	DeleteTransitGateway(ctx context.Context, params *DeleteTransitGatewayInput, optFns ...func(*Options)) (*DeleteTransitGatewayOutput, error)
+	DeleteTransitGateway(ctx context.Context, params *ec2.DeleteTransitGatewayInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayOutput, error)
 	// Deletes the specified Connect attachment. You must first delete any Connect
 	// peers for the attachment.
-	DeleteTransitGatewayConnect(ctx context.Context, params *DeleteTransitGatewayConnectInput, optFns ...func(*Options)) (*DeleteTransitGatewayConnectOutput, error)
+	DeleteTransitGatewayConnect(ctx context.Context, params *ec2.DeleteTransitGatewayConnectInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayConnectOutput, error)
 	// Deletes the specified Connect peer.
-	DeleteTransitGatewayConnectPeer(ctx context.Context, params *DeleteTransitGatewayConnectPeerInput, optFns ...func(*Options)) (*DeleteTransitGatewayConnectPeerOutput, error)
+	DeleteTransitGatewayConnectPeer(ctx context.Context, params *ec2.DeleteTransitGatewayConnectPeerInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayConnectPeerOutput, error)
 	// Deletes the specified transit gateway multicast domain.
-	DeleteTransitGatewayMulticastDomain(ctx context.Context, params *DeleteTransitGatewayMulticastDomainInput, optFns ...func(*Options)) (*DeleteTransitGatewayMulticastDomainOutput, error)
+	DeleteTransitGatewayMulticastDomain(ctx context.Context, params *ec2.DeleteTransitGatewayMulticastDomainInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayMulticastDomainOutput, error)
 	// Deletes a transit gateway peering attachment.
-	DeleteTransitGatewayPeeringAttachment(ctx context.Context, params *DeleteTransitGatewayPeeringAttachmentInput, optFns ...func(*Options)) (*DeleteTransitGatewayPeeringAttachmentOutput, error)
+	DeleteTransitGatewayPeeringAttachment(ctx context.Context, params *ec2.DeleteTransitGatewayPeeringAttachmentInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayPeeringAttachmentOutput, error)
+	// Deletes the specified transit gateway policy table.
+	DeleteTransitGatewayPolicyTable(ctx context.Context, params *ec2.DeleteTransitGatewayPolicyTableInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayPolicyTableOutput, error)
 	// Deletes a reference (route) to a prefix list in a specified transit gateway
 	// route table.
-	DeleteTransitGatewayPrefixListReference(ctx context.Context, params *DeleteTransitGatewayPrefixListReferenceInput, optFns ...func(*Options)) (*DeleteTransitGatewayPrefixListReferenceOutput, error)
+	DeleteTransitGatewayPrefixListReference(ctx context.Context, params *ec2.DeleteTransitGatewayPrefixListReferenceInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayPrefixListReferenceOutput, error)
 	// Deletes the specified route from the specified transit gateway route table.
-	DeleteTransitGatewayRoute(ctx context.Context, params *DeleteTransitGatewayRouteInput, optFns ...func(*Options)) (*DeleteTransitGatewayRouteOutput, error)
-	// Deletes the specified transit gateway route table. You must disassociate the
-	// route table from any transit gateway route tables before you can delete it.
-	DeleteTransitGatewayRouteTable(ctx context.Context, params *DeleteTransitGatewayRouteTableInput, optFns ...func(*Options)) (*DeleteTransitGatewayRouteTableOutput, error)
+	DeleteTransitGatewayRoute(ctx context.Context, params *ec2.DeleteTransitGatewayRouteInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayRouteOutput, error)
+	// Deletes the specified transit gateway route table. If there are any route
+	// tables associated with the transit gateway route table, you must first run DisassociateRouteTable
+	// before you can delete the transit gateway route table. This removes any route
+	// tables associated with the transit gateway route table.
+	DeleteTransitGatewayRouteTable(ctx context.Context, params *ec2.DeleteTransitGatewayRouteTableInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayRouteTableOutput, error)
+	// Advertises to the transit gateway that a transit gateway route table is deleted.
+	DeleteTransitGatewayRouteTableAnnouncement(ctx context.Context, params *ec2.DeleteTransitGatewayRouteTableAnnouncementInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayRouteTableAnnouncementOutput, error)
 	// Deletes the specified VPC attachment.
-	DeleteTransitGatewayVpcAttachment(ctx context.Context, params *DeleteTransitGatewayVpcAttachmentInput, optFns ...func(*Options)) (*DeleteTransitGatewayVpcAttachmentOutput, error)
-	// Deletes the specified EBS volume. The volume must be in the available state (not
-	// attached to an instance). The volume can remain in the deleting state for
-	// several minutes. For more information, see Delete an Amazon EBS volume
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-deleting-volume.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	DeleteVolume(ctx context.Context, params *DeleteVolumeInput, optFns ...func(*Options)) (*DeleteVolumeOutput, error)
+	DeleteTransitGatewayVpcAttachment(ctx context.Context, params *ec2.DeleteTransitGatewayVpcAttachmentInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayVpcAttachmentOutput, error)
+	// Delete an Amazon Web Services Verified Access endpoint.
+	DeleteVerifiedAccessEndpoint(ctx context.Context, params *ec2.DeleteVerifiedAccessEndpointInput, optFns ...func(*Options)) (*ec2.DeleteVerifiedAccessEndpointOutput, error)
+	// Delete an Amazon Web Services Verified Access group.
+	DeleteVerifiedAccessGroup(ctx context.Context, params *ec2.DeleteVerifiedAccessGroupInput, optFns ...func(*Options)) (*ec2.DeleteVerifiedAccessGroupOutput, error)
+	// Delete an Amazon Web Services Verified Access instance.
+	DeleteVerifiedAccessInstance(ctx context.Context, params *ec2.DeleteVerifiedAccessInstanceInput, optFns ...func(*Options)) (*ec2.DeleteVerifiedAccessInstanceOutput, error)
+	// Delete an Amazon Web Services Verified Access trust provider.
+	DeleteVerifiedAccessTrustProvider(ctx context.Context, params *ec2.DeleteVerifiedAccessTrustProviderInput, optFns ...func(*Options)) (*ec2.DeleteVerifiedAccessTrustProviderOutput, error)
+	// Deletes the specified EBS volume. The volume must be in the available state
+	// (not attached to an instance).
+	//
+	// The volume can remain in the deleting state for several minutes.
+	//
+	// For more information, see [Delete an Amazon EBS volume] in the Amazon EBS User Guide.
+	//
+	// [Delete an Amazon EBS volume]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-deleting-volume.html
+	DeleteVolume(ctx context.Context, params *ec2.DeleteVolumeInput, optFns ...func(*Options)) (*ec2.DeleteVolumeOutput, error)
 	// Deletes the specified VPC. You must detach or delete all gateways and resources
 	// that are associated with the VPC before you can delete it. For example, you must
 	// terminate all instances running in the VPC, delete all security groups
 	// associated with the VPC (except the default one), delete all route tables
-	// associated with the VPC (except the default one), and so on.
-	DeleteVpc(ctx context.Context, params *DeleteVpcInput, optFns ...func(*Options)) (*DeleteVpcOutput, error)
-	// Deletes one or more VPC endpoint connection notifications.
-	DeleteVpcEndpointConnectionNotifications(ctx context.Context, params *DeleteVpcEndpointConnectionNotificationsInput, optFns ...func(*Options)) (*DeleteVpcEndpointConnectionNotificationsOutput, error)
-	// Deletes one or more VPC endpoint service configurations in your account. Before
-	// you delete the endpoint service configuration, you must reject any Available or
+	// associated with the VPC (except the default one), and so on. When you delete the
+	// VPC, it deletes the default security group, network ACL, and route table for the
+	// VPC.
+	//
+	// If you created a flow log for the VPC that you are deleting, note that flow
+	// logs for deleted VPCs are eventually automatically removed.
+	DeleteVpc(ctx context.Context, params *ec2.DeleteVpcInput, optFns ...func(*Options)) (*ec2.DeleteVpcOutput, error)
+	// Delete a VPC Block Public Access (BPA) exclusion. A VPC BPA exclusion is a mode
+	// that can be applied to a single VPC or subnet that exempts it from the account’s
+	// BPA mode and will allow bidirectional or egress-only access. You can create BPA
+	// exclusions for VPCs and subnets even when BPA is not enabled on the account to
+	// ensure that there is no traffic disruption to the exclusions when VPC BPA is
+	// turned on. To learn more about VPC BPA, see [Block public access to VPCs and subnets]in the Amazon VPC User Guide.
+	//
+	// [Block public access to VPCs and subnets]: https://docs.aws.amazon.com/vpc/latest/userguide/security-vpc-bpa.html
+	DeleteVpcBlockPublicAccessExclusion(ctx context.Context, params *ec2.DeleteVpcBlockPublicAccessExclusionInput, optFns ...func(*Options)) (*ec2.DeleteVpcBlockPublicAccessExclusionOutput, error)
+	// Deletes the specified VPC endpoint connection notifications.
+	DeleteVpcEndpointConnectionNotifications(ctx context.Context, params *ec2.DeleteVpcEndpointConnectionNotificationsInput, optFns ...func(*Options)) (*ec2.DeleteVpcEndpointConnectionNotificationsOutput, error)
+	// Deletes the specified VPC endpoint service configurations. Before you can
+	// delete an endpoint service configuration, you must reject any Available or
 	// PendingAcceptance interface endpoint connections that are attached to the
 	// service.
-	DeleteVpcEndpointServiceConfigurations(ctx context.Context, params *DeleteVpcEndpointServiceConfigurationsInput, optFns ...func(*Options)) (*DeleteVpcEndpointServiceConfigurationsOutput, error)
-	// Deletes one or more specified VPC endpoints. You can delete any of the following
-	// types of VPC endpoints.
+	DeleteVpcEndpointServiceConfigurations(ctx context.Context, params *ec2.DeleteVpcEndpointServiceConfigurationsInput, optFns ...func(*Options)) (*ec2.DeleteVpcEndpointServiceConfigurationsOutput, error)
+	// Deletes the specified VPC endpoints.
 	//
-	// * Gateway endpoint,
+	// When you delete a gateway endpoint, we delete the endpoint routes in the route
+	// tables for the endpoint.
 	//
-	// * Gateway Load Balancer
-	// endpoint,
+	// When you delete a Gateway Load Balancer endpoint, we delete its endpoint
+	// network interfaces. You can only delete Gateway Load Balancer endpoints when the
+	// routes that are associated with the endpoint are deleted.
 	//
-	// * Interface endpoint
-	//
-	// The following rules apply when you delete a VPC
-	// endpoint:
-	//
-	// * When you delete a gateway endpoint, we delete the endpoint routes
-	// in the route tables that are associated with the endpoint.
-	//
-	// * When you delete a
-	// Gateway Load Balancer endpoint, we delete the endpoint network interfaces. You
-	// can only delete Gateway Load Balancer endpoints when the routes that are
-	// associated with the endpoint are deleted.
-	//
-	// * When you delete an interface
-	// endpoint, we delete the endpoint network interfaces.
-	DeleteVpcEndpoints(ctx context.Context, params *DeleteVpcEndpointsInput, optFns ...func(*Options)) (*DeleteVpcEndpointsOutput, error)
+	// When you delete an interface endpoint, we delete its endpoint network
+	// interfaces.
+	DeleteVpcEndpoints(ctx context.Context, params *ec2.DeleteVpcEndpointsInput, optFns ...func(*Options)) (*ec2.DeleteVpcEndpointsOutput, error)
 	// Deletes a VPC peering connection. Either the owner of the requester VPC or the
 	// owner of the accepter VPC can delete the VPC peering connection if it's in the
 	// active state. The owner of the requester VPC can delete a VPC peering connection
 	// in the pending-acceptance state. You cannot delete a VPC peering connection
-	// that's in the failed state.
-	DeleteVpcPeeringConnection(ctx context.Context, params *DeleteVpcPeeringConnectionInput, optFns ...func(*Options)) (*DeleteVpcPeeringConnectionOutput, error)
-	// Deletes the specified VPN connection. If you're deleting the VPC and its
-	// associated components, we recommend that you detach the virtual private gateway
-	// from the VPC and delete the VPC before deleting the VPN connection. If you
-	// believe that the tunnel credentials for your VPN connection have been
-	// compromised, you can delete the VPN connection and create a new one that has new
-	// keys, without needing to delete the VPC or virtual private gateway. If you
-	// create a new VPN connection, you must reconfigure the customer gateway device
-	// using the new configuration information returned with the new VPN connection ID.
+	// that's in the failed or rejected state.
+	DeleteVpcPeeringConnection(ctx context.Context, params *ec2.DeleteVpcPeeringConnectionInput, optFns ...func(*Options)) (*ec2.DeleteVpcPeeringConnectionOutput, error)
+	// Deletes the specified VPN connection.
+	//
+	// If you're deleting the VPC and its associated components, we recommend that you
+	// detach the virtual private gateway from the VPC and delete the VPC before
+	// deleting the VPN connection. If you believe that the tunnel credentials for your
+	// VPN connection have been compromised, you can delete the VPN connection and
+	// create a new one that has new keys, without needing to delete the VPC or virtual
+	// private gateway. If you create a new VPN connection, you must reconfigure the
+	// customer gateway device using the new configuration information returned with
+	// the new VPN connection ID.
+	//
 	// For certificate-based authentication, delete all Certificate Manager (ACM)
 	// private certificates used for the Amazon Web Services-side tunnel endpoints for
 	// the VPN connection before deleting the VPN connection.
-	DeleteVpnConnection(ctx context.Context, params *DeleteVpnConnectionInput, optFns ...func(*Options)) (*DeleteVpnConnectionOutput, error)
+	DeleteVpnConnection(ctx context.Context, params *ec2.DeleteVpnConnectionInput, optFns ...func(*Options)) (*ec2.DeleteVpnConnectionOutput, error)
 	// Deletes the specified static route associated with a VPN connection between an
 	// existing virtual private gateway and a VPN customer gateway. The static route
 	// allows traffic to be routed from the virtual private gateway to the VPN customer
 	// gateway.
-	DeleteVpnConnectionRoute(ctx context.Context, params *DeleteVpnConnectionRouteInput, optFns ...func(*Options)) (*DeleteVpnConnectionRouteOutput, error)
-	// Deletes the specified virtual private gateway. You must first detach the virtual
-	// private gateway from the VPC. Note that you don't need to delete the virtual
-	// private gateway if you plan to delete and recreate the VPN connection between
-	// your VPC and your network.
-	DeleteVpnGateway(ctx context.Context, params *DeleteVpnGatewayInput, optFns ...func(*Options)) (*DeleteVpnGatewayOutput, error)
+	DeleteVpnConnectionRoute(ctx context.Context, params *ec2.DeleteVpnConnectionRouteInput, optFns ...func(*Options)) (*ec2.DeleteVpnConnectionRouteOutput, error)
+	// Deletes the specified virtual private gateway. You must first detach the
+	// virtual private gateway from the VPC. Note that you don't need to delete the
+	// virtual private gateway if you plan to delete and recreate the VPN connection
+	// between your VPC and your network.
+	DeleteVpnGateway(ctx context.Context, params *ec2.DeleteVpnGatewayInput, optFns ...func(*Options)) (*ec2.DeleteVpnGatewayOutput, error)
 	// Releases the specified address range that you provisioned for use with your
 	// Amazon Web Services resources through bring your own IP addresses (BYOIP) and
-	// deletes the corresponding address pool. Before you can release an address range,
-	// you must stop advertising it using WithdrawByoipCidr and you must not have any
-	// IP addresses allocated from its address range.
-	DeprovisionByoipCidr(ctx context.Context, params *DeprovisionByoipCidrInput, optFns ...func(*Options)) (*DeprovisionByoipCidrOutput, error)
-	// Deprovision a CIDR provisioned from an IPAM pool. If you deprovision a CIDR from
-	// a pool that has a source pool, the CIDR is recycled back into the source pool.
-	// For more information, see Deprovision pool CIDRs in the Amazon VPC IPAM User
-	// Guide.
-	DeprovisionIpamPoolCidr(ctx context.Context, params *DeprovisionIpamPoolCidrInput, optFns ...func(*Options)) (*DeprovisionIpamPoolCidrOutput, error)
+	// deletes the corresponding address pool.
+	//
+	// Before you can release an address range, you must stop advertising it and you
+	// must not have any IP addresses allocated from its address range.
+	DeprovisionByoipCidr(ctx context.Context, params *ec2.DeprovisionByoipCidrInput, optFns ...func(*Options)) (*ec2.DeprovisionByoipCidrOutput, error)
+	// Deprovisions your Autonomous System Number (ASN) from your Amazon Web Services
+	// account. This action can only be called after any BYOIP CIDR associations are
+	// removed from your Amazon Web Services account with [DisassociateIpamByoasn]. For more information, see [Tutorial: Bring your ASN to IPAM]
+	// in the Amazon VPC IPAM guide.
+	//
+	// [DisassociateIpamByoasn]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DisassociateIpamByoasn.html
+	// [Tutorial: Bring your ASN to IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/tutorials-byoasn.html
+	DeprovisionIpamByoasn(ctx context.Context, params *ec2.DeprovisionIpamByoasnInput, optFns ...func(*Options)) (*ec2.DeprovisionIpamByoasnOutput, error)
+	// Deprovision a CIDR provisioned from an IPAM pool. If you deprovision a CIDR
+	// from a pool that has a source pool, the CIDR is recycled back into the source
+	// pool. For more information, see [Deprovision pool CIDRs]in the Amazon VPC IPAM User Guide.
+	//
+	// [Deprovision pool CIDRs]: https://docs.aws.amazon.com/vpc/latest/ipam/depro-pool-cidr-ipam.html
+	DeprovisionIpamPoolCidr(ctx context.Context, params *ec2.DeprovisionIpamPoolCidrInput, optFns ...func(*Options)) (*ec2.DeprovisionIpamPoolCidrOutput, error)
 	// Deprovision a CIDR from a public IPv4 pool.
-	DeprovisionPublicIpv4PoolCidr(ctx context.Context, params *DeprovisionPublicIpv4PoolCidrInput, optFns ...func(*Options)) (*DeprovisionPublicIpv4PoolCidrOutput, error)
-	// Deregisters the specified AMI. After you deregister an AMI, it can't be used to
-	// launch new instances. If you deregister an AMI that matches a Recycle Bin
-	// retention rule, the AMI is retained in the Recycle Bin for the specified
-	// retention period. For more information, see Recycle Bin
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/recycle-bin.html) in the
-	// Amazon Elastic Compute Cloud User Guide. When you deregister an AMI, it doesn't
-	// affect any instances that you've already launched from the AMI. You'll continue
-	// to incur usage costs for those instances until you terminate them. When you
-	// deregister an Amazon EBS-backed AMI, it doesn't affect the snapshot that was
-	// created for the root volume of the instance during the AMI creation process.
-	// When you deregister an instance store-backed AMI, it doesn't affect the files
-	// that you uploaded to Amazon S3 when you created the AMI.
-	DeregisterImage(ctx context.Context, params *DeregisterImageInput, optFns ...func(*Options)) (*DeregisterImageOutput, error)
-	// Deregisters tag keys to prevent tags that have the specified tag keys from being
-	// included in scheduled event notifications for resources in the Region.
-	DeregisterInstanceEventNotificationAttributes(ctx context.Context, params *DeregisterInstanceEventNotificationAttributesInput, optFns ...func(*Options)) (*DeregisterInstanceEventNotificationAttributesOutput, error)
+	DeprovisionPublicIpv4PoolCidr(ctx context.Context, params *ec2.DeprovisionPublicIpv4PoolCidrInput, optFns ...func(*Options)) (*ec2.DeprovisionPublicIpv4PoolCidrOutput, error)
+	// Deregisters the specified AMI. A deregistered AMI can't be used to launch new
+	// instances.
+	//
+	// If a deregistered EBS-backed AMI matches a Recycle Bin retention rule, it moves
+	// to the Recycle Bin for the specified retention period. It can be restored before
+	// its retention period expires, after which it is permanently deleted. If the
+	// deregistered AMI doesn't match a retention rule, it is permanently deleted
+	// immediately. For more information, see [Recover deleted Amazon EBS snapshots and EBS-backed AMIs with Recycle Bin]in the Amazon EBS User Guide.
+	//
+	// When deregistering an EBS-backed AMI, you can optionally delete its associated
+	// snapshots at the same time. However, if a snapshot is associated with multiple
+	// AMIs, it won't be deleted even if specified for deletion, although the AMI will
+	// still be deregistered.
+	//
+	// Deregistering an AMI does not delete the following:
+	//
+	//   - Instances already launched from the AMI. You'll continue to incur usage
+	//     costs for the instances until you terminate them.
+	//
+	//   - For EBS-backed AMIs: Snapshots that are associated with multiple AMIs.
+	//     You'll continue to incur snapshot storage costs.
+	//
+	//   - For instance store-backed AMIs: The files uploaded to Amazon S3 during AMI
+	//     creation. You'll continue to incur S3 storage costs.
+	//
+	// For more information, see [Deregister an Amazon EC2 AMI] in the Amazon EC2 User Guide.
+	//
+	// [Deregister an Amazon EC2 AMI]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/deregister-ami.html
+	// [Recover deleted Amazon EBS snapshots and EBS-backed AMIs with Recycle Bin]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/recycle-bin.html
+	DeregisterImage(ctx context.Context, params *ec2.DeregisterImageInput, optFns ...func(*Options)) (*ec2.DeregisterImageOutput, error)
+	// Deregisters tag keys to prevent tags that have the specified tag keys from
+	// being included in scheduled event notifications for resources in the Region.
+	DeregisterInstanceEventNotificationAttributes(ctx context.Context, params *ec2.DeregisterInstanceEventNotificationAttributesInput, optFns ...func(*Options)) (*ec2.DeregisterInstanceEventNotificationAttributesOutput, error)
 	// Deregisters the specified members (network interfaces) from the transit gateway
 	// multicast group.
-	DeregisterTransitGatewayMulticastGroupMembers(ctx context.Context, params *DeregisterTransitGatewayMulticastGroupMembersInput, optFns ...func(*Options)) (*DeregisterTransitGatewayMulticastGroupMembersOutput, error)
+	DeregisterTransitGatewayMulticastGroupMembers(ctx context.Context, params *ec2.DeregisterTransitGatewayMulticastGroupMembersInput, optFns ...func(*Options)) (*ec2.DeregisterTransitGatewayMulticastGroupMembersOutput, error)
 	// Deregisters the specified sources (network interfaces) from the transit gateway
 	// multicast group.
-	DeregisterTransitGatewayMulticastGroupSources(ctx context.Context, params *DeregisterTransitGatewayMulticastGroupSourcesInput, optFns ...func(*Options)) (*DeregisterTransitGatewayMulticastGroupSourcesOutput, error)
+	DeregisterTransitGatewayMulticastGroupSources(ctx context.Context, params *ec2.DeregisterTransitGatewayMulticastGroupSourcesInput, optFns ...func(*Options)) (*ec2.DeregisterTransitGatewayMulticastGroupSourcesOutput, error)
 	// Describes attributes of your Amazon Web Services account. The following are the
 	// supported account attributes:
 	//
-	// * supported-platforms: Indicates whether your
-	// account can launch instances into EC2-Classic and EC2-VPC, or only into
-	// EC2-VPC.
+	//   - default-vpc : The ID of the default VPC for your account, or none .
 	//
-	// * default-vpc: The ID of the default VPC for your account, or none.
+	//   - max-instances : This attribute is no longer supported. The returned value
+	//     does not reflect your actual vCPU limit for running On-Demand Instances. For
+	//     more information, see [On-Demand Instance Limits]in the Amazon Elastic Compute Cloud User Guide.
 	//
-	// *
-	// max-instances: This attribute is no longer supported. The returned value does
-	// not reflect your actual vCPU limit for running On-Demand Instances. For more
-	// information, see On-Demand Instance Limits
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-on-demand-instances.html#ec2-on-demand-instances-limits)
-	// in the Amazon Elastic Compute Cloud User Guide.
+	//   - max-elastic-ips : The maximum number of Elastic IP addresses that you can
+	//     allocate.
 	//
-	// *
-	// vpc-max-security-groups-per-interface: The maximum number of security groups
-	// that you can assign to a network interface.
+	//   - supported-platforms : This attribute is deprecated.
 	//
-	// * max-elastic-ips: The maximum
-	// number of Elastic IP addresses that you can allocate for use with
-	// EC2-Classic.
+	//   - vpc-max-elastic-ips : The maximum number of Elastic IP addresses that you
+	//     can allocate.
 	//
-	// * vpc-max-elastic-ips: The maximum number of Elastic IP addresses
-	// that you can allocate for use with EC2-VPC.
-	DescribeAccountAttributes(ctx context.Context, params *DescribeAccountAttributesInput, optFns ...func(*Options)) (*DescribeAccountAttributesOutput, error)
+	//   - vpc-max-security-groups-per-interface : The maximum number of security
+	//     groups that you can assign to a network interface.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	//
+	// [On-Demand Instance Limits]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-on-demand-instances.html#ec2-on-demand-instances-limits
+	DescribeAccountAttributes(ctx context.Context, params *ec2.DescribeAccountAttributesInput, optFns ...func(*Options)) (*ec2.DescribeAccountAttributesOutput, error)
+	// Describes an Elastic IP address transfer. For more information, see [Transfer Elastic IP addresses] in the
+	// Amazon VPC User Guide.
+	//
+	// When you transfer an Elastic IP address, there is a two-step handshake between
+	// the source and transfer Amazon Web Services accounts. When the source account
+	// starts the transfer, the transfer account has seven days to accept the Elastic
+	// IP address transfer. During those seven days, the source account can view the
+	// pending transfer by using this action. After seven days, the transfer expires
+	// and ownership of the Elastic IP address returns to the source account. Accepted
+	// transfers are visible to the source account for 14 days after the transfers have
+	// been accepted.
+	//
+	// [Transfer Elastic IP addresses]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#transfer-EIPs-intro
+	DescribeAddressTransfers(ctx context.Context, params *ec2.DescribeAddressTransfersInput, optFns ...func(*Options)) (*ec2.DescribeAddressTransfersOutput, error)
 	// Describes the specified Elastic IP addresses or all of your Elastic IP
-	// addresses. An Elastic IP address is for use in either the EC2-Classic platform
-	// or in a VPC. For more information, see Elastic IP Addresses
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	DescribeAddresses(ctx context.Context, params *DescribeAddressesInput, optFns ...func(*Options)) (*DescribeAddressesOutput, error)
+	// addresses.
+	DescribeAddresses(ctx context.Context, params *ec2.DescribeAddressesInput, optFns ...func(*Options)) (*ec2.DescribeAddressesOutput, error)
 	// Describes the attributes of the specified Elastic IP addresses. For
-	// requirements, see Using reverse DNS for email applications
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html#Using_Elastic_Addressing_Reverse_DNS).
-	DescribeAddressesAttribute(ctx context.Context, params *DescribeAddressesAttributeInput, optFns ...func(*Options)) (*DescribeAddressesAttributeOutput, error)
+	// requirements, see [Using reverse DNS for email applications].
+	//
+	// [Using reverse DNS for email applications]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html#Using_Elastic_Addressing_Reverse_DNS
+	DescribeAddressesAttribute(ctx context.Context, params *ec2.DescribeAddressesAttributeInput, optFns ...func(*Options)) (*ec2.DescribeAddressesAttributeOutput, error)
 	// Describes the longer ID format settings for all resource types in a specific
 	// Region. This request is useful for performing a quick audit to determine whether
-	// a specific Region is fully opted in for longer IDs (17-character IDs). This
-	// request only returns information about resource types that support longer IDs.
+	// a specific Region is fully opted in for longer IDs (17-character IDs).
+	//
+	// This request only returns information about resource types that support longer
+	// IDs.
+	//
 	// The following resource types support longer IDs: bundle | conversion-task |
 	// customer-gateway | dhcp-options | elastic-ip-allocation | elastic-ip-association
 	// | export-task | flow-log | image | import-task | instance | internet-gateway |
@@ -1517,2285 +2275,3706 @@ type EC2 interface {
 	// network-interface-attachment | prefix-list | reservation | route-table |
 	// route-table-association | security-group | snapshot | subnet |
 	// subnet-cidr-block-association | volume | vpc | vpc-cidr-block-association |
-	// vpc-endpoint | vpc-peering-connection | vpn-connection | vpn-gateway.
-	DescribeAggregateIdFormat(ctx context.Context, params *DescribeAggregateIdFormatInput, optFns ...func(*Options)) (*DescribeAggregateIdFormatOutput, error)
+	// vpc-endpoint | vpc-peering-connection | vpn-connection | vpn-gateway .
+	DescribeAggregateIdFormat(ctx context.Context, params *ec2.DescribeAggregateIdFormatInput, optFns ...func(*Options)) (*ec2.DescribeAggregateIdFormatOutput, error)
 	// Describes the Availability Zones, Local Zones, and Wavelength Zones that are
-	// available to you. If there is an event impacting a zone, you can use this
-	// request to view the state and any provided messages for that zone. For more
-	// information about Availability Zones, Local Zones, and Wavelength Zones, see
-	// Regions and zones
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	DescribeAvailabilityZones(ctx context.Context, params *DescribeAvailabilityZonesInput, optFns ...func(*Options)) (*DescribeAvailabilityZonesOutput, error)
-	// Describes the specified bundle tasks or all of your bundle tasks. Completed
-	// bundle tasks are listed for only a limited time. If your bundle task is no
-	// longer in the list, you can still register an AMI from it. Just use
+	// available to you.
+	//
+	// For more information about Availability Zones, Local Zones, and Wavelength
+	// Zones, see [Regions and zones]in the Amazon EC2 User Guide.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	//
+	// [Regions and zones]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html
+	DescribeAvailabilityZones(ctx context.Context, params *ec2.DescribeAvailabilityZonesInput, optFns ...func(*Options)) (*ec2.DescribeAvailabilityZonesOutput, error)
+	// Describes the current Infrastructure Performance metric subscriptions.
+	DescribeAwsNetworkPerformanceMetricSubscriptions(ctx context.Context, params *ec2.DescribeAwsNetworkPerformanceMetricSubscriptionsInput, optFns ...func(*Options)) (*ec2.DescribeAwsNetworkPerformanceMetricSubscriptionsOutput, error)
+	// Describes the specified bundle tasks or all of your bundle tasks.
+	//
+	// Completed bundle tasks are listed for only a limited time. If your bundle task
+	// is no longer in the list, you can still register an AMI from it. Just use
 	// RegisterImage with the Amazon S3 bucket name and image manifest name you
 	// provided to the bundle task.
-	DescribeBundleTasks(ctx context.Context, params *DescribeBundleTasksInput, optFns ...func(*Options)) (*DescribeBundleTasksOutput, error)
-	// Describes the IP address ranges that were specified in calls to
-	// ProvisionByoipCidr. To describe the address pools that were created when you
-	// provisioned the address ranges, use DescribePublicIpv4Pools or
-	// DescribeIpv6Pools.
-	DescribeByoipCidrs(ctx context.Context, params *DescribeByoipCidrsInput, optFns ...func(*Options)) (*DescribeByoipCidrsOutput, error)
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	DescribeBundleTasks(ctx context.Context, params *ec2.DescribeBundleTasksInput, optFns ...func(*Options)) (*ec2.DescribeBundleTasksOutput, error)
+	// Describes the IP address ranges that were provisioned for use with Amazon Web
+	// Services resources through through bring your own IP addresses (BYOIP).
+	DescribeByoipCidrs(ctx context.Context, params *ec2.DescribeByoipCidrsInput, optFns ...func(*Options)) (*ec2.DescribeByoipCidrsOutput, error)
+	// Describes the events for the specified Capacity Block extension during the
+	// specified time.
+	DescribeCapacityBlockExtensionHistory(ctx context.Context, params *ec2.DescribeCapacityBlockExtensionHistoryInput, optFns ...func(*Options)) (*ec2.DescribeCapacityBlockExtensionHistoryOutput, error)
+	// Describes Capacity Block extension offerings available for purchase in the
+	// Amazon Web Services Region that you're currently using.
+	DescribeCapacityBlockExtensionOfferings(ctx context.Context, params *ec2.DescribeCapacityBlockExtensionOfferingsInput, optFns ...func(*Options)) (*ec2.DescribeCapacityBlockExtensionOfferingsOutput, error)
+	// Describes Capacity Block offerings available for purchase in the Amazon Web
+	// Services Region that you're currently using. With Capacity Blocks, you can
+	// purchase a specific GPU instance type or EC2 UltraServer for a period of time.
+	//
+	// To search for an available Capacity Block offering, you specify a reservation
+	// duration and instance count.
+	DescribeCapacityBlockOfferings(ctx context.Context, params *ec2.DescribeCapacityBlockOfferingsInput, optFns ...func(*Options)) (*ec2.DescribeCapacityBlockOfferingsOutput, error)
+	// Describes the availability of capacity for the specified Capacity blocks, or
+	// all of your Capacity Blocks.
+	DescribeCapacityBlockStatus(ctx context.Context, params *ec2.DescribeCapacityBlockStatusInput, optFns ...func(*Options)) (*ec2.DescribeCapacityBlockStatusOutput, error)
+	// Describes details about Capacity Blocks in the Amazon Web Services Region that
+	// you're currently using.
+	DescribeCapacityBlocks(ctx context.Context, params *ec2.DescribeCapacityBlocksInput, optFns ...func(*Options)) (*ec2.DescribeCapacityBlocksOutput, error)
+	// Describes a request to assign the billing of the unused capacity of a Capacity
+	// Reservation. For more information, see [Billing assignment for shared Amazon EC2 Capacity Reservations].
+	//
+	// [Billing assignment for shared Amazon EC2 Capacity Reservations]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/transfer-billing.html
+	DescribeCapacityReservationBillingRequests(ctx context.Context, params *ec2.DescribeCapacityReservationBillingRequestsInput, optFns ...func(*Options)) (*ec2.DescribeCapacityReservationBillingRequestsOutput, error)
 	// Describes one or more Capacity Reservation Fleets.
-	DescribeCapacityReservationFleets(ctx context.Context, params *DescribeCapacityReservationFleetsInput, optFns ...func(*Options)) (*DescribeCapacityReservationFleetsOutput, error)
+	DescribeCapacityReservationFleets(ctx context.Context, params *ec2.DescribeCapacityReservationFleetsInput, optFns ...func(*Options)) (*ec2.DescribeCapacityReservationFleetsOutput, error)
 	// Describes one or more of your Capacity Reservations. The results describe only
 	// the Capacity Reservations in the Amazon Web Services Region that you're
 	// currently using.
-	DescribeCapacityReservations(ctx context.Context, params *DescribeCapacityReservationsInput, optFns ...func(*Options)) (*DescribeCapacityReservationsOutput, error)
+	DescribeCapacityReservations(ctx context.Context, params *ec2.DescribeCapacityReservationsInput, optFns ...func(*Options)) (*ec2.DescribeCapacityReservationsOutput, error)
 	// Describes one or more of your carrier gateways.
-	DescribeCarrierGateways(ctx context.Context, params *DescribeCarrierGatewaysInput, optFns ...func(*Options)) (*DescribeCarrierGatewaysOutput, error)
-	// Describes one or more of your linked EC2-Classic instances. This request only
-	// returns information about EC2-Classic instances linked to a VPC through
-	// ClassicLink. You cannot use this request to return information about other
-	// instances.
-	DescribeClassicLinkInstances(ctx context.Context, params *DescribeClassicLinkInstancesInput, optFns ...func(*Options)) (*DescribeClassicLinkInstancesOutput, error)
+	DescribeCarrierGateways(ctx context.Context, params *ec2.DescribeCarrierGatewaysInput, optFns ...func(*Options)) (*ec2.DescribeCarrierGatewaysOutput, error)
+	// This action is deprecated.
+	//
+	// Describes your linked EC2-Classic instances. This request only returns
+	// information about EC2-Classic instances linked to a VPC through ClassicLink. You
+	// cannot use this request to return information about other instances.
+	DescribeClassicLinkInstances(ctx context.Context, params *ec2.DescribeClassicLinkInstancesInput, optFns ...func(*Options)) (*ec2.DescribeClassicLinkInstancesOutput, error)
 	// Describes the authorization rules for a specified Client VPN endpoint.
-	DescribeClientVpnAuthorizationRules(ctx context.Context, params *DescribeClientVpnAuthorizationRulesInput, optFns ...func(*Options)) (*DescribeClientVpnAuthorizationRulesOutput, error)
+	DescribeClientVpnAuthorizationRules(ctx context.Context, params *ec2.DescribeClientVpnAuthorizationRulesInput, optFns ...func(*Options)) (*ec2.DescribeClientVpnAuthorizationRulesOutput, error)
 	// Describes active client connections and connections that have been terminated
 	// within the last 60 minutes for the specified Client VPN endpoint.
-	DescribeClientVpnConnections(ctx context.Context, params *DescribeClientVpnConnectionsInput, optFns ...func(*Options)) (*DescribeClientVpnConnectionsOutput, error)
+	DescribeClientVpnConnections(ctx context.Context, params *ec2.DescribeClientVpnConnectionsInput, optFns ...func(*Options)) (*ec2.DescribeClientVpnConnectionsOutput, error)
 	// Describes one or more Client VPN endpoints in the account.
-	DescribeClientVpnEndpoints(ctx context.Context, params *DescribeClientVpnEndpointsInput, optFns ...func(*Options)) (*DescribeClientVpnEndpointsOutput, error)
+	DescribeClientVpnEndpoints(ctx context.Context, params *ec2.DescribeClientVpnEndpointsInput, optFns ...func(*Options)) (*ec2.DescribeClientVpnEndpointsOutput, error)
 	// Describes the routes for the specified Client VPN endpoint.
-	DescribeClientVpnRoutes(ctx context.Context, params *DescribeClientVpnRoutesInput, optFns ...func(*Options)) (*DescribeClientVpnRoutesOutput, error)
+	DescribeClientVpnRoutes(ctx context.Context, params *ec2.DescribeClientVpnRoutesInput, optFns ...func(*Options)) (*ec2.DescribeClientVpnRoutesOutput, error)
 	// Describes the target networks associated with the specified Client VPN endpoint.
-	DescribeClientVpnTargetNetworks(ctx context.Context, params *DescribeClientVpnTargetNetworksInput, optFns ...func(*Options)) (*DescribeClientVpnTargetNetworksOutput, error)
+	DescribeClientVpnTargetNetworks(ctx context.Context, params *ec2.DescribeClientVpnTargetNetworksInput, optFns ...func(*Options)) (*ec2.DescribeClientVpnTargetNetworksOutput, error)
 	// Describes the specified customer-owned address pools or all of your
 	// customer-owned address pools.
-	DescribeCoipPools(ctx context.Context, params *DescribeCoipPoolsInput, optFns ...func(*Options)) (*DescribeCoipPoolsOutput, error)
+	DescribeCoipPools(ctx context.Context, params *ec2.DescribeCoipPoolsInput, optFns ...func(*Options)) (*ec2.DescribeCoipPoolsOutput, error)
 	// Describes the specified conversion tasks or all your conversion tasks. For more
-	// information, see the VM Import/Export User Guide
-	// (https://docs.aws.amazon.com/vm-import/latest/userguide/). For information about
-	// the import manifest referenced by this API action, see VM Import Manifest
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/manifest.html).
-	DescribeConversionTasks(ctx context.Context, params *DescribeConversionTasksInput, optFns ...func(*Options)) (*DescribeConversionTasksOutput, error)
-	// Describes one or more of your VPN customer gateways. For more information, see
-	// Amazon Web Services Site-to-Site VPN
-	// (https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html) in the Amazon Web
-	// Services Site-to-Site VPN User Guide.
-	DescribeCustomerGateways(ctx context.Context, params *DescribeCustomerGatewaysInput, optFns ...func(*Options)) (*DescribeCustomerGatewaysOutput, error)
-	// Describes one or more of your DHCP options sets. For more information, see DHCP
-	// options sets
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	DescribeDhcpOptions(ctx context.Context, params *DescribeDhcpOptionsInput, optFns ...func(*Options)) (*DescribeDhcpOptionsOutput, error)
-	// Describes one or more of your egress-only internet gateways.
-	DescribeEgressOnlyInternetGateways(ctx context.Context, params *DescribeEgressOnlyInternetGatewaysInput, optFns ...func(*Options)) (*DescribeEgressOnlyInternetGatewaysOutput, error)
-	// Describes the Elastic Graphics accelerator associated with your instances. For
-	// more information about Elastic Graphics, see Amazon Elastic Graphics
-	// (https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/elastic-graphics.html).
-	DescribeElasticGpus(ctx context.Context, params *DescribeElasticGpusInput, optFns ...func(*Options)) (*DescribeElasticGpusOutput, error)
+	// information, see the [VM Import/Export User Guide].
+	//
+	// For information about the import manifest referenced by this API action, see [VM Import Manifest].
+	//
+	// [VM Import Manifest]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/manifest.html
+	// [VM Import/Export User Guide]: https://docs.aws.amazon.com/vm-import/latest/userguide/
+	DescribeConversionTasks(ctx context.Context, params *ec2.DescribeConversionTasksInput, optFns ...func(*Options)) (*ec2.DescribeConversionTasksOutput, error)
+	// Describes one or more of your VPN customer gateways.
+	//
+	// For more information, see [Amazon Web Services Site-to-Site VPN] in the Amazon Web Services Site-to-Site VPN User
+	// Guide.
+	//
+	// [Amazon Web Services Site-to-Site VPN]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html
+	DescribeCustomerGateways(ctx context.Context, params *ec2.DescribeCustomerGatewaysInput, optFns ...func(*Options)) (*ec2.DescribeCustomerGatewaysOutput, error)
+	// Describes the metadata of an account status report, including the status of the
+	// report.
+	//
+	// To view the full report, download it from the Amazon S3 bucket where it was
+	// saved. Reports are accessible only when they have the complete status. Reports
+	// with other statuses ( running , cancelled , or error ) are not available in the
+	// S3 bucket. For more information about downloading objects from an S3 bucket, see
+	// [Downloading objects]in the Amazon Simple Storage Service User Guide.
+	//
+	// For more information, see [Generating the account status report for declarative policies] in the Amazon Web Services Organizations User Guide.
+	//
+	// [Downloading objects]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/download-objects.html
+	// [Generating the account status report for declarative policies]: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_declarative_status-report.html
+	DescribeDeclarativePoliciesReports(ctx context.Context, params *ec2.DescribeDeclarativePoliciesReportsInput, optFns ...func(*Options)) (*ec2.DescribeDeclarativePoliciesReportsOutput, error)
+	// Describes your DHCP option sets. The default is to describe all your DHCP
+	// option sets. Alternatively, you can specify specific DHCP option set IDs or
+	// filter the results to include only the DHCP option sets that match specific
+	// criteria.
+	//
+	// For more information, see [DHCP option sets] in the Amazon VPC User Guide.
+	//
+	// [DHCP option sets]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html
+	DescribeDhcpOptions(ctx context.Context, params *ec2.DescribeDhcpOptionsInput, optFns ...func(*Options)) (*ec2.DescribeDhcpOptionsOutput, error)
+	// Describes your egress-only internet gateways. The default is to describe all
+	// your egress-only internet gateways. Alternatively, you can specify specific
+	// egress-only internet gateway IDs or filter the results to include only the
+	// egress-only internet gateways that match specific criteria.
+	DescribeEgressOnlyInternetGateways(ctx context.Context, params *ec2.DescribeEgressOnlyInternetGatewaysInput, optFns ...func(*Options)) (*ec2.DescribeEgressOnlyInternetGatewaysOutput, error)
+	// Amazon Elastic Graphics reached end of life on January 8, 2024.
+	//
+	// Describes the Elastic Graphics accelerator associated with your instances.
+	DescribeElasticGpus(ctx context.Context, params *ec2.DescribeElasticGpusInput, optFns ...func(*Options)) (*ec2.DescribeElasticGpusOutput, error)
 	// Describes the specified export image tasks or all of your export image tasks.
-	DescribeExportImageTasks(ctx context.Context, params *DescribeExportImageTasksInput, optFns ...func(*Options)) (*DescribeExportImageTasksOutput, error)
+	DescribeExportImageTasks(ctx context.Context, params *ec2.DescribeExportImageTasksInput, optFns ...func(*Options)) (*ec2.DescribeExportImageTasksOutput, error)
 	// Describes the specified export instance tasks or all of your export instance
 	// tasks.
-	DescribeExportTasks(ctx context.Context, params *DescribeExportTasksInput, optFns ...func(*Options)) (*DescribeExportTasksOutput, error)
-	// Describe details for Windows AMIs that are configured for faster launching.
-	DescribeFastLaunchImages(ctx context.Context, params *DescribeFastLaunchImagesInput, optFns ...func(*Options)) (*DescribeFastLaunchImagesOutput, error)
+	DescribeExportTasks(ctx context.Context, params *ec2.DescribeExportTasksInput, optFns ...func(*Options)) (*ec2.DescribeExportTasksOutput, error)
+	// Describe details for Windows AMIs that are configured for Windows fast launch.
+	DescribeFastLaunchImages(ctx context.Context, params *ec2.DescribeFastLaunchImagesInput, optFns ...func(*Options)) (*ec2.DescribeFastLaunchImagesOutput, error)
 	// Describes the state of fast snapshot restores for your snapshots.
-	DescribeFastSnapshotRestores(ctx context.Context, params *DescribeFastSnapshotRestoresInput, optFns ...func(*Options)) (*DescribeFastSnapshotRestoresOutput, error)
-	// Describes the events for the specified EC2 Fleet during the specified time. EC2
-	// Fleet events are delayed by up to 30 seconds before they can be described. This
-	// ensures that you can query by the last evaluated time and not miss a recorded
-	// event. EC2 Fleet events are available for 48 hours. For more information, see
-	// Monitor fleet events using Amazon EventBridge
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/fleet-monitor.html) in the
-	// Amazon EC2 User Guide.
-	DescribeFleetHistory(ctx context.Context, params *DescribeFleetHistoryInput, optFns ...func(*Options)) (*DescribeFleetHistoryOutput, error)
-	// Describes the running instances for the specified EC2 Fleet. For more
-	// information, see Monitor your EC2 Fleet
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/manage-ec2-fleet.html#monitor-ec2-fleet)
-	// in the Amazon EC2 User Guide.
-	DescribeFleetInstances(ctx context.Context, params *DescribeFleetInstancesInput, optFns ...func(*Options)) (*DescribeFleetInstancesOutput, error)
-	// Describes the specified EC2 Fleets or all of your EC2 Fleets. For more
-	// information, see Monitor your EC2 Fleet
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/manage-ec2-fleet.html#monitor-ec2-fleet)
-	// in the Amazon EC2 User Guide.
-	DescribeFleets(ctx context.Context, params *DescribeFleetsInput, optFns ...func(*Options)) (*DescribeFleetsOutput, error)
-	// Describes one or more flow logs. To view the information in your flow logs (the
-	// log streams for the network interfaces), you must use the CloudWatch Logs
-	// console or the CloudWatch Logs API.
-	DescribeFlowLogs(ctx context.Context, params *DescribeFlowLogsInput, optFns ...func(*Options)) (*DescribeFlowLogsOutput, error)
+	DescribeFastSnapshotRestores(ctx context.Context, params *ec2.DescribeFastSnapshotRestoresInput, optFns ...func(*Options)) (*ec2.DescribeFastSnapshotRestoresOutput, error)
+	// Describes the events for the specified EC2 Fleet during the specified time.
+	//
+	// EC2 Fleet events are delayed by up to 30 seconds before they can be described.
+	// This ensures that you can query by the last evaluated time and not miss a
+	// recorded event. EC2 Fleet events are available for 48 hours.
+	//
+	// For more information, see [Monitor fleet events using Amazon EventBridge] in the Amazon EC2 User Guide.
+	//
+	// [Monitor fleet events using Amazon EventBridge]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/fleet-monitor.html
+	DescribeFleetHistory(ctx context.Context, params *ec2.DescribeFleetHistoryInput, optFns ...func(*Options)) (*ec2.DescribeFleetHistoryOutput, error)
+	// Describes the running instances for the specified EC2 Fleet.
+	//
+	// Currently, DescribeFleetInstances does not support fleets of type instant .
+	// Instead, use DescribeFleets , specifying the instant fleet ID in the request.
+	//
+	// For more information, see [Describe your EC2 Fleet] in the Amazon EC2 User Guide.
+	//
+	// [Describe your EC2 Fleet]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/manage-ec2-fleet.html#monitor-ec2-fleet
+	DescribeFleetInstances(ctx context.Context, params *ec2.DescribeFleetInstancesInput, optFns ...func(*Options)) (*ec2.DescribeFleetInstancesOutput, error)
+	// Describes the specified EC2 Fleet or all of your EC2 Fleets.
+	//
+	// If a fleet is of type instant , you must specify the fleet ID in the request,
+	// otherwise the fleet does not appear in the response.
+	//
+	// For more information, see [Describe your EC2 Fleet] in the Amazon EC2 User Guide.
+	//
+	// [Describe your EC2 Fleet]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/manage-ec2-fleet.html#monitor-ec2-fleet
+	DescribeFleets(ctx context.Context, params *ec2.DescribeFleetsInput, optFns ...func(*Options)) (*ec2.DescribeFleetsOutput, error)
+	// Describes one or more flow logs.
+	//
+	// To view the published flow log records, you must view the log destination. For
+	// example, the CloudWatch Logs log group, the Amazon S3 bucket, or the Kinesis
+	// Data Firehose delivery stream.
+	DescribeFlowLogs(ctx context.Context, params *ec2.DescribeFlowLogsInput, optFns ...func(*Options)) (*ec2.DescribeFlowLogsOutput, error)
 	// Describes the specified attribute of the specified Amazon FPGA Image (AFI).
-	DescribeFpgaImageAttribute(ctx context.Context, params *DescribeFpgaImageAttributeInput, optFns ...func(*Options)) (*DescribeFpgaImageAttributeOutput, error)
+	DescribeFpgaImageAttribute(ctx context.Context, params *ec2.DescribeFpgaImageAttributeInput, optFns ...func(*Options)) (*ec2.DescribeFpgaImageAttributeOutput, error)
 	// Describes the Amazon FPGA Images (AFIs) available to you. These include public
 	// AFIs, private AFIs that you own, and AFIs owned by other Amazon Web Services
 	// accounts for which you have load permissions.
-	DescribeFpgaImages(ctx context.Context, params *DescribeFpgaImagesInput, optFns ...func(*Options)) (*DescribeFpgaImagesOutput, error)
-	// Describes the Dedicated Host reservations that are available to purchase. The
-	// results describe all of the Dedicated Host reservation offerings, including
+	DescribeFpgaImages(ctx context.Context, params *ec2.DescribeFpgaImagesInput, optFns ...func(*Options)) (*ec2.DescribeFpgaImagesOutput, error)
+	// Describes the Dedicated Host reservations that are available to purchase.
+	//
+	// The results describe all of the Dedicated Host reservation offerings, including
 	// offerings that might not match the instance family and Region of your Dedicated
 	// Hosts. When purchasing an offering, ensure that the instance family and Region
 	// of the offering matches that of the Dedicated Hosts with which it is to be
-	// associated. For more information about supported instance types, see Dedicated
-	// Hosts
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-overview.html)
-	// in the Amazon EC2 User Guide.
-	DescribeHostReservationOfferings(ctx context.Context, params *DescribeHostReservationOfferingsInput, optFns ...func(*Options)) (*DescribeHostReservationOfferingsOutput, error)
+	// associated. For more information about supported instance types, see [Dedicated Hosts]in the
+	// Amazon EC2 User Guide.
+	//
+	// [Dedicated Hosts]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-overview.html
+	DescribeHostReservationOfferings(ctx context.Context, params *ec2.DescribeHostReservationOfferingsInput, optFns ...func(*Options)) (*ec2.DescribeHostReservationOfferingsOutput, error)
 	// Describes reservations that are associated with Dedicated Hosts in your account.
-	DescribeHostReservations(ctx context.Context, params *DescribeHostReservationsInput, optFns ...func(*Options)) (*DescribeHostReservationsOutput, error)
-	// Describes the specified Dedicated Hosts or all your Dedicated Hosts. The results
-	// describe only the Dedicated Hosts in the Region you're currently using. All
-	// listed instances consume capacity on your Dedicated Host. Dedicated Hosts that
-	// have recently been released are listed with the state released.
-	DescribeHosts(ctx context.Context, params *DescribeHostsInput, optFns ...func(*Options)) (*DescribeHostsOutput, error)
+	DescribeHostReservations(ctx context.Context, params *ec2.DescribeHostReservationsInput, optFns ...func(*Options)) (*ec2.DescribeHostReservationsOutput, error)
+	// Describes the specified Dedicated Hosts or all your Dedicated Hosts.
+	//
+	// The results describe only the Dedicated Hosts in the Region you're currently
+	// using. All listed instances consume capacity on your Dedicated Host. Dedicated
+	// Hosts that have recently been released are listed with the state released .
+	DescribeHosts(ctx context.Context, params *ec2.DescribeHostsInput, optFns ...func(*Options)) (*ec2.DescribeHostsOutput, error)
 	// Describes your IAM instance profile associations.
-	DescribeIamInstanceProfileAssociations(ctx context.Context, params *DescribeIamInstanceProfileAssociationsInput, optFns ...func(*Options)) (*DescribeIamInstanceProfileAssociationsOutput, error)
+	DescribeIamInstanceProfileAssociations(ctx context.Context, params *ec2.DescribeIamInstanceProfileAssociationsInput, optFns ...func(*Options)) (*ec2.DescribeIamInstanceProfileAssociationsOutput, error)
 	// Describes the ID format settings for your resources on a per-Region basis, for
 	// example, to view which resource types are enabled for longer IDs. This request
 	// only returns information about resource types whose ID formats can be modified;
-	// it does not return information about other resource types. The following
-	// resource types support longer IDs: bundle | conversion-task | customer-gateway |
-	// dhcp-options | elastic-ip-allocation | elastic-ip-association | export-task |
-	// flow-log | image | import-task | instance | internet-gateway | network-acl |
-	// network-acl-association | network-interface | network-interface-attachment |
-	// prefix-list | reservation | route-table | route-table-association |
-	// security-group | snapshot | subnet | subnet-cidr-block-association | volume |
-	// vpc | vpc-cidr-block-association | vpc-endpoint | vpc-peering-connection |
-	// vpn-connection | vpn-gateway. These settings apply to the IAM user who makes the
-	// request; they do not apply to the entire Amazon Web Services account. By
-	// default, an IAM user defaults to the same settings as the root user, unless they
-	// explicitly override the settings by running the ModifyIdFormat command.
-	// Resources created with longer IDs are visible to all IAM users, regardless of
-	// these settings and provided that they have permission to use the relevant
-	// Describe command for the resource type.
-	DescribeIdFormat(ctx context.Context, params *DescribeIdFormatInput, optFns ...func(*Options)) (*DescribeIdFormatOutput, error)
+	// it does not return information about other resource types.
+	//
+	// The following resource types support longer IDs: bundle | conversion-task |
+	// customer-gateway | dhcp-options | elastic-ip-allocation | elastic-ip-association
+	// | export-task | flow-log | image | import-task | instance | internet-gateway |
+	// network-acl | network-acl-association | network-interface |
+	// network-interface-attachment | prefix-list | reservation | route-table |
+	// route-table-association | security-group | snapshot | subnet |
+	// subnet-cidr-block-association | volume | vpc | vpc-cidr-block-association |
+	// vpc-endpoint | vpc-peering-connection | vpn-connection | vpn-gateway .
+	//
+	// These settings apply to the IAM user who makes the request; they do not apply
+	// to the entire Amazon Web Services account. By default, an IAM user defaults to
+	// the same settings as the root user, unless they explicitly override the settings
+	// by running the ModifyIdFormatcommand. Resources created with longer IDs are visible to all
+	// IAM users, regardless of these settings and provided that they have permission
+	// to use the relevant Describe command for the resource type.
+	DescribeIdFormat(ctx context.Context, params *ec2.DescribeIdFormatInput, optFns ...func(*Options)) (*ec2.DescribeIdFormatOutput, error)
 	// Describes the ID format settings for resources for the specified IAM user, IAM
 	// role, or root user. For example, you can view the resource types that are
 	// enabled for longer IDs. This request only returns information about resource
 	// types whose ID formats can be modified; it does not return information about
-	// other resource types. For more information, see Resource IDs
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/resource-ids.html) in the
-	// Amazon Elastic Compute Cloud User Guide. The following resource types support
-	// longer IDs: bundle | conversion-task | customer-gateway | dhcp-options |
-	// elastic-ip-allocation | elastic-ip-association | export-task | flow-log | image
-	// | import-task | instance | internet-gateway | network-acl |
-	// network-acl-association | network-interface | network-interface-attachment |
-	// prefix-list | reservation | route-table | route-table-association |
-	// security-group | snapshot | subnet | subnet-cidr-block-association | volume |
-	// vpc | vpc-cidr-block-association | vpc-endpoint | vpc-peering-connection |
-	// vpn-connection | vpn-gateway. These settings apply to the principal specified in
-	// the request. They do not apply to the principal that makes the request.
-	DescribeIdentityIdFormat(ctx context.Context, params *DescribeIdentityIdFormatInput, optFns ...func(*Options)) (*DescribeIdentityIdFormatOutput, error)
-	// Describes the specified attribute of the specified AMI. You can specify only one
-	// attribute at a time.
-	DescribeImageAttribute(ctx context.Context, params *DescribeImageAttributeInput, optFns ...func(*Options)) (*DescribeImageAttributeOutput, error)
-	// Describes the specified images (AMIs, AKIs, and ARIs) available to you or all of
-	// the images available to you. The images available to you include public images,
-	// private images that you own, and private images owned by other Amazon Web
-	// Services accounts for which you have explicit launch permissions. Recently
-	// deregistered images appear in the returned results for a short interval and then
-	// return empty results. After all instances that reference a deregistered AMI are
-	// terminated, specifying the ID of the image will eventually return an error
-	// indicating that the AMI ID cannot be found.
-	DescribeImages(ctx context.Context, params *DescribeImagesInput, optFns ...func(*Options)) (*DescribeImagesOutput, error)
+	// other resource types. For more information, see [Resource IDs]in the Amazon Elastic Compute
+	// Cloud User Guide.
+	//
+	// The following resource types support longer IDs: bundle | conversion-task |
+	// customer-gateway | dhcp-options | elastic-ip-allocation | elastic-ip-association
+	// | export-task | flow-log | image | import-task | instance | internet-gateway |
+	// network-acl | network-acl-association | network-interface |
+	// network-interface-attachment | prefix-list | reservation | route-table |
+	// route-table-association | security-group | snapshot | subnet |
+	// subnet-cidr-block-association | volume | vpc | vpc-cidr-block-association |
+	// vpc-endpoint | vpc-peering-connection | vpn-connection | vpn-gateway .
+	//
+	// These settings apply to the principal specified in the request. They do not
+	// apply to the principal that makes the request.
+	//
+	// [Resource IDs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/resource-ids.html
+	DescribeIdentityIdFormat(ctx context.Context, params *ec2.DescribeIdentityIdFormatInput, optFns ...func(*Options)) (*ec2.DescribeIdentityIdFormatOutput, error)
+	// Describes the specified attribute of the specified AMI. You can specify only
+	// one attribute at a time.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	DescribeImageAttribute(ctx context.Context, params *ec2.DescribeImageAttributeInput, optFns ...func(*Options)) (*ec2.DescribeImageAttributeOutput, error)
+	// Describes your Amazon Web Services resources that are referencing the specified
+	// images.
+	//
+	// For more information, see [Identify your resources referencing specified AMIs] in the Amazon EC2 User Guide.
+	//
+	// [Identify your resources referencing specified AMIs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-ami-references.html
+	DescribeImageReferences(ctx context.Context, params *ec2.DescribeImageReferencesInput, optFns ...func(*Options)) (*ec2.DescribeImageReferencesOutput, error)
+	// Describes the entries in image usage reports, showing how your images are used
+	// across other Amazon Web Services accounts.
+	//
+	// For more information, see [View your AMI usage] in the Amazon EC2 User Guide.
+	//
+	// [View your AMI usage]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/your-ec2-ami-usage.html
+	DescribeImageUsageReportEntries(ctx context.Context, params *ec2.DescribeImageUsageReportEntriesInput, optFns ...func(*Options)) (*ec2.DescribeImageUsageReportEntriesOutput, error)
+	// Describes the configuration and status of image usage reports, filtered by
+	// report IDs or image IDs.
+	//
+	// For more information, see [View your AMI usage] in the Amazon EC2 User Guide.
+	//
+	// [View your AMI usage]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/your-ec2-ami-usage.html
+	DescribeImageUsageReports(ctx context.Context, params *ec2.DescribeImageUsageReportsInput, optFns ...func(*Options)) (*ec2.DescribeImageUsageReportsOutput, error)
+	// Describes the specified images (AMIs, AKIs, and ARIs) available to you or all
+	// of the images available to you.
+	//
+	// The images available to you include public images, private images that you own,
+	// and private images owned by other Amazon Web Services accounts for which you
+	// have explicit launch permissions.
+	//
+	// Recently deregistered images appear in the returned results for a short
+	// interval and then return empty results. After all instances that reference a
+	// deregistered AMI are terminated, specifying the ID of the image will eventually
+	// return an error indicating that the AMI ID cannot be found.
+	//
+	// When Allowed AMIs is set to enabled , only allowed images are returned in the
+	// results, with the imageAllowed field set to true for each image. In audit-mode ,
+	// the imageAllowed field is set to true for images that meet the account's
+	// Allowed AMIs criteria, and false for images that don't meet the criteria. For
+	// more information, see [Allowed AMIs].
+	//
+	// The Amazon EC2 API follows an eventual consistency model. This means that the
+	// result of an API command you run that creates or modifies resources might not be
+	// immediately available to all subsequent commands you run. For guidance on how to
+	// manage eventual consistency, see [Eventual consistency in the Amazon EC2 API]in the Amazon EC2 Developer Guide.
+	//
+	// We strongly recommend using only paginated requests. Unpaginated requests are
+	// susceptible to throttling and timeouts.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	//
+	// [Allowed AMIs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-allowed-amis.html
+	// [Eventual consistency in the Amazon EC2 API]: https://docs.aws.amazon.com/ec2/latest/devguide/eventual-consistency.html
+	DescribeImages(ctx context.Context, params *ec2.DescribeImagesInput, optFns ...func(*Options)) (*ec2.DescribeImagesOutput, error)
 	// Displays details about an import virtual machine or import snapshot tasks that
 	// are already created.
-	DescribeImportImageTasks(ctx context.Context, params *DescribeImportImageTasksInput, optFns ...func(*Options)) (*DescribeImportImageTasksOutput, error)
+	DescribeImportImageTasks(ctx context.Context, params *ec2.DescribeImportImageTasksInput, optFns ...func(*Options)) (*ec2.DescribeImportImageTasksOutput, error)
 	// Describes your import snapshot tasks.
-	DescribeImportSnapshotTasks(ctx context.Context, params *DescribeImportSnapshotTasksInput, optFns ...func(*Options)) (*DescribeImportSnapshotTasksOutput, error)
+	DescribeImportSnapshotTasks(ctx context.Context, params *ec2.DescribeImportSnapshotTasksInput, optFns ...func(*Options)) (*ec2.DescribeImportSnapshotTasksOutput, error)
 	// Describes the specified attribute of the specified instance. You can specify
-	// only one attribute at a time. Valid attribute values are: instanceType | kernel
-	// | ramdisk | userData | disableApiTermination | instanceInitiatedShutdownBehavior
-	// | rootDeviceName | blockDeviceMapping | productCodes | sourceDestCheck |
-	// groupSet | ebsOptimized | sriovNetSupport
-	DescribeInstanceAttribute(ctx context.Context, params *DescribeInstanceAttributeInput, optFns ...func(*Options)) (*DescribeInstanceAttributeOutput, error)
-	// Describes the credit option for CPU usage of the specified burstable performance
-	// instances. The credit options are standard and unlimited. If you do not specify
-	// an instance ID, Amazon EC2 returns burstable performance instances with the
-	// unlimited credit option, as well as instances that were previously configured as
-	// T2, T3, and T3a with the unlimited credit option. For example, if you resize a
-	// T2 instance, while it is configured as unlimited, to an M4 instance, Amazon EC2
-	// returns the M4 instance. If you specify one or more instance IDs, Amazon EC2
-	// returns the credit option (standard or unlimited) of those instances. If you
-	// specify an instance ID that is not valid, such as an instance that is not a
-	// burstable performance instance, an error is returned. Recently terminated
-	// instances might appear in the returned results. This interval is usually less
-	// than one hour. If an Availability Zone is experiencing a service disruption and
-	// you specify instance IDs in the affected zone, or do not specify any instance
-	// IDs at all, the call fails. If you specify only instance IDs in an unaffected
-	// zone, the call works normally. For more information, see Burstable performance
-	// instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html)
-	// in the Amazon EC2 User Guide.
-	DescribeInstanceCreditSpecifications(ctx context.Context, params *DescribeInstanceCreditSpecificationsInput, optFns ...func(*Options)) (*DescribeInstanceCreditSpecificationsOutput, error)
+	// only one attribute at a time.
+	DescribeInstanceAttribute(ctx context.Context, params *ec2.DescribeInstanceAttributeInput, optFns ...func(*Options)) (*ec2.DescribeInstanceAttributeOutput, error)
+	// Describes the specified EC2 Instance Connect Endpoints or all EC2 Instance
+	// Connect Endpoints.
+	DescribeInstanceConnectEndpoints(ctx context.Context, params *ec2.DescribeInstanceConnectEndpointsInput, optFns ...func(*Options)) (*ec2.DescribeInstanceConnectEndpointsOutput, error)
+	// Describes the credit option for CPU usage of the specified burstable
+	// performance instances. The credit options are standard and unlimited .
+	//
+	// If you do not specify an instance ID, Amazon EC2 returns burstable performance
+	// instances with the unlimited credit option, as well as instances that were
+	// previously configured as T2, T3, and T3a with the unlimited credit option. For
+	// example, if you resize a T2 instance, while it is configured as unlimited , to
+	// an M4 instance, Amazon EC2 returns the M4 instance.
+	//
+	// If you specify one or more instance IDs, Amazon EC2 returns the credit option (
+	// standard or unlimited ) of those instances. If you specify an instance ID that
+	// is not valid, such as an instance that is not a burstable performance instance,
+	// an error is returned.
+	//
+	// Recently terminated instances might appear in the returned results. This
+	// interval is usually less than one hour.
+	//
+	// If an Availability Zone is experiencing a service disruption and you specify
+	// instance IDs in the affected zone, or do not specify any instance IDs at all,
+	// the call fails. If you specify only instance IDs in an unaffected zone, the call
+	// works normally.
+	//
+	// For more information, see [Burstable performance instances] in the Amazon EC2 User Guide.
+	//
+	// [Burstable performance instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html
+	DescribeInstanceCreditSpecifications(ctx context.Context, params *ec2.DescribeInstanceCreditSpecificationsInput, optFns ...func(*Options)) (*ec2.DescribeInstanceCreditSpecificationsOutput, error)
 	// Describes the tag keys that are registered to appear in scheduled event
 	// notifications for resources in the current Region.
-	DescribeInstanceEventNotificationAttributes(ctx context.Context, params *DescribeInstanceEventNotificationAttributesInput, optFns ...func(*Options)) (*DescribeInstanceEventNotificationAttributesOutput, error)
-	// Describes the specified event windows or all event windows. If you specify event
-	// window IDs, the output includes information for only the specified event
-	// windows. If you specify filters, the output includes information for only those
-	// event windows that meet the filter criteria. If you do not specify event windows
-	// IDs or filters, the output includes information for all event windows, which can
-	// affect performance. We recommend that you use pagination to ensure that the
-	// operation returns quickly and successfully. For more information, see Define
-	// event windows for scheduled events
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/event-windows.html) in the
-	// Amazon EC2 User Guide.
-	DescribeInstanceEventWindows(ctx context.Context, params *DescribeInstanceEventWindowsInput, optFns ...func(*Options)) (*DescribeInstanceEventWindowsOutput, error)
+	DescribeInstanceEventNotificationAttributes(ctx context.Context, params *ec2.DescribeInstanceEventNotificationAttributesInput, optFns ...func(*Options)) (*ec2.DescribeInstanceEventNotificationAttributesOutput, error)
+	// Describes the specified event windows or all event windows.
+	//
+	// If you specify event window IDs, the output includes information for only the
+	// specified event windows. If you specify filters, the output includes information
+	// for only those event windows that meet the filter criteria. If you do not
+	// specify event windows IDs or filters, the output includes information for all
+	// event windows, which can affect performance. We recommend that you use
+	// pagination to ensure that the operation returns quickly and successfully.
+	//
+	// For more information, see [Define event windows for scheduled events] in the Amazon EC2 User Guide.
+	//
+	// [Define event windows for scheduled events]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/event-windows.html
+	DescribeInstanceEventWindows(ctx context.Context, params *ec2.DescribeInstanceEventWindowsInput, optFns ...func(*Options)) (*ec2.DescribeInstanceEventWindowsOutput, error)
+	// Describes the AMI that was used to launch an instance, even if the AMI is
+	// deprecated, deregistered, made private (no longer public or shared with your
+	// account), or not allowed.
+	//
+	// If you specify instance IDs, the output includes information for only the
+	// specified instances. If you specify filters, the output includes information for
+	// only those instances that meet the filter criteria. If you do not specify
+	// instance IDs or filters, the output includes information for all instances,
+	// which can affect performance.
+	//
+	// If you specify an instance ID that is not valid, an instance that doesn't
+	// exist, or an instance that you do not own, an error ( InvalidInstanceID.NotFound
+	// ) is returned.
+	//
+	// Recently terminated instances might appear in the returned results. This
+	// interval is usually less than one hour.
+	//
+	// In the rare case where an Availability Zone is experiencing a service
+	// disruption and you specify instance IDs that are in the affected Availability
+	// Zone, or do not specify any instance IDs at all, the call fails. If you specify
+	// only instance IDs that are in an unaffected Availability Zone, the call works
+	// normally.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	DescribeInstanceImageMetadata(ctx context.Context, params *ec2.DescribeInstanceImageMetadataInput, optFns ...func(*Options)) (*ec2.DescribeInstanceImageMetadataOutput, error)
 	// Describes the status of the specified instances or all of your instances. By
 	// default, only running instances are described, unless you specifically indicate
-	// to return the status of all instances. Instance status includes the following
-	// components:
+	// to return the status of all instances.
 	//
-	// * Status checks - Amazon EC2 performs status checks on running EC2
-	// instances to identify hardware and software issues. For more information, see
-	// Status checks for your instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-system-instance-status-check.html)
-	// and Troubleshoot instances with failed status checks
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstances.html)
-	// in the Amazon EC2 User Guide.
+	// Instance status includes the following components:
 	//
-	// * Scheduled events - Amazon EC2 can schedule
-	// events (such as reboot, stop, or terminate) for your instances related to
-	// hardware issues, software updates, or system maintenance. For more information,
-	// see Scheduled events for your instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-instances-status-check_sched.html)
-	// in the Amazon EC2 User Guide.
+	//   - Status checks - Amazon EC2 performs status checks on running EC2 instances
+	//     to identify hardware and software issues. For more information, see [Status checks for your instances]and [Troubleshoot instances with failed status checks]in
+	//     the Amazon EC2 User Guide.
 	//
-	// * Instance state - You can manage your instances
-	// from the moment you launch them through their termination. For more information,
-	// see Instance lifecycle
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html)
-	// in the Amazon EC2 User Guide.
-	DescribeInstanceStatus(ctx context.Context, params *DescribeInstanceStatusInput, optFns ...func(*Options)) (*DescribeInstanceStatusOutput, error)
-	// Returns a list of all instance types offered. The results can be filtered by
-	// location (Region or Availability Zone). If no location is specified, the
-	// instance types offered in the current Region are returned.
-	DescribeInstanceTypeOfferings(ctx context.Context, params *DescribeInstanceTypeOfferingsInput, optFns ...func(*Options)) (*DescribeInstanceTypeOfferingsOutput, error)
-	// Describes the details of the instance types that are offered in a location. The
-	// results can be filtered by the attributes of the instance types.
-	DescribeInstanceTypes(ctx context.Context, params *DescribeInstanceTypesInput, optFns ...func(*Options)) (*DescribeInstanceTypesOutput, error)
-	// Describes the specified instances or all instances. If you specify instance IDs,
-	// the output includes information for only the specified instances. If you specify
-	// filters, the output includes information for only those instances that meet the
-	// filter criteria. If you do not specify instance IDs or filters, the output
-	// includes information for all instances, which can affect performance. We
-	// recommend that you use pagination to ensure that the operation returns quickly
-	// and successfully. If you specify an instance ID that is not valid, an error is
-	// returned. If you specify an instance that you do not own, it is not included in
-	// the output. Recently terminated instances might appear in the returned results.
-	// This interval is usually less than one hour. If you describe instances in the
-	// rare case where an Availability Zone is experiencing a service disruption and
-	// you specify instance IDs that are in the affected zone, or do not specify any
-	// instance IDs at all, the call fails. If you describe instances and specify only
-	// instance IDs that are in an unaffected zone, the call works normally.
-	DescribeInstances(ctx context.Context, params *DescribeInstancesInput, optFns ...func(*Options)) (*DescribeInstancesOutput, error)
-	// Describes one or more of your internet gateways.
-	DescribeInternetGateways(ctx context.Context, params *DescribeInternetGatewaysInput, optFns ...func(*Options)) (*DescribeInternetGatewaysOutput, error)
+	//   - Scheduled events - Amazon EC2 can schedule events (such as reboot, stop, or
+	//     terminate) for your instances related to hardware issues, software updates, or
+	//     system maintenance. For more information, see [Scheduled events for your instances]in the Amazon EC2 User Guide.
+	//
+	//   - Instance state - You can manage your instances from the moment you launch
+	//     them through their termination. For more information, see [Instance lifecycle]in the Amazon EC2
+	//     User Guide.
+	//
+	// The Amazon EC2 API follows an eventual consistency model. This means that the
+	// result of an API command you run that creates or modifies resources might not be
+	// immediately available to all subsequent commands you run. For guidance on how to
+	// manage eventual consistency, see [Eventual consistency in the Amazon EC2 API]in the Amazon EC2 Developer Guide.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	//
+	// [Troubleshoot instances with failed status checks]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstances.html
+	// [Instance lifecycle]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html
+	// [Status checks for your instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-system-instance-status-check.html
+	// [Eventual consistency in the Amazon EC2 API]: https://docs.aws.amazon.com/ec2/latest/devguide/eventual-consistency.html
+	// [Scheduled events for your instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-instances-status-check_sched.html
+	DescribeInstanceStatus(ctx context.Context, params *ec2.DescribeInstanceStatusInput, optFns ...func(*Options)) (*ec2.DescribeInstanceStatusOutput, error)
+	// Describes a tree-based hierarchy that represents the physical host placement of
+	// your EC2 instances within an Availability Zone or Local Zone. You can use this
+	// information to determine the relative proximity of your EC2 instances within the
+	// Amazon Web Services network to support your tightly coupled workloads.
+	//
+	// Instance topology is supported for specific instance types only. For more
+	// information, see [Prerequisites for Amazon EC2 instance topology]in the Amazon EC2 User Guide.
+	//
+	// The Amazon EC2 API follows an eventual consistency model due to the distributed
+	// nature of the system supporting it. As a result, when you call the
+	// DescribeInstanceTopology API command immediately after launching instances, the
+	// response might return a null value for capacityBlockId because the data might
+	// not have fully propagated across all subsystems. For more information, see [Eventual consistency in the Amazon EC2 API]in
+	// the Amazon EC2 Developer Guide.
+	//
+	// For more information, see [Amazon EC2 instance topology] in the Amazon EC2 User Guide.
+	//
+	// [Prerequisites for Amazon EC2 instance topology]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-topology-prerequisites.html
+	// [Amazon EC2 instance topology]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-topology.html
+	// [Eventual consistency in the Amazon EC2 API]: https://docs.aws.amazon.com/ec2/latest/devguide/eventual-consistency.html
+	DescribeInstanceTopology(ctx context.Context, params *ec2.DescribeInstanceTopologyInput, optFns ...func(*Options)) (*ec2.DescribeInstanceTopologyOutput, error)
+	// Lists the instance types that are offered for the specified location. If no
+	// location is specified, the default is to list the instance types that are
+	// offered in the current Region.
+	DescribeInstanceTypeOfferings(ctx context.Context, params *ec2.DescribeInstanceTypeOfferingsInput, optFns ...func(*Options)) (*ec2.DescribeInstanceTypeOfferingsOutput, error)
+	// Describes the specified instance types. By default, all instance types for the
+	// current Region are described. Alternatively, you can filter the results.
+	DescribeInstanceTypes(ctx context.Context, params *ec2.DescribeInstanceTypesInput, optFns ...func(*Options)) (*ec2.DescribeInstanceTypesOutput, error)
+	// Describes the specified instances or all instances.
+	//
+	// If you specify instance IDs, the output includes information for only the
+	// specified instances. If you specify filters, the output includes information for
+	// only those instances that meet the filter criteria. If you do not specify
+	// instance IDs or filters, the output includes information for all instances,
+	// which can affect performance. We recommend that you use pagination to ensure
+	// that the operation returns quickly and successfully.
+	//
+	// If you specify an instance ID that is not valid, an error is returned. If you
+	// specify an instance that you do not own, it is not included in the output.
+	//
+	// Recently terminated instances might appear in the returned results. This
+	// interval is usually less than one hour.
+	//
+	// If you describe instances in the rare case where an Availability Zone is
+	// experiencing a service disruption and you specify instance IDs that are in the
+	// affected zone, or do not specify any instance IDs at all, the call fails. If you
+	// describe instances and specify only instance IDs that are in an unaffected zone,
+	// the call works normally.
+	//
+	// The Amazon EC2 API follows an eventual consistency model. This means that the
+	// result of an API command you run that creates or modifies resources might not be
+	// immediately available to all subsequent commands you run. For guidance on how to
+	// manage eventual consistency, see [Eventual consistency in the Amazon EC2 API]in the Amazon EC2 Developer Guide.
+	//
+	// We strongly recommend using only paginated requests. Unpaginated requests are
+	// susceptible to throttling and timeouts.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	//
+	// [Eventual consistency in the Amazon EC2 API]: https://docs.aws.amazon.com/ec2/latest/devguide/eventual-consistency.html
+	DescribeInstances(ctx context.Context, params *ec2.DescribeInstancesInput, optFns ...func(*Options)) (*ec2.DescribeInstancesOutput, error)
+	// Describes your internet gateways. The default is to describe all your internet
+	// gateways. Alternatively, you can specify specific internet gateway IDs or filter
+	// the results to include only the internet gateways that match specific criteria.
+	DescribeInternetGateways(ctx context.Context, params *ec2.DescribeInternetGatewaysInput, optFns ...func(*Options)) (*ec2.DescribeInternetGatewaysOutput, error)
+	// Describes your Autonomous System Numbers (ASNs), their provisioning statuses,
+	// and the BYOIP CIDRs with which they are associated. For more information, see [Tutorial: Bring your ASN to IPAM]
+	// in the Amazon VPC IPAM guide.
+	//
+	// [Tutorial: Bring your ASN to IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/tutorials-byoasn.html
+	DescribeIpamByoasn(ctx context.Context, params *ec2.DescribeIpamByoasnInput, optFns ...func(*Options)) (*ec2.DescribeIpamByoasnOutput, error)
+	// Describe verification tokens. A verification token is an Amazon Web
+	// Services-generated random value that you can use to prove ownership of an
+	// external resource. For example, you can use a verification token to validate
+	// that you control a public IP address range when you bring an IP address range to
+	// Amazon Web Services (BYOIP).
+	DescribeIpamExternalResourceVerificationTokens(ctx context.Context, params *ec2.DescribeIpamExternalResourceVerificationTokensInput, optFns ...func(*Options)) (*ec2.DescribeIpamExternalResourceVerificationTokensOutput, error)
 	// Get information about your IPAM pools.
-	DescribeIpamPools(ctx context.Context, params *DescribeIpamPoolsInput, optFns ...func(*Options)) (*DescribeIpamPoolsOutput, error)
+	DescribeIpamPools(ctx context.Context, params *ec2.DescribeIpamPoolsInput, optFns ...func(*Options)) (*ec2.DescribeIpamPoolsOutput, error)
+	// Describes IPAM resource discoveries. A resource discovery is an IPAM component
+	// that enables IPAM to manage and monitor resources that belong to the owning
+	// account.
+	DescribeIpamResourceDiscoveries(ctx context.Context, params *ec2.DescribeIpamResourceDiscoveriesInput, optFns ...func(*Options)) (*ec2.DescribeIpamResourceDiscoveriesOutput, error)
+	// Describes resource discovery association with an Amazon VPC IPAM. An associated
+	// resource discovery is a resource discovery that has been associated with an
+	// IPAM..
+	DescribeIpamResourceDiscoveryAssociations(ctx context.Context, params *ec2.DescribeIpamResourceDiscoveryAssociationsInput, optFns ...func(*Options)) (*ec2.DescribeIpamResourceDiscoveryAssociationsOutput, error)
 	// Get information about your IPAM scopes.
-	DescribeIpamScopes(ctx context.Context, params *DescribeIpamScopesInput, optFns ...func(*Options)) (*DescribeIpamScopesOutput, error)
-	// Get information about your IPAM pools. For more information, see What is IPAM?
-	// in the Amazon VPC IPAM User Guide.
-	DescribeIpams(ctx context.Context, params *DescribeIpamsInput, optFns ...func(*Options)) (*DescribeIpamsOutput, error)
+	DescribeIpamScopes(ctx context.Context, params *ec2.DescribeIpamScopesInput, optFns ...func(*Options)) (*ec2.DescribeIpamScopesOutput, error)
+	// Get information about your IPAM pools.
+	//
+	// For more information, see [What is IPAM?] in the Amazon VPC IPAM User Guide.
+	//
+	// [What is IPAM?]: https://docs.aws.amazon.com/vpc/latest/ipam/what-is-it-ipam.html
+	DescribeIpams(ctx context.Context, params *ec2.DescribeIpamsInput, optFns ...func(*Options)) (*ec2.DescribeIpamsOutput, error)
 	// Describes your IPv6 address pools.
-	DescribeIpv6Pools(ctx context.Context, params *DescribeIpv6PoolsInput, optFns ...func(*Options)) (*DescribeIpv6PoolsOutput, error)
-	// Describes the specified key pairs or all of your key pairs. For more information
-	// about key pairs, see Amazon EC2 key pairs
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	DescribeKeyPairs(ctx context.Context, params *DescribeKeyPairsInput, optFns ...func(*Options)) (*DescribeKeyPairsOutput, error)
+	DescribeIpv6Pools(ctx context.Context, params *ec2.DescribeIpv6PoolsInput, optFns ...func(*Options)) (*ec2.DescribeIpv6PoolsOutput, error)
+	// Describes the specified key pairs or all of your key pairs.
+	//
+	// For more information about key pairs, see [Amazon EC2 key pairs] in the Amazon EC2 User Guide.
+	//
+	// [Amazon EC2 key pairs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html
+	DescribeKeyPairs(ctx context.Context, params *ec2.DescribeKeyPairsInput, optFns ...func(*Options)) (*ec2.DescribeKeyPairsOutput, error)
 	// Describes one or more versions of a specified launch template. You can describe
 	// all versions, individual versions, or a range of versions. You can also describe
 	// all the latest versions or all the default versions of all the launch templates
 	// in your account.
-	DescribeLaunchTemplateVersions(ctx context.Context, params *DescribeLaunchTemplateVersionsInput, optFns ...func(*Options)) (*DescribeLaunchTemplateVersionsOutput, error)
+	DescribeLaunchTemplateVersions(ctx context.Context, params *ec2.DescribeLaunchTemplateVersionsInput, optFns ...func(*Options)) (*ec2.DescribeLaunchTemplateVersionsOutput, error)
 	// Describes one or more launch templates.
-	DescribeLaunchTemplates(ctx context.Context, params *DescribeLaunchTemplatesInput, optFns ...func(*Options)) (*DescribeLaunchTemplatesOutput, error)
+	DescribeLaunchTemplates(ctx context.Context, params *ec2.DescribeLaunchTemplatesInput, optFns ...func(*Options)) (*ec2.DescribeLaunchTemplatesOutput, error)
 	// Describes the associations between virtual interface groups and local gateway
 	// route tables.
-	DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations(ctx context.Context, params *DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput, optFns ...func(*Options)) (*DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput, error)
+	DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations(ctx context.Context, params *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput, optFns ...func(*Options)) (*ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput, error)
 	// Describes the specified associations between VPCs and local gateway route
 	// tables.
-	DescribeLocalGatewayRouteTableVpcAssociations(ctx context.Context, params *DescribeLocalGatewayRouteTableVpcAssociationsInput, optFns ...func(*Options)) (*DescribeLocalGatewayRouteTableVpcAssociationsOutput, error)
+	DescribeLocalGatewayRouteTableVpcAssociations(ctx context.Context, params *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput, optFns ...func(*Options)) (*ec2.DescribeLocalGatewayRouteTableVpcAssociationsOutput, error)
 	// Describes one or more local gateway route tables. By default, all local gateway
 	// route tables are described. Alternatively, you can filter the results.
-	DescribeLocalGatewayRouteTables(ctx context.Context, params *DescribeLocalGatewayRouteTablesInput, optFns ...func(*Options)) (*DescribeLocalGatewayRouteTablesOutput, error)
+	DescribeLocalGatewayRouteTables(ctx context.Context, params *ec2.DescribeLocalGatewayRouteTablesInput, optFns ...func(*Options)) (*ec2.DescribeLocalGatewayRouteTablesOutput, error)
 	// Describes the specified local gateway virtual interface groups.
-	DescribeLocalGatewayVirtualInterfaceGroups(ctx context.Context, params *DescribeLocalGatewayVirtualInterfaceGroupsInput, optFns ...func(*Options)) (*DescribeLocalGatewayVirtualInterfaceGroupsOutput, error)
+	DescribeLocalGatewayVirtualInterfaceGroups(ctx context.Context, params *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput, optFns ...func(*Options)) (*ec2.DescribeLocalGatewayVirtualInterfaceGroupsOutput, error)
 	// Describes the specified local gateway virtual interfaces.
-	DescribeLocalGatewayVirtualInterfaces(ctx context.Context, params *DescribeLocalGatewayVirtualInterfacesInput, optFns ...func(*Options)) (*DescribeLocalGatewayVirtualInterfacesOutput, error)
+	DescribeLocalGatewayVirtualInterfaces(ctx context.Context, params *ec2.DescribeLocalGatewayVirtualInterfacesInput, optFns ...func(*Options)) (*ec2.DescribeLocalGatewayVirtualInterfacesOutput, error)
 	// Describes one or more local gateways. By default, all local gateways are
 	// described. Alternatively, you can filter the results.
-	DescribeLocalGateways(ctx context.Context, params *DescribeLocalGatewaysInput, optFns ...func(*Options)) (*DescribeLocalGatewaysOutput, error)
+	DescribeLocalGateways(ctx context.Context, params *ec2.DescribeLocalGatewaysInput, optFns ...func(*Options)) (*ec2.DescribeLocalGatewaysOutput, error)
+	// Describes the lock status for a snapshot.
+	DescribeLockedSnapshots(ctx context.Context, params *ec2.DescribeLockedSnapshotsInput, optFns ...func(*Options)) (*ec2.DescribeLockedSnapshotsOutput, error)
+	// Describes the specified EC2 Mac Dedicated Host or all of your EC2 Mac Dedicated
+	// Hosts.
+	DescribeMacHosts(ctx context.Context, params *ec2.DescribeMacHostsInput, optFns ...func(*Options)) (*ec2.DescribeMacHostsOutput, error)
+	// Describes a System Integrity Protection (SIP) modification task or volume
+	// ownership delegation task for an Amazon EC2 Mac instance. For more information,
+	// see [Configure SIP for Amazon EC2 instances]in the Amazon EC2 User Guide.
+	//
+	// [Configure SIP for Amazon EC2 instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/mac-sip-settings.html#mac-sip-configure
+	DescribeMacModificationTasks(ctx context.Context, params *ec2.DescribeMacModificationTasksInput, optFns ...func(*Options)) (*ec2.DescribeMacModificationTasksOutput, error)
 	// Describes your managed prefix lists and any Amazon Web Services-managed prefix
-	// lists. To view the entries for your prefix list, use
-	// GetManagedPrefixListEntries.
-	DescribeManagedPrefixLists(ctx context.Context, params *DescribeManagedPrefixListsInput, optFns ...func(*Options)) (*DescribeManagedPrefixListsOutput, error)
-	// Describes your Elastic IP addresses that are being moved to the EC2-VPC
-	// platform, or that are being restored to the EC2-Classic platform. This request
-	// does not return information about any other Elastic IP addresses in your
-	// account.
-	DescribeMovingAddresses(ctx context.Context, params *DescribeMovingAddressesInput, optFns ...func(*Options)) (*DescribeMovingAddressesOutput, error)
-	// Describes one or more of your NAT gateways.
-	DescribeNatGateways(ctx context.Context, params *DescribeNatGatewaysInput, optFns ...func(*Options)) (*DescribeNatGatewaysOutput, error)
-	// Describes one or more of your network ACLs. For more information, see Network
-	// ACLs (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_ACLs.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	DescribeNetworkAcls(ctx context.Context, params *DescribeNetworkAclsInput, optFns ...func(*Options)) (*DescribeNetworkAclsOutput, error)
+	// lists.
+	DescribeManagedPrefixLists(ctx context.Context, params *ec2.DescribeManagedPrefixListsInput, optFns ...func(*Options)) (*ec2.DescribeManagedPrefixListsOutput, error)
+	// This action is deprecated.
+	//
+	// Describes your Elastic IP addresses that are being moved from or being restored
+	// to the EC2-Classic platform. This request does not return information about any
+	// other Elastic IP addresses in your account.
+	DescribeMovingAddresses(ctx context.Context, params *ec2.DescribeMovingAddressesInput, optFns ...func(*Options)) (*ec2.DescribeMovingAddressesOutput, error)
+	// Describes your NAT gateways. The default is to describe all your NAT gateways.
+	// Alternatively, you can specify specific NAT gateway IDs or filter the results to
+	// include only the NAT gateways that match specific criteria.
+	DescribeNatGateways(ctx context.Context, params *ec2.DescribeNatGatewaysInput, optFns ...func(*Options)) (*ec2.DescribeNatGatewaysOutput, error)
+	// Describes your network ACLs. The default is to describe all your network ACLs.
+	// Alternatively, you can specify specific network ACL IDs or filter the results to
+	// include only the network ACLs that match specific criteria.
+	//
+	// For more information, see [Network ACLs] in the Amazon VPC User Guide.
+	//
+	// [Network ACLs]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html
+	DescribeNetworkAcls(ctx context.Context, params *ec2.DescribeNetworkAclsInput, optFns ...func(*Options)) (*ec2.DescribeNetworkAclsOutput, error)
 	// Describes the specified Network Access Scope analyses.
-	DescribeNetworkInsightsAccessScopeAnalyses(ctx context.Context, params *DescribeNetworkInsightsAccessScopeAnalysesInput, optFns ...func(*Options)) (*DescribeNetworkInsightsAccessScopeAnalysesOutput, error)
+	DescribeNetworkInsightsAccessScopeAnalyses(ctx context.Context, params *ec2.DescribeNetworkInsightsAccessScopeAnalysesInput, optFns ...func(*Options)) (*ec2.DescribeNetworkInsightsAccessScopeAnalysesOutput, error)
 	// Describes the specified Network Access Scopes.
-	DescribeNetworkInsightsAccessScopes(ctx context.Context, params *DescribeNetworkInsightsAccessScopesInput, optFns ...func(*Options)) (*DescribeNetworkInsightsAccessScopesOutput, error)
+	DescribeNetworkInsightsAccessScopes(ctx context.Context, params *ec2.DescribeNetworkInsightsAccessScopesInput, optFns ...func(*Options)) (*ec2.DescribeNetworkInsightsAccessScopesOutput, error)
 	// Describes one or more of your network insights analyses.
-	DescribeNetworkInsightsAnalyses(ctx context.Context, params *DescribeNetworkInsightsAnalysesInput, optFns ...func(*Options)) (*DescribeNetworkInsightsAnalysesOutput, error)
+	DescribeNetworkInsightsAnalyses(ctx context.Context, params *ec2.DescribeNetworkInsightsAnalysesInput, optFns ...func(*Options)) (*ec2.DescribeNetworkInsightsAnalysesOutput, error)
 	// Describes one or more of your paths.
-	DescribeNetworkInsightsPaths(ctx context.Context, params *DescribeNetworkInsightsPathsInput, optFns ...func(*Options)) (*DescribeNetworkInsightsPathsOutput, error)
-	// Describes a network interface attribute. You can specify only one attribute at a
-	// time.
-	DescribeNetworkInterfaceAttribute(ctx context.Context, params *DescribeNetworkInterfaceAttributeInput, optFns ...func(*Options)) (*DescribeNetworkInterfaceAttributeOutput, error)
+	DescribeNetworkInsightsPaths(ctx context.Context, params *ec2.DescribeNetworkInsightsPathsInput, optFns ...func(*Options)) (*ec2.DescribeNetworkInsightsPathsOutput, error)
+	// Describes a network interface attribute. You can specify only one attribute at
+	// a time.
+	DescribeNetworkInterfaceAttribute(ctx context.Context, params *ec2.DescribeNetworkInterfaceAttributeInput, optFns ...func(*Options)) (*ec2.DescribeNetworkInterfaceAttributeOutput, error)
 	// Describes the permissions for your network interfaces.
-	DescribeNetworkInterfacePermissions(ctx context.Context, params *DescribeNetworkInterfacePermissionsInput, optFns ...func(*Options)) (*DescribeNetworkInterfacePermissionsOutput, error)
-	// Describes one or more of your network interfaces.
-	DescribeNetworkInterfaces(ctx context.Context, params *DescribeNetworkInterfacesInput, optFns ...func(*Options)) (*DescribeNetworkInterfacesOutput, error)
-	// Describes the specified placement groups or all of your placement groups. For
-	// more information, see Placement groups
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html) in
-	// the Amazon EC2 User Guide.
-	DescribePlacementGroups(ctx context.Context, params *DescribePlacementGroupsInput, optFns ...func(*Options)) (*DescribePlacementGroupsOutput, error)
+	DescribeNetworkInterfacePermissions(ctx context.Context, params *ec2.DescribeNetworkInterfacePermissionsInput, optFns ...func(*Options)) (*ec2.DescribeNetworkInterfacePermissionsOutput, error)
+	// Describes the specified network interfaces or all your network interfaces.
+	//
+	// If you have a large number of network interfaces, the operation fails unless
+	// you use pagination or one of the following filters: group-id , mac-address ,
+	// private-dns-name , private-ip-address , subnet-id , or vpc-id .
+	//
+	// We strongly recommend using only paginated requests. Unpaginated requests are
+	// susceptible to throttling and timeouts.
+	DescribeNetworkInterfaces(ctx context.Context, params *ec2.DescribeNetworkInterfacesInput, optFns ...func(*Options)) (*ec2.DescribeNetworkInterfacesOutput, error)
+	// Describes the Outposts link aggregation groups (LAGs).
+	//
+	// LAGs are only available for second-generation Outposts racks at this time.
+	DescribeOutpostLags(ctx context.Context, params *ec2.DescribeOutpostLagsInput, optFns ...func(*Options)) (*ec2.DescribeOutpostLagsOutput, error)
+	// Describes the specified placement groups or all of your placement groups.
+	//
+	// To describe a specific placement group that is shared with your account, you
+	// must specify the ID of the placement group using the GroupId parameter.
+	// Specifying the name of a shared placement group using the GroupNames parameter
+	// will result in an error.
+	//
+	// For more information, see [Placement groups] in the Amazon EC2 User Guide.
+	//
+	// [Placement groups]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html
+	DescribePlacementGroups(ctx context.Context, params *ec2.DescribePlacementGroupsInput, optFns ...func(*Options)) (*ec2.DescribePlacementGroupsOutput, error)
 	// Describes available Amazon Web Services services in a prefix list format, which
 	// includes the prefix list name and prefix list ID of the service and the IP
-	// address range for the service. We recommend that you use
-	// DescribeManagedPrefixLists instead.
-	DescribePrefixLists(ctx context.Context, params *DescribePrefixListsInput, optFns ...func(*Options)) (*DescribePrefixListsOutput, error)
+	// address range for the service.
+	DescribePrefixLists(ctx context.Context, params *ec2.DescribePrefixListsInput, optFns ...func(*Options)) (*ec2.DescribePrefixListsOutput, error)
 	// Describes the ID format settings for the root user and all IAM roles and IAM
 	// users that have explicitly specified a longer ID (17-character ID) preference.
+	//
 	// By default, all IAM roles and IAM users default to the same ID settings as the
 	// root user, unless they explicitly override the settings. This request is useful
 	// for identifying those IAM users and IAM roles that have overridden the default
-	// ID settings. The following resource types support longer IDs: bundle |
-	// conversion-task | customer-gateway | dhcp-options | elastic-ip-allocation |
-	// elastic-ip-association | export-task | flow-log | image | import-task | instance
-	// | internet-gateway | network-acl | network-acl-association | network-interface |
+	// ID settings.
+	//
+	// The following resource types support longer IDs: bundle | conversion-task |
+	// customer-gateway | dhcp-options | elastic-ip-allocation | elastic-ip-association
+	// | export-task | flow-log | image | import-task | instance | internet-gateway |
+	// network-acl | network-acl-association | network-interface |
 	// network-interface-attachment | prefix-list | reservation | route-table |
 	// route-table-association | security-group | snapshot | subnet |
 	// subnet-cidr-block-association | volume | vpc | vpc-cidr-block-association |
-	// vpc-endpoint | vpc-peering-connection | vpn-connection | vpn-gateway.
-	DescribePrincipalIdFormat(ctx context.Context, params *DescribePrincipalIdFormatInput, optFns ...func(*Options)) (*DescribePrincipalIdFormatOutput, error)
+	// vpc-endpoint | vpc-peering-connection | vpn-connection | vpn-gateway .
+	DescribePrincipalIdFormat(ctx context.Context, params *ec2.DescribePrincipalIdFormatInput, optFns ...func(*Options)) (*ec2.DescribePrincipalIdFormatOutput, error)
 	// Describes the specified IPv4 address pools.
-	DescribePublicIpv4Pools(ctx context.Context, params *DescribePublicIpv4PoolsInput, optFns ...func(*Options)) (*DescribePublicIpv4PoolsOutput, error)
-	// Describes the Regions that are enabled for your account, or all Regions. For a
-	// list of the Regions supported by Amazon EC2, see  Amazon Elastic Compute Cloud
-	// endpoints and quotas
-	// (https://docs.aws.amazon.com/general/latest/gr/ec2-service.html). For
-	// information about enabling and disabling Regions for your account, see Managing
-	// Amazon Web Services Regions
-	// (https://docs.aws.amazon.com/general/latest/gr/rande-manage.html) in the Amazon
-	// Web Services General Reference.
-	DescribeRegions(ctx context.Context, params *DescribeRegionsInput, optFns ...func(*Options)) (*DescribeRegionsOutput, error)
-	// Describes a root volume replacement task. For more information, see Replace a
-	// root volume
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-restoring-volume.html#replace-root)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	DescribeReplaceRootVolumeTasks(ctx context.Context, params *DescribeReplaceRootVolumeTasksInput, optFns ...func(*Options)) (*DescribeReplaceRootVolumeTasksOutput, error)
-	// Describes one or more of the Reserved Instances that you purchased. For more
-	// information about Reserved Instances, see Reserved Instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts-on-demand-reserved-instances.html)
-	// in the Amazon EC2 User Guide.
-	DescribeReservedInstances(ctx context.Context, params *DescribeReservedInstancesInput, optFns ...func(*Options)) (*DescribeReservedInstancesOutput, error)
+	DescribePublicIpv4Pools(ctx context.Context, params *ec2.DescribePublicIpv4PoolsInput, optFns ...func(*Options)) (*ec2.DescribePublicIpv4PoolsOutput, error)
+	// Describes the Regions that are enabled for your account, or all Regions.
+	//
+	// For a list of the Regions supported by Amazon EC2, see [Amazon EC2 service endpoints].
+	//
+	// For information about enabling and disabling Regions for your account, see [Specify which Amazon Web Services Regions your account can use] in
+	// the Amazon Web Services Account Management Reference Guide.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	//
+	// [Specify which Amazon Web Services Regions your account can use]: https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-regions.html
+	// [Amazon EC2 service endpoints]: https://docs.aws.amazon.com/ec2/latest/devguide/ec2-endpoints.html
+	DescribeRegions(ctx context.Context, params *ec2.DescribeRegionsInput, optFns ...func(*Options)) (*ec2.DescribeRegionsOutput, error)
+	// Describes a root volume replacement task. For more information, see [Replace a root volume] in the
+	// Amazon EC2 User Guide.
+	//
+	// [Replace a root volume]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/replace-root.html
+	DescribeReplaceRootVolumeTasks(ctx context.Context, params *ec2.DescribeReplaceRootVolumeTasksInput, optFns ...func(*Options)) (*ec2.DescribeReplaceRootVolumeTasksOutput, error)
+	// Describes one or more of the Reserved Instances that you purchased.
+	//
+	// For more information about Reserved Instances, see [Reserved Instances] in the Amazon EC2 User
+	// Guide.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	//
+	// [Reserved Instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts-on-demand-reserved-instances.html
+	DescribeReservedInstances(ctx context.Context, params *ec2.DescribeReservedInstancesInput, optFns ...func(*Options)) (*ec2.DescribeReservedInstancesOutput, error)
 	// Describes your account's Reserved Instance listings in the Reserved Instance
-	// Marketplace. The Reserved Instance Marketplace matches sellers who want to
-	// resell Reserved Instance capacity that they no longer need with buyers who want
-	// to purchase additional capacity. Reserved Instances bought and sold through the
-	// Reserved Instance Marketplace work like any other Reserved Instances. As a
-	// seller, you choose to list some or all of your Reserved Instances, and you
+	// Marketplace.
+	//
+	// The Reserved Instance Marketplace matches sellers who want to resell Reserved
+	// Instance capacity that they no longer need with buyers who want to purchase
+	// additional capacity. Reserved Instances bought and sold through the Reserved
+	// Instance Marketplace work like any other Reserved Instances.
+	//
+	// As a seller, you choose to list some or all of your Reserved Instances, and you
 	// specify the upfront price to receive for them. Your Reserved Instances are then
-	// listed in the Reserved Instance Marketplace and are available for purchase. As a
-	// buyer, you specify the configuration of the Reserved Instance to purchase, and
-	// the Marketplace matches what you're searching for with what's available. The
+	// listed in the Reserved Instance Marketplace and are available for purchase.
+	//
+	// As a buyer, you specify the configuration of the Reserved Instance to purchase,
+	// and the Marketplace matches what you're searching for with what's available. The
 	// Marketplace first sells the lowest priced Reserved Instances to you, and
 	// continues to sell available Reserved Instance listings to you until your demand
 	// is met. You are charged based on the total price of all of the listings that you
-	// purchase. For more information, see Reserved Instance Marketplace
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html) in
-	// the Amazon EC2 User Guide.
-	DescribeReservedInstancesListings(ctx context.Context, params *DescribeReservedInstancesListingsInput, optFns ...func(*Options)) (*DescribeReservedInstancesListingsOutput, error)
+	// purchase.
+	//
+	// For more information, see [Sell in the Reserved Instance Marketplace] in the Amazon EC2 User Guide.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	//
+	// [Sell in the Reserved Instance Marketplace]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html
+	DescribeReservedInstancesListings(ctx context.Context, params *ec2.DescribeReservedInstancesListingsInput, optFns ...func(*Options)) (*ec2.DescribeReservedInstancesListingsOutput, error)
 	// Describes the modifications made to your Reserved Instances. If no parameter is
 	// specified, information about all your Reserved Instances modification requests
 	// is returned. If a modification ID is specified, only information about the
-	// specific modification is returned. For more information, see Modifying Reserved
-	// Instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-modifying.html) in the
-	// Amazon EC2 User Guide.
-	DescribeReservedInstancesModifications(ctx context.Context, params *DescribeReservedInstancesModificationsInput, optFns ...func(*Options)) (*DescribeReservedInstancesModificationsOutput, error)
+	// specific modification is returned.
+	//
+	// For more information, see [Modify Reserved Instances] in the Amazon EC2 User Guide.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	//
+	// [Modify Reserved Instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-modifying.html
+	DescribeReservedInstancesModifications(ctx context.Context, params *ec2.DescribeReservedInstancesModificationsInput, optFns ...func(*Options)) (*ec2.DescribeReservedInstancesModificationsOutput, error)
 	// Describes Reserved Instance offerings that are available for purchase. With
 	// Reserved Instances, you purchase the right to launch instances for a period of
 	// time. During that time period, you do not receive insufficient capacity errors,
 	// and you pay a lower usage rate than the rate charged for On-Demand instances for
-	// the actual time used. If you have listed your own Reserved Instances for sale in
-	// the Reserved Instance Marketplace, they will be excluded from these results.
-	// This is to ensure that you do not purchase your own Reserved Instances. For more
-	// information, see Reserved Instance Marketplace
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html) in
-	// the Amazon EC2 User Guide.
-	DescribeReservedInstancesOfferings(ctx context.Context, params *DescribeReservedInstancesOfferingsInput, optFns ...func(*Options)) (*DescribeReservedInstancesOfferingsOutput, error)
-	// Describes one or more of your route tables. Each subnet in your VPC must be
-	// associated with a route table. If a subnet is not explicitly associated with any
-	// route table, it is implicitly associated with the main route table. This command
-	// does not return the subnet ID for implicit associations. For more information,
-	// see Route tables
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	DescribeRouteTables(ctx context.Context, params *DescribeRouteTablesInput, optFns ...func(*Options)) (*DescribeRouteTablesOutput, error)
-	// Finds available schedules that meet the specified criteria. You can search for
-	// an available schedule no more than 3 months in advance. You must meet the
-	// minimum required duration of 1,200 hours per year. For example, the minimum
-	// daily schedule is 4 hours, the minimum weekly schedule is 24 hours, and the
-	// minimum monthly schedule is 100 hours. After you find a schedule that meets your
-	// needs, call PurchaseScheduledInstances to purchase Scheduled Instances with that
-	// schedule.
-	DescribeScheduledInstanceAvailability(ctx context.Context, params *DescribeScheduledInstanceAvailabilityInput, optFns ...func(*Options)) (*DescribeScheduledInstanceAvailabilityOutput, error)
+	// the actual time used.
+	//
+	// If you have listed your own Reserved Instances for sale in the Reserved
+	// Instance Marketplace, they will be excluded from these results. This is to
+	// ensure that you do not purchase your own Reserved Instances.
+	//
+	// For more information, see [Sell in the Reserved Instance Marketplace] in the Amazon EC2 User Guide.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	//
+	// [Sell in the Reserved Instance Marketplace]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html
+	DescribeReservedInstancesOfferings(ctx context.Context, params *ec2.DescribeReservedInstancesOfferingsInput, optFns ...func(*Options)) (*ec2.DescribeReservedInstancesOfferingsOutput, error)
+	// Describes one or more route server endpoints.
+	//
+	// A route server endpoint is an Amazon Web Services-managed component inside a
+	// subnet that facilitates [BGP (Border Gateway Protocol)]connections between your route server and your BGP
+	// peers.
+	//
+	// For more information see [Dynamic routing in your VPC with VPC Route Server] in the Amazon VPC User Guide.
+	//
+	// [Dynamic routing in your VPC with VPC Route Server]: https://docs.aws.amazon.com/vpc/latest/userguide/dynamic-routing-route-server.html
+	// [BGP (Border Gateway Protocol)]: https://en.wikipedia.org/wiki/Border_Gateway_Protocol
+	DescribeRouteServerEndpoints(ctx context.Context, params *ec2.DescribeRouteServerEndpointsInput, optFns ...func(*Options)) (*ec2.DescribeRouteServerEndpointsOutput, error)
+	// Describes one or more route server peers.
+	//
+	// A route server peer is a session between a route server endpoint and the device
+	// deployed in Amazon Web Services (such as a firewall appliance or other network
+	// security function running on an EC2 instance). The device must meet these
+	// requirements:
+	//
+	//   - Have an elastic network interface in the VPC
+	//
+	//   - Support BGP (Border Gateway Protocol)
+	//
+	//   - Can initiate BGP sessions
+	//
+	// For more information see [Dynamic routing in your VPC with VPC Route Server] in the Amazon VPC User Guide.
+	//
+	// [Dynamic routing in your VPC with VPC Route Server]: https://docs.aws.amazon.com/vpc/latest/userguide/dynamic-routing-route-server.html
+	DescribeRouteServerPeers(ctx context.Context, params *ec2.DescribeRouteServerPeersInput, optFns ...func(*Options)) (*ec2.DescribeRouteServerPeersOutput, error)
+	// Describes one or more route servers.
+	//
+	// Amazon VPC Route Server simplifies routing for traffic between workloads that
+	// are deployed within a VPC and its internet gateways. With this feature, VPC
+	// Route Server dynamically updates VPC and internet gateway route tables with your
+	// preferred IPv4 or IPv6 routes to achieve routing fault tolerance for those
+	// workloads. This enables you to automatically reroute traffic within a VPC, which
+	// increases the manageability of VPC routing and interoperability with third-party
+	// workloads.
+	//
+	// Route server supports the follow route table types:
+	//
+	//   - VPC route tables not associated with subnets
+	//
+	//   - Subnet route tables
+	//
+	//   - Internet gateway route tables
+	//
+	// Route server does not support route tables associated with virtual private
+	// gateways. To propagate routes into a transit gateway route table, use [Transit Gateway Connect].
+	//
+	// For more information see [Dynamic routing in your VPC with VPC Route Server] in the Amazon VPC User Guide.
+	//
+	// [Dynamic routing in your VPC with VPC Route Server]: https://docs.aws.amazon.com/vpc/latest/userguide/dynamic-routing-route-server.html
+	// [Transit Gateway Connect]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-connect.html
+	DescribeRouteServers(ctx context.Context, params *ec2.DescribeRouteServersInput, optFns ...func(*Options)) (*ec2.DescribeRouteServersOutput, error)
+	// Describes your route tables. The default is to describe all your route tables.
+	// Alternatively, you can specify specific route table IDs or filter the results to
+	// include only the route tables that match specific criteria.
+	//
+	// Each subnet in your VPC must be associated with a route table. If a subnet is
+	// not explicitly associated with any route table, it is implicitly associated with
+	// the main route table. This command does not return the subnet ID for implicit
+	// associations.
+	//
+	// For more information, see [Route tables] in the Amazon VPC User Guide.
+	//
+	// [Route tables]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
+	DescribeRouteTables(ctx context.Context, params *ec2.DescribeRouteTablesInput, optFns ...func(*Options)) (*ec2.DescribeRouteTablesOutput, error)
+	// Finds available schedules that meet the specified criteria.
+	//
+	// You can search for an available schedule no more than 3 months in advance. You
+	// must meet the minimum required duration of 1,200 hours per year. For example,
+	// the minimum daily schedule is 4 hours, the minimum weekly schedule is 24 hours,
+	// and the minimum monthly schedule is 100 hours.
+	//
+	// After you find a schedule that meets your needs, call PurchaseScheduledInstances to purchase Scheduled
+	// Instances with that schedule.
+	DescribeScheduledInstanceAvailability(ctx context.Context, params *ec2.DescribeScheduledInstanceAvailabilityInput, optFns ...func(*Options)) (*ec2.DescribeScheduledInstanceAvailabilityOutput, error)
 	// Describes the specified Scheduled Instances or all your Scheduled Instances.
-	DescribeScheduledInstances(ctx context.Context, params *DescribeScheduledInstancesInput, optFns ...func(*Options)) (*DescribeScheduledInstancesOutput, error)
-	// [VPC only] Describes the VPCs on the other side of a VPC peering connection that
-	// are referencing the security groups you've specified in this request.
-	DescribeSecurityGroupReferences(ctx context.Context, params *DescribeSecurityGroupReferencesInput, optFns ...func(*Options)) (*DescribeSecurityGroupReferencesOutput, error)
+	DescribeScheduledInstances(ctx context.Context, params *ec2.DescribeScheduledInstancesInput, optFns ...func(*Options)) (*ec2.DescribeScheduledInstancesOutput, error)
+	// Describes the VPCs on the other side of a VPC peering or Transit Gateway
+	// connection that are referencing the security groups you've specified in this
+	// request.
+	DescribeSecurityGroupReferences(ctx context.Context, params *ec2.DescribeSecurityGroupReferencesInput, optFns ...func(*Options)) (*ec2.DescribeSecurityGroupReferencesOutput, error)
 	// Describes one or more of your security group rules.
-	DescribeSecurityGroupRules(ctx context.Context, params *DescribeSecurityGroupRulesInput, optFns ...func(*Options)) (*DescribeSecurityGroupRulesOutput, error)
-	// Describes the specified security groups or all of your security groups. A
-	// security group is for use with instances either in the EC2-Classic platform or
-	// in a specific VPC. For more information, see Amazon EC2 security groups
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
-	// in the Amazon Elastic Compute Cloud User Guide and Security groups for your VPC
-	// (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html)
-	// in the Amazon Virtual Private Cloud User Guide.
-	DescribeSecurityGroups(ctx context.Context, params *DescribeSecurityGroupsInput, optFns ...func(*Options)) (*DescribeSecurityGroupsOutput, error)
+	DescribeSecurityGroupRules(ctx context.Context, params *ec2.DescribeSecurityGroupRulesInput, optFns ...func(*Options)) (*ec2.DescribeSecurityGroupRulesOutput, error)
+	// Describes security group VPC associations made with [AssociateSecurityGroupVpc].
+	//
+	// [AssociateSecurityGroupVpc]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AssociateSecurityGroupVpc.html
+	DescribeSecurityGroupVpcAssociations(ctx context.Context, params *ec2.DescribeSecurityGroupVpcAssociationsInput, optFns ...func(*Options)) (*ec2.DescribeSecurityGroupVpcAssociationsOutput, error)
+	// Describes the specified security groups or all of your security groups.
+	DescribeSecurityGroups(ctx context.Context, params *ec2.DescribeSecurityGroupsInput, optFns ...func(*Options)) (*ec2.DescribeSecurityGroupsOutput, error)
+	// Describes the Outpost service link virtual interfaces.
+	DescribeServiceLinkVirtualInterfaces(ctx context.Context, params *ec2.DescribeServiceLinkVirtualInterfacesInput, optFns ...func(*Options)) (*ec2.DescribeServiceLinkVirtualInterfacesOutput, error)
 	// Describes the specified attribute of the specified snapshot. You can specify
-	// only one attribute at a time. For more information about EBS snapshots, see
-	// Amazon EBS snapshots
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSSnapshots.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	DescribeSnapshotAttribute(ctx context.Context, params *DescribeSnapshotAttributeInput, optFns ...func(*Options)) (*DescribeSnapshotAttributeOutput, error)
+	// only one attribute at a time.
+	//
+	// For more information about EBS snapshots, see [Amazon EBS snapshots] in the Amazon EBS User Guide.
+	//
+	// [Amazon EBS snapshots]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-snapshots.html
+	DescribeSnapshotAttribute(ctx context.Context, params *ec2.DescribeSnapshotAttributeInput, optFns ...func(*Options)) (*ec2.DescribeSnapshotAttributeOutput, error)
 	// Describes the storage tier status of one or more Amazon EBS snapshots.
-	DescribeSnapshotTierStatus(ctx context.Context, params *DescribeSnapshotTierStatusInput, optFns ...func(*Options)) (*DescribeSnapshotTierStatusOutput, error)
+	DescribeSnapshotTierStatus(ctx context.Context, params *ec2.DescribeSnapshotTierStatusInput, optFns ...func(*Options)) (*ec2.DescribeSnapshotTierStatusOutput, error)
 	// Describes the specified EBS snapshots available to you or all of the EBS
-	// snapshots available to you. The snapshots available to you include public
-	// snapshots, private snapshots that you own, and private snapshots owned by other
-	// Amazon Web Services accounts for which you have explicit create volume
-	// permissions. The create volume permissions fall into the following
-	// categories:
+	// snapshots available to you.
 	//
-	// * public: The owner of the snapshot granted create volume
-	// permissions for the snapshot to the all group. All Amazon Web Services accounts
-	// have create volume permissions for these snapshots.
+	// The snapshots available to you include public snapshots, private snapshots that
+	// you own, and private snapshots owned by other Amazon Web Services accounts for
+	// which you have explicit create volume permissions.
 	//
-	// * explicit: The owner of
-	// the snapshot granted create volume permissions to a specific Amazon Web Services
-	// account.
+	// The create volume permissions fall into the following categories:
 	//
-	// * implicit: An Amazon Web Services account has implicit create volume
-	// permissions for all snapshots it owns.
+	//   - public: The owner of the snapshot granted create volume permissions for the
+	//     snapshot to the all group. All Amazon Web Services accounts have create volume
+	//     permissions for these snapshots.
 	//
-	// The list of snapshots returned can be
-	// filtered by specifying snapshot IDs, snapshot owners, or Amazon Web Services
-	// accounts with create volume permissions. If no options are specified, Amazon EC2
-	// returns all snapshots for which you have create volume permissions. If you
-	// specify one or more snapshot IDs, only snapshots that have the specified IDs are
-	// returned. If you specify an invalid snapshot ID, an error is returned. If you
-	// specify a snapshot ID for which you do not have access, it is not included in
-	// the returned results. If you specify one or more snapshot owners using the
-	// OwnerIds option, only snapshots from the specified owners and for which you have
-	// access are returned. The results can include the Amazon Web Services account IDs
-	// of the specified owners, amazon for snapshots owned by Amazon, or self for
-	// snapshots that you own. If you specify a list of restorable users, only
-	// snapshots with create snapshot permissions for those users are returned. You can
-	// specify Amazon Web Services account IDs (if you own the snapshots), self for
-	// snapshots for which you own or have explicit permissions, or all for public
-	// snapshots. If you are describing a long list of snapshots, we recommend that you
-	// paginate the output to make the list more manageable. The MaxResults parameter
-	// sets the maximum number of results returned in a single page. If the list of
-	// results exceeds your MaxResults value, then that number of results is returned
-	// along with a NextToken value that can be passed to a subsequent
-	// DescribeSnapshots request to retrieve the remaining results. To get the state of
-	// fast snapshot restores for a snapshot, use DescribeFastSnapshotRestores. For
-	// more information about EBS snapshots, see Amazon EBS snapshots
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSSnapshots.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	DescribeSnapshots(ctx context.Context, params *DescribeSnapshotsInput, optFns ...func(*Options)) (*DescribeSnapshotsOutput, error)
-	// Describes the data feed for Spot Instances. For more information, see Spot
-	// Instance data feed
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-data-feeds.html) in
-	// the Amazon EC2 User Guide for Linux Instances.
-	DescribeSpotDatafeedSubscription(ctx context.Context, params *DescribeSpotDatafeedSubscriptionInput, optFns ...func(*Options)) (*DescribeSpotDatafeedSubscriptionOutput, error)
+	//   - explicit: The owner of the snapshot granted create volume permissions to a
+	//     specific Amazon Web Services account.
+	//
+	//   - implicit: An Amazon Web Services account has implicit create volume
+	//     permissions for all snapshots it owns.
+	//
+	// The list of snapshots returned can be filtered by specifying snapshot IDs,
+	// snapshot owners, or Amazon Web Services accounts with create volume permissions.
+	// If no options are specified, Amazon EC2 returns all snapshots for which you have
+	// create volume permissions.
+	//
+	// If you specify one or more snapshot IDs, only snapshots that have the specified
+	// IDs are returned. If you specify an invalid snapshot ID, an error is returned.
+	// If you specify a snapshot ID for which you do not have access, it is not
+	// included in the returned results.
+	//
+	// If you specify one or more snapshot owners using the OwnerIds option, only
+	// snapshots from the specified owners and for which you have access are returned.
+	// The results can include the Amazon Web Services account IDs of the specified
+	// owners, amazon for snapshots owned by Amazon, or self for snapshots that you
+	// own.
+	//
+	// If you specify a list of restorable users, only snapshots with create snapshot
+	// permissions for those users are returned. You can specify Amazon Web Services
+	// account IDs (if you own the snapshots), self for snapshots for which you own or
+	// have explicit permissions, or all for public snapshots.
+	//
+	// If you are describing a long list of snapshots, we recommend that you paginate
+	// the output to make the list more manageable. For more information, see [Pagination].
+	//
+	// For more information about EBS snapshots, see [Amazon EBS snapshots] in the Amazon EBS User Guide.
+	//
+	// We strongly recommend using only paginated requests. Unpaginated requests are
+	// susceptible to throttling and timeouts.
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
+	// [Amazon EBS snapshots]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-snapshots.html
+	DescribeSnapshots(ctx context.Context, params *ec2.DescribeSnapshotsInput, optFns ...func(*Options)) (*ec2.DescribeSnapshotsOutput, error)
+	// Describes the data feed for Spot Instances. For more information, see [Spot Instance data feed] in the
+	// Amazon EC2 User Guide.
+	//
+	// [Spot Instance data feed]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-data-feeds.html
+	DescribeSpotDatafeedSubscription(ctx context.Context, params *ec2.DescribeSpotDatafeedSubscriptionInput, optFns ...func(*Options)) (*ec2.DescribeSpotDatafeedSubscriptionOutput, error)
 	// Describes the running instances for the specified Spot Fleet.
-	DescribeSpotFleetInstances(ctx context.Context, params *DescribeSpotFleetInstancesInput, optFns ...func(*Options)) (*DescribeSpotFleetInstancesOutput, error)
+	DescribeSpotFleetInstances(ctx context.Context, params *ec2.DescribeSpotFleetInstancesInput, optFns ...func(*Options)) (*ec2.DescribeSpotFleetInstancesOutput, error)
 	// Describes the events for the specified Spot Fleet request during the specified
-	// time. Spot Fleet events are delayed by up to 30 seconds before they can be
-	// described. This ensures that you can query by the last evaluated time and not
-	// miss a recorded event. Spot Fleet events are available for 48 hours. For more
-	// information, see Monitor fleet events using Amazon EventBridge
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/fleet-monitor.html) in the
-	// Amazon EC2 User Guide for Linux Instances.
-	DescribeSpotFleetRequestHistory(ctx context.Context, params *DescribeSpotFleetRequestHistoryInput, optFns ...func(*Options)) (*DescribeSpotFleetRequestHistoryOutput, error)
-	// Describes your Spot Fleet requests. Spot Fleet requests are deleted 48 hours
-	// after they are canceled and their instances are terminated.
-	DescribeSpotFleetRequests(ctx context.Context, params *DescribeSpotFleetRequestsInput, optFns ...func(*Options)) (*DescribeSpotFleetRequestsOutput, error)
-	// Describes the specified Spot Instance requests. You can use
-	// DescribeSpotInstanceRequests to find a running Spot Instance by examining the
-	// response. If the status of the Spot Instance is fulfilled, the instance ID
-	// appears in the response and contains the identifier of the instance.
-	// Alternatively, you can use DescribeInstances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances)
-	// with a filter to look for instances where the instance lifecycle is spot. We
-	// recommend that you set MaxResults to a value between 5 and 1000 to limit the
-	// number of results returned. This paginates the output, which makes the list more
-	// manageable and returns the results faster. If the list of results exceeds your
-	// MaxResults value, then that number of results is returned along with a NextToken
-	// value that can be passed to a subsequent DescribeSpotInstanceRequests request to
-	// retrieve the remaining results. Spot Instance requests are deleted four hours
-	// after they are canceled and their instances are terminated.
-	DescribeSpotInstanceRequests(ctx context.Context, params *DescribeSpotInstanceRequestsInput, optFns ...func(*Options)) (*DescribeSpotInstanceRequestsOutput, error)
-	// Describes the Spot price history. For more information, see Spot Instance
-	// pricing history
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances-history.html)
-	// in the Amazon EC2 User Guide for Linux Instances. When you specify a start and
-	// end time, the operation returns the prices of the instance types within that
-	// time range. It also returns the last price change before the start time, which
-	// is the effective price as of the start time.
-	DescribeSpotPriceHistory(ctx context.Context, params *DescribeSpotPriceHistoryInput, optFns ...func(*Options)) (*DescribeSpotPriceHistoryOutput, error)
-	// [VPC only] Describes the stale security group rules for security groups in a
-	// specified VPC. Rules are stale when they reference a deleted security group in
-	// the same VPC or in a peer VPC, or if they reference a security group in a peer
-	// VPC for which the VPC peering connection has been deleted.
-	DescribeStaleSecurityGroups(ctx context.Context, params *DescribeStaleSecurityGroupsInput, optFns ...func(*Options)) (*DescribeStaleSecurityGroupsOutput, error)
+	// time.
+	//
+	// Spot Fleet events are delayed by up to 30 seconds before they can be described.
+	// This ensures that you can query by the last evaluated time and not miss a
+	// recorded event. Spot Fleet events are available for 48 hours.
+	//
+	// For more information, see [Monitor fleet events using Amazon EventBridge] in the Amazon EC2 User Guide.
+	//
+	// [Monitor fleet events using Amazon EventBridge]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/fleet-monitor.html
+	DescribeSpotFleetRequestHistory(ctx context.Context, params *ec2.DescribeSpotFleetRequestHistoryInput, optFns ...func(*Options)) (*ec2.DescribeSpotFleetRequestHistoryOutput, error)
+	// Describes your Spot Fleet requests.
+	//
+	// Spot Fleet requests are deleted 48 hours after they are canceled and their
+	// instances are terminated.
+	DescribeSpotFleetRequests(ctx context.Context, params *ec2.DescribeSpotFleetRequestsInput, optFns ...func(*Options)) (*ec2.DescribeSpotFleetRequestsOutput, error)
+	// Describes the specified Spot Instance requests.
+	//
+	// You can use DescribeSpotInstanceRequests to find a running Spot Instance by
+	// examining the response. If the status of the Spot Instance is fulfilled , the
+	// instance ID appears in the response and contains the identifier of the instance.
+	// Alternatively, you can use [DescribeInstances]with a filter to look for instances where the
+	// instance lifecycle is spot .
+	//
+	// We recommend that you set MaxResults to a value between 5 and 1000 to limit the
+	// number of items returned. This paginates the output, which makes the list more
+	// manageable and returns the items faster. If the list of items exceeds your
+	// MaxResults value, then that number of items is returned along with a NextToken
+	// value that can be passed to a subsequent DescribeSpotInstanceRequests request
+	// to retrieve the remaining items.
+	//
+	// Spot Instance requests are deleted four hours after they are canceled and their
+	// instances are terminated.
+	//
+	// [DescribeInstances]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances
+	DescribeSpotInstanceRequests(ctx context.Context, params *ec2.DescribeSpotInstanceRequestsInput, optFns ...func(*Options)) (*ec2.DescribeSpotInstanceRequestsOutput, error)
+	// Describes the Spot price history. For more information, see [Spot Instance pricing history] in the Amazon EC2
+	// User Guide.
+	//
+	// When you specify a start and end time, the operation returns the prices of the
+	// instance types within that time range. It also returns the last price change
+	// before the start time, which is the effective price as of the start time.
+	//
+	// [Spot Instance pricing history]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances-history.html
+	DescribeSpotPriceHistory(ctx context.Context, params *ec2.DescribeSpotPriceHistoryInput, optFns ...func(*Options)) (*ec2.DescribeSpotPriceHistoryOutput, error)
+	// Describes the stale security group rules for security groups referenced across
+	// a VPC peering connection, transit gateway connection, or with a security group
+	// VPC association. Rules are stale when they reference a deleted security group.
+	// Rules can also be stale if they reference a security group in a peer VPC for
+	// which the VPC peering connection has been deleted, across a transit gateway
+	// where the transit gateway has been deleted (or [the transit gateway security group referencing feature]has been disabled), or if a
+	// security group VPC association has been disassociated.
+	//
+	// [the transit gateway security group referencing feature]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-vpc-attachments.html#vpc-attachment-security
+	DescribeStaleSecurityGroups(ctx context.Context, params *ec2.DescribeStaleSecurityGroupsInput, optFns ...func(*Options)) (*ec2.DescribeStaleSecurityGroupsOutput, error)
 	// Describes the progress of the AMI store tasks. You can describe the store tasks
 	// for specified AMIs. If you don't specify the AMIs, you get a paginated list of
-	// store tasks from the last 31 days. For each AMI task, the response indicates if
-	// the task is InProgress, Completed, or Failed. For tasks InProgress, the response
-	// shows the estimated progress as a percentage. Tasks are listed in reverse
-	// chronological order. Currently, only tasks from the past 31 days can be viewed.
+	// store tasks from the last 31 days.
+	//
+	// For each AMI task, the response indicates if the task is InProgress , Completed
+	// , or Failed . For tasks InProgress , the response shows the estimated progress
+	// as a percentage.
+	//
+	// Tasks are listed in reverse chronological order. Currently, only tasks from the
+	// past 31 days can be viewed.
+	//
 	// To use this API, you must have the required permissions. For more information,
-	// see Permissions for storing and restoring AMIs using Amazon S3
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-store-restore.html#ami-s3-permissions)
-	// in the Amazon Elastic Compute Cloud User Guide. For more information, see Store
-	// and restore an AMI using Amazon S3
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-store-restore.html) in
-	// the Amazon Elastic Compute Cloud User Guide.
-	DescribeStoreImageTasks(ctx context.Context, params *DescribeStoreImageTasksInput, optFns ...func(*Options)) (*DescribeStoreImageTasksOutput, error)
-	// Describes one or more of your subnets. For more information, see Your VPC and
-	// subnets (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html) in
-	// the Amazon Virtual Private Cloud User Guide.
-	DescribeSubnets(ctx context.Context, params *DescribeSubnetsInput, optFns ...func(*Options)) (*DescribeSubnetsOutput, error)
-	// Describes the specified tags for your EC2 resources. For more information about
-	// tags, see Tagging Your Resources
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	DescribeTags(ctx context.Context, params *DescribeTagsInput, optFns ...func(*Options)) (*DescribeTagsOutput, error)
+	// see [Permissions for storing and restoring AMIs using S3]in the Amazon EC2 User Guide.
+	//
+	// For more information, see [Store and restore an AMI using S3] in the Amazon EC2 User Guide.
+	//
+	// [Store and restore an AMI using S3]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-store-restore.html
+	// [Permissions for storing and restoring AMIs using S3]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/work-with-ami-store-restore.html#ami-s3-permissions
+	DescribeStoreImageTasks(ctx context.Context, params *ec2.DescribeStoreImageTasksInput, optFns ...func(*Options)) (*ec2.DescribeStoreImageTasksOutput, error)
+	// Describes your subnets. The default is to describe all your subnets.
+	// Alternatively, you can specify specific subnet IDs or filter the results to
+	// include only the subnets that match specific criteria.
+	//
+	// For more information, see [Subnets] in the Amazon VPC User Guide.
+	//
+	// [Subnets]: https://docs.aws.amazon.com/vpc/latest/userguide/configure-subnets.html
+	DescribeSubnets(ctx context.Context, params *ec2.DescribeSubnetsInput, optFns ...func(*Options)) (*ec2.DescribeSubnetsOutput, error)
+	// Describes the specified tags for your EC2 resources.
+	//
+	// For more information about tags, see [Tag your Amazon EC2 resources] in the Amazon Elastic Compute Cloud User
+	// Guide.
+	//
+	// We strongly recommend using only paginated requests. Unpaginated requests are
+	// susceptible to throttling and timeouts.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	//
+	// [Tag your Amazon EC2 resources]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html
+	DescribeTags(ctx context.Context, params *ec2.DescribeTagsInput, optFns ...func(*Options)) (*ec2.DescribeTagsOutput, error)
+	// Describe traffic mirror filters that determine the traffic that is mirrored.
+	DescribeTrafficMirrorFilterRules(ctx context.Context, params *ec2.DescribeTrafficMirrorFilterRulesInput, optFns ...func(*Options)) (*ec2.DescribeTrafficMirrorFilterRulesOutput, error)
 	// Describes one or more Traffic Mirror filters.
-	DescribeTrafficMirrorFilters(ctx context.Context, params *DescribeTrafficMirrorFiltersInput, optFns ...func(*Options)) (*DescribeTrafficMirrorFiltersOutput, error)
+	DescribeTrafficMirrorFilters(ctx context.Context, params *ec2.DescribeTrafficMirrorFiltersInput, optFns ...func(*Options)) (*ec2.DescribeTrafficMirrorFiltersOutput, error)
 	// Describes one or more Traffic Mirror sessions. By default, all Traffic Mirror
 	// sessions are described. Alternatively, you can filter the results.
-	DescribeTrafficMirrorSessions(ctx context.Context, params *DescribeTrafficMirrorSessionsInput, optFns ...func(*Options)) (*DescribeTrafficMirrorSessionsOutput, error)
+	DescribeTrafficMirrorSessions(ctx context.Context, params *ec2.DescribeTrafficMirrorSessionsInput, optFns ...func(*Options)) (*ec2.DescribeTrafficMirrorSessionsOutput, error)
 	// Information about one or more Traffic Mirror targets.
-	DescribeTrafficMirrorTargets(ctx context.Context, params *DescribeTrafficMirrorTargetsInput, optFns ...func(*Options)) (*DescribeTrafficMirrorTargetsOutput, error)
+	DescribeTrafficMirrorTargets(ctx context.Context, params *ec2.DescribeTrafficMirrorTargetsInput, optFns ...func(*Options)) (*ec2.DescribeTrafficMirrorTargetsOutput, error)
 	// Describes one or more attachments between resources and transit gateways. By
 	// default, all attachments are described. Alternatively, you can filter the
 	// results by attachment ID, attachment state, resource ID, or resource owner.
-	DescribeTransitGatewayAttachments(ctx context.Context, params *DescribeTransitGatewayAttachmentsInput, optFns ...func(*Options)) (*DescribeTransitGatewayAttachmentsOutput, error)
+	DescribeTransitGatewayAttachments(ctx context.Context, params *ec2.DescribeTransitGatewayAttachmentsInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewayAttachmentsOutput, error)
 	// Describes one or more Connect peers.
-	DescribeTransitGatewayConnectPeers(ctx context.Context, params *DescribeTransitGatewayConnectPeersInput, optFns ...func(*Options)) (*DescribeTransitGatewayConnectPeersOutput, error)
+	DescribeTransitGatewayConnectPeers(ctx context.Context, params *ec2.DescribeTransitGatewayConnectPeersInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewayConnectPeersOutput, error)
 	// Describes one or more Connect attachments.
-	DescribeTransitGatewayConnects(ctx context.Context, params *DescribeTransitGatewayConnectsInput, optFns ...func(*Options)) (*DescribeTransitGatewayConnectsOutput, error)
+	DescribeTransitGatewayConnects(ctx context.Context, params *ec2.DescribeTransitGatewayConnectsInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewayConnectsOutput, error)
 	// Describes one or more transit gateway multicast domains.
-	DescribeTransitGatewayMulticastDomains(ctx context.Context, params *DescribeTransitGatewayMulticastDomainsInput, optFns ...func(*Options)) (*DescribeTransitGatewayMulticastDomainsOutput, error)
+	DescribeTransitGatewayMulticastDomains(ctx context.Context, params *ec2.DescribeTransitGatewayMulticastDomainsInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewayMulticastDomainsOutput, error)
 	// Describes your transit gateway peering attachments.
-	DescribeTransitGatewayPeeringAttachments(ctx context.Context, params *DescribeTransitGatewayPeeringAttachmentsInput, optFns ...func(*Options)) (*DescribeTransitGatewayPeeringAttachmentsOutput, error)
+	DescribeTransitGatewayPeeringAttachments(ctx context.Context, params *ec2.DescribeTransitGatewayPeeringAttachmentsInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewayPeeringAttachmentsOutput, error)
+	// Describes one or more transit gateway route policy tables.
+	DescribeTransitGatewayPolicyTables(ctx context.Context, params *ec2.DescribeTransitGatewayPolicyTablesInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewayPolicyTablesOutput, error)
+	// Describes one or more transit gateway route table advertisements.
+	DescribeTransitGatewayRouteTableAnnouncements(ctx context.Context, params *ec2.DescribeTransitGatewayRouteTableAnnouncementsInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewayRouteTableAnnouncementsOutput, error)
 	// Describes one or more transit gateway route tables. By default, all transit
 	// gateway route tables are described. Alternatively, you can filter the results.
-	DescribeTransitGatewayRouteTables(ctx context.Context, params *DescribeTransitGatewayRouteTablesInput, optFns ...func(*Options)) (*DescribeTransitGatewayRouteTablesOutput, error)
+	DescribeTransitGatewayRouteTables(ctx context.Context, params *ec2.DescribeTransitGatewayRouteTablesInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewayRouteTablesOutput, error)
 	// Describes one or more VPC attachments. By default, all VPC attachments are
 	// described. Alternatively, you can filter the results.
-	DescribeTransitGatewayVpcAttachments(ctx context.Context, params *DescribeTransitGatewayVpcAttachmentsInput, optFns ...func(*Options)) (*DescribeTransitGatewayVpcAttachmentsOutput, error)
+	DescribeTransitGatewayVpcAttachments(ctx context.Context, params *ec2.DescribeTransitGatewayVpcAttachmentsInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewayVpcAttachmentsOutput, error)
 	// Describes one or more transit gateways. By default, all transit gateways are
 	// described. Alternatively, you can filter the results.
-	DescribeTransitGateways(ctx context.Context, params *DescribeTransitGatewaysInput, optFns ...func(*Options)) (*DescribeTransitGatewaysOutput, error)
-	// This API action is currently in limited preview only. If you are interested in
-	// using this feature, contact your account manager. Describes one or more network
-	// interface trunk associations.
-	DescribeTrunkInterfaceAssociations(ctx context.Context, params *DescribeTrunkInterfaceAssociationsInput, optFns ...func(*Options)) (*DescribeTrunkInterfaceAssociationsOutput, error)
+	DescribeTransitGateways(ctx context.Context, params *ec2.DescribeTransitGatewaysInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewaysOutput, error)
+	// Describes one or more network interface trunk associations.
+	DescribeTrunkInterfaceAssociations(ctx context.Context, params *ec2.DescribeTrunkInterfaceAssociationsInput, optFns ...func(*Options)) (*ec2.DescribeTrunkInterfaceAssociationsOutput, error)
+	// Describes the specified Amazon Web Services Verified Access endpoints.
+	DescribeVerifiedAccessEndpoints(ctx context.Context, params *ec2.DescribeVerifiedAccessEndpointsInput, optFns ...func(*Options)) (*ec2.DescribeVerifiedAccessEndpointsOutput, error)
+	// Describes the specified Verified Access groups.
+	DescribeVerifiedAccessGroups(ctx context.Context, params *ec2.DescribeVerifiedAccessGroupsInput, optFns ...func(*Options)) (*ec2.DescribeVerifiedAccessGroupsOutput, error)
+	// Describes the specified Amazon Web Services Verified Access instances.
+	DescribeVerifiedAccessInstanceLoggingConfigurations(ctx context.Context, params *ec2.DescribeVerifiedAccessInstanceLoggingConfigurationsInput, optFns ...func(*Options)) (*ec2.DescribeVerifiedAccessInstanceLoggingConfigurationsOutput, error)
+	// Describes the specified Amazon Web Services Verified Access instances.
+	DescribeVerifiedAccessInstances(ctx context.Context, params *ec2.DescribeVerifiedAccessInstancesInput, optFns ...func(*Options)) (*ec2.DescribeVerifiedAccessInstancesOutput, error)
+	// Describes the specified Amazon Web Services Verified Access trust providers.
+	DescribeVerifiedAccessTrustProviders(ctx context.Context, params *ec2.DescribeVerifiedAccessTrustProvidersInput, optFns ...func(*Options)) (*ec2.DescribeVerifiedAccessTrustProvidersOutput, error)
 	// Describes the specified attribute of the specified volume. You can specify only
-	// one attribute at a time. For more information about EBS volumes, see Amazon EBS
-	// volumes (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSVolumes.html) in
-	// the Amazon Elastic Compute Cloud User Guide.
-	DescribeVolumeAttribute(ctx context.Context, params *DescribeVolumeAttributeInput, optFns ...func(*Options)) (*DescribeVolumeAttributeOutput, error)
-	// Describes the status of the specified volumes. Volume status provides the result
-	// of the checks performed on your volumes to determine events that can impair the
-	// performance of your volumes. The performance of a volume can be affected if an
-	// issue occurs on the volume's underlying host. If the volume's underlying host
-	// experiences a power outage or system issue, after the system is restored, there
-	// could be data inconsistencies on the volume. Volume events notify you if this
-	// occurs. Volume actions notify you if any action needs to be taken in response to
-	// the event. The DescribeVolumeStatus operation provides the following information
-	// about the specified volumes: Status: Reflects the current status of the volume.
-	// The possible values are ok, impaired , warning, or insufficient-data. If all
-	// checks pass, the overall status of the volume is ok. If the check fails, the
-	// overall status is impaired. If the status is insufficient-data, then the checks
-	// might still be taking place on your volume at the time. We recommend that you
-	// retry the request. For more information about volume status, see Monitor the
-	// status of your volumes
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-volume-status.html)
-	// in the Amazon Elastic Compute Cloud User Guide. Events: Reflect the cause of a
-	// volume status and might require you to take action. For example, if your volume
-	// returns an impaired status, then the volume event might be
-	// potential-data-inconsistency. This means that your volume has been affected by
-	// an issue with the underlying host, has all I/O operations disabled, and might
-	// have inconsistent data. Actions: Reflect the actions you might have to take in
-	// response to an event. For example, if the status of the volume is impaired and
-	// the volume event shows potential-data-inconsistency, then the action shows
-	// enable-volume-io. This means that you may want to enable the I/O operations for
-	// the volume by calling the EnableVolumeIO action and then check the volume for
-	// data consistency. Volume status is based on the volume status checks, and does
-	// not reflect the volume state. Therefore, volume status does not indicate volumes
-	// in the error state (for example, when a volume is incapable of accepting I/O.)
-	DescribeVolumeStatus(ctx context.Context, params *DescribeVolumeStatusInput, optFns ...func(*Options)) (*DescribeVolumeStatusOutput, error)
-	// Describes the specified EBS volumes or all of your EBS volumes. If you are
-	// describing a long list of volumes, we recommend that you paginate the output to
-	// make the list more manageable. The MaxResults parameter sets the maximum number
-	// of results returned in a single page. If the list of results exceeds your
-	// MaxResults value, then that number of results is returned along with a NextToken
-	// value that can be passed to a subsequent DescribeVolumes request to retrieve the
-	// remaining results. For more information about EBS volumes, see Amazon EBS
-	// volumes (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSVolumes.html) in
-	// the Amazon Elastic Compute Cloud User Guide.
-	DescribeVolumes(ctx context.Context, params *DescribeVolumesInput, optFns ...func(*Options)) (*DescribeVolumesOutput, error)
+	// one attribute at a time.
+	//
+	// For more information about EBS volumes, see [Amazon EBS volumes] in the Amazon EBS User Guide.
+	//
+	// [Amazon EBS volumes]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes.html
+	DescribeVolumeAttribute(ctx context.Context, params *ec2.DescribeVolumeAttributeInput, optFns ...func(*Options)) (*ec2.DescribeVolumeAttributeOutput, error)
+	// Describes the status of the specified volumes. Volume status provides the
+	// result of the checks performed on your volumes to determine events that can
+	// impair the performance of your volumes. The performance of a volume can be
+	// affected if an issue occurs on the volume's underlying host. If the volume's
+	// underlying host experiences a power outage or system issue, after the system is
+	// restored, there could be data inconsistencies on the volume. Volume events
+	// notify you if this occurs. Volume actions notify you if any action needs to be
+	// taken in response to the event.
+	//
+	// The DescribeVolumeStatus operation provides the following information about the
+	// specified volumes:
+	//
+	// Status: Reflects the current status of the volume. The possible values are ok ,
+	// impaired , warning , or insufficient-data . If all checks pass, the overall
+	// status of the volume is ok . If the check fails, the overall status is impaired
+	// . If the status is insufficient-data , then the checks might still be taking
+	// place on your volume at the time. We recommend that you retry the request. For
+	// more information about volume status, see [Monitor the status of your volumes]in the Amazon EBS User Guide.
+	//
+	// Events: Reflect the cause of a volume status and might require you to take
+	// action. For example, if your volume returns an impaired status, then the volume
+	// event might be potential-data-inconsistency . This means that your volume has
+	// been affected by an issue with the underlying host, has all I/O operations
+	// disabled, and might have inconsistent data.
+	//
+	// Actions: Reflect the actions you might have to take in response to an event.
+	// For example, if the status of the volume is impaired and the volume event shows
+	// potential-data-inconsistency , then the action shows enable-volume-io . This
+	// means that you may want to enable the I/O operations for the volume and then
+	// check the volume for data consistency. For more information, see [Work with an impaired EBS volume].
+	//
+	// Volume status is based on the volume status checks, and does not reflect the
+	// volume state. Therefore, volume status does not indicate volumes in the error
+	// state (for example, when a volume is incapable of accepting I/O.)
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	//
+	// [Monitor the status of your volumes]: https://docs.aws.amazon.com/ebs/latest/userguide/monitoring-volume-status.html
+	// [Work with an impaired EBS volume]: https://docs.aws.amazon.com/ebs/latest/userguide/work_volumes_impaired.html
+	DescribeVolumeStatus(ctx context.Context, params *ec2.DescribeVolumeStatusInput, optFns ...func(*Options)) (*ec2.DescribeVolumeStatusOutput, error)
+	// Describes the specified EBS volumes or all of your EBS volumes.
+	//
+	// If you are describing a long list of volumes, we recommend that you paginate
+	// the output to make the list more manageable. For more information, see [Pagination].
+	//
+	// For more information about EBS volumes, see [Amazon EBS volumes] in the Amazon EBS User Guide.
+	//
+	// We strongly recommend using only paginated requests. Unpaginated requests are
+	// susceptible to throttling and timeouts.
+	//
+	// The order of the elements in the response, including those within nested
+	// structures, might vary. Applications should not assume the elements appear in a
+	// particular order.
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
+	// [Amazon EBS volumes]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes.html
+	DescribeVolumes(ctx context.Context, params *ec2.DescribeVolumesInput, optFns ...func(*Options)) (*ec2.DescribeVolumesOutput, error)
 	// Describes the most recent volume modification request for the specified EBS
-	// volumes. If a volume has never been modified, some information in the output
-	// will be null. If a volume has been modified more than once, the output includes
-	// only the most recent modification request. You can also use CloudWatch Events to
-	// check the status of a modification to an EBS volume. For information about
-	// CloudWatch Events, see the Amazon CloudWatch Events User Guide
-	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/). For more
-	// information, see Monitor the progress of volume modifications
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-volume-modifications.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	DescribeVolumesModifications(ctx context.Context, params *DescribeVolumesModificationsInput, optFns ...func(*Options)) (*DescribeVolumesModificationsOutput, error)
-	// Describes the specified attribute of the specified VPC. You can specify only one
-	// attribute at a time.
-	DescribeVpcAttribute(ctx context.Context, params *DescribeVpcAttributeInput, optFns ...func(*Options)) (*DescribeVpcAttributeOutput, error)
-	// Describes the ClassicLink status of one or more VPCs.
-	DescribeVpcClassicLink(ctx context.Context, params *DescribeVpcClassicLinkInput, optFns ...func(*Options)) (*DescribeVpcClassicLinkOutput, error)
+	// volumes.
+	//
+	// For more information, see [Monitor the progress of volume modifications] in the Amazon EBS User Guide.
+	//
+	// [Monitor the progress of volume modifications]: https://docs.aws.amazon.com/ebs/latest/userguide/monitoring-volume-modifications.html
+	DescribeVolumesModifications(ctx context.Context, params *ec2.DescribeVolumesModificationsInput, optFns ...func(*Options)) (*ec2.DescribeVolumesModificationsOutput, error)
+	// Describes the specified attribute of the specified VPC. You can specify only
+	// one attribute at a time.
+	DescribeVpcAttribute(ctx context.Context, params *ec2.DescribeVpcAttributeInput, optFns ...func(*Options)) (*ec2.DescribeVpcAttributeOutput, error)
+	// Describe VPC Block Public Access (BPA) exclusions. A VPC BPA exclusion is a
+	// mode that can be applied to a single VPC or subnet that exempts it from the
+	// account’s BPA mode and will allow bidirectional or egress-only access. You can
+	// create BPA exclusions for VPCs and subnets even when BPA is not enabled on the
+	// account to ensure that there is no traffic disruption to the exclusions when VPC
+	// BPA is turned on. To learn more about VPC BPA, see [Block public access to VPCs and subnets]in the Amazon VPC User Guide.
+	//
+	// [Block public access to VPCs and subnets]: https://docs.aws.amazon.com/vpc/latest/userguide/security-vpc-bpa.html
+	DescribeVpcBlockPublicAccessExclusions(ctx context.Context, params *ec2.DescribeVpcBlockPublicAccessExclusionsInput, optFns ...func(*Options)) (*ec2.DescribeVpcBlockPublicAccessExclusionsOutput, error)
+	// Describe VPC Block Public Access (BPA) options. VPC Block Public Access (BPA)
+	// enables you to block resources in VPCs and subnets that you own in a Region from
+	// reaching or being reached from the internet through internet gateways and
+	// egress-only internet gateways. To learn more about VPC BPA, see [Block public access to VPCs and subnets]in the Amazon
+	// VPC User Guide.
+	//
+	// [Block public access to VPCs and subnets]: https://docs.aws.amazon.com/vpc/latest/userguide/security-vpc-bpa.html
+	DescribeVpcBlockPublicAccessOptions(ctx context.Context, params *ec2.DescribeVpcBlockPublicAccessOptionsInput, optFns ...func(*Options)) (*ec2.DescribeVpcBlockPublicAccessOptionsOutput, error)
+	// This action is deprecated.
+	//
+	// Describes the ClassicLink status of the specified VPCs.
+	DescribeVpcClassicLink(ctx context.Context, params *ec2.DescribeVpcClassicLinkInput, optFns ...func(*Options)) (*ec2.DescribeVpcClassicLinkOutput, error)
+	// This action is deprecated.
+	//
 	// Describes the ClassicLink DNS support status of one or more VPCs. If enabled,
 	// the DNS hostname of a linked EC2-Classic instance resolves to its private IP
 	// address when addressed from an instance in the VPC to which it's linked.
 	// Similarly, the DNS hostname of an instance in a VPC resolves to its private IP
-	// address when addressed from a linked EC2-Classic instance. For more information,
-	// see ClassicLink
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-classiclink.html) in
-	// the Amazon Elastic Compute Cloud User Guide.
-	DescribeVpcClassicLinkDnsSupport(ctx context.Context, params *DescribeVpcClassicLinkDnsSupportInput, optFns ...func(*Options)) (*DescribeVpcClassicLinkDnsSupportOutput, error)
+	// address when addressed from a linked EC2-Classic instance.
+	DescribeVpcClassicLinkDnsSupport(ctx context.Context, params *ec2.DescribeVpcClassicLinkDnsSupportInput, optFns ...func(*Options)) (*ec2.DescribeVpcClassicLinkDnsSupportOutput, error)
+	// Describes the VPC resources, VPC endpoint services, Amazon Lattice services, or
+	// service networks associated with the VPC endpoint.
+	DescribeVpcEndpointAssociations(ctx context.Context, params *ec2.DescribeVpcEndpointAssociationsInput, optFns ...func(*Options)) (*ec2.DescribeVpcEndpointAssociationsOutput, error)
 	// Describes the connection notifications for VPC endpoints and VPC endpoint
 	// services.
-	DescribeVpcEndpointConnectionNotifications(ctx context.Context, params *DescribeVpcEndpointConnectionNotificationsInput, optFns ...func(*Options)) (*DescribeVpcEndpointConnectionNotificationsOutput, error)
+	DescribeVpcEndpointConnectionNotifications(ctx context.Context, params *ec2.DescribeVpcEndpointConnectionNotificationsInput, optFns ...func(*Options)) (*ec2.DescribeVpcEndpointConnectionNotificationsOutput, error)
 	// Describes the VPC endpoint connections to your VPC endpoint services, including
 	// any endpoints that are pending your acceptance.
-	DescribeVpcEndpointConnections(ctx context.Context, params *DescribeVpcEndpointConnectionsInput, optFns ...func(*Options)) (*DescribeVpcEndpointConnectionsOutput, error)
+	DescribeVpcEndpointConnections(ctx context.Context, params *ec2.DescribeVpcEndpointConnectionsInput, optFns ...func(*Options)) (*ec2.DescribeVpcEndpointConnectionsOutput, error)
 	// Describes the VPC endpoint service configurations in your account (your
 	// services).
-	DescribeVpcEndpointServiceConfigurations(ctx context.Context, params *DescribeVpcEndpointServiceConfigurationsInput, optFns ...func(*Options)) (*DescribeVpcEndpointServiceConfigurationsOutput, error)
-	// Describes the principals (service consumers) that are permitted to discover your
-	// VPC endpoint service.
-	DescribeVpcEndpointServicePermissions(ctx context.Context, params *DescribeVpcEndpointServicePermissionsInput, optFns ...func(*Options)) (*DescribeVpcEndpointServicePermissionsOutput, error)
-	// Describes available services to which you can create a VPC endpoint. When the
-	// service provider and the consumer have different accounts in multiple
+	DescribeVpcEndpointServiceConfigurations(ctx context.Context, params *ec2.DescribeVpcEndpointServiceConfigurationsInput, optFns ...func(*Options)) (*ec2.DescribeVpcEndpointServiceConfigurationsOutput, error)
+	// Describes the principals (service consumers) that are permitted to discover
+	// your VPC endpoint service. Principal ARNs with path components aren't supported.
+	DescribeVpcEndpointServicePermissions(ctx context.Context, params *ec2.DescribeVpcEndpointServicePermissionsInput, optFns ...func(*Options)) (*ec2.DescribeVpcEndpointServicePermissionsOutput, error)
+	// Describes available services to which you can create a VPC endpoint.
+	//
+	// When the service provider and the consumer have different accounts in multiple
 	// Availability Zones, and the consumer views the VPC endpoint service information,
 	// the response only includes the common Availability Zones. For example, when the
 	// service provider account uses us-east-1a and us-east-1c and the consumer uses
-	// us-east-1a and us-east-1b, the response includes the VPC endpoint services in
-	// the common Availability Zone, us-east-1a.
-	DescribeVpcEndpointServices(ctx context.Context, params *DescribeVpcEndpointServicesInput, optFns ...func(*Options)) (*DescribeVpcEndpointServicesOutput, error)
-	// Describes one or more of your VPC endpoints.
-	DescribeVpcEndpoints(ctx context.Context, params *DescribeVpcEndpointsInput, optFns ...func(*Options)) (*DescribeVpcEndpointsOutput, error)
-	// Describes one or more of your VPC peering connections.
-	DescribeVpcPeeringConnections(ctx context.Context, params *DescribeVpcPeeringConnectionsInput, optFns ...func(*Options)) (*DescribeVpcPeeringConnectionsOutput, error)
-	// Describes one or more of your VPCs.
-	DescribeVpcs(ctx context.Context, params *DescribeVpcsInput, optFns ...func(*Options)) (*DescribeVpcsOutput, error)
-	// Describes one or more of your VPN connections. For more information, see Amazon
-	// Web Services Site-to-Site VPN
-	// (https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html) in the Amazon Web
-	// Services Site-to-Site VPN User Guide.
-	DescribeVpnConnections(ctx context.Context, params *DescribeVpnConnectionsInput, optFns ...func(*Options)) (*DescribeVpnConnectionsOutput, error)
-	// Describes one or more of your virtual private gateways. For more information,
-	// see Amazon Web Services Site-to-Site VPN
-	// (https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html) in the Amazon Web
-	// Services Site-to-Site VPN User Guide.
-	DescribeVpnGateways(ctx context.Context, params *DescribeVpnGatewaysInput, optFns ...func(*Options)) (*DescribeVpnGatewaysOutput, error)
+	// us-east-1a and us-east-1b , the response includes the VPC endpoint services in
+	// the common Availability Zone, us-east-1a .
+	DescribeVpcEndpointServices(ctx context.Context, params *ec2.DescribeVpcEndpointServicesInput, optFns ...func(*Options)) (*ec2.DescribeVpcEndpointServicesOutput, error)
+	// Describes your VPC endpoints. The default is to describe all your VPC
+	// endpoints. Alternatively, you can specify specific VPC endpoint IDs or filter
+	// the results to include only the VPC endpoints that match specific criteria.
+	DescribeVpcEndpoints(ctx context.Context, params *ec2.DescribeVpcEndpointsInput, optFns ...func(*Options)) (*ec2.DescribeVpcEndpointsOutput, error)
+	// Describes your VPC peering connections. The default is to describe all your VPC
+	// peering connections. Alternatively, you can specify specific VPC peering
+	// connection IDs or filter the results to include only the VPC peering connections
+	// that match specific criteria.
+	DescribeVpcPeeringConnections(ctx context.Context, params *ec2.DescribeVpcPeeringConnectionsInput, optFns ...func(*Options)) (*ec2.DescribeVpcPeeringConnectionsOutput, error)
+	// Describes your VPCs. The default is to describe all your VPCs. Alternatively,
+	// you can specify specific VPC IDs or filter the results to include only the VPCs
+	// that match specific criteria.
+	DescribeVpcs(ctx context.Context, params *ec2.DescribeVpcsInput, optFns ...func(*Options)) (*ec2.DescribeVpcsOutput, error)
+	// Describes one or more of your VPN connections.
+	//
+	// For more information, see [Amazon Web Services Site-to-Site VPN] in the Amazon Web Services Site-to-Site VPN User
+	// Guide.
+	//
+	// [Amazon Web Services Site-to-Site VPN]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html
+	DescribeVpnConnections(ctx context.Context, params *ec2.DescribeVpnConnectionsInput, optFns ...func(*Options)) (*ec2.DescribeVpnConnectionsOutput, error)
+	// Describes one or more of your virtual private gateways.
+	//
+	// For more information, see [Amazon Web Services Site-to-Site VPN] in the Amazon Web Services Site-to-Site VPN User
+	// Guide.
+	//
+	// [Amazon Web Services Site-to-Site VPN]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html
+	DescribeVpnGateways(ctx context.Context, params *ec2.DescribeVpnGatewaysInput, optFns ...func(*Options)) (*ec2.DescribeVpnGatewaysOutput, error)
+	// This action is deprecated.
+	//
 	// Unlinks (detaches) a linked EC2-Classic instance from a VPC. After the instance
 	// has been unlinked, the VPC security groups are no longer associated with it. An
 	// instance is automatically unlinked from a VPC when it's stopped.
-	DetachClassicLinkVpc(ctx context.Context, params *DetachClassicLinkVpcInput, optFns ...func(*Options)) (*DetachClassicLinkVpcOutput, error)
+	DetachClassicLinkVpc(ctx context.Context, params *ec2.DetachClassicLinkVpcInput, optFns ...func(*Options)) (*ec2.DetachClassicLinkVpcOutput, error)
 	// Detaches an internet gateway from a VPC, disabling connectivity between the
 	// internet and the VPC. The VPC must not contain any running instances with
 	// Elastic IP addresses or public IPv4 addresses.
-	DetachInternetGateway(ctx context.Context, params *DetachInternetGatewayInput, optFns ...func(*Options)) (*DetachInternetGatewayOutput, error)
+	DetachInternetGateway(ctx context.Context, params *ec2.DetachInternetGatewayInput, optFns ...func(*Options)) (*ec2.DetachInternetGatewayOutput, error)
 	// Detaches a network interface from an instance.
-	DetachNetworkInterface(ctx context.Context, params *DetachNetworkInterfaceInput, optFns ...func(*Options)) (*DetachNetworkInterfaceOutput, error)
+	DetachNetworkInterface(ctx context.Context, params *ec2.DetachNetworkInterfaceInput, optFns ...func(*Options)) (*ec2.DetachNetworkInterfaceOutput, error)
+	// Detaches the specified Amazon Web Services Verified Access trust provider from
+	// the specified Amazon Web Services Verified Access instance.
+	DetachVerifiedAccessTrustProvider(ctx context.Context, params *ec2.DetachVerifiedAccessTrustProviderInput, optFns ...func(*Options)) (*ec2.DetachVerifiedAccessTrustProviderOutput, error)
 	// Detaches an EBS volume from an instance. Make sure to unmount any file systems
 	// on the device within your operating system before detaching the volume. Failure
 	// to do so can result in the volume becoming stuck in the busy state while
 	// detaching. If this happens, detachment can be delayed indefinitely until you
 	// unmount the volume, force detachment, reboot the instance, or all three. If an
 	// EBS volume is the root device of an instance, it can't be detached while the
-	// instance is running. To detach the root volume, stop the instance first. When a
-	// volume with an Amazon Web Services Marketplace product code is detached from an
-	// instance, the product code is no longer associated with the instance. For more
-	// information, see Detach an Amazon EBS volume
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-detaching-volume.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	DetachVolume(ctx context.Context, params *DetachVolumeInput, optFns ...func(*Options)) (*DetachVolumeOutput, error)
-	// Detaches a virtual private gateway from a VPC. You do this if you're planning to
-	// turn off the VPC and not use it anymore. You can confirm a virtual private
+	// instance is running. To detach the root volume, stop the instance first.
+	//
+	// When a volume with an Amazon Web Services Marketplace product code is detached
+	// from an instance, the product code is no longer associated with the instance.
+	//
+	// You can't detach or force detach volumes that are attached to Amazon Web
+	// Services-managed resources. Attempting to do this results in the
+	// UnsupportedOperationException exception.
+	//
+	// For more information, see [Detach an Amazon EBS volume] in the Amazon EBS User Guide.
+	//
+	// [Detach an Amazon EBS volume]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-detaching-volume.html
+	DetachVolume(ctx context.Context, params *ec2.DetachVolumeInput, optFns ...func(*Options)) (*ec2.DetachVolumeOutput, error)
+	// Detaches a virtual private gateway from a VPC. You do this if you're planning
+	// to turn off the VPC and not use it anymore. You can confirm a virtual private
 	// gateway has been completely detached from a VPC by describing the virtual
 	// private gateway (any attachments to the virtual private gateway are also
-	// described). You must wait for the attachment's state to switch to detached
-	// before you can delete the VPC or attach a different VPC to the virtual private
-	// gateway.
-	DetachVpnGateway(ctx context.Context, params *DetachVpnGatewayInput, optFns ...func(*Options)) (*DetachVpnGatewayOutput, error)
-	// Disables EBS encryption by default for your account in the current Region. After
-	// you disable encryption by default, you can still create encrypted volumes by
-	// enabling encryption when you create each volume. Disabling encryption by default
-	// does not change the encryption status of your existing volumes. For more
-	// information, see Amazon EBS encryption
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	DisableEbsEncryptionByDefault(ctx context.Context, params *DisableEbsEncryptionByDefaultInput, optFns ...func(*Options)) (*DisableEbsEncryptionByDefaultOutput, error)
-	// Discontinue faster launching for a Windows AMI, and clean up existing
-	// pre-provisioned snapshots. When you disable faster launching, the AMI uses the
-	// standard launch process for each instance. All pre-provisioned snapshots must be
-	// removed before you can enable faster launching again. To change these settings,
-	// you must own the AMI.
-	DisableFastLaunch(ctx context.Context, params *DisableFastLaunchInput, optFns ...func(*Options)) (*DisableFastLaunchOutput, error)
+	// described).
+	//
+	// You must wait for the attachment's state to switch to detached before you can
+	// delete the VPC or attach a different VPC to the virtual private gateway.
+	DetachVpnGateway(ctx context.Context, params *ec2.DetachVpnGatewayInput, optFns ...func(*Options)) (*ec2.DetachVpnGatewayOutput, error)
+	// Disables Elastic IP address transfer. For more information, see [Transfer Elastic IP addresses] in the Amazon
+	// VPC User Guide.
+	//
+	// [Transfer Elastic IP addresses]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#transfer-EIPs-intro
+	DisableAddressTransfer(ctx context.Context, params *ec2.DisableAddressTransferInput, optFns ...func(*Options)) (*ec2.DisableAddressTransferOutput, error)
+	// Disables Allowed AMIs for your account in the specified Amazon Web Services
+	// Region. When set to disabled , the image criteria in your Allowed AMIs settings
+	// do not apply, and no restrictions are placed on AMI discoverability or usage.
+	// Users in your account can launch instances using any public AMI or AMI shared
+	// with your account.
+	//
+	// The Allowed AMIs feature does not restrict the AMIs owned by your account.
+	// Regardless of the criteria you set, the AMIs created by your account will always
+	// be discoverable and usable by users in your account.
+	//
+	// For more information, see [Control the discovery and use of AMIs in Amazon EC2 with Allowed AMIs] in Amazon EC2 User Guide.
+	//
+	// [Control the discovery and use of AMIs in Amazon EC2 with Allowed AMIs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-allowed-amis.html
+	DisableAllowedImagesSettings(ctx context.Context, params *ec2.DisableAllowedImagesSettingsInput, optFns ...func(*Options)) (*ec2.DisableAllowedImagesSettingsOutput, error)
+	// Disables Infrastructure Performance metric subscriptions.
+	DisableAwsNetworkPerformanceMetricSubscription(ctx context.Context, params *ec2.DisableAwsNetworkPerformanceMetricSubscriptionInput, optFns ...func(*Options)) (*ec2.DisableAwsNetworkPerformanceMetricSubscriptionOutput, error)
+	// Disables EBS encryption by default for your account in the current Region.
+	//
+	// After you disable encryption by default, you can still create encrypted volumes
+	// by enabling encryption when you create each volume.
+	//
+	// Disabling encryption by default does not change the encryption status of your
+	// existing volumes.
+	//
+	// For more information, see [Amazon EBS encryption] in the Amazon EBS User Guide.
+	//
+	// [Amazon EBS encryption]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-encryption.html
+	DisableEbsEncryptionByDefault(ctx context.Context, params *ec2.DisableEbsEncryptionByDefaultInput, optFns ...func(*Options)) (*ec2.DisableEbsEncryptionByDefaultOutput, error)
+	// Discontinue Windows fast launch for a Windows AMI, and clean up existing
+	// pre-provisioned snapshots. After you disable Windows fast launch, the AMI uses
+	// the standard launch process for each new instance. Amazon EC2 must remove all
+	// pre-provisioned snapshots before you can enable Windows fast launch again.
+	//
+	// You can only change these settings for Windows AMIs that you own or that have
+	// been shared with you.
+	DisableFastLaunch(ctx context.Context, params *ec2.DisableFastLaunchInput, optFns ...func(*Options)) (*ec2.DisableFastLaunchOutput, error)
 	// Disables fast snapshot restores for the specified snapshots in the specified
 	// Availability Zones.
-	DisableFastSnapshotRestores(ctx context.Context, params *DisableFastSnapshotRestoresInput, optFns ...func(*Options)) (*DisableFastSnapshotRestoresOutput, error)
-	// Cancels the deprecation of the specified AMI. For more information, see
-	// Deprecate an AMI
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-deprecate.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	DisableImageDeprecation(ctx context.Context, params *DisableImageDeprecationInput, optFns ...func(*Options)) (*DisableImageDeprecationOutput, error)
-	// Disable the IPAM account. For more information, see Enable integration with
-	// Organizations in the Amazon VPC IPAM User Guide.
-	DisableIpamOrganizationAdminAccount(ctx context.Context, params *DisableIpamOrganizationAdminAccountInput, optFns ...func(*Options)) (*DisableIpamOrganizationAdminAccountOutput, error)
+	DisableFastSnapshotRestores(ctx context.Context, params *ec2.DisableFastSnapshotRestoresInput, optFns ...func(*Options)) (*ec2.DisableFastSnapshotRestoresOutput, error)
+	// Sets the AMI state to disabled and removes all launch permissions from the AMI.
+	// A disabled AMI can't be used for instance launches.
+	//
+	// A disabled AMI can't be shared. If an AMI was public or previously shared, it
+	// is made private. If an AMI was shared with an Amazon Web Services account,
+	// organization, or Organizational Unit, they lose access to the disabled AMI.
+	//
+	// A disabled AMI does not appear in [DescribeImages] API calls by default.
+	//
+	// Only the AMI owner can disable an AMI.
+	//
+	// You can re-enable a disabled AMI using [EnableImage].
+	//
+	// For more information, see [Disable an AMI] in the Amazon EC2 User Guide.
+	//
+	// [DescribeImages]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeImages.html
+	// [Disable an AMI]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/disable-an-ami.html
+	// [EnableImage]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_EnableImage.html
+	DisableImage(ctx context.Context, params *ec2.DisableImageInput, optFns ...func(*Options)) (*ec2.DisableImageOutput, error)
+	// Disables block public access for AMIs at the account level in the specified
+	// Amazon Web Services Region. This removes the block public access restriction
+	// from your account. With the restriction removed, you can publicly share your
+	// AMIs in the specified Amazon Web Services Region.
+	//
+	// For more information, see [Block public access to your AMIs] in the Amazon EC2 User Guide.
+	//
+	// [Block public access to your AMIs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/block-public-access-to-amis.html
+	DisableImageBlockPublicAccess(ctx context.Context, params *ec2.DisableImageBlockPublicAccessInput, optFns ...func(*Options)) (*ec2.DisableImageBlockPublicAccessOutput, error)
+	// Cancels the deprecation of the specified AMI.
+	//
+	// For more information, see [Deprecate an Amazon EC2 AMI] in the Amazon EC2 User Guide.
+	//
+	// [Deprecate an Amazon EC2 AMI]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-deprecate.html
+	DisableImageDeprecation(ctx context.Context, params *ec2.DisableImageDeprecationInput, optFns ...func(*Options)) (*ec2.DisableImageDeprecationOutput, error)
+	// Disables deregistration protection for an AMI. When deregistration protection
+	// is disabled, the AMI can be deregistered.
+	//
+	// If you chose to include a 24-hour cooldown period when you enabled
+	// deregistration protection for the AMI, then, when you disable deregistration
+	// protection, you won’t immediately be able to deregister the AMI.
+	//
+	// For more information, see [Protect an Amazon EC2 AMI from deregistration] in the Amazon EC2 User Guide.
+	//
+	// [Protect an Amazon EC2 AMI from deregistration]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-deregistration-protection.html
+	DisableImageDeregistrationProtection(ctx context.Context, params *ec2.DisableImageDeregistrationProtectionInput, optFns ...func(*Options)) (*ec2.DisableImageDeregistrationProtectionOutput, error)
+	// Disable the IPAM account. For more information, see [Enable integration with Organizations] in the Amazon VPC IPAM
+	// User Guide.
+	//
+	// [Enable integration with Organizations]: https://docs.aws.amazon.com/vpc/latest/ipam/enable-integ-ipam.html
+	DisableIpamOrganizationAdminAccount(ctx context.Context, params *ec2.DisableIpamOrganizationAdminAccountInput, optFns ...func(*Options)) (*ec2.DisableIpamOrganizationAdminAccountOutput, error)
+	// Disables route propagation from a route server to a specified route table.
+	//
+	// When enabled, route server propagation installs the routes in the FIB on the
+	// route table you've specified. Route server supports IPv4 and IPv6 route
+	// propagation.
+	//
+	// Amazon VPC Route Server simplifies routing for traffic between workloads that
+	// are deployed within a VPC and its internet gateways. With this feature, VPC
+	// Route Server dynamically updates VPC and internet gateway route tables with your
+	// preferred IPv4 or IPv6 routes to achieve routing fault tolerance for those
+	// workloads. This enables you to automatically reroute traffic within a VPC, which
+	// increases the manageability of VPC routing and interoperability with third-party
+	// workloads.
+	//
+	// Route server supports the follow route table types:
+	//
+	//   - VPC route tables not associated with subnets
+	//
+	//   - Subnet route tables
+	//
+	//   - Internet gateway route tables
+	//
+	// Route server does not support route tables associated with virtual private
+	// gateways. To propagate routes into a transit gateway route table, use [Transit Gateway Connect].
+	//
+	// For more information see [Dynamic routing in your VPC with VPC Route Server] in the Amazon VPC User Guide.
+	//
+	// [Dynamic routing in your VPC with VPC Route Server]: https://docs.aws.amazon.com/vpc/latest/userguide/dynamic-routing-route-server.html
+	// [Transit Gateway Connect]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-connect.html
+	DisableRouteServerPropagation(ctx context.Context, params *ec2.DisableRouteServerPropagationInput, optFns ...func(*Options)) (*ec2.DisableRouteServerPropagationOutput, error)
 	// Disables access to the EC2 serial console of all instances for your account. By
 	// default, access to the EC2 serial console is disabled for your account. For more
-	// information, see Manage account access to the EC2 serial console
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configure-access-to-serial-console.html#serial-console-account-access)
-	// in the Amazon EC2 User Guide.
-	DisableSerialConsoleAccess(ctx context.Context, params *DisableSerialConsoleAccessInput, optFns ...func(*Options)) (*DisableSerialConsoleAccessOutput, error)
+	// information, see [Manage account access to the EC2 serial console]in the Amazon EC2 User Guide.
+	//
+	// [Manage account access to the EC2 serial console]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configure-access-to-serial-console.html#serial-console-account-access
+	DisableSerialConsoleAccess(ctx context.Context, params *ec2.DisableSerialConsoleAccessInput, optFns ...func(*Options)) (*ec2.DisableSerialConsoleAccessOutput, error)
+	// Disables the block public access for snapshots setting at the account level for
+	// the specified Amazon Web Services Region. After you disable block public access
+	// for snapshots in a Region, users can publicly share snapshots in that Region.
+	//
+	// Enabling block public access for snapshots in block-all-sharing mode does not
+	// change the permissions for snapshots that are already publicly shared. Instead,
+	// it prevents these snapshots from be publicly visible and publicly accessible.
+	// Therefore, the attributes for these snapshots still indicate that they are
+	// publicly shared, even though they are not publicly available.
+	//
+	// If you disable block public access , these snapshots will become publicly
+	// available again.
+	//
+	// For more information, see [Block public access for snapshots] in the Amazon EBS User Guide .
+	//
+	// [Block public access for snapshots]: https://docs.aws.amazon.com/ebs/latest/userguide/block-public-access-snapshots.html
+	DisableSnapshotBlockPublicAccess(ctx context.Context, params *ec2.DisableSnapshotBlockPublicAccessInput, optFns ...func(*Options)) (*ec2.DisableSnapshotBlockPublicAccessOutput, error)
 	// Disables the specified resource attachment from propagating routes to the
 	// specified propagation route table.
-	DisableTransitGatewayRouteTablePropagation(ctx context.Context, params *DisableTransitGatewayRouteTablePropagationInput, optFns ...func(*Options)) (*DisableTransitGatewayRouteTablePropagationOutput, error)
+	DisableTransitGatewayRouteTablePropagation(ctx context.Context, params *ec2.DisableTransitGatewayRouteTablePropagationInput, optFns ...func(*Options)) (*ec2.DisableTransitGatewayRouteTablePropagationOutput, error)
 	// Disables a virtual private gateway (VGW) from propagating routes to a specified
 	// route table of a VPC.
-	DisableVgwRoutePropagation(ctx context.Context, params *DisableVgwRoutePropagationInput, optFns ...func(*Options)) (*DisableVgwRoutePropagationOutput, error)
+	DisableVgwRoutePropagation(ctx context.Context, params *ec2.DisableVgwRoutePropagationInput, optFns ...func(*Options)) (*ec2.DisableVgwRoutePropagationOutput, error)
+	// This action is deprecated.
+	//
 	// Disables ClassicLink for a VPC. You cannot disable ClassicLink for a VPC that
 	// has EC2-Classic instances linked to it.
-	DisableVpcClassicLink(ctx context.Context, params *DisableVpcClassicLinkInput, optFns ...func(*Options)) (*DisableVpcClassicLinkOutput, error)
+	DisableVpcClassicLink(ctx context.Context, params *ec2.DisableVpcClassicLinkInput, optFns ...func(*Options)) (*ec2.DisableVpcClassicLinkOutput, error)
+	// This action is deprecated.
+	//
 	// Disables ClassicLink DNS support for a VPC. If disabled, DNS hostnames resolve
 	// to public IP addresses when addressed between a linked EC2-Classic instance and
-	// instances in the VPC to which it's linked. For more information, see ClassicLink
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-classiclink.html) in
-	// the Amazon Elastic Compute Cloud User Guide. You must specify a VPC ID in the
-	// request.
-	DisableVpcClassicLinkDnsSupport(ctx context.Context, params *DisableVpcClassicLinkDnsSupportInput, optFns ...func(*Options)) (*DisableVpcClassicLinkDnsSupportOutput, error)
+	// instances in the VPC to which it's linked.
+	//
+	// You must specify a VPC ID in the request.
+	DisableVpcClassicLinkDnsSupport(ctx context.Context, params *ec2.DisableVpcClassicLinkDnsSupportInput, optFns ...func(*Options)) (*ec2.DisableVpcClassicLinkDnsSupportOutput, error)
 	// Disassociates an Elastic IP address from the instance or network interface it's
-	// associated with. An Elastic IP address is for use in either the EC2-Classic
-	// platform or in a VPC. For more information, see Elastic IP Addresses
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html)
-	// in the Amazon Elastic Compute Cloud User Guide. This is an idempotent operation.
-	// If you perform the operation more than once, Amazon EC2 doesn't return an error.
-	DisassociateAddress(ctx context.Context, params *DisassociateAddressInput, optFns ...func(*Options)) (*DisassociateAddressOutput, error)
+	// associated with.
+	//
+	// This is an idempotent operation. If you perform the operation more than once,
+	// Amazon EC2 doesn't return an error.
+	//
+	// An address cannot be disassociated if the all of the following conditions are
+	// met:
+	//
+	//   - Network interface has a publicDualStackDnsName publicDnsName
+	//
+	//   - Public IPv4 address is the primary public IPv4 address
+	//
+	//   - Network interface only has one remaining public IPv4 address
+	DisassociateAddress(ctx context.Context, params *ec2.DisassociateAddressInput, optFns ...func(*Options)) (*ec2.DisassociateAddressOutput, error)
+	// Cancels a pending request to assign billing of the unused capacity of a
+	// Capacity Reservation to a consumer account, or revokes a request that has
+	// already been accepted. For more information, see [Billing assignment for shared Amazon EC2 Capacity Reservations].
+	//
+	// [Billing assignment for shared Amazon EC2 Capacity Reservations]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/assign-billing.html
+	DisassociateCapacityReservationBillingOwner(ctx context.Context, params *ec2.DisassociateCapacityReservationBillingOwnerInput, optFns ...func(*Options)) (*ec2.DisassociateCapacityReservationBillingOwnerOutput, error)
 	// Disassociates a target network from the specified Client VPN endpoint. When you
-	// disassociate the last target network from a Client VPN, the following
-	// happens:
+	// disassociate the last target network from a Client VPN, the following happens:
 	//
-	// * The route that was automatically added for the VPC is deleted
+	//   - The route that was automatically added for the VPC is deleted
 	//
-	// * All
-	// active client connections are terminated
+	//   - All active client connections are terminated
 	//
-	// * New client connections are
-	// disallowed
+	//   - New client connections are disallowed
 	//
-	// * The Client VPN endpoint's status changes to pending-associate
-	DisassociateClientVpnTargetNetwork(ctx context.Context, params *DisassociateClientVpnTargetNetworkInput, optFns ...func(*Options)) (*DisassociateClientVpnTargetNetworkOutput, error)
+	//   - The Client VPN endpoint's status changes to pending-associate
+	DisassociateClientVpnTargetNetwork(ctx context.Context, params *ec2.DisassociateClientVpnTargetNetworkInput, optFns ...func(*Options)) (*ec2.DisassociateClientVpnTargetNetworkOutput, error)
 	// Disassociates an IAM role from an Certificate Manager (ACM) certificate.
 	// Disassociating an IAM role from an ACM certificate removes the Amazon S3 object
 	// that contains the certificate, certificate chain, and encrypted private key from
 	// the Amazon S3 bucket. It also revokes the IAM role's permission to use the KMS
 	// key used to encrypt the private key. This effectively revokes the role's
 	// permission to use the certificate.
-	DisassociateEnclaveCertificateIamRole(ctx context.Context, params *DisassociateEnclaveCertificateIamRoleInput, optFns ...func(*Options)) (*DisassociateEnclaveCertificateIamRoleOutput, error)
-	// Disassociates an IAM instance profile from a running or stopped instance. Use
-	// DescribeIamInstanceProfileAssociations to get the association ID.
-	DisassociateIamInstanceProfile(ctx context.Context, params *DisassociateIamInstanceProfileInput, optFns ...func(*Options)) (*DisassociateIamInstanceProfileOutput, error)
-	// Disassociates one or more targets from an event window. For more information,
-	// see Define event windows for scheduled events
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/event-windows.html) in the
-	// Amazon EC2 User Guide.
-	DisassociateInstanceEventWindow(ctx context.Context, params *DisassociateInstanceEventWindowInput, optFns ...func(*Options)) (*DisassociateInstanceEventWindowOutput, error)
-	// Disassociates a subnet or gateway from a route table. After you perform this
-	// action, the subnet no longer uses the routes in the route table. Instead, it
-	// uses the routes in the VPC's main route table. For more information about route
-	// tables, see Route tables
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	DisassociateRouteTable(ctx context.Context, params *DisassociateRouteTableInput, optFns ...func(*Options)) (*DisassociateRouteTableOutput, error)
+	DisassociateEnclaveCertificateIamRole(ctx context.Context, params *ec2.DisassociateEnclaveCertificateIamRoleInput, optFns ...func(*Options)) (*ec2.DisassociateEnclaveCertificateIamRoleOutput, error)
+	// Disassociates an IAM instance profile from a running or stopped instance.
+	//
+	// Use DescribeIamInstanceProfileAssociations to get the association ID.
+	DisassociateIamInstanceProfile(ctx context.Context, params *ec2.DisassociateIamInstanceProfileInput, optFns ...func(*Options)) (*ec2.DisassociateIamInstanceProfileOutput, error)
+	// Disassociates one or more targets from an event window.
+	//
+	// For more information, see [Define event windows for scheduled events] in the Amazon EC2 User Guide.
+	//
+	// [Define event windows for scheduled events]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/event-windows.html
+	DisassociateInstanceEventWindow(ctx context.Context, params *ec2.DisassociateInstanceEventWindowInput, optFns ...func(*Options)) (*ec2.DisassociateInstanceEventWindowOutput, error)
+	// Remove the association between your Autonomous System Number (ASN) and your
+	// BYOIP CIDR. You may want to use this action to disassociate an ASN from a CIDR
+	// or if you want to swap ASNs. For more information, see [Tutorial: Bring your ASN to IPAM]in the Amazon VPC IPAM
+	// guide.
+	//
+	// [Tutorial: Bring your ASN to IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/tutorials-byoasn.html
+	DisassociateIpamByoasn(ctx context.Context, params *ec2.DisassociateIpamByoasnInput, optFns ...func(*Options)) (*ec2.DisassociateIpamByoasnOutput, error)
+	// Disassociates a resource discovery from an Amazon VPC IPAM. A resource
+	// discovery is an IPAM component that enables IPAM to manage and monitor resources
+	// that belong to the owning account.
+	DisassociateIpamResourceDiscovery(ctx context.Context, params *ec2.DisassociateIpamResourceDiscoveryInput, optFns ...func(*Options)) (*ec2.DisassociateIpamResourceDiscoveryOutput, error)
+	// Disassociates secondary Elastic IP addresses (EIPs) from a public NAT gateway.
+	// You cannot disassociate your primary EIP. For more information, see [Edit secondary IP address associations]in the
+	// Amazon VPC User Guide.
+	//
+	// While disassociating is in progress, you cannot associate/disassociate
+	// additional EIPs while the connections are being drained. You are, however,
+	// allowed to delete the NAT gateway.
+	//
+	// An EIP is released only at the end of MaxDrainDurationSeconds. It stays
+	// associated and supports the existing connections but does not support any new
+	// connections (new connections are distributed across the remaining associated
+	// EIPs). As the existing connections drain out, the EIPs (and the corresponding
+	// private IP addresses mapped to them) are released.
+	//
+	// [Edit secondary IP address associations]: https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-working-with.html#nat-gateway-edit-secondary
+	DisassociateNatGatewayAddress(ctx context.Context, params *ec2.DisassociateNatGatewayAddressInput, optFns ...func(*Options)) (*ec2.DisassociateNatGatewayAddressOutput, error)
+	// Disassociates a route server from a VPC.
+	//
+	// A route server association is the connection established between a route server
+	// and a VPC.
+	//
+	// For more information see [Dynamic routing in your VPC with VPC Route Server] in the Amazon VPC User Guide.
+	//
+	// [Dynamic routing in your VPC with VPC Route Server]: https://docs.aws.amazon.com/vpc/latest/userguide/dynamic-routing-route-server.html
+	DisassociateRouteServer(ctx context.Context, params *ec2.DisassociateRouteServerInput, optFns ...func(*Options)) (*ec2.DisassociateRouteServerOutput, error)
+	// Disassociates a subnet or gateway from a route table.
+	//
+	// After you perform this action, the subnet no longer uses the routes in the
+	// route table. Instead, it uses the routes in the VPC's main route table. For more
+	// information about route tables, see [Route tables]in the Amazon VPC User Guide.
+	//
+	// [Route tables]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
+	DisassociateRouteTable(ctx context.Context, params *ec2.DisassociateRouteTableInput, optFns ...func(*Options)) (*ec2.DisassociateRouteTableOutput, error)
+	// Disassociates a security group from a VPC. You cannot disassociate the security
+	// group if any Elastic network interfaces in the associated VPC are still
+	// associated with the security group.
+	//
+	// Note that the disassociation is asynchronous and you can check the status of
+	// the request with [DescribeSecurityGroupVpcAssociations].
+	//
+	// [DescribeSecurityGroupVpcAssociations]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSecurityGroupVpcAssociations.html
+	DisassociateSecurityGroupVpc(ctx context.Context, params *ec2.DisassociateSecurityGroupVpcInput, optFns ...func(*Options)) (*ec2.DisassociateSecurityGroupVpcOutput, error)
 	// Disassociates a CIDR block from a subnet. Currently, you can disassociate an
 	// IPv6 CIDR block only. You must detach or delete all gateways and resources that
 	// are associated with the CIDR block before you can disassociate it.
-	DisassociateSubnetCidrBlock(ctx context.Context, params *DisassociateSubnetCidrBlockInput, optFns ...func(*Options)) (*DisassociateSubnetCidrBlockOutput, error)
+	DisassociateSubnetCidrBlock(ctx context.Context, params *ec2.DisassociateSubnetCidrBlockInput, optFns ...func(*Options)) (*ec2.DisassociateSubnetCidrBlockOutput, error)
 	// Disassociates the specified subnets from the transit gateway multicast domain.
-	DisassociateTransitGatewayMulticastDomain(ctx context.Context, params *DisassociateTransitGatewayMulticastDomainInput, optFns ...func(*Options)) (*DisassociateTransitGatewayMulticastDomainOutput, error)
+	DisassociateTransitGatewayMulticastDomain(ctx context.Context, params *ec2.DisassociateTransitGatewayMulticastDomainInput, optFns ...func(*Options)) (*ec2.DisassociateTransitGatewayMulticastDomainOutput, error)
+	// Removes the association between an an attachment and a policy table.
+	DisassociateTransitGatewayPolicyTable(ctx context.Context, params *ec2.DisassociateTransitGatewayPolicyTableInput, optFns ...func(*Options)) (*ec2.DisassociateTransitGatewayPolicyTableOutput, error)
 	// Disassociates a resource attachment from a transit gateway route table.
-	DisassociateTransitGatewayRouteTable(ctx context.Context, params *DisassociateTransitGatewayRouteTableInput, optFns ...func(*Options)) (*DisassociateTransitGatewayRouteTableOutput, error)
-	// This API action is currently in limited preview only. If you are interested in
-	// using this feature, contact your account manager. Removes an association between
-	// a branch network interface with a trunk network interface.
-	DisassociateTrunkInterface(ctx context.Context, params *DisassociateTrunkInterfaceInput, optFns ...func(*Options)) (*DisassociateTrunkInterfaceOutput, error)
+	DisassociateTransitGatewayRouteTable(ctx context.Context, params *ec2.DisassociateTransitGatewayRouteTableInput, optFns ...func(*Options)) (*ec2.DisassociateTransitGatewayRouteTableOutput, error)
+	// Removes an association between a branch network interface with a trunk network
+	// interface.
+	DisassociateTrunkInterface(ctx context.Context, params *ec2.DisassociateTrunkInterfaceInput, optFns ...func(*Options)) (*ec2.DisassociateTrunkInterfaceOutput, error)
 	// Disassociates a CIDR block from a VPC. To disassociate the CIDR block, you must
-	// specify its association ID. You can get the association ID by using
-	// DescribeVpcs. You must detach or delete all gateways and resources that are
-	// associated with the CIDR block before you can disassociate it. You cannot
-	// disassociate the CIDR block with which you originally created the VPC (the
-	// primary CIDR block).
-	DisassociateVpcCidrBlock(ctx context.Context, params *DisassociateVpcCidrBlockInput, optFns ...func(*Options)) (*DisassociateVpcCidrBlockOutput, error)
-	// Enables EBS encryption by default for your account in the current Region. After
-	// you enable encryption by default, the EBS volumes that you create are always
-	// encrypted, either using the default KMS key or the KMS key that you specified
-	// when you created each volume. For more information, see Amazon EBS encryption
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html) in the
-	// Amazon Elastic Compute Cloud User Guide. You can specify the default KMS key for
-	// encryption by default using ModifyEbsDefaultKmsKeyId or ResetEbsDefaultKmsKeyId.
+	// specify its association ID. You can get the association ID by using DescribeVpcs. You must
+	// detach or delete all gateways and resources that are associated with the CIDR
+	// block before you can disassociate it.
+	//
+	// You cannot disassociate the CIDR block with which you originally created the
+	// VPC (the primary CIDR block).
+	DisassociateVpcCidrBlock(ctx context.Context, params *ec2.DisassociateVpcCidrBlockInput, optFns ...func(*Options)) (*ec2.DisassociateVpcCidrBlockOutput, error)
+	// Enables Elastic IP address transfer. For more information, see [Transfer Elastic IP addresses] in the Amazon
+	// VPC User Guide.
+	//
+	// [Transfer Elastic IP addresses]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#transfer-EIPs-intro
+	EnableAddressTransfer(ctx context.Context, params *ec2.EnableAddressTransferInput, optFns ...func(*Options)) (*ec2.EnableAddressTransferOutput, error)
+	// Enables Allowed AMIs for your account in the specified Amazon Web Services
+	// Region. Two values are accepted:
+	//
+	//   - enabled : The image criteria in your Allowed AMIs settings are applied. As a
+	//     result, only AMIs matching these criteria are discoverable and can be used by
+	//     your account to launch instances.
+	//
+	//   - audit-mode : The image criteria in your Allowed AMIs settings are not
+	//     applied. No restrictions are placed on AMI discoverability or usage. Users in
+	//     your account can launch instances using any public AMI or AMI shared with your
+	//     account.
+	//
+	// The purpose of audit-mode is to indicate which AMIs will be affected when
+	//
+	//	Allowed AMIs is enabled . In audit-mode , each AMI displays either
+	//	"ImageAllowed": true or "ImageAllowed": false to indicate whether the AMI will
+	//	be discoverable and available to users in the account when Allowed AMIs is
+	//	enabled.
+	//
+	// The Allowed AMIs feature does not restrict the AMIs owned by your account.
+	// Regardless of the criteria you set, the AMIs created by your account will always
+	// be discoverable and usable by users in your account.
+	//
+	// For more information, see [Control the discovery and use of AMIs in Amazon EC2 with Allowed AMIs] in Amazon EC2 User Guide.
+	//
+	// [Control the discovery and use of AMIs in Amazon EC2 with Allowed AMIs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-allowed-amis.html
+	EnableAllowedImagesSettings(ctx context.Context, params *ec2.EnableAllowedImagesSettingsInput, optFns ...func(*Options)) (*ec2.EnableAllowedImagesSettingsOutput, error)
+	// Enables Infrastructure Performance subscriptions.
+	EnableAwsNetworkPerformanceMetricSubscription(ctx context.Context, params *ec2.EnableAwsNetworkPerformanceMetricSubscriptionInput, optFns ...func(*Options)) (*ec2.EnableAwsNetworkPerformanceMetricSubscriptionOutput, error)
+	// Enables EBS encryption by default for your account in the current Region.
+	//
+	// After you enable encryption by default, the EBS volumes that you create are
+	// always encrypted, either using the default KMS key or the KMS key that you
+	// specified when you created each volume. For more information, see [Amazon EBS encryption]in the Amazon
+	// EBS User Guide.
+	//
 	// Enabling encryption by default has no effect on the encryption status of your
-	// existing volumes. After you enable encryption by default, you can no longer
-	// launch instances using instance types that do not support encryption. For more
-	// information, see Supported instance types
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#EBSEncryption_supported_instances).
-	EnableEbsEncryptionByDefault(ctx context.Context, params *EnableEbsEncryptionByDefaultInput, optFns ...func(*Options)) (*EnableEbsEncryptionByDefaultOutput, error)
-	// When you enable faster launching for a Windows AMI, images are pre-provisioned,
-	// using snapshots to launch instances up to 65% faster. To create the optimized
-	// Windows image, Amazon EC2 launches an instance and runs through Sysprep steps,
-	// rebooting as required. Then it creates a set of reserved snapshots that are used
-	// for subsequent launches. The reserved snapshots are automatically replenished as
-	// they are used, depending on your settings for launch frequency. To change these
-	// settings, you must own the AMI.
-	EnableFastLaunch(ctx context.Context, params *EnableFastLaunchInput, optFns ...func(*Options)) (*EnableFastLaunchOutput, error)
+	// existing volumes.
+	//
+	// After you enable encryption by default, you can no longer launch instances
+	// using instance types that do not support encryption. For more information, see [Supported instance types].
+	//
+	// [Amazon EBS encryption]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-encryption.html
+	// [Supported instance types]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-encryption-requirements.html#ebs-encryption_supported_instances
+	EnableEbsEncryptionByDefault(ctx context.Context, params *ec2.EnableEbsEncryptionByDefaultInput, optFns ...func(*Options)) (*ec2.EnableEbsEncryptionByDefaultOutput, error)
+	// When you enable Windows fast launch for a Windows AMI, images are
+	// pre-provisioned, using snapshots to launch instances up to 65% faster. To create
+	// the optimized Windows image, Amazon EC2 launches an instance and runs through
+	// Sysprep steps, rebooting as required. Then it creates a set of reserved
+	// snapshots that are used for subsequent launches. The reserved snapshots are
+	// automatically replenished as they are used, depending on your settings for
+	// launch frequency.
+	//
+	// You can only change these settings for Windows AMIs that you own or that have
+	// been shared with you.
+	EnableFastLaunch(ctx context.Context, params *ec2.EnableFastLaunchInput, optFns ...func(*Options)) (*ec2.EnableFastLaunchOutput, error)
 	// Enables fast snapshot restores for the specified snapshots in the specified
-	// Availability Zones. You get the full benefit of fast snapshot restores after
-	// they enter the enabled state. To get the current state of fast snapshot
-	// restores, use DescribeFastSnapshotRestores. To disable fast snapshot restores,
-	// use DisableFastSnapshotRestores. For more information, see Amazon EBS fast
-	// snapshot restore
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-fast-snapshot-restore.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	EnableFastSnapshotRestores(ctx context.Context, params *EnableFastSnapshotRestoresInput, optFns ...func(*Options)) (*EnableFastSnapshotRestoresOutput, error)
-	// Enables deprecation of the specified AMI at the specified date and time. For
-	// more information, see Deprecate an AMI
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-deprecate.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	EnableImageDeprecation(ctx context.Context, params *EnableImageDeprecationInput, optFns ...func(*Options)) (*EnableImageDeprecationOutput, error)
+	// Availability Zones.
+	//
+	// You get the full benefit of fast snapshot restores after they enter the enabled
+	// state.
+	//
+	// For more information, see [Amazon EBS fast snapshot restore] in the Amazon EBS User Guide.
+	//
+	// [Amazon EBS fast snapshot restore]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-fast-snapshot-restore.html
+	EnableFastSnapshotRestores(ctx context.Context, params *ec2.EnableFastSnapshotRestoresInput, optFns ...func(*Options)) (*ec2.EnableFastSnapshotRestoresOutput, error)
+	// Re-enables a disabled AMI. The re-enabled AMI is marked as available and can be
+	// used for instance launches, appears in describe operations, and can be shared.
+	// Amazon Web Services accounts, organizations, and Organizational Units that lost
+	// access to the AMI when it was disabled do not regain access automatically. Once
+	// the AMI is available, it can be shared with them again.
+	//
+	// Only the AMI owner can re-enable a disabled AMI.
+	//
+	// For more information, see [Disable an Amazon EC2 AMI] in the Amazon EC2 User Guide.
+	//
+	// [Disable an Amazon EC2 AMI]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/disable-an-ami.html
+	EnableImage(ctx context.Context, params *ec2.EnableImageInput, optFns ...func(*Options)) (*ec2.EnableImageOutput, error)
+	// Enables block public access for AMIs at the account level in the specified
+	// Amazon Web Services Region. This prevents the public sharing of your AMIs.
+	// However, if you already have public AMIs, they will remain publicly available.
+	//
+	// The API can take up to 10 minutes to configure this setting. During this time,
+	// if you run [GetImageBlockPublicAccessState], the response will be unblocked . When the API has completed the
+	// configuration, the response will be block-new-sharing .
+	//
+	// For more information, see [Block public access to your AMIs] in the Amazon EC2 User Guide.
+	//
+	// [Block public access to your AMIs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/block-public-access-to-amis.html
+	// [GetImageBlockPublicAccessState]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetImageBlockPublicAccessState.html
+	EnableImageBlockPublicAccess(ctx context.Context, params *ec2.EnableImageBlockPublicAccessInput, optFns ...func(*Options)) (*ec2.EnableImageBlockPublicAccessOutput, error)
+	// Enables deprecation of the specified AMI at the specified date and time.
+	//
+	// For more information, see [Deprecate an AMI] in the Amazon EC2 User Guide.
+	//
+	// [Deprecate an AMI]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-deprecate.html
+	EnableImageDeprecation(ctx context.Context, params *ec2.EnableImageDeprecationInput, optFns ...func(*Options)) (*ec2.EnableImageDeprecationOutput, error)
+	// Enables deregistration protection for an AMI. When deregistration protection is
+	// enabled, the AMI can't be deregistered.
+	//
+	// To allow the AMI to be deregistered, you must first disable deregistration
+	// protection.
+	//
+	// For more information, see [Protect an Amazon EC2 AMI from deregistration] in the Amazon EC2 User Guide.
+	//
+	// [Protect an Amazon EC2 AMI from deregistration]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-deregistration-protection.html
+	EnableImageDeregistrationProtection(ctx context.Context, params *ec2.EnableImageDeregistrationProtectionInput, optFns ...func(*Options)) (*ec2.EnableImageDeregistrationProtectionOutput, error)
 	// Enable an Organizations member account as the IPAM admin account. You cannot
 	// select the Organizations management account as the IPAM admin account. For more
-	// information, see Enable integration with Organizations in the Amazon VPC IPAM
-	// User Guide.
-	EnableIpamOrganizationAdminAccount(ctx context.Context, params *EnableIpamOrganizationAdminAccountInput, optFns ...func(*Options)) (*EnableIpamOrganizationAdminAccountOutput, error)
+	// information, see [Enable integration with Organizations]in the Amazon VPC IPAM User Guide.
+	//
+	// [Enable integration with Organizations]: https://docs.aws.amazon.com/vpc/latest/ipam/enable-integ-ipam.html
+	EnableIpamOrganizationAdminAccount(ctx context.Context, params *ec2.EnableIpamOrganizationAdminAccountInput, optFns ...func(*Options)) (*ec2.EnableIpamOrganizationAdminAccountOutput, error)
+	// Establishes a trust relationship between Reachability Analyzer and
+	// Organizations. This operation must be performed by the management account for
+	// the organization.
+	//
+	// After you establish a trust relationship, a user in the management account or a
+	// delegated administrator account can run a cross-account analysis using resources
+	// from the member accounts.
+	EnableReachabilityAnalyzerOrganizationSharing(ctx context.Context, params *ec2.EnableReachabilityAnalyzerOrganizationSharingInput, optFns ...func(*Options)) (*ec2.EnableReachabilityAnalyzerOrganizationSharingOutput, error)
+	// Defines which route tables the route server can update with routes.
+	//
+	// When enabled, route server propagation installs the routes in the FIB on the
+	// route table you've specified. Route server supports IPv4 and IPv6 route
+	// propagation.
+	//
+	// For more information see [Dynamic routing in your VPC with VPC Route Server] in the Amazon VPC User Guide.
+	//
+	// [Dynamic routing in your VPC with VPC Route Server]: https://docs.aws.amazon.com/vpc/latest/userguide/dynamic-routing-route-server.html
+	EnableRouteServerPropagation(ctx context.Context, params *ec2.EnableRouteServerPropagationInput, optFns ...func(*Options)) (*ec2.EnableRouteServerPropagationOutput, error)
 	// Enables access to the EC2 serial console of all instances for your account. By
 	// default, access to the EC2 serial console is disabled for your account. For more
-	// information, see Manage account access to the EC2 serial console
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configure-access-to-serial-console.html#serial-console-account-access)
-	// in the Amazon EC2 User Guide.
-	EnableSerialConsoleAccess(ctx context.Context, params *EnableSerialConsoleAccessInput, optFns ...func(*Options)) (*EnableSerialConsoleAccessOutput, error)
+	// information, see [Manage account access to the EC2 serial console]in the Amazon EC2 User Guide.
+	//
+	// [Manage account access to the EC2 serial console]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configure-access-to-serial-console.html#serial-console-account-access
+	EnableSerialConsoleAccess(ctx context.Context, params *ec2.EnableSerialConsoleAccessInput, optFns ...func(*Options)) (*ec2.EnableSerialConsoleAccessOutput, error)
+	// Enables or modifies the block public access for snapshots setting at the
+	// account level for the specified Amazon Web Services Region. After you enable
+	// block public access for snapshots in a Region, users can no longer request
+	// public sharing for snapshots in that Region. Snapshots that are already publicly
+	// shared are either treated as private or they remain publicly shared, depending
+	// on the State that you specify.
+	//
+	// Enabling block public access for snapshots in block all sharing mode does not
+	// change the permissions for snapshots that are already publicly shared. Instead,
+	// it prevents these snapshots from be publicly visible and publicly accessible.
+	// Therefore, the attributes for these snapshots still indicate that they are
+	// publicly shared, even though they are not publicly available.
+	//
+	// If you later disable block public access or change the mode to block new
+	// sharing, these snapshots will become publicly available again.
+	//
+	// For more information, see [Block public access for snapshots] in the Amazon EBS User Guide.
+	//
+	// [Block public access for snapshots]: https://docs.aws.amazon.com/ebs/latest/userguide/block-public-access-snapshots.html
+	EnableSnapshotBlockPublicAccess(ctx context.Context, params *ec2.EnableSnapshotBlockPublicAccessInput, optFns ...func(*Options)) (*ec2.EnableSnapshotBlockPublicAccessOutput, error)
 	// Enables the specified attachment to propagate routes to the specified
 	// propagation route table.
-	EnableTransitGatewayRouteTablePropagation(ctx context.Context, params *EnableTransitGatewayRouteTablePropagationInput, optFns ...func(*Options)) (*EnableTransitGatewayRouteTablePropagationOutput, error)
+	EnableTransitGatewayRouteTablePropagation(ctx context.Context, params *ec2.EnableTransitGatewayRouteTablePropagationInput, optFns ...func(*Options)) (*ec2.EnableTransitGatewayRouteTablePropagationOutput, error)
 	// Enables a virtual private gateway (VGW) to propagate routes to the specified
 	// route table of a VPC.
-	EnableVgwRoutePropagation(ctx context.Context, params *EnableVgwRoutePropagationInput, optFns ...func(*Options)) (*EnableVgwRoutePropagationOutput, error)
-	// Enables I/O operations for a volume that had I/O operations disabled because the
-	// data on the volume was potentially inconsistent.
-	EnableVolumeIO(ctx context.Context, params *EnableVolumeIOInput, optFns ...func(*Options)) (*EnableVolumeIOOutput, error)
+	EnableVgwRoutePropagation(ctx context.Context, params *ec2.EnableVgwRoutePropagationInput, optFns ...func(*Options)) (*ec2.EnableVgwRoutePropagationOutput, error)
+	// Enables I/O operations for a volume that had I/O operations disabled because
+	// the data on the volume was potentially inconsistent.
+	EnableVolumeIO(ctx context.Context, params *ec2.EnableVolumeIOInput, optFns ...func(*Options)) (*ec2.EnableVolumeIOOutput, error)
+	// This action is deprecated.
+	//
 	// Enables a VPC for ClassicLink. You can then link EC2-Classic instances to your
 	// ClassicLink-enabled VPC to allow communication over private IP addresses. You
 	// cannot enable your VPC for ClassicLink if any of your VPC route tables have
 	// existing routes for address ranges within the 10.0.0.0/8 IP address range,
 	// excluding local routes for VPCs in the 10.0.0.0/16 and 10.1.0.0/16 IP address
-	// ranges. For more information, see ClassicLink
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-classiclink.html) in
-	// the Amazon Elastic Compute Cloud User Guide.
-	EnableVpcClassicLink(ctx context.Context, params *EnableVpcClassicLinkInput, optFns ...func(*Options)) (*EnableVpcClassicLinkOutput, error)
+	// ranges.
+	EnableVpcClassicLink(ctx context.Context, params *ec2.EnableVpcClassicLinkInput, optFns ...func(*Options)) (*ec2.EnableVpcClassicLinkOutput, error)
+	// This action is deprecated.
+	//
 	// Enables a VPC to support DNS hostname resolution for ClassicLink. If enabled,
 	// the DNS hostname of a linked EC2-Classic instance resolves to its private IP
 	// address when addressed from an instance in the VPC to which it's linked.
 	// Similarly, the DNS hostname of an instance in a VPC resolves to its private IP
-	// address when addressed from a linked EC2-Classic instance. For more information,
-	// see ClassicLink
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-classiclink.html) in
-	// the Amazon Elastic Compute Cloud User Guide. You must specify a VPC ID in the
-	// request.
-	EnableVpcClassicLinkDnsSupport(ctx context.Context, params *EnableVpcClassicLinkDnsSupportInput, optFns ...func(*Options)) (*EnableVpcClassicLinkDnsSupportOutput, error)
+	// address when addressed from a linked EC2-Classic instance.
+	//
+	// You must specify a VPC ID in the request.
+	EnableVpcClassicLinkDnsSupport(ctx context.Context, params *ec2.EnableVpcClassicLinkDnsSupportInput, optFns ...func(*Options)) (*ec2.EnableVpcClassicLinkDnsSupportOutput, error)
 	// Downloads the client certificate revocation list for the specified Client VPN
 	// endpoint.
-	ExportClientVpnClientCertificateRevocationList(ctx context.Context, params *ExportClientVpnClientCertificateRevocationListInput, optFns ...func(*Options)) (*ExportClientVpnClientCertificateRevocationListOutput, error)
+	ExportClientVpnClientCertificateRevocationList(ctx context.Context, params *ec2.ExportClientVpnClientCertificateRevocationListInput, optFns ...func(*Options)) (*ec2.ExportClientVpnClientCertificateRevocationListOutput, error)
 	// Downloads the contents of the Client VPN endpoint configuration file for the
 	// specified Client VPN endpoint. The Client VPN endpoint configuration file
 	// includes the Client VPN endpoint and certificate information clients need to
 	// establish a connection with the Client VPN endpoint.
-	ExportClientVpnClientConfiguration(ctx context.Context, params *ExportClientVpnClientConfigurationInput, optFns ...func(*Options)) (*ExportClientVpnClientConfigurationOutput, error)
-	// Exports an Amazon Machine Image (AMI) to a VM file. For more information, see
-	// Exporting a VM directly from an Amazon Machine Image (AMI)
-	// (https://docs.aws.amazon.com/vm-import/latest/userguide/vmexport_image.html) in
-	// the VM Import/Export User Guide.
-	ExportImage(ctx context.Context, params *ExportImageInput, optFns ...func(*Options)) (*ExportImageOutput, error)
+	ExportClientVpnClientConfiguration(ctx context.Context, params *ec2.ExportClientVpnClientConfigurationInput, optFns ...func(*Options)) (*ec2.ExportClientVpnClientConfigurationOutput, error)
+	// Exports an Amazon Machine Image (AMI) to a VM file. For more information, see [Exporting a VM directly from an Amazon Machine Image (AMI)]
+	// in the VM Import/Export User Guide.
+	//
+	// [Exporting a VM directly from an Amazon Machine Image (AMI)]: https://docs.aws.amazon.com/vm-import/latest/userguide/vmexport_image.html
+	ExportImage(ctx context.Context, params *ec2.ExportImageInput, optFns ...func(*Options)) (*ec2.ExportImageOutput, error)
 	// Exports routes from the specified transit gateway route table to the specified
 	// S3 bucket. By default, all routes are exported. Alternatively, you can filter by
-	// CIDR range. The routes are saved to the specified bucket in a JSON file. For
-	// more information, see Export Route Tables to Amazon S3
-	// (https://docs.aws.amazon.com/vpc/latest/tgw/tgw-route-tables.html#tgw-export-route-tables)
-	// in Transit Gateways.
-	ExportTransitGatewayRoutes(ctx context.Context, params *ExportTransitGatewayRoutesInput, optFns ...func(*Options)) (*ExportTransitGatewayRoutesOutput, error)
+	// CIDR range.
+	//
+	// The routes are saved to the specified bucket in a JSON file. For more
+	// information, see [Export route tables to Amazon S3]in the Amazon Web Services Transit Gateways Guide.
+	//
+	// [Export route tables to Amazon S3]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-route-tables.html#tgw-export-route-tables
+	ExportTransitGatewayRoutes(ctx context.Context, params *ec2.ExportTransitGatewayRoutesInput, optFns ...func(*Options)) (*ec2.ExportTransitGatewayRoutesOutput, error)
+	// Exports the client configuration for a Verified Access instance.
+	ExportVerifiedAccessInstanceClientConfiguration(ctx context.Context, params *ec2.ExportVerifiedAccessInstanceClientConfigurationInput, optFns ...func(*Options)) (*ec2.ExportVerifiedAccessInstanceClientConfigurationOutput, error)
+	// Returns the currently negotiated security parameters for an active VPN tunnel,
+	// including IKE version, DH groups, encryption algorithms, and integrity
+	// algorithms.
+	GetActiveVpnTunnelStatus(ctx context.Context, params *ec2.GetActiveVpnTunnelStatusInput, optFns ...func(*Options)) (*ec2.GetActiveVpnTunnelStatusOutput, error)
+	// Gets the current state of the Allowed AMIs setting and the list of Allowed AMIs
+	// criteria at the account level in the specified Region.
+	//
+	// The Allowed AMIs feature does not restrict the AMIs owned by your account.
+	// Regardless of the criteria you set, the AMIs created by your account will always
+	// be discoverable and usable by users in your account.
+	//
+	// For more information, see [Control the discovery and use of AMIs in Amazon EC2 with Allowed AMIs] in Amazon EC2 User Guide.
+	//
+	// [Control the discovery and use of AMIs in Amazon EC2 with Allowed AMIs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-allowed-amis.html
+	GetAllowedImagesSettings(ctx context.Context, params *ec2.GetAllowedImagesSettingsInput, optFns ...func(*Options)) (*ec2.GetAllowedImagesSettingsOutput, error)
 	// Returns the IAM roles that are associated with the specified ACM (ACM)
 	// certificate. It also returns the name of the Amazon S3 bucket and the Amazon S3
 	// object key where the certificate, certificate chain, and encrypted private key
 	// bundle are stored, and the ARN of the KMS key that's used to encrypt the private
 	// key.
-	GetAssociatedEnclaveCertificateIamRoles(ctx context.Context, params *GetAssociatedEnclaveCertificateIamRolesInput, optFns ...func(*Options)) (*GetAssociatedEnclaveCertificateIamRolesOutput, error)
+	GetAssociatedEnclaveCertificateIamRoles(ctx context.Context, params *ec2.GetAssociatedEnclaveCertificateIamRolesInput, optFns ...func(*Options)) (*ec2.GetAssociatedEnclaveCertificateIamRolesOutput, error)
 	// Gets information about the IPv6 CIDR block associations for a specified IPv6
 	// address pool.
-	GetAssociatedIpv6PoolCidrs(ctx context.Context, params *GetAssociatedIpv6PoolCidrsInput, optFns ...func(*Options)) (*GetAssociatedIpv6PoolCidrsOutput, error)
-	// Gets usage information about a Capacity Reservation. If the Capacity Reservation
-	// is shared, it shows usage information for the Capacity Reservation owner and
-	// each Amazon Web Services account that is currently using the shared capacity. If
-	// the Capacity Reservation is not shared, it shows only the Capacity Reservation
-	// owner's usage.
-	GetCapacityReservationUsage(ctx context.Context, params *GetCapacityReservationUsageInput, optFns ...func(*Options)) (*GetCapacityReservationUsageOutput, error)
+	GetAssociatedIpv6PoolCidrs(ctx context.Context, params *ec2.GetAssociatedIpv6PoolCidrsInput, optFns ...func(*Options)) (*ec2.GetAssociatedIpv6PoolCidrsOutput, error)
+	// Gets network performance data.
+	GetAwsNetworkPerformanceData(ctx context.Context, params *ec2.GetAwsNetworkPerformanceDataInput, optFns ...func(*Options)) (*ec2.GetAwsNetworkPerformanceDataOutput, error)
+	// Gets usage information about a Capacity Reservation. If the Capacity
+	// Reservation is shared, it shows usage information for the Capacity Reservation
+	// owner and each Amazon Web Services account that is currently using the shared
+	// capacity. If the Capacity Reservation is not shared, it shows only the Capacity
+	// Reservation owner's usage.
+	GetCapacityReservationUsage(ctx context.Context, params *ec2.GetCapacityReservationUsageInput, optFns ...func(*Options)) (*ec2.GetCapacityReservationUsageOutput, error)
 	// Describes the allocations from the specified customer-owned address pool.
-	GetCoipPoolUsage(ctx context.Context, params *GetCoipPoolUsageInput, optFns ...func(*Options)) (*GetCoipPoolUsageOutput, error)
+	GetCoipPoolUsage(ctx context.Context, params *ec2.GetCoipPoolUsageInput, optFns ...func(*Options)) (*ec2.GetCoipPoolUsageOutput, error)
 	// Gets the console output for the specified instance. For Linux instances, the
 	// instance console output displays the exact console output that would normally be
 	// displayed on a physical monitor attached to a computer. For Windows instances,
-	// the instance console output includes the last three system event log errors. By
-	// default, the console output returns buffered information that was posted shortly
-	// after an instance transition state (start, stop, reboot, or terminate). This
-	// information is available for at least one hour after the most recent post. Only
-	// the most recent 64 KB of console output is available. You can optionally
-	// retrieve the latest serial console output at any time during the instance
-	// lifecycle. This option is supported on instance types that use the Nitro
-	// hypervisor. For more information, see Instance console output
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-console.html#instance-console-console-output)
-	// in the Amazon EC2 User Guide.
-	GetConsoleOutput(ctx context.Context, params *GetConsoleOutputInput, optFns ...func(*Options)) (*GetConsoleOutputOutput, error)
+	// the instance console output includes the last three system event log errors.
+	//
+	// For more information, see [Instance console output] in the Amazon EC2 User Guide.
+	//
+	// [Instance console output]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-console.html#instance-console-console-output
+	GetConsoleOutput(ctx context.Context, params *ec2.GetConsoleOutputInput, optFns ...func(*Options)) (*ec2.GetConsoleOutputOutput, error)
 	// Retrieve a JPG-format screenshot of a running instance to help with
-	// troubleshooting. The returned content is Base64-encoded.
-	GetConsoleScreenshot(ctx context.Context, params *GetConsoleScreenshotInput, optFns ...func(*Options)) (*GetConsoleScreenshotOutput, error)
+	// troubleshooting.
+	//
+	// The returned content is Base64-encoded.
+	//
+	// For more information, see [Instance console output] in the Amazon EC2 User Guide.
+	//
+	// [Instance console output]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/troubleshoot-unreachable-instance.html#instance-console-console-output
+	GetConsoleScreenshot(ctx context.Context, params *ec2.GetConsoleScreenshotInput, optFns ...func(*Options)) (*ec2.GetConsoleScreenshotOutput, error)
+	// Retrieves a summary of the account status report.
+	//
+	// To view the full report, download it from the Amazon S3 bucket where it was
+	// saved. Reports are accessible only when they have the complete status. Reports
+	// with other statuses ( running , cancelled , or error ) are not available in the
+	// S3 bucket. For more information about downloading objects from an S3 bucket, see
+	// [Downloading objects]in the Amazon Simple Storage Service User Guide.
+	//
+	// For more information, see [Generating the account status report for declarative policies] in the Amazon Web Services Organizations User Guide.
+	//
+	// [Downloading objects]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/download-objects.html
+	// [Generating the account status report for declarative policies]: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_declarative_status-report.html
+	GetDeclarativePoliciesReportSummary(ctx context.Context, params *ec2.GetDeclarativePoliciesReportSummaryInput, optFns ...func(*Options)) (*ec2.GetDeclarativePoliciesReportSummaryOutput, error)
 	// Describes the default credit option for CPU usage of a burstable performance
-	// instance family. For more information, see Burstable performance instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html)
-	// in the Amazon EC2 User Guide.
-	GetDefaultCreditSpecification(ctx context.Context, params *GetDefaultCreditSpecificationInput, optFns ...func(*Options)) (*GetDefaultCreditSpecificationOutput, error)
+	// instance family.
+	//
+	// For more information, see [Burstable performance instances] in the Amazon EC2 User Guide.
+	//
+	// [Burstable performance instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html
+	GetDefaultCreditSpecification(ctx context.Context, params *ec2.GetDefaultCreditSpecificationInput, optFns ...func(*Options)) (*ec2.GetDefaultCreditSpecificationOutput, error)
 	// Describes the default KMS key for EBS encryption by default for your account in
-	// this Region. You can change the default KMS key for encryption by default using
-	// ModifyEbsDefaultKmsKeyId or ResetEbsDefaultKmsKeyId. For more information, see
-	// Amazon EBS encryption
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	GetEbsDefaultKmsKeyId(ctx context.Context, params *GetEbsDefaultKmsKeyIdInput, optFns ...func(*Options)) (*GetEbsDefaultKmsKeyIdOutput, error)
+	// this Region.
+	//
+	// For more information, see [Amazon EBS encryption] in the Amazon EBS User Guide.
+	//
+	// [Amazon EBS encryption]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-encryption.html
+	GetEbsDefaultKmsKeyId(ctx context.Context, params *ec2.GetEbsDefaultKmsKeyIdInput, optFns ...func(*Options)) (*ec2.GetEbsDefaultKmsKeyIdOutput, error)
 	// Describes whether EBS encryption by default is enabled for your account in the
-	// current Region. For more information, see Amazon EBS encryption
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	GetEbsEncryptionByDefault(ctx context.Context, params *GetEbsEncryptionByDefaultInput, optFns ...func(*Options)) (*GetEbsEncryptionByDefaultOutput, error)
+	// current Region.
+	//
+	// For more information, see [Amazon EBS encryption] in the Amazon EBS User Guide.
+	//
+	// [Amazon EBS encryption]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-encryption.html
+	GetEbsEncryptionByDefault(ctx context.Context, params *ec2.GetEbsEncryptionByDefaultInput, optFns ...func(*Options)) (*ec2.GetEbsEncryptionByDefaultOutput, error)
 	// Generates a CloudFormation template that streamlines and automates the
 	// integration of VPC flow logs with Amazon Athena. This make it easier for you to
 	// query and gain insights from VPC flow logs data. Based on the information that
 	// you provide, we configure resources in the template to do the following:
 	//
-	// *
-	// Create a table in Athena that maps fields to a custom log format
+	//   - Create a table in Athena that maps fields to a custom log format
 	//
-	// * Create a
-	// Lambda function that updates the table with new partitions on a daily, weekly,
-	// or monthly basis
+	//   - Create a Lambda function that updates the table with new partitions on a
+	//     daily, weekly, or monthly basis
 	//
-	// * Create a table partitioned between two timestamps in the
-	// past
+	//   - Create a table partitioned between two timestamps in the past
 	//
-	// * Create a set of named queries in Athena that you can use to get started
-	// quickly
-	GetFlowLogsIntegrationTemplate(ctx context.Context, params *GetFlowLogsIntegrationTemplateInput, optFns ...func(*Options)) (*GetFlowLogsIntegrationTemplateOutput, error)
+	//   - Create a set of named queries in Athena that you can use to get started
+	//     quickly
+	//
+	// GetFlowLogsIntegrationTemplate does not support integration between Amazon Web
+	// Services Transit Gateway Flow Logs and Amazon Athena.
+	GetFlowLogsIntegrationTemplate(ctx context.Context, params *ec2.GetFlowLogsIntegrationTemplateInput, optFns ...func(*Options)) (*ec2.GetFlowLogsIntegrationTemplateOutput, error)
 	// Lists the resource groups to which a Capacity Reservation has been added.
-	GetGroupsForCapacityReservation(ctx context.Context, params *GetGroupsForCapacityReservationInput, optFns ...func(*Options)) (*GetGroupsForCapacityReservationOutput, error)
+	GetGroupsForCapacityReservation(ctx context.Context, params *ec2.GetGroupsForCapacityReservationInput, optFns ...func(*Options)) (*ec2.GetGroupsForCapacityReservationOutput, error)
 	// Preview a reservation purchase with configurations that match those of your
 	// Dedicated Host. You must have active Dedicated Hosts in your account before you
-	// purchase a reservation. This is a preview of the PurchaseHostReservation action
-	// and does not result in the offering being purchased.
-	GetHostReservationPurchasePreview(ctx context.Context, params *GetHostReservationPurchasePreviewInput, optFns ...func(*Options)) (*GetHostReservationPurchasePreviewOutput, error)
-	// Returns a list of instance types with the specified instance attributes. You can
-	// use the response to preview the instance types without launching instances. Note
-	// that the response does not consider capacity. When you specify multiple
-	// parameters, you get instance types that satisfy all of the specified parameters.
-	// If you specify multiple values for a parameter, you get instance types that
-	// satisfy any of the specified values. For more information, see Preview instance
-	// types with specified attributes
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-attribute-based-instance-type-selection.html#spotfleet-get-instance-types-from-instance-requirements),
-	// Attribute-based instance type selection for EC2 Fleet
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet-attribute-based-instance-type-selection.html),
-	// Attribute-based instance type selection for Spot Fleet
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-attribute-based-instance-type-selection.html),
-	// and Spot placement score
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html)
-	// in the Amazon EC2 User Guide, and Creating an Auto Scaling group using
-	// attribute-based instance type selection
-	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/create-asg-instance-type-requirements.html)
-	// in the Amazon EC2 Auto Scaling User Guide.
-	GetInstanceTypesFromInstanceRequirements(ctx context.Context, params *GetInstanceTypesFromInstanceRequirementsInput, optFns ...func(*Options)) (*GetInstanceTypesFromInstanceRequirementsOutput, error)
+	// purchase a reservation.
+	//
+	// This is a preview of the PurchaseHostReservation action and does not result in the offering being
+	// purchased.
+	GetHostReservationPurchasePreview(ctx context.Context, params *ec2.GetHostReservationPurchasePreviewInput, optFns ...func(*Options)) (*ec2.GetHostReservationPurchasePreviewOutput, error)
+	// Gets the current state of block public access for AMIs at the account level in
+	// the specified Amazon Web Services Region.
+	//
+	// For more information, see [Block public access to your AMIs] in the Amazon EC2 User Guide.
+	//
+	// [Block public access to your AMIs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/block-public-access-to-amis.html
+	GetImageBlockPublicAccessState(ctx context.Context, params *ec2.GetImageBlockPublicAccessStateInput, optFns ...func(*Options)) (*ec2.GetImageBlockPublicAccessStateOutput, error)
+	// Gets the default instance metadata service (IMDS) settings that are set at the
+	// account level in the specified Amazon Web Services  Region.
+	//
+	// For more information, see [Order of precedence for instance metadata options] in the Amazon EC2 User Guide.
+	//
+	// [Order of precedence for instance metadata options]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-options.html#instance-metadata-options-order-of-precedence
+	GetInstanceMetadataDefaults(ctx context.Context, params *ec2.GetInstanceMetadataDefaultsInput, optFns ...func(*Options)) (*ec2.GetInstanceMetadataDefaultsOutput, error)
+	// Gets the public endorsement key associated with the Nitro Trusted Platform
+	// Module (NitroTPM) for the specified instance.
+	GetInstanceTpmEkPub(ctx context.Context, params *ec2.GetInstanceTpmEkPubInput, optFns ...func(*Options)) (*ec2.GetInstanceTpmEkPubOutput, error)
+	// Returns a list of instance types with the specified instance attributes. You
+	// can use the response to preview the instance types without launching instances.
+	// Note that the response does not consider capacity.
+	//
+	// When you specify multiple parameters, you get instance types that satisfy all
+	// of the specified parameters. If you specify multiple values for a parameter, you
+	// get instance types that satisfy any of the specified values.
+	//
+	// For more information, see [Preview instance types with specified attributes], [Specify attributes for instance type selection for EC2 Fleet or Spot Fleet], and [Spot placement score] in the Amazon EC2 User Guide, and [Creating mixed instance groups using attribute-based instance type selection] in the
+	// Amazon EC2 Auto Scaling User Guide.
+	//
+	// [Specify attributes for instance type selection for EC2 Fleet or Spot Fleet]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet-attribute-based-instance-type-selection.html
+	// [Preview instance types with specified attributes]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet-attribute-based-instance-type-selection.html#ec2fleet-get-instance-types-from-instance-requirements
+	// [Creating mixed instance groups using attribute-based instance type selection]: https://docs.aws.amazon.com/autoscaling/ec2/userguide/create-asg-instance-type-requirements.html
+	// [Spot placement score]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html
+	GetInstanceTypesFromInstanceRequirements(ctx context.Context, params *ec2.GetInstanceTypesFromInstanceRequirementsInput, optFns ...func(*Options)) (*ec2.GetInstanceTypesFromInstanceRequirementsOutput, error)
+	// A binary representation of the UEFI variable store. Only non-volatile variables
+	// are stored. This is a base64 encoded and zlib compressed binary value that must
+	// be properly encoded.
+	//
+	// When you use [register-image] to create an AMI, you can create an exact copy of your variable
+	// store by passing the UEFI data in the UefiData parameter. You can modify the
+	// UEFI data by using the [python-uefivars tool]on GitHub. You can use the tool to convert the UEFI data
+	// into a human-readable format (JSON), which you can inspect and modify, and then
+	// convert back into the binary format to use with register-image.
+	//
+	// For more information, see [UEFI Secure Boot] in the Amazon EC2 User Guide.
+	//
+	// [UEFI Secure Boot]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/uefi-secure-boot.html
+	// [python-uefivars tool]: https://github.com/awslabs/python-uefivars
+	// [register-image]: https://docs.aws.amazon.com/cli/latest/reference/ec2/register-image.html
+	GetInstanceUefiData(ctx context.Context, params *ec2.GetInstanceUefiDataInput, optFns ...func(*Options)) (*ec2.GetInstanceUefiDataOutput, error)
 	// Retrieve historical information about a CIDR within an IPAM scope. For more
-	// information, see View the history of IP addresses in the Amazon VPC IPAM User
-	// Guide.
-	GetIpamAddressHistory(ctx context.Context, params *GetIpamAddressHistoryInput, optFns ...func(*Options)) (*GetIpamAddressHistoryOutput, error)
-	// Get a list of all the CIDR allocations in an IPAM pool.
-	GetIpamPoolAllocations(ctx context.Context, params *GetIpamPoolAllocationsInput, optFns ...func(*Options)) (*GetIpamPoolAllocationsOutput, error)
+	// information, see [View the history of IP addresses]in the Amazon VPC IPAM User Guide.
+	//
+	// [View the history of IP addresses]: https://docs.aws.amazon.com/vpc/latest/ipam/view-history-cidr-ipam.html
+	GetIpamAddressHistory(ctx context.Context, params *ec2.GetIpamAddressHistoryInput, optFns ...func(*Options)) (*ec2.GetIpamAddressHistoryOutput, error)
+	// Gets IPAM discovered accounts. A discovered account is an Amazon Web Services
+	// account that is monitored under a resource discovery. If you have integrated
+	// IPAM with Amazon Web Services Organizations, all accounts in the organization
+	// are discovered accounts. Only the IPAM account can get all discovered accounts
+	// in the organization.
+	GetIpamDiscoveredAccounts(ctx context.Context, params *ec2.GetIpamDiscoveredAccountsInput, optFns ...func(*Options)) (*ec2.GetIpamDiscoveredAccountsOutput, error)
+	// Gets the public IP addresses that have been discovered by IPAM.
+	GetIpamDiscoveredPublicAddresses(ctx context.Context, params *ec2.GetIpamDiscoveredPublicAddressesInput, optFns ...func(*Options)) (*ec2.GetIpamDiscoveredPublicAddressesOutput, error)
+	// Returns the resource CIDRs that are monitored as part of a resource discovery.
+	// A discovered resource is a resource CIDR monitored under a resource discovery.
+	// The following resources can be discovered: VPCs, Public IPv4 pools, VPC subnets,
+	// and Elastic IP addresses.
+	GetIpamDiscoveredResourceCidrs(ctx context.Context, params *ec2.GetIpamDiscoveredResourceCidrsInput, optFns ...func(*Options)) (*ec2.GetIpamDiscoveredResourceCidrsOutput, error)
+	// Get a list of all the CIDR allocations in an IPAM pool. The Region you use
+	// should be the IPAM pool locale. The locale is the Amazon Web Services Region
+	// where this IPAM pool is available for allocations.
+	//
+	// If you use this action after [AllocateIpamPoolCidr] or [ReleaseIpamPoolAllocation], note that all EC2 API actions follow an [eventual consistency]
+	// model.
+	//
+	// [ReleaseIpamPoolAllocation]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ReleaseIpamPoolAllocation.html
+	// [AllocateIpamPoolCidr]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AllocateIpamPoolCidr.html
+	// [eventual consistency]: https://docs.aws.amazon.com/ec2/latest/devguide/eventual-consistency.html
+	GetIpamPoolAllocations(ctx context.Context, params *ec2.GetIpamPoolAllocationsInput, optFns ...func(*Options)) (*ec2.GetIpamPoolAllocationsOutput, error)
 	// Get the CIDRs provisioned to an IPAM pool.
-	GetIpamPoolCidrs(ctx context.Context, params *GetIpamPoolCidrsInput, optFns ...func(*Options)) (*GetIpamPoolCidrsOutput, error)
-	// Get information about the resources in a scope.
-	GetIpamResourceCidrs(ctx context.Context, params *GetIpamResourceCidrsInput, optFns ...func(*Options)) (*GetIpamResourceCidrsOutput, error)
+	GetIpamPoolCidrs(ctx context.Context, params *ec2.GetIpamPoolCidrsInput, optFns ...func(*Options)) (*ec2.GetIpamPoolCidrsOutput, error)
+	// Returns resource CIDRs managed by IPAM in a given scope. If an IPAM is
+	// associated with more than one resource discovery, the resource CIDRs across all
+	// of the resource discoveries is returned. A resource discovery is an IPAM
+	// component that enables IPAM to manage and monitor resources that belong to the
+	// owning account.
+	GetIpamResourceCidrs(ctx context.Context, params *ec2.GetIpamResourceCidrsInput, optFns ...func(*Options)) (*ec2.GetIpamResourceCidrsOutput, error)
 	// Retrieves the configuration data of the specified instance. You can use this
-	// data to create a launch template. This action calls on other describe actions to
-	// get instance information. Depending on your instance configuration, you may need
-	// to allow the following actions in your IAM policy: DescribeSpotInstanceRequests,
-	// DescribeInstanceCreditSpecifications, DescribeVolumes,
-	// DescribeInstanceAttribute, and DescribeElasticGpus. Or, you can allow describe*
-	// depending on your instance requirements.
-	GetLaunchTemplateData(ctx context.Context, params *GetLaunchTemplateDataInput, optFns ...func(*Options)) (*GetLaunchTemplateDataOutput, error)
+	// data to create a launch template.
+	//
+	// This action calls on other describe actions to get instance information.
+	// Depending on your instance configuration, you may need to allow the following
+	// actions in your IAM policy: DescribeSpotInstanceRequests ,
+	// DescribeInstanceCreditSpecifications , DescribeVolumes , and
+	// DescribeInstanceAttribute . Or, you can allow describe* depending on your
+	// instance requirements.
+	GetLaunchTemplateData(ctx context.Context, params *ec2.GetLaunchTemplateDataInput, optFns ...func(*Options)) (*ec2.GetLaunchTemplateDataOutput, error)
 	// Gets information about the resources that are associated with the specified
 	// managed prefix list.
-	GetManagedPrefixListAssociations(ctx context.Context, params *GetManagedPrefixListAssociationsInput, optFns ...func(*Options)) (*GetManagedPrefixListAssociationsOutput, error)
+	GetManagedPrefixListAssociations(ctx context.Context, params *ec2.GetManagedPrefixListAssociationsInput, optFns ...func(*Options)) (*ec2.GetManagedPrefixListAssociationsOutput, error)
 	// Gets information about the entries for a specified managed prefix list.
-	GetManagedPrefixListEntries(ctx context.Context, params *GetManagedPrefixListEntriesInput, optFns ...func(*Options)) (*GetManagedPrefixListEntriesOutput, error)
+	GetManagedPrefixListEntries(ctx context.Context, params *ec2.GetManagedPrefixListEntriesInput, optFns ...func(*Options)) (*ec2.GetManagedPrefixListEntriesOutput, error)
 	// Gets the findings for the specified Network Access Scope analysis.
-	GetNetworkInsightsAccessScopeAnalysisFindings(ctx context.Context, params *GetNetworkInsightsAccessScopeAnalysisFindingsInput, optFns ...func(*Options)) (*GetNetworkInsightsAccessScopeAnalysisFindingsOutput, error)
+	GetNetworkInsightsAccessScopeAnalysisFindings(ctx context.Context, params *ec2.GetNetworkInsightsAccessScopeAnalysisFindingsInput, optFns ...func(*Options)) (*ec2.GetNetworkInsightsAccessScopeAnalysisFindingsOutput, error)
 	// Gets the content for the specified Network Access Scope.
-	GetNetworkInsightsAccessScopeContent(ctx context.Context, params *GetNetworkInsightsAccessScopeContentInput, optFns ...func(*Options)) (*GetNetworkInsightsAccessScopeContentOutput, error)
+	GetNetworkInsightsAccessScopeContent(ctx context.Context, params *ec2.GetNetworkInsightsAccessScopeContentInput, optFns ...func(*Options)) (*ec2.GetNetworkInsightsAccessScopeContentOutput, error)
 	// Retrieves the encrypted administrator password for a running Windows instance.
+	//
 	// The Windows password is generated at boot by the EC2Config service or EC2Launch
 	// scripts (Windows Server 2016 and later). This usually only happens the first
-	// time an instance is launched. For more information, see EC2Config
-	// (https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/UsingConfig_WinAMI.html)
-	// and EC2Launch
-	// (https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/ec2launch.html) in the
-	// Amazon EC2 User Guide. For the EC2Config service, the password is not generated
-	// for rebundled AMIs unless Ec2SetPassword is enabled before bundling. The
-	// password is encrypted using the key pair that you specified when you launched
-	// the instance. You must provide the corresponding key pair file. When you launch
-	// an instance, password generation and encryption may take a few minutes. If you
-	// try to retrieve the password before it's available, the output returns an empty
-	// string. We recommend that you wait up to 15 minutes after launching an instance
-	// before trying to retrieve the generated password.
-	GetPasswordData(ctx context.Context, params *GetPasswordDataInput, optFns ...func(*Options)) (*GetPasswordDataOutput, error)
+	// time an instance is launched. For more information, see [EC2Config]and [EC2Launch] in the Amazon EC2
+	// User Guide.
+	//
+	// For the EC2Config service, the password is not generated for rebundled AMIs
+	// unless Ec2SetPassword is enabled before bundling.
+	//
+	// The password is encrypted using the key pair that you specified when you
+	// launched the instance. You must provide the corresponding key pair file.
+	//
+	// When you launch an instance, password generation and encryption may take a few
+	// minutes. If you try to retrieve the password before it's available, the output
+	// returns an empty string. We recommend that you wait up to 15 minutes after
+	// launching an instance before trying to retrieve the generated password.
+	//
+	// [EC2Launch]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2launch.html
+	// [EC2Config]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/UsingConfig_WinAMI.html
+	GetPasswordData(ctx context.Context, params *ec2.GetPasswordDataInput, optFns ...func(*Options)) (*ec2.GetPasswordDataOutput, error)
 	// Returns a quote and exchange information for exchanging one or more specified
 	// Convertible Reserved Instances for a new Convertible Reserved Instance. If the
-	// exchange cannot be performed, the reason is returned in the response. Use
-	// AcceptReservedInstancesExchangeQuote to perform the exchange.
-	GetReservedInstancesExchangeQuote(ctx context.Context, params *GetReservedInstancesExchangeQuoteInput, optFns ...func(*Options)) (*GetReservedInstancesExchangeQuoteOutput, error)
+	// exchange cannot be performed, the reason is returned in the response. Use AcceptReservedInstancesExchangeQuoteto
+	// perform the exchange.
+	GetReservedInstancesExchangeQuote(ctx context.Context, params *ec2.GetReservedInstancesExchangeQuoteInput, optFns ...func(*Options)) (*ec2.GetReservedInstancesExchangeQuoteOutput, error)
+	// Gets information about the associations for the specified route server.
+	//
+	// A route server association is the connection established between a route server
+	// and a VPC.
+	//
+	// For more information see [Dynamic routing in your VPC with VPC Route Server] in the Amazon VPC User Guide.
+	//
+	// [Dynamic routing in your VPC with VPC Route Server]: https://docs.aws.amazon.com/vpc/latest/userguide/dynamic-routing-route-server.html
+	GetRouteServerAssociations(ctx context.Context, params *ec2.GetRouteServerAssociationsInput, optFns ...func(*Options)) (*ec2.GetRouteServerAssociationsOutput, error)
+	// Gets information about the route propagations for the specified route server.
+	//
+	// When enabled, route server propagation installs the routes in the FIB on the
+	// route table you've specified. Route server supports IPv4 and IPv6 route
+	// propagation.
+	//
+	// Amazon VPC Route Server simplifies routing for traffic between workloads that
+	// are deployed within a VPC and its internet gateways. With this feature, VPC
+	// Route Server dynamically updates VPC and internet gateway route tables with your
+	// preferred IPv4 or IPv6 routes to achieve routing fault tolerance for those
+	// workloads. This enables you to automatically reroute traffic within a VPC, which
+	// increases the manageability of VPC routing and interoperability with third-party
+	// workloads.
+	//
+	// Route server supports the follow route table types:
+	//
+	//   - VPC route tables not associated with subnets
+	//
+	//   - Subnet route tables
+	//
+	//   - Internet gateway route tables
+	//
+	// Route server does not support route tables associated with virtual private
+	// gateways. To propagate routes into a transit gateway route table, use [Transit Gateway Connect].
+	//
+	// [Transit Gateway Connect]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-connect.html
+	GetRouteServerPropagations(ctx context.Context, params *ec2.GetRouteServerPropagationsInput, optFns ...func(*Options)) (*ec2.GetRouteServerPropagationsOutput, error)
+	// Gets the routing database for the specified route server. The [Routing Information Base (RIB)] serves as a
+	// database that stores all the routing information and network topology data
+	// collected by a router or routing system, such as routes learned from BGP peers.
+	// The RIB is constantly updated as new routing information is received or existing
+	// routes change. This ensures that the route server always has the most current
+	// view of the network topology and can make optimal routing decisions.
+	//
+	// Amazon VPC Route Server simplifies routing for traffic between workloads that
+	// are deployed within a VPC and its internet gateways. With this feature, VPC
+	// Route Server dynamically updates VPC and internet gateway route tables with your
+	// preferred IPv4 or IPv6 routes to achieve routing fault tolerance for those
+	// workloads. This enables you to automatically reroute traffic within a VPC, which
+	// increases the manageability of VPC routing and interoperability with third-party
+	// workloads.
+	//
+	// Route server supports the follow route table types:
+	//
+	//   - VPC route tables not associated with subnets
+	//
+	//   - Subnet route tables
+	//
+	//   - Internet gateway route tables
+	//
+	// Route server does not support route tables associated with virtual private
+	// gateways. To propagate routes into a transit gateway route table, use [Transit Gateway Connect].
+	//
+	// [Routing Information Base (RIB)]: https://en.wikipedia.org/wiki/Routing_table
+	// [Transit Gateway Connect]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-connect.html
+	GetRouteServerRoutingDatabase(ctx context.Context, params *ec2.GetRouteServerRoutingDatabaseInput, optFns ...func(*Options)) (*ec2.GetRouteServerRoutingDatabaseOutput, error)
+	// Gets security groups that can be associated by the Amazon Web Services account
+	// making the request with network interfaces in the specified VPC.
+	GetSecurityGroupsForVpc(ctx context.Context, params *ec2.GetSecurityGroupsForVpcInput, optFns ...func(*Options)) (*ec2.GetSecurityGroupsForVpcOutput, error)
 	// Retrieves the access status of your account to the EC2 serial console of all
 	// instances. By default, access to the EC2 serial console is disabled for your
-	// account. For more information, see Manage account access to the EC2 serial
-	// console
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configure-access-to-serial-console.html#serial-console-account-access)
-	// in the Amazon EC2 User Guide.
-	GetSerialConsoleAccessStatus(ctx context.Context, params *GetSerialConsoleAccessStatusInput, optFns ...func(*Options)) (*GetSerialConsoleAccessStatusOutput, error)
+	// account. For more information, see [Manage account access to the EC2 serial console]in the Amazon EC2 User Guide.
+	//
+	// [Manage account access to the EC2 serial console]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configure-access-to-serial-console.html#serial-console-account-access
+	GetSerialConsoleAccessStatus(ctx context.Context, params *ec2.GetSerialConsoleAccessStatusInput, optFns ...func(*Options)) (*ec2.GetSerialConsoleAccessStatusOutput, error)
+	// Gets the current state of block public access for snapshots setting for the
+	// account and Region.
+	//
+	// For more information, see [Block public access for snapshots] in the Amazon EBS User Guide.
+	//
+	// [Block public access for snapshots]: https://docs.aws.amazon.com/ebs/latest/userguide/block-public-access-snapshots.html
+	GetSnapshotBlockPublicAccessState(ctx context.Context, params *ec2.GetSnapshotBlockPublicAccessStateInput, optFns ...func(*Options)) (*ec2.GetSnapshotBlockPublicAccessStateOutput, error)
 	// Calculates the Spot placement score for a Region or Availability Zone based on
-	// the specified target capacity and compute requirements. You can specify your
-	// compute requirements either by using InstanceRequirementsWithMetadata and
-	// letting Amazon EC2 choose the optimal instance types to fulfill your Spot
-	// request, or you can specify the instance types by using InstanceTypes. For more
-	// information, see Spot placement score
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html)
-	// in the Amazon EC2 User Guide.
-	GetSpotPlacementScores(ctx context.Context, params *GetSpotPlacementScoresInput, optFns ...func(*Options)) (*GetSpotPlacementScoresOutput, error)
+	// the specified target capacity and compute requirements.
+	//
+	// You can specify your compute requirements either by using
+	// InstanceRequirementsWithMetadata and letting Amazon EC2 choose the optimal
+	// instance types to fulfill your Spot request, or you can specify the instance
+	// types by using InstanceTypes .
+	//
+	// For more information, see [Spot placement score] in the Amazon EC2 User Guide.
+	//
+	// [Spot placement score]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html
+	GetSpotPlacementScores(ctx context.Context, params *ec2.GetSpotPlacementScoresInput, optFns ...func(*Options)) (*ec2.GetSpotPlacementScoresOutput, error)
 	// Gets information about the subnet CIDR reservations.
-	GetSubnetCidrReservations(ctx context.Context, params *GetSubnetCidrReservationsInput, optFns ...func(*Options)) (*GetSubnetCidrReservationsOutput, error)
+	GetSubnetCidrReservations(ctx context.Context, params *ec2.GetSubnetCidrReservationsInput, optFns ...func(*Options)) (*ec2.GetSubnetCidrReservationsOutput, error)
 	// Lists the route tables to which the specified resource attachment propagates
 	// routes.
-	GetTransitGatewayAttachmentPropagations(ctx context.Context, params *GetTransitGatewayAttachmentPropagationsInput, optFns ...func(*Options)) (*GetTransitGatewayAttachmentPropagationsOutput, error)
+	GetTransitGatewayAttachmentPropagations(ctx context.Context, params *ec2.GetTransitGatewayAttachmentPropagationsInput, optFns ...func(*Options)) (*ec2.GetTransitGatewayAttachmentPropagationsOutput, error)
 	// Gets information about the associations for the transit gateway multicast
 	// domain.
-	GetTransitGatewayMulticastDomainAssociations(ctx context.Context, params *GetTransitGatewayMulticastDomainAssociationsInput, optFns ...func(*Options)) (*GetTransitGatewayMulticastDomainAssociationsOutput, error)
-	// Gets information about the prefix list references in a specified transit gateway
-	// route table.
-	GetTransitGatewayPrefixListReferences(ctx context.Context, params *GetTransitGatewayPrefixListReferencesInput, optFns ...func(*Options)) (*GetTransitGatewayPrefixListReferencesOutput, error)
+	GetTransitGatewayMulticastDomainAssociations(ctx context.Context, params *ec2.GetTransitGatewayMulticastDomainAssociationsInput, optFns ...func(*Options)) (*ec2.GetTransitGatewayMulticastDomainAssociationsOutput, error)
+	// Gets a list of the transit gateway policy table associations.
+	GetTransitGatewayPolicyTableAssociations(ctx context.Context, params *ec2.GetTransitGatewayPolicyTableAssociationsInput, optFns ...func(*Options)) (*ec2.GetTransitGatewayPolicyTableAssociationsOutput, error)
+	// Returns a list of transit gateway policy table entries.
+	GetTransitGatewayPolicyTableEntries(ctx context.Context, params *ec2.GetTransitGatewayPolicyTableEntriesInput, optFns ...func(*Options)) (*ec2.GetTransitGatewayPolicyTableEntriesOutput, error)
+	// Gets information about the prefix list references in a specified transit
+	// gateway route table.
+	GetTransitGatewayPrefixListReferences(ctx context.Context, params *ec2.GetTransitGatewayPrefixListReferencesInput, optFns ...func(*Options)) (*ec2.GetTransitGatewayPrefixListReferencesOutput, error)
 	// Gets information about the associations for the specified transit gateway route
 	// table.
-	GetTransitGatewayRouteTableAssociations(ctx context.Context, params *GetTransitGatewayRouteTableAssociationsInput, optFns ...func(*Options)) (*GetTransitGatewayRouteTableAssociationsOutput, error)
+	GetTransitGatewayRouteTableAssociations(ctx context.Context, params *ec2.GetTransitGatewayRouteTableAssociationsInput, optFns ...func(*Options)) (*ec2.GetTransitGatewayRouteTableAssociationsOutput, error)
 	// Gets information about the route table propagations for the specified transit
 	// gateway route table.
-	GetTransitGatewayRouteTablePropagations(ctx context.Context, params *GetTransitGatewayRouteTablePropagationsInput, optFns ...func(*Options)) (*GetTransitGatewayRouteTablePropagationsOutput, error)
+	GetTransitGatewayRouteTablePropagations(ctx context.Context, params *ec2.GetTransitGatewayRouteTablePropagationsInput, optFns ...func(*Options)) (*ec2.GetTransitGatewayRouteTablePropagationsOutput, error)
+	// Get the Verified Access policy associated with the endpoint.
+	GetVerifiedAccessEndpointPolicy(ctx context.Context, params *ec2.GetVerifiedAccessEndpointPolicyInput, optFns ...func(*Options)) (*ec2.GetVerifiedAccessEndpointPolicyOutput, error)
+	// Gets the targets for the specified network CIDR endpoint for Verified Access.
+	GetVerifiedAccessEndpointTargets(ctx context.Context, params *ec2.GetVerifiedAccessEndpointTargetsInput, optFns ...func(*Options)) (*ec2.GetVerifiedAccessEndpointTargetsOutput, error)
+	// Shows the contents of the Verified Access policy associated with the group.
+	GetVerifiedAccessGroupPolicy(ctx context.Context, params *ec2.GetVerifiedAccessGroupPolicyInput, optFns ...func(*Options)) (*ec2.GetVerifiedAccessGroupPolicyOutput, error)
 	// Download an Amazon Web Services-provided sample configuration file to be used
 	// with the customer gateway device specified for your Site-to-Site VPN connection.
-	GetVpnConnectionDeviceSampleConfiguration(ctx context.Context, params *GetVpnConnectionDeviceSampleConfigurationInput, optFns ...func(*Options)) (*GetVpnConnectionDeviceSampleConfigurationOutput, error)
+	GetVpnConnectionDeviceSampleConfiguration(ctx context.Context, params *ec2.GetVpnConnectionDeviceSampleConfigurationInput, optFns ...func(*Options)) (*ec2.GetVpnConnectionDeviceSampleConfigurationOutput, error)
 	// Obtain a list of customer gateway devices for which sample configuration files
 	// can be provided. The request has no additional parameters. You can also see the
-	// list of device types with sample configuration files available under Your
-	// customer gateway device
-	// (https://docs.aws.amazon.com/vpn/latest/s2svpn/your-cgw.html) in the Amazon Web
-	// Services Site-to-Site VPN User Guide.
-	GetVpnConnectionDeviceTypes(ctx context.Context, params *GetVpnConnectionDeviceTypesInput, optFns ...func(*Options)) (*GetVpnConnectionDeviceTypesOutput, error)
+	// list of device types with sample configuration files available under [Your customer gateway device]in the
+	// Amazon Web Services Site-to-Site VPN User Guide.
+	//
+	// [Your customer gateway device]: https://docs.aws.amazon.com/vpn/latest/s2svpn/your-cgw.html
+	GetVpnConnectionDeviceTypes(ctx context.Context, params *ec2.GetVpnConnectionDeviceTypesInput, optFns ...func(*Options)) (*ec2.GetVpnConnectionDeviceTypesOutput, error)
+	// Get details of available tunnel endpoint maintenance.
+	GetVpnTunnelReplacementStatus(ctx context.Context, params *ec2.GetVpnTunnelReplacementStatusInput, optFns ...func(*Options)) (*ec2.GetVpnTunnelReplacementStatusOutput, error)
 	// Uploads a client certificate revocation list to the specified Client VPN
 	// endpoint. Uploading a client certificate revocation list overwrites the existing
-	// client certificate revocation list. Uploading a client certificate revocation
-	// list resets existing client connections.
-	ImportClientVpnClientCertificateRevocationList(ctx context.Context, params *ImportClientVpnClientCertificateRevocationListInput, optFns ...func(*Options)) (*ImportClientVpnClientCertificateRevocationListOutput, error)
+	// client certificate revocation list.
+	//
+	// Uploading a client certificate revocation list resets existing client
+	// connections.
+	ImportClientVpnClientCertificateRevocationList(ctx context.Context, params *ec2.ImportClientVpnClientCertificateRevocationListInput, optFns ...func(*Options)) (*ec2.ImportClientVpnClientCertificateRevocationListOutput, error)
+	// To import your virtual machines (VMs) with a console-based experience, you can
+	// use the Import virtual machine images to Amazon Web Services template in the [Migration Hub Orchestrator console].
+	// For more information, see the [Migration Hub Orchestrator User Guide].
+	//
 	// Import single or multi-volume disk images or EBS snapshots into an Amazon
-	// Machine Image (AMI). For more information, see Importing a VM as an image using
-	// VM Import/Export
-	// (https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html)
-	// in the VM Import/Export User Guide.
-	ImportImage(ctx context.Context, params *ImportImageInput, optFns ...func(*Options)) (*ImportImageOutput, error)
+	// Machine Image (AMI).
+	//
+	// Amazon Web Services VM Import/Export strongly recommends specifying a value for
+	// either the --license-type or --usage-operation parameter when you create a new
+	// VM Import task. This ensures your operating system is licensed appropriately and
+	// your billing is optimized.
+	//
+	// For more information, see [Importing a VM as an image using VM Import/Export] in the VM Import/Export User Guide.
+	//
+	// [Migration Hub Orchestrator console]: https://console.aws.amazon.com/migrationhub/orchestrator
+	// [Importing a VM as an image using VM Import/Export]: https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html
+	// [Migration Hub Orchestrator User Guide]: https://docs.aws.amazon.com/migrationhub-orchestrator/latest/userguide/import-vm-images.html
+	ImportImage(ctx context.Context, params *ec2.ImportImageInput, optFns ...func(*Options)) (*ec2.ImportImageOutput, error)
+	// We recommend that you use the [ImportImage]ImportImage API instead. For more information,
+	// see [Importing a VM as an image using VM Import/Export]in the VM Import/Export User Guide.
+	//
 	// Creates an import instance task using metadata from the specified disk image.
-	// This API action supports only single-volume VMs. To import multi-volume VMs, use
-	// ImportImage instead. This API action is not supported by the Command Line
-	// Interface (CLI). For information about using the Amazon EC2 CLI, which is
-	// deprecated, see Importing a VM to Amazon EC2
-	// (https://awsdocs.s3.amazonaws.com/EC2/ec2-clt.pdf#UsingVirtualMachinesinAmazonEC2)
-	// in the Amazon EC2 CLI Reference PDF file. For information about the import
-	// manifest referenced by this API action, see VM Import Manifest
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/manifest.html).
-	ImportInstance(ctx context.Context, params *ImportInstanceInput, optFns ...func(*Options)) (*ImportInstanceOutput, error)
-	// Imports the public key from an RSA or ED25519 key pair that you created with a
-	// third-party tool. Compare this with CreateKeyPair, in which Amazon Web Services
-	// creates the key pair and gives the keys to you (Amazon Web Services keeps a copy
-	// of the public key). With ImportKeyPair, you create the key pair and give Amazon
-	// Web Services just the public key. The private key is never transferred between
-	// you and Amazon Web Services. For more information about key pairs, see Amazon
-	// EC2 key pairs
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	ImportKeyPair(ctx context.Context, params *ImportKeyPairInput, optFns ...func(*Options)) (*ImportKeyPairOutput, error)
-	// Imports a disk into an EBS snapshot. For more information, see Importing a disk
-	// as a snapshot using VM Import/Export
-	// (https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-import-snapshot.html)
-	// in the VM Import/Export User Guide.
-	ImportSnapshot(ctx context.Context, params *ImportSnapshotInput, optFns ...func(*Options)) (*ImportSnapshotOutput, error)
-	// Creates an import volume task using metadata from the specified disk image. This
-	// API action supports only single-volume VMs. To import multi-volume VMs, use
-	// ImportImage instead. To import a disk to a snapshot, use ImportSnapshot instead.
-	// This API action is not supported by the Command Line Interface (CLI). For
-	// information about using the Amazon EC2 CLI, which is deprecated, see Importing
-	// Disks to Amazon EBS
-	// (https://awsdocs.s3.amazonaws.com/EC2/ec2-clt.pdf#importing-your-volumes-into-amazon-ebs)
-	// in the Amazon EC2 CLI Reference PDF file. For information about the import
-	// manifest referenced by this API action, see VM Import Manifest
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/manifest.html).
-	ImportVolume(ctx context.Context, params *ImportVolumeInput, optFns ...func(*Options)) (*ImportVolumeOutput, error)
+	//
+	// This API action supports only single-volume VMs. To import multi-volume VMs,
+	// use ImportImageinstead.
+	//
+	// For information about the import manifest referenced by this API action, see [VM Import Manifest].
+	//
+	// This API action is not supported by the Command Line Interface (CLI).
+	//
+	// [Importing a VM as an image using VM Import/Export]: https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html
+	// [ImportImage]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ImportImage.html
+	// [VM Import Manifest]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/manifest.html
+	ImportInstance(ctx context.Context, params *ec2.ImportInstanceInput, optFns ...func(*Options)) (*ec2.ImportInstanceOutput, error)
+	// Imports the public key from an RSA or ED25519 key pair that you created using a
+	// third-party tool. You give Amazon Web Services only the public key. The private
+	// key is never transferred between you and Amazon Web Services.
+	//
+	// For more information about the requirements for importing a key pair, see [Create a key pair and import the public key to Amazon EC2] in
+	// the Amazon EC2 User Guide.
+	//
+	// [Create a key pair and import the public key to Amazon EC2]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html#how-to-generate-your-own-key-and-import-it-to-aws
+	ImportKeyPair(ctx context.Context, params *ec2.ImportKeyPairInput, optFns ...func(*Options)) (*ec2.ImportKeyPairOutput, error)
+	// Imports a disk into an EBS snapshot.
+	//
+	// For more information, see [Importing a disk as a snapshot using VM Import/Export] in the VM Import/Export User Guide.
+	//
+	// [Importing a disk as a snapshot using VM Import/Export]: https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-import-snapshot.html
+	ImportSnapshot(ctx context.Context, params *ec2.ImportSnapshotInput, optFns ...func(*Options)) (*ec2.ImportSnapshotOutput, error)
+	// This API action supports only single-volume VMs. To import multi-volume VMs,
+	// use ImportImageinstead. To import a disk to a snapshot, use ImportSnapshot instead.
+	//
+	// Creates an import volume task using metadata from the specified disk image.
+	//
+	// For information about the import manifest referenced by this API action, see [VM Import Manifest].
+	//
+	// This API action is not supported by the Command Line Interface (CLI).
+	//
+	// [VM Import Manifest]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/manifest.html
+	ImportVolume(ctx context.Context, params *ec2.ImportVolumeInput, optFns ...func(*Options)) (*ec2.ImportVolumeOutput, error)
 	// Lists one or more AMIs that are currently in the Recycle Bin. For more
-	// information, see Recycle Bin
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/recycle-bin.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	ListImagesInRecycleBin(ctx context.Context, params *ListImagesInRecycleBinInput, optFns ...func(*Options)) (*ListImagesInRecycleBinOutput, error)
+	// information, see [Recycle Bin]in the Amazon EC2 User Guide.
+	//
+	// [Recycle Bin]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/recycle-bin.html
+	ListImagesInRecycleBin(ctx context.Context, params *ec2.ListImagesInRecycleBinInput, optFns ...func(*Options)) (*ec2.ListImagesInRecycleBinOutput, error)
 	// Lists one or more snapshots that are currently in the Recycle Bin.
-	ListSnapshotsInRecycleBin(ctx context.Context, params *ListSnapshotsInRecycleBinInput, optFns ...func(*Options)) (*ListSnapshotsInRecycleBinOutput, error)
-	// Modifies an attribute of the specified Elastic IP address. For requirements, see
-	// Using reverse DNS for email applications
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html#Using_Elastic_Addressing_Reverse_DNS).
-	ModifyAddressAttribute(ctx context.Context, params *ModifyAddressAttributeInput, optFns ...func(*Options)) (*ModifyAddressAttributeOutput, error)
-	// Changes the opt-in status of the Local Zone and Wavelength Zone group for your
-	// account. Use  DescribeAvailabilityZones
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeAvailabilityZones.html)
-	// to view the value for GroupName.
-	ModifyAvailabilityZoneGroup(ctx context.Context, params *ModifyAvailabilityZoneGroupInput, optFns ...func(*Options)) (*ModifyAvailabilityZoneGroupOutput, error)
-	// Modifies a Capacity Reservation's capacity and the conditions under which it is
-	// to be released. You cannot change a Capacity Reservation's instance type, EBS
-	// optimization, instance store settings, platform, Availability Zone, or instance
-	// eligibility. If you need to modify any of these attributes, we recommend that
-	// you cancel the Capacity Reservation, and then create a new one with the required
-	// attributes.
-	ModifyCapacityReservation(ctx context.Context, params *ModifyCapacityReservationInput, optFns ...func(*Options)) (*ModifyCapacityReservationOutput, error)
-	// Modifies a Capacity Reservation Fleet. When you modify the total target capacity
-	// of a Capacity Reservation Fleet, the Fleet automatically creates new Capacity
-	// Reservations, or modifies or cancels existing Capacity Reservations in the Fleet
-	// to meet the new total target capacity. When you modify the end date for the
-	// Fleet, the end dates for all of the individual Capacity Reservations in the
-	// Fleet are updated accordingly.
-	ModifyCapacityReservationFleet(ctx context.Context, params *ModifyCapacityReservationFleetInput, optFns ...func(*Options)) (*ModifyCapacityReservationFleetOutput, error)
+	ListSnapshotsInRecycleBin(ctx context.Context, params *ec2.ListSnapshotsInRecycleBinInput, optFns ...func(*Options)) (*ec2.ListSnapshotsInRecycleBinOutput, error)
+	// Locks an Amazon EBS snapshot in either governance or compliance mode to protect
+	// it against accidental or malicious deletions for a specific duration. A locked
+	// snapshot can't be deleted.
+	//
+	// You can also use this action to modify the lock settings for a snapshot that is
+	// already locked. The allowed modifications depend on the lock mode and lock
+	// state:
+	//
+	//   - If the snapshot is locked in governance mode, you can modify the lock mode
+	//     and the lock duration or lock expiration date.
+	//
+	//   - If the snapshot is locked in compliance mode and it is in the cooling-off
+	//     period, you can modify the lock mode and the lock duration or lock expiration
+	//     date.
+	//
+	//   - If the snapshot is locked in compliance mode and the cooling-off period has
+	//     lapsed, you can only increase the lock duration or extend the lock expiration
+	//     date.
+	LockSnapshot(ctx context.Context, params *ec2.LockSnapshotInput, optFns ...func(*Options)) (*ec2.LockSnapshotOutput, error)
+	// Modifies an attribute of the specified Elastic IP address. For requirements,
+	// see [Using reverse DNS for email applications].
+	//
+	// [Using reverse DNS for email applications]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html#Using_Elastic_Addressing_Reverse_DNS
+	ModifyAddressAttribute(ctx context.Context, params *ec2.ModifyAddressAttributeInput, optFns ...func(*Options)) (*ec2.ModifyAddressAttributeOutput, error)
+	// Changes the opt-in status of the specified zone group for your account.
+	ModifyAvailabilityZoneGroup(ctx context.Context, params *ec2.ModifyAvailabilityZoneGroupInput, optFns ...func(*Options)) (*ec2.ModifyAvailabilityZoneGroupOutput, error)
+	// Modifies a Capacity Reservation's capacity, instance eligibility, and the
+	// conditions under which it is to be released. You can't modify a Capacity
+	// Reservation's instance type, EBS optimization, platform, instance store
+	// settings, Availability Zone, or tenancy. If you need to modify any of these
+	// attributes, we recommend that you cancel the Capacity Reservation, and then
+	// create a new one with the required attributes. For more information, see [Modify an active Capacity Reservation].
+	//
+	// The allowed modifications depend on the state of the Capacity Reservation:
+	//
+	//   - assessing or scheduled state - You can modify the tags only.
+	//
+	//   - pending state - You can't modify the Capacity Reservation in any way.
+	//
+	//   - active state but still within the commitment duration - You can't decrease
+	//     the instance count or set an end date that is within the commitment duration.
+	//     All other modifications are allowed.
+	//
+	//   - active state with no commitment duration or elapsed commitment duration -
+	//     All modifications are allowed.
+	//
+	//   - expired , cancelled , unsupported , or failed state - You can't modify the
+	//     Capacity Reservation in any way.
+	//
+	// [Modify an active Capacity Reservation]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/capacity-reservations-modify.html
+	ModifyCapacityReservation(ctx context.Context, params *ec2.ModifyCapacityReservationInput, optFns ...func(*Options)) (*ec2.ModifyCapacityReservationOutput, error)
+	// Modifies a Capacity Reservation Fleet.
+	//
+	// When you modify the total target capacity of a Capacity Reservation Fleet, the
+	// Fleet automatically creates new Capacity Reservations, or modifies or cancels
+	// existing Capacity Reservations in the Fleet to meet the new total target
+	// capacity. When you modify the end date for the Fleet, the end dates for all of
+	// the individual Capacity Reservations in the Fleet are updated accordingly.
+	ModifyCapacityReservationFleet(ctx context.Context, params *ec2.ModifyCapacityReservationFleetInput, optFns ...func(*Options)) (*ec2.ModifyCapacityReservationFleetOutput, error)
 	// Modifies the specified Client VPN endpoint. Modifying the DNS server resets
 	// existing client connections.
-	ModifyClientVpnEndpoint(ctx context.Context, params *ModifyClientVpnEndpointInput, optFns ...func(*Options)) (*ModifyClientVpnEndpointOutput, error)
+	ModifyClientVpnEndpoint(ctx context.Context, params *ec2.ModifyClientVpnEndpointInput, optFns ...func(*Options)) (*ec2.ModifyClientVpnEndpointOutput, error)
 	// Modifies the default credit option for CPU usage of burstable performance
 	// instances. The default credit option is set at the account level per Amazon Web
 	// Services Region, and is specified per instance family. All new burstable
 	// performance instances in the account launch using the default credit option.
-	// ModifyDefaultCreditSpecification is an asynchronous operation, which works at an
-	// Amazon Web Services Region level and modifies the credit option for each
+	//
+	// ModifyDefaultCreditSpecification is an asynchronous operation, which works at
+	// an Amazon Web Services Region level and modifies the credit option for each
 	// Availability Zone. All zones in a Region are updated within five minutes. But if
 	// instances are launched during this operation, they might not get the new credit
 	// option until the zone is updated. To verify whether the update has occurred, you
 	// can call GetDefaultCreditSpecification and check DefaultCreditSpecification for
-	// updates. For more information, see Burstable performance instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html)
-	// in the Amazon EC2 User Guide.
-	ModifyDefaultCreditSpecification(ctx context.Context, params *ModifyDefaultCreditSpecificationInput, optFns ...func(*Options)) (*ModifyDefaultCreditSpecificationOutput, error)
+	// updates.
+	//
+	// For more information, see [Burstable performance instances] in the Amazon EC2 User Guide.
+	//
+	// [Burstable performance instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html
+	ModifyDefaultCreditSpecification(ctx context.Context, params *ec2.ModifyDefaultCreditSpecificationInput, optFns ...func(*Options)) (*ec2.ModifyDefaultCreditSpecificationOutput, error)
 	// Changes the default KMS key for EBS encryption by default for your account in
-	// this Region. Amazon Web Services creates a unique Amazon Web Services managed
-	// KMS key in each Region for use with encryption by default. If you change the
-	// default KMS key to a symmetric customer managed KMS key, it is used instead of
-	// the Amazon Web Services managed KMS key. To reset the default KMS key to the
-	// Amazon Web Services managed KMS key for EBS, use ResetEbsDefaultKmsKeyId. Amazon
-	// EBS does not support asymmetric KMS keys. If you delete or disable the customer
-	// managed KMS key that you specified for use with encryption by default, your
-	// instances will fail to launch. For more information, see Amazon EBS encryption
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	ModifyEbsDefaultKmsKeyId(ctx context.Context, params *ModifyEbsDefaultKmsKeyIdInput, optFns ...func(*Options)) (*ModifyEbsDefaultKmsKeyIdOutput, error)
-	// Modifies the specified EC2 Fleet. You can only modify an EC2 Fleet request of
-	// type maintain. While the EC2 Fleet is being modified, it is in the modifying
-	// state. To scale up your EC2 Fleet, increase its target capacity. The EC2 Fleet
+	// this Region.
+	//
+	// Amazon Web Services creates a unique Amazon Web Services managed KMS key in
+	// each Region for use with encryption by default. If you change the default KMS
+	// key to a symmetric customer managed KMS key, it is used instead of the Amazon
+	// Web Services managed KMS key. Amazon EBS does not support asymmetric KMS keys.
+	//
+	// If you delete or disable the customer managed KMS key that you specified for
+	// use with encryption by default, your instances will fail to launch.
+	//
+	// For more information, see [Amazon EBS encryption] in the Amazon EBS User Guide.
+	//
+	// [Amazon EBS encryption]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-encryption.html
+	ModifyEbsDefaultKmsKeyId(ctx context.Context, params *ec2.ModifyEbsDefaultKmsKeyIdInput, optFns ...func(*Options)) (*ec2.ModifyEbsDefaultKmsKeyIdOutput, error)
+	// Modifies the specified EC2 Fleet.
+	//
+	// You can only modify an EC2 Fleet request of type maintain .
+	//
+	// While the EC2 Fleet is being modified, it is in the modifying state.
+	//
+	// To scale up your EC2 Fleet, increase its target capacity. The EC2 Fleet
 	// launches the additional Spot Instances according to the allocation strategy for
-	// the EC2 Fleet request. If the allocation strategy is lowest-price, the EC2 Fleet
-	// launches instances using the Spot Instance pool with the lowest price. If the
-	// allocation strategy is diversified, the EC2 Fleet distributes the instances
-	// across the Spot Instance pools. If the allocation strategy is
-	// capacity-optimized, EC2 Fleet launches instances from Spot Instance pools with
-	// optimal capacity for the number of instances that are launching. To scale down
-	// your EC2 Fleet, decrease its target capacity. First, the EC2 Fleet cancels any
-	// open requests that exceed the new target capacity. You can request that the EC2
-	// Fleet terminate Spot Instances until the size of the fleet no longer exceeds the
-	// new target capacity. If the allocation strategy is lowest-price, the EC2 Fleet
-	// terminates the instances with the highest price per unit. If the allocation
-	// strategy is capacity-optimized, the EC2 Fleet terminates the instances in the
-	// Spot Instance pools that have the least available Spot Instance capacity. If the
-	// allocation strategy is diversified, the EC2 Fleet terminates instances across
-	// the Spot Instance pools. Alternatively, you can request that the EC2 Fleet keep
-	// the fleet at its current size, but not replace any Spot Instances that are
-	// interrupted or that you terminate manually. If you are finished with your EC2
-	// Fleet for now, but will use it again later, you can set the target capacity to
-	// 0.
-	ModifyFleet(ctx context.Context, params *ModifyFleetInput, optFns ...func(*Options)) (*ModifyFleetOutput, error)
+	// the EC2 Fleet request. If the allocation strategy is lowest-price , the EC2
+	// Fleet launches instances using the Spot Instance pool with the lowest price. If
+	// the allocation strategy is diversified , the EC2 Fleet distributes the instances
+	// across the Spot Instance pools. If the allocation strategy is capacity-optimized
+	// , EC2 Fleet launches instances from Spot Instance pools with optimal capacity
+	// for the number of instances that are launching.
+	//
+	// To scale down your EC2 Fleet, decrease its target capacity. First, the EC2
+	// Fleet cancels any open requests that exceed the new target capacity. You can
+	// request that the EC2 Fleet terminate Spot Instances until the size of the fleet
+	// no longer exceeds the new target capacity. If the allocation strategy is
+	// lowest-price , the EC2 Fleet terminates the instances with the highest price per
+	// unit. If the allocation strategy is capacity-optimized , the EC2 Fleet
+	// terminates the instances in the Spot Instance pools that have the least
+	// available Spot Instance capacity. If the allocation strategy is diversified ,
+	// the EC2 Fleet terminates instances across the Spot Instance pools.
+	// Alternatively, you can request that the EC2 Fleet keep the fleet at its current
+	// size, but not replace any Spot Instances that are interrupted or that you
+	// terminate manually.
+	//
+	// If you are finished with your EC2 Fleet for now, but will use it again later,
+	// you can set the target capacity to 0.
+	ModifyFleet(ctx context.Context, params *ec2.ModifyFleetInput, optFns ...func(*Options)) (*ec2.ModifyFleetOutput, error)
 	// Modifies the specified attribute of the specified Amazon FPGA Image (AFI).
-	ModifyFpgaImageAttribute(ctx context.Context, params *ModifyFpgaImageAttributeInput, optFns ...func(*Options)) (*ModifyFpgaImageAttributeOutput, error)
+	ModifyFpgaImageAttribute(ctx context.Context, params *ec2.ModifyFpgaImageAttributeInput, optFns ...func(*Options)) (*ec2.ModifyFpgaImageAttributeOutput, error)
 	// Modify the auto-placement setting of a Dedicated Host. When auto-placement is
 	// enabled, any instances that you launch with a tenancy of host but without a
 	// specific host ID are placed onto any available Dedicated Host in your account
 	// that has auto-placement enabled. When auto-placement is disabled, you need to
 	// provide a host ID to have the instance launch onto a specific host. If no host
 	// ID is provided, the instance is launched onto a suitable host with
-	// auto-placement enabled. You can also use this API action to modify a Dedicated
-	// Host to support either multiple instance types in an instance family, or to
-	// support a specific instance type only.
-	ModifyHosts(ctx context.Context, params *ModifyHostsInput, optFns ...func(*Options)) (*ModifyHostsOutput, error)
-	// Modifies the ID format for the specified resource on a per-Region basis. You can
-	// specify that resources should receive longer IDs (17-character IDs) when they
-	// are created. This request can only be used to modify longer ID settings for
-	// resource types that are within the opt-in period. Resources currently in their
-	// opt-in period include: bundle | conversion-task | customer-gateway |
-	// dhcp-options | elastic-ip-allocation | elastic-ip-association | export-task |
-	// flow-log | image | import-task | internet-gateway | network-acl |
-	// network-acl-association | network-interface | network-interface-attachment |
-	// prefix-list | route-table | route-table-association | security-group | subnet |
+	// auto-placement enabled.
+	//
+	// You can also use this API action to modify a Dedicated Host to support either
+	// multiple instance types in an instance family, or to support a specific instance
+	// type only.
+	ModifyHosts(ctx context.Context, params *ec2.ModifyHostsInput, optFns ...func(*Options)) (*ec2.ModifyHostsOutput, error)
+	// Modifies the ID format for the specified resource on a per-Region basis. You
+	// can specify that resources should receive longer IDs (17-character IDs) when
+	// they are created.
+	//
+	// This request can only be used to modify longer ID settings for resource types
+	// that are within the opt-in period. Resources currently in their opt-in period
+	// include: bundle | conversion-task | customer-gateway | dhcp-options |
+	// elastic-ip-allocation | elastic-ip-association | export-task | flow-log | image
+	// | import-task | internet-gateway | network-acl | network-acl-association |
+	// network-interface | network-interface-attachment | prefix-list | route-table |
+	// route-table-association | security-group | subnet |
 	// subnet-cidr-block-association | vpc | vpc-cidr-block-association | vpc-endpoint
-	// | vpc-peering-connection | vpn-connection | vpn-gateway. This setting applies to
-	// the IAM user who makes the request; it does not apply to the entire Amazon Web
-	// Services account. By default, an IAM user defaults to the same settings as the
-	// root user. If you're using this action as the root user, then these settings
-	// apply to the entire account, unless an IAM user explicitly overrides these
-	// settings for themselves. For more information, see Resource IDs
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/resource-ids.html) in the
-	// Amazon Elastic Compute Cloud User Guide. Resources created with longer IDs are
-	// visible to all IAM roles and users, regardless of these settings and provided
-	// that they have permission to use the relevant Describe command for the resource
-	// type.
-	ModifyIdFormat(ctx context.Context, params *ModifyIdFormatInput, optFns ...func(*Options)) (*ModifyIdFormatOutput, error)
+	// | vpc-peering-connection | vpn-connection | vpn-gateway .
+	//
+	// This setting applies to the IAM user who makes the request; it does not apply
+	// to the entire Amazon Web Services account. By default, an IAM user defaults to
+	// the same settings as the root user. If you're using this action as the root
+	// user, then these settings apply to the entire account, unless an IAM user
+	// explicitly overrides these settings for themselves. For more information, see [Resource IDs]
+	// in the Amazon Elastic Compute Cloud User Guide.
+	//
+	// Resources created with longer IDs are visible to all IAM roles and users,
+	// regardless of these settings and provided that they have permission to use the
+	// relevant Describe command for the resource type.
+	//
+	// [Resource IDs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/resource-ids.html
+	ModifyIdFormat(ctx context.Context, params *ec2.ModifyIdFormatInput, optFns ...func(*Options)) (*ec2.ModifyIdFormatOutput, error)
 	// Modifies the ID format of a resource for a specified IAM user, IAM role, or the
 	// root user for an account; or all IAM users, IAM roles, and the root user for an
 	// account. You can specify that resources should receive longer IDs (17-character
-	// IDs) when they are created. This request can only be used to modify longer ID
-	// settings for resource types that are within the opt-in period. Resources
-	// currently in their opt-in period include: bundle | conversion-task |
-	// customer-gateway | dhcp-options | elastic-ip-allocation | elastic-ip-association
-	// | export-task | flow-log | image | import-task | internet-gateway | network-acl
-	// | network-acl-association | network-interface | network-interface-attachment |
-	// prefix-list | route-table | route-table-association | security-group | subnet |
+	// IDs) when they are created.
+	//
+	// This request can only be used to modify longer ID settings for resource types
+	// that are within the opt-in period. Resources currently in their opt-in period
+	// include: bundle | conversion-task | customer-gateway | dhcp-options |
+	// elastic-ip-allocation | elastic-ip-association | export-task | flow-log | image
+	// | import-task | internet-gateway | network-acl | network-acl-association |
+	// network-interface | network-interface-attachment | prefix-list | route-table |
+	// route-table-association | security-group | subnet |
 	// subnet-cidr-block-association | vpc | vpc-cidr-block-association | vpc-endpoint
-	// | vpc-peering-connection | vpn-connection | vpn-gateway. For more information,
-	// see Resource IDs
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/resource-ids.html) in the
-	// Amazon Elastic Compute Cloud User Guide. This setting applies to the principal
-	// specified in the request; it does not apply to the principal that makes the
-	// request. Resources created with longer IDs are visible to all IAM roles and
-	// users, regardless of these settings and provided that they have permission to
-	// use the relevant Describe command for the resource type.
-	ModifyIdentityIdFormat(ctx context.Context, params *ModifyIdentityIdFormatInput, optFns ...func(*Options)) (*ModifyIdentityIdFormatOutput, error)
+	// | vpc-peering-connection | vpn-connection | vpn-gateway .
+	//
+	// For more information, see [Resource IDs] in the Amazon Elastic Compute Cloud User Guide.
+	//
+	// This setting applies to the principal specified in the request; it does not
+	// apply to the principal that makes the request.
+	//
+	// Resources created with longer IDs are visible to all IAM roles and users,
+	// regardless of these settings and provided that they have permission to use the
+	// relevant Describe command for the resource type.
+	//
+	// [Resource IDs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/resource-ids.html
+	ModifyIdentityIdFormat(ctx context.Context, params *ec2.ModifyIdentityIdFormatInput, optFns ...func(*Options)) (*ec2.ModifyIdentityIdFormatOutput, error)
 	// Modifies the specified attribute of the specified AMI. You can specify only one
-	// attribute at a time. You can use the Attribute parameter to specify the
-	// attribute or one of the following parameters: Description or LaunchPermission.
+	// attribute at a time.
+	//
+	// To specify the attribute, you can use the Attribute parameter, or one of the
+	// following parameters: Description , ImdsSupport , or LaunchPermission .
+	//
 	// Images with an Amazon Web Services Marketplace product code cannot be made
-	// public. To enable the SriovNetSupport enhanced networking attribute of an image,
-	// enable SriovNetSupport on an instance and create an AMI from the instance.
-	ModifyImageAttribute(ctx context.Context, params *ModifyImageAttributeInput, optFns ...func(*Options)) (*ModifyImageAttributeOutput, error)
-	// Modifies the specified attribute of the specified instance. You can specify only
-	// one attribute at a time. Note: Using this action to change the security groups
-	// associated with an elastic network interface (ENI) attached to an instance in a
-	// VPC can result in an error if the instance has more than one ENI. To change the
-	// security groups associated with an ENI attached to an instance that has multiple
-	// ENIs, we recommend that you use the ModifyNetworkInterfaceAttribute action. To
-	// modify some attributes, the instance must be stopped. For more information, see
-	// Modify a stopped instance
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_ChangingAttributesWhileInstanceStopped.html)
-	// in the Amazon EC2 User Guide.
-	ModifyInstanceAttribute(ctx context.Context, params *ModifyInstanceAttributeInput, optFns ...func(*Options)) (*ModifyInstanceAttributeOutput, error)
+	// public.
+	//
+	// To enable the SriovNetSupport enhanced networking attribute of an image, enable
+	// SriovNetSupport on an instance and create an AMI from the instance.
+	ModifyImageAttribute(ctx context.Context, params *ec2.ModifyImageAttributeInput, optFns ...func(*Options)) (*ec2.ModifyImageAttributeOutput, error)
+	// Modifies the specified attribute of the specified instance. You can specify
+	// only one attribute at a time.
+	//
+	// Note: Using this action to change the security groups associated with an
+	// elastic network interface (ENI) attached to an instance can result in an error
+	// if the instance has more than one ENI. To change the security groups associated
+	// with an ENI attached to an instance that has multiple ENIs, we recommend that
+	// you use the ModifyNetworkInterfaceAttributeaction.
+	//
+	// To modify some attributes, the instance must be stopped. For more information,
+	// see [Modify a stopped instance]in the Amazon EC2 User Guide.
+	//
+	// [Modify a stopped instance]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_ChangingAttributesWhileInstanceStopped.html
+	ModifyInstanceAttribute(ctx context.Context, params *ec2.ModifyInstanceAttributeInput, optFns ...func(*Options)) (*ec2.ModifyInstanceAttributeOutput, error)
 	// Modifies the Capacity Reservation settings for a stopped instance. Use this
 	// action to configure an instance to target a specific Capacity Reservation, run
-	// in any open Capacity Reservation with matching attributes, or run On-Demand
-	// Instance capacity.
-	ModifyInstanceCapacityReservationAttributes(ctx context.Context, params *ModifyInstanceCapacityReservationAttributesInput, optFns ...func(*Options)) (*ModifyInstanceCapacityReservationAttributesOutput, error)
+	// in any open Capacity Reservation with matching attributes, run in On-Demand
+	// Instance capacity, or only run in a Capacity Reservation.
+	ModifyInstanceCapacityReservationAttributes(ctx context.Context, params *ec2.ModifyInstanceCapacityReservationAttributesInput, optFns ...func(*Options)) (*ec2.ModifyInstanceCapacityReservationAttributesOutput, error)
+	// Modifies the specified EC2 Instance Connect Endpoint.
+	//
+	// For more information, see [Modify an EC2 Instance Connect Endpoint] in the Amazon EC2 User Guide.
+	//
+	// [Modify an EC2 Instance Connect Endpoint]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/modify-ec2-instance-connect-endpoint.html
+	ModifyInstanceConnectEndpoint(ctx context.Context, params *ec2.ModifyInstanceConnectEndpointInput, optFns ...func(*Options)) (*ec2.ModifyInstanceConnectEndpointOutput, error)
+	// By default, all vCPUs for the instance type are active when you launch an
+	// instance. When you configure the number of active vCPUs for the instance, it can
+	// help you save on licensing costs and optimize performance. The base cost of the
+	// instance remains unchanged.
+	//
+	// The number of active vCPUs equals the number of threads per CPU core multiplied
+	// by the number of cores. The instance must be in a Stopped state before you make
+	// changes.
+	//
+	// Some instance type options do not support this capability. For more
+	// information, see [Supported CPU options]in the Amazon EC2 User Guide.
+	//
+	// [Supported CPU options]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/cpu-options-supported-instances-values.html
+	ModifyInstanceCpuOptions(ctx context.Context, params *ec2.ModifyInstanceCpuOptionsInput, optFns ...func(*Options)) (*ec2.ModifyInstanceCpuOptionsOutput, error)
 	// Modifies the credit option for CPU usage on a running or stopped burstable
-	// performance instance. The credit options are standard and unlimited. For more
-	// information, see Burstable performance instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html)
-	// in the Amazon EC2 User Guide.
-	ModifyInstanceCreditSpecification(ctx context.Context, params *ModifyInstanceCreditSpecificationInput, optFns ...func(*Options)) (*ModifyInstanceCreditSpecificationOutput, error)
+	// performance instance. The credit options are standard and unlimited .
+	//
+	// For more information, see [Burstable performance instances] in the Amazon EC2 User Guide.
+	//
+	// [Burstable performance instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html
+	ModifyInstanceCreditSpecification(ctx context.Context, params *ec2.ModifyInstanceCreditSpecificationInput, optFns ...func(*Options)) (*ec2.ModifyInstanceCreditSpecificationOutput, error)
 	// Modifies the start time for a scheduled Amazon EC2 instance event.
-	ModifyInstanceEventStartTime(ctx context.Context, params *ModifyInstanceEventStartTimeInput, optFns ...func(*Options)) (*ModifyInstanceEventStartTimeOutput, error)
-	// Modifies the specified event window. You can define either a set of time ranges
-	// or a cron expression when modifying the event window, but not both. To modify
-	// the targets associated with the event window, use the
-	// AssociateInstanceEventWindow and DisassociateInstanceEventWindow API. If Amazon
-	// Web Services has already scheduled an event, modifying an event window won't
-	// change the time of the scheduled event. For more information, see Define event
-	// windows for scheduled events
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/event-windows.html) in the
-	// Amazon EC2 User Guide.
-	ModifyInstanceEventWindow(ctx context.Context, params *ModifyInstanceEventWindowInput, optFns ...func(*Options)) (*ModifyInstanceEventWindowOutput, error)
+	ModifyInstanceEventStartTime(ctx context.Context, params *ec2.ModifyInstanceEventStartTimeInput, optFns ...func(*Options)) (*ec2.ModifyInstanceEventStartTimeOutput, error)
+	// Modifies the specified event window.
+	//
+	// You can define either a set of time ranges or a cron expression when modifying
+	// the event window, but not both.
+	//
+	// To modify the targets associated with the event window, use the AssociateInstanceEventWindow and DisassociateInstanceEventWindow API.
+	//
+	// If Amazon Web Services has already scheduled an event, modifying an event
+	// window won't change the time of the scheduled event.
+	//
+	// For more information, see [Define event windows for scheduled events] in the Amazon EC2 User Guide.
+	//
+	// [Define event windows for scheduled events]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/event-windows.html
+	ModifyInstanceEventWindow(ctx context.Context, params *ec2.ModifyInstanceEventWindowInput, optFns ...func(*Options)) (*ec2.ModifyInstanceEventWindowOutput, error)
 	// Modifies the recovery behavior of your instance to disable simplified automatic
 	// recovery or set the recovery behavior to default. The default configuration will
 	// not enable simplified automatic recovery for an unsupported instance type. For
-	// more information, see Simplified automatic recovery
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-recover.html#instance-configuration-recovery).
-	ModifyInstanceMaintenanceOptions(ctx context.Context, params *ModifyInstanceMaintenanceOptionsInput, optFns ...func(*Options)) (*ModifyInstanceMaintenanceOptionsOutput, error)
+	// more information, see [Simplified automatic recovery].
+	//
+	// Modifies the reboot migration behavior during a user-initiated reboot of an
+	// instance that has a pending system-reboot event. For more information, see [Enable or disable reboot migration].
+	//
+	// [Simplified automatic recovery]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-recover.html#instance-configuration-recovery
+	// [Enable or disable reboot migration]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/schedevents_actions_reboot.html#reboot-migration
+	ModifyInstanceMaintenanceOptions(ctx context.Context, params *ec2.ModifyInstanceMaintenanceOptionsInput, optFns ...func(*Options)) (*ec2.ModifyInstanceMaintenanceOptionsOutput, error)
+	// Modifies the default instance metadata service (IMDS) settings at the account
+	// level in the specified Amazon Web Services  Region.
+	//
+	// To remove a parameter's account-level default setting, specify no-preference .
+	// If an account-level setting is cleared with no-preference , then the instance
+	// launch considers the other instance metadata settings. For more information, see
+	// [Order of precedence for instance metadata options]in the Amazon EC2 User Guide.
+	//
+	// [Order of precedence for instance metadata options]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-options.html#instance-metadata-options-order-of-precedence
+	ModifyInstanceMetadataDefaults(ctx context.Context, params *ec2.ModifyInstanceMetadataDefaultsInput, optFns ...func(*Options)) (*ec2.ModifyInstanceMetadataDefaultsOutput, error)
 	// Modify the instance metadata parameters on a running or stopped instance. When
 	// you modify the parameters on a stopped instance, they are applied when the
 	// instance is started. When you modify the parameters on a running instance, the
 	// API responds with a state of “pending”. After the parameter modifications are
 	// successfully applied to the instance, the state of the modifications changes
 	// from “pending” to “applied” in subsequent describe-instances API calls. For more
-	// information, see Instance metadata and user data
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html)
-	// in the Amazon EC2 User Guide.
-	ModifyInstanceMetadataOptions(ctx context.Context, params *ModifyInstanceMetadataOptionsInput, optFns ...func(*Options)) (*ModifyInstanceMetadataOptionsOutput, error)
+	// information, see [Instance metadata and user data]in the Amazon EC2 User Guide.
+	//
+	// [Instance metadata and user data]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html
+	ModifyInstanceMetadataOptions(ctx context.Context, params *ec2.ModifyInstanceMetadataOptionsInput, optFns ...func(*Options)) (*ec2.ModifyInstanceMetadataOptionsOutput, error)
+	// Change the configuration of the network performance options for an existing
+	// instance.
+	ModifyInstanceNetworkPerformanceOptions(ctx context.Context, params *ec2.ModifyInstanceNetworkPerformanceOptionsInput, optFns ...func(*Options)) (*ec2.ModifyInstanceNetworkPerformanceOptionsOutput, error)
 	// Modifies the placement attributes for a specified instance. You can do the
 	// following:
 	//
-	// * Modify the affinity between an instance and a Dedicated Host
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-overview.html).
-	// When affinity is set to host and the instance is not associated with a specific
-	// Dedicated Host, the next time the instance is launched, it is automatically
-	// associated with the host on which it lands. If the instance is restarted or
-	// rebooted, this relationship persists.
+	//   - Modify the affinity between an instance and a [Dedicated Host]. When affinity is set to host
+	//     and the instance is not associated with a specific Dedicated Host, the next time
+	//     the instance is started, it is automatically associated with the host on which
+	//     it lands. If the instance is restarted or rebooted, this relationship persists.
 	//
-	// * Change the Dedicated Host with which an
-	// instance is associated.
+	//   - Change the Dedicated Host with which an instance is associated.
 	//
-	// * Change the instance tenancy of an instance.
+	//   - Change the instance tenancy of an instance.
 	//
-	// * Move
-	// an instance to or from a placement group
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html).
+	//   - Move an instance to or from a [placement group].
 	//
-	// At
-	// least one attribute for affinity, host ID, tenancy, or placement group name must
-	// be specified in the request. Affinity and tenancy can be modified in the same
-	// request. To modify the host ID, tenancy, placement group, or partition for an
-	// instance, the instance must be in the stopped state.
-	ModifyInstancePlacement(ctx context.Context, params *ModifyInstancePlacementInput, optFns ...func(*Options)) (*ModifyInstancePlacementOutput, error)
+	// At least one attribute for affinity, host ID, tenancy, or placement group name
+	// must be specified in the request. Affinity and tenancy can be modified in the
+	// same request.
+	//
+	// To modify the host ID, tenancy, placement group, or partition for an instance,
+	// the instance must be in the stopped state.
+	//
+	// [Dedicated Host]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-overview.html
+	// [placement group]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html
+	ModifyInstancePlacement(ctx context.Context, params *ec2.ModifyInstancePlacementInput, optFns ...func(*Options)) (*ec2.ModifyInstancePlacementOutput, error)
 	// Modify the configurations of an IPAM.
-	ModifyIpam(ctx context.Context, params *ModifyIpamInput, optFns ...func(*Options)) (*ModifyIpamOutput, error)
-	// Modify the configurations of an IPAM pool. For more information, see Modify a
-	// pool in the Amazon VPC IPAM User Guide.
-	ModifyIpamPool(ctx context.Context, params *ModifyIpamPoolInput, optFns ...func(*Options)) (*ModifyIpamPoolOutput, error)
+	ModifyIpam(ctx context.Context, params *ec2.ModifyIpamInput, optFns ...func(*Options)) (*ec2.ModifyIpamOutput, error)
+	// Modify the configurations of an IPAM pool.
+	//
+	// For more information, see [Modify a pool] in the Amazon VPC IPAM User Guide.
+	//
+	// [Modify a pool]: https://docs.aws.amazon.com/vpc/latest/ipam/mod-pool-ipam.html
+	ModifyIpamPool(ctx context.Context, params *ec2.ModifyIpamPoolInput, optFns ...func(*Options)) (*ec2.ModifyIpamPoolOutput, error)
 	// Modify a resource CIDR. You can use this action to transfer resource CIDRs
 	// between scopes and ignore resource CIDRs that you do not want to manage. If set
 	// to false, the resource will not be tracked for overlap, it cannot be
 	// auto-imported into a pool, and it will be removed from any pool it has an
-	// allocation in. For more information, see Move resource CIDRs between scopes and
-	// Change the monitoring state of resource CIDRs in the Amazon VPC IPAM User Guide.
-	ModifyIpamResourceCidr(ctx context.Context, params *ModifyIpamResourceCidrInput, optFns ...func(*Options)) (*ModifyIpamResourceCidrOutput, error)
+	// allocation in.
+	//
+	// For more information, see [Move resource CIDRs between scopes] and [Change the monitoring state of resource CIDRs] in the Amazon VPC IPAM User Guide.
+	//
+	// [Change the monitoring state of resource CIDRs]: https://docs.aws.amazon.com/vpc/latest/ipam/change-monitoring-state-ipam.html
+	// [Move resource CIDRs between scopes]: https://docs.aws.amazon.com/vpc/latest/ipam/move-resource-ipam.html
+	ModifyIpamResourceCidr(ctx context.Context, params *ec2.ModifyIpamResourceCidrInput, optFns ...func(*Options)) (*ec2.ModifyIpamResourceCidrOutput, error)
+	// Modifies a resource discovery. A resource discovery is an IPAM component that
+	// enables IPAM to manage and monitor resources that belong to the owning account.
+	ModifyIpamResourceDiscovery(ctx context.Context, params *ec2.ModifyIpamResourceDiscoveryInput, optFns ...func(*Options)) (*ec2.ModifyIpamResourceDiscoveryOutput, error)
 	// Modify an IPAM scope.
-	ModifyIpamScope(ctx context.Context, params *ModifyIpamScopeInput, optFns ...func(*Options)) (*ModifyIpamScopeOutput, error)
-	// Modifies a launch template. You can specify which version of the launch template
-	// to set as the default version. When launching an instance, the default version
-	// applies when a launch template version is not specified.
-	ModifyLaunchTemplate(ctx context.Context, params *ModifyLaunchTemplateInput, optFns ...func(*Options)) (*ModifyLaunchTemplateOutput, error)
-	// Modifies the specified managed prefix list. Adding or removing entries in a
-	// prefix list creates a new version of the prefix list. Changing the name of the
-	// prefix list does not affect the version. If you specify a current version number
-	// that does not match the true current version number, the request fails.
-	ModifyManagedPrefixList(ctx context.Context, params *ModifyManagedPrefixListInput, optFns ...func(*Options)) (*ModifyManagedPrefixListOutput, error)
+	ModifyIpamScope(ctx context.Context, params *ec2.ModifyIpamScopeInput, optFns ...func(*Options)) (*ec2.ModifyIpamScopeOutput, error)
+	// Modifies a launch template. You can specify which version of the launch
+	// template to set as the default version. When launching an instance, the default
+	// version applies when a launch template version is not specified.
+	ModifyLaunchTemplate(ctx context.Context, params *ec2.ModifyLaunchTemplateInput, optFns ...func(*Options)) (*ec2.ModifyLaunchTemplateOutput, error)
+	// Modifies the specified local gateway route.
+	ModifyLocalGatewayRoute(ctx context.Context, params *ec2.ModifyLocalGatewayRouteInput, optFns ...func(*Options)) (*ec2.ModifyLocalGatewayRouteOutput, error)
+	// Modifies the specified managed prefix list.
+	//
+	// Adding or removing entries in a prefix list creates a new version of the prefix
+	// list. Changing the name of the prefix list does not affect the version.
+	//
+	// If you specify a current version number that does not match the true current
+	// version number, the request fails.
+	ModifyManagedPrefixList(ctx context.Context, params *ec2.ModifyManagedPrefixListInput, optFns ...func(*Options)) (*ec2.ModifyManagedPrefixListOutput, error)
 	// Modifies the specified network interface attribute. You can specify only one
 	// attribute at a time. You can use this action to attach and detach security
 	// groups from an existing EC2 instance.
-	ModifyNetworkInterfaceAttribute(ctx context.Context, params *ModifyNetworkInterfaceAttributeInput, optFns ...func(*Options)) (*ModifyNetworkInterfaceAttributeOutput, error)
+	ModifyNetworkInterfaceAttribute(ctx context.Context, params *ec2.ModifyNetworkInterfaceAttributeInput, optFns ...func(*Options)) (*ec2.ModifyNetworkInterfaceAttributeOutput, error)
 	// Modifies the options for instance hostnames for the specified instance.
-	ModifyPrivateDnsNameOptions(ctx context.Context, params *ModifyPrivateDnsNameOptionsInput, optFns ...func(*Options)) (*ModifyPrivateDnsNameOptionsOutput, error)
-	// Modifies the Availability Zone, instance count, instance type, or network
-	// platform (EC2-Classic or EC2-VPC) of your Reserved Instances. The Reserved
-	// Instances to be modified must be identical, except for Availability Zone,
-	// network platform, and instance type. For more information, see Modifying
-	// Reserved Instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-modifying.html) in the
-	// Amazon EC2 User Guide.
-	ModifyReservedInstances(ctx context.Context, params *ModifyReservedInstancesInput, optFns ...func(*Options)) (*ModifyReservedInstancesOutput, error)
+	ModifyPrivateDnsNameOptions(ctx context.Context, params *ec2.ModifyPrivateDnsNameOptionsInput, optFns ...func(*Options)) (*ec2.ModifyPrivateDnsNameOptionsOutput, error)
+	// Modify public hostname options for a network interface. For more information,
+	// see [EC2 instance hostnames, DNS names, and domains]in the Amazon EC2 User Guide.
+	//
+	// [EC2 instance hostnames, DNS names, and domains]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-naming.html
+	ModifyPublicIpDnsNameOptions(ctx context.Context, params *ec2.ModifyPublicIpDnsNameOptionsInput, optFns ...func(*Options)) (*ec2.ModifyPublicIpDnsNameOptionsOutput, error)
+	// Modifies the configuration of your Reserved Instances, such as the Availability
+	// Zone, instance count, or instance type. The Reserved Instances to be modified
+	// must be identical, except for Availability Zone, network platform, and instance
+	// type.
+	//
+	// For more information, see [Modify Reserved Instances] in the Amazon EC2 User Guide.
+	//
+	// [Modify Reserved Instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-modifying.html
+	ModifyReservedInstances(ctx context.Context, params *ec2.ModifyReservedInstancesInput, optFns ...func(*Options)) (*ec2.ModifyReservedInstancesOutput, error)
+	// Modifies the configuration of an existing route server.
+	//
+	// Amazon VPC Route Server simplifies routing for traffic between workloads that
+	// are deployed within a VPC and its internet gateways. With this feature, VPC
+	// Route Server dynamically updates VPC and internet gateway route tables with your
+	// preferred IPv4 or IPv6 routes to achieve routing fault tolerance for those
+	// workloads. This enables you to automatically reroute traffic within a VPC, which
+	// increases the manageability of VPC routing and interoperability with third-party
+	// workloads.
+	//
+	// Route server supports the follow route table types:
+	//
+	//   - VPC route tables not associated with subnets
+	//
+	//   - Subnet route tables
+	//
+	//   - Internet gateway route tables
+	//
+	// Route server does not support route tables associated with virtual private
+	// gateways. To propagate routes into a transit gateway route table, use [Transit Gateway Connect].
+	//
+	// For more information see [Dynamic routing in your VPC with VPC Route Server] in the Amazon VPC User Guide.
+	//
+	// [Dynamic routing in your VPC with VPC Route Server]: https://docs.aws.amazon.com/vpc/latest/userguide/dynamic-routing-route-server.html
+	// [Transit Gateway Connect]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-connect.html
+	ModifyRouteServer(ctx context.Context, params *ec2.ModifyRouteServerInput, optFns ...func(*Options)) (*ec2.ModifyRouteServerOutput, error)
 	// Modifies the rules of a security group.
-	ModifySecurityGroupRules(ctx context.Context, params *ModifySecurityGroupRulesInput, optFns ...func(*Options)) (*ModifySecurityGroupRulesOutput, error)
+	ModifySecurityGroupRules(ctx context.Context, params *ec2.ModifySecurityGroupRulesInput, optFns ...func(*Options)) (*ec2.ModifySecurityGroupRulesOutput, error)
 	// Adds or removes permission settings for the specified snapshot. You may add or
 	// remove specified Amazon Web Services account IDs from a snapshot's list of
 	// create volume permissions, but you cannot do both in a single operation. If you
 	// need to both add and remove account IDs for a snapshot, you must use multiple
 	// operations. You can make up to 500 modifications to a snapshot in a single
-	// operation. Encrypted snapshots and snapshots with Amazon Web Services
-	// Marketplace product codes cannot be made public. Snapshots encrypted with your
-	// default KMS key cannot be shared with other accounts. For more information about
-	// modifying snapshot permissions, see Share a snapshot
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-modifying-snapshot-permissions.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	ModifySnapshotAttribute(ctx context.Context, params *ModifySnapshotAttributeInput, optFns ...func(*Options)) (*ModifySnapshotAttributeOutput, error)
-	// Archives an Amazon EBS snapshot. When you archive a snapshot, it is converted to
-	// a full snapshot that includes all of the blocks of data that were written to the
-	// volume at the time the snapshot was created, and moved from the standard tier to
-	// the archive tier. For more information, see Archive Amazon EBS snapshots
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/snapshot-archive.html) in
-	// the Amazon Elastic Compute Cloud User Guide.
-	ModifySnapshotTier(ctx context.Context, params *ModifySnapshotTierInput, optFns ...func(*Options)) (*ModifySnapshotTierOutput, error)
-	// Modifies the specified Spot Fleet request. You can only modify a Spot Fleet
-	// request of type maintain. While the Spot Fleet request is being modified, it is
-	// in the modifying state. To scale up your Spot Fleet, increase its target
-	// capacity. The Spot Fleet launches the additional Spot Instances according to the
-	// allocation strategy for the Spot Fleet request. If the allocation strategy is
-	// lowestPrice, the Spot Fleet launches instances using the Spot Instance pool with
-	// the lowest price. If the allocation strategy is diversified, the Spot Fleet
-	// distributes the instances across the Spot Instance pools. If the allocation
-	// strategy is capacityOptimized, Spot Fleet launches instances from Spot Instance
-	// pools with optimal capacity for the number of instances that are launching. To
-	// scale down your Spot Fleet, decrease its target capacity. First, the Spot Fleet
-	// cancels any open requests that exceed the new target capacity. You can request
-	// that the Spot Fleet terminate Spot Instances until the size of the fleet no
-	// longer exceeds the new target capacity. If the allocation strategy is
-	// lowestPrice, the Spot Fleet terminates the instances with the highest price per
-	// unit. If the allocation strategy is capacityOptimized, the Spot Fleet terminates
-	// the instances in the Spot Instance pools that have the least available Spot
-	// Instance capacity. If the allocation strategy is diversified, the Spot Fleet
-	// terminates instances across the Spot Instance pools. Alternatively, you can
-	// request that the Spot Fleet keep the fleet at its current size, but not replace
-	// any Spot Instances that are interrupted or that you terminate manually. If you
-	// are finished with your Spot Fleet for now, but will use it again later, you can
-	// set the target capacity to 0.
-	ModifySpotFleetRequest(ctx context.Context, params *ModifySpotFleetRequestInput, optFns ...func(*Options)) (*ModifySpotFleetRequestOutput, error)
-	// Modifies a subnet attribute. You can only modify one attribute at a time. Use
-	// this action to modify subnets on Amazon Web Services Outposts.
+	// operation.
 	//
-	// * To modify a
-	// subnet on an Outpost rack, set both MapCustomerOwnedIpOnLaunch and
-	// CustomerOwnedIpv4Pool. These two parameters act as a single attribute.
+	// Encrypted snapshots and snapshots with Amazon Web Services Marketplace product
+	// codes cannot be made public. Snapshots encrypted with your default KMS key
+	// cannot be shared with other accounts.
 	//
-	// * To
-	// modify a subnet on an Outpost server, set either EnableLniAtDeviceIndex or
-	// DisableLniAtDeviceIndex.
+	// For more information about modifying snapshot permissions, see [Share a snapshot] in the Amazon
+	// EBS User Guide.
 	//
-	// For more information about Amazon Web Services
-	// Outposts, see the following:
+	// [Share a snapshot]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-modifying-snapshot-permissions.html
+	ModifySnapshotAttribute(ctx context.Context, params *ec2.ModifySnapshotAttributeInput, optFns ...func(*Options)) (*ec2.ModifySnapshotAttributeOutput, error)
+	// Archives an Amazon EBS snapshot. When you archive a snapshot, it is converted
+	// to a full snapshot that includes all of the blocks of data that were written to
+	// the volume at the time the snapshot was created, and moved from the standard
+	// tier to the archive tier. For more information, see [Archive Amazon EBS snapshots]in the Amazon EBS User
+	// Guide.
 	//
-	// * Outpost servers
-	// (https://docs.aws.amazon.com/outposts/latest/userguide/how-servers-work.html)
+	// [Archive Amazon EBS snapshots]: https://docs.aws.amazon.com/ebs/latest/userguide/snapshot-archive.html
+	ModifySnapshotTier(ctx context.Context, params *ec2.ModifySnapshotTierInput, optFns ...func(*Options)) (*ec2.ModifySnapshotTierOutput, error)
+	// Modifies the specified Spot Fleet request.
 	//
-	// *
-	// Outpost racks
-	// (https://docs.aws.amazon.com/outposts/latest/userguide/how-racks-work.html)
-	ModifySubnetAttribute(ctx context.Context, params *ModifySubnetAttributeInput, optFns ...func(*Options)) (*ModifySubnetAttributeOutput, error)
-	// Allows or restricts mirroring network services. By default, Amazon DNS network
-	// services are not eligible for Traffic Mirror. Use AddNetworkServices to add
-	// network services to a Traffic Mirror filter. When a network service is added to
-	// the Traffic Mirror filter, all traffic related to that network service will be
-	// mirrored. When you no longer want to mirror network services, use
-	// RemoveNetworkServices to remove the network services from the Traffic Mirror
-	// filter.
-	ModifyTrafficMirrorFilterNetworkServices(ctx context.Context, params *ModifyTrafficMirrorFilterNetworkServicesInput, optFns ...func(*Options)) (*ModifyTrafficMirrorFilterNetworkServicesOutput, error)
-	// Modifies the specified Traffic Mirror rule. DestinationCidrBlock and
-	// SourceCidrBlock must both be an IPv4 range or an IPv6 range.
-	ModifyTrafficMirrorFilterRule(ctx context.Context, params *ModifyTrafficMirrorFilterRuleInput, optFns ...func(*Options)) (*ModifyTrafficMirrorFilterRuleOutput, error)
+	// You can only modify a Spot Fleet request of type maintain .
+	//
+	// While the Spot Fleet request is being modified, it is in the modifying state.
+	//
+	// To scale up your Spot Fleet, increase its target capacity. The Spot Fleet
+	// launches the additional Spot Instances according to the allocation strategy for
+	// the Spot Fleet request. If the allocation strategy is lowestPrice , the Spot
+	// Fleet launches instances using the Spot Instance pool with the lowest price. If
+	// the allocation strategy is diversified , the Spot Fleet distributes the
+	// instances across the Spot Instance pools. If the allocation strategy is
+	// capacityOptimized , Spot Fleet launches instances from Spot Instance pools with
+	// optimal capacity for the number of instances that are launching.
+	//
+	// To scale down your Spot Fleet, decrease its target capacity. First, the Spot
+	// Fleet cancels any open requests that exceed the new target capacity. You can
+	// request that the Spot Fleet terminate Spot Instances until the size of the fleet
+	// no longer exceeds the new target capacity. If the allocation strategy is
+	// lowestPrice , the Spot Fleet terminates the instances with the highest price per
+	// unit. If the allocation strategy is capacityOptimized , the Spot Fleet
+	// terminates the instances in the Spot Instance pools that have the least
+	// available Spot Instance capacity. If the allocation strategy is diversified ,
+	// the Spot Fleet terminates instances across the Spot Instance pools.
+	// Alternatively, you can request that the Spot Fleet keep the fleet at its current
+	// size, but not replace any Spot Instances that are interrupted or that you
+	// terminate manually.
+	//
+	// If you are finished with your Spot Fleet for now, but will use it again later,
+	// you can set the target capacity to 0.
+	ModifySpotFleetRequest(ctx context.Context, params *ec2.ModifySpotFleetRequestInput, optFns ...func(*Options)) (*ec2.ModifySpotFleetRequestOutput, error)
+	// Modifies a subnet attribute. You can only modify one attribute at a time.
+	//
+	// Use this action to modify subnets on Amazon Web Services Outposts.
+	//
+	//   - To modify a subnet on an Outpost rack, set both MapCustomerOwnedIpOnLaunch
+	//     and CustomerOwnedIpv4Pool . These two parameters act as a single attribute.
+	//
+	//   - To modify a subnet on an Outpost server, set either EnableLniAtDeviceIndex
+	//     or DisableLniAtDeviceIndex .
+	//
+	// For more information about Amazon Web Services Outposts, see the following:
+	//
+	// [Outpost servers]
+	//
+	// [Outpost racks]
+	//
+	// [Outpost servers]: https://docs.aws.amazon.com/outposts/latest/userguide/how-servers-work.html
+	// [Outpost racks]: https://docs.aws.amazon.com/outposts/latest/userguide/how-racks-work.html
+	ModifySubnetAttribute(ctx context.Context, params *ec2.ModifySubnetAttributeInput, optFns ...func(*Options)) (*ec2.ModifySubnetAttributeOutput, error)
+	// Allows or restricts mirroring network services.
+	//
+	// By default, Amazon DNS network services are not eligible for Traffic Mirror.
+	// Use AddNetworkServices to add network services to a Traffic Mirror filter. When
+	// a network service is added to the Traffic Mirror filter, all traffic related to
+	// that network service will be mirrored. When you no longer want to mirror network
+	// services, use RemoveNetworkServices to remove the network services from the
+	// Traffic Mirror filter.
+	ModifyTrafficMirrorFilterNetworkServices(ctx context.Context, params *ec2.ModifyTrafficMirrorFilterNetworkServicesInput, optFns ...func(*Options)) (*ec2.ModifyTrafficMirrorFilterNetworkServicesOutput, error)
+	// Modifies the specified Traffic Mirror rule.
+	//
+	// DestinationCidrBlock and SourceCidrBlock must both be an IPv4 range or an IPv6
+	// range.
+	ModifyTrafficMirrorFilterRule(ctx context.Context, params *ec2.ModifyTrafficMirrorFilterRuleInput, optFns ...func(*Options)) (*ec2.ModifyTrafficMirrorFilterRuleOutput, error)
 	// Modifies a Traffic Mirror session.
-	ModifyTrafficMirrorSession(ctx context.Context, params *ModifyTrafficMirrorSessionInput, optFns ...func(*Options)) (*ModifyTrafficMirrorSessionOutput, error)
+	ModifyTrafficMirrorSession(ctx context.Context, params *ec2.ModifyTrafficMirrorSessionInput, optFns ...func(*Options)) (*ec2.ModifyTrafficMirrorSessionOutput, error)
 	// Modifies the specified transit gateway. When you modify a transit gateway, the
 	// modified options are applied to new transit gateway attachments only. Your
 	// existing transit gateway attachments are not modified.
-	ModifyTransitGateway(ctx context.Context, params *ModifyTransitGatewayInput, optFns ...func(*Options)) (*ModifyTransitGatewayOutput, error)
+	ModifyTransitGateway(ctx context.Context, params *ec2.ModifyTransitGatewayInput, optFns ...func(*Options)) (*ec2.ModifyTransitGatewayOutput, error)
 	// Modifies a reference (route) to a prefix list in a specified transit gateway
 	// route table.
-	ModifyTransitGatewayPrefixListReference(ctx context.Context, params *ModifyTransitGatewayPrefixListReferenceInput, optFns ...func(*Options)) (*ModifyTransitGatewayPrefixListReferenceOutput, error)
+	ModifyTransitGatewayPrefixListReference(ctx context.Context, params *ec2.ModifyTransitGatewayPrefixListReferenceInput, optFns ...func(*Options)) (*ec2.ModifyTransitGatewayPrefixListReferenceOutput, error)
 	// Modifies the specified VPC attachment.
-	ModifyTransitGatewayVpcAttachment(ctx context.Context, params *ModifyTransitGatewayVpcAttachmentInput, optFns ...func(*Options)) (*ModifyTransitGatewayVpcAttachmentOutput, error)
+	ModifyTransitGatewayVpcAttachment(ctx context.Context, params *ec2.ModifyTransitGatewayVpcAttachmentInput, optFns ...func(*Options)) (*ec2.ModifyTransitGatewayVpcAttachmentOutput, error)
+	// Modifies the configuration of the specified Amazon Web Services Verified Access
+	// endpoint.
+	ModifyVerifiedAccessEndpoint(ctx context.Context, params *ec2.ModifyVerifiedAccessEndpointInput, optFns ...func(*Options)) (*ec2.ModifyVerifiedAccessEndpointOutput, error)
+	// Modifies the specified Amazon Web Services Verified Access endpoint policy.
+	ModifyVerifiedAccessEndpointPolicy(ctx context.Context, params *ec2.ModifyVerifiedAccessEndpointPolicyInput, optFns ...func(*Options)) (*ec2.ModifyVerifiedAccessEndpointPolicyOutput, error)
+	// Modifies the specified Amazon Web Services Verified Access group configuration.
+	ModifyVerifiedAccessGroup(ctx context.Context, params *ec2.ModifyVerifiedAccessGroupInput, optFns ...func(*Options)) (*ec2.ModifyVerifiedAccessGroupOutput, error)
+	// Modifies the specified Amazon Web Services Verified Access group policy.
+	ModifyVerifiedAccessGroupPolicy(ctx context.Context, params *ec2.ModifyVerifiedAccessGroupPolicyInput, optFns ...func(*Options)) (*ec2.ModifyVerifiedAccessGroupPolicyOutput, error)
+	// Modifies the configuration of the specified Amazon Web Services Verified Access
+	// instance.
+	ModifyVerifiedAccessInstance(ctx context.Context, params *ec2.ModifyVerifiedAccessInstanceInput, optFns ...func(*Options)) (*ec2.ModifyVerifiedAccessInstanceOutput, error)
+	// Modifies the logging configuration for the specified Amazon Web Services
+	// Verified Access instance.
+	ModifyVerifiedAccessInstanceLoggingConfiguration(ctx context.Context, params *ec2.ModifyVerifiedAccessInstanceLoggingConfigurationInput, optFns ...func(*Options)) (*ec2.ModifyVerifiedAccessInstanceLoggingConfigurationOutput, error)
+	// Modifies the configuration of the specified Amazon Web Services Verified Access
+	// trust provider.
+	ModifyVerifiedAccessTrustProvider(ctx context.Context, params *ec2.ModifyVerifiedAccessTrustProviderInput, optFns ...func(*Options)) (*ec2.ModifyVerifiedAccessTrustProviderOutput, error)
 	// You can modify several parameters of an existing EBS volume, including volume
 	// size, volume type, and IOPS capacity. If your EBS volume is attached to a
 	// current-generation EC2 instance type, you might be able to apply these changes
 	// without stopping the instance or detaching the volume from it. For more
-	// information about modifying EBS volumes, see Amazon EBS Elastic Volumes
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-modify-volume.html)
-	// (Linux instances) or Amazon EBS Elastic Volumes
-	// (https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/ebs-modify-volume.html)
-	// (Windows instances). When you complete a resize operation on your volume, you
-	// need to extend the volume's file-system size to take advantage of the new
-	// storage capacity. For more information, see Extend a Linux file system
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-expand-volume.html#recognize-expanded-volume-linux)
-	// or Extend a Windows file system
-	// (https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/ebs-expand-volume.html#recognize-expanded-volume-windows).
-	// You can use CloudWatch Events to check the status of a modification to an EBS
-	// volume. For information about CloudWatch Events, see the Amazon CloudWatch
-	// Events User Guide (https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/).
-	// You can also track the status of a modification using
-	// DescribeVolumesModifications. For information about tracking status changes
-	// using either method, see Monitor the progress of volume modifications
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-volume-modifications.html).
+	// information about modifying EBS volumes, see [Amazon EBS Elastic Volumes]in the Amazon EBS User Guide.
+	//
+	// When you complete a resize operation on your volume, you need to extend the
+	// volume's file-system size to take advantage of the new storage capacity. For
+	// more information, see [Extend the file system].
+	//
+	// For more information, see [Monitor the progress of volume modifications] in the Amazon EBS User Guide.
+	//
 	// With previous-generation instance types, resizing an EBS volume might require
-	// detaching and reattaching the volume or stopping and restarting the instance. If
-	// you reach the maximum volume modification rate per volume limit, you must wait
-	// at least six hours before applying further modifications to the affected EBS
-	// volume.
-	ModifyVolume(ctx context.Context, params *ModifyVolumeInput, optFns ...func(*Options)) (*ModifyVolumeOutput, error)
-	// Modifies a volume attribute. By default, all I/O operations for the volume are
-	// suspended when the data on the volume is determined to be potentially
-	// inconsistent, to prevent undetectable, latent data corruption. The I/O access to
-	// the volume can be resumed by first enabling I/O access and then checking the
-	// data consistency on your volume. You can change the default behavior to resume
-	// I/O operations. We recommend that you change this only for boot volumes or for
-	// volumes that are stateless or disposable.
-	ModifyVolumeAttribute(ctx context.Context, params *ModifyVolumeAttributeInput, optFns ...func(*Options)) (*ModifyVolumeAttributeOutput, error)
+	// detaching and reattaching the volume or stopping and restarting the instance.
+	//
+	// After modifying a volume, you must wait at least six hours and ensure that the
+	// volume is in the in-use or available state before you can modify the same
+	// volume. This is sometimes referred to as a cooldown period.
+	//
+	// [Monitor the progress of volume modifications]: https://docs.aws.amazon.com/ebs/latest/userguide/monitoring-volume-modifications.html
+	// [Amazon EBS Elastic Volumes]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-modify-volume.html
+	// [Extend the file system]: https://docs.aws.amazon.com/ebs/latest/userguide/recognize-expanded-volume-linux.html
+	ModifyVolume(ctx context.Context, params *ec2.ModifyVolumeInput, optFns ...func(*Options)) (*ec2.ModifyVolumeOutput, error)
+	// Modifies a volume attribute.
+	//
+	// By default, all I/O operations for the volume are suspended when the data on
+	// the volume is determined to be potentially inconsistent, to prevent
+	// undetectable, latent data corruption. The I/O access to the volume can be
+	// resumed by first enabling I/O access and then checking the data consistency on
+	// your volume.
+	//
+	// You can change the default behavior to resume I/O operations. We recommend that
+	// you change this only for boot volumes or for volumes that are stateless or
+	// disposable.
+	ModifyVolumeAttribute(ctx context.Context, params *ec2.ModifyVolumeAttributeInput, optFns ...func(*Options)) (*ec2.ModifyVolumeAttributeOutput, error)
 	// Modifies the specified attribute of the specified VPC.
-	ModifyVpcAttribute(ctx context.Context, params *ModifyVpcAttributeInput, optFns ...func(*Options)) (*ModifyVpcAttributeOutput, error)
+	ModifyVpcAttribute(ctx context.Context, params *ec2.ModifyVpcAttributeInput, optFns ...func(*Options)) (*ec2.ModifyVpcAttributeOutput, error)
+	// Modify VPC Block Public Access (BPA) exclusions. A VPC BPA exclusion is a mode
+	// that can be applied to a single VPC or subnet that exempts it from the account’s
+	// BPA mode and will allow bidirectional or egress-only access. You can create BPA
+	// exclusions for VPCs and subnets even when BPA is not enabled on the account to
+	// ensure that there is no traffic disruption to the exclusions when VPC BPA is
+	// turned on.
+	ModifyVpcBlockPublicAccessExclusion(ctx context.Context, params *ec2.ModifyVpcBlockPublicAccessExclusionInput, optFns ...func(*Options)) (*ec2.ModifyVpcBlockPublicAccessExclusionOutput, error)
+	// Modify VPC Block Public Access (BPA) options. VPC Block Public Access (BPA)
+	// enables you to block resources in VPCs and subnets that you own in a Region from
+	// reaching or being reached from the internet through internet gateways and
+	// egress-only internet gateways. To learn more about VPC BPA, see [Block public access to VPCs and subnets]in the Amazon
+	// VPC User Guide.
+	//
+	// [Block public access to VPCs and subnets]: https://docs.aws.amazon.com/vpc/latest/userguide/security-vpc-bpa.html
+	ModifyVpcBlockPublicAccessOptions(ctx context.Context, params *ec2.ModifyVpcBlockPublicAccessOptionsInput, optFns ...func(*Options)) (*ec2.ModifyVpcBlockPublicAccessOptionsOutput, error)
 	// Modifies attributes of a specified VPC endpoint. The attributes that you can
 	// modify depend on the type of VPC endpoint (interface, gateway, or Gateway Load
-	// Balancer). For more information, see VPC Endpoints
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	ModifyVpcEndpoint(ctx context.Context, params *ModifyVpcEndpointInput, optFns ...func(*Options)) (*ModifyVpcEndpointOutput, error)
-	// Modifies a connection notification for VPC endpoint or VPC endpoint service. You
-	// can change the SNS topic for the notification, or the events for which to be
+	// Balancer). For more information, see the [Amazon Web Services PrivateLink Guide].
+	//
+	// [Amazon Web Services PrivateLink Guide]: https://docs.aws.amazon.com/vpc/latest/privatelink/
+	ModifyVpcEndpoint(ctx context.Context, params *ec2.ModifyVpcEndpointInput, optFns ...func(*Options)) (*ec2.ModifyVpcEndpointOutput, error)
+	// Modifies a connection notification for VPC endpoint or VPC endpoint service.
+	// You can change the SNS topic for the notification, or the events for which to be
 	// notified.
-	ModifyVpcEndpointConnectionNotification(ctx context.Context, params *ModifyVpcEndpointConnectionNotificationInput, optFns ...func(*Options)) (*ModifyVpcEndpointConnectionNotificationOutput, error)
-	// Modifies the attributes of your VPC endpoint service configuration. You can
-	// change the Network Load Balancers or Gateway Load Balancers for your service,
-	// and you can specify whether acceptance is required for requests to connect to
-	// your endpoint service through an interface VPC endpoint. If you set or modify
-	// the private DNS name, you must prove that you own the private DNS domain name.
-	// For more information, see VPC Endpoint Service Private DNS Name Verification
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-services-dns-validation.html)
-	// in the Amazon Virtual Private Cloud User Guide.
-	ModifyVpcEndpointServiceConfiguration(ctx context.Context, params *ModifyVpcEndpointServiceConfigurationInput, optFns ...func(*Options)) (*ModifyVpcEndpointServiceConfigurationOutput, error)
+	ModifyVpcEndpointConnectionNotification(ctx context.Context, params *ec2.ModifyVpcEndpointConnectionNotificationInput, optFns ...func(*Options)) (*ec2.ModifyVpcEndpointConnectionNotificationOutput, error)
+	// Modifies the attributes of the specified VPC endpoint service configuration.
+	//
+	// If you set or modify the private DNS name, you must prove that you own the
+	// private DNS domain name.
+	ModifyVpcEndpointServiceConfiguration(ctx context.Context, params *ec2.ModifyVpcEndpointServiceConfigurationInput, optFns ...func(*Options)) (*ec2.ModifyVpcEndpointServiceConfigurationOutput, error)
 	// Modifies the payer responsibility for your VPC endpoint service.
-	ModifyVpcEndpointServicePayerResponsibility(ctx context.Context, params *ModifyVpcEndpointServicePayerResponsibilityInput, optFns ...func(*Options)) (*ModifyVpcEndpointServicePayerResponsibilityOutput, error)
-	// Modifies the permissions for your VPC endpoint service
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-service.html). You
-	// can add or remove permissions for service consumers (IAM users, IAM roles, and
-	// Amazon Web Services accounts) to connect to your endpoint service. If you grant
-	// permissions to all principals, the service is public. Any users who know the
-	// name of a public service can send a request to attach an endpoint. If the
-	// service does not require manual approval, attachments are automatically
+	ModifyVpcEndpointServicePayerResponsibility(ctx context.Context, params *ec2.ModifyVpcEndpointServicePayerResponsibilityInput, optFns ...func(*Options)) (*ec2.ModifyVpcEndpointServicePayerResponsibilityOutput, error)
+	// Modifies the permissions for your VPC endpoint service. You can add or remove
+	// permissions for service consumers (Amazon Web Services accounts, users, and IAM
+	// roles) to connect to your endpoint service. Principal ARNs with path components
+	// aren't supported.
+	//
+	// If you grant permissions to all principals, the service is public. Any users
+	// who know the name of a public service can send a request to attach an endpoint.
+	// If the service does not require manual approval, attachments are automatically
 	// approved.
-	ModifyVpcEndpointServicePermissions(ctx context.Context, params *ModifyVpcEndpointServicePermissionsInput, optFns ...func(*Options)) (*ModifyVpcEndpointServicePermissionsOutput, error)
+	ModifyVpcEndpointServicePermissions(ctx context.Context, params *ec2.ModifyVpcEndpointServicePermissionsInput, optFns ...func(*Options)) (*ec2.ModifyVpcEndpointServicePermissionsOutput, error)
 	// Modifies the VPC peering connection options on one side of a VPC peering
-	// connection. You can do the following:
+	// connection.
 	//
-	// * Enable/disable communication over the
-	// peering connection between an EC2-Classic instance that's linked to your VPC
-	// (using ClassicLink) and instances in the peer VPC.
+	// If the peered VPCs are in the same Amazon Web Services account, you can enable
+	// DNS resolution for queries from the local VPC. This ensures that queries from
+	// the local VPC resolve to private IP addresses in the peer VPC. This option is
+	// not available if the peered VPCs are in different Amazon Web Services accounts
+	// or different Regions. For peered VPCs in different Amazon Web Services accounts,
+	// each Amazon Web Services account owner must initiate a separate request to
+	// modify the peering connection options. For inter-region peering connections, you
+	// must use the Region for the requester VPC to modify the requester VPC peering
+	// options and the Region for the accepter VPC to modify the accepter VPC peering
+	// options. To verify which VPCs are the accepter and the requester for a VPC
+	// peering connection, use the DescribeVpcPeeringConnectionscommand.
+	ModifyVpcPeeringConnectionOptions(ctx context.Context, params *ec2.ModifyVpcPeeringConnectionOptionsInput, optFns ...func(*Options)) (*ec2.ModifyVpcPeeringConnectionOptionsOutput, error)
+	// Modifies the instance tenancy attribute of the specified VPC. You can change
+	// the instance tenancy attribute of a VPC to default only. You cannot change the
+	// instance tenancy attribute to dedicated .
 	//
-	// * Enable/disable
-	// communication over the peering connection between instances in your VPC and an
-	// EC2-Classic instance that's linked to the peer VPC.
+	// After you modify the tenancy of the VPC, any new instances that you launch into
+	// the VPC have a tenancy of default , unless you specify otherwise during launch.
+	// The tenancy of any existing instances in the VPC is not affected.
 	//
-	// * Enable/disable the
-	// ability to resolve public DNS hostnames to private IP addresses when queried
-	// from instances in the peer VPC.
+	// For more information, see [Dedicated Instances] in the Amazon EC2 User Guide.
 	//
-	// If the peered VPCs are in the same Amazon Web
-	// Services account, you can enable DNS resolution for queries from the local VPC.
-	// This ensures that queries from the local VPC resolve to private IP addresses in
-	// the peer VPC. This option is not available if the peered VPCs are in different
-	// different Amazon Web Services accounts or different Regions. For peered VPCs in
-	// different Amazon Web Services accounts, each Amazon Web Services account owner
-	// must initiate a separate request to modify the peering connection options. For
-	// inter-region peering connections, you must use the Region for the requester VPC
-	// to modify the requester VPC peering options and the Region for the accepter VPC
-	// to modify the accepter VPC peering options. To verify which VPCs are the
-	// accepter and the requester for a VPC peering connection, use the
-	// DescribeVpcPeeringConnections command.
-	ModifyVpcPeeringConnectionOptions(ctx context.Context, params *ModifyVpcPeeringConnectionOptionsInput, optFns ...func(*Options)) (*ModifyVpcPeeringConnectionOptionsOutput, error)
-	// Modifies the instance tenancy attribute of the specified VPC. You can change the
-	// instance tenancy attribute of a VPC to default only. You cannot change the
-	// instance tenancy attribute to dedicated. After you modify the tenancy of the
-	// VPC, any new instances that you launch into the VPC have a tenancy of default,
-	// unless you specify otherwise during launch. The tenancy of any existing
-	// instances in the VPC is not affected. For more information, see Dedicated
-	// Instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-instance.html) in
-	// the Amazon Elastic Compute Cloud User Guide.
-	ModifyVpcTenancy(ctx context.Context, params *ModifyVpcTenancyInput, optFns ...func(*Options)) (*ModifyVpcTenancyOutput, error)
+	// [Dedicated Instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-instance.html
+	ModifyVpcTenancy(ctx context.Context, params *ec2.ModifyVpcTenancyInput, optFns ...func(*Options)) (*ec2.ModifyVpcTenancyOutput, error)
 	// Modifies the customer gateway or the target gateway of an Amazon Web Services
 	// Site-to-Site VPN connection. To modify the target gateway, the following
 	// migration options are available:
 	//
-	// * An existing virtual private gateway to a new
-	// virtual private gateway
+	//   - An existing virtual private gateway to a new virtual private gateway
 	//
-	// * An existing virtual private gateway to a transit
-	// gateway
+	//   - An existing virtual private gateway to a transit gateway
 	//
-	// * An existing transit gateway to a new transit gateway
+	//   - An existing transit gateway to a new transit gateway
 	//
-	// * An existing
-	// transit gateway to a virtual private gateway
+	//   - An existing transit gateway to a virtual private gateway
 	//
-	// Before you perform the migration
-	// to the new gateway, you must configure the new gateway. Use CreateVpnGateway to
-	// create a virtual private gateway, or CreateTransitGateway to create a transit
-	// gateway. This step is required when you migrate from a virtual private gateway
-	// with static routes to a transit gateway. You must delete the static routes
-	// before you migrate to the new gateway. Keep a copy of the static route before
-	// you delete it. You will need to add back these routes to the transit gateway
-	// after the VPN connection migration is complete. After you migrate to the new
-	// gateway, you might need to modify your VPC route table. Use CreateRoute and
-	// DeleteRoute to make the changes described in Update VPC route tables
-	// (https://docs.aws.amazon.com/vpn/latest/s2svpn/modify-vpn-target.html#step-update-routing)
-	// in the Amazon Web Services Site-to-Site VPN User Guide. When the new gateway is
-	// a transit gateway, modify the transit gateway route table to allow traffic
-	// between the VPC and the Amazon Web Services Site-to-Site VPN connection. Use
-	// CreateTransitGatewayRoute to add the routes. If you deleted VPN static routes,
-	// you must add the static routes to the transit gateway route table. After you
-	// perform this operation, the VPN endpoint's IP addresses on the Amazon Web
-	// Services side and the tunnel options remain intact. Your Amazon Web Services
+	// Before you perform the migration to the new gateway, you must configure the new
+	// gateway. Use CreateVpnGatewayto create a virtual private gateway, or CreateTransitGateway to create a transit
+	// gateway.
+	//
+	// This step is required when you migrate from a virtual private gateway with
+	// static routes to a transit gateway.
+	//
+	// You must delete the static routes before you migrate to the new gateway.
+	//
+	// Keep a copy of the static route before you delete it. You will need to add back
+	// these routes to the transit gateway after the VPN connection migration is
+	// complete.
+	//
+	// After you migrate to the new gateway, you might need to modify your VPC route
+	// table. Use CreateRouteand DeleteRoute to make the changes described in [Update VPC route tables] in the Amazon Web Services
+	// Site-to-Site VPN User Guide.
+	//
+	// When the new gateway is a transit gateway, modify the transit gateway route
+	// table to allow traffic between the VPC and the Amazon Web Services Site-to-Site
+	// VPN connection. Use CreateTransitGatewayRouteto add the routes.
+	//
+	// If you deleted VPN static routes, you must add the static routes to the transit
+	// gateway route table.
+	//
+	// After you perform this operation, the VPN endpoint's IP addresses on the Amazon
+	// Web Services side and the tunnel options remain intact. Your Amazon Web Services
 	// Site-to-Site VPN connection will be temporarily unavailable for a brief period
 	// while we provision the new endpoints.
-	ModifyVpnConnection(ctx context.Context, params *ModifyVpnConnectionInput, optFns ...func(*Options)) (*ModifyVpnConnectionOutput, error)
-	// Modifies the connection options for your Site-to-Site VPN connection. When you
-	// modify the VPN connection options, the VPN endpoint IP addresses on the Amazon
-	// Web Services side do not change, and the tunnel options do not change. Your VPN
-	// connection will be temporarily unavailable for a brief period while the VPN
-	// connection is updated.
-	ModifyVpnConnectionOptions(ctx context.Context, params *ModifyVpnConnectionOptionsInput, optFns ...func(*Options)) (*ModifyVpnConnectionOptionsOutput, error)
+	//
+	// [Update VPC route tables]: https://docs.aws.amazon.com/vpn/latest/s2svpn/modify-vpn-target.html#step-update-routing
+	ModifyVpnConnection(ctx context.Context, params *ec2.ModifyVpnConnectionInput, optFns ...func(*Options)) (*ec2.ModifyVpnConnectionOutput, error)
+	// Modifies the connection options for your Site-to-Site VPN connection.
+	//
+	// When you modify the VPN connection options, the VPN endpoint IP addresses on
+	// the Amazon Web Services side do not change, and the tunnel options do not
+	// change. Your VPN connection will be temporarily unavailable for a brief period
+	// while the VPN connection is updated.
+	ModifyVpnConnectionOptions(ctx context.Context, params *ec2.ModifyVpnConnectionOptionsInput, optFns ...func(*Options)) (*ec2.ModifyVpnConnectionOptionsOutput, error)
 	// Modifies the VPN tunnel endpoint certificate.
-	ModifyVpnTunnelCertificate(ctx context.Context, params *ModifyVpnTunnelCertificateInput, optFns ...func(*Options)) (*ModifyVpnTunnelCertificateOutput, error)
-	// Modifies the options for a VPN tunnel in an Amazon Web Services Site-to-Site VPN
-	// connection. You can modify multiple options for a tunnel in a single request,
-	// but you can only modify one tunnel at a time. For more information, see
-	// Site-to-Site VPN tunnel options for your Site-to-Site VPN connection
-	// (https://docs.aws.amazon.com/vpn/latest/s2svpn/VPNTunnels.html) in the Amazon
-	// Web Services Site-to-Site VPN User Guide.
-	ModifyVpnTunnelOptions(ctx context.Context, params *ModifyVpnTunnelOptionsInput, optFns ...func(*Options)) (*ModifyVpnTunnelOptionsOutput, error)
+	ModifyVpnTunnelCertificate(ctx context.Context, params *ec2.ModifyVpnTunnelCertificateInput, optFns ...func(*Options)) (*ec2.ModifyVpnTunnelCertificateOutput, error)
+	// Modifies the options for a VPN tunnel in an Amazon Web Services Site-to-Site
+	// VPN connection. You can modify multiple options for a tunnel in a single
+	// request, but you can only modify one tunnel at a time. For more information, see
+	// [Site-to-Site VPN tunnel options for your Site-to-Site VPN connection]in the Amazon Web Services Site-to-Site VPN User Guide.
+	//
+	// [Site-to-Site VPN tunnel options for your Site-to-Site VPN connection]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPNTunnels.html
+	ModifyVpnTunnelOptions(ctx context.Context, params *ec2.ModifyVpnTunnelOptionsInput, optFns ...func(*Options)) (*ec2.ModifyVpnTunnelOptionsOutput, error)
 	// Enables detailed monitoring for a running instance. Otherwise, basic monitoring
-	// is enabled. For more information, see Monitor your instances using CloudWatch
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch.html) in
-	// the Amazon EC2 User Guide. To disable detailed monitoring, see
-	// UnmonitorInstances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_UnmonitorInstances.html).
-	MonitorInstances(ctx context.Context, params *MonitorInstancesInput, optFns ...func(*Options)) (*MonitorInstancesOutput, error)
+	// is enabled. For more information, see [Monitor your instances using CloudWatch]in the Amazon EC2 User Guide.
+	//
+	// To disable detailed monitoring, see [UnmonitorInstances].
+	//
+	// [Monitor your instances using CloudWatch]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch.html
+	// [UnmonitorInstances]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_UnmonitorInstances.html
+	MonitorInstances(ctx context.Context, params *ec2.MonitorInstancesInput, optFns ...func(*Options)) (*ec2.MonitorInstancesOutput, error)
+	// This action is deprecated.
+	//
 	// Moves an Elastic IP address from the EC2-Classic platform to the EC2-VPC
 	// platform. The Elastic IP address must be allocated to your account for more than
 	// 24 hours, and it must not be associated with an instance. After the Elastic IP
-	// address is moved, it is no longer available for use in the EC2-Classic platform,
-	// unless you move it back using the RestoreAddressToClassic request. You cannot
-	// move an Elastic IP address that was originally allocated for use in the EC2-VPC
-	// platform to the EC2-Classic platform.
-	MoveAddressToVpc(ctx context.Context, params *MoveAddressToVpcInput, optFns ...func(*Options)) (*MoveAddressToVpcOutput, error)
-	// Move an BYOIP IPv4 CIDR to IPAM from a public IPv4 pool. If you already have an
-	// IPv4 BYOIP CIDR with Amazon Web Services, you can move the CIDR to IPAM from a
-	// public IPv4 pool. You cannot move an IPv6 CIDR to IPAM. If you are bringing a
-	// new IP address to Amazon Web Services for the first time, complete the steps in
-	// Tutorial: BYOIP address CIDRs to IPAM.
-	MoveByoipCidrToIpam(ctx context.Context, params *MoveByoipCidrToIpamInput, optFns ...func(*Options)) (*MoveByoipCidrToIpamOutput, error)
+	// address is moved, it is no longer available for use in the EC2-Classic platform.
+	// You cannot move an Elastic IP address that was originally allocated for use in
+	// the EC2-VPC platform to the EC2-Classic platform.
+	MoveAddressToVpc(ctx context.Context, params *ec2.MoveAddressToVpcInput, optFns ...func(*Options)) (*ec2.MoveAddressToVpcOutput, error)
+	// Move a BYOIPv4 CIDR to IPAM from a public IPv4 pool.
+	//
+	// If you already have a BYOIPv4 CIDR with Amazon Web Services, you can move the
+	// CIDR to IPAM from a public IPv4 pool. You cannot move an IPv6 CIDR to IPAM. If
+	// you are bringing a new IP address to Amazon Web Services for the first time,
+	// complete the steps in [Tutorial: BYOIP address CIDRs to IPAM].
+	//
+	// [Tutorial: BYOIP address CIDRs to IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/tutorials-byoip-ipam.html
+	MoveByoipCidrToIpam(ctx context.Context, params *ec2.MoveByoipCidrToIpamInput, optFns ...func(*Options)) (*ec2.MoveByoipCidrToIpamOutput, error)
+	// Move available capacity from a source Capacity Reservation to a destination
+	// Capacity Reservation. The source Capacity Reservation and the destination
+	// Capacity Reservation must be active , owned by your Amazon Web Services account,
+	// and share the following:
+	//
+	//   - Instance type
+	//
+	//   - Platform
+	//
+	//   - Availability Zone
+	//
+	//   - Tenancy
+	//
+	//   - Placement group
+	//
+	//   - Capacity Reservation end time - At specific time or Manually .
+	MoveCapacityReservationInstances(ctx context.Context, params *ec2.MoveCapacityReservationInstancesInput, optFns ...func(*Options)) (*ec2.MoveCapacityReservationInstancesOutput, error)
 	// Provisions an IPv4 or IPv6 address range for use with your Amazon Web Services
 	// resources through bring your own IP addresses (BYOIP) and creates a
 	// corresponding address pool. After the address range is provisioned, it is ready
-	// to be advertised using AdvertiseByoipCidr. Amazon Web Services verifies that you
-	// own the address range and are authorized to advertise it. You must ensure that
-	// the address range is registered to you and that you created an RPKI ROA to
-	// authorize Amazon ASNs 16509 and 14618 to advertise the address range. For more
-	// information, see Bring your own IP addresses (BYOIP)
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html) in the
-	// Amazon Elastic Compute Cloud User Guide. Provisioning an address range is an
-	// asynchronous operation, so the call returns immediately, but the address range
-	// is not ready to use until its status changes from pending-provision to
-	// provisioned. To monitor the status of an address range, use DescribeByoipCidrs.
-	// To allocate an Elastic IP address from your IPv4 address pool, use
-	// AllocateAddress with either the specific address from the address pool or the ID
-	// of the address pool.
-	ProvisionByoipCidr(ctx context.Context, params *ProvisionByoipCidrInput, optFns ...func(*Options)) (*ProvisionByoipCidrOutput, error)
-	// Provision a CIDR to an IPAM pool. You can use this action to provision new CIDRs
-	// to a top-level pool or to transfer a CIDR from a top-level pool to a pool within
-	// it. For more information, see Provision CIDRs to pools in the Amazon VPC IPAM
-	// User Guide.
-	ProvisionIpamPoolCidr(ctx context.Context, params *ProvisionIpamPoolCidrInput, optFns ...func(*Options)) (*ProvisionIpamPoolCidrOutput, error)
-	// Provision a CIDR to a public IPv4 pool. For more information about IPAM, see
-	// What is IPAM? in the Amazon VPC IPAM User Guide.
-	ProvisionPublicIpv4PoolCidr(ctx context.Context, params *ProvisionPublicIpv4PoolCidrInput, optFns ...func(*Options)) (*ProvisionPublicIpv4PoolCidrOutput, error)
+	// to be advertised.
+	//
+	// Amazon Web Services verifies that you own the address range and are authorized
+	// to advertise it. You must ensure that the address range is registered to you and
+	// that you created an RPKI ROA to authorize Amazon ASNs 16509 and 14618 to
+	// advertise the address range. For more information, see [Bring your own IP addresses (BYOIP)]in the Amazon EC2 User
+	// Guide.
+	//
+	// Provisioning an address range is an asynchronous operation, so the call returns
+	// immediately, but the address range is not ready to use until its status changes
+	// from pending-provision to provisioned . For more information, see [Onboard your address range].
+	//
+	// [Bring your own IP addresses (BYOIP)]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html
+	// [Onboard your address range]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/byoip-onboard.html
+	ProvisionByoipCidr(ctx context.Context, params *ec2.ProvisionByoipCidrInput, optFns ...func(*Options)) (*ec2.ProvisionByoipCidrOutput, error)
+	// Provisions your Autonomous System Number (ASN) for use in your Amazon Web
+	// Services account. This action requires authorization context for Amazon to bring
+	// the ASN to an Amazon Web Services account. For more information, see [Tutorial: Bring your ASN to IPAM]in the
+	// Amazon VPC IPAM guide.
+	//
+	// [Tutorial: Bring your ASN to IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/tutorials-byoasn.html
+	ProvisionIpamByoasn(ctx context.Context, params *ec2.ProvisionIpamByoasnInput, optFns ...func(*Options)) (*ec2.ProvisionIpamByoasnOutput, error)
+	// Provision a CIDR to an IPAM pool. You can use this action to provision new
+	// CIDRs to a top-level pool or to transfer a CIDR from a top-level pool to a pool
+	// within it.
+	//
+	// For more information, see [Provision CIDRs to pools] in the Amazon VPC IPAM User Guide.
+	//
+	// [Provision CIDRs to pools]: https://docs.aws.amazon.com/vpc/latest/ipam/prov-cidr-ipam.html
+	ProvisionIpamPoolCidr(ctx context.Context, params *ec2.ProvisionIpamPoolCidrInput, optFns ...func(*Options)) (*ec2.ProvisionIpamPoolCidrOutput, error)
+	// Provision a CIDR to a public IPv4 pool.
+	//
+	// For more information about IPAM, see [What is IPAM?] in the Amazon VPC IPAM User Guide.
+	//
+	// [What is IPAM?]: https://docs.aws.amazon.com/vpc/latest/ipam/what-is-it-ipam.html
+	ProvisionPublicIpv4PoolCidr(ctx context.Context, params *ec2.ProvisionPublicIpv4PoolCidrInput, optFns ...func(*Options)) (*ec2.ProvisionPublicIpv4PoolCidrOutput, error)
+	// Purchase the Capacity Block for use with your account. With Capacity Blocks you
+	// ensure GPU capacity is available for machine learning (ML) workloads. You must
+	// specify the ID of the Capacity Block offering you are purchasing.
+	PurchaseCapacityBlock(ctx context.Context, params *ec2.PurchaseCapacityBlockInput, optFns ...func(*Options)) (*ec2.PurchaseCapacityBlockOutput, error)
+	// Purchase the Capacity Block extension for use with your account. You must
+	// specify the ID of the Capacity Block extension offering you are purchasing.
+	PurchaseCapacityBlockExtension(ctx context.Context, params *ec2.PurchaseCapacityBlockExtensionInput, optFns ...func(*Options)) (*ec2.PurchaseCapacityBlockExtensionOutput, error)
 	// Purchase a reservation with configurations that match those of your Dedicated
 	// Host. You must have active Dedicated Hosts in your account before you purchase a
 	// reservation. This action results in the specified reservation being purchased
 	// and charged to your account.
-	PurchaseHostReservation(ctx context.Context, params *PurchaseHostReservationInput, optFns ...func(*Options)) (*PurchaseHostReservationOutput, error)
+	PurchaseHostReservation(ctx context.Context, params *ec2.PurchaseHostReservationInput, optFns ...func(*Options)) (*ec2.PurchaseHostReservationOutput, error)
 	// Purchases a Reserved Instance for use with your account. With Reserved
 	// Instances, you pay a lower hourly rate compared to On-Demand instance pricing.
-	// Use DescribeReservedInstancesOfferings to get a list of Reserved Instance
-	// offerings that match your specifications. After you've purchased a Reserved
-	// Instance, you can check for your new Reserved Instance with
-	// DescribeReservedInstances. To queue a purchase for a future date and time,
-	// specify a purchase time. If you do not specify a purchase time, the default is
-	// the current time. For more information, see Reserved Instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts-on-demand-reserved-instances.html)
-	// and Reserved Instance Marketplace
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html) in
-	// the Amazon EC2 User Guide.
-	PurchaseReservedInstancesOffering(ctx context.Context, params *PurchaseReservedInstancesOfferingInput, optFns ...func(*Options)) (*PurchaseReservedInstancesOfferingOutput, error)
-	// Purchases the Scheduled Instances with the specified schedule. Scheduled
-	// Instances enable you to purchase Amazon EC2 compute capacity by the hour for a
-	// one-year term. Before you can purchase a Scheduled Instance, you must call
-	// DescribeScheduledInstanceAvailability to check for available schedules and
-	// obtain a purchase token. After you purchase a Scheduled Instance, you must call
-	// RunScheduledInstances during each scheduled time period. After you purchase a
-	// Scheduled Instance, you can't cancel, modify, or resell your purchase.
-	PurchaseScheduledInstances(ctx context.Context, params *PurchaseScheduledInstancesInput, optFns ...func(*Options)) (*PurchaseScheduledInstancesOutput, error)
-	// Requests a reboot of the specified instances. This operation is asynchronous; it
-	// only queues a request to reboot the specified instances. The operation succeeds
-	// if the instances are valid and belong to you. Requests to reboot terminated
-	// instances are ignored. If an instance does not cleanly shut down within a few
-	// minutes, Amazon EC2 performs a hard reboot. For more information about
-	// troubleshooting, see Troubleshoot an unreachable instance
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-console.html) in
-	// the Amazon EC2 User Guide.
-	RebootInstances(ctx context.Context, params *RebootInstancesInput, optFns ...func(*Options)) (*RebootInstancesOutput, error)
-	// Registers an AMI. When you're creating an AMI, this is the final step you must
-	// complete before you can launch an instance from the AMI. For more information
-	// about creating AMIs, see Creating your own AMIs
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami.html) in
-	// the Amazon Elastic Compute Cloud User Guide. For Amazon EBS-backed instances,
-	// CreateImage creates and registers the AMI in a single request, so you don't have
-	// to register the AMI yourself. If needed, you can deregister an AMI at any time.
-	// Any modifications you make to an AMI backed by an instance store volume
-	// invalidates its registration. If you make changes to an image, deregister the
-	// previous image and register the new image. Register a snapshot of a root device
-	// volume You can use RegisterImage to create an Amazon EBS-backed Linux AMI from a
+	//
+	// Use DescribeReservedInstancesOfferings to get a list of Reserved Instance offerings that match your
+	// specifications. After you've purchased a Reserved Instance, you can check for
+	// your new Reserved Instance with DescribeReservedInstances.
+	//
+	// To queue a purchase for a future date and time, specify a purchase time. If you
+	// do not specify a purchase time, the default is the current time.
+	//
+	// For more information, see [Reserved Instances] and [Sell in the Reserved Instance Marketplace] in the Amazon EC2 User Guide.
+	//
+	// [Reserved Instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts-on-demand-reserved-instances.html
+	// [Sell in the Reserved Instance Marketplace]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html
+	PurchaseReservedInstancesOffering(ctx context.Context, params *ec2.PurchaseReservedInstancesOfferingInput, optFns ...func(*Options)) (*ec2.PurchaseReservedInstancesOfferingOutput, error)
+	// You can no longer purchase Scheduled Instances.
+	//
+	// Purchases the Scheduled Instances with the specified schedule.
+	//
+	// Scheduled Instances enable you to purchase Amazon EC2 compute capacity by the
+	// hour for a one-year term. Before you can purchase a Scheduled Instance, you must
+	// call DescribeScheduledInstanceAvailabilityto check for available schedules and obtain a purchase token. After you
+	// purchase a Scheduled Instance, you must call RunScheduledInstancesduring each scheduled time period.
+	//
+	// After you purchase a Scheduled Instance, you can't cancel, modify, or resell
+	// your purchase.
+	PurchaseScheduledInstances(ctx context.Context, params *ec2.PurchaseScheduledInstancesInput, optFns ...func(*Options)) (*ec2.PurchaseScheduledInstancesOutput, error)
+	// Requests a reboot of the specified instances. This operation is asynchronous;
+	// it only queues a request to reboot the specified instances. The operation
+	// succeeds if the instances are valid and belong to you. Requests to reboot
+	// terminated instances are ignored.
+	//
+	// If an instance does not cleanly shut down within a few minutes, Amazon EC2
+	// performs a hard reboot.
+	//
+	// For more information about troubleshooting, see [Troubleshoot an unreachable instance] in the Amazon EC2 User Guide.
+	//
+	// [Troubleshoot an unreachable instance]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-console.html
+	RebootInstances(ctx context.Context, params *ec2.RebootInstancesInput, optFns ...func(*Options)) (*ec2.RebootInstancesOutput, error)
+	// Registers an AMI. When you're creating an instance-store backed AMI,
+	// registering the AMI is the final step in the creation process. For more
+	// information about creating AMIs, see [Create an AMI from a snapshot]and [Create an instance-store backed AMI] in the Amazon EC2 User Guide.
+	//
+	// If needed, you can deregister an AMI at any time. Any modifications you make to
+	// an AMI backed by an instance store volume invalidates its registration. If you
+	// make changes to an image, deregister the previous image and register the new
+	// image.
+	//
+	// # Register a snapshot of a root device volume
+	//
+	// You can use RegisterImage to create an Amazon EBS-backed Linux AMI from a
 	// snapshot of a root device volume. You specify the snapshot using a block device
 	// mapping. You can't set the encryption state of the volume using the block device
 	// mapping. If the snapshot is encrypted, or encryption by default is enabled, the
-	// root volume of an instance launched from the AMI is encrypted. For more
-	// information, see Create a Linux AMI from a snapshot
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html#creating-launching-ami-from-snapshot)
-	// and Use encryption with Amazon EBS-backed AMIs
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIEncryption.html) in the
-	// Amazon Elastic Compute Cloud User Guide. Amazon Web Services Marketplace product
-	// codes If any snapshots have Amazon Web Services Marketplace product codes, they
-	// are copied to the new AMI. Windows and some Linux distributions, such as Red Hat
-	// Enterprise Linux (RHEL) and SUSE Linux Enterprise Server (SLES), use the Amazon
-	// EC2 billing product code associated with an AMI to verify the subscription
-	// status for package updates. To create a new AMI for operating systems that
-	// require a billing product code, instead of registering the AMI, do the following
-	// to preserve the billing product code association:
+	// root volume of an instance launched from the AMI is encrypted.
 	//
-	// * Launch an instance from an
-	// existing AMI with that billing product code.
+	// For more information, see [Create an AMI from a snapshot] and [Use encryption with EBS-backed AMIs] in the Amazon EC2 User Guide.
 	//
-	// * Customize the instance.
+	// # Amazon Web Services Marketplace product codes
 	//
-	// *
-	// Create an AMI from the instance using CreateImage.
+	// If any snapshots have Amazon Web Services Marketplace product codes, they are
+	// copied to the new AMI.
 	//
-	// If you purchase a Reserved
-	// Instance to apply to an On-Demand Instance that was launched from an AMI with a
-	// billing product code, make sure that the Reserved Instance has the matching
-	// billing product code. If you purchase a Reserved Instance without the matching
-	// billing product code, the Reserved Instance will not be applied to the On-Demand
-	// Instance. For information about how to obtain the platform details and billing
-	// information of an AMI, see Understanding AMI billing
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html) in
-	// the Amazon Elastic Compute Cloud User Guide.
-	RegisterImage(ctx context.Context, params *RegisterImageInput, optFns ...func(*Options)) (*RegisterImageOutput, error)
-	// Registers a set of tag keys to include in scheduled event notifications for your
-	// resources. To remove tags, use DeregisterInstanceEventNotificationAttributes
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeregisterInstanceEventNotificationAttributes.html).
-	RegisterInstanceEventNotificationAttributes(ctx context.Context, params *RegisterInstanceEventNotificationAttributesInput, optFns ...func(*Options)) (*RegisterInstanceEventNotificationAttributesOutput, error)
-	// Registers members (network interfaces) with the transit gateway multicast group.
-	// A member is a network interface associated with a supported EC2 instance that
-	// receives multicast traffic. For information about supported instances, see
-	// Multicast Consideration
-	// (https://docs.aws.amazon.com/vpc/latest/tgw/transit-gateway-limits.html#multicast-limits)
-	// in Amazon VPC Transit Gateways. After you add the members, use
-	// SearchTransitGatewayMulticastGroups
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SearchTransitGatewayMulticastGroups.html)
-	// to verify that the members were added to the transit gateway multicast group.
-	RegisterTransitGatewayMulticastGroupMembers(ctx context.Context, params *RegisterTransitGatewayMulticastGroupMembersInput, optFns ...func(*Options)) (*RegisterTransitGatewayMulticastGroupMembersOutput, error)
+	// In most cases, AMIs for Windows, RedHat, SUSE, and SQL Server require correct
+	// licensing information to be present on the AMI. For more information, see [Understand AMI billing information]in
+	// the Amazon EC2 User Guide. When creating an AMI from a snapshot, the
+	// RegisterImage operation derives the correct billing information from the
+	// snapshot's metadata, but this requires the appropriate metadata to be present.
+	// To verify if the correct billing information was applied, check the
+	// PlatformDetails field on the new AMI. If the field is empty or doesn't match the
+	// expected operating system code (for example, Windows, RedHat, SUSE, or SQL), the
+	// AMI creation was unsuccessful, and you should discard the AMI and instead create
+	// the AMI from an instance. For more information, see [Create an AMI from an instance]in the Amazon EC2 User
+	// Guide.
+	//
+	// If you purchase a Reserved Instance to apply to an On-Demand Instance that was
+	// launched from an AMI with a billing product code, make sure that the Reserved
+	// Instance has the matching billing product code. If you purchase a Reserved
+	// Instance without the matching billing product code, the Reserved Instance is not
+	// applied to the On-Demand Instance. For information about how to obtain the
+	// platform details and billing information of an AMI, see [Understand AMI billing information]in the Amazon EC2 User
+	// Guide.
+	//
+	// [Use encryption with EBS-backed AMIs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIEncryption.html
+	// [Understand AMI billing information]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html
+	// [Create an instance-store backed AMI]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-instance-store.html
+	// [Create an AMI from an instance]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html#how-to-create-ebs-ami
+	// [Create an AMI from a snapshot]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html#creating-launching-ami-from-snapshot
+	RegisterImage(ctx context.Context, params *ec2.RegisterImageInput, optFns ...func(*Options)) (*ec2.RegisterImageOutput, error)
+	// Registers a set of tag keys to include in scheduled event notifications for
+	// your resources.
+	//
+	// To remove tags, use [DeregisterInstanceEventNotificationAttributes].
+	//
+	// [DeregisterInstanceEventNotificationAttributes]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeregisterInstanceEventNotificationAttributes.html
+	RegisterInstanceEventNotificationAttributes(ctx context.Context, params *ec2.RegisterInstanceEventNotificationAttributesInput, optFns ...func(*Options)) (*ec2.RegisterInstanceEventNotificationAttributesOutput, error)
+	// Registers members (network interfaces) with the transit gateway multicast
+	// group. A member is a network interface associated with a supported EC2 instance
+	// that receives multicast traffic. For more information, see [Multicast on transit gateways]in the Amazon Web
+	// Services Transit Gateways Guide.
+	//
+	// After you add the members, use [SearchTransitGatewayMulticastGroups] to verify that the members were added to the
+	// transit gateway multicast group.
+	//
+	// [SearchTransitGatewayMulticastGroups]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SearchTransitGatewayMulticastGroups.html
+	// [Multicast on transit gateways]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-multicast-overview.html
+	RegisterTransitGatewayMulticastGroupMembers(ctx context.Context, params *ec2.RegisterTransitGatewayMulticastGroupMembersInput, optFns ...func(*Options)) (*ec2.RegisterTransitGatewayMulticastGroupMembersOutput, error)
 	// Registers sources (network interfaces) with the specified transit gateway
-	// multicast group. A multicast source is a network interface attached to a
-	// supported instance that sends multicast traffic. For information about supported
-	// instances, see Multicast Considerations
-	// (https://docs.aws.amazon.com/vpc/latest/tgw/transit-gateway-limits.html#multicast-limits)
-	// in Amazon VPC Transit Gateways. After you add the source, use
-	// SearchTransitGatewayMulticastGroups
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SearchTransitGatewayMulticastGroups.html)
-	// to verify that the source was added to the multicast group.
-	RegisterTransitGatewayMulticastGroupSources(ctx context.Context, params *RegisterTransitGatewayMulticastGroupSourcesInput, optFns ...func(*Options)) (*RegisterTransitGatewayMulticastGroupSourcesOutput, error)
+	// multicast group.
+	//
+	// A multicast source is a network interface attached to a supported instance that
+	// sends multicast traffic. For more information about supported instances, see [Multicast on transit gateways]in
+	// the Amazon Web Services Transit Gateways Guide.
+	//
+	// After you add the source, use [SearchTransitGatewayMulticastGroups] to verify that the source was added to the
+	// multicast group.
+	//
+	// [SearchTransitGatewayMulticastGroups]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SearchTransitGatewayMulticastGroups.html
+	// [Multicast on transit gateways]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-multicast-overview.html
+	RegisterTransitGatewayMulticastGroupSources(ctx context.Context, params *ec2.RegisterTransitGatewayMulticastGroupSourcesInput, optFns ...func(*Options)) (*ec2.RegisterTransitGatewayMulticastGroupSourcesOutput, error)
+	// Rejects a request to assign billing of the available capacity of a shared
+	// Capacity Reservation to your account. For more information, see [Billing assignment for shared Amazon EC2 Capacity Reservations].
+	//
+	// [Billing assignment for shared Amazon EC2 Capacity Reservations]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/assign-billing.html
+	RejectCapacityReservationBillingOwnership(ctx context.Context, params *ec2.RejectCapacityReservationBillingOwnershipInput, optFns ...func(*Options)) (*ec2.RejectCapacityReservationBillingOwnershipOutput, error)
 	// Rejects a request to associate cross-account subnets with a transit gateway
 	// multicast domain.
-	RejectTransitGatewayMulticastDomainAssociations(ctx context.Context, params *RejectTransitGatewayMulticastDomainAssociationsInput, optFns ...func(*Options)) (*RejectTransitGatewayMulticastDomainAssociationsOutput, error)
+	RejectTransitGatewayMulticastDomainAssociations(ctx context.Context, params *ec2.RejectTransitGatewayMulticastDomainAssociationsInput, optFns ...func(*Options)) (*ec2.RejectTransitGatewayMulticastDomainAssociationsOutput, error)
 	// Rejects a transit gateway peering attachment request.
-	RejectTransitGatewayPeeringAttachment(ctx context.Context, params *RejectTransitGatewayPeeringAttachmentInput, optFns ...func(*Options)) (*RejectTransitGatewayPeeringAttachmentOutput, error)
-	// Rejects a request to attach a VPC to a transit gateway. The VPC attachment must
-	// be in the pendingAcceptance state. Use DescribeTransitGatewayVpcAttachments to
-	// view your pending VPC attachment requests. Use AcceptTransitGatewayVpcAttachment
-	// to accept a VPC attachment request.
-	RejectTransitGatewayVpcAttachment(ctx context.Context, params *RejectTransitGatewayVpcAttachmentInput, optFns ...func(*Options)) (*RejectTransitGatewayVpcAttachmentOutput, error)
-	// Rejects one or more VPC endpoint connection requests to your VPC endpoint
-	// service.
-	RejectVpcEndpointConnections(ctx context.Context, params *RejectVpcEndpointConnectionsInput, optFns ...func(*Options)) (*RejectVpcEndpointConnectionsOutput, error)
+	RejectTransitGatewayPeeringAttachment(ctx context.Context, params *ec2.RejectTransitGatewayPeeringAttachmentInput, optFns ...func(*Options)) (*ec2.RejectTransitGatewayPeeringAttachmentOutput, error)
+	// Rejects a request to attach a VPC to a transit gateway.
+	//
+	// The VPC attachment must be in the pendingAcceptance state. Use DescribeTransitGatewayVpcAttachments to view your
+	// pending VPC attachment requests. Use AcceptTransitGatewayVpcAttachmentto accept a VPC attachment request.
+	RejectTransitGatewayVpcAttachment(ctx context.Context, params *ec2.RejectTransitGatewayVpcAttachmentInput, optFns ...func(*Options)) (*ec2.RejectTransitGatewayVpcAttachmentOutput, error)
+	// Rejects VPC endpoint connection requests to your VPC endpoint service.
+	RejectVpcEndpointConnections(ctx context.Context, params *ec2.RejectVpcEndpointConnectionsInput, optFns ...func(*Options)) (*ec2.RejectVpcEndpointConnectionsOutput, error)
 	// Rejects a VPC peering connection request. The VPC peering connection must be in
-	// the pending-acceptance state. Use the DescribeVpcPeeringConnections request to
-	// view your outstanding VPC peering connection requests. To delete an active VPC
-	// peering connection, or to delete a VPC peering connection request that you
-	// initiated, use DeleteVpcPeeringConnection.
-	RejectVpcPeeringConnection(ctx context.Context, params *RejectVpcPeeringConnectionInput, optFns ...func(*Options)) (*RejectVpcPeeringConnectionOutput, error)
-	// Releases the specified Elastic IP address. [EC2-Classic, default VPC] Releasing
-	// an Elastic IP address automatically disassociates it from any instance that it's
-	// associated with. To disassociate an Elastic IP address without releasing it, use
-	// DisassociateAddress. [Nondefault VPC] You must use DisassociateAddress to
-	// disassociate the Elastic IP address before you can release it. Otherwise, Amazon
-	// EC2 returns an error (InvalidIPAddress.InUse). After releasing an Elastic IP
-	// address, it is released to the IP address pool. Be sure to update your DNS
-	// records and any servers or devices that communicate with the address. If you
-	// attempt to release an Elastic IP address that you already released, you'll get
-	// an AuthFailure error if the address is already allocated to another Amazon Web
-	// Services account. [EC2-VPC] After you release an Elastic IP address for use in a
-	// VPC, you might be able to recover it. For more information, see AllocateAddress.
-	ReleaseAddress(ctx context.Context, params *ReleaseAddressInput, optFns ...func(*Options)) (*ReleaseAddressOutput, error)
+	// the pending-acceptance state. Use the DescribeVpcPeeringConnections request to view your outstanding VPC
+	// peering connection requests. To delete an active VPC peering connection, or to
+	// delete a VPC peering connection request that you initiated, use DeleteVpcPeeringConnection.
+	RejectVpcPeeringConnection(ctx context.Context, params *ec2.RejectVpcPeeringConnectionInput, optFns ...func(*Options)) (*ec2.RejectVpcPeeringConnectionOutput, error)
+	// Releases the specified Elastic IP address.
+	//
+	// [Default VPC] Releasing an Elastic IP address automatically disassociates it
+	// from any instance that it's associated with. Alternatively, you can disassociate
+	// an Elastic IP address without releasing it.
+	//
+	// [Nondefault VPC] You must disassociate the Elastic IP address before you can
+	// release it. Otherwise, Amazon EC2 returns an error ( InvalidIPAddress.InUse ).
+	//
+	// After releasing an Elastic IP address, it is released to the IP address pool.
+	// Be sure to update your DNS records and any servers or devices that communicate
+	// with the address. If you attempt to release an Elastic IP address that you
+	// already released, you'll get an AuthFailure error if the address is already
+	// allocated to another Amazon Web Services account.
+	//
+	// After you release an Elastic IP address, you might be able to recover it. For
+	// more information, see [Release an Elastic IP address].
+	//
+	// [Release an Elastic IP address]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing-eips-releasing.html
+	ReleaseAddress(ctx context.Context, params *ec2.ReleaseAddressInput, optFns ...func(*Options)) (*ec2.ReleaseAddressOutput, error)
 	// When you no longer want to use an On-Demand Dedicated Host it can be released.
 	// On-Demand billing is stopped and the host goes into released state. The host ID
 	// of Dedicated Hosts that have been released can no longer be specified in another
 	// request, for example, to modify the host. You must stop or terminate all
-	// instances on a host before it can be released. When Dedicated Hosts are
-	// released, it may take some time for them to stop counting toward your limit and
-	// you may receive capacity errors when trying to allocate new Dedicated Hosts.
-	// Wait a few minutes and then try again. Released hosts still appear in a
-	// DescribeHosts response.
-	ReleaseHosts(ctx context.Context, params *ReleaseHostsInput, optFns ...func(*Options)) (*ReleaseHostsOutput, error)
-	// Release an allocation within an IPAM pool. You can only use this action to
-	// release manual allocations. To remove an allocation for a resource without
-	// deleting the resource, set its monitored state to false using
-	// ModifyIpamResourceCidr
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyIpamResourceCidr.html).
-	// For more information, see Release an allocation in the Amazon VPC IPAM User
-	// Guide.
-	ReleaseIpamPoolAllocation(ctx context.Context, params *ReleaseIpamPoolAllocationInput, optFns ...func(*Options)) (*ReleaseIpamPoolAllocationOutput, error)
-	// Replaces an IAM instance profile for the specified running instance. You can use
-	// this action to change the IAM instance profile that's associated with an
+	// instances on a host before it can be released.
+	//
+	// When Dedicated Hosts are released, it may take some time for them to stop
+	// counting toward your limit and you may receive capacity errors when trying to
+	// allocate new Dedicated Hosts. Wait a few minutes and then try again.
+	//
+	// Released hosts still appear in a DescribeHosts response.
+	ReleaseHosts(ctx context.Context, params *ec2.ReleaseHostsInput, optFns ...func(*Options)) (*ec2.ReleaseHostsOutput, error)
+	// Release an allocation within an IPAM pool. The Region you use should be the
+	// IPAM pool locale. The locale is the Amazon Web Services Region where this IPAM
+	// pool is available for allocations. You can only use this action to release
+	// manual allocations. To remove an allocation for a resource without deleting the
+	// resource, set its monitored state to false using [ModifyIpamResourceCidr]. For more information, see [Release an allocation]
+	// in the Amazon VPC IPAM User Guide.
+	//
+	// All EC2 API actions follow an [eventual consistency] model.
+	//
+	// [Release an allocation]: https://docs.aws.amazon.com/vpc/latest/ipam/release-alloc-ipam.html
+	// [eventual consistency]: https://docs.aws.amazon.com/ec2/latest/devguide/eventual-consistency.html
+	// [ModifyIpamResourceCidr]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyIpamResourceCidr.html
+	ReleaseIpamPoolAllocation(ctx context.Context, params *ec2.ReleaseIpamPoolAllocationInput, optFns ...func(*Options)) (*ec2.ReleaseIpamPoolAllocationOutput, error)
+	// Replaces an IAM instance profile for the specified running instance. You can
+	// use this action to change the IAM instance profile that's associated with an
 	// instance without having to disassociate the existing IAM instance profile first.
+	//
 	// Use DescribeIamInstanceProfileAssociations to get the association ID.
-	ReplaceIamInstanceProfileAssociation(ctx context.Context, params *ReplaceIamInstanceProfileAssociationInput, optFns ...func(*Options)) (*ReplaceIamInstanceProfileAssociationOutput, error)
+	ReplaceIamInstanceProfileAssociation(ctx context.Context, params *ec2.ReplaceIamInstanceProfileAssociationInput, optFns ...func(*Options)) (*ec2.ReplaceIamInstanceProfileAssociationOutput, error)
+	// Sets or replaces the criteria for Allowed AMIs.
+	//
+	// The Allowed AMIs feature does not restrict the AMIs owned by your account.
+	// Regardless of the criteria you set, the AMIs created by your account will always
+	// be discoverable and usable by users in your account.
+	//
+	// For more information, see [Control the discovery and use of AMIs in Amazon EC2 with Allowed AMIs] in Amazon EC2 User Guide.
+	//
+	// [Control the discovery and use of AMIs in Amazon EC2 with Allowed AMIs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-allowed-amis.html
+	ReplaceImageCriteriaInAllowedImagesSettings(ctx context.Context, params *ec2.ReplaceImageCriteriaInAllowedImagesSettingsInput, optFns ...func(*Options)) (*ec2.ReplaceImageCriteriaInAllowedImagesSettingsOutput, error)
 	// Changes which network ACL a subnet is associated with. By default when you
 	// create a subnet, it's automatically associated with the default network ACL. For
-	// more information, see Network ACLs
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_ACLs.html) in the Amazon
-	// Virtual Private Cloud User Guide. This is an idempotent operation.
-	ReplaceNetworkAclAssociation(ctx context.Context, params *ReplaceNetworkAclAssociationInput, optFns ...func(*Options)) (*ReplaceNetworkAclAssociationOutput, error)
-	// Replaces an entry (rule) in a network ACL. For more information, see Network
-	// ACLs (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_ACLs.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	ReplaceNetworkAclEntry(ctx context.Context, params *ReplaceNetworkAclEntryInput, optFns ...func(*Options)) (*ReplaceNetworkAclEntryOutput, error)
-	// Replaces an existing route within a route table in a VPC. You must provide only
-	// one of the following: internet gateway, virtual private gateway, NAT instance,
-	// NAT gateway, VPC peering connection, network interface, egress-only internet
-	// gateway, or transit gateway. For more information, see Route tables
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html) in the
-	// Amazon Virtual Private Cloud User Guide.
-	ReplaceRoute(ctx context.Context, params *ReplaceRouteInput, optFns ...func(*Options)) (*ReplaceRouteOutput, error)
+	// more information, see [Network ACLs]in the Amazon VPC User Guide.
+	//
+	// This is an idempotent operation.
+	//
+	// [Network ACLs]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html
+	ReplaceNetworkAclAssociation(ctx context.Context, params *ec2.ReplaceNetworkAclAssociationInput, optFns ...func(*Options)) (*ec2.ReplaceNetworkAclAssociationOutput, error)
+	// Replaces an entry (rule) in a network ACL. For more information, see [Network ACLs] in the
+	// Amazon VPC User Guide.
+	//
+	// [Network ACLs]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html
+	ReplaceNetworkAclEntry(ctx context.Context, params *ec2.ReplaceNetworkAclEntryInput, optFns ...func(*Options)) (*ec2.ReplaceNetworkAclEntryOutput, error)
+	// Replaces an existing route within a route table in a VPC.
+	//
+	// You must specify either a destination CIDR block or a prefix list ID. You must
+	// also specify exactly one of the resources from the parameter list, or reset the
+	// local route to its default target.
+	//
+	// For more information, see [Route tables] in the Amazon VPC User Guide.
+	//
+	// [Route tables]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
+	ReplaceRoute(ctx context.Context, params *ec2.ReplaceRouteInput, optFns ...func(*Options)) (*ec2.ReplaceRouteOutput, error)
 	// Changes the route table associated with a given subnet, internet gateway, or
 	// virtual private gateway in a VPC. After the operation completes, the subnet or
 	// gateway uses the routes in the new route table. For more information about route
-	// tables, see Route tables
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html) in the
-	// Amazon Virtual Private Cloud User Guide. You can also use this operation to
-	// change which table is the main route table in the VPC. Specify the main route
-	// table's association ID and the route table ID of the new main route table.
-	ReplaceRouteTableAssociation(ctx context.Context, params *ReplaceRouteTableAssociationInput, optFns ...func(*Options)) (*ReplaceRouteTableAssociationOutput, error)
+	// tables, see [Route tables]in the Amazon VPC User Guide.
+	//
+	// You can also use this operation to change which table is the main route table
+	// in the VPC. Specify the main route table's association ID and the route table ID
+	// of the new main route table.
+	//
+	// [Route tables]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
+	ReplaceRouteTableAssociation(ctx context.Context, params *ec2.ReplaceRouteTableAssociationInput, optFns ...func(*Options)) (*ec2.ReplaceRouteTableAssociationOutput, error)
 	// Replaces the specified route in the specified transit gateway route table.
-	ReplaceTransitGatewayRoute(ctx context.Context, params *ReplaceTransitGatewayRouteInput, optFns ...func(*Options)) (*ReplaceTransitGatewayRouteOutput, error)
+	ReplaceTransitGatewayRoute(ctx context.Context, params *ec2.ReplaceTransitGatewayRouteInput, optFns ...func(*Options)) (*ec2.ReplaceTransitGatewayRouteOutput, error)
+	// Trigger replacement of specified VPN tunnel.
+	ReplaceVpnTunnel(ctx context.Context, params *ec2.ReplaceVpnTunnelInput, optFns ...func(*Options)) (*ec2.ReplaceVpnTunnelOutput, error)
 	// Submits feedback about the status of an instance. The instance must be in the
 	// running state. If your experience with the instance differs from the instance
-	// status returned by DescribeInstanceStatus, use ReportInstanceStatus to report
-	// your experience with the instance. Amazon EC2 collects this information to
-	// improve the accuracy of status checks. Use of this action does not change the
-	// value returned by DescribeInstanceStatus.
-	ReportInstanceStatus(ctx context.Context, params *ReportInstanceStatusInput, optFns ...func(*Options)) (*ReportInstanceStatusOutput, error)
-	// Creates a Spot Fleet request. The Spot Fleet request specifies the total target
-	// capacity and the On-Demand target capacity. Amazon EC2 calculates the difference
-	// between the total capacity and On-Demand capacity, and launches the difference
-	// as Spot capacity. You can submit a single request that includes multiple launch
-	// specifications that vary by instance type, AMI, Availability Zone, or subnet. By
-	// default, the Spot Fleet requests Spot Instances in the Spot Instance pool where
-	// the price per unit is the lowest. Each launch specification can include its own
-	// instance weighting that reflects the value of the instance type to your
-	// application workload. Alternatively, you can specify that the Spot Fleet
-	// distribute the target capacity across the Spot pools included in its launch
-	// specifications. By ensuring that the Spot Instances in your Spot Fleet are in
-	// different Spot pools, you can improve the availability of your fleet. You can
-	// specify tags for the Spot Fleet request and instances launched by the fleet. You
-	// cannot tag other resource types in a Spot Fleet request because only the
-	// spot-fleet-request and instance resource types are supported. For more
-	// information, see Spot Fleet requests
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-requests.html)
-	// in the Amazon EC2 User Guide for Linux Instances.
-	RequestSpotFleet(ctx context.Context, params *RequestSpotFleetInput, optFns ...func(*Options)) (*RequestSpotFleetOutput, error)
-	// Creates a Spot Instance request. For more information, see Spot Instance
-	// requests
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-requests.html) in the
-	// Amazon EC2 User Guide for Linux Instances.
-	RequestSpotInstances(ctx context.Context, params *RequestSpotInstancesInput, optFns ...func(*Options)) (*RequestSpotInstancesOutput, error)
-	// Resets the attribute of the specified IP address. For requirements, see Using
-	// reverse DNS for email applications
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html#Using_Elastic_Addressing_Reverse_DNS).
-	ResetAddressAttribute(ctx context.Context, params *ResetAddressAttributeInput, optFns ...func(*Options)) (*ResetAddressAttributeOutput, error)
-	// Resets the default KMS key for EBS encryption for your account in this Region to
-	// the Amazon Web Services managed KMS key for EBS. After resetting the default KMS
-	// key to the Amazon Web Services managed KMS key, you can continue to encrypt by a
-	// customer managed KMS key by specifying it when you create the volume. For more
-	// information, see Amazon EBS encryption
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	ResetEbsDefaultKmsKeyId(ctx context.Context, params *ResetEbsDefaultKmsKeyIdInput, optFns ...func(*Options)) (*ResetEbsDefaultKmsKeyIdOutput, error)
+	// status returned by DescribeInstanceStatus, use ReportInstanceStatus to report your experience with the instance. Amazon
+	// EC2 collects this information to improve the accuracy of status checks.
+	//
+	// Use of this action does not change the value returned by DescribeInstanceStatus.
+	ReportInstanceStatus(ctx context.Context, params *ec2.ReportInstanceStatusInput, optFns ...func(*Options)) (*ec2.ReportInstanceStatusOutput, error)
+	// Creates a Spot Fleet request.
+	//
+	// The Spot Fleet request specifies the total target capacity and the On-Demand
+	// target capacity. Amazon EC2 calculates the difference between the total capacity
+	// and On-Demand capacity, and launches the difference as Spot capacity.
+	//
+	// You can submit a single request that includes multiple launch specifications
+	// that vary by instance type, AMI, Availability Zone, or subnet.
+	//
+	// By default, the Spot Fleet requests Spot Instances in the Spot Instance pool
+	// where the price per unit is the lowest. Each launch specification can include
+	// its own instance weighting that reflects the value of the instance type to your
+	// application workload.
+	//
+	// Alternatively, you can specify that the Spot Fleet distribute the target
+	// capacity across the Spot pools included in its launch specifications. By
+	// ensuring that the Spot Instances in your Spot Fleet are in different Spot pools,
+	// you can improve the availability of your fleet.
+	//
+	// You can specify tags for the Spot Fleet request and instances launched by the
+	// fleet. You cannot tag other resource types in a Spot Fleet request because only
+	// the spot-fleet-request and instance resource types are supported.
+	//
+	// For more information, see [Spot Fleet requests] in the Amazon EC2 User Guide.
+	//
+	// We strongly discourage using the RequestSpotFleet API because it is a legacy
+	// API with no planned investment. For options for requesting Spot Instances, see [Which is the best Spot request method to use?]
+	// in the Amazon EC2 User Guide.
+	//
+	// [Spot Fleet requests]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-requests.html
+	// [Which is the best Spot request method to use?]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-best-practices.html#which-spot-request-method-to-use
+	RequestSpotFleet(ctx context.Context, params *ec2.RequestSpotFleetInput, optFns ...func(*Options)) (*ec2.RequestSpotFleetOutput, error)
+	// Creates a Spot Instance request.
+	//
+	// For more information, see [Work with Spot Instance] in the Amazon EC2 User Guide.
+	//
+	// We strongly discourage using the RequestSpotInstances API because it is a
+	// legacy API with no planned investment. For options for requesting Spot
+	// Instances, see [Which is the best Spot request method to use?]in the Amazon EC2 User Guide.
+	//
+	// [Work with Spot Instance]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-requests.html
+	// [Which is the best Spot request method to use?]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-best-practices.html#which-spot-request-method-to-use
+	RequestSpotInstances(ctx context.Context, params *ec2.RequestSpotInstancesInput, optFns ...func(*Options)) (*ec2.RequestSpotInstancesOutput, error)
+	// Resets the attribute of the specified IP address. For requirements, see [Using reverse DNS for email applications].
+	//
+	// [Using reverse DNS for email applications]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html#Using_Elastic_Addressing_Reverse_DNS
+	ResetAddressAttribute(ctx context.Context, params *ec2.ResetAddressAttributeInput, optFns ...func(*Options)) (*ec2.ResetAddressAttributeOutput, error)
+	// Resets the default KMS key for EBS encryption for your account in this Region
+	// to the Amazon Web Services managed KMS key for EBS.
+	//
+	// After resetting the default KMS key to the Amazon Web Services managed KMS key,
+	// you can continue to encrypt by a customer managed KMS key by specifying it when
+	// you create the volume. For more information, see [Amazon EBS encryption]in the Amazon EBS User Guide.
+	//
+	// [Amazon EBS encryption]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-encryption.html
+	ResetEbsDefaultKmsKeyId(ctx context.Context, params *ec2.ResetEbsDefaultKmsKeyIdInput, optFns ...func(*Options)) (*ec2.ResetEbsDefaultKmsKeyIdOutput, error)
 	// Resets the specified attribute of the specified Amazon FPGA Image (AFI) to its
 	// default value. You can only reset the load permission attribute.
-	ResetFpgaImageAttribute(ctx context.Context, params *ResetFpgaImageAttributeInput, optFns ...func(*Options)) (*ResetFpgaImageAttributeOutput, error)
+	ResetFpgaImageAttribute(ctx context.Context, params *ec2.ResetFpgaImageAttributeInput, optFns ...func(*Options)) (*ec2.ResetFpgaImageAttributeOutput, error)
 	// Resets an attribute of an AMI to its default value.
-	ResetImageAttribute(ctx context.Context, params *ResetImageAttributeInput, optFns ...func(*Options)) (*ResetImageAttributeOutput, error)
+	ResetImageAttribute(ctx context.Context, params *ec2.ResetImageAttributeInput, optFns ...func(*Options)) (*ec2.ResetImageAttributeOutput, error)
 	// Resets an attribute of an instance to its default value. To reset the kernel or
-	// ramdisk, the instance must be in a stopped state. To reset the sourceDestCheck,
-	// the instance can be either running or stopped. The sourceDestCheck attribute
-	// controls whether source/destination checking is enabled. The default value is
-	// true, which means checking is enabled. This value must be false for a NAT
-	// instance to perform NAT. For more information, see NAT Instances
-	// (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_NAT_Instance.html)
-	// in the Amazon VPC User Guide.
-	ResetInstanceAttribute(ctx context.Context, params *ResetInstanceAttributeInput, optFns ...func(*Options)) (*ResetInstanceAttributeOutput, error)
+	// ramdisk , the instance must be in a stopped state. To reset the sourceDestCheck
+	// , the instance can be either running or stopped.
+	//
+	// The sourceDestCheck attribute controls whether source/destination checking is
+	// enabled. The default value is true , which means checking is enabled. This value
+	// must be false for a NAT instance to perform NAT. For more information, see [NAT instances] in
+	// the Amazon VPC User Guide.
+	//
+	// [NAT instances]: https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_NAT_Instance.html
+	ResetInstanceAttribute(ctx context.Context, params *ec2.ResetInstanceAttributeInput, optFns ...func(*Options)) (*ec2.ResetInstanceAttributeOutput, error)
 	// Resets a network interface attribute. You can specify only one attribute at a
 	// time.
-	ResetNetworkInterfaceAttribute(ctx context.Context, params *ResetNetworkInterfaceAttributeInput, optFns ...func(*Options)) (*ResetNetworkInterfaceAttributeOutput, error)
-	// Resets permission settings for the specified snapshot. For more information
-	// about modifying snapshot permissions, see Share a snapshot
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-modifying-snapshot-permissions.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	ResetSnapshotAttribute(ctx context.Context, params *ResetSnapshotAttributeInput, optFns ...func(*Options)) (*ResetSnapshotAttributeOutput, error)
-	// Restores an Elastic IP address that was previously moved to the EC2-VPC platform
-	// back to the EC2-Classic platform. You cannot move an Elastic IP address that was
-	// originally allocated for use in EC2-VPC. The Elastic IP address must not be
-	// associated with an instance or network interface.
-	RestoreAddressToClassic(ctx context.Context, params *RestoreAddressToClassicInput, optFns ...func(*Options)) (*RestoreAddressToClassicOutput, error)
-	// Restores an AMI from the Recycle Bin. For more information, see Recycle Bin
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/recycle-bin.html) in the
-	// Amazon Elastic Compute Cloud User Guide.
-	RestoreImageFromRecycleBin(ctx context.Context, params *RestoreImageFromRecycleBinInput, optFns ...func(*Options)) (*RestoreImageFromRecycleBinOutput, error)
+	ResetNetworkInterfaceAttribute(ctx context.Context, params *ec2.ResetNetworkInterfaceAttributeInput, optFns ...func(*Options)) (*ec2.ResetNetworkInterfaceAttributeOutput, error)
+	// Resets permission settings for the specified snapshot.
+	//
+	// For more information about modifying snapshot permissions, see [Share a snapshot] in the Amazon
+	// EBS User Guide.
+	//
+	// [Share a snapshot]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-modifying-snapshot-permissions.html
+	ResetSnapshotAttribute(ctx context.Context, params *ec2.ResetSnapshotAttributeInput, optFns ...func(*Options)) (*ec2.ResetSnapshotAttributeOutput, error)
+	// This action is deprecated.
+	//
+	// Restores an Elastic IP address that was previously moved to the EC2-VPC
+	// platform back to the EC2-Classic platform. You cannot move an Elastic IP address
+	// that was originally allocated for use in EC2-VPC. The Elastic IP address must
+	// not be associated with an instance or network interface.
+	RestoreAddressToClassic(ctx context.Context, params *ec2.RestoreAddressToClassicInput, optFns ...func(*Options)) (*ec2.RestoreAddressToClassicOutput, error)
+	// Restores an AMI from the Recycle Bin. For more information, see [Recover deleted Amazon EBS snapshots and EBS-back AMIs with Recycle Bin] in the Amazon
+	// EC2 User Guide.
+	//
+	// [Recover deleted Amazon EBS snapshots and EBS-back AMIs with Recycle Bin]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/recycle-bin.html
+	RestoreImageFromRecycleBin(ctx context.Context, params *ec2.RestoreImageFromRecycleBinInput, optFns ...func(*Options)) (*ec2.RestoreImageFromRecycleBinOutput, error)
 	// Restores the entries from a previous version of a managed prefix list to a new
 	// version of the prefix list.
-	RestoreManagedPrefixListVersion(ctx context.Context, params *RestoreManagedPrefixListVersionInput, optFns ...func(*Options)) (*RestoreManagedPrefixListVersionOutput, error)
-	// Restores a snapshot from the Recycle Bin. For more information, see Restore
-	// snapshots from the Recycle Bin
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/recycle-bin-working-with-snaps.html#recycle-bin-restore-snaps)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	RestoreSnapshotFromRecycleBin(ctx context.Context, params *RestoreSnapshotFromRecycleBinInput, optFns ...func(*Options)) (*RestoreSnapshotFromRecycleBinOutput, error)
+	RestoreManagedPrefixListVersion(ctx context.Context, params *ec2.RestoreManagedPrefixListVersionInput, optFns ...func(*Options)) (*ec2.RestoreManagedPrefixListVersionOutput, error)
+	// Restores a snapshot from the Recycle Bin. For more information, see [Restore snapshots from the Recycle Bin] in the
+	// Amazon EBS User Guide.
+	//
+	// [Restore snapshots from the Recycle Bin]: https://docs.aws.amazon.com/ebs/latest/userguide/recycle-bin-working-with-snaps.html#recycle-bin-restore-snaps
+	RestoreSnapshotFromRecycleBin(ctx context.Context, params *ec2.RestoreSnapshotFromRecycleBinInput, optFns ...func(*Options)) (*ec2.RestoreSnapshotFromRecycleBinOutput, error)
 	// Restores an archived Amazon EBS snapshot for use temporarily or permanently, or
 	// modifies the restore period or restore type for a snapshot that was previously
-	// temporarily restored. For more information see  Restore an archived snapshot
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/working-with-snapshot-archiving.html#restore-archived-snapshot)
-	// and  modify the restore period or restore type for a temporarily restored
-	// snapshot
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/working-with-snapshot-archiving.html#modify-temp-restore-period)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	RestoreSnapshotTier(ctx context.Context, params *RestoreSnapshotTierInput, optFns ...func(*Options)) (*RestoreSnapshotTierOutput, error)
+	// temporarily restored.
+	//
+	// For more information see [Restore an archived snapshot] and [modify the restore period or restore type for a temporarily restored snapshot] in the Amazon EBS User Guide.
+	//
+	// [Restore an archived snapshot]: https://docs.aws.amazon.com/ebs/latest/userguide/working-with-snapshot-archiving.html#restore-archived-snapshot
+	// [modify the restore period or restore type for a temporarily restored snapshot]: https://docs.aws.amazon.com/ebs/latest/userguide/working-with-snapshot-archiving.html#modify-temp-restore-period
+	RestoreSnapshotTier(ctx context.Context, params *ec2.RestoreSnapshotTierInput, optFns ...func(*Options)) (*ec2.RestoreSnapshotTierOutput, error)
 	// Removes an ingress authorization rule from a Client VPN endpoint.
-	RevokeClientVpnIngress(ctx context.Context, params *RevokeClientVpnIngressInput, optFns ...func(*Options)) (*RevokeClientVpnIngressOutput, error)
-	// [VPC only] Removes the specified outbound (egress) rules from a security group
-	// for EC2-VPC. This action does not apply to security groups for use in
-	// EC2-Classic. You can specify rules using either rule IDs or security group rule
-	// properties. If you use rule properties, the values that you specify (for
-	// example, ports) must match the existing rule's values exactly. Each rule has a
-	// protocol, from and to ports, and destination (CIDR range, security group, or
-	// prefix list). For the TCP and UDP protocols, you must also specify the
-	// destination port or range of ports. For the ICMP protocol, you must also specify
-	// the ICMP type and code. If the security group rule has a description, you do not
-	// need to specify the description to revoke the rule. [Default VPC] If the values
-	// you specify do not match the existing rule's values, no error is returned, and
-	// the output describes the security group rules that were not revoked. Amazon Web
-	// Services recommends that you describe the security group to verify that the
-	// rules were removed. Rule changes are propagated to instances within the security
-	// group as quickly as possible. However, a small delay might occur.
-	RevokeSecurityGroupEgress(ctx context.Context, params *RevokeSecurityGroupEgressInput, optFns ...func(*Options)) (*RevokeSecurityGroupEgressOutput, error)
-	// Removes the specified inbound (ingress) rules from a security group. You can
-	// specify rules using either rule IDs or security group rule properties. If you
-	// use rule properties, the values that you specify (for example, ports) must match
-	// the existing rule's values exactly. Each rule has a protocol, from and to ports,
-	// and source (CIDR range, security group, or prefix list). For the TCP and UDP
-	// protocols, you must also specify the destination port or range of ports. For the
-	// ICMP protocol, you must also specify the ICMP type and code. If the security
-	// group rule has a description, you do not need to specify the description to
-	// revoke the rule. [EC2-Classic, default VPC] If the values you specify do not
-	// match the existing rule's values, no error is returned, and the output describes
-	// the security group rules that were not revoked. Amazon Web Services recommends
-	// that you describe the security group to verify that the rules were removed. Rule
-	// changes are propagated to instances within the security group as quickly as
-	// possible. However, a small delay might occur.
-	RevokeSecurityGroupIngress(ctx context.Context, params *RevokeSecurityGroupIngressInput, optFns ...func(*Options)) (*RevokeSecurityGroupIngressOutput, error)
+	RevokeClientVpnIngress(ctx context.Context, params *ec2.RevokeClientVpnIngressInput, optFns ...func(*Options)) (*ec2.RevokeClientVpnIngressOutput, error)
+	// Removes the specified outbound (egress) rules from the specified security group.
+	//
+	// You can specify rules using either rule IDs or security group rule properties.
+	// If you use rule properties, the values that you specify (for example, ports)
+	// must match the existing rule's values exactly. Each rule has a protocol, from
+	// and to ports, and destination (CIDR range, security group, or prefix list). For
+	// the TCP and UDP protocols, you must also specify the destination port or range
+	// of ports. For the ICMP protocol, you must also specify the ICMP type and code.
+	// If the security group rule has a description, you do not need to specify the
+	// description to revoke the rule.
+	//
+	// For a default VPC, if the values you specify do not match the existing rule's
+	// values, no error is returned, and the output describes the security group rules
+	// that were not revoked.
+	//
+	// Amazon Web Services recommends that you describe the security group to verify
+	// that the rules were removed.
+	//
+	// Rule changes are propagated to instances within the security group as quickly
+	// as possible. However, a small delay might occur.
+	RevokeSecurityGroupEgress(ctx context.Context, params *ec2.RevokeSecurityGroupEgressInput, optFns ...func(*Options)) (*ec2.RevokeSecurityGroupEgressOutput, error)
+	// Removes the specified inbound (ingress) rules from a security group.
+	//
+	// You can specify rules using either rule IDs or security group rule properties.
+	// If you use rule properties, the values that you specify (for example, ports)
+	// must match the existing rule's values exactly. Each rule has a protocol, from
+	// and to ports, and source (CIDR range, security group, or prefix list). For the
+	// TCP and UDP protocols, you must also specify the destination port or range of
+	// ports. For the ICMP protocol, you must also specify the ICMP type and code. If
+	// the security group rule has a description, you do not need to specify the
+	// description to revoke the rule.
+	//
+	// For a default VPC, if the values you specify do not match the existing rule's
+	// values, no error is returned, and the output describes the security group rules
+	// that were not revoked.
+	//
+	// For a non-default VPC, if the values you specify do not match the existing
+	// rule's values, an InvalidPermission.NotFound client error is returned, and no
+	// rules are revoked.
+	//
+	// Amazon Web Services recommends that you describe the security group to verify
+	// that the rules were removed.
+	//
+	// Rule changes are propagated to instances within the security group as quickly
+	// as possible. However, a small delay might occur.
+	RevokeSecurityGroupIngress(ctx context.Context, params *ec2.RevokeSecurityGroupIngressInput, optFns ...func(*Options)) (*ec2.RevokeSecurityGroupIngressOutput, error)
 	// Launches the specified number of instances using an AMI for which you have
-	// permissions. You can specify a number of options, or leave the default options.
-	// The following rules apply:
+	// permissions.
 	//
-	// * [EC2-VPC] If you don't specify a subnet ID, we
-	// choose a default subnet from your default VPC for you. If you don't have a
-	// default VPC, you must specify a subnet ID in the request.
+	// You can specify a number of options, or leave the default options. The
+	// following rules apply:
 	//
-	// * [EC2-Classic] If
-	// don't specify an Availability Zone, we choose one for you.
+	//   - If you don't specify a subnet ID, we choose a default subnet from your
+	//     default VPC for you. If you don't have a default VPC, you must specify a subnet
+	//     ID in the request.
 	//
-	// * Some instance
-	// types must be launched into a VPC. If you do not have a default VPC, or if you
-	// do not specify a subnet ID, the request fails. For more information, see
-	// Instance types available only in a VPC
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-vpc.html#vpc-only-instance-types).
+	//   - All instances have a network interface with a primary private IPv4 address.
+	//     If you don't specify this address, we choose one from the IPv4 range of your
+	//     subnet.
 	//
-	// *
-	// [EC2-VPC] All instances have a network interface with a primary private IPv4
-	// address. If you don't specify this address, we choose one from the IPv4 range of
-	// your subnet.
+	//   - Not all instance types support IPv6 addresses. For more information, see [Instance types].
 	//
-	// * Not all instance types support IPv6 addresses. For more
-	// information, see Instance types
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html).
+	//   - If you don't specify a security group ID, we use the default security group
+	//     for the VPC. For more information, see [Security groups].
 	//
-	// * If
-	// you don't specify a security group ID, we use the default security group. For
-	// more information, see Security groups
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html).
+	//   - If any of the AMIs have a product code attached for which the user has not
+	//     subscribed, the request fails.
 	//
-	// *
-	// If any of the AMIs have a product code attached for which the user has not
-	// subscribed, the request fails.
+	// You can create a [launch template], which is a resource that contains the parameters to launch
+	// an instance. When you launch an instance using RunInstances, you can specify the launch
+	// template instead of specifying the launch parameters.
 	//
-	// You can create a launch template
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html),
-	// which is a resource that contains the parameters to launch an instance. When you
-	// launch an instance using RunInstances, you can specify the launch template
-	// instead of specifying the launch parameters. To ensure faster instance launches,
-	// break up large requests into smaller batches. For example, create five separate
-	// launch requests for 100 instances each instead of one launch request for 500
-	// instances. An instance is ready for you to use when it's in the running state.
-	// You can check the state of your instance using DescribeInstances. You can tag
-	// instances and EBS volumes during launch, after launch, or both. For more
-	// information, see CreateTags and Tagging your Amazon EC2 resources
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html). Linux
-	// instances have access to the public key of the key pair at boot. You can use
-	// this key to provide secure access to the instance. Amazon EC2 public images use
-	// this feature to provide secure access without passwords. For more information,
-	// see Key pairs
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). For
-	// troubleshooting, see What to do if an instance immediately terminates
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_InstanceStraightToTerminated.html),
-	// and Troubleshooting connecting to your instance
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstancesConnecting.html).
-	RunInstances(ctx context.Context, params *RunInstancesInput, optFns ...func(*Options)) (*RunInstancesOutput, error)
-	// Launches the specified Scheduled Instances. Before you can launch a Scheduled
-	// Instance, you must purchase it and obtain an identifier using
-	// PurchaseScheduledInstances. You must launch a Scheduled Instance during its
-	// scheduled time period. You can't stop or reboot a Scheduled Instance, but you
-	// can terminate it as needed. If you terminate a Scheduled Instance before the
-	// current scheduled time period ends, you can launch it again after a few minutes.
-	// For more information, see Scheduled Instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-scheduled-instances.html)
-	// in the Amazon EC2 User Guide.
-	RunScheduledInstances(ctx context.Context, params *RunScheduledInstancesInput, optFns ...func(*Options)) (*RunScheduledInstancesOutput, error)
+	// To ensure faster instance launches, break up large requests into smaller
+	// batches. For example, create five separate launch requests for 100 instances
+	// each instead of one launch request for 500 instances.
+	//
+	// RunInstances is subject to both request rate limiting and resource rate
+	// limiting. For more information, see [Request throttling].
+	//
+	// An instance is ready for you to use when it's in the running state. You can
+	// check the state of your instance using DescribeInstances. You can tag instances and EBS volumes
+	// during launch, after launch, or both. For more information, see CreateTagsand [Tagging your Amazon EC2 resources].
+	//
+	// Linux instances have access to the public key of the key pair at boot. You can
+	// use this key to provide secure access to the instance. Amazon EC2 public images
+	// use this feature to provide secure access without passwords. For more
+	// information, see [Key pairs].
+	//
+	// For troubleshooting, see [What to do if an instance immediately terminates], and [Troubleshooting connecting to your instance].
+	//
+	// [Key pairs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html
+	// [What to do if an instance immediately terminates]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_InstanceStraightToTerminated.html
+	// [Tagging your Amazon EC2 resources]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html
+	// [launch template]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html
+	// [Security groups]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html
+	// [Request throttling]: https://docs.aws.amazon.com/ec2/latest/devguide/ec2-api-throttling.html
+	// [Instance types]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html
+	// [Troubleshooting connecting to your instance]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstancesConnecting.html
+	RunInstances(ctx context.Context, params *ec2.RunInstancesInput, optFns ...func(*Options)) (*ec2.RunInstancesOutput, error)
+	// Launches the specified Scheduled Instances.
+	//
+	// Before you can launch a Scheduled Instance, you must purchase it and obtain an
+	// identifier using PurchaseScheduledInstances.
+	//
+	// You must launch a Scheduled Instance during its scheduled time period. You
+	// can't stop or reboot a Scheduled Instance, but you can terminate it as needed.
+	// If you terminate a Scheduled Instance before the current scheduled time period
+	// ends, you can launch it again after a few minutes.
+	RunScheduledInstances(ctx context.Context, params *ec2.RunScheduledInstancesInput, optFns ...func(*Options)) (*ec2.RunScheduledInstancesOutput, error)
 	// Searches for routes in the specified local gateway route table.
-	SearchLocalGatewayRoutes(ctx context.Context, params *SearchLocalGatewayRoutesInput, optFns ...func(*Options)) (*SearchLocalGatewayRoutesOutput, error)
+	SearchLocalGatewayRoutes(ctx context.Context, params *ec2.SearchLocalGatewayRoutesInput, optFns ...func(*Options)) (*ec2.SearchLocalGatewayRoutesOutput, error)
 	// Searches one or more transit gateway multicast groups and returns the group
 	// membership information.
-	SearchTransitGatewayMulticastGroups(ctx context.Context, params *SearchTransitGatewayMulticastGroupsInput, optFns ...func(*Options)) (*SearchTransitGatewayMulticastGroupsOutput, error)
+	SearchTransitGatewayMulticastGroups(ctx context.Context, params *ec2.SearchTransitGatewayMulticastGroupsInput, optFns ...func(*Options)) (*ec2.SearchTransitGatewayMulticastGroupsOutput, error)
 	// Searches for routes in the specified transit gateway route table.
-	SearchTransitGatewayRoutes(ctx context.Context, params *SearchTransitGatewayRoutesInput, optFns ...func(*Options)) (*SearchTransitGatewayRoutesOutput, error)
+	SearchTransitGatewayRoutes(ctx context.Context, params *ec2.SearchTransitGatewayRoutesInput, optFns ...func(*Options)) (*ec2.SearchTransitGatewayRoutesOutput, error)
 	// Sends a diagnostic interrupt to the specified Amazon EC2 instance to trigger a
 	// kernel panic (on Linux instances), or a blue screen/stop error (on Windows
 	// instances). For instances based on Intel and AMD processors, the interrupt is
-	// received as a non-maskable interrupt (NMI). In general, the operating system
-	// crashes and reboots when a kernel panic or stop error is triggered. The
-	// operating system can also be configured to perform diagnostic tasks, such as
-	// generating a memory dump file, loading a secondary kernel, or obtaining a call
-	// trace. Before sending a diagnostic interrupt to your instance, ensure that its
-	// operating system is configured to perform the required diagnostic tasks. For
-	// more information about configuring your operating system to generate a crash
-	// dump when a kernel panic or stop error occurs, see Send a diagnostic interrupt
-	// (for advanced users)
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/diagnostic-interrupt.html)
-	// (Linux instances) or Send a diagnostic interrupt (for advanced users)
-	// (https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/diagnostic-interrupt.html)
-	// (Windows instances).
-	SendDiagnosticInterrupt(ctx context.Context, params *SendDiagnosticInterruptInput, optFns ...func(*Options)) (*SendDiagnosticInterruptOutput, error)
-	// Starts an Amazon EBS-backed instance that you've previously stopped. Instances
-	// that use Amazon EBS volumes as their root devices can be quickly stopped and
-	// started. When an instance is stopped, the compute resources are released and you
-	// are not billed for instance usage. However, your root partition Amazon EBS
-	// volume remains and continues to persist your data, and you are charged for
-	// Amazon EBS volume usage. You can restart your instance at any time. Every time
-	// you start your instance, Amazon EC2 charges a one-minute minimum for instance
-	// usage, and thereafter charges per second for instance usage. Before stopping an
-	// instance, make sure it is in a state from which it can be restarted. Stopping an
-	// instance does not preserve data stored in RAM. Performing this operation on an
-	// instance that uses an instance store as its root device returns an error. If you
-	// attempt to start a T3 instance with host tenancy and the unlimted CPU credit
-	// option, the request fails. The unlimited CPU credit option is not supported on
-	// Dedicated Hosts. Before you start the instance, either change its CPU credit
-	// option to standard, or change its tenancy to default or dedicated. For more
-	// information, see Stop and start your instance
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Stop_Start.html) in the
-	// Amazon EC2 User Guide.
-	StartInstances(ctx context.Context, params *StartInstancesInput, optFns ...func(*Options)) (*StartInstancesOutput, error)
+	// received as a non-maskable interrupt (NMI).
+	//
+	// In general, the operating system crashes and reboots when a kernel panic or
+	// stop error is triggered. The operating system can also be configured to perform
+	// diagnostic tasks, such as generating a memory dump file, loading a secondary
+	// kernel, or obtaining a call trace.
+	//
+	// Before sending a diagnostic interrupt to your instance, ensure that its
+	// operating system is configured to perform the required diagnostic tasks.
+	//
+	// For more information about configuring your operating system to generate a
+	// crash dump when a kernel panic or stop error occurs, see [Send a diagnostic interrupt (for advanced users)]in the Amazon EC2 User
+	// Guide.
+	//
+	// [Send a diagnostic interrupt (for advanced users)]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/diagnostic-interrupt.html
+	SendDiagnosticInterrupt(ctx context.Context, params *ec2.SendDiagnosticInterruptInput, optFns ...func(*Options)) (*ec2.SendDiagnosticInterruptOutput, error)
+	// Generates an account status report. The report is generated asynchronously, and
+	// can take several hours to complete.
+	//
+	// The report provides the current status of all attributes supported by
+	// declarative policies for the accounts within the specified scope. The scope is
+	// determined by the specified TargetId , which can represent an individual
+	// account, or all the accounts that fall under the specified organizational unit
+	// (OU) or root (the entire Amazon Web Services Organization).
+	//
+	// The report is saved to your specified S3 bucket, using the following path
+	// structure (with the capitalized placeholders representing your specific values):
+	//
+	//	s3://AMZN-S3-DEMO-BUCKET/YOUR-OPTIONAL-S3-PREFIX/ec2_TARGETID_REPORTID_YYYYMMDDTHHMMZ.csv
+	//
+	// Prerequisites for generating a report
+	//
+	//   - The StartDeclarativePoliciesReport API can only be called by the management
+	//     account or delegated administrators for the organization.
+	//
+	//   - An S3 bucket must be available before generating the report (you can create
+	//     a new one or use an existing one), it must be in the same Region where the
+	//     report generation request is made, and it must have an appropriate bucket
+	//     policy. For a sample S3 policy, see Sample Amazon S3 policy under [Examples].
+	//
+	//   - Trusted access must be enabled for the service for which the declarative
+	//     policy will enforce a baseline configuration. If you use the Amazon Web Services
+	//     Organizations console, this is done automatically when you enable declarative
+	//     policies. The API uses the following service principal to identify the EC2
+	//     service: ec2.amazonaws.com . For more information on how to enable trusted
+	//     access with the Amazon Web Services CLI and Amazon Web Services SDKs, see [Using Organizations with other Amazon Web Services services]in
+	//     the Amazon Web Services Organizations User Guide.
+	//
+	//   - Only one report per organization can be generated at a time. Attempting to
+	//     generate a report while another is in progress will result in an error.
+	//
+	// For more information, including the required IAM permissions to run this API,
+	// see [Generating the account status report for declarative policies]in the Amazon Web Services Organizations User Guide.
+	//
+	// [Generating the account status report for declarative policies]: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_declarative_status-report.html
+	// [Using Organizations with other Amazon Web Services services]: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services.html
+	// [Examples]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_StartDeclarativePoliciesReport.html#API_StartDeclarativePoliciesReport_Examples
+	StartDeclarativePoliciesReport(ctx context.Context, params *ec2.StartDeclarativePoliciesReportInput, optFns ...func(*Options)) (*ec2.StartDeclarativePoliciesReportOutput, error)
+	// Starts an Amazon EBS-backed instance that you've previously stopped.
+	//
+	// Instances that use Amazon EBS volumes as their root devices can be quickly
+	// stopped and started. When an instance is stopped, the compute resources are
+	// released and you are not billed for instance usage. However, your root partition
+	// Amazon EBS volume remains and continues to persist your data, and you are
+	// charged for Amazon EBS volume usage. You can restart your instance at any time.
+	// Every time you start your instance, Amazon EC2 charges a one-minute minimum for
+	// instance usage, and thereafter charges per second for instance usage.
+	//
+	// Before stopping an instance, make sure it is in a state from which it can be
+	// restarted. Stopping an instance does not preserve data stored in RAM.
+	//
+	// Performing this operation on an instance that uses an instance store as its
+	// root device returns an error.
+	//
+	// If you attempt to start a T3 instance with host tenancy and the unlimited CPU
+	// credit option, the request fails. The unlimited CPU credit option is not
+	// supported on Dedicated Hosts. Before you start the instance, either change its
+	// CPU credit option to standard , or change its tenancy to default or dedicated .
+	//
+	// For more information, see [Stop and start Amazon EC2 instances] in the Amazon EC2 User Guide.
+	//
+	// [Stop and start Amazon EC2 instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Stop_Start.html
+	StartInstances(ctx context.Context, params *ec2.StartInstancesInput, optFns ...func(*Options)) (*ec2.StartInstancesOutput, error)
 	// Starts analyzing the specified Network Access Scope.
-	StartNetworkInsightsAccessScopeAnalysis(ctx context.Context, params *StartNetworkInsightsAccessScopeAnalysisInput, optFns ...func(*Options)) (*StartNetworkInsightsAccessScopeAnalysisOutput, error)
+	StartNetworkInsightsAccessScopeAnalysis(ctx context.Context, params *ec2.StartNetworkInsightsAccessScopeAnalysisInput, optFns ...func(*Options)) (*ec2.StartNetworkInsightsAccessScopeAnalysisOutput, error)
 	// Starts analyzing the specified path. If the path is reachable, the operation
 	// returns the shortest feasible path.
-	StartNetworkInsightsAnalysis(ctx context.Context, params *StartNetworkInsightsAnalysisInput, optFns ...func(*Options)) (*StartNetworkInsightsAnalysisOutput, error)
+	StartNetworkInsightsAnalysis(ctx context.Context, params *ec2.StartNetworkInsightsAnalysisInput, optFns ...func(*Options)) (*ec2.StartNetworkInsightsAnalysisOutput, error)
 	// Initiates the verification process to prove that the service provider owns the
-	// private DNS name domain for the endpoint service. The service provider must
-	// successfully perform the verification before the consumer can use the name to
-	// access the service. Before the service provider runs this command, they must add
-	// a record to the DNS server. For more information, see Adding a TXT Record to
-	// Your Domain's DNS Server
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-services-dns-validation.html#add-dns-txt-record)
-	// in the Amazon VPC User Guide.
-	StartVpcEndpointServicePrivateDnsVerification(ctx context.Context, params *StartVpcEndpointServicePrivateDnsVerificationInput, optFns ...func(*Options)) (*StartVpcEndpointServicePrivateDnsVerificationOutput, error)
-	// Stops an Amazon EBS-backed instance. You can use the Stop action to hibernate an
-	// instance if the instance is enabled for hibernation
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#enabling-hibernation)
-	// and it meets the hibernation prerequisites
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#hibernating-prerequisites).
-	// For more information, see Hibernate your instance
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html) in the
-	// Amazon EC2 User Guide. We don't charge usage for a stopped instance, or data
-	// transfer fees; however, your root partition Amazon EBS volume remains and
-	// continues to persist your data, and you are charged for Amazon EBS volume usage.
-	// Every time you start your instance, Amazon EC2 charges a one-minute minimum for
-	// instance usage, and thereafter charges per second for instance usage. You can't
-	// stop or hibernate instance store-backed instances. You can't use the Stop action
-	// to hibernate Spot Instances, but you can specify that Amazon EC2 should
-	// hibernate Spot Instances when they are interrupted. For more information, see
-	// Hibernating interrupted Spot Instances
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-interruptions.html#hibernate-spot-instances)
-	// in the Amazon EC2 User Guide. When you stop or hibernate an instance, we shut it
-	// down. You can restart your instance at any time. Before stopping or hibernating
-	// an instance, make sure it is in a state from which it can be restarted. Stopping
-	// an instance does not preserve data stored in RAM, but hibernating an instance
-	// does preserve data stored in RAM. If an instance cannot hibernate successfully,
-	// a normal shutdown occurs. Stopping and hibernating an instance is different to
-	// rebooting or terminating it. For example, when you stop or hibernate an
-	// instance, the root device and any other devices attached to the instance
-	// persist. When you terminate an instance, the root device and any other devices
-	// attached during the instance launch are automatically deleted. For more
-	// information about the differences between rebooting, stopping, hibernating, and
-	// terminating instances, see Instance lifecycle
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html)
-	// in the Amazon EC2 User Guide. When you stop an instance, we attempt to shut it
-	// down forcibly after a short while. If your instance appears stuck in the
-	// stopping state after a period of time, there may be an issue with the underlying
-	// host computer. For more information, see Troubleshoot stopping your instance
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstancesStopping.html)
-	// in the Amazon EC2 User Guide.
-	StopInstances(ctx context.Context, params *StopInstancesInput, optFns ...func(*Options)) (*StopInstancesOutput, error)
+	// private DNS name domain for the endpoint service.
+	//
+	// The service provider must successfully perform the verification before the
+	// consumer can use the name to access the service.
+	//
+	// Before the service provider runs this command, they must add a record to the
+	// DNS server.
+	StartVpcEndpointServicePrivateDnsVerification(ctx context.Context, params *ec2.StartVpcEndpointServicePrivateDnsVerificationInput, optFns ...func(*Options)) (*ec2.StartVpcEndpointServicePrivateDnsVerificationOutput, error)
+	// Stops an Amazon EBS-backed instance. You can restart your instance at any time
+	// using the [StartInstances]API. For more information, see [Stop and start Amazon EC2 instances] in the Amazon EC2 User Guide.
+	//
+	// When you stop or hibernate an instance, we shut it down. By default, this
+	// includes a graceful operating system (OS) shutdown. To bypass the graceful
+	// shutdown, use the skipOsShutdown parameter; however, this might risk data
+	// integrity.
+	//
+	// You can use the StopInstances operation together with the Hibernate parameter
+	// to hibernate an instance if the instance is [enabled for hibernation]and meets the [hibernation prerequisites]. Stopping an
+	// instance doesn't preserve data stored in RAM, while hibernation does. If
+	// hibernation fails, a normal shutdown occurs. For more information, see [Hibernate your Amazon EC2 instance]in the
+	// Amazon EC2 User Guide.
+	//
+	// If your instance appears stuck in the stopping state, there might be an issue
+	// with the underlying host computer. You can use the StopInstances operation
+	// together with the Force parameter to force stop your instance. For more
+	// information, see [Troubleshoot Amazon EC2 instance stop issues]in the Amazon EC2 User Guide.
+	//
+	// Stopping and hibernating an instance differs from rebooting or terminating it.
+	// For example, a stopped or hibernated instance retains its root volume and any
+	// data volumes, unlike terminated instances where these volumes are automatically
+	// deleted. For more information about the differences between stopping,
+	// hibernating, rebooting, and terminating instances, see [Amazon EC2 instance state changes]in the Amazon EC2 User
+	// Guide.
+	//
+	// We don't charge for instance usage or data transfer fees when an instance is
+	// stopped. However, the root volume and any data volumes remain and continue to
+	// persist your data, and you're charged for volume usage. Every time you start
+	// your instance, Amazon EC2 charges a one-minute minimum for instance usage,
+	// followed by per-second billing.
+	//
+	// You can't stop or hibernate instance store-backed instances.
+	//
+	// [Troubleshoot Amazon EC2 instance stop issues]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstancesStopping.html
+	// [Stop and start Amazon EC2 instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Stop_Start.html
+	// [Hibernate your Amazon EC2 instance]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html
+	// [Amazon EC2 instance state changes]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html
+	// [enabled for hibernation]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enabling-hibernation.html
+	// [StartInstances]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_StartInstances.html
+	// [hibernation prerequisites]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/hibernating-prerequisites.html
+	StopInstances(ctx context.Context, params *ec2.StopInstancesInput, optFns ...func(*Options)) (*ec2.StopInstancesOutput, error)
 	// Terminates active Client VPN endpoint connections. This action can be used to
 	// terminate a specific client connection, or up to five connections established by
 	// a specific user.
-	TerminateClientVpnConnections(ctx context.Context, params *TerminateClientVpnConnectionsInput, optFns ...func(*Options)) (*TerminateClientVpnConnectionsOutput, error)
-	// Shuts down the specified instances. This operation is idempotent; if you
-	// terminate an instance more than once, each call succeeds. If you specify
-	// multiple instances and the request fails (for example, because of a single
-	// incorrect instance ID), none of the instances are terminated. If you terminate
-	// multiple instances across multiple Availability Zones, and one or more of the
-	// specified instances are enabled for termination protection, the request fails
-	// with the following results:
+	TerminateClientVpnConnections(ctx context.Context, params *ec2.TerminateClientVpnConnectionsInput, optFns ...func(*Options)) (*ec2.TerminateClientVpnConnectionsOutput, error)
+	// Shuts down the specified instances. This operation is [idempotent]; if you terminate an
+	// instance more than once, each call succeeds.
 	//
-	// * The specified instances that are in the same
-	// Availability Zone as the protected instance are not terminated.
+	// If you specify multiple instances and the request fails (for example, because
+	// of a single incorrect instance ID), none of the instances are terminated.
 	//
-	// * The specified
-	// instances that are in different Availability Zones, where no other specified
-	// instances are protected, are successfully terminated.
+	// If you terminate multiple instances across multiple Availability Zones, and one
+	// or more of the specified instances are enabled for termination protection, the
+	// request fails with the following results:
 	//
-	// For example, say you have
-	// the following instances:
+	//   - The specified instances that are in the same Availability Zone as the
+	//     protected instance are not terminated.
 	//
-	// * Instance A: us-east-1a; Not protected
+	//   - The specified instances that are in different Availability Zones, where no
+	//     other specified instances are protected, are successfully terminated.
 	//
-	// * Instance B:
-	// us-east-1a; Not protected
+	// For example, say you have the following instances:
 	//
-	// * Instance C: us-east-1b; Protected
+	//   - Instance A: us-east-1a ; Not protected
 	//
-	// * Instance D:
-	// us-east-1b; not protected
+	//   - Instance B: us-east-1a ; Not protected
 	//
-	// If you attempt to terminate all of these instances in
-	// the same request, the request reports failure with the following results:
+	//   - Instance C: us-east-1b ; Protected
 	//
-	// *
-	// Instance A and Instance B are successfully terminated because none of the
-	// specified instances in us-east-1a are enabled for termination protection.
+	//   - Instance D: us-east-1b ; not protected
 	//
-	// *
-	// Instance C and Instance D fail to terminate because at least one of the
-	// specified instances in us-east-1b (Instance C) is enabled for termination
-	// protection.
+	// If you attempt to terminate all of these instances in the same request, the
+	// request reports failure with the following results:
 	//
-	// Terminated instances remain visible after termination (for
-	// approximately one hour). By default, Amazon EC2 deletes all EBS volumes that
-	// were attached when the instance launched. Volumes attached after instance launch
-	// continue running. You can stop, start, and terminate EBS-backed instances. You
-	// can only terminate instance store-backed instances. What happens to an instance
-	// differs if you stop it or terminate it. For example, when you stop an instance,
-	// the root device and any other devices attached to the instance persist. When you
-	// terminate an instance, any attached EBS volumes with the DeleteOnTermination
-	// block device mapping parameter set to true are automatically deleted. For more
-	// information about the differences between stopping and terminating instances,
-	// see Instance lifecycle
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html)
-	// in the Amazon EC2 User Guide. For more information about troubleshooting, see
-	// Troubleshooting terminating your instance
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstancesShuttingDown.html)
-	// in the Amazon EC2 User Guide.
-	TerminateInstances(ctx context.Context, params *TerminateInstancesInput, optFns ...func(*Options)) (*TerminateInstancesOutput, error)
-	// Unassigns one or more IPv6 addresses IPv4 Prefix Delegation prefixes from a
+	//   - Instance A and Instance B are successfully terminated because none of the
+	//     specified instances in us-east-1a are enabled for termination protection.
+	//
+	//   - Instance C and Instance D fail to terminate because at least one of the
+	//     specified instances in us-east-1b (Instance C) is enabled for termination
+	//     protection.
+	//
+	// Terminated instances remain visible after termination (for approximately one
+	// hour).
+	//
+	// By default, Amazon EC2 deletes all EBS volumes that were attached when the
+	// instance launched. Volumes attached after instance launch continue running.
+	//
+	// By default, the TerminateInstances operation includes a graceful operating
+	// system (OS) shutdown. To bypass the graceful shutdown, use the skipOsShutdown
+	// parameter; however, this might risk data integrity.
+	//
+	// You can stop, start, and terminate EBS-backed instances. You can only terminate
+	// instance store-backed instances. What happens to an instance differs if you stop
+	// or terminate it. For example, when you stop an instance, the root device and any
+	// other devices attached to the instance persist. When you terminate an instance,
+	// any attached EBS volumes with the DeleteOnTermination block device mapping
+	// parameter set to true are automatically deleted. For more information about the
+	// differences between stopping and terminating instances, see [Amazon EC2 instance state changes]in the Amazon EC2
+	// User Guide.
+	//
+	// When you terminate an instance, we attempt to terminate it forcibly after a
+	// short while. If your instance appears stuck in the shutting-down state after a
+	// period of time, there might be an issue with the underlying host computer. For
+	// more information about terminating and troubleshooting terminating your
+	// instances, see [Terminate Amazon EC2 instances]and [Troubleshooting terminating your instance] in the Amazon EC2 User Guide.
+	//
+	// [idempotent]: https://docs.aws.amazon.com/ec2/latest/devguide/ec2-api-idempotency.html
+	// [Troubleshooting terminating your instance]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstancesShuttingDown.html
+	// [Amazon EC2 instance state changes]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html
+	// [Terminate Amazon EC2 instances]: https://docs.aws.amazon.com/
+	TerminateInstances(ctx context.Context, params *ec2.TerminateInstancesInput, optFns ...func(*Options)) (*ec2.TerminateInstancesOutput, error)
+	// Unassigns the specified IPv6 addresses or Prefix Delegation prefixes from a
 	// network interface.
-	UnassignIpv6Addresses(ctx context.Context, params *UnassignIpv6AddressesInput, optFns ...func(*Options)) (*UnassignIpv6AddressesOutput, error)
-	// Unassigns one or more secondary private IP addresses, or IPv4 Prefix Delegation
-	// prefixes from a network interface.
-	UnassignPrivateIpAddresses(ctx context.Context, params *UnassignPrivateIpAddressesInput, optFns ...func(*Options)) (*UnassignPrivateIpAddressesOutput, error)
-	// Disables detailed monitoring for a running instance. For more information, see
-	// Monitoring your instances and volumes
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch.html) in
-	// the Amazon EC2 User Guide.
-	UnmonitorInstances(ctx context.Context, params *UnmonitorInstancesInput, optFns ...func(*Options)) (*UnmonitorInstancesOutput, error)
-	// [VPC only] Updates the description of an egress (outbound) security group rule.
-	// You can replace an existing description, or add a description to a rule that did
-	// not have one previously. You can remove a description for a security group rule
-	// by omitting the description parameter in the request.
-	UpdateSecurityGroupRuleDescriptionsEgress(ctx context.Context, params *UpdateSecurityGroupRuleDescriptionsEgressInput, optFns ...func(*Options)) (*UpdateSecurityGroupRuleDescriptionsEgressOutput, error)
+	UnassignIpv6Addresses(ctx context.Context, params *ec2.UnassignIpv6AddressesInput, optFns ...func(*Options)) (*ec2.UnassignIpv6AddressesOutput, error)
+	// Unassigns the specified secondary private IP addresses or IPv4 Prefix
+	// Delegation prefixes from a network interface.
+	UnassignPrivateIpAddresses(ctx context.Context, params *ec2.UnassignPrivateIpAddressesInput, optFns ...func(*Options)) (*ec2.UnassignPrivateIpAddressesOutput, error)
+	// Unassigns secondary private IPv4 addresses from a private NAT gateway. You
+	// cannot unassign your primary private IP. For more information, see [Edit secondary IP address associations]in the
+	// Amazon VPC User Guide.
+	//
+	// While unassigning is in progress, you cannot assign/unassign additional IP
+	// addresses while the connections are being drained. You are, however, allowed to
+	// delete the NAT gateway.
+	//
+	// A private IP address will only be released at the end of
+	// MaxDrainDurationSeconds. The private IP addresses stay associated and support
+	// the existing connections, but do not support any new connections (new
+	// connections are distributed across the remaining assigned private IP address).
+	// After the existing connections drain out, the private IP addresses are released.
+	//
+	// [Edit secondary IP address associations]: https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-working-with.html#nat-gateway-edit-secondary
+	UnassignPrivateNatGatewayAddress(ctx context.Context, params *ec2.UnassignPrivateNatGatewayAddressInput, optFns ...func(*Options)) (*ec2.UnassignPrivateNatGatewayAddressOutput, error)
+	// Unlocks a snapshot that is locked in governance mode or that is locked in
+	// compliance mode but still in the cooling-off period. You can't unlock a snapshot
+	// that is locked in compliance mode after the cooling-off period has expired.
+	UnlockSnapshot(ctx context.Context, params *ec2.UnlockSnapshotInput, optFns ...func(*Options)) (*ec2.UnlockSnapshotOutput, error)
+	// Disables detailed monitoring for a running instance. For more information, see [Monitoring your instances and volumes]
+	// in the Amazon EC2 User Guide.
+	//
+	// [Monitoring your instances and volumes]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch.html
+	UnmonitorInstances(ctx context.Context, params *ec2.UnmonitorInstancesInput, optFns ...func(*Options)) (*ec2.UnmonitorInstancesOutput, error)
+	// Updates the description of an egress (outbound) security group rule. You can
+	// replace an existing description, or add a description to a rule that did not
+	// have one previously. You can remove a description for a security group rule by
+	// omitting the description parameter in the request.
+	UpdateSecurityGroupRuleDescriptionsEgress(ctx context.Context, params *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput, optFns ...func(*Options)) (*ec2.UpdateSecurityGroupRuleDescriptionsEgressOutput, error)
 	// Updates the description of an ingress (inbound) security group rule. You can
 	// replace an existing description, or add a description to a rule that did not
 	// have one previously. You can remove a description for a security group rule by
 	// omitting the description parameter in the request.
-	UpdateSecurityGroupRuleDescriptionsIngress(ctx context.Context, params *UpdateSecurityGroupRuleDescriptionsIngressInput, optFns ...func(*Options)) (*UpdateSecurityGroupRuleDescriptionsIngressOutput, error)
-	// Stops advertising an address range that is provisioned as an address pool. You
-	// can perform this operation at most once every 10 seconds, even if you specify
-	// different address ranges each time. It can take a few minutes before traffic to
-	// the specified addresses stops routing to Amazon Web Services because of BGP
-	// propagation delays.
-	WithdrawByoipCidr(ctx context.Context, params *WithdrawByoipCidrInput, optFns ...func(*Options)) (*WithdrawByoipCidrOutput, error)
+	UpdateSecurityGroupRuleDescriptionsIngress(ctx context.Context, params *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput, optFns ...func(*Options)) (*ec2.UpdateSecurityGroupRuleDescriptionsIngressOutput, error)
+	// Stops advertising an address range that is provisioned as an address pool.
+	//
+	// You can perform this operation at most once every 10 seconds, even if you
+	// specify different address ranges each time.
+	//
+	// It can take a few minutes before traffic to the specified addresses stops
+	// routing to Amazon Web Services because of BGP propagation delays.
+	WithdrawByoipCidr(ctx context.Context, params *ec2.WithdrawByoipCidrInput, optFns ...func(*Options)) (*ec2.WithdrawByoipCidrOutput, error)
 }
 

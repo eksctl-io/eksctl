@@ -1,6 +1,6 @@
 # options for analysis running
 run:
-    go: "1.24"
+    go: "1.25"
 
     # default concurrency is a available CPU number
     concurrency: 4
@@ -100,6 +100,11 @@ linters-settings:
         simple: true
         range-loops: true # Report preallocation suggestions on range loops, true by default
         for-loops: false # Report preallocation suggestions on for loops, false by default
+    staticcheck:
+        checks:
+            - all
+            - '-SA1019' # disable the rule SA1019
+
 
 issues:
     max-same-issues: 20

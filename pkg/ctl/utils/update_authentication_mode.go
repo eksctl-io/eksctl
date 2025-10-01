@@ -10,7 +10,6 @@ import (
 
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/aws/aws-sdk-go/aws"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -55,7 +54,7 @@ func doUpdateAuthenticationMode(cmd *cmdutils.Cmd, authenticationMode string) er
 	logger.Info("setting cluster's authentication mode to %s", authenticationMode)
 	clusterName := cmd.ClusterConfig.Metadata.Name
 	output, err := clusterProvider.AWSProvider.EKS().UpdateClusterConfig(ctx, &awseks.UpdateClusterConfigInput{
-		Name: aws.String(clusterName),
+		Name: &clusterName,
 		AccessConfig: &ekstypes.UpdateAccessConfigRequest{
 			AuthenticationMode: cmd.ClusterConfig.AccessConfig.AuthenticationMode,
 		},

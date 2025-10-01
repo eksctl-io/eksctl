@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-version"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/aws/aws-sdk-go/aws"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -32,6 +31,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
@@ -123,7 +123,7 @@ var _ = BeforeSuite(func() {
 				Name:         initNG,
 				InstanceType: "t3.large",
 				ScalingConfig: &api.ScalingConfig{
-					DesiredCapacity: aws.Int(1),
+					DesiredCapacity: utils.IntPtr(1),
 				},
 				Labels: map[string]string{
 					"ng-name": initNG,
@@ -136,7 +136,7 @@ var _ = BeforeSuite(func() {
 				AMIFamily:    api.NodeImageFamilyBottlerocket,
 				InstanceType: "t3.small",
 				ScalingConfig: &api.ScalingConfig{
-					DesiredCapacity: aws.Int(1),
+					DesiredCapacity: utils.IntPtr(1),
 				},
 				Labels: map[string]string{
 					"ng-name": botNG,

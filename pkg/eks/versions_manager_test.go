@@ -7,11 +7,11 @@ import (
 
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/aws/aws-sdk-go/aws"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 var _ = Describe("upgrade cluster", func() {
@@ -29,19 +29,19 @@ var _ = Describe("upgrade cluster", func() {
 				Return(&awseks.DescribeClusterVersionsOutput{
 					ClusterVersions: []ekstypes.ClusterVersionInformation{
 						{
-							ClusterVersion: aws.String(api.Version1_27),
+							ClusterVersion: utils.StringPtr(api.Version1_27),
 						},
 						{
-							ClusterVersion: aws.String(api.Version1_28),
+							ClusterVersion: utils.StringPtr(api.Version1_28),
 						},
 						{
-							ClusterVersion: aws.String(api.Version1_29),
+							ClusterVersion: utils.StringPtr(api.Version1_29),
 						},
 						{
-							ClusterVersion: aws.String(api.Version1_30),
+							ClusterVersion: utils.StringPtr(api.Version1_30),
 						},
 						{
-							ClusterVersion: aws.String(api.Version1_31),
+							ClusterVersion: utils.StringPtr(api.Version1_31),
 							DefaultVersion: true,
 						},
 					},

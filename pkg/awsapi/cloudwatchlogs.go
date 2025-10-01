@@ -398,12 +398,12 @@ type CloudWatchLogs interface {
 	// Lists the specified export tasks. You can list all your export tasks or filter
 	// the results based on task ID or task status.
 	DescribeExportTasks(ctx context.Context, params *cloudwatchlogs.DescribeExportTasksInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeExportTasksOutput, error)
-	// Returns a list of field indexes listed in the field index policies of one or
-	// more log groups. For more information about field index policies, see [PutIndexPolicy].
+	// Returns a list of custom and default field indexes which are discovered in log
+	// data. For more information about field index policies, see [PutIndexPolicy].
 	//
 	// [PutIndexPolicy]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutIndexPolicy.html
 	DescribeFieldIndexes(ctx context.Context, params *cloudwatchlogs.DescribeFieldIndexesInput, optFns ...func(*Options)) (*cloudwatchlogs.DescribeFieldIndexesOutput, error)
-	// Returns the field index policies of one or more log groups. For more
+	// Returns the field index policies of the specified log group. For more
 	// information about field index policies, see [PutIndexPolicy].
 	//
 	// If a specified log group has a log-group level index policy, that policy is
@@ -504,7 +504,7 @@ type CloudWatchLogs interface {
 	//
 	//   - A time range
 	//
-	//   - The log stream name, or a log stream name prefix that matches mutltiple log
+	//   - The log stream name, or a log stream name prefix that matches multiple log
 	//     streams
 	//
 	// You must have the logs:FilterLogEvents permission to perform this operation.
@@ -860,6 +860,22 @@ type CloudWatchLogs interface {
 	// groups that start with my-log , you can't have another field index policy
 	// filtered to my-logpprod or my-logging .
 	//
+	// CloudWatch Logs provides default field indexes for all log groups in the
+	// Standard log class. Default field indexes are automatically available for the
+	// following fields:
+	//
+	//   - @aws.region
+	//
+	//   - @aws.account
+	//
+	//   - @source.log
+	//
+	//   - traceId
+	//
+	// Default field indexes are in addition to any custom field indexes you define
+	// within your policy. Default field indexes are not counted towards your field
+	// index quota.
+	//
 	// You can also set up a transformer at the log-group level. For more information,
 	// see [PutTransformer]. If there is both a log-group level transformer created with PutTransformer
 	// and an account-level transformer that could apply to the same log group, the log
@@ -1156,6 +1172,22 @@ type CloudWatchLogs interface {
 	// CloudWatch Logs Insights query on that log group that includes requestId =
 	// value or requestId IN [value, value, ...] will process fewer log events to
 	// reduce costs, and have improved performance.
+	//
+	// CloudWatch Logs provides default field indexes for all log groups in the
+	// Standard log class. Default field indexes are automatically available for the
+	// following fields:
+	//
+	//   - @aws.region
+	//
+	//   - @aws.account
+	//
+	//   - @source.log
+	//
+	//   - traceId
+	//
+	// Default field indexes are in addition to any custom field indexes you define
+	// within your policy. Default field indexes are not counted towards your field
+	// index quota.
 	//
 	// Each index policy has the following quotas and restrictions:
 	//

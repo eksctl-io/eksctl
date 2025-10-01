@@ -355,16 +355,6 @@ func (fake *FakeNodeGroupResourceSet) WithNamedIAMReturnsOnCall(i int, result1 b
 func (fake *FakeNodeGroupResourceSet) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.addAllResourcesMutex.RLock()
-	defer fake.addAllResourcesMutex.RUnlock()
-	fake.getAllOutputsMutex.RLock()
-	defer fake.getAllOutputsMutex.RUnlock()
-	fake.renderJSONMutex.RLock()
-	defer fake.renderJSONMutex.RUnlock()
-	fake.withIAMMutex.RLock()
-	defer fake.withIAMMutex.RUnlock()
-	fake.withNamedIAMMutex.RLock()
-	defer fake.withNamedIAMMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

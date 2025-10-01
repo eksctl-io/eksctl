@@ -39,7 +39,6 @@ var _ = Describe("Kubernetes namespace object helpers", func() {
 				"apiVersion": "v1",
 				"kind": "Namespace",
 				"metadata": {
-					"creationTimestamp": null,
 					"name": "ns123"
 				},
 				"spec": {},
