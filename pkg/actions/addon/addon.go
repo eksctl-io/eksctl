@@ -122,16 +122,17 @@ func (a *Manager) getLatestMatchingVersion(ctx context.Context, addon *api.Addon
 			continue
 		}
 
-		v, err := a.parseVersion(*addonVersionInfo.AddonVersion)
-		if err != nil {
-			return "", false, err
-		}
-
-		if addonVersion == *addonVersionInfo.AddonVersion {
+		// Check for exact match first - return immediately if found
+		if *addonVersionInfo.AddonVersion == addonVersion {
 			return *addonVersionInfo.AddonVersion, addonVersionInfo.RequiresIamPermissions, nil
 		}
 
+		// If no exact match, collect versions for "latest" or partial matching
 		if addonVersion == "latest" || strings.Contains(*addonVersionInfo.AddonVersion, addonVersion) {
+			v, err := a.parseVersion(*addonVersionInfo.AddonVersion)
+			if err != nil {
+				return "", false, err
+			}
 			versions = append(versions, v)
 		}
 	}

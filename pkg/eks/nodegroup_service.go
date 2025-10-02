@@ -20,6 +20,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/outposts"
 	"github.com/weaveworks/eksctl/pkg/ssh"
+	"github.com/weaveworks/eksctl/pkg/utils/instance"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
@@ -204,7 +205,7 @@ func (n *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 		filters.GpusRange = makeRange(*ins.GPUs)
 	}
 	if ins.NeuronDevices != nil {
-		filters.InferenceAcceleratorsRange = &selector.Int32RangeFilter{
+		filters.InferenceAcceleratorsRange = &selector.IntRangeFilter{
 			LowerBound: *ins.NeuronDevices,
 			UpperBound: *ins.NeuronDevices,
 		}
@@ -238,6 +239,22 @@ func (n *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	}
 	if len(instanceTypes) == 0 {
 		return nil, errors.New("instance selector criteria matched no instances; consider broadening your criteria so that more instance types are returned")
+	}
+
+	// Workaround for AWS API bug: filter out GPU instances when GPUs=0 is specified
+	// AWS incorrectly reports GPU count as 0 for some GPU instances (e.g., g6f family)
+	if ins.GPUs != nil && *ins.GPUs == 0 {
+		filteredTypes := make([]string, 0, len(instanceTypes))
+		for _, instanceType := range instanceTypes {
+			if !instance.IsGPUInstanceType(instanceType) {
+				filteredTypes = append(filteredTypes, instanceType)
+			}
+		}
+		instanceTypes = filteredTypes
+
+		if len(instanceTypes) == 0 {
+			return nil, errors.New("instance selector criteria matched no non-GPU instances; consider broadening your criteria")
+		}
 	}
 
 	return instanceTypes, nil

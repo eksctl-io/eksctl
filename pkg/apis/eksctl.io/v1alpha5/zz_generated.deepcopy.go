@@ -1326,7 +1326,7 @@ func (in *InstanceSelector) DeepCopyInto(out *InstanceSelector) {
 	}
 	if in.NeuronDevices != nil {
 		in, out := &in.NeuronDevices, &out.NeuronDevices
-		*out = new(int32)
+		*out = new(int)
 		**out = **in
 	}
 	if in.Allow != nil {

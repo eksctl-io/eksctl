@@ -227,6 +227,7 @@ func (c *StackCollection) createClusterStack(ctx context.Context, stackName stri
 
 func (c *StackCollection) createStackRequest(ctx context.Context, stackName string, resourceSet builder.ResourceSetReader, tags, parameters map[string]string) (*Stack, error) {
 	stack := &Stack{StackName: &stackName}
+
 	templateBody, err := resourceSet.RenderJSON()
 	if err != nil {
 		return nil, fmt.Errorf("rendering template for %q stack: %w", *stack.StackName, err)

@@ -130,7 +130,7 @@ var _ = Describe("HelmInstaller", func() {
 					Version:         "0.8.0",
 					RegistryClient:  registryClient,
 				})
-				Expect(err).To(MatchError(ContainSubstring("failed to locate chart: public.ecr.aws/karpenter/karpenter:0.8.0: not found")))
+				Expect(err).To(MatchError(ContainSubstring("public.ecr.aws/karpenter/karpenter:0.8.0: not found")))
 			})
 		})
 		When("the exact version is not specified", func() {
@@ -147,7 +147,7 @@ var _ = Describe("HelmInstaller", func() {
 					Version:         "0.18.0",
 					RegistryClient:  registryClient,
 				})
-				Expect(err).To(MatchError(ContainSubstring("failed to locate chart: public.ecr.aws/karpenter/karpenter:0.18.0: not found")))
+				Expect(err).To(MatchError(ContainSubstring("public.ecr.aws/karpenter/karpenter:0.18.0: not found")))
 			})
 		})
 		When("kube client fails to reach the cluster", func() {
@@ -162,7 +162,7 @@ var _ = Describe("HelmInstaller", func() {
 				actionConfig.KubeClient = fakeKube
 				installerUnderTest.ActionConfig = actionConfig
 				err := installerUnderTest.InstallChart(context.Background(), providers.InstallChartOpts{
-					ChartName:       "oci://public.ecr.aws/karpenter/karpenter",
+					ChartName:       filepath.Join(tmp, "karpenter-0.18.0.tgz"),
 					CreateNamespace: true,
 					Namespace:       "karpenter",
 					ReleaseName:     "karpenter",
@@ -170,7 +170,7 @@ var _ = Describe("HelmInstaller", func() {
 					Version:         "v0.18.0",
 					RegistryClient:  registryClient,
 				})
-				Expect(err).To(MatchError(ContainSubstring("failed to install chart: failed to install CRD crds/karpenter.k8s.aws_awsnodetemplates.yaml: nope")))
+				Expect(err).To(MatchError(ContainSubstring("failed to install chart: failed to install CRD crds/karpenter.sh_provisioners.yaml: nope")))
 			})
 		})
 	})

@@ -92,6 +92,14 @@ func calculateDesiredMask(cidrPartitions int, cidr *ipnet.IPNet) int {
 }
 
 func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc string) *gfnt.Value {
+	// Validate inputs before creating resources
+	if vpcID == nil {
+		return nil
+	}
+	if clusterName == "" || desc == "" {
+		return nil
+	}
+
 	efaSG := rs.newResource("EFASG", &gfnec2.SecurityGroup{
 		VpcId:            vpcID,
 		GroupDescription: gfnt.NewString("EFA-enabled security group"),
@@ -100,12 +108,16 @@ func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc 
 			Value: gfnt.NewString("owned"),
 		}},
 	})
+
+	// Create ingress rule for EFA self-communication
 	rs.newResource("EFAIngressSelf", &gfnec2.SecurityGroupIngress{
 		GroupId:               efaSG,
 		SourceSecurityGroupId: efaSG,
 		Description:           gfnt.NewString("Allow " + desc + " to communicate to itself (EFA-enabled)"),
 		IpProtocol:            gfnt.NewString("-1"),
 	})
+
+	// Create egress rule for EFA self-communication
 	rs.newResource("EFAEgressSelf", &gfnec2.SecurityGroupEgress{
 		GroupId:                    efaSG,
 		DestinationSecurityGroupId: efaSG,

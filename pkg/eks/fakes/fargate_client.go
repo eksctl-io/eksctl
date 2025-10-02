@@ -170,10 +170,6 @@ func (fake *FakeFargateClient) ListProfilesReturnsOnCall(i int, result1 []string
 func (fake *FakeFargateClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.createProfileMutex.RLock()
-	defer fake.createProfileMutex.RUnlock()
-	fake.listProfilesMutex.RLock()
-	defer fake.listProfilesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

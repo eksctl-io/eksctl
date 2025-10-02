@@ -77,7 +77,10 @@ func (c *ClusterResourceSet) AddAllResources(ctx context.Context) error {
 		return fmt.Errorf("error adding VPC resources: %w", err)
 	}
 
-	clusterSG := c.addResourcesForSecurityGroups(vpcID)
+	clusterSG, err := c.addResourcesForSecurityGroups(vpcID)
+	if err != nil {
+		return fmt.Errorf("error adding security group resources: %w", err)
+	}
 
 	if privateCluster := c.spec.PrivateCluster; privateCluster.Enabled && !privateCluster.SkipEndpointCreation {
 		vpcEndpointResourceSet := NewVPCEndpointResourceSet(c.ec2API, c.region, c.rs, c.spec, vpcID, subnetDetails.Private, clusterSG.ClusterSharedNode)
@@ -120,7 +123,7 @@ func (c *ClusterResourceSet) AddAllResources(ctx context.Context) error {
 	return nil
 }
 
-func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcID *gfnt.Value) *clusterSecurityGroup {
+func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcID *gfnt.Value) (*clusterSecurityGroup, error) {
 	var refControlPlaneSG, refClusterSharedNodeSG *gfnt.Value
 
 	if sg := c.spec.VPC.SecurityGroup; sg != "" {
@@ -136,11 +139,11 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcID *gfnt.Value) *c
 		})
 
 		if c.spec.HasRemoteNetworkingConfigured() {
-			for i, remoteNetworkCIRD := range c.spec.RemoteNetworkConfig.ToRemoteNetworksPool() {
+			for i, remoteNetworkCIDR := range c.spec.RemoteNetworkConfig.ToRemoteNetworksPool() {
 				c.newResource(fmt.Sprintf("IngressControlPlaneRemoteNetworks%d", i), &gfnec2.SecurityGroupIngress{
 					GroupId:     refControlPlaneSG,
-					CidrIp:      gfnt.NewString(remoteNetworkCIRD),
-					Description: gfnt.NewString(fmt.Sprintf("Allow nodes/pods from remote network (%s) to communicate to controlplane", remoteNetworkCIRD)),
+					CidrIp:      gfnt.NewString(remoteNetworkCIDR),
+					Description: gfnt.NewString(fmt.Sprintf("Allow nodes/pods from remote network (%s) to communicate to controlplane", remoteNetworkCIDR)),
 					IpProtocol:  gfnt.NewString("tcp"),
 					FromPort:    sgPortHTTPS,
 					ToPort:      sgPortHTTPS,
@@ -177,10 +180,39 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcID *gfnt.Value) *c
 	}
 
 	if c.spec.VPC.SharedNodeSecurityGroup == "" {
-		refClusterSharedNodeSG = c.newResource(cfnSharedNodeSGResource, &gfnec2.SecurityGroup{
+		// Create the security group with conditional tags
+		sharedNodeSG := &gfnec2.SecurityGroup{
 			GroupDescription: gfnt.NewString("Communication between all nodes in the cluster"),
 			VpcId:            vpcID,
-		})
+		}
+
+		// Add karpenter.sh/discovery tags if both conditions are met:
+		// 1. Karpenter is enabled (karpenter.version is specified)
+		// 2. User has specified karpenter.sh/discovery in metadata.tags
+		errorHandler := NewSecurityGroupErrorHandler(c.spec.Metadata.Name)
+
+		hasKarpenter := c.isKarpenterEnabled()
+		hasDiscoveryTag := c.hasKarpenterDiscoveryMetadataTag()
+		var discoveryValue string
+		if hasDiscoveryTag && c.spec.Metadata != nil && c.spec.Metadata.Tags != nil {
+			discoveryValue = c.spec.Metadata.Tags["karpenter.sh/discovery"]
+		}
+
+		// Validate prerequisites and handle errors appropriately
+		if err := errorHandler.ValidateTaggingPrerequisites(hasKarpenter, hasDiscoveryTag, discoveryValue); err != nil {
+			return nil, errorHandler.WrapConfigurationError(err)
+		}
+
+		if hasKarpenter && hasDiscoveryTag {
+			tags, err := c.generateKarpenterDiscoveryTagsWithValidation()
+			if err != nil {
+				return nil, errorHandler.WrapTemplateGenerationError("generate security group tags", err)
+			}
+			sharedNodeSG.Tags = tags
+			errorHandler.LogSuccessfulTagging("karpenter.sh/discovery", discoveryValue)
+		}
+
+		refClusterSharedNodeSG = c.newResource(cfnSharedNodeSGResource, sharedNodeSG)
 		c.newResource("IngressInterNodeGroupSG", &gfnec2.SecurityGroupIngress{
 			GroupId:               refClusterSharedNodeSG,
 			SourceSecurityGroupId: refClusterSharedNodeSG,
@@ -245,12 +277,19 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcID *gfnt.Value) *c
 	return &clusterSecurityGroup{
 		ControlPlane:      refControlPlaneSG,
 		ClusterSharedNode: refClusterSharedNodeSG,
-	}
+	}, nil
 }
 
 // RenderJSON returns the rendered JSON
 func (c *ClusterResourceSet) RenderJSON() ([]byte, error) {
-	return c.rs.renderJSON()
+	errorHandler := NewSecurityGroupErrorHandler(c.spec.Metadata.Name)
+
+	jsonBytes, err := c.rs.renderJSON()
+	if err != nil {
+		return nil, errorHandler.WrapTemplateGenerationError("render CloudFormation template", err)
+	}
+
+	return jsonBytes, nil
 }
 
 // Template returns the CloudFormation template
@@ -485,4 +524,76 @@ func makeCFNTags(clusterConfig *api.ClusterConfig) []gfncfn.Tag {
 
 func (c *ClusterResourceSet) addResourcesForFargate() {
 	_ = addResourcesForFargate(c.rs, c.spec)
+}
+
+// shouldAddKarpenterDiscoveryTags checks if both conditions are met for adding karpenter.sh/discovery tags:
+// 1. Karpenter is enabled in cluster config (karpenter.version is specified)
+// 2. User has specified karpenter.sh/discovery in metadata.tags
+func (c *ClusterResourceSet) shouldAddKarpenterDiscoveryTags() bool {
+	return c.isKarpenterEnabled() && c.hasKarpenterDiscoveryMetadataTag()
+}
+
+// isKarpenterEnabled checks if Karpenter is enabled in the cluster configuration
+func (c *ClusterResourceSet) isKarpenterEnabled() bool {
+	return c.spec.Karpenter != nil && c.spec.Karpenter.Version != ""
+}
+
+// hasKarpenterDiscoveryMetadataTag checks if karpenter.sh/discovery tag exists in metadata.tags
+func (c *ClusterResourceSet) hasKarpenterDiscoveryMetadataTag() bool {
+	if c.spec.Metadata == nil || c.spec.Metadata.Tags == nil {
+		return false
+	}
+	_, exists := c.spec.Metadata.Tags["karpenter.sh/discovery"]
+	return exists
+}
+
+// generateKarpenterDiscoveryTags creates the karpenter.sh/discovery tag using the value from metadata.tags
+func (c *ClusterResourceSet) generateKarpenterDiscoveryTags() []gfncfn.Tag {
+	if c.spec.Metadata == nil || c.spec.Metadata.Tags == nil {
+		return nil
+	}
+
+	discoveryValue, exists := c.spec.Metadata.Tags["karpenter.sh/discovery"]
+	if !exists {
+		return nil
+	}
+
+	return []gfncfn.Tag{
+		{
+			Key:   gfnt.NewString("karpenter.sh/discovery"),
+			Value: gfnt.NewString(discoveryValue),
+		},
+	}
+}
+
+// generateKarpenterDiscoveryTagsWithValidation creates the karpenter.sh/discovery tag with comprehensive validation
+func (c *ClusterResourceSet) generateKarpenterDiscoveryTagsWithValidation() ([]gfncfn.Tag, error) {
+	if c.spec.Metadata == nil {
+		return nil, fmt.Errorf("cluster metadata is nil")
+	}
+
+	if c.spec.Metadata.Tags == nil {
+		return nil, fmt.Errorf("cluster metadata tags are nil")
+	}
+
+	discoveryValue, exists := c.spec.Metadata.Tags["karpenter.sh/discovery"]
+	if !exists {
+		return nil, fmt.Errorf("karpenter.sh/discovery tag not found in metadata.tags")
+	}
+
+	if discoveryValue == "" {
+		return nil, fmt.Errorf("karpenter.sh/discovery tag value cannot be empty")
+	}
+
+	// Validate tag value format - AWS tag values have specific constraints
+	if len(discoveryValue) > 256 {
+		return nil, fmt.Errorf("karpenter.sh/discovery tag value exceeds maximum length of 256 characters")
+	}
+
+	return []gfncfn.Tag{
+		{
+			Key:   gfnt.NewString("karpenter.sh/discovery"),
+			Value: gfnt.NewString(discoveryValue),
+		},
+	}, nil
 }

@@ -105,8 +105,6 @@ func (fake *FakeNodeGroupTaskCreator) NewUnmanagedNodeGroupTaskReturnsOnCall(i i
 func (fake *FakeNodeGroupTaskCreator) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.newUnmanagedNodeGroupTaskMutex.RLock()
-	defer fake.newUnmanagedNodeGroupTaskMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

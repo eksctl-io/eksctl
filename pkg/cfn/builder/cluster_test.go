@@ -179,6 +179,75 @@ var _ = Describe("Cluster Template Builder", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ClusterSharedNodeSecurityGroup"))
 		})
 
+		Context("when Karpenter is enabled and karpenter.sh/discovery tag is in metadata", func() {
+			BeforeEach(func() {
+				cfg.Karpenter = &api.Karpenter{
+					Version: "v0.20.0",
+				}
+				cfg.Metadata.Tags = map[string]string{
+					"karpenter.sh/discovery": "my-cluster",
+					"environment":            "test",
+				}
+			})
+
+			It("should add karpenter.sh/discovery tags to ClusterSharedNodeSecurityGroup", func() {
+				Expect(clusterTemplate.Resources).To(HaveKey("ClusterSharedNodeSecurityGroup"))
+				sharedNodeSG := clusterTemplate.Resources["ClusterSharedNodeSecurityGroup"]
+				Expect(sharedNodeSG.Properties.Tags).To(HaveLen(2)) // Name tag + karpenter.sh/discovery tag
+
+				// Find the karpenter.sh/discovery tag
+				var karpenterTag *fakes.Tag
+				for i := range sharedNodeSG.Properties.Tags {
+					if sharedNodeSG.Properties.Tags[i].Key == "karpenter.sh/discovery" {
+						karpenterTag = &sharedNodeSG.Properties.Tags[i]
+						break
+					}
+				}
+				Expect(karpenterTag).NotTo(BeNil())
+				Expect(karpenterTag.Key).To(Equal("karpenter.sh/discovery"))
+				Expect(karpenterTag.Value).To(Equal("my-cluster"))
+			})
+		})
+
+		Context("when only Karpenter is enabled (no metadata tag)", func() {
+			BeforeEach(func() {
+				cfg.Karpenter = &api.Karpenter{
+					Version: "v0.20.0",
+				}
+			})
+
+			It("should NOT add karpenter.sh/discovery tags to ClusterSharedNodeSecurityGroup", func() {
+				Expect(clusterTemplate.Resources).To(HaveKey("ClusterSharedNodeSecurityGroup"))
+				sharedNodeSG := clusterTemplate.Resources["ClusterSharedNodeSecurityGroup"]
+				Expect(sharedNodeSG.Properties.Tags).To(HaveLen(1)) // Only Name tag
+				Expect(sharedNodeSG.Properties.Tags[0].Key).To(Equal("Name"))
+			})
+		})
+
+		Context("when only karpenter.sh/discovery tag is in metadata (no Karpenter)", func() {
+			BeforeEach(func() {
+				cfg.Metadata.Tags = map[string]string{
+					"karpenter.sh/discovery": "my-cluster",
+				}
+			})
+
+			It("should NOT add karpenter.sh/discovery tags to ClusterSharedNodeSecurityGroup", func() {
+				Expect(clusterTemplate.Resources).To(HaveKey("ClusterSharedNodeSecurityGroup"))
+				sharedNodeSG := clusterTemplate.Resources["ClusterSharedNodeSecurityGroup"]
+				Expect(sharedNodeSG.Properties.Tags).To(HaveLen(1)) // Only Name tag
+				Expect(sharedNodeSG.Properties.Tags[0].Key).To(Equal("Name"))
+			})
+		})
+
+		Context("when neither Karpenter nor karpenter.sh/discovery tag is present", func() {
+			It("should NOT add karpenter.sh/discovery tags to ClusterSharedNodeSecurityGroup", func() {
+				Expect(clusterTemplate.Resources).To(HaveKey("ClusterSharedNodeSecurityGroup"))
+				sharedNodeSG := clusterTemplate.Resources["ClusterSharedNodeSecurityGroup"]
+				Expect(sharedNodeSG.Properties.Tags).To(HaveLen(1)) // Only Name tag
+				Expect(sharedNodeSG.Properties.Tags[0].Key).To(Equal("Name"))
+			})
+		})
+
 		Context("when extraCIDRs are defined", func() {
 			BeforeEach(func() {
 				cfg.VPC.ExtraCIDRs = []string{"192.168.0.0/24", "192.168.1.0/24"}

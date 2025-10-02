@@ -96,8 +96,6 @@ func (fake *FakeInstanceSelector) FilterReturnsOnCall(i int, result1 []string, r
 func (fake *FakeInstanceSelector) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.filterMutex.RLock()
-	defer fake.filterMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

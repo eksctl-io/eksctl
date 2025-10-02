@@ -229,12 +229,6 @@ func (fake *FakeEvictor) GetPodsForEvictionReturnsOnCall(i int, result1 *evictor
 func (fake *FakeEvictor) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.canUseEvictionsMutex.RLock()
-	defer fake.canUseEvictionsMutex.RUnlock()
-	fake.evictOrDeletePodMutex.RLock()
-	defer fake.evictOrDeletePodMutex.RUnlock()
-	fake.getPodsForEvictionMutex.RLock()
-	defer fake.getPodsForEvictionMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

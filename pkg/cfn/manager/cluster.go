@@ -36,10 +36,12 @@ func (c *StackCollection) MakeClusterStackNameFromName(name string) string {
 func (c *StackCollection) createClusterTask(ctx context.Context, errs chan error, supportsManagedNodes bool) error {
 	name := c.MakeClusterStackName()
 	logger.Info("building cluster stack %q", name)
+
 	stack := builder.NewClusterResourceSet(c.ec2API, c.stsAPI, c.region, c.spec, nil, false)
 	if err := stack.AddAllResources(ctx); err != nil {
 		return err
 	}
+
 	return c.createClusterStack(ctx, name, stack, errs)
 }
 

@@ -263,12 +263,6 @@ func (fake *FakeStackHelper) NewTasksToDeleteNodeGroupsReturnsOnCall(i int, resu
 func (fake *FakeStackHelper) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.listNodeGroupStacksWithStatusesMutex.RLock()
-	defer fake.listNodeGroupStacksWithStatusesMutex.RUnlock()
-	fake.newTaskToDeleteUnownedNodeGroupMutex.RLock()
-	defer fake.newTaskToDeleteUnownedNodeGroupMutex.RUnlock()
-	fake.newTasksToDeleteNodeGroupsMutex.RLock()
-	defer fake.newTasksToDeleteNodeGroupsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

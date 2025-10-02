@@ -9,6 +9,7 @@ import (
 	gfnt "github.com/weaveworks/eksctl/pkg/goformation/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/utils/efa"
 )
 
 func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(ctx context.Context) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
@@ -75,9 +76,21 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(ctx context.Context
 	if api.IsEnabled(mng.EFAEnabled) {
 		// we don't want to touch the network interfaces at all if we have a
 		// managed nodegroup, unless EFA is enabled
-		desc := "worker nodes in group " + m.nodeGroup.Name
-		efaSG := m.addEFASecurityGroup(m.vpcImporter.VPC(), m.clusterConfig.Metadata.Name, desc)
-		securityGroupIDs = append(securityGroupIDs, efaSG)
+		config := efa.SecurityGroupConfig{
+			ClusterVersion: m.clusterConfig.Metadata.Version,
+			ClusterName:    m.clusterConfig.Metadata.Name,
+			NodeGroupName:  m.nodeGroup.Name,
+			VPCID:          m.vpcImporter.VPC(),
+			Description:    "worker nodes in group " + m.nodeGroup.Name,
+		}
+
+		efaSG, err := efa.ProcessSecurityGroup(config, m.addEFASecurityGroup)
+		if err != nil {
+			return nil, err
+		} else if efaSG != nil {
+			securityGroupIDs = append(securityGroupIDs, efaSG)
+		}
+
 		if err := buildNetworkInterfaces(ctx, launchTemplateData, mng.InstanceTypeList(), true, securityGroupIDs, m.ec2API); err != nil {
 			return nil, fmt.Errorf("couldn't build network interfaces for launch template data: %w", err)
 		}
