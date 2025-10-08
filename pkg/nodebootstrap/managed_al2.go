@@ -91,7 +91,7 @@ func makeMaxPodsScript(maxPods int) string {
 	script := `#!/bin/sh
 set -ex
 `
-	script += fmt.Sprintf(`sed -i 's/KUBELET_EXTRA_ARGS=$2/KUBELET_EXTRA_ARGS="$2 --max-pods=%d"/' /etc/eks/bootstrap.sh`, maxPods)
+	script += fmt.Sprintf(`sed -i 's/KUBELET_EXTRA_ARGS=$2/KUBELET_EXTRA_ARGS="$(echo "$2" | sed "s/--max-pods=[0-9]*//" | sed "s/  */ /g" | sed "s/^ *//" | sed "s/ *$//") --max-pods=%d"/' /etc/eks/bootstrap.sh`, maxPods)
 	return script
 }
 

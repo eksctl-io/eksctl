@@ -109,7 +109,7 @@ Content-Type: charset="us-ascii"
 
 #!/bin/sh
 set -ex
-sed -i 's/KUBELET_EXTRA_ARGS=$2/KUBELET_EXTRA_ARGS="$2 --max-pods=142"/' /etc/eks/bootstrap.sh
+sed -i 's/KUBELET_EXTRA_ARGS=$2/KUBELET_EXTRA_ARGS="$(echo "$2" | sed "s/--max-pods=[0-9]*//" | sed "s/  */ /g" | sed "s/^ *//" | sed "s/ *$//") --max-pods=142"/' /etc/eks/bootstrap.sh
 --//--
 `,
 	}),
