@@ -451,6 +451,16 @@ const (
 	NoneCapacityReservation = "none"
 )
 
+// Values for `SupportType`
+const (
+	// SupportTypeStandard standard support for the cluster
+	SupportTypeStandard = "STANDARD"
+	// SupportTypeExtended extended support for the cluster (default)
+	SupportTypeExtended = "EXTENDED"
+	// DefaultSupportType defines the default support type
+	DefaultSupportType = SupportTypeExtended
+)
+
 var (
 	// DefaultIPFamily defines the default IP family to use when creating a new VPC and cluster.
 	DefaultIPFamily = IPV4Family
@@ -672,6 +682,14 @@ type ClusterMeta struct {
 	// Internal fields
 	// AccountID the ID of the account hosting this cluster
 	AccountID string `json:"-"`
+}
+
+// UpgradePolicy holds the upgrade policy configuration for the cluster
+type UpgradePolicy struct {
+	// SupportType specifies the support type for the cluster.
+	// Valid variants are `SupportType` constants
+	// +optional
+	SupportType string `json:"supportType,omitempty"`
 }
 
 // KubernetesNetworkConfig contains cluster networking options
@@ -934,6 +952,10 @@ type ClusterConfig struct {
 
 	// +required
 	Metadata *ClusterMeta `json:"metadata"`
+
+	// UpgradePolicy specifies the upgrade policy for the cluster
+	// +optional
+	UpgradePolicy *UpgradePolicy `json:"upgradePolicy,omitempty"`
 
 	// +optional
 	KubernetesNetworkConfig *KubernetesNetworkConfig `json:"kubernetesNetworkConfig,omitempty"`

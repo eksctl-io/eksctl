@@ -1,0 +1,19 @@
+# A sample ClusterConfig file that creates a cluster with support type set as "EXTENDED (default)".
+
+# UpgradePolicy allows you to specify the support type for your cluster
+# Valid values are "STANDARD" and "EXTENDED (default)"
+# - https://docs.aws.amazon.com/eks/latest/APIReference/API_UpgradePolicyRequest.html
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: upgrade-policy-cluster
+  region: us-west-2
+
+upgradePolicy:
+  supportType: "EXTENDED"
+
+managedNodeGroups:
+  - name: mng-1
+    desiredCapacity: 1
