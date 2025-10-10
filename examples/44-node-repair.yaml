@@ -1,4 +1,5 @@
-# An example ClusterConfig that uses a managed node group with auto repair.
+# An example ClusterConfig that demonstrates node repair configuration
+# for EKS managed nodegroups with various configuration options.
 
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
@@ -8,6 +9,77 @@ metadata:
   region: us-west-2
 
 managedNodeGroups:
-- name: ng-1
-  nodeRepairConfig:
-    enabled: true
+  # Example 1: Basic node repair
+  - name: basic-repair-ng
+    instanceType: m5.large
+    desiredCapacity: 3
+    nodeRepairConfig:
+      enabled: true
+
+  # Example 2: Node repair with percentage-based thresholds
+  - name: percentage-repair-ng
+    instanceType: m5.large
+    desiredCapacity: 3
+    minSize: 1
+    maxSize: 5
+    nodeRepairConfig:
+      enabled: true
+      # Stop repair actions when 20% of nodes are unhealthy
+      maxUnhealthyNodeThresholdPercentage: 20
+      # Repair at most 15% of unhealthy nodes in parallel
+      maxParallelNodesRepairedPercentage: 15
+
+  # Example 3: Node repair with count-based thresholds
+  - name: count-repair-ng
+    instanceType: m5.xlarge
+    desiredCapacity: 10
+    minSize: 5
+    maxSize: 20
+    nodeRepairConfig:
+      enabled: true
+      # Stop repair actions when 3 nodes are unhealthy
+      maxUnhealthyNodeThresholdCount: 3
+      # Repair at most 2 unhealthy nodes in parallel
+      maxParallelNodesRepairedCount: 2
+
+  # Example 4: GPU workload with custom repair overrides
+  - name: gpu-repair-ng
+    instanceType: g4dn.xlarge
+    desiredCapacity: 4
+    minSize: 2
+    maxSize: 8
+    nodeRepairConfig:
+      enabled: true
+      maxUnhealthyNodeThresholdPercentage: 25
+      maxParallelNodesRepairedCount: 1
+      # Custom repair behavior for specific failure scenarios
+      nodeRepairConfigOverrides:
+        # Handle GPU-related failures with immediate termination
+        - nodeMonitoringCondition: "AcceleratedInstanceNotReady"
+          nodeUnhealthyReason: "NvidiaXID13Error"
+          minRepairWaitTimeMins: 5
+          repairAction: "Terminate"
+        # Handle network issues with restart first
+        - nodeMonitoringCondition: "NetworkNotReady"
+          nodeUnhealthyReason: "InterfaceNotUp"
+          minRepairWaitTimeMins: 15
+          repairAction: "Restart"
+
+  # Example 5: Conservative repair for critical workloads
+  - name: critical-repair-ng
+    instanceType: c5.2xlarge
+    desiredCapacity: 6
+    minSize: 3
+    maxSize: 12
+    nodeRepairConfig:
+      enabled: true
+      # Conservative settings - stop repair when only 10% of nodes are unhealthy
+      maxUnhealthyNodeThresholdPercentage: 10
+      # Repair only 1 node at a time
+      maxParallelNodesRepairedCount: 1
+      nodeRepairConfigOverrides:
+        # Wait longer before taking action on critical workloads
+        - nodeMonitoringCondition: "NetworkNotReady"
+          nodeUnhealthyReason: "InterfaceNotUp"
+          minRepairWaitTimeMins: 45
+          repairAction: "Restart"
