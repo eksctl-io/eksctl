@@ -23,6 +23,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
+	"github.com/weaveworks/eksctl/pkg/utils/efa"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -134,7 +135,9 @@ func (n *NodeGroupResourceSet) AddAllResources(ctx context.Context) error {
 	if err := n.addResourcesForIAM(ctx); err != nil {
 		return err
 	}
-	n.addResourcesForSecurityGroups()
+	if err := n.addResourcesForSecurityGroups(); err != nil {
+		return err
+	}
 	if !n.options.DisableAccessEntry {
 		n.addAccessEntry()
 	}
@@ -189,7 +192,7 @@ func (n *NodeGroupResourceSet) addAccessEntry() {
 	}
 }
 
-func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
+func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() error {
 	ng := n.options.NodeGroup
 	for _, id := range ng.SecurityGroups.AttachIDs {
 		n.securityGroups = append(n.securityGroups, gfnt.NewString(id))
@@ -200,7 +203,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	}
 
 	if api.IsDisabled(ng.SecurityGroups.WithLocal) {
-		return
+		return nil
 	}
 
 	desc := "worker nodes in group " + ng.Name
@@ -220,8 +223,20 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	n.securityGroups = append(n.securityGroups, refNodeGroupLocalSG)
 
 	if api.IsEnabled(ng.EFAEnabled) {
-		efaSG := n.rs.addEFASecurityGroup(vpcID, n.options.ClusterConfig.Metadata.Name, desc)
-		n.securityGroups = append(n.securityGroups, efaSG)
+		config := efa.SecurityGroupConfig{
+			ClusterVersion: n.options.ClusterConfig.Metadata.Version,
+			ClusterName:    n.options.ClusterConfig.Metadata.Name,
+			NodeGroupName:  ng.Name,
+			VPCID:          vpcID,
+			Description:    desc,
+		}
+
+		efaSG, err := efa.ProcessSecurityGroup(config, n.rs.addEFASecurityGroup)
+		if err != nil {
+			return err
+		} else if efaSG != nil {
+			n.securityGroups = append(n.securityGroups, efaSG)
+		}
 	}
 
 	if !n.options.SkipEgressRules {
@@ -250,6 +265,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		FromPort:              sgPortHTTPS,
 		ToPort:                sgPortHTTPS,
 	})
+	return nil
 }
 
 func makeNodeIngressRules(ng *api.NodeGroupBase, controlPlaneSG *gfnt.Value, vpcCIDR, description string) []gfnec2.SecurityGroup_Ingress {

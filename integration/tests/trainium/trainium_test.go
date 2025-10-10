@@ -5,6 +5,7 @@ package trainium
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -176,7 +177,19 @@ var _ = Describe("(Integration) Trainium nodes", func() {
 })
 
 var _ = AfterSuite(func() {
-	params.DeleteClusters()
+	// Delete trainium clusters with disabled eviction to avoid PDB issues for deploymentse
+	if !params.SkipDelete {
+		for _, clusterName := range []string{clusterWithNeuronPlugin, clusterWithoutPlugin} {
+			cmd := params.EksctlDeleteClusterCmd.WithArgs(
+				"--name", clusterName,
+				"--disable-nodegroup-eviction",
+			)
+			session := cmd.Run()
+			if session.ExitCode() != 0 {
+				fmt.Fprintf(GinkgoWriter, "Warning: cluster %s's deletion failed", clusterName)
+			}
+		}
+	}
 	gexec.KillAndWait(30 * time.Minute)
 	if params.KubeconfigTemp {
 		os.Remove(params.KubeconfigPath)

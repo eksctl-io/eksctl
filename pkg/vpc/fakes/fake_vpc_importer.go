@@ -457,20 +457,6 @@ func (fake *FakeImporter) VPCReturnsOnCall(i int, result1 *types.Value) {
 func (fake *FakeImporter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.clusterSecurityGroupMutex.RLock()
-	defer fake.clusterSecurityGroupMutex.RUnlock()
-	fake.controlPlaneSecurityGroupMutex.RLock()
-	defer fake.controlPlaneSecurityGroupMutex.RUnlock()
-	fake.securityGroupsMutex.RLock()
-	defer fake.securityGroupsMutex.RUnlock()
-	fake.sharedNodeSecurityGroupMutex.RLock()
-	defer fake.sharedNodeSecurityGroupMutex.RUnlock()
-	fake.subnetsPrivateMutex.RLock()
-	defer fake.subnetsPrivateMutex.RUnlock()
-	fake.subnetsPublicMutex.RLock()
-	defer fake.subnetsPublicMutex.RUnlock()
-	fake.vPCMutex.RLock()
-	defer fake.vPCMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -1,3 +1,4 @@
+version: 2
 builds:
   - id: default
     main: ./cmd/eksctl
@@ -18,12 +19,14 @@ builds:
 
 archives:
   - id: default
-    builds:
+    ids:
       - default
     name_template: "eksctl_{{ title .Os }}_{{ .Arch }}"
-    format: tar.gz
+    formats:
+      - tar.gz
     format_overrides:
       - goos: windows
-        format: zip
+        formats:
+          - zip
     files:
       - none*

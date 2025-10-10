@@ -50,6 +50,8 @@ const (
 	Version1_33                  = "1.33"
 	DockershimDeprecationVersion = Version1_24
 	AmazonLinux2EOLVersion       = Version1_33
+	// EFABuiltInSupportVersion defines the minimum Kubernetes version that supports built-in EFA
+	EFABuiltInSupportVersion = Version1_33
 	//TODO: Remove this and replace with output from DescribeClusterVersions endpoint
 	// DefaultVersion (default)
 	DefaultVersion = Version1_32
@@ -2062,7 +2064,7 @@ type InstanceSelector struct {
 	GPUs *int `json:"gpus,omitempty"`
 	// NeuronDevices specifies the number of Neuron device Accelerators.
 	// It can be set to 0 to select non-Accelerator instance types.
-	NeuronDevices *int32 `json:"neuron_devices,omitempty"`
+	NeuronDevices *int `json:"neuron_devices,omitempty"`
 	// CPU Architecture of the EC2 instance type.
 	// Valid variants are:
 	// `"x86_64"`

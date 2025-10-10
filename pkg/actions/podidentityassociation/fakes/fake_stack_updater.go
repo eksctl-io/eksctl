@@ -408,16 +408,6 @@ func (fake *FakeStackUpdater) MustUpdateStackReturnsOnCall(i int, result1 error)
 func (fake *FakeStackUpdater) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.describeStackMutex.RLock()
-	defer fake.describeStackMutex.RUnlock()
-	fake.getIAMServiceAccountsMutex.RLock()
-	defer fake.getIAMServiceAccountsMutex.RUnlock()
-	fake.getStackTemplateMutex.RLock()
-	defer fake.getStackTemplateMutex.RUnlock()
-	fake.listPodIdentityStackNamesMutex.RLock()
-	defer fake.listPodIdentityStackNamesMutex.RUnlock()
-	fake.mustUpdateStackMutex.RLock()
-	defer fake.mustUpdateStackMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

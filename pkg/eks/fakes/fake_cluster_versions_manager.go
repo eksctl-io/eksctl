@@ -576,22 +576,6 @@ func (fake *FakeClusterVersionsManagerInterface) ValidateVersionReturnsOnCall(i 
 func (fake *FakeClusterVersionsManagerInterface) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.defaultVersionMutex.RLock()
-	defer fake.defaultVersionMutex.RUnlock()
-	fake.isDeprecatedVersionMutex.RLock()
-	defer fake.isDeprecatedVersionMutex.RUnlock()
-	fake.isSupportedVersionMutex.RLock()
-	defer fake.isSupportedVersionMutex.RUnlock()
-	fake.latestVersionMutex.RLock()
-	defer fake.latestVersionMutex.RUnlock()
-	fake.resolveClusterVersionMutex.RLock()
-	defer fake.resolveClusterVersionMutex.RUnlock()
-	fake.resolveUpgradeVersionMutex.RLock()
-	defer fake.resolveUpgradeVersionMutex.RUnlock()
-	fake.supportedVersionsMutex.RLock()
-	defer fake.supportedVersionsMutex.RUnlock()
-	fake.validateVersionMutex.RLock()
-	defer fake.validateVersionMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

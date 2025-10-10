@@ -98,8 +98,6 @@ func (fake *FakeNodeGroupDeleter) DeleteNodegroupReturnsOnCall(i int, result1 *e
 func (fake *FakeNodeGroupDeleter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.deleteNodegroupMutex.RLock()
-	defer fake.deleteNodegroupMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

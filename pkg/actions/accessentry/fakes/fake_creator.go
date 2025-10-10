@@ -176,10 +176,6 @@ func (fake *FakeCreatorInterface) CreateTasksReturnsOnCall(i int, result1 *tasks
 func (fake *FakeCreatorInterface) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.createMutex.RLock()
-	defer fake.createMutex.RUnlock()
-	fake.createTasksMutex.RLock()
-	defer fake.createTasksMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -83,8 +83,6 @@ func (fake *FakeBootstrapper) UserDataReturnsOnCall(i int, result1 string, resul
 func (fake *FakeBootstrapper) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.userDataMutex.RLock()
-	defer fake.userDataMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

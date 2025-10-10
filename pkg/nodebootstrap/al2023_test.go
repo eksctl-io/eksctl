@@ -386,8 +386,7 @@ Content-Type: application/node.eks.aws
 
 apiVersion: node.eks.aws/v1alpha1
 kind: NodeConfig
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   cluster:
     apiServerEndpoint: https://test.xxx.us-west-2.eks.amazonaws.com
@@ -410,8 +409,7 @@ Content-Type: application/node.eks.aws
 
 apiVersion: node.eks.aws/v1alpha1
 kind: NodeConfig
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   cluster:
     apiServerEndpoint: https://test.xxx.us-west-2.eks.amazonaws.com
@@ -435,8 +433,7 @@ Content-Type: application/node.eks.aws
 
 apiVersion: node.eks.aws/v1alpha1
 kind: NodeConfig
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   cluster:
     apiServerEndpoint: https://test.xxx.us-west-2.eks.amazonaws.com

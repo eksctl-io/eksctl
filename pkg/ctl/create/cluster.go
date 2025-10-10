@@ -36,6 +36,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/outposts"
 	"github.com/weaveworks/eksctl/pkg/printers"
+	"github.com/weaveworks/eksctl/pkg/utils/deprecation"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 	"github.com/weaveworks/eksctl/pkg/utils/nodes"
@@ -305,6 +306,9 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	if err := nodeGroupService.Normalize(ctx, nodePools, cfg); err != nil {
 		return err
 	}
+
+	// Check for Auto Mode deprecation warning
+	deprecation.CheckAutoModeDeprecation(cfg)
 
 	logger.Info("using Kubernetes version %s", meta.Version)
 	logger.Info("creating %s", cfg.LogString())

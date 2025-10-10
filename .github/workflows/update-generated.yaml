@@ -23,13 +23,13 @@ jobs:
       GOPRIVATE: ""
     steps:
     - name: Checkout
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
       with:
         token: ${{ secrets.EKSCTLBOT_TOKEN }}
         fetch-depth: 0
     - name: Configure AWS credentials for coredns update
       if: ${{ matrix.resource == 'coredns' }}
-      uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
+      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
       with:
         aws-region: us-west-2
         role-duration-seconds: 900
@@ -37,7 +37,7 @@ jobs:
         role-to-assume: ${{ secrets.UPDATE_COREDNS_ROLE_ARN }}
     - name: Configure AWS credentials for ec2 info update
       if: ${{ matrix.resource == 'ec2-info' }}
-      uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
+      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
       with:
         aws-region: us-west-2
         role-duration-seconds: 900

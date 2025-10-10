@@ -1,12 +1,11 @@
 package utils
 
 import (
-	"fmt"
 	"hash/fnv"
 	"regexp"
 	"strings"
 
-	"github.com/blang/semver/v4"
+	"github.com/weaveworks/eksctl/pkg/utils/version"
 )
 
 var matchFirstCap = regexp.MustCompile("([0-9]+|[A-Z])")
@@ -20,16 +19,8 @@ func ToKebabCase(str string) string {
 
 // IsMinVersion compares a given version number with a minimum one and returns true if
 // version >= minimumVersion
-func IsMinVersion(minimumVersion, version string) (bool, error) {
-	minVersion, err := semver.ParseTolerant(minimumVersion)
-	if err != nil {
-		return false, fmt.Errorf("unable to parse minimum version required %s", minVersion)
-	}
-	targetVersion, err := semver.ParseTolerant(version)
-	if err != nil {
-		return false, fmt.Errorf("unable to parse target version %s", version)
-	}
-	return targetVersion.GE(minVersion), nil
+func IsMinVersion(minimumVersion, versionString string) (bool, error) {
+	return version.IsMinVersion(minimumVersion, versionString)
 }
 
 // CompareVersions compares two version strings with the usual conventions:
@@ -37,15 +28,7 @@ func IsMinVersion(minimumVersion, version string) (bool, error) {
 // returns 1 if a > b
 // returns -1 if a < b
 func CompareVersions(a, b string) (int, error) {
-	aVersion, err := semver.ParseTolerant(a)
-	if err != nil {
-		return 0, fmt.Errorf("unable to parse first version %q: %w", a, err)
-	}
-	bVersion, err := semver.ParseTolerant(b)
-	if err != nil {
-		return 0, fmt.Errorf("unable to parse second version %q: %w", b, err)
-	}
-	return aVersion.Compare(bVersion), nil
+	return version.CompareVersions(a, b)
 }
 
 // FnvHash computes the hash of a string using the Fowler–Noll–Vo hash function
@@ -53,4 +36,16 @@ func FnvHash(s string) []byte {
 	fnvHash := fnv.New32a()
 	fnvHash.Write([]byte(s))
 	return fnvHash.Sum(nil)
+}
+
+func StringPtr(s string) *string {
+	return &s
+}
+
+func BoolPtr(b bool) *bool {
+	return &b
+}
+
+func IntPtr(i int) *int {
+	return &i
 }

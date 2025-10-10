@@ -7,12 +7,6 @@ if [ -z "${GOBIN+x}" ]; then
  GOBIN="${GOPATH%%:*}/bin"
 fi
 
-if [ "$(uname)" = "Darwin" ] ; then
-  OSARCH="darwin-amd64"
-else
-  OSARCH="linux-amd64"
-fi
-
 REQUIREMENTS_FILE=.requirements
 
 if [ ! -f "$REQUIREMENTS_FILE" ]

@@ -99,8 +99,6 @@ func (fake *FakeStackCreator) CreateStackReturnsOnCall(i int, result1 error) {
 func (fake *FakeStackCreator) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.createStackMutex.RLock()
-	defer fake.createStackMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
