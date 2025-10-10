@@ -2304,31 +2304,31 @@
         },
         "maxParallelNodesRepairedCount": {
           "type": "integer",
-          "description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a count of unhealthy nodes. When using this, you cannot also set maxParallelNodesRepairedPercentage at the same time",
-          "x-intellij-html-description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a count of unhealthy nodes. When using this, you cannot also set maxParallelNodesRepairedPercentage at the same time"
+          "description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a count of unhealthy nodes. When using this, you cannot also set MaxParallelNodesRepairedPercentage at the same time.",
+          "x-intellij-html-description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a count of unhealthy nodes. When using this, you cannot also set MaxParallelNodesRepairedPercentage at the same time."
         },
         "maxParallelNodesRepairedPercentage": {
           "type": "integer",
-          "description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a percentage of unhealthy nodes. When using this, you cannot also set maxParallelNodesRepairedCount at the same time",
-          "x-intellij-html-description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a percentage of unhealthy nodes. When using this, you cannot also set maxParallelNodesRepairedCount at the same time"
+          "description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a percentage of unhealthy nodes. When using this, you cannot also set MaxParallelNodesRepairedCount at the same time.",
+          "x-intellij-html-description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a percentage of unhealthy nodes. When using this, you cannot also set MaxParallelNodesRepairedCount at the same time."
         },
         "maxUnhealthyNodeThresholdCount": {
           "type": "integer",
-          "description": "specifies a count threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set maxUnhealthyNodeThresholdPercentage at the same time",
-          "x-intellij-html-description": "specifies a count threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set maxUnhealthyNodeThresholdPercentage at the same time"
+          "description": "specifies a count threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set MaxUnhealthyNodeThresholdPercentage at the same time.",
+          "x-intellij-html-description": "specifies a count threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set MaxUnhealthyNodeThresholdPercentage at the same time."
         },
         "maxUnhealthyNodeThresholdPercentage": {
           "type": "integer",
-          "description": "specifies a percentage threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set maxUnhealthyNodeThresholdCount at the same time",
-          "x-intellij-html-description": "specifies a percentage threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set maxUnhealthyNodeThresholdCount at the same time"
+          "description": "specifies a percentage threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set MaxUnhealthyNodeThresholdCount at the same time.",
+          "x-intellij-html-description": "specifies a percentage threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set MaxUnhealthyNodeThresholdCount at the same time."
         },
         "nodeRepairConfigOverrides": {
           "items": {
             "$ref": "#/definitions/NodeRepairConfigOverride"
           },
           "type": "array",
-          "description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values",
-          "x-intellij-html-description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values"
+          "description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values.",
+          "x-intellij-html-description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values."
         }
       },
       "preferredOrder": [
@@ -2467,8 +2467,8 @@
       "properties": {
         "minRepairWaitTimeMins": {
           "type": "integer",
-          "description": "specifies the minimum time in minutes to wait before attempting to repair a node with this specific nodeMonitoringCondition and nodeUnhealthyReason",
-          "x-intellij-html-description": "specifies the minimum time in minutes to wait before attempting to repair a node with this specific nodeMonitoringCondition and nodeUnhealthyReason"
+          "description": "specifies the minimum time in minutes to wait before attempting to repair a node with this specific NodeMonitoringCondition and NodeUnhealthyReason",
+          "x-intellij-html-description": "specifies the minimum time in minutes to wait before attempting to repair a node with this specific NodeMonitoringCondition and NodeUnhealthyReason"
         },
         "nodeMonitoringCondition": {
           "type": "string",
@@ -2493,8 +2493,8 @@
         "repairAction"
       ],
       "additionalProperties": false,
-      "description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values",
-      "x-intellij-html-description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values"
+      "description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values.",
+      "x-intellij-html-description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values."
     },
     "OIDCIdentityProvider": {
       "required": [

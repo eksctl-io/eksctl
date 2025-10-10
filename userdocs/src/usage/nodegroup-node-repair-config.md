@@ -130,6 +130,8 @@ managedNodeGroups:
 
 ## Complete Configuration Examples
 
+For a comprehensive example with all configuration options, see [examples/44-node-repair.yaml](https://github.com/eksctl-io/eksctl/blob/main/examples/44-node-repair.yaml).
+
 ### Example 1: Basic repair with percentage thresholds
 
 ```yaml
