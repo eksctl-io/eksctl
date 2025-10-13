@@ -27,7 +27,7 @@ var KnownAddons = map[string]struct {
 	AWSEFSCSIDriverAddon: {},
 	MetricsServerAddon: {
 		IsDefault:             true,
-		CreateBeforeNodeGroup: true,
+		CreateBeforeNodeGroup: false, // Create after nodegroup so we get scheduled on Fargate profiles.
 		IsDefaultAutoMode:     true,
 		ExcludedRegions: []string{
 			RegionCNNorthwest1,
