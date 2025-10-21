@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/kris-nova/logger"
 	"github.com/spf13/afero"
 )
@@ -46,7 +45,7 @@ func toAWSCredentials(c cachedCredential) *aws.Credentials {
 		AccessKeyID:     c.Credential.AccessKeyID,
 		SecretAccessKey: c.Credential.SecretAccessKey,
 		SessionToken:    c.Credential.SessionToken,
-		Source:          c.Credential.ProviderName,
+		Source:          c.Credential.Source,
 		CanExpire:       !c.Expiration.IsZero(),
 		Expires:         c.Expiration,
 	}
@@ -89,12 +88,7 @@ func (f *FileCacheV2) Retrieve(ctx context.Context) (aws.Credentials, error) {
 		return creds, nil
 	}
 	cache.Put(f.profileName, cachedCredential{
-		Credential: credentials.Value{
-			AccessKeyID:     creds.AccessKeyID,
-			SecretAccessKey: creds.SecretAccessKey,
-			SessionToken:    creds.SessionToken,
-			ProviderName:    creds.Source,
-		},
+		Credential: creds,
 		Expiration: creds.Expires,
 	})
 

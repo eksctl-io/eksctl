@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
@@ -59,7 +59,7 @@ type Flock interface {
 type FlockFunc func(path string) Flock
 
 type cachedCredential struct {
-	Credential credentials.Value
+	Credential aws.Credentials
 	Expiration time.Time
 }
 
