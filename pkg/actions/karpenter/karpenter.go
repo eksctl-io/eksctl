@@ -3,9 +3,6 @@ package karpenter
 import (
 	"context"
 	"fmt"
-	"time"
-
-	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/kris-nova/logger"
 	kubeclient "k8s.io/client-go/kubernetes"
 
@@ -17,7 +14,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/karpenter/providers/helm"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
 // FakeInstaller defines a functionality to create Karpenter installing task.
@@ -33,13 +29,10 @@ type Installer struct {
 	StackManager       manager.StackManager
 	CTL                *eks.ClusterProvider
 	Config             *api.ClusterConfig
-	Wait               WaitFunc
 	KarpenterInstaller karpenter.ChartInstaller
 	ClientSet          kubernetes.Interface
 	OIDC               *iamoidc.OpenIDConnectManager
 }
-
-type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
 
 // NewInstaller creates a new Karpenter installer.
 func NewInstaller(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubeclient.Interface, restClientGetter *kubernetes.SimpleRESTClientGetter) (InstallerTaskCreator, error) {
@@ -73,7 +66,6 @@ func NewInstaller(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterP
 		StackManager:       stackManager,
 		CTL:                ctl,
 		Config:             cfg,
-		Wait:               waiters.Wait,
 		KarpenterInstaller: karpenterInstaller,
 		ClientSet:          clientSet,
 		OIDC:               oidc,
