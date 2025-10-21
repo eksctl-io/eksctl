@@ -4,6 +4,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  issues: write
+
 jobs:
   notify-homebrew:
     runs-on: ubuntu-latest

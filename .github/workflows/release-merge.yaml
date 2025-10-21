@@ -6,6 +6,10 @@ on:
 env:
   VERSION_FILE: pkg/version/release.go
   DEFAULT_BRANCH: main
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   merge_release:
     name: Merge release
