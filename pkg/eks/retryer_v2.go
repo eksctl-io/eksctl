@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
+	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/smithy-go"
 )
 
@@ -45,10 +45,16 @@ func (r *RetryerV2) IsErrorRetryable(err error) bool {
 }
 
 func isErrorRetryable(err error) bool {
-	if aerr, ok := err.(awserr.RequestFailure); ok && aerr.Code() == "EC2MetadataError" {
-		switch aerr.StatusCode() {
-		case http.StatusForbidden, http.StatusNotFound, http.StatusMethodNotAllowed:
-			return false
+	var apiErr smithy.APIError
+	if errors.As(err, &apiErr) {
+		if apiErr.ErrorCode() == "EC2MetadataError" {
+			var httpResponseErr *awshttp.ResponseError
+			if errors.As(err, &httpResponseErr) {
+				switch httpResponseErr.HTTPStatusCode() {
+				case http.StatusForbidden, http.StatusNotFound, http.StatusMethodNotAllowed:
+					return false
+				}
+			}
 		}
 	}
 	return true
