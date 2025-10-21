@@ -4,6 +4,9 @@ on:
     - cron: '0 9 * * 1-5'
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+
 jobs:
   build-all-distros:
     name: build all distros
