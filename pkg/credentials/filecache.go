@@ -60,7 +60,6 @@ type FlockFunc func(path string) Flock
 
 type cachedCredential struct {
 	Credential aws.Credentials
-	Expiration time.Time
 }
 
 type cacheFile struct {

@@ -13,8 +13,6 @@ import (
 	"github.com/hashicorp/go-version"
 
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/aws/aws-sdk-go/aws"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -116,13 +114,14 @@ var _ = BeforeSuite(func() {
 	clusterConfig.Metadata.Tags = map[string]string{
 		"alpha.eksctl.io/description": "eksctl integration test",
 	}
+	one := 1
 	clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
 		{
 			NodeGroupBase: &api.NodeGroupBase{
 				Name:         initNG,
 				InstanceType: "t3.large",
 				ScalingConfig: &api.ScalingConfig{
-					DesiredCapacity: aws.Int(1),
+					DesiredCapacity: &one,
 				},
 				Labels: map[string]string{
 					"ng-name": initNG,
@@ -135,7 +134,7 @@ var _ = BeforeSuite(func() {
 				AMIFamily:    api.NodeImageFamilyBottlerocket,
 				InstanceType: "t3.small",
 				ScalingConfig: &api.ScalingConfig{
-					DesiredCapacity: aws.Int(1),
+					DesiredCapacity: &one,
 				},
 				Labels: map[string]string{
 					"ng-name": botNG,

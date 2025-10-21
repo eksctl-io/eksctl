@@ -40,17 +40,6 @@ func NewFileCacheV2(provider aws.CredentialsProvider, profileName string, fs afe
 	}, nil
 }
 
-func toAWSCredentials(c cachedCredential) *aws.Credentials {
-	return &aws.Credentials{
-		AccessKeyID:     c.Credential.AccessKeyID,
-		SecretAccessKey: c.Credential.SecretAccessKey,
-		SessionToken:    c.Credential.SessionToken,
-		Source:          c.Credential.Source,
-		CanExpire:       !c.Expiration.IsZero(),
-		Expires:         c.Expiration,
-	}
-}
-
 // Retrieve implements aws.CredentialsProvider.
 func (f *FileCacheV2) Retrieve(ctx context.Context) (aws.Credentials, error) {
 	f.mu.Lock()
@@ -63,7 +52,7 @@ func (f *FileCacheV2) Retrieve(ctx context.Context) (aws.Credentials, error) {
 		} else {
 			creds, ok := cacheFile.ProfileMap[f.profileName]
 			if ok {
-				f.creds = toAWSCredentials(creds)
+				f.creds = &creds.Credential
 			}
 		}
 	}
@@ -89,7 +78,6 @@ func (f *FileCacheV2) Retrieve(ctx context.Context) (aws.Credentials, error) {
 	}
 	cache.Put(f.profileName, cachedCredential{
 		Credential: creds,
-		Expiration: creds.Expires,
 	})
 
 	if err := writeCache(f.fs, f.cacheFilePath, f.newFlock, cache); err != nil {
