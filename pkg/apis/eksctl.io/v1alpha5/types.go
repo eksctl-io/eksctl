@@ -387,7 +387,7 @@ const (
 	// eksResourceAccountMXCentral1 defines the AWS EKS account ID that provides node resources in mx-central-1
 	eksResourceAccountMXCentral1 = "730335286997"
 
-	// eksResourceAccountAPSoutheast6 defines the AWS EKS account ID that provides node resources in mx-central-1
+	// eksResourceAccountAPSoutheast6 defines the AWS EKS account ID that provides node resources in ap-southeast-6
 	eksResourceAccountAPSoutheast6 = "333609536671"
 
 	// eksResourceAccountUSISOFSouth1 defines the AWS EKS account ID that provides node resources in us-isof-south-1
