@@ -12,6 +12,9 @@ on:
       customToken:
         required: true
 
+permissions:
+  contents: write
+
 jobs:
   publish-release:
     name: ${{ inputs.isReleaseCandidate && 'prerelease' || 'release' }}
