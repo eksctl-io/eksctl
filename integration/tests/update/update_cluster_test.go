@@ -10,8 +10,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-version"
+
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
