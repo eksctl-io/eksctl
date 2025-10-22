@@ -3,7 +3,6 @@ package credentials_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"path"
 	"time"
@@ -87,8 +86,6 @@ var _ = Describe("FileCacheV2", func() {
 		}
 
 		Expect(err).NotTo(HaveOccurred())
-		fmt.Println("DATA", string(data))
-		fmt.Println("EXP", e.expectedCacheData)
 		Expect(string(data)).To(Equal(e.expectedCacheData))
 	},
 		Entry("credentials that can expire are cached", fileCacheEntry{
