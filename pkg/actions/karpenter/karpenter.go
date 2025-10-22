@@ -3,6 +3,7 @@ package karpenter
 import (
 	"context"
 	"fmt"
+
 	"github.com/kris-nova/logger"
 	kubeclient "k8s.io/client-go/kubernetes"
 

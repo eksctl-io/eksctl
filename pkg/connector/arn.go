@@ -7,8 +7,9 @@ package connector
 
 import (
 	"fmt"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"strings"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
 	awsarn "github.com/aws/aws-sdk-go-v2/aws/arn"
 )

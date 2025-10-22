@@ -1,8 +1,9 @@
 package v1alpha5
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestV1SDKDNSPrefixReturnsForAllRegions(t *testing.T) {
