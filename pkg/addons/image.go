@@ -4,19 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	corev1 "k8s.io/api/core/v1"
 )
 
 // awsDNSSuffixForRegion returns the AWS DNS suffix (amazonaws.com or amazonaws.com.cn) for the specified region
 func awsDNSSuffixForRegion(region string) (string, error) {
-	for _, p := range endpoints.DefaultPartitions() {
-		if _, ok := p.Regions()[region]; ok {
-			return p.DNSSuffix(), nil
-		}
-	}
-	return "", fmt.Errorf("failed to find DNS suffix for region %s", region)
+	return api.Partitions.V1SDKDNSPrefixForRegion(region)
 }
 
 // UseRegionalImage sets the region and AWS DNS suffix for a container image

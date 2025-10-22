@@ -3,12 +3,12 @@ package credentials_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	awscredentials "github.com/aws/aws-sdk-go/aws/credentials"
 	. "github.com/onsi/ginkgo/v2"
 
 	. "github.com/onsi/gomega"
@@ -45,8 +45,7 @@ var _ = Describe("FileCacheV2", func() {
 	}
 
 	type cachedCredential struct {
-		Credential awscredentials.Value
-		Expiration time.Time
+		Credential aws.Credentials
 	}
 
 	makeFlock := func(_ string) credentials.Flock {
@@ -86,7 +85,10 @@ var _ = Describe("FileCacheV2", func() {
 			Expect(os.IsNotExist(err)).To(BeTrue())
 			return
 		}
+
 		Expect(err).NotTo(HaveOccurred())
+		fmt.Println("DATA", string(data))
+		fmt.Println("EXP", e.expectedCacheData)
 		Expect(string(data)).To(Equal(e.expectedCacheData))
 	},
 		Entry("credentials that can expire are cached", fileCacheEntry{
@@ -108,8 +110,10 @@ var _ = Describe("FileCacheV2", func() {
       accesskeyid: k123
       secretaccesskey: s123
       sessiontoken: t123
-      providername: eksctl-test
-    expiration: 0001-01-01T00:00:00Z
+      source: eksctl-test
+      canexpire: true
+      expires: 0001-01-01T00:00:00Z
+      accountid: ""
 `,
 		}),
 
@@ -122,13 +126,14 @@ var _ = Describe("FileCacheV2", func() {
 				data, err := yaml.Marshal(map[string]map[string]cachedCredential{
 					"profiles": {
 						"test": {
-							Credential: awscredentials.Value{
+							Credential: aws.Credentials{
 								AccessKeyID:     "k123",
 								SecretAccessKey: "s123",
 								SessionToken:    "t123",
-								ProviderName:    "eksctl-test",
+								CanExpire:       true,
+								Source:          "eksctl-test",
+								Expires:         time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC),
 							},
-							Expiration: time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC),
 						},
 					},
 				})
@@ -149,8 +154,10 @@ var _ = Describe("FileCacheV2", func() {
       accesskeyid: k123
       secretaccesskey: s123
       sessiontoken: t123
-      providername: eksctl-test
-    expiration: 9999-01-01T00:00:00Z
+      source: eksctl-test
+      canexpire: true
+      expires: 9999-01-01T00:00:00Z
+      accountid: ""
 `,
 		}),
 
@@ -163,13 +170,13 @@ var _ = Describe("FileCacheV2", func() {
 				data, err := yaml.Marshal(map[string]map[string]cachedCredential{
 					"profiles": {
 						"test": {
-							Credential: awscredentials.Value{
+							Credential: aws.Credentials{
 								AccessKeyID:     "k123",
 								SecretAccessKey: "s123",
 								SessionToken:    "t123",
-								ProviderName:    "eksctl-test",
+								Source:          "eksctl-test",
+								Expires:         time.Time{},
 							},
-							Expiration: time.Time{},
 						},
 					},
 				})
@@ -197,8 +204,10 @@ var _ = Describe("FileCacheV2", func() {
       accesskeyid: a567
       secretaccesskey: s567
       sessiontoken: t567
-      providername: eksctl-test
-    expiration: 9999-01-01T00:00:00Z
+      source: eksctl-test
+      canexpire: true
+      expires: 9999-01-01T00:00:00Z
+      accountid: ""
 `,
 		}),
 
@@ -211,13 +220,13 @@ var _ = Describe("FileCacheV2", func() {
 				data, err := yaml.Marshal(map[string]map[string]cachedCredential{
 					"profiles": {
 						"eksctl": {
-							Credential: awscredentials.Value{
+							Credential: aws.Credentials{
 								AccessKeyID:     "a123",
 								SecretAccessKey: "s123",
 								SessionToken:    "t123",
-								ProviderName:    "eksctl-test",
+								Source:          "eksctl-test",
+								Expires:         time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC),
 							},
-							Expiration: time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC),
 						},
 					},
 				})
@@ -244,8 +253,10 @@ var _ = Describe("FileCacheV2", func() {
       accesskeyid: a123
       secretaccesskey: s123
       sessiontoken: t123
-      providername: eksctl-test
-    expiration: 9999-01-01T00:00:00Z
+      source: eksctl-test
+      canexpire: false
+      expires: 9999-01-01T00:00:00Z
+      accountid: ""
 `,
 		}),
 

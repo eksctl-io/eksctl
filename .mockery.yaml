@@ -24,13 +24,6 @@ packages:
           dir: "./pkg/eks/mocksv2"
           outpkg: mocksv2
 
-  github.com/aws/aws-sdk-go/aws/client:
-    interfaces:
-      ConfigProvider:
-        config:
-          dir: "./pkg/eks/mocks"
-          outpkg: mocks
-
   github.com/weaveworks/eksctl/pkg/ctl/utils:
     interfaces:
       VPCConfigUpdater:
