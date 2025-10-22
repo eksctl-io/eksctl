@@ -212,18 +212,100 @@ func newAWSProvider(spec *api.ProviderConfig, configurationLoader AWSConfigurati
 	return provider, nil
 }
 
+// resolveYAMLAnchors processes YAML anchors and aliases, returning clean YAML
+// that can be safely parsed by strict unmarshaling. It removes the "aliases"
+// field commonly used for anchor definitions as it's not part of ClusterConfig schema.
+func resolveYAMLAnchors(data []byte) ([]byte, error) {
+	// Security: Limit input size to prevent memory exhaustion attacks
+	const maxInputSize = 1024 * 1024 // 1MB limit
+	if len(data) > maxInputSize {
+		return nil, fmt.Errorf("YAML input too large: %d bytes exceeds limit of %d bytes", len(data), maxInputSize)
+	}
+
+	// Security: Check for excessive nesting depth to prevent stack overflow
+	const maxNestingDepth = 10
+	if nestingDepth := countNestingDepth(data); nestingDepth > maxNestingDepth {
+		return nil, fmt.Errorf("YAML nesting too deep: %d levels exceeds limit of %d", nestingDepth, maxNestingDepth)
+	}
+
+	// Resolve YAML anchors and aliases by unmarshaling to interface{} first.
+	// This step processes any YAML anchors (&anchor) and aliases (*alias) in the input,
+	// expanding them to their full values.
+	var resolved interface{}
+	if err := yaml.Unmarshal(data, &resolved); err != nil {
+		return nil, err
+	}
+
+	// Marshal back to get resolved YAML without anchors/aliases
+	resolvedData, err := yaml.Marshal(resolved)
+	if err != nil {
+		return nil, err
+	}
+
+	// Security: Check for excessive expansion (YAML bomb protection)
+	const maxExpansionRatio = 10
+	if len(resolvedData) > len(data)*maxExpansionRatio {
+		return nil, fmt.Errorf("YAML expansion too large: %d bytes expanded from %d bytes (ratio: %d, limit: %d)",
+			len(resolvedData), len(data), len(resolvedData)/len(data), maxExpansionRatio)
+	}
+
+	// Remove the "aliases" field commonly used for YAML anchor definitions
+	// as it's not part of the ClusterConfig schema
+	var temp map[string]interface{}
+	if err := yaml.Unmarshal(resolvedData, &temp); err != nil {
+		return nil, err
+	}
+
+	// Remove only the aliases field, maintaining strict validation for everything else
+	delete(temp, "aliases")
+
+	// Marshal back to clean YAML
+	return yaml.Marshal(temp)
+}
+
+// countNestingDepth estimates YAML nesting depth by counting indentation
+func countNestingDepth(data []byte) int {
+	lines := strings.Split(string(data), "\n")
+	maxDepth := 0
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" || strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
+		}
+		depth := 0
+		for _, char := range line {
+			if char == ' ' {
+				depth++
+			} else if char == '\t' {
+				depth += 2 // Count tabs as 2 spaces
+			} else {
+				break
+			}
+		}
+		if depth/2 > maxDepth { // Assuming 2-space indentation
+			maxDepth = depth / 2
+		}
+	}
+	return maxDepth
+}
+
 // ParseConfig parses data into a ClusterConfig
 func ParseConfig(data []byte) (*api.ClusterConfig, error) {
+	// Resolve YAML anchors and aliases before parsing
+	cleanData, err := resolveYAMLAnchors(data)
+	if err != nil {
+		return nil, err
+	}
+
 	// strict mode is not available in runtime.Decode, so we use the parser
 	// directly; we don't store the resulting object, this is just the means
 	// of detecting any unknown keys
 	// NOTE: we must use sigs.k8s.io/yaml, as it behaves differently from
 	// github.com/ghodss/yaml, which didn't handle nested structs well
-	if err := yaml.UnmarshalStrict(data, &api.ClusterConfig{}); err != nil {
+	if err := yaml.UnmarshalStrict(cleanData, &api.ClusterConfig{}); err != nil {
 		return nil, err
 	}
 
-	obj, err := runtime.Decode(scheme.Codecs.UniversalDeserializer(), data)
+	obj, err := runtime.Decode(scheme.Codecs.UniversalDeserializer(), cleanData)
 	if err != nil {
 		return nil, err
 	}

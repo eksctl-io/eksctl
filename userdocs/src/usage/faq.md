@@ -5,6 +5,31 @@
     Yes! From version `0.40.0` you can run `eksctl` against any cluster, whether it was created
     by `eksctl` or not. Find out more [here](/usage/unowned-clusters).
 
+???+ question "Can I use YAML anchors to reduce configuration duplication?"
+
+    Yes! `eksctl` supports YAML anchors and aliases to avoid repeating configuration:
+
+    ```yaml
+    # Inline anchors (recommended)
+    managedNodeGroups:
+      - name: workers-1
+        instanceTypes: &instance-types
+        - t3.medium
+        - t3.large
+      - name: workers-2
+        instanceTypes: *instance-types
+
+    # Or with aliases section
+    aliases:
+      common-settings: &common
+        minSize: 2
+        maxSize: 10
+
+    managedNodeGroups:
+      - name: workers
+        <<: *common
+    ```
+
 ## Nodegroups
 
 ???+ question "How can I change the instance type of my nodegroup?"
