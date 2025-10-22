@@ -74,6 +74,7 @@ var awsPartition = partition{
 		RegionAFSouth1,
 		RegionILCentral1,
 		RegionMXCentral1,
+		RegionAPSoutheast6,
 	},
 }
 
