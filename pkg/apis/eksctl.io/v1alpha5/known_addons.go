@@ -6,6 +6,7 @@ var KnownAddons = map[string]struct {
 	IsDefault             bool
 	CreateBeforeNodeGroup bool
 	IsDefaultAutoMode     bool
+	DontRequireWait       bool
 	ExcludedRegions       []string
 }{
 	VPCCNIAddon: {
@@ -41,6 +42,10 @@ var KnownAddons = map[string]struct {
 			RegionUSISOFSouth1,
 			RegionEUISOEWest1,
 		},
+		// Don't require waiting for metrics-server to be up if it's the only add-on to wait for.
+		// This is because this add-on is installed by default and we don't
+		// want to make a large change blocking cluster creating on this add-on coming up successfully in setups.
+		DontRequireWait: true,
 	},
 }
 
