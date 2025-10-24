@@ -65,9 +65,8 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 	postTasks := &tasks.TaskTree{Parallel: false}
 
 	makeAddonTask := func(addons []*api.Addon, wait bool) *createAddonTask {
-		fmt.Println("NAME", name)
 		return &createAddonTask{
-			info:            "create addons" + name,
+			info:            "create addons",
 			addons:          addons,
 			ctx:             ctx,
 			cfg:             cfg,
