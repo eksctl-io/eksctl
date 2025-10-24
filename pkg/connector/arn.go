@@ -9,8 +9,9 @@ import (
 	"fmt"
 	"strings"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+
 	awsarn "github.com/aws/aws-sdk-go-v2/aws/arn"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 )
 
 // Canonicalize validates IAM resources are appropriate for the authenticator
@@ -63,8 +64,8 @@ func Canonicalize(arn string) (string, error) {
 }
 
 func checkPartition(partition string) error {
-	for _, p := range endpoints.DefaultPartitions() {
-		if partition == p.ID() {
+	for _, p := range api.Partitions {
+		if partition == p.Name() {
 			return nil
 		}
 	}
