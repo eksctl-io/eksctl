@@ -82,7 +82,7 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 		preTasks.Append(makeAddonTask(preAddons, false))
 	}
 	if len(postAddons) > 0 {
-		postTasks.Append(makeAddonTask(postAddons, cfg.HasNodes()))
+		postTasks.Append(makeAddonTask(postAddons, ShouldWaitForAddons(cfg.HasNodes(), postAddons)))
 	}
 	var updateVPCCNI *tasks.GenericTask
 	if vpcCNIAddon != nil && api.IsEnabled(cfg.IAM.WithOIDC) {
