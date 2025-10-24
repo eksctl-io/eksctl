@@ -64,7 +64,7 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 	preTasks := &tasks.TaskTree{Parallel: false}
 	postTasks := &tasks.TaskTree{Parallel: false}
 
-	makeAddonTask := func(addons []*api.Addon, wait bool, name string) *createAddonTask {
+	makeAddonTask := func(addons []*api.Addon, wait bool) *createAddonTask {
 		fmt.Println("NAME", name)
 		return &createAddonTask{
 			info:            "create addons" + name,
@@ -80,10 +80,10 @@ func CreateAddonTasks(ctx context.Context, cfg *api.ClusterConfig, clusterProvid
 	}
 
 	if len(preAddons) > 0 {
-		preTasks.Append(makeAddonTask(preAddons, false, "PRE"))
+		preTasks.Append(makeAddonTask(preAddons, false))
 	}
 	if len(postAddons) > 0 {
-		postTasks.Append(makeAddonTask(postAddons, ShouldWaitForAddons(cfg.HasNodes(), postAddons), "POST"))
+		postTasks.Append(makeAddonTask(postAddons, ShouldWaitForAddons(cfg.HasNodes(), postAddons)))
 	}
 	var updateVPCCNI *tasks.GenericTask
 	if vpcCNIAddon != nil && api.IsEnabled(cfg.IAM.WithOIDC) {
