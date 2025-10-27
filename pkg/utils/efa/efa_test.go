@@ -12,7 +12,7 @@ var _ = Describe("EFA Utils", func() {
 	Describe("IsBuiltInSupported", func() {
 		DescribeTable("EFA built-in support version detection",
 			func(kubernetesVersion string, expected bool, expectError bool) {
-				result, err := efa.IsBuiltInSupported(kubernetesVersion)
+				result, err := efa.IsBuiltInSupported(kubernetesVersion, true)
 				if expectError {
 					Expect(err).To(HaveOccurred())
 				} else {
@@ -42,22 +42,21 @@ var _ = Describe("EFA Utils", func() {
 
 		Context("Test error handling", func() {
 			It("should provide detailed error context for invalid versions", func() {
-				_, err := efa.IsBuiltInSupported("invalid.version")
+				_, err := efa.IsBuiltInSupported("invalid.version", true)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("failed to determine EFA built-in support"))
 				Expect(err.Error()).To(ContainSubstring("invalid.version"))
 				Expect(err.Error()).To(ContainSubstring("minimum required: 1.33"))
 			})
 
-			It("should provide detailed error context for empty versions", func() {
-				_, err := efa.IsBuiltInSupported("")
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("failed to determine EFA built-in support"))
-				Expect(err.Error()).To(ContainSubstring("minimum required: 1.33"))
+			It("should return false if managed node groups is false", func() {
+				result, err := efa.IsBuiltInSupported("1.34", false)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(result).To(BeFalse())
 			})
 
 			It("should provide detailed error context for malformed versions", func() {
-				_, err := efa.IsBuiltInSupported("1.33.invalid.extra")
+				_, err := efa.IsBuiltInSupported("1.33.invalid.extra", true)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("failed to determine EFA built-in support"))
 				Expect(err.Error()).To(ContainSubstring("1.33.invalid.extra"))

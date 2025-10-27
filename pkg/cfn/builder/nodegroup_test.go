@@ -684,27 +684,15 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					)
 				})
 
-				Context("Kubernetes 1.33+ with built-in EFA support", func() {
+				Context("Kubernetes 1.33+ has no built-in EFA support since self managed", func() {
 					BeforeEach(func() {
 						cfg.Metadata.Version = "1.33"
 					})
 
-					It("does not create custom EFA security groups", func() {
-						Expect(ngTemplate.Resources).NotTo(HaveKey("EFASG"))
-						Expect(ngTemplate.Resources).NotTo(HaveKey("EFAEgressSelf"))
-						Expect(ngTemplate.Resources).NotTo(HaveKey("EFAIngressSelf"))
-					})
-				})
-
-				Context("Kubernetes 1.34 with built-in EFA support", func() {
-					BeforeEach(func() {
-						cfg.Metadata.Version = "1.34"
-					})
-
-					It("does not create custom EFA security groups", func() {
-						Expect(ngTemplate.Resources).NotTo(HaveKey("EFASG"))
-						Expect(ngTemplate.Resources).NotTo(HaveKey("EFAEgressSelf"))
-						Expect(ngTemplate.Resources).NotTo(HaveKey("EFAIngressSelf"))
+					It("creates custom EFA security groups", func() {
+						Expect(ngTemplate.Resources).To(HaveKey("EFASG"))
+						Expect(ngTemplate.Resources).To(HaveKey("EFAEgressSelf"))
+						Expect(ngTemplate.Resources).To(HaveKey("EFAIngressSelf"))
 					})
 				})
 
