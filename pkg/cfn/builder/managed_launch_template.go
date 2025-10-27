@@ -84,7 +84,7 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(ctx context.Context
 			Description:    "worker nodes in group " + m.nodeGroup.Name,
 		}
 
-		efaSG, err := efa.ProcessSecurityGroup(config, m.addEFASecurityGroup)
+		efaSG, err := efa.ProcessSecurityGroup(config, m.addEFASecurityGroup, true)
 		if err != nil {
 			return nil, err
 		} else if efaSG != nil {

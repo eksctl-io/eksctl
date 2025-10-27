@@ -231,7 +231,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() error {
 			Description:    desc,
 		}
 
-		efaSG, err := efa.ProcessSecurityGroup(config, n.rs.addEFASecurityGroup)
+		efaSG, err := efa.ProcessSecurityGroup(config, n.rs.addEFASecurityGroup, false)
 		if err != nil {
 			return err
 		} else if efaSG != nil {

@@ -30,7 +30,7 @@ type SecurityGroupConfig struct {
 
 // ProcessSecurityGroup handles the common EFA security group logic
 // Returns the security group (nil if built-in EFA is used) and any error
-func ProcessSecurityGroup(config SecurityGroupConfig, addEFASecurityGroupFunc func(*gfnt.Value, string, string) *gfnt.Value) (*gfnt.Value, error) {
+func ProcessSecurityGroup(config SecurityGroupConfig, addEFASecurityGroupFunc func(*gfnt.Value, string, string) *gfnt.Value, isManagedNodeGroups bool) (*gfnt.Value, error) {
 	supported, err := IsBuiltInSupported(config.ClusterVersion)
 	if err != nil {
 		logger.Warning("failed to parse Kubernetes version %s for EFA configuration: %v; falling back to custom EFA security group creation", config.ClusterVersion, err)
@@ -38,8 +38,8 @@ func ProcessSecurityGroup(config SecurityGroupConfig, addEFASecurityGroupFunc fu
 		supported = false
 	}
 
-	if !supported {
-		logger.Info("creating custom EFA security group for nodegroup %s with Kubernetes %s (EFA built-in support requires version 1.33+)", config.NodeGroupName, config.ClusterVersion)
+	if !supported && isManagedNodeGroups {
+		logger.Info("creating custom EFA security group for managed nodegroup %s with Kubernetes %s (EFA built-in support requires version 1.33+)", config.NodeGroupName, config.ClusterVersion)
 		efaSG := addEFASecurityGroupFunc(config.VPCID, config.ClusterName, config.Description)
 		if efaSG == nil {
 			return nil, fmt.Errorf("failed to create EFA security group for nodegroup %s with Kubernetes %s: invalid VPC ID or cluster configuration", config.NodeGroupName, config.ClusterVersion)
