@@ -251,6 +251,44 @@ var _ = Describe("KubeProxy", func() {
 		})
 	})
 
+	When("version 1.34 and above is used", func() {
+		BeforeEach(func() {
+			mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, &awseks.DescribeAddonVersionsInput{
+				AddonName:         aws.String("kube-proxy"),
+				KubernetesVersion: aws.String("1.34"),
+			}).Return(&awseks.DescribeAddonVersionsOutput{
+				Addons: []ekstypes.AddonInfo{
+					{
+						AddonName: aws.String("kube-proxy"),
+						AddonVersions: []ekstypes.AddonVersionInfo{
+							{
+								AddonVersion: aws.String("v1.34.0-eksbuild.1"),
+							},
+							{
+								// Latest, unordered list to ensure we sort correctly
+								AddonVersion: aws.String("v1.34.1-eksbuild.2"),
+							},
+							{
+								AddonVersion: aws.String("v1.34.1-eksbuild.1"),
+							},
+						},
+					},
+				},
+			}, nil)
+			input.ControlPlaneVersion = "1.34.1"
+		})
+
+		It("does not use minimal container image", func() {
+			input134 := input
+			input134.ControlPlaneVersion = "1.34.1"
+
+			_, err := da.UpdateKubeProxy(context.Background(), input, false)
+			Expect(err).NotTo(HaveOccurred())
+			image := kubeProxyImage(clientSet)
+			Expect(image).To(Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.34.1-eksbuild.2"))
+			Expect(kubeProxyNodeSelectorValues(clientSet)).To(ConsistOf("amd64", "arm64"))
+		})
+	})
 })
 
 func kubeProxyImage(clientSet kubernetes.Interface) string {
