@@ -644,7 +644,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					properties := ngTemplate.Resources["EFASG"].Properties
 					Expect(properties.VpcID).To(ContainElement(vpcID))
 					Expect(properties.GroupDescription).To(Equal("EFA-enabled security group"))
-					Expect(properties.Tags[0].Key).To(Equal("kubernetes.io/cluster/bonsai"))
+					Expect(properties.Tags[0].Key).To(Equal("eksctl/cluster/bonsai"))
 					Expect(properties.Tags[0].Value).To(Equal("owned"))
 
 					Expect(ngTemplate.Resources).To(HaveKey("EFAEgressSelf"))

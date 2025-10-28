@@ -104,7 +104,11 @@ func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc 
 		VpcId:            vpcID,
 		GroupDescription: gfnt.NewString("EFA-enabled security group"),
 		Tags: []gfncfn.Tag{{
-			Key:   gfnt.NewString("kubernetes.io/cluster/" + clusterName),
+			// Use a different tag than kubernetes.io to avoid conflicting with
+			// aws load balancer controller which expects exactly one security group
+			// tagged with kubernetes.io.
+			// https://github.com/kubernetes-sigs/aws-load-balancer-controller/blob/main/pkg/networking/networking_manager.go#L558
+			Key:   gfnt.NewString("eksctl/cluster/" + clusterName),
 			Value: gfnt.NewString("owned"),
 		}},
 	})
