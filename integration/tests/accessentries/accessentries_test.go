@@ -329,7 +329,8 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 				).Run()
 			Expect(session.ExitCode()).To(Equal(0))
 			Expect(json.Unmarshal(session.Out.Contents(), &output)).To(Succeed())
-			Expect(output).To(HaveLen(2))
+			// Don't check access entries length. AWS may add additional access entries like
+			// a cluster-access-policy/AmazonEKSClusterInsightsPolicy.
 			Expect(output).To(ContainElements(cfg.AccessConfig.AccessEntries))
 		})
 
