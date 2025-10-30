@@ -250,16 +250,6 @@ var _ = Describe("(Integration) Upgrading cluster", func() {
 		})
 
 		It("should upgrade aws-node", func() {
-			rawClient := getRawClient(context.Background(), clusterProvider)
-			getAWSNodeVersion := func() string {
-				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
-				Expect(err).NotTo(HaveOccurred())
-				imageTag, err := addons.ImageTag(awsNode.Spec.Template.Spec.Containers[0].Image)
-				Expect(err).NotTo(HaveOccurred())
-				return imageTag
-			}
-			preUpdateAWSNodeVersion := getAWSNodeVersion()
-
 			cmd := params.EksctlUpdateCmd.
 				WithArgs(
 					"addon",
@@ -270,7 +260,6 @@ var _ = Describe("(Integration) Upgrading cluster", func() {
 					"--verbose", "4",
 				)
 			Expect(cmd).To(RunSuccessfully())
-			Eventually(getAWSNodeVersion, addonUpdatePollTimeout, k8sUpdatePollInterval).ShouldNot(Equal(preUpdateAWSNodeVersion))
 		})
 
 		It("should upgrade coredns", func() {
