@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/kris-nova/logger"
 	"github.com/spf13/afero"
 )
@@ -41,17 +40,6 @@ func NewFileCacheV2(provider aws.CredentialsProvider, profileName string, fs afe
 	}, nil
 }
 
-func toAWSCredentials(c cachedCredential) *aws.Credentials {
-	return &aws.Credentials{
-		AccessKeyID:     c.Credential.AccessKeyID,
-		SecretAccessKey: c.Credential.SecretAccessKey,
-		SessionToken:    c.Credential.SessionToken,
-		Source:          c.Credential.ProviderName,
-		CanExpire:       !c.Expiration.IsZero(),
-		Expires:         c.Expiration,
-	}
-}
-
 // Retrieve implements aws.CredentialsProvider.
 func (f *FileCacheV2) Retrieve(ctx context.Context) (aws.Credentials, error) {
 	f.mu.Lock()
@@ -64,7 +52,7 @@ func (f *FileCacheV2) Retrieve(ctx context.Context) (aws.Credentials, error) {
 		} else {
 			creds, ok := cacheFile.ProfileMap[f.profileName]
 			if ok {
-				f.creds = toAWSCredentials(creds)
+				f.creds = &creds.Credential
 			}
 		}
 	}
@@ -89,13 +77,7 @@ func (f *FileCacheV2) Retrieve(ctx context.Context) (aws.Credentials, error) {
 		return creds, nil
 	}
 	cache.Put(f.profileName, cachedCredential{
-		Credential: credentials.Value{
-			AccessKeyID:     creds.AccessKeyID,
-			SecretAccessKey: creds.SecretAccessKey,
-			SessionToken:    creds.SessionToken,
-			ProviderName:    creds.Source,
-		},
-		Expiration: creds.Expires,
+		Credential: creds,
 	})
 
 	if err := writeCache(f.fs, f.cacheFilePath, f.newFlock, cache); err != nil {

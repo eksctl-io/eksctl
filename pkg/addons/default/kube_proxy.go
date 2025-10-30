@@ -18,6 +18,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
+	eksctlversion "github.com/weaveworks/eksctl/pkg/utils/version"
 )
 
 const (
@@ -157,14 +158,23 @@ func getLatestImageVersionFromEKS(ctx context.Context, addonDescriber AddonVersi
 		return versions[j].LessThan(versions[i])
 	})
 
-	return toMinimalVersion(versions[0]), nil
+	return toMinimalVersion(versions[0], controlPlaneMajorMinor)
 }
 
-func toMinimalVersion(v *version.Version) string {
+func toMinimalVersion(v *version.Version, controlPlaneMajorMinor string) (string, error) {
 	preRelease := v.Prerelease()
 	if preRelease == "" {
-		return v.Original()
+		return v.Original(), nil
 	}
+	// Kube-proxy stopped publishing minimal versions after 1.34+.
+	supported, err := eksctlversion.IsMinVersion("1.34", controlPlaneMajorMinor)
+	if err != nil {
+		return "", err
+	}
+	if supported {
+		return v.Original(), nil
+	}
+
 	const versionPrefix = "v"
 	var tagPrefix string
 	if strings.HasPrefix(v.Original(), versionPrefix) {
@@ -172,7 +182,7 @@ func toMinimalVersion(v *version.Version) string {
 	}
 
 	minimalBuildTag := fmt.Sprintf("%s%s-minimal-%s", tagPrefix, v.Core(), preRelease)
-	return minimalBuildTag
+	return minimalBuildTag, nil
 }
 
 func versionWithOnlyMajorAndMinor(v string) (string, error) {

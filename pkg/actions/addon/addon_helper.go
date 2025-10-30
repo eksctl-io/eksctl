@@ -37,3 +37,17 @@ func (a *Helper) ValidateNodeGroupCreation(ctx context.Context) error {
 	}
 	return nil
 }
+
+func ShouldWaitForAddons(nodes bool, addons []*api.Addon) bool {
+	addonsRequireWait := false
+	for _, a := range addons {
+		addonInfo, ok := api.KnownAddons[a.Name]
+		// Assume unknown add-ons need to wait.
+		if !ok || !addonInfo.DontRequireWait {
+			addonsRequireWait = true
+			break
+		}
+	}
+
+	return nodes && addonsRequireWait
+}

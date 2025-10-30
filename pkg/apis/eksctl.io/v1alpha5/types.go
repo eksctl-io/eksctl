@@ -166,6 +166,9 @@ const (
 	// RegionILCentral1 represents the Israel region Tel Aviv
 	RegionILCentral1 = "il-central-1"
 
+	// RegionILCentral1 represents the Asia Pacific region New Zealand
+	RegionAPSoutheast6 = "ap-southeast-6"
+
 	// RegionUSGovWest1 represents the region GovCloud (US-West)
 	RegionUSGovWest1 = "us-gov-west-1"
 
@@ -386,6 +389,9 @@ const (
 	// eksResourceAccountMXCentral1 defines the AWS EKS account ID that provides node resources in mx-central-1
 	eksResourceAccountMXCentral1 = "730335286997"
 
+	// eksResourceAccountAPSoutheast6 defines the AWS EKS account ID that provides node resources in ap-southeast-6
+	eksResourceAccountAPSoutheast6 = "333609536671"
+
 	// eksResourceAccountUSISOFSouth1 defines the AWS EKS account ID that provides node resources in us-isof-south-1
 	eksResourceAccountUSISOFSouth1 = "676585237158"
 
@@ -449,6 +455,16 @@ const (
 const (
 	OpenCapacityReservation = "open"
 	NoneCapacityReservation = "none"
+)
+
+// Values for `SupportType`
+const (
+	// SupportTypeStandard standard support for the cluster
+	SupportTypeStandard = "STANDARD"
+	// SupportTypeExtended extended support for the cluster (default)
+	SupportTypeExtended = "EXTENDED"
+	// DefaultSupportType defines the default support type
+	DefaultSupportType = SupportTypeExtended
 )
 
 var (
@@ -540,6 +556,7 @@ func SupportedRegions() []string {
 		RegionUSISOBEast1,
 		RegionUSISOWest1,
 		RegionMXCentral1,
+		RegionAPSoutheast6,
 		RegionUSISOFSouth1,
 		RegionUSISOFEast1,
 		RegionEUISOEWest1,
@@ -638,6 +655,8 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountUSISOWest1
 	case RegionMXCentral1:
 		return eksResourceAccountMXCentral1
+	case RegionAPSoutheast6:
+		return eksResourceAccountAPSoutheast6
 	case RegionUSISOFSouth1:
 		return eksResourceAccountUSISOFSouth1
 	case RegionUSISOFEast1:
@@ -672,6 +691,14 @@ type ClusterMeta struct {
 	// Internal fields
 	// AccountID the ID of the account hosting this cluster
 	AccountID string `json:"-"`
+}
+
+// UpgradePolicy holds the upgrade policy configuration for the cluster
+type UpgradePolicy struct {
+	// SupportType specifies the support type for the cluster.
+	// Valid variants are `SupportType` constants
+	// +optional
+	SupportType string `json:"supportType,omitempty"`
 }
 
 // KubernetesNetworkConfig contains cluster networking options
@@ -934,6 +961,10 @@ type ClusterConfig struct {
 
 	// +required
 	Metadata *ClusterMeta `json:"metadata"`
+
+	// UpgradePolicy specifies the upgrade policy for the cluster
+	// +optional
+	UpgradePolicy *UpgradePolicy `json:"upgradePolicy,omitempty"`
 
 	// +optional
 	KubernetesNetworkConfig *KubernetesNetworkConfig `json:"kubernetesNetworkConfig,omitempty"`

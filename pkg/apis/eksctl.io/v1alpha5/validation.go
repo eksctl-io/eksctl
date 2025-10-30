@@ -143,8 +143,31 @@ func (c *ClusterConfig) validateRemoteNetworkingConfig() error {
 	return nil
 }
 
+// validateSupportType performs secure validation of the support type string
+func validateSupportType(supportType string) error {
+	// Security: Validate characters to prevent injection attacks
+	for _, r := range supportType {
+		if r < 32 || r == 127 { // Control characters
+			return fmt.Errorf("upgradePolicy.supportType contains invalid control characters")
+		}
+	}
+	// Validate against allowed values
+	if supportType != SupportTypeStandard && supportType != SupportTypeExtended {
+		return fmt.Errorf("upgradePolicy.supportType must be either %q or %q", SupportTypeStandard, SupportTypeExtended)
+	}
+	return nil
+}
+
 // ValidateClusterConfig checks compatible fields of a given ClusterConfig
 func ValidateClusterConfig(cfg *ClusterConfig) error {
+	if cfg.UpgradePolicy != nil {
+		if cfg.UpgradePolicy.SupportType != "" {
+			if err := validateSupportType(cfg.UpgradePolicy.SupportType); err != nil {
+				return err
+			}
+		}
+	}
+
 	if IsDisabled(cfg.IAM.WithOIDC) && len(cfg.IAM.ServiceAccounts) > 0 {
 		return fmt.Errorf("iam.withOIDC must be enabled explicitly for iam.serviceAccounts to be created")
 	}
