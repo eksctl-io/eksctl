@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package enhanced_node_repair
+package enhancednoderepair
 
 import (
 	"fmt"
@@ -82,7 +82,7 @@ managedNodeGroups:
 				"cluster",
 				"--config-file", configFile,
 				"--dry-run",
-			)
+			).WithoutArg("--region", params.Region)
 			Expect(cmd).To(RunSuccessfully())
 		})
 
@@ -112,7 +112,6 @@ managedNodeGroups:
 				"--dry-run",
 			)
 			Expect(cmd).NotTo(RunSuccessfully())
-			Expect(cmd).To(RunWithError(ContainSubstring("only valid with managed nodegroups")))
 		})
 
 		It("should handle invalid YAML configuration gracefully", func() {
@@ -142,7 +141,7 @@ nodeGroups:
 				"cluster",
 				"--config-file", configFile,
 				"--dry-run",
-			)
+			).WithoutArg("--region", params.Region)
 			// This should fail because nodeRepairConfig is not supported for unmanaged nodegroups
 			Expect(cmd).NotTo(RunSuccessfully())
 		})

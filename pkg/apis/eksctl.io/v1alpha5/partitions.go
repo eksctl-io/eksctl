@@ -20,6 +20,7 @@ type partition struct {
 	regions                        []string
 	endpointServiceDomainPrefix    string
 	endpointServiceDomainPrefixAlt string
+	v1SDKDNSPrefix                 string
 }
 
 type partitions []partition
@@ -38,6 +39,47 @@ var awsPartition = partition{
 	name:                        PartitionAWS,
 	serviceMappings:             standardServiceMappings,
 	endpointServiceDomainPrefix: standardPartitionServiceDomainPrefix,
+	v1SDKDNSPrefix:              "amazonaws.com",
+	regions: []string{
+		RegionUSWest1,
+		RegionUSWest2,
+		RegionUSEast1,
+		RegionUSEast2,
+		RegionCACentral1,
+		RegionCAWest1,
+		RegionEUWest1,
+		RegionEUWest2,
+		RegionEUWest3,
+		RegionEUNorth1,
+		RegionEUCentral1,
+		RegionEUCentral2,
+		RegionEUSouth1,
+		RegionEUSouth2,
+		RegionAPNorthEast1,
+		RegionAPNorthEast2,
+		RegionAPNorthEast3,
+		RegionAPSouthEast1,
+		RegionAPSouthEast2,
+		RegionAPSouthEast3,
+		RegionAPSouthEast4,
+		RegionAPSouthEast5,
+		RegionAPSouthEast7,
+		RegionAPSouth1,
+		RegionAPSouth2,
+		RegionAPEast1,
+		RegionAPEast2,
+		RegionMECentral1,
+		RegionMESouth1,
+		RegionSAEast1,
+		RegionAFSouth1,
+		RegionILCentral1,
+		RegionMXCentral1,
+		RegionAPSoutheast6,
+	},
+}
+
+func (p partition) Name() string {
+	return p.name
 }
 
 // Partitions is a list of supported AWS partitions.
@@ -48,6 +90,7 @@ var Partitions = partitions{
 		serviceMappings:             standardServiceMappings,
 		regions:                     []string{RegionUSGovEast1, RegionUSGovWest1},
 		endpointServiceDomainPrefix: standardPartitionServiceDomainPrefix,
+		v1SDKDNSPrefix:              "amazonaws.com",
 	},
 	{
 		name: PartitionChina,
@@ -58,6 +101,7 @@ var Partitions = partitions{
 		},
 		regions:                     []string{RegionCNNorth1, RegionCNNorthwest1},
 		endpointServiceDomainPrefix: fmt.Sprintf("cn.%s", standardPartitionServiceDomainPrefix),
+		v1SDKDNSPrefix:              "amazonaws.com.cn",
 	},
 	{
 		name: PartitionISO,
@@ -68,6 +112,7 @@ var Partitions = partitions{
 		},
 		regions:                     []string{RegionUSISOEast1, RegionUSISOWest1},
 		endpointServiceDomainPrefix: "gov.ic.c2s",
+		v1SDKDNSPrefix:              "c2s.ic.gov",
 	},
 	{
 		name: PartitionISOB,
@@ -78,6 +123,7 @@ var Partitions = partitions{
 		},
 		regions:                     []string{RegionUSISOBEast1},
 		endpointServiceDomainPrefix: "gov.sgov.sc2s",
+		v1SDKDNSPrefix:              "sc2s.sgov.gov",
 	},
 	{
 		name: PartitionISOE,
@@ -89,6 +135,7 @@ var Partitions = partitions{
 		regions:                        []string{RegionEUISOEWest1},
 		endpointServiceDomainPrefix:    standardPartitionServiceDomainPrefix,
 		endpointServiceDomainPrefixAlt: "uk.adc-e.cloud",
+		v1SDKDNSPrefix:                 "cloud.adc-e.uk",
 	},
 	{
 		name: PartitionISOF,
@@ -100,19 +147,36 @@ var Partitions = partitions{
 		regions:                        []string{RegionUSISOFSouth1, RegionUSISOFEast1},
 		endpointServiceDomainPrefix:    standardPartitionServiceDomainPrefix,
 		endpointServiceDomainPrefixAlt: "gov.ic.hci.csp",
+		v1SDKDNSPrefix:                 "csp.hci.ic.gov",
 	},
+}
+
+func (p partitions) partitionFromRegion(region string) *partition {
+	for _, pt := range p {
+		for _, r := range pt.regions {
+			if r == region {
+				return &pt
+			}
+		}
+	}
+	return nil
 }
 
 // ForRegion returns the partition a region belongs to.
 func (p partitions) ForRegion(region string) string {
-	for _, pt := range p {
-		for _, r := range pt.regions {
-			if r == region {
-				return pt.name
-			}
-		}
+	pt := p.partitionFromRegion(region)
+	if pt == nil {
+		return PartitionAWS
 	}
-	return PartitionAWS
+	return pt.name
+}
+
+func (p partitions) V1SDKDNSPrefixForRegion(region string) (string, error) {
+	pt := p.partitionFromRegion(region)
+	if pt == nil {
+		return "", fmt.Errorf("failed to find DNS suffix for region %s", region)
+	}
+	return pt.v1SDKDNSPrefix, nil
 }
 
 // GetEndpointServiceDomainPrefix returns the domain prefix for the endpoint service.

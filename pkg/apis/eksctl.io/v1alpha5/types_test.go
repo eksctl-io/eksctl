@@ -239,11 +239,11 @@ var _ = Describe("Types", func() {
 
 				// Test zero values
 				config2 := &NodeGroupNodeRepairConfig{
-					Enabled:                                 aws.Bool(false),
-					MaxUnhealthyNodeThresholdPercentage:     aws.Int(0),
-					MaxUnhealthyNodeThresholdCount:          aws.Int(0),
-					MaxParallelNodesRepairedPercentage:      aws.Int(0),
-					MaxParallelNodesRepairedCount:           aws.Int(0),
+					Enabled:                             aws.Bool(false),
+					MaxUnhealthyNodeThresholdPercentage: aws.Int(0),
+					MaxUnhealthyNodeThresholdCount:      aws.Int(0),
+					MaxParallelNodesRepairedPercentage:  aws.Int(0),
+					MaxParallelNodesRepairedCount:       aws.Int(0),
 				}
 				Expect(config2.Enabled).NotTo(BeNil())
 				Expect(*config2.Enabled).To(BeFalse())

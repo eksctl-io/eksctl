@@ -666,17 +666,17 @@ var _ = Describe("cmdutils configfile", func() {
 
 		It("should create managed nodegroup without node repair config when not enabled", func() {
 			options.NodeRepairEnabled = false
-			
+
 			mng := makeManagedNodegroup(ng, options)
-			
+
 			Expect(mng.NodeRepairConfig).To(BeNil())
 		})
 
 		It("should create managed nodegroup with basic node repair config when enabled", func() {
 			options.NodeRepairEnabled = true
-			
+
 			mng := makeManagedNodegroup(ng, options)
-			
+
 			Expect(mng.NodeRepairConfig).NotTo(BeNil())
 			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
 			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
@@ -689,9 +689,9 @@ var _ = Describe("cmdutils configfile", func() {
 		It("should create managed nodegroup with threshold percentage", func() {
 			options.NodeRepairEnabled = true
 			options.NodeRepairMaxUnhealthyPercentage = aws.Int(25)
-			
+
 			mng := makeManagedNodegroup(ng, options)
-			
+
 			Expect(mng.NodeRepairConfig).NotTo(BeNil())
 			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
 			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
@@ -702,9 +702,9 @@ var _ = Describe("cmdutils configfile", func() {
 		It("should create managed nodegroup with threshold count", func() {
 			options.NodeRepairEnabled = true
 			options.NodeRepairMaxUnhealthyCount = aws.Int(5)
-			
+
 			mng := makeManagedNodegroup(ng, options)
-			
+
 			Expect(mng.NodeRepairConfig).NotTo(BeNil())
 			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
 			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
@@ -715,9 +715,9 @@ var _ = Describe("cmdutils configfile", func() {
 		It("should create managed nodegroup with parallel percentage", func() {
 			options.NodeRepairEnabled = true
 			options.NodeRepairMaxParallelPercentage = aws.Int(20)
-			
+
 			mng := makeManagedNodegroup(ng, options)
-			
+
 			Expect(mng.NodeRepairConfig).NotTo(BeNil())
 			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
 			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
@@ -728,9 +728,9 @@ var _ = Describe("cmdutils configfile", func() {
 		It("should create managed nodegroup with parallel count", func() {
 			options.NodeRepairEnabled = true
 			options.NodeRepairMaxParallelCount = aws.Int(3)
-			
+
 			mng := makeManagedNodegroup(ng, options)
-			
+
 			Expect(mng.NodeRepairConfig).NotTo(BeNil())
 			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
 			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
@@ -744,9 +744,9 @@ var _ = Describe("cmdutils configfile", func() {
 			options.NodeRepairMaxUnhealthyCount = aws.Int(10)
 			options.NodeRepairMaxParallelPercentage = aws.Int(25)
 			options.NodeRepairMaxParallelCount = aws.Int(4)
-			
+
 			mng := makeManagedNodegroup(ng, options)
-			
+
 			Expect(mng.NodeRepairConfig).NotTo(BeNil())
 			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
 			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
@@ -763,9 +763,9 @@ var _ = Describe("cmdutils configfile", func() {
 		It("should create node repair config when enabled is false but other parameters are set", func() {
 			options.NodeRepairEnabled = false
 			options.NodeRepairMaxUnhealthyPercentage = aws.Int(15)
-			
+
 			mng := makeManagedNodegroup(ng, options)
-			
+
 			Expect(mng.NodeRepairConfig).NotTo(BeNil())
 			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
 			Expect(*mng.NodeRepairConfig.Enabled).To(BeFalse())
@@ -777,9 +777,9 @@ var _ = Describe("cmdutils configfile", func() {
 			options.NodeRepairEnabled = true
 			options.NodeRepairMaxUnhealthyPercentage = aws.Int(0)
 			options.NodeRepairMaxParallelCount = aws.Int(0)
-			
+
 			mng := makeManagedNodegroup(ng, options)
-			
+
 			Expect(mng.NodeRepairConfig).NotTo(BeNil())
 			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
 			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
@@ -794,9 +794,9 @@ var _ = Describe("cmdutils configfile", func() {
 			options.NodeRepairMaxUnhealthyCount = nil
 			options.NodeRepairMaxParallelPercentage = nil
 			options.NodeRepairMaxParallelCount = nil
-			
+
 			mng := makeManagedNodegroup(ng, options)
-			
+
 			Expect(mng.NodeRepairConfig).NotTo(BeNil())
 			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
 			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
@@ -804,6 +804,19 @@ var _ = Describe("cmdutils configfile", func() {
 			Expect(mng.NodeRepairConfig.MaxUnhealthyNodeThresholdCount).To(BeNil())
 			Expect(mng.NodeRepairConfig.MaxParallelNodesRepairedPercentage).To(BeNil())
 			Expect(mng.NodeRepairConfig.MaxParallelNodesRepairedCount).To(BeNil())
+		})
+
+		It("should not create node repair config when CLI flags have default values", func() {
+			// Simulate CLI flag behavior where fs.Int() creates non-nil pointers to default values
+			options.NodeRepairEnabled = false                     // default value
+			options.NodeRepairMaxUnhealthyPercentage = aws.Int(0) // fs.Int() creates pointer to 0
+			options.NodeRepairMaxUnhealthyCount = aws.Int(0)      // fs.Int() creates pointer to 0
+			options.NodeRepairMaxParallelPercentage = aws.Int(0)  // fs.Int() creates pointer to 0
+			options.NodeRepairMaxParallelCount = aws.Int(0)       // fs.Int() creates pointer to 0
+
+			mng := makeManagedNodegroup(ng, options)
+
+			Expect(mng.NodeRepairConfig).To(BeNil())
 		})
 	})
 })

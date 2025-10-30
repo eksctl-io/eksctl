@@ -611,26 +611,28 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup, options CreateManagedNGOptio
 		Spot:          options.Spot,
 		InstanceTypes: options.InstanceTypes,
 	}
-	if options.NodeRepairEnabled || options.NodeRepairMaxUnhealthyPercentage != nil || 
-	   options.NodeRepairMaxUnhealthyCount != nil || options.NodeRepairMaxParallelPercentage != nil || 
-	   options.NodeRepairMaxParallelCount != nil {
-		
+	if options.NodeRepairEnabled ||
+		(options.NodeRepairMaxUnhealthyPercentage != nil && *options.NodeRepairMaxUnhealthyPercentage > 0) ||
+		(options.NodeRepairMaxUnhealthyCount != nil && *options.NodeRepairMaxUnhealthyCount > 0) ||
+		(options.NodeRepairMaxParallelPercentage != nil && *options.NodeRepairMaxParallelPercentage > 0) ||
+		(options.NodeRepairMaxParallelCount != nil && *options.NodeRepairMaxParallelCount > 0) {
+
 		mng.NodeRepairConfig = &api.NodeGroupNodeRepairConfig{
 			Enabled: &options.NodeRepairEnabled,
 		}
-		
+
 		if options.NodeRepairMaxUnhealthyPercentage != nil && *options.NodeRepairMaxUnhealthyPercentage > 0 {
 			mng.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage = options.NodeRepairMaxUnhealthyPercentage
 		}
-		
+
 		if options.NodeRepairMaxUnhealthyCount != nil && *options.NodeRepairMaxUnhealthyCount > 0 {
 			mng.NodeRepairConfig.MaxUnhealthyNodeThresholdCount = options.NodeRepairMaxUnhealthyCount
 		}
-		
+
 		if options.NodeRepairMaxParallelPercentage != nil && *options.NodeRepairMaxParallelPercentage > 0 {
 			mng.NodeRepairConfig.MaxParallelNodesRepairedPercentage = options.NodeRepairMaxParallelPercentage
 		}
-		
+
 		if options.NodeRepairMaxParallelCount != nil && *options.NodeRepairMaxParallelCount > 0 {
 			mng.NodeRepairConfig.MaxParallelNodesRepairedCount = options.NodeRepairMaxParallelCount
 		}

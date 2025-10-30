@@ -127,27 +127,27 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 
 	if m.nodeGroup.NodeRepairConfig != nil {
 		nodeRepairConfig := &gfneks.Nodegroup_NodeRepairConfig{}
-		
+
 		if m.nodeGroup.NodeRepairConfig.Enabled != nil {
 			nodeRepairConfig.Enabled = gfnt.NewBoolean(*m.nodeGroup.NodeRepairConfig.Enabled)
 		}
-		
+
 		if m.nodeGroup.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage != nil {
 			nodeRepairConfig.MaxUnhealthyNodeThresholdPercentage = gfnt.NewInteger(*m.nodeGroup.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage)
 		}
-		
+
 		if m.nodeGroup.NodeRepairConfig.MaxUnhealthyNodeThresholdCount != nil {
 			nodeRepairConfig.MaxUnhealthyNodeThresholdCount = gfnt.NewInteger(*m.nodeGroup.NodeRepairConfig.MaxUnhealthyNodeThresholdCount)
 		}
-		
+
 		if m.nodeGroup.NodeRepairConfig.MaxParallelNodesRepairedPercentage != nil {
 			nodeRepairConfig.MaxParallelNodesRepairedPercentage = gfnt.NewInteger(*m.nodeGroup.NodeRepairConfig.MaxParallelNodesRepairedPercentage)
 		}
-		
+
 		if m.nodeGroup.NodeRepairConfig.MaxParallelNodesRepairedCount != nil {
 			nodeRepairConfig.MaxParallelNodesRepairedCount = gfnt.NewInteger(*m.nodeGroup.NodeRepairConfig.MaxParallelNodesRepairedCount)
 		}
-		
+
 		if len(m.nodeGroup.NodeRepairConfig.NodeRepairConfigOverrides) > 0 {
 			var overrides []gfneks.Nodegroup_NodeRepairConfigOverride
 			for _, override := range m.nodeGroup.NodeRepairConfig.NodeRepairConfigOverrides {
@@ -161,7 +161,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error
 			}
 			nodeRepairConfig.NodeRepairConfigOverrides = overrides
 		}
-		
+
 		managedResource.NodeRepairConfig = nodeRepairConfig
 	}
 

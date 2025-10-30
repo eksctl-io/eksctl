@@ -13,7 +13,7 @@ spec:
       nodeSelector:
         used-for: test-pods
       containers:
-      - image: tutum/dnsutils@sha256:d2244ad47219529f1003bd1513f5c99e71655353a3a63624ea9cb19f8393d5fe
+      - image: public.ecr.aws/docker/library/busybox:1.36.1
         name: dns-test-cluster
         stdin: true
         tty: true
@@ -26,7 +26,7 @@ spec:
             command:
             - nslookup
             - kubernetes.default.svc.cluster.local.
-      - image: tutum/dnsutils@sha256:d2244ad47219529f1003bd1513f5c99e71655353a3a63624ea9cb19f8393d5fe
+      - image: public.ecr.aws/docker/library/busybox:1.36.1
         name: dns-test-eksctl
         stdin: true
         tty: true
@@ -39,7 +39,7 @@ spec:
             command:
             - nslookup
             - eksctl.io
-      - image: tutum/dnsutils@sha256:d2244ad47219529f1003bd1513f5c99e71655353a3a63624ea9cb19f8393d5fe
+      - image: public.ecr.aws/docker/library/busybox:1.36.1
         name: dns-test-k8s
         stdin: true
         tty: true
@@ -52,7 +52,7 @@ spec:
             command:
             - nslookup
             - k8s.io
-      - image: tutum/dnsutils@sha256:d2244ad47219529f1003bd1513f5c99e71655353a3a63624ea9cb19f8393d5fe
+      - image: public.ecr.aws/docker/library/busybox:1.36.1
         name: dns-test-kubernetes
         stdin: true
         tty: true
@@ -65,7 +65,7 @@ spec:
             command:
             - nslookup
             - kubernetes.io
-      - image: tutum/dnsutils@sha256:d2244ad47219529f1003bd1513f5c99e71655353a3a63624ea9cb19f8393d5fe
+      - image: public.ecr.aws/docker/library/busybox:1.36.1
         name: dns-test-eks-us
         stdin: true
         tty: true
@@ -78,7 +78,7 @@ spec:
             command:
             - nslookup
             - EKS.us-east-1.amazonaws.com
-      - image: tutum/dnsutils@sha256:d2244ad47219529f1003bd1513f5c99e71655353a3a63624ea9cb19f8393d5fe
+      - image: public.ecr.aws/docker/library/busybox:1.36.1
         name: dns-test-eks-eu
         stdin: true
         tty: true
@@ -91,7 +91,7 @@ spec:
             command:
             - nslookup
             - EKS.eu-west-1.amazonaws.com
-      - image: tutum/dnsutils@sha256:d2244ad47219529f1003bd1513f5c99e71655353a3a63624ea9cb19f8393d5fe
+      - image: public.ecr.aws/docker/library/busybox:1.36.1
         name: dns-test-ec2-us
         stdin: true
         tty: true
@@ -104,7 +104,7 @@ spec:
             command:
             - nslookup
             - ec2.us-east-2.amazonaws.com
-      - image: tutum/dnsutils@sha256:d2244ad47219529f1003bd1513f5c99e71655353a3a63624ea9cb19f8393d5fe
+      - image: public.ecr.aws/docker/library/busybox:1.36.1
         name: dns-test-ec2-eu
         stdin: true
         tty: true
@@ -117,7 +117,7 @@ spec:
             command:
             - nslookup
             - ec2.eu-west-2.amazonaws.com
-      - image: tutum/dnsutils@sha256:d2244ad47219529f1003bd1513f5c99e71655353a3a63624ea9cb19f8393d5fe
+      - image: public.ecr.aws/docker/library/busybox:1.36.1
         name: dns-test-ifconfig
         stdin: true
         tty: true

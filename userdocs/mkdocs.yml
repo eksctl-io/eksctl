@@ -157,6 +157,7 @@ nav:
       - usage/fargate-support.md
       - usage/cluster-upgrade.md
       - usage/addon-upgrade.md
+      - usage/upgrade-policy.md
       - usage/zonal-shift.md
     - Nodegroups:
       - usage/nodegroups.md

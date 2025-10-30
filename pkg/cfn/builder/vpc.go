@@ -103,10 +103,12 @@ func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc 
 	efaSG := rs.newResource("EFASG", &gfnec2.SecurityGroup{
 		VpcId:            vpcID,
 		GroupDescription: gfnt.NewString("EFA-enabled security group"),
-		Tags: []gfncfn.Tag{{
-			Key:   gfnt.NewString("kubernetes.io/cluster/" + clusterName),
-			Value: gfnt.NewString("owned"),
-		}},
+		// Don't add a kubernetes.io/cluster tag to avoid conflicting with
+		// aws load balancer controller which expects exactly one security group
+		// tagged with kubernetes.io. Resource will already be tagged with
+		// alpha.eksctl.io/cluster-name elsewhere.
+		// https://github.com/kubernetes-sigs/aws-load-balancer-controller/blob/main/pkg/networking/networking_manager.go#L558
+		Tags: []gfncfn.Tag{},
 	})
 
 	// Create ingress rule for EFA self-communication

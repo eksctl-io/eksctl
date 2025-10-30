@@ -295,18 +295,18 @@ func TestManagedNodeGroupNodeRepairConfig(t *testing.T) {
 		{
 			description: "all threshold and parallel parameters",
 			nodeRepairConfig: &api.NodeGroupNodeRepairConfig{
-				Enabled:                                 api.Enabled(),
-				MaxUnhealthyNodeThresholdPercentage:     aws.Int(20),
-				MaxUnhealthyNodeThresholdCount:          aws.Int(5),
-				MaxParallelNodesRepairedPercentage:      aws.Int(15),
-				MaxParallelNodesRepairedCount:           aws.Int(2),
+				Enabled:                             api.Enabled(),
+				MaxUnhealthyNodeThresholdPercentage: aws.Int(20),
+				MaxUnhealthyNodeThresholdCount:      aws.Int(5),
+				MaxParallelNodesRepairedPercentage:  aws.Int(15),
+				MaxParallelNodesRepairedCount:       aws.Int(2),
 			},
 			expectedConfig: &gfneks.Nodegroup_NodeRepairConfig{
-				Enabled:                                 gfnt.NewBoolean(true),
-				MaxUnhealthyNodeThresholdPercentage:     gfnt.NewInteger(20),
-				MaxUnhealthyNodeThresholdCount:          gfnt.NewInteger(5),
-				MaxParallelNodesRepairedPercentage:      gfnt.NewInteger(15),
-				MaxParallelNodesRepairedCount:           gfnt.NewInteger(2),
+				Enabled:                             gfnt.NewBoolean(true),
+				MaxUnhealthyNodeThresholdPercentage: gfnt.NewInteger(20),
+				MaxUnhealthyNodeThresholdCount:      gfnt.NewInteger(5),
+				MaxParallelNodesRepairedPercentage:  gfnt.NewInteger(15),
+				MaxParallelNodesRepairedCount:       gfnt.NewInteger(2),
 			},
 		},
 		{
@@ -349,9 +349,9 @@ func TestManagedNodeGroupNodeRepairConfig(t *testing.T) {
 		{
 			description: "comprehensive configuration",
 			nodeRepairConfig: &api.NodeGroupNodeRepairConfig{
-				Enabled:                                 api.Enabled(),
-				MaxUnhealthyNodeThresholdPercentage:     aws.Int(25),
-				MaxParallelNodesRepairedCount:           aws.Int(3),
+				Enabled:                             api.Enabled(),
+				MaxUnhealthyNodeThresholdPercentage: aws.Int(25),
+				MaxParallelNodesRepairedCount:       aws.Int(3),
 				NodeRepairConfigOverrides: []api.NodeRepairConfigOverride{
 					{
 						NodeMonitoringCondition: "NetworkNotReady",
@@ -362,9 +362,9 @@ func TestManagedNodeGroupNodeRepairConfig(t *testing.T) {
 				},
 			},
 			expectedConfig: &gfneks.Nodegroup_NodeRepairConfig{
-				Enabled:                           gfnt.NewBoolean(true),
+				Enabled:                             gfnt.NewBoolean(true),
 				MaxUnhealthyNodeThresholdPercentage: gfnt.NewInteger(25),
-				MaxParallelNodesRepairedCount:     gfnt.NewInteger(3),
+				MaxParallelNodesRepairedCount:       gfnt.NewInteger(3),
 				NodeRepairConfigOverrides: []gfneks.Nodegroup_NodeRepairConfigOverride{
 					{
 						NodeMonitoringCondition: gfnt.NewString("NetworkNotReady"),
@@ -394,12 +394,12 @@ func TestManagedNodeGroupNodeRepairConfig(t *testing.T) {
 			clusterConfig.Status = &api.ClusterStatus{}
 			err := api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata, false)
 			require.NoError(t, err)
-			
+
 			p := mockprovider.NewMockProvider()
 			fakeVPCImporter := new(vpcfakes.FakeImporter)
 			bootstrapper, err := nodebootstrap.NewManagedBootstrapper(clusterConfig, ng)
 			require.NoError(t, err)
-			
+
 			// Mock subnets and AZ instance support like other tests
 			mockSubnetsAndAZInstanceSupport(clusterConfig, p,
 				[]string{"us-west-2a"},
@@ -415,7 +415,7 @@ func TestManagedNodeGroupNodeRepairConfig(t *testing.T) {
 
 			template, err := goformation.ParseJSON(bytes)
 			require.NoError(t, err)
-			
+
 			// Get the managed nodegroup resource
 			ngResource, ok := template.Resources[builder.ManagedNodeGroupResourceName]
 			require.True(t, ok, "ManagedNodeGroup resource should exist")
@@ -427,7 +427,7 @@ func TestManagedNodeGroupNodeRepairConfig(t *testing.T) {
 				require.Nil(t, managedNodeGroup.NodeRepairConfig, "NodeRepairConfig should be nil")
 			} else {
 				require.NotNil(t, managedNodeGroup.NodeRepairConfig, "NodeRepairConfig should not be nil")
-				
+
 				// Test enabled field
 				if tt.expectedConfig.Enabled != nil {
 					require.NotNil(t, managedNodeGroup.NodeRepairConfig.Enabled)
@@ -439,7 +439,7 @@ func TestManagedNodeGroupNodeRepairConfig(t *testing.T) {
 				// Test threshold percentage
 				if tt.expectedConfig.MaxUnhealthyNodeThresholdPercentage != nil {
 					require.NotNil(t, managedNodeGroup.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage)
-					require.Equal(t, tt.expectedConfig.MaxUnhealthyNodeThresholdPercentage.Raw(), 
+					require.Equal(t, tt.expectedConfig.MaxUnhealthyNodeThresholdPercentage.Raw(),
 						managedNodeGroup.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage.Raw())
 				} else {
 					require.Nil(t, managedNodeGroup.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage)
@@ -448,7 +448,7 @@ func TestManagedNodeGroupNodeRepairConfig(t *testing.T) {
 				// Test threshold count
 				if tt.expectedConfig.MaxUnhealthyNodeThresholdCount != nil {
 					require.NotNil(t, managedNodeGroup.NodeRepairConfig.MaxUnhealthyNodeThresholdCount)
-					require.Equal(t, tt.expectedConfig.MaxUnhealthyNodeThresholdCount.Raw(), 
+					require.Equal(t, tt.expectedConfig.MaxUnhealthyNodeThresholdCount.Raw(),
 						managedNodeGroup.NodeRepairConfig.MaxUnhealthyNodeThresholdCount.Raw())
 				} else {
 					require.Nil(t, managedNodeGroup.NodeRepairConfig.MaxUnhealthyNodeThresholdCount)
@@ -457,7 +457,7 @@ func TestManagedNodeGroupNodeRepairConfig(t *testing.T) {
 				// Test parallel percentage
 				if tt.expectedConfig.MaxParallelNodesRepairedPercentage != nil {
 					require.NotNil(t, managedNodeGroup.NodeRepairConfig.MaxParallelNodesRepairedPercentage)
-					require.Equal(t, tt.expectedConfig.MaxParallelNodesRepairedPercentage.Raw(), 
+					require.Equal(t, tt.expectedConfig.MaxParallelNodesRepairedPercentage.Raw(),
 						managedNodeGroup.NodeRepairConfig.MaxParallelNodesRepairedPercentage.Raw())
 				} else {
 					require.Nil(t, managedNodeGroup.NodeRepairConfig.MaxParallelNodesRepairedPercentage)
@@ -466,25 +466,25 @@ func TestManagedNodeGroupNodeRepairConfig(t *testing.T) {
 				// Test parallel count
 				if tt.expectedConfig.MaxParallelNodesRepairedCount != nil {
 					require.NotNil(t, managedNodeGroup.NodeRepairConfig.MaxParallelNodesRepairedCount)
-					require.Equal(t, tt.expectedConfig.MaxParallelNodesRepairedCount.Raw(), 
+					require.Equal(t, tt.expectedConfig.MaxParallelNodesRepairedCount.Raw(),
 						managedNodeGroup.NodeRepairConfig.MaxParallelNodesRepairedCount.Raw())
 				} else {
 					require.Nil(t, managedNodeGroup.NodeRepairConfig.MaxParallelNodesRepairedCount)
 				}
 
 				// Test overrides
-				require.Equal(t, len(tt.expectedConfig.NodeRepairConfigOverrides), 
+				require.Equal(t, len(tt.expectedConfig.NodeRepairConfigOverrides),
 					len(managedNodeGroup.NodeRepairConfig.NodeRepairConfigOverrides))
-				
+
 				for i, expectedOverride := range tt.expectedConfig.NodeRepairConfigOverrides {
 					actualOverride := managedNodeGroup.NodeRepairConfig.NodeRepairConfigOverrides[i]
-					require.Equal(t, expectedOverride.NodeMonitoringCondition.Raw(), 
+					require.Equal(t, expectedOverride.NodeMonitoringCondition.Raw(),
 						actualOverride.NodeMonitoringCondition.Raw())
-					require.Equal(t, expectedOverride.NodeUnhealthyReason.Raw(), 
+					require.Equal(t, expectedOverride.NodeUnhealthyReason.Raw(),
 						actualOverride.NodeUnhealthyReason.Raw())
-					require.Equal(t, expectedOverride.MinRepairWaitTimeMins.Raw(), 
+					require.Equal(t, expectedOverride.MinRepairWaitTimeMins.Raw(),
 						actualOverride.MinRepairWaitTimeMins.Raw())
-					require.Equal(t, expectedOverride.RepairAction.Raw(), 
+					require.Equal(t, expectedOverride.RepairAction.Raw(),
 						actualOverride.RepairAction.Raw())
 				}
 			}

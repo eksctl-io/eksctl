@@ -17,3 +17,32 @@ var _ = Describe("Addon", func() {
 		})
 	})
 })
+
+var _ = Describe("ShouldWaitForAddons", func() {
+	It("returns false when nodes is false", func() {
+		addons := []*api.Addon{{Name: api.VPCCNIAddon}}
+		Expect(addon.ShouldWaitForAddons(false, addons)).To(BeFalse())
+	})
+
+	It("returns false when no addons", func() {
+		Expect(addon.ShouldWaitForAddons(true, nil)).To(BeFalse())
+	})
+
+	It("returns false for metrics-server", func() {
+		addons := []*api.Addon{{Name: api.MetricsServerAddon}}
+		Expect(addon.ShouldWaitForAddons(true, addons)).To(BeFalse())
+	})
+
+	It("returns true for unknown addons", func() {
+		addons := []*api.Addon{{Name: "unknown-addon"}}
+		Expect(addon.ShouldWaitForAddons(true, addons)).To(BeTrue())
+	})
+
+	It("returns true when any addon requires wait", func() {
+		addons := []*api.Addon{
+			{Name: api.MetricsServerAddon},
+			{Name: "unknown-addon"},
+		}
+		Expect(addon.ShouldWaitForAddons(true, addons)).To(BeTrue())
+	})
+})

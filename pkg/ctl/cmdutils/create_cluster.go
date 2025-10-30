@@ -43,12 +43,12 @@ type CreateManagedNGOptions struct {
 	Spot              bool
 	NodeRepairEnabled bool
 	InstanceTypes     []string
-	
+
 	// New node repair configuration options
-	NodeRepairMaxUnhealthyPercentage   *int
-	NodeRepairMaxUnhealthyCount        *int
-	NodeRepairMaxParallelPercentage    *int
-	NodeRepairMaxParallelCount         *int
+	NodeRepairMaxUnhealthyPercentage *int
+	NodeRepairMaxUnhealthyCount      *int
+	NodeRepairMaxParallelPercentage  *int
+	NodeRepairMaxParallelCount       *int
 }
 
 // CreateNGOptions holds options for creating a nodegroup

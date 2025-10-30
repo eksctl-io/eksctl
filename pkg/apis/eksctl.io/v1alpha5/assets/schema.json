@@ -550,6 +550,11 @@
         "secretsEncryption": {
           "$ref": "#/definitions/SecretsEncryption"
         },
+        "upgradePolicy": {
+          "$ref": "#/definitions/UpgradePolicy",
+          "description": "specifies the upgrade policy for the cluster",
+          "x-intellij-html-description": "specifies the upgrade policy for the cluster"
+        },
         "vpc": {
           "$ref": "#/definitions/ClusterVPC"
         },
@@ -563,6 +568,7 @@
         "kind",
         "apiVersion",
         "metadata",
+        "upgradePolicy",
         "kubernetesNetworkConfig",
         "autoModeConfig",
         "remoteNetworkConfig",
@@ -2784,6 +2790,26 @@
       "additionalProperties": false,
       "description": "defines the configuration for KMS encryption provider",
       "x-intellij-html-description": "defines the configuration for KMS encryption provider"
+    },
+    "UpgradePolicy": {
+      "properties": {
+        "supportType": {
+          "type": "string",
+          "description": "specifies the support type for the cluster. Valid variants are: `\"STANDARD\"` standard support for the cluster, `\"EXTENDED\"` extended support for the cluster (default) defines the default support type.",
+          "x-intellij-html-description": "specifies the support type for the cluster. Valid variants are: <code>&quot;STANDARD&quot;</code> standard support for the cluster, <code>&quot;EXTENDED&quot;</code> extended support for the cluster (default) defines the default support type.",
+          "default": "EXTENDED",
+          "enum": [
+            "STANDARD",
+            "EXTENDED"
+          ]
+        }
+      },
+      "preferredOrder": [
+        "supportType"
+      ],
+      "additionalProperties": false,
+      "description": "holds the upgrade policy configuration for the cluster",
+      "x-intellij-html-description": "holds the upgrade policy configuration for the cluster"
     },
     "VPCGateway": {
       "type": "string",
