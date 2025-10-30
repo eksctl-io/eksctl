@@ -809,7 +809,9 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			By("removing all pod identity associations owned by the addon")
 			clusterConfig.Addons[1].PodIdentityAssociations = &[]api.PodIdentityAssociation{}
 			// Don't wait for aws-ebs-csi-driver add-on because it won't become healthy without iam perms now.
-			Expect(makeUpdateAddonCMD("--timeout", "0")).To(RunSuccessfully())
+			// Update add-on has a bug where we wait even if we don't pass in --wait.
+			// We should fix that bug eventually then we can remove this timeout and fail condition.
+			Expect(makeUpdateAddonCMD("--timeout", "2m")).NotTo(RunSuccessfully())
 			assertAddonHasPodIDs(api.AWSEBSCSIDriverAddon, 0)
 
 			By("migrating an addon to pod identity using the utils command")
