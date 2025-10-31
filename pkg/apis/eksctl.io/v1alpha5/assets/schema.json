@@ -2307,10 +2307,43 @@
           "type": "boolean",
           "description": "Enables the auto repair feature for the nodegroup",
           "x-intellij-html-description": "Enables the auto repair feature for the nodegroup"
+        },
+        "maxParallelNodesRepairedCount": {
+          "type": "integer",
+          "description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a count of unhealthy nodes. When using this, you cannot also set MaxParallelNodesRepairedPercentage at the same time.",
+          "x-intellij-html-description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a count of unhealthy nodes. When using this, you cannot also set MaxParallelNodesRepairedPercentage at the same time."
+        },
+        "maxParallelNodesRepairedPercentage": {
+          "type": "integer",
+          "description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a percentage of unhealthy nodes. When using this, you cannot also set MaxParallelNodesRepairedCount at the same time.",
+          "x-intellij-html-description": "specifies the maximum number of nodes that can be repaired concurrently or in parallel, expressed as a percentage of unhealthy nodes. When using this, you cannot also set MaxParallelNodesRepairedCount at the same time."
+        },
+        "maxUnhealthyNodeThresholdCount": {
+          "type": "integer",
+          "description": "specifies a count threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set MaxUnhealthyNodeThresholdPercentage at the same time.",
+          "x-intellij-html-description": "specifies a count threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set MaxUnhealthyNodeThresholdPercentage at the same time."
+        },
+        "maxUnhealthyNodeThresholdPercentage": {
+          "type": "integer",
+          "description": "specifies a percentage threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set MaxUnhealthyNodeThresholdCount at the same time.",
+          "x-intellij-html-description": "specifies a percentage threshold of unhealthy nodes, above which node auto repair actions will stop. When using this, you cannot also set MaxUnhealthyNodeThresholdCount at the same time."
+        },
+        "nodeRepairConfigOverrides": {
+          "items": {
+            "$ref": "#/definitions/NodeRepairConfigOverride"
+          },
+          "type": "array",
+          "description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values.",
+          "x-intellij-html-description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values."
         }
       },
       "preferredOrder": [
-        "enabled"
+        "enabled",
+        "maxUnhealthyNodeThresholdPercentage",
+        "maxUnhealthyNodeThresholdCount",
+        "maxParallelNodesRepairedPercentage",
+        "maxParallelNodesRepairedCount",
+        "nodeRepairConfigOverrides"
       ],
       "additionalProperties": false,
       "description": "contains the auto repair configuration for the nodegroup",
@@ -2435,6 +2468,39 @@
       "additionalProperties": false,
       "description": "contains the configuration for updating NodeGroups.",
       "x-intellij-html-description": "contains the configuration for updating NodeGroups."
+    },
+    "NodeRepairConfigOverride": {
+      "properties": {
+        "minRepairWaitTimeMins": {
+          "type": "integer",
+          "description": "specifies the minimum time in minutes to wait before attempting to repair a node with this specific NodeMonitoringCondition and NodeUnhealthyReason",
+          "x-intellij-html-description": "specifies the minimum time in minutes to wait before attempting to repair a node with this specific NodeMonitoringCondition and NodeUnhealthyReason"
+        },
+        "nodeMonitoringCondition": {
+          "type": "string",
+          "description": "specifies an unhealthy condition reported by the node monitoring agent that this override would apply to",
+          "x-intellij-html-description": "specifies an unhealthy condition reported by the node monitoring agent that this override would apply to"
+        },
+        "nodeUnhealthyReason": {
+          "type": "string",
+          "description": "specifies a reason reported by the node monitoring agent that this override would apply to",
+          "x-intellij-html-description": "specifies a reason reported by the node monitoring agent that this override would apply to"
+        },
+        "repairAction": {
+          "type": "string",
+          "description": "specifies the repair action to take for nodes when all of the specified conditions are met",
+          "x-intellij-html-description": "specifies the repair action to take for nodes when all of the specified conditions are met"
+        }
+      },
+      "preferredOrder": [
+        "nodeMonitoringCondition",
+        "nodeUnhealthyReason",
+        "minRepairWaitTimeMins",
+        "repairAction"
+      ],
+      "additionalProperties": false,
+      "description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values.",
+      "x-intellij-html-description": "specifies granular overrides for specific repair actions. These overrides control the repair action and the repair delay time before a node is considered eligible for repair. If you use this, you must specify all the values."
     },
     "OIDCIdentityProvider": {
       "required": [
