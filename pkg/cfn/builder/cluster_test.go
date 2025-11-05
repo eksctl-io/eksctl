@@ -98,19 +98,6 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 		})
 
-		Context("when UpgradePolicy is set with empty SupportType", func() {
-			BeforeEach(func() {
-				cfg.UpgradePolicy = &api.UpgradePolicy{
-					SupportType: "",
-				}
-			})
-
-			It("should include UpgradePolicy but SupportType should be set", func() {
-				Expect(clusterTemplate.Resources["ControlPlane"].Properties.UpgradePolicy).NotTo(BeNil())
-				Expect(clusterTemplate.Resources["ControlPlane"].Properties.UpgradePolicy.SupportType).To(Equal(""))
-			})
-		})
-
 		It("should add vpc resources", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey(vpcResourceKey))
 			Expect(clusterTemplate.Resources).To(HaveKey(igwKey))

@@ -357,9 +357,10 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 
 	var upgradePolicy *gfneks.Cluster_UpgradePolicy
 	if c.spec.UpgradePolicy != nil {
-		upgradePolicy = &gfneks.Cluster_UpgradePolicy{}
 		if c.spec.UpgradePolicy.SupportType != "" {
-			upgradePolicy.SupportType = gfnt.NewString(c.spec.UpgradePolicy.SupportType)
+			upgradePolicy = &gfneks.Cluster_UpgradePolicy{
+				SupportType: gfnt.NewString(c.spec.UpgradePolicy.SupportType),
+			}
 		}
 	}
 
