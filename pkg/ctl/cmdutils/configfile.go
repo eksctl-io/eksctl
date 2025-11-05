@@ -50,6 +50,7 @@ var (
 		"version",
 		"cluster",
 		"namepace",
+		"support-type",
 	}
 	defaultFlagsIncompatibleWithoutConfigFile = []string{
 		"only",
@@ -611,30 +612,9 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup, options CreateManagedNGOptio
 		Spot:          options.Spot,
 		InstanceTypes: options.InstanceTypes,
 	}
-	if options.NodeRepairEnabled ||
-		(options.NodeRepairMaxUnhealthyPercentage != nil && *options.NodeRepairMaxUnhealthyPercentage > 0) ||
-		(options.NodeRepairMaxUnhealthyCount != nil && *options.NodeRepairMaxUnhealthyCount > 0) ||
-		(options.NodeRepairMaxParallelPercentage != nil && *options.NodeRepairMaxParallelPercentage > 0) ||
-		(options.NodeRepairMaxParallelCount != nil && *options.NodeRepairMaxParallelCount > 0) {
-
+	if options.NodeRepairEnabled {
 		mng.NodeRepairConfig = &api.NodeGroupNodeRepairConfig{
 			Enabled: &options.NodeRepairEnabled,
-		}
-
-		if options.NodeRepairMaxUnhealthyPercentage != nil && *options.NodeRepairMaxUnhealthyPercentage > 0 {
-			mng.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage = options.NodeRepairMaxUnhealthyPercentage
-		}
-
-		if options.NodeRepairMaxUnhealthyCount != nil && *options.NodeRepairMaxUnhealthyCount > 0 {
-			mng.NodeRepairConfig.MaxUnhealthyNodeThresholdCount = options.NodeRepairMaxUnhealthyCount
-		}
-
-		if options.NodeRepairMaxParallelPercentage != nil && *options.NodeRepairMaxParallelPercentage > 0 {
-			mng.NodeRepairConfig.MaxParallelNodesRepairedPercentage = options.NodeRepairMaxParallelPercentage
-		}
-
-		if options.NodeRepairMaxParallelCount != nil && *options.NodeRepairMaxParallelCount > 0 {
-			mng.NodeRepairConfig.MaxParallelNodesRepairedCount = options.NodeRepairMaxParallelCount
 		}
 	}
 	return mng
@@ -648,7 +628,7 @@ func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
 	if managed {
 		return nil
 	}
-	flagsValidOnlyWithMNG := []string{"spot", "enable-node-repair", "instance-types", "node-repair-max-unhealthy-percentage", "node-repair-max-unhealthy-count", "node-repair-max-parallel-percentage", "node-repair-max-parallel-count"}
+	flagsValidOnlyWithMNG := []string{"spot", "enable-node-repair", "instance-types"}
 	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithMNG); found {
 		return fmt.Errorf("--%s is only valid with managed nodegroups (--managed)", flagName)
 	}

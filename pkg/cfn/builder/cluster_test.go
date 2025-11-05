@@ -79,9 +79,36 @@ var _ = Describe("Cluster Template Builder", func() {
 			Expect(controlPlane.ResourcesVpcConfig.SubnetIDs).To(HaveLen(4))
 			Expect(controlPlane.RoleArn).To(ContainElement([]interface{}{"ServiceRole", "Arn"}))
 			Expect(controlPlane.EncryptionConfig).To(BeNil())
+			Expect(controlPlane.UpgradePolicy).To(BeNil())
 			Expect(controlPlane.KubernetesNetworkConfig.ServiceIPv4CIDR).To(Equal("131.10.55.70/18"))
 			Expect(controlPlane.KubernetesNetworkConfig.IPFamily).To(Equal("ipv4"))
 			Expect(controlPlane.AccessConfig.BootstrapClusterCreatorAdminPermissions).To(BeTrue())
+		})
+
+		Context("when UpgradePolicy is set with SupportType", func() {
+			BeforeEach(func() {
+				cfg.UpgradePolicy = &api.UpgradePolicy{
+					SupportType: api.SupportTypeStandard,
+				}
+			})
+
+			It("should include UpgradePolicy with SupportType in control plane resources", func() {
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.UpgradePolicy).NotTo(BeNil())
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.UpgradePolicy.SupportType).To(Equal(api.SupportTypeStandard))
+			})
+		})
+
+		Context("when UpgradePolicy is set with empty SupportType", func() {
+			BeforeEach(func() {
+				cfg.UpgradePolicy = &api.UpgradePolicy{
+					SupportType: "",
+				}
+			})
+
+			It("should include UpgradePolicy but SupportType should be set", func() {
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.UpgradePolicy).NotTo(BeNil())
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.UpgradePolicy.SupportType).To(Equal(""))
+			})
 		})
 
 		It("should add vpc resources", func() {

@@ -355,6 +355,14 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		}
 	}
 
+	var upgradePolicy *gfneks.Cluster_UpgradePolicy
+	if c.spec.UpgradePolicy != nil {
+		upgradePolicy = &gfneks.Cluster_UpgradePolicy{}
+		if c.spec.UpgradePolicy.SupportType != "" {
+			upgradePolicy.SupportType = gfnt.NewString(c.spec.UpgradePolicy.SupportType)
+		}
+	}
+
 	cluster := gfneks.Cluster{
 		EncryptionConfig:           encryptionConfigs,
 		Logging:                    makeClusterLogging(c.spec),
@@ -362,6 +370,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		ResourcesVpcConfig:         clusterVPC,
 		RoleArn:                    serviceRoleARN,
 		BootstrapSelfManagedAddons: gfnt.NewBoolean(false),
+		UpgradePolicy:              upgradePolicy,
 		AccessConfig: &gfneks.Cluster_AccessConfig{
 			AuthenticationMode:                      gfnt.NewString(string(c.spec.AccessConfig.AuthenticationMode)),
 			BootstrapClusterCreatorAdminPermissions: gfnt.NewBoolean(!api.IsDisabled(c.spec.AccessConfig.BootstrapClusterCreatorAdminPermissions)),
