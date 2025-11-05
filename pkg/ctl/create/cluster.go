@@ -99,6 +99,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		fs.BoolVar(cfg.IAM.WithOIDC, "with-oidc", false, "Enable the IAM OIDC provider")
 		fs.StringSliceVar(&params.AvailabilityZones, "zones", nil, "(auto-select if unspecified)")
+		fs.StringVarP(&cfg.UpgradePolicy.SupportType, "support-type", "", "", "Set cluster's upgradePolicy supportType")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)

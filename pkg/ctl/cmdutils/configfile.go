@@ -50,6 +50,7 @@ var (
 		"version",
 		"cluster",
 		"namepace",
+		"support-type",
 	}
 	defaultFlagsIncompatibleWithoutConfigFile = []string{
 		"only",

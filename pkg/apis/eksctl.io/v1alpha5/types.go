@@ -1146,6 +1146,7 @@ func NewClusterConfig() *ClusterConfig {
 		},
 		PrivateCluster: &PrivateCluster{},
 		AccessConfig:   &AccessConfig{},
+		UpgradePolicy:  &UpgradePolicy{},
 	}
 
 	return cfg
