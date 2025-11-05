@@ -24,7 +24,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.56.7
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.65.1
 	github.com/aws/aws-sdk-go-v2/service/sts v1.38.6
-	github.com/aws/smithy-go v1.23.1
+	github.com/aws/smithy-go v1.23.2
 	github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20251001043626-89ce6578d960
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
 	github.com/blang/semver/v4 v4.0.0
