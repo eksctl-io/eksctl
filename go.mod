@@ -7,7 +7,7 @@ go 1.25.1
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/aws/amazon-ec2-instance-selector/v3 v3.1.2
-	github.com/aws/aws-sdk-go-v2 v1.39.5
+	github.com/aws/aws-sdk-go-v2 v1.39.6
 	github.com/aws/aws-sdk-go-v2/config v1.31.12
 	github.com/aws/aws-sdk-go-v2/credentials v1.18.16
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.59.3
@@ -22,7 +22,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/iam v1.47.7
 	github.com/aws/aws-sdk-go-v2/service/kms v1.45.6
 	github.com/aws/aws-sdk-go-v2/service/outposts v1.56.7
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.65.1
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.66.4
 	github.com/aws/aws-sdk-go-v2/service/sts v1.38.6
 	github.com/aws/smithy-go v1.23.2
 	github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20251001043626-89ce6578d960
@@ -129,8 +129,8 @@ require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.1 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.9 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.9 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.9 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.13 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.13 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.36 // indirect
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.39.3 // indirect
