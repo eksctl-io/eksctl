@@ -148,6 +148,7 @@ managedNodeGroups:
 
 privateCluster:
   enabled: false
+upgradePolicy: {}
 vpc:
   autoAllocateIPv6: false
   cidr: 192.168.0.0/16
