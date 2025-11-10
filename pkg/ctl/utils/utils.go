@@ -22,6 +22,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateClusterEndpointsCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, publicAccessCIDRsCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateClusterVPCConfigCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateClusterDeletionProtectionCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, enableSecretsEncryptionCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, schemaCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, nodeGroupHealthCmd)

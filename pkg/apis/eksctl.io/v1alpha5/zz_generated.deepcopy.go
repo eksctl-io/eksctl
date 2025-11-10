@@ -559,6 +559,11 @@ func (in *ClusterConfig) DeepCopyInto(out *ClusterConfig) {
 		*out = new(UpgradePolicy)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.DeletionProtection != nil {
+		in, out := &in.DeletionProtection, &out.DeletionProtection
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

@@ -364,6 +364,11 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		}
 	}
 
+	var deletionProtection *gfnt.Value
+	if c.spec.DeletionProtection != nil {
+		deletionProtection = gfnt.NewBoolean(*c.spec.DeletionProtection)
+	}
+
 	cluster := gfneks.Cluster{
 		EncryptionConfig:           encryptionConfigs,
 		Logging:                    makeClusterLogging(c.spec),
@@ -372,6 +377,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		RoleArn:                    serviceRoleARN,
 		BootstrapSelfManagedAddons: gfnt.NewBoolean(false),
 		UpgradePolicy:              upgradePolicy,
+		DeletionProtection:         deletionProtection,
 		AccessConfig: &gfneks.Cluster_AccessConfig{
 			AuthenticationMode:                      gfnt.NewString(string(c.spec.AccessConfig.AuthenticationMode)),
 			BootstrapClusterCreatorAdminPermissions: gfnt.NewBoolean(!api.IsDisabled(c.spec.AccessConfig.BootstrapClusterCreatorAdminPermissions)),

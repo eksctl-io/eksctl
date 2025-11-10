@@ -467,6 +467,11 @@
           "description": "See [CloudWatch support](/usage/cloudwatch-cluster-logging/)",
           "x-intellij-html-description": "See <a href=\"/usage/cloudwatch-cluster-logging/\">CloudWatch support</a>"
         },
+        "deletionProtection": {
+          "type": "boolean",
+          "description": "specifies whether deletion protection is enabled for the cluster",
+          "x-intellij-html-description": "specifies whether deletion protection is enabled for the cluster"
+        },
         "fargateProfiles": {
           "items": {
             "$ref": "#/definitions/FargateProfile"
@@ -569,6 +574,7 @@
         "apiVersion",
         "metadata",
         "upgradePolicy",
+        "deletionProtection",
         "kubernetesNetworkConfig",
         "autoModeConfig",
         "remoteNetworkConfig",
