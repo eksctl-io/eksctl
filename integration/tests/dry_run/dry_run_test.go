@@ -17,9 +17,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -148,7 +145,8 @@ managedNodeGroups:
 
 privateCluster:
   enabled: false
-upgradePolicy: {}
+upgradePolicy:
+  supportType: ""
 vpc:
   autoAllocateIPv6: false
   cidr: 192.168.0.0/16
