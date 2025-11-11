@@ -1,0 +1,192 @@
+{
+    "LaunchTemplate": {
+        "Type": "AWS::EC2::LaunchTemplate",
+        "Properties": {
+            "LaunchTemplateData": {
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/xvda",
+                        "Ebs": {
+                            "Iops": 3000,
+                            "Throughput": 125,
+                            "VolumeSize": 80,
+                            "VolumeType": "gp3"
+                        }
+                    }
+                ],
+                "MetadataOptions": {
+                    "HttpPutResponseHopLimit": 2,
+                    "HttpTokens": "required"
+                },
+                "SecurityGroupIds": [
+                    {
+                        "Fn::ImportValue": "eksctl-lt::ClusterSecurityGroupId"
+                    }
+                ],
+                "TagSpecifications": [
+                    {
+                        "ResourceType": "instance",
+                        "Tags": [
+                            {
+                                "Key": "Name",
+                                "Value": "lt-enhanced-node-repair-Node"
+                            },
+                            {
+                                "Key": "alpha.eksctl.io/nodegroup-name",
+                                "Value": "enhanced-node-repair"
+                            },
+                            {
+                                "Key": "alpha.eksctl.io/nodegroup-type",
+                                "Value": "managed"
+                            }
+                        ]
+                    },
+                    {
+                        "ResourceType": "volume",
+                        "Tags": [
+                        {
+                            "Key": "Name",
+                            "Value": "lt-enhanced-node-repair-Node"
+                        },
+                        {
+                            "Key": "alpha.eksctl.io/nodegroup-name",
+                            "Value": "enhanced-node-repair"
+                        },
+                        {
+                            "Key": "alpha.eksctl.io/nodegroup-type",
+                            "Value": "managed"
+                        }
+                        ]
+                    },
+                    {
+                        "ResourceType": "network-interface",
+                        "Tags": [
+                        {
+                            "Key": "Name",
+                            "Value": "lt-enhanced-node-repair-Node"
+                        },
+                        {
+                            "Key": "alpha.eksctl.io/nodegroup-name",
+                            "Value": "enhanced-node-repair"
+                        },
+                        {
+                            "Key": "alpha.eksctl.io/nodegroup-type",
+                            "Value": "managed"
+                        }
+                        ]
+                    }
+                ]
+            },
+            "LaunchTemplateName": {
+                "Fn::Sub": "${AWS::StackName}"
+            }
+        }
+    },
+    "ManagedNodeGroup": {
+        "Type": "AWS::EKS::Nodegroup",
+        "Properties": {
+            "AmiType": "AL2023_x86_64_STANDARD",
+            "ClusterName": "lt",
+            "Labels": {
+                "alpha.eksctl.io/cluster-name": "lt",
+                "alpha.eksctl.io/nodegroup-name": "enhanced-node-repair"
+            },
+            "InstanceTypes": ["m5.xlarge"],
+            "NodeRole": {
+                "Fn::GetAtt": [
+                    "NodeInstanceRole",
+                    "Arn"
+                ]
+            },
+            "NodegroupName": "enhanced-node-repair",
+            "ScalingConfig": {
+                "DesiredSize": 3,
+                "MaxSize": 5,
+                "MinSize": 1
+            },
+            "Subnets": [
+                "subnet-public-us-west-2a"
+            ],
+            "Tags": {
+                "alpha.eksctl.io/nodegroup-name": "enhanced-node-repair",
+                "alpha.eksctl.io/nodegroup-type": "managed"
+            },
+            "LaunchTemplate": {
+                "Id": {
+                    "Ref": "LaunchTemplate"
+                }
+            },
+            "NodeRepairConfig": {
+                "Enabled": true,
+                "MaxUnhealthyNodeThresholdPercentage": 20,
+                "MaxParallelNodesRepairedPercentage": 15,
+                "NodeRepairConfigOverrides": [
+                    {
+                        "NodeMonitoringCondition": "AcceleratedInstanceNotReady",
+                        "NodeUnhealthyReason": "NvidiaXID13Error",
+                        "MinRepairWaitTimeMins": 10,
+                        "RepairAction": "Terminate"
+                    },
+                    {
+                        "NodeMonitoringCondition": "NetworkNotReady",
+                        "NodeUnhealthyReason": "InterfaceNotUp",
+                        "MinRepairWaitTimeMins": 20,
+                        "RepairAction": "Restart"
+                    }
+                ]
+            }
+        }
+    },
+    "NodeInstanceRole": {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+            "AssumeRolePolicyDocument": {
+                "Statement": [
+                    {
+                        "Action": [
+                            "sts:AssumeRole"
+                        ],
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": [
+                                {
+                                    "Fn::FindInMap": [
+                                        "ServicePrincipalPartitionMap",
+                                        {
+                                            "Ref": "AWS::Partition"
+                                        },
+                                        "EC2"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "Version": "2012-10-17"
+            },
+            "ManagedPolicyArns": [
+                {
+                    "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
+                },
+                {
+                    "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+                },
+                {
+                    "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEKS_CNI_Policy"
+                },
+                {
+                    "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
+                }
+            ],
+            "Path": "/",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": {
+                        "Fn::Sub": "${AWS::StackName}/NodeInstanceRole"
+                    }
+                }
+            ]
+        }
+    }
+}

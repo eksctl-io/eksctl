@@ -350,6 +350,7 @@ const expected = `
 		  "region": "eu-central-1",
 		  "version": "1.32"
 		},
+		"upgradePolicy": {},
 		"kubernetesNetworkConfig": {
         	"ipFamily": "IPv4"
         },

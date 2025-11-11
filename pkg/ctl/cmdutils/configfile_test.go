@@ -648,6 +648,177 @@ var _ = Describe("cmdutils configfile", func() {
 			})
 		})
 	})
+
+	Context("makeManagedNodegroup with node repair config", func() {
+		var (
+			ng      *api.NodeGroup
+			options CreateManagedNGOptions
+		)
+
+		BeforeEach(func() {
+			ng = &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "test-ng",
+				},
+			}
+			options = CreateManagedNGOptions{}
+		})
+
+		It("should create managed nodegroup without node repair config when not enabled", func() {
+			options.NodeRepairEnabled = false
+
+			mng := makeManagedNodegroup(ng, options)
+
+			Expect(mng.NodeRepairConfig).To(BeNil())
+		})
+
+		It("should create managed nodegroup with basic node repair config when enabled", func() {
+			options.NodeRepairEnabled = true
+
+			mng := makeManagedNodegroup(ng, options)
+
+			Expect(mng.NodeRepairConfig).NotTo(BeNil())
+			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
+			Expect(mng.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage).To(BeNil())
+			Expect(mng.NodeRepairConfig.MaxUnhealthyNodeThresholdCount).To(BeNil())
+			Expect(mng.NodeRepairConfig.MaxParallelNodesRepairedPercentage).To(BeNil())
+			Expect(mng.NodeRepairConfig.MaxParallelNodesRepairedCount).To(BeNil())
+		})
+
+		It("should create managed nodegroup with threshold percentage", func() {
+			options.NodeRepairEnabled = true
+			options.NodeRepairMaxUnhealthyPercentage = aws.Int(25)
+
+			mng := makeManagedNodegroup(ng, options)
+
+			Expect(mng.NodeRepairConfig).NotTo(BeNil())
+			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
+			Expect(mng.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage).To(Equal(25))
+		})
+
+		It("should create managed nodegroup with threshold count", func() {
+			options.NodeRepairEnabled = true
+			options.NodeRepairMaxUnhealthyCount = aws.Int(5)
+
+			mng := makeManagedNodegroup(ng, options)
+
+			Expect(mng.NodeRepairConfig).NotTo(BeNil())
+			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
+			Expect(mng.NodeRepairConfig.MaxUnhealthyNodeThresholdCount).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.MaxUnhealthyNodeThresholdCount).To(Equal(5))
+		})
+
+		It("should create managed nodegroup with parallel percentage", func() {
+			options.NodeRepairEnabled = true
+			options.NodeRepairMaxParallelPercentage = aws.Int(20)
+
+			mng := makeManagedNodegroup(ng, options)
+
+			Expect(mng.NodeRepairConfig).NotTo(BeNil())
+			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
+			Expect(mng.NodeRepairConfig.MaxParallelNodesRepairedPercentage).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.MaxParallelNodesRepairedPercentage).To(Equal(20))
+		})
+
+		It("should create managed nodegroup with parallel count", func() {
+			options.NodeRepairEnabled = true
+			options.NodeRepairMaxParallelCount = aws.Int(3)
+
+			mng := makeManagedNodegroup(ng, options)
+
+			Expect(mng.NodeRepairConfig).NotTo(BeNil())
+			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
+			Expect(mng.NodeRepairConfig.MaxParallelNodesRepairedCount).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.MaxParallelNodesRepairedCount).To(Equal(3))
+		})
+
+		It("should create managed nodegroup with all parameters", func() {
+			options.NodeRepairEnabled = true
+			options.NodeRepairMaxUnhealthyPercentage = aws.Int(30)
+			options.NodeRepairMaxUnhealthyCount = aws.Int(10)
+			options.NodeRepairMaxParallelPercentage = aws.Int(25)
+			options.NodeRepairMaxParallelCount = aws.Int(4)
+
+			mng := makeManagedNodegroup(ng, options)
+
+			Expect(mng.NodeRepairConfig).NotTo(BeNil())
+			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
+			Expect(mng.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage).To(Equal(30))
+			Expect(mng.NodeRepairConfig.MaxUnhealthyNodeThresholdCount).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.MaxUnhealthyNodeThresholdCount).To(Equal(10))
+			Expect(mng.NodeRepairConfig.MaxParallelNodesRepairedPercentage).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.MaxParallelNodesRepairedPercentage).To(Equal(25))
+			Expect(mng.NodeRepairConfig.MaxParallelNodesRepairedCount).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.MaxParallelNodesRepairedCount).To(Equal(4))
+		})
+
+		It("should create node repair config when enabled is false but other parameters are set", func() {
+			options.NodeRepairEnabled = false
+			options.NodeRepairMaxUnhealthyPercentage = aws.Int(15)
+
+			mng := makeManagedNodegroup(ng, options)
+
+			Expect(mng.NodeRepairConfig).NotTo(BeNil())
+			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.Enabled).To(BeFalse())
+			Expect(mng.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage).To(Equal(15))
+		})
+
+		It("should ignore zero values for optional parameters", func() {
+			options.NodeRepairEnabled = true
+			options.NodeRepairMaxUnhealthyPercentage = aws.Int(0)
+			options.NodeRepairMaxParallelCount = aws.Int(0)
+
+			mng := makeManagedNodegroup(ng, options)
+
+			Expect(mng.NodeRepairConfig).NotTo(BeNil())
+			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
+			// Zero values should be ignored
+			Expect(mng.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage).To(BeNil())
+			Expect(mng.NodeRepairConfig.MaxParallelNodesRepairedCount).To(BeNil())
+		})
+
+		It("should handle nil pointers for optional parameters", func() {
+			options.NodeRepairEnabled = true
+			options.NodeRepairMaxUnhealthyPercentage = nil
+			options.NodeRepairMaxUnhealthyCount = nil
+			options.NodeRepairMaxParallelPercentage = nil
+			options.NodeRepairMaxParallelCount = nil
+
+			mng := makeManagedNodegroup(ng, options)
+
+			Expect(mng.NodeRepairConfig).NotTo(BeNil())
+			Expect(mng.NodeRepairConfig.Enabled).NotTo(BeNil())
+			Expect(*mng.NodeRepairConfig.Enabled).To(BeTrue())
+			Expect(mng.NodeRepairConfig.MaxUnhealthyNodeThresholdPercentage).To(BeNil())
+			Expect(mng.NodeRepairConfig.MaxUnhealthyNodeThresholdCount).To(BeNil())
+			Expect(mng.NodeRepairConfig.MaxParallelNodesRepairedPercentage).To(BeNil())
+			Expect(mng.NodeRepairConfig.MaxParallelNodesRepairedCount).To(BeNil())
+		})
+
+		It("should not create node repair config when CLI flags have default values", func() {
+			// Simulate CLI flag behavior where fs.Int() creates non-nil pointers to default values
+			options.NodeRepairEnabled = false                     // default value
+			options.NodeRepairMaxUnhealthyPercentage = aws.Int(0) // fs.Int() creates pointer to 0
+			options.NodeRepairMaxUnhealthyCount = aws.Int(0)      // fs.Int() creates pointer to 0
+			options.NodeRepairMaxParallelPercentage = aws.Int(0)  // fs.Int() creates pointer to 0
+			options.NodeRepairMaxParallelCount = aws.Int(0)       // fs.Int() creates pointer to 0
+
+			mng := makeManagedNodegroup(ng, options)
+
+			Expect(mng.NodeRepairConfig).To(BeNil())
+		})
+	})
 })
 
 func assertValidClusterEndpoint(endpoints *api.ClusterEndpoints, privateAccess, publicAccess bool) {

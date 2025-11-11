@@ -148,6 +148,8 @@ managedNodeGroups:
 
 privateCluster:
   enabled: false
+upgradePolicy:
+  supportType: ""
 vpc:
   autoAllocateIPv6: false
   cidr: 192.168.0.0/16
@@ -364,6 +366,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				c.IAM = nil
 				c.CloudWatch = nil
 				c.PrivateCluster = nil
+				c.UpgradePolicy = nil
 				c.NodeGroups = nil
 				c.AvailabilityZones = nil
 				c.KubernetesNetworkConfig = nil
