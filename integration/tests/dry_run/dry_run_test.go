@@ -366,6 +366,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				c.IAM = nil
 				c.CloudWatch = nil
 				c.PrivateCluster = nil
+				c.UpgradePolicy = nil
 				c.NodeGroups = nil
 				c.AvailabilityZones = nil
 				c.KubernetesNetworkConfig = nil
