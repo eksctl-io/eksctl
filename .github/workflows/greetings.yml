@@ -11,6 +11,6 @@ jobs:
     steps:
     - uses: actions/first-interaction@1c4688942c71f71d4f5502a26ea67c331730fa4d #v3.1.0
       with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        issue-message: 'Hello ${{ github.event.issue.user.login }} :wave: Thank you for opening an issue in `eksctl` project. The team will review the issue and aim to respond within 1-5 business days. Meanwhile, please read about the Contribution and Code of Conduct guidelines [here](https://github.com/eksctl-io/eksctl#contributions). You can find out more information about `eksctl` on our [website](https://eksctl.io)'
-        pr-message: 'Hello ${{ github.event.pull_request.user.login }} :wave: Thank you for opening a Pull Request in `eksctl` project. The team will review the Pull Request and aim to respond within 1-10 business days. Meanwhile, please read about the Contribution and Code of Conduct guidelines [here](https://github.com/eksctl-io/eksctl#contributions). You can find out more information about `eksctl` on our [website](https://eksctl.io)'
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        issue_message: 'Hello ${{ github.event.issue.user.login }} :wave: Thank you for opening an issue in `eksctl` project. The team will review the issue and aim to respond within 1-5 business days. Meanwhile, please read about the Contribution and Code of Conduct guidelines [here](https://github.com/eksctl-io/eksctl#contributions). You can find out more information about `eksctl` on our [website](https://eksctl.io)'
+        pr_message: 'Hello ${{ github.event.pull_request.user.login }} :wave: Thank you for opening a Pull Request in `eksctl` project. The team will review the Pull Request and aim to respond within 1-10 business days. Meanwhile, please read about the Contribution and Code of Conduct guidelines [here](https://github.com/eksctl-io/eksctl#contributions). You can find out more information about `eksctl` on our [website](https://eksctl.io)'

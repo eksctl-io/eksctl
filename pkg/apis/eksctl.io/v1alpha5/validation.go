@@ -687,7 +687,7 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 
 // NoAccess returns true if neither public are private cluster endpoint access is enabled and false otherwise
 func noAccess(ces *ClusterEndpoints) bool {
-	return !(IsEnabled(ces.PublicAccess) || IsEnabled(ces.PrivateAccess))
+	return !IsEnabled(ces.PublicAccess) && !IsEnabled(ces.PrivateAccess)
 }
 
 // PrivateOnly returns true if public cluster endpoint access is disabled and private cluster endpoint access is enabled, and false otherwise
@@ -840,18 +840,18 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 func validateVolumeOpts(ng *NodeGroupBase, path string, controlPlaneOnOutposts bool) error {
 	if ng.VolumeType != nil {
 		volumeType := *ng.VolumeType
-		if ng.VolumeIOPS != nil && !(volumeType == NodeVolumeTypeIO1 || volumeType == NodeVolumeTypeIO2 || volumeType == NodeVolumeTypeGP3) {
+		if ng.VolumeIOPS != nil && volumeType != NodeVolumeTypeIO1 && volumeType != NodeVolumeTypeIO2 && volumeType != NodeVolumeTypeGP3 {
 			return fmt.Errorf("%s.volumeIOPS is only supported for %s, %s and %s volume types", path, NodeVolumeTypeIO1, NodeVolumeTypeIO2, NodeVolumeTypeGP3)
 		}
 
 		if volumeType == NodeVolumeTypeIO1 {
-			if ng.VolumeIOPS != nil && !(*ng.VolumeIOPS >= MinIO1Iops && *ng.VolumeIOPS <= MaxIO1Iops) {
+			if ng.VolumeIOPS != nil && (*ng.VolumeIOPS < MinIO1Iops || *ng.VolumeIOPS > MaxIO1Iops) {
 				return fmt.Errorf("value for %s.volumeIOPS must be within range %d-%d", path, MinIO1Iops, MaxIO1Iops)
 			}
 		}
 
 		if volumeType == NodeVolumeTypeIO2 {
-			if ng.VolumeIOPS != nil && !(*ng.VolumeIOPS >= MinIO2Iops && *ng.VolumeIOPS <= MaxIO2Iops) {
+			if ng.VolumeIOPS != nil && (*ng.VolumeIOPS < MinIO2Iops || *ng.VolumeIOPS > MaxIO2Iops) {
 				return fmt.Errorf("value for %s.volumeIOPS must be within range %d-%d", path, MinIO2Iops, MaxIO2Iops)
 			}
 		}
@@ -866,11 +866,11 @@ func validateVolumeOpts(ng *NodeGroupBase, path string, controlPlaneOnOutposts b
 	}
 
 	if ng.VolumeType == nil || *ng.VolumeType == NodeVolumeTypeGP3 {
-		if ng.VolumeIOPS != nil && !(*ng.VolumeIOPS >= MinGP3Iops && *ng.VolumeIOPS <= MaxGP3Iops) {
+		if ng.VolumeIOPS != nil && (*ng.VolumeIOPS < MinGP3Iops || *ng.VolumeIOPS > MaxGP3Iops) {
 			return fmt.Errorf("value for %s.volumeIOPS must be within range %d-%d", path, MinGP3Iops, MaxGP3Iops)
 		}
 
-		if ng.VolumeThroughput != nil && !(*ng.VolumeThroughput >= MinThroughput && *ng.VolumeThroughput <= MaxThroughput) {
+		if ng.VolumeThroughput != nil && (*ng.VolumeThroughput < MinThroughput || *ng.VolumeThroughput > MaxThroughput) {
 			return fmt.Errorf("value for %s.volumeThroughput must be within range %d-%d", path, MinThroughput, MaxThroughput)
 		}
 	}

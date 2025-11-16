@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 package accessentries
 
@@ -27,7 +26,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 
-	"github.com/weaveworks/eksctl/integration/runner"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
@@ -161,7 +159,7 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 				"--cluster", apiDisabledCluster,
 				"--name", "aws-auth-ng",
 				"-o", "yaml",
-			)).To(runner.RunSuccessfullyWithOutputStringLines(
+			)).To(RunSuccessfullyWithOutputStringLines(
 				ContainElement(ContainSubstring("Status: CREATE_COMPLETE")),
 			))
 		})
@@ -386,7 +384,7 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 			})
 
 			It("should fetch the unowned access entry", func() {
-				Eventually(func() runner.Cmd {
+				Eventually(func() Cmd {
 					return params.EksctlGetCmd.
 						WithArgs(
 							"accessentry",
@@ -404,7 +402,7 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 						"--principal-arn", principalARN,
 					)).To(RunSuccessfully())
 
-				Eventually(func() runner.Cmd {
+				Eventually(func() Cmd {
 					return params.EksctlGetCmd.
 						WithArgs(
 							"accessentry",

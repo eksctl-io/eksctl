@@ -82,7 +82,7 @@ var _ = Describe("Install", func() {
 		})
 
 		It("installs karpenter with expanded settings.aws values for version greater or equal to v0.33.0", func() {
-			installerUnderTest.Options.ClusterConfig.Karpenter.Version = "0.33.0"
+			installerUnderTest.ClusterConfig.Karpenter.Version = "0.33.0"
 			Expect(installerUnderTest.Install(context.Background(), "dummy", "dummy")).To(Succeed())
 			_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
 			values := map[string]interface{}{

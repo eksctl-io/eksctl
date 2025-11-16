@@ -5,8 +5,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
-func (a *Manager) CreateIAMServiceAccount(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {
-	taskTree := a.stackManager.NewTasksToCreateIAMServiceAccounts(iamServiceAccounts, a.oidcManager, kubernetes.NewCachedClientSet(a.clientSet))
+func (m *Manager) CreateIAMServiceAccount(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {
+	taskTree := m.stackManager.NewTasksToCreateIAMServiceAccounts(iamServiceAccounts, m.oidcManager, kubernetes.NewCachedClientSet(m.clientSet))
 	taskTree.PlanMode = plan
 
 	err := doTasks(taskTree, actionCreate)

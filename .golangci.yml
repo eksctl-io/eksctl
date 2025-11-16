@@ -1,160 +1,187 @@
 # options for analysis running
+version: "2"
 run:
-    go: "1.25"
+  go: "1.25"
 
-    # default concurrency is a available CPU number
-    concurrency: 4
+  # default concurrency is a available CPU number
+  concurrency: 4
 
-    # timeout for analysis, e.g. 30s, 5m, default is 1m
-    timeout: 10m
+  # exit code when at least one issue was found, default is 1
+  issues-exit-code: 1
 
-    # exit code when at least one issue was found, default is 1
-    issues-exit-code: 1
+  # include test files or not, default is true
+  tests: true
 
-    # include test files or not, default is true
-    tests: true
-
-    # list of build tags, all linters use it. Default is empty list.
-    build-tags:
-        - release
-        - integration
+  # list of build tags, all linters use it. Default is empty list.
+  build-tags:
+  - release
+  - integration
 
 # output configuration options
 output:
-    formats:
-    - format: tab
+  formats:
+    tab:
+      # print lines of code with issue, default is true
+      print-issued-lines: true
 
-    # print lines of code with issue, default is true
-    print-issued-lines: true
+      # print linter name in the end of issue text, default is true
+      print-linter-name: true
 
-    # print linter name in the end of issue text, default is true
-    print-linter-name: true
-
-# all available settings of specific linters
-linters-settings:
-    errcheck:
-        # report about not checking of errors in type assetions: `a := b.(MyStruct)`;
-        # default is false: such cases aren't reported by default.
-        check-type-assertions: false
-
-        # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`;
-        # default is false: such cases aren't reported by default.
-        check-blank: false
-    revive:
-        confidence: 0.8
-        severity: warning
-        rules:
-            - name: blank-imports
-            - name: context-as-argument
-            - name: context-keys-type
-            - name: error-return
-            - name: error-strings
-            - name: error-naming
-            - name: exported
-            - name: if-return
-            - name: increment-decrement
-            - name: var-naming
-            - name: var-declaration
-            - name: package-comments
-            - name: range
-            - name: receiver-naming
-            - name: time-naming
-            - name: unexported-return
-            - name: indent-error-flow
-            - name: errorf
-    gofmt:
-        # simplify code: gofmt with `-s` option, true by default
-        simplify: false
-    gocyclo:
-        # minimal code complexity to report, 30 by default (but we recommend 10-20)
-        min-complexity: 10
-    dupl:
-        # tokens count to trigger issue, 150 by default
-        threshold: 100
-    goconst:
-        # minimal length of string constant, 3 by default
-        min-len: 3
-        # minimal occurrences count to trigger, 3 by default
-        min-occurrences: 3
-    lll:
-        # max line length, lines longer will be reported. Default is 120.
-        # '\t' is counted as 1 character by default, and can be changed with the tab-width option
-        line-length: 120
-        # tab width in spaces. Default to 1.
-        tab-width: 1
-    unparam:
-        # Inspect exported functions, default is false. Set to true if no external program/library imports your code.
-        # XXX: if you enable this setting, unparam will report a lot of false-positives in text editors:
-        # if it's called for subdir of a project it can't find external interfaces. All text editor integrations
-        # with golangci-lint call it on a directory with the changed file.
-        check-exported: false
-    nakedret:
-        # make an issue if func has more lines of code than this setting and it has naked returns; default is 30
-        max-func-lines: 30
-    prealloc:
-        # XXX: we don't recommend using this linter before doing performance profiling.
-        # For most programs usage of prealloc will be a premature optimization.
-
-        # Report preallocation suggestions only on simple loops that have no returns/breaks/continues/gotos in them.
-        # True by default.
-        simple: true
-        range-loops: true # Report preallocation suggestions on range loops, true by default
-        for-loops: false # Report preallocation suggestions on for loops, false by default
-    staticcheck:
-        checks:
-            - all
-            - '-SA1019' # disable the rule SA1019
-
-
-issues:
-    max-same-issues: 20
-    # Excluding configuration per-path, per-linter, per-text and per-source
-    exclude-rules:
-        - linters: [golint]
-          text: "should not use dot imports|don't use an underscore in package name"
-
-    # Which dirs to exclude: issues from them won't be reported.
-    # Can use regexp here: `generated.*`, regexp is applied on full path,
-    # including the path prefix if one is set.
-    # Default dirs are skipped independently of this option's value (see exclude-dirs-use-default).
-    # "/" will be replaced by current OS file path separator to properly work on Windows.
-    # Default: []
-    exclude-dirs:
-        - ^vendor$
-        - ^build$
-        - ^pkg\/eks\/mocks$
-        - ^pkg\/goformation*
-
-    # Which files to exclude: they will be analyzed, but issues from them won't be reported.
-    # There is no need to include all autogenerated files,
-    # we confidently recognize autogenerated files.
-    # If it's not, please let us know.
-    # "/" will be replaced by current OS file path separator to properly work on Windows.
-    # Default: []
-    exclude-files:
-        #  - ".*\\.my\\.go$"
-        #  - lib/bad.go
-        - ^pkg\/nodebootstrap\/assets.go
-        - .*\/export_test.go
-        - ^pkg\/cfn\/builder\/fakes\/fake_cfn_template.go
+      # use colors, default is true
+      colors: false
 
 linters:
-    disable-all: true
-    enable:
-        - bodyclose
-        - errcheck
-        - gofmt
-        - goimports
-        - revive
-        - gosimple
-        - govet
-        - ineffassign
-        - misspell
-        - staticcheck
-        - unused
-        # TODO: enable the below linter in the future
-#    - maligned
-#    - prealloc
-#    - gocyclo
-#    - lll
-#    - gosec
+  # default set of linters, none disables all linters by default.
+  default: none
+
+  # enable specific linters
+  enable:
+    - bodyclose
+    - errcheck
+    - govet
+    - ineffassign
+    - misspell
+    - revive
+    - staticcheck
+    - unused
+
+  # all available settings of specific linters
+  settings:
+    dupl:
+      # tokens count to trigger issue, 150 by default
+      threshold: 100
+    errcheck:
+      # report about not checking of errors in type assetions: `a := b.(MyStruct)`;
+      # default is false: such cases aren't reported by default.
+      check-type-assertions: false
+
+      # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`;
+      # default is false: such cases aren't reported by default.
+      check-blank: false
+    goconst:
+      # minimal length of string constant, 3 by default
+      min-len: 3
+
+      # minimal occurrences count to trigger, 3 by default
+      min-occurrences: 3
+    gocyclo:
+      # minimal code complexity to report, 30 by default (but we recommend 10-20)
+      min-complexity: 10
+    lll:
+      # max line length, lines longer will be reported. Default is 120.
+      # '\t' is counted as 1 character by default, and can be changed with the tab-width option
+      line-length: 120
+
+      # tab width in spaces. Default to 1.
+      tab-width: 1
+    nakedret:
+      # make an issue if func has more lines of code than this setting and it has naked returns; default is 30
+      max-func-lines: 30
+    revive:
+      confidence: 0.8
+      severity: warning
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: error-return
+        - name: error-strings
+        - name: error-naming
+        - name: exported
+        - name: if-return
+        - name: increment-decrement
+        - name: var-naming
+        - name: var-declaration
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: time-naming
+        - name: unexported-return
+        - name: indent-error-flow
+        - name: errorf
+    staticcheck:
+      checks:
+        - all
+        - -QF1001 # disable the rule QF1001: Apply De Morgan’s law
+        - -SA1019 # disbale the rule SA1019: Using a deprecated function, variable, constant or field
+        - -ST1001 # disable the rule ST1001: Dot imports are discouraged
+        - -ST1003 # disbale the rule ST1003: Poorly chosen identifier
+        - -ST1005 # disbale the rule ST1005: Incorrectly formatted error string
+        
+    unparam:
+      # Inspect exported functions, default is false. Set to true if no external program/library imports your code.
+      # XXX: if you enable this setting, unparam will report a lot of false-positives in text editors:
+      # if it's called for subdir of a project it can't find external interfaces. All text editor integrations
+      # with golangci-lint call it on a directory with the changed file.
+      check-exported: false
+
+  # defines a set of rules to ignore issues.
+  exclusions:
+    # Mode of the generated files analysis, lax excludes sources if they contain lines like `autogenerated file`, `code generated`, `do not edit`, etc.
+    generated: lax
+
+    # Predefined exclusion rules.
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+
+    # excluding configuration per-path, per-linter, per-text and per-source.
+    rules:
+      - linters:
+          - golint
+        text: should not use dot imports|don't use an underscore in package name
+      - linters:
+          - revive
+        text: avoid meaningless package names
+    
+    # Which file paths to exclude: they will be analyzed, but issues from them won't be reported.
+    # "/" will be replaced by the current OS file path separator to properly work on Windows.
+    # Default: []
+    paths:
+      - ^pkg\/nodebootstrap\/assets.go
+      - .*\/export_test.go
+      - ^pkg\/cfn\/builder\/fakes\/fake_cfn_template.go
+      - ^vendor$
+      - ^build$
+      - ^pkg\/eks\/mocks$
+      - ^pkg\/goformation*
+      - third_party$
+      - builtin$
+      - examples$
+
+issues:
+  # maximum count of issues with the same text, default is 3
+  max-same-issues: 20
+
+
+formatters:
+  # enable specific formatters
+  enable:
+    - gofmt
+    - goimports
+  
+  # all available settings of specific formatters.
+  settings:
+    gofmt:
+      # simplify code: gofmt with `-s` option, true by default
+      simplify: false
+  exclusions:
+    # Mode of the generated files analysis, lax excludes sources if they contain lines like `autogenerated file`, `code generated`, `do not edit`, etc.
+    generated: lax
+
+    # Which file paths to exclude.
+    # This option is ignored when using `--stdin` as the path is unknown.
+    # Default: []
+    paths:
+      - ^pkg\/nodebootstrap\/assets.go
+      - .*\/export_test.go
+      - ^pkg\/cfn\/builder\/fakes\/fake_cfn_template.go
+      - ^vendor$
+      - ^build$
+      - ^pkg\/eks\/mocks$
+      - ^pkg\/goformation*
+      - third_party$
+      - builtin$
+      - examples$

@@ -52,7 +52,7 @@ type mockClient struct {
 }
 
 func (c *mockClient) Create(_ context.Context, cm *corev1.ConfigMap, _ metav1.CreateOptions) (*corev1.ConfigMap, error) {
-	cm.ObjectMeta.UID = "18b9e60c-2057-11e7-8868-0eba8ef9df1a"
+	cm.UID = "18b9e60c-2057-11e7-8868-0eba8ef9df1a"
 	c.created = cm
 	return cm, nil
 }
@@ -138,7 +138,7 @@ var _ = Describe("AuthConfigMap{}", func() {
 				ObjectMeta: ObjectMeta(),
 				Data:       map[string]string{},
 			}
-			existing.ObjectMeta.UID = "123456"
+			existing.UID = "123456"
 
 			client := &mockClient{}
 			acm := New(client, existing)

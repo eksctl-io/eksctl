@@ -2139,6 +2139,80 @@ func (_c *Outposts_StartConnection_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
+// StartOutpostDecommission provides a mock function with given fields: ctx, params, optFns
+func (_m *Outposts) StartOutpostDecommission(ctx context.Context, params *outposts.StartOutpostDecommissionInput, optFns ...func(*outposts.Options)) (*outposts.StartOutpostDecommissionOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartOutpostDecommission")
+	}
+
+	var r0 *outposts.StartOutpostDecommissionOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.StartOutpostDecommissionInput, ...func(*outposts.Options)) (*outposts.StartOutpostDecommissionOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *outposts.StartOutpostDecommissionInput, ...func(*outposts.Options)) *outposts.StartOutpostDecommissionOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outposts.StartOutpostDecommissionOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *outposts.StartOutpostDecommissionInput, ...func(*outposts.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Outposts_StartOutpostDecommission_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartOutpostDecommission'
+type Outposts_StartOutpostDecommission_Call struct {
+	*mock.Call
+}
+
+// StartOutpostDecommission is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *outposts.StartOutpostDecommissionInput
+//   - optFns ...func(*outposts.Options)
+func (_e *Outposts_Expecter) StartOutpostDecommission(ctx interface{}, params interface{}, optFns ...interface{}) *Outposts_StartOutpostDecommission_Call {
+	return &Outposts_StartOutpostDecommission_Call{Call: _e.mock.On("StartOutpostDecommission",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *Outposts_StartOutpostDecommission_Call) Run(run func(ctx context.Context, params *outposts.StartOutpostDecommissionInput, optFns ...func(*outposts.Options))) *Outposts_StartOutpostDecommission_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*outposts.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*outposts.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*outposts.StartOutpostDecommissionInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Outposts_StartOutpostDecommission_Call) Return(_a0 *outposts.StartOutpostDecommissionOutput, _a1 error) *Outposts_StartOutpostDecommission_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Outposts_StartOutpostDecommission_Call) RunAndReturn(run func(context.Context, *outposts.StartOutpostDecommissionInput, ...func(*outposts.Options)) (*outposts.StartOutpostDecommissionOutput, error)) *Outposts_StartOutpostDecommission_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TagResource provides a mock function with given fields: ctx, params, optFns
 func (_m *Outposts) TagResource(ctx context.Context, params *outposts.TagResourceInput, optFns ...func(*outposts.Options)) (*outposts.TagResourceOutput, error) {
 	_va := make([]interface{}, len(optFns))

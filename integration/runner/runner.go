@@ -202,7 +202,7 @@ func (m *runCmdOutputMatcher) Match(actual interface{}) (bool, error) {
 		return false, fmt.Errorf("not a Cmd")
 	}
 
-	if !m.runCmdMatcher.run(cmd) {
+	if !m.run(cmd) {
 		m.failureMessage = m.runCmdMatcher.FailureMessage(nil)
 		return false, nil
 	}

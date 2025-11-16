@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 package addons
 
@@ -28,7 +27,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
-	"github.com/weaveworks/eksctl/integration/runner"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
@@ -88,7 +86,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 
 		It("should support addons", func() {
 			By("Asserting the addon is listed in `get addons`")
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				cmd := params.EksctlGetCmd.
 					WithArgs(
 						"addons",
@@ -101,7 +99,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			))
 
 			By("Asserting the addons are healthy")
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				cmd := params.EksctlGetCmd.
 					WithArgs(
 						"addon",
@@ -142,7 +140,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			Expect(cmd).To(RunSuccessfully())
 
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				return params.EksctlGetCmd.
 					WithArgs(
 						"addon",
@@ -179,7 +177,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				WithStdin(bytes.NewReader(data))
 			Expect(cmd).NotTo(RunSuccessfully())
 
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				cmd := params.EksctlGetCmd.
 					WithArgs(
 						"addon",
@@ -211,7 +209,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				WithStdin(bytes.NewReader(data))
 			Expect(cmd).To(RunSuccessfully())
 
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				cmd := params.EksctlGetCmd.
 					WithArgs(
 						"addon",
@@ -259,7 +257,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				WithStdin(bytes.NewReader(data))
 			Expect(cmd).To(RunSuccessfully())
 
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				cmd := params.EksctlGetCmd.
 					WithArgs(
 						"addon",
@@ -283,7 +281,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			Expect(cmd).To(RunSuccessfully())
 
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				cmd := params.EksctlGetCmd.
 					WithArgs(
 						"addon",
@@ -318,7 +316,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				WithStdin(bytes.NewReader(data))
 			Expect(cmd).To(RunSuccessfully())
 
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				cmd := params.EksctlGetCmd.
 					WithArgs(
 						"addon",
@@ -343,7 +341,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			Expect(cmd).To(RunSuccessfully())
 
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				cmd := params.EksctlGetCmd.
 					WithArgs(
 						"addon",
@@ -377,7 +375,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				WithStdin(bytes.NewReader(data))
 			Expect(cmd).To(RunSuccessfully())
 
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				cmd := params.EksctlGetCmd.
 					WithArgs(
 						"addon",
@@ -410,7 +408,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				WithStdin(bytes.NewReader(data))
 			Expect(cmd).To(RunSuccessfully())
 
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				cmd := params.EksctlGetCmd.
 					WithArgs(
 						"addon",
@@ -450,7 +448,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			Expect(cmd).To(RunSuccessfully())
 
 			By("verifying the addon is created with namespace config")
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				cmd := params.EksctlGetCmd.
 					WithArgs(
 						"addon",
@@ -505,7 +503,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfully())
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				cmd := params.EksctlGetCmd.
 					WithArgs(
 						"addon",
@@ -526,7 +524,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfully())
-			Eventually(func() runner.Cmd {
+			Eventually(func() Cmd {
 				cmd = params.EksctlGetCmd.
 					WithArgs(
 						"addon",
@@ -636,14 +634,14 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		makePodIDStackName := func(addonName, serviceAccountName string) string {
 			return podidentityassociation.MakeAddonPodIdentityStackName(clusterConfig.Metadata.Name, addonName, serviceAccountName)
 		}
-		makeCreateAddonCMD := func() runner.Cmd {
+		makeCreateAddonCMD := func() Cmd {
 			return params.EksctlCreateCmd.
 				WithArgs("addon").
 				WithArgs("--config-file", "-").
 				WithoutArg("--region", params.Region).
 				WithStdin(clusterutils.Reader(clusterConfig))
 		}
-		makeUpdateAddonCMD := func(args ...string) runner.Cmd {
+		makeUpdateAddonCMD := func(args ...string) Cmd {
 			cmd := params.EksctlUpdateCmd.
 				WithArgs("addon").
 				WithArgs("--config-file", "-").
@@ -654,7 +652,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			}
 			return cmd
 		}
-		makeDeleteAddonCMD := func(addonName string, args ...string) runner.Cmd {
+		makeDeleteAddonCMD := func(addonName string, args ...string) Cmd {
 			cmd := params.EksctlDeleteCmd.WithArgs(
 				"addon",
 				"--cluster", clusterConfig.Metadata.Name,
@@ -1015,7 +1013,7 @@ func getCacheValue(configMap *corev1.ConfigMap) string {
 	coreFile, ok := configMap.Data["Corefile"]
 	Expect(ok).To(BeTrue())
 
-	coreFileValues := strings.Fields(strings.Replace(coreFile, "\n", " ", -1))
+	coreFileValues := strings.Fields(strings.ReplaceAll(coreFile, "\n", " "))
 	return coreFileValues[k8sslices.Index(coreFileValues, "cache")+1]
 }
 
@@ -1023,7 +1021,7 @@ func updateCacheValue(configMap *corev1.ConfigMap, currentValue string, newValue
 	coreFile, ok := configMap.Data["Corefile"]
 	Expect(ok).To(BeTrue())
 
-	configMap.Data["Corefile"] = strings.Replace(coreFile, "cache "+currentValue, "cache "+newValue, -1)
+	configMap.Data["Corefile"] = strings.ReplaceAll(coreFile, "cache "+currentValue, "cache "+newValue)
 }
 
 func addToString(s string, n int) string {

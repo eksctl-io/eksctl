@@ -79,12 +79,12 @@ type ELBV2 interface {
 	// Creates a rule for the specified listener. The listener must be associated with
 	// an Application Load Balancer.
 	//
-	// Each rule consists of a priority, one or more actions, and one or more
-	// conditions. Rules are evaluated in priority order, from the lowest value to the
-	// highest value. When the conditions for a rule are met, its actions are
-	// performed. If the conditions for no rules are met, the actions for the default
-	// rule are performed. For more information, see [Listener rules]in the Application Load Balancers
-	// Guide.
+	// Each rule consists of a priority, one or more actions, one or more conditions,
+	// and up to two optional transforms. Rules are evaluated in priority order, from
+	// the lowest value to the highest value. When the conditions for a rule are met,
+	// its actions are performed. If the conditions for no rules are met, the actions
+	// for the default rule are performed. For more information, see [Listener rules]in the
+	// Application Load Balancers Guide.
 	//
 	// [Listener rules]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#listener-rules
 	CreateRule(ctx context.Context, params *elasticloadbalancingv2.CreateRuleInput, optFns ...func(*Options)) (*elasticloadbalancingv2.CreateRuleOutput, error)
@@ -366,10 +366,6 @@ type ELBV2 interface {
 	// Enables the Availability Zones for the specified public subnets for the
 	// specified Application Load Balancer, Network Load Balancer or Gateway Load
 	// Balancer. The specified subnets replace the previously enabled subnets.
-	//
-	// When you specify subnets for a Network Load Balancer, or Gateway Load Balancer
-	// you must include all subnets that were enabled previously, with their existing
-	// configurations, plus any additional subnets.
 	SetSubnets(ctx context.Context, params *elasticloadbalancingv2.SetSubnetsInput, optFns ...func(*Options)) (*elasticloadbalancingv2.SetSubnetsOutput, error)
 }
 

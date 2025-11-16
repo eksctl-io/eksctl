@@ -48,7 +48,7 @@ func GetNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) (int, error) {
 			ready = "ready"
 			counter++
 		}
-		logger.Info("node %q is %s", node.ObjectMeta.Name, ready)
+		logger.Info("node %q is %s", node.Name, ready)
 	}
 	return counter, nil
 }

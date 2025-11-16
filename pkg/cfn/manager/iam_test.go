@@ -94,11 +94,12 @@ var _ = Describe("IAM Service Accounts", func() {
 			// Verify the service accounts have the expected values
 			for _, sa := range serviceAccounts {
 				Expect(sa.Status.RoleARN).NotTo(BeNil())
-				if sa.Name == "app-service-account" {
+				switch sa.Name {
+				case "app-service-account":
 					Expect(sa.Namespace).To(Equal("default"))
-				} else if sa.Name == "monitoring-service-account" {
+				case "monitoring-service-account":
 					Expect(sa.Namespace).To(Equal("monitoring"))
-				} else {
+				default:
 					Fail(fmt.Sprintf("Unexpected service account name: %s", sa.Name))
 				}
 			}

@@ -35,7 +35,7 @@ func (i *v1BetaIngress) GetIngressClass() string {
 	if i.ingress.Spec.IngressClassName != nil {
 		return *i.ingress.Spec.IngressClassName
 	}
-	return i.ingress.ObjectMeta.Annotations[ingressClassAnnotation]
+	return i.ingress.Annotations[ingressClassAnnotation]
 }
 
 func (i *v1BetaIngress) GetMetadata() metav1.ObjectMeta {
@@ -63,7 +63,7 @@ func (i *v1Ingress) GetIngressClass() string {
 	if i.ingress.Spec.IngressClassName != nil {
 		return *i.ingress.Spec.IngressClassName
 	}
-	return i.ingress.ObjectMeta.Annotations[ingressClassAnnotation]
+	return i.ingress.Annotations[ingressClassAnnotation]
 }
 
 func (i *v1Ingress) GetMetadata() metav1.ObjectMeta {

@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 package crud
 
@@ -26,12 +25,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
-	"github.com/weaveworks/eksctl/integration/runner"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
@@ -1004,7 +1001,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 	})
 
 	Context("scaling nodegroup(s)", func() {
-		scaleNgCmd := func(desiredCapacity string) runner.Cmd {
+		scaleNgCmd := func(desiredCapacity string) Cmd {
 			return params.EksctlScaleNodeGroupCmd.WithArgs(
 				"--cluster", params.ClusterName,
 				"--nodes-min", desiredCapacity,
@@ -1013,7 +1010,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				"--name", scaleSingleNg,
 			)
 		}
-		getNgCmd := func(ngName string) runner.Cmd {
+		getNgCmd := func(ngName string) Cmd {
 			return params.EksctlGetCmd.WithArgs(
 				"nodegroup",
 				"--cluster", params.ClusterName,
@@ -1045,7 +1042,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 			By("downscaling a nodegroup")
 			Expect(scaleNgCmd("1")).To(RunSuccessfully())
-			Eventually(getNgCmd(scaleSingleNg), "5m", "30s").Should(runner.RunSuccessfullyWithOutputStringLines(
+			Eventually(getNgCmd(scaleSingleNg), "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(
 				ContainElement(ContainSubstring("Type: unmanaged")),
 				ContainElement(ContainSubstring("MaxSize: 1")),
 				ContainElement(ContainSubstring("MinSize: 1")),
@@ -1071,7 +1068,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				ContainElement(ContainSubstring("Status: CREATE_COMPLETE")),
 			))
 
-			Eventually(getNgCmd(scaleMultipleMng), "5m", "30s").Should(runner.RunSuccessfullyWithOutputStringLines(
+			Eventually(getNgCmd(scaleMultipleMng), "5m", "30s").Should(RunSuccessfullyWithOutputStringLines(
 				ContainElement(ContainSubstring("Type: managed")),
 				ContainElement(ContainSubstring("MaxSize: 5")),
 				ContainElement(ContainSubstring("MinSize: 5")),
@@ -1281,9 +1278,9 @@ func createAdditionalSubnet(cfg *api.ClusterConfig) string {
 	output, err := ec2.CreateSubnet(context.Background(), &awsec2.CreateSubnetInput{
 		AvailabilityZone: aws.String("us-west-2a"),
 		CidrBlock:        aws.String(cidr),
-		TagSpecifications: []types.TagSpecification{
+		TagSpecifications: []ec2types.TagSpecification{
 			{
-				ResourceType: types.ResourceTypeSubnet,
+				ResourceType: ec2types.ResourceTypeSubnet,
 				Tags:         tags,
 			},
 		},
@@ -1292,7 +1289,7 @@ func createAdditionalSubnet(cfg *api.ClusterConfig) string {
 	Expect(err).NotTo(HaveOccurred())
 
 	moutput, err := ec2.ModifySubnetAttribute(context.Background(), &awsec2.ModifySubnetAttributeInput{
-		MapPublicIpOnLaunch: &types.AttributeBooleanValue{
+		MapPublicIpOnLaunch: &ec2types.AttributeBooleanValue{
 			Value: aws.Bool(true),
 		},
 		SubnetId: output.Subnet.SubnetId,
@@ -1301,7 +1298,7 @@ func createAdditionalSubnet(cfg *api.ClusterConfig) string {
 
 	subnet := output.Subnet
 	routeTables, err := ec2.DescribeRouteTables(context.Background(), &awsec2.DescribeRouteTablesInput{
-		Filters: []types.Filter{
+		Filters: []ec2types.Filter{
 			{
 				Name:   aws.String("association.subnet-id"),
 				Values: []string{*existingSubnet.SubnetId},

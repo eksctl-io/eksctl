@@ -688,6 +688,80 @@ func (_c *IAM_CreateAccountAlias_Call) RunAndReturn(run func(context.Context, *i
 	return _c
 }
 
+// CreateDelegationRequest provides a mock function with given fields: ctx, params, optFns
+func (_m *IAM) CreateDelegationRequest(ctx context.Context, params *iam.CreateDelegationRequestInput, optFns ...func(*iam.Options)) (*iam.CreateDelegationRequestOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDelegationRequest")
+	}
+
+	var r0 *iam.CreateDelegationRequestOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateDelegationRequestInput, ...func(*iam.Options)) (*iam.CreateDelegationRequestOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateDelegationRequestInput, ...func(*iam.Options)) *iam.CreateDelegationRequestOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.CreateDelegationRequestOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreateDelegationRequestInput, ...func(*iam.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IAM_CreateDelegationRequest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateDelegationRequest'
+type IAM_CreateDelegationRequest_Call struct {
+	*mock.Call
+}
+
+// CreateDelegationRequest is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *iam.CreateDelegationRequestInput
+//   - optFns ...func(*iam.Options)
+func (_e *IAM_Expecter) CreateDelegationRequest(ctx interface{}, params interface{}, optFns ...interface{}) *IAM_CreateDelegationRequest_Call {
+	return &IAM_CreateDelegationRequest_Call{Call: _e.mock.On("CreateDelegationRequest",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *IAM_CreateDelegationRequest_Call) Run(run func(ctx context.Context, params *iam.CreateDelegationRequestInput, optFns ...func(*iam.Options))) *IAM_CreateDelegationRequest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*iam.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*iam.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*iam.CreateDelegationRequestInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *IAM_CreateDelegationRequest_Call) Return(_a0 *iam.CreateDelegationRequestOutput, _a1 error) *IAM_CreateDelegationRequest_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *IAM_CreateDelegationRequest_Call) RunAndReturn(run func(context.Context, *iam.CreateDelegationRequestInput, ...func(*iam.Options)) (*iam.CreateDelegationRequestOutput, error)) *IAM_CreateDelegationRequest_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateGroup provides a mock function with given fields: ctx, params, optFns
 func (_m *IAM) CreateGroup(ctx context.Context, params *iam.CreateGroupInput, optFns ...func(*iam.Options)) (*iam.CreateGroupOutput, error) {
 	_va := make([]interface{}, len(optFns))

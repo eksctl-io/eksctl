@@ -58,7 +58,7 @@ func convertToTypesValueMap(input map[string]string) map[string]*gfnt.Value {
 
 // AddAllResources adds all required CloudFormation resources
 func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error {
-	m.resourceSet.template.Description = fmt.Sprintf(
+	m.template.Description = fmt.Sprintf(
 		"%s (SSH access: %v) %s",
 		"EKS Managed Nodes",
 		api.IsEnabled(m.nodeGroup.SSH.Allow),
@@ -339,7 +339,7 @@ func validateLaunchTemplate(launchTemplateData *ec2types.ResponseLaunchTemplateD
 
 // RenderJSON implements the ResourceSet interface
 func (m *ManagedNodeGroupResourceSet) RenderJSON() ([]byte, error) {
-	return m.resourceSet.renderJSON()
+	return m.renderJSON()
 }
 
 // WithIAM implements the ResourceSet interface

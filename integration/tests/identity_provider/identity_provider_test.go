@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 //revive:disable
 package identity_provider
