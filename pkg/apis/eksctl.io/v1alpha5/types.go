@@ -287,6 +287,9 @@ const (
 	// AddonNameTag defines the tag of the IAM service account name
 	AddonNameTag = "alpha.eksctl.io/addon-name"
 
+	// CapabilityNameTag defines the tag of the capability name
+	CapabilityNameTag = "alpha.eksctl.io/capability-name"
+
 	// ClusterNameLabel defines the tag of the cluster name
 	ClusterNameLabel = "alpha.eksctl.io/cluster-name"
 
@@ -1051,6 +1054,10 @@ type ClusterConfig struct {
 
 	// ZonalShiftConfig specifies the zonal shift configuration.
 	ZonalShiftConfig *ZonalShiftConfig `json:"zonalShiftConfig,omitempty"`
+
+	// Capabilities specifies the capabilities for the cluster.
+	// +optional
+	Capabilities []Capability `json:"capabilities,omitempty"`
 }
 
 // Outpost holds the Outpost configuration.

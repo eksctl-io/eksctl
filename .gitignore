@@ -50,3 +50,6 @@ userdocs/.cache/*
 
 # Visual Studio Code
 .vscode/
+# Large workspace files
+*.zip
+eksctl-workspace.zip

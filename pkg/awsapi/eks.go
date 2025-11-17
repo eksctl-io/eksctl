@@ -63,6 +63,7 @@ type EKS interface {
 	//
 	// [Amazon EKS add-ons]: https://docs.aws.amazon.com/eks/latest/userguide/eks-add-ons.html
 	CreateAddon(ctx context.Context, params *eks.CreateAddonInput, optFns ...func(*Options)) (*eks.CreateAddonOutput, error)
+	CreateCapability(ctx context.Context, params *eks.CreateCapabilityInput, optFns ...func(*Options)) (*eks.CreateCapabilityOutput, error)
 	// Creates an Amazon EKS control plane.
 	//
 	// The Amazon EKS control plane consists of control plane instances that run the
@@ -214,6 +215,7 @@ type EKS interface {
 	// When you remove an add-on, it's deleted from the cluster. You can always
 	// manually start an add-on on the cluster using the Kubernetes API.
 	DeleteAddon(ctx context.Context, params *eks.DeleteAddonInput, optFns ...func(*Options)) (*eks.DeleteAddonOutput, error)
+	DeleteCapability(ctx context.Context, params *eks.DeleteCapabilityInput, optFns ...func(*Options)) (*eks.DeleteCapabilityOutput, error)
 	// Deletes an Amazon EKS cluster control plane.
 	//
 	// If you have active services in your cluster that are associated with a load
@@ -273,6 +275,7 @@ type EKS interface {
 	// Information such as the Kubernetes versions that you can use the add-on with,
 	// the owner , publisher , and the type of the add-on are returned.
 	DescribeAddonVersions(ctx context.Context, params *eks.DescribeAddonVersionsInput, optFns ...func(*Options)) (*eks.DescribeAddonVersionsOutput, error)
+	DescribeCapability(ctx context.Context, params *eks.DescribeCapabilityInput, optFns ...func(*Options)) (*eks.DescribeCapabilityOutput, error)
 	// Describes an Amazon EKS cluster.
 	//
 	// The API server endpoint and certificate authority data returned by this
@@ -327,6 +330,7 @@ type EKS interface {
 	ListAddons(ctx context.Context, params *eks.ListAddonsInput, optFns ...func(*Options)) (*eks.ListAddonsOutput, error)
 	// Lists the access policies associated with an access entry.
 	ListAssociatedAccessPolicies(ctx context.Context, params *eks.ListAssociatedAccessPoliciesInput, optFns ...func(*Options)) (*eks.ListAssociatedAccessPoliciesOutput, error)
+	ListCapabilities(ctx context.Context, params *eks.ListCapabilitiesInput, optFns ...func(*Options)) (*eks.ListCapabilitiesOutput, error)
 	// Lists the Amazon EKS clusters in your Amazon Web Services account in the
 	// specified Amazon Web Services Region.
 	ListClusters(ctx context.Context, params *eks.ListClustersInput, optFns ...func(*Options)) (*eks.ListClustersOutput, error)
@@ -400,6 +404,7 @@ type EKS interface {
 	UpdateAccessEntry(ctx context.Context, params *eks.UpdateAccessEntryInput, optFns ...func(*Options)) (*eks.UpdateAccessEntryOutput, error)
 	// Updates an Amazon EKS add-on.
 	UpdateAddon(ctx context.Context, params *eks.UpdateAddonInput, optFns ...func(*Options)) (*eks.UpdateAddonOutput, error)
+	UpdateCapability(ctx context.Context, params *eks.UpdateCapabilityInput, optFns ...func(*Options)) (*eks.UpdateCapabilityOutput, error)
 	// Updates an Amazon EKS cluster configuration. Your cluster continues to function
 	// during the update. The response output includes an update ID that you can use to
 	// track the status of your cluster update with DescribeUpdate .
