@@ -156,6 +156,15 @@ func (c *ClusterProvider) UpdatePublicAccessCIDRs(ctx context.Context, clusterCo
 	return c.UpdateClusterConfig(ctx, input)
 }
 
+// UpdateClusterConfigForDeletionProtection calls eks.UpdateClusterConfig and updates deletion protection
+func (c *ClusterProvider) UpdateClusterConfigForDeletionProtection(ctx context.Context, cfg *api.ClusterConfig) error {
+	input := &eks.UpdateClusterConfigInput{
+		Name:               &cfg.Metadata.Name,
+		DeletionProtection: cfg.DeletionProtection,
+	}
+	return c.UpdateClusterConfig(ctx, input)
+}
+
 // UpdateClusterConfig calls EKS.UpdateClusterConfig and waits for the update to complete.
 func (c *ClusterProvider) UpdateClusterConfig(ctx context.Context, input *eks.UpdateClusterConfigInput) error {
 	output, err := c.AWSProvider.EKS().UpdateClusterConfig(ctx, input)

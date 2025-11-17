@@ -1,0 +1,19 @@
+# A sample ClusterConfig file that creates a cluster with deletion protection enabled.
+
+# DeletionProtection prevents accidental cluster deletion
+# Valid values are true or false (default)
+# - https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateCluster.html
+# - https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateCluster.html#AmazonEKS-CreateCluster-request-deletionProtection
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: deletion-protection-cluster
+  region: us-west-2
+
+deletionProtection: true
+
+managedNodeGroups:
+  - name: mng-1
+    desiredCapacity: 1
