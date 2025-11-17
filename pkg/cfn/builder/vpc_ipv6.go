@@ -195,7 +195,7 @@ func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartiti
 	subnet := &gfnec2.Subnet{
 		AWSCloudFormationDependsOn:  []string{IPv6CIDRBlockKey},
 		AvailabilityZone:            gfnt.NewString(az),
-		CidrBlock:                   gfnt.MakeFnSelect(gfnt.NewInteger(i), getSubnetIPv4CIDRBlock(cidrPartitions, v.clusterConfig.VPC.Network.CIDR)),
+		CidrBlock:                   gfnt.MakeFnSelect(gfnt.NewInteger(i), getSubnetIPv4CIDRBlock(cidrPartitions, v.clusterConfig.VPC.CIDR)),
 		Ipv6CidrBlock:               gfnt.MakeFnSelect(gfnt.NewInteger(i), getSubnetIPv6CIDRBlock(cidrPartitions)),
 		MapPublicIpOnLaunch:         mapPublicIPOnLaunch,
 		AssignIpv6AddressOnCreation: gfnt.True(),

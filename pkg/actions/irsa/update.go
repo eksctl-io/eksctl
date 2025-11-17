@@ -21,14 +21,14 @@ const (
 	roleNamePath   = "RoleName"
 )
 
-func (a *Manager) UpdateIAMServiceAccounts(ctx context.Context, iamServiceAccounts []*api.ClusterIAMServiceAccount, existingIAMStacks []*manager.Stack, plan bool) error {
+func (m *Manager) UpdateIAMServiceAccounts(ctx context.Context, iamServiceAccounts []*api.ClusterIAMServiceAccount, existingIAMStacks []*manager.Stack, plan bool) error {
 	var nonExistingSAs []string
 	updateTasks := &tasks.TaskTree{Parallel: true}
 
 	existingIAMStacksMap := listToSet(existingIAMStacks)
 
 	for _, iamServiceAccount := range iamServiceAccounts {
-		stackName := makeIAMServiceAccountStackName(a.clusterName, iamServiceAccount.Namespace, iamServiceAccount.Name)
+		stackName := makeIAMServiceAccountStackName(m.clusterName, iamServiceAccount.Namespace, iamServiceAccount.Name)
 
 		stack, ok := existingIAMStacksMap[stackName]
 		if !ok {
@@ -37,7 +37,7 @@ func (a *Manager) UpdateIAMServiceAccounts(ctx context.Context, iamServiceAccoun
 			continue
 		}
 
-		roleName, err := a.getRoleNameFromStackTemplate(ctx, stack)
+		roleName, err := m.getRoleNameFromStackTemplate(ctx, stack)
 		if err != nil {
 			return err
 		}
@@ -46,7 +46,7 @@ func (a *Manager) UpdateIAMServiceAccounts(ctx context.Context, iamServiceAccoun
 			iamServiceAccount.RoleName = roleName
 		}
 
-		taskTree, err := NewUpdateIAMServiceAccountTask(a.clusterName, iamServiceAccount, a.stackManager, a.oidcManager)
+		taskTree, err := NewUpdateIAMServiceAccountTask(m.clusterName, iamServiceAccount, m.stackManager, m.oidcManager)
 		if err != nil {
 			return err
 		}
@@ -63,8 +63,8 @@ func (a *Manager) UpdateIAMServiceAccounts(ctx context.Context, iamServiceAccoun
 
 // getRoleNameFromStackTemplate returns the role if the initial stack's template contained it.
 // That means it was defined upon creation, and we need to re-use that same name.
-func (a *Manager) getRoleNameFromStackTemplate(ctx context.Context, stack *manager.Stack) (string, error) {
-	template, err := a.stackManager.GetStackTemplate(ctx, aws.ToString(stack.StackName))
+func (m *Manager) getRoleNameFromStackTemplate(ctx context.Context, stack *manager.Stack) (string, error) {
+	template, err := m.stackManager.GetStackTemplate(ctx, aws.ToString(stack.StackName))
 	if err != nil {
 		return "", fmt.Errorf("failed to get stack template: %w", err)
 	}

@@ -4462,6 +4462,154 @@ func (_c *EC2_CopySnapshot_Call) RunAndReturn(run func(context.Context, *ec2.Cop
 	return _c
 }
 
+// CopyVolumes provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) CopyVolumes(ctx context.Context, params *ec2.CopyVolumesInput, optFns ...func(*ec2.Options)) (*ec2.CopyVolumesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CopyVolumes")
+	}
+
+	var r0 *ec2.CopyVolumesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CopyVolumesInput, ...func(*ec2.Options)) (*ec2.CopyVolumesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CopyVolumesInput, ...func(*ec2.Options)) *ec2.CopyVolumesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CopyVolumesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CopyVolumesInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_CopyVolumes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CopyVolumes'
+type EC2_CopyVolumes_Call struct {
+	*mock.Call
+}
+
+// CopyVolumes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.CopyVolumesInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) CopyVolumes(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_CopyVolumes_Call {
+	return &EC2_CopyVolumes_Call{Call: _e.mock.On("CopyVolumes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_CopyVolumes_Call) Run(run func(ctx context.Context, params *ec2.CopyVolumesInput, optFns ...func(*ec2.Options))) *EC2_CopyVolumes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.CopyVolumesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_CopyVolumes_Call) Return(_a0 *ec2.CopyVolumesOutput, _a1 error) *EC2_CopyVolumes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_CopyVolumes_Call) RunAndReturn(run func(context.Context, *ec2.CopyVolumesInput, ...func(*ec2.Options)) (*ec2.CopyVolumesOutput, error)) *EC2_CopyVolumes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateCapacityManagerDataExport provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) CreateCapacityManagerDataExport(ctx context.Context, params *ec2.CreateCapacityManagerDataExportInput, optFns ...func(*ec2.Options)) (*ec2.CreateCapacityManagerDataExportOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateCapacityManagerDataExport")
+	}
+
+	var r0 *ec2.CreateCapacityManagerDataExportOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateCapacityManagerDataExportInput, ...func(*ec2.Options)) (*ec2.CreateCapacityManagerDataExportOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateCapacityManagerDataExportInput, ...func(*ec2.Options)) *ec2.CreateCapacityManagerDataExportOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateCapacityManagerDataExportOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateCapacityManagerDataExportInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_CreateCapacityManagerDataExport_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateCapacityManagerDataExport'
+type EC2_CreateCapacityManagerDataExport_Call struct {
+	*mock.Call
+}
+
+// CreateCapacityManagerDataExport is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.CreateCapacityManagerDataExportInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) CreateCapacityManagerDataExport(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_CreateCapacityManagerDataExport_Call {
+	return &EC2_CreateCapacityManagerDataExport_Call{Call: _e.mock.On("CreateCapacityManagerDataExport",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_CreateCapacityManagerDataExport_Call) Run(run func(ctx context.Context, params *ec2.CreateCapacityManagerDataExportInput, optFns ...func(*ec2.Options))) *EC2_CreateCapacityManagerDataExport_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.CreateCapacityManagerDataExportInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_CreateCapacityManagerDataExport_Call) Return(_a0 *ec2.CreateCapacityManagerDataExportOutput, _a1 error) *EC2_CreateCapacityManagerDataExport_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_CreateCapacityManagerDataExport_Call) RunAndReturn(run func(context.Context, *ec2.CreateCapacityManagerDataExportInput, ...func(*ec2.Options)) (*ec2.CreateCapacityManagerDataExportOutput, error)) *EC2_CreateCapacityManagerDataExport_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateCapacityReservation provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) CreateCapacityReservation(ctx context.Context, params *ec2.CreateCapacityReservationInput, optFns ...func(*ec2.Options)) (*ec2.CreateCapacityReservationOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -6382,6 +6530,154 @@ func (_c *EC2_CreateIpamPool_Call) Return(_a0 *ec2.CreateIpamPoolOutput, _a1 err
 }
 
 func (_c *EC2_CreateIpamPool_Call) RunAndReturn(run func(context.Context, *ec2.CreateIpamPoolInput, ...func(*ec2.Options)) (*ec2.CreateIpamPoolOutput, error)) *EC2_CreateIpamPool_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateIpamPrefixListResolver provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) CreateIpamPrefixListResolver(ctx context.Context, params *ec2.CreateIpamPrefixListResolverInput, optFns ...func(*ec2.Options)) (*ec2.CreateIpamPrefixListResolverOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateIpamPrefixListResolver")
+	}
+
+	var r0 *ec2.CreateIpamPrefixListResolverOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateIpamPrefixListResolverInput, ...func(*ec2.Options)) (*ec2.CreateIpamPrefixListResolverOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateIpamPrefixListResolverInput, ...func(*ec2.Options)) *ec2.CreateIpamPrefixListResolverOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateIpamPrefixListResolverOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateIpamPrefixListResolverInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_CreateIpamPrefixListResolver_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateIpamPrefixListResolver'
+type EC2_CreateIpamPrefixListResolver_Call struct {
+	*mock.Call
+}
+
+// CreateIpamPrefixListResolver is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.CreateIpamPrefixListResolverInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) CreateIpamPrefixListResolver(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_CreateIpamPrefixListResolver_Call {
+	return &EC2_CreateIpamPrefixListResolver_Call{Call: _e.mock.On("CreateIpamPrefixListResolver",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_CreateIpamPrefixListResolver_Call) Run(run func(ctx context.Context, params *ec2.CreateIpamPrefixListResolverInput, optFns ...func(*ec2.Options))) *EC2_CreateIpamPrefixListResolver_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.CreateIpamPrefixListResolverInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_CreateIpamPrefixListResolver_Call) Return(_a0 *ec2.CreateIpamPrefixListResolverOutput, _a1 error) *EC2_CreateIpamPrefixListResolver_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_CreateIpamPrefixListResolver_Call) RunAndReturn(run func(context.Context, *ec2.CreateIpamPrefixListResolverInput, ...func(*ec2.Options)) (*ec2.CreateIpamPrefixListResolverOutput, error)) *EC2_CreateIpamPrefixListResolver_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateIpamPrefixListResolverTarget provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) CreateIpamPrefixListResolverTarget(ctx context.Context, params *ec2.CreateIpamPrefixListResolverTargetInput, optFns ...func(*ec2.Options)) (*ec2.CreateIpamPrefixListResolverTargetOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateIpamPrefixListResolverTarget")
+	}
+
+	var r0 *ec2.CreateIpamPrefixListResolverTargetOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateIpamPrefixListResolverTargetInput, ...func(*ec2.Options)) (*ec2.CreateIpamPrefixListResolverTargetOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateIpamPrefixListResolverTargetInput, ...func(*ec2.Options)) *ec2.CreateIpamPrefixListResolverTargetOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateIpamPrefixListResolverTargetOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateIpamPrefixListResolverTargetInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_CreateIpamPrefixListResolverTarget_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateIpamPrefixListResolverTarget'
+type EC2_CreateIpamPrefixListResolverTarget_Call struct {
+	*mock.Call
+}
+
+// CreateIpamPrefixListResolverTarget is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.CreateIpamPrefixListResolverTargetInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) CreateIpamPrefixListResolverTarget(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_CreateIpamPrefixListResolverTarget_Call {
+	return &EC2_CreateIpamPrefixListResolverTarget_Call{Call: _e.mock.On("CreateIpamPrefixListResolverTarget",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_CreateIpamPrefixListResolverTarget_Call) Run(run func(ctx context.Context, params *ec2.CreateIpamPrefixListResolverTargetInput, optFns ...func(*ec2.Options))) *EC2_CreateIpamPrefixListResolverTarget_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.CreateIpamPrefixListResolverTargetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_CreateIpamPrefixListResolverTarget_Call) Return(_a0 *ec2.CreateIpamPrefixListResolverTargetOutput, _a1 error) *EC2_CreateIpamPrefixListResolverTarget_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_CreateIpamPrefixListResolverTarget_Call) RunAndReturn(run func(context.Context, *ec2.CreateIpamPrefixListResolverTargetInput, ...func(*ec2.Options)) (*ec2.CreateIpamPrefixListResolverTargetOutput, error)) *EC2_CreateIpamPrefixListResolverTarget_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -11344,6 +11640,80 @@ func (_c *EC2_CreateVpnGateway_Call) RunAndReturn(run func(context.Context, *ec2
 	return _c
 }
 
+// DeleteCapacityManagerDataExport provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DeleteCapacityManagerDataExport(ctx context.Context, params *ec2.DeleteCapacityManagerDataExportInput, optFns ...func(*ec2.Options)) (*ec2.DeleteCapacityManagerDataExportOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteCapacityManagerDataExport")
+	}
+
+	var r0 *ec2.DeleteCapacityManagerDataExportOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteCapacityManagerDataExportInput, ...func(*ec2.Options)) (*ec2.DeleteCapacityManagerDataExportOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteCapacityManagerDataExportInput, ...func(*ec2.Options)) *ec2.DeleteCapacityManagerDataExportOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteCapacityManagerDataExportOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteCapacityManagerDataExportInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_DeleteCapacityManagerDataExport_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteCapacityManagerDataExport'
+type EC2_DeleteCapacityManagerDataExport_Call struct {
+	*mock.Call
+}
+
+// DeleteCapacityManagerDataExport is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.DeleteCapacityManagerDataExportInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) DeleteCapacityManagerDataExport(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_DeleteCapacityManagerDataExport_Call {
+	return &EC2_DeleteCapacityManagerDataExport_Call{Call: _e.mock.On("DeleteCapacityManagerDataExport",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_DeleteCapacityManagerDataExport_Call) Run(run func(ctx context.Context, params *ec2.DeleteCapacityManagerDataExportInput, optFns ...func(*ec2.Options))) *EC2_DeleteCapacityManagerDataExport_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.DeleteCapacityManagerDataExportInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_DeleteCapacityManagerDataExport_Call) Return(_a0 *ec2.DeleteCapacityManagerDataExportOutput, _a1 error) *EC2_DeleteCapacityManagerDataExport_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_DeleteCapacityManagerDataExport_Call) RunAndReturn(run func(context.Context, *ec2.DeleteCapacityManagerDataExportInput, ...func(*ec2.Options)) (*ec2.DeleteCapacityManagerDataExportOutput, error)) *EC2_DeleteCapacityManagerDataExport_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteCarrierGateway provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) DeleteCarrierGateway(ctx context.Context, params *ec2.DeleteCarrierGatewayInput, optFns ...func(*ec2.Options)) (*ec2.DeleteCarrierGatewayOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -12672,6 +13042,154 @@ func (_c *EC2_DeleteIpamPool_Call) Return(_a0 *ec2.DeleteIpamPoolOutput, _a1 err
 }
 
 func (_c *EC2_DeleteIpamPool_Call) RunAndReturn(run func(context.Context, *ec2.DeleteIpamPoolInput, ...func(*ec2.Options)) (*ec2.DeleteIpamPoolOutput, error)) *EC2_DeleteIpamPool_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteIpamPrefixListResolver provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DeleteIpamPrefixListResolver(ctx context.Context, params *ec2.DeleteIpamPrefixListResolverInput, optFns ...func(*ec2.Options)) (*ec2.DeleteIpamPrefixListResolverOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteIpamPrefixListResolver")
+	}
+
+	var r0 *ec2.DeleteIpamPrefixListResolverOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteIpamPrefixListResolverInput, ...func(*ec2.Options)) (*ec2.DeleteIpamPrefixListResolverOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteIpamPrefixListResolverInput, ...func(*ec2.Options)) *ec2.DeleteIpamPrefixListResolverOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteIpamPrefixListResolverOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteIpamPrefixListResolverInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_DeleteIpamPrefixListResolver_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteIpamPrefixListResolver'
+type EC2_DeleteIpamPrefixListResolver_Call struct {
+	*mock.Call
+}
+
+// DeleteIpamPrefixListResolver is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.DeleteIpamPrefixListResolverInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) DeleteIpamPrefixListResolver(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_DeleteIpamPrefixListResolver_Call {
+	return &EC2_DeleteIpamPrefixListResolver_Call{Call: _e.mock.On("DeleteIpamPrefixListResolver",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_DeleteIpamPrefixListResolver_Call) Run(run func(ctx context.Context, params *ec2.DeleteIpamPrefixListResolverInput, optFns ...func(*ec2.Options))) *EC2_DeleteIpamPrefixListResolver_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.DeleteIpamPrefixListResolverInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_DeleteIpamPrefixListResolver_Call) Return(_a0 *ec2.DeleteIpamPrefixListResolverOutput, _a1 error) *EC2_DeleteIpamPrefixListResolver_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_DeleteIpamPrefixListResolver_Call) RunAndReturn(run func(context.Context, *ec2.DeleteIpamPrefixListResolverInput, ...func(*ec2.Options)) (*ec2.DeleteIpamPrefixListResolverOutput, error)) *EC2_DeleteIpamPrefixListResolver_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteIpamPrefixListResolverTarget provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DeleteIpamPrefixListResolverTarget(ctx context.Context, params *ec2.DeleteIpamPrefixListResolverTargetInput, optFns ...func(*ec2.Options)) (*ec2.DeleteIpamPrefixListResolverTargetOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteIpamPrefixListResolverTarget")
+	}
+
+	var r0 *ec2.DeleteIpamPrefixListResolverTargetOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteIpamPrefixListResolverTargetInput, ...func(*ec2.Options)) (*ec2.DeleteIpamPrefixListResolverTargetOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteIpamPrefixListResolverTargetInput, ...func(*ec2.Options)) *ec2.DeleteIpamPrefixListResolverTargetOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteIpamPrefixListResolverTargetOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteIpamPrefixListResolverTargetInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_DeleteIpamPrefixListResolverTarget_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteIpamPrefixListResolverTarget'
+type EC2_DeleteIpamPrefixListResolverTarget_Call struct {
+	*mock.Call
+}
+
+// DeleteIpamPrefixListResolverTarget is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.DeleteIpamPrefixListResolverTargetInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) DeleteIpamPrefixListResolverTarget(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_DeleteIpamPrefixListResolverTarget_Call {
+	return &EC2_DeleteIpamPrefixListResolverTarget_Call{Call: _e.mock.On("DeleteIpamPrefixListResolverTarget",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_DeleteIpamPrefixListResolverTarget_Call) Run(run func(ctx context.Context, params *ec2.DeleteIpamPrefixListResolverTargetInput, optFns ...func(*ec2.Options))) *EC2_DeleteIpamPrefixListResolverTarget_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.DeleteIpamPrefixListResolverTargetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_DeleteIpamPrefixListResolverTarget_Call) Return(_a0 *ec2.DeleteIpamPrefixListResolverTargetOutput, _a1 error) *EC2_DeleteIpamPrefixListResolverTarget_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_DeleteIpamPrefixListResolverTarget_Call) RunAndReturn(run func(context.Context, *ec2.DeleteIpamPrefixListResolverTargetInput, ...func(*ec2.Options)) (*ec2.DeleteIpamPrefixListResolverTargetOutput, error)) *EC2_DeleteIpamPrefixListResolverTarget_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -19040,6 +19558,80 @@ func (_c *EC2_DescribeCapacityBlocks_Call) RunAndReturn(run func(context.Context
 	return _c
 }
 
+// DescribeCapacityManagerDataExports provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DescribeCapacityManagerDataExports(ctx context.Context, params *ec2.DescribeCapacityManagerDataExportsInput, optFns ...func(*ec2.Options)) (*ec2.DescribeCapacityManagerDataExportsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeCapacityManagerDataExports")
+	}
+
+	var r0 *ec2.DescribeCapacityManagerDataExportsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeCapacityManagerDataExportsInput, ...func(*ec2.Options)) (*ec2.DescribeCapacityManagerDataExportsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeCapacityManagerDataExportsInput, ...func(*ec2.Options)) *ec2.DescribeCapacityManagerDataExportsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeCapacityManagerDataExportsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeCapacityManagerDataExportsInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_DescribeCapacityManagerDataExports_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeCapacityManagerDataExports'
+type EC2_DescribeCapacityManagerDataExports_Call struct {
+	*mock.Call
+}
+
+// DescribeCapacityManagerDataExports is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.DescribeCapacityManagerDataExportsInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) DescribeCapacityManagerDataExports(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_DescribeCapacityManagerDataExports_Call {
+	return &EC2_DescribeCapacityManagerDataExports_Call{Call: _e.mock.On("DescribeCapacityManagerDataExports",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_DescribeCapacityManagerDataExports_Call) Run(run func(ctx context.Context, params *ec2.DescribeCapacityManagerDataExportsInput, optFns ...func(*ec2.Options))) *EC2_DescribeCapacityManagerDataExports_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.DescribeCapacityManagerDataExportsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_DescribeCapacityManagerDataExports_Call) Return(_a0 *ec2.DescribeCapacityManagerDataExportsOutput, _a1 error) *EC2_DescribeCapacityManagerDataExports_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_DescribeCapacityManagerDataExports_Call) RunAndReturn(run func(context.Context, *ec2.DescribeCapacityManagerDataExportsInput, ...func(*ec2.Options)) (*ec2.DescribeCapacityManagerDataExportsOutput, error)) *EC2_DescribeCapacityManagerDataExports_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeCapacityReservationBillingRequests provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) DescribeCapacityReservationBillingRequests(ctx context.Context, params *ec2.DescribeCapacityReservationBillingRequestsInput, optFns ...func(*ec2.Options)) (*ec2.DescribeCapacityReservationBillingRequestsOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -19184,6 +19776,80 @@ func (_c *EC2_DescribeCapacityReservationFleets_Call) Return(_a0 *ec2.DescribeCa
 }
 
 func (_c *EC2_DescribeCapacityReservationFleets_Call) RunAndReturn(run func(context.Context, *ec2.DescribeCapacityReservationFleetsInput, ...func(*ec2.Options)) (*ec2.DescribeCapacityReservationFleetsOutput, error)) *EC2_DescribeCapacityReservationFleets_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DescribeCapacityReservationTopology provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DescribeCapacityReservationTopology(ctx context.Context, params *ec2.DescribeCapacityReservationTopologyInput, optFns ...func(*ec2.Options)) (*ec2.DescribeCapacityReservationTopologyOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeCapacityReservationTopology")
+	}
+
+	var r0 *ec2.DescribeCapacityReservationTopologyOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeCapacityReservationTopologyInput, ...func(*ec2.Options)) (*ec2.DescribeCapacityReservationTopologyOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeCapacityReservationTopologyInput, ...func(*ec2.Options)) *ec2.DescribeCapacityReservationTopologyOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeCapacityReservationTopologyOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeCapacityReservationTopologyInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_DescribeCapacityReservationTopology_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeCapacityReservationTopology'
+type EC2_DescribeCapacityReservationTopology_Call struct {
+	*mock.Call
+}
+
+// DescribeCapacityReservationTopology is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.DescribeCapacityReservationTopologyInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) DescribeCapacityReservationTopology(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_DescribeCapacityReservationTopology_Call {
+	return &EC2_DescribeCapacityReservationTopology_Call{Call: _e.mock.On("DescribeCapacityReservationTopology",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_DescribeCapacityReservationTopology_Call) Run(run func(ctx context.Context, params *ec2.DescribeCapacityReservationTopologyInput, optFns ...func(*ec2.Options))) *EC2_DescribeCapacityReservationTopology_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.DescribeCapacityReservationTopologyInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_DescribeCapacityReservationTopology_Call) Return(_a0 *ec2.DescribeCapacityReservationTopologyOutput, _a1 error) *EC2_DescribeCapacityReservationTopology_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_DescribeCapacityReservationTopology_Call) RunAndReturn(run func(context.Context, *ec2.DescribeCapacityReservationTopologyInput, ...func(*ec2.Options)) (*ec2.DescribeCapacityReservationTopologyOutput, error)) *EC2_DescribeCapacityReservationTopology_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -23106,6 +23772,154 @@ func (_c *EC2_DescribeIpamPools_Call) Return(_a0 *ec2.DescribeIpamPoolsOutput, _
 }
 
 func (_c *EC2_DescribeIpamPools_Call) RunAndReturn(run func(context.Context, *ec2.DescribeIpamPoolsInput, ...func(*ec2.Options)) (*ec2.DescribeIpamPoolsOutput, error)) *EC2_DescribeIpamPools_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DescribeIpamPrefixListResolverTargets provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DescribeIpamPrefixListResolverTargets(ctx context.Context, params *ec2.DescribeIpamPrefixListResolverTargetsInput, optFns ...func(*ec2.Options)) (*ec2.DescribeIpamPrefixListResolverTargetsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeIpamPrefixListResolverTargets")
+	}
+
+	var r0 *ec2.DescribeIpamPrefixListResolverTargetsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeIpamPrefixListResolverTargetsInput, ...func(*ec2.Options)) (*ec2.DescribeIpamPrefixListResolverTargetsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeIpamPrefixListResolverTargetsInput, ...func(*ec2.Options)) *ec2.DescribeIpamPrefixListResolverTargetsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeIpamPrefixListResolverTargetsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeIpamPrefixListResolverTargetsInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_DescribeIpamPrefixListResolverTargets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeIpamPrefixListResolverTargets'
+type EC2_DescribeIpamPrefixListResolverTargets_Call struct {
+	*mock.Call
+}
+
+// DescribeIpamPrefixListResolverTargets is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.DescribeIpamPrefixListResolverTargetsInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) DescribeIpamPrefixListResolverTargets(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_DescribeIpamPrefixListResolverTargets_Call {
+	return &EC2_DescribeIpamPrefixListResolverTargets_Call{Call: _e.mock.On("DescribeIpamPrefixListResolverTargets",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_DescribeIpamPrefixListResolverTargets_Call) Run(run func(ctx context.Context, params *ec2.DescribeIpamPrefixListResolverTargetsInput, optFns ...func(*ec2.Options))) *EC2_DescribeIpamPrefixListResolverTargets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.DescribeIpamPrefixListResolverTargetsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_DescribeIpamPrefixListResolverTargets_Call) Return(_a0 *ec2.DescribeIpamPrefixListResolverTargetsOutput, _a1 error) *EC2_DescribeIpamPrefixListResolverTargets_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_DescribeIpamPrefixListResolverTargets_Call) RunAndReturn(run func(context.Context, *ec2.DescribeIpamPrefixListResolverTargetsInput, ...func(*ec2.Options)) (*ec2.DescribeIpamPrefixListResolverTargetsOutput, error)) *EC2_DescribeIpamPrefixListResolverTargets_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DescribeIpamPrefixListResolvers provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DescribeIpamPrefixListResolvers(ctx context.Context, params *ec2.DescribeIpamPrefixListResolversInput, optFns ...func(*ec2.Options)) (*ec2.DescribeIpamPrefixListResolversOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeIpamPrefixListResolvers")
+	}
+
+	var r0 *ec2.DescribeIpamPrefixListResolversOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeIpamPrefixListResolversInput, ...func(*ec2.Options)) (*ec2.DescribeIpamPrefixListResolversOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeIpamPrefixListResolversInput, ...func(*ec2.Options)) *ec2.DescribeIpamPrefixListResolversOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeIpamPrefixListResolversOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeIpamPrefixListResolversInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_DescribeIpamPrefixListResolvers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeIpamPrefixListResolvers'
+type EC2_DescribeIpamPrefixListResolvers_Call struct {
+	*mock.Call
+}
+
+// DescribeIpamPrefixListResolvers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.DescribeIpamPrefixListResolversInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) DescribeIpamPrefixListResolvers(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_DescribeIpamPrefixListResolvers_Call {
+	return &EC2_DescribeIpamPrefixListResolvers_Call{Call: _e.mock.On("DescribeIpamPrefixListResolvers",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_DescribeIpamPrefixListResolvers_Call) Run(run func(ctx context.Context, params *ec2.DescribeIpamPrefixListResolversInput, optFns ...func(*ec2.Options))) *EC2_DescribeIpamPrefixListResolvers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.DescribeIpamPrefixListResolversInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_DescribeIpamPrefixListResolvers_Call) Return(_a0 *ec2.DescribeIpamPrefixListResolversOutput, _a1 error) *EC2_DescribeIpamPrefixListResolvers_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_DescribeIpamPrefixListResolvers_Call) RunAndReturn(run func(context.Context, *ec2.DescribeIpamPrefixListResolversInput, ...func(*ec2.Options)) (*ec2.DescribeIpamPrefixListResolversOutput, error)) *EC2_DescribeIpamPrefixListResolvers_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -31398,6 +32212,80 @@ func (_c *EC2_DisableAwsNetworkPerformanceMetricSubscription_Call) RunAndReturn(
 	return _c
 }
 
+// DisableCapacityManager provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DisableCapacityManager(ctx context.Context, params *ec2.DisableCapacityManagerInput, optFns ...func(*ec2.Options)) (*ec2.DisableCapacityManagerOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DisableCapacityManager")
+	}
+
+	var r0 *ec2.DisableCapacityManagerOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisableCapacityManagerInput, ...func(*ec2.Options)) (*ec2.DisableCapacityManagerOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisableCapacityManagerInput, ...func(*ec2.Options)) *ec2.DisableCapacityManagerOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisableCapacityManagerOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisableCapacityManagerInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_DisableCapacityManager_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisableCapacityManager'
+type EC2_DisableCapacityManager_Call struct {
+	*mock.Call
+}
+
+// DisableCapacityManager is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.DisableCapacityManagerInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) DisableCapacityManager(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_DisableCapacityManager_Call {
+	return &EC2_DisableCapacityManager_Call{Call: _e.mock.On("DisableCapacityManager",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_DisableCapacityManager_Call) Run(run func(ctx context.Context, params *ec2.DisableCapacityManagerInput, optFns ...func(*ec2.Options))) *EC2_DisableCapacityManager_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.DisableCapacityManagerInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_DisableCapacityManager_Call) Return(_a0 *ec2.DisableCapacityManagerOutput, _a1 error) *EC2_DisableCapacityManager_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_DisableCapacityManager_Call) RunAndReturn(run func(context.Context, *ec2.DisableCapacityManagerInput, ...func(*ec2.Options)) (*ec2.DisableCapacityManagerOutput, error)) *EC2_DisableCapacityManager_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DisableEbsEncryptionByDefault provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) DisableEbsEncryptionByDefault(ctx context.Context, params *ec2.DisableEbsEncryptionByDefaultInput, optFns ...func(*ec2.Options)) (*ec2.DisableEbsEncryptionByDefaultOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -34062,6 +34950,80 @@ func (_c *EC2_EnableAwsNetworkPerformanceMetricSubscription_Call) RunAndReturn(r
 	return _c
 }
 
+// EnableCapacityManager provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) EnableCapacityManager(ctx context.Context, params *ec2.EnableCapacityManagerInput, optFns ...func(*ec2.Options)) (*ec2.EnableCapacityManagerOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnableCapacityManager")
+	}
+
+	var r0 *ec2.EnableCapacityManagerOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.EnableCapacityManagerInput, ...func(*ec2.Options)) (*ec2.EnableCapacityManagerOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.EnableCapacityManagerInput, ...func(*ec2.Options)) *ec2.EnableCapacityManagerOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.EnableCapacityManagerOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.EnableCapacityManagerInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_EnableCapacityManager_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnableCapacityManager'
+type EC2_EnableCapacityManager_Call struct {
+	*mock.Call
+}
+
+// EnableCapacityManager is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.EnableCapacityManagerInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) EnableCapacityManager(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_EnableCapacityManager_Call {
+	return &EC2_EnableCapacityManager_Call{Call: _e.mock.On("EnableCapacityManager",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_EnableCapacityManager_Call) Run(run func(ctx context.Context, params *ec2.EnableCapacityManagerInput, optFns ...func(*ec2.Options))) *EC2_EnableCapacityManager_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.EnableCapacityManagerInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_EnableCapacityManager_Call) Return(_a0 *ec2.EnableCapacityManagerOutput, _a1 error) *EC2_EnableCapacityManager_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_EnableCapacityManager_Call) RunAndReturn(run func(context.Context, *ec2.EnableCapacityManagerInput, ...func(*ec2.Options)) (*ec2.EnableCapacityManagerOutput, error)) *EC2_EnableCapacityManager_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // EnableEbsEncryptionByDefault provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) EnableEbsEncryptionByDefault(ctx context.Context, params *ec2.EnableEbsEncryptionByDefaultInput, optFns ...func(*ec2.Options)) (*ec2.EnableEbsEncryptionByDefaultOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -36060,6 +37022,228 @@ func (_c *EC2_GetAwsNetworkPerformanceData_Call) RunAndReturn(run func(context.C
 	return _c
 }
 
+// GetCapacityManagerAttributes provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) GetCapacityManagerAttributes(ctx context.Context, params *ec2.GetCapacityManagerAttributesInput, optFns ...func(*ec2.Options)) (*ec2.GetCapacityManagerAttributesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCapacityManagerAttributes")
+	}
+
+	var r0 *ec2.GetCapacityManagerAttributesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetCapacityManagerAttributesInput, ...func(*ec2.Options)) (*ec2.GetCapacityManagerAttributesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetCapacityManagerAttributesInput, ...func(*ec2.Options)) *ec2.GetCapacityManagerAttributesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetCapacityManagerAttributesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetCapacityManagerAttributesInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_GetCapacityManagerAttributes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCapacityManagerAttributes'
+type EC2_GetCapacityManagerAttributes_Call struct {
+	*mock.Call
+}
+
+// GetCapacityManagerAttributes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.GetCapacityManagerAttributesInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) GetCapacityManagerAttributes(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_GetCapacityManagerAttributes_Call {
+	return &EC2_GetCapacityManagerAttributes_Call{Call: _e.mock.On("GetCapacityManagerAttributes",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_GetCapacityManagerAttributes_Call) Run(run func(ctx context.Context, params *ec2.GetCapacityManagerAttributesInput, optFns ...func(*ec2.Options))) *EC2_GetCapacityManagerAttributes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.GetCapacityManagerAttributesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_GetCapacityManagerAttributes_Call) Return(_a0 *ec2.GetCapacityManagerAttributesOutput, _a1 error) *EC2_GetCapacityManagerAttributes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_GetCapacityManagerAttributes_Call) RunAndReturn(run func(context.Context, *ec2.GetCapacityManagerAttributesInput, ...func(*ec2.Options)) (*ec2.GetCapacityManagerAttributesOutput, error)) *EC2_GetCapacityManagerAttributes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetCapacityManagerMetricData provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) GetCapacityManagerMetricData(ctx context.Context, params *ec2.GetCapacityManagerMetricDataInput, optFns ...func(*ec2.Options)) (*ec2.GetCapacityManagerMetricDataOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCapacityManagerMetricData")
+	}
+
+	var r0 *ec2.GetCapacityManagerMetricDataOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetCapacityManagerMetricDataInput, ...func(*ec2.Options)) (*ec2.GetCapacityManagerMetricDataOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetCapacityManagerMetricDataInput, ...func(*ec2.Options)) *ec2.GetCapacityManagerMetricDataOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetCapacityManagerMetricDataOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetCapacityManagerMetricDataInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_GetCapacityManagerMetricData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCapacityManagerMetricData'
+type EC2_GetCapacityManagerMetricData_Call struct {
+	*mock.Call
+}
+
+// GetCapacityManagerMetricData is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.GetCapacityManagerMetricDataInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) GetCapacityManagerMetricData(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_GetCapacityManagerMetricData_Call {
+	return &EC2_GetCapacityManagerMetricData_Call{Call: _e.mock.On("GetCapacityManagerMetricData",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_GetCapacityManagerMetricData_Call) Run(run func(ctx context.Context, params *ec2.GetCapacityManagerMetricDataInput, optFns ...func(*ec2.Options))) *EC2_GetCapacityManagerMetricData_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.GetCapacityManagerMetricDataInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_GetCapacityManagerMetricData_Call) Return(_a0 *ec2.GetCapacityManagerMetricDataOutput, _a1 error) *EC2_GetCapacityManagerMetricData_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_GetCapacityManagerMetricData_Call) RunAndReturn(run func(context.Context, *ec2.GetCapacityManagerMetricDataInput, ...func(*ec2.Options)) (*ec2.GetCapacityManagerMetricDataOutput, error)) *EC2_GetCapacityManagerMetricData_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetCapacityManagerMetricDimensions provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) GetCapacityManagerMetricDimensions(ctx context.Context, params *ec2.GetCapacityManagerMetricDimensionsInput, optFns ...func(*ec2.Options)) (*ec2.GetCapacityManagerMetricDimensionsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCapacityManagerMetricDimensions")
+	}
+
+	var r0 *ec2.GetCapacityManagerMetricDimensionsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetCapacityManagerMetricDimensionsInput, ...func(*ec2.Options)) (*ec2.GetCapacityManagerMetricDimensionsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetCapacityManagerMetricDimensionsInput, ...func(*ec2.Options)) *ec2.GetCapacityManagerMetricDimensionsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetCapacityManagerMetricDimensionsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetCapacityManagerMetricDimensionsInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_GetCapacityManagerMetricDimensions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCapacityManagerMetricDimensions'
+type EC2_GetCapacityManagerMetricDimensions_Call struct {
+	*mock.Call
+}
+
+// GetCapacityManagerMetricDimensions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.GetCapacityManagerMetricDimensionsInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) GetCapacityManagerMetricDimensions(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_GetCapacityManagerMetricDimensions_Call {
+	return &EC2_GetCapacityManagerMetricDimensions_Call{Call: _e.mock.On("GetCapacityManagerMetricDimensions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_GetCapacityManagerMetricDimensions_Call) Run(run func(ctx context.Context, params *ec2.GetCapacityManagerMetricDimensionsInput, optFns ...func(*ec2.Options))) *EC2_GetCapacityManagerMetricDimensions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.GetCapacityManagerMetricDimensionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_GetCapacityManagerMetricDimensions_Call) Return(_a0 *ec2.GetCapacityManagerMetricDimensionsOutput, _a1 error) *EC2_GetCapacityManagerMetricDimensions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_GetCapacityManagerMetricDimensions_Call) RunAndReturn(run func(context.Context, *ec2.GetCapacityManagerMetricDimensionsInput, ...func(*ec2.Options)) (*ec2.GetCapacityManagerMetricDimensionsOutput, error)) *EC2_GetCapacityManagerMetricDimensions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCapacityReservationUsage provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) GetCapacityReservationUsage(ctx context.Context, params *ec2.GetCapacityReservationUsageInput, optFns ...func(*ec2.Options)) (*ec2.GetCapacityReservationUsageOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -36874,6 +38058,80 @@ func (_c *EC2_GetHostReservationPurchasePreview_Call) RunAndReturn(run func(cont
 	return _c
 }
 
+// GetImageAncestry provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) GetImageAncestry(ctx context.Context, params *ec2.GetImageAncestryInput, optFns ...func(*ec2.Options)) (*ec2.GetImageAncestryOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetImageAncestry")
+	}
+
+	var r0 *ec2.GetImageAncestryOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetImageAncestryInput, ...func(*ec2.Options)) (*ec2.GetImageAncestryOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetImageAncestryInput, ...func(*ec2.Options)) *ec2.GetImageAncestryOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetImageAncestryOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetImageAncestryInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_GetImageAncestry_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetImageAncestry'
+type EC2_GetImageAncestry_Call struct {
+	*mock.Call
+}
+
+// GetImageAncestry is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.GetImageAncestryInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) GetImageAncestry(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_GetImageAncestry_Call {
+	return &EC2_GetImageAncestry_Call{Call: _e.mock.On("GetImageAncestry",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_GetImageAncestry_Call) Run(run func(ctx context.Context, params *ec2.GetImageAncestryInput, optFns ...func(*ec2.Options))) *EC2_GetImageAncestry_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.GetImageAncestryInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_GetImageAncestry_Call) Return(_a0 *ec2.GetImageAncestryOutput, _a1 error) *EC2_GetImageAncestry_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_GetImageAncestry_Call) RunAndReturn(run func(context.Context, *ec2.GetImageAncestryInput, ...func(*ec2.Options)) (*ec2.GetImageAncestryOutput, error)) *EC2_GetImageAncestry_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetImageBlockPublicAccessState provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) GetImageBlockPublicAccessState(ctx context.Context, params *ec2.GetImageBlockPublicAccessStateInput, optFns ...func(*ec2.Options)) (*ec2.GetImageBlockPublicAccessStateOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -37684,6 +38942,228 @@ func (_c *EC2_GetIpamPoolCidrs_Call) Return(_a0 *ec2.GetIpamPoolCidrsOutput, _a1
 }
 
 func (_c *EC2_GetIpamPoolCidrs_Call) RunAndReturn(run func(context.Context, *ec2.GetIpamPoolCidrsInput, ...func(*ec2.Options)) (*ec2.GetIpamPoolCidrsOutput, error)) *EC2_GetIpamPoolCidrs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetIpamPrefixListResolverRules provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) GetIpamPrefixListResolverRules(ctx context.Context, params *ec2.GetIpamPrefixListResolverRulesInput, optFns ...func(*ec2.Options)) (*ec2.GetIpamPrefixListResolverRulesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetIpamPrefixListResolverRules")
+	}
+
+	var r0 *ec2.GetIpamPrefixListResolverRulesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetIpamPrefixListResolverRulesInput, ...func(*ec2.Options)) (*ec2.GetIpamPrefixListResolverRulesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetIpamPrefixListResolverRulesInput, ...func(*ec2.Options)) *ec2.GetIpamPrefixListResolverRulesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetIpamPrefixListResolverRulesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetIpamPrefixListResolverRulesInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_GetIpamPrefixListResolverRules_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetIpamPrefixListResolverRules'
+type EC2_GetIpamPrefixListResolverRules_Call struct {
+	*mock.Call
+}
+
+// GetIpamPrefixListResolverRules is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.GetIpamPrefixListResolverRulesInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) GetIpamPrefixListResolverRules(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_GetIpamPrefixListResolverRules_Call {
+	return &EC2_GetIpamPrefixListResolverRules_Call{Call: _e.mock.On("GetIpamPrefixListResolverRules",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_GetIpamPrefixListResolverRules_Call) Run(run func(ctx context.Context, params *ec2.GetIpamPrefixListResolverRulesInput, optFns ...func(*ec2.Options))) *EC2_GetIpamPrefixListResolverRules_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.GetIpamPrefixListResolverRulesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_GetIpamPrefixListResolverRules_Call) Return(_a0 *ec2.GetIpamPrefixListResolverRulesOutput, _a1 error) *EC2_GetIpamPrefixListResolverRules_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_GetIpamPrefixListResolverRules_Call) RunAndReturn(run func(context.Context, *ec2.GetIpamPrefixListResolverRulesInput, ...func(*ec2.Options)) (*ec2.GetIpamPrefixListResolverRulesOutput, error)) *EC2_GetIpamPrefixListResolverRules_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetIpamPrefixListResolverVersionEntries provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) GetIpamPrefixListResolverVersionEntries(ctx context.Context, params *ec2.GetIpamPrefixListResolverVersionEntriesInput, optFns ...func(*ec2.Options)) (*ec2.GetIpamPrefixListResolverVersionEntriesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetIpamPrefixListResolverVersionEntries")
+	}
+
+	var r0 *ec2.GetIpamPrefixListResolverVersionEntriesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetIpamPrefixListResolverVersionEntriesInput, ...func(*ec2.Options)) (*ec2.GetIpamPrefixListResolverVersionEntriesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetIpamPrefixListResolverVersionEntriesInput, ...func(*ec2.Options)) *ec2.GetIpamPrefixListResolverVersionEntriesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetIpamPrefixListResolverVersionEntriesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetIpamPrefixListResolverVersionEntriesInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_GetIpamPrefixListResolverVersionEntries_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetIpamPrefixListResolverVersionEntries'
+type EC2_GetIpamPrefixListResolverVersionEntries_Call struct {
+	*mock.Call
+}
+
+// GetIpamPrefixListResolverVersionEntries is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.GetIpamPrefixListResolverVersionEntriesInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) GetIpamPrefixListResolverVersionEntries(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_GetIpamPrefixListResolverVersionEntries_Call {
+	return &EC2_GetIpamPrefixListResolverVersionEntries_Call{Call: _e.mock.On("GetIpamPrefixListResolverVersionEntries",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_GetIpamPrefixListResolverVersionEntries_Call) Run(run func(ctx context.Context, params *ec2.GetIpamPrefixListResolverVersionEntriesInput, optFns ...func(*ec2.Options))) *EC2_GetIpamPrefixListResolverVersionEntries_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.GetIpamPrefixListResolverVersionEntriesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_GetIpamPrefixListResolverVersionEntries_Call) Return(_a0 *ec2.GetIpamPrefixListResolverVersionEntriesOutput, _a1 error) *EC2_GetIpamPrefixListResolverVersionEntries_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_GetIpamPrefixListResolverVersionEntries_Call) RunAndReturn(run func(context.Context, *ec2.GetIpamPrefixListResolverVersionEntriesInput, ...func(*ec2.Options)) (*ec2.GetIpamPrefixListResolverVersionEntriesOutput, error)) *EC2_GetIpamPrefixListResolverVersionEntries_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetIpamPrefixListResolverVersions provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) GetIpamPrefixListResolverVersions(ctx context.Context, params *ec2.GetIpamPrefixListResolverVersionsInput, optFns ...func(*ec2.Options)) (*ec2.GetIpamPrefixListResolverVersionsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetIpamPrefixListResolverVersions")
+	}
+
+	var r0 *ec2.GetIpamPrefixListResolverVersionsOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetIpamPrefixListResolverVersionsInput, ...func(*ec2.Options)) (*ec2.GetIpamPrefixListResolverVersionsOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetIpamPrefixListResolverVersionsInput, ...func(*ec2.Options)) *ec2.GetIpamPrefixListResolverVersionsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetIpamPrefixListResolverVersionsOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetIpamPrefixListResolverVersionsInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_GetIpamPrefixListResolverVersions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetIpamPrefixListResolverVersions'
+type EC2_GetIpamPrefixListResolverVersions_Call struct {
+	*mock.Call
+}
+
+// GetIpamPrefixListResolverVersions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.GetIpamPrefixListResolverVersionsInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) GetIpamPrefixListResolverVersions(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_GetIpamPrefixListResolverVersions_Call {
+	return &EC2_GetIpamPrefixListResolverVersions_Call{Call: _e.mock.On("GetIpamPrefixListResolverVersions",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_GetIpamPrefixListResolverVersions_Call) Run(run func(ctx context.Context, params *ec2.GetIpamPrefixListResolverVersionsInput, optFns ...func(*ec2.Options))) *EC2_GetIpamPrefixListResolverVersions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.GetIpamPrefixListResolverVersionsInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_GetIpamPrefixListResolverVersions_Call) Return(_a0 *ec2.GetIpamPrefixListResolverVersionsOutput, _a1 error) *EC2_GetIpamPrefixListResolverVersions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_GetIpamPrefixListResolverVersions_Call) RunAndReturn(run func(context.Context, *ec2.GetIpamPrefixListResolverVersionsInput, ...func(*ec2.Options)) (*ec2.GetIpamPrefixListResolverVersionsOutput, error)) *EC2_GetIpamPrefixListResolverVersions_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -42494,6 +43974,154 @@ func (_c *EC2_ModifyIpamPool_Call) Return(_a0 *ec2.ModifyIpamPoolOutput, _a1 err
 }
 
 func (_c *EC2_ModifyIpamPool_Call) RunAndReturn(run func(context.Context, *ec2.ModifyIpamPoolInput, ...func(*ec2.Options)) (*ec2.ModifyIpamPoolOutput, error)) *EC2_ModifyIpamPool_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ModifyIpamPrefixListResolver provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) ModifyIpamPrefixListResolver(ctx context.Context, params *ec2.ModifyIpamPrefixListResolverInput, optFns ...func(*ec2.Options)) (*ec2.ModifyIpamPrefixListResolverOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ModifyIpamPrefixListResolver")
+	}
+
+	var r0 *ec2.ModifyIpamPrefixListResolverOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyIpamPrefixListResolverInput, ...func(*ec2.Options)) (*ec2.ModifyIpamPrefixListResolverOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyIpamPrefixListResolverInput, ...func(*ec2.Options)) *ec2.ModifyIpamPrefixListResolverOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyIpamPrefixListResolverOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyIpamPrefixListResolverInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_ModifyIpamPrefixListResolver_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ModifyIpamPrefixListResolver'
+type EC2_ModifyIpamPrefixListResolver_Call struct {
+	*mock.Call
+}
+
+// ModifyIpamPrefixListResolver is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.ModifyIpamPrefixListResolverInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) ModifyIpamPrefixListResolver(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_ModifyIpamPrefixListResolver_Call {
+	return &EC2_ModifyIpamPrefixListResolver_Call{Call: _e.mock.On("ModifyIpamPrefixListResolver",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_ModifyIpamPrefixListResolver_Call) Run(run func(ctx context.Context, params *ec2.ModifyIpamPrefixListResolverInput, optFns ...func(*ec2.Options))) *EC2_ModifyIpamPrefixListResolver_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.ModifyIpamPrefixListResolverInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_ModifyIpamPrefixListResolver_Call) Return(_a0 *ec2.ModifyIpamPrefixListResolverOutput, _a1 error) *EC2_ModifyIpamPrefixListResolver_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_ModifyIpamPrefixListResolver_Call) RunAndReturn(run func(context.Context, *ec2.ModifyIpamPrefixListResolverInput, ...func(*ec2.Options)) (*ec2.ModifyIpamPrefixListResolverOutput, error)) *EC2_ModifyIpamPrefixListResolver_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ModifyIpamPrefixListResolverTarget provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) ModifyIpamPrefixListResolverTarget(ctx context.Context, params *ec2.ModifyIpamPrefixListResolverTargetInput, optFns ...func(*ec2.Options)) (*ec2.ModifyIpamPrefixListResolverTargetOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ModifyIpamPrefixListResolverTarget")
+	}
+
+	var r0 *ec2.ModifyIpamPrefixListResolverTargetOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyIpamPrefixListResolverTargetInput, ...func(*ec2.Options)) (*ec2.ModifyIpamPrefixListResolverTargetOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyIpamPrefixListResolverTargetInput, ...func(*ec2.Options)) *ec2.ModifyIpamPrefixListResolverTargetOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyIpamPrefixListResolverTargetOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyIpamPrefixListResolverTargetInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_ModifyIpamPrefixListResolverTarget_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ModifyIpamPrefixListResolverTarget'
+type EC2_ModifyIpamPrefixListResolverTarget_Call struct {
+	*mock.Call
+}
+
+// ModifyIpamPrefixListResolverTarget is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.ModifyIpamPrefixListResolverTargetInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) ModifyIpamPrefixListResolverTarget(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_ModifyIpamPrefixListResolverTarget_Call {
+	return &EC2_ModifyIpamPrefixListResolverTarget_Call{Call: _e.mock.On("ModifyIpamPrefixListResolverTarget",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_ModifyIpamPrefixListResolverTarget_Call) Run(run func(ctx context.Context, params *ec2.ModifyIpamPrefixListResolverTargetInput, optFns ...func(*ec2.Options))) *EC2_ModifyIpamPrefixListResolverTarget_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.ModifyIpamPrefixListResolverTargetInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_ModifyIpamPrefixListResolverTarget_Call) Return(_a0 *ec2.ModifyIpamPrefixListResolverTargetOutput, _a1 error) *EC2_ModifyIpamPrefixListResolverTarget_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_ModifyIpamPrefixListResolverTarget_Call) RunAndReturn(run func(context.Context, *ec2.ModifyIpamPrefixListResolverTargetInput, ...func(*ec2.Options)) (*ec2.ModifyIpamPrefixListResolverTargetOutput, error)) *EC2_ModifyIpamPrefixListResolverTarget_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -51197,6 +52825,80 @@ func (_c *EC2_UnmonitorInstances_Call) Return(_a0 *ec2.UnmonitorInstancesOutput,
 }
 
 func (_c *EC2_UnmonitorInstances_Call) RunAndReturn(run func(context.Context, *ec2.UnmonitorInstancesInput, ...func(*ec2.Options)) (*ec2.UnmonitorInstancesOutput, error)) *EC2_UnmonitorInstances_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateCapacityManagerOrganizationsAccess provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) UpdateCapacityManagerOrganizationsAccess(ctx context.Context, params *ec2.UpdateCapacityManagerOrganizationsAccessInput, optFns ...func(*ec2.Options)) (*ec2.UpdateCapacityManagerOrganizationsAccessOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateCapacityManagerOrganizationsAccess")
+	}
+
+	var r0 *ec2.UpdateCapacityManagerOrganizationsAccessOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.UpdateCapacityManagerOrganizationsAccessInput, ...func(*ec2.Options)) (*ec2.UpdateCapacityManagerOrganizationsAccessOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.UpdateCapacityManagerOrganizationsAccessInput, ...func(*ec2.Options)) *ec2.UpdateCapacityManagerOrganizationsAccessOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.UpdateCapacityManagerOrganizationsAccessOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.UpdateCapacityManagerOrganizationsAccessInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EC2_UpdateCapacityManagerOrganizationsAccess_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateCapacityManagerOrganizationsAccess'
+type EC2_UpdateCapacityManagerOrganizationsAccess_Call struct {
+	*mock.Call
+}
+
+// UpdateCapacityManagerOrganizationsAccess is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *ec2.UpdateCapacityManagerOrganizationsAccessInput
+//   - optFns ...func(*ec2.Options)
+func (_e *EC2_Expecter) UpdateCapacityManagerOrganizationsAccess(ctx interface{}, params interface{}, optFns ...interface{}) *EC2_UpdateCapacityManagerOrganizationsAccess_Call {
+	return &EC2_UpdateCapacityManagerOrganizationsAccess_Call{Call: _e.mock.On("UpdateCapacityManagerOrganizationsAccess",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EC2_UpdateCapacityManagerOrganizationsAccess_Call) Run(run func(ctx context.Context, params *ec2.UpdateCapacityManagerOrganizationsAccessInput, optFns ...func(*ec2.Options))) *EC2_UpdateCapacityManagerOrganizationsAccess_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*ec2.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*ec2.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*ec2.UpdateCapacityManagerOrganizationsAccessInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EC2_UpdateCapacityManagerOrganizationsAccess_Call) Return(_a0 *ec2.UpdateCapacityManagerOrganizationsAccessOutput, _a1 error) *EC2_UpdateCapacityManagerOrganizationsAccess_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EC2_UpdateCapacityManagerOrganizationsAccess_Call) RunAndReturn(run func(context.Context, *ec2.UpdateCapacityManagerOrganizationsAccessInput, ...func(*ec2.Options)) (*ec2.UpdateCapacityManagerOrganizationsAccessOutput, error)) *EC2_UpdateCapacityManagerOrganizationsAccess_Call {
 	_c.Call.Return(run)
 	return _c
 }

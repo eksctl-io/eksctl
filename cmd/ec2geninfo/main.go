@@ -168,9 +168,10 @@ func getEC2Instances(region string, instances map[string]InstanceInfo) (map[stri
 			cpuArch := "unknown"
 			if inst.ProcessorInfo != nil && inst.ProcessorInfo.SupportedArchitectures != nil {
 				for _, arch := range inst.ProcessorInfo.SupportedArchitectures {
-					if arch == types.ArchitectureTypeArm64 || arch == types.ArchitectureTypeArm64Mac {
+					switch arch {
+					case types.ArchitectureTypeArm64, types.ArchitectureTypeArm64Mac:
 						cpuArch = "arm64"
-					} else if arch == types.ArchitectureTypeX8664 || arch == types.ArchitectureTypeX8664Mac {
+					case types.ArchitectureTypeX8664, types.ArchitectureTypeX8664Mac:
 						cpuArch = "x86-64"
 					}
 				}

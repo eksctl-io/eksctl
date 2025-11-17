@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 //revive:disable Not changing package name
 package eks_connector_test

@@ -144,6 +144,8 @@ type IAM interface {
 	//
 	// [Creating, deleting, and listing an Amazon Web Services account alias]: https://docs.aws.amazon.com/signin/latest/userguide/CreateAccountAlias.html
 	CreateAccountAlias(ctx context.Context, params *iam.CreateAccountAliasInput, optFns ...func(*Options)) (*iam.CreateAccountAliasOutput, error)
+	// This API is currently unavailable for general use.
+	CreateDelegationRequest(ctx context.Context, params *iam.CreateDelegationRequestInput, optFns ...func(*Options)) (*iam.CreateDelegationRequestOutput, error)
 	// Creates a new group.
 	//
 	// For information about the number of groups you can create, see [IAM and STS quotas] in the IAM User

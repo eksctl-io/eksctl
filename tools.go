@@ -8,7 +8,7 @@ import (
 	_ "github.com/dave/dst"
 	_ "github.com/dave/jennifer/jen"
 	_ "github.com/github-release/github-release"
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
+	_ "github.com/golangci/golangci-lint/v2/cmd/golangci-lint"
 	_ "github.com/maxbrunsfeld/counterfeiter/v6"
 	_ "github.com/vburenin/ifacemaker"
 	_ "github.com/vektra/mockery/v2"

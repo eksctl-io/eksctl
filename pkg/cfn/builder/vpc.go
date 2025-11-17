@@ -91,7 +91,7 @@ func calculateDesiredMask(cidrPartitions int, cidr *ipnet.IPNet) int {
 	return int(math.Floor(math.Log2(numberOfIPsPerSubnet)))
 }
 
-func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc string) *gfnt.Value {
+func (r *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc string) *gfnt.Value {
 	// Validate inputs before creating resources
 	if vpcID == nil {
 		return nil
@@ -100,7 +100,7 @@ func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc 
 		return nil
 	}
 
-	efaSG := rs.newResource("EFASG", &gfnec2.SecurityGroup{
+	efaSG := r.newResource("EFASG", &gfnec2.SecurityGroup{
 		VpcId:            vpcID,
 		GroupDescription: gfnt.NewString("EFA-enabled security group"),
 		// Don't add a kubernetes.io/cluster tag to avoid conflicting with
@@ -112,7 +112,7 @@ func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc 
 	})
 
 	// Create ingress rule for EFA self-communication
-	rs.newResource("EFAIngressSelf", &gfnec2.SecurityGroupIngress{
+	r.newResource("EFAIngressSelf", &gfnec2.SecurityGroupIngress{
 		GroupId:               efaSG,
 		SourceSecurityGroupId: efaSG,
 		Description:           gfnt.NewString("Allow " + desc + " to communicate to itself (EFA-enabled)"),
@@ -120,7 +120,7 @@ func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc 
 	})
 
 	// Create egress rule for EFA self-communication
-	rs.newResource("EFAEgressSelf", &gfnec2.SecurityGroupEgress{
+	r.newResource("EFAEgressSelf", &gfnec2.SecurityGroupEgress{
 		GroupId:                    efaSG,
 		DestinationSecurityGroupId: efaSG,
 		Description:                gfnt.NewString("Allow " + desc + " to communicate to itself (EFA-enabled)"),

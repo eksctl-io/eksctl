@@ -43,7 +43,7 @@ func UpdateKubeProxy(ctx context.Context, input AddonInput, plan bool) (bool, er
 		logger.Info("missing arm64 nodeSelector value")
 	}
 
-	if numContainers := len(d.Spec.Template.Spec.Containers); !(numContainers >= 1) {
+	if numContainers := len(d.Spec.Template.Spec.Containers); numContainers < 1 {
 		return false, fmt.Errorf("%s has %d containers, expected at least 1", KubeProxy, numContainers)
 	}
 

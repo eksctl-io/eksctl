@@ -56,7 +56,7 @@ func (i *Installer) InstallChart(ctx context.Context, opts providers.InstallChar
 	client.CreateNamespace = opts.CreateNamespace
 	client.Timeout = 10 * time.Minute
 
-	chartPath, err := client.ChartPathOptions.LocateChart(opts.ChartName, i.Settings)
+	chartPath, err := client.LocateChart(opts.ChartName, i.Settings)
 	if err != nil {
 		return fmt.Errorf("failed to locate chart: %w", err)
 	}

@@ -1960,8 +1960,8 @@ type ManagedNodeGroup struct {
 }
 
 func (n *NodeGroupBase) GetDesiredCapacity() int {
-	if n.ScalingConfig != nil && n.ScalingConfig.DesiredCapacity != nil {
-		return *n.ScalingConfig.DesiredCapacity
+	if n.ScalingConfig != nil && n.DesiredCapacity != nil {
+		return *n.DesiredCapacity
 	}
 	return 0
 }

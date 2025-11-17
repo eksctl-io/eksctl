@@ -155,7 +155,7 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 			saTasks.Append(&kubernetesTask{
 				info:       fmt.Sprintf("create serviceaccount %q", sa.NameString()),
 				kubernetes: clientSetGetter,
-				objectMeta: sa.ClusterIAMMeta.AsObjectMeta(),
+				objectMeta: sa.AsObjectMeta(),
 				call: func(clientSet kubernetes.Interface, objectMeta v1.ObjectMeta) error {
 					sa.SetAnnotations()
 					objectMeta.SetAnnotations(sa.AsObjectMeta().Annotations)

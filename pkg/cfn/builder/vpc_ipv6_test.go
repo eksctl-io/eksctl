@@ -344,7 +344,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 			cfg = api.NewClusterConfig()
 			cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
 			cfg.AvailabilityZones = []string{azA, azB}
-			cfg.VPC.Network.CIDR = ipnet.MustParseCIDR("10.1.0.0/20")
+			cfg.VPC.CIDR = ipnet.MustParseCIDR("10.1.0.0/20")
 			cfg.VPC.Subnets = &api.ClusterSubnets{
 				Public:  api.NewAZSubnetMapping(),
 				Private: api.NewAZSubnetMapping(),

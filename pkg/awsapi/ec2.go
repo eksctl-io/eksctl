@@ -68,18 +68,24 @@ type EC2 interface {
 	// interface. After you release an Elastic IP address, it is released to the IP
 	// address pool and can be allocated to a different Amazon Web Services account.
 	//
-	// You can allocate an Elastic IP address from an address pool owned by Amazon Web
-	// Services or from an address pool created from a public IPv4 address range that
-	// you have brought to Amazon Web Services for use with your Amazon Web Services
-	// resources using bring your own IP addresses (BYOIP). For more information, see [Bring Your Own IP Addresses (BYOIP)]
-	// in the Amazon EC2 User Guide.
+	// You can allocate an Elastic IP address from one of the following address pools:
+	//
+	//   - Amazon's pool of IPv4 addresses
+	//
+	//   - Public IPv4 address range that you own and bring to your Amazon Web
+	//     Services account using [Bring Your Own IP Addresses (BYOIP)]
+	//
+	//   - An IPv4 IPAM pool with an Amazon-provided or BYOIP public IPv4 address range
+	//
+	//   - IPv4 addresses from your on-premises network made available for use with an
+	//     Outpost using a [customer-owned IP address pool](CoIP pool)
+	//
+	// For more information, see [Elastic IP Addresses] in the Amazon EC2 User Guide.
 	//
 	// If you release an Elastic IP address, you might be able to recover it. You
 	// cannot recover an Elastic IP address that you released after it is allocated to
 	// another Amazon Web Services account. To attempt to recover an Elastic IP address
 	// that you released, specify it in this operation.
-	//
-	// For more information, see [Elastic IP Addresses] in the Amazon EC2 User Guide.
 	//
 	// You can allocate a carrier IP address which is a public IP address from a
 	// telecommunication carrier, to a network interface which resides in a subnet in a
@@ -87,6 +93,7 @@ type EC2 interface {
 	//
 	// [Bring Your Own IP Addresses (BYOIP)]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html
 	// [Elastic IP Addresses]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html
+	// [customer-owned IP address pool]: https://docs.aws.amazon.com/outposts/latest/userguide/routing.html#ip-addressing
 	AllocateAddress(ctx context.Context, params *ec2.AllocateAddressInput, optFns ...func(*Options)) (*ec2.AllocateAddressOutput, error)
 	// Allocates a Dedicated Host to your account. At a minimum, specify the supported
 	// instance type or instance family, the Availability Zone in which to allocate the
@@ -557,10 +564,23 @@ type EC2 interface {
 	// enters the cancelled_running state and the instances continue to run until they
 	// are interrupted or you terminate them manually.
 	//
+	// Terminating an instance is permanent and irreversible.
+	//
+	// After you terminate an instance, you can no longer connect to it, and it can't
+	// be recovered. All attached Amazon EBS volumes that are configured to be deleted
+	// on termination are also permanently deleted and can't be recovered. All data
+	// stored on instance store volumes is permanently lost. For more information, see [How instance termination works]
+	// .
+	//
+	// Before you terminate an instance, ensure that you have backed up all data that
+	// you need to retain after the termination to persistent storage.
+	//
 	// Restrictions
 	//
 	//   - You can delete up to 100 fleets in a single request. If you exceed the
 	//     specified number, no fleets are deleted.
+	//
+	// [How instance termination works]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/how-ec2-instance-termination-works.html
 	CancelSpotFleetRequests(ctx context.Context, params *ec2.CancelSpotFleetRequestsInput, optFns ...func(*Options)) (*ec2.CancelSpotFleetRequestsOutput, error)
 	// Cancels one or more Spot Instance requests.
 	//
@@ -671,6 +691,18 @@ type EC2 interface {
 	// [Copy an Amazon EBS snapshot]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-copy-snapshot.html
 	// [Amazon EBS local snapshots on Outposts]: https://docs.aws.amazon.com/ebs/latest/userguide/snapshots-outposts.html#considerations
 	CopySnapshot(ctx context.Context, params *ec2.CopySnapshotInput, optFns ...func(*Options)) (*ec2.CopySnapshotOutput, error)
+	// Creates a crash-consistent, point-in-time copy of an existing Amazon EBS volume
+	// within the same Availability Zone. The volume copy can be attached to an Amazon
+	// EC2 instance once it reaches the available state. For more information, see [Copy an Amazon EBS volume].
+	//
+	// [Copy an Amazon EBS volume]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-copying-volume.html
+	CopyVolumes(ctx context.Context, params *ec2.CopyVolumesInput, optFns ...func(*Options)) (*ec2.CopyVolumesOutput, error)
+	//	Creates a new data export configuration for EC2 Capacity Manager. This allows
+	//
+	// you to automatically export capacity usage data to an S3 bucket on a scheduled
+	// basis. The exported data includes metrics for On-Demand, Spot, and Capacity
+	// Reservations usage across your organization.
+	CreateCapacityManagerDataExport(ctx context.Context, params *ec2.CreateCapacityManagerDataExportInput, optFns ...func(*Options)) (*ec2.CreateCapacityManagerDataExportOutput, error)
 	// Creates a new Capacity Reservation with the specified attributes. Capacity
 	// Reservations enable you to reserve capacity for your Amazon EC2 instances in a
 	// specific Availability Zone for any duration.
@@ -940,11 +972,12 @@ type EC2 interface {
 	//
 	// [Create an IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/create-ipam.html
 	CreateIpam(ctx context.Context, params *ec2.CreateIpamInput, optFns ...func(*Options)) (*ec2.CreateIpamOutput, error)
-	// Create a verification token. A verification token is an Amazon Web
-	// Services-generated random value that you can use to prove ownership of an
-	// external resource. For example, you can use a verification token to validate
-	// that you control a public IP address range when you bring an IP address range to
-	// Amazon Web Services (BYOIP).
+	// Create a verification token.
+	//
+	// A verification token is an Amazon Web Services-generated random value that you
+	// can use to prove ownership of an external resource. For example, you can use a
+	// verification token to validate that you control a public IP address range when
+	// you bring an IP address range to Amazon Web Services (BYOIP).
 	CreateIpamExternalResourceVerificationToken(ctx context.Context, params *ec2.CreateIpamExternalResourceVerificationTokenInput, optFns ...func(*Options)) (*ec2.CreateIpamExternalResourceVerificationTokenOutput, error)
 	// Create an IP address pool for Amazon VPC IP Address Manager (IPAM). In IPAM, a
 	// pool is a collection of contiguous IP addresses CIDRs. Pools enable you to
@@ -956,6 +989,32 @@ type EC2 interface {
 	//
 	// [Create a top-level pool]: https://docs.aws.amazon.com/vpc/latest/ipam/create-top-ipam.html
 	CreateIpamPool(ctx context.Context, params *ec2.CreateIpamPoolInput, optFns ...func(*Options)) (*ec2.CreateIpamPoolOutput, error)
+	// Creates an IPAM prefix list resolver.
+	//
+	// An IPAM prefix list resolver is a component that manages the synchronization
+	// between IPAM's CIDR selection rules and customer-managed prefix lists. It
+	// automates connectivity configurations by selecting CIDRs from IPAM's database
+	// based on your business logic and synchronizing them with prefix lists used in
+	// resources such as VPC route tables and security groups.
+	//
+	// For more information about IPAM prefix list resolver, see [Automate prefix list updates with IPAM] in the Amazon VPC
+	// IPAM User Guide.
+	//
+	// [Automate prefix list updates with IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/automate-prefix-list-updates.html
+	CreateIpamPrefixListResolver(ctx context.Context, params *ec2.CreateIpamPrefixListResolverInput, optFns ...func(*Options)) (*ec2.CreateIpamPrefixListResolverOutput, error)
+	// Creates an IPAM prefix list resolver target.
+	//
+	// An IPAM prefix list resolver target is an association between a specific
+	// customer-managed prefix list and an IPAM prefix list resolver. The target
+	// enables the resolver to synchronize CIDRs selected by its rules into the
+	// specified prefix list, which can then be referenced in Amazon Web Services
+	// resources.
+	//
+	// For more information about IPAM prefix list resolver, see [Automate prefix list updates with IPAM] in the Amazon VPC
+	// IPAM User Guide.
+	//
+	// [Automate prefix list updates with IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/automate-prefix-list-updates.html
+	CreateIpamPrefixListResolverTarget(ctx context.Context, params *ec2.CreateIpamPrefixListResolverTargetInput, optFns ...func(*Options)) (*ec2.CreateIpamPrefixListResolverTargetOutput, error)
 	// Creates an IPAM resource discovery. A resource discovery is an IPAM component
 	// that enables IPAM to manage and monitor resources that belong to the owning
 	// account.
@@ -1613,24 +1672,24 @@ type EC2 interface {
 	// [Create an Amazon EBS volume]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-creating-volume.html
 	// [Tag your Amazon EC2 resources]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html
 	CreateVolume(ctx context.Context, params *ec2.CreateVolumeInput, optFns ...func(*Options)) (*ec2.CreateVolumeOutput, error)
-	// Creates a VPC with the specified CIDR blocks. For more information, see [IP addressing for your VPCs and subnets] in the
-	// Amazon VPC User Guide.
+	// Creates a VPC with the specified CIDR blocks.
 	//
-	// You can optionally request an IPv6 CIDR block for the VPC. You can request an
-	// Amazon-provided IPv6 CIDR block from Amazon's pool of IPv6 addresses or an IPv6
-	// CIDR block from an IPv6 address pool that you provisioned through bring your own
-	// IP addresses ([BYOIP] ).
+	// A VPC must have an associated IPv4 CIDR block. You can choose an IPv4 CIDR
+	// block or an IPAM-allocated IPv4 CIDR block. You can optionally associate an IPv6
+	// CIDR block with a VPC. You can choose an IPv6 CIDR block, an Amazon-provided
+	// IPv6 CIDR block, an IPAM-allocated IPv6 CIDR block, or an IPv6 CIDR block that
+	// you brought to Amazon Web Services. For more information, see [IP addressing for your VPCs and subnets]in the Amazon VPC
+	// User Guide.
 	//
 	// By default, each instance that you launch in the VPC has the default DHCP
 	// options, which include only a default DNS server that we provide
 	// (AmazonProvidedDNS). For more information, see [DHCP option sets]in the Amazon VPC User Guide.
 	//
-	// You can specify the instance tenancy value for the VPC when you create it. You
-	// can't change this value for the VPC after you create it. For more information,
-	// see [Dedicated Instances]in the Amazon EC2 User Guide.
+	// You can specify DNS options and tenancy for a VPC when you create it. You can't
+	// change the tenancy of a VPC after you create it. For more information, see [VPC configuration options]in
+	// the Amazon VPC User Guide.
 	//
-	// [BYOIP]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html
-	// [Dedicated Instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-instance.html
+	// [VPC configuration options]: https://docs.aws.amazon.com/vpc/latest/userguide/create-vpc-options.html
 	// [DHCP option sets]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html
 	// [IP addressing for your VPCs and subnets]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-ip-addressing.html
 	CreateVpc(ctx context.Context, params *ec2.CreateVpcInput, optFns ...func(*Options)) (*ec2.CreateVpcOutput, error)
@@ -1738,6 +1797,10 @@ type EC2 interface {
 	//
 	// [Amazon Web Services Site-to-Site VPN]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html
 	CreateVpnGateway(ctx context.Context, params *ec2.CreateVpnGatewayInput, optFns ...func(*Options)) (*ec2.CreateVpnGatewayOutput, error)
+	//	Deletes an existing Capacity Manager data export configuration. This stops
+	//
+	// future scheduled exports but does not delete previously exported files from S3.
+	DeleteCapacityManagerDataExport(ctx context.Context, params *ec2.DeleteCapacityManagerDataExportInput, optFns ...func(*Options)) (*ec2.DeleteCapacityManagerDataExportOutput, error)
 	// Deletes a carrier gateway.
 	//
 	// If you do not delete the route that contains the carrier gateway as the Target,
@@ -1786,6 +1849,17 @@ type EC2 interface {
 	// manually, leaving 1000 or fewer. Then delete the fleet, and the remaining
 	// instances will be terminated automatically.
 	//
+	// Terminating an instance is permanent and irreversible.
+	//
+	// After you terminate an instance, you can no longer connect to it, and it can't
+	// be recovered. All attached Amazon EBS volumes that are configured to be deleted
+	// on termination are also permanently deleted and can't be recovered. All data
+	// stored on instance store volumes is permanently lost. For more information, see [How instance termination works]
+	// .
+	//
+	// Before you terminate an instance, ensure that you have backed up all data that
+	// you need to retain after the termination to persistent storage.
+	//
 	// Restrictions
 	//
 	//   - You can delete up to 25 fleets of type instant in a single request.
@@ -1801,6 +1875,7 @@ type EC2 interface {
 	//
 	// For more information, see [Delete an EC2 Fleet request and the instances in the fleet] in the Amazon EC2 User Guide.
 	//
+	// [How instance termination works]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/how-ec2-instance-termination-works.html
 	// [Delete an EC2 Fleet request and the instances in the fleet]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/delete-fleet.html
 	DeleteFleets(ctx context.Context, params *ec2.DeleteFleetsInput, optFns ...func(*Options)) (*ec2.DeleteFleetsOutput, error)
 	// Deletes one or more flow logs.
@@ -1831,11 +1906,12 @@ type EC2 interface {
 	//
 	// [Delete an IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/delete-ipam.html
 	DeleteIpam(ctx context.Context, params *ec2.DeleteIpamInput, optFns ...func(*Options)) (*ec2.DeleteIpamOutput, error)
-	// Delete a verification token. A verification token is an Amazon Web
-	// Services-generated random value that you can use to prove ownership of an
-	// external resource. For example, you can use a verification token to validate
-	// that you control a public IP address range when you bring an IP address range to
-	// Amazon Web Services (BYOIP).
+	// Delete a verification token.
+	//
+	// A verification token is an Amazon Web Services-generated random value that you
+	// can use to prove ownership of an external resource. For example, you can use a
+	// verification token to validate that you control a public IP address range when
+	// you bring an IP address range to Amazon Web Services (BYOIP).
 	DeleteIpamExternalResourceVerificationToken(ctx context.Context, params *ec2.DeleteIpamExternalResourceVerificationTokenInput, optFns ...func(*Options)) (*ec2.DeleteIpamExternalResourceVerificationTokenOutput, error)
 	// Delete an IPAM pool.
 	//
@@ -1849,6 +1925,18 @@ type EC2 interface {
 	// [Delete a pool]: https://docs.aws.amazon.com/vpc/latest/ipam/delete-pool-ipam.html
 	// [DeprovisionIpamPoolCidr]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeprovisionIpamPoolCidr.html
 	DeleteIpamPool(ctx context.Context, params *ec2.DeleteIpamPoolInput, optFns ...func(*Options)) (*ec2.DeleteIpamPoolOutput, error)
+	// Deletes an IPAM prefix list resolver. Before deleting a resolver, you must
+	// first delete all resolver targets associated with it.
+	DeleteIpamPrefixListResolver(ctx context.Context, params *ec2.DeleteIpamPrefixListResolverInput, optFns ...func(*Options)) (*ec2.DeleteIpamPrefixListResolverOutput, error)
+	// Deletes an IPAM prefix list resolver target. This removes the association
+	// between the resolver and the managed prefix list, stopping automatic CIDR
+	// synchronization.
+	//
+	// For more information about IPAM prefix list resolver, see [Automate prefix list updates with IPAM] in the Amazon VPC
+	// IPAM User Guide.
+	//
+	// [Automate prefix list updates with IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/automate-prefix-list-updates.html
+	DeleteIpamPrefixListResolverTarget(ctx context.Context, params *ec2.DeleteIpamPrefixListResolverTargetInput, optFns ...func(*Options)) (*ec2.DeleteIpamPrefixListResolverTargetOutput, error)
 	// Deletes an IPAM resource discovery. A resource discovery is an IPAM component
 	// that enables IPAM to manage and monitor resources that belong to the owning
 	// account.
@@ -2324,6 +2412,10 @@ type EC2 interface {
 	// Describes details about Capacity Blocks in the Amazon Web Services Region that
 	// you're currently using.
 	DescribeCapacityBlocks(ctx context.Context, params *ec2.DescribeCapacityBlocksInput, optFns ...func(*Options)) (*ec2.DescribeCapacityBlocksOutput, error)
+	//	Describes one or more Capacity Manager data export configurations. Returns
+	//
+	// information about export settings, delivery status, and recent export activity.
+	DescribeCapacityManagerDataExports(ctx context.Context, params *ec2.DescribeCapacityManagerDataExportsInput, optFns ...func(*Options)) (*ec2.DescribeCapacityManagerDataExportsOutput, error)
 	// Describes a request to assign the billing of the unused capacity of a Capacity
 	// Reservation. For more information, see [Billing assignment for shared Amazon EC2 Capacity Reservations].
 	//
@@ -2331,6 +2423,29 @@ type EC2 interface {
 	DescribeCapacityReservationBillingRequests(ctx context.Context, params *ec2.DescribeCapacityReservationBillingRequestsInput, optFns ...func(*Options)) (*ec2.DescribeCapacityReservationBillingRequestsOutput, error)
 	// Describes one or more Capacity Reservation Fleets.
 	DescribeCapacityReservationFleets(ctx context.Context, params *ec2.DescribeCapacityReservationFleetsInput, optFns ...func(*Options)) (*ec2.DescribeCapacityReservationFleetsOutput, error)
+	// Describes a tree-based hierarchy that represents the physical host placement of
+	// your pending or active Capacity Reservations within an Availability Zone or
+	// Local Zone. You can use this information to determine the relative proximity of
+	// your capacity within the Amazon Web Services network before it is launched and
+	// use this information to allocate capacity together to support your tightly
+	// coupled workloads.
+	//
+	// Capacity Reservation topology is supported for specific instance types only.
+	// For more information, see [Prerequisites for Amazon EC2 instance topology]in the Amazon EC2 User Guide.
+	//
+	// The Amazon EC2 API follows an eventual consistency model due to the distributed
+	// nature of the system supporting it. As a result, when you call the
+	// DescribeCapacityReservationTopology API command immediately after launching
+	// instances, the response might return a null value for capacityBlockId because
+	// the data might not have fully propagated across all subsystems. For more
+	// information, see [Eventual consistency in the Amazon EC2 API]in the Amazon EC2 Developer Guide.
+	//
+	// For more information, see [Amazon EC2 topology] in the Amazon EC2 User Guide.
+	//
+	// [Prerequisites for Amazon EC2 instance topology]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-topology-prerequisites.html
+	// [Amazon EC2 topology]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-topology.html
+	// [Eventual consistency in the Amazon EC2 API]: https://docs.aws.amazon.com/ec2/latest/devguide/eventual-consistency.html
+	DescribeCapacityReservationTopology(ctx context.Context, params *ec2.DescribeCapacityReservationTopologyInput, optFns ...func(*Options)) (*ec2.DescribeCapacityReservationTopologyOutput, error)
 	// Describes one or more of your Capacity Reservations. The results describe only
 	// the Capacity Reservations in the Amazon Web Services Region that you're
 	// currently using.
@@ -2705,10 +2820,10 @@ type EC2 interface {
 	// not have fully propagated across all subsystems. For more information, see [Eventual consistency in the Amazon EC2 API]in
 	// the Amazon EC2 Developer Guide.
 	//
-	// For more information, see [Amazon EC2 instance topology] in the Amazon EC2 User Guide.
+	// For more information, see [Amazon EC2 topology] in the Amazon EC2 User Guide.
 	//
 	// [Prerequisites for Amazon EC2 instance topology]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-topology-prerequisites.html
-	// [Amazon EC2 instance topology]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-topology.html
+	// [Amazon EC2 topology]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-topology.html
 	// [Eventual consistency in the Amazon EC2 API]: https://docs.aws.amazon.com/ec2/latest/devguide/eventual-consistency.html
 	DescribeInstanceTopology(ctx context.Context, params *ec2.DescribeInstanceTopologyInput, optFns ...func(*Options)) (*ec2.DescribeInstanceTopologyOutput, error)
 	// Lists the instance types that are offered for the specified location. If no
@@ -2771,6 +2886,12 @@ type EC2 interface {
 	DescribeIpamExternalResourceVerificationTokens(ctx context.Context, params *ec2.DescribeIpamExternalResourceVerificationTokensInput, optFns ...func(*Options)) (*ec2.DescribeIpamExternalResourceVerificationTokensOutput, error)
 	// Get information about your IPAM pools.
 	DescribeIpamPools(ctx context.Context, params *ec2.DescribeIpamPoolsInput, optFns ...func(*Options)) (*ec2.DescribeIpamPoolsOutput, error)
+	// Describes one or more IPAM prefix list resolver Targets. Use this operation to
+	// view the configuration and status of resolver targets.
+	DescribeIpamPrefixListResolverTargets(ctx context.Context, params *ec2.DescribeIpamPrefixListResolverTargetsInput, optFns ...func(*Options)) (*ec2.DescribeIpamPrefixListResolverTargetsOutput, error)
+	// Describes one or more IPAM prefix list resolvers. Use this operation to view
+	// the configuration, status, and properties of your resolvers.
+	DescribeIpamPrefixListResolvers(ctx context.Context, params *ec2.DescribeIpamPrefixListResolversInput, optFns ...func(*Options)) (*ec2.DescribeIpamPrefixListResolversOutput, error)
 	// Describes IPAM resource discoveries. A resource discovery is an IPAM component
 	// that enables IPAM to manage and monitor resources that belong to the owning
 	// account.
@@ -3520,6 +3641,11 @@ type EC2 interface {
 	DisableAllowedImagesSettings(ctx context.Context, params *ec2.DisableAllowedImagesSettingsInput, optFns ...func(*Options)) (*ec2.DisableAllowedImagesSettingsOutput, error)
 	// Disables Infrastructure Performance metric subscriptions.
 	DisableAwsNetworkPerformanceMetricSubscription(ctx context.Context, params *ec2.DisableAwsNetworkPerformanceMetricSubscriptionInput, optFns ...func(*Options)) (*ec2.DisableAwsNetworkPerformanceMetricSubscriptionOutput, error)
+	//	Disables EC2 Capacity Manager for your account. This stops data ingestion and
+	//
+	// removes access to capacity analytics and optimization recommendations.
+	// Previously collected data is retained but no new data will be processed.
+	DisableCapacityManager(ctx context.Context, params *ec2.DisableCapacityManagerInput, optFns ...func(*Options)) (*ec2.DisableCapacityManagerOutput, error)
 	// Disables EBS encryption by default for your account in the current Region.
 	//
 	// After you disable encryption by default, you can still create encrypted volumes
@@ -3822,6 +3948,11 @@ type EC2 interface {
 	EnableAllowedImagesSettings(ctx context.Context, params *ec2.EnableAllowedImagesSettingsInput, optFns ...func(*Options)) (*ec2.EnableAllowedImagesSettingsOutput, error)
 	// Enables Infrastructure Performance subscriptions.
 	EnableAwsNetworkPerformanceMetricSubscription(ctx context.Context, params *ec2.EnableAwsNetworkPerformanceMetricSubscriptionInput, optFns ...func(*Options)) (*ec2.EnableAwsNetworkPerformanceMetricSubscriptionOutput, error)
+	//	Enables EC2 Capacity Manager for your account. This starts data ingestion for
+	//
+	// your EC2 capacity usage across On-Demand, Spot, and Capacity Reservations.
+	// Initial data processing may take several hours to complete.
+	EnableCapacityManager(ctx context.Context, params *ec2.EnableCapacityManagerInput, optFns ...func(*Options)) (*ec2.EnableCapacityManagerOutput, error)
 	// Enables EBS encryption by default for your account in the current Region.
 	//
 	// After you enable encryption by default, the EBS volumes that you create are
@@ -4028,6 +4159,23 @@ type EC2 interface {
 	GetAssociatedIpv6PoolCidrs(ctx context.Context, params *ec2.GetAssociatedIpv6PoolCidrsInput, optFns ...func(*Options)) (*ec2.GetAssociatedIpv6PoolCidrsOutput, error)
 	// Gets network performance data.
 	GetAwsNetworkPerformanceData(ctx context.Context, params *ec2.GetAwsNetworkPerformanceDataInput, optFns ...func(*Options)) (*ec2.GetAwsNetworkPerformanceDataOutput, error)
+	//	Retrieves the current configuration and status of EC2 Capacity Manager for
+	//
+	// your account, including enablement status, Organizations access settings, and
+	// data ingestion status.
+	GetCapacityManagerAttributes(ctx context.Context, params *ec2.GetCapacityManagerAttributesInput, optFns ...func(*Options)) (*ec2.GetCapacityManagerAttributesOutput, error)
+	//	Retrieves capacity usage metrics for your EC2 resources. Returns time-series
+	//
+	// data for metrics like unused capacity, utilization rates, and costs across
+	// On-Demand, Spot, and Capacity Reservations. Data can be grouped and filtered by
+	// various dimensions such as region, account, and instance family.
+	GetCapacityManagerMetricData(ctx context.Context, params *ec2.GetCapacityManagerMetricDataInput, optFns ...func(*Options)) (*ec2.GetCapacityManagerMetricDataOutput, error)
+	//	Retrieves the available dimension values for capacity metrics within a
+	//
+	// specified time range. This is useful for discovering what accounts, regions,
+	// instance families, and other dimensions have data available for filtering and
+	// grouping.
+	GetCapacityManagerMetricDimensions(ctx context.Context, params *ec2.GetCapacityManagerMetricDimensionsInput, optFns ...func(*Options)) (*ec2.GetCapacityManagerMetricDimensionsOutput, error)
 	// Gets usage information about a Capacity Reservation. If the Capacity
 	// Reservation is shared, it shows usage information for the Capacity Reservation
 	// owner and each Amazon Web Services account that is currently using the shared
@@ -4115,6 +4263,11 @@ type EC2 interface {
 	// This is a preview of the PurchaseHostReservation action and does not result in the offering being
 	// purchased.
 	GetHostReservationPurchasePreview(ctx context.Context, params *ec2.GetHostReservationPurchasePreviewInput, optFns ...func(*Options)) (*ec2.GetHostReservationPurchasePreviewOutput, error)
+	// Retrieves the ancestry chain of the specified AMI, tracing its lineage back to
+	// the root AMI. For more information, see [AMI ancestry]in Amazon EC2 User Guide.
+	//
+	// [AMI ancestry]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-ancestry.html
+	GetImageAncestry(ctx context.Context, params *ec2.GetImageAncestryInput, optFns ...func(*Options)) (*ec2.GetImageAncestryOutput, error)
 	// Gets the current state of block public access for AMIs at the account level in
 	// the specified Amazon Web Services Region.
 	//
@@ -4195,6 +4348,44 @@ type EC2 interface {
 	GetIpamPoolAllocations(ctx context.Context, params *ec2.GetIpamPoolAllocationsInput, optFns ...func(*Options)) (*ec2.GetIpamPoolAllocationsOutput, error)
 	// Get the CIDRs provisioned to an IPAM pool.
 	GetIpamPoolCidrs(ctx context.Context, params *ec2.GetIpamPoolCidrsInput, optFns ...func(*Options)) (*ec2.GetIpamPoolCidrsOutput, error)
+	// Retrieves the CIDR selection rules for an IPAM prefix list resolver. Use this
+	// operation to view the business logic that determines which CIDRs are selected
+	// for synchronization with prefix lists.
+	GetIpamPrefixListResolverRules(ctx context.Context, params *ec2.GetIpamPrefixListResolverRulesInput, optFns ...func(*Options)) (*ec2.GetIpamPrefixListResolverRulesOutput, error)
+	// Retrieves the CIDR entries for a specific version of an IPAM prefix list
+	// resolver. This shows the actual CIDRs that were selected and synchronized at a
+	// particular point in time.
+	GetIpamPrefixListResolverVersionEntries(ctx context.Context, params *ec2.GetIpamPrefixListResolverVersionEntriesInput, optFns ...func(*Options)) (*ec2.GetIpamPrefixListResolverVersionEntriesOutput, error)
+	// Retrieves version information for an IPAM prefix list resolver.
+	//
+	// Each version is a snapshot of what CIDRs matched your rules at that moment in
+	// time. The version number increments every time the CIDR list changes due to
+	// infrastructure changes.
+	//
+	// Version example:
+	//
+	// Initial State (Version 1)
+	//
+	// Production environment:
+	//
+	//   - vpc-prod-web (10.1.0.0/16) - tagged env=prod
+	//
+	//   - vpc-prod-db (10.2.0.0/16) - tagged env=prod
+	//
+	// Resolver rule: Include all VPCs tagged env=prod
+	//
+	// Version 1 CIDRs: 10.1.0.0/16, 10.2.0.0/16
+	//
+	// Infrastructure Change (Version 2)
+	//
+	// New VPC added:
+	//
+	//   - vpc-prod-api (10.3.0.0/16) - tagged env=prod
+	//
+	// IPAM automatically detects the change and creates a new version.
+	//
+	// Version 2 CIDRs: 10.1.0.0/16, 10.2.0.0/16, 10.3.0.0/16
+	GetIpamPrefixListResolverVersions(ctx context.Context, params *ec2.GetIpamPrefixListResolverVersionsInput, optFns ...func(*Options)) (*ec2.GetIpamPrefixListResolverVersionsOutput, error)
 	// Returns resource CIDRs managed by IPAM in a given scope. If an IPAM is
 	// associated with more than one resource discovery, the resource CIDRs across all
 	// of the resource discoveries is returned. A resource discovery is an IPAM
@@ -4784,6 +4975,13 @@ type EC2 interface {
 	//
 	// [Modify a pool]: https://docs.aws.amazon.com/vpc/latest/ipam/mod-pool-ipam.html
 	ModifyIpamPool(ctx context.Context, params *ec2.ModifyIpamPoolInput, optFns ...func(*Options)) (*ec2.ModifyIpamPoolOutput, error)
+	// Modifies an IPAM prefix list resolver. You can update the description and CIDR
+	// selection rules. Changes to rules will trigger re-evaluation and potential
+	// updates to associated prefix lists.
+	ModifyIpamPrefixListResolver(ctx context.Context, params *ec2.ModifyIpamPrefixListResolverInput, optFns ...func(*Options)) (*ec2.ModifyIpamPrefixListResolverOutput, error)
+	// Modifies an IPAM prefix list resolver target. You can update version tracking
+	// settings and the desired version of the target prefix list.
+	ModifyIpamPrefixListResolverTarget(ctx context.Context, params *ec2.ModifyIpamPrefixListResolverTargetInput, optFns ...func(*Options)) (*ec2.ModifyIpamPrefixListResolverTargetOutput, error)
 	// Modify a resource CIDR. You can use this action to transfer resource CIDRs
 	// between scopes and ignore resource CIDRs that you do not want to manage. If set
 	// to false, the resource will not be tracked for overlap, it cannot be
@@ -5861,8 +6059,19 @@ type EC2 interface {
 	// terminate a specific client connection, or up to five connections established by
 	// a specific user.
 	TerminateClientVpnConnections(ctx context.Context, params *ec2.TerminateClientVpnConnectionsInput, optFns ...func(*Options)) (*ec2.TerminateClientVpnConnectionsOutput, error)
-	// Shuts down the specified instances. This operation is [idempotent]; if you terminate an
-	// instance more than once, each call succeeds.
+	// Terminates (deletes) the specified instances. This operation is [idempotent]; if you
+	// terminate an instance more than once, each call succeeds.
+	//
+	// Terminating an instance is permanent and irreversible.
+	//
+	// After you terminate an instance, you can no longer connect to it, and it can't
+	// be recovered. All attached Amazon EBS volumes that are configured to be deleted
+	// on termination are also permanently deleted and can't be recovered. All data
+	// stored on instance store volumes is permanently lost. For more information, see [How instance termination works]
+	// .
+	//
+	// Before you terminate an instance, ensure that you have backed up all data that
+	// you need to retain after the termination to persistent storage.
 	//
 	// If you specify multiple instances and the request fails (for example, because
 	// of a single incorrect instance ID), none of the instances are terminated.
@@ -5923,6 +6132,7 @@ type EC2 interface {
 	// instances, see [Terminate Amazon EC2 instances]and [Troubleshooting terminating your instance] in the Amazon EC2 User Guide.
 	//
 	// [idempotent]: https://docs.aws.amazon.com/ec2/latest/devguide/ec2-api-idempotency.html
+	// [How instance termination works]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/how-ec2-instance-termination-works.html
 	// [Troubleshooting terminating your instance]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstancesShuttingDown.html
 	// [Amazon EC2 instance state changes]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html
 	// [Terminate Amazon EC2 instances]: https://docs.aws.amazon.com/
@@ -5958,6 +6168,11 @@ type EC2 interface {
 	//
 	// [Monitoring your instances and volumes]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch.html
 	UnmonitorInstances(ctx context.Context, params *ec2.UnmonitorInstancesInput, optFns ...func(*Options)) (*ec2.UnmonitorInstancesOutput, error)
+	//	Updates the Organizations access setting for EC2 Capacity Manager. This
+	//
+	// controls whether Capacity Manager can aggregate data from all accounts in your
+	// Amazon Web Services Organization or only from the current account.
+	UpdateCapacityManagerOrganizationsAccess(ctx context.Context, params *ec2.UpdateCapacityManagerOrganizationsAccessInput, optFns ...func(*Options)) (*ec2.UpdateCapacityManagerOrganizationsAccessOutput, error)
 	// Updates the description of an egress (outbound) security group rule. You can
 	// replace an existing description, or add a description to a rule that did not
 	// have one previously. You can remove a description for a security group rule by

@@ -75,16 +75,16 @@ var (
 	}
 )
 
-func (c *resourceSet) attachAllowPolicy(name string, refRole *gfnt.Value, statements []cft.MapOfInterfaces) {
-	c.newResource(name, &gfniam.Policy{
+func (r *resourceSet) attachAllowPolicy(name string, refRole *gfnt.Value, statements []cft.MapOfInterfaces) {
+	r.newResource(name, &gfniam.Policy{
 		PolicyName:     makeName(name),
 		Roles:          gfnt.NewSlice(refRole),
 		PolicyDocument: cft.MakePolicyDocument(statements...),
 	})
 }
 
-func (c *resourceSet) attachAllowPolicyDocument(name string, refRole *gfnt.Value, document api.InlineDocument) {
-	c.newResource(name, &gfniam.Policy{
+func (r *resourceSet) attachAllowPolicyDocument(name string, refRole *gfnt.Value, document api.InlineDocument) {
+	r.newResource(name, &gfniam.Policy{
 		PolicyName:     makeName(name),
 		Roles:          gfnt.NewSlice(refRole),
 		PolicyDocument: document,

@@ -63,7 +63,7 @@ exit 0`), 0777)
 			Expect(err).NotTo(HaveOccurred())
 
 			originalPath = os.Getenv("PATH")
-			Expect(os.Setenv("PATH", fmt.Sprintf("%s:%s", originalPath, tmpDir))).To(Succeed())
+			Expect(os.Setenv("PATH", fmt.Sprintf("%s:%s", tmpDir, originalPath))).To(Succeed())
 		})
 
 		AfterEach(func() {

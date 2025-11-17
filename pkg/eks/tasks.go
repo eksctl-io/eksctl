@@ -197,7 +197,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 				} else {
 					return fmt.Errorf("error creating Clientset: %w", err)
 				}
-			} else if err := c.KubeProvider.WaitForControlPlane(cfg.Metadata, clientSet, c.AWSProvider.WaitTimeout()); err != nil {
+			} else if err := c.WaitForControlPlane(cfg.Metadata, clientSet, c.AWSProvider.WaitTimeout()); err != nil {
 				return err
 			}
 			return c.RefreshClusterStatus(ctx, cfg)

@@ -9,7 +9,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io"
 )
 
-// Conventional Kubernetes API contants
+// Conventional Kubernetes API constants
 const (
 	CurrentGroupVersion = "v1alpha5"
 	ClusterConfigKind   = "ClusterConfig"

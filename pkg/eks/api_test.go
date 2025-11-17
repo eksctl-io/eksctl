@@ -21,7 +21,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/credentials"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	. "github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/fakes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
@@ -39,7 +38,7 @@ type newAWSProviderEntry struct {
 
 type newClusterProviderEntry struct {
 	updateMocks                     func(*mockprovider.MockProvider)
-	overwriteAWSProviderBuilderMock func(pc *api.ProviderConfig, acl AWSConfigurationLoader) (api.ClusterProvider, error)
+	overwriteAWSProviderBuilderMock func(pc *api.ProviderConfig, acl eks.AWSConfigurationLoader) (api.ClusterProvider, error)
 	err                             string
 }
 
@@ -146,7 +145,7 @@ var _ = Describe("eksctl API", func() {
 			e.updateMocks(mockProvider)
 		}
 
-		awsProviderBuilderMock := func(pc *api.ProviderConfig, acl AWSConfigurationLoader) (api.ClusterProvider, error) {
+		awsProviderBuilderMock := func(pc *api.ProviderConfig, acl eks.AWSConfigurationLoader) (api.ClusterProvider, error) {
 			return mockProvider, nil
 		}
 		if e.overwriteAWSProviderBuilderMock != nil {
@@ -169,7 +168,7 @@ var _ = Describe("eksctl API", func() {
 		Expect(clusterProvider.KubeProvider).NotTo(BeNil())
 	},
 		Entry("fails to create the AWS provider", newClusterProviderEntry{
-			overwriteAWSProviderBuilderMock: func(pc *api.ProviderConfig, acl AWSConfigurationLoader) (api.ClusterProvider, error) {
+			overwriteAWSProviderBuilderMock: func(pc *api.ProviderConfig, acl eks.AWSConfigurationLoader) (api.ClusterProvider, error) {
 				return nil, fmt.Errorf("%v", genericError)
 			},
 			err: genericError,
@@ -194,51 +193,51 @@ var _ = Describe("eksctl API", func() {
 		})
 
 		It("should load a valid YAML config without error", func() {
-			cfg, err := LoadConfigFromFile("../../examples/01-simple-cluster.yaml")
+			cfg, err := eks.LoadConfigFromFile("../../examples/01-simple-cluster.yaml")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.Metadata.Name).To(Equal("cluster-1"))
 			Expect(cfg.NodeGroups).To(HaveLen(1))
 		})
 
 		It("should load a valid JSON config without error", func() {
-			cfg, err := LoadConfigFromFile("testdata/example.json")
+			cfg, err := eks.LoadConfigFromFile("testdata/example.json")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.Metadata.Name).To(Equal("cluster-1"))
 			Expect(cfg.NodeGroups).To(HaveLen(1))
 		})
 
 		It("should error when version is a float, not a string", func() {
-			_, err := LoadConfigFromFile("testdata/bad-type-1.yaml")
+			_, err := eks.LoadConfigFromFile("testdata/bad-type-1.yaml")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-type-1.yaml": json: cannot unmarshal number into Go struct field ClusterMeta.metadata.version of type string`))
 		})
 
 		It("should reject unknown field in a YAML config", func() {
-			_, err := LoadConfigFromFile("testdata/bad-field-1.yaml")
+			_, err := eks.LoadConfigFromFile("testdata/bad-field-1.yaml")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-field-1.yaml": error unmarshaling JSON: while decoding JSON: json: unknown field "zone"`))
 		})
 
 		It("should reject unknown field in a YAML config", func() {
-			_, err := LoadConfigFromFile("testdata/bad-field-2.yaml")
+			_, err := eks.LoadConfigFromFile("testdata/bad-field-2.yaml")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-field-2.yaml": error unmarshaling JSON: while decoding JSON: json: unknown field "bar"`))
 		})
 
 		It("should reject unknown field in a JSON config", func() {
-			_, err := LoadConfigFromFile("testdata/bad-field-1.json")
+			_, err := eks.LoadConfigFromFile("testdata/bad-field-1.json")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-field-1.json": error unmarshaling JSON: while decoding JSON: json: unknown field "nodes"`))
 		})
 
 		It("should reject old API version", func() {
-			_, err := LoadConfigFromFile("testdata/old-version.json")
+			_, err := eks.LoadConfigFromFile("testdata/old-version.json")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/old-version.json": no kind "ClusterConfig" is registered for version "eksctl.io/v1alpha3" in scheme`))
 		})
 
 		It("should error when cannot read a file", func() {
-			_, err := LoadConfigFromFile("../../examples/nothing.xml")
+			_, err := eks.LoadConfigFromFile("../../examples/nothing.xml")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(`reading config file "../../examples/nothing.xml": open ../../examples/nothing.xml: no such file or directory`))
 		})
@@ -262,7 +261,7 @@ var _ = Describe("eksctl API", func() {
 		})
 
 		testEnsureAMI := func(matcher gomegatypes.GomegaMatcher, version string) {
-			err := ResolveAMI(context.Background(), provider, version, ng)
+			err := eks.ResolveAMI(context.Background(), provider, version, ng)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 			ExpectWithOffset(1, ng.AMI).To(matcher)
 		}
