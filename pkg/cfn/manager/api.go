@@ -4,19 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/aws/smithy-go"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	asTypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
-	"github.com/aws/smithy-go"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
 	cttypes "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 	"github.com/kris-nova/logger"
 
@@ -582,12 +581,14 @@ func (c *StackCollection) DeleteStackBySpec(ctx context.Context, s *Stack) (*Sta
 			fmt.Sprintf("%s:%s", api.ClusterNameTag, c.spec.Metadata.Name))
 	}
 
-	updateTerminationProtectionInput := &cloudformation.UpdateTerminationProtectionInput{
-		StackName:                   s.StackId,
-		EnableTerminationProtection: aws.Bool(false),
-	}
-	if _, err := c.cloudformationAPI.UpdateTerminationProtection(ctx, updateTerminationProtectionInput); err != nil {
-		return nil, fmt.Errorf("disabling termination protection on stack %q: %w", *s.StackName, err)
+	if s.EnableTerminationProtection != nil && *s.EnableTerminationProtection {
+		updateTerminationProtectionInput := &cloudformation.UpdateTerminationProtectionInput{
+			StackName:                   s.StackId,
+			EnableTerminationProtection: aws.Bool(false),
+		}
+		if _, err := c.cloudformationAPI.UpdateTerminationProtection(ctx, updateTerminationProtectionInput); err != nil {
+			return nil, fmt.Errorf("disabling termination protection on stack %q: %w", *s.StackName, err)
+		}
 	}
 
 	input := &cloudformation.DeleteStackInput{
