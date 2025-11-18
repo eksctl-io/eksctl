@@ -14,11 +14,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
-	cttypes "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 	"github.com/aws/smithy-go"
-	"github.com/kris-nova/logger"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	cttypes "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
+	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
