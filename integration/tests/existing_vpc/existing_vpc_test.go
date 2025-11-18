@@ -99,7 +99,7 @@ var _ = Describe("(Integration) [using existing VPC]", func() {
 			WithStdin(clusterutils.Reader(cfg))
 		Expect(cmd).To(RunSuccessfully())
 
-		By("checking the cluster is created with the corret VPC/subnets")
+		By("checking the cluster is created with the correct VPC/subnets")
 		cmd = params.EksctlGetCmd.WithArgs("cluster", "--name", params.ClusterName, "-o", "yaml")
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 			ContainElement(ContainSubstring(cfg.VPC.ID)),
