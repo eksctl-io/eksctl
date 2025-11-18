@@ -1,0 +1,43 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: eks-capability-2
+  region: ap-northeast-2
+
+# Enable EKS Auto Mode
+autoModeConfig:
+  enabled: true
+
+# Capabilities configuration
+capabilities:
+  # ArgoCD GitOps
+  - name: argocd-gitops
+    type: ARGOCD
+    # roleArn: arn:aws:iam::123456789012:role/ArgoCD-Role
+    deletePropagationPolicy: RETAIN
+    attachPolicyARNs:
+      - arn:aws:iam::aws:policy/AdministratorAccess
+    accessPolicies:
+      - policyARN: arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy
+        accessScope:
+          type: cluster
+    configuration:
+      argocd:
+        namespace: argocd
+        awsIdc:
+          idcInstanceArn: arn:aws:sso:::instance/ssoins-<SSO Instance ID> # Replace <SSO Instance ID> with SSO Instance ID
+          idcRegion: us-west-2
+        # networkAccess: # Need the VPC endpoint to be pre-povisioned
+        #   vpceIds:
+        #     - vpce-1234567890abcdef0
+        rbacRoleMappings:
+          - role: ADMIN
+            identities:
+              - id: 38414300-1041-708a-01af-abc123defg # AWS IDC USER ID
+                type: SSO_USER
+              - id: 08017340-8041-7093-3ffa-abc123defg # AWS IDC GROUP ID
+                type: SSO_GROUP
+    tags:
+      Environment: production
+      Team: platform
