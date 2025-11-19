@@ -582,12 +582,14 @@ func (c *StackCollection) DeleteStackBySpec(ctx context.Context, s *Stack) (*Sta
 			fmt.Sprintf("%s:%s", api.ClusterNameTag, c.spec.Metadata.Name))
 	}
 
-	updateTerminationProtectionInput := &cloudformation.UpdateTerminationProtectionInput{
-		StackName:                   s.StackId,
-		EnableTerminationProtection: aws.Bool(false),
-	}
-	if _, err := c.cloudformationAPI.UpdateTerminationProtection(ctx, updateTerminationProtectionInput); err != nil {
-		return nil, fmt.Errorf("disabling termination protection on stack %q: %w", *s.StackName, err)
+	if s.EnableTerminationProtection != nil && *s.EnableTerminationProtection {
+		updateTerminationProtectionInput := &cloudformation.UpdateTerminationProtectionInput{
+			StackName:                   s.StackId,
+			EnableTerminationProtection: aws.Bool(false),
+		}
+		if _, err := c.cloudformationAPI.UpdateTerminationProtection(ctx, updateTerminationProtectionInput); err != nil {
+			return nil, fmt.Errorf("disabling termination protection on stack %q: %w", *s.StackName, err)
+		}
 	}
 
 	input := &cloudformation.DeleteStackInput{
