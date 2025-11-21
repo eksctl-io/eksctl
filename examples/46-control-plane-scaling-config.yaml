@@ -4,7 +4,7 @@ kind: ClusterConfig
 
 metadata:
   name: control-plane-scaling-config-cluster
-  region: ap-southeast-1
+  region: us-west-2
 
 controlPlaneScalingConfig:
   tier: tier-xl
