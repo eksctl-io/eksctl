@@ -7,6 +7,7 @@ import (
 	"errors"
 	"reflect"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
@@ -80,6 +81,7 @@ var _ = Describe("Cluster Template Builder", func() {
 			Expect(controlPlane.RoleArn).To(ContainElement([]interface{}{"ServiceRole", "Arn"}))
 			Expect(controlPlane.EncryptionConfig).To(BeNil())
 			Expect(controlPlane.UpgradePolicy).To(BeNil())
+			Expect(controlPlane.ControlPlaneScalingConfig).To(BeNil())
 			Expect(controlPlane.KubernetesNetworkConfig.ServiceIPv4CIDR).To(Equal("131.10.55.70/18"))
 			Expect(controlPlane.KubernetesNetworkConfig.IPFamily).To(Equal("ipv4"))
 			Expect(controlPlane.AccessConfig.BootstrapClusterCreatorAdminPermissions).To(BeTrue())
@@ -95,6 +97,19 @@ var _ = Describe("Cluster Template Builder", func() {
 			It("should include UpgradePolicy with SupportType in control plane resources", func() {
 				Expect(clusterTemplate.Resources["ControlPlane"].Properties.UpgradePolicy).NotTo(BeNil())
 				Expect(clusterTemplate.Resources["ControlPlane"].Properties.UpgradePolicy.SupportType).To(Equal(api.SupportTypeStandard))
+			})
+		})
+
+		Context("when control plane tier is set with SupportType", func() {
+			BeforeEach(func() {
+				cfg.ControlPlaneScalingConfig = &api.ControlPlaneScalingConfig{
+					Tier: aws.String("tier-xl"),
+				}
+			})
+
+			It("should include UpgradePolicy with SupportType in control plane resources", func() {
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.ControlPlaneScalingConfig).NotTo(BeNil())
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.ControlPlaneScalingConfig.Tier).To(Equal("tier-xl"))
 			})
 		})
 

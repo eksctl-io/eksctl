@@ -550,6 +550,11 @@
         "secretsEncryption": {
           "$ref": "#/definitions/SecretsEncryption"
         },
+        "controlPlaneScalingConfig":{
+            "$ref": "#/definitions/ControlPlaneScalingConfig",
+            "description": "specifies the control plane scaling configuration",
+            "x-intellij-html-description": "specifies the control plane scaling configuration"
+        },
         "upgradePolicy": {
           "$ref": "#/definitions/UpgradePolicy",
           "description": "specifies the upgrade policy for the cluster",
@@ -2928,6 +2933,21 @@
       "additionalProperties": false,
       "description": "for attaching common IAM policies",
       "x-intellij-html-description": "for attaching common IAM policies"
+    },
+    "ControlPlaneScalingConfig": {
+        "properties": {
+            "tier": {
+                "type": "string",
+                "description": "control plane scaling tier, example values standard, tier-xl, tier-2xl, or tier-4xl",
+                "x-intellij-html-description": "control plane scaling tier, example values standard, tier-xl, tier-2xl, or tier-4xl"
+            }
+        },
+        "preferredOrder": [
+            "tier"
+        ],
+        "additionalProperties": false,
+        "description": "holds the control plane scaling config",
+        "x-intellij-html-description": "holds the control plane scaling config"
     },
     "ZonalShiftConfig": {
       "properties": {
