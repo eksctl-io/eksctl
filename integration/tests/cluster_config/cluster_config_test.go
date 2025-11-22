@@ -57,7 +57,7 @@ var _ = BeforeSuite(func() {
 	cmd := params.EksctlCreateCmd.WithArgs(
 		"cluster",
 		"--config-file", "-",
-		"--verbose", "4", "--dry-run",
+		"--verbose", "4",
 	).
 		WithoutArg("--region", params.Region).
 		WithStdin(clusterutils.Reader(clusterConfig))
