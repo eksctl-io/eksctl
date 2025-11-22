@@ -6,6 +6,7 @@
   ClientRequestToken: null
   ComputeConfig: null
   ConnectorConfig: null
+  ControlPlaneScalingConfig: null
   CreatedAt: "0001-01-01T00:00:00Z"
   DeletionProtection: null
   EncryptionConfig: null

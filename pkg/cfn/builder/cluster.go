@@ -445,6 +445,11 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 			Enabled: gfnt.NewBoolean(true),
 		}
 	}
+	if c.spec.ControlPlaneScalingConfig != nil && c.spec.ControlPlaneScalingConfig.Tier != nil {
+		cluster.ControlPlaneScalingConfig = &gfneks.Cluster_ControlPlaneScalingConfig{
+			Tier: gfnt.NewString(*c.spec.ControlPlaneScalingConfig.Tier),
+		}
+	}
 
 	if c.spec.HasRemoteNetworkingConfigured() {
 		cluster.RemoteNetworkConfig = &gfneks.Cluster_RemoteNetworkConfig{}

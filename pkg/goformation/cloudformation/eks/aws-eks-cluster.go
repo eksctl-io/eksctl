@@ -50,6 +50,11 @@ type Cluster struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-eks-cluster.html#cfn-eks-cluster-name
 	Name *types.Value `json:"Name,omitempty"`
 
+	// ControlPlaneScalingConfig AWS CloudFormation Property
+	// Required: false
+	// See: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-eks-cluster-controlplanescalingconfig.html
+	ControlPlaneScalingConfig *Cluster_ControlPlaneScalingConfig `json:"ControlPlaneScalingConfig,omitempty"`
+
 	// OutpostConfig AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-eks-cluster.html#cfn-eks-cluster-outpostconfig
