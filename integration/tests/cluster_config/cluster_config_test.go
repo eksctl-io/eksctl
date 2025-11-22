@@ -6,7 +6,7 @@ package cluster_config
 import (
 	"context"
 	"testing"
-	
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	. "github.com/onsi/ginkgo/v2"
@@ -44,9 +44,8 @@ var _ = BeforeSuite(func() {
 	if params.SkipCreate {
 		return
 	}
-	params.ClusterName = "it-cluster-config-adorable-mushroom-1763773338"
 	clusterConfig := api.NewClusterConfig()
-	clusterConfig.Metadata.Name = "it-cluster-config-adorable-mushroom-1763773338" //params.ClusterName
+	clusterConfig.Metadata.Name = params.ClusterName
 	clusterConfig.Metadata.Region = params.Region
 	clusterConfig.Metadata.Version = params.Version
 	clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{}
@@ -59,7 +58,7 @@ var _ = BeforeSuite(func() {
 	cmd := params.EksctlCreateCmd.WithArgs(
 		"cluster",
 		"--config-file", "-",
-		"--verbose", "4", "--dry-run",
+		"--verbose", "4",
 	).
 		WithoutArg("--region", params.Region).
 		WithStdin(clusterutils.Reader(clusterConfig))
@@ -98,7 +97,6 @@ var _ = AfterSuite(func() {
 	if params.SkipDelete {
 		return
 	}
-	return
 	cmd := params.EksctlDeleteCmd.WithArgs(
 		"cluster", params.ClusterName,
 		"--disable-nodegroup-eviction",
