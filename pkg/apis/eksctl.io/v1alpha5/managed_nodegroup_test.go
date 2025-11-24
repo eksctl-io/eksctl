@@ -1,8 +1,6 @@
 package v1alpha5
 
 import (
-	"fmt"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	. "github.com/onsi/ginkgo/v2"
 
@@ -58,15 +56,6 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				},
 			},
 			errMsg: "when using a custom AMI, amiFamily needs to be explicitly set via config file or via --node-ami-family flag",
-		}),
-		Entry("Custom AMI without overrideBootstrapCommand", &nodeGroupCase{
-			ng: &ManagedNodeGroup{
-				NodeGroupBase: &NodeGroupBase{
-					AMI:       "ami-custom",
-					AMIFamily: DefaultNodeImageFamily,
-				},
-			},
-			errMsg: fmt.Sprintf("overrideBootstrapCommand is required when using a custom AMI based on %s", DefaultNodeImageFamily),
 		}),
 		Entry("Custom AMI with Windows AMI family without overrideBootstrapCommand", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
