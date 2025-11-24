@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 //revive:disable Not changing package name
 package backwards_compat
@@ -13,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/weaveworks/eksctl/integration/runner"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/pkg/testutils"
@@ -69,7 +67,7 @@ var _ = Describe("(Integration) [Backwards compatibility test]", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By(fmt.Sprintf("creating a cluster with release %q", version))
-		cmd := runner.NewCmd(eksctlPath).
+		cmd := NewCmd(eksctlPath).
 			WithArgs(
 				"create",
 				"cluster",
@@ -145,7 +143,7 @@ var _ = AfterSuite(func() {
 })
 
 func downloadRelease(dir string) {
-	cmd := runner.NewCmd("../../scripts/download-previous-release.sh").
+	cmd := NewCmd("../../scripts/download-previous-release.sh").
 		WithEnv(
 			fmt.Sprintf("GO_BACK_VERSIONS=%d", goBackVersions),
 			fmt.Sprintf("DOWNLOAD_DIR=%s", dir),
@@ -156,7 +154,7 @@ func downloadRelease(dir string) {
 }
 
 func getVersion(eksctlPath string) (string, error) {
-	cmd := runner.NewCmd(eksctlPath).WithArgs("version")
+	cmd := NewCmd(eksctlPath).WithArgs("version")
 	session := cmd.Run()
 	if session.ExitCode() != 0 {
 		return "", errors.New(string(session.Err.Contents()))

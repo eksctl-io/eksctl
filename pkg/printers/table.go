@@ -40,7 +40,7 @@ func (t *TablePrinter) PrintObjWithKind(kind string, obj interface{}, writer io.
 
 	if itemsValue.Len() == 0 {
 		w := bufio.NewWriter(writer)
-		if _, err := w.WriteString(fmt.Sprintf("No %s found\n", strings.ToLower(kind))); err != nil {
+		if _, err := fmt.Fprintf(w, "No %s found\n", strings.ToLower(kind)); err != nil {
 			return err
 		}
 		return w.Flush()

@@ -216,7 +216,7 @@ func (d *Evictor) daemonSetFilter(pod corev1.Pod) PodDeleteStatus {
 }
 
 func (d *Evictor) mirrorPodFilter(pod corev1.Pod) PodDeleteStatus {
-	if _, found := pod.ObjectMeta.Annotations[corev1.MirrorPodAnnotationKey]; found {
+	if _, found := pod.Annotations[corev1.MirrorPodAnnotationKey]; found {
 		return makePodDeleteStatusSkip()
 	}
 	return makePodDeleteStatusOkay()

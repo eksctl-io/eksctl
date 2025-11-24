@@ -1,0 +1,10 @@
+# An example ClusterConfig with control plane scaling config
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: control-plane-scaling-config-cluster
+  region: us-west-2
+
+controlPlaneScalingConfig:
+  tier: tier-xl

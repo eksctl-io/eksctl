@@ -1046,6 +1046,9 @@ type ClusterConfig struct {
 	// +optional
 	Outpost *Outpost `json:"outpost,omitempty"`
 
+	// ControlPlaneScalingConfig specifies control plane scaling configuration.
+	ControlPlaneScalingConfig *ControlPlaneScalingConfig `json:"controlPlaneScalingConfig,omitempty"`
+
 	// ZonalShiftConfig specifies the zonal shift configuration.
 	ZonalShiftConfig *ZonalShiftConfig `json:"zonalShiftConfig,omitempty"`
 }
@@ -1073,6 +1076,11 @@ func (o *Outpost) SetInstanceType(instanceType string) {
 // HasPlacementGroup reports whether this Outpost has a placement group.
 func (o *Outpost) HasPlacementGroup() bool {
 	return o.ControlPlanePlacement != nil
+}
+
+// ControlPlaneScalingConfig holds control plane scaling configuration.
+type ControlPlaneScalingConfig struct {
+	Tier *string `json:"tier,omitempty"`
 }
 
 // ZonalShiftConfig holds the zonal shift configuration.
@@ -1960,8 +1968,8 @@ type ManagedNodeGroup struct {
 }
 
 func (n *NodeGroupBase) GetDesiredCapacity() int {
-	if n.ScalingConfig != nil && n.ScalingConfig.DesiredCapacity != nil {
-		return *n.ScalingConfig.DesiredCapacity
+	if n.ScalingConfig != nil && n.DesiredCapacity != nil {
+		return *n.DesiredCapacity
 	}
 	return 0
 }

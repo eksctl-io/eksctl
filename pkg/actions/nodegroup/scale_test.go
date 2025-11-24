@@ -287,7 +287,7 @@ var _ = Describe("Scale", func() {
 			It("waits for scaling and times out", func() {
 				p.SetWaitTimeout(1 * time.Millisecond)
 				err := m.Scale(context.Background(), ng, true)
-				Expect(err).To(MatchError(fmt.Sprintf("failed to scale nodegroup %q for cluster %q, error: timed out waiting for at least %d nodes to join the cluster and become ready in %q: context deadline exceeded", ng.Name, clusterName, *ng.ScalingConfig.MinSize, ng.Name)))
+				Expect(err).To(MatchError(fmt.Sprintf("failed to scale nodegroup %q for cluster %q, error: timed out waiting for at least %d nodes to join the cluster and become ready in %q: context deadline exceeded", ng.Name, clusterName, *ng.MinSize, ng.Name)))
 			})
 		})
 

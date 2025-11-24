@@ -57,7 +57,7 @@ func NewCreatePodIdentityAssociationLoader(cmd *Cmd, podIdentityAssociation *api
 			}
 		}
 
-		l.Cmd.ClusterConfig.IAM.PodIdentityAssociations = []api.PodIdentityAssociation{*podIdentityAssociation}
+		l.ClusterConfig.IAM.PodIdentityAssociations = []api.PodIdentityAssociation{*podIdentityAssociation}
 		return nil
 	}
 

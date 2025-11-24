@@ -125,6 +125,8 @@ type Outposts interface {
 	// [Logging Amazon Web Services Outposts API calls with Amazon Web Services CloudTrail]: https://docs.aws.amazon.com/outposts/latest/userguide/logging-using-cloudtrail.html
 	// [Amazon Web Services managed policies for Amazon Web Services Outposts]: https://docs.aws.amazon.com/outposts/latest/userguide/security-iam-awsmanpol.html
 	StartConnection(ctx context.Context, params *outposts.StartConnectionInput, optFns ...func(*Options)) (*outposts.StartConnectionOutput, error)
+	// Starts the decommission process to return the Outposts racks or servers.
+	StartOutpostDecommission(ctx context.Context, params *outposts.StartOutpostDecommissionInput, optFns ...func(*Options)) (*outposts.StartOutpostDecommissionOutput, error)
 	// Adds tags to the specified resource.
 	TagResource(ctx context.Context, params *outposts.TagResourceInput, optFns ...func(*Options)) (*outposts.TagResourceOutput, error)
 	// Removes tags from the specified resource.

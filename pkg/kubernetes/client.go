@@ -23,7 +23,6 @@ import (
 	"k8s.io/client-go/discovery/cached/memory"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
@@ -510,7 +509,7 @@ func NewRESTClientGetter(namespace, kubeConfig string) *SimpleRESTClientGetter {
 	}
 }
 
-func (c *SimpleRESTClientGetter) ToRESTConfig() (*rest.Config, error) {
+func (c *SimpleRESTClientGetter) ToRESTConfig() (*restclient.Config, error) {
 	config, err := clientcmd.RESTConfigFromKubeConfig([]byte(c.KubeConfig))
 	if err != nil {
 		return nil, err

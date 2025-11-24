@@ -59,6 +59,10 @@ type Properties struct {
 		SupportType string
 	}
 
+	ControlPlaneScalingConfig *struct {
+		Tier string
+	}
+
 	LoadBalancerNames                 []string
 	MetricsCollection                 []map[string]interface{}
 	TargetGroupARNs                   []string

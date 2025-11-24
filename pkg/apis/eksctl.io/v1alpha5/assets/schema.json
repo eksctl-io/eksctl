@@ -467,6 +467,11 @@
           "description": "See [CloudWatch support](/usage/cloudwatch-cluster-logging/)",
           "x-intellij-html-description": "See <a href=\"/usage/cloudwatch-cluster-logging/\">CloudWatch support</a>"
         },
+        "controlPlaneScalingConfig": {
+          "$ref": "#/definitions/ControlPlaneScalingConfig",
+          "description": "specifies control plane scaling configuration.",
+          "x-intellij-html-description": "specifies control plane scaling configuration."
+        },
         "fargateProfiles": {
           "items": {
             "$ref": "#/definitions/FargateProfile"
@@ -590,6 +595,7 @@
         "gitops",
         "karpenter",
         "outpost",
+        "controlPlaneScalingConfig",
         "zonalShiftConfig"
       ],
       "additionalProperties": false,
@@ -1028,6 +1034,19 @@
       "additionalProperties": false,
       "description": "holds global subnet and all child subnets",
       "x-intellij-html-description": "holds global subnet and all child subnets"
+    },
+    "ControlPlaneScalingConfig": {
+      "properties": {
+        "tier": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "tier"
+      ],
+      "additionalProperties": false,
+      "description": "holds control plane scaling configuration.",
+      "x-intellij-html-description": "holds control plane scaling configuration."
     },
     "FargateProfile": {
       "required": [

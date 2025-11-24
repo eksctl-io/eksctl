@@ -62,7 +62,7 @@ func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(ctx context.Context, 
 			if api.IsEnabled(sa.RoleOnly) {
 				return nil
 			}
-			exists, _, err := kubernetes.CheckServiceAccountExists(clientSet, sa.ClusterIAMMeta.AsObjectMeta())
+			exists, _, err := kubernetes.CheckServiceAccountExists(clientSet, sa.AsObjectMeta())
 			if err != nil {
 				return err
 			}

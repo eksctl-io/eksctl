@@ -18,9 +18,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/addons"
 	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-
-	// For go:embed
-	_ "embed"
 )
 
 const (

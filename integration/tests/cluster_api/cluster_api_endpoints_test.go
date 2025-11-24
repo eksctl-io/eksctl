@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 //revive:disable Not changing package name
 package cluster_api
@@ -84,7 +83,8 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 			setMetadata(cfg, clName, params.Region)
 
 			// create cluster with config file
-			if e.Type == createCluster {
+			switch e.Type {
+			case createCluster:
 				cmd := params.EksctlCreateCmd.WithArgs(
 					"cluster",
 					"--verbose", "2",
@@ -102,7 +102,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 				awsSession := NewConfig(params.Region)
 				Eventually(awsSession, timeOutSeconds, pollInterval).Should(
 					HaveExistingCluster(clName, string(ekstypes.ClusterStatusActive), params.Version))
-			} else if e.Type == updateCluster {
+			case updateCluster:
 				utilsCmd := params.EksctlUtilsCmd.
 					WithTimeout(timeOutSeconds*time.Second).
 					WithArgs(

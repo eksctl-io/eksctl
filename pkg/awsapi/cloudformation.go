@@ -140,7 +140,7 @@ type CloudFormation interface {
 	// CloudFormation Hook when you no longer use it.
 	//
 	// Deactivating an extension deletes the configuration details that are associated
-	// with it. To temporary disable a CloudFormation Hook instead, you can use [SetTypeConfiguration].
+	// with it. To temporarily disable a CloudFormation Hook instead, you can use [SetTypeConfiguration].
 	//
 	// Once deactivated, an extension can't be used in any CloudFormation operation.
 	// This includes stack update operations where the stack template includes the
@@ -353,6 +353,10 @@ type CloudFormation interface {
 	// If you specify a VersionId , DescribeType returns information about that
 	// specific extension version. Otherwise, it returns information about the default
 	// extension version.
+	//
+	// For more information, see [Edit configuration data for extensions in your account] in the CloudFormation User Guide.
+	//
+	// [Edit configuration data for extensions in your account]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry-set-configuration.html
 	DescribeType(ctx context.Context, params *cloudformation.DescribeTypeInput, optFns ...func(*Options)) (*cloudformation.DescribeTypeOutput, error)
 	// Returns information about an extension's registration, including its current
 	// status and type and version identifiers.
@@ -504,7 +508,7 @@ type CloudFormation interface {
 	ListExports(ctx context.Context, params *cloudformation.ListExportsInput, optFns ...func(*Options)) (*cloudformation.ListExportsOutput, error)
 	// Lists your generated templates in this Region.
 	ListGeneratedTemplates(ctx context.Context, params *cloudformation.ListGeneratedTemplatesInput, optFns ...func(*Options)) (*cloudformation.ListGeneratedTemplatesOutput, error)
-	// Returns summaries of invoked Hooks. For more information, see [View CloudFormation Hooks invocations] in the
+	// Returns summaries of invoked Hooks. For more information, see [View invocation summaries for CloudFormation Hooks] in the
 	// CloudFormation Hooks User Guide.
 	//
 	// This operation supports the following parameter combinations:
@@ -519,7 +523,7 @@ type CloudFormation interface {
 	//   - TargetId and TargetType : Returns summaries for a specific Hook invocation
 	//     target.
 	//
-	// [View CloudFormation Hooks invocations]: https://docs.aws.amazon.com/cloudformation-cli/latest/hooks-userguide/hooks-view-invocations.html
+	// [View invocation summaries for CloudFormation Hooks]: https://docs.aws.amazon.com/cloudformation-cli/latest/hooks-userguide/hooks-view-invocations.html
 	ListHookResults(ctx context.Context, params *cloudformation.ListHookResultsInput, optFns ...func(*Options)) (*cloudformation.ListHookResultsOutput, error)
 	// Lists all stacks that are importing an exported output value. To modify or
 	// remove an exported output value, first use this action to see which stacks are
@@ -684,20 +688,27 @@ type CloudFormation interface {
 	RollbackStack(ctx context.Context, params *cloudformation.RollbackStackInput, optFns ...func(*Options)) (*cloudformation.RollbackStackOutput, error)
 	// Sets a stack policy for a specified stack.
 	SetStackPolicy(ctx context.Context, params *cloudformation.SetStackPolicyInput, optFns ...func(*Options)) (*cloudformation.SetStackPolicyOutput, error)
-	// Specifies the configuration data for a registered CloudFormation extension, in
-	// the given account and Region.
+	// Specifies the configuration data for a CloudFormation extension, such as a
+	// resource or Hook, in the given account and Region.
+	//
+	// For more information, see [Edit configuration data for extensions in your account] in the CloudFormation User Guide.
 	//
 	// To view the current configuration data for an extension, refer to the
-	// ConfigurationSchema element of [DescribeType]. For more information, see [Edit configuration data for extensions in your account] in the
-	// CloudFormation User Guide.
+	// ConfigurationSchema element of [DescribeType].
 	//
 	// It's strongly recommended that you use dynamic references to restrict sensitive
-	// configuration definitions, such as third-party credentials. For more details on
-	// dynamic references, see [Specify values stored in other services using dynamic references]in the CloudFormation User Guide.
+	// configuration definitions, such as third-party credentials. For more
+	// information, see [Specify values stored in other services using dynamic references]in the CloudFormation User Guide.
+	//
+	// For more information about setting the configuration data for resource types,
+	// see [Defining the account-level configuration of an extension]in the CloudFormation Command Line Interface (CLI) User Guide. For more
+	// information about setting the configuration data for Hooks, see the [CloudFormation Hooks User Guide].
 	//
 	// [DescribeType]: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeType.html
 	// [Edit configuration data for extensions in your account]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry-set-configuration.html
 	// [Specify values stored in other services using dynamic references]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/dynamic-references.html
+	// [Defining the account-level configuration of an extension]: https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-model.html#resource-type-howto-configuration
+	// [CloudFormation Hooks User Guide]: https://docs.aws.amazon.com/cloudformation-cli/latest/hooks-userguide/what-is-cloudformation-hooks.html
 	SetTypeConfiguration(ctx context.Context, params *cloudformation.SetTypeConfigurationInput, optFns ...func(*Options)) (*cloudformation.SetTypeConfigurationOutput, error)
 	// Specify the default version of an extension. The default version of an
 	// extension will be used in CloudFormation operations.

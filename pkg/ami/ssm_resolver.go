@@ -85,8 +85,6 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 			eksProduct = "eks-pro"
 		}
 		return fmt.Sprint("/aws/service/canonical/ubuntu/", eksProduct, "/", ubuntuReleaseName(imageFamily), "/", version, "/stable/current/", ubuntuArchName(instanceType), "/hvm/ebs-gp2/ami-id"), nil
-	default:
-		return "", fmt.Errorf("unknown image family %s", imageFamily)
 	case api.NodeImageFamilyUbuntu2404,
 		api.NodeImageFamilyUbuntuPro2404:
 		if err := validateVersionForUbuntu(version, imageFamily); err != nil {
@@ -97,6 +95,8 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 			eksProduct = "eks-pro"
 		}
 		return fmt.Sprint("/aws/service/canonical/ubuntu/", eksProduct, "/", ubuntuReleaseName(imageFamily), "/", version, "/stable/current/", ubuntuArchName(instanceType), "/hvm/ebs-gp3/ami-id"), nil
+	default:
+		return "", fmt.Errorf("unknown image family %s", imageFamily)
 	}
 }
 

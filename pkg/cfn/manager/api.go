@@ -120,8 +120,9 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) S
 // DoCreateStackRequest requests the creation of a CloudFormation stack
 func (c *StackCollection) DoCreateStackRequest(ctx context.Context, i *Stack, templateData TemplateData, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error {
 	input := &cloudformation.CreateStackInput{
-		StackName:       i.StackName,
-		DisableRollback: aws.Bool(c.disableRollback),
+		StackName:                   i.StackName,
+		DisableRollback:             aws.Bool(c.disableRollback),
+		EnableTerminationProtection: aws.Bool(true),
 	}
 	input.Tags = append(input.Tags, c.sharedTags...)
 	for k, v := range tags {
@@ -579,6 +580,16 @@ func (c *StackCollection) DeleteStackBySpec(ctx context.Context, s *Stack) (*Sta
 		return nil, fmt.Errorf("cannot delete stack %q as it doesn't bear our %q, %q tags", *s.StackName,
 			fmt.Sprintf("%s:%s", api.OldClusterNameTag, c.spec.Metadata.Name),
 			fmt.Sprintf("%s:%s", api.ClusterNameTag, c.spec.Metadata.Name))
+	}
+
+	if s.EnableTerminationProtection != nil && *s.EnableTerminationProtection {
+		updateTerminationProtectionInput := &cloudformation.UpdateTerminationProtectionInput{
+			StackName:                   s.StackId,
+			EnableTerminationProtection: aws.Bool(false),
+		}
+		if _, err := c.cloudformationAPI.UpdateTerminationProtection(ctx, updateTerminationProtectionInput); err != nil {
+			return nil, fmt.Errorf("disabling termination protection on stack %q: %w", *s.StackName, err)
+		}
 	}
 
 	input := &cloudformation.DeleteStackInput{

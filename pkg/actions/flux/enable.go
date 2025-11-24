@@ -85,8 +85,8 @@ func (ti *Installer) checkV1() (string, error) {
 	}
 
 	for _, d := range deployments.Items {
-		if d.ObjectMeta.Name == "flux" {
-			return d.ObjectMeta.Namespace, nil
+		if d.Name == "flux" {
+			return d.Namespace, nil
 		}
 	}
 

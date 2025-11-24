@@ -27,7 +27,6 @@ import (
 	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	managerfakes "github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	karpenterfakes "github.com/weaveworks/eksctl/pkg/karpenter/fakes"
@@ -72,7 +71,7 @@ var _ = Describe("Create", func() {
 			cfg.Karpenter = &api.Karpenter{
 				Version: "0.4.3",
 			}
-			fakeStackManager = &fakes.FakeStackManager{}
+			fakeStackManager = &managerfakes.FakeStackManager{}
 			fakeKarpenterInstaller = &karpenterfakes.FakeChartInstaller{}
 			ctl = &eks.ClusterProvider{
 				AWSProvider: p,
