@@ -268,7 +268,7 @@ var _ = Describe("eksctl API", func() {
 
 		It("should resolve AMI using SSM Parameter Store by default", func() {
 			provider.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
-				Name: aws.String("/aws/service/eks/optimized-ami/1.14/amazon-linux-2/recommended/image_id"),
+				Name: aws.String("/aws/service/eks/optimized-ami/1.14/amazon-linux-2023/x86_64/standard/recommended/image_id"),
 			}).Return(&ssm.GetParameterOutput{
 				Parameter: &ssmtypes.Parameter{
 					Value: aws.String("ami-ssm"),
