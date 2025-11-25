@@ -107,7 +107,7 @@ var _ = Describe("NvidiaDevicePlugin", func() {
 						NodeGroupBase: &api.NodeGroupBase{
 							Name:         "nvidia-ng",
 							InstanceType: "g4dn.xlarge",
-							AMIFamily:    api.NodeImageFamilyUbuntu2004,
+							AMIFamily:    api.NodeImageFamilyUbuntu2204,
 						},
 						Taints: []api.NodeGroupTaint{
 							{Key: "nvidia.com/gpu", Value: "true", Effect: "NoSchedule"},
