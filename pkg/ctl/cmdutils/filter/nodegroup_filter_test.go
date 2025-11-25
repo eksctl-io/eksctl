@@ -377,7 +377,7 @@ const expected = `
 		"nodeGroups": [
 		  {
 			  "name": "test-ng1a",
-			  "amiFamily": "AmazonLinux2",
+			  "amiFamily": "AmazonLinux2023",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
 			  "securityGroups": {
@@ -423,7 +423,7 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng2a",
-			  "amiFamily": "AmazonLinux2",
+			  "amiFamily": "AmazonLinux2023",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
 			  "securityGroups": {
@@ -468,7 +468,7 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng3a",
-			  "amiFamily": "AmazonLinux2",
+			  "amiFamily": "AmazonLinux2023",
 			  "instanceType": "m3.large",
 			  "privateNetworking": false,
 			  "securityGroups": {
@@ -514,7 +514,7 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng1b",
-			  "amiFamily": "AmazonLinux2",
+			  "amiFamily": "AmazonLinux2023",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
 			  "securityGroups": {
@@ -559,7 +559,7 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng2b",
-			  "amiFamily": "AmazonLinux2",
+			  "amiFamily": "AmazonLinux2023",
 			  "instanceType": "m5.xlarge",
 			  "privateNetworking": false,
 			  "securityGroups": {
@@ -608,7 +608,7 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng3b",
-			  "amiFamily": "AmazonLinux2",
+			  "amiFamily": "AmazonLinux2023",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
 			  "securityGroups": {
