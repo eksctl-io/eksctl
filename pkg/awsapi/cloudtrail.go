@@ -97,6 +97,19 @@ type CloudTrail interface {
 	// Deletes a trail. This operation must be called from the Region in which the
 	// trail was created. DeleteTrail cannot be called on the shadow trails
 	// (replicated trails in other Regions) of a trail that is enabled in all Regions.
+	//
+	// While deleting a CloudTrail trail is an irreversible action, CloudTrail does
+	// not delete log files in the Amazon S3 bucket for that trail, the Amazon S3
+	// bucket itself, or the CloudWatchlog group to which the trail delivers events.
+	// Deleting a multi-Region trail will stop logging of events in all Amazon Web
+	// Services Regions enabled in your Amazon Web Services account. Deleting a
+	// single-Region trail will stop logging of events in that Region only. It will not
+	// stop logging of events in other Regions even if the trails in those other
+	// Regions have identical names to the deleted trail.
+	//
+	// For information about account closure and deletion of CloudTrail trails, see [https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-account-closure.html].
+	//
+	// [https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-account-closure.html]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-account-closure.html
 	DeleteTrail(ctx context.Context, params *cloudtrail.DeleteTrailInput, optFns ...func(*Options)) (*cloudtrail.DeleteTrailOutput, error)
 	// Removes CloudTrail delegated administrator permissions from a member account in
 	// an organization.
@@ -168,8 +181,9 @@ type CloudTrail interface {
 	// Returns the specified dashboard.
 	GetDashboard(ctx context.Context, params *cloudtrail.GetDashboardInput, optFns ...func(*Options)) (*cloudtrail.GetDashboardOutput, error)
 	// Retrieves the current event configuration settings for the specified event data
-	// store, including details about maximum event size and context key selectors
-	// configured for the event data store.
+	// store or trail. The response includes maximum event size configuration, the
+	// context key selectors configured for the event data store, and any aggregation
+	// settings configured for the trail.
 	GetEventConfiguration(ctx context.Context, params *cloudtrail.GetEventConfigurationInput, optFns ...func(*Options)) (*cloudtrail.GetEventConfigurationOutput, error)
 	// Returns information about an event data store specified as either an ARN or the
 	// ID portion of the ARN.
@@ -206,9 +220,9 @@ type CloudTrail interface {
 	GetImport(ctx context.Context, params *cloudtrail.GetImportInput, optFns ...func(*Options)) (*cloudtrail.GetImportOutput, error)
 	// Describes the settings for the Insights event selectors that you configured for
 	// your trail or event data store. GetInsightSelectors shows if CloudTrail
-	// Insights event logging is enabled on the trail or event data store, and if it
-	// is, which Insights types are enabled. If you run GetInsightSelectors on a trail
-	// or event data store that does not have Insights events enabled, the operation
+	// Insights logging is enabled and which Insights types are configured with
+	// corresponding event categories. If you run GetInsightSelectors on a trail or
+	// event data store that does not have Insights events enabled, the operation
 	// throws the exception InsightNotEnabledException
 	//
 	// Specify either the EventDataStore parameter to get Insights event selectors for
@@ -249,6 +263,24 @@ type CloudTrail interface {
 	//
 	// or Destination .
 	ListImports(ctx context.Context, params *cloudtrail.ListImportsInput, optFns ...func(*Options)) (*cloudtrail.ListImportsOutput, error)
+	// Returns Insights events generated on a trail that logs data events. You can
+	// list Insights events that occurred in a Region within the last 90 days.
+	//
+	// ListInsightsData supports the following Dimensions for Insights events:
+	//
+	//   - Event ID
+	//
+	//   - Event name
+	//
+	//   - Event source
+	//
+	// All dimensions are optional. The default number of results returned is 50, with
+	// a maximum of 50 possible. The response includes a token that you can use to get
+	// the next page of results.
+	//
+	// The rate of ListInsightsData requests is limited to two per second, per
+	// account, per Region. If this limit is exceeded, a throttling error occurs.
+	ListInsightsData(ctx context.Context, params *cloudtrail.ListInsightsDataInput, optFns ...func(*Options)) (*cloudtrail.ListInsightsDataOutput, error)
 	// Returns Insights metrics data for trails that have enabled Insights. The
 	// request must include the EventSource , EventName , and InsightType parameters.
 	//
@@ -267,9 +299,19 @@ type CloudTrail interface {
 	//   - Data points with a period of 3600 seconds (1 hour) are available for 90
 	//     days.
 	//
-	// Access to the ListInsightsMetricData API operation is linked to the
-	// cloudtrail:LookupEvents action. To use this operation, you must have permissions
-	// to perform the cloudtrail:LookupEvents action.
+	// To use ListInsightsMetricData operation, you must have the following
+	// permissions:
+	//
+	//   - If ListInsightsMetricData is invoked with TrailName parameter, access to the
+	//     ListInsightsMetricData API operation is linked to the cloudtrail:LookupEvents
+	//     action and cloudtrail:ListInsightsData . To use this operation, you must have
+	//     permissions to perform the cloudtrail:LookupEvents and
+	//     cloudtrail:ListInsightsData action on the specific trail.
+	//
+	//   - If ListInsightsMetricData is invoked without TrailName parameter, access to
+	//     the ListInsightsMetricData API operation is linked to the
+	//     cloudtrail:LookupEvents action only. To use this operation, you must have
+	//     permissions to perform the cloudtrail:LookupEvents action.
 	ListInsightsMetricData(ctx context.Context, params *cloudtrail.ListInsightsMetricDataInput, optFns ...func(*Options)) (*cloudtrail.ListInsightsMetricDataOutput, error)
 	// Returns all public keys whose private keys were used to sign the digest files
 	// within the specified time range. The public key is needed to validate digest
@@ -336,8 +378,10 @@ type CloudTrail interface {
 	// [CloudTrail Insights events]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html#cloudtrail-concepts-insights-events
 	// [management events]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html#cloudtrail-concepts-management-events
 	LookupEvents(ctx context.Context, params *cloudtrail.LookupEventsInput, optFns ...func(*Options)) (*cloudtrail.LookupEventsOutput, error)
-	// Updates the event configuration settings for the specified event data store.
-	// You can update the maximum event size and context key selectors.
+	// Updates the event configuration settings for the specified event data store or
+	// trail. This operation supports updating the maximum event size, adding or
+	// modifying context key selectors for event data store, and configuring
+	// aggregation settings for the trail.
 	PutEventConfiguration(ctx context.Context, params *cloudtrail.PutEventConfigurationInput, optFns ...func(*Options)) (*cloudtrail.PutEventConfigurationOutput, error)
 	// Configures event selectors (also referred to as basic event selectors) or
 	// advanced event selectors for your trail. You can use either
@@ -401,11 +445,15 @@ type CloudTrail interface {
 	// [Quotas in CloudTrail]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/WhatIsCloudTrail-Limits.html
 	// [Logging data events]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html
 	PutEventSelectors(ctx context.Context, params *cloudtrail.PutEventSelectorsInput, optFns ...func(*Options)) (*cloudtrail.PutEventSelectorsOutput, error)
-	// Lets you enable Insights event logging by specifying the Insights selectors
-	// that you want to enable on an existing trail or event data store. You also use
-	// PutInsightSelectors to turn off Insights event logging, by passing an empty list
-	// of Insights types. The valid Insights event types are ApiErrorRateInsight and
-	// ApiCallRateInsight .
+	// Lets you enable Insights event logging on specific event categories by
+	// specifying the Insights selectors that you want to enable on an existing trail
+	// or event data store. You also use PutInsightSelectors to turn off Insights
+	// event logging, by passing an empty list of Insights types. The valid Insights
+	// event types are ApiErrorRateInsight and ApiCallRateInsight , and valid
+	// EventCategories are Management and Data .
+	//
+	// Insights on data events are not supported on event data stores. For event data
+	// stores, you can only enable Insights on management events.
 	//
 	// To enable Insights on an event data store, you must specify the ARNs (or ID
 	// suffix of the ARNs) for the source event data store ( EventDataStore ) and the
@@ -417,6 +465,15 @@ type CloudTrail interface {
 	//
 	// To log Insights events for a trail, you must specify the name ( TrailName ) of
 	// the CloudTrail trail for which you want to change or add Insights selectors.
+	//
+	//   - For Management events Insights: To log CloudTrail Insights on the API call
+	//     rate, the trail or event data store must log write management events. To log
+	//     CloudTrail Insights on the API error rate, the trail or event data store must
+	//     log read or write management events.
+	//
+	//   - For Data events Insights: To log CloudTrail Insights on the API call rate
+	//     or API error rate, the trail must log read or write data events. Data events
+	//     Insights are not supported on event data store.
 	//
 	// To log CloudTrail Insights events on API call volume, the trail or event data
 	// store must log write management events. To log CloudTrail Insights events on

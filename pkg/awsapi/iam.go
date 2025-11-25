@@ -17,6 +17,21 @@ type IAM interface {
 	// config. Config overrides should instead be made on a per-operation basis through
 	// functional options.
 	Options() iam.Options
+	// Accepts a delegation request, granting the requested temporary access.
+	//
+	// Once the delegation request is accepted, it is eligible to send the exchange
+	// token to the partner. The [SendDelegationToken]API has to be explicitly called to send the
+	// delegation token.
+	//
+	// At the time of acceptance, IAM records the details and the state of the
+	// identity that called this API. This is the identity that gets mapped to the
+	// delegated credential.
+	//
+	// An accepted request may be rejected before the exchange token is sent to the
+	// partner.
+	//
+	// [SendDelegationToken]: https://docs.aws.amazon.com/IAM/latest/APIReference/API_SendDelegationToken.html
+	AcceptDelegationRequest(ctx context.Context, params *iam.AcceptDelegationRequestInput, optFns ...func(*Options)) (*iam.AcceptDelegationRequestOutput, error)
 	// Adds a new client ID (also known as audience) to the list of client IDs already
 	// registered for the specified IAM OpenID Connect (OIDC) provider resource.
 	//
@@ -53,6 +68,25 @@ type IAM interface {
 	AddRoleToInstanceProfile(ctx context.Context, params *iam.AddRoleToInstanceProfileInput, optFns ...func(*Options)) (*iam.AddRoleToInstanceProfileOutput, error)
 	// Adds the specified user to the specified group.
 	AddUserToGroup(ctx context.Context, params *iam.AddUserToGroupInput, optFns ...func(*Options)) (*iam.AddUserToGroupOutput, error)
+	// Associates a delegation request with the current identity.
+	//
+	// If the partner that created the delegation request has specified the owner
+	// account during creation, only an identity from that owner account can call the
+	// AssociateDelegationRequest API for the specified delegation request. Once the
+	// AssociateDelegationRequest API call is successful, the ARN of the current
+	// calling identity will be stored as the ownerId of the request.
+	//
+	// If the partner that created the delegation request has not specified the owner
+	// account during creation, any caller from any account can call the
+	// AssociateDelegationRequest API for the delegation request. Once this API call is
+	// successful, the ARN of the current calling identity will be stored as the
+	// ownerId and the Amazon Web Services account ID of the current calling identity
+	// will be stored as the ownerAccount of the request.
+	//
+	// For more details, see [Managing Permissions for Delegation Requests].
+	//
+	// [Managing Permissions for Delegation Requests]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-temporary-delegation.html#temporary-delegation-managing-permissions
+	AssociateDelegationRequest(ctx context.Context, params *iam.AssociateDelegationRequestInput, optFns ...func(*Options)) (*iam.AssociateDelegationRequestOutput, error)
 	// Attaches the specified managed policy to the specified IAM group.
 	//
 	// You use this operation to attach a managed policy to a group. To embed an
@@ -144,7 +178,12 @@ type IAM interface {
 	//
 	// [Creating, deleting, and listing an Amazon Web Services account alias]: https://docs.aws.amazon.com/signin/latest/userguide/CreateAccountAlias.html
 	CreateAccountAlias(ctx context.Context, params *iam.CreateAccountAliasInput, optFns ...func(*Options)) (*iam.CreateAccountAliasOutput, error)
-	// This API is currently unavailable for general use.
+	// Creates an IAM delegation request for temporary access delegation.
+	//
+	// This API is not available for general use. In order to use this API, a caller
+	// first need to go through an onboarding process described in the [partner onboarding documentation].
+	//
+	// [partner onboarding documentation]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-temporary-delegation-partner-guide.html
 	CreateDelegationRequest(ctx context.Context, params *iam.CreateDelegationRequestInput, optFns ...func(*Options)) (*iam.CreateDelegationRequestOutput, error)
 	// Creates a new group.
 	//
@@ -659,6 +698,12 @@ type IAM interface {
 	// delegated administrator for IAM can no longer perform privileged tasks on member
 	// accounts in your organization.
 	DisableOrganizationsRootSessions(ctx context.Context, params *iam.DisableOrganizationsRootSessionsInput, optFns ...func(*Options)) (*iam.DisableOrganizationsRootSessionsOutput, error)
+	// Disables the outbound identity federation feature for your Amazon Web Services
+	// account. When disabled, IAM principals in the account cannot use the
+	// GetWebIdentityToken API to obtain JSON Web Tokens (JWTs) for authentication with
+	// external services. This operation does not affect tokens that were issued before
+	// the feature was disabled.
+	DisableOutboundWebIdentityFederation(ctx context.Context, params *iam.DisableOutboundWebIdentityFederationInput, optFns ...func(*Options)) (*iam.DisableOutboundWebIdentityFederationOutput, error)
 	// Enables the specified MFA device and associates it with the specified IAM user.
 	// When enabled, the MFA device is required for every subsequent login by the IAM
 	// user associated with the device.
@@ -696,6 +741,12 @@ type IAM interface {
 	// [Organizations]: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html
 	// [IAM and Organizations]: https://docs.aws.amazon.com/organizations/latest/userguide/services-that-can-integrate-ra.html
 	EnableOrganizationsRootSessions(ctx context.Context, params *iam.EnableOrganizationsRootSessionsInput, optFns ...func(*Options)) (*iam.EnableOrganizationsRootSessionsOutput, error)
+	// Enables the outbound identity federation feature for your Amazon Web Services
+	// account. When enabled, IAM principals in your account can use the
+	// GetWebIdentityToken API to obtain JSON Web Tokens (JWTs) for secure
+	// authentication with external services. This operation also generates a unique
+	// issuer URL for your Amazon Web Services account.
+	EnableOutboundWebIdentityFederation(ctx context.Context, params *iam.EnableOutboundWebIdentityFederationInput, optFns ...func(*Options)) (*iam.EnableOutboundWebIdentityFederationOutput, error)
 	//	Generates a credential report for the Amazon Web Services account. For more
 	//
 	// information about the credential report, see [Getting credential reports]in the IAM User Guide.
@@ -958,6 +1009,17 @@ type IAM interface {
 	//
 	// [Getting credential reports]: https://docs.aws.amazon.com/IAM/latest/UserGuide/credential-reports.html
 	GetCredentialReport(ctx context.Context, params *iam.GetCredentialReportInput, optFns ...func(*Options)) (*iam.GetCredentialReportOutput, error)
+	// Retrieves information about a specific delegation request.
+	//
+	// If a delegation request has no owner or owner account, GetDelegationRequest for
+	// that delegation request can be called by any account. If the owner account is
+	// assigned but there is no owner id, only identities within that owner account can
+	// call GetDelegationRequest for the delegation request. Once the delegation
+	// request is fully owned, the owner of the request gets a default permission to
+	// get that delegation request. For more details, see [Managing Permissions for Delegation Requests].
+	//
+	// [Managing Permissions for Delegation Requests]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-temporary-delegation.html#temporary-delegation-managing-permissions
+	GetDelegationRequest(ctx context.Context, params *iam.GetDelegationRequestInput, optFns ...func(*Options)) (*iam.GetDelegationRequestOutput, error)
 	//	Returns a list of IAM users that are in the specified IAM group. You can
 	//
 	// paginate the results using the MaxItems and Marker parameters.
@@ -982,6 +1044,23 @@ type IAM interface {
 	// [GetPolicy]: https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetPolicy.html
 	// [Managed policies and inline policies]: https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html
 	GetGroupPolicy(ctx context.Context, params *iam.GetGroupPolicyInput, optFns ...func(*Options)) (*iam.GetGroupPolicyOutput, error)
+	// Retrieves a human readable summary for a given entity. At this time, the only
+	// supported entity type is delegation-request
+	//
+	// This method uses a Large Language Model (LLM) to generate the summary.
+	//
+	// If a delegation request has no owner or owner account, GetHumanReadableSummary
+	// for that delegation request can be called by any account. If the owner account
+	// is assigned but there is no owner id, only identities within that owner account
+	// can call GetHumanReadableSummary for the delegation request to retrieve a
+	// summary of that request. Once the delegation request is fully owned, the owner
+	// of the request gets a default permission to get that delegation request. For
+	// more details, read default permissions granted to delegation requests. These rules are identical to [GetDelegationRequest] API behavior, such that a
+	// party who has permissions to call [GetDelegationRequest]for a given delegation request will always be
+	// able to retrieve the human readable summary for that request.
+	//
+	// [GetDelegationRequest]: https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetDelegationRequest.html
+	GetHumanReadableSummary(ctx context.Context, params *iam.GetHumanReadableSummaryInput, optFns ...func(*Options)) (*iam.GetHumanReadableSummaryOutput, error)
 	//	Retrieves information about the specified instance profile, including the
 	//
 	// instance profile's path, GUID, ARN, and role. For more information about
@@ -1031,6 +1110,12 @@ type IAM interface {
 	// [GenerateOrganizationsAccessReport]: https://docs.aws.amazon.com/IAM/latest/APIReference/API_GenerateOrganizationsAccessReport.html
 	// [Refining permissions using service last accessed data]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor.html
 	GetOrganizationsAccessReport(ctx context.Context, params *iam.GetOrganizationsAccessReportInput, optFns ...func(*Options)) (*iam.GetOrganizationsAccessReportOutput, error)
+	// Retrieves the configuration information for the outbound identity federation
+	// feature in your Amazon Web Services account. The response includes the unique
+	// issuer URL for your Amazon Web Services account and the current enabled/disabled
+	// status of the feature. Use this operation to obtain the issuer URL that you need
+	// to configure trust relationships with external services.
+	GetOutboundWebIdentityFederationInfo(ctx context.Context, params *iam.GetOutboundWebIdentityFederationInfoInput, optFns ...func(*Options)) (*iam.GetOutboundWebIdentityFederationInfoOutput, error)
 	// Retrieves information about the specified managed policy, including the
 	// policy's default version and the total number of IAM users, groups, and roles to
 	// which the policy is attached. To retrieve the list of the specific users,
@@ -1314,6 +1399,16 @@ type IAM interface {
 	// [ListUserPolicies]: https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListUserPolicies.html
 	// [Managed policies and inline policies]: https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html
 	ListAttachedUserPolicies(ctx context.Context, params *iam.ListAttachedUserPoliciesInput, optFns ...func(*Options)) (*iam.ListAttachedUserPoliciesOutput, error)
+	// Lists delegation requests based on the specified criteria.
+	//
+	// If a delegation request has no owner, even if it is assigned to a specific
+	// account, it will not be part of the ListDelegationRequests output for that
+	// account.
+	//
+	// For more details, see [Managing Permissions for Delegation Requests].
+	//
+	// [Managing Permissions for Delegation Requests]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-temporary-delegation.html#temporary-delegation-managing-permissions
+	ListDelegationRequests(ctx context.Context, params *iam.ListDelegationRequestsInput, optFns ...func(*Options)) (*iam.ListDelegationRequestsOutput, error)
 	// Lists all IAM users, groups, and roles that the specified managed policy is
 	// attached to.
 	//
@@ -1753,6 +1848,18 @@ type IAM interface {
 	// [AttachUserPolicy]: https://docs.aws.amazon.com/IAM/latest/APIReference/API_AttachUserPolicy.html
 	// [Managed policies and inline policies]: https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html
 	PutUserPolicy(ctx context.Context, params *iam.PutUserPolicyInput, optFns ...func(*Options)) (*iam.PutUserPolicyOutput, error)
+	// Rejects a delegation request, denying the requested temporary access.
+	//
+	// Once a request is rejected, it cannot be accepted or updated later. Rejected
+	// requests expire after 7 days.
+	//
+	// When rejecting a request, an optional explanation can be added using the Notes
+	// request parameter.
+	//
+	// For more details, see [Managing Permissions for Delegation Requests].
+	//
+	// [Managing Permissions for Delegation Requests]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-temporary-delegation.html#temporary-delegation-managing-permissions
+	RejectDelegationRequest(ctx context.Context, params *iam.RejectDelegationRequestInput, optFns ...func(*Options)) (*iam.RejectDelegationRequestOutput, error)
 	// Removes the specified client ID (also known as audience) from the list of
 	// client IDs registered for the specified IAM OpenID Connect (OIDC) provider
 	// resource object.
@@ -1788,6 +1895,20 @@ type IAM interface {
 	//
 	// [Using a virtual MFA device]: https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_VirtualMFA.html
 	ResyncMFADevice(ctx context.Context, params *iam.ResyncMFADeviceInput, optFns ...func(*Options)) (*iam.ResyncMFADeviceOutput, error)
+	// Sends the exchange token for an accepted delegation request.
+	//
+	// The exchange token is sent to the partner via an asynchronous notification
+	// channel, established by the partner.
+	//
+	// The delegation request must be in the ACCEPTED state when calling this API.
+	// After the SendDelegationToken API call is successful, the request transitions
+	// to a FINALIZED state and cannot be rolled back. However, a user may reject an
+	// accepted request before the SendDelegationToken API is called.
+	//
+	// For more details, see [Managing Permissions for Delegation Requests].
+	//
+	// [Managing Permissions for Delegation Requests]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-temporary-delegation.html#temporary-delegation-managing-permissions
+	SendDelegationToken(ctx context.Context, params *iam.SendDelegationTokenInput, optFns ...func(*Options)) (*iam.SendDelegationTokenOutput, error)
 	// Sets the specified version of the specified policy as the policy's default
 	// (operative) version.
 	//
@@ -2227,6 +2348,14 @@ type IAM interface {
 	//
 	// [Using roles to delegate permissions and federate identities]: https://docs.aws.amazon.com/IAM/latest/UserGuide/roles-toplevel.html
 	UpdateAssumeRolePolicy(ctx context.Context, params *iam.UpdateAssumeRolePolicyInput, optFns ...func(*Options)) (*iam.UpdateAssumeRolePolicyOutput, error)
+	// Updates an existing delegation request with additional information. When the
+	// delegation request is updated, it reaches the PENDING_APPROVAL state.
+	//
+	// Once a delegation request has an owner, that owner gets a default permission to
+	// update the delegation request. For more details, see [Managing Permissions for Delegation Requests].
+	//
+	// [Managing Permissions for Delegation Requests]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-temporary-delegation.html#temporary-delegation-managing-permissions
+	UpdateDelegationRequest(ctx context.Context, params *iam.UpdateDelegationRequestInput, optFns ...func(*Options)) (*iam.UpdateDelegationRequestOutput, error)
 	// Updates the name and/or the path of the specified IAM group.
 	//
 	// You should understand the implications of changing a group's path or name. For

@@ -2465,6 +2465,80 @@ func (_c *CloudTrail_ListImports_Call) RunAndReturn(run func(context.Context, *c
 	return _c
 }
 
+// ListInsightsData provides a mock function with given fields: ctx, params, optFns
+func (_m *CloudTrail) ListInsightsData(ctx context.Context, params *cloudtrail.ListInsightsDataInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.ListInsightsDataOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListInsightsData")
+	}
+
+	var r0 *cloudtrail.ListInsightsDataOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListInsightsDataInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListInsightsDataOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListInsightsDataInput, ...func(*cloudtrail.Options)) *cloudtrail.ListInsightsDataOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.ListInsightsDataOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.ListInsightsDataInput, ...func(*cloudtrail.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CloudTrail_ListInsightsData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListInsightsData'
+type CloudTrail_ListInsightsData_Call struct {
+	*mock.Call
+}
+
+// ListInsightsData is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *cloudtrail.ListInsightsDataInput
+//   - optFns ...func(*cloudtrail.Options)
+func (_e *CloudTrail_Expecter) ListInsightsData(ctx interface{}, params interface{}, optFns ...interface{}) *CloudTrail_ListInsightsData_Call {
+	return &CloudTrail_ListInsightsData_Call{Call: _e.mock.On("ListInsightsData",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *CloudTrail_ListInsightsData_Call) Run(run func(ctx context.Context, params *cloudtrail.ListInsightsDataInput, optFns ...func(*cloudtrail.Options))) *CloudTrail_ListInsightsData_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*cloudtrail.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*cloudtrail.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*cloudtrail.ListInsightsDataInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CloudTrail_ListInsightsData_Call) Return(_a0 *cloudtrail.ListInsightsDataOutput, _a1 error) *CloudTrail_ListInsightsData_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CloudTrail_ListInsightsData_Call) RunAndReturn(run func(context.Context, *cloudtrail.ListInsightsDataInput, ...func(*cloudtrail.Options)) (*cloudtrail.ListInsightsDataOutput, error)) *CloudTrail_ListInsightsData_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListInsightsMetricData provides a mock function with given fields: ctx, params, optFns
 func (_m *CloudTrail) ListInsightsMetricData(ctx context.Context, params *cloudtrail.ListInsightsMetricDataInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.ListInsightsMetricDataOutput, error) {
 	_va := make([]interface{}, len(optFns))
