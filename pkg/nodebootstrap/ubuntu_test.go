@@ -23,7 +23,7 @@ var _ = Describe("Ubuntu User Data", func() {
 		clusterConfig.Status = &api.ClusterStatus{}
 		ng = &api.NodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
-				AMIFamily: "Ubuntu2004",
+				AMIFamily: "Ubuntu2204",
 			},
 		}
 	})
