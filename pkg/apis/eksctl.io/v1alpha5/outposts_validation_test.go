@@ -199,13 +199,13 @@ var _ = Describe("Outposts validation", func() {
 			},
 		}, clusterConfig)
 		if shouldFail {
-			Expect(err).To(MatchError("only AmazonLinux2023 is supported on local clusters"))
+			Expect(err).To(MatchError("only AmazonLinux2 and AmazonLinux2023 is supported on local clusters"))
 		} else {
 			Expect(err).NotTo(HaveOccurred())
 		}
 	},
-		Entry("AmazonLinux2", api.NodeImageFamilyAmazonLinux2, true),
-		Entry("AmazonLinux2023", api.NodeImageFamilyAmazonLinux2023, false),
+		Entry("AmazonLinux2", api.NodeImageFamilyAmazonLinux2, false),
+		Entry("AmazonLinux2023", api.NodeImageFamilyAmazonLinux2, false),
 		Entry("Bottlerocket", api.NodeImageFamilyBottlerocket, true),
 		Entry("Ubuntu2004", api.NodeImageFamilyUbuntu2004, true),
 		Entry("UbuntuPro2004", api.NodeImageFamilyUbuntuPro2004, true),

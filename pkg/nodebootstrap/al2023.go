@@ -133,24 +133,18 @@ func (m *AL2023) createMinimalNodeConfig() (*nodeadm.NodeConfig, error) {
 		serviceCIDR = clusterStatus.KubernetesNetworkConfig.ServiceIPv4CIDR
 	}
 
-	clusterDetails := nodeadm.ClusterDetails{
-		Name:                 m.cfg.Metadata.Name,
-		APIServerEndpoint:    clusterStatus.Endpoint,
-		CertificateAuthority: clusterStatus.CertificateAuthorityData,
-		CIDR:                 serviceCIDR,
-	}
-	if m.cfg.IsControlPlaneOnOutposts() {
-		clusterDetails.ID = m.cfg.ID()
-		clusterDetails.EnableOutpost = ptr(true)
-	}
-
 	return &nodeadm.NodeConfig{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       nodeadmapi.KindNodeConfig,
 			APIVersion: nodeadm.GroupVersion.String(),
 		},
 		Spec: nodeadm.NodeConfigSpec{
-			Cluster: clusterDetails,
+			Cluster: nodeadm.ClusterDetails{
+				Name:                 m.cfg.Metadata.Name,
+				APIServerEndpoint:    clusterStatus.Endpoint,
+				CertificateAuthority: clusterStatus.CertificateAuthorityData,
+				CIDR:                 serviceCIDR,
+			},
 			Kubelet: kubeletOptions,
 		},
 	}, nil
@@ -177,5 +171,3 @@ func stringToNodeConfig(overrideBootstrapCommand string) (*nodeadm.NodeConfig, e
 	}
 	return &config, nil
 }
-
-func ptr[T any](v T) *T { return &v }

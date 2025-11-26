@@ -30,9 +30,6 @@ type al2023Entry struct {
 
 var _ = DescribeTable("Unmanaged AL2023", func(e al2023Entry) {
 	cfg, dns := makeDefaultClusterSettings()
-	if e.overrideClusterSettings != nil {
-		e.overrideClusterSettings(cfg)
-	}
 	ng := api.NewNodeGroup()
 	makeDefaultNPSettings(ng)
 
@@ -58,14 +55,6 @@ var _ = DescribeTable("Unmanaged AL2023", func(e al2023Entry) {
 			np.BaseNodeGroup().EFAEnabled = aws.Bool(true)
 		},
 		expectedUserData: wrapMIMEParts(nodeConfig),
-	}),
-	Entry("control plane on Outposts", al2023Entry{
-		overrideClusterSettings: func(cc *api.ClusterConfig) {
-			cc.Outpost = &api.Outpost{
-				ControlPlaneOutpostARN: "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
-			}
-			cc.Status.ID = "51eaebb5-7e52-4e71-baba-e98a6314b10e"
-		}, expectedUserData: wrapMIMEParts(nodeConfigOutpost),
 	}),
 )
 
@@ -415,33 +404,6 @@ spec:
     - --node-labels=alpha.eksctl.io/nodegroup-name=al2023-mng-test
 
 `
-
-	nodeConfigOutpost = `--//
-Content-Type: application/node.eks.aws
-
-apiVersion: node.eks.aws/v1alpha1
-kind: NodeConfig
-metadata: {}
-spec:
-  cluster:
-    apiServerEndpoint: https://test.xxx.us-west-2.eks.amazonaws.com
-    certificateAuthority: dGVzdCBDQQ==
-    cidr: 10.100.0.0/16
-    enableOutpost: true
-    id: 51eaebb5-7e52-4e71-baba-e98a6314b10e
-    name: al2023-test
-  containerd: {}
-  instance:
-    localStorage: {}
-  kubelet:
-    config:
-      clusterDNS:
-      - 10.100.0.10
-    flags:
-    - --node-labels=alpha.eksctl.io/nodegroup-name=al2023-mng-test
-
-`
-
 	managedNodeConfigIPv6 = `--//
 Content-Type: application/node.eks.aws
 
