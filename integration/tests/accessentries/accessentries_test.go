@@ -493,7 +493,7 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 					WithArgs(
 						"nodegroup",
 						"--config-file", "-",
-						"--wait",
+						"--wait", "--approve",
 					).
 					WithoutArg("--region", params.Region).
 					WithStdin(clusterutils.Reader(clusterConfig))

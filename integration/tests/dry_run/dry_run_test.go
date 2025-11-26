@@ -287,7 +287,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			Memory: "4",
 		}
 
-	}, "--managed=false", "--instance-selector-vcpus=2", "--instance-selector-memory=4"),
+	}, "--managed=false", "--instance-selector-vcpus=2", "--instance-selector-memory=4", "--node-ami-family=AmazonLinux2"),
 
 		Entry("instance selector options with managed nodegroup", func(actual, expected *api.ClusterConfig) {
 			Expect(actual.ManagedNodeGroups[0].InstanceTypes).NotTo(BeEmpty())
