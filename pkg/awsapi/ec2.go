@@ -963,12 +963,6 @@ type EC2 interface {
 	//
 	// [Internet gateways]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html
 	CreateInternetGateway(ctx context.Context, params *ec2.CreateInternetGatewayInput, optFns ...func(*Options)) (*ec2.CreateInternetGatewayOutput, error)
-	//	Creates an interruptible Capacity Reservation by specifying the number of
-	//
-	// unused instances you want to allocate from your source reservation. This helps
-	// you make unused capacity available for other workloads within your account while
-	// maintaining control to reclaim it.
-	CreateInterruptibleCapacityReservationAllocation(ctx context.Context, params *ec2.CreateInterruptibleCapacityReservationAllocationInput, optFns ...func(*Options)) (*ec2.CreateInterruptibleCapacityReservationAllocationOutput, error)
 	// Create an IPAM. Amazon VPC IP Address Manager (IPAM) is a VPC feature that you
 	// can use to automate your IP address management workflows including assigning,
 	// tracking, troubleshooting, and auditing IP addresses across Amazon Web Services
@@ -985,21 +979,6 @@ type EC2 interface {
 	// verification token to validate that you control a public IP address range when
 	// you bring an IP address range to Amazon Web Services (BYOIP).
 	CreateIpamExternalResourceVerificationToken(ctx context.Context, params *ec2.CreateIpamExternalResourceVerificationTokenInput, optFns ...func(*Options)) (*ec2.CreateIpamExternalResourceVerificationTokenOutput, error)
-	// Creates an IPAM policy.
-	//
-	// An IPAM policy is a set of rules that define how public IPv4 addresses from
-	// IPAM pools are allocated to Amazon Web Services resources. Each rule maps an
-	// Amazon Web Services service to IPAM pools that the service will use to get IP
-	// addresses. A single policy can have multiple rules and be applied to multiple
-	// Amazon Web Services Regions. If the IPAM pool run out of addresses then the
-	// services fallback to Amazon-provided IP addresses. A policy can be applied to an
-	// individual Amazon Web Services account or an entity within Amazon Web Services
-	// Organizations.
-	//
-	// For more information, see [Define public IPv4 allocation strategy with IPAM policies] in the Amazon VPC IPAM User Guide.
-	//
-	// [Define public IPv4 allocation strategy with IPAM policies]: https://docs.aws.amazon.com/vpc/latest/ipam/define-public-ipv4-allocation-strategy-with-ipam-policies.html
-	CreateIpamPolicy(ctx context.Context, params *ec2.CreateIpamPolicyInput, optFns ...func(*Options)) (*ec2.CreateIpamPolicyOutput, error)
 	// Create an IP address pool for Amazon VPC IP Address Manager (IPAM). In IPAM, a
 	// pool is a collection of contiguous IP addresses CIDRs. Pools enable you to
 	// organize your IP addresses according to your routing and security needs. For
@@ -1619,12 +1598,6 @@ type EC2 interface {
 	//
 	// [Connect peers]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-connect.html#tgw-connect-peer
 	CreateTransitGatewayConnectPeer(ctx context.Context, params *ec2.CreateTransitGatewayConnectPeerInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayConnectPeerOutput, error)
-	// Creates a metering policy for a transit gateway to track and measure network
-	// traffic.
-	CreateTransitGatewayMeteringPolicy(ctx context.Context, params *ec2.CreateTransitGatewayMeteringPolicyInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayMeteringPolicyOutput, error)
-	// Creates an entry in a transit gateway metering policy to define traffic
-	// measurement rules.
-	CreateTransitGatewayMeteringPolicyEntry(ctx context.Context, params *ec2.CreateTransitGatewayMeteringPolicyEntryInput, optFns ...func(*Options)) (*ec2.CreateTransitGatewayMeteringPolicyEntryOutput, error)
 	// Creates a multicast domain using the specified transit gateway.
 	//
 	// The transit gateway must be in the available state before you create a domain.
@@ -1729,15 +1702,6 @@ type EC2 interface {
 	//
 	// [Block public access to VPCs and subnets]: https://docs.aws.amazon.com/vpc/latest/userguide/security-vpc-bpa.html
 	CreateVpcBlockPublicAccessExclusion(ctx context.Context, params *ec2.CreateVpcBlockPublicAccessExclusionInput, optFns ...func(*Options)) (*ec2.CreateVpcBlockPublicAccessExclusionOutput, error)
-	// Creates a VPC Encryption Control configuration for a specified VPC. VPC
-	// Encryption Control enables you to enforce encryption for all data in transit
-	// within and between VPCs to meet compliance requirements for standards like
-	// HIPAA, FedRAMP, and PCI DSS.
-	//
-	// For more information, see [Enforce VPC encryption in transit] in the Amazon VPC User Guide.
-	//
-	// [Enforce VPC encryption in transit]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-encryption-controls.html
-	CreateVpcEncryptionControl(ctx context.Context, params *ec2.CreateVpcEncryptionControlInput, optFns ...func(*Options)) (*ec2.CreateVpcEncryptionControlOutput, error)
 	// Creates a VPC endpoint. A VPC endpoint provides a private connection between
 	// the specified VPC and the specified endpoint service. You can use an endpoint
 	// service provided by Amazon Web Services, an Amazon Web Services Marketplace
@@ -1792,9 +1756,6 @@ type EC2 interface {
 	//
 	// [VPC peering limitations]: https://docs.aws.amazon.com/vpc/latest/peering/vpc-peering-basics.html#vpc-peering-limitations
 	CreateVpcPeeringConnection(ctx context.Context, params *ec2.CreateVpcPeeringConnectionInput, optFns ...func(*Options)) (*ec2.CreateVpcPeeringConnectionOutput, error)
-	// Creates a VPN concentrator that aggregates multiple VPN connections to a
-	// transit gateway.
-	CreateVpnConcentrator(ctx context.Context, params *ec2.CreateVpnConcentratorInput, optFns ...func(*Options)) (*ec2.CreateVpnConcentratorOutput, error)
 	// Creates a VPN connection between an existing virtual private gateway or transit
 	// gateway and a customer gateway. The supported connection type is ipsec.1 .
 	//
@@ -1952,17 +1913,6 @@ type EC2 interface {
 	// verification token to validate that you control a public IP address range when
 	// you bring an IP address range to Amazon Web Services (BYOIP).
 	DeleteIpamExternalResourceVerificationToken(ctx context.Context, params *ec2.DeleteIpamExternalResourceVerificationTokenInput, optFns ...func(*Options)) (*ec2.DeleteIpamExternalResourceVerificationTokenOutput, error)
-	// Deletes an IPAM policy.
-	//
-	// An IPAM policy is a set of rules that define how public IPv4 addresses from
-	// IPAM pools are allocated to Amazon Web Services resources. Each rule maps an
-	// Amazon Web Services service to IPAM pools that the service will use to get IP
-	// addresses. A single policy can have multiple rules and be applied to multiple
-	// Amazon Web Services Regions. If the IPAM pool run out of addresses then the
-	// services fallback to Amazon-provided IP addresses. A policy can be applied to an
-	// individual Amazon Web Services account or an entity within Amazon Web Services
-	// Organizations.
-	DeleteIpamPolicy(ctx context.Context, params *ec2.DeleteIpamPolicyInput, optFns ...func(*Options)) (*ec2.DeleteIpamPolicyOutput, error)
 	// Delete an IPAM pool.
 	//
 	// You cannot delete an IPAM pool if there are allocations in it or CIDRs
@@ -2182,10 +2132,6 @@ type EC2 interface {
 	DeleteTransitGatewayConnect(ctx context.Context, params *ec2.DeleteTransitGatewayConnectInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayConnectOutput, error)
 	// Deletes the specified Connect peer.
 	DeleteTransitGatewayConnectPeer(ctx context.Context, params *ec2.DeleteTransitGatewayConnectPeerInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayConnectPeerOutput, error)
-	// Deletes a transit gateway metering policy.
-	DeleteTransitGatewayMeteringPolicy(ctx context.Context, params *ec2.DeleteTransitGatewayMeteringPolicyInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayMeteringPolicyOutput, error)
-	// Deletes an entry from a transit gateway metering policy.
-	DeleteTransitGatewayMeteringPolicyEntry(ctx context.Context, params *ec2.DeleteTransitGatewayMeteringPolicyEntryInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayMeteringPolicyEntryOutput, error)
 	// Deletes the specified transit gateway multicast domain.
 	DeleteTransitGatewayMulticastDomain(ctx context.Context, params *ec2.DeleteTransitGatewayMulticastDomainInput, optFns ...func(*Options)) (*ec2.DeleteTransitGatewayMulticastDomainOutput, error)
 	// Deletes a transit gateway peering attachment.
@@ -2243,13 +2189,6 @@ type EC2 interface {
 	//
 	// [Block public access to VPCs and subnets]: https://docs.aws.amazon.com/vpc/latest/userguide/security-vpc-bpa.html
 	DeleteVpcBlockPublicAccessExclusion(ctx context.Context, params *ec2.DeleteVpcBlockPublicAccessExclusionInput, optFns ...func(*Options)) (*ec2.DeleteVpcBlockPublicAccessExclusionOutput, error)
-	// Deletes a VPC Encryption Control configuration. This removes the encryption
-	// policy enforcement from the specified VPC.
-	//
-	// For more information, see [Enforce VPC encryption in transit] in the Amazon VPC User Guide.
-	//
-	// [Enforce VPC encryption in transit]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-encryption-controls.html
-	DeleteVpcEncryptionControl(ctx context.Context, params *ec2.DeleteVpcEncryptionControlInput, optFns ...func(*Options)) (*ec2.DeleteVpcEncryptionControlOutput, error)
 	// Deletes the specified VPC endpoint connection notifications.
 	DeleteVpcEndpointConnectionNotifications(ctx context.Context, params *ec2.DeleteVpcEndpointConnectionNotificationsInput, optFns ...func(*Options)) (*ec2.DeleteVpcEndpointConnectionNotificationsOutput, error)
 	// Deletes the specified VPC endpoint service configurations. Before you can
@@ -2275,8 +2214,6 @@ type EC2 interface {
 	// in the pending-acceptance state. You cannot delete a VPC peering connection
 	// that's in the failed or rejected state.
 	DeleteVpcPeeringConnection(ctx context.Context, params *ec2.DeleteVpcPeeringConnectionInput, optFns ...func(*Options)) (*ec2.DeleteVpcPeeringConnectionOutput, error)
-	// Deletes the specified VPN concentrator.
-	DeleteVpnConcentrator(ctx context.Context, params *ec2.DeleteVpnConcentratorInput, optFns ...func(*Options)) (*ec2.DeleteVpnConcentratorOutput, error)
 	// Deletes the specified VPN connection.
 	//
 	// If you're deleting the VPC and its associated components, we recommend that you
@@ -2761,8 +2698,7 @@ type EC2 interface {
 	// Describes your import snapshot tasks.
 	DescribeImportSnapshotTasks(ctx context.Context, params *ec2.DescribeImportSnapshotTasksInput, optFns ...func(*Options)) (*ec2.DescribeImportSnapshotTasksOutput, error)
 	// Describes the specified attribute of the specified instance. You can specify
-	// only one attribute at a time. Available attributes include SQL license exemption
-	// configuration for instances registered with the SQL LE service.
+	// only one attribute at a time.
 	DescribeInstanceAttribute(ctx context.Context, params *ec2.DescribeInstanceAttributeInput, optFns ...func(*Options)) (*ec2.DescribeInstanceAttributeOutput, error)
 	// Describes the specified EC2 Instance Connect Endpoints or all EC2 Instance
 	// Connect Endpoints.
@@ -2836,13 +2772,6 @@ type EC2 interface {
 	// structures, might vary. Applications should not assume the elements appear in a
 	// particular order.
 	DescribeInstanceImageMetadata(ctx context.Context, params *ec2.DescribeInstanceImageMetadataInput, optFns ...func(*Options)) (*ec2.DescribeInstanceImageMetadataOutput, error)
-	// Describes the historical SQL Server High Availability states for Amazon EC2
-	// instances that are enabled for Amazon EC2 High Availability for SQL Server
-	// monitoring.
-	DescribeInstanceSqlHaHistoryStates(ctx context.Context, params *ec2.DescribeInstanceSqlHaHistoryStatesInput, optFns ...func(*Options)) (*ec2.DescribeInstanceSqlHaHistoryStatesOutput, error)
-	// Describes the SQL Server High Availability states for Amazon EC2 instances that
-	// are enabled for Amazon EC2 High Availability for SQL Server monitoring.
-	DescribeInstanceSqlHaStates(ctx context.Context, params *ec2.DescribeInstanceSqlHaStatesInput, optFns ...func(*Options)) (*ec2.DescribeInstanceSqlHaStatesOutput, error)
 	// Describes the status of the specified instances or all of your instances. By
 	// default, only running instances are described, unless you specifically indicate
 	// to return the status of all instances.
@@ -2860,10 +2789,6 @@ type EC2 interface {
 	//   - Instance state - You can manage your instances from the moment you launch
 	//     them through their termination. For more information, see [Instance lifecycle]in the Amazon EC2
 	//     User Guide.
-	//
-	//   - SQL license exemption monitoring - For instances registered with the SQL LE
-	//     service, status includes SQL license exemption monitoring health and processing
-	//     status to provide operational visibility into license exemption functionality.
 	//
 	// The Amazon EC2 API follows an eventual consistency model. This means that the
 	// result of an API command you run that creates or modifies resources might not be
@@ -2917,10 +2842,6 @@ type EC2 interface {
 	// which can affect performance. We recommend that you use pagination to ensure
 	// that the operation returns quickly and successfully.
 	//
-	// The response includes SQL license exemption status information for instances
-	// registered with the SQL LE service, providing visibility into license exemption
-	// configuration and status.
-	//
 	// If you specify an instance ID that is not valid, an error is returned. If you
 	// specify an instance that you do not own, it is not included in the output.
 	//
@@ -2957,24 +2878,12 @@ type EC2 interface {
 	//
 	// [Tutorial: Bring your ASN to IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/tutorials-byoasn.html
 	DescribeIpamByoasn(ctx context.Context, params *ec2.DescribeIpamByoasnInput, optFns ...func(*Options)) (*ec2.DescribeIpamByoasnOutput, error)
-	// Describe verification tokens.
-	//
-	// A verification token is an Amazon Web Services-generated random value that you
-	// can use to prove ownership of an external resource. For example, you can use a
-	// verification token to validate that you control a public IP address range when
-	// you bring an IP address range to Amazon Web Services (BYOIP).
+	// Describe verification tokens. A verification token is an Amazon Web
+	// Services-generated random value that you can use to prove ownership of an
+	// external resource. For example, you can use a verification token to validate
+	// that you control a public IP address range when you bring an IP address range to
+	// Amazon Web Services (BYOIP).
 	DescribeIpamExternalResourceVerificationTokens(ctx context.Context, params *ec2.DescribeIpamExternalResourceVerificationTokensInput, optFns ...func(*Options)) (*ec2.DescribeIpamExternalResourceVerificationTokensOutput, error)
-	// Describes one or more IPAM policies.
-	//
-	// An IPAM policy is a set of rules that define how public IPv4 addresses from
-	// IPAM pools are allocated to Amazon Web Services resources. Each rule maps an
-	// Amazon Web Services service to IPAM pools that the service will use to get IP
-	// addresses. A single policy can have multiple rules and be applied to multiple
-	// Amazon Web Services Regions. If the IPAM pool run out of addresses then the
-	// services fallback to Amazon-provided IP addresses. A policy can be applied to an
-	// individual Amazon Web Services account or an entity within Amazon Web Services
-	// Organizations.
-	DescribeIpamPolicies(ctx context.Context, params *ec2.DescribeIpamPoliciesInput, optFns ...func(*Options)) (*ec2.DescribeIpamPoliciesOutput, error)
 	// Get information about your IPAM pools.
 	DescribeIpamPools(ctx context.Context, params *ec2.DescribeIpamPoolsInput, optFns ...func(*Options)) (*ec2.DescribeIpamPoolsOutput, error)
 	// Describes one or more IPAM prefix list resolver Targets. Use this operation to
@@ -3483,8 +3392,6 @@ type EC2 interface {
 	DescribeTransitGatewayConnectPeers(ctx context.Context, params *ec2.DescribeTransitGatewayConnectPeersInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewayConnectPeersOutput, error)
 	// Describes one or more Connect attachments.
 	DescribeTransitGatewayConnects(ctx context.Context, params *ec2.DescribeTransitGatewayConnectsInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewayConnectsOutput, error)
-	// Describes one or more transit gateway metering policies.
-	DescribeTransitGatewayMeteringPolicies(ctx context.Context, params *ec2.DescribeTransitGatewayMeteringPoliciesInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewayMeteringPoliciesOutput, error)
 	// Describes one or more transit gateway multicast domains.
 	DescribeTransitGatewayMulticastDomains(ctx context.Context, params *ec2.DescribeTransitGatewayMulticastDomainsInput, optFns ...func(*Options)) (*ec2.DescribeTransitGatewayMulticastDomainsOutput, error)
 	// Describes your transit gateway peering attachments.
@@ -3619,15 +3526,6 @@ type EC2 interface {
 	// Similarly, the DNS hostname of an instance in a VPC resolves to its private IP
 	// address when addressed from a linked EC2-Classic instance.
 	DescribeVpcClassicLinkDnsSupport(ctx context.Context, params *ec2.DescribeVpcClassicLinkDnsSupportInput, optFns ...func(*Options)) (*ec2.DescribeVpcClassicLinkDnsSupportOutput, error)
-	// Describes one or more VPC Encryption Control configurations. VPC Encryption
-	// Control enables you to enforce encryption for all data in transit within and
-	// between VPCs to meet compliance requirements You can filter the results to
-	// return information about specific encryption controls or VPCs.
-	//
-	// For more information, see [Enforce VPC encryption in transit] in the Amazon VPC User Guide.
-	//
-	// [Enforce VPC encryption in transit]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-encryption-controls.html
-	DescribeVpcEncryptionControls(ctx context.Context, params *ec2.DescribeVpcEncryptionControlsInput, optFns ...func(*Options)) (*ec2.DescribeVpcEncryptionControlsOutput, error)
 	// Describes the VPC resources, VPC endpoint services, Amazon Lattice services, or
 	// service networks associated with the VPC endpoint.
 	DescribeVpcEndpointAssociations(ctx context.Context, params *ec2.DescribeVpcEndpointAssociationsInput, optFns ...func(*Options)) (*ec2.DescribeVpcEndpointAssociationsOutput, error)
@@ -3665,8 +3563,6 @@ type EC2 interface {
 	// you can specify specific VPC IDs or filter the results to include only the VPCs
 	// that match specific criteria.
 	DescribeVpcs(ctx context.Context, params *ec2.DescribeVpcsInput, optFns ...func(*Options)) (*ec2.DescribeVpcsOutput, error)
-	// Describes one or more of your VPN concentrators.
-	DescribeVpnConcentrators(ctx context.Context, params *ec2.DescribeVpnConcentratorsInput, optFns ...func(*Options)) (*ec2.DescribeVpnConcentratorsOutput, error)
 	// Describes one or more of your VPN connections.
 	//
 	// For more information, see [Amazon Web Services Site-to-Site VPN] in the Amazon Web Services Site-to-Site VPN User
@@ -3818,28 +3714,11 @@ type EC2 interface {
 	//
 	// [Protect an Amazon EC2 AMI from deregistration]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-deregistration-protection.html
 	DisableImageDeregistrationProtection(ctx context.Context, params *ec2.DisableImageDeregistrationProtectionInput, optFns ...func(*Options)) (*ec2.DisableImageDeregistrationProtectionOutput, error)
-	// Disable Amazon EC2 instances running in an SQL Server High Availability cluster
-	// from SQL Server High Availability instance standby detection monitoring. Once
-	// disabled, Amazon Web Services no longer monitors the metadata for the instances
-	// to determine whether they are active or standby nodes in the SQL Server High
-	// Availability cluster.
-	DisableInstanceSqlHaStandbyDetections(ctx context.Context, params *ec2.DisableInstanceSqlHaStandbyDetectionsInput, optFns ...func(*Options)) (*ec2.DisableInstanceSqlHaStandbyDetectionsOutput, error)
 	// Disable the IPAM account. For more information, see [Enable integration with Organizations] in the Amazon VPC IPAM
 	// User Guide.
 	//
 	// [Enable integration with Organizations]: https://docs.aws.amazon.com/vpc/latest/ipam/enable-integ-ipam.html
 	DisableIpamOrganizationAdminAccount(ctx context.Context, params *ec2.DisableIpamOrganizationAdminAccountInput, optFns ...func(*Options)) (*ec2.DisableIpamOrganizationAdminAccountOutput, error)
-	// Disables an IPAM policy.
-	//
-	// An IPAM policy is a set of rules that define how public IPv4 addresses from
-	// IPAM pools are allocated to Amazon Web Services resources. Each rule maps an
-	// Amazon Web Services service to IPAM pools that the service will use to get IP
-	// addresses. A single policy can have multiple rules and be applied to multiple
-	// Amazon Web Services Regions. If the IPAM pool run out of addresses then the
-	// services fallback to Amazon-provided IP addresses. A policy can be applied to an
-	// individual Amazon Web Services account or an entity within Amazon Web Services
-	// Organizations.
-	DisableIpamPolicy(ctx context.Context, params *ec2.DisableIpamPolicyInput, optFns ...func(*Options)) (*ec2.DisableIpamPolicyOutput, error)
 	// Disables route propagation from a route server to a specified route table.
 	//
 	// When enabled, route server propagation installs the routes in the FIB on the
@@ -4152,43 +4031,12 @@ type EC2 interface {
 	//
 	// [Protect an Amazon EC2 AMI from deregistration]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-deregistration-protection.html
 	EnableImageDeregistrationProtection(ctx context.Context, params *ec2.EnableImageDeregistrationProtectionInput, optFns ...func(*Options)) (*ec2.EnableImageDeregistrationProtectionOutput, error)
-	// Enable Amazon EC2 instances running in an SQL Server High Availability cluster
-	// for SQL Server High Availability instance standby detection monitoring. Once
-	// enabled, Amazon Web Services monitors the metadata for the instances to
-	// determine whether they are active or standby nodes in the SQL Server High
-	// Availability cluster. If the instances are determined to be standby failover
-	// nodes, Amazon Web Services automatically applies SQL Server licensing fee waiver
-	// for those instances.
-	//
-	// To register an instance, it must be running a Windows SQL Server
-	// license-included AMI and have the Amazon Web Services Systems Manager agent
-	// installed and running. Only Windows Server 2019 and later and SQL Server
-	// (Standard and Enterprise editions) 2017 and later are supported. For more
-	// information, see [Prerequisites for using SQL Server High Availability instance standby detection].
-	//
-	// [Prerequisites for using SQL Server High Availability instance standby detection]: https://docs.aws.amazon.com/sql-server-ec2/latest/userguide/prerequisites-and-requirements.html
-	EnableInstanceSqlHaStandbyDetections(ctx context.Context, params *ec2.EnableInstanceSqlHaStandbyDetectionsInput, optFns ...func(*Options)) (*ec2.EnableInstanceSqlHaStandbyDetectionsOutput, error)
 	// Enable an Organizations member account as the IPAM admin account. You cannot
 	// select the Organizations management account as the IPAM admin account. For more
 	// information, see [Enable integration with Organizations]in the Amazon VPC IPAM User Guide.
 	//
 	// [Enable integration with Organizations]: https://docs.aws.amazon.com/vpc/latest/ipam/enable-integ-ipam.html
 	EnableIpamOrganizationAdminAccount(ctx context.Context, params *ec2.EnableIpamOrganizationAdminAccountInput, optFns ...func(*Options)) (*ec2.EnableIpamOrganizationAdminAccountOutput, error)
-	// Enables an IPAM policy.
-	//
-	// An IPAM policy is a set of rules that define how public IPv4 addresses from
-	// IPAM pools are allocated to Amazon Web Services resources. Each rule maps an
-	// Amazon Web Services service to IPAM pools that the service will use to get IP
-	// addresses. A single policy can have multiple rules and be applied to multiple
-	// Amazon Web Services Regions. If the IPAM pool run out of addresses then the
-	// services fallback to Amazon-provided IP addresses. A policy can be applied to an
-	// individual Amazon Web Services account or an entity within Amazon Web Services
-	// Organizations.
-	//
-	// For more information, see [Define public IPv4 allocation strategy with IPAM policies] in the Amazon VPC IPAM User Guide.
-	//
-	// [Define public IPv4 allocation strategy with IPAM policies]: https://docs.aws.amazon.com/vpc/latest/ipam/define-public-ipv4-allocation-strategy-with-ipam-policies.html
-	EnableIpamPolicy(ctx context.Context, params *ec2.EnableIpamPolicyInput, optFns ...func(*Options)) (*ec2.EnableIpamPolicyOutput, error)
 	// Establishes a trust relationship between Reachability Analyzer and
 	// Organizations. This operation must be performed by the management account for
 	// the organization.
@@ -4388,17 +4236,6 @@ type EC2 interface {
 	//
 	// [Amazon EBS encryption]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-encryption.html
 	GetEbsEncryptionByDefault(ctx context.Context, params *ec2.GetEbsEncryptionByDefaultInput, optFns ...func(*Options)) (*ec2.GetEbsEncryptionByDefaultOutput, error)
-	// Gets the enabled IPAM policy.
-	//
-	// An IPAM policy is a set of rules that define how public IPv4 addresses from
-	// IPAM pools are allocated to Amazon Web Services resources. Each rule maps an
-	// Amazon Web Services service to IPAM pools that the service will use to get IP
-	// addresses. A single policy can have multiple rules and be applied to multiple
-	// Amazon Web Services Regions. If the IPAM pool run out of addresses then the
-	// services fallback to Amazon-provided IP addresses. A policy can be applied to an
-	// individual Amazon Web Services account or an entity within Amazon Web Services
-	// Organizations.
-	GetEnabledIpamPolicy(ctx context.Context, params *ec2.GetEnabledIpamPolicyInput, optFns ...func(*Options)) (*ec2.GetEnabledIpamPolicyOutput, error)
 	// Generates a CloudFormation template that streamlines and automates the
 	// integration of VPC flow logs with Amazon Athena. This make it easier for you to
 	// query and gain insights from VPC flow logs data. Based on the information that
@@ -4498,35 +4335,6 @@ type EC2 interface {
 	// The following resources can be discovered: VPCs, Public IPv4 pools, VPC subnets,
 	// and Elastic IP addresses.
 	GetIpamDiscoveredResourceCidrs(ctx context.Context, params *ec2.GetIpamDiscoveredResourceCidrsInput, optFns ...func(*Options)) (*ec2.GetIpamDiscoveredResourceCidrsOutput, error)
-	// Gets the allocation rules for an IPAM policy.
-	//
-	// An IPAM policy is a set of rules that define how public IPv4 addresses from
-	// IPAM pools are allocated to Amazon Web Services resources. Each rule maps an
-	// Amazon Web Services service to IPAM pools that the service will use to get IP
-	// addresses. A single policy can have multiple rules and be applied to multiple
-	// Amazon Web Services Regions. If the IPAM pool run out of addresses then the
-	// services fallback to Amazon-provided IP addresses. A policy can be applied to an
-	// individual Amazon Web Services account or an entity within Amazon Web Services
-	// Organizations.
-	//
-	// Allocation rules are optional configurations within an IPAM policy that map
-	// Amazon Web Services resource types to specific IPAM pools. If no rules are
-	// defined, the resource types default to using Amazon-provided IP addresses.
-	GetIpamPolicyAllocationRules(ctx context.Context, params *ec2.GetIpamPolicyAllocationRulesInput, optFns ...func(*Options)) (*ec2.GetIpamPolicyAllocationRulesOutput, error)
-	// Gets the Amazon Web Services Organizations targets for an IPAM policy.
-	//
-	// An IPAM policy is a set of rules that define how public IPv4 addresses from
-	// IPAM pools are allocated to Amazon Web Services resources. Each rule maps an
-	// Amazon Web Services service to IPAM pools that the service will use to get IP
-	// addresses. A single policy can have multiple rules and be applied to multiple
-	// Amazon Web Services Regions. If the IPAM pool run out of addresses then the
-	// services fallback to Amazon-provided IP addresses. A policy can be applied to an
-	// individual Amazon Web Services account or an entity within Amazon Web Services
-	// Organizations.
-	//
-	// A target can be an individual Amazon Web Services account or an entity within
-	// an Amazon Web Services Organization to which an IPAM policy can be applied.
-	GetIpamPolicyOrganizationTargets(ctx context.Context, params *ec2.GetIpamPolicyOrganizationTargetsInput, optFns ...func(*Options)) (*ec2.GetIpamPolicyOrganizationTargetsOutput, error)
 	// Get a list of all the CIDR allocations in an IPAM pool. The Region you use
 	// should be the IPAM pool locale. The locale is the Amazon Web Services Region
 	// where this IPAM pool is available for allocations.
@@ -4727,8 +4535,6 @@ type EC2 interface {
 	// Lists the route tables to which the specified resource attachment propagates
 	// routes.
 	GetTransitGatewayAttachmentPropagations(ctx context.Context, params *ec2.GetTransitGatewayAttachmentPropagationsInput, optFns ...func(*Options)) (*ec2.GetTransitGatewayAttachmentPropagationsOutput, error)
-	// Retrieves the entries for a transit gateway metering policy.
-	GetTransitGatewayMeteringPolicyEntries(ctx context.Context, params *ec2.GetTransitGatewayMeteringPolicyEntriesInput, optFns ...func(*Options)) (*ec2.GetTransitGatewayMeteringPolicyEntriesOutput, error)
 	// Gets information about the associations for the transit gateway multicast
 	// domain.
 	GetTransitGatewayMulticastDomainAssociations(ctx context.Context, params *ec2.GetTransitGatewayMulticastDomainAssociationsInput, optFns ...func(*Options)) (*ec2.GetTransitGatewayMulticastDomainAssociationsOutput, error)
@@ -4751,13 +4557,6 @@ type EC2 interface {
 	GetVerifiedAccessEndpointTargets(ctx context.Context, params *ec2.GetVerifiedAccessEndpointTargetsInput, optFns ...func(*Options)) (*ec2.GetVerifiedAccessEndpointTargetsOutput, error)
 	// Shows the contents of the Verified Access policy associated with the group.
 	GetVerifiedAccessGroupPolicy(ctx context.Context, params *ec2.GetVerifiedAccessGroupPolicyInput, optFns ...func(*Options)) (*ec2.GetVerifiedAccessGroupPolicyOutput, error)
-	// Gets information about resources in a VPC that are blocking encryption
-	// enforcement.
-	//
-	// For more information, see [Enforce VPC encryption in transit] in the Amazon VPC User Guide.
-	//
-	// [Enforce VPC encryption in transit]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-encryption-controls.html
-	GetVpcResourcesBlockingEncryptionEnforcement(ctx context.Context, params *ec2.GetVpcResourcesBlockingEncryptionEnforcementInput, optFns ...func(*Options)) (*ec2.GetVpcResourcesBlockingEncryptionEnforcementOutput, error)
 	// Download an Amazon Web Services-provided sample configuration file to be used
 	// with the customer gateway device specified for your Site-to-Site VPN connection.
 	GetVpnConnectionDeviceSampleConfiguration(ctx context.Context, params *ec2.GetVpnConnectionDeviceSampleConfigurationInput, optFns ...func(*Options)) (*ec2.GetVpnConnectionDeviceSampleConfigurationOutput, error)
@@ -4844,8 +4643,6 @@ type EC2 interface {
 	ListImagesInRecycleBin(ctx context.Context, params *ec2.ListImagesInRecycleBinInput, optFns ...func(*Options)) (*ec2.ListImagesInRecycleBinOutput, error)
 	// Lists one or more snapshots that are currently in the Recycle Bin.
 	ListSnapshotsInRecycleBin(ctx context.Context, params *ec2.ListSnapshotsInRecycleBinInput, optFns ...func(*Options)) (*ec2.ListSnapshotsInRecycleBinOutput, error)
-	// Lists one or more volumes that are currently in the Recycle Bin.
-	ListVolumesInRecycleBin(ctx context.Context, params *ec2.ListVolumesInRecycleBinInput, optFns ...func(*Options)) (*ec2.ListVolumesInRecycleBinOutput, error)
 	// Locks an Amazon EBS snapshot in either governance or compliance mode to protect
 	// it against accidental or malicious deletions for a specific duration. A locked
 	// snapshot can't be deleted.
@@ -5172,21 +4969,6 @@ type EC2 interface {
 	ModifyInstancePlacement(ctx context.Context, params *ec2.ModifyInstancePlacementInput, optFns ...func(*Options)) (*ec2.ModifyInstancePlacementOutput, error)
 	// Modify the configurations of an IPAM.
 	ModifyIpam(ctx context.Context, params *ec2.ModifyIpamInput, optFns ...func(*Options)) (*ec2.ModifyIpamOutput, error)
-	// Modifies the allocation rules in an IPAM policy.
-	//
-	// An IPAM policy is a set of rules that define how public IPv4 addresses from
-	// IPAM pools are allocated to Amazon Web Services resources. Each rule maps an
-	// Amazon Web Services service to IPAM pools that the service will use to get IP
-	// addresses. A single policy can have multiple rules and be applied to multiple
-	// Amazon Web Services Regions. If the IPAM pool run out of addresses then the
-	// services fallback to Amazon-provided IP addresses. A policy can be applied to an
-	// individual Amazon Web Services account or an entity within Amazon Web Services
-	// Organizations.
-	//
-	// Allocation rules are optional configurations within an IPAM policy that map
-	// Amazon Web Services resource types to specific IPAM pools. If no rules are
-	// defined, the resource types default to using Amazon-provided IP addresses.
-	ModifyIpamPolicyAllocationRules(ctx context.Context, params *ec2.ModifyIpamPolicyAllocationRulesInput, optFns ...func(*Options)) (*ec2.ModifyIpamPolicyAllocationRulesOutput, error)
 	// Modify the configurations of an IPAM pool.
 	//
 	// For more information, see [Modify a pool] in the Amazon VPC IPAM User Guide.
@@ -5372,8 +5154,6 @@ type EC2 interface {
 	// modified options are applied to new transit gateway attachments only. Your
 	// existing transit gateway attachments are not modified.
 	ModifyTransitGateway(ctx context.Context, params *ec2.ModifyTransitGatewayInput, optFns ...func(*Options)) (*ec2.ModifyTransitGatewayOutput, error)
-	// Modifies a transit gateway metering policy.
-	ModifyTransitGatewayMeteringPolicy(ctx context.Context, params *ec2.ModifyTransitGatewayMeteringPolicyInput, optFns ...func(*Options)) (*ec2.ModifyTransitGatewayMeteringPolicyOutput, error)
 	// Modifies a reference (route) to a prefix list in a specified transit gateway
 	// route table.
 	ModifyTransitGatewayPrefixListReference(ctx context.Context, params *ec2.ModifyTransitGatewayPrefixListReferenceInput, optFns ...func(*Options)) (*ec2.ModifyTransitGatewayPrefixListReferenceOutput, error)
@@ -5449,14 +5229,6 @@ type EC2 interface {
 	//
 	// [Block public access to VPCs and subnets]: https://docs.aws.amazon.com/vpc/latest/userguide/security-vpc-bpa.html
 	ModifyVpcBlockPublicAccessOptions(ctx context.Context, params *ec2.ModifyVpcBlockPublicAccessOptionsInput, optFns ...func(*Options)) (*ec2.ModifyVpcBlockPublicAccessOptionsOutput, error)
-	// Modifies the encryption control configuration for a VPC. You can update the
-	// encryption mode and exclusion settings for various gateway types and peering
-	// connections.
-	//
-	// For more information, see [Enforce VPC encryption in transit] in the Amazon VPC User Guide.
-	//
-	// [Enforce VPC encryption in transit]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-encryption-controls.html
-	ModifyVpcEncryptionControl(ctx context.Context, params *ec2.ModifyVpcEncryptionControlInput, optFns ...func(*Options)) (*ec2.ModifyVpcEncryptionControlOutput, error)
 	// Modifies attributes of a specified VPC endpoint. The attributes that you can
 	// modify depend on the type of VPC endpoint (interface, gateway, or Gateway Load
 	// Balancer). For more information, see the [Amazon Web Services PrivateLink Guide].
@@ -6023,11 +5795,6 @@ type EC2 interface {
 	// [Restore an archived snapshot]: https://docs.aws.amazon.com/ebs/latest/userguide/working-with-snapshot-archiving.html#restore-archived-snapshot
 	// [modify the restore period or restore type for a temporarily restored snapshot]: https://docs.aws.amazon.com/ebs/latest/userguide/working-with-snapshot-archiving.html#modify-temp-restore-period
 	RestoreSnapshotTier(ctx context.Context, params *ec2.RestoreSnapshotTierInput, optFns ...func(*Options)) (*ec2.RestoreSnapshotTierOutput, error)
-	// Restores a volume from the Recycle Bin. For more information, see [Restore volumes from the Recycle Bin] in the
-	// Amazon EBS User Guide.
-	//
-	// [Restore volumes from the Recycle Bin]: https://docs.aws.amazon.com/ebs/latest/userguide/recycle-bin-working-with-volumes.html#recycle-bin-restore-volumes
-	RestoreVolumeFromRecycleBin(ctx context.Context, params *ec2.RestoreVolumeFromRecycleBinInput, optFns ...func(*Options)) (*ec2.RestoreVolumeFromRecycleBinOutput, error)
 	// Removes an ingress authorization rule from a Client VPN endpoint.
 	RevokeClientVpnIngress(ctx context.Context, params *ec2.RevokeClientVpnIngressInput, optFns ...func(*Options)) (*ec2.RevokeClientVpnIngressOutput, error)
 	// Removes the specified outbound (egress) rules from the specified security group.
@@ -6406,11 +6173,6 @@ type EC2 interface {
 	// controls whether Capacity Manager can aggregate data from all accounts in your
 	// Amazon Web Services Organization or only from the current account.
 	UpdateCapacityManagerOrganizationsAccess(ctx context.Context, params *ec2.UpdateCapacityManagerOrganizationsAccessInput, optFns ...func(*Options)) (*ec2.UpdateCapacityManagerOrganizationsAccessOutput, error)
-	//	Modifies the number of instances allocated to an interruptible reservation,
-	//
-	// allowing you to add more capacity or reclaim capacity to your source Capacity
-	// Reservation.
-	UpdateInterruptibleCapacityReservationAllocation(ctx context.Context, params *ec2.UpdateInterruptibleCapacityReservationAllocationInput, optFns ...func(*Options)) (*ec2.UpdateInterruptibleCapacityReservationAllocationOutput, error)
 	// Updates the description of an egress (outbound) security group rule. You can
 	// replace an existing description, or add a description to a rule that did not
 	// have one previously. You can remove a description for a security group rule by

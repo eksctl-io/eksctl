@@ -231,9 +231,6 @@ type CloudWatchLogs interface {
 	//
 	//   - Don't use ':' (colon) or '*' (asterisk) characters.
 	CreateLogStream(ctx context.Context, params *cloudwatchlogs.CreateLogStreamInput, optFns ...func(*Options)) (*cloudwatchlogs.CreateLogStreamOutput, error)
-	// Creates a new Scheduled Query that runs CloudWatch Logs Insights queries on a
-	// schedule and delivers results to specified destinations.
-	CreateScheduledQuery(ctx context.Context, params *cloudwatchlogs.CreateScheduledQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.CreateScheduledQueryOutput, error)
 	// Deletes a CloudWatch Logs account policy. This stops the account-wide policy
 	// from applying to log groups in the account. If you delete a data protection
 	// policy or subscription filter policy, any log-group level policies of those
@@ -344,9 +341,6 @@ type CloudWatchLogs interface {
 	// Log events do not expire if they belong to log groups without a retention
 	// policy.
 	DeleteRetentionPolicy(ctx context.Context, params *cloudwatchlogs.DeleteRetentionPolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteRetentionPolicyOutput, error)
-	// Deletes an existing scheduled query and all its associated configurations. This
-	// operation permanently removes the scheduled query and cannot be undone.
-	DeleteScheduledQuery(ctx context.Context, params *cloudwatchlogs.DeleteScheduledQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteScheduledQueryOutput, error)
 	// Deletes the specified subscription filter.
 	DeleteSubscriptionFilter(ctx context.Context, params *cloudwatchlogs.DeleteSubscriptionFilterInput, optFns ...func(*Options)) (*cloudwatchlogs.DeleteSubscriptionFilterOutput, error)
 	// Deletes the log transformer for the specified log group. As soon as you do
@@ -686,12 +680,6 @@ type CloudWatchLogs interface {
 	// [CloudWatch Logs quotas]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html
 	// [StartQuery]: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartQuery.html
 	GetQueryResults(ctx context.Context, params *cloudwatchlogs.GetQueryResultsInput, optFns ...func(*Options)) (*cloudwatchlogs.GetQueryResultsOutput, error)
-	// Returns detailed information about a specified scheduled query, including its
-	// configuration, current state, and execution history.
-	GetScheduledQuery(ctx context.Context, params *cloudwatchlogs.GetScheduledQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.GetScheduledQueryOutput, error)
-	// Retrieves the execution history of a scheduled query within a specified time
-	// range, including execution status and destination processing metadata.
-	GetScheduledQueryHistory(ctx context.Context, params *cloudwatchlogs.GetScheduledQueryHistoryInput, optFns ...func(*Options)) (*cloudwatchlogs.GetScheduledQueryHistoryOutput, error)
 	// Returns the information about the log transformer associated with this log
 	// group.
 	//
@@ -734,9 +722,6 @@ type CloudWatchLogs interface {
 	//
 	// [Create field indexes to improve query performance and reduce costs]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Field-Indexing.html
 	ListLogGroupsForQuery(ctx context.Context, params *cloudwatchlogs.ListLogGroupsForQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.ListLogGroupsForQueryOutput, error)
-	// Lists all scheduled queries in the current AWS account and region with optional
-	// filtering by state.
-	ListScheduledQueries(ctx context.Context, params *cloudwatchlogs.ListScheduledQueriesInput, optFns ...func(*Options)) (*cloudwatchlogs.ListScheduledQueriesOutput, error)
 	// Displays the tags associated with a CloudWatch Logs resource. Currently, log
 	// groups and destinations support tagging.
 	ListTagsForResource(ctx context.Context, params *cloudwatchlogs.ListTagsForResourceInput, optFns ...func(*Options)) (*cloudwatchlogs.ListTagsForResourceOutput, error)
@@ -878,8 +863,6 @@ type CloudWatchLogs interface {
 	// CloudWatch Logs provides default field indexes for all log groups in the
 	// Standard log class. Default field indexes are automatically available for the
 	// following fields:
-	//
-	//   - @logStream
 	//
 	//   - @aws.region
 	//
@@ -1194,8 +1177,6 @@ type CloudWatchLogs interface {
 	// Standard log class. Default field indexes are automatically available for the
 	// following fields:
 	//
-	//   - @logStream
-	//
 	//   - @aws.region
 	//
 	//   - @aws.account
@@ -1335,23 +1316,8 @@ type CloudWatchLogs interface {
 	// [Analyzing Log Data with CloudWatch Logs Insights]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html
 	PutQueryDefinition(ctx context.Context, params *cloudwatchlogs.PutQueryDefinitionInput, optFns ...func(*Options)) (*cloudwatchlogs.PutQueryDefinitionOutput, error)
 	// Creates or updates a resource policy allowing other Amazon Web Services
-	// services to put log events to this account, such as Amazon Route 53. This API
-	// has the following restrictions:
-	//
-	//   - Supported actions - Policy only supports logs:PutLogEvents and
-	//     logs:CreateLogStream actions
-	//
-	//   - Supported principals - Policy only applies when operations are invoked by
-	//     Amazon Web Services service principals (not IAM users, roles, or cross-account
-	//     principals
-	//
-	//   - Policy limits - An account can have a maximum of 10 policies without
-	//     resourceARN and one per LogGroup resourceARN
-	//
-	// Resource policies with actions invoked by non-Amazon Web Services service
-	// principals (such as IAM users, roles, or other Amazon Web Services accounts)
-	// will not be enforced. For access control involving these principals, use the IAM
-	// policies.
+	// services to put log events to this account, such as Amazon Route 53. An account
+	// can have up to 10 resource policies per Amazon Web Services Region.
 	PutResourcePolicy(ctx context.Context, params *cloudwatchlogs.PutResourcePolicyInput, optFns ...func(*Options)) (*cloudwatchlogs.PutResourcePolicyOutput, error)
 	// Sets the retention of the specified log group. With a retention policy, you can
 	// configure the number of days for which to retain log events in the specified log
@@ -1642,9 +1608,5 @@ type CloudWatchLogs interface {
 	UpdateDeliveryConfiguration(ctx context.Context, params *cloudwatchlogs.UpdateDeliveryConfigurationInput, optFns ...func(*Options)) (*cloudwatchlogs.UpdateDeliveryConfigurationOutput, error)
 	// Updates an existing log anomaly detector.
 	UpdateLogAnomalyDetector(ctx context.Context, params *cloudwatchlogs.UpdateLogAnomalyDetectorInput, optFns ...func(*Options)) (*cloudwatchlogs.UpdateLogAnomalyDetectorOutput, error)
-	// Updates the configuration of an existing scheduled query. This operation
-	// follows PUT semantics, replacing the existing configuration with the provided
-	// values.
-	UpdateScheduledQuery(ctx context.Context, params *cloudwatchlogs.UpdateScheduledQueryInput, optFns ...func(*Options)) (*cloudwatchlogs.UpdateScheduledQueryOutput, error)
 }
 

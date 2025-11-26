@@ -606,11 +606,6 @@ type ASG interface {
 	//
 	// [Predictive scaling for Amazon EC2 Auto Scaling]: https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-predictive-scaling.html
 	GetPredictiveScalingForecast(ctx context.Context, params *autoscaling.GetPredictiveScalingForecastInput, optFns ...func(*Options)) (*autoscaling.GetPredictiveScalingForecastOutput, error)
-	//	Launches a specified number of instances in an Auto Scaling group. Returns
-	//
-	// instance IDs and other details if launch is successful or error details if
-	// launch is unsuccessful.
-	LaunchInstances(ctx context.Context, params *autoscaling.LaunchInstancesInput, optFns ...func(*Options)) (*autoscaling.LaunchInstancesOutput, error)
 	// Creates or updates a lifecycle hook for the specified Auto Scaling group.
 	//
 	// Lifecycle hooks let you create solutions that are aware of events in the Auto

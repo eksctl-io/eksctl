@@ -72,10 +72,10 @@ type EKS interface {
 	// single tenant and unique. It runs on its own set of Amazon EC2 instances.
 	//
 	// The cluster control plane is provisioned across multiple Availability Zones and
-	// fronted by an ELB Network Load Balancer. Amazon EKS also provisions elastic
-	// network interfaces in your VPC subnets to provide connectivity from the control
-	// plane instances to the nodes (for example, to support kubectl exec , logs , and
-	// proxy data flows).
+	// fronted by an Elastic Load Balancing Network Load Balancer. Amazon EKS also
+	// provisions elastic network interfaces in your VPC subnets to provide
+	// connectivity from the control plane instances to the nodes (for example, to
+	// support kubectl exec , logs , and proxy data flows).
 	//
 	// Amazon EKS nodes run in your Amazon Web Services account and connect to your
 	// cluster's control plane over the Kubernetes API server endpoint and a
@@ -160,9 +160,9 @@ type EKS interface {
 	// node group was created. You can update the launch template version with
 	// necessary changes. For more information about using launch templates, see [Customizing managed nodes with launch templates].
 	//
-	// An Amazon EKS managed node group is an Amazon EC2 Amazon EC2 Auto Scaling group
-	// and associated Amazon EC2 instances that are managed by Amazon Web Services for
-	// an Amazon EKS cluster. For more information, see [Managed node groups]in the Amazon EKS User Guide.
+	// An Amazon EKS managed node group is an Amazon EC2 Auto Scaling group and
+	// associated Amazon EC2 instances that are managed by Amazon Web Services for an
+	// Amazon EKS cluster. For more information, see [Managed node groups]in the Amazon EKS User Guide.
 	//
 	// Windows AMI types are only supported for commercial Amazon Web Services Regions
 	// that support Windows on Amazon EKS.

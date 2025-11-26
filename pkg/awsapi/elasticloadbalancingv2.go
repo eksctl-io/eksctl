@@ -221,7 +221,7 @@ type ELBV2 interface {
 	// Describes the specified load balancers or all of your load balancers.
 	DescribeLoadBalancers(ctx context.Context, params *elasticloadbalancingv2.DescribeLoadBalancersInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeLoadBalancersOutput, error)
 	// Describes the specified rules or the rules for the specified listener. You must
-	// specify either a listener or rules.
+	// specify either a listener or one or more rules.
 	DescribeRules(ctx context.Context, params *elasticloadbalancingv2.DescribeRulesInput, optFns ...func(*Options)) (*elasticloadbalancingv2.DescribeRulesOutput, error)
 	// Describes the specified policies or all policies used for SSL negotiation.
 	//
