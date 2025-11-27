@@ -247,7 +247,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			Expect(descriptions).To(ContainElements(
 				"EKS cluster (dedicated VPC: true, dedicated IAM: true) [created and managed by eksctl]",
 				"EKS Managed Nodes (SSH access: false) [created by eksctl]",
-				"EKS nodes (AMI family: AmazonLinux2, SSH access: false, private networking: false) [created and managed by eksctl]",
+				"EKS nodes (AMI family: AmazonLinux2023, SSH access: false, private networking: false) [created and managed by eksctl]",
 			))
 		})
 	})

@@ -278,14 +278,6 @@ var _ = Describe("ClusterConfig validation", func() {
 
 	Context("Container Runtime settings", func() {
 		Context("Kubernetes version 1.23 or lower", func() {
-			It("defaults to dockerd as a container runtime", func() {
-				testNodeGroup := NodeGroup{
-					NodeGroupBase: &NodeGroupBase{},
-				}
-				err := SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{Version: Version1_23}, false)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(*testNodeGroup.ContainerRuntime).To(Equal(ContainerRuntimeDockerD))
-			})
 			When("ami family is windows", func() {
 				It("defaults to docker as a container runtime", func() {
 					testNodeGroup := NodeGroup{
@@ -421,8 +413,8 @@ var _ = Describe("ClusterConfig validation", func() {
 			Entry("EKS 1.32 uses AL2023", "1.32", NodeImageFamilyAmazonLinux2023),
 			Entry("EKS 1.31 uses AL2023", "1.31", NodeImageFamilyAmazonLinux2023),
 			Entry("EKS 1.30 uses AL2023", "1.30", NodeImageFamilyAmazonLinux2023),
-			Entry("EKS 1.29 uses AL2", "1.29", NodeImageFamilyAmazonLinux2),
-			Entry("EKS 1.28 uses AL2", "1.28", NodeImageFamilyAmazonLinux2),
+			Entry("EKS 1.29 uses AL2", "1.29", NodeImageFamilyAmazonLinux2023),
+			Entry("EKS 1.28 uses AL2", "1.28", NodeImageFamilyAmazonLinux2023),
 		)
 	})
 
@@ -475,7 +467,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 			err := SetNodeGroupDefaults(ng, &ClusterMeta{Version: "1.32"}, false)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(ng.AMIFamily).To(Equal(NodeImageFamilyAmazonLinux2))
+			Expect(ng.AMIFamily).To(Equal(NodeImageFamilyAmazonLinux2023))
 		})
 	})
 
@@ -528,7 +520,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 			err := SetManagedNodeGroupDefaults(ng, &ClusterMeta{Version: "1.29"}, false)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(ng.AMIFamily).To(Equal(NodeImageFamilyAmazonLinux2))
+			Expect(ng.AMIFamily).To(Equal(NodeImageFamilyAmazonLinux2023))
 		})
 	})
 })

@@ -128,16 +128,12 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta, controlPlaneOnOutpos
 	// Set default AMI family depending on Kubernetes version
 	isAL2EOLVersion, _ := utils.IsMinVersion(AmazonLinux2EOLVersion, meta.Version)
 	if isAL2EOLVersion {
-		// For newer Kubernetes versions, default to AL2023
-		if ng.AMIFamily == "" {
-			ng.AMIFamily = NodeImageFamilyAmazonLinux2023
-		}
 		// Since AL2 isn't supported, throw an error if the user explicitly requested AL2
 		if ng.AMIFamily == NodeImageFamilyAmazonLinux2 {
 			return fmt.Errorf("AmazonLinux2 is not supported for Kubernetes version %s", meta.Version)
 		}
 	}
-	// Default to AL2 for Kubernetes versions prior to AmazonLinux2EOLVersion
+	// Default to AL2023 for all Kubernetes versions.
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = DefaultNodeImageFamily
 	}
@@ -164,22 +160,17 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta, contro
 	// Thus, we only set up default AMI family when no custom AMI is being used.
 	isAL2EOLVersion, _ := utils.IsMinVersion(AmazonLinux2EOLVersion, meta.Version)
 	if ng.AMI == "" && isAL2EOLVersion {
-		// Set default AMI family depending on Kubernetes version
-		// For newer Kubernetes versions, default to AL2023
+		// Default to AL2023 for all Kubernetes versions.
 		if ng.AMIFamily == "" {
-			ng.AMIFamily = NodeImageFamilyAmazonLinux2023
+			ng.AMIFamily = DefaultNodeImageFamily
 		}
 		// Since AL2 isn't supported for this K8s version, throw an error if the user explicitly requested AL2
 		if ng.AMIFamily == NodeImageFamilyAmazonLinux2 {
 			return fmt.Errorf("AmazonLinux2 is not supported for Kubernetes version %s", meta.Version)
 		}
 	} else if ng.AMI == "" && ng.AMIFamily == "" {
-		// AL2023 is the default ami type on EKS managed nodegroups after 1.30.
-		if isMinVer, _ := utils.IsMinVersion(Version1_30, meta.Version); isMinVer {
-			ng.AMIFamily = NodeImageFamilyAmazonLinux2023
-		} else {
-			ng.AMIFamily = NodeImageFamilyAmazonLinux2
-		}
+		// Default to AL2023 for all Kubernetes versions.
+		ng.AMIFamily = DefaultNodeImageFamily
 	}
 
 	if ng.Tags == nil {

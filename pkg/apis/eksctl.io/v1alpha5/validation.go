@@ -757,8 +757,8 @@ func validateNodeGroupBase(np NodePool, path string, controlPlaneOnOutposts bool
 			}
 			return fmt.Errorf("AMI Family %s is not supported - use one of: %s", ng.AMIFamily, strings.Join(SupportedAMIFamilies(), ", "))
 		}
-		if controlPlaneOnOutposts && ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
-			return fmt.Errorf("only %s is supported on local clusters", NodeImageFamilyAmazonLinux2)
+		if controlPlaneOnOutposts && (ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyAmazonLinux2023) {
+			return fmt.Errorf("only %s and %s is supported on local clusters", NodeImageFamilyAmazonLinux2, NodeImageFamilyAmazonLinux2023)
 		}
 	}
 
