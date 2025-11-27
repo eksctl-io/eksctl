@@ -495,7 +495,7 @@ var _ = Describe("(Integration) [AccessEntries Test]", func() {
 						"--config-file", "-",
 						"--wait",
 						"--approve",
-						"--disable-eviction",
+						"--drain=false",
 					).
 					WithoutArg("--region", params.Region).
 					WithStdin(clusterutils.Reader(clusterConfig))
