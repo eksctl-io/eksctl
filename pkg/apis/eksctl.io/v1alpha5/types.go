@@ -181,6 +181,9 @@ const (
 	// RegionUSISOBEast1 represents the region US ISOB East (Ohio).
 	RegionUSISOBEast1 = "us-isob-east-1"
 
+	// RegionUSISOBWest1 represents the region US ISOB West.
+	RegionUSISOBWest1 = "us-isob-west-1"
+
 	// RegionUSISOWest1 represents the region US ISO West.
 	RegionUSISOWest1 = "us-iso-west-1"
 
@@ -383,6 +386,9 @@ const (
 	// eksResourceAccountUSISOBEast1 defines the AWS EKS account ID that provides node resources in us-isob-east-1
 	eksResourceAccountUSISOBEast1 = "187977181151"
 
+	// eksResourceAccountUSISOBWest1 defines the AWS EKS account ID that provides node resources in us-isob-west-1
+	eksResourceAccountUSISOBWest1 = "321162350305"
+
 	// eksResourceAccountUSISOWest1 defines the AWS EKS account ID that provides node resources in us-iso-west-1
 	eksResourceAccountUSISOWest1 = "608367168043"
 
@@ -554,6 +560,7 @@ func SupportedRegions() []string {
 		RegionUSGovEast1,
 		RegionUSISOEast1,
 		RegionUSISOBEast1,
+		RegionUSISOBWest1,
 		RegionUSISOWest1,
 		RegionMXCentral1,
 		RegionAPSoutheast6,
@@ -651,6 +658,8 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountUSISOEast1
 	case RegionUSISOBEast1:
 		return eksResourceAccountUSISOBEast1
+	case RegionUSISOBWest1:
+		return eksResourceAccountUSISOBWest1
 	case RegionUSISOWest1:
 		return eksResourceAccountUSISOWest1
 	case RegionMXCentral1:
