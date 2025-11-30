@@ -20,7 +20,7 @@ type Capability struct {
 	// +optional
 	DeletePropagationPolicy string `json:"deletePropagationPolicy,omitempty"`
 
-	// Configuration holds capability-specific configuration
+	// Configuration holds capability-specific configuration. Only applicable for ArgoCD
 	// +optional
 	Configuration *CapabilityConfiguration `json:"configuration,omitempty"`
 

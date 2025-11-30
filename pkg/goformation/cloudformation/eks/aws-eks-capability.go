@@ -11,6 +11,71 @@ import (
 	"github.com/weaveworks/eksctl/pkg/goformation/cloudformation/policies"
 )
 
+// CapabilityConfiguration holds capability-specific configuration for CloudFormation
+type CapabilityConfiguration struct {
+	// ArgoCD configuration for ARGOCD capability type
+	ArgoCd ArgoCDConfiguration `json:"ArgoCd,omitempty"`
+}
+
+// ArgoCDConfiguration holds ArgoCD-specific configuration for CloudFormation
+type ArgoCDConfiguration struct {
+	// Namespace for ArgoCD installation
+	// +optional
+	Namespace *types.Value `json:"Namespace,omitempty"`
+
+	// NetworkAccess configuration
+	// +optional
+	NetworkAccess *ArgoCDNetworkAccess `json:"NetworkAccess,omitempty"`
+
+	// RBACRoleMappings for ArgoCD RBAC
+	// +optional
+	RBACRoleMappings []ArgoCDRoleMapping `json:"RbacRoleMappings,omitempty"`
+
+	// AWSIDC configuration
+	// +optional
+	AWSIDC *ArgoCDAWSIDC `json:"AwsIdc,omitempty"`
+}
+
+// ArgoCDNetworkAccess holds network access configuration for ArgoCD
+type ArgoCDNetworkAccess struct {
+	// VPCEIDs for VPC endpoint access
+	// +optional
+	VPCEIDs *types.Value `json:"VpceIds,omitempty"`
+}
+
+// ArgoCDRoleMapping holds RBAC role mapping for ArgoCD
+type ArgoCDRoleMapping struct {
+	// Role is the ArgoCD role (ADMIN, EDITOR, VIEWER)
+	// +required
+	Role *types.Value `json:"Role"`
+
+	// Identities are the SSO identities to map to the role
+	// +required
+	Identities []SSOIdentity `json:"Identities"`
+}
+
+// SSOIdentity represents an SSO identity
+type SSOIdentity struct {
+	// ID of the SSO identity
+	// +required
+	ID *types.Value `json:"Id"`
+
+	// Type of the SSO identity (SSO_USER, SSO_GROUP)
+	// +required
+	Type *types.Value `json:"Type"`
+}
+
+// ArgoCDAWSIDC holds AWS IDC configuration for ArgoCD
+type ArgoCDAWSIDC struct {
+	// IDCInstanceARN is the ARN of the IDC instance
+	// +required
+	IDCInstanceARN *types.Value `json:"IdcInstanceArn"`
+
+	// IDCRegion is the region of the IDC instance
+	// +optional
+	IDCRegion *types.Value `json:"IdcRegion,omitempty"`
+}
+
 // Capability represents an AWS::EKS::Capability resource
 type Capability struct {
 	// CapabilityName AWS CloudFormation Property
@@ -26,7 +91,7 @@ type Capability struct {
 	// Configuration AWS CloudFormation Property
 	// Required: false
 	// See: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-eks-capability.html#cfn-eks-capability-configuration
-	Configuration interface{} `json:"Configuration,omitempty"`
+	Configuration *CapabilityConfiguration `json:"Configuration,omitempty"`
 
 	// DeletePropagationPolicy AWS CloudFormation Property
 	// Required: false

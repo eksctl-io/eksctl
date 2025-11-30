@@ -63,7 +63,6 @@ type StackManager interface {
 	GetClusterStackIfExists(ctx context.Context) (*Stack, error)
 	GetFargateStack(ctx context.Context) (*Stack, error)
 	GetIAMAddonsStacks(ctx context.Context) ([]*Stack, error)
-	GetIAMCapabilitiesStacks(ctx context.Context) ([]*Stack, error)
 	GetIAMServiceAccounts(ctx context.Context, name string, namespace string) ([]*api.ClusterIAMServiceAccount, error)
 	GetKarpenterStack(ctx context.Context) (*Stack, error)
 	GetManagedNodeGroupTemplate(ctx context.Context, options GetNodegroupOption) (string, error)
@@ -82,6 +81,8 @@ type StackManager interface {
 	ListStacksMatching(ctx context.Context, nameRegex string, statusFilters ...cfntypes.StackStatus) ([]*Stack, error)
 	ListStackNames(ctx context.Context, regExp string) ([]string, error)
 	ListAccessEntryStackNames(ctx context.Context, clusterName string) ([]string, error)
+	ListCapabilityStacks(ctx context.Context) ([]*Stack, error)
+	ListCapabilitiesIAMStacks(ctx context.Context) ([]*Stack, error)
 	LookupCloudTrailEvents(ctx context.Context, i *Stack) ([]cttypes.Event, error)
 	MakeChangeSetName(action string) string
 	MakeClusterStackName() string

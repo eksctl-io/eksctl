@@ -290,6 +290,9 @@ const (
 	// CapabilityNameTag defines the tag of the capability name
 	CapabilityNameTag = "alpha.eksctl.io/capability-name"
 
+	// CapabilityIAMRoleTag defines the tag of the capability IAM role
+	CapabilityIAMRoleTag = "alpha.eksctl.io/iam-role-for-capability"
+
 	// ClusterNameLabel defines the tag of the cluster name
 	ClusterNameLabel = "alpha.eksctl.io/cluster-name"
 

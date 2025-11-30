@@ -138,7 +138,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 			return &tasks.TaskTree{}, err
 		}
 
-		capabilityRemover := capability.NewRemover(c.cfg.Metadata.Name, c.stackManager, c.ctl.AWSProvider.EKS(), c.ctl.AWSProvider.WaitTimeout())
+		capabilityRemover := capability.NewRemover(c.cfg.Metadata.Name, c.stackManager)
 		return capabilityRemover.DeleteTasks(ctx, capabilities)
 	}
 

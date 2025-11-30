@@ -475,8 +475,8 @@
         },
         "configuration": {
           "$ref": "#/definitions/CapabilityConfiguration",
-          "description": "holds capability-specific configuration",
-          "x-intellij-html-description": "holds capability-specific configuration"
+          "description": "holds capability-specific configuration. Only applicable for ArgoCD",
+          "x-intellij-html-description": "holds capability-specific configuration. Only applicable for ArgoCD"
         },
         "deletePropagationPolicy": {
           "type": "string",

@@ -57,7 +57,7 @@ func doDeleteCapability(cmd *cmdutils.Cmd, capability *api.Capability) error {
 
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
 
-	capabilityRemover := capabilityactions.NewRemover(cmd.ClusterConfig.Metadata.Name, stackManager, clusterProvider.AWSProvider.EKS(), cmd.ProviderConfig.WaitTimeout)
+	capabilityRemover := capabilityactions.NewRemover(cmd.ClusterConfig.Metadata.Name, stackManager)
 	// Delete capabilities and IAM role
 	return capabilityRemover.Delete(ctx, capabilities)
 
