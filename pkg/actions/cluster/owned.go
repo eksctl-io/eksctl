@@ -8,6 +8,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	"github.com/weaveworks/eksctl/pkg/actions/capability"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"github.com/weaveworks/eksctl/pkg/actions/podidentityassociation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -123,6 +124,24 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 		return c.ctl.NewOpenIDConnectManager(ctx, c.cfg)
 	}
 	newTasksToDeleteAddonIAM := addon.NewRemover(c.stackManager).DeleteAddonIAMTasks
+
+	newTasksToDeleteCapability := func() (*tasks.TaskTree, error) {
+		capabilityGetter := &capability.Getter{
+			ClusterName: c.cfg.Metadata.Name,
+			EKSAPI:      c.ctl.AWSProvider.EKS(),
+		}
+
+		// Get all capabilities
+		capabilities, err := capabilityGetter.Get(ctx, "")
+
+		if err != nil {
+			return &tasks.TaskTree{}, err
+		}
+
+		capabilityRemover := capability.NewRemover(c.cfg.Metadata.Name, c.stackManager)
+		return capabilityRemover.DeleteTasks(ctx, capabilities)
+	}
+
 	newTasksToDeletePodIdentityRoles := func() (*tasks.TaskTree, error) {
 		if !clusterOperable {
 			return &tasks.TaskTree{}, nil
@@ -139,7 +158,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 			DeleteTasks(ctx, []podidentityassociation.Identifier{})
 	}
 
-	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, clusterOperable, newOIDCManager, newTasksToDeleteAddonIAM, newTasksToDeletePodIdentityRoles, c.ctl.Status.ClusterInfo.Cluster, kubernetes.NewCachedClientSet(clientSet), wait, force, func(errs chan error, _ string) error {
+	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, clusterOperable, newOIDCManager, newTasksToDeleteAddonIAM, newTasksToDeleteCapability, newTasksToDeletePodIdentityRoles, c.ctl.Status.ClusterInfo.Cluster, kubernetes.NewCachedClientSet(clientSet), wait, force, func(errs chan error, _ string) error {
 		logger.Info("trying to cleanup dangling network interfaces")
 		stack, err := c.stackManager.DescribeClusterStack(ctx)
 		if err != nil {

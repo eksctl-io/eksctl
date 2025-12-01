@@ -380,6 +380,37 @@ func NewIAMRoleResourceSetForPodIdentity(spec *api.PodIdentityAssociation) *IAMR
 	}
 }
 
+func NewIAMRoleResourceSetForCapability(spec *api.Capability) *IAMRoleResourceSet {
+	return &IAMRoleResourceSet{
+		template:         cft.NewTemplate(),
+		attachPolicy:     spec.AttachPolicy,
+		attachPolicyARNs: spec.AttachPolicyARNs,
+		description: fmt.Sprintf(
+			"IAM role for capability %s %s",
+			spec.Name,
+			templateDescriptionSuffix,
+		),
+		roleNameCollector: func(v string) error {
+			spec.RoleARN = v
+			return nil
+		},
+		trustStatements: []api.IAMStatement{
+			{
+				Effect: "Allow",
+				Principal: map[string]api.CustomStringSlice{
+					"Service": []string{
+						"capabilities.eks.amazonaws.com",
+					},
+				},
+				Action: []string{
+					"sts:AssumeRole",
+					"sts:TagSession",
+				},
+			},
+		},
+	}
+}
+
 // IAMRoleResourceSet holds IAM Role stack build-time information
 type IAMRoleResourceSet struct {
 	template            *cft.Template

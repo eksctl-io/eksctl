@@ -392,6 +392,80 @@ func (_c *EKS_CreateAddon_Call) RunAndReturn(run func(context.Context, *eks.Crea
 	return _c
 }
 
+// CreateCapability provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) CreateCapability(ctx context.Context, params *eks.CreateCapabilityInput, optFns ...func(*eks.Options)) (*eks.CreateCapabilityOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateCapability")
+	}
+
+	var r0 *eks.CreateCapabilityOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CreateCapabilityInput, ...func(*eks.Options)) (*eks.CreateCapabilityOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CreateCapabilityInput, ...func(*eks.Options)) *eks.CreateCapabilityOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.CreateCapabilityOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.CreateCapabilityInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EKS_CreateCapability_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateCapability'
+type EKS_CreateCapability_Call struct {
+	*mock.Call
+}
+
+// CreateCapability is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.CreateCapabilityInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) CreateCapability(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_CreateCapability_Call {
+	return &EKS_CreateCapability_Call{Call: _e.mock.On("CreateCapability",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_CreateCapability_Call) Run(run func(ctx context.Context, params *eks.CreateCapabilityInput, optFns ...func(*eks.Options))) *EKS_CreateCapability_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.CreateCapabilityInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_CreateCapability_Call) Return(_a0 *eks.CreateCapabilityOutput, _a1 error) *EKS_CreateCapability_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_CreateCapability_Call) RunAndReturn(run func(context.Context, *eks.CreateCapabilityInput, ...func(*eks.Options)) (*eks.CreateCapabilityOutput, error)) *EKS_CreateCapability_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateCluster provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) CreateCluster(ctx context.Context, params *eks.CreateClusterInput, optFns ...func(*eks.Options)) (*eks.CreateClusterOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -906,6 +980,80 @@ func (_c *EKS_DeleteAddon_Call) Return(_a0 *eks.DeleteAddonOutput, _a1 error) *E
 }
 
 func (_c *EKS_DeleteAddon_Call) RunAndReturn(run func(context.Context, *eks.DeleteAddonInput, ...func(*eks.Options)) (*eks.DeleteAddonOutput, error)) *EKS_DeleteAddon_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteCapability provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) DeleteCapability(ctx context.Context, params *eks.DeleteCapabilityInput, optFns ...func(*eks.Options)) (*eks.DeleteCapabilityOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteCapability")
+	}
+
+	var r0 *eks.DeleteCapabilityOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DeleteCapabilityInput, ...func(*eks.Options)) (*eks.DeleteCapabilityOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DeleteCapabilityInput, ...func(*eks.Options)) *eks.DeleteCapabilityOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DeleteCapabilityOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DeleteCapabilityInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EKS_DeleteCapability_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteCapability'
+type EKS_DeleteCapability_Call struct {
+	*mock.Call
+}
+
+// DeleteCapability is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DeleteCapabilityInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DeleteCapability(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DeleteCapability_Call {
+	return &EKS_DeleteCapability_Call{Call: _e.mock.On("DeleteCapability",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DeleteCapability_Call) Run(run func(ctx context.Context, params *eks.DeleteCapabilityInput, optFns ...func(*eks.Options))) *EKS_DeleteCapability_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DeleteCapabilityInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DeleteCapability_Call) Return(_a0 *eks.DeleteCapabilityOutput, _a1 error) *EKS_DeleteCapability_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DeleteCapability_Call) RunAndReturn(run func(context.Context, *eks.DeleteCapabilityInput, ...func(*eks.Options)) (*eks.DeleteCapabilityOutput, error)) *EKS_DeleteCapability_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1646,6 +1794,80 @@ func (_c *EKS_DescribeAddonVersions_Call) Return(_a0 *eks.DescribeAddonVersionsO
 }
 
 func (_c *EKS_DescribeAddonVersions_Call) RunAndReturn(run func(context.Context, *eks.DescribeAddonVersionsInput, ...func(*eks.Options)) (*eks.DescribeAddonVersionsOutput, error)) *EKS_DescribeAddonVersions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DescribeCapability provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) DescribeCapability(ctx context.Context, params *eks.DescribeCapabilityInput, optFns ...func(*eks.Options)) (*eks.DescribeCapabilityOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeCapability")
+	}
+
+	var r0 *eks.DescribeCapabilityOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeCapabilityInput, ...func(*eks.Options)) (*eks.DescribeCapabilityOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeCapabilityInput, ...func(*eks.Options)) *eks.DescribeCapabilityOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeCapabilityOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeCapabilityInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EKS_DescribeCapability_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeCapability'
+type EKS_DescribeCapability_Call struct {
+	*mock.Call
+}
+
+// DescribeCapability is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.DescribeCapabilityInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) DescribeCapability(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_DescribeCapability_Call {
+	return &EKS_DescribeCapability_Call{Call: _e.mock.On("DescribeCapability",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_DescribeCapability_Call) Run(run func(ctx context.Context, params *eks.DescribeCapabilityInput, optFns ...func(*eks.Options))) *EKS_DescribeCapability_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.DescribeCapabilityInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_DescribeCapability_Call) Return(_a0 *eks.DescribeCapabilityOutput, _a1 error) *EKS_DescribeCapability_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_DescribeCapability_Call) RunAndReturn(run func(context.Context, *eks.DescribeCapabilityInput, ...func(*eks.Options)) (*eks.DescribeCapabilityOutput, error)) *EKS_DescribeCapability_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2834,6 +3056,80 @@ func (_c *EKS_ListAssociatedAccessPolicies_Call) RunAndReturn(run func(context.C
 	return _c
 }
 
+// ListCapabilities provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) ListCapabilities(ctx context.Context, params *eks.ListCapabilitiesInput, optFns ...func(*eks.Options)) (*eks.ListCapabilitiesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListCapabilities")
+	}
+
+	var r0 *eks.ListCapabilitiesOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListCapabilitiesInput, ...func(*eks.Options)) (*eks.ListCapabilitiesOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListCapabilitiesInput, ...func(*eks.Options)) *eks.ListCapabilitiesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListCapabilitiesOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListCapabilitiesInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EKS_ListCapabilities_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListCapabilities'
+type EKS_ListCapabilities_Call struct {
+	*mock.Call
+}
+
+// ListCapabilities is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.ListCapabilitiesInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) ListCapabilities(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_ListCapabilities_Call {
+	return &EKS_ListCapabilities_Call{Call: _e.mock.On("ListCapabilities",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_ListCapabilities_Call) Run(run func(ctx context.Context, params *eks.ListCapabilitiesInput, optFns ...func(*eks.Options))) *EKS_ListCapabilities_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.ListCapabilitiesInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_ListCapabilities_Call) Return(_a0 *eks.ListCapabilitiesOutput, _a1 error) *EKS_ListCapabilities_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_ListCapabilities_Call) RunAndReturn(run func(context.Context, *eks.ListCapabilitiesInput, ...func(*eks.Options)) (*eks.ListCapabilitiesOutput, error)) *EKS_ListCapabilities_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListClusters provides a mock function with given fields: ctx, params, optFns
 func (_m *EKS) ListClusters(ctx context.Context, params *eks.ListClustersInput, optFns ...func(*eks.Options)) (*eks.ListClustersOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3985,6 +4281,80 @@ func (_c *EKS_UpdateAddon_Call) Return(_a0 *eks.UpdateAddonOutput, _a1 error) *E
 }
 
 func (_c *EKS_UpdateAddon_Call) RunAndReturn(run func(context.Context, *eks.UpdateAddonInput, ...func(*eks.Options)) (*eks.UpdateAddonOutput, error)) *EKS_UpdateAddon_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateCapability provides a mock function with given fields: ctx, params, optFns
+func (_m *EKS) UpdateCapability(ctx context.Context, params *eks.UpdateCapabilityInput, optFns ...func(*eks.Options)) (*eks.UpdateCapabilityOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateCapability")
+	}
+
+	var r0 *eks.UpdateCapabilityOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UpdateCapabilityInput, ...func(*eks.Options)) (*eks.UpdateCapabilityOutput, error)); ok {
+		return rf(ctx, params, optFns...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UpdateCapabilityInput, ...func(*eks.Options)) *eks.UpdateCapabilityOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdateCapabilityOutput)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.UpdateCapabilityInput, ...func(*eks.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EKS_UpdateCapability_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateCapability'
+type EKS_UpdateCapability_Call struct {
+	*mock.Call
+}
+
+// UpdateCapability is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *eks.UpdateCapabilityInput
+//   - optFns ...func(*eks.Options)
+func (_e *EKS_Expecter) UpdateCapability(ctx interface{}, params interface{}, optFns ...interface{}) *EKS_UpdateCapability_Call {
+	return &EKS_UpdateCapability_Call{Call: _e.mock.On("UpdateCapability",
+		append([]interface{}{ctx, params}, optFns...)...)}
+}
+
+func (_c *EKS_UpdateCapability_Call) Run(run func(ctx context.Context, params *eks.UpdateCapabilityInput, optFns ...func(*eks.Options))) *EKS_UpdateCapability_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]func(*eks.Options), len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(func(*eks.Options))
+			}
+		}
+		run(args[0].(context.Context), args[1].(*eks.UpdateCapabilityInput), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *EKS_UpdateCapability_Call) Return(_a0 *eks.UpdateCapabilityOutput, _a1 error) *EKS_UpdateCapability_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *EKS_UpdateCapability_Call) RunAndReturn(run func(context.Context, *eks.UpdateCapabilityInput, ...func(*eks.Options)) (*eks.UpdateCapabilityOutput, error)) *EKS_UpdateCapability_Call {
 	_c.Call.Return(run)
 	return _c
 }

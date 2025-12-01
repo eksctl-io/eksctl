@@ -1,0 +1,35 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: eks-capability-1
+  region: ap-northeast-2
+
+# Enable EKS Auto Mode
+autoModeConfig:
+  enabled: true
+
+# Capabilities configuration
+capabilities:
+  # AWS Controllers for Kubernetes (ACK) - with existing role
+  - name: ack-capability
+    type: ACK
+    # roleArn: arn:aws:iam::123456789012:role/ACK-S3-Controller-Role #optional, eksctl will create the role
+    deletePropagationPolicy: RETAIN
+    attachPolicyARNs:
+      - arn:aws:iam::aws:policy/AdministratorAccess
+    tags:
+      Environment: dev
+      Team: platform
+
+  # Kubernetes Resource Optimizer (KRO) - with auto-created role
+  - name: kro-capability
+    type: KRO
+    deletePropagationPolicy: RETAIN
+    accessPolicies: # Attached after AE is created by EKS Capability 
+      - policyARN: arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy
+        accessScope:
+          type: cluster
+    tags:
+      Environment: production
+      Team: platform

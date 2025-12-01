@@ -19,6 +19,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 		createAddonCmd,
 		createAccessEntryCmd,
 		createPodIdentityAssociationCmd,
+		createCapabilityCmd,
 	}
 	for _, cmdFunc := range cmdFuncs {
 		cmdutils.AddResourceCmd(flagGrouping, verbCmd, cmdFunc)

@@ -30,6 +30,9 @@ type NewOIDCManager func() (*iamoidc.OpenIDConnectManager, error)
 // NewTasksToDeleteAddonIAM temporary type, to be removed after moving NewTasksToDeleteClusterWithNodeGroups to actions package
 type NewTasksToDeleteAddonIAM func(ctx context.Context, wait bool) (*tasks.TaskTree, error)
 
+// NewTasksToDeleteCapabilityIAM temporary type, to be removed after moving NewTasksToDeleteClusterWithNodeGroups to actions package
+type NewTasksToDeleteCapabilityIAM func() (*tasks.TaskTree, error)
+
 // NewTasksToDeletePodIdentityRole temporary type, to be removed after moving NewTasksToDeleteClusterWithNodeGroups to actions package
 type NewTasksToDeletePodIdentityRole func() (*tasks.TaskTree, error)
 
@@ -41,6 +44,7 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(
 	clusterOperable bool,
 	newOIDCManager NewOIDCManager,
 	newTasksToDeleteAddonIAM NewTasksToDeleteAddonIAM,
+	newTasksToDeleteCapabilityIAM NewTasksToDeleteCapabilityIAM,
 	newTasksToDeletePodIdentityRole NewTasksToDeletePodIdentityRole,
 	cluster *ekstypes.Cluster,
 	clientSetGetter kubernetes.ClientSetGetter,
@@ -78,6 +82,16 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(
 	if deleteAddonIAMTasks.Len() > 0 {
 		deleteAddonIAMTasks.IsSubTask = true
 		taskTree.Append(deleteAddonIAMTasks)
+	}
+
+	deleteCapabilityIAMTasks, err := newTasksToDeleteCapabilityIAM()
+	if err != nil {
+		return nil, err
+	}
+
+	if deleteCapabilityIAMTasks.Len() > 0 {
+		deleteCapabilityIAMTasks.IsSubTask = true
+		taskTree.Append(deleteCapabilityIAMTasks)
 	}
 
 	deletePodIdentityRoleTasks, err := newTasksToDeletePodIdentityRole()

@@ -102,3 +102,16 @@ packages:
       RoleManager: {}
       NodeGroupDrainer: {}
       ClusterRoleManager: {}
+
+  github.com/weaveworks/eksctl/pkg/actions/capability:
+    config:
+      with-expecter: true
+      dir: "{{.InterfaceDir}}/mocks"
+      outpkg: mocks
+      filename: "{{ .InterfaceName | snakecase }}.go"
+    interfaces:
+      CreatorInterface: {}
+      GetterInterface: {}
+      RemoverInterface: {}
+      StackCreator: {}
+      StackRemover: {}

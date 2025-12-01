@@ -24,6 +24,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/accessentry"
 	accessentryactions "github.com/weaveworks/eksctl/pkg/actions/accessentry"
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	capabilityactions "github.com/weaveworks/eksctl/pkg/actions/capability"
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
 	"github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	"github.com/weaveworks/eksctl/pkg/actions/podidentityassociation"
@@ -531,6 +532,13 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			return nil
 		}
 
+		// Create capabilities after cluster is ready
+		if len(cfg.Capabilities) > 0 {
+			if err := createCapabilities(ctx, cmd, cfg, ctl, stackManager); err != nil {
+				return fmt.Errorf("creating capabilities: %w", err)
+			}
+		}
+
 		env, err := ctl.GetCredentialsEnv(ctx)
 		if err != nil {
 			return err
@@ -699,6 +707,12 @@ func clientSetCreator(ctl *eks.ClusterProvider, cfg *api.ClusterConfig) func() (
 
 func checkSubnetsGivenAsFlags(params *cmdutils.CreateClusterCmdParams) bool {
 	return len(*params.Subnets[api.SubnetTopologyPrivate])+len(*params.Subnets[api.SubnetTopologyPublic]) != 0
+}
+
+func createCapabilities(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) error {
+	capabilityCreator := capabilityactions.NewCreator(cfg.Metadata.Name, stackManager, ctl.AWSProvider.EKS(), cmd)
+	logger.Info("creating %d capabilities", len(cfg.Capabilities))
+	return capabilityCreator.Create(ctx, cfg.Capabilities)
 }
 
 func logAmazonLinux2EndOfSupportWarningIfNeeded(cfg *api.ClusterConfig) {
