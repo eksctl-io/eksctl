@@ -9,21 +9,21 @@ require (
 	github.com/aws/amazon-ec2-instance-selector/v3 v3.1.2
 	github.com/aws/aws-sdk-go-v2 v1.40.0
 	github.com/aws/aws-sdk-go-v2/config v1.31.12
-	github.com/aws/aws-sdk-go-v2/credentials v1.18.21
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.60.4
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.68.4
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.53.12
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.58.8
+	github.com/aws/aws-sdk-go-v2/credentials v1.19.1
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.62.1
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.71.1
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.55.1
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.61.1
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.57.7
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.267.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.75.0
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.33.12
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.51.6
-	github.com/aws/aws-sdk-go-v2/service/iam v1.50.1
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.275.0
+	github.com/aws/aws-sdk-go-v2/service/eks v1.76.0
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.33.15
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.54.2
+	github.com/aws/aws-sdk-go-v2/service/iam v1.52.2
 	github.com/aws/aws-sdk-go-v2/service/kms v1.47.1
-	github.com/aws/aws-sdk-go-v2/service/outposts v1.57.6
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.67.1
-	github.com/aws/aws-sdk-go-v2/service/sts v1.39.1
+	github.com/aws/aws-sdk-go-v2/service/outposts v1.57.8
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.67.4
+	github.com/aws/aws-sdk-go-v2/service/sts v1.41.1
 	github.com/aws/smithy-go v1.23.2
 	github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20251001043626-89ce6578d960
 	github.com/benjamintf1/unmarshalledmatchers v1.0.0
@@ -134,22 +134,22 @@ require (
 	github.com/ashanbrown/makezero/v2 v2.1.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.3 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.13 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.14 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.14 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.14 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.36 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.4 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.14 // indirect
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.39.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.13 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.13 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.14 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.14 // indirect
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.34.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.52.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.82.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.38.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.30.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.30.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.9 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -489,71 +489,3 @@ replace (
 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.34.1
 	k8s.io/sample-controller => k8s.io/sample-controller v0.34.1
 )
-
-replace github.com/aws/aws-sdk-go-v2 => /home/ec2-user/eksctl/aws-sdk-go-v2
-
-replace github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream => /home/ec2-user/eksctl/aws-sdk-go-v2/aws/protocol/eventstream
-
-replace github.com/aws/aws-sdk-go-v2/config => /home/ec2-user/eksctl/aws-sdk-go-v2/config
-
-replace github.com/aws/aws-sdk-go-v2/credentials => /home/ec2-user/eksctl/aws-sdk-go-v2/credentials
-
-replace github.com/aws/aws-sdk-go-v2/feature/ec2/imds => /home/ec2-user/eksctl/aws-sdk-go-v2/feature/ec2/imds
-
-replace github.com/aws/aws-sdk-go-v2/internal/configsources => /home/ec2-user/eksctl/aws-sdk-go-v2/internal/configsources
-
-replace github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 => /home/ec2-user/eksctl/aws-sdk-go-v2/internal/endpoints/v2
-
-replace github.com/aws/aws-sdk-go-v2/internal/ini => /home/ec2-user/eksctl/aws-sdk-go-v2/internal/ini
-
-replace github.com/aws/aws-sdk-go-v2/internal/v4a => /home/ec2-user/eksctl/aws-sdk-go-v2/internal/v4a
-
-replace github.com/aws/aws-sdk-go-v2/service/autoscaling => /home/ec2-user/eksctl/aws-sdk-go-v2/service/autoscaling
-
-replace github.com/aws/aws-sdk-go-v2/service/cloudformation => /home/ec2-user/eksctl/aws-sdk-go-v2/service/cloudformation
-
-replace github.com/aws/aws-sdk-go-v2/service/cloudtrail => /home/ec2-user/eksctl/aws-sdk-go-v2/service/cloudtrail
-
-replace github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs => /home/ec2-user/eksctl/aws-sdk-go-v2/service/cloudwatchlogs
-
-replace github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider => /home/ec2-user/eksctl/aws-sdk-go-v2/service/cognitoidentityprovider
-
-replace github.com/aws/aws-sdk-go-v2/service/ec2 => /home/ec2-user/eksctl/aws-sdk-go-v2/service/ec2
-
-replace github.com/aws/aws-sdk-go-v2/service/eks => /home/ec2-user/eksctl/aws-sdk-go-v2/service/eks
-
-replace github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing => /home/ec2-user/eksctl/aws-sdk-go-v2/service/elasticloadbalancing
-
-replace github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 => /home/ec2-user/eksctl/aws-sdk-go-v2/service/elasticloadbalancingv2
-
-replace github.com/aws/aws-sdk-go-v2/service/eventbridge => /home/ec2-user/eksctl/aws-sdk-go-v2/service/eventbridge
-
-replace github.com/aws/aws-sdk-go-v2/service/iam => /home/ec2-user/eksctl/aws-sdk-go-v2/service/iam
-
-replace github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding => /home/ec2-user/eksctl/aws-sdk-go-v2/service/internal/accept-encoding
-
-replace github.com/aws/aws-sdk-go-v2/service/internal/checksum => /home/ec2-user/eksctl/aws-sdk-go-v2/service/internal/checksum
-
-replace github.com/aws/aws-sdk-go-v2/service/internal/presigned-url => /home/ec2-user/eksctl/aws-sdk-go-v2/service/internal/presigned-url
-
-replace github.com/aws/aws-sdk-go-v2/service/internal/s3shared => /home/ec2-user/eksctl/aws-sdk-go-v2/service/internal/s3shared
-
-replace github.com/aws/aws-sdk-go-v2/service/kms => /home/ec2-user/eksctl/aws-sdk-go-v2/service/kms
-
-replace github.com/aws/aws-sdk-go-v2/service/outposts => /home/ec2-user/eksctl/aws-sdk-go-v2/service/outposts
-
-replace github.com/aws/aws-sdk-go-v2/service/pricing => /home/ec2-user/eksctl/aws-sdk-go-v2/service/pricing
-
-replace github.com/aws/aws-sdk-go-v2/service/route53 => /home/ec2-user/eksctl/aws-sdk-go-v2/service/route53
-
-replace github.com/aws/aws-sdk-go-v2/service/s3 => /home/ec2-user/eksctl/aws-sdk-go-v2/service/s3
-
-replace github.com/aws/aws-sdk-go-v2/service/sqs => /home/ec2-user/eksctl/aws-sdk-go-v2/service/sqs
-
-replace github.com/aws/aws-sdk-go-v2/service/ssm => /home/ec2-user/eksctl/aws-sdk-go-v2/service/ssm
-
-replace github.com/aws/aws-sdk-go-v2/service/sso => /home/ec2-user/eksctl/aws-sdk-go-v2/service/sso
-
-replace github.com/aws/aws-sdk-go-v2/service/ssooidc => /home/ec2-user/eksctl/aws-sdk-go-v2/service/ssooidc
-
-replace github.com/aws/aws-sdk-go-v2/service/sts => /home/ec2-user/eksctl/aws-sdk-go-v2/service/sts

@@ -12,7 +12,7 @@ import (
 )
 
 type GetterInterface interface {
-	Get(ctx context.Context, capabilityName string) ([]CapabilitySummary, error)
+	Get(ctx context.Context, capabilityName string) ([]Summary, error)
 }
 
 type Getter struct {
@@ -20,7 +20,7 @@ type Getter struct {
 	EKSAPI      awsapi.EKS
 }
 
-type CapabilitySummary struct {
+type Summary struct {
 	api.Capability
 	Status  string
 	Version string
@@ -33,7 +33,7 @@ func NewGetter(clusterName string, eksAPI awsapi.EKS) *Getter {
 	}
 }
 
-func (g *Getter) Get(ctx context.Context, capabilityName string) ([]CapabilitySummary, error) {
+func (g *Getter) Get(ctx context.Context, capabilityName string) ([]Summary, error) {
 	toBeFetched := []string{}
 
 	if capabilityName != "" {
@@ -52,7 +52,7 @@ func (g *Getter) Get(ctx context.Context, capabilityName string) ([]CapabilitySu
 		}
 	}
 
-	var capabilities []CapabilitySummary
+	var capabilities []Summary
 	for _, name := range toBeFetched {
 		capability, err := g.getIndividualCapability(ctx, name)
 		if err != nil {
@@ -63,17 +63,17 @@ func (g *Getter) Get(ctx context.Context, capabilityName string) ([]CapabilitySu
 	return capabilities, nil
 }
 
-func (g *Getter) getIndividualCapability(ctx context.Context, capabilityName string) (CapabilitySummary, error) {
+func (g *Getter) getIndividualCapability(ctx context.Context, capabilityName string) (Summary, error) {
 	resp, err := g.EKSAPI.DescribeCapability(ctx, &eks.DescribeCapabilityInput{
 		ClusterName:    &g.ClusterName,
 		CapabilityName: &capabilityName,
 	})
 	if err != nil {
-		return CapabilitySummary{}, fmt.Errorf("calling EKS API to describe capability %s: %w", capabilityName, err)
+		return Summary{}, fmt.Errorf("calling EKS API to describe capability %s: %w", capabilityName, err)
 	}
 
 	in := resp.Capability
-	capability := CapabilitySummary{
+	capability := Summary{
 		Capability: api.Capability{
 			Name:    aws.ToString(in.CapabilityName),
 			RoleARN: aws.ToString(in.RoleArn),

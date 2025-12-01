@@ -343,19 +343,6 @@ type FakeStackManager struct {
 		result1 []*manager.Stack
 		result2 error
 	}
-	GetIAMCapabilitiesStacksStub        func(context.Context) ([]*manager.Stack, error)
-	getIAMCapabilitiesStacksMutex       sync.RWMutex
-	getIAMCapabilitiesStacksArgsForCall []struct {
-		arg1 context.Context
-	}
-	getIAMCapabilitiesStacksReturns struct {
-		result1 []*manager.Stack
-		result2 error
-	}
-	getIAMCapabilitiesStacksReturnsOnCall map[int]struct {
-		result1 []*manager.Stack
-		result2 error
-	}
 	GetIAMServiceAccountsStub        func(context.Context, string, string) ([]*v1alpha5.ClusterIAMServiceAccount, error)
 	getIAMServiceAccountsMutex       sync.RWMutex
 	getIAMServiceAccountsArgsForCall []struct {
@@ -478,6 +465,32 @@ type FakeStackManager struct {
 	}
 	listAccessEntryStackNamesReturnsOnCall map[int]struct {
 		result1 []string
+		result2 error
+	}
+	ListCapabilitiesIAMStacksStub        func(context.Context) ([]*manager.Stack, error)
+	listCapabilitiesIAMStacksMutex       sync.RWMutex
+	listCapabilitiesIAMStacksArgsForCall []struct {
+		arg1 context.Context
+	}
+	listCapabilitiesIAMStacksReturns struct {
+		result1 []*manager.Stack
+		result2 error
+	}
+	listCapabilitiesIAMStacksReturnsOnCall map[int]struct {
+		result1 []*manager.Stack
+		result2 error
+	}
+	ListCapabilityStacksStub        func(context.Context) ([]*manager.Stack, error)
+	listCapabilityStacksMutex       sync.RWMutex
+	listCapabilityStacksArgsForCall []struct {
+		arg1 context.Context
+	}
+	listCapabilityStacksReturns struct {
+		result1 []*manager.Stack
+		result2 error
+	}
+	listCapabilityStacksReturnsOnCall map[int]struct {
+		result1 []*manager.Stack
 		result2 error
 	}
 	ListClusterStackNamesStub        func(context.Context) ([]string, error)
@@ -2412,70 +2425,6 @@ func (fake *FakeStackManager) GetIAMAddonsStacksReturnsOnCall(i int, result1 []*
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetIAMCapabilitiesStacks(arg1 context.Context) ([]*manager.Stack, error) {
-	fake.getIAMCapabilitiesStacksMutex.Lock()
-	ret, specificReturn := fake.getIAMCapabilitiesStacksReturnsOnCall[len(fake.getIAMCapabilitiesStacksArgsForCall)]
-	fake.getIAMCapabilitiesStacksArgsForCall = append(fake.getIAMCapabilitiesStacksArgsForCall, struct {
-		arg1 context.Context
-	}{arg1})
-	stub := fake.GetIAMCapabilitiesStacksStub
-	fakeReturns := fake.getIAMCapabilitiesStacksReturns
-	fake.recordInvocation("GetIAMCapabilitiesStacks", []interface{}{arg1})
-	fake.getIAMCapabilitiesStacksMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeStackManager) GetIAMCapabilitiesStacksCallCount() int {
-	fake.getIAMCapabilitiesStacksMutex.RLock()
-	defer fake.getIAMCapabilitiesStacksMutex.RUnlock()
-	return len(fake.getIAMCapabilitiesStacksArgsForCall)
-}
-
-func (fake *FakeStackManager) GetIAMCapabilitiesStacksCalls(stub func(context.Context) ([]*manager.Stack, error)) {
-	fake.getIAMCapabilitiesStacksMutex.Lock()
-	defer fake.getIAMCapabilitiesStacksMutex.Unlock()
-	fake.GetIAMCapabilitiesStacksStub = stub
-}
-
-func (fake *FakeStackManager) GetIAMCapabilitiesStacksArgsForCall(i int) context.Context {
-	fake.getIAMCapabilitiesStacksMutex.RLock()
-	defer fake.getIAMCapabilitiesStacksMutex.RUnlock()
-	argsForCall := fake.getIAMCapabilitiesStacksArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeStackManager) GetIAMCapabilitiesStacksReturns(result1 []*manager.Stack, result2 error) {
-	fake.getIAMCapabilitiesStacksMutex.Lock()
-	defer fake.getIAMCapabilitiesStacksMutex.Unlock()
-	fake.GetIAMCapabilitiesStacksStub = nil
-	fake.getIAMCapabilitiesStacksReturns = struct {
-		result1 []*manager.Stack
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStackManager) GetIAMCapabilitiesStacksReturnsOnCall(i int, result1 []*manager.Stack, result2 error) {
-	fake.getIAMCapabilitiesStacksMutex.Lock()
-	defer fake.getIAMCapabilitiesStacksMutex.Unlock()
-	fake.GetIAMCapabilitiesStacksStub = nil
-	if fake.getIAMCapabilitiesStacksReturnsOnCall == nil {
-		fake.getIAMCapabilitiesStacksReturnsOnCall = make(map[int]struct {
-			result1 []*manager.Stack
-			result2 error
-		})
-	}
-	fake.getIAMCapabilitiesStacksReturnsOnCall[i] = struct {
-		result1 []*manager.Stack
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeStackManager) GetIAMServiceAccounts(arg1 context.Context, arg2 string, arg3 string) ([]*v1alpha5.ClusterIAMServiceAccount, error) {
 	fake.getIAMServiceAccountsMutex.Lock()
 	ret, specificReturn := fake.getIAMServiceAccountsReturnsOnCall[len(fake.getIAMServiceAccountsArgsForCall)]
@@ -3059,6 +3008,134 @@ func (fake *FakeStackManager) ListAccessEntryStackNamesReturnsOnCall(i int, resu
 	}
 	fake.listAccessEntryStackNamesReturnsOnCall[i] = struct {
 		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) ListCapabilitiesIAMStacks(arg1 context.Context) ([]*manager.Stack, error) {
+	fake.listCapabilitiesIAMStacksMutex.Lock()
+	ret, specificReturn := fake.listCapabilitiesIAMStacksReturnsOnCall[len(fake.listCapabilitiesIAMStacksArgsForCall)]
+	fake.listCapabilitiesIAMStacksArgsForCall = append(fake.listCapabilitiesIAMStacksArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.ListCapabilitiesIAMStacksStub
+	fakeReturns := fake.listCapabilitiesIAMStacksReturns
+	fake.recordInvocation("ListCapabilitiesIAMStacks", []interface{}{arg1})
+	fake.listCapabilitiesIAMStacksMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStackManager) ListCapabilitiesIAMStacksCallCount() int {
+	fake.listCapabilitiesIAMStacksMutex.RLock()
+	defer fake.listCapabilitiesIAMStacksMutex.RUnlock()
+	return len(fake.listCapabilitiesIAMStacksArgsForCall)
+}
+
+func (fake *FakeStackManager) ListCapabilitiesIAMStacksCalls(stub func(context.Context) ([]*manager.Stack, error)) {
+	fake.listCapabilitiesIAMStacksMutex.Lock()
+	defer fake.listCapabilitiesIAMStacksMutex.Unlock()
+	fake.ListCapabilitiesIAMStacksStub = stub
+}
+
+func (fake *FakeStackManager) ListCapabilitiesIAMStacksArgsForCall(i int) context.Context {
+	fake.listCapabilitiesIAMStacksMutex.RLock()
+	defer fake.listCapabilitiesIAMStacksMutex.RUnlock()
+	argsForCall := fake.listCapabilitiesIAMStacksArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeStackManager) ListCapabilitiesIAMStacksReturns(result1 []*manager.Stack, result2 error) {
+	fake.listCapabilitiesIAMStacksMutex.Lock()
+	defer fake.listCapabilitiesIAMStacksMutex.Unlock()
+	fake.ListCapabilitiesIAMStacksStub = nil
+	fake.listCapabilitiesIAMStacksReturns = struct {
+		result1 []*manager.Stack
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) ListCapabilitiesIAMStacksReturnsOnCall(i int, result1 []*manager.Stack, result2 error) {
+	fake.listCapabilitiesIAMStacksMutex.Lock()
+	defer fake.listCapabilitiesIAMStacksMutex.Unlock()
+	fake.ListCapabilitiesIAMStacksStub = nil
+	if fake.listCapabilitiesIAMStacksReturnsOnCall == nil {
+		fake.listCapabilitiesIAMStacksReturnsOnCall = make(map[int]struct {
+			result1 []*manager.Stack
+			result2 error
+		})
+	}
+	fake.listCapabilitiesIAMStacksReturnsOnCall[i] = struct {
+		result1 []*manager.Stack
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) ListCapabilityStacks(arg1 context.Context) ([]*manager.Stack, error) {
+	fake.listCapabilityStacksMutex.Lock()
+	ret, specificReturn := fake.listCapabilityStacksReturnsOnCall[len(fake.listCapabilityStacksArgsForCall)]
+	fake.listCapabilityStacksArgsForCall = append(fake.listCapabilityStacksArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.ListCapabilityStacksStub
+	fakeReturns := fake.listCapabilityStacksReturns
+	fake.recordInvocation("ListCapabilityStacks", []interface{}{arg1})
+	fake.listCapabilityStacksMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStackManager) ListCapabilityStacksCallCount() int {
+	fake.listCapabilityStacksMutex.RLock()
+	defer fake.listCapabilityStacksMutex.RUnlock()
+	return len(fake.listCapabilityStacksArgsForCall)
+}
+
+func (fake *FakeStackManager) ListCapabilityStacksCalls(stub func(context.Context) ([]*manager.Stack, error)) {
+	fake.listCapabilityStacksMutex.Lock()
+	defer fake.listCapabilityStacksMutex.Unlock()
+	fake.ListCapabilityStacksStub = stub
+}
+
+func (fake *FakeStackManager) ListCapabilityStacksArgsForCall(i int) context.Context {
+	fake.listCapabilityStacksMutex.RLock()
+	defer fake.listCapabilityStacksMutex.RUnlock()
+	argsForCall := fake.listCapabilityStacksArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeStackManager) ListCapabilityStacksReturns(result1 []*manager.Stack, result2 error) {
+	fake.listCapabilityStacksMutex.Lock()
+	defer fake.listCapabilityStacksMutex.Unlock()
+	fake.ListCapabilityStacksStub = nil
+	fake.listCapabilityStacksReturns = struct {
+		result1 []*manager.Stack
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) ListCapabilityStacksReturnsOnCall(i int, result1 []*manager.Stack, result2 error) {
+	fake.listCapabilityStacksMutex.Lock()
+	defer fake.listCapabilityStacksMutex.Unlock()
+	fake.ListCapabilityStacksStub = nil
+	if fake.listCapabilityStacksReturnsOnCall == nil {
+		fake.listCapabilityStacksReturnsOnCall = make(map[int]struct {
+			result1 []*manager.Stack
+			result2 error
+		})
+	}
+	fake.listCapabilityStacksReturnsOnCall[i] = struct {
+		result1 []*manager.Stack
 		result2 error
 	}{result1, result2}
 }

@@ -13,8 +13,8 @@ import (
 )
 
 type RemoverInterface interface {
-	Delete(ctx context.Context, capabilities []CapabilitySummary) error
-	DeleteTasks(ctx context.Context, capabilities []CapabilitySummary) *tasks.TaskTree
+	Delete(ctx context.Context, capabilities []Summary) error
+	DeleteTasks(ctx context.Context, capabilities []Summary) *tasks.TaskTree
 }
 
 type StackRemover interface {
@@ -36,7 +36,7 @@ func NewRemover(clusterName string, stackRemover StackRemover) *Remover {
 	}
 }
 
-func (r *Remover) Delete(ctx context.Context, capabilities []CapabilitySummary) error {
+func (r *Remover) Delete(ctx context.Context, capabilities []Summary) error {
 	// Create parallel tasks for capability deletion and waiting
 	capabilityTasks, err := r.DeleteTasks(ctx, capabilities)
 
@@ -56,7 +56,7 @@ func (r *Remover) Delete(ctx context.Context, capabilities []CapabilitySummary) 
 	return nil
 }
 
-func (r *Remover) DeleteTasks(ctx context.Context, capabilities []CapabilitySummary) (*tasks.TaskTree, error) {
+func (r *Remover) DeleteTasks(ctx context.Context, capabilities []Summary) (*tasks.TaskTree, error) {
 
 	// Get CapabilityIAMRole stacks
 	capabilityStacks, err := r.stackRemover.ListCapabilityStacks(ctx)

@@ -80,16 +80,16 @@ func doGetCapability(cmd *cmdutils.Cmd, capabilityName string, params *getCmdPar
 }
 
 func addCapabilitySummaryTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("NAME", func(c capabilityactions.CapabilitySummary) string {
+	printer.AddColumn("NAME", func(c capabilityactions.Summary) string {
 		return c.Name
 	})
-	printer.AddColumn("TYPE", func(c capabilityactions.CapabilitySummary) string {
+	printer.AddColumn("TYPE", func(c capabilityactions.Summary) string {
 		return c.Type
 	})
-	printer.AddColumn("STATUS", func(c capabilityactions.CapabilitySummary) string {
+	printer.AddColumn("STATUS", func(c capabilityactions.Summary) string {
 		return c.Status
 	})
-	printer.AddColumn("VERSION", func(c capabilityactions.CapabilitySummary) string {
+	printer.AddColumn("VERSION", func(c capabilityactions.Summary) string {
 		return c.Version
 	})
 }

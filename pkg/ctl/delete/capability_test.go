@@ -3,22 +3,24 @@ package delete
 import (
 	"testing"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 func TestConfigureDeleteCapabilityCmd(t *testing.T) {
+	flagGrouping := cmdutils.NewGrouping()
 	cmd := &cmdutils.Cmd{
-		ClusterConfig: api.NewClusterConfig(),
+		CobraCommand: &cobra.Command{},
 	}
-	capability := &api.Capability{}
-	
-	configureDeleteCapabilityCmd(cmd, capability)
-	
+	cmd.FlagSetGroup = flagGrouping.New(cmd.CobraCommand)
+
+	deleteCapabilityCmd(cmd)
+
 	if cmd.CobraCommand.Use != "capability" {
 		t.Errorf("Expected command use 'capability', got %s", cmd.CobraCommand.Use)
 	}
-	
+
 	if cmd.CobraCommand.Short == "" {
 		t.Error("Expected command to have a short description")
 	}

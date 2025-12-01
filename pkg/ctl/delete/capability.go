@@ -41,16 +41,16 @@ func doDeleteCapability(cmd *cmdutils.Cmd, capability *api.Capability) error {
 	}
 
 	// Use capabilities from config file if available, otherwise use single capability
-	var capabilities []capabilityactions.CapabilitySummary
+	var capabilities []capabilityactions.Summary
 	if len(cmd.ClusterConfig.Capabilities) > 0 {
 		for _, cap := range cmd.ClusterConfig.Capabilities {
-			capabilities = append(capabilities, capabilityactions.CapabilitySummary{
+			capabilities = append(capabilities, capabilityactions.Summary{
 				Capability: cap,
 			})
 		}
 
 	} else {
-		capabilities = []capabilityactions.CapabilitySummary{{
+		capabilities = []capabilityactions.Summary{{
 			Capability: *capability,
 		}}
 	}
