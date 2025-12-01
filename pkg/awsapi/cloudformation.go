@@ -226,9 +226,32 @@ type CloudFormation interface {
 	//
 	// [Update CloudFormation stacks using change sets]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html
 	DescribeChangeSet(ctx context.Context, params *cloudformation.DescribeChangeSetInput, optFns ...func(*Options)) (*cloudformation.DescribeChangeSetOutput, error)
-	// Returns hook-related information for the change set and a list of changes that
+	// Returns Hook-related information for the change set and a list of changes that
 	// CloudFormation makes when you run the change set.
 	DescribeChangeSetHooks(ctx context.Context, params *cloudformation.DescribeChangeSetHooksInput, optFns ...func(*Options)) (*cloudformation.DescribeChangeSetHooksOutput, error)
+	// Returns CloudFormation events based on flexible query criteria. Groups events
+	// by operation ID, enabling you to focus on individual stack operations during
+	// deployment.
+	//
+	// An operation is any action performed on a stack, including stack lifecycle
+	// actions (Create, Update, Delete, Rollback), change set creation, nested stack
+	// creation, and automatic rollbacks triggered by failures. Each operation has a
+	// unique identifier (Operation ID) and represents a discrete change attempt on the
+	// stack.
+	//
+	// Returns different types of events including:
+	//
+	//   - Progress events - Status updates during stack operation execution.
+	//
+	//   - Validation errors - Failures from CloudFormation Early Validations.
+	//
+	//   - Provisioning errors - Resource creation and update failures.
+	//
+	//   - Hook invocation errors - Failures from CloudFormation Hook during stack
+	//     operations.
+	//
+	// One of ChangeSetName , OperationId or StackName must be specified as input.
+	DescribeEvents(ctx context.Context, params *cloudformation.DescribeEventsInput, optFns ...func(*Options)) (*cloudformation.DescribeEventsOutput, error)
 	// Describes a generated template. The output includes details about the progress
 	// of the creation of a generated template started by a CreateGeneratedTemplate
 	// API action or the update of a generated template started with an
@@ -466,6 +489,15 @@ type CloudFormation interface {
 	// last in a Complete status. If the template has not yet been in a Complete
 	// status then an empty template will be returned.
 	GetGeneratedTemplate(ctx context.Context, params *cloudformation.GetGeneratedTemplateInput, optFns ...func(*Options)) (*cloudformation.GetGeneratedTemplateOutput, error)
+	// Retrieves detailed information and remediation guidance for a Hook invocation
+	// result.
+	//
+	// If the Hook uses a KMS key to encrypt annotations, callers of the GetHookResult
+	// operation must have kms:Decrypt permissions. For more information, see [KMS key policy and permissions for encrypting CloudFormation Hooks results at rest] in the
+	// CloudFormation Hooks User Guide.
+	//
+	// [KMS key policy and permissions for encrypting CloudFormation Hooks results at rest]: https://docs.aws.amazon.com/cloudformation-cli/latest/hooks-userguide/hooks-kms-key-policy.html
+	GetHookResult(ctx context.Context, params *cloudformation.GetHookResultInput, optFns ...func(*Options)) (*cloudformation.GetHookResultOutput, error)
 	// Returns the stack policy for a specified stack. If a stack doesn't have a
 	// policy, a null value is returned.
 	GetStackPolicy(ctx context.Context, params *cloudformation.GetStackPolicyInput, optFns ...func(*Options)) (*cloudformation.GetStackPolicyOutput, error)

@@ -63,6 +63,22 @@ type EKS interface {
 	//
 	// [Amazon EKS add-ons]: https://docs.aws.amazon.com/eks/latest/userguide/eks-add-ons.html
 	CreateAddon(ctx context.Context, params *eks.CreateAddonInput, optFns ...func(*Options)) (*eks.CreateAddonOutput, error)
+	// Creates a managed capability resource for an Amazon EKS cluster.
+	//
+	// Capabilities provide fully managed capabilities to build and scale with
+	// Kubernetes. When you create a capability, Amazon EKSprovisions and manages the
+	// infrastructure required to run the capability outside of your cluster. This
+	// approach reduces operational overhead and preserves cluster resources.
+	//
+	// You can only create one Capability of each type on a given Amazon EKS cluster.
+	// Valid types are Argo CD for declarative GitOps deployment, Amazon Web Services
+	// Controllers for Kubernetes (ACK) for resource management, and Kube Resource
+	// Orchestrator (KRO) for Kubernetes custom resource orchestration.
+	//
+	// For more information, see [EKS Capabilities] in the Amazon EKS User Guide.
+	//
+	// [EKS Capabilities]: https://docs.aws.amazon.com/eks/latest/userguide/capabilities.html
+	CreateCapability(ctx context.Context, params *eks.CreateCapabilityInput, optFns ...func(*Options)) (*eks.CreateCapabilityOutput, error)
 	// Creates an Amazon EKS control plane.
 	//
 	// The Amazon EKS control plane consists of control plane instances that run the
@@ -72,10 +88,10 @@ type EKS interface {
 	// single tenant and unique. It runs on its own set of Amazon EC2 instances.
 	//
 	// The cluster control plane is provisioned across multiple Availability Zones and
-	// fronted by an Elastic Load Balancing Network Load Balancer. Amazon EKS also
-	// provisions elastic network interfaces in your VPC subnets to provide
-	// connectivity from the control plane instances to the nodes (for example, to
-	// support kubectl exec , logs , and proxy data flows).
+	// fronted by an ELB Network Load Balancer. Amazon EKS also provisions elastic
+	// network interfaces in your VPC subnets to provide connectivity from the control
+	// plane instances to the nodes (for example, to support kubectl exec , logs , and
+	// proxy data flows).
 	//
 	// Amazon EKS nodes run in your Amazon Web Services account and connect to your
 	// cluster's control plane over the Kubernetes API server endpoint and a
@@ -160,9 +176,9 @@ type EKS interface {
 	// node group was created. You can update the launch template version with
 	// necessary changes. For more information about using launch templates, see [Customizing managed nodes with launch templates].
 	//
-	// An Amazon EKS managed node group is an Amazon EC2 Auto Scaling group and
-	// associated Amazon EC2 instances that are managed by Amazon Web Services for an
-	// Amazon EKS cluster. For more information, see [Managed node groups]in the Amazon EKS User Guide.
+	// An Amazon EKS managed node group is an Amazon EC2 Amazon EC2 Auto Scaling group
+	// and associated Amazon EC2 instances that are managed by Amazon Web Services for
+	// an Amazon EKS cluster. For more information, see [Managed node groups]in the Amazon EKS User Guide.
 	//
 	// Windows AMI types are only supported for commercial Amazon Web Services Regions
 	// that support Windows on Amazon EKS.
@@ -214,6 +230,16 @@ type EKS interface {
 	// When you remove an add-on, it's deleted from the cluster. You can always
 	// manually start an add-on on the cluster using the Kubernetes API.
 	DeleteAddon(ctx context.Context, params *eks.DeleteAddonInput, optFns ...func(*Options)) (*eks.DeleteAddonOutput, error)
+	// Deletes a managed capability from your Amazon EKS cluster. When you delete a
+	// capability, Amazon EKS removes the capability infrastructure but retains all
+	// resources that were managed by the capability.
+	//
+	// Before deleting a capability, you should delete all Kubernetes resources that
+	// were created by the capability. After the capability is deleted, these resources
+	// become difficult to manage because the controller that managed them is no longer
+	// available. To delete resources before removing the capability, use kubectl
+	// delete or remove them through your GitOps workflow.
+	DeleteCapability(ctx context.Context, params *eks.DeleteCapabilityInput, optFns ...func(*Options)) (*eks.DeleteCapabilityOutput, error)
 	// Deletes an Amazon EKS cluster control plane.
 	//
 	// If you have active services in your cluster that are associated with a load
@@ -273,6 +299,10 @@ type EKS interface {
 	// Information such as the Kubernetes versions that you can use the add-on with,
 	// the owner , publisher , and the type of the add-on are returned.
 	DescribeAddonVersions(ctx context.Context, params *eks.DescribeAddonVersionsInput, optFns ...func(*Options)) (*eks.DescribeAddonVersionsOutput, error)
+	// Returns detailed information about a specific managed capability in your Amazon
+	// EKS cluster, including its current status, configuration, health information,
+	// and any issues that may be affecting its operation.
+	DescribeCapability(ctx context.Context, params *eks.DescribeCapabilityInput, optFns ...func(*Options)) (*eks.DescribeCapabilityOutput, error)
 	// Describes an Amazon EKS cluster.
 	//
 	// The API server endpoint and certificate authority data returned by this
@@ -327,6 +357,9 @@ type EKS interface {
 	ListAddons(ctx context.Context, params *eks.ListAddonsInput, optFns ...func(*Options)) (*eks.ListAddonsOutput, error)
 	// Lists the access policies associated with an access entry.
 	ListAssociatedAccessPolicies(ctx context.Context, params *eks.ListAssociatedAccessPoliciesInput, optFns ...func(*Options)) (*eks.ListAssociatedAccessPoliciesOutput, error)
+	// Lists all managed capabilities in your Amazon EKS cluster. You can use this
+	// operation to get an overview of all capabilities and their current status.
+	ListCapabilities(ctx context.Context, params *eks.ListCapabilitiesInput, optFns ...func(*Options)) (*eks.ListCapabilitiesOutput, error)
 	// Lists the Amazon EKS clusters in your Amazon Web Services account in the
 	// specified Amazon Web Services Region.
 	ListClusters(ctx context.Context, params *eks.ListClustersInput, optFns ...func(*Options)) (*eks.ListClustersOutput, error)
@@ -400,6 +433,14 @@ type EKS interface {
 	UpdateAccessEntry(ctx context.Context, params *eks.UpdateAccessEntryInput, optFns ...func(*Options)) (*eks.UpdateAccessEntryOutput, error)
 	// Updates an Amazon EKS add-on.
 	UpdateAddon(ctx context.Context, params *eks.UpdateAddonInput, optFns ...func(*Options)) (*eks.UpdateAddonOutput, error)
+	// Updates the configuration of a managed capability in your Amazon EKS cluster.
+	// You can update the IAM role, configuration settings, and delete propagation
+	// policy for a capability.
+	//
+	// When you update a capability, Amazon EKS applies the changes and may restart
+	// capability components as needed. The capability remains available during the
+	// update process, but some operations may be temporarily unavailable.
+	UpdateCapability(ctx context.Context, params *eks.UpdateCapabilityInput, optFns ...func(*Options)) (*eks.UpdateCapabilityOutput, error)
 	// Updates an Amazon EKS cluster configuration. Your cluster continues to function
 	// during the update. The response output includes an update ID that you can use to
 	// track the status of your cluster update with DescribeUpdate .

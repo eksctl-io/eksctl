@@ -306,6 +306,112 @@
       "description": "holds the addons config.",
       "x-intellij-html-description": "holds the addons config."
     },
+    "ArgoCDAWSIDC": {
+      "required": [
+        "idcInstanceArn"
+      ],
+      "properties": {
+        "idcInstanceArn": {
+          "type": "string",
+          "description": "ARN of the IDC instance",
+          "x-intellij-html-description": "ARN of the IDC instance"
+        },
+        "idcRegion": {
+          "type": "string",
+          "description": "region of the IDC instance",
+          "x-intellij-html-description": "region of the IDC instance"
+        }
+      },
+      "preferredOrder": [
+        "idcInstanceArn",
+        "idcRegion"
+      ],
+      "additionalProperties": false,
+      "description": "holds AWS IDC configuration for ArgoCD",
+      "x-intellij-html-description": "holds AWS IDC configuration for ArgoCD"
+    },
+    "ArgoCDConfiguration": {
+      "properties": {
+        "awsIdc": {
+          "$ref": "#/definitions/ArgoCDAWSIDC",
+          "description": "configuration",
+          "x-intellij-html-description": "configuration"
+        },
+        "namespace": {
+          "type": "string",
+          "description": "for ArgoCD installation",
+          "x-intellij-html-description": "for ArgoCD installation"
+        },
+        "networkAccess": {
+          "$ref": "#/definitions/ArgoCDNetworkAccess",
+          "description": "configuration",
+          "x-intellij-html-description": "configuration"
+        },
+        "rbacRoleMappings": {
+          "items": {
+            "$ref": "#/definitions/ArgoCDRoleMapping"
+          },
+          "type": "array",
+          "description": "for ArgoCD RBAC",
+          "x-intellij-html-description": "for ArgoCD RBAC"
+        }
+      },
+      "preferredOrder": [
+        "namespace",
+        "networkAccess",
+        "rbacRoleMappings",
+        "awsIdc"
+      ],
+      "additionalProperties": false,
+      "description": "holds ArgoCD-specific configuration",
+      "x-intellij-html-description": "holds ArgoCD-specific configuration"
+    },
+    "ArgoCDNetworkAccess": {
+      "properties": {
+        "vpceIds": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "for VPC endpoint access",
+          "x-intellij-html-description": "for VPC endpoint access"
+        }
+      },
+      "preferredOrder": [
+        "vpceIds"
+      ],
+      "additionalProperties": false,
+      "description": "holds network access configuration for ArgoCD",
+      "x-intellij-html-description": "holds network access configuration for ArgoCD"
+    },
+    "ArgoCDRoleMapping": {
+      "required": [
+        "role",
+        "identities"
+      ],
+      "properties": {
+        "identities": {
+          "items": {
+            "$ref": "#/definitions/SSOIdentity"
+          },
+          "type": "array",
+          "description": "SSO identities to map to the role",
+          "x-intellij-html-description": "SSO identities to map to the role"
+        },
+        "role": {
+          "type": "string",
+          "description": "ArgoCD role (ADMIN, EDITOR, VIEWER)",
+          "x-intellij-html-description": "ArgoCD role (ADMIN, EDITOR, VIEWER)"
+        }
+      },
+      "preferredOrder": [
+        "role",
+        "identities"
+      ],
+      "additionalProperties": false,
+      "description": "holds RBAC role mapping for ArgoCD",
+      "x-intellij-html-description": "holds RBAC role mapping for ArgoCD"
+    },
     "AutoModeConfig": {
       "properties": {
         "enabled": {
@@ -339,6 +445,104 @@
         "nodePools"
       ],
       "additionalProperties": false
+    },
+    "Capability": {
+      "required": [
+        "name",
+        "type"
+      ],
+      "properties": {
+        "accessPolicies": {
+          "items": {
+            "$ref": "#/definitions/AccessPolicy"
+          },
+          "type": "array",
+          "description": "list of access policies to associate with the access entry",
+          "x-intellij-html-description": "list of access policies to associate with the access entry"
+        },
+        "attachPolicy": {
+          "$ref": "#/definitions/InlineDocument",
+          "description": "holds a policy document to attach",
+          "x-intellij-html-description": "holds a policy document to attach"
+        },
+        "attachPolicyARNs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "list of ARNs of the IAM policies to attach",
+          "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
+        },
+        "configuration": {
+          "$ref": "#/definitions/CapabilityConfiguration",
+          "description": "holds capability-specific configuration. Only applicable for ArgoCD",
+          "x-intellij-html-description": "holds capability-specific configuration. Only applicable for ArgoCD"
+        },
+        "deletePropagationPolicy": {
+          "type": "string",
+          "description": "specifies the delete propagation policy",
+          "x-intellij-html-description": "specifies the delete propagation policy"
+        },
+        "name": {
+          "type": "string",
+          "description": "of the capability",
+          "x-intellij-html-description": "of the capability"
+        },
+        "permissionsBoundary": {
+          "type": "string",
+          "description": "ARN of the permissions boundary policy",
+          "x-intellij-html-description": "ARN of the permissions boundary policy"
+        },
+        "roleArn": {
+          "type": "string",
+          "description": "IAM role ARN for the capability",
+          "x-intellij-html-description": "IAM role ARN for the capability"
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "used to tag AWS resources created by the capability",
+          "x-intellij-html-description": "used to tag AWS resources created by the capability",
+          "default": "{}"
+        },
+        "type": {
+          "type": "string",
+          "description": "of the capability (ACK, KRO, ARGOCD)",
+          "x-intellij-html-description": "of the capability (ACK, KRO, ARGOCD)"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "type",
+        "roleArn",
+        "deletePropagationPolicy",
+        "configuration",
+        "tags",
+        "accessPolicies",
+        "attachPolicyARNs",
+        "attachPolicy",
+        "permissionsBoundary"
+      ],
+      "additionalProperties": false,
+      "description": "represents an EKS capability configuration",
+      "x-intellij-html-description": "represents an EKS capability configuration"
+    },
+    "CapabilityConfiguration": {
+      "properties": {
+        "argocd": {
+          "$ref": "#/definitions/ArgoCDConfiguration",
+          "description": "configuration for ARGOCD capability type",
+          "x-intellij-html-description": "configuration for ARGOCD capability type"
+        }
+      },
+      "preferredOrder": [
+        "argocd"
+      ],
+      "additionalProperties": false,
+      "description": "holds capability-specific configuration",
+      "x-intellij-html-description": "holds capability-specific configuration"
     },
     "CapacityReservation": {
       "properties": {
@@ -461,6 +665,14 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "capabilities": {
+          "items": {
+            "$ref": "#/definitions/Capability"
+          },
+          "type": "array",
+          "description": "specifies the capabilities for the cluster.",
+          "x-intellij-html-description": "specifies the capabilities for the cluster."
         },
         "cloudWatch": {
           "$ref": "#/definitions/ClusterCloudWatch",
@@ -596,7 +808,8 @@
         "karpenter",
         "outpost",
         "controlPlaneScalingConfig",
-        "zonalShiftConfig"
+        "zonalShiftConfig",
+        "capabilities"
       ],
       "additionalProperties": false,
       "description": "a simple config, to be replaced with Cluster API",
@@ -2793,6 +3006,31 @@
         "caBundleCert"
       ],
       "additionalProperties": false
+    },
+    "SSOIdentity": {
+      "required": [
+        "id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "of the SSO identity",
+          "x-intellij-html-description": "of the SSO identity"
+        },
+        "type": {
+          "type": "string",
+          "description": "of the SSO identity (SSO_USER, SSO_GROUP)",
+          "x-intellij-html-description": "of the SSO identity (SSO<em>USER, SSO</em>GROUP)"
+        }
+      },
+      "preferredOrder": [
+        "id",
+        "type"
+      ],
+      "additionalProperties": false,
+      "description": "represents an SSO identity",
+      "x-intellij-html-description": "represents an SSO identity"
     },
     "SecretsEncryption": {
       "required": [
