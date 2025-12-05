@@ -121,7 +121,7 @@ var Partitions = partitions{
 			"EKS":            "eks.amazonaws.com",
 			"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
 		},
-		regions:                     []string{RegionUSISOBEast1},
+		regions:                     []string{RegionUSISOBEast1,RegionUSISOBWest1},
 		endpointServiceDomainPrefix: "gov.sgov.sc2s",
 		v1SDKDNSPrefix:              "sc2s.sgov.gov",
 	},
