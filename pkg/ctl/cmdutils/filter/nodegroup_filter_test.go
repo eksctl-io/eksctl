@@ -378,7 +378,7 @@ const expected = `
 		  {
 			  "name": "test-ng1a",
 			  "amiFamily": "AmazonLinux2023",
-			  "instanceType": "m5.large",
+			  "instanceType": "t3.medium",
 			  "privateNetworking": false,
 			  "securityGroups": {
 			    "withShared": true,
@@ -424,7 +424,7 @@ const expected = `
 		  {
 			  "name": "test-ng2a",
 			  "amiFamily": "AmazonLinux2023",
-			  "instanceType": "m5.large",
+			  "instanceType": "t3.medium",
 			  "privateNetworking": false,
 			  "securityGroups": {
 			    "withShared": true,
@@ -515,7 +515,7 @@ const expected = `
 		  {
 			  "name": "test-ng1b",
 			  "amiFamily": "AmazonLinux2023",
-			  "instanceType": "m5.large",
+			  "instanceType": "t3.medium",
 			  "privateNetworking": false,
 			  "securityGroups": {
 			    "withShared": true,
@@ -609,7 +609,7 @@ const expected = `
 		  {
 			  "name": "test-ng3b",
 			  "amiFamily": "AmazonLinux2023",
-			  "instanceType": "m5.large",
+			  "instanceType": "t3.medium",
 			  "privateNetworking": false,
 			  "securityGroups": {
 			    "attachIDs": [

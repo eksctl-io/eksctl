@@ -60,7 +60,7 @@ metadata:
 
 nodeGroups:
   - name: new-subnet-nodegroup
-    instanceType: m5.large
+    instanceType: t3.medium
     desiredCapacity: 1
     subnets:
       - subnet-id1

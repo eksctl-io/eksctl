@@ -39,7 +39,7 @@ managedNodeGroups:
   spot: true
 
 
-# `instanceTypes` defaults to [`m5.large`]
+# `instanceTypes` defaults to [`t3.medium`]
 - name: spot-2
   spot: true
 

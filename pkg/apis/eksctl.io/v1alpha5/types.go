@@ -237,7 +237,7 @@ const (
 
 const (
 	// DefaultNodeType is the default instance type to use for nodes
-	DefaultNodeType = "m5.large"
+	DefaultNodeType = "t3.medium"
 
 	// DefaultNodeCount defines the default number of nodes to be created
 	DefaultNodeCount = 2

@@ -179,7 +179,7 @@ var _ = Describe("Kubeconfig", func() {
 			NodeGroups: []*eksctlapi.NodeGroup{
 				{
 					NodeGroupBase: &eksctlapi.NodeGroupBase{
-						InstanceType:      "m5.large",
+						InstanceType:      "t3.medium",
 						AvailabilityZones: []string{"us-west-2b", "us-west-2a", "us-west-2c"},
 						PrivateNetworking: false,
 						SSH: &eksctlapi.NodeGroupSSH{

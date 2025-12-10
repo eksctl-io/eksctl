@@ -81,7 +81,7 @@ explicitly set. It is an error to leave `privateNetworking` unset in a fully-pri
 ```yaml
 nodeGroups:
 - name: ng1
-  instanceType: m5.large
+  instanceType: t3.medium
   desiredCapacity: 2
   # privateNetworking must be explicitly set for a fully-private cluster
   # Rather than defaulting this field to `true`,
@@ -91,7 +91,7 @@ nodeGroups:
 
 managedNodeGroups:
 - name: m1
-  instanceType: m5.large
+  instanceType: t3.medium
   desiredCapacity: 2
   privateNetworking: true
 ```
@@ -135,7 +135,7 @@ vpc:
 
 nodeGroups:
 - name: ng1
-  instanceType: m5.large
+  instanceType: t3.medium
   desiredCapacity: 2
   # privateNetworking must be explicitly set for a fully-private cluster
   # Rather than defaulting this field to true for a fully-private cluster, we require users to explicitly set it
@@ -144,7 +144,7 @@ nodeGroups:
 
 managedNodeGroups:
 - name: m1
-  instanceType: m5.large
+  instanceType: t3.medium
   desiredCapacity: 2
   privateNetworking: true
 ```

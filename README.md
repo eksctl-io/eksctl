@@ -168,7 +168,7 @@ eksctl create cluster
 A cluster will be created with default parameters
 
 - exciting auto-generated name, e.g. "fabulous-mushroom-1527688624"
-- 2x `m5.large` nodes (this instance type suits most common use-cases, and is good value for money)
+- 2x `t3.medium` nodes (this instance type suits most common use-cases, and is good value for money)
 - use official AWS EKS AMI
 - `us-west-2` region
 - dedicated VPC (check your quotas)
