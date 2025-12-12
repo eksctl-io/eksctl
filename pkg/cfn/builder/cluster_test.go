@@ -715,7 +715,7 @@ var _ = Describe("Cluster Template Builder", func() {
 				}
 				cfg.Outpost = &api.Outpost{
 					ControlPlaneOutpostARN:   "arn:aws:outposts:us-west-2:1234:outpost/op-1234",
-					ControlPlaneInstanceType: "m5.large",
+					ControlPlaneInstanceType: "t3.medium",
 				}
 
 				var output *ec2.DescribeVpcEndpointServicesOutput

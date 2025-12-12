@@ -47,7 +47,7 @@ The `overrideBootstrapCommand` option requires that you specify an AMI for the m
 managedNodeGroups:
   - name: m-ng-1
     ami: ami-XXXXXXXXXXXXXX
-    instanceType: m5.large
+    instanceType: t3.medium
     overrideBootstrapCommand: |
       #!/bin/bash
       /etc/eks/bootstrap.sh <cluster-name> <other flags> --container-runtime containerd
