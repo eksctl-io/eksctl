@@ -124,6 +124,12 @@ type ClusterIAMServiceAccount struct {
 	// AWS tags for the service account
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
+
+	// Subject pattern to use in the trust policy condition. When set, this pattern is used
+	// instead of the service account name, and StringLike is used instead of StringEquals
+	// to allow wildcard matching.
+	// +optional
+	SubjectPattern string `json:"subjectPattern,omitempty"`
 }
 
 // ClusterIAMServiceAccountStatus holds status of the IAM service account
