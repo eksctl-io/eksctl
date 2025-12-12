@@ -30,6 +30,28 @@ var _ = Describe("create iamserviceaccount", func() {
 		Entry("with optional flags", "--cluster", "clusterName", "--name", "serviceAccountName", "--attach-policy-arn", "dummyPolicyArn", "--override-existing-serviceaccounts", "--role-name", "custom-role-name"),
 	)
 
+	DescribeTable("create service account with subject pattern",
+		func(args ...string) {
+			commandArgs := append([]string{"iamserviceaccount"}, args...)
+			cmd := newMockEmptyCmd(commandArgs...)
+			count := 0
+			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
+				createIAMServiceAccountCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, _, _ bool) error {
+					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
+					Expect(cmd.ClusterConfig.IAM.ServiceAccounts[0].Name).To(Equal("serviceAccountName"))
+					Expect(cmd.ClusterConfig.IAM.ServiceAccounts[0].SubjectPattern).To(Equal("app-*"))
+					Expect(cmd.ClusterConfig.IAM.ServiceAccounts[0].AttachPolicyARNs).To(ContainElement("dummyPolicyArn"))
+					count++
+					return nil
+				})
+			})
+			_, err := cmd.execute()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(count).To(Equal(1))
+		},
+		Entry("with subject-pattern flag", "--cluster", "clusterName", "--name", "serviceAccountName", "--attach-policy-arn", "dummyPolicyArn", "--subject-pattern", "app-*"),
+	)
+
 	DescribeTable("invalid flags or arguments",
 		func(c invalidParamsCase) {
 			cmd := newDefaultCmd(c.args...)
