@@ -180,6 +180,21 @@ func (m *OpenIDConnectManager) MakeAssumeRolePolicyDocumentWithServiceAccountCon
 	})
 }
 
+// MakeAssumeRolePolicyDocumentWithServiceAccountConditionsAllowingWildcard constructs a trust policy document
+// that allows wildcard pattern matching in the subject condition. The subjectPattern should be in the format
+// "system:serviceaccount:namespace:name-pattern" where name-pattern can include wildcards like "*".
+func (m *OpenIDConnectManager) MakeAssumeRolePolicyDocumentWithServiceAccountConditionsAllowingWildcard(serviceAccountNamespace, subjectPattern string) cft.MapOfInterfaces {
+	subject := fmt.Sprintf("system:serviceaccount:%s:%s", serviceAccountNamespace, subjectPattern)
+	return cft.MakeAssumeRoleWithWebIdentityPolicyDocument(m.ProviderARN, cft.MapOfInterfaces{
+		"StringLike": map[string]string{
+			m.hostnameAndPath() + ":sub": subject,
+		},
+		"StringEquals": map[string]string{
+			m.hostnameAndPath() + ":aud": m.audience,
+		},
+	})
+}
+
 func (m *OpenIDConnectManager) MakeAssumeRolePolicyDocument() cft.MapOfInterfaces {
 	return cft.MakeAssumeRoleWithWebIdentityPolicyDocument(m.ProviderARN, cft.MapOfInterfaces{
 		"StringEquals": map[string]string{
